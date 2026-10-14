@@ -1,0 +1,205 @@
+/*
+  Prototipo de kiwi, r02 de la paginación: selector de filas por página.
+  Solo var(--g-*) del tema por defecto (llega de packages/vue/dist/grana.css) y alias locales. Literales: 24px, 44px.
+  No es el CSS del componente (es de coco): fija forma y comportamiento para juzgar los conceptos.
+*/
+
+/* ---------- Común ---------- */
+.pg-icon { inline-size: 1.15em; block-size: 1.15em; flex: none; }
+.pg-sr {
+  position: absolute; inline-size: 1px; block-size: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+/* La paginación con selector: rango y selector juntos al inicio, controles al final */
+.g-pagination .pg-meta {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: var(--g-space-2) var(--g-space-4);
+}
+.g-pagination .pg-range { font-variant-numeric: tabular-nums; }
+
+/* ---------- Base · <select> nativo ---------- */
+.pgBase-size { display: inline-flex; align-items: center; gap: var(--g-space-2); }
+.pgBase-box { position: relative; display: inline-grid; align-items: center; }
+.pgBase-box .pg-icon { position: absolute; inset-inline-end: var(--g-space-2); pointer-events: none; color: var(--g-color-text-muted); }
+.pgBase-size select {
+  appearance: none;
+  min-block-size: max(24px, calc(var(--g-space-1) * 8));
+  padding: 0 calc(var(--g-space-2) * 2 + 1.15em) 0 var(--g-space-2);
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+.pgBase-size select:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset); }
+@media (pointer: coarse) { .pgBase-size select { min-block-size: 44px; } }
+
+/* ---------- A · El rango se abre ---------- */
+.pgA-wrap { position: relative; display: inline-flex; }
+.pgA-range {
+  display: inline-flex; align-items: center; gap: var(--g-space-2);
+  min-block-size: max(24px, calc(var(--g-space-1) * 8));
+  margin: 0; padding: 0 var(--g-space-2) 0 var(--g-space-3);
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  font: inherit; font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background-color var(--g-duration-fast) var(--g-ease-standard), border-color var(--g-duration-fast) var(--g-ease-standard);
+}
+.pgA-range .pgA-size { color: var(--g-color-text-muted); }
+.pgA-range .pgA-size::before { content: "·"; margin-inline-end: var(--g-space-2); }
+.pgA-range[aria-expanded="true"] { border-color: var(--g-color-border-strong); background: var(--g-color-surface-sunken); }
+.pgA-range[aria-expanded="true"] .pg-icon { rotate: 180deg; }
+.pgA-range .pg-icon { transition: rotate var(--g-duration-fast) var(--g-ease-out); }
+@media (hover: hover) { .pgA-range:hover { border-color: var(--g-color-border-strong); } }
+.pgA-range:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset); }
+/* En estrecho el tamaño cede (sigue en el nombre accesible) */
+.g-pagination--compact .pgA-range .pgA-size { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.pgA-menu {
+  position: absolute; inset-block-end: calc(100% + var(--g-space-1)); inset-inline-start: 0; z-index: 3;
+  display: grid; gap: var(--g-space-1);
+  min-inline-size: calc(var(--g-space-1) * 60);
+  margin: 0; padding: var(--g-space-1);
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-radius-lg);
+  background: var(--g-color-surface);
+  box-shadow: var(--g-shadow-2);
+  transform-origin: bottom left;
+  animation: pgA-in var(--g-duration-fast) var(--g-ease-out);
+}
+.pgA-menu[hidden] { display: none; }
+.pgA-head { margin: 0; padding: var(--g-space-1) var(--g-space-2) 0; font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); color: var(--g-color-text-muted); }
+.pgA-item {
+  display: grid; grid-template-columns: 1.15em 1fr auto; align-items: center; gap: var(--g-space-2);
+  min-block-size: max(24px, calc(var(--g-space-1) * 9));
+  margin: 0; padding: 0 var(--g-space-2);
+  border: 0; border-radius: var(--g-radius-md);
+  background: none; color: var(--g-color-text);
+  font: inherit; font-variant-numeric: tabular-nums; text-align: start;
+  cursor: pointer;
+}
+.pgA-item .pgA-to { color: var(--g-color-text-muted); }
+.pgA-item[aria-checked="true"] { font-weight: var(--g-text-action-weight); }
+.pgA-item[aria-checked="true"] .pgA-to { color: var(--g-color-text); }
+.pgA-item:focus { outline: none; background: var(--g-color-surface-sunken); }
+.pgA-item:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: calc(var(--g-focus-width) * -1); }
+@media (hover: hover) { .pgA-item:hover { background: var(--g-color-surface-sunken); } }
+@media (pointer: coarse) { .pgA-item, .pgA-range { min-block-size: 44px; } }
+@keyframes pgA-in { from { opacity: 0; transform: translateY(var(--g-space-1)) scale(0.98); } }
+
+/* ---------- B · Pie que acompaña ---------- */
+.pgB-size { display: inline-flex; align-items: center; gap: var(--g-space-2); }
+.pgB-track {
+  display: inline-flex; padding: calc(var(--g-space-1) / 2); gap: calc(var(--g-space-1) / 2);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface-sunken);
+}
+.pgB-seg { position: relative; display: inline-grid; }
+.pgB-seg input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+.pgB-seg span {
+  display: inline-grid; place-items: center;
+  min-inline-size: max(24px, calc(var(--g-space-1) * 9)); min-block-size: max(24px, calc(var(--g-space-1) * 7));
+  padding: 0 var(--g-space-2);
+  border: var(--g-border-width) solid transparent;
+  border-radius: calc(var(--g-radius-md) - var(--g-space-1) / 2);
+  color: var(--g-color-text-muted);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  transition: background-color var(--g-duration-fast) var(--g-ease-standard), color var(--g-duration-fast) var(--g-ease-standard);
+}
+.pgB-seg input:checked + span {
+  border-color: var(--g-color-border-strong);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  font-weight: var(--g-text-action-weight);
+  box-shadow: var(--g-shadow-1);
+}
+.pgB-seg input:focus-visible + span { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset); }
+@media (hover: hover) { .pgB-seg input:not(:checked):hover + span { color: var(--g-color-text); background: var(--g-color-surface); } }
+@media (pointer: coarse) { .pgB-seg span { min-inline-size: 44px; min-block-size: 44px; } }
+
+/* El pie se acopla al borde inferior de la pantalla mientras la tabla siga por debajo */
+.g-pagination.pgB-dock {
+  position: sticky; inset-block-end: 0; z-index: 2;
+  margin-block-start: 0;
+  padding-block: var(--g-space-2);
+  background: var(--g-color-surface);
+  border-block-start: var(--g-border-width) solid transparent;
+  transition: border-color var(--g-duration-fast) var(--g-ease-standard), box-shadow var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-pagination.pgB-dock.is-stuck { border-block-start-color: var(--g-color-border); box-shadow: var(--g-shadow-1); }
+/* «Aquí estabas»: la fila ancla se tiñe y se apaga */
+.g-table__row.pgB-here > td { animation: pgB-here calc(var(--g-duration-slow) * 4) var(--g-ease-out) both; }
+@keyframes pgB-here { from, 40% { background: var(--g-color-primary-soft); } to { background: transparent; } }
+.g-table__row.pgB-new > td { animation: pgB-new var(--g-duration-slow) var(--g-ease-out) both; }
+@keyframes pgB-new { from { opacity: 0; } }
+
+/* ---------- C · Tirar del borde ---------- */
+.pgC-edge {
+  position: relative;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--g-space-1) var(--g-space-3);
+  padding-block: var(--g-space-1);
+  border-block-start: var(--g-border-width) solid var(--g-color-border-strong);
+  font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text-muted);
+}
+.pgC-grip {
+  display: inline-flex; align-items: center; gap: var(--g-space-2);
+  min-block-size: max(24px, calc(var(--g-space-1) * 8));
+  padding: 0 var(--g-space-3);
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  font-variant-numeric: tabular-nums;
+  cursor: ns-resize;
+  touch-action: none;
+  user-select: none;
+}
+.pgC-grip:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset); }
+.pgC-grip.is-dragging { border-color: var(--g-color-border-strong); background: var(--g-color-surface-sunken); }
+.pgC-ticks { display: inline-flex; gap: var(--g-space-1); }
+.pgC-tick {
+  display: inline-grid; place-items: center;
+  min-inline-size: max(24px, calc(var(--g-space-1) * 7)); min-block-size: max(24px, calc(var(--g-space-1) * 7));
+  margin: 0; padding: 0 var(--g-space-1);
+  border: 0; border-radius: var(--g-radius-sm);
+  background: none; color: var(--g-color-text-muted);
+  font: inherit; font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.pgC-tick[data-on] { color: var(--g-color-text); font-weight: var(--g-text-action-weight); text-decoration: underline; text-underline-offset: 0.3em; }
+@media (hover: hover) { .pgC-tick:hover { background: var(--g-color-surface-sunken); color: var(--g-color-text); } }
+@media (pointer: coarse) { .pgC-tick, .pgC-grip { min-block-size: 44px; min-inline-size: 44px; } }
+/* Línea fantasma: dónde acabaría la tabla, con la cifra */
+.pgC-ghost {
+  position: absolute; inset-inline: 0; inset-block-start: 0; z-index: 3;
+  display: flex; justify-content: center;
+  border-block-start: calc(var(--g-border-width) * 2) dashed var(--g-color-primary-text);
+  pointer-events: none;
+  transform: translateY(var(--_dy, 0px));
+}
+.pgC-ghost[hidden] { display: none; }
+.pgC-ghost span {
+  margin-block-start: var(--g-space-1);
+  padding: 0 var(--g-space-2);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-primary); color: var(--g-color-on-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Movimiento reducido: sin fundidos ni giros; la marca de B se queda quieta y se quita ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .pgA-menu, .g-table__row.pgB-new > td { animation: none; }
+  .pgA-range .pg-icon, .pgB-seg span, .g-pagination.pgB-dock { transition: none; }
+  .g-table__row.pgB-here > td { animation: none; background: var(--g-color-primary-soft); }
+}
+@media (forced-colors: active) {
+  .pgB-seg input:checked + span { border-color: CanvasText; }
+  .pgC-ghost { border-block-start-color: Highlight; }
+  .g-table__row.pgB-here > td { forced-color-adjust: none; outline: var(--g-border-width) solid Highlight; }
+}

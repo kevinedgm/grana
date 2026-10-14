@@ -4,14 +4,16 @@
 // La raíz ES una GSurface (DECISIONS.md #126). Nunca la tarjeta entera es un control: la acción principal es un <a>, <button>
 // o <label> real dentro del título cuyo ::after cubre la tarjeta («enlace estirado», #127); el resto de controles va por encima.
 // Presenta y emite intención: `modelValue` es el estado y la tarjeta no lo cambia sin emitir. Mide su propio ancho (#130).
-import { Comment, Fragment, Text, computed, defineComponent, h, inject, nextTick, onBeforeUnmount, onMounted, provide, ref, useAttrs, useId, useSlots, watch } from 'vue'
+import { Comment, Fragment, Text, computed, defineComponent, getCurrentInstance, h, inject, nextTick, onBeforeUnmount, onBeforeUpdate, onMounted, provide, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
+import { cardGroupKey } from '../../utils/cardGroup.js'
 import { useKeyFocus } from '../../utils/keyFocus.js'
 import GSurface from '../GSurface/GSurface.vue'
 import GIcon from '../GIcon/GLibIcon.js'
 import GMenu from '../GMenu/GMenu.vue'
 import GBadge from '../GBadge/GBadge.vue'
 import GBtn from '../GBtn/GBtn.vue'
+import { otherContext } from '../../utils/link.js'
 // Activación primaria de un enlace (#505): botón principal, sin modificadores y sin cancelar (Intro llega como clic primario)
 const primaryActivation = (e) => e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey && !e.defaultPrevented
 
@@ -87,6 +89,7 @@ export default defineComponent({
     const rootId = computed(() => props.id || `g-card-${uid}`)
     const titleId = computed(() => `${rootId.value}-title`)
     const descId = computed(() => `${rootId.value}-desc`)
+    const contentId = computed(() => `${rootId.value}-content`)
     const moreId = computed(() => `${rootId.value}-more`)
     const inputId = computed(() => `${rootId.value}-input`)
     const L = computed(() => props.labels || {})
@@ -94,6 +97,32 @@ export default defineComponent({
     // Tarjeta dentro de tarjeta dentro de tarjeta: aviso (card.md «Jerarquía de superficies»)
     const depth = inject(DEPTH, 0)
     provide(DEPTH, depth + 1)
+
+    // Dentro de un GCardGroup (card.md «Dentro de un GCardGroup», #605, #606): el grupo decide si es una tarjeta gestionada
+    // (toggle con su aria-pressed, tabindex y aria-controls) y la tarjeta no emite update:modelValue. Las tarjetas anidadas
+    // dentro de esta no pertenecen al grupo.
+    const group = inject(cardGroupKey, null)
+    const inst = getCurrentInstance()
+    const primaryEl = ref(null)
+    const entry = group
+      ? group.register({
+          value: () => props.value,
+          interaction: () => props.interaction,
+          disabled: () => props.disabled,
+          loading: () => props.loading,
+          title: () => props.title,
+          el: () => el(),
+          primary: () => primaryEl.value,
+          bound: () => { const p = inst?.vnode.props || {}; return 'modelValue' in p || 'model-value' in p || 'onUpdate:modelValue' in p },
+          secondary: () => Boolean(props.menu.length || props.selectable || (canExpand.value && clipped.value) || slots.actions || slots.footer || slots.more)
+        })
+      : null
+    if (group) {
+      provide(cardGroupKey, null)
+      // Antes de repintar (el botón aún tiene el foco): si deja de ser elegible, el grupo pasa el foco a la siguiente
+      onBeforeUpdate(() => group.check(entry))
+    }
+    const managed = () => Boolean(entry && entry.managed.value)
 
     const warned = new Set()
     const warnOnce = (key, msg) => {
@@ -105,6 +134,7 @@ export default defineComponent({
     // ---------- Acción principal y selección ----------
     const interaction = computed(() => {
       const i = props.interaction
+      if (entry) return managed() ? 'toggle' : 'none'
       if (i === 'auto') return props.href ? 'link' : 'none'
       if (i === 'link' && !props.href) return 'none'
       return i
@@ -116,6 +146,7 @@ export default defineComponent({
     const isRadio = computed(() => props.selectType === 'radio')
     const selected = computed(() => {
       const mv = props.modelValue
+      if (managed()) return entry.pressed.value
       if (interaction.value === 'toggle') return mv === true
       if (!hasBox.value) return false
       if (isRadio.value) return props.value !== undefined && mv === props.value
@@ -147,14 +178,17 @@ export default defineComponent({
     const onLink = (event) => {
       if (inert.value) { event.preventDefault(); return }
       // Solo la activación primaria (#505, api.md «Enlaces y navigate»): con Ctrl/⌘/Mayús/Alt, otro botón o ya cancelado,
-      // el navegador abre la pestaña o ventana nueva por su cuenta y no se emite
-      if (!primaryActivation(event)) return
+      // el navegador abre la pestaña o ventana nueva por su cuenta y no se emite. Con `target` de otro contexto (#574), tampoco:
+      // el destino no pasa por el router (como RouterLink)
+      if (!primaryActivation(event) || otherContext(event.currentTarget?.getAttribute?.('target'))) return
       // El evento nativo es cancelable: event.preventDefault() (síncrono) evita la navegación y deja paso a un router (#70)
       emit('navigate', { event, href: props.href })
     }
     const onButton = (event) => {
       if (inert.value) return
-      if (interaction.value === 'toggle') emit('update:modelValue', !selected.value)
+      // Gestionada por un GCardGroup: avisa al grupo, que emite (la tarjeta no emite update:modelValue, #605)
+      if (managed()) group.toggle(entry)
+      else if (interaction.value === 'toggle') emit('update:modelValue', !selected.value)
       else emit('activate', { event })
     }
 
@@ -225,7 +259,7 @@ export default defineComponent({
       }
       if (props.loading) liveText.value = L.value.loading ?? ''
     })
-    onBeforeUnmount(() => { ro?.disconnect(); caf(frame) })
+    onBeforeUnmount(() => { ro?.disconnect(); caf(frame); if (entry) group.unregister(entry) })
     watch(() => [props.description, props.descriptionLines, props.expandable, props.loading], () => nextTick(checkClamp))
 
     // ---------- C1 · la luz sigue al puntero (card.md «Personalidad», #303) ----------
@@ -382,12 +416,17 @@ export default defineComponent({
         return h('a', { class: 'g-card__primary', href: props.href, target: props.target, rel, 'aria-describedby': describedby, 'aria-current': isCurrent.value ? 'true' : undefined, onClick: onLink }, content)
       }
       if (it === 'button' || it === 'toggle') {
+        const m = managed()
         return h('button', {
+          ref: primaryEl,
           type: 'button',
           class: 'g-card__primary',
           disabled: props.disabled || undefined,
           'aria-pressed': it === 'toggle' ? String(selected.value) : undefined,
-          'aria-describedby': describedby,
+          // En un grupo: la descripción es el contenido entero (la cifra), en lugar de la descripción sola (#606)
+          'aria-describedby': m ? (hasContentNow ? contentId.value : undefined) : describedby,
+          tabindex: m ? (entry.stop.value ? '0' : '-1') : undefined,
+          'aria-controls': m ? group.controls() : undefined,
           onClick: onButton
         }, content)
       }
@@ -516,8 +555,10 @@ export default defineComponent({
       const em = renderEmpty()
       if (em) parts.push(em)
       if (!props.empty) parts.push(...nodes(slots.default, { size: size.value, layout: layout.value, state: state.value, selected: selected.value }))
-      return parts.length ? h('div', { class: 'g-card__content', inert: props.disabled ? '' : undefined }, parts) : null
+      return parts.length ? h('div', { class: 'g-card__content', id: contentId.value, inert: props.disabled ? '' : undefined }, parts) : null
     }
+    // ¿Hay g-card__content en este render? (el principal gestionado se describe por él, #606)
+    let hasContentNow = false
 
     const renderMeta = () => {
       if (slots.meta) return nodes(slots.meta)
@@ -631,12 +672,14 @@ export default defineComponent({
         const footer = nodes(slots.footer, { size: size.value })
         const bleed = hasMedia && pos !== 'inline' ? renderMedia(media, false) : null
         const inlineMedia = hasMedia && pos === 'inline' ? renderMedia(media, true) : null
+        const content = renderContent(inlineMedia)
+        hasContentNow = Boolean(content)
         children = [
           bleed,
           bleed && pos === 'background' ? h('div', { class: 'g-card__scrim', 'aria-hidden': 'true' }) : null,
           h('div', { class: 'g-card__main' }, [
             h('div', { class: 'g-card__body' }, [
-              h('div', { class: 'g-card__stack' }, [renderHeader(), renderContent(inlineMedia), ...renderMeta(), ...renderMore()]),
+              h('div', { class: 'g-card__stack' }, [renderHeader(), content, ...renderMeta(), ...renderMore()]),
               actions.length ? h('div', { class: 'g-card__actions', inert: props.disabled ? '' : undefined }, actions) : null
             ]),
             footer.length ? h('div', { class: 'g-card__footer', inert: props.disabled ? '' : undefined }, footer) : null

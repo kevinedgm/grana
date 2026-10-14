@@ -457,8 +457,8 @@ describe('GAvatar · avisos de desarrollo (avatar.md «Avisos», siete causas)',
     expect(m.find((x) => x.includes('color="rojo"'))).not.toMatch(/semántico/)
     expect(m.find((x) => x.includes('color="13"'))).toBeTruthy()
     mount(G, { props: { color: 'neutral' } })
-    mount(G, { props: { color: 4 } })
-    mount(G, { props: { color: '4' } })
+    mount(G, { props: { color: 4 }, attrs: { style: '--g-color-cat-4: #123456' } })
+    mount(G, { props: { color: '4' }, attrs: { style: '--g-color-cat-4: #123456' } })
     expect(grana(s)).toHaveLength(4)
   })
   it('4 · categories fuera de 0..12 o no entero', async () => {
@@ -499,7 +499,7 @@ describe('GAvatar · avisos de desarrollo (avatar.md «Avisos», siete causas)',
   it('sin causas, ningún aviso (ni de Grana ni de Vue)', async () => {
     const G = await fresh()
     const s = spyWarn()
-    mount(G, { props: { src: 'a.png', name: 'Ana López', size: 'xl', shape: 'square', color: 3, categories: 8, colorKey: 7, label: 'Ana' } })
+    mount(G, { props: { src: 'a.png', name: 'Ana López', size: 'xl', shape: 'square', color: 3, categories: 8, colorKey: 7, label: 'Ana' }, attrs: { style: '--g-color-cat-3: #123456' } })
     mount(G, { props: { icon: 'users', initials: 'AB' } })
     expect(s.mock.calls).toEqual([])
   })

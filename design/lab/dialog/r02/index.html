@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GDialog · r02 · niveles anidados (Hoy, A, B, C)</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<style>
+/* r02 (kiwi): niveles anidados en GDialog. «Hoy» monta el GDialog real cinco veces para medir; A, B y C son conceptos
+   divergentes sobre el mismo flujo, con componentes reales de dist/ y TOKENS REALES del tema por defecto (var(--g-*)).
+   Las clases xa-*, xb-*, xc-*, xr-* son de prototipo; el CSS definitivo es de coco. Únicos literales: 24px/44px y el
+   patrón de texto oculto; constantes de coreografía sin unidad (0.04 de escala por nivel). */
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line);color:var(--g-color-text);background:var(--g-color-bg)}
+.sr{position:absolute;inline-size:1px;block-size:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+.g-icon{inline-size:1em;block-size:1em;flex:none}
+[dir=rtl] .xa-back .g-icon,[dir=rtl] .xb-back .g-icon{scale:-1 1}
+
+/* ---------- Shell de la maqueta ---------- */
+.sh-bar{position:sticky;inset-block-start:0;z-index:2;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:var(--g-space-3);
+  min-block-size:var(--g-space-16);padding:var(--g-space-2) var(--g-space-4);background:var(--g-color-surface);border-block-end:var(--g-border-width) solid var(--g-color-border)}
+.sh-brand{font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sh-pick{display:flex;gap:var(--g-space-1);margin:0;padding:0;border:0}
+.sh-pick label{position:relative;display:inline-flex;align-items:center;justify-content:center;min-inline-size:var(--g-space-10);min-block-size:var(--g-space-8);padding-inline:var(--g-space-2);border:var(--g-border-width) solid var(--g-color-border-control);border-radius:var(--g-radius-md);font-size:var(--g-text-body-sm-size);cursor:pointer}
+.sh-pick input{position:absolute;opacity:0;pointer-events:none}
+.sh-pick label:has(input:checked){background:var(--g-color-brand);color:var(--g-color-on-brand);border-color:var(--g-color-brand)}
+.sh-pick label:has(input:focus-visible){outline:var(--g-focus-width) solid var(--g-color-focus);outline-offset:var(--g-focus-offset)}
+main{max-inline-size:60rem;margin:0 auto;padding:var(--g-space-6) var(--g-space-4) var(--g-space-16)}
+h1{font-family:var(--g-font-title);font-size:var(--g-text-title-lg-size);line-height:var(--g-text-title-lg-line);margin:0 0 var(--g-space-1)}
+.lead{color:var(--g-color-text-muted);margin:0 0 var(--g-space-6);max-inline-size:70ch}
+.card{padding:var(--g-space-6);background:var(--g-color-surface);border:var(--g-border-width) solid var(--g-color-border);border-radius:var(--g-radius-lg);box-shadow:var(--g-shadow-1)}
+.card > h2{font-family:var(--g-font-title);font-size:var(--g-text-title-sm-size);line-height:var(--g-text-title-sm-line);margin:0 0 var(--g-space-1)}
+.muted{color:var(--g-color-text-muted);font-size:var(--g-text-body-sm-size);margin:0 0 var(--g-space-4)}
+@media (max-width:30rem){.card{padding:var(--g-space-4)} .sh-brand{font-size:var(--g-text-body-sm-size)}}
+
+/* ---------- Contenido de los niveles (común) ---------- */
+.xr-level{display:grid;gap:var(--g-space-4);min-inline-size:0}
+.xr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,calc(var(--g-space-1) * 50)),1fr));gap:var(--g-space-4)}
+.xr-grid > *{min-inline-size:0}
+.xr-level .g-input,.xr-level .g-select{inline-size:100%;max-inline-size:none}
+.xr-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--g-space-3);margin:0}
+.xr-facts dt{font-size:var(--g-text-caption-size);line-height:var(--g-text-caption-line);color:var(--g-color-text-muted)}
+.xr-facts dd{margin:0;font-weight:600}
+.xr-h{margin:0;font-size:var(--g-text-body-sm-size);line-height:var(--g-text-body-sm-line);color:var(--g-color-text-muted);font-weight:600}
+.xr-rows{list-style:none;margin:0;padding:0;display:grid;border-block-start:var(--g-border-width) solid var(--g-color-border)}
+.xr-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:var(--g-space-3);padding-block:var(--g-space-2);border-block-end:var(--g-border-width) solid var(--g-color-border)}
+.xr-row__n{inline-size:var(--g-space-6);block-size:var(--g-space-6);display:grid;place-items:center;border-radius:var(--g-radius-pill);background:var(--g-color-neutral-soft);color:var(--g-color-on-neutral-soft);font-size:var(--g-text-caption-size);font-variant-numeric:tabular-nums}
+.xr-row__main{display:grid;min-inline-size:0}
+.xr-row__main small{color:var(--g-color-text-muted);font-size:var(--g-text-body-sm-size)}
+.xr-row.is-pending .xr-row__n{background:var(--g-color-warning-soft);color:var(--g-color-on-warning-soft)}
+.xr-row__slot{grid-column:1 / -1}
+.xr-row__slot:empty{display:none}
+.xr-err{display:flex;gap:var(--g-space-2);align-items:center;margin:0;color:var(--g-color-danger-text);font-size:var(--g-text-body-sm-size)}
+.xr-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:var(--g-space-2)}
+.xr-today .xr-actions{margin-block-start:var(--g-space-4)}
+@media (max-width:520px){.xr-facts{grid-template-columns:minmax(0,1fr)}}
+
+/* Personalidad común · el valor aterriza en el campo que lo pidió: un anillo de acento que se recoge (no es foco) */
+.is-landed{position:relative}
+.is-landed::after{content:"";position:absolute;inset:calc(var(--g-space-1) * -1);border-radius:calc(var(--g-radius-md) + var(--g-space-1));pointer-events:none;
+  box-shadow:0 0 0 var(--g-focus-width) var(--g-color-accent);opacity:0;animation:xr-land calc(var(--g-duration-slow) * 3) var(--g-ease-out)}
+@keyframes xr-land{0%{opacity:1;scale:1.02}60%{opacity:.8;scale:1}100%{opacity:0;scale:1}}
+@media (prefers-reduced-motion:reduce){.is-landed::after{animation-duration:var(--g-duration-slow);animation-timing-function:linear;scale:none}}
+
+/* =====================================================================
+   A · LA BARAJA: cada nivel es un <dialog> modal; los de abajo se quedan como lomos escalonados
+   ===================================================================== */
+.xa-card:not(.is-base)::backdrop{background:transparent}
+.xa-spine{display:none}
+.xa-back{order:-1}
+@media (min-width:521px){
+  /* Bordes superiores escalonados (space × 10 por nivel) desde un margen fijo: el nivel de arriba nunca tapa los lomos */
+  .xa-card.g-dialog[open],.xa-card.g-dialog.is-leaving{
+    margin-block:calc(var(--g-space-1) * (6 + 10 * var(--_i))) auto;
+    max-block-size:calc(100dvh - var(--g-space-1) * (10 + 10 * var(--_i)));
+    transform-origin:50% 0;
+  }
+  .xa-card.is-below{transform:scale(calc(1 - 0.04 * var(--_below)));}
+  .xa-card.is-below[style*="--_deck-h"]{block-size:var(--_deck-h)}
+  .xa-card.is-below .xa-spine{display:flex}
+  .xa-card.is-below > .g-dialog__header,.xa-card.is-below > .g-dialog__inset{opacity:0}
+}
+.xa-spine{align-items:center;gap:var(--g-space-2);min-block-size:calc(var(--g-space-1) * 9);padding-inline:var(--g-space-3);
+  font-size:var(--g-text-body-sm-size);line-height:var(--g-text-body-sm-line);cursor:pointer;white-space:nowrap;overflow:hidden}
+.xa-spine__n{inline-size:var(--g-space-5);block-size:var(--g-space-5);display:grid;place-items:center;flex:none;border-radius:var(--g-radius-pill);background:var(--g-color-neutral-soft);color:var(--g-color-on-neutral-soft);font-size:var(--g-text-caption-size);font-variant-numeric:tabular-nums}
+.xa-spine__t{font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.xa-spine__w{color:var(--g-color-text-muted);overflow:hidden;text-overflow:ellipsis}
+.xa-spine__w::before{content:"· "}
+.xa-card.is-below:hover .xa-spine__t{text-decoration:underline}
+@media (max-width:520px){
+  /* Hoja: las de abajo asoman por arriba con su lomo; cada nivel, una hoja algo más baja */
+  .xa-card.g-dialog--mobile-sheet[open],.xa-card.g-dialog--mobile-sheet.is-leaving{
+    block-size:calc(100dvh - var(--g-space-12) - var(--g-space-1) * 9 * var(--_i));max-block-size:none}
+  .xa-card.is-below{transform:scale(calc(1 - 0.04 * var(--_below)));transform-origin:50% 0}
+  .xa-card.is-below .xa-spine{display:flex}
+}
+@media (prefers-reduced-motion:no-preference){
+  .xa-card.g-dialog,.xa-card.g-dialog[open]{
+    transition:opacity var(--g-duration-press) var(--g-ease-out),scale var(--g-duration-press) var(--g-ease-out),translate var(--g-duration-press) var(--g-ease-out),
+      transform var(--g-duration-slow) var(--g-ease-out),block-size var(--g-duration-slow) var(--g-ease-out),
+      overlay var(--g-duration-press) allow-discrete,display var(--g-duration-press) allow-discrete}
+  /* Sale cayendo hacia su lomo: hacia abajo, no hacia el centro */
+  .xa-card.g-dialog.is-leaving{translate:0 var(--g-space-6);transition:opacity var(--g-duration-fast) var(--g-ease-out),translate var(--g-duration-fast) var(--g-ease-out),overlay var(--g-duration-fast) allow-discrete,display var(--g-duration-fast) allow-discrete}
+  .xa-card > .g-dialog__header,.xa-card > .g-dialog__inset{transition:opacity var(--g-duration-fast) var(--g-ease-out)}
+  @starting-style{.xa-card.g-dialog[open]:not(.is-base){translate:0 var(--g-space-8);scale:1}}
+}
+
+/* =====================================================================
+   B · EL HILO: un diálogo; el hilo dice de dónde vienes y qué espera cada nivel; los pasos entran de su lado
+   ===================================================================== */
+.xb-back{order:-1}
+.xb-trail{margin-block:calc(var(--g-space-1) * -1) var(--g-space-3);padding-inline:var(--_pad)}
+.xb-trail ol{list-style:none;margin:0;padding:0;display:flex;align-items:center;gap:var(--g-space-1);min-inline-size:0}
+.xb-trail li{display:flex;min-inline-size:0;flex:0 1 auto}
+.xb-trail li + li::before{content:"";flex:none;inline-size:var(--g-space-3);block-size:var(--g-border-width);align-self:center;background:var(--g-color-border-strong);margin-inline-end:var(--g-space-1)}
+.xb-crumb{position:relative;display:inline-flex;align-items:center;gap:var(--g-space-1);min-block-size:24px;min-inline-size:0;max-inline-size:100%;padding:calc(var(--g-space-1) * 0.5) var(--g-space-2) calc(var(--g-space-1) * 0.5) calc(var(--g-space-1) * 0.5);
+  border:var(--g-border-width) solid transparent;border-radius:var(--g-radius-pill);background:none;color:var(--g-color-text-muted);font:inherit;font-size:var(--g-text-caption-size);line-height:var(--g-text-caption-line);cursor:pointer}
+@media (pointer:coarse){.xb-crumb{min-block-size:44px;min-inline-size:44px;justify-content:center}}
+.xb-crumb:hover{background:var(--g-color-neutral-soft);color:var(--g-color-text)}
+.xb-crumb:focus-visible{outline:var(--g-focus-width) solid var(--g-color-focus);outline-offset:var(--g-focus-offset)}
+.xb-crumb__n{inline-size:var(--g-space-5);block-size:var(--g-space-5);display:grid;place-items:center;flex:none;border-radius:var(--g-radius-pill);background:var(--g-color-neutral-soft);color:var(--g-color-on-neutral-soft);font-variant-numeric:tabular-nums}
+.xb-crumb__t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Los antepasados lejanos y el actual se reducen a su número (el nombre sigue en el árbol: texto oculto, nunca display:none);
+   el padre enseña su nombre: es adonde lleva Volver */
+.xb-trail li:not(.is-parent) .xb-crumb__t{position:absolute;inline-size:1px;block-size:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.xb-trail li:not(.is-parent) .xb-crumb{padding-inline-end:calc(var(--g-space-1) * 0.5)}
+.xb-crumb.is-current{color:var(--g-color-text);font-weight:600;cursor:default;background:var(--g-color-accent-soft);color:var(--g-color-on-accent-soft)}
+.xb-crumb.is-current .xb-crumb__n{background:var(--g-color-accent);color:var(--g-color-on-accent)}
+.xb-stage{display:grid}
+.xb-panel{min-inline-size:0}
+.xb-panel[hidden]{display:none}
+@media (prefers-reduced-motion:no-preference){
+  .xb[data-dir=forward] .xb-panel.is-entering{animation:xb-in-fwd var(--g-duration-slow) var(--g-ease-out)}
+  .xb[data-dir=back] .xb-panel.is-entering{animation:xb-in-back var(--g-duration-slow) var(--g-ease-out)}
+  .xb .xb-title{animation:xb-fade var(--g-duration-press) var(--g-ease-out)}
+  .xb-trail li.is-current{animation:xb-fade var(--g-duration-press) var(--g-ease-out)}
+}
+@keyframes xb-in-fwd{from{opacity:0;translate:calc(var(--g-space-1) * 6) 0}}
+@keyframes xb-in-back{from{opacity:0;translate:calc(var(--g-space-1) * -6) 0}}
+[dir=rtl] .xb[data-dir=forward] .xb-panel.is-entering{animation-name:xb-in-back}
+[dir=rtl] .xb[data-dir=back] .xb-panel.is-entering{animation-name:xb-in-fwd}
+@keyframes xb-fade{from{opacity:0}}
+@media (prefers-reduced-motion:reduce){.xb .xb-panel.is-entering{animation:xb-fade var(--g-duration-fast) linear}}
+
+/* =====================================================================
+   C · EN SU SITIO: el campo se abre en un pliegue con un raíl; los pliegues se anidan con sangría
+   ===================================================================== */
+.xc-card:not(.is-base)::backdrop{background:transparent}
+.xc-card.is-below > .g-dialog__header,.xc-card.is-below > .g-dialog__inset{opacity:.0}
+.xc-fold{display:grid;grid-template-rows:1fr;margin-block-start:calc(var(--g-space-1) * -1);margin-inline-start:var(--g-space-3);
+  padding-inline-start:var(--g-space-4);border-inline-start:calc(var(--g-border-width) * 2) solid var(--g-color-accent)}
+.xc-fold__in{display:grid;gap:var(--g-space-4);min-block-size:0;overflow:clip;overflow-clip-margin:var(--g-space-2);padding-block:var(--g-space-3)}
+.xc-fold__head{display:grid;gap:calc(var(--g-space-1) * 0.5)}
+.xc-fold__title{margin:0;font-size:var(--g-text-body-size);line-height:var(--g-text-body-line);font-weight:600}
+.xc-fold__intro{margin:0;color:var(--g-color-text-muted);font-size:var(--g-text-body-sm-size);line-height:var(--g-text-body-sm-line)}
+.xc-fold__actions{justify-content:flex-start}
+.xr-row .xc-fold{margin-block-start:var(--g-space-2)}
+@media (prefers-reduced-motion:no-preference){
+  .xc-fold{transition:grid-template-rows var(--g-duration-slow) var(--g-ease-out),opacity var(--g-duration-press) var(--g-ease-out)}
+  @starting-style{.xc-fold{grid-template-rows:0fr;opacity:0}}
+}
+@media (forced-colors:active){
+  .xc-fold{border-inline-start-color:Highlight}
+  .is-landed::after{box-shadow:0 0 0 var(--g-focus-width) Highlight}
+  .xb-crumb.is-current{border-color:Highlight}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="../../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../lucide-icons.js"></script>
+<script src="./flow.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>

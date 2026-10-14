@@ -7,6 +7,7 @@ Filtros **no fijos** al estilo Stripe: el usuario **descubre** qué puede filtra
 ## Uso
 
 ```vue
+<!-- Fragmento: `campos`, `filtros`, `resultados` y `textos` son de tu aplicación -->
 <g-filter-bar :fields="campos" v-model:filters="filtros" :count="resultados.length" :labels="textos"></g-filter-bar>
 ```
 

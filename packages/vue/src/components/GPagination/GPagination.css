@@ -2,6 +2,8 @@
   GPagination · estilo del esqueleto
   Dueño: coco. Contrato: design/contracts/pagination.md.
   Reglas: solo var(--g-*) y alias locales; sin @layer; únicos literales: 24px y 44px. Bruno da g-pagination--compact (medido).
+  Filas por página (#592 a #595): __meta, __size (radiogroup), __size-label, __sizes, __size-option, __size-input,
+  __size-text; g-pagination--dock (lo pone GTable con pageSizes) e is-stuck (medido por bruno).
 */
 .g-pagination {
   --_size: calc(var(--g-space-1) * 8);
@@ -83,13 +85,122 @@
 }
 .g-pagination--compact .g-pagination__pages { display: none; }
 .g-pagination--compact .g-pagination__compact { display: inline; }
+
+/* ---------- Filas por página: rango y selector juntos al inicio (B · «Pie que acompaña», #592) ---------- */
+/* __meta no dibuja caja: selector, rango y controles se reparten como hermanos de la fila del pie. En ancho, selector y
+   rango al inicio y controles al final; en estrecho, el rango baja junto a los controles en vez de ocupar su propia
+   línea (pie acoplado a 360px táctil: 145px → 2 líneas). El rango empuja los controles al final */
+.g-pagination__meta { display: contents; }
+.g-pagination__range {
+  margin-inline-end: auto;
+  font-variant-numeric: tabular-nums;
+  /* «1–25 de 240» en una página RTL: la dirección la da el propio texto (si no, se lee «de 240 25–1») */
+  unicode-bidi: plaintext;
+}
+.g-pagination__size {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-1) var(--g-space-2);
+}
+/* La pista: la forma de GRadioGroup segmented sin componerlo. Las cifras a la vista, a un toque */
+.g-pagination__sizes {
+  display: inline-flex;
+  gap: calc(var(--g-space-1) / 2);
+  padding: calc(var(--g-space-1) / 2);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface-sunken);
+}
+.g-pagination__size-option {
+  position: relative;
+  display: inline-grid;
+}
+/* El radio nativo cubre su cifra, invisible y enfocable (nunca display: none) */
+.g-pagination__size-input {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+/* Mismo peso marcada o no: al elegir, ninguna cifra cambia de ancho (en B nada se mueve) */
+.g-pagination__size-text {
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  min-inline-size: max(24px, calc(var(--g-space-1) * 9));
+  min-block-size: max(24px, calc(var(--g-space-1) * 7));
+  padding: 0 var(--g-space-2);
+  border: var(--g-border-width) solid transparent;
+  border-radius: calc(var(--g-radius-md) - var(--g-space-1) / 2);
+  color: var(--g-color-text-muted);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--g-text-action-weight);
+  pointer-events: none;
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    border-color var(--g-duration-fast) var(--g-ease-standard),
+    color var(--g-duration-fast) var(--g-ease-standard),
+    box-shadow var(--g-duration-fast) var(--g-ease-standard);
+}
+/* Marcada: se eleva sobre la pista (surface y shadow-1) y pasa a la tinta del texto. El borde es el de control
+   (≥ 3:1 sobre surface-sunken, contraste de lo marcado §7.1): con border-strong quedaba en 1,39:1 (amazon claro) */
+.g-pagination__size-input:checked + .g-pagination__size-text {
+  border-color: var(--g-color-border-control);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  box-shadow: var(--g-shadow-1);
+}
+/* Foco con flechas también en WebKit (data-g-key-focus, #441, #450); la cifra enfocada queda sobre sus vecinas */
+.g-pagination__size-option:has(> .g-pagination__size-input:is(:focus-visible, :where([data-g-key-focus]):focus)) { z-index: 1; }
+.g-pagination__size-input:is(:focus-visible, :where([data-g-key-focus]):focus) + .g-pagination__size-text {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+@media (hover: hover) {
+  .g-pagination__size-input:not(:checked):hover + .g-pagination__size-text { color: var(--g-color-text); }
+}
+
+/* ---------- Pie acoplado (#595): acompaña al borde inferior de la pantalla mientras la tabla siga por debajo ---------- */
+.g-pagination--dock {
+  position: sticky;
+  inset-block-end: 0;
+  z-index: 2;
+  margin-block-start: 0;
+  padding-block: var(--g-space-2);
+  border-block-start: var(--g-border-width) solid transparent;
+  background: var(--g-color-surface);
+  transition:
+    border-color var(--g-duration-fast) var(--g-ease-standard),
+    box-shadow var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-pagination--dock.is-stuck {
+  border-block-start-color: var(--g-color-border);
+  box-shadow: var(--g-shadow-1);
+}
+
 @media (pointer: coarse) {
   .g-pagination__step,
-  .g-pagination__page {
+  .g-pagination__page,
+  .g-pagination__size-text {
     min-inline-size: 44px;
     min-block-size: 44px;
   }
 }
+@media (prefers-reduced-motion: reduce) {
+  .g-pagination__size-text,
+  .g-pagination--dock { transition: none; }
+}
 @media (forced-colors: active) {
   .g-pagination__page[aria-current="page"] { border-color: CanvasText; }
+  .g-pagination__sizes { outline: var(--g-border-width) solid GrayText; }
+  .g-pagination__size-input:checked + .g-pagination__size-text {
+    border-color: Highlight;
+    background: Highlight;
+    color: HighlightText;
+    forced-color-adjust: none;
+  }
+  .g-pagination--dock.is-stuck { border-block-start-color: CanvasText; }
 }

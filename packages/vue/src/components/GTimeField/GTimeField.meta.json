@@ -96,10 +96,28 @@
       "note": "{ invalid }: mensaje del error propio; sin él bloquea con un espacio y avisa"
     },
     {
-      "name": "prefix / suffix / prefixLabel / suffixLabel",
+      "name": "prefix",
+      "type": "String",
+      "default": null,
+      "note": "Como GInput: texto antes del valor"
+    },
+    {
+      "name": "suffix",
       "type": "String",
       "default": null,
       "note": "Como GInput; el sufijo dice la zona (#411)"
+    },
+    {
+      "name": "prefixLabel",
+      "type": "String",
+      "default": null,
+      "note": "Como GInput: nombre accesible del prefijo"
+    },
+    {
+      "name": "suffixLabel",
+      "type": "String",
+      "default": null,
+      "note": "Como GInput: nombre accesible del sufijo"
     },
     {
       "name": "name",
@@ -108,10 +126,40 @@
       "note": "Va al <input type=hidden> canónico; el visible no lleva name"
     },
     {
-      "name": "label / hint / error / warning / valid / output",
+      "name": "label",
       "type": "String",
       "default": null,
-      "note": "Pasan a GInput"
+      "note": "Pasa a GInput"
+    },
+    {
+      "name": "hint",
+      "type": "String",
+      "default": null,
+      "note": "Pasa a GInput"
+    },
+    {
+      "name": "error",
+      "type": "String",
+      "default": null,
+      "note": "Pasa a GInput"
+    },
+    {
+      "name": "warning",
+      "type": "String",
+      "default": null,
+      "note": "Pasa a GInput"
+    },
+    {
+      "name": "valid",
+      "type": "String",
+      "default": null,
+      "note": "Pasa a GInput"
+    },
+    {
+      "name": "output",
+      "type": "String",
+      "default": null,
+      "note": "Pasa a GInput"
     },
     {
       "name": "required",

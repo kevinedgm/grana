@@ -4,7 +4,7 @@ Línea de separación **entre grupos de contenido tuyos**, para cuando el espaci
 
 **Etiqueta:** `<g-divider>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/divider/auditoria.md`](../../../../../design/lab/divider/auditoria.md)) · **Desde:** 0.1.0
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección «GDivider»). Exige Vue `^3.5.0`.
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección «GDivider»). Exige Vue `^3.5.0`.
 
 > **Regla de uso: no sustituye al espacio.** Si dos secciones ya quedan claramente separadas por título + espacio, no hace falta una línea. Usa `GDivider` cuando la separación necesita una marca más (un cambio de tema entre párrafos, dos grupos de acciones en una barra, «O bien» entre dos formas de entrar), no por instinto entre cada bloque. El componente no lo puede imponer: es una guía.
 
@@ -109,6 +109,7 @@ Mismo grosor (`--g-border-width`) y dos tonos del neutro, **nunca un color semá
 ### Decorativo dentro de un diálogo
 
 ```vue
+<!-- Fragmento: `abierto` es de tu aplicación -->
 <g-dialog v-model="abierto" title="Cuenta" close-label="Cerrar">
   <div class="pila">
     <section><h3>Perfil</h3><p>Nombre, foto y zona horaria.</p></section>

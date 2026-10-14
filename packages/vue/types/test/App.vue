@@ -59,4 +59,21 @@ const onClick = (e: MouseEvent) => e.clientX
   </g-load-region>
   <!-- @vue-expect-error GEmpty: cause fuera de la lista -->
   <g-empty cause="done" title="Al día" />
+
+  <!-- GCardGroup (#610) -->
+  <g-card-group model-value="vencida" label="Filtrar por estado">
+    <g-card value="vencida" title="Vencidas" />
+    <template #panel="{ filtered }">{{ filtered ? 'filtrada' : 'todas' }}</template>
+  </g-card-group>
+  <!-- @vue-expect-error GCardGroup: multiple es booleano -->
+  <g-card-group label="X" multiple="sí" />
+
+  <!-- GPageHeader (#633) -->
+  <g-page-header title="Muestra M-0007" :heading-level="2" zone="brand" :labels="{ actions: 'Acciones de la página' }">
+    <template #actions="{ narrow, docked }">{{ narrow && !docked ? 'icono' : 'texto' }}</template>
+  </g-page-header>
+  <!-- @vue-expect-error GPageHeader: headingLevel fuera de 1–3 -->
+  <g-page-header title="X" :heading-level="4" />
+  <!-- @vue-expect-error GPageHeader: zone fuera de la lista -->
+  <g-page-header title="X" zone="inverse" />
 </template>

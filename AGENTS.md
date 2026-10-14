@@ -10,7 +10,7 @@ Regla de oro: **un archivo, un dueño.** Ningún agente edita un archivo que per
 | **lima** | Contrato: API del componente, qué tokens consume, si hace falta un token nuevo | Contrato por componente; contrato global de tokens | `design/contracts/`, `docs/contract/` |
 | **coco** | Estética: CSS del esqueleto, valores del tema por defecto, movimiento. Audita. | CSS del componente; tema por defecto; auditoría | `packages/vue/src/components/<Nombre>/<Nombre>.css`, `packages/vue/src/styles/defaults.css` |
 | **bruno** | Funcionalidad: props, eventos, slots, v-model, accesibilidad funcional, rendimiento, empaquetado, CLI | Componente funcional, pruebas, registro | `*.vue`, `*.test.js`, `*.meta.json` (contrato de tipos: los `.d.ts` se generan desde ahí, #443), `src/index.js`, `scripts/`, `types/`, `packages/cli/`, `.github/` |
-| **mora-docs** | Documentación de lo ya verificado | README del componente, sitio de docs | `packages/vue/src/components/<Nombre>/README.md` |
+| **mora-docs** | Documentación de lo ya verificado | README del componente, sitio de docs, contrato de documentación | `packages/vue/src/components/<Nombre>/README.md`, `docs/documentacion/` |
 
 ## Flujo A · Fundación del tema (una sola vez)
 

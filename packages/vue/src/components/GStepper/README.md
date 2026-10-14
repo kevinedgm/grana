@@ -4,7 +4,7 @@ Indicador de avance para procesos de **pasos discretos y conocidos**: formulario
 
 **Etiqueta:** `<g-stepper>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/stepper/auditoria.md`](../../../../../design/lab/stepper/auditoria.md)) · **Desde:** 0.1.0
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`.
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`.
 
 > **No es una barra de progreso continuo** (porcentaje o indeterminado): ese es otro componente, todavía por diseñar (DECISIONS.md #97).
 
@@ -108,6 +108,7 @@ Un valor fuera de la lista muestra una advertencia en desarrollo. No hay `varian
 | `select` | `{ id, index, preventDefault() }` | El usuario activa un paso navegable. **Cancelable** |
 
 ```vue
+<!-- Fragmento: `actual`, `pasos`, `textos` y `hayCambiosSinGuardar` son de tu aplicación -->
 <g-stepper v-model="actual" :steps="pasos" :labels="textos" navigation="free" aria-label="Registro"
   @select="(e) => { if (hayCambiosSinGuardar) e.preventDefault() }"></g-stepper>
 ```
@@ -126,6 +127,7 @@ Llama a `preventDefault()` de forma síncrona para impedir el cambio. Un cambio 
 `state` es `complete`, `current` o `pending`.
 
 ```vue
+<!-- Fragmento: `actual`, `pasos` y `textos` son de tu aplicación -->
 <g-stepper v-model="actual" :steps="pasos" :labels="textos" orientation="vertical" navigation="back" aria-label="Configuración">
   <template #content="{ step }">
     <FormularioDelPaso :paso="step.id" />

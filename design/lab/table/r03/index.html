@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tabla · fila · r03</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="./rows.css">
+</head>
+<body>
+<header class="lab-bar">
+  <span class="lab-brand">GTable · activación y estado de fila · r03</span>
+  <nav class="lab-links" aria-label="Conceptos de la ronda">
+    <a href="?c=base">Base</a><a href="?c=A">A · La puerta</a><a href="?c=B">B · Despliegue</a><a href="?c=C">C · Lente</a>
+    <a id="w-link" href="?w=360">Ancho 360 (tarjetas)</a><a id="rtl-link" href="?dir=rtl">Ver en RTL</a><a id="dark-link" href="?theme=dark">Tema oscuro</a>
+  </nav>
+</header>
+<main class="lab" id="lab">
+  <div>
+    <h1 class="lab-title" id="t-title"></h1>
+    <p class="lab-lead" id="t-lead"></p>
+    <p class="lab-how" id="t-how"></p>
+  </div>
+
+  <!-- Receta del summary del servidor (las tres la comparten): métricas sobre TODA la búsqueda, no sobre la página.
+       No es API de GTable: la aplicación las pinta y las usa como filtros rápidos (v-model:filters) -->
+  <section class="r3-summary" aria-labelledby="sum-h">
+    <h2 class="r3-summary__h" id="sum-h">Resumen de la búsqueda <span class="r3-summary__src">(summary del servidor)</span></h2>
+    <div class="r3-summary__tiles" id="sum-tiles"></div>
+  </section>
+
+  <div class="r3-stage" id="stage">
+    <div class="r3-frame" id="frame">
+      <div id="tb" class="g-table g-table--mode-table g-table--appearance-lines g-table--density-default"></div>
+      <div class="r3-pager" id="pager"></div>
+    </div>
+    <section class="r3-inspector" id="inspector" aria-labelledby="ins-h" hidden></section>
+  </div>
+
+  <section class="lab-log" aria-labelledby="log-h">
+    <h2 id="log-h" class="lab-h2">Eventos emitidos (lo que recibe la aplicación)</h2>
+    <ol id="log"></ol>
+  </section>
+
+  <section class="lab-cmp" aria-labelledby="cmp-h">
+    <h2 id="cmp-h" class="lab-h2">Comparativa</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th scope="col"></th><th scope="col">Base</th><th scope="col">A · La puerta</th><th scope="col">B · Despliegue</th><th scope="col">C · Lente</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Qué se pulsa</th><td>Toda la fila (delegada a la puerta)</td><td>Solo la celda principal, entera</td><td>Toda la fila (delegada a la puerta)</td><td>Toda la fila (delegada a la puerta)</td></tr>
+          <tr><th scope="row">Qué pasa</th><td>Navega o abre el detalle</td><td>Navega o abre el detalle</td><td>La ficha se despliega debajo</td><td>La fila pasa al inspector</td></tr>
+          <tr><th scope="row">Puerta</th><td><code>&lt;a href&gt;</code> o <code>&lt;button&gt;</code></td><td><code>&lt;a href&gt;</code> o <code>&lt;button&gt;</code> (cubre la celda)</td><td><code>&lt;button aria-expanded&gt;</code></td><td><code>&lt;a href aria-current&gt;</code></td></tr>
+          <tr><th scope="row">Clic central / nueva pestaña</th><td>Solo sobre la puerta</td><td>En toda la celda principal</td><td>En «Abrir ficha completa» del despliegue</td><td>Sobre la puerta</td></tr>
+          <tr><th scope="row">Copiar texto de la fila</th><td>Arrastrando (un clic activa)</td><td>Libre fuera de la celda principal</td><td>Arrastrando (un clic despliega)</td><td>Arrastrando (un clic apunta)</td></tr>
+          <tr><th scope="row">Estado de fila</th><td>Lomo + etiqueta</td><td>Lomo con forma + etiqueta junto al nombre</td><td>Sello en la celda que lo causa</td><td>Lomo + etiqueta + recuento de la página con saltos</td></tr>
+          <tr><th scope="row">Página del servidor</th><td>Se pierde al navegar (la conserva la aplicación)</td><td>Ídem</td><td>Nunca se sale de la página</td><td>«Siguiente» cruza páginas</td></tr>
+          <tr><th scope="row">Tarjetas (móvil)</th><td>Tarjeta entera pulsable</td><td>La cabecera de la tarjeta es la puerta</td><td>La ficha se abre dentro de la tarjeta</td><td>El inspector va debajo (o en hoja)</td></tr>
+          <tr><th scope="row">API nueva</th><td><code>rowHref</code>, <code>activate</code>, <code>rowStatus</code></td><td>Base (sin delegación)</td><td>Base + <code>v-model:expanded</code> + slot <code>detail</code></td><td>Base + <code>v-model:current</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<dialog class="r3-dialog" id="dlg" aria-labelledby="dlg-h">
+  <h2 id="dlg-h" class="lab-h2"></h2>
+  <dl class="r3-facts" id="dlg-facts"></dl>
+  <p class="r3-dialog__note">Simula la ficha de la aplicación (el <code>preventDefault</code> de <code>navigate</code> la abre aquí en vez de navegar). Al cerrar, el foco vuelve a la puerta de la fila.</p>
+  <form method="dialog" class="r3-dialog__actions"><button class="g-btn g-btn--color-neutral g-btn--variant-soft g-btn--size-sm g-btn--density-default" id="dlg-close"><span class="g-btn__label">Cerrar</span></button></form>
+</dialog>
+
+<script src="../../lucide-icons.js"></script>
+<script src="./rows.js"></script>
+</body>
+</html>

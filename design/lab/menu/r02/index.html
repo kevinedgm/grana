@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Menú con enlaces · r02</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="./r02.css">
+<style>
+/* Solo la página del laboratorio, no el componente */
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+.lab-bar{display:flex;flex-wrap:wrap;justify-content:space-between;gap:var(--g-space-2);padding:var(--g-space-3) var(--g-space-4);border-block-end:var(--g-border-width) solid var(--g-color-border)}
+.lab-brand{font-weight:var(--g-text-action-weight)}
+.lab-links{display:flex;flex-wrap:wrap;gap:var(--g-space-3)}
+.lab-links a{color:var(--g-color-accent-text)}
+.lab-links a[aria-current]{font-weight:var(--g-text-action-weight);color:var(--g-color-text)}
+.lab{display:grid;gap:var(--g-space-6);max-inline-size:72rem;margin:0 auto;padding:var(--g-space-6) var(--g-space-4) var(--g-space-12)}
+.lab > *{min-inline-size:0}
+.lab-title{margin:0 0 var(--g-space-2);font-family:var(--g-font-title);font-size:var(--g-text-title-size);line-height:var(--g-text-title-line);font-weight:var(--g-text-title-weight)}
+.lab-lead{margin:0;max-inline-size:46rem;color:var(--g-color-text-muted)}
+.lab-how{margin:var(--g-space-2) 0 0;max-inline-size:46rem;font-size:var(--g-text-body-sm-size);color:var(--g-color-text-muted)}
+.lab h2{margin:0;font-family:var(--g-font-title);font-size:var(--g-text-title-sm-size);line-height:var(--g-text-title-sm-line);font-weight:var(--g-text-title-sm-weight)}
+.frame{display:flex;flex-wrap:wrap;gap:var(--g-space-6);align-items:flex-start;padding:var(--g-space-4);border:var(--g-border-width) dashed var(--g-color-border-strong);border-radius:var(--g-radius-md);background:var(--g-color-surface)}
+.demo{display:grid;gap:var(--g-space-2)}
+.demo > span{font-size:var(--g-text-caption-size);color:var(--g-color-text-muted)}
+.opts{display:flex;flex-wrap:wrap;gap:var(--g-space-4);font-size:var(--g-text-body-sm-size)}
+.opts label{display:inline-flex;gap:var(--g-space-2);align-items:center;min-block-size:24px}
+.lab-log{padding:var(--g-space-3) var(--g-space-4);border-radius:var(--g-radius-md);background:var(--g-color-surface-sunken);font-size:var(--g-text-body-sm-size)}
+.lab-log ol{margin:var(--g-space-2) 0 0;padding-inline-start:var(--g-space-5)}
+.lab-cmp .scroll{overflow-x:auto}
+.lab-cmp table{border-collapse:collapse;font-size:var(--g-text-body-sm-size);min-inline-size:44rem}
+.lab-cmp th,.lab-cmp td{padding:var(--g-space-2);border-block-end:var(--g-border-width) solid var(--g-color-border);text-align:start;vertical-align:top}
+.lab-cmp thead th{color:var(--g-color-text-muted);font-weight:var(--g-text-action-weight)}
+.ask{padding:var(--g-space-4);border-inline-start:calc(var(--g-space-1) * 0.75) solid var(--g-color-accent-text);background:var(--g-color-surface-sunken);border-radius:var(--g-radius-md)}
+.ask p{margin:0}
+kbd{padding:0 var(--g-space-1);border:var(--g-border-width) solid var(--g-color-border-strong);border-radius:var(--g-radius-xs);font:inherit;font-size:var(--g-text-caption-size);background:var(--g-color-surface)}
+.live{position:absolute;inline-size:1px;block-size:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.lab :focus-visible{outline:var(--g-focus-width) solid var(--g-color-focus);outline-offset:var(--g-focus-offset)}
+</style>
+</head>
+<body>
+<header class="lab-bar">
+  <span class="lab-brand">Menú con enlaces · r02</span>
+  <nav class="lab-links" aria-label="Conceptos de la ronda">
+    <a href="?c=base">Base</a><a href="?c=A">A · Enlace llano</a><a href="?c=B">B · Pie de destino</a><a href="?c=C">C · Varias pestañas</a><a id="rtl-link" href="?dir=rtl">Ver en RTL</a>
+  </nav>
+</header>
+<main class="lab" id="lab">
+  <div>
+    <h1 class="lab-title" id="t-title"></h1>
+    <p class="lab-lead" id="t-lead"></p>
+    <p class="lab-how" id="t-how"></p>
+  </div>
+
+  <div class="opts">
+    <label><input type="checkbox" id="router" checked> Simular router (<code>navigate</code> → <code>preventDefault()</code>)</label>
+  </div>
+
+  <section class="frame" aria-label="Menús de prueba">
+    <div class="demo"><span>Menú de cuenta: enlaces, acciones, externo, deshabilitado, actual</span><div id="demo-account"></div></div>
+    <div class="demo"><span>Menú de fila: solo enlaces internos y acciones (en B, sin pie)</span><div id="demo-file"></div></div>
+  </section>
+
+  <section class="lab-log" aria-labelledby="log-h">
+    <h2 id="log-h">Lo que emitiría GMenu</h2>
+    <ol id="log-list" reversed></ol>
+  </section>
+
+  <section class="lab-cmp" aria-labelledby="cmp-h">
+    <h2 id="cmp-h">Comparativa</h2>
+    <div class="scroll"><table>
+      <thead><tr><th scope="col"></th><th scope="col">A · Enlace llano</th><th scope="col">B · Pie de destino</th><th scope="col">C · Varias pestañas</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Qué añade</th><td>Base: <code>&lt;a role="menuitem"&gt;</code>, marca «sale de aquí», barra de página actual</td><td>A + franja al pie con el destino del elemento activo (dominio, ruta, «Pestaña nueva»)</td><td>A + Ctrl/⌘/central no cierran, huella «Abierta», vista previa con Ctrl/⌘ pulsado, Ctrl/⌘+C copia el enlace</td></tr>
+        <tr><th scope="row">Para quién</th><td>Todos; idéntico a un menú nativo</td><td>Quien no tiene barra de estado: PWA instalada, pantalla completa, teclado en Safari; y quien quiere ver el dominio antes de salir</td><td>Quien abre varios destinos seguidos (expertos, soporte, administración)</td></tr>
+        <tr><th scope="row">Cuándo aparece</th><td>Siempre que hay <code>href</code></td><td>Solo si algún elemento sale de la aplicación (otro sitio o pestaña nueva); sin prop</td><td>Siempre (comportamiento)</td></tr>
+        <tr><th scope="row">Coste</th><td>Mínimo</td><td>Un <code>li</code> oculto a lectores; +1 fila de alto en esos menús</td><td>Se aparta de los menús nativos (que cierran); dos textos nuevos y un anuncio</td></tr>
+        <tr><th scope="row">Riesgo</th><td>Ninguno nuevo</td><td>Ruido si la URL no dice nada (identificadores)</td><td>Dejar el menú abierto sorprende a quien espera que cierre; Ctrl/⌘+C no se descubre solo</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section class="ask" aria-labelledby="ask-h">
+    <h2 id="ask-h">Pregunta para elegir</h2>
+    <p>¿Qué forma adopta <code>GMenu</code> para los elementos-enlace: <strong>A</strong> (solo el enlace llano), <strong>B</strong> (A + pie de destino en los menús que salen de la aplicación; recomendada), <strong>C</strong> (A + varias pestañas), o <strong>B + C</strong>?</p>
+  </section>
+  <div id="live" class="live" role="status" aria-live="polite"></div>
+</main>
+<script src="../../lucide-icons.js"></script>
+<script>
+(() => {
+  const qs = new URLSearchParams(location.search)
+  const c = qs.get('c') || 'base'
+  const T = {
+    base: ['Base funcional', 'Un elemento con href es un <a role="menuitem">: Intro y Espacio lo siguen, Ctrl/⌘+clic, clic central y Mayús+clic hacen lo del navegador sin navigate, y el menú contextual del navegador ofrece abrir y copiar el enlace.', 'Prueba: Intro y Espacio en «Mi perfil» (navigate); Ctrl/⌘+clic y clic central en «Ajustes» (sin navigate); clic derecho en «Documentación»; flechas hasta «Facturación» (deshabilitado, sin href).'],
+    A: ['A · Enlace llano', 'Los enlaces se ven como las acciones. Solo se marca lo que importa: lo que sale de aquí (otro sitio o pestaña nueva, icono al final) y la página actual (barra de inicio y peso, como GSidebar).', 'Los gestos con modificador cierran el menú, como los menús nativos.'],
+    B: ['B · Pie de destino', 'Una franja al pie de la lista dice adónde lleva el elemento activo: dominio en tinta, ruta atenuada y «Pestaña nueva» u «Otro sitio». Solo existe en un menú que tiene algo que sale de la aplicación: el menú de la fila no la lleva.', 'Recorre el menú de cuenta con flechas o con el puntero: el pie sigue al resaltado. Es una ayuda visual, oculta a lectores (el nombre del elemento ya lo dice).'],
+    C: ['C · Varias pestañas', 'Ctrl/⌘+clic y clic central abren en segundo plano y el menú sigue abierto, con la huella «Abierta» en el elemento. Con Ctrl/⌘ pulsado, las acciones se apartan y queda claro qué se puede abrir aparte. Ctrl/⌘+C copia el enlace enfocado.', 'Prueba: Ctrl/⌘+clic en «Ajustes» y luego en «Estado del servicio»; con el foco en «Mi perfil», Ctrl/⌘+C.']
+  }
+  const t = T[c] || T.base
+  document.getElementById('t-title').textContent = t[0]
+  document.getElementById('t-lead').textContent = t[1]
+  document.getElementById('t-how').textContent = t[2]
+  document.querySelectorAll('.lab-links a').forEach((a) => { if (a.getAttribute('href') === '?c=' + c) a.setAttribute('aria-current', 'page') })
+  const rtl = document.getElementById('rtl-link')
+  const next = new URLSearchParams(qs); if (qs.get('dir') === 'rtl') { next.delete('dir'); rtl.textContent = 'Ver en LTR' } else next.set('dir', 'rtl')
+  rtl.href = '?' + next.toString()
+})()
+</script>
+<script src="./r02.js"></script>
+</body>
+</html>

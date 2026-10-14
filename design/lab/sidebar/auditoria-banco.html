@@ -1,0 +1,81 @@
+<!doctype html>
+<!--
+  Auditoría de coco (paso 5) de GSidebar r02 · B «Asiento» sobre el COMPONENTE REAL (dist/grana.umd.js + dist/grana.css).
+  Lo sirve design/lab/sidebar/auditoria-verificar.mjs (puede sustituir dist/ por una copia con GRANA_DIST y sirve los
+  temas del CLI en /__themes/<nombre>.css).
+  Parámetros: ?theme=<lustre|spotify|… de dark-color-presence/generated> | ?cli=<nisa|nisa-slots|primary>  ?dark=1
+              ?density=default|comfortable|compact  ?variant=fixed|floating  ?dir=rtl  ?cur=<id>  ?focus3=1
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GSidebar r02 · auditoría</title>
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<link id="theme" rel="stylesheet" href="data:text/css,">
+<style>
+  body { margin: 0; background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui); }
+  .bk-row { display: flex; gap: 16px; align-items: flex-start; padding: 16px; flex-wrap: wrap; }
+  .bk-box { position: relative; block-size: 560px; display: flex; }
+  .bk-nb { position: relative; inline-size: 380px; block-size: 120px; border: 1px dashed var(--g-color-border); }
+  .bk-auto { position: relative; block-size: 420px; inline-size: 1100px; display: flex; overflow: hidden; border: 1px dashed var(--g-color-border); }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="bk-row">
+    <div class="bk-box" id="box-x"><g-sidebar id="sx" v-model="S.cur" :items="items" label="Expandida" :labels="labels" mode="expanded" search contained :density="S.density" :variant="S.variant" @navigate="nav"></g-sidebar></div>
+    <div class="bk-box" id="box-r"><g-sidebar id="sr" v-model="S.cur" :items="items" label="Riel" :labels="labels" mode="rail" search contained :density="S.density" :variant="S.variant" @navigate="nav"></g-sidebar></div>
+    <div class="bk-box" id="box-z" data-g-zone="brand"><g-sidebar id="sz" v-model="S.cur" :items="items" label="Zona" :labels="labels" mode="expanded" contained :density="S.density" @navigate="nav"></g-sidebar></div>
+    <div>
+      <div class="bk-nb" id="box-n"><g-sidebar id="sn" v-model="S.cur" :items="items" label="Barra" :labels="labels" mode="navbar" contained :density="S.density" @navigate="nav"></g-sidebar></div>
+      <p><button type="button" id="open-d" @click="S.open = true">Abrir el drawer</button></p>
+      <g-sidebar id="sd" v-model="S.cur" v-model:open="S.open" :items="items" label="Cajón" :labels="labels" mode="drawer" :density="S.density" @navigate="nav"></g-sidebar>
+    </div>
+  </div>
+  <div class="bk-row">
+    <div class="bk-auto" id="box-a" :style="{ inlineSize: S.w + 'px' }"><g-sidebar id="sa" v-model="S.cur" :items="items" label="Auto" :labels="labels" mode="auto" :mobile="S.mobile" :breakpoints="S.bp" @navigate="nav" @mode-change="(e) => S.modes.push(e.mode)"></g-sidebar></div>
+  </div>
+</div>
+<script src="../../../packages/vue/playground/lucide-icons.js"></script>
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script>
+const q = new URLSearchParams(location.search)
+const html = document.documentElement
+html.dataset.theme = q.get('dark') ? 'dark' : 'light'
+if (q.get('dir') === 'rtl') html.dir = 'rtl'
+if (q.get('theme')) document.getElementById('theme').href = '../tema-oscuro/dark-color-presence/generated/' + q.get('theme') + '.css'
+if (q.get('cli')) document.getElementById('theme').href = '/__themes/' + q.get('cli') + '.css'
+if (q.get('focus3')) document.head.insertAdjacentHTML('beforeend', '<style>:root{--g-focus-width:3px}</style>')
+const { createApp, reactive } = Vue
+const S = reactive({ cur: q.get('cur') || 'home', density: q.get('density') || 'default', variant: q.get('variant') || 'fixed', open: false, w: 1100, bp: null, mobile: 'drawer', modes: [], navs: [] })
+window.S = S
+const app = createApp({
+  setup() {
+    const items = [
+      { label: 'Principal', items: [
+        { id: 'home', label: 'Inicio', href: '#home', icon: 'house' },
+        { id: 'inbox', label: 'Bandeja', href: '#inbox', icon: 'inbox', badge: 3, badgeLabel: '3 sin leer' },
+        { id: 'noicon', label: 'Sin icono', href: '#noicon' }
+      ] },
+      { label: 'Espacio', items: [
+        { id: 'proj', label: 'Proyectos', icon: 'folder', children: [
+          { id: 'p1', label: 'Todos', href: '#p1' }, { id: 'p2', label: 'Activos', href: '#p2' }, { id: 'p3', label: 'Archivados', href: '#p3' }
+        ] },
+        { id: 'team', label: 'Equipo', href: '#team', icon: 'users' },
+        { id: 'bill', label: 'Facturación', icon: 'credit-card', disabled: true }
+      ] }
+    ]
+    const labels = { collapse: 'Contraer', expand: 'Expandir', more: 'Más', moreActive: 'contiene la página actual', drawer: 'Navegación', close: 'Cerrar', search: 'Buscar', searchHint: '⌘K' }
+    const nav = (e) => { e.event?.preventDefault(); S.navs.push(e.item.id) }
+    return { S, items, labels, nav }
+  }
+})
+app.use(Grana).use(Grana.createIcons(Object.values(window.LUCIDE_STATIC)))
+app.mount('#app')
+window.bancoListo = true
+</script>
+</body>
+</html>

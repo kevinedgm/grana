@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GDocumentPreview · banco de estilo</title>
+<!-- Banco de coco: marcado EXACTO de design/contracts/document-preview.md («Anatomía» y «Clases y datos») con el CSS real de
+     GDocumentPreview.css cargado DENTRO de la capa grana.components (como lo registrará bruno en components.css) y GBtn,
+     GMenu, GDialog, GEmpty, GSummary, GProgress e GInput reales de dist/. XPreview (estilo-banco.js) hace lo que hará
+     GDocumentPreview.vue y SOLO lo que el estilo necesita: páginas simuladas en lienzo con --_w/--_h, página actual por
+     desplazamiento, riel con --_y, is-arriving en los saltos, la página que asoma, cifra tecleada (is-typing), miniaturas
+     (is-thumbs), zoom, --_seal-size medido, is-narrow por el ancho de la raíz, acuses y las profundidades en GDialog.
+     No es la implementación de bruno ni documentación.
+     Desde la raíz del repo:  python3 -m http.server 4209  →  /design/lab/document-preview/estilo-banco.html
+     Parámetros: ?dark=1  ?dir=rtl  ?theme=<nombre de design/lab/tema-oscuro/dark-color-presence/generated/*.css>  ?slow=1 (×5)
+     Verificación: GRANA_PW_PORT=4209 node design/lab/document-preview/estilo-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<style>@import url("../../../packages/vue/src/components/GDocumentPreview/GDocumentPreview.css") layer(grana.components);</style>
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style id="slow-css"></style>
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:1180px;margin:0 auto}
+  h1{font-size:18px;margin:0 0 8px}
+  h2.b{font-size:15px;margin:40px 0 6px;padding-top:16px;border-top:1px dashed var(--g-color-border-strong)}
+  .cap{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 12px;max-width:100ch}
+  .tools{position:sticky;top:0;z-index:5;display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;padding:8px 0;background:var(--g-color-bg);border-block-end:1px solid var(--g-color-border);font-size:13px}
+  .tools button{font:inherit;font-size:13px;min-block-size:28px;padding:2px 8px;border:1px solid var(--g-color-border-control);border-radius:6px;background:var(--g-color-surface);color:var(--g-color-text)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:16px;align-items:start}
+  .grid figure{margin:0;min-inline-size:0}
+  .grid figcaption{font-size:12px;color:var(--g-color-text-muted);margin-block-end:4px}
+  .w375{inline-size:375px;max-inline-size:100%}
+  .side{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,440px);gap:16px;align-items:start}
+  .zone{padding:16px;border-radius:12px;background:var(--g-color-bg)}
+</style>
+</head>
+<body>
+<main id="app">
+  <h1>GDocumentPreview · banco de estilo (A «Lomo»)</h1>
+  <p class="cap">CSS real de <code>GDocumentPreview.css</code> en <code>grana.components</code>; componentes reales de <code>dist/</code>. Pasa el puntero por el lomo, enfócalo con Tab y usa ↓/↑, Inicio/Fin o teclea una cifra.</p>
+  <div class="tools" role="group" aria-label="Banco">
+    <button type="button" id="t-dark">Oscuro</button>
+    <button type="button" id="t-rtl">RTL</button>
+    <span id="t-theme"></span>
+  </div>
+
+  <h2 class="b" id="s-inline">En línea · embedded (12 páginas)</h2>
+  <x-preview id="p-main" :pages="12" vid="main"></x-preview>
+
+  <h2 class="b" id="s-panel">panel junto a una lista</h2>
+  <div class="side">
+    <div class="cap">Expediente 7731 · Arrendamiento local 4</div>
+    <x-preview id="p-panel" variant="panel" :pages="4" height="440px" vid="panel"></x-preview>
+  </div>
+
+  <h2 class="b" id="s-dense">Muchas páginas (is-dense, 80)</h2>
+  <x-preview id="p-dense" :pages="80" height="420px" vid="dense"></x-preview>
+
+  <h2 class="b" id="s-thumbs">Miniaturas abiertas</h2>
+  <x-preview id="p-thumbs" :pages="6" height="420px" :thumbs-open="true" vid="thumbs"></x-preview>
+
+  <h2 class="b" id="s-image">Imagen (sin lomo de páginas: solo zoom)</h2>
+  <x-preview id="p-image" kind="image" :pages="1" height="420px" vid="image"></x-preview>
+
+  <h2 class="b" id="s-frame">Visor nativo (iframe)</h2>
+  <x-preview id="p-frame" kind="frame" :pages="1" height="360px" vid="frame"></x-preview>
+
+  <h2 class="b" id="s-receipts">Acuses en el sello</h2>
+  <div class="grid">
+    <figure><figcaption>En curso</figcaption><x-preview id="p-r-busy" :pages="3" height="240px" receipt="busy" vid="rbusy"></x-preview></figure>
+    <figure><figcaption>Hecho</figcaption><x-preview id="p-r-done" :pages="3" height="240px" receipt="done" vid="rdone"></x-preview></figure>
+    <figure><figcaption>Fallo con Reintentar</figcaption><x-preview id="p-r-failed" :pages="3" height="240px" receipt="failed" vid="rfailed"></x-preview></figure>
+  </div>
+
+  <h2 class="b" id="s-states">Estados (galería de 12)</h2>
+  <div class="grid">
+    <figure><figcaption>Cargando (molde)</figcaption><x-preview id="st-loading" phase="loading" height="280px" vid="s1"></x-preview></figure>
+    <figure><figcaption>Carga progresiva</figcaption><x-preview id="st-progress" phase="loading" progress height="280px" vid="s2"></x-preview></figure>
+    <figure><figcaption>Espera larga</figcaption><x-preview id="st-long" phase="loading" long height="280px" vid="s3"></x-preview></figure>
+    <figure><figcaption>Sin conexión</figcaption><x-preview id="st-network" phase="error" err="network" height="280px" vid="s4"></x-preview></figure>
+    <figure><figcaption>No encontrado</figcaption><x-preview id="st-notfound" phase="error" err="not-found" height="280px" vid="s5"></x-preview></figure>
+    <figure><figcaption>Sin acceso</figcaption><x-preview id="st-forbidden" phase="error" err="forbidden" height="280px" vid="s6"></x-preview></figure>
+    <figure><figcaption>Contraseña</figcaption><x-preview id="st-password" phase="password" height="280px" vid="s7"></x-preview></figure>
+    <figure><figcaption>Sin vista previa</figcaption><x-preview id="st-unsupported" phase="unsupported" height="280px" vid="s8"></x-preview></figure>
+    <figure><figcaption>Demasiado grande</figcaption><x-preview id="st-toolarge" phase="too-large" height="280px" vid="s9"></x-preview></figure>
+    <figure><figcaption>Dañado</figcaption><x-preview id="st-corrupt" phase="error" err="corrupt" height="280px" vid="s10"></x-preview></figure>
+    <figure><figcaption>Vacío</figcaption><x-preview id="st-empty" phase="error" err="empty" height="280px" vid="s11"></x-preview></figure>
+    <figure><figcaption>Sin visor PDF</figcaption><x-preview id="st-noinline" phase="no-inline" height="280px" vid="s12"></x-preview></figure>
+  </div>
+
+  <h2 class="b" id="s-narrow">375 px (is-narrow)</h2>
+  <div class="w375"><x-preview id="p-narrow" :pages="12" height="560px" vid="narrow"></x-preview></div>
+  <div class="w375" style="margin-top:16px"><x-preview id="p-narrow-thumbs" :pages="12" height="520px" :thumbs-open="true" vid="narrowthumbs"></x-preview></div>
+
+  <h2 class="b" id="s-zone">Dentro de la zona de marca</h2>
+  <div class="zone" data-g-zone="brand"><x-preview id="p-zone" :pages="5" height="380px" vid="zone"></x-preview></div>
+</main>
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../lucide-icons.js"></script>
+<script src="./estilo-banco.js"></script>
+</body>
+</html>

@@ -5,11 +5,12 @@
 // (iniciales o icono) existe SIEMPRE y va primero; la <img alt=""> se apila encima, última hija, solo con src y sin fallo.
 // Decorativo por defecto (aria-hidden); con `label`, role="img" + aria-label. Nunca interactivo: sin slots ni eventos;
 // role/aria-*/tabindex y escuchas del consumidor no llegan a la raíz (aviso 5).
-import { Comment, Fragment, Text, computed, defineComponent, h, inject, nextTick, onMounted, ref, watch } from 'vue'
+import { Comment, Fragment, Text, computed, defineComponent, h, inject, nextTick, onMounted, onUpdated, ref, watch } from 'vue'
 import GIcon from '../GIcon/GLibIcon.js'       // icono propio (`user`): SOLO la lista de la librería (icons.md §4, #200)
 import GAppIcon from '../GIcon/GIcon.vue'      // prop `icon`: nombre de la aplicación (registro más cercano → librería, #296)
 import { iconsKey, lookupLibrary, lookupRegistry } from '../GIcon/registry.js'
 import { categoryOf } from '../../utils/categoryHash.js'
+import { warnMissingCategory } from '../../utils/categoryToken.js'
 
 const SIZES = ['xs', 'sm', 'md', 'lg', 'xl']
 const SHAPES = ['circle', 'square']
@@ -175,12 +176,14 @@ export default defineComponent({
     })
     onMounted(() => {
       probe()
+      warnMissingCategory(root.value, cat.value, 'GAvatar')
       // Aviso 1: un label dentro de un antecesor aria-hidden no llega al árbol de accesibilidad
       const el = root.value
       if (isDev() && label.value && el && el.parentElement && el.parentElement.closest('[aria-hidden="true"]')) {
         warnOnce(`label-hidden:${label.value}`, `<GAvatar label="${label.value}"> está dentro de un elemento aria-hidden (el hueco de un componente es decorativo): el nombre no llega. Pon el nombre en el control que lo envuelve (su texto o aria-label) o en el texto vecino, y deja el avatar sin label.`)
       }
     })
+    onUpdated(() => warnMissingCategory(root.value, cat.value, 'GAvatar'))
     const onLoad = (want) => () => { if (src.value === want) status.value = 'loaded' }
     const onError = (want) => () => { if (src.value === want) status.value = 'failed' }
 

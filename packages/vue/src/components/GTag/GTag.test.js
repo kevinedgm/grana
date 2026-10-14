@@ -180,6 +180,20 @@ describe('GTag · navigate (#505)', () => {
     a.dispatchEvent(ev)
     expect(w.emitted('navigate')).toBeUndefined()
   })
+  it('con target de otro contexto (_blank, nombre, _parent, _top) NO emite y el enlace sigue; vacío y _self sí (#574)', () => {
+    for (const target of ['_blank', 'ayuda', '_parent', '_top', '_BLANK']) {
+      const w = mk({ label: 'Vue', href: '#vue', target })
+      const ev = new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 })
+      w.find('a').element.dispatchEvent(ev)
+      expect(w.emitted('navigate'), target).toBeUndefined()
+      expect(ev.defaultPrevented, target).toBe(false)
+    }
+    for (const target of ['', '_self']) {
+      const w = mk({ label: 'Vue', href: '#vue', target })
+      w.find('a').element.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }))
+      expect(w.emitted('navigate'), target).toHaveLength(1)
+    }
+  })
   it('deshabilitado no emite', () => {
     const w = mk({ label: 'Vue', href: '#vue', disabled: true })
     w.find('a').element.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }))
@@ -319,7 +333,7 @@ describe('GTag · avisos de desarrollo', () => {
   it('una etiqueta correcta no avisa', async () => {
     const G = await fresh()
     const s = spyWarn()
-    wrappers.push(mount(G, { props: { label: 'A', href: '#a', removable: true, labels: L, categories: 8 }, attachTo: document.body }))
+    wrappers.push(mount(G, { props: { label: 'A', href: '#a', removable: true, labels: L, categories: 8 }, attrs: { style: '--g-color-cat-1:#123;--g-color-cat-2:#123;--g-color-cat-3:#123;--g-color-cat-4:#123;--g-color-cat-5:#123;--g-color-cat-6:#123;--g-color-cat-7:#123;--g-color-cat-8:#123' }, attachTo: document.body }))
     wrappers.push(mount(G, { props: { label: 'B', pressed: true, color: 'neutral' }, attachTo: document.body }))
     expect(grana(s)).toEqual([])
   })

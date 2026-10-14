@@ -6,8 +6,10 @@
   Este es el ÚNICO archivo del paquete donde se permiten valores literales de tema.
 
   Tema oscuro (tokens.md §15, DECISIONS.md #79 a #81): al final del archivo, tras la marca OSCURO.
-  Orden obligatorio: claro, consulta oscura, [data-theme="dark"]. Los tokens que no son de color
-  (radios, espaciado, tipografía, movimiento, estructura) no cambian y no se repiten.
+  Orden obligatorio: claro, consulta oscura, [data-theme="dark"] y, al final, la zona de marca [data-g-zone="brand"]
+  (tokens.md §44). Los tokens que no son de color (radios, espaciado, tipografía, movimiento, estructura) no cambian y
+  no se repiten. La consulta oscura usa :root:where(:not(...)) (0,1,0), como el CLI (DECISIONS.md #561): con :not()
+  (0,2,0) ganaba a la zona puesta en <html> con el sistema en oscuro.
 */
 /* Grupo de color, claro: también en [data-theme="light"] (un claro dentro de un oscuro) */
 :root,
@@ -96,6 +98,24 @@
   --g-color-selection: var(--g-color-accent-soft);
   --g-color-active: var(--g-color-accent);
 
+  /* Zona de marca · fuentes (tokens.md §44.2, DECISIONS.md #622). Nivel Reference: solo las lee el bloque
+     [data-g-zone="brand"] del final (y GSurface.css, zone-edge). Marca profunda: el mismo valor en los tres bloques
+     (en el oscuro, la marca del claro, no el brand reflejado). Calculadas con las reglas de §44.2 a §44.4 (§44.8):
+     tinta, tinta secundaria, acento y semánticos ≥ 4,5:1 frente a la marca y al hundido del 8 % (#2E2E2E);
+     la tinta ≥ 4,5:1 sobre los dos velos. Acento y semánticos «adjusted» (aclarados hacia la tinta) */
+  --g-color-brand-zone: #1F1F1F;
+  --g-color-on-brand-zone: #FFFFFF;
+  --g-color-on-brand-muted: #D2D2D2;
+  --g-color-on-brand-accent: #4D96FF;
+  --g-color-on-brand-success: #52A871;
+  --g-color-on-brand-warning: #C28B43;
+  --g-color-on-brand-danger: #FA664F;
+  --g-color-on-brand-info: #4D96FF;
+  --g-color-on-brand-veil: #454545;
+  --g-color-on-brand-accent-veil: #2A3546;
+  /* Filo de la zona frente a la página: el border-strong de ESTE esquema, resuelto aquí (no el de la zona) */
+  --g-color-zone-edge: var(--g-color-border-strong);
+
   /* Calendario */
   --g-calendar-grid-color: var(--g-color-border);
   --g-calendar-unavailable-color: var(--g-color-border-strong);
@@ -128,6 +148,11 @@
   --g-card-selected: rgb(0 0 0 / 0.045);
   --g-card-scrim: rgb(0 0 0 / 0.62);
   --g-card-on-scrim: #FFFFFF;
+
+  /* Sidebar · item actual (tokens.md §43, DECISIONS.md #612 a #614): asiento, nodo, ruta y píldora; el relleno de familia marcado (§7.1, #431) leído de los alias del bloque */
+  --g-sidebar-current: var(--g-color-primary);
+  --g-sidebar-on-current: var(--g-color-on-primary);
+  --g-sidebar-current-edge: var(--g-color-primary-text);
 
   /* Sombras · discretas: el tema prefiere bordes */
   --g-shadow-1: 0 1px 2px rgb(0 0 0 / 0.05);
@@ -259,7 +284,7 @@
 
 /* === OSCURO (tokens.md §15) · al final, para ganar al claro con igual especificidad === */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root:where(:not([data-theme="light"])) {
     color-scheme: dark;
 
     /* brand · tinta invertida: casi blanco con texto casi negro (la tinta oscura del claro no se ve sobre un fondo oscuro) */
@@ -342,6 +367,20 @@
     --g-color-selection: var(--g-color-accent-soft);
     --g-color-active: var(--g-color-accent);
 
+    /* Zona de marca · fuentes (§44.2): las mismas que en el claro (marca profunda) */
+    --g-color-brand-zone: #1F1F1F;
+    --g-color-on-brand-zone: #FFFFFF;
+    --g-color-on-brand-muted: #D2D2D2;
+    --g-color-on-brand-accent: #4D96FF;
+    --g-color-on-brand-success: #52A871;
+    --g-color-on-brand-warning: #C28B43;
+    --g-color-on-brand-danger: #FA664F;
+    --g-color-on-brand-info: #4D96FF;
+    --g-color-on-brand-veil: #454545;
+    --g-color-on-brand-accent-veil: #2A3546;
+    /* Filo de la zona frente a la página: el border-strong de ESTE esquema, resuelto aquí (no el de la zona) */
+    --g-color-zone-edge: var(--g-color-border-strong);
+
     /* Calendario */
     --g-calendar-grid-color: var(--g-color-border);
     --g-calendar-unavailable-color: var(--g-color-border-strong);
@@ -371,6 +410,11 @@
     --g-card-selected: rgb(255 255 255 / 0.06);
     --g-card-scrim: rgb(0 0 0 / 0.68);
     --g-card-on-scrim: #FFFFFF;
+
+    /* Sidebar · item actual (tokens.md §43, DECISIONS.md #612 a #614): asiento, nodo, ruta y píldora; redeclaradas aquí: un var() se resuelve donde se declara (§10) */
+    --g-sidebar-current: var(--g-color-primary);
+    --g-sidebar-on-current: var(--g-color-on-primary);
+    --g-sidebar-current-edge: var(--g-color-primary-text);
 
     /* Sombras · el alfa se duplica (sobre oscuro se ven menos); el tema sigue prefiriendo bordes */
     --g-shadow-1: 0 1px 2px rgb(0 0 0 / 0.30);
@@ -462,6 +506,20 @@
   --g-color-selection: var(--g-color-accent-soft);
   --g-color-active: var(--g-color-accent);
 
+  /* Zona de marca · fuentes (§44.2): las mismas que en el claro (marca profunda) */
+  --g-color-brand-zone: #1F1F1F;
+  --g-color-on-brand-zone: #FFFFFF;
+  --g-color-on-brand-muted: #D2D2D2;
+  --g-color-on-brand-accent: #4D96FF;
+  --g-color-on-brand-success: #52A871;
+  --g-color-on-brand-warning: #C28B43;
+  --g-color-on-brand-danger: #FA664F;
+  --g-color-on-brand-info: #4D96FF;
+  --g-color-on-brand-veil: #454545;
+  --g-color-on-brand-accent-veil: #2A3546;
+  /* Filo de la zona frente a la página: el border-strong de ESTE esquema, resuelto aquí (no el de la zona) */
+  --g-color-zone-edge: var(--g-color-border-strong);
+
   /* Calendario */
   --g-calendar-grid-color: var(--g-color-border);
   --g-calendar-unavailable-color: var(--g-color-border-strong);
@@ -492,8 +550,129 @@
   --g-card-scrim: rgb(0 0 0 / 0.68);
   --g-card-on-scrim: #FFFFFF;
 
+  /* Sidebar · item actual (tokens.md §43, DECISIONS.md #612 a #614): asiento, nodo, ruta y píldora; redeclaradas aquí: un var() se resuelve donde se declara (§10) */
+  --g-sidebar-current: var(--g-color-primary);
+  --g-sidebar-on-current: var(--g-color-on-primary);
+  --g-sidebar-current-edge: var(--g-color-primary-text);
+
   /* Sombras · el alfa se duplica (sobre oscuro se ven menos); el tema sigue prefiriendo bordes */
   --g-shadow-1: 0 1px 2px rgb(0 0 0 / 0.30);
   --g-shadow-2: 0 4px 12px -4px rgb(0 0 0 / 0.50);
   --g-shadow-3: 0 16px 40px -12px rgb(0 0 0 / 0.60);
+}
+
+/* === ZONA DE MARCA (tokens.md §44, DECISIONS.md #620 a #625) · C «Plano de tinta» ===
+   Después de los tres esquemas. Redeclara el grupo de color EN el elemento de la zona con var() de las fuentes, que llegan
+   heredadas y ya resueltas desde el esquema (marca profunda: la misma zona en claro y oscuro). Gana por herencia, no por
+   cascada: el tema del usuario (sin capa, en :root y [data-theme]) no la pisa salvo en el mismo elemento (W2).
+   Las superficies propias se funden con la marca (bg = surface = la marca): la profundidad dentro es solo línea y velo de
+   tinta. Las mezclas son OKLab entre fuentes del mismo lado de la marca: cumplen por convexidad (§44.3). Ninguna fuente
+   se redeclara aquí (sin ciclos). Un popover o <dialog> abierto en su sitio hereda la zona (#624).
+   No se redeclaran: los rellenos con su par ({sem}, -strong, -soft, on-{sem}*, cat-k*), --g-surface-backdrop,
+   --g-card-scrim, --g-card-on-scrim y --g-glass-filter (no es color: el del tema del usuario sigue valiendo dentro) */
+[data-g-zone="brand"] {
+  color-scheme: dark;
+
+  /* Superficies: se funden con la marca. Hundido = marca con un 6 % de tinta (tope del contrato: 8 %, H) */
+  --g-color-bg: var(--g-color-brand-zone);
+  --g-color-surface: var(--g-color-brand-zone);
+  --g-color-surface-sunken: color-mix(in oklab, var(--g-color-brand-zone), var(--g-color-on-brand-zone) 6%);
+
+  /* Texto: dos niveles de tinta bastan sobre la marca */
+  --g-color-text: var(--g-color-on-brand-zone);
+  --g-color-text-muted: var(--g-color-on-brand-muted);
+  --g-color-text-subtle: var(--g-color-on-brand-muted);
+
+  /* Líneas: tinta translúcida (decorativas, como en la página); el contorno de control es la tinta secundaria (≥ 4,5:1).
+     Un trazo de tinta más marcado que en la página: dentro de la zona la línea es lo único que dice «superficie» */
+  --g-color-border: color-mix(in srgb, var(--g-color-on-brand-zone) 16%, transparent);
+  --g-color-border-strong: color-mix(in srgb, var(--g-color-on-brand-zone) 30%, transparent);
+  --g-color-border-control: var(--g-color-on-brand-muted);
+  /* Marcador de carga (§42): la misma expresión que en la página, resuelta con el texto y la superficie de la zona */
+  --g-color-mold: color-mix(in srgb, var(--g-color-text) 18%, var(--g-color-surface));
+
+  /* Señal: foco, enlace y activo con el acento de la zona; la selección es su velo */
+  --g-color-focus: var(--g-color-on-brand-accent);
+  --g-color-link: var(--g-color-on-brand-accent);
+  --g-color-active: var(--g-color-on-brand-accent);
+  --g-color-selection: var(--g-color-on-brand-accent-veil);
+
+  /* Acción principal = tinta invertida; brand y primary juntos (marca sobre marca no se ve, Z1).
+     -strong (hover) = la tinta con la mitad de tinta secundaria: la marca encima sigue ≥ 4,5:1 por convexidad */
+  --g-color-primary: var(--g-color-on-brand-zone);
+  --g-color-primary-strong: color-mix(in oklab, var(--g-color-on-brand-zone), var(--g-color-on-brand-muted) 50%);
+  --g-color-primary-soft: var(--g-color-on-brand-veil);
+  --g-color-primary-text: var(--g-color-on-brand-zone);
+  --g-color-on-primary: var(--g-color-brand-zone);
+  --g-color-on-primary-soft: var(--g-color-on-brand-zone);
+  --g-color-brand: var(--g-color-on-brand-zone);
+  --g-color-brand-strong: color-mix(in oklab, var(--g-color-on-brand-zone), var(--g-color-on-brand-muted) 50%);
+  --g-color-brand-soft: var(--g-color-on-brand-veil);
+  --g-color-brand-text: var(--g-color-on-brand-zone);
+  --g-color-on-brand: var(--g-color-brand-zone);
+  --g-color-on-brand-soft: var(--g-color-on-brand-zone);
+
+  /* Acento: su par es la propia marca (≥ 4,5:1 por la guarda). -strong con un 35 % de tinta secundaria: con
+     lost/fallback el acento es la tinta y el hover queda como el de la principal */
+  --g-color-accent: var(--g-color-on-brand-accent);
+  --g-color-accent-strong: color-mix(in oklab, var(--g-color-on-brand-accent), var(--g-color-on-brand-muted) 35%);
+  --g-color-accent-soft: var(--g-color-on-brand-accent-veil);
+  --g-color-accent-text: var(--g-color-on-brand-accent);
+  --g-color-on-accent: var(--g-color-brand-zone);
+  --g-color-on-accent-soft: var(--g-color-on-brand-zone);
+
+  /* Neutro: tinta secundaria; soft = velo de tinta con la tinta plena encima (hallazgo 22: ya no parece deshabilitado) */
+  --g-color-neutral: var(--g-color-on-brand-muted);
+  --g-color-neutral-strong: var(--g-color-on-brand-zone);
+  --g-color-neutral-soft: var(--g-color-on-brand-veil);
+  --g-color-neutral-text: var(--g-color-on-brand-muted);
+  --g-color-on-neutral: var(--g-color-brand-zone);
+  --g-color-on-neutral-soft: var(--g-color-on-brand-zone);
+
+  /* Semánticos como texto sobre la marca (tendencias, mensajes, contornos de §7.1); sus rellenos conservan su par */
+  --g-color-success-text: var(--g-color-on-brand-success);
+  --g-color-warning-text: var(--g-color-on-brand-warning);
+  --g-color-danger-text: var(--g-color-on-brand-danger);
+  --g-color-info-text: var(--g-color-on-brand-info);
+
+  /* Calendario (regla de alias: la misma expresión, resuelta con la zona) y la hora actual con el peligro de la zona */
+  --g-calendar-grid-color: var(--g-color-border);
+  --g-calendar-unavailable-color: var(--g-color-border-strong);
+  --g-calendar-now-color: var(--g-color-on-brand-danger);
+
+  /* Cristal: tinte de la marca; filo y brillo de tinta. 0.72 como el oscuro: la tinta sobre el velo compuesto con el
+     peor fondo (blanco en una zona oscura, negro en una clara) ≥ 4,5:1 en los cuatro temas de §44.8 */
+  --g-glass-tint: var(--g-color-brand-zone);
+  --g-glass-opacity: 0.72;
+  --g-glass-edge: color-mix(in srgb, var(--g-color-on-brand-zone) 18%, transparent);
+  --g-glass-sheen: color-mix(in srgb, var(--g-color-on-brand-zone) 10%, transparent);
+
+  /* Superficies anidadas: la carcasa es el hundido de la zona y la inset vuelve a la marca (sin isla blanca) */
+  --g-surface-shell: var(--g-color-surface-sunken);
+  --g-surface-inset: var(--g-color-brand-zone);
+
+  /* Tabs: pista y banda de tinta translúcida; el segmento es el velo de tinta (opaco, con la tinta ≥ 4,5:1 encima) */
+  --g-tabs-track: color-mix(in srgb, var(--g-color-on-brand-zone) 8%, transparent);
+  --g-tabs-thumb: var(--g-color-on-brand-veil);
+  --g-tabs-band: color-mix(in srgb, var(--g-color-on-brand-zone) 5%, transparent);
+  --g-tabs-panel: var(--g-color-surface);
+
+  /* Card: velos de tinta, en orden hover < selected < pressed */
+  --g-card-hover: color-mix(in srgb, var(--g-color-on-brand-zone) 5%, transparent);
+  --g-card-pressed: color-mix(in srgb, var(--g-color-on-brand-zone) 10%, transparent);
+  --g-card-selected: color-mix(in srgb, var(--g-color-on-brand-zone) 7%, transparent);
+
+  /* Sidebar · item actual (§43): la misma expresión que en el esquema, resuelta con los valores de la zona */
+  --g-sidebar-current: var(--g-color-primary);
+  --g-sidebar-on-current: var(--g-color-on-primary);
+  --g-sidebar-current-edge: var(--g-color-primary-text);
+
+  /* Sombras: las del oscuro (sobre la marca se ven menos) */
+  --g-shadow-1: 0 1px 2px rgb(0 0 0 / 0.30);
+  --g-shadow-2: 0 4px 12px -4px rgb(0 0 0 / 0.50);
+  --g-shadow-3: 0 16px 40px -12px rgb(0 0 0 / 0.60);
+
+  /* Pinta: un data-g-zone suelto nunca deja tinta sobre la página */
+  background-color: var(--g-color-bg);
+  color: var(--g-color-text);
 }

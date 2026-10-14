@@ -19,6 +19,7 @@ Primitiva de widget: una **barra de progreso** con nombre, valor y texto propios
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | `brand` |
 | `size` | String | `sm` `md` | `md` |
 | `showValue` | Boolean | muestra el valor junto a la etiqueta | `true` |
+| `showLabel` | Boolean | con `false` la etiqueta no se pinta pero sigue siendo el nombre accesible (`aria-label`; sigue siendo obligatoria); con `showLabel` y `showValue` en `false` no hay fila de texto (barra sola) | `true` |
 
 ## Accesibilidad
 

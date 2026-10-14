@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zona de marca · r02</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<style id="r02-theme"></style>
+<style id="r02-islands"></style>
+<style>
+  /* Cromo del banco: solo tokens del tema activo */
+  html, body { margin: 0; background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui); }
+  body { padding: calc(var(--g-space-1) * 6) calc(var(--g-space-1) * 4); max-width: 1180px; margin-inline: auto; }
+  h1.r02-title { font-size: var(--g-text-title-size, 1.5rem); margin: 0 0 calc(var(--g-space-1) * 2); }
+  .r02-lead { color: var(--g-color-text-muted); max-width: 72ch; margin: 0 0 calc(var(--g-space-1) * 4); line-height: 1.5; }
+  .r02-controls { display: flex; flex-wrap: wrap; gap: calc(var(--g-space-1) * 4); align-items: center; margin-block-end: calc(var(--g-space-1) * 6); }
+  .r02-controls fieldset { border: var(--g-border-width) solid var(--g-color-border-strong); border-radius: var(--g-radius-md); padding: calc(var(--g-space-1) * 2) calc(var(--g-space-1) * 3); display: flex; flex-wrap: wrap; gap: calc(var(--g-space-1) * 3); min-inline-size: 0; }
+  .r02-controls legend { font-size: 0.8125rem; color: var(--g-color-text-muted); padding-inline: var(--g-space-1); }
+  .r02-controls label { display: inline-flex; gap: var(--g-space-1); align-items: center; min-block-size: 24px; }
+  section.r02-concept { margin-block: calc(var(--g-space-1) * 10); }
+  .r02-concept > h2 { margin: 0 0 var(--g-space-1); font-size: 1.25rem; }
+  .r02-concept > p { margin: 0 0 calc(var(--g-space-1) * 3); color: var(--g-color-text-muted); max-width: 80ch; line-height: 1.5; }
+
+  /* La zona: pinta su fondo y su tinta con los tokens que ella misma redeclara (bg = la marca) */
+  .r02-zone { background: var(--g-color-bg); color: var(--g-color-text); border-radius: var(--g-radius-lg);
+    padding: calc(var(--g-space-1) * 6); display: grid; gap: calc(var(--g-space-1) * 4); }
+  .r02-route ol { list-style: none; display: flex; flex-wrap: wrap; gap: calc(var(--g-space-1) * 2); margin: 0; padding: 0; font-size: 0.875rem; }
+  .r02-route a { color: var(--g-color-link); text-underline-offset: 3px; border-radius: var(--g-radius-xs); }
+  .r02-route a:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset); }
+  .r02-route li + li::before { content: "/"; color: var(--g-color-text-muted); margin-inline-end: calc(var(--g-space-1) * 2); }
+  .r02-eyebrow { color: var(--g-color-accent-text); font-size: 0.8125rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; margin: 0; }
+  .r02-h1 { margin: 0; font-size: 1.75rem; line-height: 1.2; }
+  .r02-desc { margin: 0; color: var(--g-color-text-muted); max-width: 64ch; line-height: 1.5; }
+  .r02-row { display: flex; flex-wrap: wrap; gap: calc(var(--g-space-1) * 2); align-items: center; }
+  .r02-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: calc(var(--g-space-1) * 3); align-items: start; }
+  .r02-metrics { display: flex; flex-wrap: wrap; gap: calc(var(--g-space-1) * 8); }
+
+  table.r02-m { border-collapse: collapse; font-size: 0.8125rem; margin-block-start: calc(var(--g-space-1) * 3); inline-size: 100%; }
+  .r02-m caption { text-align: start; font-weight: 600; padding-block-end: var(--g-space-1); }
+  .r02-m th, .r02-m td { text-align: start; padding: 4px 8px; border-block-end: var(--g-border-width) solid var(--g-color-border); vertical-align: top; }
+  .r02-m td.num { font-variant-numeric: tabular-nums; }
+  .r02-m .fail { color: var(--g-color-danger-text); font-weight: 600; }
+  .r02-m .ok { color: var(--g-color-success-text); }
+  .r02-m .sw { display: inline-block; inline-size: 12px; block-size: 12px; border-radius: 3px; vertical-align: -2px; border: 1px solid var(--g-color-border-strong); margin-inline-end: 4px; }
+  .r02-scroll { overflow-x: auto; }
+  @media (max-width: 520px) { .r02-zone { padding: calc(var(--g-space-1) * 4); } }
+</style>
+</head>
+<body>
+<h1 class="r02-title">Zona de marca · r02</h1>
+<p class="r02-lead">Componentes reales de Grana (dist) dentro de una banda de marca. Cada concepto redeclara para sus descendientes el juego de tokens que se ve en su tabla; las cifras son contraste WCAG medido sobre los valores resueltos. Temas: el de Grana por defecto, el del proyecto de la integración (marca #24366B, acento #C1D324) y el caso del hallazgo 15 (marca #0B1F4D, acento #0F766E), generados con el CLI real.</p>
+
+<div class="r02-controls">
+  <fieldset><legend>Tema</legend>
+    <label><input type="radio" name="tema" value="defecto" checked> Grana por defecto</label>
+    <label><input type="radio" name="tema" value="nisa"> Proyecto (navy + lima)</label>
+    <label><input type="radio" name="tema" value="teal"> Hallazgo 15 (marino + teal)</label>
+  </fieldset>
+  <fieldset><legend>Esquema</legend>
+    <label><input type="radio" name="esquema" value="light" checked> Claro</label>
+    <label><input type="radio" name="esquema" value="dark"> Oscuro (marca del oscuro)</label>
+    <label><input type="radio" name="esquema" value="deep"> Oscuro (marca profunda)</label>
+  </fieldset>
+</div>
+
+<div id="r02-light-probe" data-theme="light" hidden></div>
+<div id="app">
+  <section class="r02-concept" v-for="c in concepts" :key="c.id" :id="'concept-' + c.id">
+    <h2>{{ c.title }}</h2>
+    <p>{{ c.text }}</p>
+    <div class="r02-zone" :data-concept="c.id" :aria-labelledby="'h1-' + c.id" role="region">
+      <nav class="r02-route" aria-label="Ruta"><ol><li><a href="#">Laboratorio</a></li><li><a href="#">Órdenes</a></li><li><a href="#" aria-current="page">ORD-2041</a></li></ol></nav>
+      <p class="r02-eyebrow">Orden de trabajo</p>
+      <h3 class="r02-h1" :id="'h1-' + c.id">Biometría hemática · lote 12</h3>
+      <p class="r02-desc">Texto secundario sobre la marca: la descripción de la página, una fecha o el responsable. Necesita su propio token para no depender de un color-mix hecho a mano.</p>
+      <div class="r02-row">
+        <span class="r02-b-solid"><g-btn color="brand">Validar resultados</g-btn></span>
+        <span class="r02-b-softn"><g-btn variant="soft" color="neutral">Duplicar</g-btn></span>
+        <span class="r02-b-softa"><g-btn variant="soft" color="accent">Compartir</g-btn></span>
+        <span class="r02-b-outline"><g-btn variant="outline" color="neutral">Exportar</g-btn></span>
+        <span class="r02-b-ghost"><g-btn variant="ghost" color="neutral">Historial</g-btn></span>
+      </div>
+      <div class="r02-row">
+        <span class="r02-badge-soft"><g-badge variant="soft" color="success">Validada</g-badge></span>
+        <span class="r02-badge-solid"><g-badge variant="solid" color="warning">Urgente</g-badge></span>
+        <span class="r02-tag"><g-tag label="Hematología"></g-tag></span>
+        <span class="r02-tag-cat"><g-tag label="Turno matutino" color="neutral"></g-tag></span>
+      </div>
+      <div class="r02-metrics">
+        <span class="r02-metric"><g-metric label="Muestras" value="128" trend="+12 %" direction="up" trend-color="success" context="frente a ayer"></g-metric></span>
+        <span class="r02-metric-down"><g-metric label="Rechazadas" value="3" trend="+2" direction="up" trend-color="danger" context="frente a ayer"></g-metric></span>
+      </div>
+      <div class="r02-grid">
+        <span class="r02-input"><g-input label="Buscar en la orden" placeholder="Paciente, folio o estudio" type="search" hint="Ayuda bajo el campo"></g-input></span>
+        <span class="r02-card-toggle"><g-card level="outlined" interaction="toggle" title="Marcar como revisada" description="Tarjeta conmutable con contorno: el caso que se rompió en la integración." v-model="toggles[c.id]"></g-card></span>
+        <span class="r02-card-raised"><g-card level="raised" title="Tarjeta elevada" description="Superficie propia con sombra."></g-card></span>
+        <span class="r02-card-flat"><g-card level="flat" title="Tarjeta plana" description="Sin superficie propia."></g-card></span>
+      </div>
+    </div>
+    <div class="r02-scroll"><table class="r02-m" :data-table="c.id">
+      <caption>Contraste medido en este concepto ({{ themeLabel }})</caption>
+      <thead><tr><th>Par</th><th>Texto o figura</th><th>Fondo</th><th>Ratio</th><th>Mínimo</th></tr></thead>
+      <tbody>
+        <tr v-for="r in rows[c.id]" :key="r.id">
+          <td>{{ r.label }}</td>
+          <td><span class="sw" :style="{ background: r.fg }"></span>{{ r.fg }}</td>
+          <td><span class="sw" :style="{ background: r.bg }"></span>{{ r.bg }}</td>
+          <td class="num" :class="r.ratio < r.min ? 'fail' : 'ok'">{{ r.ratio.toFixed(2) }}:1</td>
+          <td class="num">{{ r.min }}:1</td>
+        </tr>
+      </tbody>
+    </table></div>
+    <p v-if="notes[c.id]" style="font-size:0.8125rem;color:var(--g-color-text-muted)">{{ notes[c.id] }}</p>
+  </section>
+</div>
+
+<script src="../../../../node_modules/vue/dist/vue.global.prod.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../../../packages/vue/dist/tag.umd.js"></script>
+<script src="./temas.js"></script>
+<script type="module">
+import { zoneTokens, islandRestore, projectHack, ratio, mix } from './zona.js'
+
+const CONCEPTS = [
+  { id: 'hoy', title: 'Hoy · el arreglo del proyecto', text: 'Banda pintada aparte con text, text-muted y focus reasignados a mano. Las superficies propias siguen leyendo surface (blanco) con la tinta ya reasignada (blanca): la tarjeta con contorno y el campo quedan ilegibles.' },
+  { id: 'A', title: 'A · Esquema de marca', text: 'La zona es un esquema completo, como el oscuro: todo el grupo de color se redeclara con la marca como fondo. Las superficies propias (tarjeta con contorno, elevada, campo) son pasos de tono de la propia marca; los semánticos se re-derivan contra ella.' },
+  { id: 'B', title: 'B · Islas de página', text: 'La zona redeclara la tinta; toda superficie propia (GSurface no plana y la caja visible de los campos) vuelve al esquema de la página. Tarjetas y campos se ven como en la página, apoyados sobre la marca. El anillo de foco de la caja lo resuelve la raíz del campo, que sigue en la zona.' },
+  { id: 'C', title: 'C · Plano de tinta', text: 'La zona redeclara la tinta y las superficies propias se funden con ella: surface = la marca. Una tarjeta con contorno queda como línea sobre la marca; la profundidad dentro de la zona solo se dice con líneas y velos de tinta. El juego más pequeño.' }
+]
+const NAMES = ['brand', 'on-brand', 'accent', 'accent-text', 'success', 'warning', 'danger', 'info', 'surface', 'text', 'focus']
+
+let app
+const state = Vue.reactive({ rows: {}, notes: {}, themeLabel: '', toggles: { hoy: false, A: true, B: true, C: true } })
+
+function pageValues (deep) {
+  const cs = getComputedStyle(document.documentElement)
+  // «Marca profunda»: en el oscuro, la zona conserva la marca y su tinta del claro (se leen de un [data-theme=light])
+  const lp = getComputedStyle(document.getElementById('r02-light-probe'))
+  const v = (n) => cs.getPropertyValue(n).trim()
+  const p = { brand: deep ? lp.getPropertyValue('--g-color-brand').trim() : v('--g-color-brand'), onBrand: deep ? lp.getPropertyValue('--g-color-on-brand').trim() : v('--g-color-on-brand'), accent: v('--g-color-accent'),
+    success: v('--g-color-success'), warning: v('--g-color-warning'), danger: v('--g-color-danger'), info: v('--g-color-info') }
+  const all = {}
+  for (let i = 0; i < cs.length; i++) { const n = cs[i]; if (n.startsWith('--g-')) all[n] = cs.getPropertyValue(n).trim() }
+  all['color-scheme'] = cs.colorScheme
+  return { p, all }
+}
+
+// Color CSS → [r,g,b,a] por canvas (resuelve oklab, color(), color-mix)
+const cvs = document.createElement('canvas'); cvs.width = cvs.height = 1
+const ctx = cvs.getContext('2d', { willReadFrequently: true })
+function rgba (str) { ctx.clearRect(0, 0, 1, 1); ctx.fillStyle = '#000'; ctx.fillStyle = str; ctx.fillRect(0, 0, 1, 1); const d = ctx.getImageData(0, 0, 1, 1).data; return [d[0], d[1], d[2], d[3] / 255] }
+const over = (top, under) => [0, 1, 2].map(i => top[i] * top[3] + under[i] * (1 - top[3])).concat(1)
+const toHex = (c) => '#' + c.slice(0, 3).map(x => Math.round(x).toString(16).padStart(2, '0')).join('').toUpperCase()
+function effectiveBg (el) {
+  const stack = []
+  for (let n = el; n && n.nodeType === 1; n = n.parentElement) { const c = rgba(getComputedStyle(n).backgroundColor); if (c[3] > 0) { stack.push(c); if (c[3] >= 1) break } }
+  let acc = [255, 255, 255, 1]
+  for (let i = stack.length - 1; i >= 0; i--) acc = over(stack[i], acc)
+  return acc
+}
+function domPair (zone, sel, prop = 'color', bgSel = null) {
+  const el = zone.querySelector(sel); if (!el) return null
+  const bgEl = bgSel ? zone.querySelector(bgSel) : el
+  const bg = effectiveBg(bgSel === 'zone' ? zone : bgEl)
+  const fg = over(rgba(getComputedStyle(el)[prop]), bg)
+  return { fg: toHex(fg), bg: toHex(bg) }
+}
+function tokenAt (el, name) { return rgba(getComputedStyle(el).getPropertyValue(name).trim()) }
+
+function measure (zone) {
+  const rows = []
+  const add = (id, label, pair, min) => { if (pair) rows.push({ id, label, fg: pair.fg, bg: pair.bg, ratio: ratio(pair.fg, pair.bg), min }) }
+  const zbg = effectiveBg(zone)
+  add('h1', 'Título sobre la zona', domPair(zone, '.r02-h1'), 4.5)
+  add('desc', 'Texto secundario (text-muted)', domPair(zone, '.r02-desc'), 4.5)
+  add('route', 'Ruta: enlace (link)', domPair(zone, '.r02-route a'), 4.5)
+  add('eyebrow', 'Antetítulo (accent-text)', domPair(zone, '.r02-eyebrow'), 4.5)
+  const focus = toHex(over(tokenAt(zone.querySelector('.r02-b-solid .g-btn'), '--g-color-focus'), zbg))
+  add('focus', 'Anillo de foco sobre la zona', { fg: focus, bg: toHex(zbg) }, 3)
+  add('btn-solid', 'GBtn solid brand: etiqueta', domPair(zone, '.r02-b-solid .g-btn'), 4.5)
+  add('btn-solid-edge', 'GBtn solid brand: relleno frente a la zona', { fg: toHex(effectiveBg(zone.querySelector('.r02-b-solid .g-btn'))), bg: toHex(zbg) }, 3)
+  add('btn-softn', 'GBtn soft neutral: etiqueta (hallazgo 22)', domPair(zone, '.r02-b-softn .g-btn'), 4.5)
+  add('btn-softa', 'GBtn soft accent: etiqueta', domPair(zone, '.r02-b-softa .g-btn'), 4.5)
+  add('btn-outline', 'GBtn outline: etiqueta', domPair(zone, '.r02-b-outline .g-btn'), 4.5)
+  add('btn-outline-edge', 'GBtn outline: contorno', domPair(zone, '.r02-b-outline .g-btn', 'borderTopColor'), 3)
+  add('btn-ghost', 'GBtn ghost: etiqueta', domPair(zone, '.r02-b-ghost .g-btn'), 4.5)
+  add('badge-soft', 'GBadge soft success', domPair(zone, '.r02-badge-soft .g-badge'), 4.5)
+  add('badge-solid', 'GBadge solid warning', domPair(zone, '.r02-badge-solid .g-badge'), 4.5)
+  add('tag', 'GTag: texto', domPair(zone, '.r02-tag .g-tag__body'), 4.5)
+  add('metric-v', 'GMetric: valor', domPair(zone, '.r02-metric .g-metric__value'), 4.5)
+  add('metric-l', 'GMetric: etiqueta', domPair(zone, '.r02-metric .g-metric__label'), 4.5)
+  add('metric-t', 'GMetric: tendencia success', domPair(zone, '.r02-metric .g-metric__trend'), 4.5)
+  add('metric-td', 'GMetric: tendencia danger', domPair(zone, '.r02-metric-down .g-metric__trend'), 4.5)
+  add('input-label', 'GInput: etiqueta', domPair(zone, '.r02-input .g-input__label, .r02-input label'), 4.5)
+  add('input-value', 'GInput: texto escrito', domPair(zone, '.r02-input .g-input__field', 'color', '.r02-input .g-input__control'), 4.5)
+  add('input-border', 'GInput: borde de la caja', domPair(zone, '.r02-input .g-input__control', 'borderTopColor', 'zone'), 3)
+  const ic = zone.querySelector('.r02-input .g-input__control')
+  if (ic) add('input-focus', 'GInput: anillo de foco sobre la zona', { fg: toHex(over(rgba(getComputedStyle(zone.querySelector('.r02-input .g-input')).getPropertyValue('--_focus').trim() || getComputedStyle(ic).getPropertyValue('--g-color-focus').trim()), zbg)), bg: toHex(zbg) }, 3)
+  add('card-t', 'GCard outlined toggle: título', domPair(zone, '.r02-card-toggle .g-card__title'), 4.5)
+  add('card-d', 'GCard outlined toggle: descripción', domPair(zone, '.r02-card-toggle .g-card__description'), 4.5)
+  const card = zone.querySelector('.r02-card-toggle .g-card')
+  if (card) add('card-ring', 'GCard: anillo de foco (hacia dentro)', { fg: toHex(over(tokenAt(card, '--g-color-focus'), effectiveBg(card))), bg: toHex(effectiveBg(card)) }, 3)
+  add('card-r', 'GCard raised: título', domPair(zone, '.r02-card-raised .g-card__title'), 4.5)
+  add('card-f', 'GCard flat: descripción', domPair(zone, '.r02-card-flat .g-card__description'), 4.5)
+  return rows
+}
+
+function apply () {
+  const tema = document.querySelector('input[name=tema]:checked').value
+  const esquema = document.querySelector('input[name=esquema]:checked').value
+  document.getElementById('r02-theme').textContent = tema === 'defecto' ? '' : window.R02_TEMAS[tema].css
+  document.documentElement.setAttribute('data-theme', esquema === 'deep' ? 'dark' : esquema)
+  state.themeLabel = { defecto: 'Grana por defecto', nisa: 'proyecto navy + lima', teal: 'marino + teal' }[tema] + ', ' + ({ dark: 'oscuro, marca del oscuro', deep: 'oscuro, marca profunda', light: 'claro' }[esquema])
+  const { p, all } = pageValues(esquema === 'deep')
+  const islands = []
+  for (const c of CONCEPTS) {
+    const zone = document.querySelector(`.r02-zone[data-concept="${c.id}"]`)
+    zone.removeAttribute('style')
+    let tokens, note = ''
+    if (c.id === 'hoy') {
+      tokens = projectHack(p)
+      zone.style.setProperty('background', p.brand) // la banda pintada aparte, como en el proyecto
+    } else {
+      const z = zoneTokens(p, c.id)
+      tokens = z.tokens
+      note = `Acento en la zona: ${z.ink.A} (${{ kept: 'el acento tal cual', adjusted: 'acento movido en L hasta 4.5:1', fallback: 'sin L posible: on-brand' }[z.ink.accentState]}); on-brand-muted: ${z.ink.muted} (mezcla al ${Math.round(z.ink.mutedShare * 100)} % de marca). Zona ${z.dark ? 'oscura' : 'clara'}.`
+      if (c.id === 'B') {
+        const rest = islandRestore(all, tokens)
+        islands.push(`.r02-zone[data-concept="B"] :is(.g-surface:not(.g-surface--level-flat), .g-input__control) {${Object.entries(rest).map(([k, v]) => `${k}:${v};`).join('')}}`)
+      }
+    }
+    for (const [k, v] of Object.entries(tokens)) zone.style.setProperty(k, v)
+    state.notes[c.id] = note
+  }
+  document.getElementById('r02-islands').textContent = islands.join('\n')
+  clearTimeout(apply.t)
+  apply.t = setTimeout(() => {
+    for (const c of CONCEPTS) state.rows[c.id] = measure(document.querySelector(`.r02-zone[data-concept="${c.id}"]`))
+  }, 900)
+}
+
+app = Vue.createApp({ setup: () => ({ concepts: CONCEPTS, ...Vue.toRefs(state) }) })
+app.use(Grana.default ?? Grana)
+app.use(GranaTag.default ?? GranaTag)
+app.mount('#app')
+document.querySelectorAll('.r02-controls input').forEach(i => i.addEventListener('change', apply))
+await Vue.nextTick()
+apply()
+
+// Para verificar.mjs
+window.r02 = {
+  async run (tema, esquema) {
+    document.querySelector(`input[name=tema][value=${tema}]`).checked = true
+    document.querySelector(`input[name=esquema][value=${esquema}]`).checked = true
+    apply()
+    await new Promise(r => setTimeout(r, 900)) // los componentes transicionan el color al cambiar de tema
+    const out = {}
+    for (const c of CONCEPTS) out[c.id] = { rows: measure(document.querySelector(`.r02-zone[data-concept="${c.id}"]`)), note: state.notes[c.id] }
+    return out
+  }
+}
+window.r02ready = true
+</script>
+</body>
+</html>

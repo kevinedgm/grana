@@ -4,7 +4,7 @@ La **cara de una persona o de una entidad** (organización, equipo, espacio) en 
 
 **Etiqueta:** `<g-avatar>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/avatar/auditoria.md`](../../../../../design/lab/avatar/auditoria.md)) · **Desde:** 0.1.0
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GAvatar`). Exige Vue `^3.5.0`. El icono de respaldo y el `icon` usan Lucide (`GIcon`); el color por categorías necesita que tu tema declare `categories` (ver «Color»).
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GAvatar`). Exige Vue `^3.5.0`. El icono de respaldo y el `icon` usan Lucide (`GIcon`); el color por categorías necesita que tu tema declare `categories` (ver «Color»).
 
 ## Uso
 
@@ -113,10 +113,13 @@ createApp(App).use(Grana).use(createIcons([Building2]))   // se llama building-c
 <!-- Avatar suelto o celda densa sin texto: con nombre -->
 <g-avatar name="Luis Torres" label="Luis Torres" :categories="8"></g-avatar>
 
-<!-- Celda de GTable con solo el avatar (ejemplo del contrato; el playground no lo monta) -->
-<template #cell-responsable="{ row }">
-  <g-avatar :name="row.nombre" :color-key="row.id" :label="row.nombre" size="sm" :categories="8"></g-avatar>
-</template>
+<!-- Celda de GTable con solo el avatar (ejemplo del contrato; el playground no lo monta).
+     Fragmento: `columnas` = [{ key: 'responsable', label: 'Responsable' }] y `filas` = [{ id, nombre, … }] son de tu aplicación -->
+<g-table :columns="columnas" :rows="filas" caption="Responsables">
+  <template #cell-responsable="{ row }">
+    <g-avatar :name="row.nombre" :color-key="row.id" :label="row.nombre" size="sm" :categories="8"></g-avatar>
+  </template>
+</g-table>
 
 <!-- Dentro de un botón: el avatar es decorativo, el nombre es del botón -->
 <button type="button" @click="abrirMenuDeCuenta">
@@ -181,12 +184,13 @@ npx @grana/cli theme grana.config.json   # escribe tokens.css con --g-color-cat-
 ```
 
 ```vue
+<!-- Fragmento: `p` es de tu aplicación -->
 <g-avatar :name="p.name" :color-key="p.id" :categories="8"></g-avatar>
 ```
 
 - **`colorKey`** (un id estable) fija el color a la persona y no a su nombre: **no cambia al renombrarla** y dos homónimos pueden diferir. Un número se convierte con `String()`. Sin `colorKey`, la clave es `name`.
 - **Si cambias `categories`, los colores se reparten de nuevo** (es inherente al módulo). Para un color que no debe moverse, usa `color` fijo.
-- **Si `categories` supera las que declara el tema**, o `color="k"` con `k` mayor que ellas, el avatar queda **sin relleno** y con la letra en el color heredado (legible). El componente no puede detectarlo y no avisa.
+- **Si `categories` supera las que declara el tema**, o `color="k"` con `k` mayor que ellas, el avatar queda **neutro** (sin relleno de categoría) y con la letra en el color heredado (legible). Si el tema no declara `categories: N` en `grana.config.json`, el CLI no emite ningún `--g-color-cat-K`; en desarrollo el componente lo detecta al montarse (lee el estilo calculado de su propio elemento) y avisa **una vez por número de categoría**: «[Grana GAvatar] pide la categoría K pero el tema no define --g-color-cat-K: se queda neutro. Añade `categories: N` (N ≥ K) a grana.config.json y vuelve a ejecutar «grana theme».» No avisa en producción ni en el servidor (`utils/categoryToken.js`).
 - **Contraste:** `on-cat-k-soft` sobre `cat-k-soft` está garantizado ≥ 4,5:1 por derivación del CLI. El avatar no lee `-strong`, `-text` ni `cat-k`: no es un control y no lleva borde de categoría.
 
 ### Reproducir el color fuera de JavaScript
@@ -243,6 +247,7 @@ Los vectores son pruebas unitarias y se comprueban también en Chromium, Firefox
 No hay prop `status`. La presencia es una [`GBadge`](../GBadge/README.md) con el avatar en el slot `anchor`: ya resuelve **figura + `label` + colocación lógica**, el significado nunca depende solo del color (WCAG 1.4.1) y se espeja en RTL.
 
 ```vue
+<!-- Fragmento: `foto` es de tu aplicación -->
 <g-badge shape="circle" color="success" label="En línea" placement="bottom-end">
   <template #anchor><g-avatar name="Ana María López" :src="foto" size="lg" :categories="8"></g-avatar></template>
 </g-badge>
@@ -267,15 +272,19 @@ No hay prop `status`. La presencia es una [`GBadge`](../GBadge/README.md) con el
 | `GBadge` | `anchor` | cualquiera | Insignia en el contorno (ver «Presencia») |
 
 ```vue
+<!-- Fragmentos: `m`, `personas`, `responsable` y `abrirMenuDeCuenta` son datos y funciones de tu aplicación -->
 <!-- GCard: avatar en lead -->
 <g-card as="li" :title="m.name" :subtitle="m.team" orientation="horizontal">
   <template #lead><g-avatar :name="m.name" :src="m.photo" size="lg" :categories="8"></g-avatar></template>
 </g-card>
 
-<!-- GTable: avatar en una columna compuesta -->
-<template #leading-cliente="{ row }">
-  <g-avatar :name="row.nombre" :src="row.foto" :color-key="row.id" size="md" :categories="8"></g-avatar>
-</template>
+<!-- GTable: avatar en una columna compuesta.
+     Fragmento: `columnas` = [{ key: 'cliente', label: 'Cliente', leading: 'iniciales', title: 'nombre' }] y `filas` = [{ id, nombre, foto }] son de tu aplicación -->
+<g-table :columns="columnas" :rows="filas" caption="Clientes">
+  <template #leading-cliente="{ row }">
+    <g-avatar :name="row.nombre" :src="row.foto" :color-key="row.id" size="md" :categories="8"></g-avatar>
+  </template>
+</g-table>
 
 <!-- GSelect: elegir personas -->
 <g-select v-model="responsable" :options="personas" label="Responsable">

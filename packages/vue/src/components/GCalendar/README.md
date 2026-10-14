@@ -4,7 +4,7 @@ Calendario y planificador genérico de uno o varios recursos, con cuatro vistas:
 
 **Etiqueta:** `<g-calendar>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/calendar/auditoria.md`](../../../../../design/lab/calendar/auditoria.md)) · **Desde:** 0.1.0
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`.
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`.
 
 ## Uso
 
@@ -17,6 +17,7 @@ createApp(App).use(Grana).mount('#app')
 ```
 
 ```vue
+<!-- Fragmento: `vista`, `fecha`, `eventos`, `recursos`, `disponibilidad`, `bloqueos`, `textos`, `crear`, `mover`, `redimensionar` y `cargar` son de tu aplicación -->
 <g-calendar
   v-model:view="vista"
   v-model:date="fecha"
@@ -232,11 +233,12 @@ Las emite el componente y las estiliza `GCalendar.css`. Raíz: `g-calendar`, `g-
 
 ## Limitaciones conocidas
 
+- **Padre que se ajusta al contenido (#562).** Dentro de un padre que se ajusta al contenido (celda de tabla `auto`, rejilla con `justify-items: center`, flex con `fit-content`) el calendario toma su ancho por defecto (`--g-space-1 × 80` menos los dos bordes, la disposición compacta de 320 px) en lugar de colapsar a 0; con un padre que da ancho no cambia nada, y en una `GFormRow` no se aplica. Banco `design/lab/contencion/verificar.mjs`, 297/297 en los tres motores. Ver `api.md` «Contención en línea y ancho intrínseco».
 - **Sin recurrencia, sin virtualización, sin mes agregado, sin Agenda ni Año** en v0.1. Con miles de eventos o más de cien recursos el rendimiento no se ha medido.
 - **Horario de verano:** el motor mide minutos transcurridos desde el inicio del día y dibuja una jornada de 23 o 25 horas con su duración real. Solo está probado con el motor, no con el componente montado.
 - **Carriles estrechos:** los eventos de pocos minutos ocupan un alto mínimo de 24px (44px en táctil); en horas muy densas los carriles pueden volverse estrechos (en la auditoría, 30 a 38px de ancho con siete traslapes).
 - **Arrastre entre recursos en Timeline** sin verificar de extremo a extremo.
-- No hay tema oscuro todavía.
+- **Tema oscuro:** `grana.css` ya trae el esquema oscuro por defecto (`defaults.css`): sigue `prefers-color-scheme` y se fuerza con `data-theme="dark"` o `data-theme="light"` en cualquier elemento (ver [«Tema oscuro» del README raíz](../../../../../README.md#tema-oscuro)). Al documentar no se repitieron en oscuro las cifras de contraste de este README.
 - **Sin verificar:** un lector de pantalla real (lista cronológica, conteos, solicitudes, conflictos), un dispositivo táctil real (arrastre, tirador, hoja inferior), las preferencias reales de `prefers-reduced-motion` y `forced-colors` (los bloques se comprobaron aplicados sin condición), Firefox y Safari.
 
 ## Fuentes

@@ -21,11 +21,14 @@ import * as sliderEntry from './slider.js'
 import * as testingEntry from './testing.js'
 import * as tagEntry from './tag.js'
 import * as loadRegionEntry from './load-region.js'
+import * as formFoldEntry from './form-fold.js'
+import * as cardGroupEntry from './card-group.js'
+import * as pageHeaderEntry from './page-header.js'
 import { ENTRIES, buildTypes, metaProps, readMetas } from '../scripts/build-types.mjs'
 
 const ROOT = resolve(process.cwd())
 const OUT = join(ROOT, 'node_modules/.cache/grana-types-test')
-const RUNTIME = { grana: mainEntry, speech: speechEntry, status: statusEntry, combobox: comboboxEntry, 'file-field': fileFieldEntry, 'time-field': timeFieldEntry, slider: sliderEntry, testing: testingEntry, tag: tagEntry, 'load-region': loadRegionEntry }
+const RUNTIME = { grana: mainEntry, speech: speechEntry, status: statusEntry, combobox: comboboxEntry, 'file-field': fileFieldEntry, 'time-field': timeFieldEntry, slider: sliderEntry, testing: testingEntry, tag: tagEntry, 'load-region': loadRegionEntry, 'card-group': cardGroupEntry, 'page-header': pageHeaderEntry, 'form-fold': formFoldEntry }
 const metas = readMetas(ROOT)
 const isComponent = (c) => Boolean(c && typeof c === 'object' && ('setup' in c || 'render' in c || 'props' in c))
 
@@ -48,6 +51,17 @@ const declaredType = (entry, name) => {
   return sym ? checker.getDeclaredTypeOfSymbol(sym.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(sym) : sym) : null
 }
 const entryOf = (component) => Object.entries(entries).find(([, e]) => e.components.includes(component))?.[0]
+
+describe('nombres de prop del meta.json', () => {
+  it('rechaza un nombre compuesto o que no sea un identificador', () => {
+    expect(() => metaProps({ name: 'GX', props: [{ name: 'a / b', type: 'String' }] })).toThrow(/identificador válido/)
+    expect(() => metaProps({ name: 'GX', props: [{ name: 'aria-label', type: 'String' }] })).toThrow(/identificador válido/)
+    expect(metaProps({ name: 'GX', props: [{ name: 'modelValue', type: 'String' }] })).toHaveLength(1)
+  })
+  it('ningún meta.json declara un nombre compuesto', () => {
+    for (const meta of metas.values()) expect(() => metaProps(meta), meta.name).not.toThrow()
+  })
+})
 
 describe('meta.json frente al componente real', () => {
   it('cada componente exportado tiene meta.json con sus props y eventos de runtime; los valores pasan el validador', () => {

@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Niveles de GDialog · banco (bruno)</title>
+<!-- Banco de bruno para el COMPONENTE REAL (dist/): niveles anidados de GDialog (B, pasos con historial) y GFormFold
+     (C, pliegue en su sitio) sobre el flujo real de kiwi (design/lab/dialog/r02/): Detalle de producto → Ingreso desde
+     orden de compra → Partida 3 → Producto nuevo («Tris base» no existe) → Categoría nueva.
+     Lo verifica design/lab/theme-playground/tests/dialog-levels.spec.mjs. Requiere `npm run build`.
+     Desde la raíz del repo: python3 -m http.server 4173 → /packages/vue/playground/dialog-levels.html
+     Parámetros: ?mode=steps (cinco pasos) | mix (por defecto: dos pasos + tres pliegues) · ?dir=rtl · ?long=1 (ingreso
+     largo, para el desplazamiento restaurado) -->
+<link rel="stylesheet" href="../dist/fonts.css">
+<link rel="stylesheet" href="../dist/grana.css">
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:900px;margin:0 auto}
+  h1{font-size:18px;margin:0 0 8px}
+  .cap{font-size:13px;color:var(--g-color-text-muted);margin:0 0 16px}
+  .row{display:flex;gap:var(--g-space-2);align-items:end;flex-wrap:wrap}
+  .row > .grow{flex:1;min-inline-size:0}
+  .partida{display:flex;gap:var(--g-space-3);align-items:center;justify-content:space-between;padding:var(--g-space-2) 0;border-block-end:var(--g-border-width) solid var(--g-color-border)}
+  .filler{block-size:520px;border:1px dashed var(--g-color-border);border-radius:8px;display:grid;place-items:center;color:var(--g-color-text-muted);font-size:13px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="../dist/grana.umd.js"></script>
+<script src="../dist/form-fold.umd.js"></script>
+<script>
+const { createApp, reactive, ref, nextTick } = Vue
+const params = new URLSearchParams(location.search)
+const MODE = params.get('mode') === 'steps' ? 'steps' : 'mix'
+const LONG = params.get('long') === '1'
+if (params.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+
+const catalog = reactive({
+  categorias: [{ value: 'acidos', label: 'Ácidos' }, { value: 'solventes', label: 'Solventes' }],
+  productos: [{ value: 'hcl', label: 'Ácido clorhídrico 37 %' }, { value: 'etanol', label: 'Etanol absoluto' }]
+})
+const fresh = {
+  ingreso: () => ({ oc: 'OC-2291', nota: '', p3: null }),
+  partida: () => ({ producto: null, cantidad: '' }),
+  producto: () => ({ nombre: 'Tris base', categoria: null }),
+  categoria: () => ({ nombre: '' })
+}
+const draft = reactive({ ingreso: fresh.ingreso(), partida: fresh.partida(), producto: fresh.producto(), categoria: fresh.categoria() })
+const errors = reactive({ ingreso: {}, partida: {}, producto: {}, categoria: {} })
+const events = []
+window.__lv = { events, draft, catalog, errors }
+
+const app = createApp({
+  setup() {
+    const open = ref(false)
+    const steps = ref([])
+    const folds = reactive({ partida: false, producto: false, categoria: false })
+    const label = (list, v) => (list.find((o) => o.value === v) || {}).label || ''
+    // ---------- Confirmar cada nivel: la aplicación valida, escribe en SU modelo y baja con { focus, announce } ----------
+    function commitCategoria() {
+      errors.categoria = draft.categoria.nombre.trim() ? {} : { nombre: 'Escribe el nombre de la categoría.' }
+      if (errors.categoria.nombre) return null
+      const value = 'cat-' + catalog.categorias.length
+      catalog.categorias.push({ value, label: draft.categoria.nombre.trim() })
+      draft.producto.categoria = value
+      const said = `Categoría «${draft.categoria.nombre.trim()}» creada y elegida en Producto nuevo.`
+      draft.categoria = fresh.categoria()
+      return { focus: 'f-producto-categoria', announce: said }
+    }
+    function commitProducto() {
+      errors.producto = {}
+      if (!draft.producto.nombre.trim()) errors.producto.nombre = 'Escribe el nombre del producto.'
+      if (!draft.producto.categoria) errors.producto.categoria = 'Elige o crea una categoría.'
+      if (Object.keys(errors.producto).length) return null
+      const value = 'p-' + catalog.productos.length
+      catalog.productos.push({ value, label: draft.producto.nombre.trim() })
+      draft.partida.producto = value
+      const said = `Producto «${draft.producto.nombre.trim()}» creado y elegido en Partida 3.`
+      draft.producto = fresh.producto()
+      return { focus: 'f-partida-producto', announce: said }
+    }
+    function commitPartida() {
+      errors.partida = {}
+      if (!draft.partida.producto) errors.partida.producto = 'Elige o crea un producto.'
+      if (!String(draft.partida.cantidad).trim()) errors.partida.cantidad = 'Escribe la cantidad.'
+      if (Object.keys(errors.partida).length) return null
+      draft.ingreso.p3 = { producto: draft.partida.producto, cantidad: draft.partida.cantidad }
+      const said = `Partida 3 guardada: ${label(catalog.productos, draft.partida.producto)}, ${draft.partida.cantidad} kg.`
+      draft.partida = fresh.partida()
+      return { focus: 'f-ingreso-p3', announce: said }
+    }
+    // ---------- B: pasos ----------
+    function onStep(e) { events.push(['step', e]) }
+    function onDismiss(e) { events.push(['dismiss', { reason: e.reason, depth: e.depth }]) }
+    function stepConfirm(kind, back) {
+      const r = kind === 'categoria' ? commitCategoria() : kind === 'producto' ? commitProducto() : commitPartida()
+      if (!r) { nextTick(() => document.querySelector(`[aria-invalid="true"]`)?.focus()); return }
+      back({ ...r, result: kind })
+    }
+    function registrar(back) {
+      errors.ingreso = draft.ingreso.p3 ? {} : { p3: 'Completa la partida 3 antes de registrar.' }
+      if (errors.ingreso.p3) return
+      draft.ingreso = fresh.ingreso()
+      back({ focus: 'f-detalle-ingreso', announce: 'Ingreso registrado: 3 partidas en Almacén central.' })
+    }
+    // ---------- C: pliegues ----------
+    function foldConfirm(kind, close) {
+      const r = kind === 'categoria' ? commitCategoria() : kind === 'producto' ? commitProducto() : commitPartida()
+      if (r) close(r)
+    }
+    function onClosed() {
+      events.push(['closed'])
+      steps.value = []
+      for (const k of Object.keys(fresh)) draft[k] = fresh[k]()
+      for (const k of Object.keys(errors)) errors[k] = {}
+      for (const k of Object.keys(folds)) folds[k] = false
+    }
+    return { MODE, LONG, open, steps, folds, draft, errors, catalog, label, onStep, onDismiss, stepConfirm, registrar, foldConfirm, onClosed }
+  },
+  template: `
+  <main>
+    <h1>Niveles anidados de GDialog</h1>
+    <p class="cap">Modo {{ MODE === 'steps' ? 'pasos (cinco)' : 'mixto: dos pasos y tres pliegues' }}. Componentes reales de dist/.</p>
+    <g-btn id="opener" @click="open = true">Abrir detalle de producto</g-btn>
+    <g-dialog id="dlg" v-model="open" v-model:steps="steps" from="opener" close-label="Cerrar" size="md"
+      :labels="{ back: 'Volver a {title}', trail: 'Recorrido' }" @step="onStep" @dismiss="onDismiss" @closed="onClosed">
+      <g-dialog-step name="detalle" title="Ácido clorhídrico 37 %" description="Detalle de producto" summary="Existencia 48 L">
+        <template #default="{ push }">
+          <p>Existencia: 48 L en Almacén central.</p>
+          <g-btn id="f-detalle-ingreso" @click="push('ingreso', { from: 'f-detalle-ingreso' })">Registrar ingreso…</g-btn>
+        </template>
+      </g-dialog-step>
+      <g-dialog-step name="ingreso" title="Ingreso desde orden de compra" description="Entrará en Ácido clorhídrico 37 %" :summary="draft.ingreso.oc + ' · 3 partidas'">
+        <template #default="{ push }">
+          <g-form id="f-ingreso" :errors="errors.ingreso" :labels="{ error: 'Error:' }" @submit="() => {}">
+            <g-input id="f-ingreso-oc" name="oc" label="Orden de compra" v-model="draft.ingreso.oc" />
+            <div v-if="LONG" class="filler">Contenido largo</div>
+            <g-input id="f-ingreso-nota" name="nota" label="Nota" v-model="draft.ingreso.nota" />
+            <div class="partida"><span>1 · Ácido clorhídrico 37 % · 12 L</span></div>
+            <div class="partida"><span>2 · Etanol absoluto · 20 L</span></div>
+            <div class="partida">
+              <span id="p3-text">3 · {{ draft.ingreso.p3 ? label(catalog.productos, draft.ingreso.p3.producto) + ' · ' + draft.ingreso.p3.cantidad + ' kg' : 'Tris base (falta en el catálogo)' }}</span>
+              <g-btn id="f-ingreso-p3" size="sm" variant="outline" @click="MODE === 'steps' ? push('partida', { from: 'f-ingreso-p3' }) : (folds.partida = true)">Completar partida 3</g-btn>
+            </div>
+            <g-form-fold v-if="MODE === 'mix'" id="fold-partida" v-model:open="folds.partida" title="Partida 3" description="Para la partida 3 de este ingreso"
+              for="f-ingreso-p3" from="f-ingreso-p3" :errors="errors.partida" :labels="{ pending: 'Termina o cancela «{title}»' }">
+              <template #default>
+                <div class="row">
+                  <g-select class="grow" id="f-partida-producto" name="producto" label="Producto" v-model="draft.partida.producto" :options="catalog.productos" placeholder="Elige" />
+                  <g-btn id="crear-producto" size="sm" variant="ghost" @click="folds.producto = true">Crear producto…</g-btn>
+                </div>
+                <g-form-fold id="fold-producto" v-model:open="folds.producto" title="Producto nuevo" description="Se elegirá en Producto de la partida 3"
+                  for="f-partida-producto" from="crear-producto" :errors="errors.producto" :labels="{ pending: 'Termina o cancela «{title}»' }">
+                  <template #default>
+                    <g-input id="f-producto-nombre" name="nombre" label="Nombre" v-model="draft.producto.nombre" />
+                    <div class="row">
+                      <g-select class="grow" id="f-producto-categoria" name="categoria" label="Categoría" v-model="draft.producto.categoria" :options="catalog.categorias" placeholder="Elige" />
+                      <g-btn id="crear-categoria" size="sm" variant="ghost" @click="folds.categoria = true">Crear categoría…</g-btn>
+                    </div>
+                    <g-form-fold id="fold-categoria" v-model:open="folds.categoria" title="Categoría nueva" description="Se elegirá en Categoría del producto nuevo"
+                      for="f-producto-categoria" from="crear-categoria" :errors="errors.categoria" :labels="{ pending: 'Termina o cancela «{title}»' }">
+                      <template #default>
+                        <g-input id="f-categoria-nombre" name="nombre" label="Nombre" v-model="draft.categoria.nombre" />
+                      </template>
+                      <template #actions="{ confirm, cancel }">
+                        <g-btn id="categoria-cancelar" size="sm" variant="ghost" color="neutral" @click="cancel">Cancelar</g-btn>
+                        <g-btn id="categoria-ok" size="sm" @click="confirm">Crear y elegir</g-btn>
+                      </template>
+                    </g-form-fold>
+                  </template>
+                  <template #actions="{ confirm, cancel }">
+                    <g-btn id="producto-cancelar" size="sm" variant="ghost" color="neutral" @click="cancel">Cancelar</g-btn>
+                    <g-btn id="producto-ok" size="sm" @click="confirm">Crear y elegir</g-btn>
+                  </template>
+                </g-form-fold>
+                <g-input id="f-partida-cantidad" name="cantidad" label="Cantidad (kg)" v-model="draft.partida.cantidad" />
+              </template>
+              <template #actions="{ confirm, cancel }">
+                <g-btn id="partida-cancelar" size="sm" variant="ghost" color="neutral" @click="cancel">Cancelar</g-btn>
+                <g-btn id="partida-ok" size="sm" @click="confirm">Guardar partida</g-btn>
+              </template>
+            </g-form-fold>
+          </g-form>
+        </template>
+        <template #footer="{ back }">
+          <g-btn id="ingreso-cancelar" variant="ghost" color="neutral" @click="back()">Cancelar</g-btn>
+          <g-btn id="ingreso-ok" @click="registrar(back)">Registrar ingreso</g-btn>
+        </template>
+      </g-dialog-step>
+      <template v-if="MODE === 'steps'">
+        <g-dialog-step name="partida" title="Partida 3" description="Para el ingreso de la OC-2291" summary="Producto: falta">
+          <template #default="{ push }">
+            <div class="row">
+              <g-select class="grow" id="f-partida-producto" label="Producto" v-model="draft.partida.producto" :options="catalog.productos" placeholder="Elige" />
+              <g-btn id="crear-producto" size="sm" variant="ghost" @click="push('producto', { from: 'crear-producto' })">Crear producto…</g-btn>
+            </div>
+            <g-input id="f-partida-cantidad" label="Cantidad (kg)" v-model="draft.partida.cantidad" />
+          </template>
+          <template #footer="{ back }">
+            <g-btn id="partida-cancelar" variant="ghost" color="neutral" @click="back()">Cancelar</g-btn>
+            <g-btn id="partida-ok" @click="stepConfirm('partida', back)">Guardar partida</g-btn>
+          </template>
+        </g-dialog-step>
+        <g-dialog-step name="producto" title="Producto nuevo" description="Se elegirá en Producto de la partida 3">
+          <template #default="{ push }">
+            <g-input id="f-producto-nombre" label="Nombre" v-model="draft.producto.nombre" />
+            <div class="row">
+              <g-select class="grow" id="f-producto-categoria" label="Categoría" v-model="draft.producto.categoria" :options="catalog.categorias" placeholder="Elige" />
+              <g-btn id="crear-categoria" size="sm" variant="ghost" @click="push('categoria', { from: 'crear-categoria' })">Crear categoría…</g-btn>
+            </div>
+          </template>
+          <template #footer="{ back }">
+            <g-btn id="producto-cancelar" variant="ghost" color="neutral" @click="back()">Cancelar</g-btn>
+            <g-btn id="producto-ok" @click="stepConfirm('producto', back)">Crear y elegir</g-btn>
+          </template>
+        </g-dialog-step>
+        <g-dialog-step name="categoria" title="Categoría nueva" description="Se elegirá en Categoría del producto nuevo">
+          <g-input id="f-categoria-nombre" label="Nombre" v-model="draft.categoria.nombre" />
+          <template #footer="{ back }">
+            <g-btn id="categoria-cancelar" variant="ghost" color="neutral" @click="back()">Cancelar</g-btn>
+            <g-btn id="categoria-ok" @click="stepConfirm('categoria', back)">Crear y elegir</g-btn>
+          </template>
+        </g-dialog-step>
+      </template>
+    </g-dialog>
+  </main>
+  <g-toaster></g-toaster>`
+})
+const toaster = Grana.createToaster({ position: 'top-center', labels: { region: 'Notificaciones ({hotkey})', close: 'Cerrar notificación', types: { info: 'Información', success: 'Correcto', warning: 'Advertencia', error: 'Error', loading: 'En curso' }, repeated: '{count} veces', queued: '{count} más en espera', actionHint: 'Pulsa {hotkey} para {action}.' } })
+window.__toaster = toaster
+app.use(Grana.default || Grana)
+app.use(GranaFormFold.default || GranaFormFold)
+app.use(toaster)
+app.mount('#app')
+</script>
+</body>
+</html>

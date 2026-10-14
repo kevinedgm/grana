@@ -4,7 +4,7 @@ Ayuda contextual asociada a una región de la interfaz: un **disparador** (en el
 
 **Etiqueta:** `<g-helper>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/helper/auditoria.md`](../../../../../design/lab/helper/auditoria.md)) · **Desde:** 0.1.0
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0` y un navegador con la API `popover` y `<dialog>`: los actuales.
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0` y un navegador con la API `popover` y `<dialog>`: los actuales.
 
 ## Uso
 

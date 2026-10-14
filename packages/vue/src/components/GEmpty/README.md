@@ -55,6 +55,7 @@ Sin movimiento propio: no hay entrada, salida ni animación (nada que reducir co
 ### Las cuatro causas
 
 ```vue
+<!-- Fragmento: `nueva`, `importar`, `reintentar` y `pedirAcceso` son de tu aplicación -->
 <script setup>
 import { GEmpty, GBtn, GIcon } from '@grana/vue'
 </script>
@@ -176,6 +177,7 @@ Jerarquía (DECISIONS #555): los botones de filtro son `outline` y `color="brand
 ### Dentro de una `GLoadRegion`
 
 ```vue
+<!-- Fragmento: `cargando`, `muestras`, `muestra` y `textosRegion` son de tu aplicación -->
 <script setup>
 import { GLoadRegion } from '@grana/vue/load-region'
 </script>
@@ -204,6 +206,7 @@ Ver [`GLoadRegion`](../GLoadRegion/README.md) para el molde, lo último conocido
 `GTable` ya pinta un `GEmpty` por defecto: `cause="none"` con `labels.empty`, `cause="filtered"` con `labels.emptyFiltered` y un botón `labels.clearFilters`, y `cause="error"` con `labels.failed` y «Reintentar». Si quieres la salida con cuentas, ponla en el slot `empty` (`{ filtered, clear }`):
 
 ```vue
+<!-- Fragmento: `columns`, `filas`, `textos`, `salida`, `universo`, `textosSalida` y `quitar` son de tu aplicación -->
 <g-table :columns="columns" :rows="filas" caption="Muestras" :labels="textos">
   <template #empty="{ filtered, clear }">
     <g-empty v-if="filtered" cause="filtered" title="Ninguna muestra con estos filtros"
@@ -221,6 +224,7 @@ Ver [`GTable`](../GTable/README.md), sección «Carga, error y vacío».
 Fuera de una `GLoadRegion` y de un anfitrión, `GEmpty` **no se anuncia** y **no recoge el foco** al desaparecer: es contenido que tu aplicación pone en una vista que ya cambió. Si el vacío se va porque el usuario pulsó uno de sus botones (por ejemplo «Quitar «Cerradas»»), ese botón desaparece con el foco dentro: lleva el foco a donde tenga sentido (el encabezado de la sección, el primer elemento nuevo o un contenedor con `tabindex="-1"`).
 
 ```vue
+<!-- Fragmento: `quitar` es de tu aplicación -->
 <h3 id="h-muestras" tabindex="-1">Muestras</h3>
 <g-empty cause="filtered" ... @relax="quitar($event); $nextTick(() => document.getElementById('h-muestras').focus())"></g-empty>
 ```

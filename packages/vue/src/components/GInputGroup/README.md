@@ -9,6 +9,7 @@ Campo fusionado: **un dato en varias partes que se lee como uno** (teléfono pa�
 ## Uso
 
 ```vue
+<!-- Fragmento: `pais`, `paises` y `numero` son de tu aplicación -->
 <GInputGroup label="Teléfono" name="telefono" required style="--g-form-min: 50">
   <GInputGroupSelect v-model="pais" name="tel-pais" part-label="Código de país" :options="paises" autocomplete="tel-country-code" />
   <GInputGroupInput v-model="numero" name="tel-numero" principal type="tel" autocomplete="tel-national" />

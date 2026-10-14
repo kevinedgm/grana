@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Filas por página · r02</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="./pager.css">
+<style>
+/* Solo la página del laboratorio, no el componente */
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none !important}
+body{margin:0;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+.lab-bar{display:flex;flex-wrap:wrap;justify-content:space-between;gap:var(--g-space-2);padding:var(--g-space-3) var(--g-space-4);border-block-end:var(--g-border-width) solid var(--g-color-border)}
+.lab-brand{font-weight:var(--g-text-action-weight)}
+.lab-links{display:flex;flex-wrap:wrap;gap:var(--g-space-3)}
+.lab-links a{color:var(--g-color-accent-text)}
+.lab-links a[aria-current]{font-weight:var(--g-text-action-weight);color:var(--g-color-text)}
+.lab{display:grid;gap:var(--g-space-6);max-inline-size:72rem;margin:0 auto;padding:var(--g-space-6) var(--g-space-4) var(--g-space-12)}
+.lab > *{min-inline-size:0}
+.lab-title{margin:0 0 var(--g-space-2);font-family:var(--g-font-title);font-size:var(--g-text-title-size);line-height:var(--g-text-title-line);font-weight:var(--g-text-title-weight)}
+.lab-lead{margin:0;max-inline-size:46rem;color:var(--g-color-text-muted)}
+.lab-how{margin:var(--g-space-2) 0 0;max-inline-size:46rem;font-size:var(--g-text-body-sm-size);color:var(--g-color-text-muted)}
+.lab-tools{display:flex;flex-wrap:wrap;align-items:center;gap:var(--g-space-3) var(--g-space-5);font-size:var(--g-text-body-sm-size)}
+.lab-tools label{display:inline-flex;align-items:center;gap:var(--g-space-2)}
+.lab-tools input[type=range]{inline-size:min(100%, 16rem)}
+.lab-btn{min-block-size:32px;padding:0 var(--g-space-3);border:var(--g-border-width) solid var(--g-color-border-control);border-radius:var(--g-radius-sm);background:var(--g-color-surface);color:var(--g-color-text);font:inherit;font-size:var(--g-text-body-sm-size);cursor:pointer}
+.lab-btn:focus-visible,.lab-tools input:focus-visible{outline:var(--g-focus-width) solid var(--g-color-focus);outline-offset:var(--g-focus-offset)}
+.frame{inline-size:min(100%, var(--w, 1100px));padding:var(--g-space-3) var(--g-space-4) var(--g-space-4);border:var(--g-border-width) dashed var(--g-color-border-strong);border-radius:var(--g-radius-md);background:var(--g-color-surface)}
+.lab-log{padding:var(--g-space-2) var(--g-space-4);border-radius:var(--g-radius-md);background:var(--g-color-surface-sunken);font-size:var(--g-text-body-sm-size)}
+.lab-log h2{margin:0;font-size:var(--g-text-body-sm-size);font-weight:var(--g-text-action-weight)}
+.lab-log ol{display:flex;flex-wrap:wrap;gap:0 var(--g-space-4);margin:var(--g-space-1) 0 0;padding:0;list-style:none;max-block-size:3.2em;overflow:hidden}
+.lab-cmp{display:grid;gap:var(--g-space-3)}
+.lab-cmp h2{margin:0;font-family:var(--g-font-title);font-size:var(--g-text-title-sm-size);line-height:var(--g-text-title-sm-line);font-weight:var(--g-text-title-sm-weight)}
+.lab-cmp .scroll{overflow-x:auto}
+.lab-cmp table{border-collapse:collapse;font-size:var(--g-text-body-sm-size);min-inline-size:44rem}
+.lab-cmp th,.lab-cmp td{padding:var(--g-space-2);border-block-end:var(--g-border-width) solid var(--g-color-border);text-align:start;vertical-align:top}
+.lab-cmp thead th{color:var(--g-color-text-muted);font-weight:var(--g-text-action-weight)}
+kbd{padding:0 var(--g-space-1);border:var(--g-border-width) solid var(--g-color-border-strong);border-radius:var(--g-radius-xs);font:inherit;font-size:var(--g-text-caption-size);background:var(--g-color-surface)}
+</style>
+</head>
+<body>
+<header class="lab-bar">
+  <span class="lab-brand">Filas por página · r02</span>
+  <nav class="lab-links" aria-label="Conceptos de la ronda">
+    <a href="?c=base">Base</a><a href="?c=A">A · El rango se abre</a><a href="?c=B">B · Pie que acompaña</a><a href="?c=C">C · Tirar del borde</a>
+  </nav>
+</header>
+<main class="lab">
+  <div>
+    <h1 class="lab-title" id="t-title"></h1>
+    <p class="lab-lead" id="t-lead"></p>
+    <p class="lab-how" id="t-how"></p>
+  </div>
+
+  <div class="lab-tools">
+    <label>Ancho del marco <input id="w" type="range" min="320" max="1100" step="10"> <output id="w-out" for="w"></output></label>
+    <label><input type="checkbox" id="server"> Servidor (700 ms)</label>
+    <label><input type="checkbox" id="limited"> Altura limitada (<code>maxHeight</code>)</label>
+    <button type="button" class="lab-btn" id="filter">Filtro: solo caducados</button>
+  </div>
+
+  <section class="lab-log" aria-labelledby="log-h">
+    <h2 id="log-h">Anuncios y eventos (lo último primero)</h2>
+    <ol id="log"></ol>
+  </section>
+
+  <div class="frame" id="frame"></div>
+
+  <section class="lab-cmp" aria-labelledby="cmp-h">
+    <h2 id="cmp-h">Comparativa</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th></th><th>Base</th><th>A · El rango se abre</th><th>B · Pie que acompaña</th><th>C · Tirar del borde</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Premisa</th><td>Un ajuste aparte</td><td>El tamaño es parte del rango</td><td>Las opciones, siempre a mano</td><td>El tamaño es el largo de la tabla</td></tr>
+          <tr><th scope="row">Rol</th><td><code>select</code> nativo</td><td>botón + <code>menu</code> de <code>menuitemradio</code> (<code>GMenu</code>)</td><td><code>radiogroup</code> de radios nativos</td><td><code>slider</code> APG de 4 valores</td></tr>
+          <tr><th scope="row">Pulsaciones para 10 → 50</th><td>2 (abrir, elegir)</td><td>2, con la página de destino a la vista</td><td>1</td><td>1 (marca) o arrastre</td></tr>
+          <tr><th scope="row">Paradas de Tab añadidas</th><td>1</td><td>0 (el rango pasa a botón)</td><td>1</td><td>1</td></tr>
+          <tr><th scope="row">Con 100 filas, el control</th><td>al final</td><td>al final</td><td><strong>acoplado al borde de la pantalla</strong></td><td>al final</td></tr>
+          <tr><th scope="row">La fila que mirabas</th><td>Sujeta, salvo que el control salga de la pantalla</td><td>Igual que la base</td><td><strong>Sujeta siempre</strong> y señalada</td><td>Igual que la base</td></tr>
+          <tr><th scope="row">Ancho a 360px</th><td>Etiqueta + 4ch</td><td>El más corto (el rango)</td><td>4 × 44px en su línea</td><td>Agarre + 4 marcas</td></tr>
+          <tr><th scope="row">Riesgo</th><td>Genérico</td><td>Descubrir que el rango se abre</td><td>Pie acoplado roba alto en móvil</td><td>Gesto nuevo; teclas APG al revés del gesto</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+<script src="../../lucide-icons.js"></script>
+<script>
+(() => {
+  const Q = new URLSearchParams(location.search)
+  const c = ['base', 'A', 'B', 'C'].includes(Q.get('c')) ? Q.get('c') : 'base'
+  const T = {
+    base: ['Base funcional', 'El selector convencional, a propósito: un <select> nativo junto al rango. Lo que importa está debajo: la página nueva la decide la primera fila a la vista, esa fila no se mueve de la pantalla, el foco se queda en el control y se oye un solo anuncio.',
+      'Prueba: baja hasta la fila 15, cambia a 50 y mira la fila; con «Servidor», el esqueleto tiene ya las filas que van a llegar. Si el control fuera a salir de la pantalla (10 → 100), gana el control.'],
+    A: ['A · El rango se abre', 'No hay «Filas por página» aparte: el rango «11–20 de 240» es el botón. Cada opción del menú dice dónde vas a caer («25 por página · 1–25», «· todas» si cabe todo).',
+      'Teclado: Intro, Espacio o ↓ abre; ↑ ↓ Inicio Fin; escribe la cifra («5» → 50); Intro elige; Esc vuelve al botón.'],
+    B: ['B · Pie que acompaña', 'Las cuatro cifras siempre a la vista, a un toque. Con la tabla más larga que la pantalla, el pie se acopla al borde inferior: con 100 filas el control sigue a mano. Al cambiar, la fila que mirabas no se mueve y se tiñe un momento («aquí estabas»); las filas nuevas aparecen.',
+      'Teclado: Tab entra en el grupo; ← → cambian (radios nativos). Prueba 10 → 100 desde el pie: la fila y el control siguen donde estaban.'],
+    C: ['C · Tirar del borde', 'El borde inferior de la tabla es un agarre: se tira hacia abajo para ver más filas, hacia arriba para menos, con muescas en 10, 25, 50 y 100. Una línea punteada enseña dónde quedaría y en qué página caes.',
+      'Teclado (slider APG): → ↑ más, ← ↓ menos, Inicio y Fin. Con un toque, las cifras de al lado (alternativa al arrastre, WCAG 2.5.7). Esc durante el arrastre cancela.']
+  }
+  document.getElementById('t-title').textContent = T[c][0]
+  document.getElementById('t-lead').textContent = T[c][1]
+  document.getElementById('t-how').textContent = T[c][2]
+  document.querySelectorAll('.lab-links a').forEach((a) => { if (new URL(a.href).searchParams.get('c') === c) a.setAttribute('aria-current', 'page') })
+  const keep = (k, v) => { const u = new URL(location.href); v ? u.searchParams.set(k, v) : u.searchParams.delete(k); return u }
+  document.querySelectorAll('.lab-links a').forEach((a) => { const u = new URL(a.href); ['server', 'h', 'w'].forEach((k) => Q.get(k) && u.searchParams.set(k, Q.get(k))); a.href = u.search })
+  const w = document.getElementById('w'), out = document.getElementById('w-out'), frame = document.getElementById('frame')
+  const setW = (v) => { frame.style.setProperty('--w', v + 'px'); out.textContent = v + ' px' }
+  w.value = Q.get('w') || 1100; setW(w.value)
+  w.addEventListener('input', () => { setW(w.value); history.replaceState(null, '', keep('w', w.value)) })
+  const server = document.getElementById('server'), limited = document.getElementById('limited')
+  server.checked = Q.get('server') === '1'; limited.checked = Q.get('h') === '1'
+  server.addEventListener('change', () => { location.href = keep('server', server.checked ? '1' : '') })
+  limited.addEventListener('change', () => { location.href = keep('h', limited.checked ? '1' : '') })
+  document.getElementById('filter').addEventListener('click', (e) => {
+    const n = window.__pgFilter()
+    e.currentTarget.textContent = n < 240 ? 'Quitar el filtro' : 'Filtro: solo caducados'
+  })
+})()
+</script>
+<script src="./pager.js"></script>
+</body>
+</html>

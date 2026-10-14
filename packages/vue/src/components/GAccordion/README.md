@@ -71,6 +71,7 @@ const abiertos = ref([])   // arreglo de los `value` abiertos
 ### Uno a la vez: `exclusive`
 
 ```vue
+<!-- Fragmento: `abierto` es de tu aplicación -->
 <g-accordion v-model="abierto" exclusive>
   <g-accordion-item value="envio" title="Envío">…</g-accordion-item>
   <g-accordion-item value="devolucion" title="Devoluciones">…</g-accordion-item>
@@ -82,6 +83,7 @@ Con `exclusive` el modelo tiene 0 o 1 valores y **todo cerrado es válido** (el 
 ### Ajustes: el avance sigue al estado, acciones fuera del botón
 
 ```vue
+<!-- Fragmento: `resumen`, `restablecer`, `correo` y `push` son de tu aplicación -->
 <g-accordion>
   <g-accordion-item id="set-notif" value="notif" title="Notificaciones" :meta="`${activas} activas`" :peek="resumen">
     <template #actions>
@@ -98,6 +100,7 @@ Con `exclusive` el modelo tiene 0 o 1 valores y **todo cerrado es válido** (el 
 ### Un elemento suelto: `v-model:open`
 
 ```vue
+<!-- Fragmento: `verCondiciones` es de tu aplicación -->
 <g-accordion-item v-model:open="verCondiciones" title="Ver condiciones">
   <p>La reserva se confirma con el primer pago…</p>
 </g-accordion-item>
@@ -130,6 +133,7 @@ El contenido se monta al abrir por primera vez (por cualquier vía) y **no se de
 ### Encabezado pegado: `sticky`
 
 ```vue
+<!-- Fragmento: `abiertos` es de tu aplicación -->
 <g-accordion v-model="abiertos" sticky>…</g-accordion>
 ```
 

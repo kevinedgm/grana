@@ -61,6 +61,7 @@ Todo con tokens, sin muelle ni rebote, y quieto con `prefers-reduced-motion: red
 ### Una etiqueta suelta: cuatro casos
 
 ```vue
+<!-- Fragmento: `quitarLatex` es de tu aplicación -->
 <script setup>
 import { ref } from 'vue'
 const soloPendientes = ref(false)
@@ -87,6 +88,7 @@ Una `GTag` **suelta** quitable solo emite `remove`: **no deja huella, no anuncia
 ### Con icono o avatar: slot `lead`
 
 ```vue
+<!-- Fragmento: `textos` es de tu aplicación -->
 <g-tag label="Vue" href="/temas/vue">
   <template #lead><g-icon name="tag"></g-icon></template>
 </g-tag>
@@ -129,6 +131,7 @@ const textos = {
 El modelo cambia **al quitar**, no al recogerse la huella. Si tu aplicación prefiere confirmar el borrado en el servidor cuando ya no se puede deshacer, escucha `settle`:
 
 ```vue
+<!-- Fragmento: `alergias`, `textos`, `marcarComoQuitada`, `desmarcar` y `api` son de tu aplicación -->
 <g-tag-group label="Alergias" v-model:items="alergias" :labels="textos"
              @remove="({ item }) => marcarComoQuitada(item.id)"
              @restore="({ items }) => desmarcar(items.map((i) => i.id))"
@@ -140,6 +143,7 @@ El modelo cambia **al quitar**, no al recogerse la huella. Si tu aplicación pre
 ### Racimos por faceta: B
 
 ```vue
+<!-- Fragmento: `filtros` y `textos` son de tu aplicación -->
 <g-tag-group label="Filtros aplicados" layout="facets" v-model:items="filtros"
              :categories="8" clearable :labels="textos"></g-tag-group>
 ```
@@ -170,6 +174,7 @@ const vista = ref([
 ```
 
 ```vue
+<!-- Fragmento: `vista` y `aplicar` son de tu aplicación -->
 <g-tag-group label="Vista" v-model:items="vista" @toggle="({ item, pressed }) => aplicar(item.id, pressed)"></g-tag-group>
 ```
 
@@ -178,6 +183,7 @@ Un elemento con `pressed` booleano es de alternar. Si **todos** lo son (y ningun
 ### Tope «Ver N más» y «Quitar todas»
 
 ```vue
+<!-- Fragmento: `temas` y `textos` son de tu aplicación -->
 <g-tag-group label="Temas" size="sm" :limit="3" clearable v-model:items="temas" :labels="textos"></g-tag-group>
 <!-- textos: more: 'Ver {count} más', less: 'Ver menos', clearAll: 'Quitar todas',
      cleared: 'Se quitaron {count} etiquetas', undoAll: 'Deshacer: volver a poner {count}',
@@ -189,16 +195,18 @@ Un elemento con `pressed` booleano es de alternar. Si **todos** lo son (y ningun
 ### Con router: `navigate` cancelable
 
 ```vue
+<!-- Fragmento: `temas`, `textos` y `router` son de tu aplicación -->
 <g-tag-group label="Temas del artículo" :items="temas" :labels="textos"
              @navigate="({ event, href }) => { event.preventDefault(); router.push(href) }"></g-tag-group>
 <!-- suelta: <g-tag label="Vue" href="/temas/vue" @navigate="..."> -->
 ```
 
-`navigate` se emite con el evento nativo del clic, **cancelable** (`preventDefault()` síncrono deja la navegación a tu router) y **solo con activación primaria** (clic con el botón 0 sin Ctrl, ⌘, Mayús ni Alt, o Intro; DECISIONS #505). Con modificadores o clic central no se emite y el navegador abre la pestaña nueva. No existe la prop `to`.
+`navigate` se emite con el evento nativo del clic, **cancelable** (`preventDefault()` síncrono deja la navegación a tu router) y **solo con activación primaria** (clic con el botón 0 sin Ctrl, ⌘, Mayús ni Alt, o Intro; DECISIONS #505). Con modificadores o clic central no se emite y el navegador abre la pestaña nueva. **Con un `target` que no sea vacío ni `_self`** (`_blank`, un nombre de ventana, `_parent`, `_top`; sin distinguir mayúsculas) tampoco se emite `navigate`, no se cancela el clic y el navegador abre el enlace en ese contexto: el destino no pasa por tu router (#574, prueba unitaria de `GTag.test.js`; `target=""` y `_self` sí emiten). Un `<base target>` del documento no cuenta. No existe la prop `to`.
 
 ### Textos propios del cuerpo y del hueco: slots del grupo
 
 ```vue
+<!-- Fragmento: `personas` y `textos` son de tu aplicación -->
 <g-tag-group label="Responsables" v-model:items="personas" :categories="8" :labels="textos">
   <template #label="{ item }">{{ item.label }} <b>{{ item.cargo }}</b></template>
   <template #lead="{ item }"><MiInsignia :tipo="item.tipo" /></template>
@@ -222,6 +230,7 @@ const personas = ref([
 ### Foco cuando el grupo se queda vacío: `emptyFocus`
 
 ```vue
+<!-- Fragmento: `alergias`, `textos` y `agregar` son de tu aplicación -->
 <g-tag-group label="Alergias" v-model:items="alergias" :labels="textos" empty-focus="#agregar-alergia"></g-tag-group>
 <g-btn id="agregar-alergia" size="sm" variant="outline" @click="agregar">Agregar alergia</g-btn>
 ```
@@ -352,7 +361,7 @@ Sin valores por defecto (Grana es internacional, DECISIONS #226). Cada clave es 
 | --- | --- | --- |
 | `update:pressed` | `Boolean` | La persona alterna (clic, Espacio, Intro). No con `disabled` |
 | `remove` | `{ event, source: 'button' \| 'key' }` | «Quitar» o Supr/Retroceso sobre un control de la etiqueta. La suelta **no se quita sola** |
-| `navigate` | `{ event, href }` | Activación **primaria** del enlace (sin Ctrl, ⌘, Mayús, Alt ni `defaultPrevented`, o Intro); `event.preventDefault()` síncrono evita la navegación |
+| `navigate` | `{ event, href }` | Activación **primaria** del enlace (sin Ctrl, ⌘, Mayús, Alt ni `defaultPrevented`, o Intro) y sin `target` de otro contexto (#574); `event.preventDefault()` síncrono evita la navegación |
 
 Los tres están declarados en `emits`: una escucha `onClick` **no se enlaza** (avisa y remite a `navigate`, `update:pressed` o `remove`). Sin evento `click`.
 
@@ -389,11 +398,13 @@ Una vez por gesto y **después** de `update:items`:
 | `color="neutral"` | Neutro (gana a `categories`) | — |
 | `color="k"` (1 a 12) | Categoría `k` | `k` |
 | `categories="n"` sin `color` | `k` derivada de la clave | `k` |
-| `k` mayor que las categorías que declara el tema | **Sin relleno** (la variable no resuelve); el texto sigue legible | `k` |
+| `k` mayor que las categorías que declara el tema | **Neutro, sin relleno** (la variable no resuelve); el texto sigue legible | `k` |
+
+**Aviso de desarrollo.** Si el tema no declara `categories: N` en `grana.config.json`, el CLI no emite `--g-color-cat-K` y la etiqueta se queda neutra. En desarrollo, al montarse, `GTag` lo detecta y avisa **una vez por número de categoría**, con su nombre: «[Grana GTag] pide la categoría K pero el tema no define --g-color-cat-K: se queda neutro. Añade `categories: N` (N ≥ K) a grana.config.json y vuelve a ejecutar «grana theme».» No avisa en producción ni en el servidor (`utils/categoryToken.js`).
 
 - **Clave:** `colorKey ?? facet ?? label` en un grupo (con `flow` y con `facets`); una `GTag` suelta no tiene faceta: `colorKey ?? label`. La faceta va antes que el texto para que las etiquetas de una misma categoría compartan color; `colorKey` permite fijarlo. Junto a un avatar con el mismo `colorKey`, el color coincide.
 - **El hash es el de `GAvatar`, sin copia** (`utils/categoryHash.js`): FNV-1a de 32 bits sobre los octetos UTF-8 de la clave normalizada, más una mezcla final; el mismo resultado entre motores y en el servidor. **Cambiar `categories` reparte los colores de nuevo.**
-- Una categoría que el tema no declara (9 a 12 con `categories: 8`) **queda sin relleno y no avisa**: no se puede detectar sin leer estilos.
+- Una categoría que el tema no declara (9 a 12 con `categories: 8`) **queda neutra y avisa una vez en desarrollo** (el componente lee el estilo calculado de su elemento; ver «Aviso de desarrollo»).
 
 ## Accesibilidad
 

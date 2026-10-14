@@ -30,7 +30,10 @@ export const ENTRIES = [
   { name: 'slider', src: 'src/slider.js' },
   { name: 'testing', src: 'src/testing.js' },
   { name: 'tag', src: 'src/tag.js' },
-  { name: 'load-region', src: 'src/load-region.js' }
+  { name: 'load-region', src: 'src/load-region.js' },
+  { name: 'card-group', src: 'src/card-group.js' },
+  { name: 'page-header', src: 'src/page-header.js' },
+  { name: 'form-fold', src: 'src/form-fold.js' }
 ]
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -213,13 +216,14 @@ const doc = (lines, indent = '') => {
   return `${indent}/**\n${clean.map((l) => `${indent} * ${l}`).join('\n')}\n${indent} */\n`
 }
 
-/** Las props de un meta.json, con los nombres compuestos («a / b / c») separados. */
+/** Las props de un meta.json: una entrada por prop. Un nombre compuesto («a / b») o que no sea un identificador es un error. */
 export function metaProps(meta) {
-  const out = []
   for (const p of meta.props || []) {
-    for (const name of String(p.name).split('/').map((s) => s.trim()).filter(Boolean)) out.push({ ...p, name })
+    if (!/^[A-Za-z_$][\w$]*$/.test(String(p.name))) {
+      throw new Error(`${meta.file || meta.name}: el nombre de prop «${p.name}» no es un identificador válido; una entrada por prop, sin «a / b».`)
+    }
   }
-  return out
+  return meta.props || []
 }
 
 /** Declaración de un componente. */

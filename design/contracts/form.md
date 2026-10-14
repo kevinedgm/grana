@@ -7,7 +7,7 @@ Una **capa de composición** sobre los campos que ya existen: decide **cómo** s
 
 **Qué cambió en r02** (resumen; detalle en §4, §5, §10, §13 y «Migración desde la Fase 1»): la rejilla de 12/6/1 columnas (`GFormGrid`) y los anchos máximos de lo compacto se **retiran**; la distribución pasa a **filas explícitas que siempre llenan el ancho** (`GFormLayout` + `GFormRow`), con tamaños que son **peso + mínimo**, líneas calculadas por el ancho propio de cada fila y **tres pistas compartidas** por línea (etiqueta, caja, pie); nace **`GInputGroup`** para campos fusionados («dos en uno»); `GFieldGroup` queda para preguntas compuestas y va siempre en su propia fila; el dato calculado deja de ser una caja (prop `output`).
 
-**Por qué un solo contrato** (#156): las piezas comparten **un** contexto (`formKey`), **un** juego de textos (`labels` de `GForm`), **una** regla de momento de errores y **una** verificación; partirlas obligaría a repetir el contexto en cada una y a mantenerlo sincronizado. Cada pieza tiene su sección con props, estructura, clases y avisos, como si fuera su propio contrato. Los cambios que el sistema trae a los campos existentes se resumen aquí (§10) y se anotan, con su dueño, en el contrato de cada campo. **Numeración estable:** §1 a §12 conservan su número (el código los cita); `GFormReveal` (Fase 3) es la **§14**; `GInputGroup`, nuevo, es la **§13**.
+**Por qué un solo contrato** (#156): las piezas comparten **un** contexto (`formKey`), **un** juego de textos (`labels` de `GForm`), **una** regla de momento de errores y **una** verificación; partirlas obligaría a repetir el contexto en cada una y a mantenerlo sincronizado. Cada pieza tiene su sección con props, estructura, clases y avisos, como si fuera su propio contrato. Los cambios que el sistema trae a los campos existentes se resumen aquí (§10) y se anotan, con su dueño, en el contrato de cada campo. **Numeración estable:** §1 a §12 conservan su número (el código los cita); `GFormReveal` (Fase 3) es la **§14**; `GInputGroup`, nuevo, es la **§13**; **`GFormFold`** (r02 de `GDialog`, concepto C, #587) es la **§15**.
 
 ---
 
@@ -43,6 +43,7 @@ Una **capa de composición** sobre los campos que ya existen: decide **cómo** s
 | Campos que solo aplican según una respuesta («¿Requiere factura? Sí → datos fiscales») | **`GFormReveal`** justo después de la pregunta (§14) | Mostrar todo y deshabilitar; `v-if` (pierde lo escrito); una `GFormSection` plegable (se sigue enviando) |
 | Información secundaria, avanzada o ya completa que se sigue enviando | **`GFormSection mode="collapsible"`** (§3) | Plegar lo esencial; `GFormReveal` (saca del envío) |
 | Plegar **contenido** que no son preguntas del formulario (preguntas frecuentes, detalles, ajustes que se aplican al momento) | **`GAccordion`** (`accordion.md`, #486) | `GFormSection collapsible` fuera de un formulario; un acordeón con campos dentro de `GForm` (avisa: sus campos no cuentan en el estado de errores por sección) |
+| **Crear la opción que falta para un campo** («Tris base» no está en el catálogo → «Crear producto…») o completar una fila, sin salir de lo que se llena | **`GFormFold`** justo después del campo o de su fila (§15; abierto desde el `create` de `GSelect`/`GCombobox`) | Un `GDialog` encima (tapa lo que se llena); un paso de `GDialog` si no cambia la tarea (`dialog.md` §«Niveles anidados»); `GFormReveal` (sus campos viajan en el envío) |
 | Bloque opcional que el usuario decide incluir («Agregar datos fiscales») | **`GFormSection mode="addable"`** (§3) | Mostrar todo y deshabilitar; `GFormReveal` (lo decide una respuesta, no un botón) |
 | Navegación de secciones, guardado automático | `GFormNav` (Fase 3, sin ronda) y Fase 4 | `GSidebar` para navegar secciones (§1.8 de kiwi) |
 
@@ -52,6 +53,7 @@ Una **capa de composición** sobre los campos que ya existen: decide **cómo** s
 | --- | --- |
 | `GForm`, `GFormSection`, `GFormLayout`, `GFormRow`, `GFieldGroup`, `GFormActions`, `GErrorSummary` | Componentes de composición |
 | `GFormReveal` | Bloque condicional (Fase 3, §14) |
+| `GFormFold` | Pliegue para crear lo que falta en su sitio (§15, #587); **entrada propia `@grana/vue/form-fold`** (#590) |
 | `GInputGroup`, `GInputGroupInput`, `GInputGroupSelect`, `GInputGroupText` | Campo fusionado y sus partes (§13) |
 | `useFormField(options)` | Composable para campos (los de Grana y los del consumidor) |
 | `formKey` | `InjectionKey` del contexto, para `provide` manual (pruebas, microfrontends) |
@@ -1466,6 +1468,150 @@ Ninguno cambia el comportamiento.
 - **Playwright** (Chromium, Firefox y WebKit): adaptar `design/lab/form-reveal/r01/verificar.mjs` al componente real en `design/lab/theme-playground/` (sin transición al cargar; `FormData` y `:invalid` según la respuesta, con `GSelect` y `GDatePicker` dentro; Tab; disparador Δ 0px en cada cuadro al abrir y cerrar, LTR y RTL; Δscroll 0; altura y opacidad intermedias; `overflow` visible al asentarse; interrupción; movimiento reducido; 320px con dos niveles sin desborde; foco al cerrar por programa) y añadir un bloque abierto a la **prueba obligatoria de distribución** (#184: las filas del cuerpo terminan en el mismo borde que las de fuera, menos la sangría en el inicio).
 - **coco (auditoría con un tema distinto):** barra visible y alineada con el inicio de la pregunta en las tres densidades, anidados, RTL y `forced-colors`; que el aspecto deshabilitado nativo de los controles (`GBtn:disabled`, etiquetas de grupo con `:disabled`) no destaque durante el fundido de cierre; `--g-duration-slow` en `GSidebar` y `GStepper` sin cambio visible.
 - **No verificado y pendiente:** lector de pantalla real (qué se oye al elegir «Sí» y al tabular al bloque; que `fieldset role="none"` no se anuncie como grupo); Safari, iOS y táctil reales; `forced-colors` en Firefox y WebKit; rendimiento con muchos bloques. (Cerrar un bloque grande con la página al final: medido por coco y anotado como límite en «Transición», #283.)
+
+---
+
+## 15. `GFormFold`: crear lo que falta en su sitio (r02 de `GDialog`, concepto C; #587 y #588)
+
+**Lo que falta para un campo se crea bajo ese campo**, en un pliegue con su título, su propósito y su propio confirmar, sin tapar lo que se estaba llenando y sin capa nueva («Tris base» no existe → «Crear producto…» abre el pliegue bajo el campo Producto; dentro, «Crear categoría…» abre otro bajo Categoría). **Basado en:** `design/lab/dialog/r02/` (kiwi, concepto C; `XcFold` de `app.js` es **referencia de comportamiento, no de implementación**), elegido por el usuario junto con los pasos de `GDialog` (B). La base de niveles (foco, Esc, volver nunca borra, valor que aterriza, anuncio) está en `dialog.md` §«Niveles anidados» y rige aquí. **Componente complejo** (tiene motor de formulario propio, cambia el registro de `GForm` y se solapa con `GFormReveal`, `GFormSection addable` y `GDialog`): **coco y bruno en Opus**.
+
+**Por qué un componente del sistema de formularios y no un slot `create` de `GSelect`/`GCombobox`** (lo que proponía kiwi en L9): (1) un pliegue con campos dentro de la raíz de un campo **rompe sus tres pistas en `GFormRow`** (§4: etiqueta, caja y pie comparten línea con los vecinos); (2) lo que falta no siempre es una opción de un selector (en el flujo real, la partida se completa bajo **su fila**); (3) un slot por cada campo duplicaría el mismo motor en `GSelect`, `GCombobox` y los que vengan. La puerta sigue siendo la de cada campo: el evento `create` de `GSelect` (`select.md`) o `create(texto)` de `GCombobox` (`combobox.md`) abren el pliegue desde la aplicación. Y funciona igual **fuera de un diálogo** (un formulario de página).
+
+**Frontera con `GFormReveal`** (§14) y con `GFormSection addable` (§3):
+
+| | `GFormReveal` | `GFormSection addable` | **`GFormFold`** |
+| --- | --- | --- | --- |
+| Quién lo abre | Una respuesta (`when`) | El usuario, con «Agregar …» | La aplicación, ante una acción («Crear …») |
+| Sus campos en el envío de fuera | Sí, abierto | Sí, agregada | **Nunca** (es otra tarea) |
+| Confirmar propio | No | No | **Sí** («Crear y elegir»), con sus errores |
+| Al cerrarse | Conserva (montado, inactivo) | «Quitar» descarta | Se desmonta; el borrador vive en el modelo |
+| Envío de fuera con él abierto | Normal | Normal | **Bloqueado** con «Termina o cancela {título}» |
+
+Comparte con `GFormReveal` el **motor de plegado** (`utils/collapse.js`), la regla «sin saltos» (lo de arriba no se mueve al abrir y cerrar) y la colocación justo después de lo que lo pide.
+
+### Props
+
+| Prop | Tipo | Valores | Default | Origen |
+| --- | --- | --- | --- | --- |
+| `open` | Boolean | `v-model:open` | `false` | propia |
+| `title` | String | texto libre | sin valor | propia (como `GFormSection`) |
+| `description` | String | texto libre | sin valor | propia |
+| `headingLevel` | Number | 2 a 6 | el del pliegue padre + 1; si no hay, el `headingLevel` del `GForm` de fuera; si no, `3` (máximo 6) | propia |
+| `for` | String | `id` del control que recibe el valor | sin valor | propia |
+| `from` | String \| HTMLElement | `id` o elemento | sin valor | propia (como en `GDialog`, #583) |
+| `errors` | Object | `{ [name]: String }` | `{}` (función) | propia (como `GForm`) |
+| `warnings` | Object | `{ [name]: String }` | `{}` (función) | propia (como `GForm`) |
+| `labels` | Object | `{ pending }` | `{}` (función) | propia |
+
+- **`open`:** lo pone a `true` la aplicación (normalmente en el `create` del campo). El pliegue lo baja emitiendo `update:open(false)` al cancelar o al cerrar con resultado; **sin `v-model`**, no se cierra solo (la aplicación escucha `cancel` y `confirm`). Cerrar desde fuera (la prop pasa a `false`) **no mueve el foco** salvo que estuviera dentro: entonces va a `from`, a `for` o, si ninguno es usable, al orden de #292 del contenedor (así, si la persona elige una opción existente con el pliegue abierto, la aplicación pone `open` en `false` y el foco se queda donde está; receta del README).
+- **`title`** y **`description`:** nombre y propósito del pliegue (base 1 de `dialog.md`: «Producto nuevo» · «Se elegirá en Producto de la partida 3»). Sin `title`, aviso.
+- **`for`:** el control que recibirá el valor. Es el **destino por defecto** del foco y de la llegada al cerrar con resultado, y el de vuelta si `from` no sirve.
+- **`from`:** el disparador (base 2). Sin él, `document.activeElement` al abrir, si está fuera del pliegue y no es `body`. Al cancelar, el foco va a `from`, luego a `for`.
+- **`errors`** y **`warnings`:** los del pliegue, con la semántica de `GForm` (calculados por la aplicación, `name → mensaje`). El pliegue **no** valida.
+- **`labels.pending`:** el error que bloquea el envío de fuera mientras el pliegue está abierto: String con `{title}` o Function `(title) => String` («Termina o cancela «Producto nuevo»»). Sin él, el envío se bloquea igual (con un espacio, como todo error propio, §2) y avisa.
+- **Lo que hereda del `GForm` de fuera** (si lo hay): `density`, `marks`, `readonly`, `disabled`, `showErrorsOn`, `labels` de los campos (`optional`, `error`, `warning`, `valid`…) y `live`. Sin `GForm` alrededor, los valores por defecto de `GForm`. No tiene props propias para ellos.
+- **Atributos** (`id`, `class`, `data-*`, escuchas) a la raíz.
+
+### Eventos
+
+| Evento | Payload | Cuándo |
+| --- | --- | --- |
+| `update:open` | `Boolean` (`false`) | Al cancelar o al cerrar con resultado |
+| `confirm` | `{ close(options) }` | Se pidió confirmar (botón de la aplicación con `confirm()` o Enter en un campo de texto del pliegue) **y no hay errores que bloqueen** en el pliegue. La aplicación crea lo que haga falta (también asíncrono) y llama a `close({ focus, announce })` |
+| `invalid` | `{ errors: [{ name, message, id }] }` | Se pidió confirmar con errores: el pliegue los revela, marca `is-rejected` y enfoca el primero (como `GForm`, §1 «Envío» pasos 3 y 4, sin resumen) |
+| `cancel` | `{ reason: 'escape' \| 'cancel' }` | Esc dentro del pliegue o `cancel()` |
+
+### Métodos (alcance del slot `actions` y del `default`, y `defineExpose`)
+
+| Método | Hace |
+| --- | --- |
+| `confirm()` | Pide confirmar: revela los campos del pliegue y, tras `nextTick`, emite `confirm` o `invalid` |
+| `close({ focus, announce } = {})` | Cierra **con resultado** (base 7 de `dialog.md`): `update:open(false)`; foco a `focus` (`id` o elemento) › `for` › `from`; llegada (`data-g-landed`) en su caja; `announce` en el canal de página (`announcePage`, #533). Sin `announce`, nada se anuncia |
+| `cancel()` | Cierra **sin resultado**: `cancel` (`reason: 'cancel'`) + `update:open(false)`; foco a `from` › `for` |
+
+### Slots
+
+| Slot | Alcance | Anatomía |
+| --- | --- | --- |
+| `default` | `{ confirm, close, cancel }` | Campos del pliegue, en una pila como `GFormReveal` (hijos a lo ancho; `GFormRow`, `GFieldGroup`, `GInputGroup` y **otros `GFormFold`** valen). **Nunca `GFormSection`** ni `GForm` (aviso) |
+| `actions` | `{ confirm, close, cancel }` | Los botones del pliegue (los pone la aplicación: «Cancelar» con `cancel()`, «Crear y elegir» con `confirm()`), **siempre `type="button"`**, alineados como `GFormActions`. Sin slot, aviso (sin forma de confirmar con el puntero) |
+
+### Colocación
+
+- **Justo después** de lo que lo pide, como hermano en la misma pila: después del campo; si el campo está en una `GFormRow`, **después de la fila** (dentro de una `GFormRow` rompería sus pistas: aviso); después de una fila de lista cuando completa esa fila.
+- Dentro de un paso de `GDialog`, de un `GForm` de página o de otro `GFormFold`. Cada pliegue anidado resta su sangría y su raíl del ancho (kiwi: unos 30px por nivel; a 375px, el tercero deja los campos en unos 240px): **más de tres anidados avisa** en desarrollo.
+
+### Estructura
+
+```html
+<!-- después del campo que lo pide -->
+<div class="g-form-fold g-form-fold--density-default is-open is-ready" id="…" role="group"
+     aria-labelledby="…-title" aria-describedby="…-desc" style="--_d: 2">     <!-- cerrado y asentado: hidden, sin role -->
+  <div class="g-form-fold__panel">
+    <div class="g-form-fold__head">
+      <h4 class="g-form-fold__title" id="…-title">Categoría nueva</h4>
+      <p class="g-form-fold__description" id="…-desc">Se elegirá en Categoría del producto nuevo</p>
+    </div>
+    <fieldset class="g-form-fold__body" role="none">…slot default…</fieldset>
+    <div class="g-form-fold__actions">…slot actions…</div>
+  </div>
+</div>
+```
+
+1. **Raíz** `role="group"` con nombre (`title`) y descripción mientras está abierto o cerrándose. Cerrado y asentado: `hidden`, sin `role`, **sin contenido** (el contenido se monta al abrir y se desmonta al terminar la salida).
+2. **`--_d`** (variable en línea): profundidad del pliegue (1 el primero; un pliegue dentro de otro, +1), para la sangría y el raíl (coco).
+3. **Cuerpo `<fieldset role="none">`** (como `GFormReveal`): sin `<legend>`; el nombre lo da la raíz.
+4. **Sin `<form>`:** HTML no anida formularios (y el HTML de SSR los aplanaría). El pliegue vive dentro del `<form>` de fuera y se protege de él (abajo).
+
+### Formulario propio sin `<form>` (#588)
+
+| Pieza | Regla |
+| --- | --- |
+| Contexto | `GFormFold` **provee su propio `formKey`**: sus campos se registran en el pliegue, no en el `GForm` de fuera (no bloquean su envío con sus errores, no salen en su resumen, no marcan su `dirty`). Presentación heredada del de fuera (Props). Motor: el de `GForm` (registro, revelado, editados, `is-rejected`, «castigar tarde, premiar pronto»); bruno lo **comparte** (p. ej. `utils/formEngine.js`), no lo copia |
+| Ante el `GForm` de fuera | Mientras está **abierto**, el pliegue se registra en el contexto de fuera (el `GForm` o el pliegue padre) como una entrada con **error propio** (§2, «Error propio del componente»): `ownError` = `labels.pending` con su título, `ownTarget` = el primer control usable del pliegue, `ownReveal: 'submit'`, **nombre interno generado** (`g-fold:{id}`; no colisiona con `errors`). Así, el envío de fuera con un pliegue abierto **no pasa**: `invalid` con ese error, el resumen lo enlaza y el foco va dentro del pliegue. Cerrado, no hay entrada |
+| `FormData` de fuera | **Nunca** lleva los controles de un pliegue abierto, tampoco con `formnovalidate` («Guardar borrador»): `GForm` construye su `FormData` sin los descendientes de los pliegues abiertos (p. ej. deshabilitando sus `fieldset` de forma síncrona solo mientras lo construye; bruno elige y prueba) |
+| Enter | En un campo de texto de una línea del pliegue (no `textarea`, no con composición, no si ya está `defaultPrevented`, como la lista abierta de `GSelect` o `GCombobox`), el pliegue cancela el envío implícito del `<form>` de fuera (`preventDefault`) y llama a `confirm()` |
+| Esc | Con el foco dentro, **recoge solo este pliegue** (`cancel`, `reason: 'escape'`) y la cancela con `preventDefault` (no la ve un pliegue padre ni el `GDialog`). `event.repeat` se ignora (#565). Un descendiente que ya la trató (`defaultPrevented`) la consume |
+| Anidados | Un pliegue dentro de otro se registra en el de fuera como pendiente (confirmar el producto con la categoría abierta da «Termina o cancela «Categoría nueva»»). Cancelar o cerrar el padre **desmonta** también los de dentro |
+| Con `GDialog` | Abierto, se registra en el `GDialog` más cercano (clave interna; base 5 de `dialog.md`: el fondo no cierra) |
+
+### Foco y movimiento
+
+- **Al abrir:** el orden de #292 **dentro del pliegue** (primer `[autofocus]` usable, primer control del cuerpo), con `preventScroll`, y desplazamiento mínimo para que el pliegue entero quede a la vista si cabe (`block: 'nearest'`; sin animar con movimiento reducido).
+- **Al cerrar:** `close` → `focus` › `for` › `from`; `cancel` y Esc → `from` › `for`; si ninguno es usable, el orden de #292 del contenedor (paso, diálogo o formulario).
+- **Transición** (#586): el motor de plegado de `GFormReveal` (§14 «Transición»): alto con `--g-duration-slow` + `--g-ease-out`, fundido, **lo de arriba Δ 0px**; dentro de un `GDialog`, crece hacia abajo con el borde fijo (D2). Al cerrar con resultado, el pliegue **se recoge hacia el campo** y el campo aterriza (`dialog.md` «La llegada»). **Sin muelle** (#299). Reducido: solo fundido; el alto, en un cuadro.
+
+### Tokens y constantes
+
+**Ninguno nuevo** (L13). Raíl `--g-border-width × 2` en **`--g-color-accent-text`** (forma ≥ 3:1, `tokens.md` §7.1), que une el pliegue al campo; sangría `space × 3` + `space × 4` por nivel (constantes de coreografía, #299); superficie y separaciones del sistema de formularios (`--g-form-*`, §9) y de superficies; título `--g-text-title-sm-*`, descripción `--g-text-body-sm-*` en `--g-color-text-muted`. `forced-colors`: raíl en `Highlight`. Coco fija lo demás.
+
+### Clases (contrato bruno ↔ coco)
+
+| Clase | Elemento | Cuándo |
+| --- | --- | --- |
+| `g-form-fold` | Raíz | Siempre |
+| `g-form-fold--density-{default\|comfortable\|compact}` | Raíz | Siempre (la heredada) |
+| `is-open` · `is-animating` · `is-ready` | Raíz | Como `GFormReveal` |
+| `g-form-fold__panel`, `__head`, `__title`, `__description`, `__body`, `__actions` | Partes | Abierto o cerrándose |
+
+### Avisos de desarrollo (`[Grana GFormFold]`)
+
+1. Sin `title`. 2. Sin slot `actions`. 3. Sin `labels.pending` con el pliegue abierto dentro de un `GForm` o de otro pliegue. 4. Dentro de una `GFormRow`. 5. `GForm` o `GFormSection` dentro. 6. Más de tres pliegues anidados. 7. `for` o `from` con un `id` que no existe al abrir.
+
+### Cambios en `GForm` (se quedan en el principal)
+
+- Admite **entradas internas sin `name` de la aplicación** (el nombre generado del pliegue), con error propio y `ownReveal: 'submit'`.
+- `FormData` sin los controles de los pliegues abiertos (también con `formnovalidate`).
+- Ningún cambio de API pública.
+
+### Paquete
+
+Entrada propia **`@grana/vue/form-fold`** (`dialog.md` «Paquete y peso», #590).
+
+### Verificación
+
+- **bruno (vitest):** props y avisos 1 a 7; `open` con y sin `v-model`; foco al abrir (#292) y al cerrar por `close`, `cancel`, Esc y por la prop (con el foco dentro y fuera); `confirm` sin errores y `invalid` con ellos (revelado, `is-rejected`, primer error); `close({ focus, announce })` con llegada y anuncio, y nada sin `announce`; Enter en un campo de texto confirma y **no** envía el `GForm` de fuera; Esc repetida ignorada y Esc consumida; el envío de fuera con el pliegue abierto da `invalid` con `labels.pending` enlazado y foco dentro; `FormData` de fuera sin sus campos, también con `formnovalidate`; `dirty` de fuera intacto al escribir en el pliegue; anidados (pendiente en el padre; cancelar el padre desmonta el hijo); fondo de `GDialog` con pliegue abierto, sin `dismiss`; SSR cerrado (`hidden`, sin contenido).
+- **Playwright** (tres motores): el recorrido de kiwi C dentro de un paso; lo de arriba Δ 0px al abrir y cerrar; el diálogo crece hacia abajo con el borde fijo; 375px con tres pliegues sin desborde horizontal; RTL (raíl y sangría al inicio); reducido; añadir un pliegue abierto a la prueba obligatoria de distribución (#184): las filas del pliegue terminan en el mismo borde que las de fuera, menos su sangría.
 
 ---
 

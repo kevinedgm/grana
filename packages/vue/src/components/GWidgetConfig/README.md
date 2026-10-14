@@ -4,13 +4,14 @@
 
 **Etiqueta:** `<g-widget-config>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/widget/auditoria-2.md`](../../../../../design/lab/widget/auditoria-2.md)) · **Desde:** 0.1.0
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`. Usa `<dialog>` e `inert`.
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`. Usa `<dialog>` e `inert`.
 
 ## Uso
 
 Un [`GWidget`](../GWidget/README.md) configurable incluye en `actions` una acción con `id: 'configure'`; al recibirla abres el panel. (No hay una prop ni un evento propios: es una convención.)
 
 ```vue
+<!-- Fragmento: `widgetLabels` es de tu aplicación -->
 <script setup>
 import { computed, reactive, ref } from 'vue'
 const abierto = ref(false)

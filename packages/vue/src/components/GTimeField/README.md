@@ -4,7 +4,7 @@ Campo para **una hora del reloj**: la de una cita, una toma de medicamento, el i
 
 **Etiqueta:** `<g-time-field>` · **Estado:** `candidate` (auditoría de coco aprobada, sin defectos bloqueantes; ver [`design/lab/time-field/auditoria.md`](../../../../../design/lab/time-field/auditoria.md)) · **Desde:** 0.1.0 · **Entrada:** propia, `@grana/vue/time-field` (global UMD `GranaTimeField`)
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GTimeField`, `#sec-time`). Exige Vue `^3.5.0` (usa `useId`) y un navegador actual con `Intl.DateTimeFormat` y su opción `dayPeriod` (las franjas del día en palabras salen de ahí; con un idioma sin franja, el campo muestra solo la hora).
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GTimeField`, `#sec-time`). Exige Vue `^3.5.0` (usa `useId`) y un navegador actual con `Intl.DateTimeFormat` y su opción `dayPeriod` (las franjas del día en palabras salen de ahí; con un idioma sin franja, el campo muestra solo la hora).
 
 ## Instalación: entrada propia
 
@@ -64,6 +64,7 @@ Con `locale="es-MX"` (o `lang="es-MX"` en el documento) el campo es de 12 h y mu
 ### Dentro de un formulario
 
 ```vue
+<!-- Fragmento: `enviar` y `cita` son de tu aplicación -->
 <g-form aria-label="Cita" @submit="enviar">
   <g-form-layout>
     <g-form-row>
@@ -84,6 +85,7 @@ Con `locale="es-MX"` (o `lang="es-MX"` en el documento) el campo es de 12 h y mu
 ### Un turno de noche
 
 ```vue
+<!-- Fragmento: `llegada` es de tu aplicación -->
 <g-time-field v-model="llegada" label="Llegada" min="22:00" max="06:00" :step="30"></g-time-field>
 ```
 
@@ -92,6 +94,7 @@ Con **`min` mayor que `max`** el rango **cruza la medianoche** (22:00 a 06:00): 
 ### Con segundos
 
 ```vue
+<!-- Fragmento: `marca` es de tu aplicación -->
 <g-time-field v-model="marca" seconds label="Marca de tiempo"></g-time-field>   <!-- "HH:mm:ss"; se escribe «93015» o «9:30:15» -->
 ```
 
@@ -409,6 +412,7 @@ Prefijo `[Grana GTimeField]`; una vez por instancia; solo fuera de producción.
 
 ## Limitaciones conocidas
 
+- **Padre que se ajusta al contenido (#562).** Dentro de un padre que se ajusta al contenido (celda de tabla `auto`, rejilla con `justify-items: center`, flex con `fit-content`) el campo (el de `GInput`) toma su ancho por defecto (`--g-space-1 × 60`; `× 90` con acción) en lugar de colapsar a 0; con un padre que da ancho no cambia nada, y en una `GFormRow` no se aplica. Banco `design/lab/contencion/verificar.mjs`, 297/297 en los tres motores. Ver `api.md` «Contención en línea y ancho intrínseco».
 - **Chromium y la franja en palabras:** ver «Accesibilidad». La hora llega; la franja, no.
 - **Hueco del cursor de 1 px en WebKit:** con el cursor al final, WebKit desplaza 1 px la hora en algunos anchos con la fuente de serie (medido en «21:30» `md`, `lg` y `xl`, y «9:30 p.m.» `xl`). Es el **mismo límite compartido con `GNumberField`** (hallazgo 1 abierto de su auditoría, DECISIONS #313): la constante de 1 px del espejo y del medidor se enmendará en los dos a la vez; el mínimo publicado subiría 1 px. En Chromium y Firefox no se desplaza.
 - **Texto al 200 % en un visor de 320 px:** el mínimo del 12 h (302 px) supera el contenedor (254 px). La raíz se acota al 100 % y **no desborda** (0 px), y la hora cede 46 px del campo; se sigue leyendo en el botón pulsado y en `aria-valuetext`. Es la acotación al 100 % que pidió DECISIONS #416, preferible a un desborde horizontal de la página.

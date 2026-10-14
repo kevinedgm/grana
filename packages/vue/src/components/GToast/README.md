@@ -4,7 +4,7 @@ Avisos **breves y no modales** que confirman o informan del resultado de algo qu
 
 **Etiqueta:** `<g-toaster>` (región; cada aviso es un `li.g-toast` sin componente público) · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/toast/auditoria.md`](../../../../../design/lab/toast/auditoria.md)) · **Desde:** 0.1.0
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección «Avisos (GToaster)»). Exige Vue `^3.5.0`; la región usa la API `popover`.
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección «Avisos (GToaster)»). Exige Vue `^3.5.0`; la región usa la API `popover`.
 
 > **Para lo persistente, la [Isla de estado](../GStatusIsland/README.md).** Un fallo del servidor que dura, una condición de página (sin conexión, mantenimiento, sesión por caducar) o un resultado que debe quedarse no son avisos que se van: van a la isla (`@grana/vue/status`). **Un suceso, un canal:** o aviso flotante o isla, nunca los dos. La isla se monta después de `GToaster`; con los avisos arriba, quedan bajo la isla replegada.
 

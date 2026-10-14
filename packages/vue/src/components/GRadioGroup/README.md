@@ -4,7 +4,7 @@ Una **pregunta con una sola respuesta** (Sí/No, sexo, modalidad de consulta, ti
 
 **Etiqueta:** `<g-radio-group>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/radio-group/auditoria.md`](../../../../../design/lab/radio-group/auditoria.md)) · **Desde:** 0.1.0
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GRadioGroup`). Exige Vue `^3.5.0`.
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GRadioGroup`). Exige Vue `^3.5.0`.
 
 > **No es un radio suelto.** No hay `GRadio` en v0.1 (el nombre está reservado): un radio solo no se puede desmarcar y no tiene sentido. La lista de opciones **es** el orden, así que no hay hijas que registrar (a diferencia de `GCheckboxGroup`).
 
@@ -40,6 +40,7 @@ const modalidades = [
 ### Las cinco apariencias
 
 ```vue
+<!-- Fragmento: `modalidad`, `modalidades`, `fuma`, `sexo`, `sexos`, `frecuencia`, `frecuencias`, `plan` y `planes` son de tu aplicación -->
 <g-radio-group v-model="modalidad" name="modalidad" label="Modalidad" :options="modalidades"></g-radio-group>                              <!-- list (por defecto) -->
 <g-radio-group v-model="fuma" name="fuma" appearance="inline" label="¿Fuma?" :options="[{ value: true, label: 'Sí' }, { value: false, label: 'No' }]"></g-radio-group>
 <g-radio-group v-model="sexo" name="sexo" appearance="segmented" label="Sexo" required :options="sexos"></g-radio-group>
@@ -79,6 +80,7 @@ const modalidades = [
 Con un `GForm` alrededor, el grupo lee su contexto (densidad, solo lectura, deshabilitado, error por `name`, marcas) y se registra con `name`. `inline` y `segmented` comparten línea:
 
 ```vue
+<!-- Fragmento: `m`, `errores` y `modalidades` son de tu aplicación -->
 <g-form-layout>
   <g-form-row>
     <g-date-picker v-model="m.nacimiento" class="g-form-w-sm" style="--g-form-min: 44" label="Fecha de nacimiento" name="nacimiento" />
@@ -183,6 +185,7 @@ Solo se declara ese evento: `change`, `focusin`, `focusout`, `keydown`… no se 
 | `icon` | `{ option, index, checked }` | Icono de una opción (manda sobre `option.icon`; «dato → nombre, plantilla → slot»). Se muestra solo en las opciones con `icon` con valor, dentro de un hueco `aria-hidden`. Lo que no es Lucide va aquí, nunca en `GIcon` |
 
 ```vue
+<!-- Fragmento: `plan` y `planes` son de tu aplicación -->
 <g-radio-group v-model="plan" name="plan" appearance="card" label="Plan" :options="planes">
   <template #option="{ option, checked }">
     <strong>{{ option.label }}</strong> · {{ option.precio }} <span v-if="checked">(actual)</span>
@@ -329,7 +332,7 @@ Elegida, foco y hover se estilizan con `:checked`, `:focus-visible` y `:has()`, 
 - **Opción solo icono `disabled` sin pista:** con el puntero no se lee su nombre (ver [Pista de solo icono](#pista-de-solo-icono)).
 - **Sin grupos de opciones**, sin deseleccionar, sin `GRadio` suelto.
 - **Chips de opción con `pill` fijo:** no siguen `--g-radius-shape`.
-- **Sin tema oscuro propio:** se verificó con los temas generados claro y oscuro, pero no hay tema oscuro opcional de Grana todavía.
+- **Tema oscuro:** se verificó con los temas generados claro y oscuro. `grana.css` trae además el esquema oscuro por defecto (`prefers-color-scheme` o `data-theme="dark"`; ver [«Tema oscuro» del README raíz](../../../../../README.md#tema-oscuro)).
 - **Playground:** `#sec-radio` no muestra `warning`/`valid`, colores distintos de `brand`/`accent` ni la elegida de solo lectura en `chip`; esos casos se cubrieron en el banco de la auditoría (`design/lab/radio-group/auditoria-banco.html`).
 - **Sin verificar:**
   - un **lector de pantalla real** (VoiceOver, NVDA, JAWS, TalkBack): cómo anuncian el `fieldset role="radiogroup"` frente al `div`, si `aria-required`/`aria-invalid`/`aria-readonly` del grupo se leen (y si se repiten al moverse), la descripción por opción y el modo solo icono;

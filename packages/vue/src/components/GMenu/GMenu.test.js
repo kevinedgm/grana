@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { defineComponent, h, nextTick, ref } from 'vue'
 import GMenu from './GMenu.vue'
+import { pageLiveNode } from '../../utils/liveRegion.js'
 
 beforeEach(() => {
   HTMLElement.prototype.showPopover = function () { this.setAttribute('data-popover-open', '') }
@@ -847,5 +848,444 @@ describe('GMenu · panel estable al desplazar la página', () => {
     await scroll()
     expect(w.vm.isOpen).toBe(false)
     w.unmount()
+  })
+})
+
+// ---------- Elementos-enlace (menu.md «Elementos-enlace», #571 a #579; ronda design/lab/menu/r02/) ----------
+const LB = {
+  external: ', otro sitio', newTab: ', abre en una pestaña nueva', destExternal: 'Otro sitio', destNewTab: 'Pestaña nueva',
+  opened: 'Abierta', openedLive: '{label} abierta en otra pestaña', copied: 'Enlace copiado', copiedLive: ({ label }) => `Enlace de ${label} copiado`
+}
+const LINKS = [
+  { id: 'perfil', label: 'Mi perfil', href: '#/perfil', current: true },
+  { id: 'ajustes', label: 'Ajustes', href: '#/ajustes', shortcut: 'Ctrl+,' },
+  { id: 'invitar', label: 'Invitar al equipo' },
+  { type: 'separator' },
+  { id: 'docs', label: 'Documentación', href: 'https://example.org/docs/menu/', target: '_blank', external: true },
+  { id: 'estado', label: 'Estado del servicio', href: 'https://status.example.org/', external: true },
+  { id: 'factura', label: 'Facturación', href: '#/facturacion', target: '_blank', rel: 'nofollow', disabled: true },
+  { id: 'correo', label: 'Escribir', href: 'mailto:hola@example.org' },
+  { type: 'checkbox', id: 'oscuro', label: 'Tema oscuro' }
+]
+const LinkHost = defineComponent({
+  props: { items: { type: Array, default: () => LINKS }, menu: { type: Object, default: () => ({}) } },
+  emits: ['select', 'navigate'],
+  setup(props, { emit, expose }) {
+    const isOpen = ref(false)
+    expose({ isOpen })
+    return () => h('div', [
+      h(GMenu, { labels: LB, ...props.menu, items: props.items, modelValue: isOpen.value, 'onUpdate:modelValue': (v) => { isOpen.value = v }, onSelect: (e) => emit('select', e), onNavigate: (e) => emit('navigate', e) }, {
+        trigger: ({ attrs }) => h('button', { ...attrs, type: 'button' }, 'Cuenta')
+      })
+    ])
+  }
+})
+// jsdom no navega: se cancela al final (burbuja en document), después de que GMenu decida
+const stopNav = (e) => { if (e.target.closest?.('a[href]')) e.preventDefault() }
+const openLinks = async (props = {}) => {
+  const w = mount(LinkHost, { attachTo: document.body, props })
+  await trig(w).trigger('click'); await settle()
+  return w
+}
+const lk = (w, text) => w.findAll('.g-menu__item').find((i) => i.find('.g-menu__label').text() === text)
+const click = (el, init = {}) => { const ev = new MouseEvent('click', { bubbles: true, cancelable: true, button: 0, ...init }); el.element.dispatchEvent(ev); return ev }
+const warnsOf = (spy) => spy.mock.calls.map((c) => String(c[0])).filter((m) => m.startsWith('[Grana] <GMenu>'))
+
+describe('GMenu · elementos-enlace · anatomía', () => {
+  beforeEach(() => document.addEventListener('click', stopNav))
+  afterEach(() => document.removeEventListener('click', stopNav))
+
+  it('con href válido es <a role="menuitem" href> con target y rel tal cual (sin rel añadido); acciones y casilla siguen siendo <button>', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const w = await openLinks()
+    const docs = lk(w, 'Documentación')
+    expect(docs.element.tagName).toBe('A')
+    expect(docs.attributes('role')).toBe('menuitem')
+    expect(docs.attributes('href')).toBe('https://example.org/docs/menu/')
+    expect(docs.attributes('target')).toBe('_blank')
+    expect(docs.attributes('rel')).toBeUndefined()
+    expect(docs.attributes('type')).toBeUndefined()
+    expect(lk(w, 'Invitar al equipo').element.tagName).toBe('BUTTON')
+    expect(lk(w, 'Tema oscuro').element.tagName).toBe('BUTTON')
+    expect(lk(w, 'Tema oscuro').attributes('role')).toBe('menuitemcheckbox')
+  })
+
+  it('href vacío o con espacios = ausente (<button>); en casilla, opción o padre de submenú se ignora y avisa una vez (E1)', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const w = await openLinks({ items: [
+      { id: 'a', label: 'Vacío', href: '' },
+      { id: 'b', label: 'Espacios', href: '   ' },
+      { type: 'checkbox', id: 'c', label: 'Casilla', href: '#/c' },
+      { type: 'radio', id: 'r', label: 'Opción', href: '#/r' },
+      { label: 'Padre', href: '#/p', items: [{ id: 'h', label: 'Hijo' }] }
+    ] })
+    expect(w.findAll('a.g-menu__item')).toHaveLength(0)
+    expect(lk(w, 'Casilla').attributes('role')).toBe('menuitemcheckbox')
+    expect(lk(w, 'Padre').attributes('aria-haspopup')).toBe('menu')
+    expect(warnsOf(warn).filter((m) => m.includes('(E1)'))).toHaveLength(1)
+  })
+
+  it('target, rel, external y current sin href válido se ignoran y avisan una vez (E2)', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const w = await openLinks({ items: [{ id: 'a', label: 'A', target: '_blank', external: true }, { id: 'b', label: 'B', current: true, rel: 'x' }] })
+    expect(lk(w, 'A').element.tagName).toBe('BUTTON')
+    expect(lk(w, 'A').attributes('target')).toBeUndefined()
+    expect(lk(w, 'B').attributes('aria-current')).toBeUndefined()
+    expect(w.find('.g-menu__leave').exists()).toBe(false)
+    expect(warnsOf(warn).filter((m) => m.includes('(E2)'))).toHaveLength(1)
+  })
+
+  it('deshabilitado: <a> sin href, target ni rel, con aria-disabled, alcanzable con flechas; conserva texto oculto y marca', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const w = await openLinks()
+    const f = lk(w, 'Facturación')
+    expect(f.element.tagName).toBe('A')
+    for (const a of ['href', 'target', 'rel']) expect(f.attributes(a)).toBeUndefined()
+    expect(f.attributes('aria-disabled')).toBe('true')
+    expect(f.find('.g-menu__sr').text()).toBe(', abre en una pestaña nueva')
+    expect(f.find('.g-menu__leave').exists()).toBe(true)
+    await key(w.find(':focus'), 'End'); await key(w.find(':focus'), 'ArrowUp'); await key(w.find(':focus'), 'ArrowUp')
+    expect(document.activeElement).toBe(f.element)
+  })
+
+  it('un solo aria-current="page" (el primero, aviso E3); is-branch en el padre que lo contiene a dos niveles, sin aria-current', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const w = await openLinks({ items: [
+      { id: 'x', label: 'Otro' },
+      { label: 'Cuenta', items: [{ label: 'Más', items: [{ id: 'p', label: 'Perfil', href: '#/p', current: true }] }] },
+      { id: 'q', label: 'Segunda', href: '#/q', current: true }
+    ] })
+    expect(lk(w, 'Segunda').attributes('aria-current')).toBeUndefined()
+    expect(lk(w, 'Cuenta').classes()).toContain('is-branch')
+    expect(lk(w, 'Cuenta').attributes('aria-current')).toBeUndefined()
+    expect(lk(w, 'Otro').classes()).not.toContain('is-branch')
+    expect(warnsOf(warn).filter((m) => m.includes('(E3)'))).toHaveLength(1)
+    // El primero (dentro del submenú) es el actual
+    await key(lk(w, 'Cuenta'), 'ArrowRight'); await settle()
+    await key(lk(w, 'Más'), 'ArrowRight'); await settle()
+    expect(lk(w, 'Perfil').attributes('aria-current')).toBe('page')
+    expect(lk(w, 'Más').classes()).toContain('is-branch')
+  })
+
+  it('orden de las partes: icono, etiqueta, texto oculto, atajo, huella, marca; huella vacía desde el montaje', async () => {
+    const w = await openLinks({ items: [
+      { id: 'a', label: 'Ajustes', icon: 'settings', href: 'https://example.org/a', target: '_blank', external: true, shortcut: 'Ctrl+,' }
+    ] })
+    const a = lk(w, 'Ajustes')
+    expect([...a.element.children].map((c) => c.className)).toEqual(['g-menu__icon', 'g-menu__label', 'g-menu__sr', 'g-menu__shortcut', 'g-menu__trace', 'g-menu__leave'])
+    expect(a.find('.g-menu__sr').text()).toBe(', otro sitio, abre en una pestaña nueva')
+    expect(a.find('.g-menu__trace').attributes('aria-hidden')).toBe('true')
+    expect(a.find('.g-menu__trace').element.childNodes).toHaveLength(0)
+    expect(a.find('.g-menu__leave').attributes('aria-hidden')).toBe('true')
+    expect(a.find('.g-menu__leave svg.lucide-external-link, .g-menu__leave svg').exists()).toBe(true)
+  })
+
+  it('«otra pestaña» = _blank o un nombre; _parent, _top y _self no llevan marca ni texto', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const w = await openLinks({ items: ['_blank', 'ayuda', '_parent', '_top', '_self'].map((t, i) => ({ id: t, label: `L${i}`, href: `#/${i}`, target: t })) })
+    const leaves = (t) => lk(w, t).find('.g-menu__leave').exists()
+    expect([0, 1, 2, 3, 4].map((i) => leaves(`L${i}`))).toEqual([true, true, false, false, false])
+    expect(lk(w, 'L2').find('.g-menu__sr').exists()).toBe(false)
+  })
+
+  it('la búsqueda por letra mira solo la etiqueta (no el texto oculto)', async () => {
+    const w = await openLinks({ items: [{ id: 'a', label: 'Alfa' }, { id: 'o', label: 'Docs', href: '#/o', external: true }, { id: 'b', label: 'Beta' }] })
+    await key(w.find(':focus'), ','); // el texto oculto empieza por «, otro sitio»
+    expect(document.activeElement.textContent).toContain('Alfa')
+    await key(w.find(':focus'), 'o')
+    expect(document.activeElement.textContent).toContain('Alfa')
+  })
+})
+
+describe('GMenu · elementos-enlace · navigate (#573, #574)', () => {
+  beforeEach(() => document.addEventListener('click', stopNav))
+  afterEach(() => document.removeEventListener('click', stopNav))
+
+  it('clic primario emite navigate { id, item, event } y nunca select; cierra y devuelve el foco al disparador', async () => {
+    const w = await openLinks()
+    const ev = click(lk(w, 'Ajustes')); await settle()
+    const n = w.emitted('navigate')
+    expect(n).toHaveLength(1)
+    expect(n[0][0].id).toBe('ajustes')
+    expect(n[0][0].item).toBe(LINKS[1])
+    expect(n[0][0].event).toBe(ev)
+    expect(Object.keys(n[0][0]).sort()).toEqual(['event', 'id', 'item'])
+    expect(w.emitted('select')).toBeUndefined()
+    expect(list(w).exists()).toBe(false)
+    expect(document.activeElement).toBe(trig(w).element)
+  })
+
+  it('preventDefault() en navigate no impide el cierre; sin él, GMenu no cancela el clic', async () => {
+    const w = mount(defineComponent({ setup: () => () => h(LinkHost, { onNavigate: (e) => e.event.preventDefault() }) }), { attachTo: document.body })
+    await trig(w).trigger('click'); await settle()
+    document.removeEventListener('click', stopNav)
+    const ev = click(lk(w, 'Ajustes')); await settle()
+    expect(ev.defaultPrevented).toBe(true)
+    expect(list(w).exists()).toBe(false)
+    const w2 = await openLinks()
+    let seen = null
+    document.addEventListener('click', (e) => { seen = e.defaultPrevented; e.preventDefault() }, { once: true })
+    click(lk(w2, 'Ajustes'))
+    expect(seen).toBe(false)
+  })
+
+  it('con Ctrl, ⌘, Mayús, Alt o botón central no emite; con target de otro contexto (_blank, nombre, _parent, _top) tampoco; _self y vacío sí', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    for (const init of [{ ctrlKey: true }, { metaKey: true }, { shiftKey: true }, { altKey: true }]) {
+      const w = await openLinks({ menu: { labels: {} } })
+      click(lk(w, 'Ajustes'), init); await settle()
+      expect(w.emitted('navigate'), JSON.stringify(init)).toBeUndefined()
+      w.unmount()
+    }
+    const w = await openLinks({ menu: { labels: {} } })
+    lk(w, 'Ajustes').element.dispatchEvent(new MouseEvent('auxclick', { bubbles: true, cancelable: true, button: 1 }))
+    expect(w.emitted('navigate')).toBeUndefined()
+    w.unmount()
+    const items = ['_blank', 'ventana', '_parent', '_top', '_self', ''].map((t) => ({ id: t || 'vacio', label: `T${t}`, href: '#/t', target: t }))
+    for (const it of items) {
+      const v = await openLinks({ items })
+      click(lk(v, it.label)); await settle()
+      expect(Boolean(v.emitted('navigate')), it.target).toBe(it.target === '_self' || it.target === '')
+      expect(v.emitted('select')).toBeUndefined()
+      v.unmount()
+    }
+  })
+
+  it('closeOnSelect="never" deja el menú abierto tras navigate; always y auto cierran', async () => {
+    const w = await openLinks({ menu: { closeOnSelect: 'never' } })
+    click(lk(w, 'Ajustes')); await settle()
+    expect(w.emitted('navigate')).toHaveLength(1)
+    expect(list(w).exists()).toBe(true)
+  })
+
+  it('Mayús+clic y Alt+clic cierran sin navigate; clic derecho (auxclick botón 2) no hace nada', async () => {
+    for (const init of [{ shiftKey: true }, { altKey: true }]) {
+      const w = await openLinks()
+      click(lk(w, 'Ajustes'), init); await settle()
+      expect(list(w).exists()).toBe(false)
+      w.unmount()
+    }
+    const w = await openLinks()
+    lk(w, 'Ajustes').element.dispatchEvent(new MouseEvent('auxclick', { bubbles: true, cancelable: true, button: 2 }))
+    await settle()
+    expect(list(w).exists()).toBe(true)
+  })
+
+  it('Espacio: se cancela y activa como un clic primario (navigate); con modificadores, nada; Intro no se cancela', async () => {
+    const w = await openLinks()
+    await key(w.find(':focus'), 'ArrowDown')
+    const sp = new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true })
+    document.activeElement.dispatchEvent(sp); await settle()
+    expect(sp.defaultPrevented).toBe(true)
+    expect(w.emitted('navigate')[0][0].id).toBe('ajustes')
+    const v = await openLinks()
+    for (const m of ['ctrlKey', 'metaKey', 'shiftKey', 'altKey']) {
+      const e = new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true, [m]: true })
+      document.activeElement.dispatchEvent(e)
+      expect(e.defaultPrevented, m).toBe(true)
+    }
+    await settle()
+    expect(v.emitted('navigate')).toBeUndefined()
+    expect(list(v).exists()).toBe(true)
+    const en = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true })
+    document.activeElement.dispatchEvent(en)
+    expect(en.defaultPrevented).toBe(false)
+  })
+
+  it('deshabilitado: clic, Intro y Espacio no emiten ni cierran; el clic se cancela', async () => {
+    const w = await openLinks()
+    const f = lk(w, 'Facturación')
+    const ev = click(f); await settle()
+    expect(ev.defaultPrevented).toBe(true)
+    f.element.focus()
+    f.element.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true })); await settle()
+    expect(w.emitted('navigate')).toBeUndefined()
+    expect(w.emitted('select')).toBeUndefined()
+    expect(list(w).exists()).toBe(true)
+  })
+
+  it('GMenu no cancela pointerdown, mousedown, dragstart ni contextmenu sobre un enlace', async () => {
+    const w = await openLinks()
+    for (const type of ['pointerdown', 'mousedown', 'dragstart', 'contextmenu']) {
+      const e = new Event(type, { bubbles: true, cancelable: true })
+      lk(w, 'Ajustes').element.dispatchEvent(e)
+      expect(e.defaultPrevented, type).toBe(false)
+    }
+    expect(list(w).exists()).toBe(true)
+  })
+})
+
+describe('GMenu · elementos-enlace · B pie de destino (#578)', () => {
+  const dest = (root) => root.element.querySelector(':scope > .g-menu__dest')
+  const read = (d) => ({ empty: d.classList.contains('is-empty'), host: d.children[1].textContent, path: d.children[2].textContent, tag: d.children[3].textContent, icon: d.children[0].querySelector('svg') !== null })
+  const focusOn = async (w, text) => { lk(w, text).element.focus(); await settle(); await new Promise((r) => queueMicrotask(r)) }
+
+  it('último hijo de la lista que sale, li role=none aria-hidden con sus partes y dir=ltr en host y ruta; no en una lista sin salidas', async () => {
+    const w = await openLinks()
+    const d = dest(list(w))
+    expect(d).not.toBeNull()
+    expect(d).toBe(list(w).element.lastElementChild)
+    expect(d.getAttribute('role')).toBe('none')
+    expect(d.getAttribute('aria-hidden')).toBe('true')
+    expect([...d.children].map((c) => c.className)).toEqual(['g-menu__dest-icon', 'g-menu__dest-host', 'g-menu__dest-path', 'g-menu__dest-tag'])
+    expect(d.children[1].getAttribute('dir')).toBe('ltr')
+    expect(d.children[2].getAttribute('dir')).toBe('ltr')
+    const v = await openLinks({ items: [{ id: 'a', label: 'A', href: '#/a' }, { id: 'b', label: 'B' }] })
+    expect(dest(list(v))).toBeNull()
+  })
+
+  it('en un submenú que sale lo lleva el submenú y no su padre', async () => {
+    const w = await openLinks({ items: [{ id: 'a', label: 'A', href: '#/a' }, { label: 'Ayuda', items: [{ id: 'd', label: 'Docs', href: 'https://example.org/d', external: true }] }] })
+    expect(dest(list(w))).toBeNull()
+    await key(lk(w, 'Ayuda'), 'ArrowRight'); await settle()
+    const sub = w.find(`#${lk(w, 'Ayuda').attributes('aria-controls')}`)
+    expect(dest(sub)).not.toBeNull()
+  })
+
+  it('contenido por caso: interno, externo en pestaña nueva, externo en la misma, mailto, acción y deshabilitado callados', async () => {
+    const w = await openLinks()
+    const d = () => read(dest(list(w)))
+    await focusOn(w, 'Mi perfil')
+    expect(d()).toEqual({ empty: false, host: '', path: '#/perfil', tag: '', icon: false })
+    await focusOn(w, 'Documentación')
+    expect(d()).toEqual({ empty: false, host: 'example.org', path: '/docs/menu', tag: 'Pestaña nueva', icon: true })
+    await focusOn(w, 'Estado del servicio')
+    expect(d()).toEqual({ empty: false, host: 'status.example.org', path: '', tag: 'Otro sitio', icon: true })
+    await focusOn(w, 'Escribir')
+    expect(d()).toMatchObject({ empty: false, host: '', path: 'mailto:hola@example.org', icon: false })
+    await focusOn(w, 'Invitar al equipo')
+    expect(d().empty).toBe(true)
+    expect(d().path).toBe('mailto:hola@example.org') // el texto se queda (transparente): el alto no cambia
+    await focusOn(w, 'Mi perfil')
+    await focusOn(w, 'Facturación')
+    expect(d().empty).toBe(true)
+  })
+
+  it('el texto se escribe antes de quitar is-empty (fundido) y los dominios internacionales salen en punycode', async () => {
+    const w = await openLinks({ items: [{ id: 'a', label: 'Acción' }, { id: 'm', label: 'Muñeca', href: 'https://muñeca.example/ruta?x=1', external: true }] })
+    const d = dest(list(w))
+    const seen = []
+    const mo = new MutationObserver((ms) => { for (const m of ms) seen.push(m.type === 'attributes' ? `class:${d.classList.contains('is-empty')}` : 'text') })
+    mo.observe(d, { attributes: true, attributeFilter: ['class'], subtree: true, childList: true })
+    await focusOn(w, 'Muñeca')
+    await new Promise((r) => setTimeout(r))
+    mo.disconnect()
+    expect(seen.indexOf('text')).toBeLessThan(seen.indexOf('class:false'))
+    expect(read(d)).toMatchObject({ host: new URL('https://muñeca.example').host, path: '/ruta?x=1' })
+    expect(read(d).host.startsWith('xn--')).toBe(true)
+  })
+})
+
+describe('GMenu · elementos-enlace · C varias pestañas (#577)', () => {
+  beforeEach(() => document.addEventListener('click', stopNav))
+  afterEach(() => { document.removeEventListener('click', stopNav); vi.useRealTimers() })
+  const live = () => pageLiveNode()
+  const traceOf = (w, t) => lk(w, t).find('.g-menu__trace').text()
+
+  it('Ctrl/⌘+clic y clic central: no cierran, sin navigate, huella «Abierta» y un anuncio en el canal de página', async () => {
+    const w = await openLinks()
+    click(lk(w, 'Ajustes'), { ctrlKey: true }); await settle()
+    expect(list(w).exists()).toBe(true)
+    expect(traceOf(w, 'Ajustes')).toBe('Abierta')
+    await new Promise((r) => setTimeout(r, 80))
+    expect(live().textContent).toBe('Ajustes abierta en otra pestaña')
+    lk(w, 'Mi perfil').element.dispatchEvent(new MouseEvent('auxclick', { bubbles: true, cancelable: true, button: 1 })); await settle()
+    click(lk(w, 'Estado del servicio'), { metaKey: true }); await settle()
+    expect(traceOf(w, 'Mi perfil')).toBe('Abierta')
+    expect(traceOf(w, 'Estado del servicio')).toBe('Abierta')
+    expect(w.emitted('navigate')).toBeUndefined()
+    expect(list(w).exists()).toBe(true)
+  })
+
+  it('sin opened/openedLive, Ctrl/⌘+clic y clic central cierran (aviso E6)', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const w = await openLinks({ menu: { labels: { ...LB, openedLive: undefined } } })
+    click(lk(w, 'Ajustes'), { ctrlKey: true }); await settle()
+    expect(list(w).exists()).toBe(false)
+    await trig(w).trigger('click'); await settle()
+    lk(w, 'Ajustes').element.dispatchEvent(new MouseEvent('auxclick', { bubbles: true, cancelable: true, button: 1 })); await settle()
+    expect(list(w).exists()).toBe(false)
+    expect(warnsOf(warn).filter((m) => m.includes('(E6)'))).toHaveLength(1)
+  })
+
+  it('is-modifier en cada lista abierta con Ctrl/⌘; se quita con keyup, puntero sin modificador, blur de la ventana y al cerrar', async () => {
+    const w = await openLinks()
+    const l = () => list(w).element
+    const down = (k) => document.activeElement.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true }))
+    down('Control'); expect(l().classList.contains('is-modifier')).toBe(true)
+    document.activeElement.dispatchEvent(new KeyboardEvent('keyup', { key: 'Control', bubbles: true }))
+    expect(l().classList.contains('is-modifier')).toBe(false)
+    down('Meta'); window.dispatchEvent(new Event('blur'))
+    expect(l().classList.contains('is-modifier')).toBe(false)
+    const pm = (init) => { const e = new MouseEvent('pointermove', { bubbles: true, clientX: 5, clientY: Math.random() * 100, ...init }); Object.defineProperty(e, 'pointerType', { value: 'mouse' }); lk(w, 'Ajustes').element.dispatchEvent(e) }
+    pm({ ctrlKey: true }); expect(l().classList.contains('is-modifier')).toBe(true)
+    pm({}); expect(l().classList.contains('is-modifier')).toBe(false)
+    down('Control')
+    const el = l()
+    await key(w.find(':focus'), 'Escape'); await settle()
+    expect(el.classList.contains('is-modifier')).toBe(false)
+  })
+
+  it('Ctrl/⌘+C copia la URL absoluta; huella y anuncio solo al resolverse; las huellas se borran al cerrar', async () => {
+    let done
+    const writeText = vi.fn(() => new Promise((r) => { done = r }))
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
+    const w = await openLinks()
+    lk(w, 'Ajustes').element.focus()
+    const e = new KeyboardEvent('keydown', { key: 'c', ctrlKey: true, bubbles: true, cancelable: true })
+    lk(w, 'Ajustes').element.dispatchEvent(e)
+    expect(e.defaultPrevented).toBe(true)
+    await settle()
+    expect(writeText).toHaveBeenCalledWith(new URL('#/ajustes', document.baseURI).href)
+    expect(traceOf(w, 'Ajustes')).toBe('')
+    done(); await settle(); await settle()
+    expect(traceOf(w, 'Ajustes')).toBe('Enlace copiado')
+    await new Promise((r) => setTimeout(r, 80))
+    expect(live().textContent).toContain('Enlace de Ajustes copiado')
+    await key(w.find(':focus'), 'Escape'); await settle()
+    await trig(w).trigger('click'); await settle()
+    expect(traceOf(w, 'Ajustes')).toBe('')
+    delete navigator.clipboard
+  })
+
+  it('no intercepta Ctrl/⌘+C con texto seleccionado, sin copied/copiedLive, sin portapapeles ni en un deshabilitado; un rechazo avisa (E7) sin huella', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const writeText = vi.fn(() => Promise.reject(new Error('permiso')))
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
+    const press = (el) => { const e = new KeyboardEvent('keydown', { key: 'c', metaKey: true, bubbles: true, cancelable: true }); el.dispatchEvent(e); return e.defaultPrevented }
+    const sel = document.createElement('p'); sel.textContent = 'texto'; document.body.append(sel)
+    const w = await openLinks()
+    window.getSelection().selectAllChildren(sel)
+    expect(press(lk(w, 'Ajustes').element)).toBe(false)
+    window.getSelection().removeAllRanges()
+    expect(press(lk(w, 'Facturación').element)).toBe(false)
+    expect(press(lk(w, 'Ajustes').element)).toBe(true)
+    await settle(); await settle(); await new Promise((r) => setTimeout(r))
+    expect(traceOf(w, 'Ajustes')).toBe('')
+    expect(warnsOf(warn).filter((m) => m.includes('(E7)'))).toHaveLength(1)
+    const v = await openLinks({ menu: { labels: { ...LB, copied: undefined } } })
+    expect(press(lk(v, 'Ajustes').element)).toBe(false)
+    delete navigator.clipboard
+    const x = await openLinks()
+    expect(press(lk(x, 'Ajustes').element)).toBe(false)
+  })
+})
+
+describe('GMenu · elementos-enlace · avisos E4 y E5', () => {
+  it('sin labels.external/newTab avisa E4 (sin texto oculto, la marca sigue); sin destExternal/destNewTab avisa E5; una vez cada uno', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const w = await openLinks({ menu: { labels: { opened: 'A', openedLive: 'A', copied: 'C', copiedLive: 'C' } } })
+    expect(lk(w, 'Documentación').find('.g-menu__sr').exists()).toBe(false)
+    expect(lk(w, 'Documentación').find('.g-menu__leave').exists()).toBe(true)
+    await trig(w).trigger('click'); await settle(); await trig(w).trigger('click'); await settle()
+    const m = warnsOf(warn)
+    expect(m.filter((x) => x.includes('(E4)'))).toHaveLength(1)
+    expect(m.filter((x) => x.includes('(E5)'))).toHaveLength(1)
+  })
+
+  it('un menú con todos sus textos no avisa', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    await openLinks()
+    expect(warnsOf(warn).filter((m) => /\(E\d\)/.test(m))).toEqual([])
   })
 })

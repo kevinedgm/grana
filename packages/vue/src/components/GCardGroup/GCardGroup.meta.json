@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 1,
+  "name": "GCardGroup",
+  "tag": "g-card-group",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Fila de tarjetas de métrica que filtran la región de debajo (casi siempre una GTable). Coordina las GCard hijas: exclusividad (o varias con multiple), una sola parada de Tab (role=\"toolbar\", foco itinerante) y la cifra en la descripción del botón. Siempre se puede soltar. Con el slot panel, A «Lengüeta»: las tarjetas se apoyan en el marco de la región y un puente une la pulsada al marco.",
+  "contract": "design/contracts/card-group.md",
+  "decisions": ["#603", "#604", "#605", "#606", "#607", "#608", "#609", "#610", "#611", "#570"],
+  "prototype": "design/lab/card-group/r01/",
+  "style": "packages/vue/src/components/GCardGroup/GCardGroup.css",
+  "entry": "@grana/vue/card-group",
+  "bundle": {
+    "measured": "2026-10-14",
+    "entry": "dist/card-group.js (GCardGroup)",
+    "gzip": 5221,
+    "umdGzip": 4797,
+    "global": "GranaCardGroup",
+    "note": "gzip -9, medido el 2026-10-14. El cambio de GCard para el grupo (contexto, id del contenido, aria-describedby) y las dos claves de __shared suman +355 B gzip al grana.js (compuerta ≤ 1 KiB). Vue y @grana/vue externos; la clave del contexto (utils/cardGroup.js) y transitionMs llegan de __shared, sin copia. GCard sigue en el principal. El CSS va en grana.css."
+  },
+  "props": [
+    {
+      "name": "modelValue",
+      "type": "String | Number | Array | null",
+      "default": null,
+      "description": "v-model. Sin multiple: el value de la tarjeta pulsada o null. Con multiple: arreglo de value ([] sin ninguna, nunca null), en el orden de las tarjetas en el DOM y con los valores desconocidos conservados al final. Igualdad ===. Un tipo distinto al modo avisa (G7)."
+    },
+    {
+      "name": "multiple",
+      "type": "Boolean",
+      "default": false,
+      "description": "Varias tarjetas pulsadas a la vez (un filtro in con varios valores)."
+    },
+    {
+      "name": "label",
+      "type": "String",
+      "default": null,
+      "description": "Nombre de la barra (aria-label de g-card-group__strip, role=\"toolbar\"). Uno de label/labelledby es obligatorio (G1)."
+    },
+    {
+      "name": "labelledby",
+      "type": "String",
+      "default": null,
+      "description": "Id de un elemento visible que nombra la barra (aria-labelledby)."
+    },
+    {
+      "name": "controls",
+      "type": "String",
+      "default": null,
+      "description": "Id de la región que se filtra: aria-controls en cada botón gestionado. Sin él y con el slot panel, el id del panel (ID-panel). Un id que no existe tras montar avisa (G9)."
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null,
+      "description": "Id de la raíz (generado si falta). El panel es ID-panel."
+    }
+  ],
+  "events": [
+    {
+      "name": "update:modelValue",
+      "payload": "String | Number | null · con multiple, Array (nuevo)",
+      "trigger": "La persona alterna una tarjeta gestionada (clic, toque, Espacio, Intro). Las flechas no emiten; una tarjeta disabled o loading no emite"
+    },
+    {
+      "name": "change",
+      "payload": "{ value, pressed }",
+      "trigger": "El mismo gesto, después de update:modelValue: value de la tarjeta alternada y su estado nuevo. No cancelable. Un cambio de modelValue desde fuera no lo emite"
+    }
+  ],
+  "slots": [
+    {
+      "name": "default",
+      "purpose": "Las GCard (gestionadas: con value e interaction auto o toggle; el resto, estáticas y fuera de la parada). Dentro de la barra"
+    },
+    {
+      "name": "panel",
+      "purpose": "La región que se filtra (la GTable con su GFilterBar) y nada más; activa la lengüeta. Alcance: { filtered }",
+      "scope": "{ filtered: Boolean }"
+    }
+  ],
+  "tokens": [
+    "--g-color-border-strong",
+    "--g-color-primary-text",
+    "--g-card-selected",
+    "--g-color-surface",
+    "--g-space-1",
+    "--g-radius-lg",
+    "--g-border-width",
+    "--g-duration-fast",
+    "--g-duration-press",
+    "--g-duration-slow",
+    "--g-ease-out"
+  ],
+  "states": ["default", "filtered", "multiple", "has-panel", "ready"],
+  "classes": [
+    "g-card-group",
+    "has-panel",
+    "is-filtered (raíz y g-card-group__panel)",
+    "is-multiple",
+    "is-ready (tras el primer posicionamiento)",
+    "g-card-group__strip (role=\"toolbar\"; tabindex=\"-1\" con panel, #570)",
+    "g-card-group__panel (id ID-panel)",
+    "g-card-group__bridge (aria-hidden; uno por tarjeta pulsada, con panel)",
+    "is-leaving (en g-card-group__bridge mientras se recoge; se retira al terminar su transición)",
+    "--_bridge-x, --_bridge-w (en línea, px)"
+  ],
+  "composes": [
+    "GCard (hijas por slot; leen el contexto utils/cardGroup.js)",
+    "utils/motion.js (transitionMs: retirada del puente)"
+  ],
+  "announcements": "Ninguno propio: el lector dice «presionado» y el recuento lo anuncia la tabla (#569).",
+  "focus": "Una sola parada (APG Toolbar): Tab entra en la pulsada → la última enfocada → la primera elegible. →/← (espejo RTL), ↓/↑ lineales, Inicio/Fin sin vuelta; las flechas no filtran; Espacio/Intro alternan. Al mover el foco (y al entrar con Tab) trae la tarjeta entera a la vista (L7). Si la enfocada deja de ser elegible, el foco pasa a la siguiente elegible (o a la anterior).",
+  "attrs": "A la raíz (class, style, data-*, escuchas). aria-label/aria-labelledby avisan (G1b) y no se copian: el nombre va por label/labelledby.",
+  "warnings": [
+    "G1 sin label ni labelledby · G1b aria-label/aria-labelledby en $attrs",
+    "G2 tarjeta hija con interaction link/button/select: cae a none",
+    "G3 tarjeta hija con interaction=\"toggle\" sin value: cae a none",
+    "G4 value repetido: la segunda y siguientes caen a none",
+    "G5 tarjeta gestionada con controles secundarios (no admitido en v1)",
+    "G6 v-model/modelValue en una tarjeta gestionada: se ignora",
+    "G7 modelValue de tipo distinto al modo",
+    "G8 GCardGroup dentro de otro GCardGroup",
+    "G9 controls con un id que no existe tras montar"
+  ],
+  "pending": [
+    "Auditoría de coco (GCardGroup.css y tema distinto al de defecto)",
+    "README (mora-docs)",
+    "Lector de pantalla real (VoiceOver, NVDA, TalkBack)"
+  ]
+}

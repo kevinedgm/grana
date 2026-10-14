@@ -4,7 +4,7 @@ Botón de acción. Si recibe `href`, se renderiza como enlace (`<a>`).
 
 **Etiqueta:** `<g-btn>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/btn/auditoria.md`](../../../../../design/lab/btn/auditoria.md)) · **Desde:** 0.1.0
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`).
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`).
 
 ## Uso
 
@@ -18,6 +18,7 @@ createApp(App).use(Grana).mount('#app')
 ```
 
 ```vue
+<!-- Fragmento: `guardar` es de tu aplicación -->
 <g-btn @click="guardar">Guardar</g-btn>
 <g-btn variant="outline" color="danger">Eliminar</g-btn>
 <g-btn href="/reservas" variant="link">Ver reservas</g-btn>
@@ -41,6 +42,7 @@ También se puede importar solo el componente: `import { GBtn } from '@grana/vue
 | `href` | String | URL | sin valor |
 | `icon` | Boolean | | `false` |
 | `loadingText` | String | texto libre | sin valor |
+| `tooltip` | String | atajo de `<GTooltip :text>` con todo lo demás por defecto ([`GTooltip`](../GTooltip/README.md)); cuenta como nombre accesible de un `icon` | sin valor |
 
 Un valor fuera de la lista muestra una advertencia en desarrollo.
 
@@ -48,6 +50,7 @@ Un valor fuera de la lista muestra una advertencia en desarrollo.
 - **`density`** reduce la altura: ×1, ×0.875 (`comfortable`) o ×0.75 (`compact`), con un mínimo de 24px.
 - **`icon`** hace el botón cuadrado (ancho = alto) y exige `aria-label` o `aria-labelledby`. En desarrollo, si falta, se emite `console.warn`.
 - **`loading`** conserva el ancho y el color del botón, funde la etiqueta (queda en el árbol con `opacity: 0`, así que el nombre accesible no cambia) y muestra un indicador de giro (ver [Personalidad](#personalidad)). El botón queda en `aria-busy="true"` y `aria-disabled="true"`, pero **no** usa el atributo `disabled`, para no perder el foco.
+- **`tooltip`** envuelve el botón en un `GTooltip` (`kind` automático). Si el padre directo ya es un `GTooltip`, gana el envoltorio, la prop se ignora y avisa en desarrollo; con `icon` evita el aviso de nombre accesible, pero conviene seguir poniendo `aria-label` si el botón no está envuelto por el tooltip en tu plantilla.
 - **`loadingText`** es el texto que se anuncia a lectores de pantalla cuando `loading` pasa a `true`. No tiene valor por defecto porque Grana es internacional: un texto fijo estaría en el idioma equivocado. Sin él, solo queda `aria-busy`.
 - **Pon `loadingText` desde el principio** (fijo, no solo al empezar la carga): el botón pinta su región de anuncio (`g-btn__status`) **solo mientras `loadingText` tiene valor** (DECISIONS #257), y un lector solo anuncia los cambios de una región que **ya existía**. Si `loadingText` y `loading` llegan en el mismo cambio, la región se monta vacía y el texto se escribe en el ciclo siguiente para que se anuncie, pero lo seguro es que la región exista antes de la carga. Sin `loadingText` no hay región: así una vista con cientos de botones (filas de `GTranscript`, por ejemplo) no añade cientos de regiones vivas vacías.
 
@@ -124,6 +127,26 @@ Spec `design/lab/theme-playground/tests/personalidad-btn.spec.mjs` sobre el `GBt
 | Carga con `reduce` | solo `opacity`, ninguna transición de `translate` |
 | Solo Chromium | 5 cuadros intermedios en tiempo real en etiqueta e indicador; nombre accesible en carga = «Enviar informe» (árbol de accesibilidad por CDP) |
 
+## Sobre una superficie de marca
+
+Si pones un `GBtn` sobre un fondo `var(--g-color-brand)` (cabecera, barra o panel de marca), no todas las combinaciones se ven. Medido con el **tema por defecto** (Chromium; fondo `--g-color-brand` con `--g-color-on-brand`; contraste del texto contra el fondo del botón y de la forma del botón contra la superficie), en claro / en oscuro:
+
+| Botón sobre la superficie de marca | Texto | Forma o borde contra la superficie | Lectura |
+| --- | --- | --- | --- |
+| `brand` `solid` | 16,48 / 16,19 | **1,00 / 1,00** | Mismo color que el fondo: solo se ve el texto, no el botón |
+| `brand` `outline`, `ghost`, `link` | **1,00 / 1,00** | 1,00 / 1,00 | **Invisible**: texto y borde tienen el color del fondo |
+| `accent` `solid` | 5,69 / 4,87 | **2,90** / 3,32 | En claro, la forma queda bajo 3:1 |
+| `accent` `outline`, `ghost`, `link` | 2,90 / 3,32 | 2,90 / 3,32 (`outline`) | En claro, bajo 3:1 |
+| `neutral` `solid` | 5,33 / 4,91 | 3,09 / 3,30 | Pasa justo |
+| `accent` `soft` | 5,00 / 4,52 | 14,49 / 13,90 | Pasa con holgura la forma; el texto, justo en oscuro |
+| `neutral` `soft` | 6,54 / 4,56 | 14,46 / 13,87 | Pasa; en oscuro el texto (4,56) mide menos que el del `disabled` (5,65) |
+| `neutral` o `accent` `soft` con `disabled` | 4,47 / 5,65 | 14,46 / 13,87 | Referencia: así se ve el estado deshabilitado |
+
+- **Evita la misma familia que el fondo** (`color="brand"`) sobre una superficie `brand`: no es un fallo del botón, es que sus roles `brand` y `brand-text` valen lo mismo que el fondo.
+- **Las variantes `soft` son las que conservan una forma clara** (≥ 12,8:1 contra la superficie) con un texto ≥ 4,5:1 en ambos esquemas del tema por defecto.
+- Un `soft` cuyo texto ronda 4,5:1 mide casi lo mismo que un botón deshabilitado (4,47 en claro, 5,65 en oscuro con el tema por defecto): no hay diferencia de contraste que los separe. Un informe de integración midió 4,68:1 para `neutral` `soft` con su tema y lo leyó como deshabilitado, y `accent` `soft` le funcionó mejor; **ese tema no se reprodujo aquí**. Mide con tus tokens (los tuyos mandan: el tema va sin capa).
+- **No medido:** un tema generado con `@grana/cli` (los resultados dependen de tu `brand`), `forced-colors`, el estado `hover` y `active`.
+
 ## Tema
 
 El componente solo lee tokens `--g-*`; no lleva colores ni medidas propias. Para cambiar su aspecto, redefine los tokens en tu CSS **sin capa** (siempre gana sobre el tema por defecto):
@@ -148,7 +171,7 @@ Las emite el componente y las estiliza `GBtn.css`: `g-btn`, `g-btn--color-*`, `g
 ## Limitaciones conocidas
 
 - Con `density="comfortable"` y ciertos valores de espacio, la altura es fraccionaria (por ejemplo 39.375px) y el borde puede verse difuso en pantallas de baja densidad. Está pendiente evaluar `round()` de CSS.
-- No hay tema oscuro todavía.
+- **Tema oscuro:** `grana.css` ya trae el esquema oscuro por defecto (`defaults.css`): sigue `prefers-color-scheme` y se fuerza con `data-theme="dark"` o `data-theme="light"` en cualquier elemento (ver [«Tema oscuro» del README raíz](../../../../../README.md#tema-oscuro)). Al documentar no se repitieron en oscuro las cifras de contraste de este README.
 - Sin verificar en navegador: `forced-colors` (la regla está escrita, no emulada en la prueba de personalidad) y hover/active de las variantes `soft`, `outline`, `ghost` y `link`.
 - **Personalidad, sin verificar:** el respaldo de un navegador sin `linear()` (los tres motores actuales lo soportan; ninguno del banco ejerce el camino de `@supports`), una pantalla táctil real (allí el rebote se ve al levantar el dedo) y el conteo de cuadros en tiempo real fuera de Chromium (con carga en paralelo es inestable; en los tres motores la transición se mide de forma determinista).
 

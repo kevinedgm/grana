@@ -101,6 +101,28 @@ must_not_have grana.js "GLoadRegion" "GLoadRegion viajó en el paquete principal
 must_exist "load-region.js" "No se generó la entrada propia load-region.js (revisar vite.load-region.config.js y el script build de packages/vue)"
 must_not_have load-region.js "g-empty__" "GEmpty quedó copiado en load-region.js; debe llegar por __shared sin copia"
 
+# GFormFold: entrada propia `@grana/vue/form-fold` (#590); el motor de formulario, las claves y el plegado llegan por
+# __shared, sin copia (sus Symbol deben ser los del principal). GDialogStep y la llegada van en el principal
+must_have grana.css "g-form-fold__body" "$CSS_MSG"
+must_have grana.css "data-g-landed" "$CSS_MSG"
+must_have grana.js "GDialogStep" "GDialogStep no está en el paquete principal grana.js (#590: el modo pasos va con GDialog)"
+must_not_have grana.js "GFormFold\"" "GFormFold viajó en el paquete principal grana.js; debe vivir solo en su entrada propia form-fold.js"
+must_exist "form-fold.js" "No se generó la entrada propia form-fold.js (revisar vite.form-fold.config.js y el script build de packages/vue)"
+must_not_have form-fold.js "Symbol(\"GForm\")" "formContext.js quedó copiado en form-fold.js; sus claves deben llegar por __shared"
+
+# GCardGroup: entrada propia `@grana/vue/card-group` (#610); GCard sigue en el principal y la clave del contexto llega por
+# __shared, sin copia (g-card__selectbox es marcado propio de GCard.vue que el grupo no escribe)
+must_have grana.css "g-card-group__bridge" "$CSS_MSG"
+must_not_have grana.js "GCardGroup" "GCardGroup viajó en el paquete principal grana.js; debe vivir solo en su entrada propia card-group.js"
+must_exist "card-group.js" "No se generó la entrada propia card-group.js (revisar vite.card-group.config.js y el script build de packages/vue)"
+must_not_have card-group.js "g-card__selectbox" "GCard quedó copiado en card-group.js; debe llegar por el paquete principal, sin copia"
+
+# GPageHeader: entrada propia `@grana/vue/page-header` (#633); el registro de reservas de borde (edgeReserve) llega por
+# __shared, sin copia: una sola instancia por documento para que la isla y los avisos vean el zócalo y el muelle
+must_have grana.css "g-page-header__base" "$CSS_MSG"
+must_not_have grana.js "GPageHeader" "GPageHeader viajó en el paquete principal grana.js; debe vivir solo en su entrada propia page-header.js"
+must_exist "page-header.js" "No se generó la entrada propia page-header.js (revisar vite.page-header.config.js y el script build de packages/vue)"
+
 echo
 if [ "$failed" -eq 0 ]; then
   echo "Compuertas: $total/$total superadas."

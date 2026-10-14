@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GPageHeader · banco de estilo (coco)</title>
+<!-- Banco de coco: marcado EXACTO de design/contracts/page-header.md («Anatomía» y «Clases y datos») con el CSS real de
+     GPageHeader.css (cargado DENTRO de la capa grana.components, como lo registrará bruno) y los componentes reales de dist/
+     en los slots (GBreadcrumbs, GTabs detached, GBtn, GBadge, GMetric). XPageHeader hace lo que hará GPageHeader.vue y SOLO
+     lo que el estilo necesita: is-narrow (< space × 150), --_lift, regla del cuarto, is-sticky, is-stuck (medio píxel),
+     --_p por cuadro (reducido: 0/1), muelle con Teleport conmutado al __dock-host propio, --_dock-left/-right/-offset,
+     hidden al terminar la salida. No es la implementación de bruno.
+     La zona de marca (tokens.md §44.5) se INYECTA aquí (#zone-css) con las fuentes de §44.8 mientras el bloque de
+     defaults.css no exista; los valores «de coco» del bloque son los de design/lab/surface/r02/zona.js.
+     Requiere dist/. Desde la raíz del repo:  python3 -m http.server 4234  →  /design/lab/page-header/estilo-banco.html
+     Parámetros: ?dark=1  ?theme=nsa (r01/nsa-tokens.css, NisaNabani)  ?theme=<nombre de dark-color-presence/generated/*.css>
+       ?zone=1  ?rtl=1  ?slow=1 (×5)  ?w=390 (ancho de la columna)
+     Verificación: GRANA_PW_PORT=4234 node design/lab/page-header/estilo-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<style>@import url("../../../packages/vue/src/components/GPageHeader/GPageHeader.css") layer(grana.components);</style>
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style id="zone-css"></style>
+<style id="slow-css"></style>
+<style>
+  /* Andamio del banco (la «aplicación», no es de Grana). Barra fija de 56px = la cabecera de la aplicación. */
+  :root{--app-header:56px;--g-page-header-top:var(--app-header);scroll-padding-block-start:calc(var(--app-header) + max(var(--g-space-12), 44px))}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  .bar{position:sticky;top:0;z-index:20;block-size:56px;display:flex;gap:6px 14px;flex-wrap:nowrap;overflow-x:auto;align-items:center;padding:0 16px;background:var(--g-color-surface);border-block-end:1px solid var(--g-color-border-strong);font-size:13px}
+  .bar b{white-space:nowrap}
+  .bar label{display:inline-flex;gap:4px;align-items:center;white-space:nowrap}
+  .bar select,.bar button{font:inherit;font-size:13px;min-block-size:28px;padding:2px 8px;border:1px solid var(--g-color-border-control);border-radius:6px;background:var(--g-color-surface);color:var(--g-color-text)}
+  .shell{max-inline-size:1180px;margin:0 auto}
+  .shell.w390{max-inline-size:390px;border-inline:1px dashed var(--g-color-border-strong)}
+  main{min-inline-size:0}
+  .body{display:grid;gap:24px;padding:24px}
+  .shell.w390 .body{padding:16px}
+  .panel h2{margin:24px 0 8px;font-size:18px}
+  .panel p{margin:0 0 12px;color:var(--g-color-text-muted);max-inline-size:65ch}
+  .cap{font-size:13px;color:var(--g-color-text-muted)}
+  .svg-i svg{inline-size:1em;block-size:1em;display:block}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../lucide-icons.js"></script>
+<script>
+const Q = new URLSearchParams(location.search)
+const THEME = Q.get('theme') || ''
+const DARK = Q.get('dark') === '1'
+const ZONE = Q.get('zone') === '1'
+if (DARK) document.documentElement.setAttribute('data-theme', 'dark')
+if (Q.get('rtl') === '1') document.documentElement.setAttribute('dir', 'rtl')
+if (THEME === 'nsa') document.getElementById('gen').href = './r01/nsa-tokens.css'
+else if (THEME) document.getElementById('gen').href = `../tema-oscuro/dark-color-presence/generated/${THEME}.css`
+if (Q.get('slow') === '1') document.getElementById('slow-css').textContent = ':root{--g-duration-fast:600ms;--g-duration-press:800ms}'
+
+/* ---------- Zona de marca inyectada (tokens.md §44.2, §44.5, §44.8) ---------- */
+const SOURCES = {
+  '': { Z: '#1F1F1F', I: '#FFFFFF', muted: '#D2D2D2', accent: '#4D96FF', veil: '#454545', aveil: '#2A3546', success: '#52A871', warning: '#C28B43', danger: '#FA664F', info: '#4D96FF' },
+  nsa: { Z: '#24366B', I: '#FFFFFF', muted: '#D3D8E4', accent: '#C1D324', veil: '#4A5C88', aveil: '#3D566D', success: '#72C88F', warning: '#E3AA63', danger: '#FF9D8C', info: '#88B9FF' }
+}
+const S = SOURCES[THEME] || SOURCES['']
+const src = `--g-color-brand-zone:${S.Z};--g-color-on-brand-zone:${S.I};--g-color-on-brand-muted:${S.muted};--g-color-on-brand-accent:${S.accent};--g-color-on-brand-veil:${S.veil};--g-color-on-brand-accent-veil:${S.aveil};--g-color-on-brand-success:${S.success};--g-color-on-brand-warning:${S.warning};--g-color-on-brand-danger:${S.danger};--g-color-on-brand-info:${S.info};--g-color-zone-edge:var(--g-color-border-strong);`
+const I = 'var(--g-color-on-brand-zone)', Z = 'var(--g-color-brand-zone)', MU = 'var(--g-color-on-brand-muted)', AC = 'var(--g-color-on-brand-accent)'
+const a = (p) => `color-mix(in srgb, ${I} ${p}%, transparent)`
+document.getElementById('zone-css').textContent = `
+:root,[data-theme="light"]{${src}}
+@media (prefers-color-scheme: dark){:root:where(:not([data-theme="light"])){${src}}}
+[data-theme="dark"]{${src}}
+[data-g-zone="brand"]{color-scheme:dark;
+ --g-color-bg:${Z};--g-color-surface:${Z};--g-color-surface-sunken:color-mix(in oklab, ${Z} 94%, ${I});
+ --g-color-text:${I};--g-color-text-muted:${MU};--g-color-text-subtle:${MU};
+ --g-color-border:${a(16)};--g-color-border-strong:${a(30)};--g-color-border-control:${MU};
+ --g-color-mold:color-mix(in oklab, ${Z} 82%, ${I});
+ --g-color-focus:${AC};--g-color-link:${AC};--g-color-active:${AC};--g-color-selection:var(--g-color-on-brand-accent-veil);
+ --g-color-primary:${I};--g-color-brand:${I};--g-color-primary-strong:color-mix(in oklab, ${I} 50%, ${MU});--g-color-brand-strong:color-mix(in oklab, ${I} 50%, ${MU});
+ --g-color-primary-soft:var(--g-color-on-brand-veil);--g-color-brand-soft:var(--g-color-on-brand-veil);--g-color-primary-text:${I};--g-color-brand-text:${I};
+ --g-color-on-primary:${Z};--g-color-on-brand:${Z};--g-color-on-primary-soft:${I};--g-color-on-brand-soft:${I};
+ --g-color-accent:${AC};--g-color-accent-text:${AC};--g-color-accent-strong:color-mix(in oklab, ${AC} 70%, ${MU});--g-color-accent-soft:var(--g-color-on-brand-accent-veil);--g-color-on-accent:${Z};--g-color-on-accent-soft:${I};
+ --g-color-neutral:${MU};--g-color-neutral-text:${MU};--g-color-neutral-strong:${I};--g-color-neutral-soft:var(--g-color-on-brand-veil);--g-color-on-neutral:${Z};--g-color-on-neutral-soft:${I};
+ --g-color-success-text:var(--g-color-on-brand-success);--g-color-warning-text:var(--g-color-on-brand-warning);--g-color-danger-text:var(--g-color-on-brand-danger);--g-color-info-text:var(--g-color-on-brand-info);
+ --g-surface-shell:color-mix(in oklab, ${Z} 94%, ${I});--g-surface-inset:${Z};
+ --g-tabs-track:${a(8)};--g-tabs-band:${a(5)};--g-tabs-thumb:${Z};--g-tabs-panel:${Z};
+ --g-card-hover:${a(5)};--g-card-pressed:${a(10)};--g-card-selected:${a(7)};
+ --g-shadow-1:0 1px 2px rgb(0 0 0 / 0.30);--g-shadow-2:0 4px 12px -4px rgb(0 0 0 / 0.50);--g-shadow-3:0 16px 40px -12px rgb(0 0 0 / 0.60);
+ background-color:var(--g-color-bg);color:var(--g-color-text)}
+@media (forced-colors: active){[data-g-zone="brand"]{border:1px solid CanvasText}}`
+
+const { createApp, defineComponent, ref, shallowRef, computed, onMounted, onBeforeUnmount, h } = Vue
+const icon = (n) => ({ render: () => h('span', { class: 'svg-i', 'aria-hidden': 'true', innerHTML: window.lucide(n) }) })
+const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches
+function transitionMs(el) {
+  const cs = getComputedStyle(el)
+  const list = (v) => String(v || '').split(',').map((x) => { const n = parseFloat(x); return Number.isFinite(n) ? (x.trim().endsWith('ms') ? n : n * 1000) : 0 })
+  const d = list(cs.transitionDuration), dl = list(cs.transitionDelay)
+  return d.reduce((m, v, i) => Math.max(m, v + (dl[i % dl.length] || 0)), 0)
+}
+
+/* ---------- XPageHeader: lo que el estilo necesita de GPageHeader.vue ---------- */
+const XPageHeader = defineComponent({
+  props: { title: String, eyebrow: String, description: String, sticky: { type: Boolean, default: true }, zone: String, labels: { type: Object, default: () => ({}) }, id: { type: String, default: 'ph' } },
+  setup(props, { slots }) {
+    const root = ref(null), base = ref(null), titleEl = ref(null), dock = ref(null)
+    const narrow = ref(false), isSticky = ref(false), stuck = ref(false), docked = ref(false), dockOpen = ref(false), dockHidden = ref(true)
+    const host = shallowRef(document.createElement('div')); host.value.className = 'g-page-header__dock-host'
+    let raf = 0, ro, hideT
+    const space = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--g-space-1')) || 4
+    const topPx = () => parseFloat(getComputedStyle(root.value).getPropertyValue('--g-page-header-top')) || 0
+    function measure() {
+      raf = 0
+      const r = root.value; if (!r) return
+      const w = r.getBoundingClientRect().width
+      narrow.value = w < space() * 150
+      const hasBase = !!base.value
+      const lift = hasBase ? base.value.offsetTop : 0
+      const fits = hasBase && base.value.offsetHeight <= innerHeight * 0.25
+      isSticky.value = props.sticky && hasBase && fits
+      if (isSticky.value) r.style.setProperty('--_lift', lift + 'px'); else r.style.removeProperty('--_lift')
+      const top = topPx()
+      const rr = r.getBoundingClientRect()
+      stuck.value = isSticky.value && rr.top <= top - lift + 0.5
+      if (isSticky.value && titleEl.value) {
+        const t = titleEl.value.getBoundingClientRect()
+        let p = Math.min(1, Math.max(0, (top - t.top) / t.height))
+        if (reduced()) p = p >= 0.5 ? 1 : 0
+        p = Math.round(p * 1000) / 1000
+        if (r.style.getPropertyValue('--_p') !== String(p)) r.style.setProperty('--_p', String(p))
+      } else r.style.removeProperty('--_p')
+      const want = narrow.value && stuck.value && !!slots.actions
+      if (want !== docked.value) want ? openDock() : closeDock()
+      if (docked.value && dock.value) {
+        dock.value.style.setProperty('--_dock-left', rr.left + 'px')
+        dock.value.style.setProperty('--_dock-right', Math.max(0, document.documentElement.clientWidth - rr.right) + 'px')
+        dock.value.style.setProperty('--_dock-offset', (window.__speechBelow || 0) + 'px')
+      }
+    }
+    function openDock() {
+      clearTimeout(hideT); docked.value = true; dockHidden.value = false
+      requestAnimationFrame(() => requestAnimationFrame(() => { if (docked.value) dockOpen.value = true }))
+    }
+    function closeDock() {
+      docked.value = false; dockOpen.value = false
+      const hide = () => { if (!docked.value) dockHidden.value = true }
+      if (reduced()) { hideT = setTimeout(hide, transitionMs(dock.value)) } else requestAnimationFrame(() => requestAnimationFrame(() => { hideT = setTimeout(hide, transitionMs(dock.value)) }))
+    }
+    const schedule = () => { if (!raf) raf = requestAnimationFrame(measure) }
+    onMounted(() => {
+      dock.value && dock.value.appendChild(host.value)
+      measure()
+      addEventListener('scroll', schedule, { passive: true }); addEventListener('resize', schedule)
+      ro = new ResizeObserver(schedule); ro.observe(root.value)
+      window.__ph = { measure, root, dock, docked, dockOpen }
+    })
+    onBeforeUnmount(() => { removeEventListener('scroll', schedule); removeEventListener('resize', schedule); ro && ro.disconnect() })
+    const hasTabs = computed(() => !!slots.tabs), hasActions = computed(() => !!slots.actions)
+    return () => h('header', {
+      ref: root, id: props.id,
+      class: ['g-page-header', { 'is-narrow': narrow.value, 'has-base': hasTabs.value || hasActions.value, 'has-tabs': hasTabs.value, 'has-actions': hasActions.value, 'is-sticky': isSticky.value, 'is-stuck': stuck.value, 'is-docked': docked.value }],
+      'data-g-zone': props.zone === 'brand' ? 'brand' : undefined
+    }, [
+      slots.trail && slots.trail(),
+      h('div', { class: 'g-page-header__head' }, [h('div', { class: 'g-page-header__titles' }, [
+        props.eyebrow && h('p', { class: 'g-page-header__eyebrow' }, props.eyebrow),
+        h('h1', { ref: titleEl, id: props.id + '-title', class: 'g-page-header__title', tabindex: '-1', dir: 'auto' }, props.title),
+        props.description && h('p', { class: 'g-page-header__desc' }, props.description),
+        slots.meta && h('div', { class: 'g-page-header__meta' }, slots.meta())
+      ])]),
+      slots.default && h('div', { class: 'g-page-header__content' }, slots.default()),
+      (hasTabs.value || hasActions.value) && h('div', { ref: base, class: 'g-page-header__base' }, [
+        !narrow.value && h('span', { class: 'g-page-header__base-title', 'aria-hidden': 'true', dir: 'auto' }, props.title),
+        hasTabs.value && h('div', { class: 'g-page-header__tabs' }, slots.tabs()),
+        hasActions.value && h('div', { class: 'g-page-header__actions-home' }, [
+          h(Vue.Teleport, { to: host.value, disabled: !docked.value }, [
+            h('div', { class: 'g-page-header__actions', role: 'group', 'aria-label': props.labels.actions }, slots.actions({ narrow: narrow.value, docked: docked.value }))
+          ])
+        ])
+      ]),
+      hasActions.value && h('div', { ref: dock, class: ['g-page-header__dock', { 'is-open': dockOpen.value }], hidden: dockHidden.value, inert: !docked.value }, [
+        h('a', { class: 'g-page-header__dock-title', href: '#' + props.id + '-title', dir: 'auto' }, props.title)
+      ])
+    ])
+  }
+})
+
+const TABS = [{ id: 'r', label: 'Resumen' }, { id: 'res', label: 'Resultados' }, { id: 'h', label: 'Historial' }, { id: 'f', label: 'Archivos' }]
+const TRAIL = [{ label: 'Inicio', href: '#inicio' }, { label: 'Laboratorio central', href: '#lab' }, { label: 'Muestras', href: '#muestras' }, { label: 'Lote 2026-0412', href: '#lote' }, { label: 'Muestra M-0007' }]
+const LONG = Array.from({ length: 14 }, (_, i) => `Párrafo ${i + 1} del panel: la página pasa por debajo del zócalo pegado mientras el encabezado se hunde.`)
+
+createApp({
+  components: { XPageHeader, GBreadcrumbs: Grana.GBreadcrumbs, GTabs: Grana.GTabs, GBtn: Grana.GBtn, GBadge: Grana.GBadge, GMetric: Grana.GMetric, ICheck: icon('check'), IPencil: icon('pencil'), IMore: icon('ellipsis-vertical'), IShare: icon('share-2') },
+  setup() {
+    const tab = ref('r')
+    const w390 = Q.get('w') === '390'
+    return { tab, TABS, TRAIL, LONG, ZONE, w390, THEME, DARK }
+  },
+  template: `
+  <div class="bar" role="group" aria-label="Controles del banco">
+    <b>GPageHeader · banco (coco)</b>
+    <span class="cap">tema: {{ THEME || 'por defecto' }} · {{ DARK ? 'oscuro' : 'claro' }} · zona: {{ ZONE ? 'brand' : 'no' }}</span>
+  </div>
+  <div class="shell" :class="{ w390 }">
+    <main id="main">
+      <XPageHeader title="Muestra M-0007" eyebrow="Hematología · Ambulatorio"
+        description="Hemograma completo. Recibida el 12 de octubre de 2026 a las 08:14; tres analitos fuera de rango pendientes de validación."
+        :zone="ZONE ? 'brand' : 'none'" :labels="{ actions: 'Acciones de la muestra' }">
+        <template #trail><GBreadcrumbs :items="TRAIL" :labels="{ nav: 'Ruta de navegación', up: 'Subir a {label}', path: 'Ruta hasta {label}' }" /></template>
+        <template #meta><GBadge variant="soft" color="info">En análisis</GBadge><GBadge variant="soft" color="neutral">Prioridad normal</GBadge><span>Actualizado hace 3 min</span></template>
+        <GMetric label="Analitos" value="18" size="sm" />
+        <GMetric label="Fuera de rango" value="3" trend="+2" direction="up" trend-color="danger" size="sm" />
+        <GMetric label="En laboratorio" value="2 h 40" unit="min" size="sm" />
+        <template #tabs><GTabs v-model="tab" :items="TABS" detached label="Secciones de la muestra" /></template>
+        <template #actions="{ narrow, docked }">
+          <GBtn v-if="!narrow" color="neutral" variant="ghost" icon tooltip="Compartir" aria-label="Compartir"><IShare /></GBtn>
+          <GBtn v-if="!narrow" color="neutral" variant="outline"><template #prepend><IPencil /></template>Editar</GBtn>
+          <GBtn class="x-primary" color="brand" variant="solid" :icon="narrow && !docked" :aria-label="narrow && !docked ? 'Validar resultados' : undefined"><template v-if="!(narrow && !docked)" #prepend><ICheck /></template><template v-if="narrow && !docked"><ICheck /></template><template v-else>Validar resultados</template></GBtn>
+          <GBtn color="neutral" variant="ghost" icon aria-label="Más acciones" aria-haspopup="menu" aria-expanded="false"><IMore /></GBtn>
+        </template>
+      </XPageHeader>
+      <div class="body" id="contenido">
+        <section class="panel" id="panel"><h2>Panel «{{ TABS.find(t => t.id === tab).label }}»</h2><p v-for="p in LONG" :key="p">{{ p }}</p><p><a href="#x">Un enlace del cuerpo</a></p><p v-for="p in LONG" :key="'b' + p">{{ p }}</p></section>
+      </div>
+    </main>
+  </div>`
+}).mount('#app')
+</script>
+</body>
+</html>

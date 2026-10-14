@@ -297,7 +297,7 @@ Imagen cargada · cargando · fallida (con iniciales o con icono) · iniciales �
 
 ## Avisos de desarrollo (bruno; L11)
 
-`typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'` (nunca `import.meta.env.DEV`), una vez por causa y valor, prefijo `[Grana GAvatar]`:
+`typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'` (nunca `import.meta.env.DEV`), una vez por causa y valor (el aviso 8, por número de categoría y carga), prefijo `[Grana GAvatar]`:
 
 | # | Causa | Qué hace el componente |
 | --- | --- | --- |
@@ -308,12 +308,13 @@ Imagen cargada · cargando · fallida (con iniciales o con icono) · iniciales �
 | 5 | `role`, `aria-*`, `tabindex` o escuchas (`onClick`, `onKeydown`…) como atributos | No los pasa a la raíz. El aviso remite a `label` (nombre) o a envolver el avatar en un `<button>` (acción) |
 | 6 | `icon` que no está en el registro ni en la librería | Sigue la cadena (iniciales de `name` → `user`). Mismo texto de ayuda que `GIcon` (cómo registrarlo) |
 | 7 | Contenido en el slot por defecto | No lo pinta. «Usa `src`, `initials`, `icon` o `label`» |
+| 8 | **Categoría sin token (#560):** el avatar pinta la categoría `K` (por `color` o derivada) y el tema no define `--g-color-cat-K` (se lee el estilo calculado de la raíz) | Se queda neutro. Avisa **una vez por número de categoría y carga** (compartido con `GTag`), solo en desarrollo y en el navegador, al montar y al actualizar (`onMounted`, `onUpdated`). Texto: «[Grana GAvatar] pide la categoría K pero el tema no define --g-color-cat-K: se queda neutro. Añade `categories: N` (N ≥ K) a grana.config.json y vuelve a ejecutar «grana theme».» Utilidad `utils/categoryToken.js` |
 
-**No avisa** (imposible sin leer estilos): `k` mayor que las categorías del tema; `categories` distinto del `categories` real del tema.
+**No avisa:** `categories` distinto del `categories` real del tema. (`k` mayor que las categorías del tema **sí** avisa desde #560, leyendo el token con `getComputedStyle`.)
 
 ## Verificación (cómo se comprueba)
 
-**Unitarias (bruno, vitest):** la tabla de iniciales completa (`md` y `xs`); los vectores del hash y su invariancia (mayúsculas, espacios, NFD); precedencia del contenido (las cinco fuentes, `icon` que no resuelve, cadenas vacías); `color` frente a `categories`, `color` numérico y en cadena, semánticos ignorados; `data-cat` solo con categoría; estados de la imagen (`load`, `error`, `src` cambiado, imagen en caché al montar); `alt=""` siempre; `aria-hidden` sin `label`, `role="img"` + `aria-label` con él; atributos filtrados (aviso 5) y `class`/`style`/`data-*` en la raíz; los siete avisos; instantánea del marcado; `user` sale de la librería aunque el registro de la aplicación tenga otro `user`.
+**Unitarias (bruno, vitest):** la tabla de iniciales completa (`md` y `xs`); los vectores del hash y su invariancia (mayúsculas, espacios, NFD); precedencia del contenido (las cinco fuentes, `icon` que no resuelve, cadenas vacías); `color` frente a `categories`, `color` numérico y en cadena, semánticos ignorados; `data-cat` solo con categoría; estados de la imagen (`load`, `error`, `src` cambiado, imagen en caché al montar); `alt=""` siempre; `aria-hidden` sin `label`, `role="img"` + `aria-label` con él; atributos filtrados (aviso 5) y `class`/`style`/`data-*` en la raíz; los ocho avisos; instantánea del marcado; `user` sale de la librería aunque el registro de la aplicación tenga otro `user`.
 
 **Navegador (Playwright, tres motores; adaptar `design/lab/avatar/r01/verificar.mjs` al componente real):** lado = `space × n` con `space` 4 y 5 en los cinco tamaños y las dos formas; dos letras anchas caben en `md`..`xl` y texto ≥ 12px; contraste ≥ 4,5:1 (texto e icono) en neutro y en todas las categorías declaradas, claro y oscuro, con los dos temas de la ronda; hash idéntico entre motores (los vectores); sin salto de caja ni del texto vecino al cargar y al fallar; fundido `0s` con `reduce`; `forced-colors` (Chromium) con borde y sin cambio de tamaño; los huecos de la tabla anterior (una forma, sin desborde, centrado en `GSelect`, alineación de etiquetas en `GMenu`, altura de fila de `GTable`); `GBadge` en el contorno del círculo en LTR y RTL; `ariaSnapshot` de los casos de § «Semántica»; 320px sin desplazamiento horizontal; consola sin errores.
 
@@ -333,7 +334,7 @@ Imagen cargada · cargando · fallida (con iniciales o con icono) · iniciales �
 | L8 | `GMenu`: dato del avatar | **Sin `item.avatar`.** El dato del avatar va en `item.icon` como **valor opaco** (un objeto `{ name, src, … }`), que ya hoy solo recibe el slot `icon` (#202); el slot dibuja `<GAvatar v-bind="item.icon" size="xs" />`. Un `item.avatar` que dibujara `GAvatar` por sí solo acoplaría `GMenu` a `GAvatar` (criterio de #123) y abriría la misma pregunta en `GSidebar`, `GTabs` y `GRadioGroup`; queda **candidato** si un segundo componente lo pide. Ejemplo en `menu.md` | #296; #202; #123 |
 | L9 | Hash como contrato | **Aceptado con dos cambios medidos:** FNV-1a de 32 bits sobre **octetos UTF-8** (no unidades UTF-16: reproducible fuera de JavaScript) **más el finalizador `fmix32`** (FNV-1a solo reparte mal nombres parecidos: χ² 33,6 frente a 3,9). Clave `colorKey ?? name`, normalización de kiwi, `mod n + 1`, vectores de prueba en el contrato; no se exporta en v0.1 | #294 |
 | L10 | Escalas de `GAvatarMotion` frente a `GAvatar`; `GBadge` sobre un círculo | **Escalas: no se unifican**, se documentan en los dos contratos (cada una sale de sus huecos: `GAvatarMotion` necesita 48 y 96px para que el dibujo se lea; `GAvatar`, 40px del `lead` de `GCard`; cambiar `GAvatarMotion` rompería a quien ya lo usa sin motivo funcional). **`GBadge`:** se retira «Sin avatar» de los límites de `badge.md`; sobre un `.g-avatar--shape-circle`, la insignia se centra en el contorno a 45° (coco, `GBadge.css`) | #297 |
-| L11 | Avisos de desarrollo | **Aceptados y ampliados** a siete (§ «Avisos»): `icon` que no resuelve sigue la cadena; las escuchas no se enlazan; semánticos en `color` con texto propio; contenido en el slot por defecto | #293; #199 |
+| L11 | Avisos de desarrollo | **Aceptados y ampliados** a siete y luego a ocho (§ «Avisos»; el 8, #560): `icon` que no resuelve sigue la cadena; las escuchas no se enlazan; semánticos en `color` con texto propio; contenido en el slot por defecto | #293; #199 |
 | L12 | `speech.md` | **Aceptado.** Una línea en §23.6: la marca de hablante no es `GAvatar` (etiqueta de posición con borde ≥ 3:1, discontinua sin asignar y ancho que crece con «AA»); solo comparte la familia `cat-k` y `CAT_FAMILY_READERS` | #294; #247 |
 | L13 | `sidebar.md` y el playground | **Aceptado.** Ejemplo del slot `user` en `sidebar.md` con `GAvatar size="md"` decorativo dentro del botón de la aplicación y el nombre en el botón (texto expandido, `aria-label` en el riel). **Para bruno:** sustituir el círculo dibujado a mano de `packages/vue/playground/index.html` (l. 965) por `GAvatar` cuando exista | #295 |
 
@@ -344,7 +345,7 @@ Imagen cargada · cargando · fallida (con iniciales o con icono) · iniciales �
 - **Carga diferida** por motor, imágenes de alta densidad, SSR con imagen en caché: sin verificar.
 - **Escrituras complejas** sin validar con hablantes: Devanagari (`Intl.Segmenter` da «प्रि» + «श»), árabe con ligadura, tailandés, secuencias ZWJ en `initials`. **Turco:** `toUpperCase()` sin configuración regional da «I» para «i» (no «İ»); la aplicación pasa `initials` si le importa.
 - **Temas con `space` y `fontSize` desacoplados:** `xs` deja de igualar el interlineado de `body-sm`.
-- **Categoría inexistente en el tema** (`k` > `categories` real): sin relleno, sin aviso.
+- **Categoría inexistente en el tema** (`k` > `categories` real): sin relleno y con aviso 8 en desarrollo (#560); en producción, neutro en silencio.
 - **Cambiar `categories` reparte los colores** de nuevo.
 
 ## Fuera de v0.1 (reservado)

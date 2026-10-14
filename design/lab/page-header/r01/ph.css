@@ -1,0 +1,212 @@
+/* Prototipo de GPageHeader (kiwi r01). No es el CSS del componente (es de coco): solo tokens del tema,
+   sin literales de tema. Medidas literales: 24px/44px (área táctil) y el alto de la barra de la APLICACIÓN (56px, es del laboratorio). */
+
+/* ---------- Página del laboratorio (la aplicación, no el componente) ---------- */
+*, *::before, *::after { box-sizing: border-box }
+[hidden] { display: none !important }
+:root {
+  --lab-app-h: 56px;
+  /* Entrada pública propuesta (como --g-accordion-sticky-top, #484/#515): el alto de la cabecera fija de la aplicación */
+  --g-page-header-top: var(--lab-app-h);
+  /* Receta #515: la cabecera fija es del scroll-padding de la aplicación; con la franja, se suma su alto (constante, L7) */
+  scroll-padding-block-start: calc(var(--lab-app-h) + var(--g-space-12) + var(--g-space-2));
+}
+body { margin: 0; background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui); font-size: var(--g-text-body-size); line-height: var(--g-text-body-line) }
+.lab-skip { position: absolute; inset-inline-start: var(--g-space-2); inset-block-start: calc(-1 * var(--g-space-16)); z-index: 30; padding: var(--g-space-2) var(--g-space-3); background: var(--g-color-surface); color: var(--g-color-text); border-radius: var(--g-radius-sm) }
+.lab-skip:focus { inset-block-start: var(--g-space-2) }
+:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset) }
+
+.app-bar { position: sticky; inset-block-start: 0; z-index: 20; display: flex; align-items: center; gap: var(--g-space-4); block-size: var(--lab-app-h); padding: 0 var(--g-space-4); background: var(--g-color-surface); border-block-end: var(--g-border-width) solid var(--g-color-border-strong) }
+.app-brand { flex: none; font-weight: var(--g-text-action-weight); white-space: nowrap }
+.app-lab { display: flex; align-items: center; gap: var(--g-space-3); min-inline-size: 0; overflow-x: auto; font-size: var(--g-text-body-sm-size); padding-block: var(--g-space-1) }
+.app-lab__group { display: flex; gap: var(--g-space-2); white-space: nowrap }
+.app-lab a { color: var(--g-color-accent-text) }
+.app-lab a[aria-current] { color: var(--g-color-text); font-weight: var(--g-text-action-weight) }
+.lab-btn { min-block-size: 32px; padding: 0 var(--g-space-3); border: var(--g-border-width) solid var(--g-color-border-control); border-radius: var(--g-radius-sm); background: var(--g-color-surface); color: var(--g-color-text); font: inherit; cursor: pointer; white-space: nowrap }
+
+.app { display: grid; grid-template-columns: 14rem minmax(0, 1fr) }
+.app-side { position: sticky; inset-block-start: var(--lab-app-h); align-self: start; block-size: calc(100vh - var(--lab-app-h)); padding: var(--g-space-4); border-inline-end: var(--g-border-width) solid var(--g-color-border); background: var(--g-color-surface-sunken) }
+.app-side ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--g-space-1) }
+.app-side a { display: block; padding: var(--g-space-2) var(--g-space-3); border-radius: var(--g-radius-sm); color: var(--g-color-text); text-decoration: none }
+.app-side a[aria-current] { background: var(--g-color-neutral-soft); font-weight: var(--g-text-action-weight) }
+@media (max-width: 900px) { .app { grid-template-columns: minmax(0, 1fr) } .app-side { display: none } }
+.app-main { min-inline-size: 0 }
+.app-main:focus { outline: none }
+
+.page-body { display: grid; gap: var(--g-space-6); padding: var(--g-space-6); max-inline-size: 64rem }
+.panel h2 { margin: var(--g-space-6) 0 var(--g-space-2); font-family: var(--g-font-title); font-size: var(--g-text-title-sm-size); line-height: var(--g-text-title-sm-line); font-weight: var(--g-text-title-sm-weight) }
+.panel p { margin: 0 0 var(--g-space-3); max-inline-size: 65ch; color: var(--g-color-text-muted) }
+.panel a { color: var(--g-color-link) }
+.lab-note { padding: var(--g-space-3) var(--g-space-4); border-radius: var(--g-radius-md); background: var(--g-color-surface-sunken); font-size: var(--g-text-body-sm-size) }
+.lab-chip { display: inline-flex; align-items: center; min-block-size: 24px; padding: 0 var(--g-space-2); border-radius: var(--g-radius-pill); background: var(--g-color-neutral-soft); color: var(--g-color-on-neutral-soft); font-size: var(--g-text-caption-size); font-weight: var(--g-text-action-weight) }
+.lab-chip--info { background: var(--g-color-info-soft); color: var(--g-color-on-info-soft) }
+.lab-toast { position: fixed; z-index: 25; inset-block-start: var(--lab-edge-top, calc(var(--lab-app-h) + var(--g-space-2))); inset-inline-start: 50%; translate: -50% 0; max-inline-size: calc(100% - 2 * var(--g-space-4)); padding: var(--g-space-3) var(--g-space-4); border-radius: var(--g-radius-md); background: var(--g-color-text); color: var(--g-color-surface); box-shadow: var(--g-shadow-2); transition: inset-block-start var(--g-duration-fast) var(--g-ease-out), inset-block-end var(--g-duration-fast) var(--g-ease-out) }
+.lab-toast.is-bottom { inset-block-start: auto; inset-inline-start: auto; translate: none; inset-inline-end: var(--g-space-4); inset-block-end: var(--lab-edge-bottom, var(--g-space-4)) }
+
+/* ---------- Zona de marca: SUPUESTO del prototipo (dependencia de design/lab/surface/r02/) ----------
+   Una zona redefine en su elemento los tokens de color (superficie, texto, borde, foco, acento y el par de marca invertido).
+   Se aplica en la RAÍZ del encabezado, no en un envoltorio: con B un envoltorio rompería el pegado (punto 22). */
+.lab-zone-brand {
+  --g-color-bg: var(--lab-zone-surface);
+  --g-color-surface: var(--lab-zone-surface);
+  --g-color-text: var(--lab-zone-on);
+  --g-color-text-muted: color-mix(in oklab, var(--lab-zone-on) 80%, var(--lab-zone-surface));
+  --g-color-border: color-mix(in oklab, var(--lab-zone-on) 18%, var(--lab-zone-surface));
+  --g-color-border-strong: color-mix(in oklab, var(--lab-zone-on) 30%, var(--lab-zone-surface));
+  --g-color-border-control: color-mix(in oklab, var(--lab-zone-on) 62%, var(--lab-zone-surface));
+  --g-color-focus: var(--lab-zone-mark);
+  --g-color-accent-text: var(--lab-zone-mark);
+  --g-color-link: var(--lab-zone-mark);
+  --g-color-neutral-soft: color-mix(in oklab, var(--lab-zone-on) 12%, var(--lab-zone-surface));
+  --g-color-on-neutral-soft: var(--lab-zone-on);
+  --g-color-neutral: var(--lab-zone-on);
+  --g-color-neutral-text: var(--lab-zone-on);
+  --g-color-info-soft: color-mix(in oklab, var(--lab-zone-on) 12%, var(--lab-zone-surface));
+  --g-color-on-info-soft: var(--lab-zone-on);
+  --g-color-danger-text: var(--lab-zone-on);
+  --g-color-brand: var(--lab-zone-on);
+  --g-color-brand-strong: color-mix(in oklab, var(--lab-zone-on) 88%, var(--lab-zone-surface));
+  --g-color-on-brand: var(--lab-zone-surface);
+  /* Los alias se resuelven donde se declaran (:root): primary = brand NO sigue a la zona; hay que redefinirlo (hallazgo para surface r02) */
+  --g-color-primary: var(--lab-zone-primary);
+  --g-color-primary-strong: color-mix(in oklab, var(--lab-zone-primary) 88%, var(--lab-zone-surface));
+  --g-color-on-primary: var(--lab-zone-on-primary);
+  --g-color-text-subtle: color-mix(in oklab, var(--lab-zone-on) 72%, var(--lab-zone-surface));
+  --g-color-danger-text: color-mix(in oklab, var(--g-color-danger) 35%, var(--lab-zone-on));
+  color-scheme: dark;
+}
+:root { --lab-zone-surface: var(--g-color-brand); --lab-zone-on: var(--g-color-on-brand); --lab-zone-mark: var(--g-color-on-brand); --lab-zone-primary: var(--g-color-on-brand); --lab-zone-on-primary: var(--g-color-brand) }
+/* NisaNabani: en la zona navy, el acento lima marca foco, enlaces y la acción principal */
+:root.lab-theme-nsa { --lab-zone-mark: var(--g-color-accent); --lab-zone-primary: var(--g-color-accent); --lab-zone-on-primary: var(--g-color-on-accent) }
+
+/* ---------- Iconos: Lucide vía lucide-icons.js (1em, currentColor) ---------- */
+.g-icon { inline-size: 1em; block-size: 1em; flex: none }
+
+/* ---------- Base funcional (forma convencional, neutros del tema) ---------- */
+.ph { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--g-space-4); padding: var(--g-space-6) var(--g-space-6) 0; background: var(--g-color-bg); color: var(--g-color-text); border-block-end: var(--g-border-width) solid var(--g-color-border) }
+.ph.is-no-base { padding-block-end: var(--g-space-6) }
+.ph-trail ol { display: flex; flex-wrap: nowrap; align-items: center; gap: var(--g-space-1); margin: 0; padding: 0; list-style: none; overflow: hidden; font-size: var(--g-text-body-sm-size); white-space: nowrap }
+.ph-trail li { display: inline-flex; align-items: center; gap: var(--g-space-1); min-inline-size: 0 }
+.ph-trail a { display: inline-flex; align-items: center; min-block-size: 24px; color: var(--g-color-text-muted); text-decoration: none; overflow: hidden; text-overflow: ellipsis }
+.ph-trail a:hover { text-decoration: underline }
+.ph-trail a[aria-current] { color: var(--g-color-text); font-weight: var(--g-text-action-weight) }
+.ph-trail__sep { display: inline-flex; color: var(--g-color-text-muted) }
+:dir(rtl) .ph-trail__sep .g-icon, :dir(rtl) .ph__band-up .g-icon[data-flip] { scale: -1 1 }
+
+.ph__head { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--g-space-4) var(--g-space-6) }
+.ph__titles { flex: 1 1 22rem; min-inline-size: 0 }
+.ph__eyebrow { margin: 0 0 var(--g-space-1); font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); color: var(--g-color-text-muted); font-weight: var(--g-text-action-weight) }
+.ph__title { margin: 0; font-family: var(--g-font-title); font-size: var(--g-text-title-lg-size); line-height: var(--g-text-title-lg-line); font-weight: var(--g-text-title-lg-weight); letter-spacing: var(--g-text-title-lg-tracking); overflow-wrap: anywhere }
+.ph__title:focus { outline: none }
+.ph__title:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset) }
+.ph__desc { margin: var(--g-space-2) 0 0; max-inline-size: 65ch; color: var(--g-color-text-muted) }
+.ph__meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-space-2); margin: var(--g-space-3) 0 0 }
+.ph__meta-text { font-size: var(--g-text-body-sm-size); color: var(--g-color-text-muted) }
+.ph__actions-slot { flex: none; display: flex; justify-content: flex-end }
+.ph__actions { display: flex; flex-wrap: nowrap; align-items: center; gap: var(--g-space-2) }
+.ph__content { display: flex; flex-wrap: wrap; gap: var(--g-space-4) var(--g-space-12) }
+.ph__content:empty { display: none }
+
+/* Zócalo: pestañas (y en B, título compacto + acciones). Una fila, nunca se parte. */
+.ph__base { display: flex; align-items: center; gap: var(--g-space-3); min-inline-size: 0 }
+.ph__base-title { display: none }
+.ph__base-host:empty { display: none }
+.ph-tabs { display: flex; flex: 1 1 auto; min-inline-size: 0; overflow-x: auto; scrollbar-width: none; gap: var(--g-space-1) }
+.ph-tabs [role="tab"] { position: relative; flex: none; min-block-size: 44px; padding: 0 var(--g-space-3); border: 0; background: none; color: var(--g-color-text-muted); font: inherit; font-weight: var(--g-text-action-weight); cursor: pointer }
+.ph-tabs [role="tab"][aria-selected="true"] { color: var(--g-color-text) }
+.ph-tabs [role="tab"][aria-selected="true"]::after { content: ""; position: absolute; inset-inline: var(--g-space-2); inset-block-end: 0; block-size: var(--g-space-1); border-radius: var(--g-radius-pill) var(--g-radius-pill) 0 0; background: var(--g-color-text) }
+.ph-tabs [role="tab"]:focus-visible { outline-offset: calc(-1 * var(--g-focus-width)) }
+
+/* Estrecho (lo pone ph.js por el ancho del encabezado, no del dispositivo): las secundarias irían en «Más acciones» */
+.ph[data-narrow] .ph__secondary { display: none }
+.ph[data-narrow] .ph__head { flex-direction: column; align-items: stretch }
+.ph[data-narrow] .ph__titles { flex-basis: auto }
+.ph[data-narrow] .ph__actions-slot { justify-content: flex-start }
+.ph[data-narrow] { padding-inline: var(--g-space-4); padding-block-start: var(--g-space-4) }
+
+@media (pointer: coarse) {
+  .ph-trail a { min-block-size: 44px }
+  .ph .g-btn { min-block-size: 44px; min-inline-size: 44px }
+}
+
+/* ======================= Conceptos (tokens reales del tema por defecto) ======================= */
+
+/* ---------- A · Relevo: la franja arriba; el título sube a ella con el desplazamiento y las MISMAS acciones se mudan ---------- */
+.ph__band {
+  position: fixed; z-index: 15;
+  inset-block-start: var(--g-page-header-top);
+  inset-inline-start: var(--_band-x, 0); inline-size: var(--_band-w, 100%);
+  /* inset-inline-start es lógico; ph.js da la x física, así que se fija left/right según el sentido */
+  display: flex; align-items: center; gap: var(--g-space-3);
+  min-block-size: var(--g-space-12); padding: var(--g-space-1) var(--g-space-6);
+  background: var(--g-color-bg); color: var(--g-color-text);
+  border-block-end: var(--g-border-width) solid var(--g-color-border-strong);
+  box-shadow: var(--g-shadow-2);
+  /* --p: 0 → 1 ligado al desplazamiento (no a un temporizador): la franja baja mientras el h1 se va */
+  translate: 0 calc((var(--p, 0) - 1) * 100%);
+}
+.ph[data-c="A"] .ph__band { inset-inline-start: auto; left: var(--_band-x, 0) }
+.ph__band-up { display: inline-flex; align-items: center; gap: var(--g-space-1); flex: none; min-block-size: 24px; padding: 0 var(--g-space-2); border-radius: var(--g-radius-pill); background: var(--g-color-neutral-soft); color: var(--g-color-on-neutral-soft); font-size: var(--g-text-body-sm-size); text-decoration: none; max-inline-size: 16rem; overflow: hidden }
+.ph__band-up-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.ph__band-title { flex: 1 1 auto; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--g-color-text); text-decoration: none; font-family: var(--g-font-title); font-size: var(--g-text-title-sm-size); line-height: var(--g-text-title-sm-line); font-weight: var(--g-text-title-sm-weight);
+  /* El título «llega» a la franja: sube desde abajo mientras el h1 desaparece */
+  translate: 0 calc((1 - var(--p, 0)) * var(--g-space-6)); opacity: var(--p, 0) }
+.ph__band-title:hover { text-decoration: underline }
+.ph__band-host { flex: none; display: flex }
+.ph[data-narrow] .ph__band { padding-inline: var(--g-space-4) }
+.ph[data-narrow] .ph__band-up-text { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap }
+@media (pointer: coarse) { .ph__band-up { min-block-size: 44px; min-inline-size: 44px; justify-content: center } .ph__band-title, .ph__dock-title { display: inline-flex; align-items: center; min-block-size: 44px } }
+
+/* ---------- B · Zócalo: no encoge ni duplica; el encabezado entero se hunde bajo el borde hasta su última fila ---------- */
+.ph[data-c="B"] { position: sticky; z-index: 15; inset-block-start: calc(var(--g-page-header-top) - var(--_lift, 0px)) }
+.ph[data-c="B"][data-band="off"] { position: static }
+.ph[data-c="B"] .ph__base { min-block-size: var(--g-space-12); border-block-start: var(--g-border-width) solid transparent }
+.ph[data-c="B"] .ph__base-title {
+  display: block; flex: 0 1 auto; max-inline-size: 18rem; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-family: var(--g-font-title); font-size: var(--g-text-title-sm-size); line-height: var(--g-text-title-sm-line); font-weight: var(--g-text-title-sm-weight);
+  /* --p ligado al desplazamiento: el título compacto aparece a medida que el h1 pasa bajo el borde */
+  opacity: var(--p, 0); translate: 0 calc((1 - var(--p, 0)) * var(--g-space-4));
+  /* Sin p no ocupa: cuando no está pegado, el zócalo es solo pestañas + acciones */
+  max-inline-size: calc(var(--p, 0) * 18rem); margin-inline-end: calc(var(--p, 0) * var(--g-space-2) - var(--g-space-3) * (1 - var(--p, 0)));
+}
+.ph[data-c="B"][data-stuck] { box-shadow: var(--g-shadow-2) }
+.ph[data-c="B"][data-stuck] .ph__base { border-block-start-color: var(--g-color-border) }
+.ph[data-c="B"] .ph__base-host { flex: none; margin-inline-start: auto }
+.ph[data-c="B"] .ph__base-host .ph__actions { padding-block: var(--g-space-1) }
+.ph[data-c="B"][data-narrow] .ph__base-title { display: none }
+.ph[data-c="B"][data-narrow] .ph__base-host .ph__primary .g-btn__label { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap }
+.ph[data-c="B"][data-narrow] .ph__base-host .ph__primary { padding-inline: 0; min-inline-size: 44px; justify-content: center }
+
+/* ---------- C · Muelle: arriba no queda nada; las acciones bajan a la zona del pulgar ---------- */
+.ph__dock {
+  position: fixed; z-index: 15;
+  inset-block-end: calc(var(--g-space-4) + env(safe-area-inset-bottom));
+  left: var(--_dock-x, auto); right: var(--_dock-r, auto); max-inline-size: var(--_dock-max, 100%);
+  display: flex; align-items: center; gap: var(--g-space-3);
+  padding: var(--g-space-1) var(--g-space-1) var(--g-space-1) var(--g-space-4);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-surface); color: var(--g-color-text);
+  border: var(--g-border-width) solid var(--g-color-border-strong);
+  box-shadow: var(--g-shadow-3);
+  translate: 0 calc(100% + var(--g-space-6)); opacity: 0;
+  transition: translate var(--g-duration-press) var(--g-ease-out), opacity var(--g-duration-press) var(--g-ease-out);
+}
+:dir(rtl) .ph__dock { padding: var(--g-space-1) var(--g-space-4) var(--g-space-1) var(--g-space-1) }
+.ph__dock[data-open] { translate: 0 0; opacity: 1; transition: translate var(--g-duration-slow) var(--g-ease-spring), opacity var(--g-duration-fast) var(--g-ease-out) }
+.ph__dock-title { min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--g-color-text); text-decoration: none; font-weight: var(--g-text-action-weight); font-size: var(--g-text-body-sm-size) }
+.ph__dock-host { flex: none; display: flex }
+/* Teléfono (por el ancho del encabezado): barra de borde a borde con el área segura */
+.ph[data-narrow] .ph__dock { inset-block-end: 0; border-radius: 0; border-inline: 0; border-block-end: 0; padding: var(--g-space-2) var(--g-space-4) calc(var(--g-space-2) + env(safe-area-inset-bottom)) }
+
+/* ---------- Movimiento reducido: nada se desliza; los cambios son instantáneos (patrón único, #299) ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .ph__dock, .ph__dock[data-open] { transition: none }
+  .ph__band-title, .ph[data-c="B"] .ph__base-title { translate: none }
+  .lab-toast { transition: none }
+}
+
+/* ---------- Colores forzados (reglas escritas, sin medir) ---------- */
+@media (forced-colors: active) {
+  .ph__band, .ph__dock, .ph[data-c="B"][data-stuck] .ph__base { border: 1px solid CanvasText }
+  .ph-tabs [role="tab"][aria-selected="true"]::after { background: Highlight }
+}

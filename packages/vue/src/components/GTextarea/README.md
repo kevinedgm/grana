@@ -4,7 +4,7 @@ Campo de texto de varias líneas, completo: etiqueta, ayuda, mensaje de error, c
 
 **Etiqueta:** `<g-textarea>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/textarea/auditoria.md`](../../../../../design/lab/textarea/auditoria.md)) · **Desde:** 0.1.0
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0` (usa `useId`).
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0` (usa `useId`).
 
 ## Uso
 
@@ -17,6 +17,7 @@ createApp(App).use(Grana).mount('#app')
 ```
 
 ```vue
+<!-- Fragmento: `comentario`, `errorComentario` y `validar` son de tu aplicación -->
 <g-textarea v-model="comentario" label="Comentario" hint="Cuéntanos qué pasó." placeholder="Escribe aquí…"
             :error="errorComentario" @blur="validar" />
 ```
@@ -46,6 +47,9 @@ Los atributos nativos (`name`, `placeholder`, `maxlength`, `minlength`, `autocom
 | `label` | String | | sin valor |
 | `hint` | String | | sin valor |
 | `error` | String | | sin valor |
+| `warning` | String | Advertencia: no bloquea ni pone `aria-invalid`; el mensaje con prioridad `error` › `warning` › `valid` | sin valor |
+| `valid` | String | mensaje de válido útil (mismo mensaje único, última prioridad) | sin valor |
+| `mark` | Boolean | `false` quita la marca de la convención de `GForm` («(opcional)» o asterisco) | sin valor (la marca la decide `GForm`) |
 | `required` | Boolean | | `false` |
 | `counter` | Boolean | | `false` |
 | `counterText` | Function | `(nivel, máximo) => string` | sin valor |
@@ -71,12 +75,14 @@ Un valor fuera de la lista muestra una advertencia en desarrollo. `variant` solo
 - La altura se recalcula al escribir y ante cualquier cambio de tamaño (ancho, relleno o interlineado por el tema, carga de la fuente), y llega por la variable CSS dinámica `--_autoh`.
 
 ```vue
+<!-- Fragmento: `nota` es de tu aplicación -->
 <g-textarea v-model="nota" autosize :rows="2" :max-rows="6" label="Nota" />
 ```
 
 ## Contador y aviso hablado
 
 ```vue
+<!-- Fragmento: `texto` es de tu aplicación -->
 <g-textarea v-model="texto" counter maxlength="120" label="Descripción"
             :counter-text="(nivel, max) => nivel === 'limit' ? `Límite alcanzado: ${max} caracteres` : `Cerca del límite: máximo ${max} caracteres`" />
 ```
@@ -145,11 +151,12 @@ Las emite el componente y las estiliza `GTextarea.css`: `g-textarea`, `g-textare
 
 ## Limitaciones conocidas
 
+- **Ancho en un padre que se ajusta al contenido (#563, abierto).** `GTextarea` no tiene contención en línea, así que en una celda `auto`, una rejilla centrada o un flex con `fit-content` mide lo que su etiqueta (~200 px), no un ancho por defecto como `GInput`. Dale ancho al padre o al componente. Ver `api.md` «Contención en línea y ancho intrínseco».
 - **Táctil y tamaño de texto:** con `pointer: coarse` la caja mide 44px, pero el texto conserva el tamaño del tema (14px por defecto); iOS Safari amplía la página al enfocar un campo con texto menor de 16px. `lg` y `xl` ya usan 16px.
 - **Textos muy largos:** `autosize` mide en cada cambio; con miles de líneas puede notarse. Sin medir en v0.1.
 - **Sin barra inferior, prefijo, sufijo ni acción**, y sin texto enriquecido.
 - **Estilos globales sin capa ganan:** una regla global tuya sobre `label` o `p` (sin capa) gana al CSS de Grana (capa `grana.components`); acótala con un selector más específico.
-- No hay tema oscuro todavía.
+- **Tema oscuro:** `grana.css` ya trae el esquema oscuro por defecto (`defaults.css`): sigue `prefers-color-scheme` y se fuerza con `data-theme="dark"` o `data-theme="light"` en cualquier elemento (ver [«Tema oscuro» del README raíz](../../../../../README.md#tema-oscuro)). Al documentar no se repitieron en oscuro las cifras de contraste de este README.
 - **Sin verificar:** un lector de pantalla real (etiqueta, ayuda, error y el aviso del contador), las preferencias reales de `prefers-reduced-motion` y `forced-colors` (las reglas están escritas y se comprobaron aplicadas sin condición), Firefox y Safari (tirador y `:has()`), y un dispositivo táctil real.
 
 ## Fuentes

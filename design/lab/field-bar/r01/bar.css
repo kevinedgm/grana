@@ -1,0 +1,331 @@
+/*
+  Barra de campos · r01 (kiwi). Prototipo, no CSS de componente: el CSS real es de coco.
+  Solo tokens del tema por defecto (--g-*) y alias del laboratorio (--xb-*). Únicos literales: 24px/44px y el patrón de
+  texto oculto. Las reglas marcadas «EMULA» imitan el estado «unido» que cada campo tendría en SU propio CSS
+  (GInput.css, GSelect.css, GDatePicker.css: hallazgo L4); aquí se escriben desde fuera solo para poder juzgarlo.
+*/
+
+/* ---------- Comunes ---------- */
+.xf { display: grid; gap: var(--g-space-2); margin: 0; min-inline-size: 0; }
+.xf__log { margin: 0; min-block-size: var(--g-text-body-sm-line); font-size: var(--g-text-body-sm-size); color: var(--g-color-text-muted); }
+.xb-ic { display: inline-flex; flex: none; }
+.xb-ic svg, .xb-go__in svg { inline-size: 1em; block-size: 1em; }
+.xb-go__in { display: inline-flex; margin-inline-end: var(--g-space-2); }
+.xp__sr, .xb-sr {
+  position: absolute; inline-size: 1px; block-size: 1px; margin: -1px; padding: 0; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+
+.xb {
+  --xb-radius: var(--g-radius-pill);
+  --xb-inner: var(--g-radius-pill);
+  --xb-pad: var(--g-space-5);
+  --xb-seam: var(--g-color-border);
+  position: relative;
+  display: grid;
+  min-inline-size: 0;
+  font-family: var(--g-font-ui);
+}
+.xb--shape-rounded { --xb-radius: var(--g-radius-xl); --xb-inner: var(--g-radius-lg); --xb-pad: var(--g-space-4); }
+.xb--shape-square { --xb-radius: var(--g-radius-xs); --xb-inner: var(--g-radius-xs); --xb-pad: var(--g-space-4); }
+
+/* Fila: columnas de la barra (las escribe XFieldBar), tres pistas compartidas: etiqueta · caja · pie (#176) */
+.xb[data-layout="row"] {
+  grid-template-columns: var(--xb-cols);
+  grid-template-rows: auto auto auto;
+}
+.xb[data-layout="row"] > .xb__cell {
+  grid-row: 1 / span 3;
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-template-columns: minmax(0, 1fr);
+  min-inline-size: 0;
+}
+.xb[data-layout="row"] > .xb__cell > :not(.xb__lens) {
+  grid-row: 1 / span 3;
+  grid-column: 1;
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-template-columns: minmax(0, 1fr);
+}
+/* EMULA (cada campo, en su CSS): las tres partes en las tres pistas */
+.xb > .xb__cell > * > :is(.g-input__label, .g-select__label, .g-datepicker__label) { grid-row: 1; grid-column: 1; }
+.xb > .xb__cell > * > :is(.g-input__row, .g-select__control, .g-datepicker__field) { grid-row: 2; grid-column: 1; }
+.xb > .xb__cell > * > :is(.g-input__support, .g-select__support, .g-datepicker__support) { grid-row: 3; grid-column: 1; }
+.xb[data-layout="row"] > .xb__action { grid-row: 1 / span 2; grid-column: -2; }
+
+/* Columna: un campo por línea */
+.xb[data-layout="column"] { grid-template-columns: minmax(0, 1fr); }
+.xb[data-layout="column"] > .xb__cell { display: grid; grid-template-columns: minmax(0, 1fr); min-inline-size: 0; }
+.xb[data-layout="column"] > .xb__cell > :not(.xb__lens) { grid-row: 1; grid-column: 1; }
+
+/* ============================================================================================================
+   BASE · convencional (neutros del tema): etiqueta fuera, cajas fusionadas, botón acoplado
+   ============================================================================================================ */
+.xb--base .xb__surface, .xb--base .xb__lens { display: none; }
+.xb--base[data-layout="row"] > .xb__cell + .xb__cell { margin-inline-start: calc(var(--g-border-width) * -1); }
+.xb--base[data-layout="row"] > .xb__cell:not(:first-of-type) :is(.g-input__control, .g-input__row, .g-select__control, .g-datepicker__field) {
+  border-start-start-radius: 0; border-end-start-radius: 0;
+}
+.xb--base[data-layout="row"] > .xb__cell:not(:nth-last-child(2)) :is(.g-input__control, .g-input__row, .g-select__control, .g-datepicker__field),
+.xb--base[data-layout="row"].has-action > .xb__cell :is(.g-input__control, .g-input__row, .g-select__control, .g-datepicker__field) {
+  border-start-end-radius: 0; border-end-end-radius: 0;
+}
+/* El que tiene el foco pasa por encima del vecino (el anillo no se tapa), como GDatePicker split */
+.xb--base > .xb__cell:focus-within { position: relative; z-index: 1; }
+.xb--base[data-layout="row"] > .xb__action { grid-row: 2; align-self: stretch; display: flex; margin-inline-start: calc(var(--g-border-width) * -1); }
+.xb--base[data-layout="row"] > .xb__action .g-btn { block-size: 100%; border-start-start-radius: 0; border-end-start-radius: 0; }
+.xb--base[data-layout="column"] { row-gap: var(--g-form-gap); }
+.xb--base[data-layout="column"] > .xb__action .g-btn { inline-size: 100%; }
+
+/* ============================================================================================================
+   A · COSTURA: una superficie; la etiqueta dentro del segmento; costuras; lente que se eleva y gana ancho
+   ============================================================================================================ */
+.xb--A[data-layout="row"] { transition: grid-template-columns var(--g-duration-slow) var(--g-ease-spring); }
+.xb--A > .xb__surface {
+  grid-row: 1 / span 2;
+  grid-column: 1 / -1;
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--xb-radius);
+  background: var(--g-color-surface);
+  transition: background-color var(--g-duration-fast) var(--g-ease-standard);
+}
+.xb--A.xb--variant-raised > .xb__surface { border-color: var(--g-color-border); box-shadow: var(--g-shadow-2); }
+.xb--A.xb--variant-soft > .xb__surface { background: var(--g-color-neutral-soft); border-color: transparent; border-block-end-color: var(--g-color-border-control); }
+/* La barra se hunde un tono mientras un segmento está activo: la lente se lee encima */
+.xb--A.xb--joined.has-active > .xb__surface { background: var(--g-color-surface-sunken); }
+
+.xb--A > .xb__cell { position: relative; }
+.xb--A > .xb__cell > .xb__lens {
+  grid-row: 1 / span 2;
+  grid-column: 1;
+  margin: var(--g-space-1);
+  border-radius: var(--xb-inner);
+  background: transparent;
+  transition: background-color var(--g-duration-fast) var(--g-ease-standard), box-shadow var(--g-duration-fast) var(--g-ease-standard);
+}
+.xb--A > .xb__cell > :not(.xb__lens) { position: relative; z-index: 1; }
+
+/* Costuras (decorativas: la etiqueta de cada campo ya separa; no se les exige 3:1, como GDivider subtle) */
+.xb--A.xb--joined > .xb__cell + .xb__cell::before {
+  content: "";
+  grid-row: 1 / span 2;
+  grid-column: 1;
+  justify-self: start;
+  inline-size: var(--g-border-width);
+  margin-block: var(--g-space-3);
+  margin-inline-start: calc(var(--g-border-width) * -0.5);
+  background: var(--xb-seam);
+  transition: opacity var(--g-duration-fast) var(--g-ease-standard);
+}
+/* Las costuras de los dos lados del segmento activo o señalado se abren */
+.xb--A.xb--joined > .xb__cell.is-active::before,
+.xb--A.xb--joined > .xb__cell.is-active + .xb__cell::before { opacity: 0; }
+@media (hover: hover) {
+  .xb--A.xb--joined > .xb__cell:hover::before,
+  .xb--A.xb--joined > .xb__cell:hover + .xb__cell::before { opacity: 0; }
+  .xb--A > .xb__cell:not(.is-active):hover > .xb__lens { background: var(--g-color-neutral-soft); }
+}
+/* La lente: el segmento activo se eleva sobre la barra hundida */
+.xb--A > .xb__cell.is-active > .xb__lens { background: var(--g-color-surface); box-shadow: var(--g-shadow-2); }
+/* Foco por teclado: anillo del tema alrededor del segmento entero (etiqueta + valor), no de la caja */
+.xb--A > .xb__cell:has(:focus-visible) > .xb__lens { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: 0; }
+/* Error del segmento: barra inferior interior (forma, no solo color) + etiqueta en danger-text; el mensaje, debajo */
+.xb--A > .xb__cell:has([aria-invalid="true"]) > .xb__lens { box-shadow: inset 0 calc(var(--g-border-width) * -3) 0 var(--g-color-danger-text); }
+.xb--A > .xb__cell.is-active:has([aria-invalid="true"]) > .xb__lens { box-shadow: var(--g-shadow-2), inset 0 calc(var(--g-border-width) * -3) 0 var(--g-color-danger-text); }
+.xb--A > .xb__cell:has([aria-invalid="true"]) :is(.g-input__label, .g-select__label, .g-datepicker__label) { color: var(--g-color-danger-text); }
+
+/* EMULA el estado «unido» de cada campo: sin caja propia; la etiqueta y el valor comparten el relleno del segmento */
+.xb--A > .xb__cell > * { --_px: var(--xb-pad); --_focus: transparent; }
+.xb--A > .xb__cell :is(.g-input__control, .g-select__control, .g-datepicker__field),
+.xb--A > .xb__cell :is(.g-input__control, .g-select__control, .g-datepicker__field):is(:hover, :focus-visible, :has(:focus-visible)) {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  outline: none;
+  border-radius: var(--xb-inner);
+  min-block-size: calc(var(--g-space-1) * 7);
+  padding-block-end: var(--g-space-2);
+}
+.xb--A > .xb__cell .g-input__row { outline: none; }
+.xb--A > .xb__cell :is(.g-input__label, .g-select__label, .g-datepicker__label) {
+  margin: 0;
+  padding: var(--g-space-3) var(--xb-pad) 0;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-action-weight);
+  cursor: pointer;
+}
+.xb--A > .xb__cell :is(.g-input__field, .g-select__value, .g-datepicker__value) { font-weight: var(--g-text-action-weight); }
+.xb--A > .xb__cell :is(.g-input__support, .g-select__support, .g-datepicker__support) { padding-inline: var(--xb-pad); }
+.xb--A > .xb__cell .g-datepicker__icon { display: none; }
+
+/* Acción dentro de la superficie */
+.xb--A[data-layout="row"] > .xb__action { align-self: center; position: relative; z-index: 1; padding-inline: var(--g-space-1) var(--g-space-2); }
+.xb--A.xb--shape-pill .xb__action .g-btn { --_radius: var(--g-radius-pill); }
+.xb--A.xb--shape-rounded .xb__action .g-btn { --_radius: var(--g-radius-lg); }
+
+/* A · columna: la superficie la pinta la raíz; costuras horizontales; el mensaje dentro de su segmento */
+.xb--A[data-layout="column"] {
+  padding: var(--g-space-1);
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-xl);
+  background: var(--g-color-surface);
+}
+.xb--A.xb--variant-raised[data-layout="column"] { border-color: var(--g-color-border); box-shadow: var(--g-shadow-2); }
+.xb--A[data-layout="column"] > .xb__surface { display: none; }
+.xb--A[data-layout="column"] > .xb__cell > .xb__lens { grid-row: 1; margin: 0; border-radius: var(--g-radius-lg); }
+.xb--A[data-layout="column"].xb--joined > .xb__cell + .xb__cell::before {
+  grid-row: 1; grid-column: 1; justify-self: stretch; align-self: start;
+  inline-size: auto; block-size: var(--g-border-width); margin: 0 var(--xb-pad);
+}
+.xb--A[data-layout="column"] > .xb__cell > * > :is(.g-input__support, .g-select__support, .g-datepicker__support) { padding-block-end: var(--g-space-2); }
+.xb--A[data-layout="column"] > .xb__cell > *:has(.g-input__message:empty, .g-select__message:empty, .g-datepicker__message:empty) > :is(.g-input__support, .g-select__support, .g-datepicker__support) { padding-block-end: 0; }
+.xb--A[data-layout="column"] > .xb__action { padding: var(--g-space-1); }
+.xb--A[data-layout="column"] > .xb__action .g-btn { inline-size: 100%; --_radius: var(--g-radius-lg); }
+
+/* A · segmentada: la superficie es una bandeja; cada segmento conserva su contorno (control: 3:1) */
+.xb--A.xb--segmented > .xb__surface { background: var(--g-color-surface-sunken); border-color: transparent; }
+.xb--A.xb--segmented > .xb__cell > .xb__lens { background: var(--g-color-surface); border: var(--g-border-width) solid var(--g-color-border-control); }
+.xb--A.xb--segmented > .xb__cell.is-active > .xb__lens { border-color: var(--g-color-text-muted); }
+.xb--A.xb--segmented[data-layout="row"] { column-gap: 0; }
+.xb--A.xb--segmented[data-layout="column"] { background: var(--g-color-surface-sunken); border-color: transparent; }
+.xb--A.xb--segmented[data-layout="column"] > .xb__cell > .xb__lens { margin: var(--g-space-1) 0; }
+
+/* ============================================================================================================
+   B · FRASE: sin caja; las palabras son las etiquetas; se pliega como un párrafo
+   ============================================================================================================ */
+.xp {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: var(--g-space-2);
+  row-gap: var(--g-space-3);
+  font-size: var(--g-text-title-sm-size);
+  line-height: var(--g-text-title-sm-line);
+}
+.xp__slot { display: inline-flex; min-inline-size: 0; max-inline-size: 100%; }
+/* EMULA el estado «en frase» de cada campo: etiqueta y hueco en una línea; el pie debajo del hueco */
+.xp__slot > * {
+  --_px: 0;
+  --_fs: var(--g-text-title-sm-size);
+  --_lh: var(--g-text-title-sm-line);
+  display: inline-grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: var(--g-space-2);
+  align-items: baseline;
+  inline-size: auto;
+  max-inline-size: 100%;
+  container-type: normal;
+}
+.xp__slot > * > :is(.g-input__label, .g-select__label, .g-datepicker__label) {
+  grid-column: 1; grid-row: 1; margin: 0;
+  font-size: var(--g-text-title-sm-size); line-height: var(--g-text-title-sm-line);
+  font-weight: var(--g-text-body-weight); color: var(--g-color-text-muted);
+}
+.xp__slot > * > :is(.g-input__row, .g-select__control, .g-datepicker__field) { grid-column: 2; grid-row: 1; }
+.xp__slot > * > :is(.g-input__support, .g-select__support, .g-datepicker__support) { grid-column: 2; grid-row: 2; }
+.xp__slot :is(.g-input__control, .g-select__control, .g-datepicker__field),
+.xp__slot :is(.g-input__control, .g-select__control, .g-datepicker__field):is(:hover, :focus-visible, :has(:focus-visible)) {
+  inline-size: var(--xp-ch, 14ch);
+  max-inline-size: 100%;
+  min-block-size: 44px;
+  padding-inline: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: inset 0 calc(var(--g-border-width) * -2) 0 var(--g-color-border-control);
+  outline: none;
+}
+.xp__slot .g-input__row { outline: none; }
+.xp__slot :is(.g-input__field, .g-select__value, .g-datepicker__value) { font-size: var(--g-text-title-sm-size); font-weight: var(--g-text-action-weight); }
+/* EMULA: en la frase, el valor de GCombobox se lee como texto (sin la ficha de código y aeropuerto): hallazgo L9 */
+.xp__slot .g-combobox__token { display: none; }
+.xp__slot .g-combobox.is-token .g-input__field { color: var(--g-color-text); }
+.xp__slot :is(.g-input__field::placeholder) { color: var(--g-color-text-subtle); font-weight: var(--g-text-body-weight); }
+.xp__slot .g-datepicker__value--placeholder { color: var(--g-color-text-subtle); font-weight: var(--g-text-body-weight); }
+.xp__slot .g-datepicker__icon { display: none; }
+/* El hueco con el foco: subrayado grueso del color de foco (forma + color) */
+.xp__slot :is(.g-input__control:has(:focus-visible), .g-select__control:has(:focus-visible), .g-datepicker__field:focus-visible) {
+  box-shadow: inset 0 calc(var(--g-focus-width) * -2) 0 var(--g-color-focus);
+  background: var(--g-color-accent-soft);
+}
+.xp__slot:has([aria-invalid="true"]) :is(.g-input__control, .g-select__control, .g-datepicker__field) {
+  box-shadow: inset 0 calc(var(--g-border-width) * -3) 0 var(--g-color-danger-text);
+}
+.xp__slot--from { --xp-ch: 15ch; }
+.xp__slot--to { --xp-ch: 15ch; }
+.xp__slot--date { --xp-ch: 9ch; }
+.xp__slot--cat { --xp-ch: 11ch; }
+.xp__slot--q { --xp-ch: 22ch; }
+.xp__go { align-self: center; }
+
+/* ============================================================================================================
+   C · RESUMEN QUE SE ABRE
+   ============================================================================================================ */
+.xs {
+  display: grid;
+  grid-template-rows: auto 0fr;
+  min-inline-size: 0;
+  transition: grid-template-rows var(--g-duration-slow) var(--g-ease-spring);
+}
+.xs.is-open { grid-template-rows: 0fr auto; }
+.xs__summary {
+  display: flex;
+  align-items: center;
+  gap: var(--g-space-1);
+  min-inline-size: 0;
+  min-block-size: 0;
+  overflow: hidden;
+  padding: var(--g-space-1);
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-surface);
+  box-shadow: var(--g-shadow-2);
+  transition: opacity var(--g-duration-fast) var(--g-ease-standard);
+}
+.xs.is-open .xs__summary { opacity: 0; padding-block: 0; border-width: 0; }
+.xs__token {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--g-space-2);
+  flex: 0 1 auto;
+  min-inline-size: 24px;
+  min-block-size: 40px;
+  padding: 0 var(--g-space-4);
+  border: 0;
+  border-radius: var(--g-radius-pill);
+  background: transparent;
+  color: var(--g-color-text);
+  font: inherit;
+  font-size: var(--g-text-body-sm-size);
+  font-weight: var(--g-text-action-weight);
+  cursor: pointer;
+  white-space: nowrap;
+}
+@media (pointer: coarse) { .xs__token { min-block-size: 44px; } }
+.xs__token .xb-ic { color: var(--g-color-text-muted); }
+.xs__text { overflow: hidden; text-overflow: ellipsis; }
+.xs__token.is-empty .xs__text { color: var(--g-color-text-muted); font-weight: var(--g-text-body-weight); }
+.xs__token + .xs__token { position: relative; }
+.xs__token + .xs__token::before {
+  content: ""; position: absolute; inset-inline-start: calc(var(--g-space-1) * -0.5); inset-block: var(--g-space-2);
+  inline-size: var(--g-border-width); background: var(--g-color-border);
+}
+@media (hover: hover) { .xs__token:hover { background: var(--g-color-neutral-soft); } }
+.xs__token:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: 0; }
+.xs__go { margin-inline-start: auto; flex: none; }
+.xs__go .g-btn { --_radius: var(--g-radius-pill); }
+.xs__edit { min-block-size: 0; overflow: hidden; }
+.xs.is-open .xs__edit { overflow: visible; }
+.xs__edit-in { padding: var(--g-space-1) 0; }
+
+/* Movimiento reducido: menos, no cero (plan 007): sin ancho que viaja ni despliegue con rebote; los fundidos quedan */
+@media (prefers-reduced-motion: reduce) {
+  .xb--A[data-layout="row"], .xs { transition: none; }
+}
+
+@media (forced-colors: active) {
+  .xb--A > .xb__cell:has(:focus-visible) > .xb__lens, .xs__token:focus-visible { outline-color: Highlight; }
+  .xb--A > .xb__surface, .xs__summary { border-color: CanvasText; }
+}

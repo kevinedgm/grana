@@ -6,7 +6,7 @@ Es un **servicio imperativo**, como `GToast`: creas un gestor (`createSpeech`), 
 
 **Etiquetas:** `<g-speech-host>` (anfitrión) · `<g-speech-trigger>` (disparador) · `<g-speech-pill>` (pill colocable) · **Entrada:** `@grana/vue/speech` (no viaja en `@grana/vue`) · **Estado:** `candidate` (auditorías de coco aprobadas: [Fase 1](../../../../../design/lab/speech/auditoria.md) y [Fase 2](../../../../../design/lab/speech/auditoria-f2.md)) · **Desde:** 0.1.0 · **Fases:** 1 y 2 de 3
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (playground en `packages/vue/playground/`, sección «Captura de voz», con el adaptador simulado; `?speech=self` simula también el micrófono). Exige Vue `^3.5.0` y un contexto seguro (`https` o `localhost`) para el micrófono.
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (playground en `packages/vue/playground/`, sección «Captura de voz», con el adaptador simulado; `?speech=self` simula también el micrófono). Exige Vue `^3.5.0` y un contexto seguro (`https` o `localhost`) para el micrófono.
 
 ## Privacidad primero
 
@@ -193,6 +193,7 @@ Pautas:
 ## Dictado y conversación
 
 ```vue
+<!-- Fragmento: `form` es de tu aplicación -->
 <!-- Dictado a un campo: el disparador va JUSTO DESPUÉS del campo, como hermano -->
 <GTextarea id="obs" v-model="form.obs" label="Observaciones" />
 <GSpeechTrigger for="obs" />
@@ -237,6 +238,14 @@ La vista, el modelo y los destinos están en [`GTranscript/README.md`](../GTrans
 - Dentro de un `GDialog` modal la pill de la cabecera queda inerte: aparece la flotante **dentro del modal** y operable. Si la flotante tapa el elemento enfocado, salta al borde contrario.
 - **Convive con `GToaster`:** si los dos usan el mismo borde (en móvil, abajo), los avisos se apilan **por encima** de la pill y la pill no se mueve.
 - Con una ranura de menos de ~160px (`space × 40`) la pill desborda: el ancho de la cabecera lo pone tu aplicación.
+
+## Props de `GSpeechHost`
+
+| Prop | Tipo | Por defecto | Qué es |
+| --- | --- | --- | --- |
+| `speech` | Object | el gestor provisto con `app.use(speech)` | Gestor de `createSpeech` que pinta este anfitrión; sin él y sin gestor provisto no pinta nada y avisa en desarrollo |
+
+Sin eventos ni slots. Las props de `GSpeechPill` y `GSpeechTrigger` están en sus README.
 
 ## Estados
 

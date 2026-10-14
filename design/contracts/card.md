@@ -10,7 +10,7 @@ Una **superficie de contenido contenida**, con regiones opcionales combinables (
 ## Principios
 
 - **`GCard` compone `GSurface`** (`surface.md`): la raíz **es** una `GSurface` (`as="article"`). Fondo, borde, sombra, radio, escala de relleno y `density` son de la superficie; `GCard` añade regiones, orden del DOM, acción principal, selección, estado y medición. No copia ni extiende su CSS.
-- **Un solo componente, sin subcomponentes** (`GCardHeader`, `GCardMedia`… no existen): las regiones salen de props de atajo y slots, y el orden del DOM, el de foco y el enlace estirado son de la tarjeta. El agrupamiento de selección (`GCardGroup`) se difiere (#124).
+- **Un solo componente, sin subcomponentes** (`GCardHeader`, `GCardMedia`… no existen): las regiones salen de props de atajo y slots, y el orden del DOM, el de foco y el enlace estirado son de la tarjeta. El agrupamiento de selección **de formulario** (mínimo/máximo, casilla maestra) se difiere (#124); el grupo de tarjetas **de vista** que filtran es `GCardGroup` (`card-group.md`, #603), que coordina tarjetas `GCard` sin cambiar su estructura.
 - **Nunca la tarjeta entera es un control.** La acción principal es un `<a>`, `<button>` o `<label>`/`<input>` **dentro del título**, cuyo `::after` cubre la tarjeta («enlace estirado»). Las demás acciones son hermanas por encima. Una tarjeta con varios controles no puede ser un `<button>` ni un `<a>` (WCAG 4.1.2; un botón no contiene encabezados ni controles).
 - **Una sola activación principal por tarjeta:** navegar, accionar, alternar o seleccionar con toda la tarjeta son **excluyentes**. Combinar «abrir» y «elegir» se hace con la casilla explícita (`selectable`).
 - **Presenta y emite intención** (como el resto de Grana): `modelValue` es el estado; el componente nunca lo cambia por su cuenta sin emitir.
@@ -115,7 +115,7 @@ Cada prop enumerada declara `validator` con su lista (`api.md`).
 - **`modelValue`, `value`, `name` (selección):** como el `<input>` nativo con `v-model` (mismo criterio que `GCheckbox`, #36):
   - `checkbox`/`toggle` sin `value`: `Boolean`.
   - `checkbox` con `value`: `Array` (se emite un arreglo nuevo con el valor agregado o quitado).
-  - `radio`: el modelo es el **valor elegido del grupo**; la tarjeta está seleccionada si `modelValue === value`. Al elegirla se emite `value`. Un grupo = tarjetas con el mismo `name` y el mismo `v-model`, dentro de un `role="radiogroup"` **del consumidor**, con nombre. (`GCardGroup` queda diferido: #124.)
+  - `radio`: el modelo es el **valor elegido del grupo**; la tarjeta está seleccionada si `modelValue === value`. Al elegirla se emite `value`. Un grupo = tarjetas con el mismo `name` y el mismo `v-model`, dentro de un `role="radiogroup"` **del consumidor**, con nombre. (Un grupo de **formulario** sigue diferido, #124; las tarjetas de alternar que filtran una vista van en `GCardGroup`, `card-group.md`.)
   - `name` se aplica al `<input>`; con `radio` es necesario (aviso en desarrollo si falta).
   Una tarjeta `disabled` o `loading` no emite.
 - **`labels`:** ver «Textos».
@@ -153,7 +153,7 @@ Orden del DOM = orden de lectura = orden de foco:
             <button class="g-card__menu" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Acciones de" aria-labelledby="ID-menu ID-title">…</button>
           </div>
         </div>
-        <div class="g-card__content">
+        <div class="g-card__content" id="ID-content">                                 <!-- id siempre (#606) -->
           <div class="g-card__media g-card__media--inline">…</div>                    <!-- mediaPosition="inline" -->
           <p class="g-card__description" id="ID-desc" data-lines="none">…</p>
           <button class="g-card__expand" type="button" aria-expanded="false" aria-controls="ID-desc">…</button>   <!-- expandable y recortada -->
@@ -183,7 +183,7 @@ Orden del DOM = orden de lectura = orden de foco:
 ## ARIA
 
 - **Raíz** (`article`): con **título y sin acción principal propia**, `aria-labelledby` → título. **Con acción principal** (`link`, `button`, `toggle`, `select`) **no lleva `aria-labelledby`**: el control ya da el nombre y se evita «artículo, Título … enlace, Título». Con `as="li"`, `div` o `section`, nunca `aria-labelledby` (no hay landmark). **Esta omisión es una hipótesis pendiente de verificar con lector de pantalla real** (VoiceOver, NVDA, TalkBack; kiwi §13); si falla, se vuelve a nombrar la `article`.
-- **Principal:** `aria-describedby` → descripción (si existe). `aria-pressed` solo en `toggle`; **sin `aria-selected`** (no es un `option` ni un `tab`). En `select`, el `<input>` nativo aporta `checked`/`aria-checked`.
+- **Principal:** `aria-describedby` → descripción (si existe). **Dentro de un `GCardGroup`** (enmienda #606, kiwi card-group r01 L2), el principal gestionado lleva `aria-describedby` → **`ID-content`** (el `g-card__content`, que **contiene** la descripción, el aviso de `status`, el vacío y el slot por defecto con la `GMetric`) **en lugar de** `ID-desc`: la cifra forma parte de lo que oye el lector («Vencidas, botón de alternar, no presionado, Facturas 4, +1 desde ayer») y la descripción no se lee dos veces. Sin `g-card__content` (nada que describir), sin `aria-describedby`. Fuera de un grupo **no cambia** (extenderlo a `toggle`/`button` sueltos queda reservado hasta verificarlo con lector real). `aria-pressed` solo en `toggle`; **sin `aria-selected`** (no es un `option` ni un `tab`). En `select`, el `<input>` nativo aporta `checked`/`aria-checked`.
 - **Disabled:** el `<a>` sin `href` con `role="link"` y `aria-disabled="true"`; los `button` y `input`, `disabled`; el botón del menú va `disabled`; **`g-card__content`, `g-card__actions`, `g-card__footer` y `g-card__more` pasan a `inert`** (sin foco ni interacción, como el cuerpo de `GWidget`); la descripción sigue enlazada por `aria-describedby` (se lee aunque esté `inert`).
 - **Menú:** botón con `aria-haspopup="menu"`, `aria-expanded`, `aria-controls`; el nombre es `labels.menu` (en `aria-label`) más el título, mediante `aria-labelledby="ID-menu ID-title"` («Acciones de Ingresos»).
 - **Solo iconos en `actions`:** el consumidor pone `aria-label` (aviso en desarrollo si un `GBtn` de solo icono no lo tiene; lo verifica bruno sobre el slot). Tooltip: la aplicación envuelve cada acción en `GTooltip` o usa `<GBtn icon tooltip="…">` (`tooltip.md`, #380, #390); la tarjeta no añade uno propio. El tooltip vive en la capa superior: la raíz con `overflow: clip` no lo recorta.
@@ -193,6 +193,15 @@ Orden del DOM = orden de lectura = orden de foco:
 - **Región plegable (`more`):** botón `aria-expanded` + `aria-controls`; plegada = `hidden` (fuera del árbol de accesibilidad). La descripción expandible usa el mismo mecanismo.
 - **Métrica:** `GMetric` conserva `role="group"` con `aria-labelledby` → título de la tarjeta (no duplica el nombre).
 - **Selección sin color:** `selected` se lee por el estado nativo del control; visualmente, borde de doble grosor + indicador con icono + fondo (ver «Estados»).
+
+## Dentro de un `GCardGroup` (#605, #606; `card-group.md`)
+
+`GCard` lee el contexto del grupo (`inject`, clave interna de `utils/cardGroup.js`). Con contexto:
+
+- **`interaction`:** `auto` con `value` → **`toggle` gestionado**; `auto` sin `value` → `none`; `toggle` sin `value`, `link`, `button` y `select` **caen a `none`** con aviso del grupo (como `link` sin `href`); `none` sigue `none`. Un `value` repetido entre hermanas: la segunda y siguientes caen a `none`.
+- **Gestionada:** `aria-pressed` e `is-selected` salen del modelo del grupo, no de su `modelValue` (que se ignora; aviso del grupo si viene enlazado); `tabindex` 0/-1 lo decide el grupo (foco itinerante); `aria-controls` del grupo; `aria-describedby` → `ID-content`. Al alternar **no emite `update:modelValue`**: avisa al grupo, que emite. `disabled` y `loading` siguen igual y la dejan fuera de la parada.
+- **Estructura:** la misma (el botón de alternar dentro del título, la marca estática, C1 y C2). Las esquinas y el borde de la lengüeta los pone el CSS del grupo (coco).
+- Fuera de un grupo, nada de esto aplica.
 
 ## Estados
 
@@ -302,7 +311,7 @@ Jerarquía visual (brief): 1 información principal (título, valor de la métri
 
 | Evento | Payload | Cuándo |
 | --- | --- | --- |
-| `navigate` | `{ event, href }` | `interaction="link"`: el usuario activa el enlace. Se emite con el **evento nativo**; `event.preventDefault()` (síncrono) evita la navegación y permite un router (#70). **Solo se emite con activación primaria sin modificadores** (regla común de `api.md` «Enlaces y `navigate`», #505, enmienda de #70): con Ctrl/⌘/Mayús/Alt+clic o botón central no se emite y el navegador abre la pestaña. Pendiente en `GCard.vue` (bruno) |
+| `navigate` | `{ event, href }` | `interaction="link"`: el usuario activa el enlace. Se emite con el **evento nativo**; `event.preventDefault()` (síncrono) evita la navegación y permite un router (#70). **Solo se emite con activación primaria sin modificadores** (regla común de `api.md` «Enlaces y `navigate`», #505, enmienda de #70): con Ctrl/⌘/Mayús/Alt+clic o botón central no se emite y el navegador abre la pestaña. **Tampoco con `target` de otro contexto** (prop `target` con valor distinto de `_self`: el destino no pasa por el router; enmienda #574). Pendiente en `GCard.vue` (bruno) |
 | `activate` | `{ event }` | `interaction="button"`: el usuario activa el botón principal |
 | `update:modelValue` | según `selectType`/`value` (ver «Selección») | El usuario marca o desmarca (`select`, `toggle`, `selectable`). Con `navigate` y `selectable`, la casilla **no** emite `navigate` |
 | `action` | `{ id }` (y `checked`) | El usuario elige un elemento del menú (`GMenu`) |
@@ -436,13 +445,13 @@ En `icons.md` §4 (ya en la librería, `packages/vue/scripts/icons.json`, #137):
 
 ## Verificación (qué y cómo)
 
-- **bruno** (pruebas): una sola `GSurface` raíz con las clases de `GCard`; orden del DOM y de foco (casilla → título → menú → acciones → controles → pie); `interaction` en sus seis valores (el elemento correcto en el título; `auto` con y sin `href`); `navigate` cancelable (`preventDefault` evita la navegación; los modificadores no se bloquean); acciones internas **no** activan la principal; clic en la casilla explícita no navega; `disabled` (`<a>` sin `href`, `role="link"`, `aria-disabled`); `selectType` checkbox (Boolean y Array con `value`) y radio (`modelValue === value`, flechas nativas, grupo con `name`); `aria-pressed` en `toggle`, sin `aria-selected`; `aria-labelledby` solo en `article` sin principal; `aria-describedby`; menú (`GMenu`, nombre `labels.menu` + título, `action`, Esc sin llegar al ancestro); `status` (`role` por valor, `statusText` obligatorio), `retry`; `expandable` solo con recorte real y `aria-expanded`; `meta` y `priority` en `compact`; `more` plegable solo en `narrow`; `loading` (`aria-busy`, región `role="status"` presente desde el montaje, sin controles, esqueleto derivado y con `skeleton`/slot); `data-size`/`data-layout` con `ResizeObserver` (con el mismo visor, tarjeta de `sidebar` `narrow` y del área principal `wide`; dentro de `GDialog` de 360 y 680px); `orientation` en los tres valores; todos los eventos en `emits`; **avisos de desarrollo** de la lista; lectura de `--g-surface-padding` (la prueba de niveles la acepta).
+- **bruno** (pruebas): una sola `GSurface` raíz con las clases de `GCard`; orden del DOM y de foco (casilla → título → menú → acciones → controles → pie); `interaction` en sus seis valores (el elemento correcto en el título; `auto` con y sin `href`); `navigate` cancelable (`preventDefault` evita la navegación; los modificadores no se bloquean; con `target="_blank"` no se emite, #574); acciones internas **no** activan la principal; clic en la casilla explícita no navega; `disabled` (`<a>` sin `href`, `role="link"`, `aria-disabled`); `selectType` checkbox (Boolean y Array con `value`) y radio (`modelValue === value`, flechas nativas, grupo con `name`); `aria-pressed` en `toggle`, sin `aria-selected`; `aria-labelledby` solo en `article` sin principal; `aria-describedby` (`ID-desc` fuera de un grupo, `ID-content` dentro, #606; `g-card__content` siempre con `id`); contexto de `GCardGroup` (tabla de `interaction`, `tabindex` del grupo, sin `update:modelValue`); menú (`GMenu`, nombre `labels.menu` + título, `action`, Esc sin llegar al ancestro); `status` (`role` por valor, `statusText` obligatorio), `retry`; `expandable` solo con recorte real y `aria-expanded`; `meta` y `priority` en `compact`; `more` plegable solo en `narrow`; `loading` (`aria-busy`, región `role="status"` presente desde el montaje, sin controles, esqueleto derivado y con `skeleton`/slot); `data-size`/`data-layout` con `ResizeObserver` (con el mismo visor, tarjeta de `sidebar` `narrow` y del área principal `wide`; dentro de `GDialog` de 360 y 680px); `orientation` en los tres valores; todos los eventos en `emits`; **avisos de desarrollo** de la lista; lectura de `--g-surface-padding` (la prueba de niveles la acepta).
 - **coco** (auditoría con tema distinto al de defecto): hover solo sobre la principal; anillo hacia dentro con 3:1; selected (borde doble + indicador + fondo) distinto de hover/foco/current; `inset` sobre plano, `surface` y hundida; claro y oscuro; `forced-colors`; `prefers-contrast`; movimiento reducido; táctil 44px; contraste sobre el velo; esqueleto con `inset`; radio concéntrico de una región `inset` interna; una `inset` interna con una `inset` ascendiente; RTL; `overflow: clip` con el menú abierto.
 - **No verificado por kiwi y pendiente:** **lector de pantalla real** (el nombre del `article` sin `aria-labelledby` y el título-enlace son una hipótesis; `aria-busy`, `role="status"` y `role="alert"`); Firefox y WebKit (`:has()`, `line-clamp`, `popover`, `overflow: clip`; Playwright cubre lo automatizable, #108); táctil real (pulsación larga sobre el enlace estirado) y zoom 200%; `forced-colors` real; **esqueleto con datos ausentes reales**; selección y copia de texto con el enlace estirado; rendimiento con cientos de tarjetas (un `ResizeObserver` por tarjeta: ¿uno compartido?); rejilla con contenido muy desigual; menú dentro de un `GDialog` (Esc cierra solo el menú); cambio en caliente de `orientation`/`density`/`level` con el menú abierto.
 
 ## Fuera de v0.1 (diferido, no abierto al usuario)
 
-- **`GCardGroup`** (`v-model`, mínimo/máximo, casilla maestra): decisión del usuario (#124); mientras tanto, radios con `name` y `role="radiogroup"` del consumidor y `modelValue` por tarjeta.
+- **Grupo de tarjetas de formulario** (`v-model` con mínimo/máximo, casilla maestra): decisión del usuario (#124); mientras tanto, radios con `name` y `role="radiogroup"` del consumidor y `modelValue` por tarjeta. El grupo **de vista** (tarjetas que filtran) ya existe: `GCardGroup` (`card-group.md`, #603).
 - **Menú contextual de clic derecho**, **`subgrid`**, tipos de celda y de contenido dentro de la tarjeta.
 - **Migrar `GWidget` sobre `GCard`:** se evaluará cuando `GCard` esté verificada (#125).
 - **Preguntas de producto abiertas: ninguna.**

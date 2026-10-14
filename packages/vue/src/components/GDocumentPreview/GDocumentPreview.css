@@ -1,0 +1,717 @@
+/*
+  GDocumentPreview · estilo del visor de documentos (A «Lomo»)
+  Dueño: coco. Contrato: design/contracts/document-preview.md (DECISIONS.md #638 a #649; tokens.md §29.1, §29.5, §46).
+  Estructura: design/lab/document-preview/r01/ (kiwi, concepto A). Estética, medidas y lo que espera del .vue:
+  design/lab/document-preview/estilo.md; banco y verificación: estilo-banco.html, estilo-verificar.mjs.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin respaldos; sin !important.
+  Medidas literales: 24px (marca y dianas) y 44px (táctil); el patrón de texto oculto (1px); unidades de visor (100dvh,
+  como GDialog) para que el alto por defecto nunca supere el visor; el umbral 520px de GDialog (#42) para su pantalla
+  completa móvil. Constantes de diseño (no son tokens, document-preview.md «Tokens consumidos»): lomo space × 12, abierto
+  space × 30; alto por defecto space × 160; sello hasta space × 160 de ancho.
+  #383: este CSS no selecciona hijos de la aplicación (no hay slots); los selectores estructurales sobre lo propio excluyen
+  .g-tooltip con :not(:where(.g-tooltip)). #516: los encabezados y botones propios (__thumb, __zoom-value) se reinician
+  aquí; un estilo de elemento de la aplicación sin capa gana igualmente (receta de capas en api.md).
+  No estiliza el interior de GBtn, GMenu, GSummary, GEmpty, GProgress, GInput ni GDialog: solo su caja dentro del visor.
+
+  Marcado que espera (lo pinta bruno; document-preview.md «Anatomía» y «Clases y datos»):
+    section|div.g-document-preview.g-document-preview--variant-{embedded|panel}.g-document-preview--appearance-spine
+        [.is-narrow][data-phase]  (style="--_height: …" con la prop height)
+      div.g-document-preview__body[.is-thumbs]  (style="--_seal-size: Npx")
+        div.__spine
+          GBtn.__thumbs-toggle
+          div.__rail[.is-dense][.is-typing] > span.__tick[.is-current] × N · span.__mark[.is-arriving] (style --_y) ·
+              span.__peek[.is-shown] (style --_y) > (canvas | img) + span.__peek-label
+          nav.__thumbs > ol > li > button.__thumb[aria-current] > (canvas | img) + span.__thumb-label
+          div.__zoom > GBtn · button.__zoom-value (disparador de GMenu) · GBtn
+        div.__stage[.is-pannable][.is-panning]
+          div.__pages > div.__page[data-drawn][data-rotation] (style --_w --_h) > canvas | img.__image
+          iframe.__frame
+          div.__mold[.is-shown] · div.__progress > GProgress · div.__long
+          GEmpty.__empty · div.__password > p.__password-title + GInput + GBtn
+        div.__seal > GSummary · span.__receipt[.is-busy|.is-done|.is-started|.is-failed] · div.__actions
+      div.__meta > GSummary
+      span.__status
+      GDialog.__dialog > … > div.g-document-preview__body.is-in-dialog
+
+  Carácter (A «Lomo», #639): el documento empieza en el borde; a su lado, un LOMO de libro: una muesca por página (o el
+  canto rayado de las hojas cuando son muchas) y la marca con el número de la actual, que LLEGA a su página con muelle en
+  un salto explícito. Al recorrerlo, la página destino SE ASOMA desde el canto, como una hoja que se saca del libro. Abajo
+  flota el SELLO: quién es y qué hacer, con el acuse en el sitio de los datos; su ancho no depende del texto, así que las
+  acciones no se mueven bajo el puntero.
+*/
+
+/* ---------- Raíz ---------- */
+.g-document-preview {
+  /* Alto del cuerpo en línea: el estilo en línea de la prop height (--_height) gana a este valor por defecto.
+     Múltiplo de space y nunca mayor que el visor dinámico (#648) */
+  --_height: min(calc(var(--g-space-1) * 160), calc(100dvh - var(--g-space-1) * 8));
+  /* Anchos del lomo (constantes de diseño, múltiplos de space) */
+  --_spine-w: calc(var(--g-space-1) * 12);
+  --_spine-open: calc(var(--g-space-1) * 30);
+  /* Sentido del eje en línea (1 en LTR, -1 en RTL): de dónde sale la página que asoma */
+  --_dir: 1;
+
+  position: relative;
+  display: block;
+  box-sizing: border-box;
+  min-inline-size: 0;
+  color: var(--g-color-text);
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  letter-spacing: var(--g-text-body-sm-tracking);
+}
+.g-document-preview:dir(rtl) { --_dir: -1; }
+.g-document-preview *,
+.g-document-preview *::before,
+.g-document-preview *::after { box-sizing: border-box; }
+
+/* El foco por programa llega a la raíz con nombre (tabindex="-1", #534) cuando se sustituye lo enfocado */
+.g-document-preview:focus { outline: none; }
+.g-document-preview:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+
+/* panel: delimitada (borde y radio); embedded: sin superficie propia, el cuerpo lleva su propio canto */
+.g-document-preview--variant-panel {
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-radius-lg);
+  background: var(--g-color-surface);
+  overflow: clip;
+}
+
+/* ---------- Cuerpo: lomo | escenario, y el sello en la celda del escenario ---------- */
+.g-document-preview__body {
+  /* Alto del sello medido por el .vue (px, en línea); sin sello, nada que reservar */
+  --_seal-size: calc(var(--g-space-1) * 0);
+  /* Hueco del sello sobre el borde del escenario */
+  --_seal-gap: calc(var(--g-space-1) * 3);
+
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  block-size: var(--_height);
+  min-inline-size: 0;
+  overflow: clip;
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface-sunken);
+}
+.g-document-preview--variant-embedded > .g-document-preview__body {
+  border: var(--g-border-width) solid var(--g-color-border);
+}
+.g-document-preview--variant-panel > .g-document-preview__body { border-radius: 0; }
+/* Sin lomo (imagen, visor nativo, estados sin vista): el escenario ocupa todo */
+.g-document-preview__body > .g-document-preview__stage,
+.g-document-preview__body > .g-document-preview__seal { grid-column: 2; grid-row: 1; }
+.g-document-preview__body > .g-document-preview__spine { grid-column: 1; grid-row: 1; }
+
+/* ---------- Lomo ---------- */
+.g-document-preview__spine {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--g-space-2);
+  inline-size: var(--_spine-w);
+  min-block-size: 0;
+  padding-block: var(--g-space-2);
+  border-inline-end: var(--g-border-width) solid var(--g-color-border);
+  background: var(--g-color-surface);
+  transition: inline-size var(--g-duration-slow) var(--g-ease-out);
+}
+.g-document-preview__body.is-thumbs > .g-document-preview__spine { inline-size: var(--_spine-open); }
+.g-document-preview__thumbs-toggle { flex: none; }
+
+/* El riel: la pista es la caja de relleno. El borde transparente (medio alto de la marca) la recoge para que la marca de la
+   primera y la última página quepan sin salirse; el .vue mide con clientTop/clientHeight (estilo.md) */
+.g-document-preview__rail {
+  --_mark-h: 24px;
+
+  position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+  inline-size: 100%;
+  min-block-size: calc(var(--g-space-1) * 20);
+  border-block: calc(var(--_mark-h) / 2) solid transparent;
+  border-radius: var(--g-radius-sm);
+  cursor: pointer;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+.g-document-preview__rail:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: calc(var(--g-focus-width) * -1);
+}
+/* Muescas: una por página, centradas en su tramo (space-around: centro de la página n en (n − 0,5) / N). Son borde, no
+   fondo, para sobrevivir a colores forzados */
+.g-document-preview__tick {
+  flex: none;
+  display: block;
+  inline-size: calc(var(--g-space-1) * 3);
+  block-size: 0;
+  border-block-start: var(--g-border-width) solid var(--g-color-border-strong);
+  transition: inline-size var(--g-duration-fast) var(--g-ease-out);
+}
+.g-document-preview__tick.is-current { inline-size: calc(var(--g-space-1) * 6); }
+/* Personalidad: al pasar el puntero, las hojas se abren en abanico (las muescas se alargan) */
+@media (hover: hover) {
+  .g-document-preview__rail:hover > .g-document-preview__tick { inline-size: calc(var(--g-space-1) * 5); }
+}
+/* Muchas páginas (is-dense): sin muescas sueltas; el canto rayado de las hojas, un riel continuo */
+.g-document-preview__rail.is-dense > .g-document-preview__tick { display: none; }
+.g-document-preview__rail.is-dense::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline: 0;
+  margin-inline: auto;
+  inline-size: calc(var(--g-space-1) * 3);
+  border-inline: var(--g-border-width) solid var(--g-color-border-strong);
+  background-image: repeating-linear-gradient(to bottom,
+    var(--g-color-border-strong) 0 var(--g-border-width),
+    transparent var(--g-border-width) var(--g-space-1));
+}
+
+/* La marca: el número de la actual sobre su muesca. Sigue al escenario sin transición; LLEGA con muelle (is-arriving) */
+.g-document-preview__mark {
+  position: absolute;
+  z-index: 1;
+  inset-block-start: var(--_y);
+  inset-inline: 0;
+  margin-inline: auto;
+  display: grid;
+  place-items: center;
+  inline-size: fit-content;
+  min-inline-size: var(--_mark-h);
+  max-inline-size: calc(100% - var(--g-space-1));
+  min-block-size: var(--_mark-h);
+  padding-inline: var(--g-space-1);
+  translate: 0 -50%;
+  border: var(--g-border-width) solid var(--g-color-primary-text);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-primary);
+  color: var(--g-color-on-primary);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  letter-spacing: var(--g-text-caption-tracking);
+  font-weight: var(--g-text-action-weight);
+  font-variant-numeric: tabular-nums lining-nums;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+.g-document-preview__mark.is-arriving {
+  transition: inset-block-start var(--g-duration-slow) var(--g-ease-out);
+}
+/* Octavo uso de --g-ease-spring (#639): solo la llegada. Regla de soporte de §29.1: con var(), una curva no soportada
+   invalidaría la transición entera; fuera de @supports queda --g-ease-out */
+@supports (transition-timing-function: linear(0, 1)) {
+  .g-document-preview__mark.is-arriving {
+    transition: inset-block-start var(--g-duration-slow) var(--g-ease-spring);
+  }
+}
+/* La cifra tecleada (regla B4 de GSlider): la marca se vuelve campo, en superficie con el contorno del control */
+.g-document-preview__rail.is-typing > .g-document-preview__mark {
+  border-width: calc(var(--g-border-width) * 2);
+  border-color: var(--g-color-primary-text);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+}
+
+/* La página que asoma: sale del canto del lomo hacia el escenario, a la altura de su página. translate en Y por el propio
+   --_y la mantiene siempre dentro del riel (arriba en la primera, abajo en la última) */
+.g-document-preview__peek {
+  position: absolute;
+  z-index: 2;
+  inset-block-start: var(--_y);
+  inset-inline-start: calc(100% + var(--g-space-2));
+  display: grid;
+  justify-items: center;
+  gap: var(--g-space-1);
+  padding: var(--g-space-2);
+  translate: calc(var(--g-space-1) * -2 * var(--_dir)) calc(var(--_y) * -1);
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface);
+  box-shadow: var(--g-shadow-3);
+  color: var(--g-color-text);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  letter-spacing: var(--g-text-caption-tracking);
+  font-variant-numeric: tabular-nums lining-nums;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    opacity var(--g-duration-fast) var(--g-ease-out),
+    translate var(--g-duration-press) var(--g-ease-out),
+    inset-block-start var(--g-duration-press) var(--g-ease-out);
+}
+.g-document-preview__peek.is-shown {
+  opacity: 1;
+  translate: 0 calc(var(--_y) * -1);
+}
+.g-document-preview__peek > :where(canvas, img) {
+  display: block;
+  inline-size: calc(var(--g-space-1) * 30);
+  block-size: auto;
+  background: var(--g-color-mold);
+  box-shadow: var(--g-shadow-1);
+}
+.g-document-preview__peek-label { display: block; }
+
+/* ---------- Miniaturas (sustituyen al riel) ---------- */
+.g-document-preview__thumbs {
+  flex: 1 1 auto;
+  inline-size: 100%;
+  min-block-size: 0;
+  display: flex;
+}
+.g-document-preview__thumbs > ol {
+  flex: 1 1 auto;
+  display: grid;
+  align-content: start;
+  gap: var(--g-space-2);
+  margin: 0;
+  padding: var(--g-space-2);
+  min-block-size: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+  outline: none;
+}
+.g-document-preview__thumbs li { margin: 0; padding: 0; }
+.g-document-preview__thumb {
+  appearance: none;
+  display: grid;
+  justify-items: center;
+  gap: var(--g-space-1);
+  inline-size: 100%;
+  min-block-size: 24px;
+  margin: 0;
+  padding: var(--g-space-2);
+  border: 0;
+  border-radius: var(--g-radius-md);
+  background: transparent;
+  color: var(--g-color-text-muted);
+  font: inherit;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  letter-spacing: var(--g-text-caption-tracking);
+  font-variant-numeric: tabular-nums lining-nums;
+  text-align: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    color var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-document-preview__thumb > :where(canvas, img) {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  background: var(--g-color-mold);
+  box-shadow: var(--g-shadow-1);
+}
+.g-document-preview__thumb-label { display: block; }
+@media (hover: hover) {
+  .g-document-preview__thumb:not([aria-current="page"]):hover {
+    background: var(--g-color-neutral-soft);
+    color: var(--g-color-text);
+  }
+}
+.g-document-preview__thumb[aria-current="page"] {
+  background: var(--g-color-primary-soft);
+  color: var(--g-color-on-primary-soft);
+  box-shadow: inset 0 0 0 calc(var(--g-border-width) * 2) var(--g-color-primary-text);
+  font-weight: var(--g-text-action-weight);
+}
+.g-document-preview__thumb:focus { outline: none; }
+.g-document-preview__thumb:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+
+/* ---------- Zoom: barra vertical al pie del lomo ---------- */
+.g-document-preview__zoom {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--g-space-1);
+  margin-block-start: auto;
+}
+/* El valor (disparador de GMenu): el porcentaje en el ancho del lomo */
+.g-document-preview__zoom-value {
+  appearance: none;
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: 24px;
+  max-inline-size: calc(var(--_spine-w) - var(--g-space-1));
+  min-block-size: 24px;
+  margin: 0;
+  padding: 0 var(--g-space-1);
+  border: 0;
+  border-radius: var(--g-radius-sm);
+  background: transparent;
+  color: var(--g-color-text);
+  font: inherit;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  letter-spacing: var(--g-text-caption-tracking);
+  font-weight: var(--g-text-action-weight);
+  font-variant-numeric: tabular-nums lining-nums;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--g-duration-fast) var(--g-ease-standard);
+}
+@media (hover: hover) {
+  .g-document-preview__zoom-value:hover { background: var(--g-color-neutral-soft); }
+}
+.g-document-preview__zoom-value[aria-expanded="true"] { background: var(--g-color-neutral-soft); }
+.g-document-preview__zoom-value:focus { outline: none; }
+.g-document-preview__zoom-value:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+
+/* ---------- Escenario ---------- */
+.g-document-preview__stage {
+  /* Lo que el sello tapa abajo: su alto y su hueco */
+  --_reserve: calc(var(--_seal-size) + var(--_seal-gap) * 2);
+
+  position: relative;
+  min-inline-size: 0;
+  min-block-size: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: calc(var(--g-space-1) * 4);
+  padding-block-end: max(calc(var(--g-space-1) * 4), var(--_reserve));
+  scroll-padding-block: calc(var(--g-space-1) * 4) max(calc(var(--g-space-1) * 4), var(--_reserve));
+  background: var(--g-color-surface-sunken);
+  outline: none;
+}
+/* Parada de Tab del documento: anillo por dentro (el cuerpo recorta lo de fuera) */
+.g-document-preview__stage:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: calc(var(--g-focus-width) * -1);
+}
+.g-document-preview__stage.is-pannable { cursor: grab; }
+.g-document-preview__stage.is-panning { cursor: grabbing; user-select: none; }
+
+.g-document-preview__pages {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: calc(var(--g-space-1) * 4);
+  inline-size: max-content;
+  min-inline-size: 100%;
+}
+/* Una sola imagen: centrada en el escenario mientras cabe */
+.g-document-preview__pages:has(> .g-document-preview__page > .g-document-preview__image) {
+  min-block-size: 100%;
+  align-content: center;
+}
+/* Cada página reserva su caja con su tamaño real antes de pintarse (--_w, --_h del .vue); mientras no se ha pintado,
+   enseña el tono del molde, quieto (#539) */
+.g-document-preview__page {
+  position: relative;
+  display: grid;
+  place-items: center;
+  inline-size: var(--_w);
+  block-size: var(--_h);
+  background: var(--g-color-mold);
+  box-shadow: var(--g-shadow-1);
+}
+.g-document-preview__page[data-drawn] { background: transparent; }
+.g-document-preview__page:has(> .g-document-preview__image) { box-shadow: none; }
+.g-document-preview__page > canvas {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+}
+.g-document-preview__image {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  max-inline-size: none;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+/* Imagen girada: la caja de la página ya viene girada (--_w ↔ --_h); la imagen conserva su tamaño y gira en el centro */
+.g-document-preview__page:is([data-rotation="90"], [data-rotation="270"]) > .g-document-preview__image {
+  inline-size: var(--_h);
+  block-size: var(--_w);
+  flex: none;
+}
+.g-document-preview__page[data-rotation="90"] > .g-document-preview__image { rotate: 90deg; }
+.g-document-preview__page[data-rotation="180"] > .g-document-preview__image { rotate: 180deg; }
+.g-document-preview__page[data-rotation="270"] > .g-document-preview__image { rotate: 270deg; }
+
+/* Visor nativo: el iframe ocupa el escenario por encima del sello (su pie no queda tapado) */
+.g-document-preview__stage:has(> .g-document-preview__frame) {
+  padding: 0;
+  overflow: hidden;
+}
+.g-document-preview__frame {
+  display: block;
+  inline-size: 100%;
+  block-size: calc(100% - var(--_reserve));
+  border: 0;
+  background: var(--g-color-surface);
+}
+
+/* ---------- Estados en el escenario ---------- */
+.g-document-preview:not([data-phase="ready"]) .g-document-preview__stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  place-items: center;
+}
+/* Molde de la página que llega: invisible los primeros 200 ms (reserva su hueco); quieto, nunca late (#539) */
+.g-document-preview__mold {
+  grid-area: 1 / 1;
+  align-self: stretch;
+  inline-size: 100%;
+  border-radius: var(--g-radius-xs);
+  background: var(--g-color-mold);
+  visibility: hidden;
+}
+.g-document-preview__mold.is-shown { visibility: visible; }
+/* El progreso sobre una placa de superficie, en lo alto de la página que llega */
+.g-document-preview__progress {
+  grid-area: 1 / 1;
+  align-self: start;
+  justify-self: stretch;
+  margin: calc(var(--g-space-1) * 6) calc(var(--g-space-1) * 6) 0;
+  padding: var(--g-space-3);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface);
+}
+.g-document-preview__long {
+  grid-area: 1 / 1;
+  align-self: end;
+  justify-self: stretch;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--g-space-2) var(--g-space-3);
+  padding: var(--g-space-3) var(--g-space-4);
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface);
+  box-shadow: var(--g-shadow-2);
+}
+.g-document-preview__long > p { margin: 0; }
+.g-document-preview__empty {
+  grid-area: 1 / 1;
+  inline-size: min(100%, calc(var(--g-space-1) * 110));
+}
+.g-document-preview__password {
+  grid-area: 1 / 1;
+  display: grid;
+  justify-items: start;
+  gap: var(--g-space-3);
+  inline-size: min(100%, calc(var(--g-space-1) * 90));
+  padding: calc(var(--g-space-1) * 5);
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-radius-lg);
+  background: var(--g-color-surface);
+}
+.g-document-preview__password > :where(.g-input) { inline-size: 100%; }
+.g-document-preview__password-title {
+  margin: 0;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-action-weight);
+}
+
+/* ---------- Sello: flota abajo en la celda del escenario (en el DOM va después) ---------- */
+.g-document-preview__seal {
+  z-index: 3;
+  align-self: end;
+  justify-self: center;
+  display: flex;
+  align-items: center;
+  gap: var(--g-space-3);
+  /* Ancho fijo por el escenario, no por el texto: el acuse no mueve las acciones bajo el puntero */
+  inline-size: min(calc(100% - var(--_seal-gap) * 2), calc(var(--g-space-1) * 160));
+  margin-block-end: var(--_seal-gap);
+  padding: var(--g-space-1);
+  padding-inline-start: calc(var(--g-space-1) * 4);
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-surface);
+  box-shadow: var(--g-shadow-2);
+}
+.g-document-preview__seal > :where(.g-summary) {
+  flex: 0 1 auto;
+  min-inline-size: 0;
+}
+/* El acuse ocupa el sitio de los datos: tras el nombre, antes de las acciones */
+.g-document-preview__receipt {
+  flex: 0 1 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--g-space-1);
+  min-inline-size: 0;
+  color: var(--g-color-text);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  letter-spacing: var(--g-text-caption-tracking);
+  white-space: nowrap;
+  transition: opacity var(--g-duration-fast) var(--g-ease-out);
+}
+@starting-style {
+  .g-document-preview__receipt { opacity: 0; }
+}
+.g-document-preview__receipt > :where(.g-icon) { flex: none; color: var(--g-color-text-muted); }
+.g-document-preview__receipt:is(.is-done, .is-started) > :where(.g-icon) { color: var(--g-color-success-text); }
+.g-document-preview__receipt.is-failed > :where(.g-icon) { color: var(--g-color-danger-text); }
+.g-document-preview__receipt-text {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.g-document-preview__actions {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--g-space-1);
+  margin-inline-start: auto;
+  padding-inline-start: var(--g-space-2);
+  border-inline-start: var(--g-border-width) solid var(--g-color-border);
+}
+
+/* ---------- Detalles ---------- */
+.g-document-preview__meta {
+  padding-block: var(--g-space-3);
+}
+.g-document-preview--variant-panel > .g-document-preview__meta {
+  padding-inline: calc(var(--g-space-1) * 4);
+  border-block-start: var(--g-border-width) solid var(--g-color-border);
+}
+
+/* ---------- Estado oculto (patrón de texto oculto accesible) ---------- */
+.g-document-preview__status {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Profundidades: el mismo cuerpo dentro del GDialog ---------- */
+.g-document-preview__body.is-in-dialog {
+  block-size: min(calc(var(--g-space-1) * 200), calc(100dvh - var(--g-space-1) * 40));
+  border: var(--g-border-width) solid var(--g-color-border);
+}
+.g-document-preview__dialog.g-dialog--fullscreen .g-document-preview__body.is-in-dialog { block-size: 100%; }
+@media (max-width: 520px) {
+  .g-document-preview__dialog.g-dialog--mobile-fullscreen .g-document-preview__body.is-in-dialog { block-size: 100%; }
+}
+
+/* ---------- Estrecho (ancho de la raíz < space × 120) ---------- */
+/* Las miniaturas cubren el escenario en vez de estrecharlo: la columna del lomo conserva su ancho y el lomo abierto se
+   superpone desde su canto (con el conmutador arriba y el zoom abajo, por encima del hueco del sello) */
+.g-document-preview.is-narrow .g-document-preview__body.is-thumbs { grid-template-columns: var(--_spine-w) minmax(0, 1fr); }
+.g-document-preview.is-narrow .g-document-preview__body.is-thumbs > .g-document-preview__spine {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  padding-block-end: calc(var(--_seal-size) + var(--_seal-gap) * 2);
+  box-shadow: var(--g-shadow-2);
+}
+.g-document-preview.is-narrow .g-document-preview__seal {
+  inline-size: calc(100% - var(--g-space-2) * 2);
+  margin-block-end: var(--g-space-2);
+  padding-inline-start: calc(var(--g-space-1) * 3);
+  gap: var(--g-space-2);
+}
+.g-document-preview.is-narrow .g-document-preview__body { --_seal-gap: var(--g-space-2); }
+
+/* ---------- Táctil: todo lo que se pulsa ≥ 44 × 44 (GBtn trae el suyo; el riel ya mide space × 12 de ancho) ---------- */
+@media (pointer: coarse) {
+  .g-document-preview__thumb,
+  .g-document-preview__zoom-value {
+    min-block-size: 44px;
+  }
+  .g-document-preview__zoom-value { min-inline-size: 44px; }
+}
+
+/* ---------- Movimiento: el giro del acuse en curso ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .g-document-preview__receipt.is-busy > :where(.g-icon) {
+    animation: g-document-preview-spin var(--g-duration-spin) linear infinite;
+  }
+}
+@keyframes g-document-preview-spin {
+  to { rotate: 1turn; }
+}
+
+/* ---------- Movimiento reducido (§29.3): nada se desliza; quedan los fundidos ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .g-document-preview__spine,
+  .g-document-preview__tick { transition: none; }
+  .g-document-preview__mark.is-arriving { transition: none; }
+  @supports (transition-timing-function: linear(0, 1)) {
+    .g-document-preview__mark.is-arriving { transition: none; }
+  }
+  .g-document-preview__peek,
+  .g-document-preview__peek.is-shown {
+    translate: 0 calc(var(--_y) * -1);
+    transition: opacity var(--g-duration-fast) var(--g-ease-out);
+  }
+}
+
+/* ---------- Colores forzados: los filos sobreviven; la marca y la actual en Highlight; el molde en GrayText ---------- */
+@media (forced-colors: active) {
+  .g-document-preview__rail { border-color: Canvas; }
+  .g-document-preview__mark,
+  .g-document-preview__thumb[aria-current="page"] {
+    forced-color-adjust: none;
+    border-color: Highlight;
+    background: Highlight;
+    color: HighlightText;
+  }
+  .g-document-preview__thumb[aria-current="page"] { outline: calc(var(--g-border-width) * 2) solid Highlight; }
+  .g-document-preview__rail.is-typing > .g-document-preview__mark {
+    background: Canvas;
+    color: CanvasText;
+  }
+  .g-document-preview__rail.is-dense::before {
+    forced-color-adjust: none;
+    border-color: CanvasText;
+    background-image: repeating-linear-gradient(to bottom,
+      CanvasText 0 var(--g-border-width),
+      transparent var(--g-border-width) var(--g-space-1));
+  }
+  .g-document-preview__mold,
+  .g-document-preview__page:not([data-drawn]) {
+    forced-color-adjust: none;
+    background: GrayText;
+  }
+  .g-document-preview__seal,
+  .g-document-preview__peek,
+  .g-document-preview__long { border-color: CanvasText; }
+}
+
+/* ---------- Impresión de la página de la aplicación: nada flotante ---------- */
+@media print {
+  .g-document-preview__seal { box-shadow: none; }
+  .g-document-preview__peek { display: none; }
+}

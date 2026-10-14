@@ -70,7 +70,7 @@ Una **etiqueta** es un elemento de un conjunto que **clasifica o resume una elec
 | --- | --- | --- |
 | `update:pressed` | Boolean | El usuario alterna (clic, Espacio, Intro). No con `disabled` |
 | `remove` | `{ event, source: 'button' \| 'key' }` | El usuario pulsa «Quitar» o <kbd>Supr</kbd>/<kbd>Retroceso</kbd> sobre un control de la etiqueta. **Una `GTag` suelta no se quita sola ni deja huella**: la aplicación la quita y decide el foco (la huella exige un grupo, #466) |
-| `navigate` | `{ event, href }` | El usuario activa el enlace. Se emite con el evento nativo; `event.preventDefault()` (síncrono) evita la navegación y permite un router (como `GCard`, #70). **Solo se emite con activación primaria sin modificadores** (`api.md` «Enlaces y `navigate`», #505). **Sin prop `to`** |
+| `navigate` | `{ event, href }` | El usuario activa el enlace. Se emite con el evento nativo; `event.preventDefault()` (síncrono) evita la navegación y permite un router (como `GCard`, #70). **Solo se emite con activación primaria sin modificadores** (`api.md` «Enlaces y `navigate`», #505) **y sin `target` de otro contexto** (con el atributo `target` en el `<a>` con valor distinto de `_self` no se emite: el destino no pasa por el router; enmienda #574, pendiente en `GTag.vue`, bruno). **Sin prop `to`** |
 
 Todos en `emits` (lección de `CLAUDE.md`: si no, una escucha del consumidor llega por `$attrs` a la raíz y se dispara con cualquier clic interno). **Sin evento `click`** (aviso 7).
 
@@ -391,6 +391,7 @@ Sin valores por defecto (#226). Cada clave es una **cadena con marcadores** (`fi
 | 6 | Contenido interactivo en el slot `default` o `label` (comprobado al montar: `a`, `button`, `input`, `select`, `textarea`, `[tabindex]`) | Lo pinta; remite a `href`, `pressed` o `GBtn` |
 | 7 | Escucha `onClick` en la etiqueta | No se enlaza; remite a `navigate`, `update:pressed` o `remove` |
 | 8 | `label` ausente o vacía | No pinta la etiqueta |
+| 9 | **Categoría sin token (#560):** la etiqueta pinta la categoría `K` y el tema no define `--g-color-cat-K` | Se queda neutra. Avisa **una vez por número de categoría y carga** (compartido con `GAvatar`), en desarrollo y en el navegador, al montar y al actualizar. Texto: «[Grana GTag] pide la categoría K pero el tema no define --g-color-cat-K: se queda neutro. Añade `categories: N` (N ≥ K) a grana.config.json y vuelve a ejecutar «grana theme».» Utilidad `utils/categoryToken.js`. Un `GTag` de un `GTagGroup` avisa igual (G8) |
 
 **`[Grana GTagGroup]`**
 
@@ -456,7 +457,7 @@ Sin valores por defecto (#226). Cada clave es una **cadena con marcadores** (`fi
 ### bruno (vitest + jsdom)
 
 - **Hash:** los siete vectores de `avatar.md` en `utils/categoryHash.test.js` (y `GAvatar` sigue pasando los suyos sin cambio); clave `colorKey ?? facet ?? label`.
-- **`GTag`:** los seis casos de §«Semántica» (instantánea y roles); `pressed` ausente = no alterna (`default: null`), con y sin `v-model:pressed`; `href` gana a `pressed`; `navigate` cancelable; `remove` por botón y por Supr/Retroceso con su `source`; `disabled` en los tres cuerpos (enlace sin `href` y `aria-disabled`); `color`/`categories`/`data-cat`; atributos repartidos; los ocho avisos.
+- **`GTag`:** los seis casos de §«Semántica» (instantánea y roles); `pressed` ausente = no alterna (`default: null`), con y sin `v-model:pressed`; `href` gana a `pressed`; `navigate` cancelable (sin emitir con `target="_blank"` ni con un nombre de ventana; sí con `_self`, #574); `remove` por botón y por Supr/Retroceso con su `source`; `disabled` en los tres cuerpos (enlace sin `href` y `aria-disabled`); `color`/`categories`/`data-cat`; atributos repartidos; los ocho avisos.
 - **`GTagGroup`:** `update:items` con arreglo nuevo y referencias conservadas, con y sin `v-model`; orden de eventos (`update:items` antes del específico); huella: el elemento sale del modelo en el acto, `--_ghost-w` escrito, foco a «Deshacer», anuncio; deshacer a su sitio (vecinos que existen, que ya no existen, al final) con foco a «Quitar»; recogida con foco fuera (y `settle`); `id` que vuelve sustituye a la huella; «Quitar todas» → «Deshacer» con foco, deshacer todas en sus posiciones; foco cuando el control desaparece (siguiente equivalente, anterior, `emptyFocus` en sus tres formas, contenedor con `tabindex="-1"`); `limit` con `aria-expanded`/`aria-controls`/`hidden` y huellas en la ventana; `facets`: racimos en orden de aparición, listas nombradas por `aria-labelledby`, sueltas sin lista interior, `removeIn`/`undoIn`/`removedIn` y su caída; todas de alternar → `role="group"`; los diez avisos; región viva vacía al montar.
 - **Tipos:** `src/types.test.js` con `TagItem`, eventos y `labels` (cadena y función).
 

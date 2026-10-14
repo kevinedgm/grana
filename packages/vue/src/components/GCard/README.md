@@ -4,7 +4,7 @@ Superficie de contenido **contenida** con regiones opcionales que se combinan: m
 
 **Etiqueta:** `<g-card>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/card/auditoria.md`](../../../../../design/lab/card/auditoria.md)) · **Desde:** 0.1.0
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`; el menú de acciones usa la API `popover`.
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`; el menú de acciones usa la API `popover`.
 
 > **La tarjeta nunca es el control.** La acción principal es un `<a>`, un `<button>` o un `<label>` real **dentro del título** que se «estira» para cubrir toda la tarjeta; el resto de controles van por encima y no la activan. Por eso una tarjeta admite varias acciones sin romper la accesibilidad (WCAG 4.1.2), y por eso **no se puede seleccionar texto con el puntero** en una tarjeta navegable.
 
@@ -37,6 +37,7 @@ const textos = { menu: 'Acciones de', loading: 'Cargando tarjeta', loaded: 'Tarj
 ### Media: arriba, lateral, de fondo o en línea
 
 ```vue
+<!-- Fragmento: `textos` y `ir` son de tu aplicación -->
 <g-card href="/articulos/mercado" eyebrow="Artículo" title="Un paseo por el mercado" description="…" :description-lines="2" expandable :labels="textos" @navigate="ir">
   <template #media><img src="/mercado.jpg" alt=""></template>                    <!-- top (por defecto), a sangre, 16/9 -->
   <template #footer><span>5 min de lectura</span><span>12 jun</span></template>
@@ -64,6 +65,7 @@ const textos = { menu: 'Acciones de', loading: 'Cargando tarjeta', loaded: 'Tarj
 ### Entidad: casilla, icono, insignia, metadata, menú y acciones
 
 ```vue
+<!-- Fragmento: `elegidos`, `textos`, `ir`, `actuar`, `atlas`, `editar` y `compartir` son de tu aplicación -->
 <g-card href="/proyectos/atlas" title="Proyecto Atlas" subtitle="Equipo de datos" badge="Activo" badge-color="success"
         :meta="[{ label: 'Responsable', value: 'Ana Pérez' }, { label: 'Tareas', value: 12 }, { label: 'Actualizado', value: 'hace 2 h', priority: 'low' }]"
         :menu="[{ id: 'rename', label: 'Renombrar' }, { id: 'del', label: 'Eliminar', danger: true }]"
@@ -85,6 +87,7 @@ const textos = { menu: 'Acciones de', loading: 'Cargando tarjeta', loaded: 'Tarj
 ### Acción, alternar y seleccionar con toda la tarjeta
 
 ```vue
+<!-- Fragmento: `planes`, `textos`, `crear`, `soloPendientes` y `plan` son de tu aplicación -->
 <g-card interaction="button" title="Nuevo proyecto" description="Empieza desde cero o con una plantilla." :labels="textos" @activate="crear">
   <template #lead><IconoMas /></template>
 </g-card>
@@ -111,6 +114,7 @@ Navegar, accionar, alternar y seleccionar con toda la tarjeta son **excluyentes*
 ### Métrica, estado, vacío
 
 ```vue
+<!-- Fragmento: `acciones`, `textos`, `ir` y `recargar` son de tu aplicación -->
 <g-card href="/ingresos" title="Ingresos mensuales" :menu="acciones" :labels="textos" @navigate="ir">
   <g-metric label="Ingresos" value="$48,200" trend="+12%" direction="up" trend-color="success" context="vs. mes anterior" size="lg"></g-metric>
   <template #footer><span>Actualizado 09:41</span></template>
@@ -127,6 +131,7 @@ Navegar, accionar, alternar y seleccionar con toda la tarjeta son **excluyentes*
 ### Carga (esqueleto)
 
 ```vue
+<!-- Fragmento: `cargando`, `meta`, `acciones` y `textos` son de tu aplicación -->
 <g-card :loading="cargando" title="Proyecto Atlas" subtitle="Equipo de datos" badge="Activo" :meta="meta" :menu="acciones" :labels="textos">
   <template #actions><g-btn>Abrir</g-btn></template>
 </g-card>
@@ -143,6 +148,7 @@ Con `loading` los datos no existen: el esqueleto se **deriva de lo que la tarjet
 ### Horizontal con región secundaria, y lista
 
 ```vue
+<!-- Fragmento: `personas`, `textos`, `ir`, `actual` y `acciones` son de tu aplicación -->
 <g-card href="/rutas/centro" orientation="auto" media-position="start" eyebrow="Resultado" title="Recorrido por el centro histórico"
         description="Un recorrido a pie por las plazas y mercados." :meta="[{ label: 'Duración', value: '3 h' }]" :labels="textos" @navigate="ir">
   <template #media><img src="/centro.jpg" alt=""></template>
@@ -164,11 +170,12 @@ Con `loading` los datos no existen: el esqueleto se **deriva de lo que la tarjet
 ### Router: `navigate` cancelable
 
 ```vue
+<!-- Fragmento: `router`, `id` y `textos` son de tu aplicación -->
 <g-card :href="router.resolve({ name: 'proyecto', params: { id } }).href" title="Proyecto Atlas" :labels="textos"
         @navigate="({ event, href }) => { if (!event.metaKey && !event.ctrlKey) { event.preventDefault(); router.push(href) } }"></g-card>
 ```
 
-`navigate` llega con el **evento nativo**: `preventDefault()` (síncrono) evita la navegación del navegador. No hay prop `to`: el enlace sigue siendo un `<a href>` real y, si no cancelas con modificadores, «abrir en pestaña nueva» sigue funcionando.
+`navigate` llega con el **evento nativo**: `preventDefault()` (síncrono) evita la navegación del navegador. No hay prop `to`: el enlace sigue siendo un `<a href>` real y, si no cancelas con modificadores, «abrir en pestaña nueva» sigue funcionando. **Con un `target` que no sea vacío ni `_self`** (`_blank`, un nombre de ventana, `_parent`, `_top`) tampoco se emite `navigate`, no se cancela el clic y el navegador abre el enlace en ese contexto (#574, prueba unitaria de `GCard.test.js`; `target=""` y `_self` sí emiten). Un `<base target>` del documento no cuenta.
 
 ## Props
 
@@ -233,7 +240,7 @@ Un valor fuera de la lista muestra una advertencia en desarrollo. **El component
 
 | Evento | Payload | Cuándo |
 | --- | --- | --- |
-| `navigate` | `{ event, href }` | `link`: el usuario activa el enlace. **Cancelable** con `event.preventDefault()` |
+| `navigate` | `{ event, href }` | `link`: el usuario activa el enlace (sin `target` de otro contexto, #574). **Cancelable** con `event.preventDefault()` |
 | `activate` | `{ event }` | `button`: el usuario activa el botón principal |
 | `update:modelValue` | Boolean, Array o el `value` elegido | `select`, `toggle` o casilla explícita |
 | `action` | `{ id }` (y `checked`) | Elemento del menú elegido |

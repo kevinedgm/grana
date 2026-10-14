@@ -4,7 +4,7 @@ Campo de texto de una línea, completo: etiqueta, ayuda, mensaje de error, icono
 
 **Etiqueta:** `<g-input>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/input/auditoria.md`](../../../../../design/lab/input/auditoria.md)) · **Desde:** 0.1.0
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0` (usa `useId`).
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0` (usa `useId`).
 
 ## Uso
 
@@ -17,6 +17,7 @@ createApp(App).use(Grana).mount('#app')
 ```
 
 ```vue
+<!-- Fragmento: `correo`, `errorCorreo` y `validar` son de tu aplicación -->
 <g-input v-model="correo" label="Correo" type="email" required autocomplete="email"
          hint="Te enviaremos el comprobante." :error="errorCorreo" @blur="validar" />
 ```
@@ -32,10 +33,13 @@ Los atributos nativos (`name`, `placeholder`, `maxlength`, `autocomplete`, `inpu
 | `modelValue` (`v-model`) | String | | `''` |
 | `variant` | String | `outline` `soft` | `outline` |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` |
-| `density` | String | `default` `comfortable` `compact` | `default` |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la de `GForm`; fuera de un formulario, `default` |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | sin valor: foco del tema |
 | `rounded` | String | `none` `xs` `sm` `md` `lg` `xl` `pill` | sin valor: radio `sm` del tema |
-| `block` | Boolean | | `false` |
+| `block` | Boolean | | sin valor: dentro de `GFormLayout`, `GFormRow` o `GFieldGroup`, `true`; fuera, `false` |
+| `prefix`, `suffix` | String | texto visible dentro de la caja, antes y después del valor (`$`, `kg`, `%`) | sin valor |
+| `prefixLabel`, `suffixLabel` | String | expansión accesible del prefijo y del sufijo («kilogramos»); con ella, el símbolo pasa a `aria-hidden` y la expansión describe al campo | sin valor |
+| `output` | String | valor que calcula la aplicación: `<output>` cortés al final de la caja, tras el sufijo; no se envía | sin valor |
 | `disabled` | Boolean | | `false` |
 | `readonly` | Boolean | | `false` |
 | `loading` | Boolean | | `false` |
@@ -43,6 +47,9 @@ Los atributos nativos (`name`, `placeholder`, `maxlength`, `autocomplete`, `inpu
 | `label` | String | | sin valor |
 | `hint` | String | | sin valor |
 | `error` | String | | sin valor |
+| `warning` | String | Advertencia: no bloquea ni pone `aria-invalid`; el mensaje con prioridad `error` › `warning` › `valid` | sin valor |
+| `valid` | String | mensaje de válido útil (mismo mensaje único, última prioridad) | sin valor |
+| `mark` | Boolean | `false` quita la marca de la convención de `GForm` | sin valor (la decide `GForm`) |
 | `required` | Boolean | | `false` |
 | `counter` | Boolean | | `false` |
 | `showPasswordLabel` | String | | sin valor |
@@ -64,6 +71,7 @@ Un valor fuera de la lista muestra una advertencia en desarrollo. Otros tipos de
 - **`id`:** si no lo das, se genera uno estable; de él derivan los ids de la ayuda y del error.
 
 ```vue
+<!-- Fragmento: `clave` es de tu aplicación -->
 <g-input v-model="clave" label="Contraseña" type="password" required
          show-password-label="Mostrar contraseña" hide-password-label="Ocultar contraseña" />
 ```
@@ -96,6 +104,7 @@ Los demás eventos (`focus`, `blur`, `change`, `keydown`…) no se declaran: al 
 Los iconos son de [Lucide](https://lucide.dev) con [`GIcon`](../GIcon/README.md) en el slot: los de la lista de la librería sin más; los demás (`search`, `mail`…) los registra tu aplicación con `createIcons` importándolos de `lucide-static` (ver el README de `GIcon`).
 
 ```vue
+<!-- Fragmento: `q` es de tu aplicación -->
 <g-input v-model="q" label="Buscar" type="search">
   <template #prepend><g-icon name="search"></g-icon></template>
   <template #append><g-icon name="circle-check"></g-icon></template>
@@ -109,6 +118,7 @@ Los iconos son de [Lucide](https://lucide.dev) con [`GIcon`](../GIcon/README.md)
 Un slot con alcance: recibe `size`, `density` y `disabled` del campo, para que el botón tenga la misma altura y se deshabilite con él. Pon **un** `GBtn`.
 
 ```vue
+<!-- Fragmento: `suscribir` y `correo` son de tu aplicación -->
 <form @submit.prevent="suscribir">
   <g-input v-model="correo" label="Correo" type="email" block>
     <template #action="{ size, density, disabled }">
@@ -213,11 +223,12 @@ Las emite el componente y las estiliza `GInput.css`: `g-input`, `g-input--varian
 
 ## Limitaciones conocidas
 
+- **Padre que se ajusta al contenido (#562).** Dentro de un padre que se ajusta al contenido (celda de tabla `auto`, rejilla con `justify-items: center`, flex con `fit-content`) el campo toma su ancho por defecto (`--g-space-1 × 60`; `× 90` con botón de acción) en lugar de colapsar a 0; con un padre que da ancho no cambia nada, y en una `GFormRow` no se aplica. Banco `design/lab/contencion/verificar.mjs`, 297/297 en los tres motores. Ver `api.md` «Contención en línea y ancho intrínseco».
 - **Botón mostrar/ocultar con texto largo.** Con "Mostrar contraseña" mide unos 129px y en el ancho por defecto (240px) deja unos 77px al campo. Si traduces a un texto más largo, considera `block` o un texto más corto. No hay icono ni slot para sustituirlo.
 - **Texto de 14px en táctil.** El texto sigue el tamaño del tema (`body-sm`, 14px por defecto); iOS Safari amplía la página al enfocar un campo con menos de 16px. Sube `fontSize` del tema a 16 o más, o usa `size="lg"` o `"xl"`.
 - **Un solo botón de acción,** sin menús ni botón a la izquierda; sin variante separada del campo.
 - **Umbral de apilado** de ~300px: es una constante de diseño (DECISIONS.md #34), no se cambia desde el tema.
-- No hay tema oscuro todavía.
+- **Tema oscuro:** `grana.css` ya trae el esquema oscuro por defecto (`defaults.css`): sigue `prefers-color-scheme` y se fuerza con `data-theme="dark"` o `data-theme="light"` en cualquier elemento (ver [«Tema oscuro» del README raíz](../../../../../README.md#tema-oscuro)). Al documentar no se repitieron en oscuro las cifras de contraste de este README.
 - **Sin verificar:** un lector de pantalla real (si la región viva junto a `aria-describedby` duplica el anuncio del error, y cómo se anuncia el conjunto con acción), las preferencias reales de `prefers-reduced-motion` y `forced-colors` (las reglas están escritas y se comprobaron aplicadas sin condición), el zoom al 200%, un dispositivo táctil real, y el autocompletado con gestores de contraseñas.
 
 ## Fuentes

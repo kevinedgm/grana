@@ -6,7 +6,7 @@ No es masonry, no ordena por relevancia, no tiene superficie, semántica de form
 
 **Etiqueta:** `<g-adaptive-layout>` · **Estado:** `candidate` (auditoría de coco, ronda 2, sin defectos bloqueantes; ver [`design/lab/adaptive-layout/auditoria-coco.md`](../../../../../design/lab/adaptive-layout/auditoria-coco.md)) · **Desde:** 0.1.0 · **Entrada:** paquete principal `@grana/vue`
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (banco [`playground/adaptive-layout.html`](../../../playground/adaptive-layout.html) y sección `GAdaptiveLayout` del playground, `#sec-adaptive`). Es **opt-in**: no cambia `GFormLayout`, `GFormRow` ni sus reglas.
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (banco [`playground/adaptive-layout.html`](../../../playground/adaptive-layout.html) y sección `GAdaptiveLayout` del playground, `#sec-adaptive`). Es **opt-in**: no cambia `GFormLayout`, `GFormRow` ni sus reglas.
 
 ## Uso
 
@@ -94,6 +94,7 @@ Solo las **excepciones** necesitan una pista, y va **en el propio hijo directo**
 Clase y propiedades son **ortogonales** y se combinan (`g-adapt-short` con `--g-adapt-chars: 4` es familia corta con capacidad 4). Las familias son preferencias relativas a la fuente real del hijo, no medidas en píxeles.
 
 ```vue
+<!-- Fragmento: `esquema` y `municipios` son de tu aplicación -->
 <!-- Excepciones: el DOM no dice cuánto mide un código postal ni que las referencias van solas -->
 <GAdaptiveLayout>
   <GInput class="g-adapt-short" style="--g-adapt-chars: 5" label="Código postal" name="cp" inputmode="numeric" />
@@ -137,6 +138,7 @@ Clase y propiedades son **ortogonales** y se combinan (`g-adapt-short` con `--g-
 Otro `GAdaptiveLayout` como hijo directo forma un **grupo**: su raíz es una unidad contigua para el padre y su motor interior parte sus propios hijos con el ancho asignado, sin deshacerse en el padre.
 
 ```vue
+<!-- Fragmento: `datos` es de tu aplicación -->
 <!-- Contenido mixto: avatar natural, grupo con peso propio y la ficha en su línea -->
 <GAdaptiveLayout>
   <GAvatar name="María López" size="xl" />

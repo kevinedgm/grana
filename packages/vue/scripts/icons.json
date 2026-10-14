@@ -1,6 +1,7 @@
 {
   "library": [
     "arrow-down",
+    "arrow-right",
     "arrow-up",
     "audio-lines",
     "calendar",
@@ -18,6 +19,7 @@
     "copy",
     "diamond",
     "ellipsis-vertical",
+    "external-link",
     "file-pen-line",
     "file-text",
     "git-compare",

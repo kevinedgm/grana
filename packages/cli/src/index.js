@@ -3,6 +3,8 @@ import { readConfig } from './config.js'
 import { generateTheme, toCss } from './theme.js'
 import { validateTheme } from './validate.js'
 import { buildDoc, activeContrast } from './doc.js'
+import { validateZone, zoneDiagnostics } from './zone.js'
+import { sidebarCurrentDiagnostics } from './sidebarCurrent.js'
 import { DEFAULTS } from './defaults.js'
 import { MIN_DISTANCE, anchorLabel } from './palette.js'
 
@@ -12,6 +14,8 @@ export { validateTheme, COLOR_NAMES } from './validate.js'
 export { deriveColor, deriveDarkColor } from './derive.js'
 export { buildDoc, activeContrast } from './doc.js'
 export { usageOf } from './usage.js'
+export { measureSidebarPairs, sidebarCurrentDark, sidebarCurrentDiagnostics, SIDEBAR_SLOTS, SIDEBAR_PAIRS } from './sidebarCurrent.js'
+export { deriveZone, guard as zoneGuard, validateZone, zoneOfTheme, zoneDiagnostics, ZONE_SOURCES, sunkenMax } from './zone.js'
 export { anchorLabel, semanticAdjustments, tintedNeutrals, categoryBases, separate, distance, MIN_DISTANCE } from './palette.js'
 export { contrast, parseHex, toHex, toOklch, fromOklch } from './color.js'
 export { DEFAULTS, DARK } from './defaults.js'
@@ -26,7 +30,7 @@ export const buildTheme = (raw, { source } = {}) => {
   if (errors.length) {
     return { ok: false, css: null, generated: {}, tokens: {}, notes: [], diagnostics: [], issues: errors.map((e) => ({ severity: 'error', kind: 'config', why: 'La configuración no es válida: corrígela y vuelve a ejecutar.', ...e })) }
   }
-  const { generated, tokens, dark, derived } = generateTheme(config)
+  const { generated, tokens, dark, derived, zone, zoneBlock } = generateTheme(config)
   // Sin `accent` del usuario, el acento se deriva de la marca: los avisos lo dicen (tokens.md §17.12)
   const accentDerived = config.accent === undefined && config.brand !== undefined
   const issues = validateTheme(tokens, { generated: config.overrides ?? {}, accentDerived })
@@ -37,6 +41,9 @@ export const buildTheme = (raw, { source } = {}) => {
   } else if (Object.keys(generated).some((k) => k.startsWith('--g-color-'))) {
     issues.push({ id: 'dark-disabled', severity: 'warning', message: '`dark: false`: el oscuro queda desactivado (también con el sistema oscuro).', why: 'Con `data-theme="dark"` forzado se aplicaría el oscuro de los defaults mezclado con los colores de tu tema claro, sin garantía de contraste. No uses `data-theme="dark"` o activa `dark`.' })
   }
+  // Zona de marca (tokens.md §44.7): en cada esquema; un `overrides` que no cumpla es error
+  issues.push(...validateZone(tokens))
+  if (dark.enabled) issues.push(...validateZone(dark.tokens, { scheme: 'dark' }).map((i) => ({ ...i, scheme: 'dark' })))
   const ok = !issues.some((i) => i.severity === 'error')
   // Transparencia (tokens.md §17.13): toda decisión cromática automática queda registrada, con su origen, entrada, valor y estado
   const r3 = (n) => Math.round(n * 1000) / 1000
@@ -62,6 +69,9 @@ export const buildTheme = (raw, { source } = {}) => {
   // `active` como trazo sobre la superficie: diagnóstico informativo, no bloquea (#228)
   const act = activeContrast(tokens, dark.enabled ? dark.tokens : null)
   if (act) diagnostics.push(act)
+  // Ranuras del item actual de GSidebar (tokens.md §43, #614): informativo, y la derivación del oscuro si la hubo
+  diagnostics.push(...sidebarCurrentDiagnostics(config, tokens, dark))
+  diagnostics.push(...zoneDiagnostics(zone, { overrides: config.overrides ?? {} }))
   if (derived.categories.length) diagnostics.push({ code: 'categories', source: 'brand', status: 'derived', message: `${derived.categories.length} categorías (--g-color-cat-1 a cat-${derived.categories.length}): mismo L y C, tonos cada ${Math.round(360 / derived.categories.length)}°. Son colores categóricos de interfaz, no una paleta de gráficas.` })
   // Las colisiones sin aplicar llegan al usuario como aviso (con la alternativa); el resto, como nota
   for (const d of diagnostics) {
@@ -70,6 +80,6 @@ export const buildTheme = (raw, { source } = {}) => {
   }
   const notes = diagnostics.filter((d) => d.code !== 'semantic-close' && d.code !== 'override')
   const collisions = diagnostics.filter((d) => d.code === 'semantic-close').map(({ cssVar, recommended, distance, message }) => ({ code: 'semantic-close', cssVar, token: cssVar.replace('--g-color-', ''), distance, recommended, message }))
-  const doc = ok ? buildDoc({ name: config.name, light: tokens, dark: dark.enabled ? dark.tokens : null, source, generated, overrides: config.overrides ?? {}, derived, collisions }) : null
-  return { ok, css: ok ? toCss(generated, { source, dark }) : null, doc, generated, tokens, dark, derived, notes, diagnostics, issues }
+  const doc = ok ? buildDoc({ name: config.name, light: tokens, dark: dark.enabled ? dark.tokens : null, source, generated, overrides: config.overrides ?? {}, derived, collisions, zone }) : null
+  return { ok, css: ok ? toCss(generated, { source, dark, zone: zoneBlock }) : null, doc, generated, tokens, dark, derived, zone, zoneBlock, notes, diagnostics, issues }
 }

@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GCardGroup · banco del componente real (bruno)</title>
+<!-- Banco ligero de GCardGroup con el componente real de dist/ (dueño: bruno): GCard, GMetric y GTable del principal y
+     GCardGroup de su entrada propia (dist/card-group.umd.js, global GranaCardGroup, #610). Los datos y la receta de unión
+     con los filtros de la tabla son los de design/lab/card-group/r01/ (card-group.md «Receta», #608). Lo verifica
+     design/lab/theme-playground/tests/card-group.spec.mjs. Parámetros: ?dir=rtl · ?dark=1 -->
+<link rel="stylesheet" href="../dist/fonts.css">
+<link rel="stylesheet" href="../dist/grana.css">
+<style>
+  /* Andamio del banco (no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:1180px;margin:0 auto;padding-block-end:40vh}
+  h1{font-size:22px;margin:0 0 4px} h2{font-size:17px;margin:32px 0 8px}
+  .pg-lead{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 12px;max-width:100ch}
+  .log{font-family:ui-monospace,monospace;font-size:12px;color:var(--g-color-text-muted);margin:8px 0 0}
+  @media (max-width: 600px){ body{padding:16px} }
+</style>
+</head>
+<body>
+<main id="app">
+  <h1>GCardGroup</h1>
+  <p class="pg-lead">Tarjetas de métrica que filtran la región de debajo. Una sola parada de Tab (<code>role="toolbar"</code>); las flechas mueven el foco sin filtrar; Espacio o Intro filtran; volver a pulsar suelta. Con el slot <code>panel</code>, A «Lengüeta»: el puente une la pulsada al marco de la tabla. La tarjeta pulsada se lee de los filtros de la tabla (receta): quitar el chip la suelta.</p>
+
+  <h2 id="h-tab">Lengüeta (con panel) · una a la vez</h2>
+  <g-card-group id="cg-tab" v-model="estadoTab" label="Filtrar facturas por estado" @change="log('tab', $event)">
+    <g-card v-for="m in items" :key="m.value" :value="m.value" :title="m.title" as="div" density="compact">
+      <g-metric label="Facturas" :value="String(m.count)" :trend="m.trend" :direction="m.direction" :trend-color="m.trendColor" :context="m.context"></g-metric>
+    </g-card>
+    <template #panel="{ filtered }">
+      <g-table id="t-tab" :columns="columns" :rows="rows" caption="Facturas" :page-size="30" :labels="tableLabels" v-model:filters="st.tab.filters" :data-filtered="String(filtered)"></g-table>
+    </template>
+  </g-card-group>
+
+  <h2 id="h-multi">Lengüeta · varias (multiple)</h2>
+  <g-card-group id="cg-multi" v-model="estadoMulti" multiple labelledby="h-multi" @change="log('multi', $event)">
+    <g-card v-for="m in items" :key="m.value" :value="m.value" :title="m.title" as="div" density="compact">
+      <g-metric label="Facturas" :value="String(m.count)" :trend="m.trend" :direction="m.direction" :trend-color="m.trendColor" :context="m.context"></g-metric>
+    </g-card>
+    <template #panel>
+      <g-table id="t-multi" :columns="columns" :rows="rows" caption="Facturas" :page-size="30" :labels="tableLabels" v-model:filters="st.multi.filters"></g-table>
+    </template>
+  </g-card-group>
+
+  <h2 id="h-grid">Rejilla (sin panel) · con una tarjeta estática y una deshabilitada</h2>
+  <g-card-group id="cg-grid" v-model="st.grid" label="Filtrar por estado (rejilla)" controls="t-grid-ext" @change="log('grid', $event)">
+    <g-card title="Total" as="div" density="compact"><g-metric label="Facturas" :value="String(rows.length)"></g-metric></g-card>
+    <g-card v-for="m in items" :key="m.value" :value="m.value" :title="m.title" as="div" density="compact" :disabled="m.value === st.gridDisabled">
+      <g-metric label="Facturas" :value="String(m.count)" :trend="m.trend" :direction="m.direction" :trend-color="m.trendColor" :context="m.context"></g-metric>
+    </g-card>
+  </g-card-group>
+  <p><button type="button" id="cg-after">Después de la rejilla</button></p>
+  <p id="t-grid-ext" class="log">Región externa (controls): {{ st.grid ?? 'todas' }}</p>
+  <p class="log" id="cg-log">{{ events.map((e) => e.join(' ')).join(' · ') }}</p>
+</main>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="../dist/grana.umd.js"></script>
+<script src="../dist/card-group.umd.js"></script>
+<script>
+  const Q = new URLSearchParams(location.search)
+  if (Q.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  if (Q.get('dark') === '1') document.documentElement.dataset.theme = 'dark'
+  const { createApp, reactive, computed, ref } = Vue
+
+  const NOMBRES = ['Ana Torres', 'Luis Pérez', 'Marta Ruiz', 'Diego Sanz', 'Sofía León', 'Raúl Gil', 'Elena Vidal', 'Hugo Mora', 'Paula Ríos', 'Iván Soto', 'Nora Cruz', 'Óscar Peña']
+  const ESTADOS = ['pendiente', 'pendiente', 'pagada', 'vencida', 'pagada', 'pendiente', 'pagada', 'en disputa', 'pagada', 'vencida', 'pendiente', 'pagada',
+    'pendiente', 'pagada', 'vencida', 'pagada', 'pendiente', 'pagada', 'en disputa', 'pendiente', 'pagada', 'vencida', 'pendiente', 'pagada']
+  const rows = ESTADOS.map((estado, i) => ({ id: `F-${1041 + i}`, folio: `F-${1041 + i}`, cliente: NOMBRES[i % NOMBRES.length], correo: `${NOMBRES[i % NOMBRES.length].split(' ')[0].toLowerCase()}@correo.mx`, estado, total: 1200 + ((i * 3779) % 14000) }))
+  const count = (e) => rows.filter((r) => r.estado === e).length
+  const items = [
+    { value: 'pendiente', title: 'Pendientes', count: count('pendiente'), trend: '+2', direction: 'up', trendColor: 'neutral', context: 'desde ayer' },
+    { value: 'vencida', title: 'Vencidas', count: count('vencida'), trend: '+1', direction: 'up', trendColor: 'danger', context: 'desde ayer' },
+    { value: 'pagada', title: 'Pagadas', count: count('pagada'), trend: '+3', direction: 'up', trendColor: 'success', context: 'esta semana' },
+    { value: 'en disputa', title: 'En disputa', count: count('en disputa'), trend: '0', direction: 'flat', trendColor: 'neutral', context: 'sin cambios' }
+  ]
+  const columns = [
+    { key: 'cliente', label: 'Cliente', title: 'cliente', subtitle: 'correo', filter: { type: 'text' } },
+    { key: 'folio', label: 'Folio', min: 18 },
+    { key: 'estado', label: 'Estado', min: 20, filter: { type: 'enum', options: ['pendiente', 'vencida', 'pagada', 'en disputa'] } },
+    { key: 'total', label: 'Total', align: 'end', min: 18, format: (v) => `$${v.toLocaleString('es-MX')}`, filter: { type: 'number', unit: '$' } }
+  ]
+  const tableLabels = {
+    loading: 'Cargando facturas…', empty: 'Sin facturas todavía.', emptyFiltered: 'Ninguna factura cumple estos filtros.', clearFilters: 'Limpiar filtros', results: '{count} facturas',
+    slow: 'Sigue cargando…', failed: 'No se pudieron cargar.', retry: 'Reintentar', actionsHeader: 'Acciones',
+    filters: { group: 'Filtros de facturas', add: 'Agregar filtro', clear: 'Limpiar filtros', filterBy: 'Filtrar por {label}', edit: 'Editar filtro: {summary}', remove: 'Quitar filtro: {summary}', apply: 'Aplicar', cancel: 'Cancelar', required: 'Indica un valor para aplicar el filtro.', range: '«Desde» debe ser menor o igual que «hasta».', rule: 'Regla', value: 'Valor', from: 'Desde', to: 'Hasta', and: 'y', days: '{n} días', results: '{count} facturas', ops: { contains: 'contiene', is: 'es', starts: 'empieza por', gt: 'mayor que', lt: 'menor que', eq: 'igual a', between: 'entre', after: 'después de', before: 'antes de', last: 'últimos', in: 'es cualquiera de' } },
+    pagination: { nav: 'Paginación de facturas', previous: 'Página anterior', next: 'Página siguiente', page: 'Página {page}', range: '{from}–{to} de {total}', compact: 'Página {page} de {pages}' }
+  }
+
+  const app = createApp({
+    setup() {
+      const st = reactive({ tab: { filters: [] }, multi: { filters: [] }, grid: null, gridDisabled: '' })
+      const events = reactive([])
+      // Receta (card-group.md «Receta con los filtros de la tabla», #608): la tarjeta pulsada se LEE de los filtros
+      const one = (s) => computed({
+        get: () => { const f = s.filters.find((x) => x.key === 'estado' && x.op === 'in'); return f && f.value.length === 1 ? f.value[0] : null },
+        set: (v) => { const rest = s.filters.filter((x) => x.key !== 'estado'); s.filters = v == null ? rest : [...rest, { key: 'estado', op: 'in', value: [v] }] }
+      })
+      const many = (s) => computed({
+        get: () => { const f = s.filters.find((x) => x.key === 'estado' && x.op === 'in'); return f ? f.value : [] },
+        set: (v) => { const rest = s.filters.filter((x) => x.key !== 'estado'); s.filters = v.length ? [...rest, { key: 'estado', op: 'in', value: [...v] }] : rest }
+      })
+      const estadoTab = one(st.tab)
+      const estadoMulti = many(st.multi)
+      const log = (k, e) => events.push([k, String(e.value), String(e.pressed)])
+      window.cg = st
+      window.cgEvents = events
+      window.cgModel = { get tab() { return estadoTab.value }, set tab(v) { estadoTab.value = v }, get multi() { return estadoMulti.value }, set multi(v) { estadoMulti.value = v } }
+      return { st, events, estadoTab, estadoMulti, log, items, rows, columns, tableLabels }
+    }
+  })
+  app.use(Grana).use(GranaCardGroup)
+  app.mount('#app')
+  window.cgApp = app
+  requestAnimationFrame(() => requestAnimationFrame(() => { window.__ready = true }))
+</script>
+</body>
+</html>

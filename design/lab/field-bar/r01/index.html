@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Barra de campos · r01</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="./bar.css">
+<style>
+/* Solo la página del laboratorio, no el componente */
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none !important}
+body{margin:0;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+.lab-bar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:var(--g-space-2);padding:var(--g-space-3) var(--g-space-4);border-block-end:var(--g-border-width) solid var(--g-color-border)}
+.lab-brand{font-weight:var(--g-text-action-weight)}
+.lab-links{display:flex;flex-wrap:wrap;gap:var(--g-space-3)}
+.lab-links a{color:var(--g-color-accent-text)}
+.lab-links a[aria-current]{font-weight:var(--g-text-action-weight);color:var(--g-color-text)}
+.lab{display:grid;gap:var(--g-space-6);max-inline-size:76rem;margin:0 auto;padding:var(--g-space-6) var(--g-space-4) var(--g-space-12)}
+.lab > *{min-inline-size:0}
+.lab-title{margin:0 0 var(--g-space-2);font-family:var(--g-font-title);font-size:var(--g-text-title-size);line-height:var(--g-text-title-line);font-weight:var(--g-text-title-weight)}
+.lab-lead{margin:0;max-inline-size:48rem;color:var(--g-color-text-muted)}
+.lab-how{margin:var(--g-space-2) 0 0;max-inline-size:48rem;font-size:var(--g-text-body-sm-size);color:var(--g-color-text-muted)}
+.lab-case{display:grid;gap:var(--g-space-3)}
+.lab-case h2{margin:0;font-family:var(--g-font-title);font-size:var(--g-text-title-sm-size);line-height:var(--g-text-title-sm-line);font-weight:var(--g-text-title-sm-weight)}
+.lab-ctl{display:flex;flex-wrap:wrap;align-items:center;gap:var(--g-space-2) var(--g-space-4);font-size:var(--g-text-body-sm-size)}
+.lab-ctl label{display:inline-flex;align-items:center;gap:var(--g-space-2)}
+.lab-ctl input[type=range]{inline-size:min(100%, 18rem)}
+.lab-ctl select,.lab-ctl input{font:inherit}
+.lab-ctl :focus-visible{outline:var(--g-focus-width) solid var(--g-color-focus);outline-offset:var(--g-focus-offset)}
+#lab{--w:1100px}
+.frame{inline-size:min(100%, var(--w));padding:var(--g-space-5) var(--g-space-4);border:var(--g-border-width) dashed var(--g-color-border-strong);border-radius:var(--g-radius-md);background:var(--g-color-surface)}
+/* «Portada»: banda de color de marca como fondo (sustituye a una foto) para la barra que se apoya sobre otra superficie */
+.frame--hero{padding-block:calc(var(--g-space-5) * 2);background:linear-gradient(135deg, var(--g-color-brand-soft), var(--g-color-accent-soft));border-style:solid;border-color:transparent}
+.lab-note{margin:0;font-size:var(--g-text-body-sm-size);color:var(--g-color-text-muted);max-inline-size:52rem}
+kbd{font:inherit;font-size:var(--g-text-caption-size);padding:0 var(--g-space-1);border:var(--g-border-width) solid var(--g-color-border-strong);border-radius:var(--g-radius-xs)}
+</style>
+</head>
+<body>
+<header class="lab-bar">
+  <span class="lab-brand">Barra de campos · r01 · kiwi</span>
+  <nav class="lab-links" aria-label="Concepto" id="pick"></nav>
+</header>
+<main class="lab" id="lab">
+  <div>
+    <h1 class="lab-title" id="title"></h1>
+    <p class="lab-lead" id="lead"></p>
+    <p class="lab-how" id="try"></p>
+  </div>
+  <div class="lab-ctl" id="ctl">
+    <label>Ancho del marco <input type="range" id="w" min="280" max="1240" step="10" value="1100"> <output id="wout">1100px</output></label>
+  </div>
+  <div id="app"></div>
+</main>
+<script src="../../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../../../packages/vue/dist/combobox.umd.js"></script>
+<script src="../../lucide-icons.js"></script>
+<script src="./bar.js"></script>
+<script>
+(function () {
+  const q = new URLSearchParams(location.search)
+  const C = ['base', 'A', 'B', 'C'].includes(q.get('c')) ? q.get('c') : 'A'
+  const rtl = q.get('dir') === 'rtl'
+  if (rtl) document.documentElement.dir = 'rtl'
+  const opts = {
+    appearance: q.get('appearance') === 'segmented' ? 'segmented' : 'joined',
+    shape: ['pill', 'rounded', 'square'].includes(q.get('shape')) ? q.get('shape') : (C === 'base' ? 'rounded' : 'pill'),
+    variant: ['outline', 'soft', 'raised'].includes(q.get('variant')) ? q.get('variant') : (C === 'A' ? 'raised' : 'outline'),
+    layout: ['row', 'column'].includes(q.get('layout')) ? q.get('layout') : 'auto',
+    size: ['sm', 'md', 'lg'].includes(q.get('size')) ? q.get('size') : 'md'
+  }
+  const TXT = {
+    base: ['Base · referencia convencional',
+      'Lo que haría cualquier framework, con los neutros del tema: los campos en fila con su etiqueta fuera de la caja, las cajas fusionadas (bordes compartidos, radio solo en los extremos) y el botón acoplado al final. Fija lo común a A, B y C: cada campo conserva su etiqueta, su nombre, su teclado y su mensaje; la raíz es un punto de referencia «search» con nombre; Tab sigue el orden visual; cuando los mínimos no caben, la barra pasa a columna (medido por su propia raíz).',
+      'Pulsa «Buscar» con el destino vacío: el mensaje queda bajo su segmento y el foco va al primero que falla. Estrecha el marco por debajo de ~620px: pasa a columna.'],
+    A: ['A · Costura',
+      'Una sola superficie. La etiqueta vive dentro del segmento (arriba la etiqueta, abajo el valor) y es la del propio campo. Entre segmentos hay costuras, no bordes. Al entrar en un segmento, las costuras de sus dos lados se abren, el segmento se eleva como una lente sobre la barra, que se hunde un tono, y gana ancho para lo que se escribe; los demás ceden sin bajar de su mínimo. El selector de fechas se ancla a la barra entera (dos meses).',
+      'Recorre con <kbd>Tab</kbd>: la lente viaja y el segmento activo crece. Cambia <code>?appearance=segmented</code> (bandeja de segmentos), <code>?shape=rounded|square</code>, <code>?variant=outline|soft</code>. Estrecha el marco: columna con costuras horizontales.'],
+    B: ['B · Frase',
+      'Sin caja: la barra es una frase con huecos. Las palabras que unen («desde», «a», «el») son la etiqueta visible de cada campo —su propio <label>— con un calificador oculto que completa el nombre («desde (origen)»). La frase se pliega como un párrafo: no hay fila ni columna, ni umbral. El filtro no necesita botón: se aplica al cambiar.',
+      'Estrecha el marco hasta 320px: la frase se reparte en líneas sin separar una palabra de su hueco. Pulsa «Buscar» con el destino vacío: el hueco se marca y el mensaje queda bajo él.'],
+    C: ['C · Resumen que se abre',
+      'En reposo la barra es su resumen, una línea de datos («Ciudad de México → Cancún · 12 oct») que cabe en cualquier sitio, incluso pegada arriba al desplazar. Cada dato es un botón: al pulsarlo, la barra se despliega en sitio con la cara A y el foco va a ese campo. Al salir de la barra (o con Esc sin paneles abiertos) se recoge y el foco vuelve al dato. Estrecho: la edición abre una hoja (GDialog).',
+      'Pulsa «Cancún» o «Fecha»: el campo correcto recibe el foco. Sal con <kbd>Tab</kbd> o pulsa <kbd>Esc</kbd>. Estrecha el marco por debajo de ~560px y pulsa un dato: se abre la hoja.']
+  }
+  document.getElementById('title').textContent = TXT[C][0]
+  document.getElementById('lead').textContent = TXT[C][1]
+  document.getElementById('try').innerHTML = '<strong>Pruébalo.</strong> ' + TXT[C][2]
+  const pick = document.getElementById('pick')
+  for (const k of ['base', 'A', 'B', 'C']) {
+    const a = document.createElement('a'); a.href = `?c=${k}${rtl ? '&dir=rtl' : ''}`; a.textContent = k === 'base' ? 'Base' : k
+    if (k === C) a.setAttribute('aria-current', 'page')
+    pick.append(a)
+  }
+  const r = document.createElement('a'); r.href = `?c=${C}${rtl ? '' : '&dir=rtl'}`; r.textContent = rtl ? 'LTR' : 'RTL'; pick.append(r)
+  const lab = document.getElementById('lab'), w = document.getElementById('w'), wout = document.getElementById('wout')
+  const setW = (v) => { lab.style.setProperty('--w', v + 'px'); w.value = v; wout.textContent = v + 'px' }
+  w.addEventListener('input', () => setW(w.value))
+  if (q.get('w')) setW(Number(q.get('w')))
+  window.__concept = C
+  FieldBarLab.mount('#app', C, opts)
+})()
+</script>
+</body>
+</html>

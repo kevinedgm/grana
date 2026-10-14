@@ -4,7 +4,7 @@ Vista de **revisión de un transcript** de la captura de voz: corregir lo que en
 
 **Etiqueta:** `<g-transcript>` · **Entrada:** `@grana/vue/speech` (no viaja en `@grana/vue`) · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/speech/auditoria-f2.md`](../../../../../design/lab/speech/auditoria-f2.md)) · **Desde:** 0.1.0 · **Fase:** 2 de 3 de la captura de voz
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (playground en `packages/vue/playground/`, sección «Captura de voz», con `?speech=self`: revisión junto a un `GForm` real, diálogo de respaldo forzable, transcript guardado y botones de 320 y 1000 fragmentos). Exige Vue `^3.5.0`. La captura en sí (`createSpeech`, el anfitrión, la pill y los disparadores) está en [`GSpeechHost/README.md`](../GSpeechHost/README.md).
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (playground en `packages/vue/playground/`, sección «Captura de voz», con `?speech=self`: revisión junto a un `GForm` real, diálogo de respaldo forzable, transcript guardado y botones de 320 y 1000 fragmentos). Exige Vue `^3.5.0`. La captura en sí (`createSpeech`, el anfitrión, la pill y los disparadores) está en [`GSpeechHost/README.md`](../GSpeechHost/README.md).
 
 ## Qué es y qué no es
 
@@ -34,6 +34,7 @@ Vista de **revisión de un transcript** de la captura de voz: corregir lo que en
 Coloca la vista **junto a tu formulario** con el transcript de la sesión. Solo tu aplicación conoce su maquetación; un panel superpuesto taparía campos.
 
 ```vue
+<!-- Fragmento: `tab`, `tabs` y `seleccion` son de tu aplicación -->
 <script setup>
 import { reactive } from 'vue'
 import { useSpeech, useSpeechTarget } from '@grana/vue/speech'
@@ -76,6 +77,7 @@ const guardado = createTranscript(await cargarBorrador(id))
 ```
 
 ```vue
+<!-- Fragmento: `guardado` y `speech` son de tu aplicación -->
 <h3 id="tx-title">Transcripción guardada</h3>
 <GTranscript :transcript="guardado" labelledby="tx-title" :speech="speech" />
 ```

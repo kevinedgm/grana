@@ -4,7 +4,7 @@ Navegación lateral (principal o secundaria) que **se transforma con un solo sis
 
 **Etiqueta:** `<g-sidebar>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/sidebar/auditoria.md`](../../../../../design/lab/sidebar/auditoria.md)) · **Desde:** 0.1.0
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`. Usa `<dialog>`, `popover`, `@starting-style` e `interpolate-size` (sin estos dos últimos, las animaciones de cierre y del submenú desaparecen pero todo funciona).
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`. Usa `<dialog>`, `popover`, `@starting-style` e `interpolate-size` (sin estos dos últimos, las animaciones de cierre y del submenú desaparecen pero todo funciona).
 
 ## Uso
 
@@ -17,6 +17,7 @@ createApp(App).use(Grana).mount('#app')
 ```
 
 ```vue
+<!-- Fragmento: `abrirPaleta` es de tu aplicación -->
 <script setup>
 import { ref } from 'vue'
 const actual = ref('home')
@@ -134,6 +135,7 @@ Ninguno tiene valor por defecto (Grana es internacional). Los requeridos avisan 
 ## Navegar
 
 ```vue
+<!-- Fragmento: `actual`, `items`, `labels` y `router` son de tu aplicación -->
 <g-sidebar v-model="actual" :items="items" label="Principal" :labels="labels"
   @navigate="({ item, event }) => { event.preventDefault(); router.push(item.href) }" />
 ```
@@ -189,6 +191,34 @@ Métodos expuestos: `open()`, `close()` (drawer), `toggle()` (contraer/expandir)
 | `user` | Área de usuario al pie. Alcance `{ collapsed }`; **en el riel, solo el avatar con nombre accesible que das tú**; el menú del usuario es tuyo |
 | `toggle-icon`, `search-icon`, `more-icon` | Iconos de los botones de contraer, de búsqueda y de «Más» (normalmente un `GIcon`). En el riel, el icono de `toggle-icon` se voltea; con `flip-rtl`, en RTL los dos espejos se anulan (verificado) |
 
+### Pie de usuario (slot `user`)
+
+El slot no trae marcado propio: tú pones **un botón de ancho completo** con el [`GAvatar`](../GAvatar/README.md), el nombre y el rol. En el riel (`collapsed`) queda solo el avatar y el botón recibe el nombre accesible con `aria-label`; en la barra expandida el nombre ya está escrito, así que el avatar es decorativo y no lleva `label`. Es el patrón del playground (`packages/vue/playground/index.html`, sección de `GSidebar`, `data-test="sb-user-av"`):
+
+```vue
+<!-- Fragmento: `actual`, `items` y `labels` son de tu aplicación -->
+<g-sidebar v-model="actual" :items="items" label="Principal" :labels="labels">
+  <template #user="{ collapsed }">
+    <button type="button" class="pie-usuario"
+            :aria-label="collapsed ? 'Ana García, Administradora' : undefined">
+      <g-avatar name="Ana García" size="md" :categories="8"></g-avatar>
+      <span v-if="!collapsed" class="pie-usuario__texto"><b>Ana García</b><small>Administradora</small></span>
+    </button>
+  </template>
+</g-sidebar>
+```
+
+```css
+/* CSS de tu aplicación (en el playground va en línea) */
+.pie-usuario { display: flex; align-items: center; gap: 10px; inline-size: 100%; min-block-size: 44px;
+  padding: 4px 8px; border: 0; border-radius: 10px; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.pie-usuario__texto { display: flex; flex-direction: column; text-align: start; line-height: 1.25; }
+```
+
+- **Fragmento:** `actual`, `items` y `labels` son los de tu aplicación (ver «Uso»). `:categories="8"` supone que tu tema declara `categories: 8`; sin eso el avatar se queda neutro y avisa en desarrollo (ver [`GAvatar`](../GAvatar/README.md)).
+- **El área táctil la pones tú:** el ejemplo usa `min-block-size: 44px`. `GAvatar` no es interactivo, el CSS de la barra no estiliza el botón del slot (solo el contenedor `g-sidebar__foot`) y el menú de la cuenta (por ejemplo un `GMenu`) también es tuyo; cuida tú su foco visible.
+- Verificado solo en el playground; no medí aquí el contraste del nombre y el rol sobre la barra ni el comportamiento con lector de pantalla.
+
 ## Teclado
 
 | Tecla | Acción |
@@ -238,7 +268,8 @@ Las emite el componente y las estiliza `GSidebar.css`: `g-sidebar` (con `--mode-
 - **El item activo se distingue poco por superficie** (1.08:1 frente a la carcasa con el tema por defecto): lo sostienen su contorno, el peso, el texto pleno y `aria-current`. Está pendiente decidir si se refuerza.
 - **Si tu contenedor tiene el ancho del visor**, la adaptación decide por él: da un `container` razonable. El primer instante tras montar se pinta expandido.
 - **El espacio lo reservas tú** (tokens y `mode-change`): el componente no empuja el contenido.
-- Sin `@starting-style` ni `interpolate-size` (navegadores antiguos), el submenú y las salidas del panel y del drawer no se animan. No hay tema oscuro todavía.
+- Sin `@starting-style` ni `interpolate-size` (navegadores antiguos), el submenú y las salidas del panel y del drawer no se animan.
+- **Tema oscuro:** `grana.css` ya trae el esquema oscuro por defecto (`defaults.css`): sigue `prefers-color-scheme` y se fuerza con `data-theme="dark"` o `data-theme="light"` en cualquier elemento (ver [«Tema oscuro» del README raíz](../../../../../README.md#tema-oscuro)). Al documentar no se repitieron en oscuro las cifras de contraste de este README.
 - **Sin verificar:** un lector de pantalla real (riel, ramas, contadores, panel, píldora, drawer), Firefox y Safari (`popover`, `<dialog>`, `@starting-style`, `interpolate-size`), el navbar y el drawer en un dispositivo táctil real y con el teclado virtual, RTL con un idioma RTL real, cientos de items, y `forced-colors` y `prefers-reduced-motion` reales (los bloques se comprobaron aplicados sin condición).
 
 ## Fuentes

@@ -4,9 +4,9 @@
   "tag": "g-pagination",
   "status": "candidate",
   "since": "0.1.0",
-  "description": "Paginación de una colección: primera, última, la actual y sus vecinas con elipsis; forma compacta («Página N de M») cuando no caben los botones.",
+  "description": "Paginación de una colección: primera, última, la actual y sus vecinas con elipsis; forma compacta («Página N de M») cuando no caben los botones; con pageSizes, selector de filas por página (radios nativos) que conserva la fila ancla.",
   "contract": "design/contracts/pagination.md",
-  "prototype": "design/lab/table/r01/",
+  "prototype": "design/lab/table/r01/ · design/lab/pagination/r02/",
   "style": "packages/vue/src/components/GPagination/GPagination.css",
   "props": [
     {
@@ -22,7 +22,14 @@
     {
       "name": "pageSize",
       "type": "Number",
-      "default": 10
+      "default": 10,
+      "note": "v-model:pageSize (#593). Sin v-model, la paginación guarda el tamaño elegido (espejo)"
+    },
+    {
+      "name": "pageSizes",
+      "type": "Array",
+      "default": null,
+      "note": "Enteros ≥ 1: se ordenan y se depuran (aviso); un pageSize fuera de la lista se añade (aviso). Sin pageSizes no hay selector (#593)"
     },
     {
       "name": "siblings",
@@ -47,9 +54,14 @@
   ],
   "events": [
     {
+      "name": "update:pageSize",
+      "payload": "número",
+      "trigger": "El usuario elige un tamaño en el selector; siempre antes que update:page, en el mismo manejador (#593, #594)"
+    },
+    {
       "name": "update:page",
       "payload": "número",
-      "trigger": "El usuario cambia de página"
+      "trigger": "El usuario cambia de página; tras update:pageSize, en el mismo ciclo y solo si la página cambia (página = ⌊índice del ancla ÷ tamaño nuevo⌋ + 1)"
     }
   ],
   "slots": [],
@@ -64,17 +76,54 @@
     "--g-text-body-sm-{size|line}",
     "--g-text-action-weight",
     "--g-border-width",
-    "--g-focus-{width|offset}"
+    "--g-focus-{width|offset}",
+    "--g-color-surface",
+    "--g-color-border",
+    "--g-shadow-1",
+    "--g-duration-fast",
+    "--g-ease-standard"
   ],
   "states": [
     "full",
     "compact",
     "current",
-    "disabled"
+    "disabled",
+    "size-selected",
+    "dock",
+    "stuck"
   ],
   "pending": [
     "Lector de pantalla real",
     "Firefox y Safari",
     "Táctil real y zoom al 200%"
+  ],
+  "labels": {
+    "nav": "Nombre del nav (aria-label)",
+    "previous": "Botón «Página anterior»",
+    "next": "Botón «Página siguiente»",
+    "page": "Nombre de cada página, plantilla {page}",
+    "range": "Rango visible, plantilla {from}, {to}, {total}",
+    "compact": "Forma compacta, plantilla {page}, {pages}",
+    "pageSize": "Nombre visible del selector de filas por página («Filas por página»); obligatorio con pageSizes (#593)"
+  },
+  "classes": [
+    "g-pagination",
+    "g-pagination--compact",
+    "g-pagination--dock",
+    "is-stuck",
+    "g-pagination__range",
+    "g-pagination__controls",
+    "g-pagination__step",
+    "g-pagination__pages",
+    "g-pagination__page",
+    "g-pagination__ellipsis",
+    "g-pagination__compact",
+    "g-pagination__meta",
+    "g-pagination__size",
+    "g-pagination__size-label",
+    "g-pagination__sizes",
+    "g-pagination__size-option",
+    "g-pagination__size-input",
+    "g-pagination__size-text"
   ]
 }

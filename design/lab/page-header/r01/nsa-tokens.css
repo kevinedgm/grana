@@ -1,0 +1,92 @@
+/* Generado por @grana/cli a partir de nsa.config.json (tema del proyecto NisaNabani, solo para el laboratorio). No editar a mano: vuelve a ejecutar «grana theme». */
+/* Sin @layer: el tema del usuario gana siempre sobre grana.defaults (DECISIONS.md #4). */
+:root,
+[data-theme="light"] {
+  --g-color-brand: #24366B;
+  --g-color-brand-strong: #122153;
+  --g-color-brand-soft: #EAF0FF;
+  --g-color-brand-text: #24366B;
+  --g-color-on-brand: #FFFFFF;
+  --g-color-on-brand-soft: #24366B;
+  --g-color-accent: #C1D324;
+  --g-color-accent-strong: #A8B800;
+  --g-color-accent-soft: #EEF5CC;
+  --g-color-accent-text: #707B00;
+  --g-color-on-accent: #17151A;
+  --g-color-on-accent-soft: #687200;
+  --g-color-surface-sunken: #F4F6FB;
+  --g-color-text: #181A1E;
+  --g-color-text-muted: #535559;
+  --g-color-text-subtle: #6C6E73;
+  --g-color-border-control: #888A8F;
+  --g-color-border: rgb(24 26 30 / 0.08);
+  --g-color-border-strong: rgb(24 26 30 / 0.16);
+  --g-color-neutral: #696B70;
+  --g-color-neutral-strong: #535559;
+  --g-color-neutral-soft: #EFF0F2;
+  --g-color-neutral-text: #696B70;
+  --g-color-on-neutral: #FFFFFF;
+  --g-color-on-neutral-soft: #696B70;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --g-color-brand: #768ECA;
+    --g-color-brand-strong: #88A0DE;
+    --g-color-brand-soft: #1D2434;
+    --g-color-brand-text: #768ECA;
+    --g-color-on-brand: #17151A;
+    --g-color-on-brand-soft: #768ECA;
+    --g-color-accent: #C1D324;
+    --g-color-accent-strong: #D4E743;
+    --g-color-accent-soft: #232700;
+    --g-color-accent-text: #C1D324;
+    --g-color-on-accent: #17151A;
+    --g-color-on-accent-soft: #C1D324;
+    --g-color-surface-sunken: #0F1013;
+    --g-color-text: #F0F2F7;
+    --g-color-text-muted: #B6B8BD;
+    --g-color-text-subtle: #9A9CA1;
+    --g-color-border-control: #7E8085;
+    --g-color-border: rgb(240 242 247 / 0.10);
+    --g-color-border-strong: rgb(240 242 247 / 0.20);
+    --g-color-neutral: #83858B;
+    --g-color-neutral-strong: #95979D;
+    --g-color-neutral-soft: #232425;
+    --g-color-neutral-text: #83858B;
+    --g-color-on-neutral: #17151A;
+    --g-color-on-neutral-soft: #898B91;
+    --g-color-bg: #121418;
+    --g-color-surface: #1A1C20;
+  }
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+  --g-color-brand: #768ECA;
+  --g-color-brand-strong: #88A0DE;
+  --g-color-brand-soft: #1D2434;
+  --g-color-brand-text: #768ECA;
+  --g-color-on-brand: #17151A;
+  --g-color-on-brand-soft: #768ECA;
+  --g-color-accent: #C1D324;
+  --g-color-accent-strong: #D4E743;
+  --g-color-accent-soft: #232700;
+  --g-color-accent-text: #C1D324;
+  --g-color-on-accent: #17151A;
+  --g-color-on-accent-soft: #C1D324;
+  --g-color-surface-sunken: #0F1013;
+  --g-color-text: #F0F2F7;
+  --g-color-text-muted: #B6B8BD;
+  --g-color-text-subtle: #9A9CA1;
+  --g-color-border-control: #7E8085;
+  --g-color-border: rgb(240 242 247 / 0.10);
+  --g-color-border-strong: rgb(240 242 247 / 0.20);
+  --g-color-neutral: #83858B;
+  --g-color-neutral-strong: #95979D;
+  --g-color-neutral-soft: #232425;
+  --g-color-neutral-text: #83858B;
+  --g-color-on-neutral: #17151A;
+  --g-color-on-neutral-soft: #898B91;
+  --g-color-bg: #121418;
+  --g-color-surface: #1A1C20;
+}

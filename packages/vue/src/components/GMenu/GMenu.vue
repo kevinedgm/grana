@@ -2,7 +2,9 @@
 // GMenu · menú de acciones anclado a un botón de menú (dueño: bruno)
 // Contrato: design/contracts/menu.md · Estructura: design/lab/menu/r01/ · Estilo: GMenu.css (coco)
 // Patrón Menu Button y Menu de APG. Presenta y emite intención: `checked` viene de `items` y la aplicación lo actualiza.
-// Las marcas (check, circle, chevron-right, triangle-alert) son iconos de Lucide (GIcon, docs/contract/icons.md).
+// Las marcas (check, circle, chevron-right, triangle-alert, external-link) son iconos de Lucide (GIcon, docs/contract/icons.md).
+// Elementos-enlace (menu.md «Elementos-enlace», #571 a #579; ronda design/lab/menu/r02/): `<a role="menuitem">` con
+// `navigate`, marca «sale de aquí», página actual, B · pie de destino y C · varias pestañas.
 import { defineComponent, h, nextTick, onBeforeUnmount, onMounted, onUpdated, ref, useAttrs, useId, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GLibIcon.js'
@@ -10,6 +12,8 @@ import GAppIcon from '../GIcon/GIcon.vue'
 import { transitionMs } from '../../utils/motion.js'
 import { anchorGone, followFrame, placeBlock, placeSubmenu, px, setVar, stickySide, viewport } from '../../utils/anchor.js'
 import { spaceUnit } from '../GForm/formContext.js'
+import { otherContext, newTab } from '../../utils/link.js'
+import { acquirePageLive, announcePage } from '../../utils/liveRegion.js'
 
 const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const TYPES = ['item', 'checkbox', 'radio', 'separator', 'group']
@@ -28,9 +32,10 @@ export default defineComponent({
     side: { type: String, default: 'auto', validator: oneOf(['auto', 'bottom', 'top']) },
     closeOnSelect: { type: String, default: 'auto', validator: oneOf(['auto', 'always', 'never']) },
     density: { type: String, default: 'default', validator: oneOf(['default', 'comfortable', 'compact']) },
+    labels: { type: Object, default: () => ({}) },
     id: { type: String, default: undefined }
   },
-  emits: ['update:modelValue', 'select', 'open', 'closed'],
+  emits: ['update:modelValue', 'select', 'navigate', 'open', 'closed'],
   setup(props, { emit, slots }) {
     const attrs = useAttrs()
     const uid = useId()
@@ -61,7 +66,28 @@ export default defineComponent({
     }
 
     // ---------- Datos: árbol normalizado ----------
-    // nodo: { key, type, raw, parent (grupo), path (claves de los submenús antecesores), children }
+    // nodo: { key, type, raw, parent (grupo), path (claves de los submenús antecesores), children, link }
+    // link (elemento-enlace, #572): { href, target, rel, current, ext (otro sitio), tab (otra pestaña), leaves }
+    // `scan` reúne, por render, lo que piden los avisos E3 a E6 y la rama de la página actual (#576)
+    let scan = null
+    const linkOf = (raw, path, isLinkable) => {
+      const href = typeof raw.href === 'string' && raw.href.trim() && raw.href
+      if (href && !isLinkable) warnOnce('e1', 'ignora `href` en casilla, opción, grupo, separador o padre de submenú (E1).')
+      if (!href || !isLinkable) {
+        if (['target', 'rel', 'external', 'current'].some((k) => raw[k])) warnOnce('e2', 'ignora target, rel, external y current sin href (E2).')
+        return null
+      }
+      let current = Boolean(raw.current)
+      if (current && scan.current) { warnOnce('e3', 'solo el primer `current` es la página actual (E3).'); current = false }
+      if (current) { scan.current = true; path.forEach((k) => scan.branch.add(k)) }
+      const ext = Boolean(raw.external)
+      const tab = newTab(raw.target)
+      scan.ext ||= ext
+      scan.tab ||= tab
+      scan.solo ||= ext && !tab // otro sitio en la misma pestaña: su pie dice labels.destExternal
+      scan.live ||= !raw.disabled
+      return { href, target: raw.target || undefined, rel: raw.rel || undefined, current, ext, tab, leaves: ext || tab }
+    }
     const normalize = (list, path, group, prefix) => {
       const out = []
       ;(list || []).forEach((raw, i) => {
@@ -69,13 +95,13 @@ export default defineComponent({
         const type = raw.type ?? 'item'
         if (!TYPES.includes(type)) { warnOnce(`type-${type}`, `ignora un elemento de tipo desconocido («${type}»).`); return }
         const key = `${prefix}${i}`
-        if (type === 'separator') { out.push({ key, type, raw }); return }
+        if (type === 'separator') { linkOf(raw, path, false); out.push({ key, type, raw }); return }
         if (typeof raw.label !== 'string' || !raw.label) { warnOnce('label', 'ignora un elemento sin `label`.'); return }
-        if (type === 'group') { out.push({ key, type, raw, children: normalize(raw.items, path, raw, `${key}.`) }); return }
+        if (type === 'group') { linkOf(raw, path, false); out.push({ key, type, raw, children: normalize(raw.items, path, raw, `${key}.`) }); return }
         const isParent = Array.isArray(raw.items) && raw.items.length > 0
         // Un padre de submenú no emite `select`: su `id` es opcional
         if (!isParent && (raw.id === undefined || raw.id === null)) { warnOnce('id', 'ignora un elemento sin `id`.'); return }
-        const node = { key, type, raw, parent: group, path }
+        const node = { key, type, raw, parent: group, path, link: linkOf(raw, path, type === 'item' && !isParent) }
         if (isParent) node.children = normalize(raw.items, [...path, key], null, `${key}.`)
         out.push(node)
       })
@@ -176,6 +202,7 @@ export default defineComponent({
           active = menuOf(focused) === menu ? focused : (itemsOf(menu).find((x) => x.parentElement.contains(focused)) || null)
         }
         highlight(menu, active)
+        paintDest(menu, active)
       }
     }
     // focusout y focusin llegan seguidos al mover el foco: se calcula una vez, ya con el foco en su sitio
@@ -185,6 +212,36 @@ export default defineComponent({
       queueMicrotask(updateHighlights)
     }
     onUpdated(queueHighlights)
+
+    // ---------- B · pie de destino (#578) ----------
+    // Último hijo de cada lista que contiene directamente un enlace que sale de la aplicación. Dice el destino del activo
+    // de esa lista (el de M1), resuelto solo en el cliente y al cambiar el activo; sin enlace habilitado activo, `is-empty`
+    // (el texto anterior queda, transparente: el pie no cambia de alto). Se escribe en el DOM: no vuelve a pintar el menú.
+    // El texto se escribe ANTES de quitar is-empty (coco: así se ve el fundido)
+    const paintDest = (menu, el) => {
+      const d = menu.lastElementChild
+      if (!d?.matches('.g-menu__dest')) return
+      const node = el?.matches('a[href]') && nodeOf(el)
+      if (!node) { d.classList.add('is-empty'); return }
+      const { href, leaves, tab, ext } = node.link
+      const [icon, host, path, tag] = d.children
+      // Otro origen http(s): host (punycode) y ruta sin barra final; mismo origen: la ruta (o el #hash en la misma página);
+      // otro esquema (mailto:, tel:…) o URL inválida: el href tal cual
+      let at = ['', href]
+      try {
+        const u = new URL(href, document.baseURI)
+        if (u.protocol.startsWith('http')) {
+          at = u.origin === location.origin
+            ? ['', (u.pathname === location.pathname && u.hash) || u.pathname + u.search]
+            : [u.host, (u.pathname + u.search).replace(/\/$/, '')]
+        }
+      } catch { /* el href tal cual */ }
+      host.textContent = at[0]
+      path.textContent = at[1]
+      tag.textContent = (tab ? props.labels.destNewTab : ext && props.labels.destExternal) || ''
+      icon.replaceChildren(...(leaves ? [menu.querySelector('.g-menu__leave svg').cloneNode(true)] : []))
+      d.classList.remove('is-empty')
+    }
 
     // ---------- Posición ----------
     // Panel estable al desplazar (reporte del usuario sobre GCombobox; utils/anchor.js). Colocación completa (`place`) al
@@ -268,6 +325,7 @@ export default defineComponent({
       if (listening) return
       listening = true
       document.addEventListener('pointerdown', onOutside, true)
+      window.addEventListener('blur', offMod)
       window.addEventListener('resize', onResize)
       window.addEventListener('scroll', onScroll, true)
     }
@@ -275,12 +333,14 @@ export default defineComponent({
       if (!listening) return
       listening = false
       document.removeEventListener('pointerdown', onOutside, true)
+      window.removeEventListener('blur', offMod)
       window.removeEventListener('resize', onResize)
       window.removeEventListener('scroll', onScroll, true)
       followAll.cancel()
     }
     function close(focusTrigger) {
       if (!props.modelValue) return
+      setMod(false)
       returnFocus = Boolean(focusTrigger)
       emit('update:modelValue', false)
     }
@@ -300,6 +360,8 @@ export default defineComponent({
         placed.delete(root) // reabierto durante la salida: el lado se decide de nuevo
         placeAll()
         listen()
+        // Canal cortés de página para los anuncios de C (#533): existe antes del primer gesto
+        if (!releaseLive && (hasPair('opened') || hasPair('copied'))) releaseLive = acquirePageLive()
         emit('open')
         const its = itemsOf(root)
         focusItem(pendingFocus === 'last' ? its[its.length - 1] : its[0])
@@ -308,13 +370,15 @@ export default defineComponent({
         unlisten()
         clearTimeout(hoverTimer)
         resetPointer()
+        setMod(false)
+        if (Object.keys(traces.value).length) traces.value = {}
         path.value = []
         emit('closed')
         if (returnFocus) trigger()?.focus()
         returnFocus = false
       }
     }, { flush: 'post' })
-    onBeforeUnmount(() => { unlisten(); clearTimeout(hoverTimer); clearTimeout(holdTimer); clearTimeout(typedTimer); clearTimeout(leaveTimer) })
+    onBeforeUnmount(() => { if (releaseLive) releaseLive(); unlisten(); clearTimeout(hoverTimer); clearTimeout(holdTimer); clearTimeout(typedTimer); clearTimeout(leaveTimer) })
 
     // ---------- Submenús ----------
     const openSub = async (node, focusFirst) => {
@@ -348,6 +412,46 @@ export default defineComponent({
       emit('select', payload)
       if (!event?.defaultPrevented && shouldClose(type)) close(true)
     }
+    // ---------- Elementos-enlace: navigate (#573, #574) y C · varias pestañas (#577) ----------
+    // Textos de `labels` (sin valores por defecto, #226); los de anuncio admiten {label} o una función ({ label, item })
+    const say = (k, { raw }) => {
+      const v = props.labels[k]
+      return typeof v === 'function' ? v({ label: raw.label, item: raw }) : String(v).replace('{label}', raw.label)
+    }
+    // C solo con sus dos textos (visible y anuncio); sin ellos, el gesto cae al comportamiento nativo (E6)
+    const hasPair = (k) => Boolean(props.labels[k] && props.labels[`${k}Live`])
+    const traces = ref({}) // clave del elemento → huella visible («Abierta», «Enlace copiado»); se vacía al cerrar
+    const trace = (node, k) => {
+      traces.value = { ...traces.value, [node.key]: say(k, node) }
+      announcePage(say(`${k}Live`, node))
+    }
+    const isMod = (e) => e.ctrlKey || e.metaKey
+    // Clic, Intro y Espacio (clic sintético) llegan por `click`; el clic central, por `auxclick` (botón 1)
+    const onLink = (node, e) => {
+      if (node.raw.disabled) { e.preventDefault(); return }
+      const bg = isMod(e) || e.button === 1
+      // Guarda común (api.md «Enlaces y navigate»): clic primario o Intro/Espacio sin modificadores, sin cancelar y sin
+      // `target` de otro contexto. preventDefault() en navigate = «navego yo»: no impide el cierre
+      if (e.button === 0 && !bg && !e.shiftKey && !e.altKey && !e.defaultPrevented && !otherContext(node.link.target)) {
+        emit('navigate', { id: node.raw.id, item: node.raw, event: e })
+        if (shouldClose('item')) close(true)
+        return
+      }
+      // Lo hace el navegador: Ctrl/⌘ (pestaña en segundo plano) deja el menú abierto con huella (C); Mayús y Alt cierran
+      if (bg && hasPair('opened')) { trace(node, 'opened'); return }
+      if (bg || e.shiftKey || e.altKey || shouldClose('item')) close(true)
+    }
+    // Vista previa del modificador (C): con Ctrl/⌘ pulsado, cada lista abierta lleva is-modifier
+    let modOn = false
+    const setMod = (on) => {
+      on = on && hasPair('opened')
+      if (on === modOn) return
+      modOn = on
+      for (const m of menus()) m.classList.toggle('is-modifier', on)
+    }
+    const offMod = () => setMod(false)
+    let releaseLive = null
+
     // Puntero sobre un elemento: abre su submenú, o cierra los de otros, tras HOVER_MS (como siempre)
     const hoverAction = (node) => { if (node.children) openSub(node, false); else path.value = node.path }
     const onEnter = (node) => {
@@ -400,6 +504,7 @@ export default defineComponent({
     }
     const onPointer = (e) => {
       if (e.pointerType === 'touch') return
+      setMod(isMod(e))
       const pt = { x: e.clientX, y: e.clientY }
       const prev = lastPt
       lastPt = pt
@@ -441,6 +546,7 @@ export default defineComponent({
     }
     let tree = []
     const onKeydown = (e) => {
+      if (e.key === 'Control' || e.key === 'Meta') { setMod(true); return }
       const el = e.target.closest?.('.g-menu__item')
       const menu = el && menuOf(el)
       if (!el || !menu) return
@@ -459,6 +565,24 @@ export default defineComponent({
       const openKey = rtl ? 'ArrowLeft' : 'ArrowRight'
       const closeKey = rtl ? 'ArrowRight' : 'ArrowLeft'
       const node = nodeOf(el)
+      if (node?.link) {
+        const mod = isMod(e)
+        // Espacio no activa un <a> y desplazaría la página: se cancela y, sin modificadores, es un clic primario (L9)
+        if (k === ' ') {
+          e.preventDefault()
+          if (!node.raw.disabled && !mod && !e.shiftKey && !e.altKey) el.click()
+          return
+        }
+        // Ctrl/⌘+C copia la URL absoluta (C), sin texto seleccionado y con portapapeles; si no, la tecla sigue su curso
+        const cb = typeof navigator !== 'undefined' && navigator.clipboard
+        if (mod && !e.shiftKey && !e.altKey && k.toLowerCase() === 'c' && !node.raw.disabled && hasPair('copied') && cb && !String(window.getSelection?.() || '')) {
+          e.preventDefault()
+          Promise.resolve()
+            .then(() => cb.writeText(new URL(node.link.href, document.baseURI).href))
+            .then(() => trace(node, 'copied'), () => warnOnce('e7', 'navigator.clipboard.writeText se rechazó (E7).'))
+          return
+        }
+      }
       if (k === openKey && node?.children) {
         e.preventDefault(); e.stopPropagation()
         if (!node.raw.disabled) openSub(node, true)
@@ -487,6 +611,17 @@ export default defineComponent({
     // ---------- Marcado ----------
     // M1: el resaltado único de cada lista (lo coloca y anima GMenu.css con --_active-y/h y has-highlight)
     const highlightEl = () => h('li', { class: 'g-menu__highlight', role: 'none', 'aria-hidden': 'true', key: 'g-highlight' })
+    // B: el pie de destino, último hijo de una lista con algún enlace que sale de la aplicación (su contenido, paintDest)
+    const leavesIn = (nodes) => nodes.some((n) => n.link?.leaves || (n.type === 'group' && leavesIn(n.children)))
+    const destEl = (nodes) => (leavesIn(nodes)
+      ? h('li', { class: 'g-menu__dest is-empty', role: 'none', 'aria-hidden': 'true', key: 'g-dest' },
+[
+          h('span', { class: 'g-menu__dest-icon' }),
+          h('span', { class: 'g-menu__dest-host', dir: 'ltr' }),
+          h('span', { class: 'g-menu__dest-path', dir: 'ltr' }),
+          h('span', { class: 'g-menu__dest-tag' })
+        ])
+      : null)
     const renderNode = (node, menuId) => {
       if (node.type === 'separator') return h('li', { role: 'none', key: node.key }, [h('div', { class: 'g-menu__separator', role: 'separator' })])
       if (node.type === 'group') {
@@ -497,11 +632,15 @@ export default defineComponent({
         ])
       }
       const it = node.raw
+      const lk = node.link
       const expanded = path.value.includes(node.key)
+      // Texto oculto dentro del nombre (L8): labels.external y labels.newTab tal cual, sin puntuación añadida
+      const sr = lk && [lk.ext && props.labels.external, lk.tab && props.labels.newTab].filter((t) => typeof t === 'string').join('')
+      const srEl = sr ? h('span', { class: 'g-menu__sr' }, sr) : null
       const role = node.type === 'checkbox' ? 'menuitemcheckbox' : node.type === 'radio' ? 'menuitemradio' : 'menuitem'
       const toggle = node.type === 'checkbox' || node.type === 'radio'
       const content = slots.item
-        ? slots.item({ item: it, active: false, checked: Boolean(it.checked) })
+        ? [slots.item({ item: it, active: false, checked: Boolean(it.checked) }), srEl]
         : [
             toggle
               ? h('span', { class: 'g-menu__mark', 'aria-hidden': 'true' }, [
@@ -512,12 +651,17 @@ export default defineComponent({
                 // «Dato → nombre» (#202): `icon` cadena sin slot dibuja GIcon con ese nombre (resolución de la aplicación)
                 : (typeof it.icon === 'string' && it.icon !== '' ? h('span', { class: 'g-menu__icon', 'aria-hidden': 'true' }, [h(GAppIcon, { name: it.icon })]) : null),
             h('span', { class: 'g-menu__label' }, [it.danger ? h(GIcon, { class: 'g-menu__danger-icon', name: 'triangle-alert' }) : null, it.label]),
+            srEl,
             it.shortcut ? h('span', { class: 'g-menu__shortcut', 'aria-hidden': 'true' }, it.shortcut) : null
           ]
-      const button = h('button', {
-        type: 'button',
+      // Enlace (#572): sin href, target ni rel si está deshabilitado (no se abre aparte ni se copia); huella y marca al final
+      const on = !it.disabled
+      const button = h(lk ? 'a' : 'button', {
+        ...(lk
+          ? { href: on ? lk.href : undefined, target: on ? lk.target : undefined, rel: on ? lk.rel : undefined, 'aria-current': lk.current ? 'page' : undefined, onAuxclick: (e) => e.button === 1 && onLink(node, e) }
+          : { type: 'button' }),
         id: `${rootId}-i-${node.key}`,
-        class: cls('g-menu__item', it.danger && 'g-menu__item--danger', expanded && 'is-expanded'),
+        class: cls('g-menu__item', it.danger && 'g-menu__item--danger', expanded && 'is-expanded', node.children && scan.branch.has(node.key) && 'is-branch'),
         role,
         tabindex: -1,
         'data-key': node.key,
@@ -527,19 +671,29 @@ export default defineComponent({
         'aria-haspopup': node.children ? 'menu' : undefined,
         'aria-expanded': node.children ? String(expanded) : undefined,
         'aria-controls': node.children ? `${rootId}-m-${node.key}` : undefined,
-        onClick: (e) => activate(node, e),
+        onClick: (e) => (lk ? onLink(node, e) : activate(node, e)),
         onPointerenter: (e) => onItemEnter(e, node),
         onPointerleave: onItemLeave
-      }, [...(Array.isArray(content) ? content : [content]), node.children ? h(GIcon, { class: 'g-menu__chevron', name: 'chevron-right' }) : null])
+      }, [
+        ...content,
+        lk ? h('span', { class: 'g-menu__trace', 'aria-hidden': 'true' }, traces.value[node.key] || '') : null,
+        lk?.leaves ? h('span', { class: 'g-menu__leave', 'aria-hidden': 'true' }, [h(GIcon, { name: 'external-link' })]) : null,
+        node.children ? h(GIcon, { class: 'g-menu__chevron', name: 'chevron-right' }) : null
+      ])
       const sub = node.children && expanded
         ? h('ul', { class: 'g-menu__list', id: `${rootId}-m-${node.key}`, role: 'menu', popover: 'manual', 'aria-labelledby': `${rootId}-i-${node.key}` },
-            [highlightEl(), ...node.children.map((c) => renderNode(c, `${rootId}-m-${node.key}`))])
+            [highlightEl(), ...node.children.map((c) => renderNode(c, `${rootId}-m-${node.key}`)), destEl(node.children)])
         : null
       return h('li', { role: 'none', key: node.key }, [button, sub])
     }
 
     return () => {
+      scan = { branch: new Set() }
       tree = normalize(props.items, [], null, 'i')
+      const L = props.labels
+      if ((scan.ext && !L.external) || (scan.tab && !L.newTab)) warnOnce('e4', 'falta labels.external o labels.newTab (E4).')
+      if ((scan.solo && !L.destExternal) || (scan.tab && !L.destNewTab)) warnOnce('e5', 'falta labels.destExternal o labels.destNewTab (E5).')
+      if (scan.live && !(hasPair('opened') && hasPair('copied'))) warnOnce('e6', 'falta labels.opened/openedLive o copied/copiedLive: ese gesto queda en el del navegador (E6).')
       const isOpen = props.modelValue
       const triggerAttrs = {
         id: triggerId,
@@ -571,10 +725,11 @@ export default defineComponent({
           // Con un `id` propio en el disparador (aviso de desarrollo), la lista conserva su nombre
           'aria-labelledby': props.label ? undefined : (elementOf(triggerEl)?.id || triggerId),
           onKeydown,
+          onKeyup: (e) => { if (e.key === 'Control' || e.key === 'Meta') setMod(false) },
           onFocusin: queueHighlights,
           onFocusout: queueHighlights,
           onPointermove: onPointer
-        }, [highlightEl(), ...tree.map((n) => renderNode(n, listId))]))
+        }, [highlightEl(), ...tree.map((n) => renderNode(n, listId)), destEl(tree)]))
       }
       return out
     }

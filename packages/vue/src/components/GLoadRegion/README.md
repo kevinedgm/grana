@@ -59,6 +59,7 @@ Formas **A «Molde»** y **B «Lo último conocido»**, elegidas por el usuario 
 ### Lo mínimo: una lista
 
 ```vue
+<!-- Fragmento: `api` y `nuevas` son de tu aplicación -->
 <script setup>
 import { ref } from 'vue'
 import { GLoadRegion } from '@grana/vue/load-region'
@@ -159,6 +160,7 @@ El slot por defecto recibe `{ items, mold, fresh, itemAttrs }`:
 ### Lo último conocido (B) o su molde: `refresh`
 
 ```vue
+<!-- Fragmento: `cargando`, `muestras`, `muestra` y `textos` son de tu aplicación -->
 <!-- keep (por defecto): lo de antes sigue a la vista, inerte, con filo de acento y píldora -->
 <g-load-region :loading="cargando" :items="muestras" :sample="muestra" labelledby="h" :labels="textos">…</g-load-region>
 
@@ -171,6 +173,7 @@ El slot por defecto recibe `{ items, mold, fresh, itemAttrs }`:
 ### Cuando falla: `error`, la barra y `retry`
 
 ```vue
+<!-- Fragmento: `cargando`, `muestras`, `error`, `textos` y `cargar` son de tu aplicación -->
 <g-load-region :loading="cargando" :items="muestras" :error="error" :labels="textos" @retry="cargar" …>…</g-load-region>
 ```
 
@@ -182,6 +185,7 @@ El slot por defecto recibe `{ items, mold, fresh, itemAttrs }`:
 Para sustituir **el interior** de la barra (por ejemplo, una marca de la isla de estado o un texto propio), usa el slot `failed` con `{ retry, text }`:
 
 ```vue
+<!-- Fragmento: `error` y `cargar` son de tu aplicación -->
 <g-load-region … :error="error" @retry="cargar">
   <template #default="{ items }">…</template>
   <template #failed="{ retry, text }">
@@ -196,6 +200,7 @@ Para sustituir **el interior** de la barra (por ejemplo, una marca de la isla de
 Si un fallo que afecta a la página lo anuncia ya la isla de estado, la región pinta su barra o el vacío de error pero **no lo anuncia**:
 
 ```vue
+<!-- Fragmento: `error` y `cargar` son de tu aplicación -->
 <g-load-region … :error="error" :announce-error="false" @retry="cargar">
   <template #default="{ items }">…</template>
   <template #failed="{ retry }">
@@ -212,6 +217,7 @@ El slot `failed` con contenido propio está probado en las pruebas de la región
 No tienen `loading` propio. Envuélvelos y pasa la ficha o el valor como `items`:
 
 ```vue
+<!-- Fragmento: `cargando`, `resumen`, `filasMuestra` y `textos` son de tu aplicación -->
 <g-load-region :loading="cargando" :items="resumen" :sample="[{ id: 'r', filas: filasMuestra }]" label="Resumen" :labels="textos">
   <template #default="{ items, itemAttrs }">
     <g-data-list v-if="items" v-bind="itemAttrs(items[0])" label="Por canal" :rows="items[0].filas"></g-data-list>
@@ -224,6 +230,7 @@ Si tu plantilla no repite elementos, `items` es un arreglo de uno; `itemAttrs(it
 ### Un grupo de teselas: la región sin carga propia habla por las que contiene
 
 ```vue
+<!-- Fragmento: `teselas`, `muestraTesela` y `textosTesela` son de tu aplicación -->
 <h3 id="h-panel">Panel</h3>
 <g-load-region labelledby="h-panel" :labels="{ loading: 'Cargando el panel.', slow: 'Sigue cargando el panel.', loaded: 'Panel actualizado.' }">
   <div class="teselas">

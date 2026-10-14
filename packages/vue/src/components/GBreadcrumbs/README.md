@@ -69,6 +69,7 @@ const textos = {
 ### Con puertas a los hermanos
 
 ```vue
+<!-- Fragmento: `lotesDe2026` es de tu aplicación -->
 <g-breadcrumbs
   :items="[
     { label: 'Inicio', href: '/', icon: 'house' },
@@ -91,6 +92,7 @@ const textos = {
 ### Con un router: `navigate` cancelable
 
 ```vue
+<!-- Fragmento: `ruta`, `textos` y `router` son de tu aplicación -->
 <g-breadcrumbs :items="ruta" :labels="textos"
                @navigate="({ item, event }) => { event.preventDefault(); router.push(item.href) }"></g-breadcrumbs>
 ```
@@ -100,6 +102,7 @@ const textos = {
 ### Con `RouterLink` o `NuxtLink`: slot `link`
 
 ```vue
+<!-- Fragmento: `ruta` y `textos` son de tu aplicación -->
 <g-breadcrumbs :items="ruta" :labels="textos">
   <template #link="{ item, attrs, content }">
     <RouterLink :to="item.href" v-bind="attrs"><component :is="content" /></RouterLink>
@@ -112,6 +115,7 @@ Un solo slot para todos los `<a>` (fila, «Subir», escalera y puertas). El elem
 ### Icono propio de un nivel: slot `icon`
 
 ```vue
+<!-- Fragmento: `ruta` y `textos` son de tu aplicación -->
 <g-breadcrumbs :items="ruta" :labels="textos">
   <template #icon="{ item }">
     <MiIcono :name="item.icon" />

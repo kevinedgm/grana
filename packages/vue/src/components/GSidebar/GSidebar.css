@@ -19,7 +19,8 @@
   --_stagger: calc(var(--g-duration-fast) * 0.25);
 }
 .g-sidebar {
-  /* Color de la selección (se reasigna por --color-*); por defecto: brand */
+  /* Color de contadores y puntos (se reasigna por --color-*; por defecto brand). El actual no lo lee:
+     asiento, nodo, ruta y píldora usan las ranuras --g-sidebar-current* (#615) */
   --_color: var(--g-color-primary);
   --_on: var(--g-color-on-primary);
 
@@ -285,41 +286,25 @@
   transition:
     background-color var(--g-duration-fast) var(--g-ease-standard),
     color var(--g-duration-fast) var(--g-ease-standard),
-    box-shadow var(--g-duration-fast) var(--g-ease-standard),
     scale var(--g-duration-fast) var(--g-ease-out);
 }
 /* Feedback de pulsación: un encogimiento mínimo, que suelta más lento que aprieta */
 .g-sidebar__link:active:not([aria-disabled="true"]) {
   scale: 0.98;
 }
+/* El hover genérico no toca al actual ni a su representante del riel (#564, ampliada en #616): pintan su propia marca y
+   un hover de 0,3,0 se la quitaría. La rama hueca (`is-branch` sin `is-rep`) sí recibe hover */
 @media (hover: hover) {
-  .g-sidebar__link:hover:not([aria-disabled="true"]) {
+  .g-sidebar__link:hover:not([aria-disabled="true"], [aria-current="page"], .is-active, .is-rep) {
     background: var(--g-color-border);
     color: var(--g-color-text);
   }
 }
-/* Activo: una superficie apenas elevada (fondo, contorno tenue y sombra mínima) y más peso; la barra de acento va aparte */
+/* Actual, representante y rama: la FILA no se rellena (#612; enmienda #89 y #239 para GSidebar: sin superficie inset, sin
+   contorno, sin sombra y sin barra de acento). La etiqueta queda en `text` con peso; la marca es el asiento (abajo) */
 .g-sidebar__link[aria-current="page"],
-.g-sidebar__link.is-active {
-  background: var(--g-surface-inset);
-  color: var(--g-color-text);
-  font-weight: var(--g-text-action-weight);
-  box-shadow: 0 0 0 var(--g-border-width) var(--g-color-border-strong), var(--g-shadow-1);
-}
-/* Barra de acento al inicio del ítem activo: elemento gráfico con contraste ≥ 3:1 (DECISIONS #89). Es un TRAZO sobre la
-   superficie del ítem, no un relleno con su par: va en `accent-text` (≥ 4.5:1 sobre surface por derivación), no en `active`,
-   que con un acento pálido no llega a 3:1 (spotify 1.29, amazon 2.14 medidos; #228, auditoría de la captura de voz) */
-.g-sidebar__link[aria-current="page"]::before,
-.g-sidebar__link.is-active::before {
-  content: "";
-  position: absolute;
-  inset-inline-start: 0;
-  inset-block: 20%;
-  inline-size: calc(var(--g-border-width) * 2);
-  border-radius: var(--g-radius-pill);
-  background: var(--g-color-accent-text);
-}
-/* Rama activa: un padre con un hijo activo; peso y color, sin superficie */
+.g-sidebar__link.is-active,
+.g-sidebar__link.is-rep,
 .g-sidebar__link.is-branch {
   color: var(--g-color-text);
   font-weight: var(--g-text-action-weight);
@@ -341,6 +326,90 @@
 .g-sidebar__toggle > svg {
   inline-size: var(--_ico);
   block-size: var(--_ico);
+}
+
+/* ---------- Item actual: el asiento (sidebar.md §«Item actual: el asiento»; DECISIONS #612 a #617) ---------- */
+/* La marca del item actual no es la fila: es el ASIENTO del icono de un item de primer nivel. Lleno = estás aquí (o, en el
+   riel, el padre que representa al hijo actual, `is-rep`); hueco, solo el aro = la página actual está dentro (`is-branch`).
+   El mismo asiento en expandida, drawer y riel; en el navbar es él el que crece hasta la píldora.
+   Medidas: el asiento rodea al glifo con margen negativo, así que NADA se mueve (filas, etiquetas y celda del riel miden lo
+   mismo que sin asiento). 32px con space 4; en `compact` (fila 30px) se ciñe a la fila menos medio paso (28px): nunca
+   desborda la fila y en `default` y `comfortable` (fila 40 y 35px) se queda en 32px. */
+.g-sidebar {
+  --_seat: min(calc(var(--_ico) + var(--g-space-1) * 3), calc(var(--_item) - var(--g-space-1) * 0.5));
+  --_ring: calc(var(--g-border-width) * 2);
+  --_node: calc(var(--g-space-1) * 2.5);
+}
+.g-sidebar__item > .g-sidebar__link > .g-sidebar__icon {
+  position: relative;
+  isolation: isolate;
+  inline-size: var(--_seat);
+  block-size: var(--_seat);
+  margin: calc((var(--_seat) - var(--_ico)) / -2);
+  border-radius: var(--g-radius-pill);
+}
+/* ::before = relleno (`current`); ::after = aro (`current-edge`, la señal ≥ 3:1 frente a la carcasa, P2). Debajo del glifo */
+.g-sidebar__item > .g-sidebar__link > .g-sidebar__icon::before,
+.g-sidebar__item > .g-sidebar__link > .g-sidebar__icon::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  box-sizing: border-box;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+}
+.g-sidebar__item > .g-sidebar__link > .g-sidebar__icon::before {
+  background: var(--g-sidebar-current);
+  clip-path: circle(0 at 50% 50%);
+}
+.g-sidebar__item > .g-sidebar__link > .g-sidebar__icon::after {
+  border: var(--_ring) solid var(--g-sidebar-current-edge);
+}
+/* Lleno: actual o representante. La tinta del icono pasa a `on-current` */
+.g-sidebar__item > .g-sidebar__link:is([aria-current="page"], .is-active, .is-rep) > .g-sidebar__icon {
+  color: var(--g-sidebar-on-current);
+}
+.g-sidebar__item > .g-sidebar__link:is([aria-current="page"], .is-active, .is-rep) > .g-sidebar__icon::before {
+  clip-path: circle(50% at 50% 50%);
+  opacity: 1;
+}
+/* Aro: en el lleno y en la rama hueca */
+.g-sidebar__item > .g-sidebar__link:is([aria-current="page"], .is-active, .is-rep, .is-branch) > .g-sidebar__icon::after {
+  opacity: 1;
+}
+/* Movimiento (#617): el asiento del destino se llena desde el centro con el muelle (`--g-ease-spring`, decisión del usuario);
+   el sobrepaso del muelle cae fuera del círculo y no se ve: da el impulso, no un rebote. El origen se vacía con un fundido y
+   luego se recoge (sin verse). La tinta del destino espera a que el relleno cubra el glifo (35% del llenado: el muelle ya va
+   por el 95% del radio, ≥ la media diagonal del glifo), así `on-current` nunca se ve sobre la carcasa. Aro: fundido */
+@media (prefers-reduced-motion: no-preference) {
+  .g-sidebar__item > .g-sidebar__link > .g-sidebar__icon {
+    transition: color var(--g-duration-fast) var(--g-ease-standard);
+  }
+  .g-sidebar__item > .g-sidebar__link:is([aria-current="page"], .is-active, .is-rep) > .g-sidebar__icon {
+    transition: color var(--g-duration-fast) var(--g-ease-standard) calc(var(--g-duration-slow) * 0.35);
+  }
+  .g-sidebar__item > .g-sidebar__link > .g-sidebar__icon::before {
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-standard),
+      clip-path 0s linear var(--g-duration-fast);
+  }
+  .g-sidebar__item > .g-sidebar__link:is([aria-current="page"], .is-active, .is-rep) > .g-sidebar__icon::before {
+    transition:
+      clip-path var(--g-duration-slow) var(--g-ease-spring),
+      opacity 0s;
+  }
+  .g-sidebar__item > .g-sidebar__link > .g-sidebar__icon::after {
+    transition: opacity var(--g-duration-fast) linear;
+  }
+}
+
+/* Foco de un item de primer nivel: el anillo va FUERA de la fila, con `--g-focus-offset` de carcasa entre anillo y fila,
+   así nunca toca el asiento (en `compact` el asiento llega a 1px del filo de la fila) y no depende de su relleno */
+.g-sidebar__item > .g-sidebar__link:focus-visible {
+  z-index: 1;
+  outline-offset: var(--g-focus-offset);
 }
 .g-sidebar__label {
   flex: 1 1 auto;
@@ -422,17 +491,66 @@
   display: flex;
   flex-direction: column;
   gap: calc(var(--g-space-1) * 0.5);
+  /* La línea de conexión cae en el eje del asiento del padre (--_axis) y deja sitio (--_reach) para el nodo con su aro
+     dentro de la caja (que recorta: overflow hidden para animar la altura). Los hijos quedan donde estaban (space × 5 +
+     borde + space × 3 desde el inicio de la lista) */
+  --_axis: calc(var(--_px) + var(--_ico) / 2);
+  --_reach: calc(var(--_node) / 2 + var(--_ring));
+  --_sub-in: calc(var(--g-space-5) + var(--g-border-width) + var(--g-space-3) - var(--_axis) + var(--_reach));
+  position: relative;
   block-size: 0;
-  margin: 0 0 0 var(--g-space-5);
-  padding: 0 0 0 var(--g-space-3);
+  margin: 0;
+  margin-inline-start: calc(var(--_axis) - var(--_reach));
+  padding: 0;
+  padding-inline-start: var(--_sub-in);
   overflow: hidden;
   opacity: 0;
   visibility: hidden;
-  border-inline-start: var(--g-border-width) solid var(--g-color-border);
 }
-[dir="rtl"] .g-sidebar__sub {
-  margin: 0 var(--g-space-5) 0 0;
-  padding: 0 var(--g-space-3) 0 0;
+.g-sidebar__sub::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: calc(var(--_reach) - var(--g-border-width) / 2);
+  inline-size: var(--g-border-width);
+  background: var(--g-color-border);
+  pointer-events: none;
+}
+/* Hijo actual: un NODO sobre la línea (relleno `current`, aro `current-edge`) y la RUTA encendida en `current-edge` desde
+   lo alto de la lista (bajo el asiento del padre) hasta el nodo. La ruta nace cien filas más arriba y la recorta la propia lista
+   (overflow hidden): llega siempre a su borde superior sin medir nada. Los dos con fundido */
+.g-sidebar__sub .g-sidebar__link::before,
+.g-sidebar__sub .g-sidebar__link::after {
+  content: "";
+  position: absolute;
+  box-sizing: border-box;
+  pointer-events: none;
+  opacity: 0;
+}
+.g-sidebar__sub .g-sidebar__link::before {
+  z-index: 1;
+  inset-block-start: calc(50% - var(--_reach));
+  inset-inline-start: calc(var(--_sub-in) * -1);
+  inline-size: calc(var(--_reach) * 2);
+  block-size: calc(var(--_reach) * 2);
+  border: var(--_ring) solid var(--g-sidebar-current-edge);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-sidebar-current);
+}
+.g-sidebar__sub .g-sidebar__link::after {
+  inset-block-start: calc(var(--_sub) * -100);
+  inset-block-end: 50%;
+  inset-inline-start: calc(var(--_reach) - var(--_sub-in) - var(--_ring) / 2);
+  inline-size: var(--_ring);
+  background: var(--g-sidebar-current-edge);
+}
+.g-sidebar__sub .g-sidebar__link:is([aria-current="page"], .is-active)::before,
+.g-sidebar__sub .g-sidebar__link:is([aria-current="page"], .is-active)::after {
+  opacity: 1;
+}
+.g-sidebar__sub .g-sidebar__link::before,
+.g-sidebar__sub .g-sidebar__link::after {
+  transition: opacity var(--g-duration-fast) linear;
 }
 .g-sidebar__sub.is-open {
   block-size: auto;
@@ -594,6 +712,27 @@
 .g-sidebar__fly .g-sidebar__link {
   min-block-size: var(--_sub);
   padding-inline: var(--g-space-3);
+  /* Hueco del nodo al inicio de cada fila (todas, para que las etiquetas queden alineadas) */
+  padding-inline-start: calc(var(--g-space-2) * 2 + var(--_node) + var(--_ring) * 2);
+}
+/* Hijo actual en el panel del riel: el nodo al inicio lógico de su fila, sin línea (el panel no la tiene) */
+.g-sidebar__fly .g-sidebar__link::before {
+  content: "";
+  position: absolute;
+  inset-block-start: calc(50% - var(--_node) / 2 - var(--_ring));
+  inset-inline-start: var(--g-space-2);
+  box-sizing: border-box;
+  inline-size: calc(var(--_node) + var(--_ring) * 2);
+  block-size: calc(var(--_node) + var(--_ring) * 2);
+  border: var(--_ring) solid var(--g-sidebar-current-edge);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-sidebar-current);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--g-duration-fast) linear;
+}
+.g-sidebar__fly .g-sidebar__link:is([aria-current="page"], .is-active)::before {
+  opacity: 1;
 }
 /* Muesca que conecta el panel con su item */
 .g-sidebar__fly::before {
@@ -675,7 +814,7 @@
   -webkit-tap-highlight-color: transparent;
 }
 @media (hover: hover) {
-  .g-sidebar__tab:hover {
+  .g-sidebar__bar > li:not(.is-current) > .g-sidebar__tab:hover {
     background: var(--g-color-surface-sunken);
     color: var(--g-color-text);
   }
@@ -688,13 +827,35 @@
   font-size: var(--g-text-body-sm-size);
   font-weight: var(--g-text-action-weight);
 }
-/* La píldora: el item actual (o la rama, o «Más») se rellena y muestra icono y etiqueta */
+/* La píldora: el item actual (o la rama, o «Más») muestra icono y etiqueta y lleva el ASIENTO CRECIDO (#612, #615): relleno
+   `--g-sidebar-current`, tinta `--g-sidebar-on-current` y trazo interior `--g-sidebar-current-edge`; ya no `color`. El relleno
+   es un ::before bajo el contenido: en reposo es un asiento (círculo de --_seat en el centro de la celda, donde estaba el
+   icono) y al ser actual se abre hasta la píldora entera */
+.g-sidebar__tab {
+  isolation: isolate;
+}
+.g-sidebar__tab::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  box-sizing: border-box;
+  border: var(--_ring) solid var(--g-sidebar-current-edge);
+  border-radius: inherit;
+  background: var(--g-sidebar-current);
+  clip-path: inset(calc(50% - var(--_seat) / 2) calc(50% - var(--_seat) / 2) round var(--g-radius-pill));
+  opacity: 0;
+  pointer-events: none;
+}
 .g-sidebar__bar > li.is-current {
   flex-grow: 3.2;
 }
 .g-sidebar__bar > li.is-current .g-sidebar__tab {
-  background: var(--_color);
-  color: var(--_on);
+  color: var(--g-sidebar-on-current);
+}
+.g-sidebar__bar > li.is-current .g-sidebar__tab::before {
+  clip-path: inset(0 round var(--g-radius-pill));
+  opacity: 1;
 }
 .g-sidebar--mode-navbar .g-sidebar__badge {
   position: absolute;
@@ -705,13 +866,16 @@
   line-height: calc(var(--g-space-1) * 4);
   outline: var(--g-border-width) solid var(--g-color-surface);
 }
+/* Sobre la píldora el indicador se invierte con las ranuras (P1 garantiza on-current / current ≥ 4.5:1) */
 .g-sidebar--mode-navbar .g-sidebar__bar > li.is-current .g-sidebar__badge {
-  background: var(--_on);
-  color: var(--_color);
-  outline-color: var(--_color);
+  background: var(--g-sidebar-on-current);
+  color: var(--g-sidebar-current);
+  outline-color: var(--g-sidebar-current);
 }
-/* Píldora activa: la celda crece con una curva de movimiento en pantalla y la etiqueta entra tras ella;
-   el color del relleno se cruza (transición, no keyframes: se interrumpe si el usuario cambia otra vez) */
+/* Píldora activa: la celda crece (240ms) y, a la vez, el asiento se abre hasta la píldora con el muelle del asiento; la
+   tinta y la etiqueta entran cuando el relleno ya las cubre (40% del llenado: el muelle va por encima del 97%), así
+   `on-current` nunca se ve sobre la superficie del navbar. Al salir, el relleno se funde y luego se recoge sin verse.
+   Transiciones (no keyframes) en el relleno: se interrumpen si el usuario cambia otra vez */
 .g-sidebar__tab:active {
   scale: 0.95;
 }
@@ -722,11 +886,27 @@
   .g-sidebar__tab {
     transition:
       background-color var(--_t) var(--g-ease-standard),
-      color var(--_t) var(--g-ease-standard),
+      color var(--g-duration-fast) var(--g-ease-standard),
       scale var(--g-duration-fast) var(--g-ease-out);
   }
+  .g-sidebar__bar > li.is-current .g-sidebar__tab {
+    transition:
+      background-color var(--_t) var(--g-ease-standard),
+      color var(--g-duration-fast) var(--g-ease-standard) calc(var(--g-duration-slow) * 0.4),
+      scale var(--g-duration-fast) var(--g-ease-out);
+  }
+  .g-sidebar__tab::before {
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-standard),
+      clip-path 0s linear var(--g-duration-fast);
+  }
+  .g-sidebar__bar > li.is-current .g-sidebar__tab::before {
+    transition:
+      clip-path var(--g-duration-slow) var(--g-ease-spring),
+      opacity 0s;
+  }
   .g-sidebar__bar > li.is-current .g-sidebar__label {
-    animation: g-sidebar-tab-label-in var(--_t) var(--g-ease-out) calc(var(--_stagger)) both;
+    animation: g-sidebar-tab-label-in var(--_t) var(--g-ease-out) calc(var(--g-duration-slow) * 0.4) both;
   }
   @keyframes g-sidebar-tab-label-in {
     from { opacity: 0; translate: calc(var(--g-space-1) * -2) 0; }
@@ -883,6 +1063,18 @@
   .g-sidebar__badge {
     transition: opacity var(--g-duration-fast) linear;
   }
+  /* Asiento y píldora: solo fundidos (§29.3). El relleno ya está abierto y solo cambia su opacidad: sin llenado desde el
+     centro, sin crecer hasta la píldora; tinta, aro, nodo y ruta se funden a la vez */
+  .g-sidebar__item > .g-sidebar__link > .g-sidebar__icon::before,
+  .g-sidebar__item > .g-sidebar__link:is([aria-current="page"], .is-active, .is-rep) > .g-sidebar__icon::before,
+  .g-sidebar__tab::before,
+  .g-sidebar__bar > li.is-current .g-sidebar__tab::before {
+    clip-path: none;
+    transition: opacity var(--g-duration-fast) linear;
+  }
+  .g-sidebar__item > .g-sidebar__link > .g-sidebar__icon {
+    transition: color var(--g-duration-fast) linear;
+  }
   @starting-style {
     .g-sidebar__fly:popover-open,
     .g-sidebar__drawer[open] {
@@ -896,16 +1088,32 @@
   .g-sidebar {
     border-color: CanvasText;
   }
-  .g-sidebar__link[aria-current="page"],
-  .g-sidebar__link.is-active {
-    outline: var(--g-border-width) solid CanvasText;
-    outline-offset: calc(var(--g-border-width) * -1);
-    box-shadow: none;
-  }
-  .g-sidebar__link[aria-current="page"]::before,
-  .g-sidebar__link.is-active::before {
-    background: Highlight;
+  /* Asiento, nodo y píldora (#617): relleno Highlight, tinta HighlightText, aros CanvasText (el aro conserva lleno / hueco
+     sin color); ruta Highlight. `forced-color-adjust: none` solo en esas formas; la etiqueta de la fila sigue en CanvasText */
+  .g-sidebar__item > .g-sidebar__link > .g-sidebar__icon::before,
+  .g-sidebar__item > .g-sidebar__link > .g-sidebar__icon::after,
+  .g-sidebar__sub .g-sidebar__link::before,
+  .g-sidebar__sub .g-sidebar__link::after,
+  .g-sidebar__fly .g-sidebar__link::before,
+  .g-sidebar__tab::before {
     forced-color-adjust: none;
+    background: Highlight;
+    border-color: CanvasText;
+  }
+  .g-sidebar__item > .g-sidebar__link > .g-sidebar__icon::after {
+    background: none;
+  }
+  .g-sidebar__item > .g-sidebar__link:is([aria-current="page"], .is-active, .is-rep) > .g-sidebar__icon,
+  .g-sidebar__bar > li.is-current .g-sidebar__tab {
+    forced-color-adjust: none;
+    color: HighlightText;
+  }
+  .g-sidebar__sub::before {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+  .g-sidebar__bar > li.is-current .g-sidebar__badge {
+    forced-color-adjust: auto;
   }
   .g-sidebar__toggle:focus-visible,
   .g-sidebar__search:focus-visible,
@@ -920,12 +1128,6 @@
   .g-sidebar__fly,
   .g-sidebar__drawer {
     border: var(--g-border-width) solid CanvasText;
-  }
-  .g-sidebar__bar > li.is-current .g-sidebar__tab {
-    background: Highlight;
-    color: HighlightText;
-    forced-color-adjust: none;
-    border: calc(var(--g-border-width) * 2) solid CanvasText;
   }
   .g-sidebar__badge {
     border: var(--g-border-width) solid CanvasText;

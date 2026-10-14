@@ -1,12 +1,15 @@
 // API de la entrada `@grana/vue` que no son componentes (dueño: bruno). Los componentes los genera
 // scripts/build-types.mjs desde los *.meta.json; este fragmento se copia a dist/types/api/grana.d.ts.
 import type { App, InjectionKey } from 'vue'
-import type { FormField, FormFieldOptions, IconsPlugin, SummaryDiff, SummaryDiffItem, Toaster, ToasterOptions } from '../shared.js'
+import type { DialogSteps, FormField, FormFieldOptions, IconsPlugin, SummaryDiff, SummaryDiffItem, Toaster, ToasterOptions } from '../shared.js'
 
 /** Composable para campos (los de Grana y los propios) dentro de `GForm` (form.md §2). */
 export declare function useFormField(options?: FormFieldOptions): FormField
 /** Clave del contexto de `GForm`, para `provide` manual. */
 export declare const formKey: InjectionKey<unknown>
+
+/** Pasos del `GDialog` más cercano (dialog.md §«Niveles anidados» B, #584); fuera del contenido de un `GDialog`, `null`. */
+export declare function useDialogSteps(): DialogSteps | null
 
 /** Crea el gestor de avisos de la aplicación; es plugin (`app.use(toaster)`). */
 export declare function createToaster(options?: ToasterOptions): Toaster

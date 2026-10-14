@@ -4,11 +4,12 @@ Grupo de casillas con modelo de arreglo, **casilla maestra** ("seleccionar todas
 
 **Etiqueta:** `<g-checkbox-group>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/checkbox/auditoria.md`](../../../../../design/lab/checkbox/auditoria.md)) · **Desde:** 0.1.0
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`.
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`.
 
 ## Uso
 
 ```vue
+<!-- Fragmento: `reservas` y `elegidas` son de tu aplicación -->
 <g-checkbox-group
   v-model="elegidas"
   label="Reservas"
@@ -30,6 +31,11 @@ Grupo de casillas con modelo de arreglo, **casilla maestra** ("seleccionar todas
 | `label` | String | | sin valor |
 | `hint` | String | | sin valor |
 | `error` | String | | sin valor |
+| `warning` | String | Advertencia: no bloquea ni pone `aria-invalid`; el mensaje con prioridad `error` › `warning` › `valid` | sin valor |
+| `valid` | String | mensaje de válido útil (mismo mensaje único, última prioridad) | sin valor |
+| `required` | Boolean | marca de la pregunta en el `legend` | `false` |
+| `mark` | Boolean | `false` quita la marca de la convención de `GForm` («(opcional)» o asterisco) | sin valor (la marca la decide `GForm`) |
+| `name` | String | clave del grupo en `errors` de `GForm` y `name` por defecto de sus casillas | sin valor |
 | `selectAll` | Boolean | | `false` |
 | `selectAllLabel` | String | | sin valor |
 | `countText` | Function | `(seleccionadas, total) => string` | sin valor |
@@ -56,6 +62,7 @@ Grupo de casillas con modelo de arreglo, **casilla maestra** ("seleccionar todas
 - **`card`:** las tarjetas en una cuadrícula que se adapta al ancho (una columna por debajo de unos 240px por tarjeta).
 
 ```vue
+<!-- Fragmento: `servicios` es de tu aplicación -->
 <g-checkbox-group v-model="servicios" label="Filtrar por servicio" layout="chip" color="accent">
   <g-checkbox value="wifi" label="Wifi" />
   <g-checkbox value="desayuno" label="Desayuno" />
@@ -108,7 +115,7 @@ Con un `GForm` alrededor el campo lee su contexto: densidad, solo lectura, desha
 - **Maestra con muchas hijas:** `aria-controls` con decenas de ids es válido pero su soporte es irregular; no dependas de él.
 - **Conteo muy frecuente:** una región viva educada puede tardar o agruparse si se alterna muy rápido; es el comportamiento esperado.
 - **Sin árbol de casillas anidadas** ni grupos dentro de grupos.
-- No hay tema oscuro todavía.
+- **Tema oscuro:** `grana.css` ya trae el esquema oscuro por defecto (`defaults.css`): sigue `prefers-color-scheme` y se fuerza con `data-theme="dark"` o `data-theme="light"` en cualquier elemento (ver [«Tema oscuro» del README raíz](../../../../../README.md#tema-oscuro)). Al documentar no se repitieron en oscuro las cifras de contraste de este README.
 - **Sin verificar:** un lector de pantalla real (conteo y estado mixto de la maestra), las preferencias reales de `prefers-reduced-motion` y `forced-colors`, el zoom al 200% y un dispositivo táctil real.
 
 ## Fuentes

@@ -1,0 +1,117 @@
+/*
+  GMenu r02 · elementos-enlace (kiwi). Prototipo: NO es el CSS del componente (ese es de coco, GMenu.css).
+  La lista y los elementos usan el CSS real de GMenu desde packages/vue/dist/grana.css (tema por defecto).
+  Aquí solo lo nuevo de la ronda: el enlace como elemento, la marca de «sale de aquí», la página actual,
+  el pie de destino (B) y las huellas de C. Solo var(--g-*) y alias --_*; literales: 24px/44px y el texto oculto.
+*/
+
+/* ---------- Base · el enlace es un elemento más ---------- */
+/* Un <a> no hereda el aspecto de <button>: se iguala (subrayado y color de enlace fuera; nota para coco, L7) */
+a.g-menu__item {
+  text-decoration: none;
+  color: inherit;
+}
+a.g-menu__item:visited { color: inherit; }
+/* Enlace deshabilitado: <a> sin href; el CSS real ya lo atenúa y tacha por aria-disabled */
+
+/* Texto solo para lectores (patrón de texto oculto accesible) */
+.r02-sr {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Marca «sale de aquí» (otro sitio o pestaña nueva): icono de Lucide al final, decorativo; el texto va en .r02-sr */
+.r02-leave {
+  flex: none;
+  display: grid;
+  place-items: center;
+  margin-inline-start: var(--g-space-2);
+  color: var(--g-color-text-muted);
+}
+.r02-leave > svg {
+  inline-size: calc(var(--g-space-1) * 3.5);
+  block-size: calc(var(--g-space-1) * 3.5);
+}
+
+/* Página actual: barra de inicio (como la barra activa de GSidebar, accent-text, #228) + peso; nunca solo color */
+.g-menu__item[aria-current="page"] .g-menu__label { font-weight: var(--g-text-action-weight); }
+.g-menu__item[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  inset-block: calc(var(--g-space-1) * 1.5);
+  inset-inline-start: 0;
+  inline-size: calc(var(--g-space-1) * 0.75);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-accent-text);
+}
+/* Rama: el padre de un submenú que contiene la página actual (sin aria-current, como is-branch de GSidebar) */
+.g-menu__item.r02-branch .g-menu__label { font-weight: var(--g-text-action-weight); }
+
+/* ---------- B · Pie de destino ---------- */
+/* Un li role="none" aria-hidden (como el resaltado de M1): fuera del árbol accesible, dentro de la lista, pegado abajo */
+.r02-dest {
+  position: sticky;
+  inset-block-end: calc(var(--_pad) * -1);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--g-space-2);
+  min-block-size: max(24px, calc(var(--g-space-1) * 8));
+  margin: var(--_pad) calc(var(--_pad) * -1) calc(var(--_pad) * -1);
+  padding: 0 var(--g-space-3);
+  border-block-start: var(--g-border-width) solid var(--g-color-border);
+  background: var(--g-color-surface-sunken);
+  color: var(--g-color-text-muted);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  white-space: nowrap;
+}
+.r02-dest__icon { flex: none; display: grid; }
+.r02-dest__icon > svg { inline-size: calc(var(--g-space-1) * 3.5); block-size: calc(var(--g-space-1) * 3.5); }
+.r02-dest__host { flex: none; max-inline-size: 60%; overflow: hidden; text-overflow: ellipsis; color: var(--g-color-text); font-weight: var(--g-text-action-weight); }
+.r02-dest__path { flex: 1 1 auto; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; }
+.r02-dest__tag { flex: none; color: var(--g-color-text); }
+/* El pie solo habla cuando el activo tiene destino; con una acción guarda su alto y se calla */
+.r02-dest__body { display: contents; }
+.r02-dest[data-empty] > .r02-dest__body > * { opacity: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .r02-dest > .r02-dest__body > * { transition: opacity var(--g-duration-fast) var(--g-ease-standard); }
+}
+/* Las URL se leen de izquierda a derecha también en RTL */
+.r02-dest__host, .r02-dest__path { direction: ltr; unicode-bidi: isolate; }
+
+/* ---------- C · Varias pestañas ---------- */
+/* Con Ctrl/⌘ pulsado (o el puntero central sobre la lista), lo que no puede abrirse aparte se aparta */
+.g-menu__list[data-mod] .g-menu__item:not([href]) { color: var(--g-color-text-subtle); }
+.g-menu__list[data-mod] .g-menu__item[href] .r02-leave { color: var(--g-color-text); }
+/* Huella: «Abierta» o «Enlace copiado» en la columna del atajo, mientras el menú sigue abierto */
+.r02-trace {
+  flex: none;
+  margin-inline-start: var(--g-space-3);
+  padding: 0 var(--g-space-2);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-surface-sunken);
+  color: var(--g-color-text);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  white-space: nowrap;
+}
+.r02-trace:empty { display: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .r02-trace:not(:empty) { transition: opacity var(--g-duration-fast) var(--g-ease-standard); }
+  @starting-style { .r02-trace:not(:empty) { opacity: 0; } }
+}
+
+@media (forced-colors: active) {
+  .g-menu__item[aria-current="page"]::before { background: CanvasText; }
+  .r02-dest { border-color: CanvasText; }
+  .r02-trace { border: var(--g-border-width) solid CanvasText; }
+}

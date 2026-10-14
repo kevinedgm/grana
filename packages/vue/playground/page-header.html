@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GPageHeader · banco del componente real (bruno)</title>
+<!-- Banco de GPageHeader con el componente real de dist/ (dueño: bruno). Una página de verdad: barra fija de la aplicación
+     (banner), main con el encabezado como PRIMER hijo directo, la receta de una variable (--g-page-header-top y
+     scroll-padding), GBreadcrumbs, GTabs detached + GTabPanel, GBtn, GMenu y GMetric reales, y la isla de estado
+     (@grana/vue/status) y GToaster reales con offset.top = la barra. Lo verifican
+     design/lab/theme-playground/tests/page-header.spec.mjs y personalidad-page-header.spec.mjs.
+     Parámetros: ?dir=rtl · ?zone=brand · ?sticky=0 · ?dialog=1 (botón que abre un GDialog con un encabezado de nivel 2) ·
+     ?dark=1. Estado en window.ph (toaster, status, la reserva de borde compartida y un registro de eventos). -->
+<link rel="stylesheet" href="../dist/fonts.css">
+<link rel="stylesheet" href="../dist/grana.css">
+<style>
+  /* Andamio del banco (no es de Grana): la barra de la aplicación y la receta de una variable */
+  *{box-sizing:border-box}
+  :root{
+    --app-header: 56px;
+    --g-page-header-top: var(--app-header);
+    scroll-padding-block-start: calc(var(--app-header) + max(var(--g-space-12), 44px));
+  }
+  body{margin:0;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  .app-bar{position:fixed;inset-block-start:0;inset-inline:0;z-index:20;block-size:var(--app-header);display:flex;align-items:center;gap:16px;padding-inline:16px;background:var(--g-color-surface);border-block-end:var(--g-border-width) solid var(--g-color-border)}
+  .app-bar b{font-size:16px}
+  .app-bar .sp{flex:1}
+  main{padding-block-start:var(--app-header);max-inline-size:1180px;margin-inline:auto;outline:none}
+  .panel{padding:var(--g-space-6)}
+  .panel h2{font-size:20px;margin:24px 0 8px}
+  .panel p{max-inline-size:75ch;margin:0 0 12px}
+  .metrics{display:flex;flex-wrap:wrap;gap:24px}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="app-bar">
+    <b>Laboratorio</b>
+    <span class="sp"></span>
+    <g-btn id="toast-btn" size="sm" variant="outline" color="neutral" @click="toast">Aviso de prueba</g-btn>
+    <g-btn id="status-btn" size="sm" variant="outline" color="neutral" @click="condition">Condición</g-btn>
+    <g-btn v-if="Q.dialog" id="dialog-btn" size="sm" variant="outline" color="neutral" @click="dlg = true">Abrir diálogo</g-btn>
+  </header>
+  <main id="main" tabindex="-1">
+    <g-page-header id="ph" ref="header" title="Muestra M-0007" eyebrow="Hematología · Ambulatorio" description="Hemograma completo. Recibida el 12 de octubre de 2026 a las 08:14." :zone="Q.zone" :sticky="Q.sticky" :labels="{ actions: 'Acciones de la página' }">
+      <template #trail><g-breadcrumbs id="ph-trail" :items="trail" :labels="{ nav: 'Ruta de navegación', up: 'Subir a {label}', path: 'Ruta hasta {label}' }" @navigate="(e) => { e.event.preventDefault(); log('navigate') }"></g-breadcrumbs></template>
+      <template #meta><g-badge color="info">En análisis</g-badge></template>
+      <div class="metrics"><g-metric label="Analitos" :value="18" size="sm"></g-metric><g-metric label="Fuera de rango" :value="3" size="sm"></g-metric></div>
+      <template #tabs><g-tabs id="muestra" v-model="tab" :items="tabs" detached label="Secciones de la muestra" density="compact"></g-tabs></template>
+      <template #actions="{ narrow, docked }">
+        <g-btn v-if="!narrow" id="act-edit" variant="outline" color="neutral" @click="log('editar')">Editar</g-btn>
+        <g-btn id="act-primary" class="ph-primary" :icon="narrow && !docked" :aria-label="narrow && !docked ? 'Validar resultados' : undefined" :tooltip="narrow && !docked ? 'Validar resultados' : undefined" :loading="busy" @click="validate"><g-icon v-if="narrow && !docked" name="check"></g-icon><template v-else>Validar resultados</template></g-btn>
+        <g-menu id="act-more" v-model="menu" :items="more" label="Más acciones" @select="(e) => log('menu · ' + e.id)"><template #trigger="{ attrs }"><g-btn v-bind="attrs" id="act-more-btn" variant="ghost" color="neutral" icon aria-label="Más acciones" tooltip="Más acciones"><g-icon name="ellipsis-vertical"></g-icon></g-btn></template></g-menu>
+      </template>
+    </g-page-header>
+    <g-tab-panel v-for="t in tabs" :key="t.id" tabs="muestra" :value="t.id" :active="tab === t.id" class="panel">
+      <template v-for="(h, i) in sections[t.id]" :key="i"><h2>{{ h }}</h2><p>{{ para }}</p><p>{{ para }}</p><p>{{ para }} <a href="#main">Ver protocolo</a>.</p></template>
+    </g-tab-panel>
+  </main>
+  <g-dialog v-if="Q.dialog" v-model="dlg" title="Muestra en diálogo" :labels="{ close: 'Cerrar' }" size="lg">
+    <g-page-header id="ph-dlg" title="Detalle de la muestra" :heading-level="2" :labels="{ actions: 'Acciones del detalle' }">
+      <template #tabs><g-tabs id="dlg-tabs" v-model="dtab" :items="tabs" detached label="Secciones del detalle" density="compact"></g-tabs></template>
+      <template #actions><g-btn id="dlg-act" variant="outline" color="neutral">Exportar</g-btn></template>
+    </g-page-header>
+    <div class="panel"><p v-for="n in 12" :key="n">{{ para }}</p></div>
+  </g-dialog>
+  <g-toaster></g-toaster>
+  <g-status-island></g-status-island>
+</div>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="../dist/grana.umd.js"></script>
+<script src="../dist/status.umd.js"></script>
+<script src="../dist/page-header.umd.js"></script>
+<script src="./lucide-icons.js"></script>
+<script>
+  const P = new URLSearchParams(location.search)
+  if (P.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  if (P.get('dark') === '1') document.documentElement.dataset.theme = 'dark'
+  const toaster = Grana.createToaster({ position: 'top-end', offset: { top: 56 }, labels: { region: 'Notificaciones ({hotkey})', close: 'Cerrar notificación', types: { info: 'Información', success: 'Correcto', warning: 'Advertencia', error: 'Error', loading: 'En curso' } } })
+  const status = GranaStatus.createStatus({ offset: { top: 56 }, labels: { region: 'Estado de la aplicación ({hotkey})', summary: (n) => 'Estado: ' + n + ' avisos.', more: 'y {count} más', types: { info: 'Información', success: 'Correcto', warning: 'Advertencia', error: 'Error' }, acknowledge: 'Entendido', dismiss: 'Descartar: {title}', sheetTitle: 'Estado de la aplicación', close: 'Cerrar' } })
+  const events = []
+  window.ph = { toaster, status, events, edge: Grana.__shared['utils/edgeReserve.js'] }
+  const para = 'La muestra se procesó en el analizador 2 con control de calidad vigente. Los valores fuera de rango se marcan para validación por el químico responsable; la validación libera el resultado al expediente del paciente y al médico solicitante.'
+  const app = Vue.createApp({
+    setup() {
+      const tab = Vue.ref('resumen')
+      const busy = Vue.ref(false)
+      const log = (e) => { events.push(e) }
+      return {
+        Q: { zone: P.get('zone') === 'brand' ? 'brand' : 'none', sticky: P.get('sticky') !== '0', dialog: P.get('dialog') === '1' },
+        tab, dtab: Vue.ref('resumen'), menu: Vue.ref(false), dlg: Vue.ref(false), busy, para, log,
+        trail: [{ label: 'Inicio', href: '#inicio' }, { label: 'Muestras', href: '#muestras' }, { label: 'Muestra M-0007', href: '#m-0007' }],
+        tabs: [{ id: 'resumen', label: 'Resumen' }, { id: 'resultados', label: 'Resultados' }, { id: 'historial', label: 'Historial' }, { id: 'adjuntos', label: 'Adjuntos' }],
+        more: [{ id: 'imprimir', label: 'Imprimir' }, { id: 'duplicar', label: 'Duplicar' }, { id: 'editar', label: 'Editar' }],
+        sections: {
+          resumen: ['Datos de la muestra', 'Analitos fuera de rango', 'Observaciones del analista', 'Trazabilidad', 'Cadena de custodia', 'Notas internas'],
+          resultados: ['Serie roja', 'Serie blanca', 'Plaquetas', 'Índices'],
+          historial: ['Cambios recientes'],
+          adjuntos: ['Adjuntos', 'Imágenes del frotis']
+        },
+        validate() { busy.value = true; log('validar'); setTimeout(() => { busy.value = false }, 600) },
+        toast() { toaster.success('Resultado guardado', { duration: 8000 }) },
+        condition() { status.warning('red', 'Sin conexión con el analizador 2', { description: 'Los resultados nuevos se guardan en local.' }) }
+      }
+    }
+  })
+  app.use(Grana).use(GranaPageHeader).use(Grana.createIcons(Object.values(window.LUCIDE_STATIC))).use(toaster).use(status)
+  window.phApp = app.mount('#app')
+</script>
+</body>
+</html>

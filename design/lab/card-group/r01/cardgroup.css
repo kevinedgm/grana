@@ -1,0 +1,117 @@
+/* Geometría del prototipo de kiwi (r01) del grupo de tarjetas que filtran. NO es el CSS de coco: solo tokens del tema
+   por defecto (dist/grana.css) para que el usuario juzgue la identidad de A, B y C. Las reglas sobre .g-card son
+   sobrescrituras de laboratorio para dibujar los conceptos con la tarjeta real. */
+
+/* ---------- Marco del laboratorio (no es parte de la propuesta) ---------- */
+body { margin: 0; background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui); font-size: var(--g-text-body-size); line-height: var(--g-text-body-line); }
+.lab-bar { display: flex; flex-wrap: wrap; gap: calc(var(--g-space-1) * 2) calc(var(--g-space-1) * 4); align-items: baseline; padding: calc(var(--g-space-1) * 3) calc(var(--g-space-1) * 4); background: var(--g-color-surface); box-shadow: 0 var(--g-border-width) 0 var(--g-color-border); }
+.lab-bar a { color: var(--g-color-link); }
+main { max-inline-size: calc(var(--g-space-1) * 280); margin: 0 auto; padding: calc(var(--g-space-1) * 6) calc(var(--g-space-1) * 4) calc(var(--g-space-1) * 30); }
+main > h1 { font-size: var(--g-text-title-size); line-height: var(--g-text-title-line); margin: 0 0 calc(var(--g-space-1) * 2); }
+main > h2 { font-size: var(--g-text-title-sm-size); line-height: var(--g-text-title-sm-line); margin: calc(var(--g-space-1) * 14) 0 calc(var(--g-space-1) * 2); padding-block-start: calc(var(--g-space-1) * 6); border-block-start: var(--g-border-width) solid var(--g-color-border-strong); }
+main > h3 { font-size: var(--g-text-body-size); margin: calc(var(--g-space-1) * 7) 0 calc(var(--g-space-1) * 2); }
+main > p { max-inline-size: 80ch; }
+.lead, .cap { color: var(--g-color-text-muted); }
+.cap { font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); margin: calc(var(--g-space-1) * 2) 0; }
+.demo { padding: calc(var(--g-space-1) * 4); border-radius: var(--g-radius-lg); background: var(--g-color-bg); box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-border); min-inline-size: 0; }
+.note { padding: calc(var(--g-space-1) * 3) calc(var(--g-space-1) * 4); border-radius: var(--g-radius-md); background: var(--g-color-surface-sunken); font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); max-inline-size: none; }
+.tbl-wrap { overflow-x: auto; max-inline-size: 100%; }
+table.cmp { border-collapse: collapse; inline-size: 100%; font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); }
+table.cmp :is(th, td) { text-align: start; vertical-align: top; padding: calc(var(--g-space-1) * 2); border-block-end: var(--g-border-width) solid var(--g-color-border); }
+table.cmp th { font-weight: var(--g-text-action-weight); }
+code { font-size: 0.92em; }
+.lab-sr { position: absolute; inline-size: 1px; block-size: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+
+/* ---------- Base: rejilla que se reparte (2 columnas a 375px) ---------- */
+.lab-cg { min-inline-size: 0; }
+.lab-cg__strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, calc(var(--g-space-1) * 34)), 1fr)); gap: calc(var(--g-space-1) * 3); }
+.lab-cg__panel { margin-block-start: calc(var(--g-space-1) * 4); min-inline-size: 0; }
+.lab-cg__metric { min-inline-size: 0; }
+.lab-cg__metric .g-metric { min-inline-size: 0; }
+
+/* ---------- A · Lengüeta ---------- */
+.lab-cg--A {
+  --_slot: calc(var(--g-space-1) * 2);          /* la ranura entre lengüeta y tabla */
+  --_edge: calc(var(--g-border-width) * 2);     /* el borde que se continúa (el doble de la seleccionada) */
+  --_mark: var(--g-color-primary-text);
+}
+.lab-cg--A .lab-cg__strip {
+  position: relative; z-index: 1;
+  grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(calc(var(--g-space-1) * 44), 1fr);
+  gap: calc(var(--g-space-1) * 2);
+  overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity;
+  padding-block-end: var(--_slot);
+  padding-inline: calc(var(--g-space-1) * 3);   /* las lengüetas nacen dentro del marco, no en su esquina */
+  scroll-padding-inline: calc(var(--g-space-1) * 3);
+}
+.lab-cg--A .lab-cg__card { scroll-snap-align: start; }
+.lab-cg--A .g-card.g-surface,
+.lab-cg--A .g-card::after,
+.lab-cg--A .g-card::before { border-end-start-radius: 0; border-end-end-radius: 0; }
+.lab-cg--A .g-card.is-selected::after { border-block-end-color: transparent; }
+.lab-cg--A .lab-cg__panel {
+  position: relative;
+  margin-block-start: calc(-1 * var(--_edge));
+  padding: calc(var(--g-space-1) * 3);
+  border: var(--_edge) solid var(--g-color-border-strong);
+  border-radius: var(--g-radius-lg);
+  background: var(--g-color-surface);
+  transition: border-color var(--g-duration-fast) var(--g-ease-out);
+}
+.lab-cg--A .lab-cg__panel.is-filtered { border-color: var(--_mark); }
+.lab-a__bridge {
+  position: absolute; inset-block-end: 0; block-size: var(--_slot);
+  box-sizing: border-box;
+  background: linear-gradient(var(--g-card-selected), var(--g-card-selected)), var(--g-color-surface);
+  border-inline: var(--_edge) solid var(--_mark);
+  transform-origin: top;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .lab-a__bridge {
+    transition: left var(--g-duration-press) var(--g-ease-out), width var(--g-duration-press) var(--g-ease-out), transform var(--g-duration-slow) var(--g-ease-out);
+  }
+  @starting-style { .lab-a__bridge { transform: scaleY(0); } }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lab-a__bridge { transition: opacity var(--g-duration-fast) var(--g-ease-out); }
+  @starting-style { .lab-a__bridge { opacity: 0; } }
+}
+.lab-cg--A .lab-cg__panel { box-shadow: none; }
+
+/* ---------- B · El todo y sus partes ---------- */
+.lab-cg--B .lab-cg__strip { display: flex; flex-wrap: wrap; gap: calc(var(--g-space-1) * 2); }
+.lab-cg--B .lab-cg__card { flex: var(--lab-share) 1 0; min-inline-size: calc(var(--g-space-1) * 38); }
+.lab-cg--B .g-card.g-surface { background-color: var(--g-color-surface-sunken); transition: background-color var(--g-duration-fast) var(--g-ease-out); }
+.lab-cg--B .g-card.g-surface.is-selected { background-color: var(--g-color-surface); }
+.lab-cg--B .g-card.g-surface.is-out { background-color: transparent; }
+.lab-cg--B .g-card.is-out::after { border-style: dashed; border-color: var(--g-color-border-control); }
+.lab-cg--B .g-card.is-out .g-metric__value { color: var(--g-color-text-muted); }
+.lab-cg__share { margin: var(--g-space-1) 0 0; font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); color: var(--g-color-text-muted); font-variant-numeric: tabular-nums; }
+.lab-b__sum { margin: calc(var(--g-space-1) * 3) 0 0; font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); color: var(--g-color-text-muted); font-variant-numeric: tabular-nums; }
+.lab-b__sum strong { color: var(--g-color-text); }
+
+/* ---------- C · La frase ---------- */
+.lab-c__line { margin: 0; max-inline-size: none; font-size: var(--g-text-title-sm-size); line-height: calc(var(--g-text-title-sm-line) * 1.25); }
+.lab-c__num { font-size: var(--g-text-title-size); }
+.lab-c__lead strong, .lab-c__num { font-variant-numeric: tabular-nums lining-nums; font-weight: var(--g-text-action-weight); }
+.lab-c__bar { display: inline; }
+.lab-c__fig {
+  display: inline-flex; align-items: baseline; gap: 0.25em;
+  min-block-size: 24px; margin: 0; padding: 0 0.15em;
+  border: 0; border-radius: var(--g-radius-sm); background: none; color: inherit; font: inherit; cursor: pointer;
+  text-decoration: underline dotted var(--g-color-border-control); text-decoration-thickness: calc(var(--g-border-width) * 2); text-underline-offset: 0.2em;
+  transition: background-color var(--g-duration-fast) var(--g-ease-out), color var(--g-duration-fast) var(--g-ease-out);
+}
+@media (pointer: coarse) { .lab-c__fig { min-block-size: 44px; } }
+@media (hover: hover) { .lab-c__fig:hover { background: var(--g-card-hover); text-decoration-style: solid; } }
+.lab-c__fig:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset); }
+.lab-c__fig.is-on { background: var(--g-color-primary-soft); color: var(--g-color-on-primary-soft); text-decoration: underline solid var(--g-color-primary-text); text-decoration-thickness: calc(var(--g-border-width) * 3); }
+.lab-c__fig.is-out { color: var(--g-color-text-muted); }
+.lab-c__tail { color: var(--g-color-text-muted); font-size: var(--g-text-body-size); }
+.lab-c .lab-cg__panel { margin-block-start: calc(var(--g-space-1) * 3); }
+@media (forced-colors: active) {
+  .lab-c__fig.is-on { outline: calc(var(--g-border-width) * 2) solid Highlight; }
+  .lab-a__bridge { background: Canvas; border-color: Highlight; }
+  .lab-cg--A .lab-cg__panel.is-filtered { border-color: Highlight; }
+}

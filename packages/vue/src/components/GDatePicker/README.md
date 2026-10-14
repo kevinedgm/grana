@@ -4,7 +4,7 @@ Selector de **una fecha o de un rango de fechas**. Muestra uno o dos meses segú
 
 **Etiqueta:** `<g-datepicker>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/datepicker/auditoria.md`](../../../../../design/lab/datepicker/auditoria.md)) · **Desde:** 0.1.0
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`. Usa `popover`, `Intl` y, para el primer día de la semana, `Intl.Locale.getWeekInfo` cuando el navegador lo trae.
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`. Usa `popover`, `Intl` y, para el primer día de la semana, `Intl.Locale.getWeekInfo` cuando el navegador lo trae.
 
 ## Uso
 
@@ -48,6 +48,7 @@ const labels = {
 | **Tu propio botón** | Slot `trigger` (por ejemplo, un segmento de una barra de búsqueda) con `anchor` para posicionar la superficie |
 
 ```vue
+<!-- Fragmento: `fechas`, `labels` y `proximidad` son de tu aplicación -->
 <!-- Barra de búsqueda: Destino / Fecha / Personas / Buscar -->
 <div id="barra">
   …
@@ -93,6 +94,9 @@ Con el slot `trigger` no se renderizan `label`, `hint`, `error`, `name` ni `spli
 | `variant`, `size`, `density`, `rounded`, `block` | | como `GSelect` (solo el **campo**) | `outline`, `md`, `default` |
 | `disabled`, `readonly` | Boolean | | `false` |
 | `label`, `hint`, `error`, `placeholder`, `required`, `name`, `id` | | como `GSelect` (campo) | sin valor |
+| `warning`, `valid` | String | como `GInput`: mensaje único bajo el campo (`error` › `warning` › `valid`); la advertencia no bloquea ni pone `aria-invalid` | sin valor |
+| `mark` | Boolean | `false` quita la marca de la convención de `GForm` | sin valor |
+| `output` | String | valor que calcula la aplicación: `<output>` tras la fecha, dentro de la caja; solo en modo campo (no `inline`, no `split`); no se envía | sin valor |
 | `split`, `labelStart`, `labelEnd`, `placeholderStart`, `placeholderEnd` | | Desde / Hasta | |
 
 Un valor de prop fuera de su lista avisa en desarrollo. `loading` **no aplica**.
@@ -196,13 +200,14 @@ Las emite el componente y las estiliza `GDatePicker.css`: `g-datepicker` (con `-
 
 ## Limitaciones conocidas
 
+- **Ancho en un padre que se ajusta al contenido (#563, abierto).** `GDatePicker` no tiene contención en línea, así que en una celda `auto`, una rejilla centrada o un flex con `fit-content` mide lo que su etiqueta (~200 px), no un ancho por defecto como `GInput`. Dale ancho al padre o al componente. Ver `api.md` «Contención en línea y ancho intrínseco».
 - **No se puede escribir la fecha a mano** en el campo (cada idioma tiene su formato): el campo es un botón. **Sin** selección de varias fechas sueltas, hora, ni vistas de meses o años.
 - **La franja del rango es muy tenue frente a la superficie** (1.14:1 con el tema por defecto, 1.22:1 con el de la auditoría): los tonos suaves de las marcas no están pensados para un elemento gráfico. Lo que identifica el rango es el inicio y el fin (círculos de alto contraste), el nombre de cada día y el resumen. Está pendiente decidir si se refuerza (borde o tono más fuerte).
 - **Sin textos por defecto:** sin `labels.prev` y `labels.next`, los botones de mes no tienen nombre; sin `labels.dialog`, el popover tampoco.
 - **`Intl.Locale.getWeekInfo`** no está en todos los navegadores: sin él, la semana empieza en lunes salvo que des `firstDay`.
 - **No atrapa el foco:** Tab hacia fuera cierra el popover. En la hoja móvil el fondo lo cubre y el clic fuera cierra.
 - **La hoja móvil** se activa con una consulta de medios sobre el visor (~520px), no sobre el contenedor.
-- No hay tema oscuro todavía.
+- **Tema oscuro:** `grana.css` ya trae el esquema oscuro por defecto (`defaults.css`): sigue `prefers-color-scheme` y se fuerza con `data-theme="dark"` o `data-theme="light"` en cualquier elemento (ver [«Tema oscuro» del README raíz](../../../../../README.md#tema-oscuro)). Al documentar no se repitieron en oscuro las cifras de contraste de este README.
 - **Sin verificar:** un lector de pantalla real (cuadrícula, rango, título vivo, hoja móvil), RTL con un idioma RTL real, Firefox y Safari (`popover`, `::backdrop`, `scale` y `rotate` individuales), la hoja móvil con teclado virtual, el deslizamiento en un dispositivo táctil real, y `forced-colors` y `prefers-reduced-motion` reales (los bloques se comprobaron aplicados sin condición).
 
 ## Fuentes

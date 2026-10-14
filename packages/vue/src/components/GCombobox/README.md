@@ -4,7 +4,7 @@ Campo para **elegir una opción de un catálogo grande escribiendo**: un pacient
 
 **Etiqueta:** `<g-combobox>` · **Estado:** `candidate` (auditoría de coco aprobada, sin defectos bloqueantes; ver [`design/lab/combobox/auditoria.md`](../../../../../design/lab/combobox/auditoria.md) y, para `multiple`, [`auditoria-multiple.md`](../../../../../design/lab/combobox/auditoria-multiple.md)) · **Desde:** 0.1.0 · **Entrada:** propia, `@grana/vue/combobox` (global UMD `GranaCombobox`)
 
-> `@grana/vue` está en la versión 0.0.0 y aún no se publica. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GCombobox`, con un servidor simulado, y «Alta de paciente»). Exige Vue `^3.5.0` (usa `useId`) y un navegador actual: `popover`, `@starting-style` y `<dialog>`.
+> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GCombobox`, con un servidor simulado, y «Alta de paciente»). Exige Vue `^3.5.0` (usa `useId`) y un navegador actual: `popover`, `@starting-style` y `<dialog>`.
 
 ## Instalación: entrada propia
 
@@ -142,6 +142,7 @@ function masResultados() {
 ### Texto libre: `allowCustom` y `v-model:custom`
 
 ```vue
+<!-- Fragmento: `med`, `medLibre` y `cuadroBasico` son de tu aplicación -->
 <g-combobox v-model="med" v-model:custom="medLibre" label="Medicamento" hint="Elige del cuadro básico o escribe otro"
             allow-custom name="medicamento" custom-name="medicamento_libre"
             :labels="{ ...labels, useCustom: 'Usar «{text}» como texto libre', custom: 'Texto libre' }"
@@ -164,6 +165,7 @@ function masResultados() {
 ### Paleta con vista previa (B)
 
 ```vue
+<!-- Fragmento: `pac`, `buscar` y `masResultados` son de tu aplicación -->
 <g-combobox v-model="pac.value" appearance="palette" label="Paciente"
             hint="Para homónimos: la ficha de la opción activa antes de elegir"
             :filter="false" :min-chars="2" :labels="{ ...labels, preview: 'Vista previa', previewEmpty: 'Recorre la lista para ver el detalle antes de elegir.' }"
@@ -343,6 +345,7 @@ Con `multiple`, `update:modelValue` y `update:custom` emiten arreglos nuevos y `
 `option`, `value` y `preview` **ganan** a la ficha por defecto; la [`GSummary`](../GSummary/README.md) pública es lo recomendado dentro de ellos:
 
 ```vue
+<!-- Fragmento: `pac`, `labels` y `buscar` son de tu aplicación -->
 <g-combobox v-model="pac.value" label="Paciente" :labels="labels" :options="pac.options" :filter="false" @search="buscar">
   <template #option="{ option, query }">
     <g-summary :title="option.label" :subtitle="option.description" :highlight="query" avatar></g-summary>
@@ -445,6 +448,7 @@ Los eventos de lista **no actúan mientras hay composición IME** (`isComposing`
 `name` va al `<input type="hidden">` del `value` y registra el campo en [`GForm`](../GForm/README.md) (clave de `errors`); **el `<input>` visible no lleva `name`**. `form` por `$attrs` se copia a los ocultos. Escribir es escritura (el error se revela al salir); elegir, limpiar y confirmar un texto libre llaman a `notifyChange` (suben `dirty` y retiran `is-rejected`). Con `readonly` no se emite nada.
 
 ```vue
+<!-- Fragmento: `fm`, `enviar`, `pac`, `pacienteGuardado`, `labels`, `buscar`, `masResultados`, `servicio`, `servicios` y `nota` son de tu aplicación -->
 <g-form aria-label="Consulta" :labels="fm.labels" @submit="enviar">
   <g-form-layout>
     <g-form-row>
@@ -525,6 +529,7 @@ const labels = {
 #### A · La frase: alergias, con texto libre
 
 ```vue
+<!-- Fragmento: `labels` y `catalogoAlergias` son de tu aplicación -->
 <script setup>
 import { ref } from 'vue'
 
@@ -546,6 +551,7 @@ const libres = ref([])                           // los textos libres, aparte
 #### B · La receta: diagnósticos numerados, con tope
 
 ```vue
+<!-- Fragmento: `dx`, `labels` y `diagnosticos` son de tu aplicación -->
 <g-combobox v-model="dx" multiple selection="list" numbered :max="3"
             label="Diagnósticos secundarios" hint="Hasta 3, en orden de importancia"
             placeholder="Código o descripción" name="dx_sec"
@@ -557,6 +563,7 @@ La caja es solo la búsqueda; los elegidos van debajo, uno por renglón, con el 
 #### C · La cesta: responsables, con homónimos
 
 ```vue
+<!-- Fragmento: `responsables`, `labels` y `personas` son de tu aplicación -->
 <g-combobox v-model="responsables" multiple appearance="palette"
             label="Responsables" placeholder="Nombre o área"
             :labels="labels" :options="personas"></g-combobox>
@@ -569,6 +576,7 @@ Con el visor de 520 px o menos, la paleta es la hoja móvil de siempre y **no ll
 Igual que con una opción: `:filter="false"`, `loading` en el mismo manejador de `search` y `more`. Lo nuevo es que lo elegido que ya no está en `options` (porque la búsqueda cambió) se describe con **`selectedOptions`**, el arreglo de las opciones de esos `value`:
 
 ```vue
+<!-- Fragmento: `pacientes`, `pacientesGuardados`, `labels`, `pac`, `buscar` y `masResultados` son de tu aplicación -->
 <g-combobox v-model="pacientes" multiple :selected-options="pacientesGuardados"
             :filter="false" :min-chars="2" label="Pacientes" :labels="labels"
             :options="pac.options" :loading="pac.loading" :total="pac.total" :load-error="pac.err"
@@ -1020,6 +1028,7 @@ Las de `GInput` (raíz, caja, etiqueta, pie, `is-*`, `is-ready`, `is-rejected`) 
 
 ## Limitaciones conocidas
 
+- **Padre que se ajusta al contenido (#562).** Dentro de un padre que se ajusta al contenido (celda de tabla `auto`, rejilla con `justify-items: center`, flex con `fit-content`) el campo (el de `GInput`) toma su ancho por defecto (`--g-space-1 × 60`; `× 90` con acción) en lugar de colapsar a 0; con un padre que da ancho no cambia nada, y en una `GFormRow` no se aplica. Banco `design/lab/contencion/verificar.mjs`, 297/297 en los tres motores. Ver `api.md` «Contención en línea y ancho intrínseco».
 - **Varias opciones: `multiple`** existe desde la Fase 2 (ver [su sección](#selección-múltiple-multiple-fase-2), con sus propios límites). Siguen **sin existir**: `GTagInput` (etiquetas sin catálogo), `expandable` (ampliar a la paleta desde `field`), `GInputGroupCombobox`, el editor de valor de `GFilterBar` ni `autoHighlight`.
 - **En el campo, la ficha del valor recorta el título antes que el identificador.** `GSummary inline` cede el título hasta `4ch` antes de tocar el identificador, por el orden de cesión de la ficha: con cuatro datos, un paciente aparece como «Daniela C… Exp. 001399 +3» en un campo de **290 px**. Es el orden del contrato de `GSummary` (el identificador es lo último), pero en el campo la regla anterior era la contraria y deja el nombre corto. Si quieres el nombre primero hay que decidir un orden de cesión por anfitrión: decisión de contrato abierta (nota de coco a lima). Mientras tanto, ofrece más ancho al campo (`--g-form-min`) o sustituye la ficha con el slot `value`. La ficha del valor es `aria-hidden`, así que la etiqueta completa siempre está en el `<input>`.
 - **Una ficha recortada nunca es la única fuente de un dato:** el `title` nativo de lo cortado solo sirve al puntero. La vista completa está en la vista previa de la paleta (o en tu slot `preview`, que debe cumplir esa regla).

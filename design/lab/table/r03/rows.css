@@ -1,0 +1,182 @@
+/*
+  GTable r03 (kiwi) · activación y estado de fila. Solo el laboratorio: lo de .r3-* es estructura propuesta,
+  no CSS de componente (eso es de coco). Solo var(--g-*); la tabla usa las clases reales de GTable (grana.css).
+*/
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui); font-size: var(--g-text-body-size); line-height: var(--g-text-body-line); }
+
+/* ---------- Página del laboratorio ---------- */
+.lab-bar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--g-space-2); padding: var(--g-space-3) var(--g-space-4); border-block-end: var(--g-border-width) solid var(--g-color-border); }
+.lab-brand { font-weight: var(--g-text-action-weight); }
+.lab-links { display: flex; flex-wrap: wrap; gap: var(--g-space-3); }
+.lab-links a { color: var(--g-color-accent-text); }
+.lab-links a[aria-current] { font-weight: var(--g-text-action-weight); color: var(--g-color-text); }
+.lab { display: grid; gap: var(--g-space-6); max-inline-size: 72rem; margin: 0 auto; padding: var(--g-space-6) var(--g-space-4) var(--g-space-12); }
+.lab > * { min-inline-size: 0; }
+.lab-title { margin: 0 0 var(--g-space-2); font-family: var(--g-font-title); font-size: var(--g-text-title-size); line-height: var(--g-text-title-line); font-weight: var(--g-text-title-weight); }
+.lab-lead { margin: 0; max-inline-size: 52rem; color: var(--g-color-text-muted); }
+.lab-how { margin: var(--g-space-2) 0 0; max-inline-size: 52rem; font-size: var(--g-text-body-sm-size); color: var(--g-color-text-muted); }
+.lab-h2 { margin: 0; font-family: var(--g-font-title); font-size: var(--g-text-title-sm-size); line-height: var(--g-text-title-sm-line); font-weight: var(--g-text-title-sm-weight); }
+.lab-log { padding: var(--g-space-3) var(--g-space-4); border-radius: var(--g-radius-md); background: var(--g-color-surface-sunken); font-size: var(--g-text-body-sm-size); }
+.lab-log ol { margin: var(--g-space-2) 0 0; padding-inline-start: var(--g-space-5); font-family: ui-monospace, monospace; }
+.lab-cmp { display: grid; gap: var(--g-space-3); }
+.lab-cmp .scroll { overflow-x: auto; }
+.lab-cmp table { border-collapse: collapse; font-size: var(--g-text-body-sm-size); min-inline-size: 48rem; }
+.lab-cmp th, .lab-cmp td { padding: var(--g-space-2); border-block-end: var(--g-border-width) solid var(--g-color-border); text-align: start; vertical-align: top; }
+.lab-cmp thead th, .lab-cmp tbody th { color: var(--g-color-text-muted); font-weight: var(--g-text-action-weight); }
+body[data-w="360"] .r3-frame { max-inline-size: 360px; }
+
+/* ---------- Receta del summary ---------- */
+.r3-summary { display: grid; gap: var(--g-space-2); }
+.r3-summary__h { margin: 0; font-size: var(--g-text-body-sm-size); font-weight: var(--g-text-action-weight); color: var(--g-color-text-muted); }
+.r3-summary__src { font-weight: var(--g-text-body-weight); }
+.r3-summary__tiles { display: flex; flex-wrap: wrap; gap: var(--g-space-2); }
+.r3-tile {
+  display: grid; gap: var(--g-space-1); min-inline-size: calc(var(--g-space-1) * 36); min-block-size: 44px;
+  padding: var(--g-space-2) var(--g-space-3); border: var(--g-border-width) solid var(--g-color-border); border-radius: var(--g-radius-md);
+  background: var(--g-color-surface); color: var(--g-color-text); font: inherit; text-align: start;
+}
+button.r3-tile { cursor: pointer; }
+button.r3-tile[aria-pressed="true"] { border-color: var(--g-color-primary-text); background: var(--g-color-primary-soft); color: var(--g-color-on-primary-soft); }
+button.r3-tile:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset); }
+.r3-tile__label { display: inline-flex; align-items: center; gap: var(--g-space-1); font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); color: var(--g-color-text-muted); }
+button.r3-tile[aria-pressed="true"] .r3-tile__label { color: inherit; }
+.r3-tile__value { font-size: var(--g-text-title-sm-size); line-height: var(--g-text-title-sm-line); font-weight: var(--g-text-title-weight); font-variant-numeric: tabular-nums; }
+
+/* ---------- Escenario (C pone el inspector al lado) ---------- */
+.r3-stage { display: grid; gap: var(--g-space-4); }
+body[data-c="C"] .r3-stage { grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 64rem) {
+  body[data-c="C"] .r3-stage { grid-template-columns: minmax(0, 1fr) minmax(0, 20rem); align-items: start; }
+}
+.r3-frame { display: grid; gap: var(--g-space-3); min-inline-size: 0; }
+.r3-pager { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-space-2); font-size: var(--g-text-body-sm-size); color: var(--g-color-text-muted); }
+.r3-pager__range { font-variant-numeric: tabular-nums; }
+.r3-pager__slot { margin-inline-start: auto; font-size: var(--g-text-caption-size); color: var(--g-color-text-subtle); }
+
+/* ---------- La puerta (acción principal de la fila) ---------- */
+/* Un enlace o botón real dentro del título: el nombre accesible es el título; el estado la describe */
+.r3-door {
+  margin: 0; padding: 0; border: 0; border-radius: var(--g-radius-xs); background: none;
+  color: inherit; font: inherit; font-weight: var(--g-text-title-weight); text-align: start; text-decoration: none; cursor: pointer;
+}
+.r3-door:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset); }
+/* El título recorta con elipsis: sin margen de recorte, el anillo de la puerta se cortaría (hallazgo para coco) */
+.g-table__title { overflow: clip; overflow-clip-margin: calc(var(--g-focus-width) + var(--g-focus-offset)); }
+/* Filas pulsables (base, B y C): la delegación existe, el cursor lo dice */
+body:is([data-c="base"], [data-c="B"], [data-c="C"]) #tb tbody .g-table__row { cursor: pointer; }
+body[data-c="base"] .r3-door { color: var(--g-color-link); }
+@media (hover: hover) {
+  body:is([data-c="base"], [data-c="C"]) .g-table__row:hover .r3-door { text-decoration: underline; text-underline-offset: 0.2em; }
+}
+
+/* A · la puerta cubre la celda principal entera; el resto de la fila es texto para leer y copiar */
+body[data-c="A"] .g-table__table td.g-table__cell--primary { position: relative; }
+body[data-c="A"] .r3-door::after { content: ""; position: absolute; inset: 0; }
+body[data-c="A"] .r3-door:focus-visible { outline: none; }
+body[data-c="A"] td.g-table__cell--primary:has(.r3-door:focus-visible) { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: calc(var(--g-focus-width) * -1); }
+.r3-arrow {
+  flex: none; display: inline-grid; place-items: center; color: var(--g-color-text-muted);
+  opacity: 0; translate: calc(var(--g-space-1) * -2) 0;
+  transition: opacity var(--g-duration-fast) var(--g-ease-out), translate var(--g-duration-fast) var(--g-ease-out);
+}
+[dir="rtl"] .r3-arrow { translate: calc(var(--g-space-1) * 2) 0; }
+[dir="rtl"] .r3-arrow .g-icon { scale: -1 1; }
+body[data-c="A"] .g-table__row:hover .r3-arrow,
+body[data-c="A"] .g-table__row:focus-within .r3-arrow,
+body[data-c="A"] .g-table__row.is-last .r3-arrow { opacity: 1; translate: 0 0; color: var(--g-color-text); }
+@media (hover: hover) {
+  body[data-c="A"] td.g-table__cell--primary:hover .r3-door { text-decoration: underline; text-underline-offset: 0.2em; }
+  /* Solo la celda principal reacciona: el resto de la fila no promete nada que no hace */
+  body[data-c="A"] .g-table__row:not(.is-selected):hover > td { background: none; }
+  body[data-c="A"] .g-table__row:not(.is-selected):hover > td.g-table__cell--primary,
+  body[data-c="A"] .g-table__row:not(.is-selected):hover > td.g-table__select { background: var(--g-color-surface-sunken); }
+}
+/* El rastro: al volver del detalle, la fila se ilumina y se asienta (te dice dónde estabas) */
+body[data-c="A"] .g-table__row.is-trail > td { background: var(--g-color-accent-soft); transition: none; }
+body[data-c="A"] .g-table__row.is-settle > td { transition: background-color var(--g-duration-slow) var(--g-ease-out); }
+
+/* B · despliegue: la puerta es un botón de divulgación; la ficha vive en una fila de detalle */
+.r3-chev { flex: none; display: inline-grid; place-items: center; color: var(--g-color-text-muted); transition: rotate var(--g-duration-fast) var(--g-ease-out); }
+[dir="rtl"] .r3-chev .g-icon { scale: -1 1; }
+.r3-door[aria-expanded="true"] + .r3-chev,
+.g-table__row.is-open .r3-chev { rotate: 90deg; color: var(--g-color-text); }
+[dir="rtl"] .g-table__row.is-open .r3-chev { rotate: -90deg; }
+.g-table__row.is-open > td { border-block-end-color: transparent; }
+.r3-detail > td { padding: 0 var(--_pad-inline) !important; border-block-end: var(--g-border-width) solid var(--g-color-border); }
+.r3-detail__clip { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--g-duration-slow) var(--g-ease-spring); }
+.r3-detail.is-in .r3-detail__clip { grid-template-rows: 1fr; }
+.r3-detail__in { overflow: hidden; min-block-size: 0; }
+.r3-detail__body {
+  display: grid; gap: var(--g-space-3); margin: 0 0 var(--g-space-3); padding: var(--g-space-3) var(--g-space-4);
+  border-inline-start: calc(var(--g-space-1) * 0.5) solid var(--g-color-border-strong); background: var(--g-color-surface-sunken); border-radius: var(--g-radius-md);
+}
+.r3-detail__h { margin: 0; font-size: var(--g-text-body-size); font-weight: var(--g-text-title-weight); }
+.r3-actions { display: flex; flex-wrap: wrap; gap: var(--g-space-2); align-items: center; }
+.r3-link { display: inline-flex; align-items: center; gap: var(--g-space-1); color: var(--g-color-link); }
+.r3-link:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset); border-radius: var(--g-radius-xs); }
+[dir="rtl"] .r3-link .g-icon { scale: -1 1; }
+
+/* C · lente: la fila apuntada lleva líneas arriba y abajo y un chevron (distinto de seleccionada y del estado) */
+.g-table__row.is-current > td { box-shadow: inset 0 calc(var(--g-border-width) * 2) 0 var(--g-color-text), inset 0 calc(var(--g-border-width) * -2) 0 var(--g-color-text); }
+.r3-cur { flex: none; display: none; color: var(--g-color-text); }
+.g-table__row.is-current .r3-cur { display: inline-grid; place-items: center; }
+[dir="rtl"] .r3-cur .g-icon { scale: -1 1; }
+.r3-tally { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-space-2) var(--g-space-3); font-size: var(--g-text-body-sm-size); color: var(--g-color-text-muted); }
+.r3-inspector {
+  display: grid; gap: var(--g-space-3); padding: var(--g-space-4); border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-radius-lg); background: var(--g-color-surface); position: sticky; inset-block-start: var(--g-space-4);
+}
+.r3-inspector__eyebrow { margin: 0; font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); color: var(--g-color-text-muted); }
+.r3-inspector__h { margin: 0; font-family: var(--g-font-title); font-size: var(--g-text-title-sm-size); line-height: var(--g-text-title-sm-line); font-weight: var(--g-text-title-sm-weight); }
+.r3-inspector__walk { display: flex; gap: var(--g-space-2); justify-content: space-between; }
+.r3-inspector__walk .g-btn .g-icon { inline-size: 1em; block-size: 1em; }
+[dir="rtl"] .r3-inspector__walk .g-icon { scale: -1 1; }
+
+/* ---------- Estado de fila: tono del tema + texto + forma (nunca solo color) ---------- */
+.r3-tag { flex: none; }
+.r3-inspector > .r3-tag { justify-self: start; }
+.g-table__composite { flex-wrap: wrap; row-gap: var(--g-space-1); }
+.g-table__composite > .g-table__text { flex: 1 1 auto; }
+/* Lomo: una banda al inicio de la fila; la forma cambia por estado (sólida, discontinua, punteada). Todas las filas
+   reservan su ancho para que las columnas no se muevan */
+body:not([data-c="B"]) .g-table--mode-table .g-table__row > td:first-child { border-inline-start: calc(var(--g-space-1) * 1) solid transparent; }
+body:not([data-c="B"]) .g-table--mode-table thead th:first-child { border-inline-start: calc(var(--g-space-1) * 1) solid transparent; }
+body:not([data-c="B"]) .g-table--mode-table .g-table__row[data-status="error"] > td:first-child { border-inline-start-color: var(--g-color-danger-text); border-inline-start-style: solid; }
+body:not([data-c="B"]) .g-table--mode-table .g-table__row[data-status="warning"] > td:first-child { border-inline-start-color: var(--g-color-warning-text); border-inline-start-style: dashed; }
+body:not([data-c="B"]) .g-table--mode-table .g-table__row[data-status="info"] > td:first-child { border-inline-start-color: var(--g-color-info-text); border-inline-start-style: dotted; }
+body:not([data-c="B"]) .g-table--mode-cards .g-table__row[data-status] { border-inline-start-width: calc(var(--g-space-1) * 1); }
+body:not([data-c="B"]) .g-table--mode-cards .g-table__row[data-status="error"] { border-inline-start-color: var(--g-color-danger-text); border-inline-start-style: solid; }
+body:not([data-c="B"]) .g-table--mode-cards .g-table__row[data-status="warning"] { border-inline-start-color: var(--g-color-warning-text); border-inline-start-style: dashed; }
+body:not([data-c="B"]) .g-table--mode-cards .g-table__row[data-status="info"] { border-inline-start-color: var(--g-color-info-text); border-inline-start-style: dotted; }
+/* B · sello en la causa: la celda que causa el estado lleva el tono suave y la etiqueta; la fila no se tiñe */
+.r3-cause { display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--g-space-1) var(--g-space-2); }
+body[data-c="B"] .g-table__table td.is-cause { background: var(--g-color-surface-sunken); }
+body[data-c="B"] .g-table__table td.is-cause[data-status="error"] { box-shadow: inset 0 calc(var(--g-border-width) * -2) 0 var(--g-color-danger-text); }
+body[data-c="B"] .g-table__table td.is-cause[data-status="warning"] { box-shadow: inset 0 calc(var(--g-border-width) * -2) 0 var(--g-color-warning-text); }
+body[data-c="B"] .g-table__table td.is-cause[data-status="info"] { box-shadow: inset 0 calc(var(--g-border-width) * -2) 0 var(--g-color-info-text); }
+
+/* Barra de acciones de fila (botón de solo icono) */
+.r3-more.g-btn .g-icon { inline-size: 1.15em; block-size: 1.15em; }
+
+/* Diálogo de detalle (simula la ficha de la aplicación) */
+.r3-dialog { inline-size: min(28rem, calc(100vw - var(--g-space-8))); padding: var(--g-space-5); border: var(--g-border-width) solid var(--g-color-border); border-radius: var(--g-radius-lg); background: var(--g-color-surface); color: var(--g-color-text); }
+.r3-dialog::backdrop { background: color-mix(in oklab, var(--g-color-text) 30%, transparent); }
+.r3-dialog__note { font-size: var(--g-text-caption-size); color: var(--g-color-text-muted); }
+.r3-dialog__actions { display: flex; justify-content: flex-end; margin: 0; }
+.r3-facts { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--g-space-1) var(--g-space-3); margin: 0; font-size: var(--g-text-body-sm-size); }
+.r3-facts dt { color: var(--g-color-text-muted); }
+.r3-facts dd { margin: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .r3-arrow, .r3-chev, .r3-detail__clip, body[data-c="A"] .g-table__row.is-settle > td { transition: none; }
+}
+@media (forced-colors: active) {
+  body:not([data-c="B"]) .g-table--mode-table .g-table__row:not([data-status]) > td:first-child,
+  body:not([data-c="B"]) .g-table--mode-table thead th:first-child { border-inline-start-color: Canvas; }
+  body:not([data-c="B"]) .g-table__row[data-status] > td:first-child { border-inline-start-color: CanvasText; }
+  body[data-c="B"] .g-table__table td.is-cause { outline: var(--g-border-width) solid CanvasText; outline-offset: calc(var(--g-border-width) * -1); }
+  .g-table__row.is-current > td { box-shadow: none; outline: calc(var(--g-border-width) * 2) solid Highlight; outline-offset: calc(var(--g-border-width) * -2); }
+  body[data-c="A"] .g-table__row.is-trail > td { outline: var(--g-border-width) dashed Highlight; }
+}

@@ -111,7 +111,35 @@
 .g-surface.g-surface--rounded-xl { --_radius: var(--g-radius-xl); }
 .g-surface.g-surface--rounded-pill { --_radius: var(--g-radius-pill); }
 
+/* ---------- Zona de marca (surface.md §«Zona de marca», tokens.md §44, DECISIONS.md #620 a #625) ----------
+   El ámbito de tokens lo pone el bloque [data-g-zone="brand"] de defaults.css; aquí solo lo propio de la raíz.
+   1. Pinta la marca en TODOS los niveles, también flat (banda) e inset (gana la zona; radio concéntrico igual).
+      --g-color-bg se lee en el propio elemento de la zona: ya es la marca. tone se ignora (el .vue emite surface).
+   2. El filo frente a la página (--g-color-zone-edge, el border-strong del esquema de la página) sin cambiar el tamaño:
+      en los niveles con borde, contorno exterior (outline sigue al radio), así el borde del nivel (tinta translúcida de
+      la zona) queda dentro de la marca y la sombra del nivel no se toca; en flat, trazo interior. Sin él, en el oscuro
+      del tema por defecto la banda (#1F1F1F) apenas se separa de la página (#141414, 1,12:1).
+      (No se suma a box-shadow: con --_shadow: none la lista «anillo, none» no es válida y se perdería todo.)
+   Especificidad (0,3,0) con el atributo del mecanismo: gana a las reglas de inset (hasta 0,3,0) por ir después.
+   Los alias --_pub-* no cambian: declarados en la zona, ya se resuelven con su hundido. */
+.g-surface.g-surface--zone-brand[data-g-zone="brand"] {
+  --_tone: var(--g-color-bg);
+  outline: var(--g-border-width) solid var(--g-color-zone-edge);
+}
+.g-surface--level-flat.g-surface--zone-brand[data-g-zone="brand"] {
+  outline: none;
+  box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-zone-edge);
+}
+
 /* ---------- Colores forzados: fondo y sombra desaparecen; todo nivel no plano conserva el borde ---------- */
 @media (forced-colors: active) {
   .g-surface:not(.g-surface--level-flat) { border-color: CanvasText; }
+  /* La zona pierde su fondo: conserva su contorno (tokens.md §44.9). Con borde, el borde CanvasText de arriba basta
+     (sin el filo exterior: sería una línea doble). flat no tiene borde: contorno interior que no cambia el tamaño
+     (outline se respeta en colores forzados; el box-shadow del filo, no) */
+  .g-surface.g-surface--zone-brand[data-g-zone="brand"] { outline: none; }
+  .g-surface--level-flat.g-surface--zone-brand[data-g-zone="brand"] {
+    outline: var(--g-border-width) solid CanvasText;
+    outline-offset: calc(var(--g-border-width) * -1);
+  }
 }

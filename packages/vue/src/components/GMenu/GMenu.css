@@ -92,6 +92,12 @@
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
+/* Elemento-enlace (r02, menu.md «Elementos-enlace», L7): el <a> tiene el mismo aspecto que el <button>. El color ya lo
+   hereda la regla de arriba en todo estado (también :visited, :hover y :active: lo de autor gana al agente de usuario);
+   aquí se quita el subrayado. No se anulan -webkit-touch-callout ni -webkit-user-drag: el toque largo y el arrastre son
+   del sistema. Un estilo de elemento `a` de la aplicación sin capa gana igualmente (#4, #516) */
+a.g-menu__item,
+a.g-menu__item:is(:visited, :hover, :active, :focus) { text-decoration: none; }
 .g-menu__item:focus { outline: 0; }
 .g-menu__item:focus-visible {
   outline: var(--_ring) solid var(--g-color-focus);
@@ -217,6 +223,124 @@
   block-size: 48%;
 }
 
+/* ---------- Elementos-enlace (r02; menu.md «Elementos-enlace», #571 a #579) ---------- */
+/* Página actual: barra al inicio lógico en accent-text (el trazo de la barra activa de GSidebar, #228: ≥ 3:1 sobre la
+   superficie y sobre el resaltado) y peso; nunca solo color (1.4.1). La rama (padre de un submenú que la contiene), peso */
+.g-menu__item[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block: 20%;
+  inline-size: calc(var(--g-border-width) * 2);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-accent-text);
+}
+.g-menu__item[aria-current="page"] .g-menu__label,
+.g-menu__item.is-branch .g-menu__label { font-weight: var(--g-text-action-weight); }
+
+/* Marca «sale de aquí» (external-link de Lucide, decorativa): cierra la columna final, tras el atajo y la huella.
+   Sigue al color del elemento cuando este lo cambia (peligroso, deshabilitado) */
+.g-menu__leave {
+  flex: none;
+  display: grid;
+  place-items: center;
+  margin-inline-start: var(--g-space-2);
+  color: var(--g-color-text-muted);
+}
+.g-menu__leave > svg {
+  inline-size: calc(var(--g-space-1) * 3.5);
+  block-size: calc(var(--g-space-1) * 3.5);
+}
+.g-menu__item--danger .g-menu__leave,
+.g-menu__item[aria-disabled="true"] .g-menu__leave { color: inherit; }
+
+/* Texto para lectores dentro del enlace (patrón de texto oculto accesible) */
+.g-menu__sr {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Huella de C («Abierta», «Enlace copiado»): columna final, entre el atajo y la marca. Vacía hasta el gesto; su estado de
+   partida es :empty (como el mensaje de GInput, #306): al recibir el texto sale de la marca «sale de aquí» hacia su sitio */
+.g-menu__trace {
+  flex: none;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+  white-space: nowrap;
+}
+.g-menu__trace:not(:empty) { margin-inline-start: var(--g-space-3); }
+.g-menu__trace:empty {
+  opacity: 0;
+  translate: calc(var(--g-space-1) * 1) 0;
+}
+.g-menu__trace:empty:dir(rtl) { translate: calc(var(--g-space-1) * -1) 0; }
+
+/* C · vista previa del modificador (Ctrl/⌘ pulsado): lo que no puede abrirse aparte (todo elemento sin href) se aparta a
+   text-subtle, icono incluido; la marca de los enlaces se adelanta a text. La forma no cambia (1.4.1) */
+.g-menu__list.is-modifier .g-menu__item:not([href]),
+.g-menu__list.is-modifier .g-menu__item:not([href]) .g-menu__icon { color: var(--g-color-text-subtle); }
+.g-menu__list.is-modifier .g-menu__item[href]:not(.g-menu__item--danger) .g-menu__leave { color: var(--g-color-text); }
+
+/* B · pie de destino: último hijo de la lista, pegado abajo y a sangre (cubre el relleno de la lista); alto constante:
+   una línea de caption con is-empty o sin él. Host + ruta se leen como una URL (la ruta empieza por «/»), host en text y
+   peso, ruta y etiqueta en text-muted; host y ruta llevan dir="ltr" en el marcado. La ruta cede antes que el host.
+   Selector con la lista delante: el reinicio de li (arriba) pesa más que una clase sola */
+.g-menu__list > .g-menu__dest {
+  position: sticky;
+  inset-block-end: calc(var(--_pad) * -1);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-block-size: max(24px, calc(var(--g-space-1) * 8));
+  margin: var(--_pad) calc(var(--_pad) * -1) calc(var(--_pad) * -1);
+  padding-block: 0;
+  padding-inline: var(--g-space-3);
+  border-block-start: var(--g-border-width) solid var(--g-color-border);
+  background: var(--g-color-surface-sunken);
+  color: var(--g-color-text-muted);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.g-menu__dest-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+}
+.g-menu__dest-icon:not(:empty) { margin-inline-end: var(--g-space-2); }
+.g-menu__dest-icon > svg {
+  inline-size: calc(var(--g-space-1) * 3.5);
+  block-size: calc(var(--g-space-1) * 3.5);
+}
+.g-menu__dest-host {
+  flex: 0 1 auto;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--g-color-text);
+  font-weight: var(--g-text-action-weight);
+}
+.g-menu__dest-path {
+  flex: 1 1 0%;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.g-menu__dest-tag { flex: none; }
+.g-menu__dest-tag:not(:empty) { margin-inline-start: var(--g-space-3); }
+/* Callado: el texto se vuelve transparente y el alto no cambia */
+.g-menu__dest.is-empty > * { opacity: 0; }
+
 /* ---------- Grupo y separador ---------- */
 .g-menu__group-title {
   display: block;
@@ -253,6 +377,17 @@
   .g-menu__list.is-highlight-instant > .g-menu__highlight {
     transition: opacity var(--g-duration-fast) var(--g-ease-standard);
   }
+  /* r02 · la vista previa del modificador se funde (color); la huella sale de la marca (press, ease-out, sin muelle:
+     #299 no lo aprueba en menús); el pie funde su texto */
+  .g-menu__item,
+  .g-menu__item .g-menu__icon,
+  .g-menu__leave { transition: color var(--g-duration-fast) var(--g-ease-standard); }
+  .g-menu__trace {
+    transition:
+      opacity var(--g-duration-press) var(--g-ease-out),
+      translate var(--g-duration-press) var(--g-ease-out);
+  }
+  .g-menu__dest > * { transition: opacity var(--g-duration-fast) var(--g-ease-standard); }
 }
 @media (prefers-reduced-motion: reduce) {
   .g-menu__list {
@@ -264,6 +399,14 @@
   }
   /* El resaltado salta al elemento activo; el fundido se queda */
   .g-menu__highlight { transition: opacity var(--g-duration-fast) linear; }
+  /* r02: se quedan color y opacidad (patrón único, #299 (3)); la huella aparece en su sitio con fundido */
+  .g-menu__item,
+  .g-menu__item .g-menu__icon,
+  .g-menu__leave { transition: color var(--g-duration-fast) linear; }
+  .g-menu__trace:empty,
+  .g-menu__trace:empty:dir(rtl) { translate: none; }
+  .g-menu__trace { transition: opacity var(--g-duration-fast) linear; }
+  .g-menu__dest > * { transition: opacity var(--g-duration-fast) linear; }
 }
 @starting-style {
   .g-menu__list:popover-open {
@@ -287,4 +430,17 @@
   [aria-checked="true"] > .g-menu__mark { border-color: CanvasText; background: Canvas; color: CanvasText; }
   .g-menu__item--danger { color: LinkText; }
   .g-menu__mark > .g-icon { color: CanvasText; }
+  /* r02: barra de la página actual en CanvasText (el peso sigue); marca y huella siguen al color del sistema del elemento
+     (LinkText en un enlace, GrayText deshabilitado); pie con borde superior; con el modificador, lo apartado en GrayText */
+  .g-menu__item[aria-current="page"]::before {
+    background: CanvasText;
+    forced-color-adjust: none;
+  }
+  .g-menu__leave,
+  .g-menu__list.is-modifier .g-menu__item[href] .g-menu__leave,
+  .g-menu__trace { color: inherit; }
+  .g-menu__list > .g-menu__dest { border-block-start-color: CanvasText; color: CanvasText; }
+  .g-menu__dest-host { color: CanvasText; }
+  .g-menu__list.is-modifier .g-menu__item:not([href]),
+  .g-menu__list.is-modifier .g-menu__item:not([href]) .g-menu__icon { color: GrayText; }
 }

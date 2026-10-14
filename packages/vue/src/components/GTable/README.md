@@ -9,6 +9,7 @@ Tabla de datos con **personalidad**: columnas compuestas (varios campos en una c
 ## Uso
 
 ```vue
+<!-- Fragmento: `clientes`, `textos`, `colorDe`, `acciones` y `actuar` son de tu aplicación -->
 <script setup>
 import { ref } from 'vue'
 const columns = [
@@ -156,6 +157,7 @@ La tabla adopta el **motor de carga común** de Grana (el mismo de [`GLoadRegion
 - **Avisos de desarrollo** (una vez cada uno): `error` sin `labels.failed` ni slot `error`; `error` sin `labels.retry` ni slot `error`.
 
 ```vue
+<!-- Fragmento: `columns`, `filas`, `cargando`, `fallo`, `textos` y `cargar` son de tu aplicación -->
 <g-table :columns="columns" :rows="filas" caption="Clientes" :loading="cargando" :error="fallo" :labels="textos" @retry="cargar" />
 <!-- textos: loading, slow, failed, retry, results, empty, emptyFiltered, clearFilters… -->
 ```
@@ -190,6 +192,7 @@ La tabla tiene **una** región viva (`<p class="g-table__sr" aria-live="polite">
 ### Ejemplo: carga desde el servidor
 
 ```vue
+<!-- Fragmento: `columns` es de tu aplicación -->
 <script setup>
 import { ref } from 'vue'
 const orden = ref(null), filtros = ref([]), pagina = ref(1)

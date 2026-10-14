@@ -9,6 +9,7 @@ Pie de acciones de un formulario: secundarias antes y **una** primaria al final,
 ## Uso
 
 ```vue
+<!-- Fragmento: `sucio` es de tu aplicación -->
 <GFormActions sticky :status="sucio ? 'Cambios sin guardar' : ''">
   <GBtn type="submit" variant="outline" formnovalidate name="intent" value="draft">Guardar borrador</GBtn>
   <GBtn type="submit">Guardar</GBtn>

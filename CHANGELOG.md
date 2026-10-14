@@ -29,11 +29,18 @@ Fase C del plan de v1: seis componentes nuevos, la carga común y varias reglas 
 
 - Token `--g-color-mold`: el tono único del marcador de carga, en el tema por defecto (claro y oscuro) y en `@grana/cli` (#538).
 - `@grana/cli` deriva los colores del tema oscuro contra la superficie oscura real, teñida por los neutros del tema, y no contra la de por defecto.
+- `@grana/cli` conoce las ranuras del item actual de `GSidebar` (`--g-sidebar-current*`, grupo de color): si el tema las declara, diagnostica sus pares en claro y oscuro (`sidebar-current-contrast`, informativo) y, si se heredan del claro y fallan en el oscuro, deriva el oscuro (`sidebar-current-dark`: relleno `{f}-soft`, tinta `{g}-text` o el respaldo `on-{f}-soft`) (#614).
+
+#### `GSidebar`
+
+- Prop `breakpoints` (`{ expanded?, rail? }` en px del contenedor): cortes de `mode="auto"` por instancia; por ejemplo, drawer por debajo de 1024 px sin riel con `:breakpoints="{ expanded: 1024, rail: 1024 }" mobile="drawer"` (#618).
 
 ### Cambiado
 
 - **Regla de modalidad del foco (#450):** el anillo de foco que WebKit no marca (`data-g-key-focus`) sigue la modalidad de la última entrada: aparece con cualquier tecla que no sea un modificador y se quita con el puntero. Los radios de `GRadioGroup`, `GCard` y `GWidgetGallery` pasan a esta regla.
 - **`navigate` solo con activación primaria (#505):** `GCard` (`interaction="link"`) y `GSidebar` emiten `navigate` solo con el clic principal sin Ctrl, ⌘, Mayús ni Alt (o con Intro); con modificadores o clic central el navegador abre la pestaña nueva y el evento no se emite. `GTag`, `GTagGroup` y `GBreadcrumbs` nacen con la misma regla.
+- **`GSidebar`: el item actual es un asiento (#612 a #617):** la fila del actual ya no se rellena (sin superficie `inset`, contorno `border-strong` ni barra de acento): un círculo detrás del icono, **lleno** en el destino actual y **hueco** en la rama que lo contiene, con un nodo y la línea encendida hasta el hijo actual; en el riel, el padre representa al hijo actual con el asiento lleno (`is-rep`, sin `aria-current`). Lo pintan tres ranuras nuevas del tema, `--g-sidebar-current`, `--g-sidebar-on-current` y `--g-sidebar-current-edge` (por defecto `primary`, `on-primary` y `primary-text`).
+- **`GSidebar`: `color` ya no pinta la píldora del navbar (#615):** la píldora es el asiento crecido y lee las ranuras `--g-sidebar-current*`; `color` solo pinta los contadores y los puntos. Sin aviso de desarrollo. Con los valores por defecto (`color="brand"`, `primary` = `brand`) no cambia nada; quien teñía la píldora con `color` pasa a `--g-sidebar-current` (y `--g-sidebar-on-current`) en el tema.
 
 ### Cambios de comportamiento en `GTable`
 

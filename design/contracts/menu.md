@@ -1,6 +1,6 @@
 # Contrato · GMenu
 
-**Dueño:** lima · **Estado:** aprobado · **Basado en:** `design/lab/menu/r01/` (kiwi) · **Complementa:** `design/contracts/widget.md`
+**Dueño:** lima · **Estado:** aprobado · **Basado en:** `design/lab/menu/r01/` y `design/lab/menu/r02/` (elementos-enlace, §«Elementos-enlace») (kiwi) · **Complementa:** `design/contracts/widget.md`
 **Tag:** `g-menu` · **Categoría:** superposiciones
 
 Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Menu* de APG): acciones, separadores, grupos con título, casillas, opciones, submenús y elementos peligrosos. Alcance decidido por el usuario (DECISIONS.md #82 a #84): botón de menú (sin menú contextual ni anclaje libre), contenido por arreglo de `items` con slots, y `GWidget` pasa a usarlo.
@@ -24,6 +24,7 @@ Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Men
 | `side` | String | `auto` `bottom` `top` | `auto` | propia |
 | `closeOnSelect` | String | `auto` `always` `never` | `auto` | propia |
 | `density` | String | `default` `comfortable` `compact` | `default` | compartida |
+| `labels` | Object | textos de los elementos-enlace (§«Elementos-enlace», «Textos») | `{}` | compartida (sin valores por defecto, #226) |
 | `id` | String | | generado | propia |
 
 ### Reglas de props
@@ -64,6 +65,10 @@ Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Men
 | `danger` | Boolean | Marca de forma (▲) y negrita, además del color |
 | `checked` | Boolean | Estado de `checkbox` y `radio` (`aria-checked`) |
 | `items` | Array | En `group`: sus elementos; en un `item`: el submenú |
+| `href` | String | Con valor, el elemento es un **enlace** `<a role="menuitem" href>` y emite `navigate` en lugar de `select` (§«Elementos-enlace», #572) |
+| `target`, `rel` | String | Atributos del `<a>`; solo con `href` (§«Elementos-enlace») |
+| `external` | Boolean | El destino es **otro sitio**: marca «sale de aquí» y texto para lectores; solo con `href` |
+| `current` | Boolean | Es la **página actual**: `aria-current="page"`; solo con `href`; como mucho uno por menú |
 
 - **Grupo:** `{ type: 'group', label, items }`; el título es visible y **nombra** el grupo (`role="group"`). Las **opciones** de un grupo se presentan como exclusivas, pero **el componente no fuerza la exclusividad**: la aplicación marca `checked` tras `select`.
 - **Submenús:** hasta **tres niveles** verificados; un submenú sin elementos no se abre.
@@ -73,7 +78,7 @@ Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Men
 
 1. **Abrir:** clic, Enter, Espacio y ↓ abren con el foco en el **primer** elemento; ↑ abre en el **último**; un segundo clic cierra.
 2. **Foco:** *roving tabindex*: solo el elemento activo es tabulable; ↑ ↓ recorren de forma **cíclica**, Inicio y Fin saltan a los extremos; una letra salta al siguiente elemento que empieza por ella (búfer de 500ms). El elemento activo **siempre se ve** (se desplaza la lista). Los deshabilitados **siguen enfocables**.
-3. **Activar:** Enter y Espacio. Emite `select`. Con `closeOnSelect="auto"`, una **acción cierra** y devuelve el foco al disparador; una **casilla o una opción no cierran**. Un elemento deshabilitado no hace nada ni cierra.
+3. **Activar:** Enter y Espacio. Emite `select` (un **elemento-enlace** emite `navigate`, §«Elementos-enlace»). Con `closeOnSelect="auto"`, una **acción cierra** y devuelve el foco al disparador; una **casilla o una opción no cierran**. Un elemento deshabilitado no hace nada ni cierra.
 4. **Cerrar:** **Esc** cierra y devuelve el foco al disparador (y **no llega** a un ancestro, como un `GDialog`); **Tab** cierra y el foco sigue su curso (no vuelve al disparador); un **clic fuera** cierra sin robar el foco.
 5. **Submenús:** → (en RTL, ←), Enter o Espacio abren con el foco en su primer elemento; ← (en RTL, →) o **Esc cierran solo ese nivel** y devuelven el foco al padre. El puntero encima abre tras **180ms** y cierra al pasar a otro elemento; tocar un padre lo abre (sin depender del puntero). Un padre deshabilitado no abre. **El puntero mueve el foco** y los submenús respetan el **movimiento diagonal** del puntero (§«Personalidad», M1 y M4, #305).
 6. **Posición:** debajo del disparador (`side`), ajustada al visor; si no cabe, se abre hacia el lado con más espacio y **el alto se limita al espacio disponible** (la lista se desplaza). El submenú se abre hacia el borde **final** del padre y **cambia de lado** si no cabe; con poco ancho se superpone al padre (cascada). Variables CSS dinámicas `--_x`, `--_y` y `--_max` (excepción justificada a «sin estilos en línea»).
@@ -85,10 +90,11 @@ Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Men
 | Evento | Payload | Cuándo |
 | --- | --- | --- |
 | `select` | `{ id, item, type, checked?, group?, event }` | El usuario activa un elemento (no un padre de submenú ni uno deshabilitado). `checked` es el valor **nuevo** de una casilla (`!checked`) y `true` de una opción; `group` es el elemento de grupo que la contiene |
+| `navigate` | `{ id, item, event }` | El usuario activa un **elemento-enlace** con activación primaria sin modificadores y sin `target` de otro contexto (§«Elementos-enlace», regla común de `api.md` «Enlaces y `navigate`», #505 y #574). Un enlace **nunca** emite `select`. `event.preventDefault()` deja la navegación al router y **no** impide el cierre |
 | `update:modelValue` | Boolean | El menú se abre o cierra por una vía de usuario |
 | `open`, `closed` | | La lista ya se muestra / ya se ocultó |
 
-`event` es el evento nativo; `event.preventDefault()` **impide el cierre** de ese `select`.
+`event` es el evento nativo; `event.preventDefault()` **impide el cierre** de ese `select` (en `navigate`, no: significa «navego yo», #573).
 
 ## Slots
 
@@ -155,6 +161,10 @@ Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Men
 | ← (en RTL →) o Esc (en un submenú) | Cierra ese nivel y vuelve al padre |
 | Esc | Cierra y devuelve el foco al disparador |
 | Tab | Cierra; el foco sigue su curso |
+| Intro / Espacio (en un enlace) | Activación del enlace: emite `navigate` (sin `target` de otro contexto), cierra y devuelve el foco al disparador. Espacio lo provoca `GMenu` (§«Elementos-enlace», Teclado) |
+| Ctrl/⌘+Intro (en un enlace) | Pestaña en segundo plano del navegador; sin `navigate`; el menú sigue abierto con la huella «Abierta» (C) |
+| Mayús+Intro (en un enlace) | Ventana nueva del navegador; sin `navigate`; cierra |
+| Ctrl/⌘+C (en un enlace) | Copia la URL absoluta con la huella «Enlace copiado» (C) |
 
 ## Tokens consumidos
 
@@ -179,6 +189,13 @@ Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Men
 | `g-menu__group-title`, `g-menu__separator` | Título de grupo y separador | Según el elemento |
 | `has-highlight` | Lista o submenú (`g-menu__list`) | Hay elemento activo en esa lista (§«Personalidad», M1) |
 | `is-highlight-instant` | Lista o submenú | Primera colocación del resaltado, sin viajar; se quita a los dos cuadros |
+| `a.g-menu__item` | Elemento-enlace | Con `href` válido en un `item` (§«Elementos-enlace»); la página actual se selecciona por `[aria-current="page"]` |
+| `is-branch` | `g-menu__item` padre de submenú | Su submenú (a cualquier profundidad) contiene la página actual (#576) |
+| `g-menu__leave` | Marca «sale de aquí» (`aria-hidden`) | Enlace con `external` o con `target` de otra pestaña |
+| `g-menu__sr` | Texto para lectores (patrón de texto oculto) | Enlace con `external` o con `target` de otra pestaña y su texto en `labels` |
+| `g-menu__dest` (+ `is-empty`), `__dest-icon`, `__dest-host`, `__dest-path`, `__dest-tag` | Pie de destino (B) y sus partes | Lista con algún elemento que sale de la aplicación (#578) |
+| `g-menu__trace` | Huella «Abierta» / «Enlace copiado» (C) | En cada enlace; vacía hasta el gesto (#577) |
+| `is-modifier` | Lista o submenú | Ctrl/⌘ pulsado con el menú abierto (C, vista previa) |
 
 ## Personalidad (DECISIONS.md #305; lenguaje común, #299 y `tokens.md` §29)
 
@@ -214,6 +231,198 @@ El resaltado **salta** (sin desplazamiento), con fundido. M4 no es movimiento: r
 | Reservadas | M2 (cascada al abrir; medida, pero un menú es frecuente) y M3 (parpadeo de confirmación): fuera de esta tanda |
 | No verificado | Lector de pantalla real con el foco siguiendo al puntero (VoiceOver, NVDA) |
 
+## Elementos-enlace (r02; #571 a #579)
+
+**Origen:** hallazgo 12 (P2) de la integración real en NisaNabani: un menú de cuenta resolvía sus destinos en `select` con `window.location`, sin pestaña nueva, sin copiar el enlace, sin URL a la vista y con la guarda de modificadores repetida en cada aplicación. **Ronda:** `design/lab/menu/r02/` (kiwi; `declaracion.md` puntos 1 a 14 y hallazgos L1 a L12; `verificar.mjs` 160/160 en los tres motores). **Forma elegida por el usuario: B + C** (#571): el enlace llano de la base, **más el pie de destino** en las listas con algo que sale de la aplicación, **más varias pestañas** (Ctrl/⌘ y clic central sin cerrar, con huella «Abierta», vista previa del modificador y Ctrl/⌘+C para copiar). Ninguna prop de modo: B aparece sola donde hace falta y C es comportamiento.
+
+**Frontera (sin cambios):** `GMenu` sigue siendo un **botón de menú de acciones** (`role="menu"`) que puede llevar **algunos destinos** (menú de cuenta, «Abrir ficha», «Ver documentación»), como el ejemplo «Navigation Menu Button» de APG. La navegación del sitio sigue en `GSidebar`; los hermanos de un nivel, en las puertas de `GBreadcrumbs`. Comparte con ellos los nombres de campo, la regla de `navigate` y el trato del enlace deshabilitado.
+
+### Campos (L1, L6; #572)
+
+| Campo | Tipo | Regla |
+| --- | --- | --- |
+| `href` | String | Con valor, el elemento se pinta como `<a class="g-menu__item" role="menuitem" href>`. **Cadena vacía o solo espacios = ausente** (como `tag.md`). Grana no sanea la URL (como `GTag`, `GCard` y `GSidebar`): un `javascript:` es responsabilidad de la aplicación |
+| `target` | String | Atributo del `<a>`. Sin valor (o vacío), la misma pestaña. **«Otra pestaña»** = `_blank` o un nombre de ventana (que no empieza por `_`); `_self` = la misma; `_parent` y `_top` no son otra pestaña (no llevan marca ni texto), pero **tampoco emiten `navigate`** (#574) |
+| `rel` | String | Atributo del `<a>` tal cual. **Grana no añade nada** (con `_blank` los navegadores ya aplican `noopener`) |
+| `external` | Boolean | El destino es **otro sitio**. Explícito: Grana **no compara orígenes** (sin `location` en el render, sin desajuste en SSR) |
+| `current` | Boolean | Página actual: `aria-current="page"` (#576) |
+
+- **Dónde vale:** solo en `type: 'item'` **sin** `items` (no padre de submenú). En `checkbox`, `radio`, `group`, `separator` o un padre de submenú, `href` **se ignora** y avisa (aviso E1): un padre que también navega sería un botón dividido, fuera de alcance.
+- `target`, `rel`, `external` y `current` **sin `href` válido** se ignoran y avisan (aviso E2).
+- `id` sigue **obligatorio** (clave, carga del evento y pruebas), como en cualquier `item`. `icon`, `shortcut`, `keyshortcuts`, `danger` y `disabled` funcionan igual que en un `<button>`; los slots `icon` e `item` pintan **dentro** del `<a>`.
+- **Reservados** (L11): `download`, `hreflang`, `referrerpolicy` (sin caso en la integración) y abrir el menú con el foco en la página actual (el foco sigue empezando en el primero, APG).
+- **Sin slot `link` ni `RouterLink` dentro del menú** (L10): el router entra por `navigate`. Por eso **no aplica la excepción #523**; un slot `link` queda reservado y, si llega, la citará.
+
+### Anatomía y ARIA
+
+```html
+<li role="none">
+  <a class="g-menu__item" role="menuitem" href="https://example.org/docs" target="_blank" tabindex="-1" id="ID-i-4">
+    <span class="g-menu__icon" aria-hidden="true">…</span>
+    <span class="g-menu__label">Documentación</span>
+    <span class="g-menu__sr">, otro sitio, abre en una pestaña nueva</span>
+    <span class="g-menu__trace" aria-hidden="true"></span>
+    <span class="g-menu__leave" aria-hidden="true"><!-- GLibIcon external-link --></span>
+  </a>
+</li>
+<li role="none"><a class="g-menu__item" role="menuitem" href="/perfil" aria-current="page" tabindex="0">…Mi perfil</a></li>
+<li role="none"><a class="g-menu__item" role="menuitem" aria-disabled="true" tabindex="-1">…Facturación</a></li>
+<!-- B: pie de destino, último hijo de la lista -->
+<li class="g-menu__dest is-empty" role="none" aria-hidden="true">
+  <span class="g-menu__dest-icon"></span><span class="g-menu__dest-host" dir="ltr"></span><span class="g-menu__dest-path" dir="ltr"></span><span class="g-menu__dest-tag"></span>
+</li>
+```
+
+- **Orden de las partes del `<a>`:** icono, etiqueta, texto oculto, atajo (si hay), huella, marca. `g-menu__trace` y `g-menu__leave` comparten la columna final con `g-menu__shortcut` (la disposición es de coco).
+- **Texto oculto (L8):** `g-menu__sr` va **dentro** del enlace (forma parte del nombre accesible), con el patrón de texto oculto accesible. Contiene `labels.external` (si `external`) seguido de `labels.newTab` (si `target` de otra pestaña), **tal cual, sin puntuación añadida por Grana** (la separación depende del idioma; la receta del README usa `', otro sitio'` y `', abre en una pestaña nueva'`). Se prefiere al `aria-describedby`, que los lectores no siempre leen en un `menuitem`. Chromium une las piezas con un espacio («Documentación , otro sitio»): es una pausa, no un error (como `g-sidebar__sr`).
+- **Enlace deshabilitado:** `<a role="menuitem" aria-disabled="true">` **sin `href`, `target` ni `rel`** (no se abre en otra pestaña, no se copia, el clic central y el menú contextual no ofrecen el enlace). **Sigue enfocable** con flechas (regla de `GMenu`, distinta de `GSidebar`: dentro de un compuesto los deshabilitados se descubren). Lleva su texto oculto y su marca si los tendría habilitado. Intro y Espacio no hacen nada y el menú sigue abierto; el puntero no se posa (M1).
+- **Búsqueda por letra:** solo sobre `g-menu__label`, nunca sobre el texto oculto ni la huella.
+
+### Activación: `navigate`, no `select` (#573, #574)
+
+- Un enlace **emite `navigate` `{ id, item, event }`** y **nunca `select`**: un gesto, una intención. `select` queda para acciones, casillas y opciones.
+- **Guarda común** (`api.md` «Enlaces y `navigate`», #505 con la enmienda #574): se emite **solo** con clic primario (`button === 0`) sin Ctrl, ⌘, Mayús ni Alt, con `event.defaultPrevented` falso y con el `target` del `<a>` vacío o `_self`; o con Intro o Espacio sin modificadores. Con `target` de otro contexto **no se emite** (como `RouterLink`): un destino en otra pestaña no pasa por el router, y el manejador típico `event.preventDefault(); router.push(item.href)` rompería la pestaña nueva. La guarda lee el atributo `target` del propio `<a>`; un `<base target>` del documento no se tiene en cuenta (límite).
+- **`event.preventDefault()`** (síncrono) en `navigate` deja la navegación al router y **no impide el cierre** (diferencia con `select`, donde impide el cierre). Si la aplicación quiere el menú abierto, `closeOnSelect="never"`.
+- **`closeOnSelect`:** un enlace cuenta como **acción** (`auto` y `always` cierran; `never` no).
+- **Orden:** se emite `navigate` y después se cierra y se devuelve el foco al disparador. Si la ruta nueva desmonta el disparador, el foco es de la gestión de rutas de la aplicación (README).
+
+### Teclado (foco en un enlace)
+
+| Tecla | Qué hace | Origen |
+| --- | --- | --- |
+| Intro | **`GMenu` no la cancela**: la activación nativa del `<a>` produce el `click` que pasa por la guarda → `navigate`, cierre, foco al disparador | HTML |
+| **Espacio** (L9) | El `<a>` no se activa con Espacio y desplazaría la página: **`GMenu` lo cancela** y, sin modificadores y habilitado, llama a `el.click()` (clic sintético: botón 0, sin modificadores, pasa por la guarda). Todo elemento del menú responde igual a Espacio | APG (coherencia con los `<button>`) |
+| Ctrl/⌘+Intro | Lo del navegador (pestaña en segundo plano); sin `navigate`; **el menú sigue abierto con la huella «Abierta»** (C, como Ctrl/⌘+clic) | HTML, #505, #577 |
+| Mayús+Intro | Ventana nueva del navegador; sin `navigate`; cierra y devuelve el foco al disparador | HTML |
+| Espacio con modificadores | Se cancela y no hace nada (sin equivalente en el navegador) | — |
+| Ctrl/⌘+C | Copia la URL absoluta (C, §«Varias pestañas») | #577 |
+| Tecla de menú contextual, Mayús+F10 | Menú contextual **de enlace** del navegador; `GMenu` no lo intercepta y sigue abierto | Navegador |
+| ↑ ↓ Inicio Fin, letra, Esc, Tab, → ← | Sin cambios | §«Teclado» |
+
+### Puntero y toque
+
+| Gesto | Navegador | `navigate` | Menú |
+| --- | --- | --- | --- |
+| Clic primario sin modificadores | Sigue el `href` (o el router lo cancela) | **Sí** (sin `target` de otro contexto) | Cierra, foco al disparador |
+| Ctrl/⌘+clic | Pestaña en segundo plano | No | **Sigue abierto** con huella «Abierta» (C) |
+| Clic central (`auxclick`, `button === 1`) | Pestaña en segundo plano | No | **Sigue abierto** con huella «Abierta» (C) |
+| Mayús+clic | Ventana nueva (toma el foco) | No | Cierra, foco al disparador |
+| Alt+clic | Descarga (algunos navegadores) | No | Cierra, foco al disparador |
+| Clic primario con `target` de otro contexto | Abre en ese contexto | No | Cierra, foco al disparador |
+| Clic derecho (o Ctrl+clic en macOS) | Menú contextual de enlace | No | Sigue abierto |
+| Toque | Como clic primario | Sí | Cierra |
+| Toque largo | Vista previa o menú de enlace del sistema | No | Sigue abierto |
+| Arrastrar | El enlace se suelta en la barra de pestañas | No | Sin cambios |
+| Puntero encima (M1) | — | No | Mueve el foco como en cualquier elemento; no se posa en un deshabilitado |
+
+- **`GMenu` no cancela** `pointerdown`, `mousedown`, `dragstart` ni `contextmenu` sobre un enlace (rompería arrastrar, el clic central y el menú contextual). En el `click` solo cancela el de un deshabilitado (que, sin `href`, no navega de todos modos).
+- **Móvil:** coco **no** anula `-webkit-touch-callout` ni `-webkit-user-drag` en `a.g-menu__item` (L7).
+
+### Marca «sale de aquí» y textos (#575)
+
+- Se pinta `g-menu__leave` (icono **`external-link`** de Lucide, decorativo, del `GLibIcon` interno) si el enlace tiene `external` **o** `target` de otra pestaña. **Una sola marca para los dos casos** (L4): lo que el usuario necesita distinguir en un menú no es «enlace o acción» ni «otra pestaña u otro sitio», sino **«me saca de aquí o no»**; el matiz lo dan el texto oculto y el pie (B). Sin subrayado: en un menú todo es activable.
+- **`external-link` no está en la lista de la librería:** entra con este contrato (`icons.md` §4, v0.10). **Bruno** lo añade a la lista `library` de `packages/vue/scripts/icons.json` con su nombre canónico (`external-link`: módulo `dist/esm/icons/external-link.mjs`, marca `lucide-external-link`, comprobado por lima en `lucide-static` 1.49.0), regenera `src/icons/lucide.js` y deja `node packages/vue/scripts/check-icons.mjs` en verde **antes** de usarlo; también a `lab` si un prototipo lo necesita.
+- Color de la marca: `--g-color-text-muted` (kiwi midió ≥ 3:1 en el tema por defecto); en un elemento `danger`, coco decide si sigue al color del elemento.
+
+### Textos (`labels`, L3)
+
+Sin valores por defecto (#226): todo lo pone la aplicación. Cadenas; las que llevan `{label}` admiten también una función `({ label, item }) => string` (como `tag.md`).
+
+| Clave | Para qué | Cuándo hace falta | Sin ella |
+| --- | --- | --- | --- |
+| `external` | Texto oculto de un enlace con `external` («, otro sitio») | Algún enlace con `external` | Sin texto oculto; aviso E4 |
+| `newTab` | Texto oculto de un enlace con `target` de otra pestaña («, abre en una pestaña nueva»; WCAG 3.2.5, G201) | Algún enlace con `target` de otra pestaña | Sin texto oculto; aviso E4 |
+| `destExternal` | Etiqueta visible del pie (B) para otro sitio («Otro sitio») | Hay pie | Sin etiqueta en el pie; aviso E5 |
+| `destNewTab` | Etiqueta visible del pie (B) para otra pestaña («Pestaña nueva»); gana a `destExternal` si se dan los dos | Hay pie con un enlace a otra pestaña | Sin etiqueta en el pie; aviso E5 |
+| `opened` | Huella visible tras abrir en segundo plano («Abierta») | Algún enlace habilitado | **Ctrl/⌘+clic, central y Ctrl/⌘+Intro cierran** (como A); aviso E6 |
+| `openedLive` | Anuncio cortés («{label} abierta en otra pestaña») | Igual | Igual que sin `opened` (van juntas) |
+| `copied` | Huella visible tras copiar («Enlace copiado») | Algún enlace habilitado | **Ctrl/⌘+C no se intercepta**; aviso E6 |
+| `copiedLive` | Anuncio cortés («Enlace de {label} copiado») | Igual | Igual que sin `copied` (van juntas) |
+
+**Regla de C sin textos:** el gesto de C solo se activa si la aplicación da **sus dos textos** (visible y anuncio): un menú que se queda abierto sin decir por qué, o que copia sin confirmarlo, es peor que el comportamiento nativo.
+
+### Página actual y rama (#576, L5)
+
+- `current: true` → `aria-current="page"` en el `<a>`. **Como mucho uno por menú** (en todo el árbol, en orden de documento): si hay más, se marca el primero y avisa (aviso E3).
+- Se ve con una **barra al inicio lógico** en `--g-color-accent-text` (la idea de la barra activa de `GSidebar`, #228; kiwi midió ≥ 3:1) **y peso** `--g-text-action-weight`: nunca solo color (1.4.1). En `forced-colors`, la barra en `CanvasText`. **Sin tokens nuevos.**
+- Sigue siendo un enlace activable (copiar, pestaña nueva, recargar): qué hace la aplicación al «navegar» a la página actual es suyo.
+- **Rama:** el padre de un submenú que contiene la página actual (a cualquier profundidad) lleva la clase **`is-branch`** (mismo nombre que en `GSidebar`) y peso, **sin** `aria-current`.
+- No cambia dónde se abre el menú ni dónde empieza el foco (APG); el resaltado M1 sigue al foco.
+
+### B · Pie de destino (#578)
+
+- **Cuándo existe:** en **cada lista** (la raíz y cada submenú, como el resaltado de M1) que contiene **directamente** al menos un enlace que sale de la aplicación (`external` o `target` de otra pestaña, deshabilitados incluidos). Una lista solo con enlaces internos y acciones **no** lo lleva. Sin prop.
+- **Qué es:** `li.g-menu__dest` `role="none"` `aria-hidden="true"`, **último hijo** de la lista, pegado abajo (`position: sticky`, de coco) sobre `--g-color-surface-sunken`. Fuera del árbol accesible: el lector ya oye «otro sitio, abre en una pestaña nueva» en el nombre.
+- **Qué dice:** el destino del **activo de esa lista** (el mismo de M1, puntero o teclado):
+  - URL `http(s)` de **otro origen**: `__dest-host` = `URL.host` (sin protocolo ni credenciales; los dominios internacionales salen en **punycode**, `xn--…`, a propósito: es lo que protege de la suplantación) y `__dest-path` = ruta + búsqueda sin la barra final (atenuada);
+  - URL del **mismo origen**: `__dest-host` vacío y `__dest-path` = ruta (o el `#hash` si la ruta es la misma);
+  - otro esquema (`mailto:`, `tel:`…): `__dest-path` con el `href` tal cual;
+  - `__dest-tag` = `labels.destNewTab` si va a otra pestaña, si no `labels.destExternal` si `external`, si no vacío;
+  - `__dest-icon` = `external-link` si sale de la aplicación; vacío si no.
+  - Se resuelve con `new URL(href, document.baseURI)` **solo en el cliente** y al cambiar el activo (nada en el render del servidor).
+- **Callado:** con una acción, una casilla, un padre de submenú, un deshabilitado o sin activo, el pie lleva **`is-empty`** (texto transparente) **sin cambiar de alto** (kiwi midió 0 px).
+- **Dirección:** host y ruta llevan `dir="ltr"` (una URL se lee en LTR también en RTL); la etiqueta sigue la dirección de la lista.
+- **Recorte:** la ruta se recorta con elipsis; el host nunca se recorta antes que la ruta (lo que identifica el sitio es el host).
+- **Movimiento:** solo fundido del texto (`--g-duration-fast`), que con movimiento reducido se queda. En `forced-colors`, borde superior en `CanvasText`.
+- **Por qué:** la barra de estado del navegador, que dice adónde lleva un enlace, **no existe** en una PWA instalada, en pantalla completa ni en muchos móviles, y con el foco de teclado no todos los navegadores la muestran.
+
+### C · Varias pestañas (#577)
+
+1. **Ctrl/⌘+clic, clic central y Ctrl/⌘+Intro** sobre un enlace **habilitado** (con `opened` y `openedLive`): **no cierran**. El navegador abre la pestaña en segundo plano; `GMenu` no emite `navigate`, escribe `labels.opened` en `g-menu__trace` de ese elemento y anuncia `labels.openedLive` por el **canal cortés de página** (`utils/liveRegion.js`, `announcePage`, #533; ninguna región propia). «Ctrl/⌘» = `ctrlKey` **o** `metaKey` (los dos, en todo sistema: en macOS Ctrl+clic es el menú contextual y no llega `click`).
+2. **Vista previa del modificador:** mientras Ctrl o ⌘ está pulsado con el menú abierto (`keydown` de `Control`/`Meta` con el foco en la lista, o `pointermove` con `ctrlKey`/`metaKey` sobre ella), **cada lista abierta** lleva **`is-modifier`**: lo que no puede abrirse aparte (acciones, casillas, opciones, padres de submenú y deshabilitados, es decir, todo `g-menu__item` sin `href`) pasa a `--g-color-text-subtle` (kiwi midió ≥ 4.5:1). Se quita en `keyup` de la tecla, en `pointermove` sin modificador, en `blur` de la ventana (un ⌘+Tab pierde el `keyup`) y al cerrar. El icono no cambia de forma (1.4.1: el pie y la huella dicen el resto).
+3. **Ctrl/⌘+C** (sin Mayús ni Alt) con el foco en un enlace **habilitado** (con `copied` y `copiedLive`) y **sin texto seleccionado** en el documento: `GMenu` cancela la tecla y llama a `navigator.clipboard.writeText` con la URL **absoluta** (`new URL(href, document.baseURI).href`). **Al resolverse**, escribe `labels.copied` en la huella y anuncia `labels.copiedLive`. Si `navigator.clipboard` no existe (contexto no seguro) **no cancela** la tecla y no hace nada; si la promesa se rechaza (permisos), sin huella ni anuncio y un aviso de desarrollo (E7). Sin controles anidados en el elemento (prohibidos en `menuitem`). Ningún evento nuevo.
+4. **Huellas:** una por elemento (la última gana: «Enlace copiado» sustituye a «Abierta»); se borran todas al cerrar el menú. `aria-hidden` (el anuncio ya lo dijo). Movimiento: fundido; con `reduce`, aparece.
+5. **Lo que no cambia:** Mayús+clic, Alt+clic y la activación sin modificadores cierran como en A; `closeOnSelect` no afecta a estos gestos (ninguno es una selección).
+
+### Avisos de desarrollo (nuevos)
+
+Una vez por menú, con `typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'`.
+
+| # | Cuándo | Qué hace el componente |
+| --- | --- | --- |
+| E1 | `href` en `checkbox`, `radio`, `group`, `separator` o un padre de submenú | Lo ignora (sigue siendo lo que era) |
+| E2 | `target`, `rel`, `external` o `current` sin `href` válido | Los ignora |
+| E3 | Más de un `current` | Marca el primero |
+| E4 | Falta `labels.external` o `labels.newTab` y algún enlace lo necesita | Sin texto oculto (la marca sigue) |
+| E5 | Hay pie y falta `labels.destExternal` o `labels.destNewTab` necesario | Pie sin etiqueta (host y ruta siguen) |
+| E6 | Hay enlaces habilitados y falta alguno de `opened`/`openedLive` o `copied`/`copiedLive` | Ese gesto de C cae al comportamiento nativo (cierra / no copia) |
+| E7 | `navigator.clipboard.writeText` se rechaza | Sin huella ni anuncio |
+
+### Clases nuevas (para coco, L7)
+
+- `a.g-menu__item`: **mismo aspecto** que el `<button>` (sin subrayado; color heredado también en `:visited`, `:hover` y `:active`; sin `text-decoration` en ningún estado), mismo resaltado M1 y mismo foco.
+- `[aria-current="page"]`: barra al inicio lógico (`accent-text`) y peso; `is-branch`: peso.
+- `g-menu__leave` (`text-muted`), `g-menu__sr` (patrón de texto oculto), `g-menu__trace` (columna final, `text-muted`), `g-menu__dest` y partes (`text` para el host, `text-muted` para la ruta y la etiqueta, ≥ 12 px, contraste ≥ 4.5:1 sobre `surface-sunken`), `is-empty`, `is-modifier`.
+- Tokens: los de §«Tokens consumidos» más `--g-color-accent-text` y `--g-text-action-weight`. **Sin tokens nuevos.**
+
+### Peso (#579, #636, L12)
+
+`GMenu` **sigue en el paquete principal**: es una extensión de un componente existente, no un componente nuevo (#550 abre la valoración para componentes **nuevos**), y `GCard`, `GWidget` y `GTranscript` lo usan por dentro; sacarlo a una entrada propia rompería la importación de quien ya lo usa. **Compuerta:** bruno mide el crecimiento del `grana.js` gzip (KiB, #550) de toda la extensión (base, B y C) frente al `main` anterior y lo registra en `CHANGELOG.md`; **con más de 2 KiB vuelve a lima antes del commit** (opciones a valorar entonces: cargar el motor de C y del pie bajo demanda en el primer enlace, o recortar). Nada nuevo en el nivel superior del módulo (#444).
+
+**Enmienda #636 (tope de 2,5 KiB).** bruno midió +2 275 a +2 343 B sobre 196 336 B (±60 B de ruido) tras recortar avisos E1 a E7, unificar el clic central con el clic y compactar el pie. **El tope de la extensión pasa a ≤ 2560 B** de crecimiento del `grana.js` gzip (base, B, C, `utils/link.js` e iconos `external-link` y `arrow-right`), medido y registrado en `CHANGELOG.md` con la base, el rango de varias compilaciones y el tramo de `GMenu` comprimido aparte. Todo sigue en el principal y sin carga diferida. **Con más de 2560 B vuelve a lima y el tope no se sube otra vez:** el paso siguiente es cargar el motor de C y el del pie bajo demanda en el primer enlace que los necesite.
+
+**Avisos E1 a E7 y la regla de #636.** Los textos de los avisos no se quitan. Cuando bruno aplique la regla de avisos de `api.md` («Avisos de desarrollo»), cada llamada a `warnOnce` de `GMenu` y de `utils/link.js` (y el recorrido `scan` que solo sirve a E3 a E6) queda **dentro** de la guarda en línea, no solo el ayudante, para que el empaquetador de la aplicación los elimine en producción. Esa tarea no bloquea el commit de la extensión; al hacerla, bruno registra también cuánto pesa el tramo de `GMenu` en un paquete de producción de la aplicación (cifra informativa, sin compuerta).
+
+### Pruebas (bruno)
+
+Vitest (`GMenu.test.js`, jsdom) y Playwright en los tres motores (`tests/menu-links.spec.mjs` y `tests/personalidad-menu-links.spec.mjs`, trasladando `design/lab/menu/r02/verificar.mjs`):
+
+1. **Anatomía:** `<a role="menuitem" href>` solo en `item` sin hijos; `href` vacío o con espacios = `<button>`; `checkbox`/`radio`/padre con `href` siguen siendo lo que eran (E1); deshabilitado sin `href`/`target`/`rel`, con `aria-disabled` y alcanzable con flechas; un solo `aria-current` (E3); `is-branch` en el padre a dos niveles; `target`/`rel` tal cual, sin `rel` añadido.
+2. **Nombre accesible** con el texto oculto (árbol de accesibilidad de Playwright); la letra busca solo en la etiqueta.
+3. **`navigate`:** clic primario, Intro y Espacio emiten `{ id, item, event }` y **no** `select`; Ctrl, ⌘, Mayús, Alt, botón central, clic derecho y `target` `_blank`, nombre, `_parent` y `_top` **no** emiten; `_self` y vacío sí; `preventDefault()` deja la URL intacta y **cierra igual**; sin `preventDefault`, el navegador sigue el `href`; `closeOnSelect` `never` deja abierto; foco al disparador tras cerrar.
+4. **Espacio** no desplaza la página y activa; con modificadores, nada; Intro no se cancela (Ctrl/⌘+Intro abre en segundo plano en Chromium).
+5. **Deshabilitado:** Intro, Espacio y clic no hacen nada ni cierran; el puntero no se posa.
+6. **M1** con enlaces mezclados; clic derecho con el menú abierto; ningún `preventDefault` en `pointerdown`/`dragstart` de un enlace.
+7. **B:** pie solo en la lista que sale (y en un submenú que sale, no en su padre si este no sale); `aria-hidden`; contenido por caso (interno, externo en pestaña nueva, externo en la misma, `mailto:`, acción callada, deshabilitado callado); punycode; sigue al teclado y al puntero; alto constante; pegado abajo con scroll; RTL con la URL en LTR; SSR sin `document`.
+8. **C:** Ctrl/⌘+clic, central y Ctrl/⌘+Intro dejan abierto con huella y **un** anuncio en el canal de página; sin `opened`/`openedLive`, cierran (E6); `is-modifier` con Ctrl/⌘ y fuera con `keyup`, `blur` y cierre; Ctrl/⌘+C copia la URL absoluta (permiso de portapapeles en Chromium; en Firefox y WebKit, `navigator.clipboard` simulado) con huella y anuncio solo al resolverse; con texto seleccionado no se intercepta; sin `copied`, no se intercepta; huellas borradas al cerrar.
+9. **Avisos** E1 a E7, una vez cada uno.
+10. **`meta.json`** (#443): `labels` con sus ocho claves, `navigate` con su carga, y los campos nuevos de `items` en la forma del elemento (`packages/vue/types/`, `overrides.mjs` o `shared.d.ts`); `src/types.test.js` en verde.
+11. **Peso:** la medida de §«Peso».
+
+### No verificado (de la ronda)
+
+Lectores reales (cómo leen VoiceOver y NVDA un `<a role="menuitem">` con `aria-current` y si VoiceOver ofrece sus acciones de enlace sobre un `menuitem`); toque largo real en iOS y Android dentro de un `popover`; que Firefox y WebKit **abran** la pestaña con un clic modificado sintético (solo Chromium en headless); la escritura real del portapapeles; Safari con ⌘+Intro. Van a los guiones de entorno real (Fase D).
+
 ## Resolución de hallazgos de r01
 
 | # | Hallazgo | Resolución | Base |
@@ -230,8 +439,26 @@ El resaltado **salta** (sin desplazamiento), con fundido. M4 no es movimiento: r
 | 10 | Tokens | Ninguno nuevo | — |
 | 11 | Pantallas angostas | Cascada (el submenú se superpone al padre) | — |
 
+## Resolución de hallazgos de r02 (elementos-enlace)
+
+| # | Hallazgo | Resolución | Base |
+| --- | --- | --- | --- |
+| L1 | Contrato del enlace | `href`, `target`, `rel`, `external`, `current`; `navigate` `{ id, item, event }`; sin `select`; `preventDefault` no impide el cierre; `closeOnSelect` lo trata como acción | #572, #573 |
+| L2 | `target` en la regla común | Enmienda de #505: sin `navigate` con `target` distinto de vacío o `_self` (`GMenu`, `GTag`, `GCard`) | #574 |
+| L3 | Textos | `labels` con `external`, `newTab`, `destExternal`, `destNewTab`, `opened`, `openedLive`, `copied`, `copiedLive`; C solo con sus dos textos | #575, #577 |
+| L4 | Glifo | Una sola marca `external-link` (entra en la lista de la librería, `icons.md` v0.10; bruno la añade) | #575 |
+| L5 | Página actual | `aria-current="page"`, como mucho uno; barra `accent-text` + peso; `is-branch` | #576 |
+| L6 | Combinaciones ignoradas | Avisos E1 y E2; vacío = ausente | #572 |
+| L7 | CSS | §«Clases nuevas»; sin anular `-webkit-touch-callout` ni `-webkit-user-drag` | — (coco) |
+| L8 | Nombre con texto oculto | `g-menu__sr` dentro del `<a>`, sin puntuación añadida | #575 |
+| L9 | Espacio | `GMenu` lo cancela y llama a `el.click()` sin modificadores | #573 |
+| L10 | Sin slot `link` | Reservado; #523 no aplica | #572 |
+| L11 | Reservados | `download`, `hreflang`, `referrerpolicy`; foco inicial en la página actual | #572 |
+| L12 | Peso | Sigue en el principal; compuerta de 2,5 KiB gzip para toda la extensión (era 2 KiB); avisos con la guarda en línea | #579, #636 |
+
 ## Límites conocidos
 
+- **Elementos-enlace:** sin botón dividido (un padre de submenú no navega), sin slot `link`, sin `download`; un `<base target>` del documento no cuenta para la guarda de `navigate`.
 - **Sin menú contextual**, sin anclaje a un elemento arbitrario y sin barra de menús (*menubar*); **sin elementos con contenido libre o campos**.
 - **El componente no fuerza la exclusividad** de las opciones: la aplicación marca `checked`.
 - **Submenús:** tres niveles verificados; en pantallas muy angostas se superponen en cascada.

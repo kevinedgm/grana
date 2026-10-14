@@ -57,6 +57,8 @@
 @import url("../components/GFormLayout/GFormLayout.css");
 @import url("../components/GFormRow/GFormRow.css");
 @import url("../components/GFormReveal/GFormReveal.css");
+/* GFormFold (form.md §15, entrada @grana/vue/form-fold, #590): el CSS va en grana.css; después de GFormReveal */
+@import url("../components/GFormFold/GFormFold.css");
 @import url("../components/GInputGroup/GInputGroup.css");
 @import url("../components/GFieldGroup/GFieldGroup.css");
 @import url("../components/GFormActions/GFormActions.css");
@@ -96,3 +98,9 @@
    grana.css): componen GBtn y GIcon, van después de sus hojas (estilo.md «Para bruno», 8) */
 @import url("../components/GEmpty/GEmpty.css");
 @import url("../components/GLoadRegion/GLoadRegion.css");
+/* GCardGroup (card-group.md, entrada @grana/vue/card-group, #610; su CSS sigue en grana.css): ajusta las GCard hijas con
+   selectores de descendiente, va después de GCard.css */
+@import url("../components/GCardGroup/GCardGroup.css");
+/* GPageHeader (page-header.md, entrada @grana/vue/page-header, #633; su CSS sigue en grana.css): reapunta su fondo en
+   GSurface y GDialog y es anfitriona de --g-tabs-inset en el zócalo; va después de sus hojas (GSurface, GDialog, GTabs) */
+@import url("../components/GPageHeader/GPageHeader.css");

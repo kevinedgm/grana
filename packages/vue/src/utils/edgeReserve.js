@@ -3,14 +3,15 @@
 // Los elementos PERSISTENTES (la pill flotante de GSpeechHost, la isla de estado) conservan su borde y publican aquí su
 // reserva (alto + margen); el TRANSITORIO (GToaster) con el mismo borde efectivo suma todas a su `offset` de ese borde.
 // Cada reserva lleva su `order` (menor = más cerca del borde): quien va después lee solo las anteriores (`before`), así
-// el orden voz → isla → avisos es por prioridad y no por montaje. No es API pública ni opción de ningún servicio.
+// el orden voz → encabezado de página → isla → avisos es por prioridad y no por montaje. No es API pública ni opción de ningún servicio.
 // Un registro por documento (el visor es compartido aunque haya varias aplicaciones montadas). Solo en el cliente: se
 // crea al primer uso y solo lo usan componentes montados. Reactivo (Vue): quien lee `edgeReserve` en un `computed`
 // se actualiza al cambiar la reserva.
 import { reactive } from 'vue'
 
-/** Orden desde el borde: menor = más cerca. Los avisos (GToaster) no publican. */
-export const EDGE_ORDER = Object.freeze({ speech: 10, status: 20 })
+/** Orden desde el borde: menor = más cerca. Los avisos (GToaster) no publican. GPageHeader (zócalo pegado arriba, muelle
+ * abajo) va entre la voz y la isla (#631). */
+export const EDGE_ORDER = Object.freeze({ speech: 10, pageHeader: 15, status: 20 })
 
 const registries = new WeakMap() // document → Map(dueño → { edge, px, order })
 
