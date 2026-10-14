@@ -520,7 +520,10 @@ export default defineComponent({
     const onFocusin = (e) => {
       const t = e.target
       const k = lastState.value
-      if (k == null || !t.classList.contains('g-table__door') || (e.relatedTarget && root.value.contains(e.relatedTarget))) return
+      // WebKit: clic de ratón en <a> no enfoca el enlace; el relatedTarget puede ser <table tabindex=-1>,
+      // que no cuenta como "foco desde dentro" (es el ancla de foco del recipiente, no un control real)
+      const fromInside = e.relatedTarget && root.value.contains(e.relatedTarget) && e.relatedTarget !== tableEl.value
+      if (k == null || !t.classList.contains('g-table__door') || fromInside) return
       if (lastKeys[rowsOf().indexOf(t.closest('tr'))] === k) markHere(k)
     }
     // Vuelta de una ruta: la fila del rastro a la vista se ilumina (la tabla no desplaza hasta ella).
