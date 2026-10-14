@@ -68,13 +68,22 @@ export default defineConfig({
       'script',
       {},
       `;(()=>{try{var p=localStorage.getItem('vitepress-theme-appearance')||'auto';var d=p==='auto'?matchMedia('(prefers-color-scheme: dark)').matches:p==='dark';document.documentElement.setAttribute('data-theme',d?'dark':'light')}catch(e){}})()`
-    ]
+    ],
+    // Instrument Serif: titulares de la documentación (marca de Grana).
+    ['link', { rel: 'preconnect', href: 'https://fonts.googleapis.com' }],
+    ['link', { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }],
+    ['link', { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap' }]
   ],
   locales: {
     root: { label: LOCALES.es.label, lang: 'es', description: UI.es.description, themeConfig: themeFor('es') },
     en: { label: LOCALES.en.label, lang: 'en', link: '/en/', description: UI.en.description, themeConfig: themeFor('en') }
   },
   themeConfig: {
+    logo: {
+      light: '/logo.svg',
+      dark: '/logo-dark.svg',
+      alt: ''
+    },
     search: {
       provider: 'local',
       options: {

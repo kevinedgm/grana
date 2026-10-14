@@ -33,6 +33,16 @@
         "4175"
       ],
       "port": 4175
+    },
+    {
+      "name": "grana-site",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "docs:dev",
+        "--workspace=site"
+      ],
+      "port": 5173
     }
   ]
 }

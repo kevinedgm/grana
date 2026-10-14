@@ -231,3 +231,30 @@ body {
 .grana-demo__flow > :where(hr, div, p, form, section, ul, ol, table, nav, fieldset, .g-divider, [class*='--block']):not([aria-orientation='vertical']) {
   flex: 1 0 100%;
 }
+
+/* ---------------------------------------------------------------- tipografía · Instrument Serif */
+
+/* Titulares de la documentación con Instrument Serif (guía de marca de Grana). */
+.vp-doc h1 {
+  font-family: 'Instrument Serif', ui-serif, Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+.vp-doc h2 {
+  font-family: 'Instrument Serif', ui-serif, Georgia, serif;
+  font-weight: 400;
+}
+
+/* Nombre en la barra de navegación con Instrument Serif. */
+.VPNavBarTitle .title {
+  font-family: 'Instrument Serif', ui-serif, Georgia, serif;
+  font-weight: 400;
+  font-size: 1.25rem;
+  letter-spacing: 0;
+}
+
+/* Logo: tamaño uniforme, sin margen extra. */
+.VPNavBarTitle .logo {
+  height: 24px;
+  width: 24px;
+}
