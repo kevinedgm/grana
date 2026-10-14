@@ -8,7 +8,8 @@ Librería open source de componentes **Vue 3** con tema por tokens (tipo Vuetify
 2. `DECISIONS.md`: todas las decisiones con su porqué. No las reabras sin motivo nuevo.
 3. `docs/contract/tokens.md` y `docs/contract/api.md`: contratos vigentes.
 4. `.agents/skills/bruno/SKILL.md` y sus `references/`: cómo se construye un componente.
-5. Para el botón: `design/lab/btn/r01/` (kiwi), `design/contracts/btn.md` (lima), `design/lab/btn/estilo.md` (coco).
+5. Para documentar: `docs/documentacion/contrato.md` (contrato de mora-docs, forma de la página de componente).
+6. Para el botón: `design/lab/btn/r01/` (kiwi), `design/contracts/btn.md` (lima), `design/lab/btn/estilo.md` (coco).
 
 ## Cómo se trabaja: Fruti Squad
 
