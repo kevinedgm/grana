@@ -22,7 +22,7 @@ Regla de oro: **un archivo, un dueño.** Ningún agente edita un archivo que per
 
 | # | Agente | Entrega | Condición para avanzar |
 | --- | --- | --- | --- |
-| 1 | kiwi | Prototipo de estructura y conceptos A/B/C | `declaracion.md` aprobada y concepto elegido por el usuario (si hay forma visible) |
+| 1 | kiwi | Prototipo de estructura | `declaracion.md` aprobada |
 | 2 | lima | Contrato del componente | API y tokens listados; tokens nuevos agregados al contrato global |
 | 3 | coco | `<Nombre>.css` | Solo `var(--g-*)`, sin literales |
 | 4 | bruno | `<Nombre>.vue` + pruebas + registro | Build y pruebas en verde |

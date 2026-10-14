@@ -40,7 +40,9 @@ Perfil de `.agents/skills/bruno/references/handoffs.md` (Entregas de Fruti Squad
 
 Bruno toma de Kiwi la **anatomía** (qué elementos existen y en qué orden), los **estados** y el **comportamiento** con teclado y en tamaños de contenedor.
 
-**Completa si:** `declaracion.md` dice `aprobada`, lista todos los estados, el usuario eligió concepto (si hay forma visible) y `node .agents/skills/grana-kiwi/scripts/huella.mjs design/lab/<nombre>/rNN` sale en 0 (o cada aviso está justificado en la declaración).
+**Completa si:** `declaracion.md` dice `aprobada` y lista todos los estados.
+
+**Antes de marcarla `aprobada`** (control interno de kiwi; no añade condiciones a lima): el usuario eligió concepto si hay forma visible, y `node .agents/skills/grana-kiwi/scripts/huella.mjs design/lab/<nombre>/rNN` sale en 0 o cada aviso está justificado en la declaración.
 
 ## Procedimiento de la ronda
 
@@ -66,4 +68,4 @@ Verifica el prototipo con Playwright usando las dependencias del laboratorio (`d
 
 ## Traspaso
 
-Lima puede avanzar únicamente cuando `declaracion.md` esté aprobada y liste todos los estados. Lima registra en `DECISIONS.md` la ficha de dirección del concepto elegido como decisión de personalidad. Termina con `git pull --rebase origin main`, commit con prefijo `kiwi:` y push a `origin main`, salvo que el encargo diga otra cosa. Reporta qué entregaste, qué verificaste, qué NO verificaste y los hallazgos que Lima debe resolver.
+Lima puede avanzar únicamente cuando `declaracion.md` esté aprobada y liste todos los estados. Lo nuevo del método llega a lima por la vía de siempre, como entradas de **Hallazgos para lima**: la ficha de dirección del concepto elegido (decisión de personalidad que lima registra, CLAUDE.md), los tokens que pida y cualquier uso nuevo de `--g-ease-spring`/`--g-ease-bounce`. Lima los resuelve en su tabla «Resolución de hallazgos», sin pasos nuevos. Termina con `git pull --rebase origin main`, commit con prefijo `kiwi:` y push a `origin main`, salvo que el encargo diga otra cosa. Reporta qué entregaste, qué verificaste, qué NO verificaste y los hallazgos que Lima debe resolver.

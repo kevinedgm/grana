@@ -10,7 +10,7 @@ Adaptación de `kiwi-art-director` (ver `kiwi-art-director/LEEME.md`) al reparto
 | Tres alternativas A/B/C neutras en gris | **Se anula el gris para los conceptos.** Gris solo para la base funcional | Misma regla |
 | Brief con intención emocional, hechos / supuestos / incógnitas | **Se adopta** (`estructura.md`) | Da criterio a la elección del usuario y evita inventar requisitos |
 | Metáfora de material con nombre poético | **Se adopta como motor de divergencia** de A/B/C (§2). No produce CSS | Fuerza a cuestionar la premisa de la forma, no a recolorear la misma caja |
-| Direction card | **Se traduce** a «ficha de dirección» por concepto (§3) | coco la usa como intención; lima registra la elegida en `DECISIONS.md` |
+| Direction card | **Se traduce** a «ficha de dirección» por concepto (§3) | Llega a lima como hallazgo (la elegida) y a coco como intención; el traspaso no cambia |
 | Test de sustitución | **Se adopta**, adaptado a componentes (§4) | Es la prueba de «Qué lo hace distinto» |
 | Hipótesis de personalidad y riesgo de novedad | **Se adopta** (§4) | La innovación nunca sacrifica accesibilidad (CLAUDE.md) |
 | Motion Trinity (entrada, hover, clic) | **Se traduce** a tokens de Grana (§5) | Ya existen `--g-ease-*` y `--g-duration-*` (#299 a #305) |
@@ -53,7 +53,7 @@ Los tres conceptos deben diferir en al menos uno de estos ejes (como en el orige
 | Tokens nuevos | Si el concepto pide un token que no existe: hallazgo para lima, nunca un literal |
 | Excepciones | Reglas del origen que este concepto no sigue porque Grana manda (normalmente ninguna nueva) |
 
-En la comparativa final, la recomendación de kiwi se razona con estas fichas. Lima registra la ficha del concepto elegido en `DECISIONS.md` (decisión de personalidad, CLAUDE.md).
+En la comparativa final, la recomendación de kiwi se razona con estas fichas. Cuando el usuario elige, la ficha del concepto elegido entra en **Hallazgos para lima** como «decisión de personalidad a registrar» (CLAUDE.md); sus tokens nuevos, cada uno como hallazgo aparte. Lima la resuelve en su tabla «Resolución de hallazgos» como cualquier otro hallazgo: el traspaso es el mismo de siempre.
 
 ## 4. Pruebas de personalidad
 
