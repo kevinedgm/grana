@@ -69,6 +69,7 @@ Una `inset` **no necesita saber quién es su padre**: la superficie más cercana
 | `rounded` | String | `none` `xs` `sm` `md` `lg` `xl` `pill` | según `level` |
 | `density` | String | `default` `comfortable` `compact` | `default` |
 | `as` | String | etiqueta HTML | `div` |
+| `zone` | String | `none` `brand` | `none` |
 
 Un valor fuera de la lista muestra una advertencia en desarrollo. No hay `variant`: el eje es `level`.
 
@@ -77,7 +78,34 @@ Un valor fuera de la lista muestra una advertencia en desarrollo. No hay `varian
 - **`rounded`:** la instancia gana, también en `inset` (desactiva el radio concéntrico). Por defecto: `flat` sin radio, el resto `--g-radius-lg`, `inset` concéntrico.
 - **`density`:** 1×, 0.875× o 0.75× del relleno; el radio concéntrico de las hijas lo sigue.
 - **`as`:** el elemento (`section`, `article`, `aside`, `form`, `fieldset`, `ul`…). **`GSurface` no añade rol ni `aria-*`**: la semántica es tuya. Con `a`, `button`, `input`, `select`, `textarea`, `summary` o `label` se renderiza igual, pero en desarrollo avisa: no es interactiva.
+- **`zone`:** `none` (por defecto) no cambia nada. `brand` abre la zona de marca (ver §«Zona de marca»).
 - **Resto de atributos** (`class`, `style`, `id`, `role`, `aria-*`, `data-*`, escuchas): van a la raíz.
+
+## Zona de marca (`zone="brand"`, #620–#625)
+
+Con `zone="brand"`, la superficie se pinta con el color de marca del tema y **todos sus descendientes** reciben el grupo de color de la zona: los tokens `--g-color-text`, `--g-color-text-muted`, `--g-color-border`, `--g-color-focus`, etc. cambian al equivalente de la zona.
+
+```vue
+<!-- Cabecera de la aplicación sobre fondo de marca -->
+<g-surface zone="brand" level="flat" padding="md" as="header">
+  <nav>
+    <g-btn variant="ghost">Inicio</g-btn>
+    <g-btn variant="ghost">Documentación</g-btn>
+    <g-btn variant="solid">Iniciar sesión</g-btn>  <!-- tinta invertida dentro de la zona -->
+  </nav>
+</g-surface>
+```
+
+- **`level` dentro de la zona:** todos los niveles (incluido `flat`) pintan el fondo de marca. `outlined`, `raised` y `floating` conservan su borde y sombra con los valores de la zona. Con `inset` y `zone` a la vez, gana la zona.
+- **`tone` se ignora** con `zone="brand"` (aviso de desarrollo).
+- **Los paneles flotantes** (menús, diálogos) abiertos dentro de la zona heredan su grupo de color. Para que se vean como la página, pon `data-theme` en ellos.
+- **`data-g-zone="brand"`** es un atributo público: la aplicación lo puede poner en cualquier elemento propio y en la raíz de cualquier componente. Un componente que ofrezca la zona como prop la llama `zone` con los mismos valores y pone el atributo en su raíz.
+
+### Límites (#637)
+
+- **No en `<html>`.** Con un tema del CLI, el bloque de la zona no se aplicaría en `<html>`: pon `zone="brand"` en un **hijo** (`<body>` o un contenedor de la aplicación). `GSurface` nunca es la raíz del documento.
+- **`--g-glass-filter` no se redeclara** dentro de la zona; el valor del tema del usuario sigue valiendo.
+- **Sombras:** los valores del tema por defecto. Un tema con sombras propias no las ve dentro de la zona; escribe `[data-g-zone="brand"] { --g-shadow-…: … }` sin capa si las necesitas.
 
 ## Eventos y slots
 
@@ -112,15 +140,16 @@ Consume también `--g-color-text`, `--g-radius-{none|xs|sm|md|lg|xl|pill}`, `--g
 
 ## Clases
 
-Las emite el componente y las estiliza `GSurface.css`: `g-surface`, `g-surface--level-*`, `g-surface--tone-*`, `g-surface--padding-*`, `g-surface--density-*` y, solo con `rounded`, `g-surface--rounded-*`.
+Las emite el componente y las estiliza `GSurface.css`: `g-surface`, `g-surface--level-*`, `g-surface--tone-*`, `g-surface--padding-*`, `g-surface--density-*` y, solo con `rounded`, `g-surface--rounded-*`. Con `zone="brand"`: `g-surface--zone-brand` (para CSS propio de la superficie) y el atributo `data-g-zone="brand"` (mecanismo público de la zona).
 
 ## Limitaciones conocidas
 
 - **Todavía no la usan los demás componentes.** `GDialog`, `GWidget`, `GMenu`, `GSelect` y `GSidebar` conservan su propio CSS; migrarlos es trabajo de rondas propias.
+- **`zone="brand"` está contratada (#620–#625) y pendiente de coco y bruno**: la prop existe en el `meta.json` pero la construcción completa (CSS de la zona, defaults.css, CLI, pruebas) está en curso.
 - **Una tarjeta dentro de una inset** hace que la inset de esa tarjeta quede transparente (se respeta el límite de dos tonos). Si necesitas otra cosa, no anides así.
 - **`--g-surface-radius-inset` no se usa:** el radio concéntrico se calcula con el relleno real.
 - **Sin verificar:** `forced-colors` real (se probó emulado), Firefox y Safari (usa `:not()` con selectores complejos: Safari 9+, Firefox 84+) y zoom al 200%.
 
 ## Fuentes
 
-- API: [`GSurface.meta.json`](./GSurface.meta.json) · Contrato: [`design/contracts/surface.md`](../../../../../design/contracts/surface.md) · Prototipo: [`design/lab/surface/r01/`](../../../../../design/lab/surface/r01/) · Estilo: [`design/lab/surface/estilo.md`](../../../../../design/lab/surface/estilo.md) · Auditoría: [`design/lab/surface/auditoria.md`](../../../../../design/lab/surface/auditoria.md)
+- API: [`GSurface.meta.json`](./GSurface.meta.json) · Contrato: [`design/contracts/surface.md`](../../../../../design/contracts/surface.md) · Prototipo r01: [`design/lab/surface/r01/`](../../../../../design/lab/surface/r01/) · Prototipo r02 (zona de marca): [`design/lab/surface/r02/`](../../../../../design/lab/surface/r02/) · Estilo: [`design/lab/surface/estilo.md`](../../../../../design/lab/surface/estilo.md) · Auditoría: [`design/lab/surface/auditoria.md`](../../../../../design/lab/surface/auditoria.md)

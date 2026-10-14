@@ -67,7 +67,8 @@ Un **único estado de navegación** (destino actual y ramas abiertas) se compart
 
 ## Adaptación (`mode="auto"`)
 
-- Se decide por el **ancho del contenedor** (`container`, por defecto el elemento padre), medido con un observador de tamaño. **No hay consultas de medios ni umbrales fijos**: derivan de `--g-space-1` (con `space` 5 son 1200 y 750px). No usa el número de items (la región central hace scroll).
+- Se decide por el **ancho del contenedor** (`container`, por defecto el elemento padre), medido con un observador de tamaño. **No hay consultas de medios ni umbrales fijos por defecto**: derivan de `--g-space-1` (con `space` 5 son 1200 y 750px). No usa el número de items (la región central hace scroll).
+- **`breakpoints` (#618):** `{ expanded?, rail? }` en píxeles del contenedor. Permite ajustar los umbrales a tu diseño. `null` o `{}` usa los valores por defecto. Una sola clave conserva la otra. Un valor no numérico, no finito o negativo se ignora con aviso; si `rail > expanded` se recorta (aviso si se dieron las dos). `rail = expanded = 0` desactiva el formato riel. Solo actúa con `mode="auto"` y su cambio se aplica de inmediato.
 - **Elección manual:** el botón de la cabecera contrae y expande; esa elección se conserva **mientras el ancho no cambie de clase** (expandida / riel / móvil). `mode` fija un formato; `collapsed` (con `v-model:collapsed`) lo controla.
 - **`mode-change`** (`{ mode, overlay }`) avisa cada vez que el formato cambia (y al montar), **para que reserves el espacio** en tu diseño:
 
@@ -92,6 +93,7 @@ El componente no empuja tu contenido. Hasta que se mide el contenedor (el primer
 | `collapsed` | Boolean | (con `update:collapsed`) | `false` |
 | `open` | Boolean | drawer (con `update:open`) | `false` |
 | `container` | String \| Element | selector CSS o elemento | el padre |
+| `breakpoints` | Object | `{ expanded?, rail? }` (px del contenedor) — umbrales de `mode="auto"` | `null` (usa `space × 240` / `space × 150`) |
 | `contained` | Boolean | el navbar se posiciona dentro del contenedor y no del visor | `false` |
 | `variant` | String | `fixed` `floating` | `fixed` |
 | `overlay` | Boolean | el riel se expande **sobre** el contenido | `false` |
@@ -255,6 +257,20 @@ El componente solo lee tokens `--g-*`. La **carcasa** es `--g-surface-shell` y e
   --g-sidebar-bar: calc(var(--g-space-1) * 17);    /* 68px */
 }
 ```
+
+**Tokens del item actual (#612–#619):** el fondo del «asiento» animado y la píldora del navbar responden a tres ranuras:
+
+```css
+:root {
+  --g-sidebar-current: ;          /* color del asiento (relleno del item actual en expanded/rail) */
+  --g-sidebar-on-current: ;       /* color del texto y el icono sobre el asiento */
+  --g-sidebar-current-edge: ;     /* borde lateral del asiento (el filo que lo recorta) */
+}
+```
+
+Sin definir, el tema por defecto usa `--g-surface-inset` con contorno `--g-color-border-strong` y texto `--g-color-text`. El asiento entra con `--g-ease-spring` (decisión #299 y #635): al navegar de un item a otro la píldora se asienta con el resorte.
+
+**`aria-current="page"`** solo va en el destino actual (el enlace o botón con `id = modelValue`); las ramas activas reciben peso y color pero no `aria-current`.
 
 ## Clases
 

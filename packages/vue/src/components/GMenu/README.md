@@ -66,6 +66,11 @@ createApp(App).use(Grana).use(createIcons([Pencil])).mount('#app')
 | `danger` | Un `triangle-alert` de Lucide y negrita, además del color |
 | `checked` | Estado de `checkbox` y `radio` |
 | `items` | En un `group`, sus elementos; en un `item`, el submenú (hasta tres niveles verificados) |
+| `href` | Cadena no vacía: el elemento se pinta como `<a role="menuitem" href>` y emite `navigate` en lugar de `select`. Solo en `type: 'item'` sin `items`; en `checkbox`, `radio`, `group` o un padre de submenú se ignora y avisa. Grana no sanea la URL |
+| `target` | Atributo del `<a>`. `_blank` o un nombre de ventana abre en otra pestaña y muestra el icono `external-link`. `_self` usa la misma; `_parent` y `_top` no abren en otra pestaña pero tampoco emiten `navigate` |
+| `rel` | Atributo del `<a>`; solo con `href` |
+| `external` | Boolean. El destino es otro sitio: añade el icono `external-link` y el texto oculto de `labels.external`. Solo con `href` |
+| `current` | Boolean. Es la página actual: `aria-current="page"`. Solo con `href`; como mucho uno por menú |
 
 Un elemento sin `label`, sin `id` (cuando lo necesita) o de tipo desconocido se ignora y avisa en desarrollo.
 
@@ -89,6 +94,7 @@ Un elemento sin `label`, sin `id` (cuando lo necesita) o de tipo desconocido se 
 | `side` | String | `auto` `bottom` `top` | `auto` |
 | `closeOnSelect` | String | `auto` `always` `never` | `auto` |
 | `density` | String | `default` `comfortable` `compact` | `default` |
+| `labels` | Object | ver «Textos de los elementos-enlace» | `{}` |
 | `id` | String | | generado |
 
 Un valor fuera de su lista avisa en desarrollo. **`class`, `style` y `data-*` van a la lista.**
@@ -97,7 +103,8 @@ Un valor fuera de su lista avisa en desarrollo. **`class`, `style` y `data-*` va
 
 | Evento | Payload | Cuándo |
 | --- | --- | --- |
-| `select` | `{ id, item, type, checked?, group?, event }` | Se activa un elemento. `checked` es el valor **nuevo** de una casilla y `true` de una opción; `group` es el grupo que contiene la opción |
+| `select` | `{ id, item, type, checked?, group?, event }` | Se activa un elemento. `checked` es el valor **nuevo** de una casilla y `true` de una opción; `group` es el grupo que contiene la opción. **Los elementos-enlace no emiten `select`** |
+| `navigate` | `{ id, item, event }` | Un **elemento-enlace** se activa con clic primario, Intro o Espacio sin modificadores y sin `target` de otro contexto. `event.preventDefault()` deja la navegación al router y **no** impide el cierre |
 | `update:modelValue` | Boolean | El menú se abre o cierra por una vía de usuario |
 | `open`, `closed` | | La lista ya se muestra / ya se ocultó |
 
@@ -108,6 +115,62 @@ Un valor fuera de su lista avisa en desarrollo. **`class`, `style` y `data-*` va
 | `trigger` | **Obligatorio.** El disparador; alcance `{ open, attrs }`: enlaza `v-bind="attrs"` a un `<button>` o a un componente que lo renderice (p. ej. `GBtn`). **No le pongas tu propio `id`**: ver [El disparador](#el-disparador) |
 | `icon` | Icono de un elemento (decorativo). Alcance `{ item }` |
 | `item` | Contenido de un elemento; alcance `{ item, active, checked }`. **Conserva el texto** (es el nombre accesible) |
+
+## Elementos enlace (`href`, #571–#579)
+
+Un elemento con `href` válido se pinta como `<a role="menuitem" href>` y emite `navigate` en lugar de `select`. El menú lo trata como una acción con `closeOnSelect="auto"` (cierra al activar). **Solo vale en `type: 'item'` sin `items`.**
+
+```vue
+<!-- Fragmento: menú de cuenta con un destino interno y otro externo -->
+<g-menu v-model="abierto" :items="items" label="Cuenta"
+  :labels="{ external: ', otro sitio', newTab: ', abre en una pestaña nueva',
+             destExternal: 'Otro sitio', destNewTab: 'Pestaña nueva',
+             opened: 'Abierta', openedLive: 'Abierto en segundo plano',
+             copied: 'Enlace copiado', copiedLive: 'Enlace copiado al portapapeles' }"
+  @navigate="({ item, event }) => { event.preventDefault(); router.push(item.href) }">
+  <template #trigger="{ attrs }"><g-btn v-bind="attrs" variant="ghost">Mi cuenta</g-btn></template>
+</g-menu>
+```
+
+```js
+// items — la combinación de enlace interno y externo
+const items = [
+  { id: 'perfil', label: 'Mi perfil', href: '/perfil', current: true },
+  { id: 'docs', label: 'Documentación', href: 'https://example.org/docs', target: '_blank', external: true }
+]
+```
+
+- **Icono de salida:** `external-link` de Lucide (decorativo) en todo enlace con `external` o con `target` de otra pestaña. Una sola marca cubre los dos casos.
+- **Ctrl/⌘+clic y clic central** (requiere `labels.opened` y `labels.openedLive`): abren en segundo plano sin cerrar el menú; la huella «Abierta» aparece en el elemento.
+- **Ctrl/⌘+C** con el foco en el enlace (requiere `labels.copied` y `labels.copiedLive`): copia la URL absoluta al portapapeles y muestra «Enlace copiado».
+- **Pie de destino:** en cada lista con al menos un enlace que sale de la aplicación, el pie muestra la URL del activo y la etiqueta `destExternal` o `destNewTab` (requiere las claves correspondientes en `labels`).
+- **Enlace deshabilitado:** `<a role="menuitem" aria-disabled="true">` sin `href`; sigue enfocable con flechas y no se abre en otra pestaña.
+
+### Textos de los elementos-enlace (`labels`)
+
+Ninguno tiene valor por defecto (Grana es internacional). Las claves que correspondan avisan si faltan:
+
+| Clave | Para qué | Requerida si… |
+| --- | --- | --- |
+| `external` | Texto oculto en el nombre accesible de un enlace con `external` (p. ej. `', otro sitio'`) | Hay algún enlace con `external` |
+| `newTab` | Texto oculto en el nombre accesible de un enlace a otra pestaña (p. ej. `', abre en una pestaña nueva'`) | Hay algún enlace con `target` de otra pestaña |
+| `destExternal` | Etiqueta visible del pie para un enlace a otro sitio | Hay pie con algún enlace externo |
+| `destNewTab` | Etiqueta visible del pie para un enlace a otra pestaña (gana a `destExternal`) | Hay pie con algún enlace a otra pestaña |
+| `opened` | Huella visible tras abrir en segundo plano (p. ej. `'Abierta'`) | Hay algún enlace habilitado |
+| `openedLive` | Texto para la región viva al abrir en segundo plano; admite `{label}` o función `({ label, item }) => string` | Hay algún enlace habilitado |
+| `copied` | Huella visible tras copiar la URL (p. ej. `'Enlace copiado'`) | Hay algún enlace habilitado |
+| `copiedLive` | Texto para la región viva al copiar; admite `{label}` o función | Hay algún enlace habilitado |
+
+### Teclado con el foco en un enlace
+
+| Tecla | Acción | `navigate` |
+| --- | --- | --- |
+| Enter / Espacio | Sigue el `href` (o el router lo cancela) | Sí (sin `target` de otro contexto) |
+| Ctrl/⌘+Intro | Abre en segunda pestaña | No |
+| Mayús+Intro | Abre en ventana nueva | No |
+| Ctrl/⌘+C (sin selección) | Copia la URL absoluta | No |
+| Clic primario sin modificadores | Sigue el `href` | Sí |
+| Clic central | Abre en segunda pestaña | No |
 
 ## Teclado
 
@@ -168,7 +231,7 @@ Spec `design/lab/theme-playground/tests/personalidad-menu.spec.mjs` sobre el `GM
 
 ## Accesibilidad
 
-- `role="menu"` con nombre por el disparador (o `label`); `li role="none"`; `menuitem`, `menuitemcheckbox` y `menuitemradio`; los grupos con título que los nombra; los submenús con `aria-haspopup`, `aria-expanded` y el nombre del padre.
+- `role="menu"` con nombre por el disparador (o `label`); `li role="none"`; `menuitem`, `menuitemcheckbox` y `menuitemradio`; los grupos con título que los nombra; los submenús con `aria-haspopup`, `aria-expanded` y el nombre del padre. **Los elementos-enlace son `<a role="menuitem" href>`**; el deshabilitado es `<a role="menuitem" aria-disabled="true">` sin `href`.
 - **El significado no depende solo del color:** casilla con `check`, opción con `circle`, peligroso con `triangle-alert` y negrita, deshabilitado tachado; todos iconos de Lucide decorativos.
 - Elementos de 36px (44px con puntero táctil); foco siempre visible.
 - **Marca de lo elegido** (DECISIONS #431 y #432): la casilla marcada de `menuitemcheckbox` y la opción marcada de `menuitemradio` conservan el relleno `primary` y la marca `on-primary`; su **contorno** pasa a `--g-color-primary-text`. Sin cambio visible con el tema por defecto; con una marca pálida aparece el filo que recorta la marca contra la superficie. Mínimo medido contra la superficie: **4.21:1** (medido por coco, [`design/lab/contraste-marcado/estilo.md`](../../../../../design/lab/contraste-marcado/estilo.md), tres motores) en el tema por defecto, lustre, spotify y uno con clave `primary` propia, claro y oscuro.
@@ -185,4 +248,4 @@ Solo lee `var(--g-*)`; **sin tokens nuevos** (la luz usa `--g-color-surface-sunk
 
 ## Fuentes
 
-API: [`GMenu.meta.json`](./GMenu.meta.json) · Contrato: [`design/contracts/menu.md`](../../../../../design/contracts/menu.md) · Prototipo: [`design/lab/menu/r01/`](../../../../../design/lab/menu/r01/) · Estilo: [`design/lab/menu/estilo.md`](../../../../../design/lab/menu/estilo.md) · Personalidad: [`design/lab/personalidad/r01/`](../../../../../design/lab/personalidad/r01/)
+API: [`GMenu.meta.json`](./GMenu.meta.json) · Contrato: [`design/contracts/menu.md`](../../../../../design/contracts/menu.md) · Prototipo r01: [`design/lab/menu/r01/`](../../../../../design/lab/menu/r01/) · Prototipo r02 (elementos-enlace): [`design/lab/menu/r02/`](../../../../../design/lab/menu/r02/) · Estilo: [`design/lab/menu/estilo.md`](../../../../../design/lab/menu/estilo.md) · Personalidad: [`design/lab/personalidad/r01/`](../../../../../design/lab/personalidad/r01/)

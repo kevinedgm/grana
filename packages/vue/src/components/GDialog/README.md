@@ -60,6 +60,9 @@ La profundidad viene de diferencias mínimas de fondo, bordes finos y sombras su
 | `closeOnBackdrop` | Boolean | | `true` |
 | `loading` | Boolean | | `false` |
 | `id` | String | | generado |
+| `from` | String \| HTMLElement | `id` o elemento del disparador | sin valor |
+| `steps` | Array\<String\> | historial de pasos (`v-model:steps`) | sin valor |
+| `labels` | Object | `{ back, trail }` (pasos) | `{}` |
 
 Un valor fuera de la lista muestra una advertencia en desarrollo. No hay `variant`: las composiciones salen de las props y los slots.
 
@@ -73,6 +76,8 @@ Un valor fuera de la lista muestra una advertencia en desarrollo. No hay `varian
 - **`role`:** `alertdialog` para una confirmación que exige decisión. Ver "Confirmaciones".
 - **`closeOnBackdrop`:** un clic en el fondo emite `dismiss` con `reason: 'backdrop'`. Debe empezar y terminar en el fondo: un arrastre que empieza dentro no cuenta, y un clic en el relleno de la carcasa tampoco.
 - **`loading`:** `aria-busy="true"` en la carcasa y una barra fina de acento sobre la inset. **No bloquea nada:** las acciones las controlas tú.
+- **`from` (#583):** el elemento que abrió el diálogo, como `id` de cadena o como elemento. Se resuelve al abrir. Con `from`: el foco vuelve a él al cerrar (si sigue conectado y es usable) y es el origen de la animación de entrada (D1) también en WebKit con un clic de ratón (cierra el límite conocido de WebKit para quien lo pasa). Sin `from`, el comportamiento actual: `document.activeElement` al abrir, si está fuera y no es `body`.
+- **`steps` y `labels`** (`back`, `trail`): ver §«GDialog con pasos».
 - **Resto de atributos** (`class`, `style`, `data-*`, `aria-*`, escuchas): van al `<dialog>`.
 
 ## Eventos
@@ -80,9 +85,11 @@ Un valor fuera de la lista muestra una advertencia en desarrollo. No hay `varian
 | Evento | Payload | Cuándo |
 | --- | --- | --- |
 | `update:modelValue` | `false` | El usuario intenta cerrar y nadie lo impidió; también ante un cierre nativo con el prop en `true` (por ejemplo un `<form method="dialog">`) |
-| `dismiss` | `{ reason, preventDefault() }` | El usuario intenta cerrar. `reason`: `escape`, `backdrop` o `close` (botón de cierre o `close()` del slot). **Cancelable** |
+| `dismiss` | `{ reason, depth, preventDefault() }` | El usuario intenta cerrar **el diálogo entero**. `reason`: `escape`, `backdrop` o `close`. **`depth`** (#582): número de pasos en el historial (1 sin pasos), para que la aplicación decida si confirma borradores. **Cancelable** |
 | `open` | | El diálogo ya se muestra |
 | `closed` | | El diálogo ya se cerró, por el motivo que sea |
+| `update:steps` | Array\<String\> | El historial de pasos cambia (§«GDialog con pasos») |
+| `step` | `{ from, to, direction, reason, result }` | Tras un cambio de paso, ya pintado y con el foco puesto. `direction`: `'forward'` o `'back'`; `reason`: `'push'` \| `'back'` \| `'escape'` \| `'trail'`. No cancelable |
 
 **`dismiss` es cancelable:** llama a `preventDefault()` de forma síncrona para mantenerlo abierto (por ejemplo, con cambios sin guardar). Esc funciona igual con y sin `preventDefault`, también en la segunda pulsación seguida.
 
@@ -99,14 +106,95 @@ Un cierre por cambio de `modelValue` desde fuera **no** emite `dismiss`; solo `c
 
 | Slot | Alcance | Contenido |
 | --- | --- | --- |
-| `default` | `{ close }` | Cuerpo |
-| `footer` | `{ close }` | Acciones. Solo se renderiza si el slot existe |
+| `default` | `{ close, push, back, backTo, steps }` | Cuerpo. Con pasos, aquí van los `GDialogStep` |
+| `footer` | `{ close, push, back, backTo, steps }` | Acciones. Solo se renderiza si el slot existe |
 | `title` | | Título con contenido rico (sustituye a `title`) |
 | `description` | | Descripción con contenido rico (sustituye a `description`) |
 | `header` | `{ titleId, descriptionId }` | Sustituye título y descripción por completo. Usa esos ids si quieres el nombre accesible; el botón de cierre se conserva |
 | `icon` | | Icono decorativo antes del título. Grana no trae iconos; el playground usa SVG de [Lucide](https://lucide.dev) |
 
 `close()` cierra por la vía `close`: emite `dismiss` (cancelable) y luego `update:modelValue`. Para cerrar sin `dismiss`, cambia `modelValue`. El **contenido se monta al abrir y se desmonta al cerrar**: un formulario no conserva su estado entre aperturas. No pongas botones ni enlaces dentro de `title` ni `description`.
+
+## GDialog con pasos (`GDialogStep`, #580–#591)
+
+Cuando un recorrido tiene varias etapas que devuelven un valor hacia abajo (p. ej. buscar un producto → revisar el detalle → registrar un ingreso), cada etapa es un **`GDialogStep`** dentro del mismo `GDialog`. Un solo modal, un solo fondo y un hilo de vuelta en el encabezado.
+
+> **Entrada separada.** `GDialogStep` y `useDialogSteps` están en el paquete principal (`@grana/vue`). El pliegue dentro de un paso (`GFormFold`) viene de la entrada propia [`@grana/vue/form-fold`](../GFormFold/README.md).
+
+```vue
+<!-- Fragmento: `abierto`, `pasos` y `boton` son de tu aplicación -->
+<g-dialog
+  v-model="abierto"
+  v-model:steps="pasos"
+  :from="boton"
+  close-label="Cerrar"
+  :labels="{ back: 'Volver a {name}', trail: 'Recorrido' }">
+
+  <g-dialog-step name="detalle" title="Ácido clorhídrico 37 %" description="Detalle de producto">
+    <template #default="{ push }">
+      <p>Existencias: 200 L</p>
+    </template>
+    <template #footer="{ push }">
+      <g-btn @click="push('ingreso')">Registrar ingreso</g-btn>
+    </template>
+  </g-dialog-step>
+
+  <g-dialog-step name="ingreso" title="Ingreso desde orden de compra" description="Entrará en Ácido clorhídrico 37 %">
+    <template #default="{ back }">
+      <!-- formulario del ingreso -->
+    </template>
+    <template #footer="{ back, close }">
+      <g-btn variant="outline" @click="back()">Cancelar</g-btn>
+      <g-btn @click="guardar(); close()">Guardar</g-btn>
+    </template>
+  </g-dialog-step>
+
+</g-dialog>
+```
+
+```js
+// Para acceder al historial y navegar desde el contenido de un paso
+import { useDialogSteps } from '@grana/vue'
+
+const { steps, push, back, backTo } = useDialogSteps()  // dentro del contenido del GDialog
+```
+
+### Props de `GDialogStep`
+
+| Prop | Tipo | Requerida | Descripción |
+| --- | --- | --- | --- |
+| `name` | String | Sí | Único entre los pasos del mismo `GDialog`. Es lo que lleva el historial |
+| `title` | String | Sí | Nombre del paso: `h2` del encabezado, nombre del panel y del hilo |
+| `description` | String | No | Propósito del paso (adónde va su resultado): descripción del diálogo mientras el paso es el actual |
+| `summary` | String | No | Lo que el paso espera o lleva (texto oculto accesible en el hilo, no visible) |
+
+### Navegación entre pasos
+
+El alcance del slot `default` y `footer` de `GDialog` y de `GDialogStep` trae:
+
+| Función | Efecto |
+| --- | --- |
+| `push(name, { from } = {})` | Avanza al paso `name`. `from` es el disparador (por defecto `document.activeElement`) |
+| `back({ focus, announce } = {})` | Retrocede un paso; con un solo paso en el historial, cierra el diálogo |
+| `backTo(name, { focus, announce } = {})` | Salta a un paso anterior del historial de un golpe |
+| `close({ focus, announce } = {})` | Cierra el diálogo completo |
+
+### `labels` para pasos
+
+| Clave | Para qué | Requerida si… |
+| --- | --- | --- |
+| `back` | Texto del botón «Volver a {name}» del encabezado; admite `String` o función `({ name, step }) => string` | Hay pasos |
+| `trail` | Nombre accesible del hilo de navegación (`<nav aria-label>`) | Hay pasos |
+
+### Cuándo usar pasos y cuándo no
+
+| Situación | Solución correcta |
+| --- | --- |
+| Otra tarea independiente que no devuelve un valor | Dos `GDialog` apilados |
+| Crear lo que falta en un campo sin salir del formulario | `GFormFold` ([`@grana/vue/form-fold`](../GFormFold/README.md)) |
+| Etapas de un recorrido que devuelven valor hacia abajo | `GDialogStep` dentro del mismo `GDialog` |
+
+**Sin verificar:** lector de pantalla real (cambio del nombre del `<dialog>` por paso, `role="group"` al recibir el foco).
 
 ## Composiciones
 
