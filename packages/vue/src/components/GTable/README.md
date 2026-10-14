@@ -72,6 +72,110 @@ Si alguna columna declara `filter`, la tabla muestra una [`GFilterBar`](../GFilt
 
 La tabla mide **su contenedor**, no la ventana. Si es más estrecho que la suma de los mínimos de las columnas (más la selección y las acciones) × `space`, cada fila se dibuja como **tarjeta**: la columna principal encabeza la tarjeta (casilla a la izquierda, acciones a la derecha) y el resto son líneas «etiqueta: valor». «Seleccionar todo» y «Ordenar por» pasan a una barra superior. Es el **mismo `<table>`**, con roles explícitos: el lector de pantalla oye una tabla en los dos modos. Fuerza un modo con `responsive="table"` o `"cards"`.
 
+## Puerta de la fila
+
+Con `rowHref` o `activatable`, la columna principal lleva una **puerta**: un elemento que abre la fila o navega a su detalle.
+
+### `rowHref` · puerta-enlace
+
+`rowHref` es una función `(row) => href`. La puerta es un `<a>` con ese `href`; el evento `navigate` se emite en el clic primario (sin modificadores, sin `defaultPrevented`). Para navegar con el router, llama a `event.preventDefault()` y usa `href` del payload:
+
+```vue
+<!-- Fragmento: `filas`, `columns` y `router` son de tu aplicación -->
+<g-table :columns="columns" :rows="filas" caption="Pedidos"
+         :row-href="(row) => `/pedidos/${row.id}`"
+         @navigate="({ href, event }) => { event.preventDefault(); router.push(href) }" />
+```
+
+El rastro (`v-model:lastOpened`): al pulsar, la tabla marca la fila con `is-last-opened` y la ilumina (`is-here`) cuando el foco vuelve a su puerta desde fuera (al volver desde el detalle). Úsalo para que el usuario sepa dónde estaba.
+
+### `activatable` · puerta-botón
+
+Sin `href`, pon `activatable`. La puerta es un `<button>` que emite `activate`. No se combina con el slot `detail` (la tabla avisa en desarrollo).
+
+```vue
+<g-table :columns="columns" :rows="filas" caption="Alertas" activatable
+         @activate="({ row }) => abrirDetalle(row)" />
+```
+
+### Rastro (`lastOpened`)
+
+Ambos modos emiten `update:lastOpened` con la clave de la fila abierta, también si la aplicación cancela la navegación en `navigate`. Vincula con `v-model:last-opened` para que la marca permanezca entre cargas:
+
+```vue
+<g-table :columns="columns" :rows="filas" :row-href="(r) => `/p/${r.id}`"
+         v-model:last-opened="ultimaAbierta" @navigate="navegar" />
+```
+
+## Despliegue
+
+Con el slot `detail`, cada fila puede abrir una **ficha** desplegada debajo sin dejar la tabla. La puerta es el chevron en la columna principal; `rowHref` solo alimenta el `href` del alcance (no genera navegación).
+
+```vue
+<!-- Fragmento: `filas`, `columns` y `detalle` son de tu aplicación -->
+<g-table :columns="columns" :rows="filas" caption="Pedidos"
+         v-model:expanded="desplegadas">
+  <template #detail="{ row, close }">
+    <div>
+      <p>{{ detalle(row) }}</p>
+      <g-btn size="sm" @click="close()">Cerrar</g-btn>
+    </div>
+  </template>
+</g-table>
+```
+
+El alcance del slot `detail` es `{ row, key, href, close }`:
+
+| Campo | Para qué |
+| --- | --- |
+| `row` | La fila |
+| `key` | La clave de la fila |
+| `href` | `rowHref(row)` si se pasó, o `null` |
+| `close()` | Pliega la ficha y devuelve el foco a la puerta |
+
+`v-model:expanded` es el arreglo de claves desplegadas; se sincroniza automáticamente al cambiar las filas.
+
+**Teclado:** la puerta es un `<button>` con `aria-expanded`; Esc desde dentro pliega y devuelve el foco.
+
+## Estado de fila
+
+`rowStatus` es una función `(row) => { status, text, key? } | null`. La fila lleva `data-status` y muestra un lomo de color en su borde inicial; en la columna `key` (o junto al título si se omite), un [`GBadge`](../GBadge/README.md) `soft sm` con `text`. Describe la puerta si la hay.
+
+```js
+const estadoDe = (row) => {
+  if (row.vencido) return { status: 'error',   text: 'Vencido',  key: 'estado' }
+  if (row.alerta)  return { status: 'warning',  text: 'Alerta',   key: 'estado' }
+  return null
+}
+```
+
+```vue
+<g-table :columns="columns" :rows="filas" caption="Pedidos" :row-status="estadoDe" />
+```
+
+Valores de `status`: `info` · `success` · `warning` · `error`.
+
+## Filas por página
+
+Con `pageSizes` (arreglo de enteros, p. ej. `[10, 25, 50]`), el pie de la paginación muestra un selector «Filas por página». La tabla necesita `labels.pagination.pageSize` y `labels.range`. Al cambiar, se emite `update:pageSize` antes de `update:page` (ambos en el mismo manejador):
+
+```vue
+<script setup>
+const pagina = ref(1), tamano = ref(25)
+const alCambiarTamano = (n) => { tamano.value = n; pagina.value = 1 }
+</script>
+
+<template>
+  <g-table :columns="columns" :rows="filas" caption="Pedidos"
+           :page-sizes="[10, 25, 50]" :page-size="tamano"
+           v-model:page="pagina"
+           @update:page-size="alCambiarTamano"
+           :labels="{ pagination: { pageSize: 'Filas por página', range: '{from}–{to} de {total}' } }" />
+</template>
+```
+
+El pie se acopla al borde inferior del contenedor visible cuando el pie de paginación queda pegajoso (`is-stuck`); con `v-model:page-size` el anclaje sujeta la fila que era primera a la vista.
+
 ## Props
 
 | Prop | Tipo | Valores | Por defecto |
@@ -85,7 +189,12 @@ La tabla mide **su contenedor**, no la ventana. Si es más estrecho que la suma 
 | `selected` (`v-model:selected`) | Array | claves | `[]` |
 | `filters` (`v-model:filters`) | Array | `{ key, op, value }` | `[]` |
 | `filterMode` | String | `local` `external` | `local` |
-| `page` (`v-model:page`), `pageSize`, `total` | Number | | `1`, sin paginar, sin valor |
+| `page` (`v-model:page`), `pageSize`, `pageSizes`, `total` | Number, Number, Array, Number | `pageSizes`: arreglo de enteros (ver «Filas por página»); sin `pageSize`, el menor de la lista | `1`, sin paginar, `[]`, sin valor |
+| `rowHref` | Function | `(row) => href`: puerta-enlace en la columna principal (ver «Puerta de la fila») | `null` |
+| `activatable` | Boolean | puerta-botón (ver «Puerta de la fila»); se ignora con el slot `detail` | `false` |
+| `lastOpened` (`v-model:lastOpened`) | String, Number | clave de la última fila abierta (rastro) | `null` |
+| `expanded` (`v-model:expanded`) | Array | claves de las fichas desplegadas con el slot `detail` | `[]` |
+| `rowStatus` | Function | `(row) => { status, text, key? } \| null`: estado de la fila (ver «Estado de fila») | `null` |
 | `responsive` | String | `auto` `table` `cards` | `auto` |
 | `appearance` | String | `lines` `surface` | `lines` |
 | `density` | String | `default` `comfortable` `compact` | `default` |
@@ -230,6 +339,11 @@ Pon `loading` en `true` **de forma síncrona** en el manejador de `update:sort`,
 | `update:selected` | claves |
 | `update:filters` | filtros |
 | `update:page` | número |
+| `update:pageSize` | número (se emite antes que `update:page` en el mismo manejador) |
+| `navigate` | `{ row, key, href, event }` — clic primario sin modificadores en la puerta-enlace; llama a `event.preventDefault()` para navegar con el router |
+| `activate` | `{ row, key, event }` — activa la puerta-botón (`activatable`) |
+| `update:lastOpened` | clave — tras `navigate` o `activate`, también si la aplicación cancela la navegación |
+| `update:expanded` | arreglo de claves |
 | `retry` | — (pulsa «Reintentar» del fallo, barra o vacío de error por defecto) |
 
 | Slot | Alcance | Para qué |
@@ -237,6 +351,7 @@ Pon `loading` en `true` **de forma síncrona** en el manejador de `update:sort`,
 | `cell-{key}` | `{ row, value, column }` | Celdas ricas: [`GBadge`](../GBadge/README.md), [`GProgress`](../GProgress/README.md), [`GMetric`](../GMetric/README.md)… |
 | `leading-{key}` | `{ row }` | Avatar o icono de una compuesta (decorativo) |
 | `row-actions` | `{ row }` | Acciones de la fila (por ejemplo [`GMenu`](../GMenu/README.md)) |
+| `detail` | `{ row, key, href, close }` | Ficha desplegada debajo de la fila (ver «Despliegue»); su presencia activa el modo despliegue |
 | `empty` | `{ filtered, clear }` | Estado vacío propio; sin él, `GEmpty` por defecto. **Ya no sirve de respaldo del error** |
 | `error` | `{ retry }` | Fallo sin filas que enseñar; sin él, `GEmpty cause="error"` con `labels.failed` y «Reintentar» |
 | `toolbar` | | Acciones extra en la barra |
@@ -247,7 +362,7 @@ Pon `loading` en `true` **de forma síncrona** en el manejador de `update:sort`,
 - **Orden:** `aria-sort` en el encabezado; el foco se queda en el botón; se anuncia («Ordenado por Total, descendente»).
 - **Selección:** casilla con nombre por fila; «todo» con estado mixto.
 - **Estados:** `aria-busy` al cargar y anuncio de la carga y del recuento al terminar (ver [Carga, error y vacío](#carga-error-y-vacío)); vacío real y vacío por filtros (con «Limpiar filtros») con `GEmpty`; fallo con barra o vacío de error; recuento anunciado al filtrar. El `<table>` lleva `tabindex="-1"` para recoger el foco durante una carga.
-- **Contraste medido:** texto ≥ 6.2:1 y bordes de control ≥ 3.45:1 en claro, tema de prueba y oscuro. Con `pointer: coarse`, controles de 44px.
+- **Contraste medido:** texto ≥ 6.2:1 y bordes de control ≥ 3.45:1 en claro, tema de prueba y oscuro. Con `pointer: coarse`, controles de 44px. Puerta, despliegue y estado de fila medidos en 22 configuraciones (Chromium) y 4 (Firefox y WebKit): anillo de foco ≥ 4.52:1, lomo ≥ 4.88:1, etiqueta de estado ≥ 4.52:1 (ver [`auditoria-rows.md`](../../../../../design/lab/table/auditoria-rows.md), 717/717).
 - **Selección** (DECISIONS #431 y #432): la casilla nativa de fila y la de «todo» usan `accent-color: --g-color-primary-text`, y la tarjeta seleccionada pinta su borde en `--g-color-primary-text`. Sin cambio visible con el tema por defecto. Medido contra la superficie (medido por coco, [`design/lab/contraste-marcado/estilo.md`](../../../../../design/lab/contraste-marcado/estilo.md), tres motores) en el tema por defecto, lustre, spotify y uno con clave `primary` propia, claro y oscuro: casilla **4.07:1 o más** (también sobre la fila `primary-soft`) y borde de tarjeta **4.21:1 o más**.
 
 ## Tema
@@ -257,10 +372,10 @@ Sin tokens propios: encabezado en `--g-color-text-muted`, separadores `--g-color
 ## Limitaciones conocidas
 
 - **Esqueleto frente a fila compuesta:** con celdas compuestas con avatar, el esqueleto mide **44 px frente a 60 de la fila** (tema de la auditoría, `space` 3 y letra de 18 px): la tabla encoge durante la carga y vuelve a crecer; en la tabla simple, 44 = 44. Lo cerraría un molde de `GTable` desde una muestra de filas, reservado (DECISIONS #543 y #558).
-- **Reservado:** B completo en la tabla (`refresh` `keep`/`replace`: filas que siguen a la vista tras el retraso, filo y marcas de lo nuevo) y la salida con cuentas por filtro calculada por la tabla en `filterMode: 'local'`.
+- **Reservado:** B completo en la tabla (`refresh` `keep`/`replace`: filas que siguen a la vista tras el retraso, filo y marcas de lo nuevo) y la salida con cuentas por filtro calculada por la tabla en `filterMode: 'local'`; `activatable` en tarjetas (banco `?c=act` pendiente, H2 de la auditoría de filas).
 - Sin selección de todas las páginas, columnas fijas, desplazamiento horizontal, virtualización, edición en celda, ni redimensionar o reordenar columnas.
-- **Sin verificar:** lector de pantalla real (sobre todo en tarjetas), Firefox y Safari, zoom al 200% y táctil real. En concreto para la carga: VoiceOver y NVDA con `aria-busy` en el `<table>` y la región viva hermana (si anuncian `labels.loading`, `labels.slow`, el recuento final o el fallo, y en qué orden frente a un `sorted`), y el foco que vuelve por `rowKey`. La auditoría de la carga (coco, `design/lab/empty-skeleton/auditoria.md`) midió la tabla en los tres motores con el componente real; los specs `table-load.spec.mjs` pasan en Chromium (ejecutados al documentar, 45 de 45 junto a los de `GEmpty` y `GLoadRegion`); `GTable.test.js` 57 de 57 en jsdom.
+- **Sin verificar:** lector de pantalla real (sobre todo en tarjetas), Firefox y Safari, zoom al 200% y táctil real. En concreto para la carga: VoiceOver y NVDA con `aria-busy` en el `<table>` y la región viva hermana (si anuncian `labels.loading`, `labels.slow`, el recuento final o el fallo, y en qué orden frente a un `sorted`), y el foco que vuelve por `rowKey`. La auditoría de la carga (coco, `design/lab/empty-skeleton/auditoria.md`) midió la tabla en los tres motores con el componente real; los specs `table-load.spec.mjs` pasan en Chromium (ejecutados al documentar, 45 de 45 junto a los de `GEmpty` y `GLoadRegion`); `GTable.test.js` 112 de 112 en jsdom.
 
 ## Fuentes
 
-- API: [`GTable.meta.json`](./GTable.meta.json) · Contrato: [`design/contracts/table.md`](../../../../../design/contracts/table.md) · Prototipos: [`r01`](../../../../../design/lab/table/r01/), [`r02`](../../../../../design/lab/table/r02/) · Estilo: [`estilo.md`](../../../../../design/lab/table/estilo.md) · Auditoría: [`auditoria.md`](../../../../../design/lab/table/auditoria.md) · Carga, vacío y error (DECISIONS #540, #548, #555 y #558; contrato `table.md` «Carga, vacío y error con el motor común»): [`GEmpty`](../GEmpty/README.md), [`GLoadRegion`](../GLoadRegion/README.md), [`auditoria de la carga`](../../../../../design/lab/empty-skeleton/auditoria.md)
+- API: [`GTable.meta.json`](./GTable.meta.json) · Contrato: [`design/contracts/table.md`](../../../../../design/contracts/table.md) · Prototipos: [`r01`](../../../../../design/lab/table/r01/), [`r02`](../../../../../design/lab/table/r02/) · Estilo: [`estilo.md`](../../../../../design/lab/table/estilo.md) · Auditoría (tabla base): [`auditoria.md`](../../../../../design/lab/table/auditoria.md) · Auditoría (filas por página, puerta, despliegue y estado de fila, #592–#602): [`auditoria-rows.md`](../../../../../design/lab/table/auditoria-rows.md) · Carga, vacío y error (DECISIONS #540, #548, #555 y #558; contrato `table.md` «Carga, vacío y error con el motor común»): [`GEmpty`](../GEmpty/README.md), [`GLoadRegion`](../GLoadRegion/README.md), [`auditoria de la carga`](../../../../../design/lab/empty-skeleton/auditoria.md)
