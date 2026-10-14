@@ -94,7 +94,7 @@ Con el slot `trigger` no se renderizan `label`, `hint`, `error`, `name` ni `spli
 | `variant`, `size`, `density`, `rounded`, `block` | | como `GSelect` (solo el **campo**) | `outline`, `md`, `default` |
 | `disabled`, `readonly` | Boolean | | `false` |
 | `label`, `hint`, `error`, `placeholder`, `required`, `name`, `id` | | como `GSelect` (campo) | sin valor |
-| `warning`, `valid` | String | como `GInput`: mensaje único bajo el campo (`error` › `warning` › `valid`); la advertencia no bloquea ni pone `aria-invalid` | sin valor |
+| `warning`, `valid` | String | como `GInput`: mensaje único bajo el campo (`error` → `warning` → `valid`); la advertencia no bloquea ni pone `aria-invalid` | sin valor |
 | `mark` | Boolean | `false` quita la marca de la convención de `GForm` | sin valor |
 | `output` | String | valor que calcula la aplicación: `<output>` tras la fecha, dentro de la caja; solo en modo campo (no `inline`, no `split`); no se envía | sin valor |
 | `split`, `labelStart`, `labelEnd`, `placeholderStart`, `placeholderEnd` | | Desde / Hasta | |

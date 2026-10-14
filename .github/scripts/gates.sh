@@ -106,7 +106,7 @@ must_not_have load-region.js "g-empty__" "GEmpty quedó copiado en load-region.j
 must_have grana.css "g-form-fold__body" "$CSS_MSG"
 must_have grana.css "data-g-landed" "$CSS_MSG"
 must_have grana.js "GDialogStep" "GDialogStep no está en el paquete principal grana.js (#590: el modo pasos va con GDialog)"
-must_not_have grana.js "GFormFold\"" "GFormFold viajó en el paquete principal grana.js; debe vivir solo en su entrada propia form-fold.js"
+must_not_have grana.js "g-form-fold__" "GFormFold (sus clases BEM __*) viajó en el paquete principal grana.js; debe vivir solo en su entrada propia form-fold.js"
 must_exist "form-fold.js" "No se generó la entrada propia form-fold.js (revisar vite.form-fold.config.js y el script build de packages/vue)"
 must_not_have form-fold.js "Symbol(\"GForm\")" "formContext.js quedó copiado en form-fold.js; sus claves deben llegar por __shared"
 

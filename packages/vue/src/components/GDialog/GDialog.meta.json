@@ -101,6 +101,21 @@
       "name": "id",
       "type": "String",
       "default": null
+    },
+    {
+      "name": "from",
+      "type": "String|HTMLElement",
+      "default": null
+    },
+    {
+      "name": "steps",
+      "type": "Array",
+      "default": null
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": "{}"
     }
   ],
   "events": [
@@ -123,6 +138,14 @@
       "name": "closed",
       "payload": "",
       "trigger": "El diálogo ya se cerró, por el motivo que sea"
+    },
+    {
+      "name": "step",
+      "description": "El diálogo avanza o retrocede de paso; payload: {index, total}"
+    },
+    {
+      "name": "update:steps",
+      "description": "Actualización del array de pasos desde el interior del diálogo"
     }
   ],
   "slots": [

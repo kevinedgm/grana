@@ -64,7 +64,7 @@ Los atributos nativos (`aria-*`, `data-*`, escuchas como `@focus`) van al **bot�
 | `label` | String | | sin valor |
 | `hint` | String | | sin valor |
 | `error` | String | | sin valor |
-| `warning` | String | Advertencia: no bloquea ni pone `aria-invalid`; el mensaje con prioridad `error` › `warning` › `valid` | sin valor |
+| `warning` | String | Advertencia: no bloquea ni pone `aria-invalid`; el mensaje con prioridad `error` → `warning` → `valid` | sin valor |
 | `valid` | String | mensaje de válido útil (mismo mensaje único, última prioridad) | sin valor |
 | `mark` | Boolean | `false` quita la marca de la convención de `GForm` («(opcional)» o asterisco) | sin valor (la marca la decide `GForm`) |
 | `required` | Boolean | | `false` |

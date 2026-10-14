@@ -44,7 +44,7 @@ Un interruptor **aplica el cambio al instante** (un ajuste, una función). Si la
 | `label` | String | | sin valor |
 | `hint` | String | | sin valor |
 | `error` | String | | sin valor |
-| `warning` | String | Advertencia: no bloquea ni pone `aria-invalid`; el mensaje con prioridad `error` › `warning` › `valid` | sin valor |
+| `warning` | String | Advertencia: no bloquea ni pone `aria-invalid`; el mensaje con prioridad `error` → `warning` → `valid` | sin valor |
 | `valid` | String | mensaje de válido útil (mismo mensaje único, última prioridad) | sin valor |
 | `id` | String | | generado |
 
