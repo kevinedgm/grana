@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GCardGroup",
   "tag": "g-card-group",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Fila de tarjetas de métrica que filtran la región de debajo (casi siempre una GTable). Coordina las GCard hijas: exclusividad (o varias con multiple), una sola parada de Tab (role=\"toolbar\", foco itinerante) y la cifra en la descripción del botón. Siempre se puede soltar. Con el slot panel, A «Lengüeta»: las tarjetas se apoyan en el marco de la región y un puente une la pulsada al marco.",
   "contract": "design/contracts/card-group.md",
@@ -124,7 +124,6 @@
     "G9 controls con un id que no existe tras montar"
   ],
   "pending": [
-    "Auditoría de coco (GCardGroup.css y tema distinto al de defecto)",
     "README (mora-docs)",
     "Lector de pantalla real (VoiceOver, NVDA, TalkBack)"
   ]
