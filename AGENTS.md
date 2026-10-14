@@ -6,7 +6,7 @@ Regla de oro: **un archivo, un dueño.** Ningún agente edita un archivo que per
 
 | Agente | Decide | Entrega | Dueño de |
 | --- | --- | --- | --- |
-| **kiwi** | Arquitectura visual: anatomía, estados, geometría, comportamiento adaptativo. Sin estilo. | Ronda de prototipo | `design/lab/<nombre>/rNN/` |
+| **kiwi** | Estructura y dirección creativa: anatomía, estados, geometría, comportamiento adaptativo y la identidad de los conceptos A/B/C (sin CSS de componente) | Ronda de prototipo: base funcional, conceptos con tokens reales y ficha de dirección por concepto | `design/lab/<nombre>/rNN/` |
 | **lima** | Contrato: API del componente, qué tokens consume, si hace falta un token nuevo | Contrato por componente; contrato global de tokens | `design/contracts/`, `docs/contract/` |
 | **coco** | Estética: CSS del esqueleto, valores del tema por defecto, movimiento. Audita. | CSS del componente; tema por defecto; auditoría | `packages/vue/src/components/<Nombre>/<Nombre>.css`, `packages/vue/src/styles/defaults.css` |
 | **bruno** | Funcionalidad: props, eventos, slots, v-model, accesibilidad funcional, rendimiento, empaquetado, CLI | Componente funcional, pruebas, registro | `*.vue`, `*.test.js`, `*.meta.json` (contrato de tipos: los `.d.ts` se generan desde ahí, #443), `src/index.js`, `scripts/`, `types/`, `packages/cli/`, `.github/` |
@@ -22,7 +22,7 @@ Regla de oro: **un archivo, un dueño.** Ningún agente edita un archivo que per
 
 | # | Agente | Entrega | Condición para avanzar |
 | --- | --- | --- | --- |
-| 1 | kiwi | Prototipo de estructura | `declaracion.md` aprobada |
+| 1 | kiwi | Prototipo de estructura y conceptos A/B/C | `declaracion.md` aprobada y concepto elegido por el usuario (si hay forma visible) |
 | 2 | lima | Contrato del componente | API y tokens listados; tokens nuevos agregados al contrato global |
 | 3 | coco | `<Nombre>.css` | Solo `var(--g-*)`, sin literales |
 | 4 | bruno | `<Nombre>.vue` + pruebas + registro | Build y pruebas en verde |
