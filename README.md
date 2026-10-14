@@ -309,6 +309,7 @@ Todos están en **`candidate`**: ver [Estado](#estado-010-beta). «Propia» indi
 | --- | --- | --- |
 | [`GTable`](packages/vue/src/components/GTable/README.md) | Tabla con columnas compuestas, celdas por slot y filtros | principal |
 | [`GFilterBar`](packages/vue/src/components/GFilterBar/README.md) | Filtros no fijos al estilo Stripe | principal |
+| [`GCardGroup`](packages/vue/src/components/GCardGroup/README.md) | Fila de tarjetas de métrica que filtran la región de debajo: pulsar una tarjeta filtra, pulsarla otra vez quita el filtro; la pulsada y el chip de la barra son la misma verdad | **propia** (`card-group`) |
 | [`GDataList`](packages/vue/src/components/GDataList/README.md) | Lista compacta de pares etiqueta-valor | principal |
 | [`GCalendar`](packages/vue/src/components/GCalendar/README.md) | Calendario y planificador de recursos: Día, Semana, Mes y Timeline | principal |
 | [`GMetric`](packages/vue/src/components/GMetric/README.md), [`GProgress`](packages/vue/src/components/GProgress/README.md) | Valor con tendencia y barra de progreso | principal |
