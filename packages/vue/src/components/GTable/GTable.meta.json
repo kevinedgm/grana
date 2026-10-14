@@ -76,7 +76,14 @@
     {
       "name": "pageSize",
       "type": "Number",
-      "default": null
+      "default": null,
+      "note": "v-model:pageSize. Con pageSizes y sin pageSize, el menor de la lista (#592)"
+    },
+    {
+      "name": "pageSizes",
+      "type": "Array",
+      "default": null,
+      "note": "Tamaños del selector «Filas por página» del pie (enteros ≥ 1, ordenados y sin repetir). El pie se acopla al borde inferior y el cambio de tamaño sujeta la fila ancla (#592 a #596); necesita labels.pagination.pageSize y labels.range"
     },
     {
       "name": "total",
@@ -142,6 +149,36 @@
       "note": "false: el fallo lo anuncia otro (la isla de estado); la región no anuncia nada al terminar"
     },
     {
+      "name": "rowHref",
+      "type": "Function",
+      "default": null,
+      "note": "(row) => href: la puerta de la fila es un <a href> en el título (A, #598). navigate solo con clic primario sin modificadores ni defaultPrevented (#505, #574). Con el slot detail, solo alimenta href del alcance"
+    },
+    {
+      "name": "activatable",
+      "type": "Boolean",
+      "default": false,
+      "note": "Sin href, la puerta es un <button> que emite activate (#597). Se ignora con el slot detail (aviso)"
+    },
+    {
+      "name": "lastOpened",
+      "type": "String | Number",
+      "default": null,
+      "note": "v-model:lastOpened. El rastro: la fila lleva is-last-opened y se ilumina (is-here) al montar a la vista o cuando el foco vuelve a su puerta desde fuera (#598)"
+    },
+    {
+      "name": "expanded",
+      "type": "Array",
+      "default": [],
+      "note": "v-model:expanded (claves) de las fichas desplegadas con el slot detail; se depura al cambiar las filas con un solo update:expanded (#599)"
+    },
+    {
+      "name": "rowStatus",
+      "type": "Function",
+      "default": null,
+      "note": "(row) => { status: 'info'|'success'|'warning'|'error', text, key? } | null: data-status en la fila, lomo y etiqueta GBadge junto al título o en la celda de key; describe la puerta (#600). Sustituye a rowClass"
+    },
+    {
       "name": "labels",
       "type": "Object",
       "default": {},
@@ -170,6 +207,31 @@
       "trigger": "Cambia de página (o vuelve a 1 al filtrar)"
     },
     {
+      "name": "update:pageSize",
+      "payload": "número",
+      "trigger": "Elige un tamaño en el pie; se emite antes de update:page, en el mismo manejador (#592)"
+    },
+    {
+      "name": "navigate",
+      "payload": "{ row, key, href, event }",
+      "trigger": "Clic primario sin modificadores (o Intro) en la puerta-enlace; preventDefault en el evento para navegar con el router (#598)"
+    },
+    {
+      "name": "activate",
+      "payload": "{ row, key, event }",
+      "trigger": "Activa la puerta-botón (activatable sin href, #597)"
+    },
+    {
+      "name": "update:lastOpened",
+      "payload": "clave",
+      "trigger": "Tras navigate o activate, también si la aplicación cancela la navegación (#598)"
+    },
+    {
+      "name": "update:expanded",
+      "payload": "claves",
+      "trigger": "Se despliega o pliega una ficha, o se depuran claves que ya no están a la vista (#599)"
+    },
+    {
       "name": "retry",
       "payload": "—",
       "trigger": "Pulsa «Reintentar» del fallo (barra o vacío de error por defecto; #540)"
@@ -187,6 +249,10 @@
     {
       "name": "row-actions",
       "purpose": "Acciones de la fila. Alcance: { row }"
+    },
+    {
+      "name": "detail",
+      "purpose": "Ficha desplegada debajo de la fila (B, #599); su presencia activa el despliegue. Alcance: { row, key, href, close } (href = rowHref(row) o null; close() pliega y devuelve el foco a la puerta)"
     },
     {
       "name": "empty",
@@ -210,9 +276,9 @@
     "--g-color-border-strong",
     "--g-color-border-control",
     "--g-color-focus",
-    "--g-color-primary",
+    "--g-color-primary-text",
     "--g-color-primary-soft",
-    "--g-radius-{xs|sm|lg|pill}",
+    "--g-radius-{xs|sm|md|lg|pill}",
     "--g-space-1..4",
     "--g-font-ui",
     "--g-text-{caption|body-sm|body}-{size|line}",
@@ -225,7 +291,12 @@
     "--g-color-mold",
     "--g-color-danger-soft",
     "--g-color-on-danger-soft",
-    "--g-radius-md"
+    "--g-color-accent-soft",
+    "--g-color-{danger|warning|info|success}-text",
+    "--g-color-{danger|warning|info|success}-soft (por GBadge)",
+    "--g-duration-slow",
+    "--g-ease-out",
+    "--g-ease-spring"
   ],
   "states": [
     "table",
@@ -243,7 +314,17 @@
     "pending",
     "slow",
     "failed",
-    "error-empty"
+    "error-empty",
+    "page-size",
+    "docked",
+    "door",
+    "door-button",
+    "last-opened",
+    "here",
+    "new",
+    "expanded",
+    "row-status",
+    "status-cause"
   ],
   "labels": [
     "selectAll",
@@ -261,8 +342,10 @@
     "clearFilters",
     "results",
     "slow",
+    "range",
     "failed",
     "retry",
+    "detail",
     "filters",
     "pagination"
   ],
@@ -270,7 +353,10 @@
     "Lector de pantalla real",
     "Firefox y Safari",
     "Táctil real y zoom al 200%",
-    "Selección de todas las páginas, columnas fijas, virtualización, edición en celda (fuera de v0.1)"
+    "Selección de todas las páginas, columnas fijas, virtualización, edición en celda (fuera de v0.1)",
+    "Anuncio del rango frente al valor del selector y aria-describedby de la puerta en modo exploración: lector real (#596, #600)",
+    "Ctrl+F no encuentra el contenido de una ficha plegada (no cabe hidden=\"until-found\" en un <tr>)",
+    "Reservado C · Lente: v-model:current, labels.current, rowClick, rowAttrs (#601)"
   ],
   "composes": [
     "GFilterBar",
@@ -278,7 +364,11 @@
     "GEmpty (vacío y error por defecto, #540)",
     "GBtn (sm: «Limpiar filtros», «Reintentar» soft neutral)",
     "GIcon interno (circle-alert de la barra de fallo)",
-    "utils/loadPhase.js (motor común de carga)"
+    "utils/loadPhase.js (motor común de carga)",
+    "GBadge (etiqueta de rowStatus, soft sm)",
+    "GIcon interno (arrow-right, chevron-right, circle-alert, triangle-alert, info, circle-check)",
+    "Plegado grid-template-rows 0fr → 1fr de utils/collapse.js en CSS (la ficha de B)",
+    "utils/tablePager.js (contexto del pie: fila ancla, acoplado, announcesRange)"
   ],
   "load": "Motor común (#540): DELAY 200 ms, MINIMUM 400 ms, SLOW 5 s (utils/loadPhase.js). La tabla pinta su copia de rows hasta la llegada. Clases is-pending, is-slow, is-failed; tbody inert mientras carga; <table tabindex=\"-1\">; foco del tbody (o de la barra de fallo) al <table> al empezar y de vuelta por rowKey e índice al llegar; nunca body. Sin pulso (#539)."
 }
