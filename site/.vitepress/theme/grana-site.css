@@ -1,0 +1,233 @@
+/* El sitio se viste con Grana: las variables del tema de VitePress leen los tokens --g-* del tema
+   por defecto (claro y oscuro: data-theme se sincroniza con la apariencia de VitePress).
+   Sin capa, como el tema de una aplicación: gana a VitePress (capa `vitepress`) y no toca los
+   componentes de Grana (sus tokens siguen en grana.defaults). */
+
+:root,
+.dark {
+  --vp-font-family-base: var(--g-font-ui);
+
+  --vp-c-bg: var(--g-color-bg);
+  --vp-c-bg-alt: var(--g-color-surface-sunken);
+  --vp-c-bg-elv: var(--g-color-surface);
+  --vp-c-bg-soft: var(--g-color-surface-sunken);
+
+  --vp-c-text-1: var(--g-color-text);
+  --vp-c-text-2: var(--g-color-text-muted);
+  --vp-c-text-3: var(--g-color-text-subtle);
+
+  --vp-c-border: var(--g-color-border-strong);
+  --vp-c-divider: var(--g-color-border);
+  --vp-c-gutter: var(--g-color-border);
+
+  --vp-c-brand-1: var(--g-color-accent-text);
+  --vp-c-brand-2: var(--g-color-accent-strong);
+  --vp-c-brand-3: var(--g-color-accent);
+  --vp-c-brand-soft: var(--g-color-accent-soft);
+
+  --vp-c-default-1: var(--g-color-text-muted);
+  --vp-c-default-2: var(--g-color-border-strong);
+  --vp-c-default-3: var(--g-color-border-strong);
+  --vp-c-default-soft: var(--g-color-neutral-soft);
+
+  --vp-c-tip-1: var(--g-color-accent-text);
+  --vp-c-tip-2: var(--g-color-accent-strong);
+  --vp-c-tip-3: var(--g-color-accent);
+  --vp-c-tip-soft: var(--g-color-accent-soft);
+  --vp-c-note-1: var(--g-color-info-text);
+  --vp-c-note-soft: var(--g-color-info-soft);
+  --vp-c-success-1: var(--g-color-success-text);
+  --vp-c-success-soft: var(--g-color-success-soft);
+  --vp-c-warning-1: var(--g-color-warning-text);
+  --vp-c-warning-2: var(--g-color-warning-strong);
+  --vp-c-warning-3: var(--g-color-warning);
+  --vp-c-warning-soft: var(--g-color-warning-soft);
+  --vp-c-danger-1: var(--g-color-danger-text);
+  --vp-c-danger-2: var(--g-color-danger-strong);
+  --vp-c-danger-3: var(--g-color-danger);
+  --vp-c-danger-soft: var(--g-color-danger-soft);
+  --vp-c-important-1: var(--g-color-accent-text);
+  --vp-c-important-soft: var(--g-color-accent-soft);
+  --vp-c-caution-1: var(--g-color-danger-text);
+  --vp-c-caution-soft: var(--g-color-danger-soft);
+
+  --vp-custom-block-warning-text: var(--g-color-on-warning-soft);
+  --vp-custom-block-danger-text: var(--g-color-on-danger-soft);
+  --vp-custom-block-tip-text: var(--g-color-on-accent-soft);
+  --vp-custom-block-info-text: var(--g-color-text);
+
+  --vp-code-color: var(--g-color-text);
+  --vp-code-bg: var(--g-color-neutral-soft);
+  --vp-code-block-bg: var(--g-color-surface-sunken);
+  --vp-code-link-color: var(--g-color-accent-text);
+  --vp-code-lang-color: var(--g-color-text-subtle);
+  --vp-code-copy-code-bg: var(--g-color-surface);
+
+  --vp-button-brand-bg: var(--g-color-brand);
+  --vp-button-brand-text: var(--g-color-on-brand);
+  --vp-button-brand-border: transparent;
+  --vp-button-brand-hover-bg: var(--g-color-brand-strong);
+  --vp-button-brand-hover-text: var(--g-color-on-brand);
+  --vp-button-brand-hover-border: transparent;
+  --vp-button-brand-active-bg: var(--g-color-brand-strong);
+  --vp-button-brand-active-text: var(--g-color-on-brand);
+  --vp-button-brand-active-border: transparent;
+  --vp-button-alt-bg: var(--g-color-neutral-soft);
+  --vp-button-alt-text: var(--g-color-on-neutral-soft);
+  --vp-button-alt-border: transparent;
+  --vp-button-alt-hover-bg: var(--g-color-border-strong);
+  --vp-button-alt-hover-text: var(--g-color-on-neutral-soft);
+  --vp-button-alt-hover-border: transparent;
+
+  --vp-input-border-color: var(--g-color-border-control);
+  --vp-input-switch-bg-color: var(--g-color-neutral-soft);
+
+  --vp-nav-bg-color: var(--g-color-bg);
+  --vp-nav-screen-bg-color: var(--g-color-bg);
+  --vp-local-nav-bg-color: var(--g-color-bg);
+  --vp-sidebar-bg-color: var(--g-color-surface-sunken);
+
+  --vp-local-search-bg: var(--g-color-surface-sunken);
+  --vp-local-search-result-bg: var(--g-color-surface);
+  --vp-local-search-result-border: var(--g-color-border);
+  --vp-local-search-result-selected-bg: var(--g-color-surface);
+  --vp-local-search-result-selected-border: var(--g-color-accent);
+  --vp-local-search-highlight-bg: var(--g-color-accent-soft);
+  --vp-local-search-highlight-text: var(--g-color-on-accent-soft);
+
+  --vp-badge-tip-text: var(--g-color-on-accent-soft);
+  --vp-badge-tip-bg: var(--g-color-accent-soft);
+  --vp-badge-warning-text: var(--g-color-on-warning-soft);
+  --vp-badge-warning-bg: var(--g-color-warning-soft);
+
+  --vp-home-hero-name-color: var(--g-color-brand-text);
+  --vp-shadow-2: var(--g-shadow-1);
+  --vp-shadow-3: var(--g-shadow-2);
+  --vp-shadow-4: var(--g-shadow-3);
+}
+
+body {
+  background: var(--g-color-bg);
+  color: var(--g-color-text);
+}
+
+/* Foco siempre visible, con los tokens de Grana, en todo el sitio; dentro de los ejemplos manda el foco de cada componente. */
+:where(a, button, input, select, textarea, summary, [tabindex]):not(.grana-demo__stage *):focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+
+/* Enlaces del texto: subrayados (no solo color) para distinguirlos del texto. */
+/* Fuera de los ejemplos: los enlaces de los componentes tienen su propio estilo. */
+.vp-doc a:not(.header-anchor):not(.grana-demo__stage *) {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* El aviso «Translation pending» y los bloques: texto del tema. */
+.vp-doc .custom-block.warning {
+  border: var(--g-border-width) solid var(--g-color-warning);
+}
+
+/* Interruptor de apariencia: área ≥ 24 px (VitePress lo dibuja de 22 px). */
+.VPSwitch {
+  height: 24px;
+}
+.VPSwitchAppearance .check {
+  top: 2px;
+}
+
+/* Hamburguesa con iconos de Lucide (menu / x) en lugar de las tres rayas dibujadas con CSS. */
+.VPNavBarHamburger .container {
+  display: none;
+}
+.VPNavBarHamburger::before {
+  content: '';
+  inline-size: 20px;
+  block-size: 20px;
+  background: currentColor;
+  -webkit-mask: var(--grana-hamburger) no-repeat center / 100% 100%;
+  mask: var(--grana-hamburger) no-repeat center / 100% 100%;
+}
+
+/* Área táctil ≥ 44 px con puntero grueso (mínimo de accesibilidad de Grana). */
+@media (pointer: coarse) {
+  .VPNavBarHamburger,
+  .VPNavBarAppearance .VPSwitch,
+  .VPNavBarSearch .DocSearch-Button,
+  .VPLocalNav .menu,
+  .VPLocalNavOutlineDropdown button,
+  .VPNavScreenMenuLink,
+  .VPNavScreenMenuGroup .button,
+  .VPNavScreenTranslations .title,
+  .VPSidebarItem .item > .link,
+  .VPSidebarItem .caret,
+  .VPDocFooter .pager-link,
+  .vp-doc .copy {
+    min-block-size: 44px;
+    min-inline-size: 44px;
+  }
+  .VPSidebarItem .item > .link {
+    display: flex;
+    align-items: center;
+  }
+}
+
+/* ---------------------------------------------------------------- ejemplos vivos */
+
+.grana-demo {
+  margin-block: 16px 0;
+  border: var(--g-border-width) solid var(--g-color-border-strong);
+  border-radius: var(--g-radius-lg) var(--g-radius-lg) 0 0;
+  border-block-end: 0;
+  background: var(--g-color-bg);
+}
+.grana-demo + div[class*='language-'] {
+  margin-block-start: 0 !important;
+  border-radius: 0 0 var(--g-radius-lg) var(--g-radius-lg) !important;
+}
+.grana-demo__label {
+  margin: 0;
+  padding: var(--g-space-2) var(--g-space-4);
+  border-block-end: var(--g-border-width) solid var(--g-color-border);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+}
+.grana-demo__stage {
+  padding: var(--g-space-6) var(--g-space-4);
+  color: var(--g-color-text);
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-size);
+  line-height: var(--g-text-body-line);
+  overflow-x: auto;
+}
+/* Ejemplo de solo plantilla: los elementos en fila que salta. */
+.grana-demo__flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-3);
+}
+
+/* Cabecera de las páginas de componente */
+.grana-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--g-space-2) var(--g-space-5);
+  color: var(--g-color-text-muted);
+}
+.grana-api-note,
+.grana-source {
+  color: var(--g-color-text-muted);
+  font-size: var(--g-text-body-sm-size);
+}
+
+/* Tablas largas de la API: el texto se parte en lugar de desbordar a 320 px. */
+.vp-doc td code {
+  overflow-wrap: anywhere;
+}
+/* En la fila, lo que es de bloque ocupa la línea entera (separadores, botones block, contenedores). */
+.grana-demo__flow > :where(hr, div, p, form, section, ul, ol, table, nav, fieldset, .g-divider, [class*='--block']):not([aria-orientation='vertical']) {
+  flex: 1 0 100%;
+}

@@ -1,0 +1,69 @@
+name: Docs
+
+# Sitio de documentación (VitePress, site/) publicado en GitHub Pages en cada push a main:
+#   https://kevinedgm.github.io/grana/
+# Las páginas se generan desde los README y los meta.json (site/scripts/generate.mjs) y los
+# ejemplos vivos importan el paquete construido, así que primero se construye @grana/vue.
+# Requisito único (en el repositorio): Settings → Pages → Build and deployment → Source: «GitHub Actions».
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Un despliegue a la vez; no se cancela uno en curso para no dejar Pages a medias.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Construir el sitio
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Build de @grana/vue (el sitio usa dist/ y sus entradas propias)
+        run: npm run build -w @grana/vue
+
+      - name: Prueba del generador (toda página de componente existe y tiene ejemplo vivo)
+        run: npm test -w @grana/site
+
+      - name: Configurar Pages
+        uses: actions/configure-pages@v5
+
+      - name: Construir el sitio (con comprobación de enlaces muertos)
+        run: npm run docs:build
+        env:
+          GRANA_SITE_BASE: /grana/
+
+      - name: Subir el sitio
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/.vitepress/dist
+
+  deploy:
+    name: Publicar en GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

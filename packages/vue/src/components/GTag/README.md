@@ -100,7 +100,7 @@ El hueco es decorativo (`aria-hidden`). Un `<g-icon name>` busca el nombre en el
 
 ### Un grupo con huella: lo mínimo
 
-```vue
+```vue demo
 <script setup>
 import { ref } from 'vue'
 const alergias = ref([

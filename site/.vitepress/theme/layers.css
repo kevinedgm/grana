@@ -1,0 +1,3 @@
+/* Orden de capas del sitio: primero VitePress (sus reinicios de elemento), luego las de Grana.
+   Debe ser la primera hoja que se carga (theme/index.js la importa antes que nada). */
+@layer vitepress, grana.defaults, grana.components;

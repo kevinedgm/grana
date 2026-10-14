@@ -44,10 +44,12 @@ if (isDev) {
 // ---------- Registro ----------
 const entries = shallowReactive(new Map()) // uid → registro (campos con name y GFieldGroup)
 function register(entry) {
-  if (isDev) {
+  // Las partes de un grupo (inGroup) no se comparan: su name ya está en names() del grupo, que sí
+  // se compara con todo lo demás (un campo suelto con el name de una parte sigue avisando).
+  if (isDev && !entry.inGroup) {
     for (const n of entry.names()) {
       for (const other of entries.values()) {
-        if (other !== entry && other.names().includes(n)) warnOnce(`dup-${n}`, `dos campos registrados con el mismo name («${n}»).`)
+        if (other !== entry && !other.inGroup && other.names().includes(n)) warnOnce(`dup-${n}`, `dos campos registrados con el mismo name («${n}»).`)
       }
     }
   }

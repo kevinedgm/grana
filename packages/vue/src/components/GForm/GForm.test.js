@@ -762,6 +762,18 @@ describe('Registro y GCheckboxGroup name (C10, C11)', () => {
     expect(warn.mock.calls.some((c) => /mismo name/.test(c[0]))).toBe(true)
   })
 
+  it('las partes con name de un GFieldGroup no avisan de name repetido (el grupo las incluye en names())', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    make(`<GForm><GFieldGroup label="Nacimiento" name="nacimiento">
+      <GInput label="Día" name="nac-dia" /><GInput label="Mes" name="nac-mes" />
+    </GFieldGroup></GForm>`)
+    expect(warn.mock.calls.filter((c) => /mismo name/.test(c[0]))).toEqual([])
+    // un campo suelto con el name de una parte sí avisa (choca con el grupo)
+    make(`<GForm><GFieldGroup label="Nacimiento" name="nacimiento"><GInput label="Día" name="dia" /></GFieldGroup>
+      <GInput label="Otro" name="dia" /></GForm>`)
+    expect(warn.mock.calls.some((c) => /mismo name/.test(c[0]))).toBe(true)
+  })
+
   it('useFormField sirve a campos propios del consumidor (registro, mensaje y marca)', async () => {
     const Custom = defineComponent({
       props: { name: String },

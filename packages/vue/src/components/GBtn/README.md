@@ -67,7 +67,7 @@ Un valor fuera de la lista muestra una advertencia en desarrollo.
 
 Los iconos son de [Lucide](https://lucide.dev) con [`GIcon`](../GIcon/README.md) en el slot (no hay prop de icono: `icon` es Boolean, el modo solo icono). Los de la lista de la librería (`plus`, `x`, `check`…) se usan sin más; cualquier otro de Lucide (`download`, `lock-open`…) lo registra tu aplicación una vez con `createIcons` importándolo de `lucide-static` (ver el README de `GIcon`).
 
-```vue
+```vue demo
 <g-btn icon aria-label="Añadir"><g-icon name="plus"></g-icon></g-btn>
 <g-btn><template #prepend><g-icon name="plus"></g-icon></template>Nuevo</g-btn>
 <g-btn variant="outline">Continuar<template #append><g-icon name="arrow-right" flip-rtl></g-icon></template></g-btn>

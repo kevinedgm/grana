@@ -16,7 +16,7 @@ import '@grana/vue/style.css'
 createApp(App).use(Grana).mount('#app')
 ```
 
-```vue
+```vue demo
 <g-badge color="success" shape="circle">Activo</g-badge>
 <g-badge :count="120" label="120 mensajes sin leer" variant="solid" color="danger" />
 <g-badge shape="triangle" color="danger" label="Error" />

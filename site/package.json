@@ -1,0 +1,24 @@
+{
+  "name": "@grana/site",
+  "version": "0.1.0-beta.0",
+  "private": true,
+  "description": "Sitio de documentación de Grana (VitePress), generado desde los README y los meta.json de los componentes.",
+  "type": "module",
+  "scripts": {
+    "generate": "node scripts/generate.mjs",
+    "docs:dev": "node scripts/generate.mjs && vitepress dev .",
+    "docs:build": "node scripts/generate.mjs && vitepress build .",
+    "docs:preview": "vitepress preview .",
+    "test": "node --test scripts/generate.test.mjs",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@grana/vue": "*",
+    "lucide-static": "^1.49.0",
+    "vue": "^3.5.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "vitepress": "1.6.4"
+  }
+}

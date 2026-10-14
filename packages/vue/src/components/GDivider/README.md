@@ -34,7 +34,7 @@ El divider **no tiene márgenes**: la separación con lo de arriba y lo de abajo
 
 ### Con texto (solo horizontal)
 
-```vue
+```vue demo
 <g-btn variant="outline" block>Continuar con correo</g-btn>
 <g-divider label="O bien"></g-divider>
 <g-btn variant="outline" block>Continuar con un enlace mágico</g-btn>
