@@ -390,7 +390,7 @@ No es API de `GTable`: la tabla no sabe qué significan las métricas. El servid
 - **B:** `g-table__door-chevron` gira 90° con `aria-expanded="true"` (−90° en RTL); la fila con `is-expanded` pierde su separador inferior; la ficha va pegada a su fila (también en tarjetas: la ficha forma parte visual de su tarjeta).
 - **Pie acoplado** (`g-pagination--dock`, `is-stuck`): `position: sticky; inset-block-end: 0`, fondo `surface`, filo superior transparente que pasa a `--g-color-border` con `--g-shadow-1` acoplado; `scroll-margin-block-end: var(--_dock-size)` en lo enfocable de `g-table__scroll`; `overflow-anchor: none` en el `<tbody>`.
 - **«Aquí estabas»** (`is-here`) y **filas nuevas** (`is-new`): ver #594; con movimiento reducido, `is-here` quieto y sin fundido.
-- **Selector** (`g-pagination__size*`): la forma de `GRadioGroup segmented` sin componerlo (pista `surface-sunken`, cifra marcada con `surface`, borde `border-strong`, `shadow-1`; cifras tabulares; ≥ 44 × 44px con `pointer: coarse`; foco con `:is(:focus-visible, :where([data-g-key-focus]):focus)`; contraste de lo marcado §7.1).
+- **Selector** (`g-pagination__size*`): la forma de `GRadioGroup segmented` sin componerlo (pista `surface-sunken`, cifra marcada con `surface`, borde `border-control`, `shadow-1`; cifras tabulares; ≥ 44 × 44px con `pointer: coarse`; foco con `:is(:focus-visible, :where([data-g-key-focus]):focus)`; contraste de lo marcado §7.1).
 
 ## Peso (#506, #550; #602)
 
