@@ -9,6 +9,8 @@
 // Además: 5 líneas esperadas (signos vitales 1/1/2/3 a 1280/960/720/360; a 360 Calle sola y Ext. · Int. juntos),
 // Tab por las partes de un fusionado en orden del DOM y nombres accesibles por parte. GFormReveal (§14): con un bloque
 // abierto y anidado (#fr-form), sus hijos terminan en el mismo borde que la pila de fuera y empiezan tras barra + sangría.
+// GFormFold (§15): con el pliegue abierto de #ff-form, sus hijos terminan en el mismo borde que la pila de fuera y empiezan
+// tras su sangría, su raíl y el relleno del panel.
 // GFormSection (§3, Fase 3): «Preferencias» plegable abierta, «Contacto» con el encabezado al lado según su ancho y las
 // secciones de #fx-frame (fuera de GForm) entran en los mismos casos.
 import { test, expect } from '@playwright/test'
@@ -109,6 +111,23 @@ const geom = () => {
         if (Math.abs(S(r) - start) > T) out.push(`hijo de un bloque sin la sangría (${Math.round(S(r) - start)}px): ${name(c)}`)
       }
     })
+    // GFormFold abierto (form.md §15, «Verificación»): cada hijo del cuerpo termina en el mismo borde que la pila de fuera y
+    // empieza en el inicio del pliegue + sangría + raíl + relleno del panel (su sangría)
+    fr.querySelectorAll('.g-form-fold.is-open:not(.is-animating) > .g-form-fold__panel').forEach((panel) => {
+      const fold = panel.parentElement
+      const lay = fold.parentElement.closest('.g-form-layout, .g-form-fold__body')
+      if (!lay) return
+      const R = E((lay.closest('.g-form-layout') || lay).getBoundingClientRect())
+      const cs = getComputedStyle(panel)
+      const start = S(panel.getBoundingClientRect()) + parseFloat(cs.borderInlineStartWidth) + parseFloat(cs.paddingInlineStart)
+      if (S(fold.getBoundingClientRect()) <= S(lay.getBoundingClientRect()) + T) out.push(`pliegue sin sangría: ${fold.id}`)
+      const body = panel.querySelector(':scope > .g-form-fold__body')
+      for (const c of body.children) {
+        const r = c.getBoundingClientRect()
+        if (Math.abs(R - E(r)) > T) out.push(`hijo de un pliegue a ${Math.round(R - E(r))}px del borde: ${name(c)}`)
+        if (Math.abs(S(r) - start) > T) out.push(`hijo de un pliegue sin su sangría (${Math.round(S(r) - start)}px): ${name(c)}`)
+      }
+    })
     fr.querySelectorAll('.g-form-row').forEach((row) => {
       if (!row.hasAttribute('data-lines')) out.push(`fila sin medir: ${[...row.children].map(name).join('|')}`)
       const R = E(row.getBoundingClientRect())
@@ -161,6 +180,8 @@ test.describe('formularios r02 · prueba obligatoria de distribución (form.md �
     // Una GFormSection plegable ABIERTA entra en la prueba (form.md §3 «Verificación (Fase 3)»): «Preferencias» de
     // #fm-medium, con una fila dentro; y una sección con el encabezado al lado (#fm-sec-contacto a partir de space × 200)
     expect(await page.locator('#sec-form [data-frame] .g-form-section--mode-collapsible.is-open > .g-form-section__panel .g-form-row').count(), 'plegable abierta con una fila').toBeGreaterThan(0)
+    // Un GFormFold abierto con una fila entra en la prueba (form.md §15 «Verificación»): #ff-fold
+    expect(await page.locator('#sec-form [data-frame] .g-form-fold.is-open > .g-form-fold__panel > .g-form-fold__body > .g-form-row').count(), 'pliegue abierto con una fila').toBeGreaterThan(0)
     const fails = []
     for (const w of WIDTHS) {
       for (const [state, long] of STATES) {

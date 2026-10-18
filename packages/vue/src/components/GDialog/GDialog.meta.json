@@ -151,11 +151,11 @@
   "slots": [
     {
       "name": "default",
-      "purpose": "Cuerpo. Alcance: { close }"
+      "purpose": "Cuerpo. Alcance: { close, push, back, backTo, steps } (los cuatro últimos, del modo pasos; dialog.md §«Niveles anidados» B)"
     },
     {
       "name": "footer",
-      "purpose": "Acciones. Alcance: { close }. Solo se renderiza si existe"
+      "purpose": "Acciones. Alcance: { close, push, back, backTo, steps }. Solo se renderiza si existe; en modo pasos no se usa (el pie es el del paso actual)"
     },
     {
       "name": "title",

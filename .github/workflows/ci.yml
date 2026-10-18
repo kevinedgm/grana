@@ -121,7 +121,8 @@ jobs:
       # Subconjunto representativo: biblioteca, playground, distribución de formularios,
       # paneles anclados, tooltip y los componentes de formulario, más la Fase C (slider, tag,
       # acordeón, migas, vacío, región de carga y carga de la tabla; las pruebas de «rendimiento» de
-      # bd888df viven en slider y breadcrumbs y son relativas, fiables con 2 workers). Los
+      # bd888df viven en slider y breadcrumbs y son relativas, fiables con 2 workers), y los niveles de
+      # GDialog y GFormFold (17 pruebas, ~10 s; sus medidas de movimiento toleran cuadros perdidos). Los
       # personalidad-* (cuadros de animación), los -perf (un worker), el combobox y la voz
       # quedan para la pasada nocturna. Archivos explícitos: el filtro de Playwright es una
       # expresión regular sobre la ruta y «playground» coincidiría con todo el directorio.
@@ -142,6 +143,8 @@ jobs:
             tests/radio-group.spec.mjs \
             tests/key-focus.spec.mjs \
             tests/dialog-focus.spec.mjs \
+            tests/dialog-levels.spec.mjs \
+            tests/form-fold.spec.mjs \
             tests/slider.spec.mjs \
             tests/tag.spec.mjs \
             tests/accordion.spec.mjs \

@@ -103,6 +103,14 @@ export function createDialogSteps(o) {
   const scrolls = new Map() // paso → scrollTop del cuerpo al dejarlo debajo (base 6)
   let busy = false
 
+  // El disparador de un paso puede estar en el PIE del paso de abajo, que se vuelve a montar al cambiar de paso (clave por
+  // paso en GDialog.vue, H1): si el elemento guardado ya no está en el documento, se busca el de su mismo `id` en el diálogo.
+  const reattach = (el) => {
+    if (!el || el.isConnected || !el.id || typeof document === 'undefined') return el
+    const d = o.dialog.value
+    const again = document.getElementById(el.id)
+    return again && d && d.contains(again) ? again : el
+  }
   const panelOf = (name) => {
     const r = record(name)
     const el = r && typeof r.el === 'function' ? r.el() : null
@@ -198,7 +206,7 @@ export function createDialogSteps(o) {
     if (info.direction === 'forward') {
       focused = focusChain([], panel, STEP_SKIP)
     } else {
-      focused = focusChain([info.focus, info.opener].filter(Boolean), panel, STEP_SKIP)
+      focused = focusChain([info.focus, reattach(info.opener)].filter(Boolean), panel, STEP_SKIP)
     }
     if (!focused && o.dialog.value && !o.dialog.value.contains(document.activeElement)) o.dialog.value.focus({ preventScroll: true })
     // Llegada y anuncio (base 7): solo al bajar con resultado

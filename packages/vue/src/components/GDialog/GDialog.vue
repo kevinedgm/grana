@@ -110,6 +110,11 @@ stepsApi.scope = stepScope
 // C · pliegues abiertos dentro (GFormFold se registra aquí por dialogFoldKey): con uno abierto el fondo no cierra (base 5)
 const folds = ref(0)
 provide(dialogFoldKey, { register() { folds.value++; let on = true; return () => { if (on) { on = false; folds.value-- } } } })
+// El pie del paso actual se pinta aquí con StepSlot, con una CLAVE POR PASO (H1 de design/lab/dialog/auditoria-pasos.md): el
+// pie de cada paso sale de una plantilla distinta, pero cae en el mismo sitio. Sin clave, Vue parcheaba el pie nuevo sobre
+// el anterior fiándose de las pistas del compilador (patchFlag / dynamicProps, que solo valen entre renders de la MISMA
+// plantilla) y dejaba los atributos estáticos del paso anterior (`id`, `variant`, `type`, `form`). Con la clave, el pie se
+// vuelve a montar al cambiar de paso; el foco que estaba en él lo resuelve el cambio de paso (steps.js, `change`).
 const stepFooter = computed(() => (stepsOn.value && currentRecord.value && currentRecord.value.slots ? currentRecord.value.slots.footer : null))
 const stepTitle = computed(() => (currentRecord.value ? currentRecord.value.title() || '' : ''))
 const stepDescription = computed(() => (currentRecord.value ? currentRecord.value.description() || '' : ''))
@@ -559,11 +564,11 @@ defineExpose({ push, back, backTo })
       <div v-if="hasTabs" class="g-dialog__tabs"><slot name="tabs" /></div>
       <div v-if="inset" :class="insetClasses">
         <div ref="body" :class="bodyClasses" v-bind="bodyAttrs" @scroll.passive="measure"><slot :close="close" :push="push" :back="back" :back-to="backTo" :steps="history" /></div>
-        <div v-if="hasFooter" class="g-dialog__footer"><StepSlot v-if="stepsOn" :render="stepFooter" :scope="stepScope" /><slot v-else name="footer" :close="close" /></div>
+        <div v-if="hasFooter" class="g-dialog__footer"><StepSlot v-if="stepsOn" :key="current" :render="stepFooter" :scope="stepScope" /><slot v-else name="footer" :close="close" :push="push" :back="back" :back-to="backTo" :steps="history" /></div>
       </div>
       <template v-else>
         <div ref="body" :class="bodyClasses" v-bind="bodyAttrs" @scroll.passive="measure"><slot :close="close" :push="push" :back="back" :back-to="backTo" :steps="history" /></div>
-        <div v-if="hasFooter" class="g-dialog__footer"><StepSlot v-if="stepsOn" :render="stepFooter" :scope="stepScope" /><slot v-else name="footer" :close="close" /></div>
+        <div v-if="hasFooter" class="g-dialog__footer"><StepSlot v-if="stepsOn" :key="current" :render="stepFooter" :scope="stepScope" /><slot v-else name="footer" :close="close" :push="push" :back="back" :back-to="backTo" :steps="history" /></div>
       </template>
     </template>
   </dialog>

@@ -1350,6 +1350,32 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
     </div>
     <p class="log" id="fr-log">{{ fm.log.reveal }}</p>
           </div>
+          <h3>Pliegue (GFormFold): crear lo que falta en su sitio</h3>
+          <p class="pg-lead">«El proveedor no está en el catálogo» → el pliegue se abre <b>bajo la fila que lo pide</b>, con su título, su propósito y su propio confirmar (form.md §15). Abierto, sus campos no van en el envío de fuera y lo bloquean con «Termina o cancela…». Va en su propia entrada, <code>@grana/vue/form-fold</code> (aquí <code>dist/form-fold.umd.js</code>, global <code>GranaFormFold</code>). Abierto por defecto para que entre en la prueba de distribución (#184): sus filas terminan en el mismo borde que las de fuera, menos su sangría. El recorrido completo dentro de un diálogo está en <code>dialog-levels.html</code>.</p>
+          <div class="pg-panel">
+    <div class="fm-frame" data-frame :style="fm.frame">
+      <g-form id="ff-form" :density="fm.bench.density" aria-label="Pedido" :labels="fm.labels" @submit="() => {}">
+        <g-form-layout id="ff-layout">
+          <g-form-row>
+            <g-select v-model="fm.ff.proveedor" id="ff-proveedor" :label="fm.L('Proveedor', 'Proveedor que surte el pedido')" name="ff-proveedor" placeholder="Elige" :options="[{ value: 'quimica', label: 'Química del Valle' }]"></g-select>
+            <g-input v-model="fm.ff.oc" id="ff-oc" class="g-form-w-sm" label="Orden de compra" name="ff-oc" :hint="fm.H('ff-oc')"></g-input>
+          </g-form-row>
+          <g-form-fold id="ff-fold" v-model:open="fm.ff.open" title="Proveedor nuevo" description="Se elegirá en Proveedor de este pedido" for="ff-proveedor" :labels="{ pending: 'Termina o cancela «{title}»' }">
+            <g-form-row>
+              <g-input v-model="fm.ff.razon" id="ff-razon" class="g-form-w-lg" :label="fm.L('Razón social', 'Razón social como aparece en la constancia')" name="razon" :hint="fm.H('ff-razon')"></g-input>
+              <g-input v-model="fm.ff.rfc" id="ff-rfc" class="g-form-w-sm" label="RFC" name="rfc" autocapitalize="characters"></g-input>
+            </g-form-row>
+            <g-input v-model="fm.ff.correo" id="ff-correo" label="Correo de contacto" name="correo" type="email"></g-input>
+            <template #actions="{ confirm, cancel }">
+              <g-btn id="ff-cancel" size="sm" variant="ghost" color="neutral" @click="cancel">Cancelar</g-btn>
+              <g-btn id="ff-ok" size="sm" @click="confirm">Crear y elegir</g-btn>
+            </template>
+          </g-form-fold>
+          <g-input v-model="fm.ff.nota" id="ff-nota" label="Nota del pedido" name="ff-nota"></g-input>
+        </g-form-layout>
+      </g-form>
+    </div>
+          </div>
           <h3>Modo vista (GForm readonly) y convención «obligatorios» (marks="required")</h3>
           <div class="pg-panel">
     <g-form id="fm-view" aria-label="Expediente (vista)" readonly :labels="fm.labels">
@@ -2690,6 +2716,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
   <script src="../dist/slider.umd.js"></script>
   <script src="../dist/tag.umd.js"></script>
   <script src="../dist/load-region.umd.js"></script>
+  <script src="../dist/form-fold.umd.js"></script>
   <script src="./combobox-data.js"></script>
   <script src="./accordion-data.js"></script>
   <script src="../dist/testing.umd.js"></script>
@@ -3780,7 +3807,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           'fg-a': ['error', 'La fecha debe incluir el año'],
           'fr-rfc': ['error', 'El RFC de persona moral tiene 12 caracteres']
         }
-        const FM_HINTS = { 'fm-nombre': 1, 'fa-calle': 1, 'fj-imp': 1, 'fm-fc': 1, 'fr-cpf': 1, 'fm-dx': 1 }
+        const FM_HINTS = { 'fm-nombre': 1, 'fa-calle': 1, 'fj-imp': 1, 'fm-fc': 1, 'fr-cpf': 1, 'fm-dx': 1, 'ff-oc': 1, 'ff-razon': 1 }
         const frForm = ref(null)
         const fm = reactive({
           labels: { optional: '(opcional)', requiredHint: 'Los campos con * son obligatorios.', sectionOptional: 'Opcional', sectionErrors: (n) => (n === 1 ? '1 error' : `${n} errores`), error: 'Error: ', warning: 'Advertencia: ', valid: 'Correcto: ' },
@@ -3818,6 +3845,8 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           dlg: false,
           log: { corto: '', mediano: '', fijo: '', 'diálogo': '', reveal: '' },
           // Bloque condicional (form.md §14): abierto por defecto (Sí · Moral) para que entre en la prueba de distribución
+          // Pliegue (form.md §15): abierto por defecto para que entre en la prueba de distribución
+          ff: { open: true, proveedor: null, oc: '', razon: '', rfc: '', correo: '', nota: '' },
           r: { nombre: 'Ana López', factura: 'si', persona: 'moral', curp: '', razon: '', constitucion: null, representante: '', rfc: '', regimen: null, cpf: '', envio: [], obs: '', alergias: null, alergiasCual: '' },
           // Sin condiciones: el bloque cerrado hace que no cuenten (#276)
           get revealErrors() {
@@ -3901,7 +3930,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         watch(() => fm.fiscal, (v) => { if (!v) Object.assign(fm.m, fmFiscalEmpty()) })
         return { bc, ac, tt, ttTools, ttRail, ttRove, ttRoveFocus, ff, ffPhotos, ffAddSamples, ffAddFail, ffToggleOffline, ffLog, ffSent, ffInvalid, tf, tfModel, tfSubmit, tfInvalid, tfChange, sl, slModel, slSubmit, slInvalid, slChange, slDur, alW, alH, alRtl, suPeople, suDiffs, suProduct, suW, suLoaded, cb, cbSearch, cbMore, cbCreate, cbChange, cbSubmit, cbFailNext, cm, cmChange, cmSubmit, cmMode, nf, nfModel, nfSubmit, nfChange, spEngine, spProgress, spState, spForm, spFormTab, spFormTabs, spSelected, spPageReview, spSaved, spSavedMode, spLoadSaved, spLoadLong, spLog, spCapture, spLocation, spSetCapture, spAdapter, spObs, spMotivo, spPlan, spNota, spTab, spTabs, icTab, icTabs, icMenuOpen, icMenu, icSide, icSideItems, dvCompact, pgNav, pgModes, pgQuery, pgNavOpen, pgActive, pgBar, pgNavFiltered, pgSetThemed, toast, st, tsLog, tsPos, tsKeep, tsPromise, cdW, cdLoading, cdLog, cdSel, cdFav, cdPlan, cdLabels, cdMenu, cdMeta, cdPlans, cdPeople, cdNavigate, gtTab, gtBlock, gtLog, gtChange, gtLabels, gtItems, gtSeg, gtSegItems, gtLong, gtLongItems, gtIcon, gtIconItems, gtIconOnly, gtIconLog, gtIconTipItems, gtRtl, gtRtlItems, gtDet, gtDlg, gtDlgItems, tbRows, tbColumns, tbLabels, tbColors, tbSort, tbSelected, tbFilters, tbPage, tbLog, tbMenu, tbLoading, tbSimulate, tbError, tbRetry, avPhotos, avWide, avBroken, avSizes, avKinds, avPeople, avScripts, avLog, avSwap, avSlow, avLoadSlow, mnPeopleOpen, mnPeople, selPerson, selPeople, avState, avHelperState, avHelper, stpSteps, stpLabels, stpCur, stpLog, stpIdx, stpMove, mnOpen, mnLog, mnItems, mnSelect, scheme, setScheme, galRef, galOpen, wgPeriods, wgCfgOf, wgTitleOf, galSizes, galItems, galAdded, galAdd, galLabels, wgAnn, wgAction, cfgOpen, cfgTab, cfgTitle, cfgTabs, cfgErrors, cfgDirty, cfgLabels, cfgDraft, cfgReset, cfgApply, wgW, wgEdit, wgState, wgLog, wgTitles, wgLayout, wgRemove, wgLabels, wgGridLabels, sbW, sbActive, sbOpen, sbRail, sbRailLog, sbFloat, sbOver, sbSearch, sbModeSel, sbMobile, sbMode, sbLog, sbLabels, sbItems, dpRange, dpSingle, dpLog, dpToday, dpBlocked, dpProx, dpLabels, bdgCount, bdgLog, selClient, selClients, selCreate, selCountry, selPriority, selState, selMany, selSoft, selLoad, selRich, selError, selLog, selCountries, selPriorities, selManyOptions, selRichOptions, taNote, taAuto, taLimit, taReason, taError, taSoft, taLoad, taLog, taCounterText, taCheck, swNotif, swSave, swSaving, swAir, swCookies, swError, swIcons, swLog, swCheck, swSaveNow, dlg, dlgLog, dlgName, dlgMail, dlgNameError, dlgDirty, submitDlgForm, guardDismiss, calView, calDate, calSel, calAllow, calLog, calEvents, calResources, calAvail, calBlocks, calLabels, onCalMove, onCalResize, onCalCreate, onCalRange, onCalConflict, newsletter, invoice, terms, termsError, checkTerms, mixed, mixedState, extras, reservas, reservasError, validarReservas, servicios, rg, loading, count, themed, save, log, toggleTheme, email, emailError, pass, nick, user, q, handle, coupon, site, checkEmail, subEmail, subError, subLog, subscribe, searchLog, search, couponLoading, couponLog, applyCoupon, fm, fmMedium, frForm }
       }
-    }).use(Grana).use(GranaCombobox).use(GranaFileField).use(GranaTimeField).use(GranaSlider).use(appIcons).use(toaster).use(speech).use(status).mount('#app')
+    }).use(Grana).use(GranaCombobox).use(GranaFileField).use(GranaTimeField).use(GranaSlider).use(GranaFormFold).use(appIcons).use(toaster).use(speech).use(status).mount('#app')
   </script>
   <script>
     // GTag y GTagGroup (design/contracts/tag.md): su propia aplicación de Vue montada en #tg-app (dentro de #sec-tag).
