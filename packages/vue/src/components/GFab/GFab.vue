@@ -579,7 +579,7 @@ export default defineComponent({
       armed.value = null
       nextTick(() => {
         const b = itemByKey(key)
-        if (b) b.parentElement.style.removeProperty('min-inline-size')
+        if (b) b.parentElement.style.removeProperty('--_armed-w')
         place(false)
         if (back) focus(b)
       })
@@ -592,13 +592,14 @@ export default defineComponent({
       if (cl.contains('g-fab__cancel')) { disarm(true); return }
       const it = byKey(b.dataset.key)
       if (!it) return
-      if (cl.contains('g-fab__confirm-action')) { b.closest('li').style.removeProperty('min-inline-size'); armed.value = null; select(it, e, true); return }
+      if (cl.contains('g-fab__confirm-action')) { b.closest('li').style.removeProperty('--_armed-w'); armed.value = null; select(it, e, true); return }
       if (b.getAttribute('aria-disabled') === 'true') return
       if (!it.ask) { select(it, e, true); return }
       // Confirmación en el sitio (#662): «Cancelar» bajo el punto de la pulsación; con teclado, al inicio lógico
       const r = b.getBoundingClientRect()
-      // La fila se parte sin mover nada más: el li conserva su ancho mientras dura el par (más estrecho, la pila se movería)
-      b.parentElement.style.minInlineSize = px(r.width)
+      // La fila se parte sin mover nada más: el li conserva su ancho mientras dura el par (más estrecho, la pila se movería);
+      // el dato va en la variable y el CSS lo aplica como min-inline-size (#677)
+      setPx(b.parentElement, '--_armed-w', r.width)
       armed.value = { key: it.key, first: !(e.detail > 0) || (e.clientX < r.left + r.width / 2) !== rtl() }
       nextTick(() => { place(false); focus(rootEl.value.querySelector('.g-fab__cancel')) })
     }

@@ -693,6 +693,49 @@ describe('GFab · marcado que espera el CSS de coco', () => {
   })
 })
 
+describe('GFab · datos del .vue al CSS (#677)', () => {
+  it('la fila armada conserva su ancho en --_armed-w (no en min-inline-size) y lo suelta al deshacer y al confirmar', async () => {
+    const w = mk({ items: [ALL[0], ALL[1], { ...ALL[14], group: undefined }], position: 'top-end' })
+    await open(w)
+    const danger = items(menu(w))[2]
+    const li = danger.parentElement
+    vi.spyOn(danger, 'getBoundingClientRect').mockReturnValue({ ...zero, left: 10, right: 190, width: 180, height: 44 })
+    click(danger, 0); await settle()
+    expect(li.style.getPropertyValue('--_armed-w')).toBe('180px')
+    expect(li.style.minInlineSize).toBe('')
+    key(active(), 'Escape'); await settle()
+    expect(li.style.getPropertyValue('--_armed-w')).toBe('')
+    click(items(menu(w))[2], 0); await settle()
+    li.style.setProperty('--_armed-w', '180px')
+    click(menu(w).find('.g-fab__confirm-action'), 0); await settle()
+    expect(li.style.getPropertyValue('--_armed-w')).toBe('')
+    expect(w.emitted('select')).toHaveLength(1)
+  })
+
+  it('--_hole-*: caja del disparador contraído + space × 1 por lado, sumado antes de redondear hacia fuera', async () => {
+    vi.stubGlobal('matchMedia', (q) => ({ matches: q.includes('coarse'), media: q, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} }))
+    try {
+      const w = mk({ items: ALL.slice(0, 3) }, { attrs: { style: '--g-space-1: 2.5px' } })
+      await open(w)
+      const sc = w.find('.g-fab__scrim').element
+      // fabBox(600): izquierda 956, arriba 628, derecha 1008, abajo 680 → anillo 2,5 → [953.5, 625.5, 1010.5, 682.5]
+      const v = (k) => sc.style.getPropertyValue(`--_hole-${k}`)
+      expect([v('x'), v('y'), v('w'), v('h')]).toEqual(['953px', '625px', '58px', '58px'])
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
+  it('--_minh es el alto exacto de la pila (sin margen) cuando el panel de la cola la cubre', async () => {
+    const w = mk({ items: ALL.slice(0, 8) }, { stackH: () => 123 })
+    await open(w)
+    const more = w.find('.g-fab__item--more')
+    expect(more.exists()).toBe(true)
+    click(more, 0); await settle()
+    expect(subList(w).element.style.getPropertyValue('--_minh')).toBe('123px')
+  })
+})
+
 describe('GFab · bordes compartidos (#659) y se aparta (#664)', () => {
   afterEach(() => clearEdgeReserve('voz'))
 

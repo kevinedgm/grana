@@ -70,6 +70,7 @@ describe('@grana/vue/fab · entrada propia (#656)', () => {
     expect(meta.entry).toBe('@grana/vue/fab')
     expect(meta.bundle.global).toBe('GranaFab')
     expect(meta.bundle.gzip).toBeGreaterThan(0)
+    expect(meta.bundle.budget).toBe(10496)
   })
 
   it('dist (si está construido): compuertas y el peso anotado no se desfasa más de 1 KB (gzip, bytes)', () => {
@@ -83,6 +84,8 @@ describe('@grana/vue/fab · entrada propia (#656)', () => {
     for (const s of ['new WeakMap', 'new ResizeObserver', 'is-highlight-instant', 'g-btn--', 'g-tooltip__']) expect(js.toString(), s).not.toContain(s)
     const meta = JSON.parse(readFileSync(resolve(SRC, 'components/GFab/GFab.meta.json'), 'utf8'))
     expect(Math.abs(gzipSync(js).length - meta.bundle.gzip)).toBeLessThan(1024)
+    // El tope de #676 (10 496 B): la entrada no lo supera; si lo hace, vuelve a lima
+    expect(gzipSync(js).length).toBeLessThanOrEqual(meta.bundle.budget)
   })
 })
 
