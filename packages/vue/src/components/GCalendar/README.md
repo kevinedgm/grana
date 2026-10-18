@@ -239,7 +239,7 @@ Las emite el componente y las estiliza `GCalendar.css`. Raíz: `g-calendar`, `g-
 - **Carriles estrechos:** los eventos de pocos minutos ocupan un alto mínimo de 24px (44px en táctil); en horas muy densas los carriles pueden volverse estrechos (en la auditoría, 30 a 38px de ancho con siete traslapes).
 - **Arrastre entre recursos en Timeline** sin verificar de extremo a extremo.
 - **Tema oscuro:** `grana.css` ya trae el esquema oscuro por defecto (`defaults.css`): sigue `prefers-color-scheme` y se fuerza con `data-theme="dark"` o `data-theme="light"` en cualquier elemento (ver [«Tema oscuro» del README raíz](../../../../../README.md#tema-oscuro)). Al documentar no se repitieron en oscuro las cifras de contraste de este README.
-- **Sin verificar:** un lector de pantalla real (lista cronológica, conteos, solicitudes, conflictos), un dispositivo táctil real (arrastre, tirador, hoja inferior), las preferencias reales de `prefers-reduced-motion` y `forced-colors` (los bloques se comprobaron aplicados sin condición), Firefox y Safari.
+- **Sin verificar:** un lector de pantalla real (lista cronológica, conteos, solicitudes, conflictos), un dispositivo táctil real (arrastre, tirador, hoja inferior), `forced-colors` real de Windows (solo emulado en Chromium) y Safari real. En Firefox y WebKit solo está medido que el calendario monta sin errores de consola con el resto del playground (`tests/library.spec.mjs`); el arrastre y los carriles, no. `prefers-reduced-motion` está medido con la preferencia emulada en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`, 18/18 el 2026-10-18: con `reduce` ningún elemento conserva transiciones ni animaciones de movimiento).
 
 ## Fuentes
 

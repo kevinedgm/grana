@@ -100,7 +100,8 @@ Consume las familias `--g-color-{primary|accent|neutral|success|warning|danger|i
 
 - **Un solo avatar** (el del prototipo del Grana Motion Lab). El motor es SVG + CSS; la API no cambiaría con Rive o Lottie.
 - Los estados agrupados comparten coreografía; el parpadeo tiene ritmo fijo.
-- **Sin verificar:** lector de pantalla con `label`, Firefox y Safari (`transform-box: fill-box` en SVG) y rendimiento en un móvil de gama baja (60 avatares a la vez van a ~60 fps en Chromium de escritorio).
+- **Pivotes medidos en los tres motores:** `transform-box: fill-box` funciona en Chromium, Firefox y WebKit (el cuerpo respira y los ojos parpadean sobre su propio centro, Δ ≤ 0,5 px; `design/lab/theme-playground/tests/limitaciones.spec.mjs`, 2026-10-18).
+- **Sin verificar:** lector de pantalla con `label`, Safari real y rendimiento en un móvil de gama baja (60 avatares a la vez van a ~60 fps en Chromium de escritorio).
 
 ## Fuentes
 

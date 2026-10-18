@@ -149,11 +149,11 @@ Sin tokens propios. El disparador por defecto mide `space × 8` (32px) y el popo
 
 ## Limitaciones conocidas
 
-- **Sin avatar incluido:** `GAvatarMotion` está aplazado (DECISIONS.md #104); el slot `trigger` ya acepta cualquier avatar sin cambiar esta API.
+- **Sin avatar incluido:** el slot `trigger` acepta cualquier avatar, por ejemplo [`GAvatarMotion`](../GAvatarMotion/README.md) (así va en el playground), sin cambiar esta API.
 - **Sin flecha** en el popover (v0.1).
 - **Contenido más alto que el visor** en escritorio: cuenta como «no cabe» y se abre como diálogo centrado.
 - La presentación (popover u hoja) no cambia mientras está abierto.
-- **Sin verificar:** lector de pantalla real, Firefox y Safari (la animación de entrada usa `@starting-style`: sin él, aparece sin animación), `forced-colors` real, zoom al 200% y táctil real.
+- **Sin verificar:** lector de pantalla real, Safari real, `forced-colors` real, zoom al 200% y táctil real. Abrir en la capa superior, cerrar con Esc y conservar lado y alto en el vaivén está medido en Chromium, Firefox y WebKit (`tests/library.spec.mjs`, `tests/panel-estable.spec.mjs`); la entrada usa `@starting-style` (sin él, aparece sin animación) y `prefers-reduced-motion` está medido con la preferencia emulada en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`, 18/18 el 2026-10-18: con `reduce` ningún elemento conserva transiciones ni animaciones de movimiento).
 
 ## Fuentes
 

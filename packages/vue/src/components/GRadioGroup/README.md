@@ -336,7 +336,7 @@ Elegida, foco y hover se estilizan con `:checked`, `:focus-visible` y `:has()`, 
 - **Playground:** `#sec-radio` no muestra `warning`/`valid`, colores distintos de `brand`/`accent` ni la elegida de solo lectura en `chip`; esos casos se cubrieron en el banco de la auditoría (`design/lab/radio-group/auditoria-banco.html`).
 - **Sin verificar:**
   - un **lector de pantalla real** (VoiceOver, NVDA, JAWS, TalkBack): cómo anuncian el `fieldset role="radiogroup"` frente al `div`, si `aria-required`/`aria-invalid`/`aria-readonly` del grupo se leen (y si se repiten al moverse), la descripción por opción y el modo solo icono;
-  - el árbol de accesibilidad completo en Firefox y WebKit;
+  - el árbol de accesibilidad completo en Firefox y WebKit más allá de lo que mide `tests/radio-group.spec.mjs` en los tres motores (roles, estados y teclado);
   - **Safari real** (Tab con «Acceso total por teclado», y si su envolvimiento coincide con el WebKit de Playwright);
   - un dispositivo **táctil real** (el puntero grueso se probó emulado en Chromium);
   - **`forced-colors` real** de Windows (se probó emulado en Chromium; en Firefox y WebKit no se emula);

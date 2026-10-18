@@ -441,7 +441,6 @@ Prefijos `[Grana GAccordion]` y `[Grana GAccordionItem]`; una vez por instancia 
 - **`lazy` sin abrir:** no se encuentra, no se imprime, un `#id` de dentro no existe y no recibe la petición de abrir.
 - **El avance puede leerse dos veces en modo exploración** (como descripción del botón y como texto), igual que el resumen de `GFormSection`; sin verificar con lector real.
 - **Navegadores sin `hidden="until-found"`:** lo plegado no se encuentra (cae en `hidden`).
-- **Dentro de un `GDialog`, `--_head-size` ya no sale corto** (hallazgo 1 de la auditoría). El encabezado pegado medía 1–2 px de menos porque la medida incluía la escala de entrada del diálogo; bruno lo cerró en el commit `4343069` (2026-10-08, DECISIONS #517) midiendo el alto de maquetación, con un caso nuevo en `accordion.spec.mjs` que, según el commit, falla antes y pasa después. **No lo remedí yo** y `design/lab/accordion/auditoria.md` todavía lo lista como abierto: la auditoría es anterior al arreglo.
 - **Navegadores:** usa `:has()`, capas CSS, `hidden="until-found"`, `inert` y `ResizeObserver`. No se midió ningún navegador anterior a los tres motores de Playwright (Chromium, Firefox, WebKit).
 
 ## Reservado (fuera de v0.1)

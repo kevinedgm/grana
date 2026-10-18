@@ -116,7 +116,7 @@ Con un `GForm` alrededor el campo lee su contexto: densidad, solo lectura, desha
 - **Conteo muy frecuente:** una región viva educada puede tardar o agruparse si se alterna muy rápido; es el comportamiento esperado.
 - **Sin árbol de casillas anidadas** ni grupos dentro de grupos.
 - **Tema oscuro:** `grana.css` ya trae el esquema oscuro por defecto (`defaults.css`): sigue `prefers-color-scheme` y se fuerza con `data-theme="dark"` o `data-theme="light"` en cualquier elemento (ver [«Tema oscuro» del README raíz](../../../../../README.md#tema-oscuro)). Al documentar no se repitieron en oscuro las cifras de contraste de este README.
-- **Sin verificar:** un lector de pantalla real (conteo y estado mixto de la maestra), las preferencias reales de `prefers-reduced-motion` y `forced-colors`, el zoom al 200% y un dispositivo táctil real.
+- **Sin verificar:** un lector de pantalla real (conteo y estado mixto de la maestra), `forced-colors` real de Windows (solo emulado en Chromium), el zoom al 200% y un dispositivo táctil real. `prefers-reduced-motion` está medido con la preferencia emulada en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`, 18/18 el 2026-10-18: con `reduce` ningún elemento conserva transiciones ni animaciones de movimiento).
 
 ## Fuentes
 

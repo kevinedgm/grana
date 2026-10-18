@@ -66,6 +66,6 @@ Evento `update:filters` al aplicar, quitar o limpiar. Para aplicar los filtros f
 
 ## Limitaciones conocidas
 
-Sin grupos Y/O anidados (constructor de reglas), sin filtros guardados ni en la URL, sin reglas personalizadas. Sin verificar con lector de pantalla real, Firefox y Safari.
+Sin grupos Y/O anidados (constructor de reglas), sin filtros guardados ni en la URL, sin reglas personalizadas. Sin verificar con lector de pantalla real ni Safari real; el editor anclado (mismo lado, alto y `--_max` en el vaivén) está medido en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/panel-estable.spec.mjs`).
 
 Fuentes: [`GFilterBar.meta.json`](./GFilterBar.meta.json) · Contrato: [`design/contracts/filter-bar.md`](../../../../../design/contracts/filter-bar.md) · Prototipo: [`design/lab/table/r02/`](../../../../../design/lab/table/r02/)

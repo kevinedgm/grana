@@ -126,8 +126,8 @@ Las emite el componente y las estiliza `GBadge.css`: `g-badge`, `g-badge--varian
 
 ## Limitaciones conocidas
 
-- **Solo presentación:** ni chips pulsables ni cerrables en v0.1 (un componente aparte).
-- **`glass` depende de `backdrop-filter` y `color-mix`:** sin ellos, o con transparencia reducida, se ve como `soft`. En Firefox y Safari por verificar.
+- **Solo presentación:** ni pulsable ni cerrable. Para etiquetas que se alternan o se quitan está [`GTag`](../GTag/README.md) (`GTagGroup` para el conjunto).
+- **`glass` depende de `backdrop-filter` y `color-mix`:** sin ellos, o con transparencia reducida, se ve como `soft`. El cristal (desenfoque, velo translúcido con opacidad ≥ 0,55 y brillo) está medido en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`, 2026-10-18); Safari real, no.
 - **El velo mínimo se valida contra el texto del tema:** un tema con texto claro sobre velo blanco no cumple.
 - **Una insignia sin icono entre insignias con icono** no reserva espacio (por diseño): da icono a todas o a ninguna para que el texto quede alineado.
 - **Estilos globales sin capa ganan:** una regla global tuya sobre `span` (sin capa) gana al CSS de Grana (capa `grana.components`); acótala con un selector más específico.

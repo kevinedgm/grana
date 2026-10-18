@@ -371,12 +371,11 @@ Las emite el componente y las estiliza `GCard.css` sobre las de `GSurface`:
 
 ## Limitaciones conocidas
 
-- **`GCardGroup`** (selección de grupo con `v-model`, mínimo y máximo) y **`GAvatar`** quedan diferidos: radios con `name` común y `role="radiogroup"` tuyo; el avatar va en `lead`.
+- **La selección de grupo la da [`GCardGroup`](../GCardGroup/README.md)** (DECISIONS #603 a #611) y el avatar es [`GAvatar`](../GAvatar/README.md) en `lead`: `GCard` solo no agrupa ni valida mínimo y máximo.
 - **Sin menú de clic derecho, `subgrid` ni tooltip** para solo iconos (el nombre accesible sí está).
 - **Sin selección de texto con el puntero** en una tarjeta navegable (enlace estirado).
 - **Personalidad:** el círculo de selección necesita anclaje CSS (`anchor()`); sin él, el tinte se funde. El halo solo existe con ratón o lápiz sobre hover; la tarjeta con media de fondo no lo lleva.
 - **El esqueleto no promete la altura** de la tarjeta cargada; `skeleton` fiel reduce el salto.
-- **Chevron en «Mostrar más» y «Más detalles»:** el CSS ya lo contempla; el componente todavía no lo renderiza (pendiente de bruno).
 - **Sin verificar:** lector de pantalla real (nombre del `article` sin `aria-labelledby`, título-enlace, `aria-busy`, `role="status"`/`"alert"`, «Acciones de Título»), táctil real (pulsación larga sobre el enlace estirado), zoom al 200 %, `forced-colors` real de Windows (solo emulado), rendimiento con cientos de tarjetas (un `ResizeObserver` por tarjeta) y el esqueleto con datos ausentes reales.
 
 ## Fuentes

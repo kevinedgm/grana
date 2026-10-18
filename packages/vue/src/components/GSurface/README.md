@@ -144,11 +144,11 @@ Las emite el componente y las estiliza `GSurface.css`: `g-surface`, `g-surface--
 
 ## Limitaciones conocidas
 
-- **Todavía no la usan los demás componentes.** `GDialog`, `GWidget`, `GMenu`, `GSelect` y `GSidebar` conservan su propio CSS; migrarlos es trabajo de rondas propias.
-- **`zone="brand"` está contratada (#620–#625) y pendiente de coco y bruno**: la prop existe en el `meta.json` pero la construcción completa (CSS de la zona, defaults.css, CLI, pruebas) está en curso.
+- **Solo `GCard` y `GToaster` la componen.** `GDialog`, `GWidget`, `GMenu`, `GSelect` y `GSidebar` conservan su propio CSS; migrarlos es trabajo de rondas propias.
+- **Límites de la zona de marca** (DECISIONS #637): `--g-glass-filter` no se redeclara dentro, las sombras son literales y la zona no va en `<html>` con un tema del CLI. La zona está construida y verificada (`tests/zone.spec.mjs`; #620 a #625).
 - **Una tarjeta dentro de una inset** hace que la inset de esa tarjeta quede transparente (se respeta el límite de dos tonos). Si necesitas otra cosa, no anides así.
 - **`--g-surface-radius-inset` no se usa:** el radio concéntrico se calcula con el relleno real.
-- **Sin verificar:** `forced-colors` real (se probó emulado), Firefox y Safari (usa `:not()` con selectores complejos: Safari 9+, Firefox 84+) y zoom al 200%.
+- **Sin verificar:** `forced-colors` real (se probó emulado), Safari real y zoom al 200%. En Firefox y WebKit está medido que la superficie monta sin errores con el playground y que la zona de marca aplica sus tokens (`tests/library.spec.mjs`, `tests/zone.spec.mjs`); `:not()` con selectores complejos existe en los tres motores.
 
 ## Fuentes
 

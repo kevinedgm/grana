@@ -442,7 +442,7 @@ Con prefijo `[Grana Status]`, una vez por caso, solo fuera de producción: `set`
 
 - **El panel de voz abierto y la isla abierta se solapan** si se abren por teclado o por programa (con la voz y la isla bajo `top-center`): la isla queda encima. Con puntero, abrir uno cierra el otro (medido en los tres motores).
 - **La isla replegada puede tapar por completo un control pequeño** situado bajo ella (por ejemplo un buscador centrado en la cabecera): un elemento persistente no cambia de borde. Se evita con `position` u `offset` (aviso de desarrollo). WCAG 2.4.11 solo se garantiza para la isla **abierta**. Sin `offset`, a 1280px la compacta cubría controles de la cabecera fija del playground: ver la receta de «Tema».
-- **`GTable` no tiene estado de error propio** (#327): hoy, `GStatus` + marca en `empty`, y se anuncia «0 resultados» junto al error de la isla hasta que la tabla lo tenga.
+- **El error de una `GTable` lo da la tabla** (`error` + `retry`, enmienda de #327 por #540): la isla anuncia el fallo global de la aplicación, no el de cada región.
 - **Sin historial y sin persistencia:** el reconocimiento no sobrevive a una recarga. **Sin duplicados** entre servicios solo por regla de uso.
 - **WebKit:** no enfoca los botones con el ratón (la apertura automática usa el destino del último `pointerdown`) y el cambio de radio durante el morfo se interpola en solo 2 pasos medidos (frente a 5 o 6 en Chromium y Firefox); ancho y alto sí interpolan. No se ha visto a ojo en Safari real.
 - **Reservado y sin construir:** el control que pasa a «Reintentar» en el sitio (concepto A) y la línea de tiempo dentro del aviso (concepto C); historial; `icon` por condición; varias acciones; contenido rico; la sesión de voz como aviso de la isla.

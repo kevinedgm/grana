@@ -191,13 +191,13 @@ Las emite el componente y las estiliza `GSelect.css`: `g-select`, `g-select--var
 ## Limitaciones conocidas
 
 - **Ancho en un padre que se ajusta al contenido (#563, abierto).** `GSelect` no tiene contención en línea, así que en una celda `auto`, una rejilla centrada o un flex con `fit-content` mide lo que su etiqueta (~200 px), no un ancho por defecto como `GInput`. Dale ancho al padre o al componente. Ver `api.md` «Contención en línea y ancho intrínseco».
-- **Sin selección múltiple ni búsqueda** en v0.1 (otro patrón ARIA). Tampoco se crea una opción escribiendo: solo se **pide** con «Agregar nuevo…».
+- **Sin selección múltiple ni búsqueda:** para eso está [`GCombobox`](../GCombobox/README.md) (búsqueda con resultados de la aplicación, `multiple`). Tampoco se crea una opción escribiendo: solo se **pide** con «Agregar nuevo…».
 - **Sin validación nativa de `required`** (el campo oculto no se valida).
 - **Sin virtualización:** listas de miles de opciones pueden ser lentas.
 - **Lectores de pantalla táctiles en móvil:** `aria-activedescendant` puede no exponer las opciones de la hoja inferior; por verificar. Si falla, la alternativa prevista es mover el foco real a la lista en móvil.
 - **Estilos globales sin capa ganan:** una regla global tuya sobre `label`, `ul` o `li` (sin capa) gana al CSS de Grana (capa `grana.components`); acótala con un selector más específico.
 - **Tema oscuro:** `grana.css` ya trae el esquema oscuro por defecto (`defaults.css`): sigue `prefers-color-scheme` y se fuerza con `data-theme="dark"` o `data-theme="light"` en cualquier elemento (ver [«Tema oscuro» del README raíz](../../../../../README.md#tema-oscuro)). Al documentar no se repitieron en oscuro las cifras de contraste de este README.
-- **Sin verificar:** un lector de pantalla real (incluido cómo anuncia la fila «Agregar nuevo…» y los iconos), la hoja inferior con el teclado virtual, un dispositivo táctil real, las preferencias reales de `prefers-reduced-motion` y `forced-colors` (las reglas están escritas y se comprobaron aplicadas sin condición), y Firefox y Safari (`popover`, `::backdrop`, `:popover-open`, `:has()`).
+- **Sin verificar:** un lector de pantalla real (incluido cómo anuncia la fila «Agregar nuevo…» y los iconos), la hoja inferior con el teclado virtual, un dispositivo táctil real, `forced-colors` real de Windows (solo emulado en Chromium) y Safari real. El `popover` (abrir, elegir, cerrar) está medido en Chromium, Firefox y WebKit (`tests/library.spec.mjs` y `tests/panel-estable.spec.mjs`); `prefers-reduced-motion` está medido con la preferencia emulada en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`, 18/18 el 2026-10-18: con `reduce` ningún elemento conserva transiciones ni animaciones de movimiento).
 
 ## Fuentes
 

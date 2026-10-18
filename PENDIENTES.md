@@ -94,6 +94,7 @@ Recuperación tras cerrar la aplicación, contrato y kit de pruebas del audio te
 | `GTabs`: WebKit sin `overflow-clip-margin` (desborde +16px solo durante la entrada a sangre); el recorte corta sombras a > 4px del borde | — |
 | `GFormSection`: salto de 22px de lo de abajo al desaparecer la línea de resumen al abrir (aceptado, hallazgo 3) | lima |
 | `GRadioGroup`: «ЖШ» en `md` circular deja 0,1px de aire; tipografías más anchas podrían recortar | — |
+| `GFormFold`: `.g-form-fold__description` aplica `font-size` y `line-height` de `body-sm` pero omite `letter-spacing: var(--g-text-body-sm-tracking)` (H1 de su README; el token vale `0` en el tema por defecto, sin diferencia visual) | coco |
 | `AGENTS.md` asigna `*.meta.json` a bruno pero el agente coco cambia `status` (unificar) | usuario |
 | `GAccordion` · opcional, solo si alguien lo reporta (#519): Δ0 que cancele cuando la posición observada no es la que dejó la propia compensación (arrastrar la barra, `scrollTo` de la aplicación). Lo obligatorio de #515 y #517 está hecho (d042735, 15f377d) | bruno |
 | Regla de capas de #516 (`api.md` «Estilos de elemento de la aplicación…»): llevar la receta (capa anterior a las de Grana para los estilos de elemento) al README de `GCard`, `GDialog`, `GFormSection` y `GWidget`; hoy solo `GDialog/README.md` trae una nota parecida (acotar con `:not`), no la receta | mora-docs |

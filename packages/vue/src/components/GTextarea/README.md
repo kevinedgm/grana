@@ -157,7 +157,7 @@ Las emite el componente y las estiliza `GTextarea.css`: `g-textarea`, `g-textare
 - **Sin barra inferior, prefijo, sufijo ni acción**, y sin texto enriquecido.
 - **Estilos globales sin capa ganan:** una regla global tuya sobre `label` o `p` (sin capa) gana al CSS de Grana (capa `grana.components`); acótala con un selector más específico.
 - **Tema oscuro:** `grana.css` ya trae el esquema oscuro por defecto (`defaults.css`): sigue `prefers-color-scheme` y se fuerza con `data-theme="dark"` o `data-theme="light"` en cualquier elemento (ver [«Tema oscuro» del README raíz](../../../../../README.md#tema-oscuro)). Al documentar no se repitieron en oscuro las cifras de contraste de este README.
-- **Sin verificar:** un lector de pantalla real (etiqueta, ayuda, error y el aviso del contador), las preferencias reales de `prefers-reduced-motion` y `forced-colors` (las reglas están escritas y se comprobaron aplicadas sin condición), Firefox y Safari (tirador y `:has()`), y un dispositivo táctil real.
+- **Sin verificar:** un lector de pantalla real (etiqueta, ayuda, error y el aviso del contador), `forced-colors` real de Windows (solo emulado en Chromium), Safari real y un dispositivo táctil real. El tirador (`resize`) y el anillo del control por `:has()` están medidos en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`); `prefers-reduced-motion` está medido con la preferencia emulada en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`, 18/18 el 2026-10-18: con `reduce` ningún elemento conserva transiciones ni animaciones de movimiento).
 
 ## Fuentes
 

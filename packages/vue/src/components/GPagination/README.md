@@ -102,7 +102,7 @@ Solo lee tokens `--g-*`: `--g-color-text`, `--g-color-text-muted`, `--g-color-bo
 
 ## Limitaciones conocidas
 
-- **Sin verificar:** lector de pantalla real, Firefox y Safari, táctil real y zoom al 200%.
+- **Sin verificar:** lector de pantalla real, Safari real, táctil real y zoom al 200%. Las filas por página (pie acoplado, fila ancla, 360 px con puntero grueso) están medidas en Chromium, Firefox y WebKit (`tests/table-page-size.spec.mjs`).
 
 ## Fuentes
 
