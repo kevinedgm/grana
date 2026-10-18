@@ -502,6 +502,18 @@ describe('GAdaptiveLayout · pistas en el hijo (#364) y API corregida (#359, #36
     expect(fieldset.dataset.line).not.toBe(row.dataset.line)
     for (const message of messages) expect(message).not.toMatch(/Natural|Fila|Desconocida|Decimal|Negativo|Texto/)
   })
+  it('the order, dense and large warnings (#653 (4)) are still emitted, once each, now from the first width and from changes (not from `run`)', async () => {
+    const { resize } = stubEngine()
+    const warning = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const count = (text) => warning.mock.calls.filter(([m]) => m.startsWith('[Grana GAdaptiveLayout]') && m.includes(text)).length
+    const wrapper = own(mount(GAdaptiveLayout, { attachTo: document.body, style: 'grid-auto-flow: row dense', slots: { default: () => [
+      h(GInput, { label: 'Uno', style: 'order: 2' }),
+      ...Array.from({ length: 64 }, (_, i) => h(GInput, { label: `Campo ${i}` }))
+    ] } }))
+    for (const width of [1200, 900, 700, 1200, 600]) { resize(wrapper.element, width); await settle(30) }
+    expect(count('order/dense')).toBe(1)
+    expect(count('Más de 64')).toBe(1)
+  })
   it('GFormRow, GFieldGroup and GFormLayout roots get their own line even with a single control', async () => {
     const { resize } = stubEngine()
     const wrapper = own(mount(GAdaptiveLayout, { attachTo: document.body, slots: { default: () => [

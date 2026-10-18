@@ -82,6 +82,7 @@ jobs:
           cache-dependency-path: |
             package-lock.json
             design/lab/theme-playground/package-lock.json
+            design/lab/avisos-dev/package-lock.json
 
       # Las pruebas cargan /node_modules/vue de la raíz y el dist ya construido.
       - name: Instalar dependencias de la raíz
@@ -155,6 +156,19 @@ jobs:
       - name: Contención de tamaño (Chromium)
         working-directory: .
         run: node design/lab/contencion/verificar.mjs --engines=chromium
+
+      # Avisos de desarrollo (#636, #653): R1 (ninguno en producción con Vite y webpack 5), R2 (salen en desarrollo)
+      # y R3 (ESM sin empaquetar y UMD sin error) sobre el dist del artefacto, 13 comprobaciones en ~33 s.
+      # Vite, webpack 5 y vue del banco están en su propio package.json (lockfile propio). Usa el `playwright`
+      # de la raíz (1.63.0, la misma versión que el laboratorio) y, por tanto, el Chromium ya instalado arriba.
+      # Puertos propios 5393 a 5395, sin choque con los 4208 de Playwright.
+      - name: Instalar dependencias del banco de avisos
+        working-directory: design/lab/avisos-dev
+        run: npm ci
+
+      - name: Avisos de desarrollo (#636, #653)
+        working-directory: .
+        run: node design/lab/avisos-dev/verificar.mjs
 
       - name: Informe de Playwright (solo si falla)
         if: failure()

@@ -71,7 +71,6 @@ function run(width) {
   const el = root.value
   if (!el || !(width > 0)) return
   const kids = rowKids(el)
-  try { if (process.env.NODE_ENV !== 'production') checkChildren(kids) } catch {}
   if (!kids.length) return
   const cs = typeof getComputedStyle === 'function' ? getComputedStyle(el) : null
   const g = cs ? parseFloat(cs.getPropertyValue('--_form-row-gap')) || 0 : 0
@@ -137,6 +136,8 @@ onMounted(() => {
   if (typeof MutationObserver !== 'undefined') {
     mo = new MutationObserver((records) => {
       const relevant = records.some((r) => r.target === el || (r.type === 'attributes' && r.target.parentElement === el && !isTooltip(r.target)))
+      // Avisos (#653 (4)): se comprueban donde cambia lo que miran (al montar y aquí), no en cada medida de `run`
+      if (relevant) try { if (process.env.NODE_ENV !== 'production') checkChildren(rowKids(el)) } catch {}
       if (relevant && knownWidth(el)) scheduleRow(el)
     })
     mo.observe(el, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'] })
