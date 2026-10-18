@@ -1289,3 +1289,42 @@ describe('GMenu · elementos-enlace · avisos E4 y E5', () => {
     expect(warnsOf(warn).filter((m) => /\(E\d\)/.test(m))).toEqual([])
   })
 })
+
+// Clic con su cuenta de ráfaga (detail): test-utils no deja fijarla
+const clickN = async (wr, n) => { wr.element.dispatchEvent(new MouseEvent('click', { detail: n, bubbles: true, cancelable: true })); await settle() }
+
+describe('GMenu · una activación por gesto (#661, defecto L8)', () => {
+  it('doble clic en el disparador: el primero abre y el segundo (detail 2) no lo vuelve a cerrar', async () => {
+    const w = mk()
+    await clickN(trig(w), 1)
+    expect(w.vm.isOpen).toBe(true)
+    await clickN(trig(w), 2)
+    expect(w.vm.isOpen).toBe(true)
+    expect(trig(w).attributes('aria-expanded')).toBe('true')
+    // Un clic suelto después sí cierra
+    await clickN(trig(w), 1)
+    expect(w.vm.isOpen).toBe(false)
+  })
+
+  it('el segundo clic de una ráfaga sobre una casilla no vuelve a alternarla', async () => {
+    const w = mk({ open: true })
+    await settle()
+    const c = label(w, 'Reglas')
+    await clickN(c, 1)
+    await clickN(c, 2)
+    expect(w.emitted('select')).toHaveLength(1)
+  })
+
+  it('Intro o Espacio mantenidos (repeat) en un elemento no repiten la acción', async () => {
+    const w = mk({ open: true })
+    await settle()
+    const it0 = items(w)[0].element
+    for (const k of ['Enter', ' ']) {
+      const ev = new KeyboardEvent('keydown', { key: k, repeat: true, bubbles: true, cancelable: true })
+      it0.dispatchEvent(ev)
+      expect(ev.defaultPrevented, k).toBe(true)
+    }
+    expect(w.emitted('select')).toBeFalsy()
+    expect(w.vm.isOpen).toBe(true)
+  })
+})

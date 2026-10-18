@@ -14,6 +14,7 @@ import { anchorGone, followFrame, placeBlock, placeSubmenu, px, setVar, stickySi
 import { spaceUnit } from '../GForm/formContext.js'
 import { otherContext, newTab } from '../../utils/link.js'
 import { acquirePageLive, announcePage } from '../../utils/liveRegion.js'
+import { createHighlight, createPointer, createTypeahead, focusItem as focusNav, repeatGesture, stepTo } from '../../utils/menuNav.js'
 
 const TYPES = ['item', 'checkbox', 'radio', 'separator', 'group']
 const cls = (...v) => v.filter(Boolean)
@@ -116,8 +117,8 @@ export default defineComponent({
     let triggerEl = null
     let pendingFocus = 'first'
     let returnFocus = false
-    let typed = ''
-    let typedTimer = null
+    // Motor compartido con GFab (utils/menuNav.js, #657): la letra, el puntero de M1 y el resaltado
+    const typeahead = createTypeahead((x) => x.querySelector('.g-menu__label')?.textContent)
     let hoverTimer = null
     let listening = false
 
@@ -151,48 +152,14 @@ export default defineComponent({
     const itemByKey = (key) => listRef.value?.querySelector(`[data-key="${key}"]`)
 
     // Foco del *roving tabindex*. Con el puntero (M1): sin desplazar la lista y sin pedir el anillo de :focus-visible
-    const focusItem = (el, byPointer = false) => {
-      if (!el) return
-      itemsOf(menuOf(el)).forEach((x) => { x.tabIndex = -1 })
-      el.tabIndex = 0
-      if (byPointer) { el.focus({ preventScroll: true, focusVisible: false }); return }
-      el.focus()
-      el.scrollIntoView?.({ block: 'nearest' })
-    }
+    const focusItem = (el, byPointer = false) => { if (el) focusNav(el, itemsOf(menuOf(el)), byPointer) }
 
     // ---------- M1 · una sola luz que viaja (menu.md «Personalidad», #305) ----------
     // Activo de cada lista: el elemento enfocado en ella; con el foco en un submenú, el padre expandido. Datos para el
     // CSS (coco), en cada g-menu__list: --_active-y y --_active-h (px, respecto de la lista: el resaltado se desplaza
     // con el contenido) y has-highlight mientras haya activo; is-highlight-instant en la primera colocación (tras abrir
     // o tras no tener activo), retirada a los dos cuadros. Se escribe solo lo que cambia.
-    const raf = (fn) => (typeof requestAnimationFrame === 'function' ? requestAnimationFrame(fn) : setTimeout(fn, 16))
-    const instantTurn = new WeakMap()
-    const offsetIn = (el, menu) => {
-      let y = 0
-      for (let n = el; n && n !== menu; n = n.offsetParent) {
-        // La lista no es el contenedor de posición de sus elementos: por geometría
-        if (!n.offsetParent || !menu.contains(n.offsetParent)) {
-          return el.getBoundingClientRect().top - menu.getBoundingClientRect().top - menu.clientTop + menu.scrollTop
-        }
-        y += n.offsetTop
-      }
-      return y
-    }
-    const setVar = (menu, name, value) => { if (menu.style.getPropertyValue(name) !== value) menu.style.setProperty(name, value) }
-    const highlight = (menu, el) => {
-      const cl = menu.classList
-      if (!el) { if (cl.contains('has-highlight')) cl.remove('has-highlight'); return }
-      const first = !cl.contains('has-highlight')
-      if (first) {
-        const turn = (instantTurn.get(menu) || 0) + 1
-        instantTurn.set(menu, turn)
-        cl.add('is-highlight-instant')
-        raf(() => raf(() => { if (instantTurn.get(menu) === turn) menu.classList.remove('is-highlight-instant') }))
-      }
-      setVar(menu, '--_active-y', `${Math.round(offsetIn(el, menu))}px`)
-      setVar(menu, '--_active-h', `${el.offsetHeight}px`)
-      if (first) cl.add('has-highlight')
-    }
+    const highlight = createHighlight()
     let hlQueued = false
     const updateHighlights = () => {
       hlQueued = false
@@ -383,7 +350,7 @@ export default defineComponent({
         returnFocus = false
       }
     }, { flush: 'post' })
-    onBeforeUnmount(() => { if (releaseLive) releaseLive(); unlisten(); clearTimeout(hoverTimer); clearTimeout(holdTimer); clearTimeout(typedTimer); clearTimeout(leaveTimer) })
+    onBeforeUnmount(() => { if (releaseLive) releaseLive(); unlisten(); clearTimeout(hoverTimer); clearTimeout(holdTimer); typeahead.stop(); clearTimeout(leaveTimer) })
 
     // ---------- Submenús ----------
     const openSub = async (node, focusFirst) => {
@@ -403,7 +370,8 @@ export default defineComponent({
     // ---------- Activar ----------
     const shouldClose = (type) => props.closeOnSelect === 'always' || (props.closeOnSelect === 'auto' && type === 'item')
     const activate = (node, event) => {
-      if (node.raw.disabled) return
+      // Una activación por gesto (#661): el segundo clic de una ráfaga no ejecuta otra vez ni vuelve a alternar
+      if (node.raw.disabled || repeatGesture(event)) return
       if (node.children) { openSub(node, true); return }
       const type = node.type
       const payload = {
@@ -468,11 +436,11 @@ export default defineComponent({
     // ---------- Puntero: mueve el foco (M1) y respeta la diagonal hacia un submenú abierto (M4, #305) ----------
     // Solo ratón y lápiz: el toque y el teclado no cambian. Se actúa solo si el puntero se movió (un elemento que pasa
     // bajo el puntero quieto, al desplazar la lista o al abrirla, no le quita el foco al teclado).
-    let lastPt = null // última posición del puntero sobre el menú (o la del clic que lo abrió)
+    const ptr = createPointer() // ptr.at: última posición del puntero sobre el menú (o la del clic que lo abrió)
     let hovered = null // elemento al que el puntero ya movió el foco
     let holdEl = null // elemento cruzado de camino a un submenú (M4)
     let holdTimer = null
-    const resetPointer = () => { clearTimeout(holdTimer); holdTimer = null; holdEl = null; hovered = null; lastPt = null }
+    const resetPointer = () => { clearTimeout(holdTimer); holdTimer = null; holdEl = null; hovered = null; ptr.at = null }
     const cross = (p, q, r) => (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x)
     const inTriangle = (p, a, b, c) => {
       const d1 = cross(p, a, b)
@@ -510,10 +478,9 @@ export default defineComponent({
     const onPointer = (e) => {
       if (e.pointerType === 'touch') return
       setMod(isMod(e))
-      const pt = { x: e.clientX, y: e.clientY }
-      const prev = lastPt
-      lastPt = pt
-      if (prev && prev.x === pt.x && prev.y === pt.y) return
+      const prev = ptr.moved(e)
+      if (prev === false) return
+      const pt = ptr.at
       const el = e.target?.closest?.('.g-menu__item')
       if (!el || !listRef.value?.contains(el)) return
       if (el === hovered) {
@@ -555,18 +522,17 @@ export default defineComponent({
       const el = e.target.closest?.('.g-menu__item')
       const menu = el && menuOf(el)
       if (!el || !menu) return
+      // Intro o Espacio mantenidos no repiten la acción (#661)
+      if (repeatGesture(e)) { e.preventDefault(); return }
       // El teclado manda: la espera pendiente del puntero (HOVER_MS, o la de la diagonal) ya no aplica. Si venciera
       // después, abriría o cerraría submenús por un elemento sobre el que el puntero solo se quedó quieto.
       clearTimeout(hoverTimer); clearTimeout(holdTimer); holdTimer = null; holdEl = null
       const list = itemsOf(menu)
       const i = list.indexOf(el)
       const rtl = getComputedStyle(menu).direction === 'rtl'
-      const go = (n) => { e.preventDefault(); e.stopPropagation(); focusItem(list[(n + list.length) % list.length]) }
       const k = e.key
-      if (k === 'ArrowDown') return go(i + 1)
-      if (k === 'ArrowUp') return go(i - 1)
-      if (k === 'Home') return go(0)
-      if (k === 'End') return go(list.length - 1)
+      const to = stepTo(k, list, i)
+      if (to) { e.preventDefault(); e.stopPropagation(); focusItem(to); return }
       const openKey = rtl ? 'ArrowLeft' : 'ArrowRight'
       const closeKey = rtl ? 'ArrowRight' : 'ArrowLeft'
       const node = nodeOf(el)
@@ -602,15 +568,8 @@ export default defineComponent({
       }
       if (k === 'Escape') { e.preventDefault(); e.stopPropagation(); close(true); return }
       if (k === 'Tab') { close(false); return }
-      if (k.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey && k !== ' ') {
-        typed += k.toLowerCase()
-        clearTimeout(typedTimer)
-        typedTimer = setTimeout(() => { typed = '' }, 500)
-        const from = typed.length > 1 ? i : i + 1
-        const order = [...list.slice(from), ...list.slice(0, from)]
-        const hit = order.find((x) => x.querySelector('.g-menu__label')?.textContent.trim().toLowerCase().startsWith(typed))
-        if (hit) { e.preventDefault(); focusItem(hit) }
-      }
+      const hit = typeahead.key(e, list, i)
+      if (hit) { e.preventDefault(); focusItem(hit) }
     }
 
     // ---------- Marcado ----------
@@ -707,9 +666,11 @@ export default defineComponent({
         'aria-controls': listId,
         ref: (el) => { triggerEl = el },
         onClick: (e) => {
+          // Una activación por gesto (#661, L8): el segundo clic de un doble clic no cierra lo que el primero abrió
+          if (repeatGesture(e)) return
           if (props.modelValue) { close(true); return }
           // Posición del clic: si la lista aparece bajo el puntero quieto, no le quita el foco al primer elemento
-          if (e && e.detail > 0) lastPt = { x: e.clientX, y: e.clientY }
+          if (e && e.detail > 0) ptr.at = { x: e.clientX, y: e.clientY }
           requestOpen('first')
         },
         onKeydown: onTriggerKeydown
