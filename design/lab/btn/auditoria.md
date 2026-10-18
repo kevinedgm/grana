@@ -125,3 +125,41 @@ En forced-colors las cuatro variantes con caja se ven iguales (todas con borde d
 - **Redondeo a enteros** si el usuario lo prefiere sobre media rejilla (cuatro alturas del tema por defecto cambian ±0,5px).
 - **Generalizar `round()` al sistema** (decisión nueva para lima; no se hizo).
 - Un tema generado con `@grana/cli` (los resultados dependen de la marca) sigue sin medirse en este cierre.
+
+---
+
+# Addendum 2026-10-18 (segunda tanda) · superficie de marca y temas del CLI (coco)
+
+**Spec:** `design/lab/theme-playground/tests/btn-limitaciones.spec.mjs` (bloques 3, 5 y 6 ampliados; 87 pruebas por pasada en los tres motores con `--workers=1`, `GRANA_PW_PORT=4209`; `VERBOSE=1` imprime las tablas de 35 combinaciones). **Sin cambios en `GBtn.css`: no hay defecto del componente.** Cifras de Chromium; Firefox y WebKit pasan las mismas aserciones. Texto = texto contra el fondo compuesto del botón; forma = relleno (`solid`) o borde (`outline`) contra la superficie que hay detrás; reposo, hover y active de 7 colores × 5 variantes.
+
+## 1. Sobre una superficie de marca (tema por defecto)
+
+Dos montajes: solo el fondo (`background: var(--g-color-brand)`, el caso del README) y `data-g-zone="brand"` (tokens.md §44, la zona que redeclara el grupo de color).
+
+| Montaje | Texto mínimo | Borde de `outline` mínimo | Relleno de `solid` mínimo | Combinaciones bajo el umbral (4,5 texto; 3 forma) |
+| --- | --- | --- | --- | --- |
+| Solo fondo `brand`, claro | **1,00** (`brand` `outline`/`ghost`/`link`) | 1,00 | 1,00 (`brand`) | 65 de 105 |
+| Solo fondo `brand`, oscuro | 1,00 | 1,00 | 1,00 | 53 de 105 |
+| `data-g-zone="brand"`, claro | **4,76** (`success` `soft`) | **5,55** | **2,06** (`warning` hover) | 10, todas el relleno de `solid` semántico |
+| `data-g-zone="brand"`, oscuro | 4,51 (`success` `soft`) | 5,55 | **4,37** (`danger`) | **0** |
+
+- **Solo fondo: amplía lo que decía el README.** Además de `brand` sobre `brand` (invisible) y los rellenos de `accent`/`warning`/`info`, el **texto de `outline`, `ghost` y `link` de los seis colores no `brand` cae a 2,88 a 3,37:1 en reposo** (su `*-text` está pensado para la página, no para la marca), y `link` se queda ahí en hover y active porque no cambia de color. El relleno de `solid` en hover baja a 2,06 a 2,21 (claro) y 2,61 a 2,65 (oscuro): `strong` se acerca a una marca oscura. `soft` y los estados con fondo `soft` (hover de `outline`/`ghost`) sí pasan (texto 4,52 a 14,46).
+- **Con zona se resuelve el texto y el contorno en los dos esquemas** (texto ≥ 4,51, `outline` ≥ 5,55, `brand` `solid` 16,48 como tinta invertida, `neutral` `soft` 9,59 como velo). Lo único que queda es la **forma del relleno `solid` semántico contra la marca en claro**: `success`/`danger` en hover y active (2,13 a 2,17) y `warning`/`info` también en reposo (2,88 y 2,90). No es de `GBtn`: la zona deja los rellenos con su par (#44.1, «no dependen del fondo»), el texto del botón sigue ≥ 4,81 y el motor no garantiza el relleno como forma (§7.1). Queda anotado para lima/usuario; no se tocó `defaults.css`.
+- **forced-colors (Chromium, y las reglas en Firefox y WebKit):** sobre el fondo de marca y dentro de la zona se cumplen las mismas garantías del primer addendum (borde `ButtonText` en reposo, `Highlight` en hover y active, `GrayText` deshabilitado, enlace `Canvas`, texto distinto del fondo). Dentro de la zona los colores del sistema se resuelven con el `color-scheme` de la zona (`Highlight` distinto del de la página): la sonda va dentro de la zona.
+
+## 2. Temas generados con `@grana/cli` (API real `buildTheme`, CSS sin capa tras `grana.css`)
+
+Cinco temas, claro y oscuro (los de `dark: false`, con la consulta del sistema y no con `data-theme="dark"`: el CLI avisa de que forzarlo mezclaría el oscuro de los defaults con colores claros). Todos con `ok = true` y 0 errores del CLI.
+
+| Tema | Texto mín. claro / oscuro | `outline` mín. | Relleno `solid` mín. (forma) |
+| --- | --- | --- | --- |
+| T1 marca oscura `#1B1F4B` | 4,67 / 4,51 | 5,32 / 4,52 | 5,32 / 4,52 |
+| T2 marca amarilla `#F2C200` | 4,60 / 4,51 | 4,64 / 4,52 | **1,68** (`brand`; hover y active 2,22) claro · 4,52 oscuro |
+| T3 saturado `#E6007E` + acento `#00A3FF` | **4,50** (`brand` `solid`) / 4,51 | 4,50 / 4,55 | **2,73** (`accent`) claro · 4,55 oscuro |
+| T4 `dark: false` `#7A1F5C` + `#0F766E` | 4,68 / 4,68 | 5,34 / 5,34 | 5,34 / 5,34 |
+| T5 `primary` `#FFD400` sobre marca `#0F3D2E`, `space: 4.375` | 4,62 / 4,51 | 4,62 / 4,51 | **1,43** (`brand` = primary; hover y active 1,86) claro · 4,51 oscuro |
+
+- **Texto y contorno de `outline`: 0 fallos en las 10 pasadas** (reposo, hover, active; en `disabled`, exento). El motor cumple su garantía; `GBtn` solo lee los pares. T3 claro queda en 4,50 exacto, sin margen.
+- **Relleno de `solid` como forma < 3:1 con marcas pálidas o claras (T2, T3 y T5 en claro): es del motor, no de `GBtn`.** El motor garantiza la familia como relleno **con su par** (`{familia}`/`on-{familia}` ≥ 4,5), no como forma contra la superficie (tokens.md §7.1, el mismo hallazgo que `GCheckbox`). El texto del botón se lee; el relleno amarillo (1,43 a 1,68) no se separa de la página. No se cambió el CSS: añadir un contorno `*-text` al `solid` es decisión de lima/usuario (reglas de §7.1 para controles marcados), no un defecto.
+- **Alturas:** con `space: 4.375` (T5), las 15 combinaciones salen = `max(24, round(…, 0.5px))` (md 39,5 / 34,5 / 29,5). En los demás, idénticas a `estilo.md`.
+- **Aviso, no del componente:** T4 con `data-theme="dark"` forzado (no medido como aserción; observado al afinar): `brand` pasa a 1,77:1 sobre la superficie oscura de los defaults, porque `dark: false` no genera oscuro. Es el aviso documentado del CLI.

@@ -128,6 +128,7 @@ Spec `design/lab/theme-playground/tests/personalidad-btn.spec.mjs` sobre el `GBt
 | Sin `linear()` | `transform` 160ms con `--g-ease-out`; colores a 120ms |
 | Cuadros en tiempo real (un worker) | 21 a 22 en 320ms, 13 valores de escala, en los tres motores |
 | Táctil emulado | área de 44 × 44 |
+| iOS Safari 26 (simulador iPhone 17 Pro, toques inyectados; `manual`, 2026-10-18, banco `design/lab/btn/tactil.html` sobre `dist/grana.css`) | `pointer: coarse` y `hover: none` activos; `xs` `compact`: área de 44 × 44 sobre una caja de 26,8 × 24; un toque 9px por debajo de la caja visible activa el botón; al mantener, escala 0,97; al levantar, transición `linear()` de ~240ms con pico 1,00589 y 13 valores distintos, final 1. Límite: es el simulador y iOS corrige el punto del toque hacia el control más cercano, así que «fuera del área» no se puede aislar |
 | Solo Chromium | 5 cuadros intermedios en tiempo real en etiqueta e indicador; nombre accesible en carga = «Enviar informe» (árbol de accesibilidad por CDP) |
 
 ## Sobre una superficie de marca
@@ -148,7 +149,9 @@ Si pones un `GBtn` sobre un fondo `var(--g-color-brand)` (cabecera, barra o pane
 - **Evita la misma familia que el fondo** (`color="brand"`) sobre una superficie `brand`: no es un fallo del botón, es que sus roles `brand` y `brand-text` valen lo mismo que el fondo.
 - **Las variantes `soft` son las que conservan una forma clara** (≥ 12,8:1 contra la superficie) con un texto ≥ 4,5:1 en ambos esquemas del tema por defecto.
 - Un `soft` cuyo texto ronda 4,5:1 mide casi lo mismo que un botón deshabilitado (4,47 en claro, 5,65 en oscuro con el tema por defecto): no hay diferencia de contraste que los separe. Un informe de integración midió 4,68:1 para `neutral` `soft` con su tema y lo leyó como deshabilitado, y `accent` `soft` le funcionó mejor; **ese tema no se reprodujo aquí**. Mide con tus tokens (los tuyos mandan: el tema va sin capa).
-- **Hover y active** se midieron sobre la superficie por defecto, en claro y oscuro, y `forced-colors` en Chromium; **no medido:** esos estados sobre `--g-color-brand` ni un tema generado con `@grana/cli` (los resultados dependen de tu `brand`).
+- **Con solo el fondo de marca, `outline`, `ghost` y `link` de los colores que no son `brand` quedan en 2,88 a 3,37:1 en reposo** (su `*-text` está pensado para la página, no para la marca), y `link` no mejora en hover ni en active porque no cambia de color. El relleno de `solid` en hover baja a 2,06 a 2,21 (claro) y 2,61 a 2,65 (oscuro). `soft` y los fondos `soft` de hover sí pasan (texto 4,52 a 14,46).
+- **Recomendado: `data-g-zone="brand"` en el contenedor o `<GSurface zone="brand">`** (tokens.md §44). Dentro de la zona, texto ≥ 4,51 y borde de `outline` ≥ 5,55 en claro y oscuro (`brand` `solid` 16,48 como tinta invertida). Aviso: **en claro, el relleno de `solid` semántico mide 2,06 a 2,90 contra la marca** (`warning` en hover 2,06; `success`/`danger` en hover y active 2,13 a 2,17; `warning`/`info` también en reposo, 2,88 y 2,90); el texto del botón sí pasa (≥ 4,81) y el motor no garantiza el relleno como forma (tokens.md §7.1). En oscuro no hay combinaciones bajo el umbral.
+- **Hover y active** medidos sobre la superficie por defecto y sobre la marca (solo fondo y zona), en claro y oscuro, 7 colores × 5 variantes; `forced-colors` verificado también sobre la marca y dentro de la zona (borde `ButtonText`, `Highlight` en hover y active, `GrayText` deshabilitado). Nivel: `medido`, `design/lab/theme-playground/tests/btn-limitaciones.spec.mjs` en los tres motores ([auditoría](../../../../../design/lab/btn/auditoria.md), segundo addendum 2026-10-18).
 
 ## Tema
 
@@ -187,9 +190,20 @@ Con soporte de `round()` de CSS, la altura del botón se redondea a **0,5px** (#
   | Relleno de `solid`, mínimo | 4,52 (`danger`) | 5,33 (`neutral`) |
   | Texto de `disabled` | 5,65 y 6,21 | 4,47 y 5,10 |
 
-  Todo pasa (texto ≥ 4,5; forma de `outline` y `solid` ≥ 3), pero varias combinaciones lo hacen por centésimas (4,51 a 4,53 en `soft` y en hover y active de `outline` y `ghost`): un tema que oscurezca `*-soft` o `on-*-soft` las bajará de 4,5. En oscuro el texto de los siete `soft` (4,51 a 4,66) mide menos que el de `disabled`. No hay un tema generado con `@grana/cli` medido.
-- **`forced-colors`:** verificado en Chromium con la emulación que fuerza los colores: borde `ButtonText` (`link` sin caja, borde `Canvas`), hover y active con `Highlight`, `disabled` en `GrayText`, foco `Highlight` de 2px. En Firefox y WebKit la emulación solo activa la consulta de medios (no sustituye colores). **Queda:** Windows con contraste alto real. Hover y active de `soft`, `outline`, `ghost` y `link`, verificados en los siete colores en claro y oscuro.
-- **Personalidad:** verificado el camino sin `linear()` (`transform` a `--g-duration-press` 160ms con `--g-ease-out`; los colores siguen en 120ms), el conteo de cuadros en los tres motores con un worker (21 a 22 cuadros en 320ms, 13 valores de escala) y el táctil emulado (área de 44 × 44). **Queda:** un dispositivo táctil real.
+  Todo pasa (texto ≥ 4,5; forma de `outline` y `solid` ≥ 3), pero varias combinaciones lo hacen por centésimas (4,51 a 4,53 en `soft` y en hover y active de `outline` y `ghost`): un tema que oscurezca `*-soft` o `on-*-soft` las bajará de 4,5. En oscuro el texto de los siete `soft` (4,51 a 4,66) mide menos que el de `disabled`. 
+- **Temas generados con `@grana/cli` (medido, claro y oscuro, reposo, hover y active; 5 temas, 0 errores del CLI):** el texto y el contorno de `outline` pasan en todos (0 fallos en 10 pasadas; el motor cumple su garantía). Mínimos:
+
+  | Tema | Texto mín. claro / oscuro | `outline` mín. | Relleno `solid` mín. (forma) |
+  | --- | --- | --- | --- |
+  | Marca oscura `#1B1F4B` | 4,67 / 4,51 | 5,32 / 4,52 | 5,32 / 4,52 |
+  | Marca amarilla `#F2C200` | 4,60 / 4,51 | 4,64 / 4,52 | 1,68 claro · 4,52 oscuro |
+  | Saturado `#E6007E` + acento `#00A3FF` | 4,50 / 4,51 | 4,50 / 4,55 | 2,73 claro · 4,55 oscuro |
+  | `dark: false` `#7A1F5C` + `#0F766E` | 4,68 / 4,68 | 5,34 / 5,34 | 5,34 / 5,34 |
+  | `primary` `#FFD400` sobre marca `#0F3D2E`, `space: 4.375` | 4,62 / 4,51 | 4,62 / 4,51 | 1,43 claro · 4,51 oscuro |
+
+  Con un `primary` o una marca pálidos (amarillo, cian), **el relleno de `solid` se confunde con la página (1,43 a 2,73:1) aunque el texto pase**: el motor garantiza el par de texto (`{familia}`/`on-{familia}` ≥ 4,5), no el relleno como forma. Si importa distinguir el botón, usa `outline` o un tono más oscuro. Con `space: 4.375` las alturas salen `max(24, round(…, 0.5px))`. **`dark: false`:** el oscuro se obtiene con la consulta del sistema; forzar `data-theme="dark"` lo rompe (la marca llega a 1,77:1 sobre la superficie oscura de los defaults; es el aviso del CLI).
+- **`forced-colors`:** verificado en Chromium con la emulación que fuerza los colores: borde `ButtonText` (`link` sin caja, borde `Canvas`), hover y active con `Highlight`, `disabled` en `GrayText`, foco `Highlight` de 2px. En Firefox y WebKit la emulación solo activa la consulta de medios (no sustituye colores). Verificado también sobre el fondo de marca y dentro de `data-g-zone="brand"`. **Queda:** Windows con contraste alto real (Chromium emulado hace la misma sustitución de colores que Edge). Hover y active de `soft`, `outline`, `ghost` y `link`, verificados en los siete colores en claro y oscuro.
+- **Personalidad:** verificado el camino sin `linear()` (`transform` a `--g-duration-press` 160ms con `--g-ease-out`; los colores siguen en 120ms), el conteo de cuadros en los tres motores con un worker (21 a 22 cuadros en 320ms, 13 valores de escala) y el táctil emulado (área de 44 × 44). **El táctil está verificado en Safari de iOS 26** (simulador iPhone 17 Pro; ver la tabla de verificación). **Queda:** un dispositivo físico, ya no como hueco de verificación del comportamiento sino como comprobación de sensación (el simulador no es un dedo sobre un cristal).
 
 ## Fuentes
 

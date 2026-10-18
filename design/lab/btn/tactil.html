@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GBtn · banco táctil</title>
+<!-- Banco para Safari de iOS (simulador o dispositivo): toque real sobre el CSS de dist. Sirve la raíz del repo
+     (python3 -m http.server 4175) y abre http://localhost:4175/design/lab/btn/tactil.html -->
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<style>
+  body { margin: 0; padding: 24px; font-family: var(--g-font-ui); background: var(--g-color-surface); color: var(--g-color-text); }
+  .row { display: flex; gap: 48px; align-items: center; margin-block: 40px; }
+  #out { font: 12px/1.5 ui-monospace, monospace; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<div class="row">
+  <button id="xs" class="g-btn g-btn--color-brand g-btn--variant-solid g-btn--size-xs g-btn--density-compact" type="button"><span class="g-btn__label">xs</span></button>
+  <button id="md" class="g-btn g-btn--color-brand g-btn--variant-solid g-btn--size-md g-btn--density-default" type="button"><span class="g-btn__label">Mantener</span></button>
+</div>
+<pre id="out"></pre>
+<script>
+  const out = document.getElementById('out');
+  const log = (s) => { out.textContent += s + '\n'; };
+  const xs = document.getElementById('xs');
+  const md = document.getElementById('md');
+  const r = xs.getBoundingClientRect();
+  const a = getComputedStyle(xs, '::after');
+  log(`pointer:coarse=${matchMedia('(pointer: coarse)').matches} hover:none=${matchMedia('(hover: none)').matches}`);
+  log(`xs caja=${r.width.toFixed(1)}x${r.height.toFixed(1)} area=${a.width}x${a.height}`);
+  log(`xs centro=(${(r.left + r.width / 2).toFixed(0)},${(r.top + r.height / 2).toFixed(0)}) borde inf=${r.bottom.toFixed(0)}`);
+  let clicks = 0;
+  xs.addEventListener('click', (e) => { clicks++; log(`xs click #${clicks} en y=${e.clientY.toFixed(0)}`); });
+
+  // Escala muestreada por cuadro desde touchstart hasta 600ms tras touchend
+  const scale = () => { const t = getComputedStyle(md).transform; return t === 'none' ? 1 : +t.split('(')[1].split(',')[0]; };
+  // Temporizador de 4ms (no rAF: en el simulador rAF puede no correr entre capturas) y la transición real con getAnimations()
+  let samples = [], phase = '', timer = 0;
+  md.addEventListener('touchstart', () => {
+    samples = []; phase = 'down'; clearInterval(timer);
+    timer = setInterval(() => samples.push([phase, scale()]), 4);
+  }, { passive: true });
+  md.addEventListener('touchend', () => {
+    phase = 'up';
+    requestAnimationFrame(() => setTimeout(() => {
+      const t = md.getAnimations().find(x => x.transitionProperty === 'transform');
+      if (t) { const k = t.effect.getComputedTiming(); log(`transición al soltar: ${k.duration}ms ${t.effect.getTiming().easing.slice(0, 24)}…`); }
+      else log('transición al soltar: ninguna');
+    }, 20));
+    setTimeout(() => { clearInterval(timer); report(); }, 600);
+  });
+  function report() {
+    const down = samples.filter(s => s[0] === 'down').map(s => s[1]);
+    const up = samples.filter(s => s[0] === 'up').map(s => s[1]);
+    log(`md pulsado: min=${Math.min(...down).toFixed(4)} muestras=${down.length}`);
+    log(`md soltado: pico=${Math.max(...up).toFixed(5)} muestras=${up.length} distintas=${new Set(up.map(v => v.toFixed(4))).size} >1:${up.filter(v => v > 1.0005).length} final=${up.at(-1).toFixed(4)}`);
+  }
+</script>
+</body>
+</html>

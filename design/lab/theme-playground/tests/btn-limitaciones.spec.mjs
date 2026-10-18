@@ -111,9 +111,11 @@ const probeSrc = () => {
   const over = (t, b) => { const a = t[3]; return [t[0] * a + b[0] * (1 - a), t[1] * a + b[1] * (1 - a), t[2] * a + b[2] * (1 - a), 1] }
   const lum = (k) => { const f = (v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4 }; return 0.2126 * f(k[0]) + 0.7152 * f(k[1]) + 0.0722 * f(k[2]) }
   const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05) }
-  const surface = over(rgba(getComputedStyle(document.body).backgroundColor), [255, 255, 255, 1])
+  // La superficie es lo que hay detrás del botón: se compone desde el ancestro más cercano con fondo hasta el lienzo blanco
+  const surfaceOf = (el) => { const layers = []; for (let n = el.parentElement; n; n = n.parentElement) { const k = rgba(getComputedStyle(n).backgroundColor); if (k[3] > 0) { layers.push(k); if (k[3] >= 1) break } } let base = [255, 255, 255, 1]; for (let i = layers.length - 1; i >= 0; i--) base = over(layers[i], base); return base }
   window.__read = (el) => {
     const cs = getComputedStyle(el)
+    const surface = surfaceOf(el)
     const bg = over(rgba(cs.backgroundColor), surface)
     const fg = over(rgba(cs.color), bg)
     const bw = parseFloat(cs.borderTopWidth)
@@ -133,9 +135,10 @@ const probeSrc = () => {
 
 const settle = (page) => page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished.catch(() => {}))))
 
-async function gridPage(page, theme) {
+async function gridPage(page, theme, { surface = '', zone = false, tokens = '' } = {}) {
   const rows = COLORS.map((c) => `<div class="row">${VARIANTS.map((v) => btn(`g-btn--color-${c} g-btn--variant-${v}`, 'Guardar', `data-c="${c}" data-v="${v}"`)).join('')}${VARIANTS.map((v) => btn(`g-btn--color-${c} g-btn--variant-${v}`, 'Guardar', `data-c="${c}" data-v="${v}" data-dis disabled`)).join('')}</div>`).join('')
-  await open(page, rows, { theme })
+  // Sin transiciones: se miden los valores finales de cada estado, no los cuadros intermedios
+  await open(page, zone ? `<div data-g-zone="brand" style="padding:24px;margin:-24px">${rows}</div>` : rows, { theme, head: `.g-btn{transition:none!important}${surface}${tokens}` })
   await page.evaluate(probeSrc)
 }
 
@@ -206,15 +209,21 @@ test.describe('2 · GBtn contraste por estado, claro y oscuro (tema por defecto)
   })
 })
 
+const BRAND_BODY = 'body{background:var(--g-color-brand);color:var(--g-color-on-brand)}'
 test.describe('3 · GBtn forced-colors', () => {
-  test('borde ButtonText, foco Highlight, disabled GrayText, texto visible; hover y active de las cuatro variantes', async ({ page, browserName }) => {
+  for (const [title, opts] of [
+    ['borde ButtonText, foco Highlight, disabled GrayText, texto visible; hover y active de las cuatro variantes', {}],
+    ['sobre una superficie de marca (fondo --g-color-brand): mismas garantías', { surface: BRAND_BODY }],
+    ['dentro de data-g-zone="brand": mismas garantías', { zone: true }]
+  ]) test(title, async ({ page, browserName }) => {
     await page.emulateMedia({ forcedColors: 'active' })
-    await gridPage(page)
+    await gridPage(page, undefined, opts)
     const active = await page.evaluate(() => matchMedia('(forced-colors: active)').matches)
     test.skip(!active, `${browserName} no emula forced-colors: active`)
+    // La zona redeclara color-scheme: los colores del sistema se resuelven dentro de ella (la sonda va dentro)
     const sys = await page.evaluate(() => {
       const r = {}
-      for (const k of ['ButtonText', 'Highlight', 'GrayText', 'ButtonFace', 'Canvas']) { const d = document.createElement('i'); d.style.color = k; document.body.append(d); r[k] = getComputedStyle(d).color; d.remove() }
+      for (const k of ['ButtonText', 'Highlight', 'GrayText', 'ButtonFace', 'Canvas']) { const d = document.createElement('i'); d.style.color = k; (document.querySelector('[data-g-zone]') || document.body).append(d); r[k] = getComputedStyle(d).color; d.remove() }
       return r
     })
     const reads = []
@@ -343,4 +352,89 @@ test.describe('4 · GBtn personalidad', () => {
     if (V) console.log(`[táctil ${test.info().project.name}] áreas ${JSON.stringify(r)} toques en xs ${n}`)
     await ctx.close()
   })
+})
+
+// ============================================================ 5 y 6 · superficie de marca y temas del CLI
+const summarize = (data) => {
+  const min = { text: [99, ''], outline: [99, ''], solid: [99, ''], soft: [99, ''], disabled: [99, ''] }
+  const fails = []
+  const put = (m, v, key) => { if (v < min[m][0]) min[m] = [v, key] }
+  for (const { c, v, rest, hover, active, disabled } of data) {
+    for (const [st, r] of [['reposo', rest], ['hover', hover], ['active', active]]) {
+      const key = `${c} ${v} ${st}`
+      put('text', r.text, key)
+      if (r.text < 4.5) fails.push(`${key}: texto ${r.text.toFixed(2)}`)
+      if (v === 'outline') { put('outline', r.border, key); if (r.border < 3) fails.push(`${key}: borde ${r.border.toFixed(2)}`) }
+      if (v === 'solid') { put('solid', r.fill, key); if (r.fill < 3) fails.push(`${key}: relleno ${r.fill.toFixed(2)}`) }
+      if (v === 'soft') put('soft', Math.max(r.fill, r.border), key)
+    }
+    put('disabled', disabled.text, `${c} ${v}`)
+  }
+  return { min, fails }
+}
+const fmt = (m) => Object.entries(m).map(([k, [x, key]]) => `${k} ${x.toFixed(2)} (${key})`).join(' · ')
+
+test.describe('5 · GBtn sobre una superficie de marca', () => {
+  test.setTimeout(180_000)
+  for (const scheme of ['light', 'dark']) for (const [kind, opts] of [['fondo --g-color-brand', { surface: BRAND_BODY }], ['data-g-zone="brand"', { zone: true }]]) {
+    test(`${scheme} · ${kind}`, async ({ page }) => {
+      await gridPage(page, scheme, opts)
+      const data = await readStates(page)
+      const { min, fails } = summarize(data)
+      const lines = data.map(({ c, v, rest, hover, active, disabled }) => `${c} ${v}: texto ${rest.text.toFixed(2)}/${hover.text.toFixed(2)}/${active.text.toFixed(2)} · forma ${Math.max(rest.fill, rest.border).toFixed(2)}/${Math.max(hover.fill, hover.border).toFixed(2)}/${Math.max(active.fill, active.border).toFixed(2)} · disabled ${disabled.text.toFixed(2)}`)
+      console.log(`[marca ${scheme} ${kind} ${test.info().project.name}] ${fmt(min)}\n  fallos (${fails.length}): ${fails.join(' | ')}`)
+      if (V) console.log(lines.join('\n'))
+      const duras = fails.filter((f) => !f.includes('relleno'))
+      if (opts.zone) {
+        // La zona de marca garantiza texto (≥ 4,5) y contorno de outline (≥ 3) en los siete colores, claro y oscuro (tokens.md §44).
+        // El relleno de solid semántico contra la marca (2,06 a 3,08 en claro) es forma no garantizada: se anota
+        expect(duras, duras.join('\n')).toEqual([])
+        if (scheme === 'dark') expect(fails, fails.join('\n')).toEqual([])
+      } else {
+        // Sin zona (solo fondo): lo documentado en el README. La familia brand sobre brand desaparece y el resto cae bajo 4,5 en reposo
+        expect(fails.some((f) => f.startsWith('brand outline reposo: texto 1.00')), 'brand sobre brand invisible').toBe(true)
+      }
+    })
+  }
+})
+
+// Temas generados con el CLI real (packages/cli): se cargan sin capa después de grana.css, como lo haría un proyecto.
+const { buildTheme } = await import('../../../../packages/cli/src/index.js')
+const CLI_THEMES = [
+  { name: 'T1 marca oscura #1B1F4B', config: { brand: '#1B1F4B', dark: true } },
+  { name: 'T2 marca clara amarilla #F2C200', config: { brand: '#F2C200', dark: true } },
+  { name: 'T3 saturado #E6007E + acento #00A3FF', config: { brand: '#E6007E', accent: '#00A3FF', dark: true } },
+  { name: 'T4 sin dark #7A1F5C + #0F766E', config: { brand: '#7A1F5C', accent: '#0F766E', dark: false } },
+  { name: 'T5 primary #FFD400 sobre marca #0F3D2E, space 4.375', config: { brand: '#0F3D2E', primary: '#FFD400', space: 4.375, dark: true } }
+]
+
+test.describe('6 · GBtn con temas generados por @grana/cli', () => {
+  test.setTimeout(240_000)
+  for (const th of CLI_THEMES) for (const scheme of ['light', 'dark']) {
+    test(`${th.name} · ${scheme}`, async ({ page }) => {
+      const r = buildTheme(th.config)
+      const errors = (r.issues || []).filter((i) => i.severity === 'error' || i.level === 'error')
+      console.log(`[cli ${th.name}] ok=${r.ok} errores=${errors.length} avisos=${(r.issues || []).length - errors.length}`)
+      test.skip(!r.css, `el CLI rechazó el tema: ${JSON.stringify(r.issues).slice(0, 300)}`)
+      // dark:false: el CLI restablece el claro dentro de la consulta oscura (tokens.md / README del CLI); forzar data-theme="dark"
+      // mezclaría el oscuro de los defaults con colores claros (aviso documentado), así que se usa la consulta del sistema
+      const viaMedia = scheme === 'dark' && th.config.dark === false
+      if (viaMedia) await page.emulateMedia({ colorScheme: 'dark' })
+      await gridPage(page, viaMedia ? undefined : scheme, { tokens: r.css })
+      const data = await readStates(page)
+      const { min, fails } = summarize(data)
+      console.log(`[cli ${th.name} ${scheme} ${test.info().project.name}] ${fmt(min)}\n  fallos (${fails.length}): ${fails.join(' | ')}`)
+      // Alturas: mismo cálculo que el bloque 1, con el espacio del tema
+      const space = th.config.space || 4
+      await page.evaluate((cells) => { document.body.insertAdjacentHTML('beforeend', cells) }, matrix().map(({ s, d }) => `<div class="row">${btn(`g-btn--size-${s} g-btn--density-${d}`, 'Guardar', `data-k="${s}-${d}"`)}</div>`).join(''))
+      const hs = await page.evaluate(() => [...document.querySelectorAll('[data-k]')].map((b) => [b.dataset.k, b.getBoundingClientRect().height]))
+      for (const [k, h] of hs) { const [s, d] = k.split('-'); expect(h, `${th.name} ${k}`).toBeCloseTo(expectedH(space, s, d), 1) }
+      // Texto ≥ 4,5 y borde de outline ≥ 3 los garantiza el motor (par {familia}/on-{familia} y {familia}-text sobre la superficie).
+      // El relleno de solid como FORMA contra la superficie no (tokens.md §7.1): se anota, no se exige
+      const forma = fails.filter((f) => f.includes('relleno'))
+      const duras = fails.filter((f) => !f.includes('relleno'))
+      if (forma.length) console.log(`[cli ${th.name} ${scheme}] forma del relleno de solid < 3:1 (no garantizada por el motor): ${forma.join(' | ')}`)
+      expect(duras, duras.join('\n')).toEqual([])
+    })
+  }
 })
