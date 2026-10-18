@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Botón flotante · r01</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="./fab.css">
+</head>
+<body>
+<header class="lab-bar"><strong>Botón flotante con acciones (GFab) · r01</strong>
+  <a href="#base">Base</a> <a href="#A">A · La pila que crece</a> <a href="#B">B · Arco con gesto</a> <a href="#C">C · Acción con cola</a> <a href="#estados">Estados</a> <a href="#comparar">Comparar</a>
+  <span class="cap" style="margin:0">Parámetros: <code>?dir=rtl</code>, <code>?theme=dark</code>, <code>?solo=A&amp;n=10</code> (fijo al visor; <code>&amp;dock=1&amp;speech=1&amp;toast=1</code>, <code>&amp;pos=bottom-start|bottom-center|top-end</code>)</span>
+</header>
+<main class="lab" id="app">
+  <h1>Una acción que flota y las que caben detrás</h1>
+  <p class="lead">Caso: el lanzador «Crear y capturar» de un laboratorio clínico, con hasta 15 acciones ordenadas por frecuencia. Todo lo de esta página usa el tema por defecto de <code>dist/grana.css</code> y los iconos Lucide de la librería. Cada marco es una pantalla con el FAB anclado a ella (<code>anchor="container"</code>); pulsa 1, 3, 6, 10 o 15 para cambiar cuántas acciones hay. Lo común a los cuatro (semántica, teclado, foco, confirmación, acuse, «se aparta») está en <code>declaracion.md</code> §Base.</p>
+
+  <!-- ============================== BASE ============================== -->
+  <section data-gallery="base" data-n="6">
+  <h2 id="base">Base funcional (la forma literal del brief)</h2>
+  <p class="cap">Lista de hasta 5 sobre el FAB y, con más, una caja con grupos: <b>la forma cambia de golpe al pasar de 5 a 6</b> y las frecuentes cambian de sitio. Es el patrón genérico, a propósito; lo que decide la base es lo demás: <code>menu</code> de APG con el FAB como botón de menú, el orden que nace del FAB, el foco al abrir en la más cercana, Esc y Tab, toque fuera, una activación por gesto, confirmación de lo peligroso en el sitio, acuse en el FAB y el FAB que se aparta del foco.</p>
+  <div class="counts" role="group" aria-label="Cantidad de acciones (base)"><span class="cap">Acciones:</span><button type="button" data-n="1">1</button><button type="button" data-n="3">3</button><button type="button" data-n="6">6</button><button type="button" data-n="10">10</button><button type="button" data-n="15">15</button></div>
+  <div class="frames">
+    <div class="frame-wrap"><p class="cap">Escritorio 720 × 480</p><div class="frame" id="f-base-d"><div class="frame__scroll" tabindex="-1"></div></div><p class="lab-log"></p></div>
+    <div class="frame-wrap"><p class="cap">Móvil 360 × 600</p><div class="frame frame--phone" id="f-base-m"><div class="frame__scroll" tabindex="-1"></div></div><p class="lab-log"></p></div>
+  </div>
+  </section>
+
+  <!-- ============================== A ============================== -->
+  <section data-gallery="A" data-n="10">
+  <h2 id="A">A · La pila que crece: las frecuentes nunca se mueven</h2>
+  <p class="cap">Una sola estructura para 2 o 15: <b>las que caben</b> (hasta 5) salen del FAB como píldoras con icono y etiqueta, la más usada pegada al botón, y si sobran, la última fila es <b>«Más acciones (N)»</b>, que abre el resto agrupado en un panel <b>encima de la pila</b>, sin moverla. Cambiar de 6 a 15 acciones no mueve ni una de las cuatro primeras: la memoria del gesto se conserva. Cada píldora sale del centro del FAB y viaja a su sitio, la más cercana primero (≤ 5 × 16 ms).</p>
+  <div class="counts" role="group" aria-label="Cantidad de acciones (A)"><span class="cap">Acciones:</span><button type="button" data-n="1">1</button><button type="button" data-n="3">3</button><button type="button" data-n="6">6</button><button type="button" data-n="10">10</button><button type="button" data-n="15">15</button></div>
+  <div class="frames">
+    <div class="frame-wrap"><p class="cap">Escritorio 720 × 480</p><div class="frame" id="f-A-d"><div class="frame__scroll" tabindex="-1"></div></div><p class="lab-log"></p></div>
+    <div class="frame-wrap"><p class="cap">Móvil 360 × 600</p><div class="frame frame--phone" id="f-A-m"><div class="frame__scroll" tabindex="-1"></div></div><p class="lab-log"></p></div>
+  </div>
+  </section>
+
+  <!-- ============================== B ============================== -->
+  <section data-gallery="B" data-n="6">
+  <h2 id="B">B · Arco con gesto: el experto no abre el menú</h2>
+  <p class="cap">Las acciones en un cuarto de círculo alrededor del FAB, cada una con su etiqueta en pestaña inversa por fuera (siempre visible al abrir, nunca solo al pasar el ratón). <b>Dos caminos:</b> tocar abre el arco y se toca la acción (novato, teclado y lector), o <b>pulsar y deslizar</b> hacia la acción y soltar (experto: el gesto se aprende por la dirección). Soltar en el centro cancela. Lo destructivo nunca queda a un gesto: va en «Más». <b>Alcance del pulgar:</b> el arco nunca pasa de 200px de radio (<code>space × 50</code>); con etiquetas visibles caben 3 + «Más» (6 pedirían 346px, medido). <b>No se elige solo:</b> si no cabe (móvil, poco sitio) se resuelve a la pila de A.</p>
+  <div class="counts" role="group" aria-label="Cantidad de acciones (B)"><span class="cap">Acciones:</span><button type="button" data-n="1">1</button><button type="button" data-n="3">3</button><button type="button" data-n="6">6</button><button type="button" data-n="10">10</button><button type="button" data-n="15">15</button></div>
+  <div class="frames">
+    <div class="frame-wrap"><p class="cap">Escritorio 720 × 480</p><div class="frame" id="f-B-d"><div class="frame__scroll" tabindex="-1"></div></div><p class="lab-log"></p></div>
+    <div class="frame-wrap"><p class="cap">Móvil 360 × 600 (se resuelve a pila)</p><div class="frame frame--phone" id="f-B-m"><div class="frame__scroll" tabindex="-1"></div></div><p class="lab-log"></p></div>
+  </div>
+  </section>
+
+  <!-- ============================== C ============================== -->
+  <section data-gallery="C" data-n="15">
+  <h2 id="C">C · Acción con cola: lo frecuente cuesta un toque</h2>
+  <p class="cap">Cuestiona la premisa: si una acción se usa casi siempre, <b>no se esconde detrás de un menú</b>. El FAB <i>es</i> «Nueva muestra», con su etiqueta, y lleva pegada una cola que abre el resto. El panel nace de la cola (crece desde su tamaño hasta su caja), con grupos, descripción y una búsqueda sin campo: <b>escribir filtra</b> por nombre y descripción y se ve en la cabecera; Retroceso corrige, Esc limpia y otra Esc cierra. En móvil, el panel ocupa el ancho sobre la barra.</p>
+  <div class="counts" role="group" aria-label="Cantidad de acciones (C)"><span class="cap">Acciones:</span><button type="button" data-n="1">1</button><button type="button" data-n="3">3</button><button type="button" data-n="6">6</button><button type="button" data-n="10">10</button><button type="button" data-n="15">15</button></div>
+  <div class="frames">
+    <div class="frame-wrap"><p class="cap">Escritorio 720 × 480</p><div class="frame" id="f-C-d"><div class="frame__scroll" tabindex="-1"></div></div><p class="lab-log"></p></div>
+    <div class="frame-wrap"><p class="cap">Móvil 360 × 600</p><div class="frame frame--phone" id="f-C-m"><div class="frame__scroll" tabindex="-1"></div></div><p class="lab-log"></p></div>
+  </div>
+  </section>
+
+  <!-- ============================== ESTADOS ============================== -->
+  <h2 id="estados">Estados que no son «abierto» o «cerrado»</h2>
+  <div class="frames">
+    <div class="frame-wrap"><p class="cap"><b>Error de configuración</b> (A): 18 elementos, un <code>id</code> duplicado y uno sin <code>label</code>. Se pintan los 17 con nombre (el panel desplaza) y avisa:</p><div class="frame frame--phone" id="f-bad" style="block-size:440px"><div class="frame__scroll" tabindex="-1"></div></div><ul class="cap" id="bad-list"></ul><p class="lab-log"></p></div>
+    <div class="frame-wrap"><p class="cap"><b>Sin acciones</b>: nada que pintar (ni botón ni panel vacío).</p><div class="frame frame--phone" id="f-empty" style="block-size:240px"><div class="frame__scroll" tabindex="-1"></div></div><p class="lab-log"></p></div>
+    <div class="frame-wrap"><p class="cap"><b>Una sola acción, deshabilitada con motivo</b>: el FAB es esa acción, <code>aria-disabled</code>, y el motivo es su descripción.</p><div class="frame frame--phone" id="f-off" style="block-size:240px"><div class="frame__scroll" tabindex="-1"></div></div><p class="lab-log"></p></div>
+  </div>
+  <p class="cap"><b>En curso:</b> en cualquier marco con 6 o más, «Exportar CSV» lleva un acuse (insignia que gira en el FAB, descripción del FAB y anuncio cortés «Exportando CSV…» → «CSV exportado»); mientras tanto, al reabrir, la acción está <code>aria-disabled</code> con ese motivo. «Compartir» falla: insignia de alerta y el motivo en la acción. <b>Peligrosa:</b> «Eliminar borrador» se parte en el sitio en «Cancelar» (bajo el puntero, con el foco) y «Sí, eliminar».</p>
+
+  <!-- ============================== COMPARAR ============================== -->
+  <h2 id="comparar">Comparativa</h2>
+  <div class="tbl-wrap">
+  <table class="cmp">
+    <thead><tr><th scope="col"></th><th scope="col">Base (brief literal)</th><th scope="col">A · La pila que crece</th><th scope="col">B · Arco con gesto</th><th scope="col">C · Acción con cola</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Toques para la acción más usada</th><td>2</td><td>2</td><td>2, o 1 gesto</td><td><b>1</b></td></tr>
+      <tr><th scope="row">De 5 a 6 acciones</th><td>Cambia de forma: todo se mueve</td><td><b>Nada se mueve</b>: aparece «Más (2)»</td><td>Igual hasta 6; con 7, «Más»</td><td>El panel crece</td></tr>
+      <tr><th scope="row">15 acciones</th><td>Caja con grupos</td><td>4 a mano + panel agrupado</td><td>3 a un gesto + panel</td><td>1 a un toque + panel con búsqueda</td></tr>
+      <tr><th scope="row">Móvil</th><td>Lista o caja</td><td>Igual que escritorio (columna del pulgar)</td><td>Se resuelve a A (no cabe con etiquetas)</td><td>Panel a todo el ancho</td></tr>
+      <tr><th scope="row">Se aprende</th><td>—</td><td>El sitio de cada frecuente</td><td>La dirección de cada acción</td><td>Escribir dos letras</td></tr>
+      <tr><th scope="row">Riesgo</th><td>Genérico</td><td>Dos niveles con muchas</td><td>Gesto que se dispara sin querer; solo 3 + «Más» en el alcance del pulgar; no en móvil</td><td>Si no hay una acción dominante, la principal miente</td></tr>
+      <tr><th scope="row">Semántica y teclado</th><td colspan="4">Iguales: botón de menú (APG), <code>menu</code> con <code>menuitem</code>, grupos con nombre, foco itinerante, Esc, Tab, letra, una activación por gesto. C añade un <code>group</code> con dos botones (principal y cola).</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note"><b>Pregunta de elección:</b> ¿qué forma quieres por defecto para <code>GFab</code>? Recomendación de kiwi: <b>A · La pila que crece por defecto</b>, con la principal de <b>C</b> como opción (<code>main</code>) cuando una acción domina, y <b>B reservada</b> (prototipada y medida). Detalle en <code>declaracion.md</code>.</p>
+</main>
+<script src="../../lucide-icons.js"></script>
+<script src="./fab.js"></script>
+<script src="./page.js"></script>
+</body>
+</html>

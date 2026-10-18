@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Botón flotante · frontera</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="./fab.css">
+</head>
+<body>
+<main class="lab" id="app">
+  <h1>Frontera con lo que ya existe (componentes reales de <code>dist/</code>)</h1>
+
+  <h2>1 · El disparador ya es un <code>GBtn</code></h2>
+  <p class="cap"><code>GBtn icon rounded="pill" size="xl" tooltip</code> con <code>GIcon name="plus"</code> (lista de la librería). Mide lo que mediría el FAB y su nombre llega por <code>GTooltip</code> (#380); con <code>aria-expanded="true"</code> el tooltip no se abre (#384).</p>
+  <g-btn id="real-fab" icon rounded="pill" size="xl" tooltip="Crear y capturar" aria-haspopup="menu" :aria-expanded="String(fabOpen)" @click="fabOpen = !fabOpen"><g-icon name="plus"></g-icon></g-btn>
+
+  <h2>2 · <code>GMenu</code> → <code>GDialog</code> hoy (emitir, cerrar, foco al disparador; #573)</h2>
+  <p class="cap">«Editar…» abre un diálogo dentro de <code>select</code>. El diálogo toma como disparador el elemento con el foco al abrir (#307): el elemento del menú, que se oculta. Al cerrar el diálogo, ¿adónde vuelve el foco?</p>
+  <g-menu id="m-now" v-model="m1" :items="items" @select="onNow">
+    <template #trigger="{ attrs }"><g-btn v-bind="attrs" variant="outline">Acciones (hoy)</g-btn></template>
+  </g-menu>
+  <g-dialog id="d-now" v-model="d1" title="Editar muestra" close-label="Cerrar"><p>Diálogo abierto desde el menú.</p></g-dialog>
+
+  <h2>3 · Orden que propone el FAB (foco al disparador, emitir, cerrar)</h2>
+  <p class="cap">Mismo caso, pero el foco vuelve al disparador <b>antes</b> de emitir: el diálogo toma el disparador como origen (D1) y le devuelve el foco.</p>
+  <g-menu id="m-fab" v-model="m2" :items="items" @select="onFab">
+    <template #trigger="{ attrs }"><g-btn v-bind="attrs" variant="outline">Acciones (propuesto)</g-btn></template>
+  </g-menu>
+  <g-dialog id="d-fab" v-model="d2" title="Editar muestra" close-label="Cerrar"><p>Diálogo abierto desde el menú.</p></g-dialog>
+  <p class="lab-log" id="front-log"></p>
+</main>
+<script src="../../../../node_modules/vue/dist/vue.global.prod.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script>
+  const { ref } = Vue
+  const app = Vue.createApp({
+    setup() {
+      const m1 = ref(false), m2 = ref(false), d1 = ref(false), d2 = ref(false), fabOpen = ref(false)
+      const items = [{ id: 'edit', label: 'Editar…' }, { id: 'dup', label: 'Duplicar' }]
+      const onNow = (p) => { if (p.id === 'edit') d1.value = true }
+      const onFab = (p) => { if (p.id === 'edit') { document.getElementById('m-fab-trigger').focus({ preventScroll: true }); d2.value = true } }
+      return { m1, m2, d1, d2, fabOpen, items, onNow, onFab }
+    }
+  })
+  app.use(Grana.default)
+  app.mount('#app')
+  requestAnimationFrame(() => requestAnimationFrame(() => { window.__ready = true }))
+</script>
+</body>
+</html>
