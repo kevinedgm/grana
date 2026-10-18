@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GDialogStep",
   "tag": "g-dialog-step",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Un paso de GDialog con historial (niveles anidados, concepto B «El hilo»): se declara como hijo del diálogo; su panel solo existe mientras el paso está en el historial (los de debajo siguen montados, ocultos e inertes). El encabezado, el nombre del diálogo y el pie son los del paso actual.",
   "contract": "design/contracts/dialog.md",

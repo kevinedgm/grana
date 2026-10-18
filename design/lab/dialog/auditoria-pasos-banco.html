@@ -202,10 +202,10 @@ const app = createApp({
         <g-dialog-step name="partida" title="Partida 3" description="Para el ingreso de la OC-2291" summary="Producto: falta">
           <template #default="{ push }">
             <div class="row">
-              <g-select class="grow" id="f-partida-producto" label="Producto" v-model="draft.partida.producto" :options="catalog.productos" placeholder="Elige" />
+              <g-select class="grow" id="f-partida-producto" label="Producto" v-model="draft.partida.producto" :options="catalog.productos" placeholder="Elige" :error="errors.partida.producto" />
               <g-btn id="crear-producto" size="sm" variant="ghost" @click="push('producto', { from: 'crear-producto' })">Crear producto…</g-btn>
             </div>
-            <g-input id="f-partida-cantidad" label="Cantidad (kg)" v-model="draft.partida.cantidad" />
+            <g-input id="f-partida-cantidad" label="Cantidad (kg)" v-model="draft.partida.cantidad" :error="errors.partida.cantidad" />
           </template>
           <template #footer="{ back }">
             <g-btn id="partida-cancelar" variant="ghost" color="neutral" @click="back()">Cancelar</g-btn>
@@ -214,9 +214,9 @@ const app = createApp({
         </g-dialog-step>
         <g-dialog-step name="producto" title="Producto nuevo" description="Se elegirá en Producto de la partida 3">
           <template #default="{ push }">
-            <g-input id="f-producto-nombre" label="Nombre" v-model="draft.producto.nombre" />
+            <g-input id="f-producto-nombre" label="Nombre" v-model="draft.producto.nombre" :error="errors.producto.nombre" />
             <div class="row">
-              <g-select class="grow" id="f-producto-categoria" label="Categoría" v-model="draft.producto.categoria" :options="catalog.categorias" placeholder="Elige" />
+              <g-select class="grow" id="f-producto-categoria" label="Categoría" v-model="draft.producto.categoria" :options="catalog.categorias" placeholder="Elige" :error="errors.producto.categoria" />
               <g-btn id="crear-categoria" size="sm" variant="ghost" @click="push('categoria', { from: 'crear-categoria' })">Crear categoría…</g-btn>
             </div>
           </template>
@@ -226,7 +226,7 @@ const app = createApp({
           </template>
         </g-dialog-step>
         <g-dialog-step name="categoria" title="Categoría nueva" description="Se elegirá en Categoría del producto nuevo">
-          <g-input id="f-categoria-nombre" label="Nombre" v-model="draft.categoria.nombre" />
+          <g-input id="f-categoria-nombre" label="Nombre" v-model="draft.categoria.nombre" :error="errors.categoria.nombre" />
           <template #footer="{ back }">
             <g-btn id="categoria-cancelar" variant="ghost" color="neutral" @click="back()">Cancelar</g-btn>
             <g-btn id="categoria-ok" @click="stepConfirm('categoria', back)">Crear y elegir</g-btn>
@@ -234,7 +234,8 @@ const app = createApp({
         </g-dialog-step>
       </template>
     </g-dialog>
-    <g-dialog id="confirm" v-model="confirm" role="alertdialog" title="¿Descartar el borrador?" description="Se perderá lo escrito en este recorrido." size="sm">
+    <!-- from (#583): en WebKit un clic no enfoca el botón; sin from el foco no volvería a «Descartar borrador…» (#307) -->
+    <g-dialog id="confirm" v-model="confirm" role="alertdialog" from="f-detalle-descartar" title="¿Descartar el borrador?" description="Se perderá lo escrito en este recorrido." size="sm">
       <p>No se puede deshacer.</p>
       <template #footer>
         <g-btn id="confirm-cancel" variant="ghost" color="neutral" @click="confirm = false">Cancelar</g-btn>

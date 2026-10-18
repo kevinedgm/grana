@@ -233,6 +233,10 @@ for (const engine of ENGINES) {
     continue
   }
   const T = (c, m) => ok(c, `${E} ${m}`, engine)
+  // WebKit en macOS, como Safari sin «acceso total por teclado», solo tabula a campos de texto: Opción+Tab recorre todo
+  // (el criterio del resto del repo: tests/*.spec.mjs, tooltip/auditoria-verificar.mjs). Chromium y Firefox, Tab tal cual.
+  const TAB = engine === 'webkit' ? 'Alt+Tab' : 'Tab'
+  const BACKTAB = engine === 'webkit' ? 'Alt+Shift+Tab' : 'Shift+Tab'
   const errors = []
   const done = async (page) => { errors.push(...page.__errors.filter((e) => !/development build of Vue|production build/.test(e))); await page.context().close() }
 
@@ -376,7 +380,7 @@ for (const engine of ENGINES) {
     // Desde el primer control del paso, Mayús+Tab recorre hacia atrás hasta el hilo y Volver
     const seen = {}
     for (let i = 0; i < 12; i++) {
-      await page.keyboard.press('Shift+Tab')
+      await page.keyboard.press(BACKTAB)
       const f = await page.evaluate(() => {
         const a = document.activeElement
         const cs = getComputedStyle(a)
@@ -445,10 +449,12 @@ for (const engine of ENGINES) {
     await page.mouse.click(8, 8); await page.waitForTimeout(250)
     a = await A(); ev = await evts()
     T(a.open && a.steps.length === 3 && !ev.length, `${qs}: clic en el fondo con 3 pasos no hace nada`)
-    // Error al confirmar: no baja; el foco va al campo con error
+    // Error al confirmar: no baja; el foco va al campo con error (el primer [aria-invalid] del paso: el GSelect de Producto),
+    // no se queda en el botón (en WebKit un clic no enfoca el botón: la comprobación no depende de eso)
     await page.click('#dlg .g-dialog__footer .g-btn:last-child'); await page.waitForTimeout(250)
     a = await A()
-    T(a.steps.length === 3 && a.inDlg && !a.body, `${qs}: confirmar con error no baja (${a.steps.length}, ${a.id})`)
+    const inv = await page.evaluate(() => document.activeElement.getAttribute('aria-invalid'))
+    T(a.steps.length === 3 && a.inDlg && !a.body && /f-partida-producto|g-select/.test(a.id) && inv === 'true', `${qs}: confirmar con error no baja y el foco va al campo con error (${a.steps.length}, ${a.id}, aria-invalid ${inv})`)
     // Resultado: crear categoría → producto (llegada en la caja del select + anuncio en el modal)
     await page.click('#crear-producto'); await settled(page)
     await page.click('#crear-categoria'); await settled(page)
@@ -700,7 +706,7 @@ for (const engine of ENGINES) {
       await page.evaluate(() => { window.__lv.state.folds.partida = true })
       await settled(page)
       await page.focus('.g-dialog__trail-item.is-parent .g-dialog__trail-step')
-      await page.keyboard.press('Shift+Tab'); await page.keyboard.press('Tab')
+      await page.keyboard.press(BACKTAB); await page.keyboard.press(TAB)
       const r = await page.evaluate(() => {
         const q = (s) => document.querySelector(s)
         const sys = (kw) => { const i = document.createElement('i'); i.style.color = kw; document.body.append(i); const c = getComputedStyle(i).color; i.remove(); return c }

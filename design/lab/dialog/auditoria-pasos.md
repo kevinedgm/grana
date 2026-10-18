@@ -7,7 +7,7 @@
 **Tema distinto al de defecto:** `auditoria-pasos-tema.json` → `auditoria-pasos-tema.css` (`node packages/cli/bin/grana.mjs theme …`): marca `#6B1E3A` vino, acento `#C2410C` naranja quemado (el acento que más aprieta a `on-accent-soft`), neutros teñidos, radio 14, `space` 5, texto 18, Georgia, borde 2px y foco 3px; claro y oscuro. Además los once temas de `design/lab/tema-oscuro/dark-color-presence/generated/`, claro y oscuro.
 **Verificación propia:** `GRANA_PW_PORT=4209 node design/lab/dialog/auditoria-pasos-verificar.mjs`.
 
-## Resultado: **no pasa a `candidate`**: queda 1 defecto bloqueante (H1, de bruno)
+## Resultado (2026-10-17): **no pasaba a `candidate`** por H1 (de bruno). Cerrado el 2026-10-18: ver el addendum al final
 
 | Motor | Comprobaciones |
 | --- | --- |
@@ -74,3 +74,33 @@ Además, en el puerto 4209: `dialog-focus.spec.mjs`, `dialog-stack.spec.mjs` (#5
 
 1. bruno corrige H1 (con su prueba) y entrega H2 y H3.
 2. coco repite `GRANA_PW_PORT=4209 node design/lab/dialog/auditoria-pasos-verificar.mjs` en los **tres** motores (con WebKit instalado). Si pasa entero, `GDialogStep.meta.json` pasa a `"status": "candidate"`.
+
+## Addendum · 2026-10-18 · reauditoría tras 8e3c300: **pasa a `candidate`**
+
+bruno cerró H1 a H5 en 8e3c300. Reverificado sobre `main` con `dist/` reconstruido (`npm run build`), en el puerto 4209 y con el WebKit de Playwright (`webkit-2359`) ya instalado.
+
+**Primera pasada en WebKit: 731/739.** Reproducidos los 8 fallos y clasificados uno a uno; **ninguno es del componente**:
+
+| # | Fallo | Causa | Clase |
+| --- | --- | --- | --- |
+| 1-3 | Mayús+Tab no alcanza «Volver», el hilo ni el cierre (`mode=steps`, el tema oscuro y `long=1`) | WebKit en macOS, como Safari sin «acceso total por teclado», solo tabula a campos de texto. La verificación pulsaba Mayús+Tab | verificación |
+| 4 | `forced-colors`: el foco no está en el hilo | La misma causa: Mayús+Tab y Tab desde el hilo saltaban los botones y acababan en el cuerpo | verificación |
+| 5-6 | Confirmar con error deja el foco en el `<dialog>` (`theme=auditoria` y defecto) | El banco no enlazaba `:error` en los campos de los pasos: no había `[aria-invalid]` al que llevar el foco, y en Chromium y Firefox la comprobación pasaba solo porque el clic enfoca el botón (en WebKit no) | banco, y la comprobación era débil |
+| 7-8 | Esc en el `alertdialog` devuelve el foco al `<dialog>`, no a «Descartar borrador…» | El `alertdialog` del banco no llevaba `from`; en WebKit un clic no enfoca el botón, así que el disparador implícito no existe (#307, el límite que `from` cierra, #583) | banco |
+
+**Qué cambié:**
+- `auditoria-pasos-verificar.mjs`: en WebKit, Opción+Tab y Opción+Mayús+Tab (el criterio del resto del repo: `tests/*.spec.mjs` con `TAB`, `tooltip/auditoria-verificar.mjs`); Chromium y Firefox siguen con Tab tal cual. La comprobación de error es ahora **más estricta en los tres motores**: el foco tiene que estar en el campo con error (el `GSelect` de Producto, con `aria-invalid="true"`), no basta con que siga dentro del diálogo.
+- `auditoria-pasos-banco.html`: `:error` en los campos de los pasos (`partida`, `producto`, `categoria`), como el banco de bruno; `from="f-detalle-descartar"` en el `alertdialog` (#583).
+
+**Resultado final:**
+
+| Motor | Comprobaciones |
+| --- | --- |
+| Estático | 44/44 |
+| Chromium | 748/748 |
+| Firefox | 747/747 (sin `pointer: coarse`, no se emula) |
+| WebKit | **748/748** (con `pointer: coarse` y `forced-colors` emulados) |
+
+`tests/dialog-levels.spec.mjs` y `tests/form-fold.spec.mjs` en WebKit: 17/17. H1 queda cerrado (el pie de cada paso es el suyo en los tres motores: ids del paso actual en «Partida 3» y «Producto nuevo»). Sin defecto bloqueante: `GDialogStep.meta.json` pasa a `"status": "candidate"`.
+
+**Sigue sin verificar:** lector de pantalla real, táctil y zoom reales, Safari real (`forced-colors` de WebKit es emulado). **Para mora-docs:** `GDialog/README.md` puede dar `GDialogStep` como `candidate` y enlazar esta auditoría. **Para lima** sigue en pie la nota de H6 (`dialog.md` «Límites conocidos» y `load-region.md` dan el pulso por pendiente).
