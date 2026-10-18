@@ -99,12 +99,13 @@
 .g-fab.is-tucked[data-position="top-center"] { translate: 0 calc((100% + var(--_edge-b) - 24px) * -1); }
 
 /* ---------- El FAB (GBtn icon pill xl) y C (principal + cola) ----------
-   Elevación de GFab, no de GBtn. Contorno primary-text (como lo marcado de §7.1): en el tema por defecto es el mismo
-   color que el relleno y no se ve; con una marca pálida separa el FAB de la página (≥ 3:1). Una sola acción en curso
-   (single) es aria-disabled pero no se pinta como no disponible (#669): conserva contorno y elevación */
+   Elevación de GFab, no de GBtn. El contorno primary-text (como lo marcado de §7.1) lo pone ya el propio GBtn solid
+   (#672: en el tema por defecto es el mismo color que el relleno y no se ve; con una marca pálida separa el FAB de la
+   página, ≥ 3:1): aquí solo queda la sombra, sin el anillo de box-shadow que lo duplicaba (2 × border-width de grosor).
+   Una sola acción en curso (single) es aria-disabled pero no se pinta como no disponible (#669): conserva contorno y elevación */
 .g-fab > .g-btn,
 .g-fab__main-group {
-  box-shadow: 0 0 0 var(--g-border-width) var(--g-color-primary-text), var(--g-shadow-2);
+  box-shadow: var(--g-shadow-2);
 }
 .g-fab > .g-btn:is([aria-disabled="true"], .is-disabled, :disabled):not([data-ack="busy"]) { box-shadow: var(--g-shadow-1); }
 .g-fab > .g-btn[data-ack="busy"],

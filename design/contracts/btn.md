@@ -92,7 +92,7 @@ El icono de un hueco se dimensiona con un **alias local `--_icon`** de `GBtn.css
 | `--g-color-{color}`, `--g-color-on-{color}` | `solid`: fondo y texto |
 | `--g-color-{color}-strong` | `solid`: hover y activo |
 | `--g-color-{color}-soft`, `--g-color-on-{color}-soft` | `soft`: fondo y texto; hover de `outline` y `ghost` |
-| `--g-color-{color}-text` | Texto de `outline`, `ghost` y `link`; borde de `outline` |
+| `--g-color-{color}-text` | Texto de `outline`, `ghost` y `link`; borde de `outline`; **contorno de `solid`** (#672) |
 | `--g-color-focus` | Anillo de foco |
 | `--g-radius-{rounded}` | Esquinas |
 | `--g-space-1` | Unidad para altura (6, 7, 9, 11 y 13 unidades), padding y separación |
@@ -100,6 +100,24 @@ El icono de un hueco se dimensiona con un **alias local `--_icon`** de `GBtn.css
 | `--g-text-caption-size` (`xs`), `--g-text-body-sm-size` (`sm`, `md`), `--g-text-body-size` (`lg`, `xl`) | Tamaño de la etiqueta |
 
 **Tokens nuevos:** `--g-radius-shape`, `--g-border-width`, `--g-focus-width`, `--g-focus-offset`, `--g-duration-fast`, `--g-duration-press`, `--g-duration-spin`, `--g-ease-standard`, `--g-ease-out`, `--g-press-scale`, `--g-text-action-weight`. Surgieron al escribir el CSS (coco) y se agregaron al contrato global (lima).
+
+### Variante `solid`: contorno (DECISIONS.md #672; `tokens.md` §7.1 «Botón sólido»)
+
+El relleno `{color}` está garantizado **con su par** (`on-{color}` ≥ 4,5:1), no **como forma** contra la página: con marcas o `primary` pálidos del CLI medía 1,43–2,73:1, y dentro de una zona de marca clara los `solid` semánticos 2,06–2,90 (segundo addendum del 2026-10-18 de `design/lab/btn/auditoria.md`). Por eso el `solid` lleva el contorno de la misma familia:
+
+| Estado | Relleno | Texto | Contorno |
+| --- | --- | --- | --- |
+| Reposo, foco, `loading`, `icon` | `--g-color-{color}` | `--g-color-on-{color}` | `--g-color-{color}-text` |
+| Hover, active | `--g-color-{color}-strong` | `--g-color-on-{color}` | `--g-color-{color}-text` (no `-strong`, #438) |
+| Deshabilitado | El de todos los deshabilitados | El de todos los deshabilitados | **Ninguno** (transparente; 1.4.11 excluye los inactivos) |
+| `forced-colors` | Sin cambio | Sin cambio | Sin cambio (`ButtonText` / `Highlight` / `GrayText`) |
+
+- **Regla para coco:** en `.g-btn--variant-solid`, `--_border: var(--_text)` y `--_border-hover: var(--_text)`. El borde de `--g-border-width` ya existe en todas las variantes: **ni el alto ni el ancho cambian**. Sin tokens nuevos; `color="brand"` lee `primary-text` (#671).
+- **Las siete familias** tienen `-text` garantizado ≥ 4,5:1 sobre `surface` por el motor (`tokens.md` §2), así que la forma queda ≥ 3:1 contra `surface`, `bg` y `surface-sunken` con cualquier tema del CLI.
+- **Dentro de `data-g-zone="brand"`** (`tokens.md` §44.5) es correcto sin excepción: `brand` `solid` es la tinta invertida y su contorno `primary-text` = `on-brand-zone` = el propio relleno (Δ0); `accent` y `neutral` igual (`-text` = relleno de la zona, Δ0); los semánticos conservan su relleno de página y ganan el filo `on-brand-{sem}` (≥ 4,5:1 frente a la zona y al hundido, §44.3), que es el arreglo.
+- **Tema por defecto:** `-text` = base en las siete familias, claro y oscuro: **Δ0 en reposo**. En hover aparece, mientras dura, el filo `-text` alrededor de `-strong` ya aceptado en #438; coco lo mide en el botón y lo anota.
+- **Fuera de alcance:** un fondo de marca pintado a mano sin `data-g-zone` (la receta es la zona); los anfitriones que redefinen `.g-btn` sobre otra superficie (`GToast`, `GStatusIsland`, `GSpeechPill`, `GFab`) miden y reapuntan por §7.1 «Sobre otra superficie».
+- **Verificación (coco):** `design/lab/theme-playground/tests/btn-limitaciones.spec.mjs`, bloques 3, 5 y 6: forma del `solid` ≥ 3:1 en reposo, hover y active en los cinco temas del CLI (T1 a T5) y en `data-g-zone="brand"` claro y oscuro, y Δ0 del color de borde frente al de relleno en el tema por defecto en reposo; las aserciones de texto y de `outline` no cambian. Antes del cambio esas aserciones de forma deben fallar (T2 1,68, T3 2,73, T5 1,43, zona clara 2,06) y después pasar.
 
 ## Clases (contrato entre bruno y coco)
 

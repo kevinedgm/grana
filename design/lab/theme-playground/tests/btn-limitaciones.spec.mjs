@@ -171,7 +171,7 @@ test.describe('2 · GBtn contraste por estado, claro y oscuro (tema por defecto)
       await gridPage(page, scheme)
       const data = await readStates(page)
       const fails = []; const lines = []
-      const min = { text: 99, outline: 99, solid: 99, soft: 99, softBorderHover: 99, disabledText: 99 }
+      const min = { text: 99, outline: 99, solid: 99, soft: 99, softBorderHover: 99, disabledText: 99, solidEdgeHover: 99 }
       const chk = (cond, key, msg) => { if (!cond && !KNOWN[`${scheme}|${key}`]) fails.push(`${scheme} ${key}: ${msg}`) }
       for (const { c, v, rest, hover, active, disabled } of data) {
         for (const [st, r] of [['reposo', rest], ['hover', hover], ['active', active]]) {
@@ -179,6 +179,8 @@ test.describe('2 · GBtn contraste por estado, claro y oscuro (tema por defecto)
           chk(r.text >= 4.5, `${key}|texto`, `texto ${r.text.toFixed(2)}`)
           min.text = Math.min(min.text, r.text)
           if (v === 'outline') { chk(r.border >= 3, `${key}|borde`, `borde ${r.border.toFixed(2)}`); min.outline = Math.min(min.outline, r.border) }
+          if (v === 'solid' && st !== 'reposo') min.solidEdgeHover = Math.min(min.solidEdgeHover, r.bdOnBg) // filo -text alrededor de -strong
+          if (v === 'solid' && st === 'reposo') chk(r.raw.border === r.raw.bg, `${key}|delta0`, `borde ${r.raw.border} ≠ relleno ${r.raw.bg} (Δ0 en reposo con el tema por defecto)`)
           if (v === 'solid') { chk(r.fill >= 3, `${key}|forma`, `relleno ${r.fill.toFixed(2)}`); min.solid = Math.min(min.solid, r.fill) }
           if (v === 'soft') min.soft = Math.min(min.soft, Math.max(r.fill, r.border))
           if (v === 'soft' && st !== 'reposo') min.softBorderHover = Math.min(min.softBorderHover, r.border)
@@ -365,7 +367,8 @@ const summarize = (data) => {
       put('text', r.text, key)
       if (r.text < 4.5) fails.push(`${key}: texto ${r.text.toFixed(2)}`)
       if (v === 'outline') { put('outline', r.border, key); if (r.border < 3) fails.push(`${key}: borde ${r.border.toFixed(2)}`) }
-      if (v === 'solid') { put('solid', r.fill, key); if (r.fill < 3) fails.push(`${key}: relleno ${r.fill.toFixed(2)}`) }
+      // Forma del solid = contorno o relleno, el mayor, contra la superficie (#672, tokens.md §7.1 «Botón sólido»)
+      if (v === 'solid') { const f = Math.max(r.fill, r.border); put('solid', f, key); if (f < 3) fails.push(`${key}: forma ${f.toFixed(2)}`) }
       if (v === 'soft') put('soft', Math.max(r.fill, r.border), key)
     }
     put('disabled', disabled.text, `${c} ${v}`)
@@ -384,12 +387,11 @@ test.describe('5 · GBtn sobre una superficie de marca', () => {
       const lines = data.map(({ c, v, rest, hover, active, disabled }) => `${c} ${v}: texto ${rest.text.toFixed(2)}/${hover.text.toFixed(2)}/${active.text.toFixed(2)} · forma ${Math.max(rest.fill, rest.border).toFixed(2)}/${Math.max(hover.fill, hover.border).toFixed(2)}/${Math.max(active.fill, active.border).toFixed(2)} · disabled ${disabled.text.toFixed(2)}`)
       console.log(`[marca ${scheme} ${kind} ${test.info().project.name}] ${fmt(min)}\n  fallos (${fails.length}): ${fails.join(' | ')}`)
       if (V) console.log(lines.join('\n'))
-      const duras = fails.filter((f) => !f.includes('relleno'))
+      const duras = fails.filter((f) => !f.includes('forma'))
       if (opts.zone) {
         // La zona de marca garantiza texto (≥ 4,5) y contorno de outline (≥ 3) en los siete colores, claro y oscuro (tokens.md §44).
-        // El relleno de solid semántico contra la marca (2,06 a 3,08 en claro) es forma no garantizada: se anota
-        expect(duras, duras.join('\n')).toEqual([])
-        if (scheme === 'dark') expect(fails, fails.join('\n')).toEqual([])
+        // La forma del solid (contorno o relleno, el mayor) también: antes del contorno #672 la zona clara daba 2,06 a 3,08
+        expect(fails, fails.join('\n')).toEqual([])
       } else {
         // Sin zona (solo fondo): lo documentado en el README. La familia brand sobre brand desaparece y el resto cae bajo 4,5 en reposo
         expect(fails.some((f) => f.startsWith('brand outline reposo: texto 1.00')), 'brand sobre brand invisible').toBe(true)
@@ -429,12 +431,8 @@ test.describe('6 · GBtn con temas generados por @grana/cli', () => {
       await page.evaluate((cells) => { document.body.insertAdjacentHTML('beforeend', cells) }, matrix().map(({ s, d }) => `<div class="row">${btn(`g-btn--size-${s} g-btn--density-${d}`, 'Guardar', `data-k="${s}-${d}"`)}</div>`).join(''))
       const hs = await page.evaluate(() => [...document.querySelectorAll('[data-k]')].map((b) => [b.dataset.k, b.getBoundingClientRect().height]))
       for (const [k, h] of hs) { const [s, d] = k.split('-'); expect(h, `${th.name} ${k}`).toBeCloseTo(expectedH(space, s, d), 1) }
-      // Texto ≥ 4,5 y borde de outline ≥ 3 los garantiza el motor (par {familia}/on-{familia} y {familia}-text sobre la superficie).
-      // El relleno de solid como FORMA contra la superficie no (tokens.md §7.1): se anota, no se exige
-      const forma = fails.filter((f) => f.includes('relleno'))
-      const duras = fails.filter((f) => !f.includes('relleno'))
-      if (forma.length) console.log(`[cli ${th.name} ${scheme}] forma del relleno de solid < 3:1 (no garantizada por el motor): ${forma.join(' | ')}`)
-      expect(duras, duras.join('\n')).toEqual([])
+      // Texto ≥ 4,5, borde de outline ≥ 3 y, desde #672, la forma del solid (contorno {familia}-text) ≥ 3 contra la superficie
+      expect(fails, fails.join('\n')).toEqual([])
     })
   }
 })

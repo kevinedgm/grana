@@ -209,8 +209,12 @@
 
 /* ---------- Variante: solo reasigna a qué color apunta cada propiedad ---------- */
 .g-btn--variant-solid {
-  --_bg: var(--_base); --_fg: var(--_on); --_border: transparent;
-  --_bg-hover: var(--_strong); --_fg-hover: var(--_on); --_border-hover: transparent;
+  /* Contorno de la misma familia (#672, tokens.md §7.1 «Botón sólido»): el motor garantiza el relleno con su par de texto,
+     no como forma contra la página (marcas pálidas: 1,43 a 2,73:1). `-text` sí llega a 3:1 y en el tema por defecto vale lo
+     mismo que el relleno (Δ0 en reposo). En hover queda como filo alrededor de `-strong` (#438: no `-strong`). Sin cambio de
+     medidas: el borde de --g-border-width ya existe en todas las variantes */
+  --_bg: var(--_base); --_fg: var(--_on); --_border: var(--_text);
+  --_bg-hover: var(--_strong); --_fg-hover: var(--_on); --_border-hover: var(--_text);
 }
 .g-btn--variant-soft {
   --_bg: var(--_soft); --_fg: var(--_on-soft); --_border: transparent;

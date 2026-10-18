@@ -163,3 +163,33 @@ Cinco temas, claro y oscuro (los de `dark: false`, con la consulta del sistema y
 - **Relleno de `solid` como forma < 3:1 con marcas pálidas o claras (T2, T3 y T5 en claro): es del motor, no de `GBtn`.** El motor garantiza la familia como relleno **con su par** (`{familia}`/`on-{familia}` ≥ 4,5), no como forma contra la superficie (tokens.md §7.1, el mismo hallazgo que `GCheckbox`). El texto del botón se lee; el relleno amarillo (1,43 a 1,68) no se separa de la página. No se cambió el CSS: añadir un contorno `*-text` al `solid` es decisión de lima/usuario (reglas de §7.1 para controles marcados), no un defecto.
 - **Alturas:** con `space: 4.375` (T5), las 15 combinaciones salen = `max(24, round(…, 0.5px))` (md 39,5 / 34,5 / 29,5). En los demás, idénticas a `estilo.md`.
 - **Aviso, no del componente:** T4 con `data-theme="dark"` forzado (no medido como aserción; observado al afinar): `brand` pasa a 1,77:1 sobre la superficie oscura de los defaults, porque `dark: false` no genera oscuro. Es el aviso documentado del CLI.
+
+---
+
+# Addendum 2026-10-18 (tercera tanda) · contorno de la variante `solid` (#672)
+
+**Cambio:** `GBtn.css`, `.g-btn--variant-solid`: `--_border: var(--_text); --_border-hover: var(--_text);` (relleno y texto sin cambio; `disabled` sigue sin contorno y forced-colors igual, porque sus reglas ya mandan). El borde de `--g-border-width` existía en todas las variantes: ni alto ni ancho cambian (la prueba de alturas sigue pasando, `estilo-verificar.mjs` 3350/3350).
+
+**Orden seguido:** primero la aserción en `btn-limitaciones.spec.mjs` (forma del `solid` = el mayor de contorno y relleno contra la superficie, ≥ 3:1, en reposo, hover y active para T1 a T5 claro y oscuro y `data-g-zone="brand"` claro y oscuro; más Δ0 contorno = relleno en reposo con el tema por defecto), y se confirmó que fallaba; después la regla.
+
+| Forma del `solid` (mínimo, contra la superficie) | Antes | Después |
+| --- | --- | --- |
+| T2 amarillo `#F2C200`, claro | 1,68 (hover y active 2,22) | **4,64** |
+| T3 `#E6007E` + `#00A3FF`, claro | 2,73 (acento) | **4,50** |
+| T5 `primary` `#FFD400`, claro | 1,43 (hover y active 1,86) | **4,62** |
+| T1 y T4, claro; T1 a T5, oscuro | 4,52 a 5,34 | sin cambio (ya pasaban; el contorno es el relleno o más oscuro) |
+| `data-g-zone="brand"`, claro | 2,06 (10 combinaciones < 3) | **5,55** (0 fallos) |
+| `data-g-zone="brand"`, oscuro | 4,37 | 5,55 |
+
+- **Tema por defecto, reposo: Δ0.** El color calculado del borde es idéntico al del relleno en los siete colores, claro y oscuro (aserción nueva). No se ve nada nuevo.
+- **Tema por defecto, hover y active.** Aparece, mientras dura, el filo `-text` alrededor del relleno `-strong` (el de #438): el contraste del filo contra el relleno de hover, mínimo de los siete colores, es **1,30:1 en claro y 1,12:1 en oscuro** (sutil; no pretende separar de la página, solo cierra la forma). Sin cambio de tamaño.
+- **Aserciones previas (texto ≥ 4,5, `outline` ≥ 3, forced-colors, alturas):** sin cambio y verdes. Spec completo: 87/87 en Chromium, Firefox y WebKit con `--workers=1`.
+
+## Anfitriones revisados (`grep .g-btn` en otros CSS)
+
+- **No afectados** (usan `outline`/`ghost`/`neutral` o rebinden el borde con mayor especificidad): `GToast`, `GStatusIsland`, `GSpeechPill`, `GSpeechHost`, `GSpeechTrigger`, `GTranscript`, `GFileField`, `GFormActions`, `GFormSection`, `GInput`, `GCard` (en `media-background` el `solid` ya fija `--_border: transparent` sobre el velo: se conserva). `GPageHeader` y `GDialog` no restylean `.g-btn`; en zona el contorno `primary-text` = tinta = relleno (Δ0), como dice el contrato.
+- **Tocado: `GFab.css`** (una sola regla, `.g-fab > .g-btn, .g-fab__main-group`, líneas ~103 a 109): el FAB dibujaba su propio contorno `primary-text` con un anillo de `box-shadow`; con el contorno del `solid` quedaba un trazo doble (2 × `--g-border-width`). Ahora solo lleva la sombra de elevación (`box-shadow: var(--g-shadow-2)`) y el contorno lo pone el botón. Cambio mínimo; el archivo tenía cambios sin commit de otra sesión, que no se tocaron. `design/lab/fab/estilo-verificar.mjs` sigue en **2946/2946** (tres motores) antes y después.
+
+## Verificación
+
+`npm run build`; `gates.sh` 68/68; vitest de `packages/vue` 3596/3596; specs `btn-icon-flex`, `btn-loading-name`, `personalidad-btn` y `form-distribution` (31) y `status`, `personalidad-card`, `page-header`, `form-section`, `file-field` (73) en Chromium; `estilo-verificar.mjs` de GBtn 3350/3350 en los tres motores.
