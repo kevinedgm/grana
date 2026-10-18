@@ -223,15 +223,25 @@ Registro **por aplicación** con `provide`/`inject`, sin estado en el módulo: d
 
 Sin tokens propios: `GIcon` solo hereda `color` y `font-size`. El tamaño en un componente lo deciden los tokens de ese componente.
 
-## Limitaciones conocidas
+## Alcance
+
+- **Empaquetadores:** la poda de `lucide-static` (solo se lleva lo importado) está verificada con **Vite**; no con webpack, Rollup puro ni esbuild.
+
+- **Sin empaquetador** no hay un camino de una línea: hay que importar el módulo ES de cada icono o generar un archivo con las cadenas (ver «Sin empaquetador»).
+
+- **Formato de la marca:** verificado con `lucide-static` 1.49.0 (las 2117 exportaciones); una prueba falla si Lucide cambia el formato.
+
+- **Alias:** el nombre es el canónico de la marca, no el de la exportación (`Trash2` → `trash`; `import { CircleHelp }` registra `circle-question-mark`). La librería trae un solo alias, `circle-help` (obsoleto, mismo dibujo que `circle-question-mark`, se retira en la siguiente mayor).
+
+- **Sin tipos de TypeScript** para los nombres (sin autocompletado).
+
+- **Sin tooltip** para un icono solo; el nombre accesible sí está (en el control o en `label`).
+
+## Verificación
 
 - **Sin verificar con lector de pantalla real** (VoiceOver, NVDA, TalkBack) el `role="img"` en `svg` ni el encabezado con `lead`: solo el árbol de accesibilidad de Playwright. `forced-colors` solo emulado en Chromium.
-- **Empaquetadores:** la poda de `lucide-static` (solo se lleva lo importado) está verificada con **Vite**; no con webpack, Rollup puro ni esbuild.
-- **Sin empaquetador** no hay un camino de una línea: hay que importar el módulo ES de cada icono o generar un archivo con las cadenas (ver «Sin empaquetador»).
-- **Formato de la marca:** verificado con `lucide-static` 1.49.0 (las 2117 exportaciones); una prueba falla si Lucide cambia el formato.
-- **Alias:** el nombre es el canónico de la marca, no el de la exportación (`Trash2` → `trash`; `import { CircleHelp }` registra `circle-question-mark`). La librería trae un solo alias, `circle-help` (obsoleto, mismo dibujo que `circle-question-mark`, se retira en la siguiente mayor).
-- **Sin tipos de TypeScript** para los nombres (sin autocompletado).
-- **Sin tooltip** para un icono solo; el nombre accesible sí está (en el control o en `label`).
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 

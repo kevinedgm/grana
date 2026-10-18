@@ -366,7 +366,7 @@ Con un visor de menos de `--g-space-1 × 130` (520px con `space` 4; el umbral de
 
 ### Borde compartido: voz, isla, avisos
 
-Orden desde el borde superior: **píldora de voz** (su indicador de grabación es una garantía) → **isla** → **avisos flotantes** (decisión del usuario: dos píldoras, la voz primero; `GSpeechHost` no cambia). La isla **lee** lo reservado por quien va antes y se coloca debajo; **publica** el alto de su forma **replegada** (nunca el de la abierta) más su margen mientras no esté vacía; `GToaster` suma todo, así que con los avisos arriba quedan bajo la isla. El orden es por **prioridad, no por montaje**. Si la píldora de voz aparece o cambia de borde, la isla se recoloca con una transición de `--g-duration-press`. Medido: `GToaster` en `top-center` empieza 14px bajo la isla replegada y la isla no se mueve al llegar un aviso; con la voz, la isla empieza bajo la píldora. Con puntero, abrir la isla cierra el panel de voz abierto y pulsar la píldora repliega la isla (ver «Limitaciones conocidas» para el teclado).
+Orden desde el borde superior: **píldora de voz** (su indicador de grabación es una garantía) → **isla** → **avisos flotantes** (decisión del usuario: dos píldoras, la voz primero; `GSpeechHost` no cambia). La isla **lee** lo reservado por quien va antes y se coloca debajo; **publica** el alto de su forma **replegada** (nunca el de la abierta) más su margen mientras no esté vacía; `GToaster` suma todo, así que con los avisos arriba quedan bajo la isla. El orden es por **prioridad, no por montaje**. Si la píldora de voz aparece o cambia de borde, la isla se recoloca con una transición de `--g-duration-press`. Medido: `GToaster` en `top-center` empieza 14px bajo la isla replegada y la isla no se mueve al llegar un aviso; con la voz, la isla empieza bajo la píldora. Con puntero, abrir la isla cierra el panel de voz abierto y pulsar la píldora repliega la isla (ver «Alcance» y «Verificación» para el teclado).
 
 ## Textos (`labels`)
 
@@ -438,15 +438,17 @@ Con prefijo `[Grana Status]`, una vez por caso, solo fuera de producción: `set`
 - **Cada aviso:** `g-status-item`, `g-status-item--type-{info|success|warning|error}`, `data-type`; `is-busy` (con `aria-busy`), `is-acknowledged`, `has-action`, `has-details`, `is-dismissible`; `g-status-item__badge`, `__content`, `__title`, `__type`, `__description`, `__timer`, `__link`, `__details-toggle`, `__details`, `__details-text`, `__copy`, `__actions`, `__action`, `__origin`, `__dismiss`.
 - **Marca:** `g-status-mark`, `g-status-mark--link` o `--text`, `g-status-mark--type-*`, `data-type`, `is-busy`; `g-status-mark__badge`, `__text`, `__type`, `__action`.
 
-## Limitaciones conocidas
+## Alcance
 
 - **El panel de voz abierto y la isla abierta se solapan** si se abren por teclado o por programa (con la voz y la isla bajo `top-center`): la isla queda encima. Con puntero, abrir uno cierra el otro (medido en los tres motores).
+
 - **La isla replegada puede tapar por completo un control pequeño** situado bajo ella (por ejemplo un buscador centrado en la cabecera): un elemento persistente no cambia de borde. Se evita con `position` u `offset` (aviso de desarrollo). WCAG 2.4.11 solo se garantiza para la isla **abierta**. Sin `offset`, a 1280px la compacta cubría controles de la cabecera fija del playground: ver la receta de «Tema».
+
 - **El error de una `GTable` lo da la tabla** (`error` + `retry`, enmienda de #327 por #540): la isla anuncia el fallo global de la aplicación, no el de cada región.
+
 - **Sin historial y sin persistencia:** el reconocimiento no sobrevive a una recarga. **Sin duplicados** entre servicios solo por regla de uso.
-- **WebKit:** no enfoca los botones con el ratón (la apertura automática usa el destino del último `pointerdown`) y el cambio de radio durante el morfo se interpola en solo 2 pasos medidos (frente a 5 o 6 en Chromium y Firefox); ancho y alto sí interpolan. No se ha visto a ojo en Safari real.
+
 - **Reservado y sin construir:** el control que pasa a «Reintentar» en el sitio (concepto A) y la línea de tiempo dentro del aviso (concepto C); historial; `icon` por condición; varias acciones; contenido rico; la sesión de voz como aviso de la isla.
-- **No verificado:** lector de pantalla real (nombre del resumen al cambiar, canales tras el traslado al modal, `role="timer"`, `Alt+F8` con lector y en teclados sin fila de función), **Safari real**, **táctil real** (en Firefox y WebKit `pointer: coarse` no se emula), **`forced-colors` real** (solo emulado en Chromium), **zoom real del navegador** (aproximado con visor reducido y DPR), `Alt+F8` en escritorios Linux, y el aviso de desarrollo del tapado en navegador (la UMD no tiene avisos).
 
 ## Verificación
 
@@ -454,6 +456,12 @@ Con prefijo `[Grana Status]`, una vez por caso, solo fuera de producción: `set`
 - **Navegador** (Playwright en Chromium, Firefox y WebKit): `design/lab/theme-playground/tests/status.spec.mjs` sobre el playground, con 17 casos (entrada propia, carga sin anuncios, error al guardar, reintentar y éxito en el mismo nodo, marca y origen, condición de página, teclado, sin condiciones y lo grave que taparía, borde compartido con la voz y `GToaster`, diálogo, 320px, RTL, movimiento reducido, más de 6 condiciones, cabecera fija con `offset.top` a 1280 y 375px, «Alta de paciente»); en la pasada de la auditoría, `status.spec.mjs` + `speech.spec.mjs` + `form-blur-click.spec.mjs`: **75/75**.
 - **Auditoría de coco** (`design/lab/alert/auditoria-verificar.mjs`, playground real, ocho temas, tres motores): **2647/2647** comprobaciones y 6 pendientes del playground (hallazgo 4, que no cuentan); banco de estilo `estilo-verificar.mjs` **2535/2535**. Tres correcciones del CSS en esa auditoría (diana del resumen, negrita del título, «Ir a…» subrayado).
 - **Compuertas:** `grep -q "g-status-island__shape" packages/vue/dist/grana.css`, `! grep -q "createStatus" packages/vue/dist/grana.js` y `test -f packages/vue/dist/status.js`; el CSS `g-status-*` sin colores literales, sin `var()` con respaldo, sin `!important` y sin `brand`; toda `animation` dentro de `prefers-reduced-motion: no-preference`. `check-icons.mjs`: 0 archivos con glifos.
+
+- **WebKit:** no enfoca los botones con el ratón (la apertura automática usa el destino del último `pointerdown`) y el cambio de radio durante el morfo se interpola en solo 2 pasos medidos (frente a 5 o 6 en Chromium y Firefox); ancho y alto sí interpolan. No se ha visto a ojo en Safari real.
+
+- **No verificado:** lector de pantalla real (nombre del resumen al cambiar, canales tras el traslado al modal, `role="timer"`, `Alt+F8` con lector y en teclados sin fila de función), **Safari real**, **táctil real** (en Firefox y WebKit `pointer: coarse` no se emula), **`forced-colors` real** (solo emulado en Chromium), **zoom real del navegador** (aproximado con visor reducido y DPR), `Alt+F8` en escritorios Linux, y el aviso de desarrollo del tapado en navegador (la UMD no tiene avisos).
+
+- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): `Alt+F8` en escritorios Linux (GNOME y Xfce lo reservan; alternativa `Alt+Shift+F8`, sin comprobar) y el color de superficie inversa en vez de `brand` (#325), pendiente de que el usuario lo vea con un tema de color (usuario / lima).
 
 ## Fuentes
 

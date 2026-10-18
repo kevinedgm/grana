@@ -155,7 +155,7 @@ El componente elige entre cuatro etapas, en este orden, la primera que cabe. **S
 - **Al cambiar de etapa** se cierra lo abierto sin devolver el foco y **el foco se conserva por nivel**: de un enlace de la fila a «Subir» o a la divulgación y de vuelta; de una puerta, a la divulgación. Cambiar de etapa nunca se anima.
 - **Primer pintado** (también en SSR): `liquid`, con la lista recortando su desbordamiento hasta que la raíz tenga `is-ready` (un cuadro después de la primera etapa aplicada).
 
-**Medido en la auditoría** (fuente servida, los tres motores, ruta de seis niveles): 1100, 720, 560 y 480 px en `liquid` con seis de seis; 400 px en `shrink` con seis de seis en la fila y **cinco enlaces en el Tab**; 320, 260 y 240 px en `step` con **dos paradas**. Con puertas: 1100, 720 y 560 en `liquid`, 400 y 320 en `step`. Un barrido de 1100 a 200 px y de vuelta (de 10 en 10, LTR y RTL, con y sin puertas) recorre las etapas en orden, vuelve a `liquid` al ensanchar y mantiene **un solo alto**. Con el tema de la auditoría (Georgia de 19 px, `space` 3) 480 px pasa a `root-icon` en Firefox y WebKit y sigue en `liquid` en Chromium (ver «Limitaciones conocidas»).
+**Medido en la auditoría** (fuente servida, los tres motores, ruta de seis niveles): 1100, 720, 560 y 480 px en `liquid` con seis de seis; 400 px en `shrink` con seis de seis en la fila y **cinco enlaces en el Tab**; 320, 260 y 240 px en `step` con **dos paradas**. Con puertas: 1100, 720 y 560 en `liquid`, 400 y 320 en `step`. Un barrido de 1100 a 200 px y de vuelta (de 10 en 10, LTR y RTL, con y sin puertas) recorre las etapas en orden, vuelve a `liquid` al ensanchar y mantiene **un solo alto**. Con el tema de la auditoría (Georgia de 19 px, `space` 3) 480 px pasa a `root-icon` en Firefox y WebKit y sigue en `liquid` en Chromium (ver «Alcance» y «Verificación»).
 
 ## La última etapa: «Subir · página»
 
@@ -253,7 +253,7 @@ Sin valores por defecto. Cada uno es una **cadena** con el marcador `{label}` o 
 - `item` es el nivel, o el **hijo** si `from === 'door'`; `index` es la posición en `items` del nivel destino (con `door`, la del nivel delante del cual está la puerta); `event` es el evento nativo, cancelable; `from` es `'path'` (la fila), `'up'` («Subir»), `'stairs'` (la escalera) o `'door'` (una puerta).
 - **Desde un panel**, el panel se cierra y el foco vuelve a su disparador **antes** de emitir: el foco nunca queda en el `body` si cancelas y actualizas `items`.
 - **Un nivel sin `href` no emite nada.**
-- **Con el slot `link`**, el router navega en su propio manejador y `navigate` se sigue emitiendo, con `event.defaultPrevented` ya verdadero si el router lo canceló (excepción a la guarda de #505, DECISIONS #523; ver «Limitaciones conocidas»).
+- **Con el slot `link`**, el router navega en su propio manejador y `navigate` se sigue emitiendo, con `event.defaultPrevented` ya verdadero si el router lo canceló (excepción a la guarda de #505, DECISIONS #523; ver «Alcance» y «Verificación»).
 - Declarado en `emits`: tu `@navigate` no llega a ningún nativo. Sin `update:*`: no hay estado que controles.
 
 **Métodos expuestos:** ninguno.
@@ -399,18 +399,25 @@ Prefijo `[Grana GBreadcrumbs]`; una vez por instancia y motivo; solo fuera de pr
 - **Medida:** `__measure` (`aria-hidden`, `inert`, solo cliente).
 - **Interno:** los datos del `.vue` al CSS no son API.
 
-## Limitaciones conocidas
+## Alcance
 
 - **La etapa a un ancho dado depende de la métrica de la fuente (DECISIONS #522; hallazgo 6, información).** Con una fuente del sistema distinta, la misma ruta puede estar en una etapa en un motor y en otra en otro al mismo ancho: con Georgia de 19 px, 480 px pasa a `root-icon` en Firefox y WebKit y sigue en `liquid` en Chromium. Lo que se garantiza en los tres motores es el **orden** de las etapas al estrechar (`liquid`, `root-icon`, `shrink`, `step`; nunca hacia atrás), el **alto Δ0** y que **nada salga del `nav`**; **no** a qué ancho cambia cada etapa. No es un defecto de la medida: el barrido confirma ese orden y ese alto en los tres. No fijes anchos de etapa en tu aplicación; la medida ocurre en vivo y se repite al cargar las fuentes.
+
 - **Una pastilla de 3 letras no se lee sin pasar por encima o tabular** (el precio de no esconder la ruta). Con el puntero, la pista da el nombre; con el teclado, el despliegue.
+
 - **Un nivel sin página recortado no es enfocable:** con el teclado no se ve su nombre entero (sí en el árbol, con el puntero y, en `step`, en la escalera).
+
 - **Las puertas casi duplican las paradas de Tab,** y con puntero grueso la fila cede antes.
+
 - **En `step`, ver la ruta cuesta un toque** (la divulgación).
+
 - **El despliegue por foco muestra el nombre «entero o casi»:** a 560 px, «Laboratorio central» enseña 119 de 122 px (≈ 97 %) y la pista completa el resto; un peso `0` lo dejaría entero pero haría desbordar la fila cuando de verdad no cabe.
+
 - **Con el slot `link`, `navigate` se emite aunque el router ya haya cancelado el clic (DECISIONS #523).** Es la **única excepción** a la guarda de `defaultPrevented` de #505: sin el slot, un clic ya cancelado no emite; con el slot, `RouterLink` o `NuxtLink` cancelan el clic en su propio manejador antes de que llegue el del componente, y `navigate` llega con `event.defaultPrevented` ya verdadero. No uses `event.defaultPrevented` para decidir si navegar. La guarda de modificadores (Ctrl, ⌘, Mayús, Alt, clic central) sigue valiendo en los dos casos.
+
 - **Pasa tú los textos:** sin `labels.nav` el `nav` no tiene nombre; `up` y `path` deben contener `{label}`.
+
 - **No lleva foco ni lectura al navegar:** llevar el foco al `h1` de la página nueva es de tu aplicación.
-- **Navegadores:** usa `:has()`, capas CSS, `popover` y `ResizeObserver`. No se midió ningún navegador anterior a los tres motores de Playwright (Chromium, Firefox, WebKit).
 
 ## Reservado (fuera de v0.1)
 
@@ -430,6 +437,10 @@ Hoy no existen (DECISIONS #503):
 - **Hallazgo 3, resuelto (bruno, `c6e4283`):** si el lado medido al abrir el panel difiere del estimado, el panel se cierra sin transición, se fuerza el estilo cerrado y se vuelve a abrir en la misma tarea, de modo que la entrada parte del lado real. `breadcrumbs.spec.mjs` gana un caso con hijos de varias líneas a 140, 185 y 230 px bajo la puerta; según el commit, **falla antes** (a 185 px entraba desde el lado contrario) **y pasa después en Chromium, Firefox y WebKit**. Ese spec **no se corrió al documentar**.
 - **Specs de bruno** (`breadcrumbs.spec.mjs`, `personalidad-breadcrumbs.spec.mjs`, `panel-estable.spec.mjs`): **no se corrieron con el CSS corregido** (la auditoría los dejó pendientes) ni al documentar.
 - **Empaquetado** (al documentar, sobre el `dist/` del árbol): `dist/grana.js` contiene `GBreadcrumbs`; `dist/grana.css` contiene `g-breadcrumbs__door` y `g-breadcrumbs__stairs`, y la lista de medida con `overflow: clip`. El peso es el anotado por bruno (no remedido).
+
+- **Navegadores:** usa `:has()`, capas CSS, `popover` y `ResizeObserver`. No se midió ningún navegador anterior a los tres motores de Playwright (Chromium, Firefox, WebKit).
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## No verificado
 

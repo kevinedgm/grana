@@ -121,7 +121,7 @@ Verificado en el componente real (`#fr-form` del playground): «Sí» → Físic
 </g-form-section>
 ```
 
-**Pon siempre un `GFormLayout` dentro de la sección** (DECISIONS #283). El cuerpo de `GFormSection` **no es una pila**: no separa sus hijos ni pasa la densidad. Si la pregunta y el bloque van directamente en ese cuerpo, la distancia entre la pregunta y el bloque abierto es **0px** (en `GFormLayout` son 20px, medido). Ver [Limitaciones conocidas](#limitaciones-conocidas).
+**Pon siempre un `GFormLayout` dentro de la sección** (DECISIONS #283). El cuerpo de `GFormSection` **no es una pila**: no separa sus hijos ni pasa la densidad. Si la pregunta y el bloque van directamente en ese cuerpo, la distancia entre la pregunta y el bloque abierto es **0px** (en `GFormLayout` son 20px, medido). Ver [Verificación](#verificación).
 
 Si las partes del bloque forman **una pregunta** con título propio, es un `GFieldGroup` dentro del bloque, no una `GFormSection`.
 
@@ -251,7 +251,7 @@ Comprobado en el playground: con el foco en el RFC, cerrar por programa lleva el
   - **Barra:** 2px; empieza en el borde de inicio de la pregunta (±1px) y termina con las filas, que acaban en el mismo borde que las de fuera del bloque (±1px). Sangría de **16 / 14 / 12px** en densidad `default` / `comfortable` / `compact`. Contraste de la barra: mínimo **3.45:1** en claro y **4.32:1** en oscuro con el tema por defecto; en todos los temas probados, de **3.43** a **5.35:1** en claro y de **4.28** a **4.35:1** en oscuro (superan el 3:1 aunque el contrato no lo exija).
   - **Separación:** la pila del cuerpo separa igual que `GFormLayout` en cada densidad. Un bloque cerrado entre dos campos no añade distancia (pregunta → siguiente campo = una separación).
   - **Anchos:** a 480, 360 y 320px, con dos niveles abiertos, sin desborde horizontal.
-  - **Disparador quieto** (con el límite de [Limitaciones conocidas](#limitaciones-conocidas)): al abrir y al cerrar con un clic real, la pregunta no se mueve (Δ 0px de arriba e inicio, Δ del desplazamiento 0 en cada cuadro), en LTR y en RTL.
+  - **Disparador quieto** (con el límite de [Verificación](#verificación)): al abrir y al cerrar con un clic real, la pregunta no se mueve (Δ 0px de arriba e inicio, Δ del desplazamiento 0 en cada cuadro), en LTR y en RTL.
   - **Colores forzados** (emulado en Chromium): la barra toma `CanvasText` (≥ 3:1 sobre `Canvas`) y queda alineada en LTR y RTL; el bloque cerrado no se ve y no ocupa altura.
   - **RTL:** barra a la derecha; la etiqueta de `GRadioGroup` con `dir="auto"` se lee en orden («¿Requiere factura?»).
 
@@ -341,14 +341,26 @@ Render de servidor: se pinta con `inert` y `disabled` según `when`, de modo que
 
 Para que la pregunta de un bloque se lea bien en un formulario RTL, el texto de la etiqueta de `GRadioGroup` pasó a un `<span class="g-radio-group__label-text" dir="auto">` en línea dentro de `__label` (DECISIONS #282): sin él, «¿Requiere factura?» salía «?Requiere factura¿». Comprobado por coco: las capturas de la etiqueta con la envoltura y sin ella son **idénticas byte a byte** en `inline` y `segmented`, con el tema por defecto y con uno de auditoría en oscuro. No se extendió a las etiquetas de otros campos sin medir.
 
-## Limitaciones conocidas
+## Alcance
 
 - **Límite de «Δ 0px» del disparador con la página desplazada hasta el final.** Si el bloque que se cierra es grande y no hay contenido debajo, el navegador **recorta el desplazamiento** al encoger la página, y la pregunta **baja** lo que encoge (medido con un bloque de 408px + 20px: **428px**, en los tres motores). Baja de forma continua, con la curva del bloque, y **sigue visible**. Al abrir con la página al final, el disparador no se mueve (Δ 0px). Es inherente al navegador (pasa igual con `<details>`) y no se arregla con CSS. Con contenido debajo, o con la página no desplazada al final, el disparador no se mueve. Anotado también en el contrato (`form.md` §14 «Transición», #283).
+
 - **Un bloque directo en el cuerpo de `GFormSection`, sin `GFormLayout`, queda pegado a la pregunta.** El cuerpo de la sección no es una pila (`row-gap: normal`), así que `--_reveal-gap` vale `0px` y la distancia de la pregunta al bloque abierto es 0px (de las opciones del radio a la etiqueta del primer campo del bloque, también 0px), frente a 20px en `GFormLayout`. No hay defecto de accesibilidad (la barra agrupa y la etiqueta se lee), pero rompe el ritmo de 20px. **Lima lo resolvió como regla (DECISIONS #283):** los campos de una sección van en un `GFormLayout`, y el cuerpo no se convierte en pila. `GFormSection` avisa en desarrollo si detecta el uso incorrecto (aviso 4 de arriba), el panel «Antecedentes» del playground ya va en un `GFormLayout` y `auditoria-verificar.mjs` mide la separación nueva (`ece7e04`).
-- **Muchos bloques a la vez:** 40 bloques con 20 anidados abiertos o cerrados en la misma tarea se asientan en 240 a 330ms y quedan en su estado; el cuadro del cambio dura **59 a 81ms** (medido en motores sin pantalla). Un formulario real abre uno o dos. Pendiente de bruno perfilar de dónde viene ese cuadro; no bloquea.
-- **`GDialog`:** en un diálogo centrado, el disparador sube al abrir un bloque (kiwi midió 120px con un bloque de 240px, y 240px en la hoja de 375px), porque el diálogo crece desde el centro. Es un problema de `GDialog`, no del bloque, y queda para su propia ronda (DECISIONS #281): un diálogo abierto crecería hacia abajo. No se verificó el componente real dentro de un `GDialog`.
+
 - **Si envías tu modelo, filtra tú** (ver [la receta](#receta-enviar-tu-modelo-no-el-formdata)): Grana no limpia los valores de bloques cerrados.
+
 - **Un campo común a varias ramas va una vez, fuera de los bloques**; repetir un `name` entre ramas es un error de uso.
+
+## Verificación
+
+- **Pruebas** (`GFormReveal.test.js`, vitest con jsdom): 33 pruebas de estructura (raíz sin rol, `fieldset role="none"` único hijo, sin `<legend>`), `inert` y `disabled` con `when`, valores conservados al reabrir, `FormData` (también los `<input hidden>` de `GSelect` y `GDatePicker`), anidados, fases (`is-ready`, `is-animating` con `transitionend` y con el temporizador de respaldo), `--_reveal-gap` (px, `0px` con `normal`, `ResizeObserver` compartido), sub-contexto de distribución, foco al cerrar, avisos, render de servidor y el registro inactivo de `GForm` (envío, `invalid`, resumen e instantánea, `showErrors()`, `focusFirstError()`, anidados, `GFieldGroup`, `GCheckboxGroup`, `GInputGroup`, `GRadioGroup` y un campo propio, fuera de `GForm`). La suite completa de `@grana/vue` pasó 1704/1704 al cierre de la auditoría.
+- **Navegador** (Playwright en Chromium, Firefox y WebKit, sobre el componente real del playground): `form-reveal.spec.mjs` (carga sin transiciones; cerrado sin hueco y fuera de `FormData`, `:invalid` y Tab; Δ 0px en LTR y RTL; fases intermedias pausadas; interrupción; conservación; foco; ciclo resumen → «No» → envío → reabrir; `showErrors()`; movimiento reducido; 320px) junto con `form-distribution.spec.mjs`: 48 pasan y 6 se omiten por diseño (puntero grueso y colores forzados solo se emulan en Chromium).
+- **Auditoría de coco** con el componente real y temas distintos: `node design/lab/form-reveal/auditoria-verificar.mjs`, **1857/1857** comprobaciones en los tres motores, consola limpia; el banco de estilo (`estilo-verificar.mjs`), 379/379. Detalle en [`design/lab/form-reveal/auditoria.md`](../../../../../design/lab/form-reveal/auditoria.md).
+
+- **Muchos bloques a la vez:** 40 bloques con 20 anidados abiertos o cerrados en la misma tarea se asientan en 240 a 330ms y quedan en su estado; el cuadro del cambio dura **59 a 81ms** (medido en motores sin pantalla). Un formulario real abre uno o dos.
+
+- **`GDialog`:** desde DECISIONS #301 el diálogo centrado fija su borde superior al abrir y crece hacia abajo (D2), lo que cierra el «abierto» de #281: kiwi había medido que el disparador subía 120 px con un bloque de 240 px cuando crecía desde el centro. No se verificó `GFormReveal` dentro de un `GDialog` real.
+
 - **Sin verificar:**
   - un **lector de pantalla real** (VoiceOver, NVDA, JAWS, TalkBack): qué se oye al elegir «Sí», qué se oye al tabular al bloque, y cómo se anuncia el `fieldset role="none"` sin grupo;
   - **Safari, iOS y un dispositivo táctil reales**;
@@ -357,11 +369,7 @@ Para que la pregunta de un bloque se lea bien en un formulario RTL, el texto de 
   - **rendimiento con pantalla real** (las cifras de muchos bloques son de motores sin pantalla);
   - un `GBtn` dentro de un bloque del playground (no hay ninguno; el «salto a gris» al cerrar solo está medido en el banco de coco con el `GBtn` real de `dist/`).
 
-## Verificación
-
-- **Pruebas** (`GFormReveal.test.js`, vitest con jsdom): 33 pruebas de estructura (raíz sin rol, `fieldset role="none"` único hijo, sin `<legend>`), `inert` y `disabled` con `when`, valores conservados al reabrir, `FormData` (también los `<input hidden>` de `GSelect` y `GDatePicker`), anidados, fases (`is-ready`, `is-animating` con `transitionend` y con el temporizador de respaldo), `--_reveal-gap` (px, `0px` con `normal`, `ResizeObserver` compartido), sub-contexto de distribución, foco al cerrar, avisos, render de servidor y el registro inactivo de `GForm` (envío, `invalid`, resumen e instantánea, `showErrors()`, `focusFirstError()`, anidados, `GFieldGroup`, `GCheckboxGroup`, `GInputGroup`, `GRadioGroup` y un campo propio, fuera de `GForm`). La suite completa de `@grana/vue` pasó 1704/1704 al cierre de la auditoría.
-- **Navegador** (Playwright en Chromium, Firefox y WebKit, sobre el componente real del playground): `form-reveal.spec.mjs` (carga sin transiciones; cerrado sin hueco y fuera de `FormData`, `:invalid` y Tab; Δ 0px en LTR y RTL; fases intermedias pausadas; interrupción; conservación; foco; ciclo resumen → «No» → envío → reabrir; `showErrors()`; movimiento reducido; 320px) junto con `form-distribution.spec.mjs`: 48 pasan y 6 se omiten por diseño (puntero grueso y colores forzados solo se emulan en Chromium).
-- **Auditoría de coco** con el componente real y temas distintos: `node design/lab/form-reveal/auditoria-verificar.mjs`, **1857/1857** comprobaciones en los tres motores, consola limpia; el banco de estilo (`estilo-verificar.mjs`), 379/379. Detalle en [`design/lab/form-reveal/auditoria.md`](../../../../../design/lab/form-reveal/auditoria.md).
+- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): perfilar de dónde viene el cuadro de 59 a 81 ms al abrir 40 bloques a la vez (bruno; un formulario real abre uno o dos).
 
 ## Fuentes
 

@@ -379,14 +379,20 @@ Prefijo `[Grana] <GEmpty>`; una vez por instancia y causa, sin contenido de la a
 
 Raíz `g-empty`, `g-empty--cause-{none|filtered|error|forbidden}` e `is-exit` (`filtered` con `filters` no vacío). Partes: `__icon`, `__text`, `__title`, `__description`, `__trace`, `__actions`; en los botones de la salida, `__relax` (solo marcado, sin regla), `__count` y `__sr`. `--_load-slot` (en línea, en la raíz de la región) es un dato interno, no API.
 
-## Limitaciones conocidas
+## Alcance
 
 - **Suelto, no se anuncia ni recoge el foco al desaparecer:** dentro de `GLoadRegion` y de `GTable` sí; fuera, lo decide tu aplicación.
+
 - **Las cuentas las calcula tu aplicación.** Sin ellas, la salida se reduce a «Quitar todos». `GTable` no las calcula todavía en `filterMode: 'local'` (reservado, #543).
+
 - **`{filters}` no lleva comillas ni formato por nombre** (DECISIONS #553): una plantilla no puede ponérselos a cada elemento; redacta la frase para que se lea sin ellos.
+
 - **`forbidden` sin a quién pedir:** sin acción. No pongas un botón deshabilitado.
+
 - **Fuera de una región el alto mínimo es el de su contenido:** no hay elemento que medir.
+
 - **El `lang` del ancestro se lee al montar:** un cambio posterior de idioma sin cambiar `locale` no reformatea las cuentas.
+
 - **Necesitas pasar los textos:** sin `labels` la salida se pinta con botones sin nombre.
 
 ## Reservado (fuera de v0.1)
@@ -403,6 +409,8 @@ Hoy no existen (DECISIONS #543):
 - **Specs de navegador** (Playwright, Chromium, puerto 4210, sobre el `dist/` del árbol): `empty.spec.mjs`, `load-region.spec.mjs`, `personalidad-load-region.spec.mjs` y `table-load.spec.mjs`, **45 de 45**, ejecutados al documentar.
 - **Auditoría de coco** con el componente real publicado (`dist/grana.umd.js` y `dist/load-region.umd.js`, `dist/grana.css`) y un tema distinto al por defecto: `node design/lab/empty-skeleton/auditoria-verificar.mjs`. El informe registra **5350 de 5350** comprobaciones (estático 31, Chromium 1777, Firefox 1771, WebKit 1771) con cuatro hallazgos abiertos para bruno; **bruno los cerró en `93cb273`** (hallazgos 1, 6, 7 y 8, y el color de #555) y anotó en ese commit **5353 de 5353** sin las notas de los hallazgos 6 y 8. El informe `auditoria.md` aún muestra el estado anterior y **no se repitió el verificador al documentar**.
 - **Empaquetado** (al documentar, sobre el `dist/` del árbol): `grana.js` contiene `GEmpty`, `grana.css` contiene `g-empty__count`, `load-region.js` no contiene `g-empty__` y `dist/grana.d.ts` declara `GEmptyProps`.
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## No verificado
 

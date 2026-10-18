@@ -445,18 +445,25 @@ Prefijo `[Grana] <GLoadRegion>`; una vez por instancia y causa, sin datos de la 
 
 Raíz `g-load-region` con `is-busy`, `is-pending`, `is-mold`, `is-stale`, `is-slow`, `is-revealing` (siempre con `is-mold`) e `is-failed`; el estado va en clases del render, no escrito fuera de él. Partes: `__body`, `__failed`, `__failed-icon`, `__failed-text`, `__slow`, `__pill`. Canal de página: `g-load-live`. Datos de tu plantilla: `data-g-key`, `data-g-fresh`, `data-g-known`. `--_load-slot` (en línea) es un dato interno, no API.
 
-## Limitaciones conocidas
+## Alcance
 
 - **Δ0 del total** depende de que `sample` tenga el tamaño de una respuesta típica: si llegan más o menos elementos, el alto cambia por elementos enteros.
+
 - **La barra de fallo empuja el contenido una vez** (en flujo, para no tapar datos): 46 px medidos.
+
 - **Molde:** el texto directo de un elemento que también tiene hijos no recibe barra; los controles de formulario dentro del molde quedan como cajas vacías; el coste es el de pintar la plantilla real.
+
 - **`items` se sustituye, no se muta** en el sitio.
+
 - **`inert` en `keep` saca lo de antes del árbol de accesibilidad** mientras dura la carga: quien usa lector no lee datos que se van (decidido), pero tampoco puede releerlos hasta la llegada.
+
 - **Un anfitrión con región propia dentro de una `GLoadRegion` habla por la suya:** no se coordinan.
+
 - **El grupo no anuncia `labels.slow`** (se reserva).
+
 - **`GTable` con celdas compuestas (avatar):** el esqueleto mide 44 px frente a 60 de la fila (tema de la auditoría); la tabla encoge durante la carga y vuelve a crecer. En la tabla simple, 44 = 44. Se cierra con el molde de `GTable` desde una muestra de filas, reservado (DECISIONS #543 y #558).
+
 - **Necesitas pasar los textos:** sin `labels`, la carga es muda.
-- **Navegadores:** usa `inert`, `:has()`, capas CSS y `getAnimations`. No se midió ningún navegador anterior a los tres motores de Playwright.
 
 ## Reservado (fuera de v0.1)
 
@@ -473,6 +480,10 @@ Hoy no existen (DECISIONS #543 y #549):
 - **Specs de navegador** (Playwright, Chromium, puerto 4210, sobre el `dist/` del árbol): `empty.spec.mjs`, `load-region.spec.mjs`, `personalidad-load-region.spec.mjs` y `table-load.spec.mjs`, **45 de 45**, ejecutados al documentar. Los de Firefox y WebKit no se corrieron al documentar.
 - **Auditoría de coco** con el componente real publicado (`dist/load-region.umd.js`, `dist/grana.umd.js`, `dist/grana.css` y `dist/fonts.css`) y un tema distinto al por defecto (generado con `@grana/cli`): `node design/lab/empty-skeleton/auditoria-verificar.mjs`. El informe registra **5350 de 5350** comprobaciones (estático 31, Chromium 1777, Firefox 1771, WebKit 1771) con un defecto bloqueante (hallazgo 6: `items: null` y `loading: true` en el mismo ciclo daban un refresco B con lo anterior en vez del molde) y tres menores abiertos para bruno; **bruno los cerró en `93cb273`** (hallazgos 1, 6, 7 y 8) y anotó en ese commit **5353 de 5353** sin las notas de los hallazgos 6 y 8. El informe `auditoria.md` aún muestra el estado anterior y **no se repitió el verificador al documentar**.
 - **Empaquetado** (al documentar, sobre el `dist/` del árbol): `grana.js` no contiene `GLoadRegion`; `load-region.js`, `load-region.umd.js` y `load-region.d.ts` existen; `grana.css` contiene `g-load-region__pill`; `load-region.js` no contiene `g-empty__`.
+
+- **Navegadores:** usa `inert`, `:has()`, capas CSS y `getAnimations`. No se midió ningún navegador anterior a los tres motores de Playwright.
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## No verificado
 

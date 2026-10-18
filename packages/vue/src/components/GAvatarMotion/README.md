@@ -96,12 +96,19 @@ Consume las familias `--g-color-{primary|accent|neutral|success|warning|danger|i
 
 `g-avatar-motion`, `g-avatar-motion--size-*`, `g-avatar-motion--color-*`, `g-avatar-motion--idle-loop`, y `data-motion` (`idle`, `thinking`, `success` o `error`) en la raíz. Las partes del dibujo: `__body`, `__eyes`, `__antenna` (`--start`, `--end`), `__legs` (`--start`, `--end`) y las formas `__shell`, `__core`, `__band`, `__tip`, `__eye`, `__pupil`, `__line`.
 
-## Limitaciones conocidas
+## Alcance
 
 - **Un solo avatar** (el del prototipo del Grana Motion Lab). El motor es SVG + CSS; la API no cambiaría con Rive o Lottie.
+
 - Los estados agrupados comparten coreografía; el parpadeo tiene ritmo fijo.
+
+## Verificación
+
 - **Pivotes medidos en los tres motores:** `transform-box: fill-box` funciona en Chromium, Firefox y WebKit (el cuerpo respira y los ojos parpadean sobre su propio centro, Δ ≤ 0,5 px; `design/lab/theme-playground/tests/limitaciones.spec.mjs`, 2026-10-18).
+
 - **Sin verificar:** lector de pantalla con `label`, Safari real y rendimiento en un móvil de gama baja (60 avatares a la vez van a ~60 fps en Chromium de escritorio).
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 

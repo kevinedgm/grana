@@ -393,16 +393,25 @@ Las emite el componente y las estiliza `GTabs.css` (que cubre también `GTabPane
 - **Elementos:** `__header`, `__scroller`, `__list`, `__tab` (con `is-active`, `is-attention`, `is-loading`), `__icon`, `__label` (con `data-text`), `__status`, `__sr`, `__mark`, `__edge` (`--prev`, `--next`), `__more`, `__panels`, `__panel` y `__live`; los nodos de la pista de solo icono son `g-tooltip` (con `aria-hidden`) y van al final de `__header`.
 - **Diálogo:** `.g-dialog__tabs` (en `GDialog.css`).
 
-## Limitaciones conocidas
+## Alcance
 
 - **Pista en pestaña deshabilitada:** con el puntero abre y la nombra; con el teclado no se llega a ella (queda fuera de las flechas). Se acepta (es como `GTooltip` con `aria-disabled`).
+
 - **Pestañas cerrables** (`closable`, `close`): reservadas, **diferidas** a una versión posterior; el CSS no deja hueco todavía.
+
 - **`overflow="combined"` y `"auto"`** se difieren a una r03 (el validador los rechaza).
+
 - **Sin deslizar entre paneles** (*swipe*) ni desmontar los paneles inactivos: los paneles se conservan montados.
-- **La marca no se vuelve a medir** si una pestaña cambia de ancho sin que cambie la raíz ni el `scroller` (p. ej. al cambiar en caliente la familia tipográfica del tema): pendiente de bruno. Las fuentes que cargan por `@font-face` sí se cubren.
+
 - **Contorno del segmento en oscuro,** lado interior: 2.59:1 (excepción documentada).
+
+## Verificación
+
 - **Personalidad:** WebKit no recorta el panel que entra (a sangre rebasa 16px ≤ 240ms), el recorte corta lo que se dibuje a más de 4px del borde de los paneles y la marca anima su ancho (ver [Límites de la personalidad](#límites-de-la-personalidad)).
+
 - **Sin verificar:** un lector de pantalla real (VoiceOver, NVDA, TalkBack: anuncio de estado y contador y el menú «Más»), un dispositivo táctil real (`snap` con dedo y la pulsación larga de la pista, que solo se probó con `pointer: coarse` emulado en Chromium y WebKit), zoom al 200%, `forced-colors` real de Windows (se probó emulado), rendimiento con decenas de pestañas y redimensionar con «Más» abierto.
+
+- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): la marca no se vuelve a medir si una pestaña cambia de ancho sin que cambie la raíz ni el `scroller` (p. ej. al cambiar en caliente la familia tipográfica del tema; las fuentes que cargan por `@font-face` sí se cubren) (bruno).
 
 ## Fuentes
 

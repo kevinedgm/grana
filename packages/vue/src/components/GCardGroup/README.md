@@ -10,7 +10,7 @@ Fila de tarjetas de métrica que filtran la región de debajo (casi siempre una 
 
 ## En esta página
 
-[§ Uso](#uso) · [§ Ejemplos](#ejemplos) · [§ API](#props) · [§ Teclado y foco](#teclado-y-foco) · [§ Accesibilidad](#accesibilidad) · [§ Personalidad](#personalidad) · [§ Tema](#tema) · [§ Limitaciones conocidas](#limitaciones-conocidas)
+[§ Uso](#uso) · [§ Ejemplos](#ejemplos) · [§ API](#props) · [§ Teclado y foco](#teclado-y-foco) · [§ Accesibilidad](#accesibilidad) · [§ Personalidad](#personalidad) · [§ Tema](#tema) · [§ Alcance](#alcance) · [§ Verificación](#verificación)
 
 ## Uso
 
@@ -343,17 +343,29 @@ Las emite el componente y las estiliza `GCardGroup.css`:
 - **Raíz:** `g-card-group`; `has-panel` (con slot `panel`), `is-filtered` (alguna tarjeta pulsada; también en `g-card-group__panel`), `is-multiple`, `is-ready` (tras el primer posicionamiento del puente).
 - **Elementos:** `g-card-group__strip` (`role="toolbar"`; con panel, `tabindex="-1"`), `g-card-group__panel` (envoltorio del slot `panel`, `id` = `ID-panel`), `g-card-group__bridge` (`aria-hidden="true"`, dentro de la barra; `--_bridge-x` y `--_bridge-w` en línea); `is-leaving` en `g-card-group__bridge` mientras el puente de una tarjeta que se suelta se retira.
 
-## Limitaciones conocidas
+## Alcance
+
+- **Tarjetas con controles secundarios** (menú, acciones, pie, enfocables en el contenido) no se admiten en v1 (aviso G5); `role="group"` con controles secundarios está reservado (#609).
+
+- **En móvil con el slot `panel`**, la tira es una fila que se desplaza en horizontal; puede haber tarjetas fuera de la vista inicial.
+
+- **Pista de «hay más tarjetas»** en la tira (como `GTabs`): fuera del contrato de v1, reservada. Hoy la tira se desplaza sin pista.
+
+- **`filterKey` + `v-model:filters`** (atajo para la receta): reservado (#608).
+
+- **Segunda forma (`appearance`)**: en v1 la forma la decide el slot `panel` (lengüeta) o su ausencia (rejilla). Las formas `sentence` (C) y `parts` (B) están reservadas para una versión posterior (#611).
+
+## Verificación
 
 - **Lector de pantalla real sin verificar:** la barra con tarjetas que contienen encabezados (NVDA en modo exploración podría leer el `h3` y el botón por separado) y `aria-describedby` con el contenido de la métrica. VoiceOver, NVDA y TalkBack están en la lista de verificaciones pendientes.
+
 - **`aria-controls`** no lo anuncian todos los lectores (documentado, no es el único mecanismo).
-- **Tarjetas con controles secundarios** (menú, acciones, pie, enfocables en el contenido) no se admiten en v1 (aviso G5); `role="group"` con controles secundarios está reservado (#609).
-- **En móvil con el slot `panel`**, la tira es una fila que se desplaza en horizontal; puede haber tarjetas fuera de la vista inicial.
-- **Pista de «hay más tarjetas»** en la tira (como `GTabs`): fuera del contrato de v1, reservada. Hoy la tira se desplaza sin pista.
-- **`filterKey` + `v-model:filters`** (atajo para la receta): reservado (#608).
-- **Segunda forma (`appearance`)**: en v1 la forma la decide el slot `panel` (lengüeta) o su ausencia (rejilla). Las formas `sentence` (C) y `parts` (B) están reservadas para una versión posterior (#611).
+
 - **`forced-colors` real:** la emulación de Playwright en macOS no reproduce `forced-colors` de Windows; las reglas `forced-colors` del CSS se inspeccionaron manualmente (`sin verificar` en entorno real).
+
 - **`filterMode: 'external'`** con carga real: el anuncio del recuento depende de la tabla (#569); no verificado en producción.
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 

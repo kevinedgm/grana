@@ -370,22 +370,30 @@ Con `NODE_ENV` distinto de `production`, `console.warn` con el prefijo `[Grana G
 | 7 | `group` sin `title` | Avisa |
 | 8 | Tras montar, la ficha mide 0 de ancho | Avisa: el anfitrión no le da sitio |
 
-## Limitaciones conocidas
+## Alcance
 
 - **Padre que se ajusta al contenido (#562).** Dentro de un padre que se ajusta al contenido (celda de tabla `auto`, rejilla con `justify-items: center`, flex con `fit-content`) la ficha toma su ancho por defecto (`--g-space-1 × 60`) en lugar de colapsar a 0; con un padre que da ancho no cambia nada, y en una `GFormRow` no se aplica. Banco `design/lab/contencion/verificar.mjs`, 297/297 en los tres motores. Ver `api.md` «Contención en línea y ancho intrínseco».
+
 - **La ficha recortada nunca es la única fuente de un dato:** el anfitrión debe ofrecer la vista completa (vista previa, detalle, `stack`). El `title` nativo de lo cortado solo sirve al puntero.
+
 - **El estado es de lo primero que cede.** Si es crítico, va como dato con `priority` alta.
+
 - **`bare` mal marcado** deja un valor sin rótulo a la vista (el lector siempre recibe el rótulo).
+
 - **`diff`** exige que las fichas vecinas traigan los mismos rótulos; en listas heterogéneas casi todo sale `diff`.
+
 - **Un anfitrión de ancho automático** (celda de tabla, fila flex): la raíz lleva `contain: inline-size` y desde #562 toma su ancho por defecto (`--g-space-1 × 60`) en lugar de medir 0. Para otro ancho, dale `min` a la columna de `GTable`, o `min-inline-size` o `flex: 1` en una fila flex (el aviso 8 sigue vigente).
+
 - **`stack` a muy poco ancho:** el estado puede llevar la elipsis propia de `GBadge` (antes que desbordar) y un `GBtn` del slot `action` (`white-space: nowrap`) puede desbordar: es contenido de la aplicación, que le da sitio.
+
 - **Por debajo de 160 px con `code` e icono** el código puede llevar elipsis; el barrido garantizado del contrato es de 160 a 720 px. Fuera de ese rango (se midió a 120 y 140 px, informativo) la identidad y el código no ceden y puede haber desbordes esperables en una ficha más estrecha que su identidad (por ejemplo, la identidad `xl` con `space` 5 mide 80 px).
+
 - **«+N» no se localiza** (cifras latinas).
+
 - **Sin virtualización:** cada ficha se mide; con cientos, la medida de las que no están a la vista puede llegar un instante después.
-- **Un cambio en caliente de la métrica del texto** que no altere el ancho ni el alto de la ficha no repite la medida (se mide al montar, al cambiar de tamaño, de contenido y con `document.fonts.ready`). En la prueba hecha (Chromium, cuerpo a 1,25rem en caliente) el recuento siguió correcto; no se encontró un caso que lo rompa.
-- **En `inline`, un desborde del cuerpo de 1 a 2 px** se medía con anchos redondeados y no pasaba a estado apretado (hallazgo 2 de la auditoría); bruno lo corrigió después midiendo por cajas con tolerancia de 0,5 px (`001c1e3`). Esta corrección tiene prueba unitaria y `tests/summary.spec.mjs` pasa en Chromium, Firefox y WebKit después de ella (9/9 por motor, 2026-10-18; `design/lab/limitaciones/revision.md`); la auditoría de coco (`auditoria-verificar.mjs`) no se repitió.
+
 - **Estilos globales sin capa ganan:** una regla global tuya sobre `span` (sin capa) gana al CSS de Grana (capa `grana.components`); acótala con un selector más específico.
-- **Navegadores:** exige la unidad `lh` y `:has()`.
+
 - **Reservado, no implementado** (DECISIONS #357): casillas alineadas con fila de rótulos (`align`, `heading`), `layout="auto"` y `"panel"`, segunda cara con «+N» como botón (`expandable`), superficie propia (`surface`), slot por dato, `status` en la opción de `GCombobox`. La adopción en `GCard`, `cell-{key}` de `GTable`, `GMenu`, `GSelect` y `GSidebar` es una ronda por anfitrión; hoy la ficha ya puede ir en sus slots.
 
 ## Verificación
@@ -395,6 +403,14 @@ Con `NODE_ENV` distinto de `production`, `console.warn` con el prefijo `[Grana G
 - **Auditoría de coco** con el componente real, un tema distinto al por defecto (`@grana/cli`: marca `#7A2E0E`, `space` 5, cuerpo de 17 px, Georgia) y el oscuro, más los once temas generados: `node design/lab/summary/auditoria-verificar.mjs`, **8315/8315** comprobaciones (Chromium 3243, Firefox 2527, WebKit 2527, más 18 estáticas), sin defectos bloqueantes. Cifras tomadas de `auditoria.md`; no se repitió esa pasada al documentar. Banco de estilo previo: 4015/4015.
 - **CSS:** sin colores literales, sin `var()` con respaldo, sin `@layer`/`@container`/`!important`, sin `@media` por ancho; en `dist/grana.css` las reglas están en `grana.components` y no hay fuente incrustada.
 - **Iconos:** la ficha no escribe pictogramas propios; el icono es `GIcon` por nombre y «+N» es texto.
+
+- **Un cambio en caliente de la métrica del texto** que no altere el ancho ni el alto de la ficha no repite la medida (se mide al montar, al cambiar de tamaño, de contenido y con `document.fonts.ready`). En la prueba hecha (Chromium, cuerpo a 1,25rem en caliente) el recuento siguió correcto; no se encontró un caso que lo rompa.
+
+- **En `inline`, un desborde del cuerpo de 1 a 2 px** se medía con anchos redondeados y no pasaba a estado apretado (hallazgo 2 de la auditoría); bruno lo corrigió después midiendo por cajas con tolerancia de 0,5 px (`001c1e3`). Esta corrección tiene prueba unitaria y `tests/summary.spec.mjs` pasa en Chromium, Firefox y WebKit después de ella (9/9 por motor, 2026-10-18; `design/lab/limitaciones/revision.md`); la auditoría de coco (`auditoria-verificar.mjs`) no se repitió.
+
+- **Navegadores:** exige la unidad `lh` y `:has()`.
+
+- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): en `inline` el tamaño u otro dato puede verse cortado 1–10 px junto al nombre (`GFileField` lo corrige desde el anfitrión) y en `forced-colors` la tesela del icono no se fuerza y el icono puede desaparecer (coco).
 
 ## No verificado
 

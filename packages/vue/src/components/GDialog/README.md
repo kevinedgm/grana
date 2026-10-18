@@ -35,7 +35,7 @@ El diálogo se abre y se cierra con `v-model`. **`closeLabel` no tiene valor por
 
 ## En esta página
 
-[§ Uso](#uso) · [§ Props](#props) · [§ Eventos](#eventos) · [§ Slots](#slots) · [§ Niveles anidados](#niveles-anidados-pasos-y-pliegues-580-a-591) · [§ Teclado y foco](#teclado-y-foco) · [§ Accesibilidad](#accesibilidad) · [§ Personalidad](#personalidad) · [§ Limitaciones conocidas](#limitaciones-conocidas)
+[§ Uso](#uso) · [§ Props](#props) · [§ Eventos](#eventos) · [§ Slots](#slots) · [§ Niveles anidados](#niveles-anidados-pasos-y-pliegues-580-a-591) · [§ Teclado y foco](#teclado-y-foco) · [§ Accesibilidad](#accesibilidad) · [§ Personalidad](#personalidad) · [§ Alcance](#alcance) · [§ Verificación](#verificación)
 
 ## Estructura
 
@@ -512,18 +512,31 @@ El componente solo lee tokens `--g-*`. La superficie inset forma parte de un sis
 
 Las emite el componente y las estiliza `GDialog.css`: `g-dialog`, `g-dialog--size-*`, `g-dialog--density-*`, `g-dialog--placement-*`, `g-dialog--mobile-*`, `g-dialog--inset`, `g-dialog--fullscreen`, `g-dialog--alert`, `is-loading`, y los elementos `g-dialog__header`, `__titles`, `__title`, `__description`, `__icon`, `__close`, `__inset`, `__body` (con `is-scrollable`), `__footer` e `is-scrolled` (en la inset, o en la raíz sin inset), más `has-origin` e `is-pinned` (ver [Personalidad](#personalidad)) e `is-stacked` (se abrió con otro modal debajo: su `::backdrop` es transparente). Con pasos: `g-dialog--steps`, `is-forward` / `is-back` (mientras dura el cambio), `is-resizing` (con `--_step-from-h` y `--_step-to-h`), `has-sheet-hold` (con `--_sheet-hold`), `g-dialog__back`, el hilo (`g-dialog__trail`, `__trail-list`, `__trail-item`, `__trail-step`, `__trail-number`, `__trail-title`, con `is-parent` e `is-current` en el `li`), `g-dialog__step` (con `is-current` e `is-entering`) y `g-dialog__sr` (texto oculto del `summary`). El atributo `data-g-landed` es interno. Las utilitarias `g-dialog__section` y `g-dialog__well` las pones tú.
 
-## Limitaciones conocidas
+## Alcance
 
 - **Estilos globales sin capa ganan.** El CSS de Grana va en la capa `grana.components`; una regla global tuya sobre `h2` o `p` (por ejemplo `h2 { margin-top: 2rem }`) desplaza el título o la descripción. Es el comportamiento buscado del sistema de capas: acota tus reglas globales con `:not(.g-dialog__title)` o un selector más específico.
+
 - **Diálogos apilados:** un `GDialog` abierto sobre otro funciona (un solo fondo, Esc de uno en uno, el fondo no cierra con otro modal debajo y los formularios son independientes, #565 a #568); es la forma para algo independiente que no devuelve un valor. Para niveles que devuelven un valor usa pasos o `GFormFold`. **Sin diálogos no modales**, y sin arrastre de la hoja ni gesto para cerrarla. La salida solo se anima en Chromium (en Firefox y WebKit cierra sin cuadros intermedios, #152).
+
 - **Reservado en los niveles:** `size` por paso (con el borde superior fijo y el cambio de ancho animado pediría una ronda propia, kiwi L10), el slot `tabs` combinado con pasos (el hilo ocupa su sitio), el paso recursivo (el mismo paso dos veces en el historial) y un indicador de «paso N de M» (para un proceso lineal usa `GStepper`). No hay límite duro de profundidad; más de cinco niveles es una señal de diseño del flujo, no del componente.
-- **Niveles · Tab en Safari y WebKit de macOS:** Safari solo tabula a campos de texto salvo que esté activo el acceso total por teclado del sistema o del navegador; con él apagado, «Volver», el cierre y los pasos del hilo (botones) se alcanzan con Opción+Tab. Es del navegador, no del componente: la verificación de coco en WebKit usa Opción+Tab y Opción+Mayús+Tab (el criterio del resto del repo) y Tab en Chromium y Firefox.
-- **Niveles · `pointer: coarse`** no se emula en Firefox y `forced-colors` de WebKit es emulado (auditoría de los niveles).
-- **Personalidad:** en WebKit un clic no da `has-origin` (solo fundido), el borde superior fijo puede moverse hasta 0,5px con bordes fraccionarios, y ambos detalles se limitan a visores de más de 520px.
-- **`::backdrop` con variables:** hereda `--g-surface-backdrop` de la raíz `<dialog>` en navegadores de 2024 en adelante; en uno anterior, el fondo quedaría transparente.
+
 - **Heading fijo:** el título es un `h2`; el nivel no se cambia en v0.1.
+
+## Verificación
+
+- **Niveles · Tab en Safari y WebKit de macOS:** Safari solo tabula a campos de texto salvo que esté activo el acceso total por teclado del sistema o del navegador; con él apagado, «Volver», el cierre y los pasos del hilo (botones) se alcanzan con Opción+Tab. Es del navegador, no del componente: la verificación de coco en WebKit usa Opción+Tab y Opción+Mayús+Tab (el criterio del resto del repo) y Tab en Chromium y Firefox.
+
+- **Niveles · `pointer: coarse`** no se emula en Firefox y `forced-colors` de WebKit es emulado (auditoría de los niveles).
+
+- **Personalidad:** en WebKit un clic no da `has-origin` (solo fundido), el borde superior fijo puede moverse hasta 0,5px con bordes fraccionarios, y ambos detalles se limitan a visores de más de 520px.
+
+- **`::backdrop` con variables:** hereda `--g-surface-backdrop` de la raíz `<dialog>` en navegadores de 2024 en adelante; en uno anterior, el fondo quedaría transparente.
+
 - **Tema oscuro:** `grana.css` ya trae el esquema oscuro por defecto (`defaults.css`): sigue `prefers-color-scheme` y se fuerza con `data-theme="dark"` o `data-theme="light"` en cualquier elemento (ver [«Tema oscuro» del README raíz](../../../../../README.md#tema-oscuro)). Al documentar no se repitieron en oscuro las cifras de contraste de este README.
-- **Sin verificar:** un lector de pantalla real (nombre, descripción, `alertdialog` y cuerpo desplazable; con pasos, además el cambio de nombre del `<dialog>` por paso, el `role="group"` al recibir el foco, el orden de la frase tras el foco y el hilo), el teclado virtual en móvil (el visor se reduce y una hoja alta puede tapar campos), un dispositivo táctil real y el zoom real, `forced-colors` real de Windows (solo emulado en Chromium), Safari real (WebKit solo en Playwright) y `dvh` en Safari móvil. `prefers-reduced-motion` está medido con la preferencia emulada en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`, 18/18 el 2026-10-18: con `reduce` ningún elemento conserva transiciones ni animaciones de movimiento). **Peso de los niveles:** el contrato (#590) fija un tope de +4 KiB gzip en el paquete principal para el modo pasos y pide a bruno medirlo; no consta una cifra registrada, así que no se afirma ninguna.
+
+- **Sin verificar:** un lector de pantalla real (nombre, descripción, `alertdialog` y cuerpo desplazable; con pasos, además el cambio de nombre del `<dialog>` por paso, el `role="group"` al recibir el foco, el orden de la frase tras el foco y el hilo), el teclado virtual en móvil (el visor se reduce y una hoja alta puede tapar campos), un dispositivo táctil real y el zoom real, `forced-colors` real de Windows (solo emulado en Chromium), Safari real (WebKit solo en Playwright) y `dvh` en Safari móvil. `prefers-reduced-motion` está medido con la preferencia emulada en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`, 18/18 el 2026-10-18: con `reduce` ningún elemento conserva transiciones ni animaciones de movimiento).
+
+- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): el peso del modo pasos (tope +4 KiB gzip en el principal, DECISIONS #590) no tiene cifra registrada (bruno); con ratón en WebKit, un botón que abre la confirmación no recibe foco y Esc lo devuelve al `body` (hallazgo 4 de `GFormSection`; bruno / lima).
 
 ## Verificación de los niveles
 

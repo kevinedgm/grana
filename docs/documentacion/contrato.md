@@ -27,7 +27,7 @@ Dueño: **mora-docs**. Fija **cómo se documenta** un componente de Grana: la fo
 | Personalidad | decisión de personalidad en `DECISIONS.md` y su plan en `plans/` |
 | Orden y forma de la página | este contrato |
 
-Cada cifra lleva su **nivel de evidencia**: `medido` (verificación propia o spec en verde, con su conteo, p. ej. «2647/2647 en los tres motores»), `prueba` (unitaria en verde), `manual` (comprobado a mano, con fecha) o `sin verificar` (se declara como tal en «Limitaciones»). Una afirmación de otro agente sin artefacto no es evidencia.
+Cada cifra lleva su **nivel de evidencia**: `medido` (verificación propia o spec en verde, con su conteo, p. ej. «2647/2647 en los tres motores»), `prueba` (unitaria en verde), `manual` (comprobado a mano, con fecha) o `sin verificar` (se declara como tal en «Verificación»). Una afirmación de otro agente sin artefacto no es evidencia.
 
 ## 3. Anatomía de la página de componente
 
@@ -46,8 +46,9 @@ Orden fijo. Las secciones que no aplican se omiten; no se dejan vacías.
 | 9 | **Accesibilidad** | referencia | Lista con letras (a., b., c.…) de lo verificado, con su cifra y nivel (§2); al final, un aviso **«Peligro.»** con el error de uso más probable y su consecuencia (p. ej. botón de solo icono sin `aria-label`) | auditoría, contrato |
 | 10 | **Personalidad** | explicación | Qué lo hace distinto, cómo se comporta con `prefers-reduced-motion`, y sus límites | `DECISIONS.md`, `plans/` |
 | 11 | **Tema** | referencia | Tokens que lee y alias locales que se pueden ajustar | contrato, CSS |
-| 12 | **Limitaciones conocidas** | referencia | Límites medidos, motores, lo no verificado y lo reservado con su decisión | auditoría, `DECISIONS.md` |
-| 13 | **Páginas vecinas** | — | `← anterior` · `siguiente →` según el índice | índice |
+| 12 | **Alcance** | referencia | Lo que el componente no hace por diseño o reserva, cada punto con su decisión de `DECISIONS.md`, y los límites de uso aceptados | contrato, `DECISIONS.md` |
+| 13 | **Verificación** | referencia | Nivel de evidencia: qué está `medido` y dónde (motores, specs, verificadores con su conteo), límites medidos de motor y lo que solo se comprueba en entorno real; cierra con la viñeta **«Pendientes abiertos»**, que enlaza a `PENDIENTES.md` §6 y nombra en una frase los que afectan al componente | auditoría, `PENDIENTES.md` |
+| 14 | **Páginas vecinas** | — | `← anterior` · `siguiente →` según el índice | índice |
 
 **Marco de la página** (el shell, igual en todas): cabecera con marca, miga, estado de versión, búsqueda (`/`) y botón de tema claro/oscuro; índice lateral con `EMPEZAR` (Instalación, Tema y tokens, Tema oscuro), `COMPONENTES` numerados (`01`, `02`…) con `aria-current="page"` en el actual, y `HERRAMIENTAS` (`@grana/cli`). Un solo marco y una sola navegación global; no se crean marcos paralelos.
 
@@ -67,7 +68,8 @@ El sitio de documentación aún no existe. Mientras tanto el `README.md` del com
 | 9 | `## Accesibilidad`, con el aviso `> **Peligro.**` al final |
 | 10 | `## Personalidad` |
 | 11 | `## Tema` (y `## Clases` si las hay) |
-| 12 | `## Limitaciones conocidas` |
+| 12 | `## Alcance` |
+| 13 | `## Verificación` |
 | — | `## Fuentes`: contrato, decisiones, auditoría y pruebas citadas |
 
 Los README existentes no se reordenan de golpe: se llevan a esta forma cuando se tocan por otro motivo (modo M3, §5) o cuando el usuario lo pida.

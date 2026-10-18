@@ -10,7 +10,7 @@ Pliegue para crear lo que falta en su sitio: un formulario propio que se abre de
 
 ## En esta página
 
-[§ Uso](#uso) · [§ Ejemplos](#ejemplos) · [§ API](#props) · [§ Teclado y foco](#teclado-y-foco) · [§ Accesibilidad](#accesibilidad) · [§ Personalidad](#personalidad) · [§ Limitaciones conocidas](#limitaciones-conocidas)
+[§ Uso](#uso) · [§ Ejemplos](#ejemplos) · [§ API](#props) · [§ Teclado y foco](#teclado-y-foco) · [§ Accesibilidad](#accesibilidad) · [§ Personalidad](#personalidad) · [§ Alcance](#alcance) · [§ Verificación](#verificación)
 
 ## Uso
 
@@ -277,12 +277,15 @@ El raíl de acento nace bajo el campo que abrió el pliegue y se tiende hacia ab
 
 Con `prefers-reduced-motion: reduce`, el deslizamiento desaparece y solo queda el fundido.
 
-## Limitaciones conocidas
+## Verificación
 
 - **Pruebas de Playwright:** `design/lab/theme-playground/tests/form-fold.spec.mjs` (7 casos: el recorrido de tres pliegues anidados, Esc y Esc mantenida, el fondo, confirmar con error y con resultado, 375px, RTL y movimiento reducido) más un pliegue abierto en `form-distribution.spec.mjs`. Nivel `medido`: 7/7 en Chromium, Firefox y WebKit (reejecutado por mora-docs el 2026-10-18, `design/lab/limitaciones/revision.md`) y 17/17 en WebKit junto con `dialog-levels.spec.mjs` (auditoría de los niveles de `GDialog`, [`auditoria-pasos.md`](../../../../../design/lab/dialog/auditoria-pasos.md)).
+
 - **Lector de pantalla en entorno real** no verificado: `role="group"` con nombre al recibir el foco, anuncio tras la llegada, cambio de valor en el destino.
+
 - **Táctil y zoom al 200 %** no verificados en dispositivo real.
-- **H1** (no bloqueante): el CSS de `.g-form-fold__description` aplica `font-size` y `line-height` de la escala `body-sm` pero omite `letter-spacing: var(--g-text-body-sm-tracking)`. El valor del token es `0` en el tema por defecto; sin diferencia visual. Pendiente de coco (`GFormFold.css`; anotado en `PENDIENTES.md` §6) para completar la tripleta tipográfica.
+
+- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): `.g-form-fold__description` aplica `font-size` y `line-height` de `body-sm` pero omite `letter-spacing: var(--g-text-body-sm-tracking)` (el token vale `0` en el tema por defecto, sin diferencia visual; coco).
 
 ## Fuentes
 

@@ -410,20 +410,23 @@ Prefijo `[Grana GTimeField]`; una vez por instancia; solo fuera de producción.
 - **Medidor:** `__measure` (`aria-hidden`, fuera de flujo), solo dentro de una `GFormRow` que mide o fuera de ella sin `block`.
 - **Interno:** `data-fit` y `--_min-inline` en la raíz (ver «En una fila de formulario»); no son API.
 
-## Limitaciones conocidas
+## Alcance
 
 - **Padre que se ajusta al contenido (#562).** Dentro de un padre que se ajusta al contenido (celda de tabla `auto`, rejilla con `justify-items: center`, flex con `fit-content`) el campo (el de `GInput`) toma su ancho por defecto (`--g-space-1 × 60`; `× 90` con acción) en lugar de colapsar a 0; con un padre que da ancho no cambia nada, y en una `GFormRow` no se aplica. Banco `design/lab/contencion/verificar.mjs`, 297/297 en los tres motores. Ver `api.md` «Contención en línea y ancho intrínseco».
-- **Chromium y la franja en palabras:** ver «Accesibilidad». La hora llega; la franja, no.
-- **Hueco del cursor de 1 px en WebKit:** con el cursor al final, WebKit desplaza 1 px la hora en algunos anchos con la fuente de serie (medido en «21:30» `md`, `lg` y `xl`, y «9:30 p.m.» `xl`). Es el **mismo límite compartido con `GNumberField`** (hallazgo 1 abierto de su auditoría, DECISIONS #313): la constante de 1 px del espejo y del medidor se enmendará en los dos a la vez; el mínimo publicado subiría 1 px. En Chromium y Firefox no se desplaza.
+
 - **Texto al 200 % en un visor de 320 px:** el mínimo del 12 h (302 px) supera el contenedor (254 px). La raíz se acota al 100 % y **no desborda** (0 px), y la hora cede 46 px del campo; se sigue leyendo en el botón pulsado y en `aria-valuetext`. Es la acotación al 100 % que pidió DECISIONS #416, preferible a un desborde horizontal de la página.
+
 - **Franjas de CLDR:** cambian por idioma y por versión del motor y a veces sorprenden (`en` llama «in the morning» a las 00:00; `es` no tiene «medianoche»). Las palabras solo se entienden en el idioma de la página. En idiomas cuyo formato de 12 h ya lleva la franja («晚上9:30») no se pinta la lectura (sería repetirla).
+
 - **Teclado numérico del móvil** (`inputmode="numeric"`): sin «:» en iOS («930» funciona) y sin letras; las dos lecturas y a. m./p. m. cubren la mitad del día. Para escribir palabras, `inputmode="text"`.
+
 - **Idioma cambiado en caliente** (`lang` de un ancestro): no se observa; pasa `locale` reactivo.
+
 - **Inicio y Fin** editan el texto; en macOS (Firefox, WebKit) no mueven el cursor por convención del sistema.
+
 - **Zona horaria y horario de verano:** fuera del campo.
+
 - **Sin `name`** no se registra en `GForm` y su error propio no bloquea el envío de `GForm`.
-- **Un `GDatePicker` vacío** mide 37 px junto a los 42 px de `GInput` y `GTimeField` con el texto al 200 % (hallazgo 3 de la auditoría, de `GDatePicker`, abierto y fuera de este componente).
-- **Navegadores:** el campo usa `Intl.DateTimeFormat` con `dayPeriod`, `:has()` (en el CSS del par de lecturas) y `ResizeObserver`. No se midió ningún navegador anterior a los tres motores de Playwright (Chromium, Firefox, WebKit).
 
 ## Reservado (fuera de v0.1)
 
@@ -440,6 +443,12 @@ Nombres y formas apartados para entregas siguientes; **hoy no existen**.
 - **Auditoría de coco** con el componente real publicado (`dist/time-field.umd.js` + `dist/grana.umd.js` + `dist/grana.css` + `dist/fonts.css`) y un tema distinto al por defecto (generado con `@grana/cli`: `space` 3, texto de 18 px, Georgia): `node design/lab/time-field/auditoria-verificar.mjs`. **16 891 de 16 891** comprobaciones tras los arreglos de los hallazgos 2 y 4 (estático 19/19, Chromium 5645/5645, Firefox 5601/5601 y WebKit 5626/5626; la primera pasada, antes de ellos, dio 16 244 de 16 246 con el hallazgo 4 abierto). **No se repitió al documentar.** Resultado: sin defecto bloqueante, `candidate`. Hallazgos: 1 (la lectura asomaba a medias, corregido), 2 (texto al 200 % fuera de fila, cerrado por #416), 3 (de `GDatePicker`, abierto), 4 (en WebKit con táctil el toque en a. m./p. m. y en las lecturas no hacía nada porque cancelar el `pointerdown` cancelaba el `click`; cerrado: la acción ocurre en `pointerdown`, con `click` solo para `detail` 0) y 7 (límite de Chromium, registrado). Los toques se midieron con `tap()` en WebKit de escritorio con táctil emulado.
 - **Empaquetado** (al documentar): `dist/time-field.js` y `dist/time-field.umd.js` existen; `dist/grana.js` no contiene `GTimeField`; `dist/grana.css` contiene `g-time-field__reading`.
 - **Iconos:** el campo no trae ninguno propio; `node packages/vue/scripts/check-icons.mjs` en verde (comprobado al documentar).
+
+- **Chromium y la franja en palabras:** ver «Accesibilidad». La hora llega; la franja, no.
+
+- **Navegadores:** el campo usa `Intl.DateTimeFormat` con `dayPeriod`, `:has()` (en el CSS del par de lecturas) y `ResizeObserver`. No se midió ningún navegador anterior a los tres motores de Playwright (Chromium, Firefox, WebKit).
+
+- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): el mismo hueco de 1 px de WebKit que `GNumberField` (medido en «21:30» `md`, `lg` y `xl` y «9:30 p.m.» `xl`; constante de DECISIONS #313, lima → coco; la enmienda sube 1 px el mínimo publicado). Un `GDatePicker` vacío mide 37 px junto a los 42 px de este campo con el texto al 200 % (hallazgo 3 de la auditoría; coco).
 
 ## No verificado
 

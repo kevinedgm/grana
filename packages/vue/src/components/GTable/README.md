@@ -375,12 +375,19 @@ Pon `loading` en `true` **de forma síncrona** en el manejador de `update:sort`,
 
 Sin tokens propios: encabezado en `--g-color-text-muted`, separadores `--g-color-border`, hover `--g-color-surface-sunken`, selección `--g-color-primary-soft`, filas `surface` con `--g-radius-lg`; tamaños desde `--g-space-1`. El esqueleto de carga usa `--g-color-mold` (el tono único del marcador de carga, DECISIONS #538; medido ≥ 1,46:1 frente a la superficie en 28 configuraciones) y `GrayText` en `forced-colors`; la barra de fallo y la espera larga reutilizan los tokens de [`GLoadRegion`](../GLoadRegion/README.md).
 
-## Limitaciones conocidas
+## Alcance
 
 - **Esqueleto frente a fila compuesta:** con celdas compuestas con avatar, el esqueleto mide **44 px frente a 60 de la fila** (tema de la auditoría, `space` 3 y letra de 18 px): la tabla encoge durante la carga y vuelve a crecer; en la tabla simple, 44 = 44. Lo cerraría un molde de `GTable` desde una muestra de filas, reservado (DECISIONS #543 y #558).
+
 - **Reservado:** B completo en la tabla (`refresh` `keep`/`replace`: filas que siguen a la vista tras el retraso, filo y marcas de lo nuevo) y la salida con cuentas por filtro calculada por la tabla en `filterMode: 'local'`; `activatable` en tarjetas (banco `?c=act` pendiente, H2 de la auditoría de filas).
+
 - Sin selección de todas las páginas, columnas fijas, desplazamiento horizontal, virtualización, edición en celda, ni redimensionar o reordenar columnas.
-- **Sin verificar:** lector de pantalla real (sobre todo en tarjetas), Safari real, zoom al 200% y táctil real. En concreto para la carga: VoiceOver y NVDA con `aria-busy` en el `<table>` y la región viva hermana (si anuncian `labels.loading`, `labels.slow`, el recuento final o el fallo, y en qué orden frente a un `sorted`), y el foco que vuelve por `rowKey`. La auditoría de la carga (coco, `design/lab/empty-skeleton/auditoria.md`) midió la tabla en los tres motores con el componente real; los specs `table-load.spec.mjs` y `table-page-size.spec.mjs` pasan en Chromium, Firefox y WebKit (ejecutados el 2026-10-18; ver `design/lab/limitaciones/revision.md`); `GTable.test.js` 112 de 112 en jsdom. En WebKit, al volver de la puerta con el ratón no aparece «aquí estabas» (hallazgo 1 de `design/lab/table/auditoria-rows.md`: el clic de ratón no enfoca el enlace; bruno).
+
+## Verificación
+
+- **Sin verificar:** lector de pantalla real (sobre todo en tarjetas), Safari real, zoom al 200% y táctil real. En concreto para la carga: VoiceOver y NVDA con `aria-busy` en el `<table>` y la región viva hermana (si anuncian `labels.loading`, `labels.slow`, el recuento final o el fallo, y en qué orden frente a un `sorted`), y el foco que vuelve por `rowKey`. La auditoría de la carga (coco, `design/lab/empty-skeleton/auditoria.md`) midió la tabla en los tres motores con el componente real; los specs `table-load.spec.mjs` y `table-page-size.spec.mjs` pasan en Chromium, Firefox y WebKit (ejecutados el 2026-10-18; ver `design/lab/limitaciones/revision.md`); `GTable.test.js` 112 de 112 en jsdom.
+
+- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): en WebKit, al volver de la puerta con el ratón no aparece «aquí estabas» (el clic de ratón no enfoca el enlace y el foco queda en la tabla; hallazgo 1 de `design/lab/table/auditoria-rows.md`; bruno).
 
 ## Fuentes
 

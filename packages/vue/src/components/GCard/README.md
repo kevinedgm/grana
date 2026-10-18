@@ -369,14 +369,23 @@ Las emite el componente y las estiliza `GCard.css` sobre las de `GSurface`:
 - **Elementos:** `__media` (`--inline`), `__scrim`, `__main`, `__body`, `__stack`, `__header`, `__selectbox[data-type]` > `__select` + `__tick` (`--static` en `toggle`), `__lead`, `__titles`, `__eyebrow`, `__title[data-lines]` > `__primary`, `__subtitle`, `__aside`, `__current`, `__menu`, `__content`, `__description[data-lines]`, `__expand`, `__status`, `__empty`, `__meta` > `__meta-item` (`--low`), `__more`, `__more-toggle`, `__actions`, `__footer`, `__skeleton` > `__sk` (`--eyebrow|title|meta|footer|btn|circle`), `__live`.
 - **Modo lista:** sin clase propia; el CSS lo reconoce por `li.g-card.g-card--orientation-horizontal.g-surface--level-flat`.
 
-## Limitaciones conocidas
+## Alcance
 
 - **La selección de grupo la da [`GCardGroup`](../GCardGroup/README.md)** (DECISIONS #603 a #611) y el avatar es [`GAvatar`](../GAvatar/README.md) en `lead`: `GCard` solo no agrupa ni valida mínimo y máximo.
+
 - **Sin menú de clic derecho, `subgrid` ni tooltip** para solo iconos (el nombre accesible sí está).
+
 - **Sin selección de texto con el puntero** en una tarjeta navegable (enlace estirado).
+
 - **Personalidad:** el círculo de selección necesita anclaje CSS (`anchor()`); sin él, el tinte se funde. El halo solo existe con ratón o lápiz sobre hover; la tarjeta con media de fondo no lo lleva.
+
 - **El esqueleto no promete la altura** de la tarjeta cargada; `skeleton` fiel reduce el salto.
+
+## Verificación
+
 - **Sin verificar:** lector de pantalla real (nombre del `article` sin `aria-labelledby`, título-enlace, `aria-busy`, `role="status"`/`"alert"`, «Acciones de Título»), táctil real (pulsación larga sobre el enlace estirado), zoom al 200 %, `forced-colors` real de Windows (solo emulado), rendimiento con cientos de tarjetas (un `ResizeObserver` por tarjeta) y el esqueleto con datos ausentes reales.
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 

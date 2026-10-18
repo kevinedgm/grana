@@ -372,7 +372,7 @@ function bloquear(mensaje) {
 
 **Fuera de la receta:** quién ve el interruptor (permisos por rol: tu aplicación lo oculta) y el autoguardado, la guardia `beforeunload` y un `revert()` de valores en `GForm` (Fase 4, si hace falta).
 
-**Verificado:** 3 pruebas en `GForm.test.js` (el interruptor fuera del `<form>` no marca `dirty` ni entra en `FormData`; con `readonly` los valores siguen en `FormData` y los campos enfocables, con envío `disabled` y marca `required` conservada; `resetState()` oculta los errores revelados) y el ejemplo de migración con Playwright, 15/15 en Chromium, Firefox y WebKit (confirmación al volver a bloquear con cambios, foco al interruptor y un solo anuncio). Sin verificar con lector de pantalla real (ver «Limitaciones conocidas»).
+**Verificado:** 3 pruebas en `GForm.test.js` (el interruptor fuera del `<form>` no marca `dirty` ni entra en `FormData`; con `readonly` los valores siguen en `FormData` y los campos enfocables, con envío `disabled` y marca `required` conservada; `resetState()` oculta los errores revelados) y el ejemplo de migración con Playwright, 15/15 en Chromium, Firefox y WebKit (confirmación al volver a bloquear con cambios, foco al interruptor y un solo anuncio). Sin verificar con lector de pantalla real (ver «Alcance» y «Verificación»).
 
 ## Receta: dirección con autocompletado
 
@@ -597,14 +597,23 @@ Tres tokens propios (valores de `defaults.css`, × densidad): `--g-form-gap` (en
 - **`GFormActions`:** `g-form-actions`, `--sticky`, `--stacked` (y `data-stacked`), `--density-*`; `__status`, `__buttons`.
 - **`GErrorSummary`:** `g-error-summary`; `__title`, `__icon`, `__list`, `__link`, `__item`.
 
-## Limitaciones conocidas
+## Alcance
+
+- **Fase 2:** [`GRadioGroup`](../GRadioGroup/README.md) (ya existe: también segmentado para Sí/No o Sexo) y [`GNumberField`](../GNumberField/README.md) (ya existe: número con formato del idioma, `Number` o `null` y −/+; admitido en una `GFormRow`, receta de signos vitales); pendientes: `GSelect` y `GNumberField` como partes de un `GInputGroup` (`GInputGroupNumber`, reservado). Moneda con formato, teléfono con formato por país y búsqueda de dirección son rondas propias (Fase 5).
+
+- **Fase 3:** [`GFormReveal`](../GFormReveal/README.md) (campos condicionales) ya existe: un bloque que aparece justo después de la pregunta que lo condiciona y, cerrado, sale del envío, de Tab y de la validación sin perder lo escrito. [`GFormSection`](../GFormSection/README.md) ya es plegable (`collapsible`) y agregable (`addable`). Pendientes: «Agregar…» de varias instancias de una misma sección y la navegación lateral de secciones (`GFormNav`).
+
+- **Fase 4:** autoguardado (`GFormStatus`), guardia de salida con cambios (`beforeunload`), integración documentada con `GDialog`, `GStepper` y `GTabs`, y un posible bloqueo de edición integrado, `revert()` de valores y permisos por rol (hoy, [receta](#bloqueo-con-interruptor): sin prop `locked`).
+
+## Verificación
 
 - **Sin verificar con lector de pantalla real** (VoiceOver, NVDA, TalkBack): la doble lectura del resumen (`alert` + foco), el silencio de los mensajes tras un envío, «(opcional)» en el nombre, la verbosidad de «Teléfono, grupo; Teléfono Código de país», el anuncio de `output` al escribir la fecha, el orden del pie apilado y, en el bloqueo con interruptor, que el interruptor se anuncie solo y que el aviso del bloqueo por Guardar o Cancelar no se duplique.
+
 - **Sin verificar con teclado virtual** (que el pie fijo no quede tras el teclado en iOS/Android), zoom 200/400 %, `forced-colors` real de Windows (solo emulado), el menú nativo del `<select>` en oscuro ni el autocompletado real del navegador sobre país + número.
-- **Fase 2:** [`GRadioGroup`](../GRadioGroup/README.md) (ya existe: también segmentado para Sí/No o Sexo) y [`GNumberField`](../GNumberField/README.md) (ya existe: número con formato del idioma, `Number` o `null` y −/+; admitido en una `GFormRow`, receta de signos vitales); pendientes: `GSelect` y `GNumberField` como partes de un `GInputGroup` (`GInputGroupNumber`, reservado). Moneda con formato, teléfono con formato por país y búsqueda de dirección son rondas propias (Fase 5).
-- **Fase 3:** [`GFormReveal`](../GFormReveal/README.md) (campos condicionales) ya existe: un bloque que aparece justo después de la pregunta que lo condiciona y, cerrado, sale del envío, de Tab y de la validación sin perder lo escrito. [`GFormSection`](../GFormSection/README.md) ya es plegable (`collapsible`) y agregable (`addable`). Pendientes: «Agregar…» de varias instancias de una misma sección y la navegación lateral de secciones (`GFormNav`).
-- **Fase 4:** autoguardado (`GFormStatus`), guardia de salida con cambios (`beforeunload`), integración documentada con `GDialog`, `GStepper` y `GTabs`, y un posible bloqueo de edición integrado, `revert()` de valores y permisos por rol (hoy, [receta](#bloqueo-con-interruptor): sin prop `locked`).
+
 - Rendimiento con muchas filas (un `ResizeObserver` compartido) y cientos de campos registrados: sin medir.
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 

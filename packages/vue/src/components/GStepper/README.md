@@ -202,12 +202,19 @@ Las emite el componente y las estiliza `GStepper.css`:
 - **Conectores y tramos:** `is-done`, `is-toward` (saliente del actual) o `is-pending`.
 - **Compacto:** `__compact`, `__summary`, `__summary-name`, `__summary-count`, `__bar`, `__bar-seg` y `__toggle`.
 
-## Limitaciones conocidas
+## Alcance
 
 - **Sin scroll horizontal** ni «condensar pasos completados» en v0.1: el desbordamiento se resuelve con el compacto.
+
 - **Iconos de estado fijos** (`check`, `circle-alert`, `triangle-alert`, `lock`). Los de cada paso, con `indicator="icon"`, los pones tú.
+
 - **No es un `progressbar`:** el compacto comunica el avance con texto; la barra es decorativa.
+
+## Verificación
+
 - **Sin verificar:** un lector de pantalla real (anuncio de la lista, `aria-current` y texto de estado), Safari real, `forced-colors` real (se probó emulado), zoom al 200% y un dispositivo táctil real. Avanzar con «Siguiente» está medido en Chromium, Firefox y WebKit (`tests/library.spec.mjs`); `prefers-reduced-motion` está medido con la preferencia emulada en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`, 18/18 el 2026-10-18: con `reduce` ningún elemento conserva transiciones ni animaciones de movimiento).
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 

@@ -100,9 +100,11 @@ Cuando `GTable` tiene `pageSizes`, le añade a su `GPagination` la clase `g-pagi
 
 Solo lee tokens `--g-*`: `--g-color-text`, `--g-color-text-muted`, `--g-color-border-strong`, `--g-color-surface-sunken`, `--g-color-focus`, `--g-radius-md`, `--g-space-1..4`, `--g-text-body-sm-{size|line}`, `--g-text-action-weight`, `--g-border-width`, `--g-focus-{width|offset}`, `--g-color-surface`, `--g-color-border`, `--g-shadow-1`, `--g-duration-fast` y `--g-ease-standard`.
 
-## Limitaciones conocidas
+## Verificación
 
 - **Sin verificar:** lector de pantalla real, Safari real, táctil real y zoom al 200%. Las filas por página (pie acoplado, fila ancla, 360 px con puntero grueso) están medidas en Chromium, Firefox y WebKit (`tests/table-page-size.spec.mjs`).
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 

@@ -547,18 +547,25 @@ Prefijos `[Grana GTag]` y `[Grana GTagGroup]`; una vez por instancia, causa y va
 - **`GTagGroup`:** `g-tag-group`, `--layout-{flow|facets}`, `--size-{sm|md}`, `is-disabled`. Partes: `__list`, `__item`, `__facet` (con `data-cat`), `__facet-name`, `__values`, `__value`, `__tools`, `__more`, `__clear` (`is-undo` en modo deshacer), `__empty`, `__live`; `is-settling` en `__item` / `__value` mientras se recoge; `data-id` en `__item` / `__value`.
 - **Interno:** los datos del `.vue` al CSS (`--_ghost-w`, `is-ghost`, `is-settling`) y la clave de contexto que lleva la huella y el encaminamiento de «Quitar» no son API.
 
-## Limitaciones conocidas
+## Alcance
 
 - **En los anuncios manda el último gesto (DECISIONS #514):** dos acciones muy seguidas no se leen juntas; la segunda sustituye a la primera si aún no se leyó. No hay cola.
+
 - **El tope de recorte no crece con el texto** (`space × 60` en píxeles): con el texto al 200 % se recortan más etiquetas (todas con pista y nombre entero) y las estáticas y deshabilitadas se parten en líneas; una deshabilitada quitable partida lleva la tapa del alto entero (50 × 98 px en la auditoría). No es un defecto bloqueante.
+
 - **La cuenta de la lista incluye las huellas** hasta recogerlas: el `li` de una huella sigue contando en «lista, N elementos».
+
 - **Una `GTag` suelta quitable no gestiona el foco ni anuncia:** es de tu aplicación; para eso existe el grupo.
+
 - **Categoría inexistente en el tema:** una etiqueta con `k` mayor que las categorías del tema queda sin relleno y sin aviso.
+
 - **El lomo es un borde:** con `space` fraccionario el navegador lo ajusta a píxeles enteros (3,75 a 3); la diferencia es de 1 px como máximo.
+
 - **`limit` no se combina con `layout="facets"`** (se ignora con aviso).
+
 - **Mismo texto y misma faceta:** dos etiquetas así tienen botones «Quitar» con el mismo nombre (avisa G4); usa `facet` o textos distintos.
+
 - **Necesitas pasar los textos:** sin `labels`, los botones de solo icono no tienen nombre y no hay anuncios.
-- **Navegadores:** usa `:has()`, capas CSS, `popover` y `ResizeObserver`. No se midió ningún navegador anterior a los tres motores de Playwright.
 
 ## Reservado (fuera de v0.1)
 
@@ -575,6 +582,10 @@ Hoy no existen (DECISIONS #473):
 - **Auditoría de coco** con el componente real publicado (`dist/tag.umd.js` más `dist/grana.umd.js`, `dist/grana.css` y `dist/fonts.css`) y un tema distinto al por defecto (generado con `@grana/cli`): `node design/lab/chip/auditoria-verificar.mjs`. La versión del informe en el árbol de trabajo (`50fc024`) registra **24 279 de 24 279** comprobaciones (estático 543, Chromium 7923, Firefox 7907, WebKit 7906) con tres hallazgos de bruno abiertos como notas (2: «Ver N más» con `disabled`; 3: avatar sin las `categories` del grupo; 5, bloqueante: en WebKit un clic en el «Deshacer» de «Quitar todas» no deshacía). **bruno los cerró en `d585178`** (y el hallazgo 6, la clave del color con `flow`) y anotó en ese commit **24 280 de 24 280** sin notas «HALLAZGO»; las cifras de 24 280 son las de ese commit y el informe `auditoria.md` aún no está actualizado a ese estado. **No se repitió el verificador al documentar.**
 - **Specs de bruno** (`tag.spec.mjs`, `personalidad-tag.spec.mjs`, sobre `#sec-tag` del playground): según el commit `d585178`, el spec cubre el deshacer de «Quitar todas» con clic en los tres motores; el informe de coco registra los dos specs de bruno en Chromium con el CSS corregido, **28 de 28**. **No se corrieron al documentar.**
 - **Empaquetado** (al documentar, sobre el `dist/` del árbol): `dist/grana.js` no contiene `GTag`; `dist/tag.js`, `dist/tag.umd.js` y `dist/tag.d.ts` existen; `dist/grana.css` contiene las clases de las etiquetas. El peso es el anotado por bruno (10 446 B), con la recompresión de arriba.
+
+- **Navegadores:** usa `:has()`, capas CSS, `popover` y `ResizeObserver`. No se midió ningún navegador anterior a los tres motores de Playwright.
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## No verificado
 

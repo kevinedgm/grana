@@ -454,18 +454,24 @@ Tiene la misma forma, el mismo CSS y el mismo comportamiento que `GTooltip` (tie
 
 Ninguno de los tres añade props, textos ni tokens. El peso lo mide cada `meta.json` (`GTabs` +884 B gzip en `grana.js`, `GRadioGroup` +253 B sobre `GTabs`, `GSidebar` −5 B). Auditoría de coco con el componente real: [`design/lab/tooltip/auditoria-pista.md`](../../../../../design/lab/tooltip/auditoria-pista.md), 31 347/31 347 en Chromium, Firefox y WebKit.
 
-## Limitaciones conocidas
+## Alcance
 
 - **La diagonal hacia la etiqueta pasa por los vecinos** (WCAG 1.4.13): en una barra, ir en diagonal hacia la etiqueta cruza controles vecinos, que toman el relevo. Sin «triángulo de seguridad» (retrasaría el relevo, que es lo que hace rápida la lectura de una barra) y el tooltip no tiene nada que pulsar: se alcanza en línea recta (medido: baja del control a la etiqueta cruzando la pestaña en 12 pasos sin cerrarse).
-- **Fundido de salida solo en Chromium:** Firefox y WebKit no transicionan `display` de un popover y cierran en el acto, igual que `GMenu` y `GSelect`.
-- **Esquinas junto a controles rellenos con radio grande** (hallazgo 2 de la auditoría, abierto, no bloqueante): con un control relleno y la pestaña a ancho completo de la etiqueta, las esquinas `--g-radius-sm` de la pestaña asoman en la curva del control. ~2 px con el tema por defecto; mayor con un radio grande (el tema de la auditoría, `--g-radius-md` de 14 px), y más visible en oscuro, donde pestaña y botón son claros. Cerrarlo exigiría un token con el radio de cada control: decisión de lima, no está.
+
 - **Pestaña recortada en el borde del visor** (hallazgo 3, por diseño): con un control pegado al borde del visor, la etiqueta conserva su margen `space × 2` y la pestaña se acota a la parte de la caja que la etiqueta cubre: unos 10 px menos que el control en las esquinas (9,5 a 10,4 px medidos en los tres motores). Con `placement="left"` o `right-end` en las esquinas inferiores, el lado pedido no cabe y la etiqueta pasa a `top`; queda dentro del visor y con la forma correcta.
+
 - **Tus selectores estructurales ven el nodo** (ver «Nodos hermanos y tus selectores»).
+
 - **Un tooltip no sustituye la etiqueta de un campo ni su `hint`.**
+
 - **Sin `popover="hint"`** (soporte desigual): el cierre por Esc y por pulsar fuera lo hace el motor, no el navegador; abrir el tooltip no cierra los `popover="auto"` de otras bibliotecas ni ellos lo cierran a él.
+
 - **Sin tooltip en el contenido no enfocable:** si necesitas explicar un texto, hazlo en un `GHelper` o en un `hint`.
+
 - **`GInputGroupInput` y `GInputGroupSelect` no se admiten como hijo.**
+
 - **Un control de tu aplicación sin `data-g-tooltip-box`** (o que no reenvía los atributos a su enfocable) tendrá la pestaña del tamaño del enfocable o no se activará: ver la receta.
+
 - **La pista visual de los componentes internos** (`GTabs`, `GRadioGroup` y el riel de `GSidebar`) no es API: no se configura ni hay `kind="none"` público. Ver «Modo visual».
 
 ## Reservado (fuera de 0.1)
@@ -483,6 +489,10 @@ Hoy **no existen**: la opción **B «La barra habla»** (leyenda fija de un grup
 - **Empaquetado** (al documentar): `dist/grana.css` contiene `g-tooltip__tab` (compuerta), no contiene `data:font`, y `dist/grana.umd.js` no contiene `createApp`; `dist/grana.js` contiene `GTooltip`.
 - **CSS:** sin literales de tema, sin valores de respaldo, solo `--g-*` del contrato (la lista de «Tema» sale de leer `GTooltip.css`); `display` solo bajo `:popover-open`.
 - **Iconos:** el tooltip no lleva icono propio; `node packages/vue/scripts/check-icons.mjs` sale en verde (comprobado al documentar, README incluido).
+
+- **Fundido de salida solo en Chromium:** Firefox y WebKit no transicionan `display` de un popover y cierran en el acto, igual que `GMenu` y `GSelect`.
+
+- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): esquinas de la pestaña junto a controles rellenos con radio grande: con la pestaña a ancho completo, sus esquinas `--g-radius-sm` asoman en la curva del control, ~2 px con el tema por defecto y más con `--g-radius-md` de 14 px y en oscuro; cerrarlo exigiría un token con el radio de cada control, decisión de lima (hallazgo 2 de la auditoría, no bloqueante).
 
 ## No verificado
 

@@ -231,15 +231,25 @@ Además consume: `--g-color-surface`, `--g-color-surface-sunken`, `--g-color-bg`
 
 Las emite el componente y las estiliza `GCalendar.css`. Raíz: `g-calendar`, `g-calendar--view-*`, `g-calendar--density-*`, `g-calendar--mode-*`, `is-readonly`, `is-disabled`, `is-loading`, `is-error`. Elementos principales: `g-calendar__toolbar`, `__grid`, `__col`, `__head`, `__allday`, `__availability`, `__events`, `__event` (con `--sm`, `--open`, `is-selected`, `is-conflict`), `__handle`, `__block`, `__now`, `__ghost`, `__create`, `__timeline`, `__month`, `__day`, `__more`, `__resources`, `__agenda`, `__strip`, `__sheet`, `__detail`, `__skeleton`, `__live`. La tabla completa está en el contrato.
 
-## Limitaciones conocidas
+## Alcance
 
 - **Padre que se ajusta al contenido (#562).** Dentro de un padre que se ajusta al contenido (celda de tabla `auto`, rejilla con `justify-items: center`, flex con `fit-content`) el calendario toma su ancho por defecto (`--g-space-1 × 80` menos los dos bordes, la disposición compacta de 320 px) en lugar de colapsar a 0; con un padre que da ancho no cambia nada, y en una `GFormRow` no se aplica. Banco `design/lab/contencion/verificar.mjs`, 297/297 en los tres motores. Ver `api.md` «Contención en línea y ancho intrínseco».
+
 - **Sin recurrencia, sin virtualización, sin mes agregado, sin Agenda ni Año** en v0.1. Con miles de eventos o más de cien recursos el rendimiento no se ha medido.
+
 - **Horario de verano:** el motor mide minutos transcurridos desde el inicio del día y dibuja una jornada de 23 o 25 horas con su duración real. Solo está probado con el motor, no con el componente montado.
+
 - **Carriles estrechos:** los eventos de pocos minutos ocupan un alto mínimo de 24px (44px en táctil); en horas muy densas los carriles pueden volverse estrechos (en la auditoría, 30 a 38px de ancho con siete traslapes).
+
+## Verificación
+
 - **Arrastre entre recursos en Timeline** sin verificar de extremo a extremo.
+
 - **Tema oscuro:** `grana.css` ya trae el esquema oscuro por defecto (`defaults.css`): sigue `prefers-color-scheme` y se fuerza con `data-theme="dark"` o `data-theme="light"` en cualquier elemento (ver [«Tema oscuro» del README raíz](../../../../../README.md#tema-oscuro)). Al documentar no se repitieron en oscuro las cifras de contraste de este README.
+
 - **Sin verificar:** un lector de pantalla real (lista cronológica, conteos, solicitudes, conflictos), un dispositivo táctil real (arrastre, tirador, hoja inferior), `forced-colors` real de Windows (solo emulado en Chromium) y Safari real. En Firefox y WebKit solo está medido que el calendario monta sin errores de consola con el resto del playground (`tests/library.spec.mjs`); el arrastre y los carriles, no. `prefers-reduced-motion` está medido con la preferencia emulada en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`, 18/18 el 2026-10-18: con `reduce` ningún elemento conserva transiciones ni animaciones de movimiento).
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 

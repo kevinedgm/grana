@@ -374,14 +374,23 @@ La captura **no** está en `@grana/vue`: va en su propia entrada y solo la paga 
 
 **Sin tokens propios.** Pill flotante y panel son `GSurface level="floating"`. Consume `--g-color-active` + `--g-color-on-accent` (lámpara), `--g-color-accent-soft` (tinte vivo), `--g-color-on-accent-soft` (borde vivo y medidor), `--g-color-accent-text` (onda), `--g-color-{danger|warning|success}-text`, `--g-color-text`, `-text-muted`, `-text-subtle`, `--g-color-border*`, `--g-color-neutral-soft`, `--g-color-surface*`, `--g-color-focus`, `--g-focus-width`, `--g-border-width`, `--g-radius-*`, `--g-shadow-3` (hoja), `--g-space-*`, `--g-font-ui`, `--g-text-{body|body-sm|caption}-*` y `--g-duration-*`/`--g-ease-*`. Medidas derivadas de `space` (no tokens): pill de 34px, lámpara `space × 5`, panel `min(space × 110, 100vw − space × 8)`, margen de la flotante `space × 4` (`× 2` en móvil), umbral de móvil `space × 130`, hoja hasta 88 % del alto.
 
-## Limitaciones conocidas
+## Alcance
+
+- **Pill colocada tapada por otra capa** sin salir del visor: no se detecta (`IntersectionObserver` v1).
+
+- **Fase 2 hecha** (`GTranscript`, roles, destinos, «Revisar»; sus limitaciones en su [README](../GTranscript/README.md)). Quedan para la **Fase 3** la recuperación tras cerrar la aplicación, el kit de pruebas del audio temporal, la selección de dispositivo, la captura nativa en segundo plano, las sesiones de horas y la virtualización del transcript por encima de ~2 000 fragmentos. Escuchar el audio de un fragmento queda fuera de la v0.1.
+
+## Verificación
 
 - **Sin verificar con lector de pantalla real** (VoiceOver, NVDA, JAWS, TalkBack): cola cortés y `alert`, cambio de nombre de Pausar/Reanudar con el foco encima, `role="timer"`, traslado de los canales al modal, regiones vacías de los botones al recorrer. Es el riesgo principal.
+
 - **Sin verificar en Safari real** (WebKit de Playwright no es Safari): si reanudar tras detener las pistas vuelve a pedir permiso, Permissions API del micrófono, `MediaRecorder` y sus formatos, `wakeLock`.
+
 - **Sin verificar con motores reales** (Whisper, whisper.cpp, faster-whisper, diarización local) ni con PCM real a 16 kHz contra un servicio; el adaptador de ejemplo de este README tampoco.
+
 - **Sin verificar en móvil real:** llamada entrante, segundo plano (iOS suspende la pestaña: se detecta como interrupción al volver), `safe-area`, teclado virtual con la hoja, orientación; ni con permiso revocado a mitad de sesión, varios modales apilados o sesiones de más de una hora.
-- **Pill colocada tapada por otra capa** sin salir del visor: no se detecta (`IntersectionObserver` v1).
-- **Fase 2 hecha** (`GTranscript`, roles, destinos, «Revisar»; sus limitaciones en su [README](../GTranscript/README.md)). Quedan para la **Fase 3** la recuperación tras cerrar la aplicación, el kit de pruebas del audio temporal, la selección de dispositivo, la captura nativa en segundo plano, las sesiones de horas y la virtualización del transcript por encima de ~2 000 fragmentos. Escuchar el audio de un fragmento queda fuera de la v0.1.
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 

@@ -552,20 +552,25 @@ Prefijo `[Grana GFileField]`; una vez por instancia y motivo; solo fuera de prod
 - **Destino:** `__target`, `__target-text`.
 - **Pie:** `__foot`, `__meta`, `__hint`, `__status`, `__notice` (`__notice-list`), `__message` (`__message-type`, `__message-icon`) y `__live`.
 
-## Limitaciones conocidas
+## Alcance
 
 - **Un destino de soltar propio de tu aplicación** que escuche en `document` **después** de que monte el primer campo puede ver el `drop` ya cancelado: escucha en su propio elemento.
+
 - **Sin reintentos automáticos ni límite de tiempo:** son del adaptador. Un adaptador que nunca resuelve deja la entrada subiendo (y el envío bloqueado) hasta que la persona cancela.
+
 - **Desmontar a media subida** cancela; las entradas vuelven a la cola al montar de nuevo.
+
 - **`formnovalidate`** envía sin lo pendiente ni lo fallido.
+
 - **Sin `uploader`** el formulario lleva binarios: `GForm` emite un `FormData` con los `File`; tu aplicación envía `multipart/form-data`.
-- **Safari puede no dar tipos durante el arrastre:** el destino dice «Soltar aquí» y la decisión se toma al soltar, con el aviso de no añadidos si toca.
+
 - **Miniatura pequeña** (`xs`): sirve para reconocer, no para comprobar «es la foto correcta»; para eso queda B (reservado).
+
 - **Documentos distintos en un solo campo:** usa un campo por documento (como en el playground, tres campos en una `GFormRow`) o espera a C (reservado). No una ayuda en texto sobre un solo campo.
+
 - **Dentro de `GInputGroup` o `GFieldGroup`:** no admitido (aviso 8).
+
 - **El campo no valida la obligatoriedad** (`required` es solo marca y `aria-required`).
-- **Navegadores:** exige `DataTransfer` construible y `:has()`.
-- **El trozo de cifra junto al nombre** nace en `GSummary` `inline` sin datos; aquí se corrigió en el campo y no en `GSummary` (pendiente de coco en una ronda de `GSummary`, hallazgo 3 de la auditoría).
 
 ## Reservado (fuera de v0.1, DECISIONS #378)
 
@@ -583,6 +588,12 @@ Nombres y formas apartados para entregas siguientes; **hoy no existen** y, si lo
 - **Empaquetado** (al documentar): `dist/file-field.js` y `dist/file-field.umd.js` existen; `dist/grana.js` no contiene `GFileField`; `dist/file-field.js` no contiene `g-summary__`; `dist/grana.css` contiene `g-file-field__chip`.
 - **CSS:** sin colores literales, sin `var()` con respaldo, sin `@layer`, `@property` ni `!important`; solo `--g-*` que existen en `defaults.css` (según la auditoría, no se repitió al documentar).
 - **Iconos:** solo Lucide (`plus`, `lock`, `check`, `x`, `rotate-ccw`, `triangle-alert`, `circle-alert`, `image`, `file-text`); `node packages/vue/scripts/check-icons.mjs` en verde (comprobado al documentar).
+
+- **Safari puede no dar tipos durante el arrastre:** el destino dice «Soltar aquí» y la decisión se toma al soltar, con el aviso de no añadidos si toca.
+
+- **Navegadores:** exige `DataTransfer` construible y `:has()`.
+
+- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): el trozo de cifra junto al nombre nace en `GSummary` `inline` sin datos; aquí se corrigió desde el anfitrión y falta llevarlo a `GSummary.css` (hallazgo 3 de la auditoría; coco).
 
 ## No verificado
 

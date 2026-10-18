@@ -124,15 +124,25 @@ El componente solo lee tokens `--g-*`. Los colores salen de `--g-color-{color}` 
 
 Las emite el componente y las estiliza `GBadge.css`: `g-badge`, `g-badge--variant-*`, `g-badge--color-*`, `g-badge--size-*`, `g-badge--kind-{text|count|figure|icon}`, y los elementos `g-badge__shape` (con `--circle`, `--square`, `--diamond`, `--triangle`), `g-badge__icon`, `g-badge__text` y `g-badge__sr`; con el slot `anchor`, `g-badge-anchor` y `g-badge-anchor--{placement}`.
 
-## Limitaciones conocidas
+## Alcance
 
 - **Solo presentación:** ni pulsable ni cerrable. Para etiquetas que se alternan o se quitan está [`GTag`](../GTag/README.md) (`GTagGroup` para el conjunto).
-- **`glass` depende de `backdrop-filter` y `color-mix`:** sin ellos, o con transparencia reducida, se ve como `soft`. El cristal (desenfoque, velo translúcido con opacidad ≥ 0,55 y brillo) está medido en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`, 2026-10-18); Safari real, no.
+
 - **El velo mínimo se valida contra el texto del tema:** un tema con texto claro sobre velo blanco no cumple.
+
 - **Una insignia sin icono entre insignias con icono** no reserva espacio (por diseño): da icono a todas o a ninguna para que el texto quede alineado.
+
 - **Estilos globales sin capa ganan:** una regla global tuya sobre `span` (sin capa) gana al CSS de Grana (capa `grana.components`); acótala con un selector más específico.
+
+## Verificación
+
+- **`glass` depende de `backdrop-filter` y `color-mix`:** sin ellos, o con transparencia reducida, se ve como `soft`. El cristal (desenfoque, velo translúcido con opacidad ≥ 0,55 y brillo) está medido en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`, 2026-10-18); Safari real, no.
+
 - **Tema oscuro:** `grana.css` ya trae el esquema oscuro por defecto (`defaults.css`): sigue `prefers-color-scheme` y se fuerza con `data-theme="dark"` o `data-theme="light"` en cualquier elemento (ver [«Tema oscuro» del README raíz](../../../../../README.md#tema-oscuro)). Al documentar no se repitieron en oscuro las cifras de contraste de este README.
+
 - **Sin verificar:** un lector de pantalla real (insignia sin texto y anclada junto a su destino), `prefers-reduced-transparency` real (los bloques se comprobaron aplicados sin condición) y el cristal sobre fotografías reales.
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 

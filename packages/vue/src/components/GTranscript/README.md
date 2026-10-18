@@ -292,14 +292,23 @@ Ctrl+A ida y vuelta con 320 fragmentos en Chromium: **~35 ms de estilo** (median
 
 Raíz `g-transcript` con `data-mode` (`edit` · `select` · `read`), `data-compact` y `data-narrow`; partes `__note`, `__bar`, `__all`, `__count`, `__more`, `__scroll`, `__grid`, `__head`, `__body`, `__row` (`is-partial`, `is-corrected`, `is-speaker-changed`, `is-removed`, `is-failed`, `is-selected`, `is-editing`, `is-stale`), `__cell--{select|time|speaker|text|actions}`, `__speaker`, `__mark` (`is-unassigned`, `data-cat`), `__actions`, `__text`, `__flags`, `__flag--*`, `__orig`, `__diff`, `__editor`, `__field`, `__newer`, `__kbd`, `__empty`, `__live`, `__list`, `__item`, `__speakers`, `__speaker-row`, `__insert`, `__preview`, `__result`, `__uses`; el diálogo de respaldo, `g-speech-review`. Las clases de elemento no son API estable (#204).
 
-## Limitaciones conocidas
+## Alcance
+
+- **Sin marca de «revisado»** (#241): Grana no certifica revisiones.
+
+- **Fase 3 pendiente:** virtualización por encima de ~2 000 fragmentos, sesiones de horas, transcript a pantalla completa en móvil fuera del diálogo de respaldo, recuperación tras cerrar la aplicación. Escuchar el audio de un fragmento queda fuera de la v0.1.
+
+## Verificación
 
 - **Sin verificar con lector de pantalla real** (VoiceOver, NVDA, JAWS, TalkBack): la rejilla en modo foco y la lectura de corrido en exploración, la doble información de `aria-selected` y la casilla, `<del>`/`<ins>` con su envoltura, el editor dentro de la celda y el anuncio de una selección masiva. **Es el riesgo principal.**
+
 - **Sin verificar en Safari real** (WebKit de Playwright no es Safari): `selectionchange`, `ClipboardEvent`, permisos del portapapeles, Esc en `<dialog>` con el editor, y el rendimiento con cientos de fragmentos.
+
 - **Sin verificar en móvil real:** selección táctil con asas, teclado virtual con el editor en la hoja o en el diálogo a pantalla completa.
+
 - **Teclados no QWERTY e IME** con los atajos de la rejilla: solo comprobado que con composición activa no se trata ninguna tecla.
-- **Sin marca de «revisado»** (#241): Grana no certifica revisiones.
-- **Fase 3 pendiente:** virtualización por encima de ~2 000 fragmentos, sesiones de horas, transcript a pantalla completa en móvil fuera del diálogo de respaldo, recuperación tras cerrar la aplicación. Escuchar el audio de un fragmento queda fuera de la v0.1.
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 

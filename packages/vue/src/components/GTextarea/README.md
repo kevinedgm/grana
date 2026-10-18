@@ -149,15 +149,23 @@ Con un `GForm` alrededor el campo lee su contexto: densidad, solo lectura, desha
 
 Las emite el componente y las estiliza `GTextarea.css`: `g-textarea`, `g-textarea--variant-*`, `g-textarea--size-*`, `g-textarea--density-*`, `g-textarea--color-*` y `--rounded-*` (solo si el prop tiene valor), `g-textarea--block`, `g-textarea--autosize`, `g-textarea--resize-*`, `is-capped`, `is-disabled`, `is-readonly`, `is-invalid`, `is-loading`, y los elementos `g-textarea__label`, `__required`, `__control`, `__field`, `__loader`, `__messages`, `__hint`, `__counter`, `__count-live` y `__support`, `__message`.
 
-## Limitaciones conocidas
+## Alcance
 
-- **Ancho en un padre que se ajusta al contenido (#563, abierto).** `GTextarea` no tiene contención en línea, así que en una celda `auto`, una rejilla centrada o un flex con `fit-content` mide lo que su etiqueta (~200 px), no un ancho por defecto como `GInput`. Dale ancho al padre o al componente. Ver `api.md` «Contención en línea y ancho intrínseco».
 - **Táctil y tamaño de texto:** con `pointer: coarse` la caja mide 44px, pero el texto conserva el tamaño del tema (14px por defecto); iOS Safari amplía la página al enfocar un campo con texto menor de 16px. `lg` y `xl` ya usan 16px.
+
 - **Textos muy largos:** `autosize` mide en cada cambio; con miles de líneas puede notarse. Sin medir en v0.1.
+
 - **Sin barra inferior, prefijo, sufijo ni acción**, y sin texto enriquecido.
+
 - **Estilos globales sin capa ganan:** una regla global tuya sobre `label` o `p` (sin capa) gana al CSS de Grana (capa `grana.components`); acótala con un selector más específico.
+
+## Verificación
+
 - **Tema oscuro:** `grana.css` ya trae el esquema oscuro por defecto (`defaults.css`): sigue `prefers-color-scheme` y se fuerza con `data-theme="dark"` o `data-theme="light"` en cualquier elemento (ver [«Tema oscuro» del README raíz](../../../../../README.md#tema-oscuro)). Al documentar no se repitieron en oscuro las cifras de contraste de este README.
+
 - **Sin verificar:** un lector de pantalla real (etiqueta, ayuda, error y el aviso del contador), `forced-colors` real de Windows (solo emulado en Chromium), Safari real y un dispositivo táctil real. El tirador (`resize`) y el anillo del control por `:has()` están medidos en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`); `prefers-reduced-motion` está medido con la preferencia emulada en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`, 18/18 el 2026-10-18: con `reduce` ningún elemento conserva transiciones ni animaciones de movimiento).
+
+- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): sin contención en línea (DECISIONS #563, abierto): en un padre que se ajusta al contenido (celda `auto`, rejilla centrada, flex con `fit-content`) mide lo que su etiqueta (~200 px), no un ancho por defecto como `GInput`; dale ancho al padre o al componente (`api.md` «Contención en línea y ancho intrínseco»; bruno / coco).
 
 ## Fuentes
 

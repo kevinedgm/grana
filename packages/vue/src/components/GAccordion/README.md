@@ -428,20 +428,23 @@ Prefijos `[Grana GAccordion]` y `[Grana GAccordionItem]`; una vez por instancia 
 - **Dato en línea:** `--_head-size` (px) en la raíz de un elemento abierto de un grupo `sticky`: el alto de maquetación del encabezado, que el CSS usa para el margen de desplazamiento del contenido.
 - **Interno:** los datos del `.vue` al CSS no son API.
 
-## Limitaciones conocidas
+## Alcance
 
 - **`sticky` anidado no está cubierto.** Un grupo `sticky` dentro del contenido de otro `sticky` se pega a la misma distancia y el de dentro tapa al de fuera. No anides grupos `sticky`.
+
 - **Las acciones no bajan de línea en estrecho.** Se quedan en la línea del título también a 320 px (caben dos acciones y un título de palabras normales). Si necesitas que bajen, es una ronda futura (una clase medida por el `.vue`, como en `GFormSection`); no hay API hoy.
+
 - **Un control de acciones más alto que la línea del título queda bajo el centro.** Con el tema de la auditoría, un `GBtn sm` de 35 px frente a una línea de 32 px queda **1,5 px** por debajo (la mitad del exceso), en los tres motores.
+
 - **Δ0 deshace, durante ≈ 320 ms, un desplazamiento que no llegue por rueda, toque ni teclas de desplazamiento** (DECISIONS #519): arrastrar la barra de desplazamiento (no emite `wheel`) o un `scrollTo` de tu aplicación justo después del clic. Es corto y raro; no se corrige en v0.1.
+
 - **Sin página debajo, cerrar al final recorta el desplazamiento:** Δ0 no puede conservar lo que el navegador ya recortó.
-- **La línea que se despega del encabezado pegado solo se ve en Chromium** (consultas `scroll-state`). En Firefox y WebKit el encabezado pegado es opaco y sin línea.
+
 - **Encabezado pegado en un contenedor tuyo con fondo propio:** pon tú el `background` del encabezado y de las acciones.
+
 - **Ajustes con un avance distinto del contenido** (estado frente a interruptores): al abrir, el avance y el primer renglón coinciden en el sitio durante el fundido (≤ 160 ms) y, al plegar, el avance asoma por debajo del contenido que se va. Con el mismo texto (preguntas frecuentes) no se nota.
+
 - **`lazy` sin abrir:** no se encuentra, no se imprime, un `#id` de dentro no existe y no recibe la petición de abrir.
-- **El avance puede leerse dos veces en modo exploración** (como descripción del botón y como texto), igual que el resumen de `GFormSection`; sin verificar con lector real.
-- **Navegadores sin `hidden="until-found"`:** lo plegado no se encuentra (cae en `hidden`).
-- **Navegadores:** usa `:has()`, capas CSS, `hidden="until-found"`, `inert` y `ResizeObserver`. No se midió ningún navegador anterior a los tres motores de Playwright (Chromium, Firefox, WebKit).
 
 ## Reservado (fuera de v0.1)
 
@@ -456,6 +459,16 @@ Prefijos `[Grana GAccordion]` y `[Grana GAccordionItem]`; una vez por instancia 
 - **Auditoría de coco** con el componente real y un tema distinto al por defecto (`node design/lab/accordion/auditoria-verificar.mjs`): **1618 de 1618** comprobaciones (estático 27/27, Chromium 533/533, Firefox 529/529, WebKit 529/529), tras el ajuste a la receta (b) de #515 (commit `d042735`; antes del ajuste, 1602/1602). **No se repitió al documentar.** Resultado: sin defecto bloqueante, `candidate`. Hallazgos: 1 (`--_head-size` en `GDialog`; cerrado por bruno después), 2 y 5 (resueltos por #515), 3 (capas, límite general), 4 (acciones más altas que la línea), 6 (Δ0 y desplazamiento ajeno), 7 (registros para lima).
 - **Specs de bruno** (`accordion.spec.mjs`, `personalidad-accordion.spec.mjs`): según la auditoría, 27/27 en Chromium con el CSS corregido; en Firefox y WebKit 51/52 con dos workers (el que falló, «cerrar desde el encabezado pegado» en WebKit, pasa 3/3 solo: cuenta de cuadros con carga). **No se corrieron al documentar.**
 - **Empaquetado:** según `GAccordion.meta.json`, el componente va en el principal (+5,7 KB gzip); la auditoría comprobó que `dist/grana.css` lleva `GAccordion.css` dentro de `grana.components` y el `@property`, y que `dist/grana.js` lleva el componente. No se repitió al documentar.
+
+- **La línea que se despega del encabezado pegado solo se ve en Chromium** (consultas `scroll-state`). En Firefox y WebKit el encabezado pegado es opaco y sin línea.
+
+- **El avance puede leerse dos veces en modo exploración** (como descripción del botón y como texto), igual que el resumen de `GFormSection`; sin verificar con lector real.
+
+- **Navegadores sin `hidden="until-found"`:** lo plegado no se encuentra (cae en `hidden`).
+
+- **Navegadores:** usa `:has()`, capas CSS, `hidden="until-found"`, `inert` y `ResizeObserver`. No se midió ningún navegador anterior a los tres motores de Playwright (Chromium, Firefox, WebKit).
+
+- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): Δ0 que cancele cuando la posición observada no es la que dejó la propia compensación (arrastrar la barra, `scrollTo` de la aplicación): opcional, solo si alguien lo reporta (DECISIONS #519; bruno).
 
 ## No verificado
 

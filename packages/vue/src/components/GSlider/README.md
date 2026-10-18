@@ -287,7 +287,7 @@ El deslizador comparte línea con `GInput`, `GNumberField` y `GSelect` en una `G
 
 Medido en la auditoría con la fuente servida (Instrument Sans), `md` y `space` 4: dolor (0 a 10 con tres nombres) **160 px**, volumen (0 a 100 %) **179 px**, precio en rango (MXN de 0 a 5000) **289 px**; con el tema de la auditoría (`space` 3, 19 px, Georgia) 180 · 184 · 296; con el propio del estilo (`space` 5, borde de 2 px) 200 · 203 · 321; y con el texto al 200 % 304 · 280 · 473. En el último ancho de una línea el deslizador mide lo publicado −0,5 px (la tolerancia de `GFormRow`). Bloquear y desbloquear el campo en ese ancho (patrón «lock-edit», #266) no cambia ni la línea ni el ancho ni el alto. Las cifras cambian con el tema y la fuente: el valor se **mide en vivo**.
 
-**Fuera de una fila** no publica nada: la raíz ocupa el ancho de su contenedor y a tu aplicación le toca no dejarla por debajo de su mínimo. **Pocos nombres de marcas y cortos.** Ver el límite de los nombres de marcas en «Limitaciones conocidas».
+**Fuera de una fila** no publica nada: la raíz ocupa el ancho de su contenedor y a tu aplicación le toca no dejarla por debajo de su mínimo. **Pocos nombres de marcas y cortos.** Ver el límite de los nombres de marcas en «Alcance» y «Verificación».
 
 ## Accesibilidad
 
@@ -422,20 +422,25 @@ Prefijo `[Grana GSlider]`; una vez por instancia; solo fuera de producción.
 - **Pie:** `__support`, `__hint`, `__message`, `__message-icon`, `__sr`.
 - **Interno:** `data-g-key-focus` en el nativo; no es API.
 
-## Limitaciones conocidas
+## Alcance
 
 - **Una fila más estrecha que el mínimo publicado no lo alcanza** (límite del contenedor, no del mínimo): en una fila fija de 320 px con el texto al 200 % faltan 10,9 px (32,8 px con el tema de la auditoría), como el 12 h de `GTimeField`. El mínimo con nombres de marcas desiguales sí es correcto desde DECISIONS #509 (`publishMin` resuelve por posiciones, `6129b74`): con «Sin dolor · Moderado · El peor» el hueco entre nombres mide 8,3 · 6,39 · 8,37 px (defecto · auditoría · texto al 200 %) en Chromium, y 8,35/8,27 en Firefox/WebKit, frente a los 2,8 · −0,11 · −2,1 px de antes (`design/lab/slider/auditoria.md`, hallazgo 3, resuelto; `auditoria-verificar.mjs` 74 497/74 497).
+
 - **Valor fuera de `[min, max]`:** una flecha **hacia fuera** sobre un valor ya fuera de los límites **no lo mueve y da el tope**; Inicio y Fin sí van al límite (hallazgo 5). El nativo acota su `value` (y `aria-valuenow`) al rango; `aria-valuetext` dice el valor real.
+
 - **Asas juntas** (mismo valor): una pulsación en el riel mueve **la del lado pulsado**; con un puntero que las agarra, la dirección del primer movimiento decide cuál (hallazgo 5).
+
 - **Teclear la cifra no se anuncia mientras se escribe y no se descubre sola.**
-- **`aria-readonly` en un `range` puede no exponerse en Chromium** (como en `spinbutton`, DECISIONS #311). Lo que dice un lector real, sin verificar.
-- **Safari y Tab:** el `range` se salta con Tab sin la preferencia del sistema; Opción+Tab llega (DECISIONS #451).
+
 - **`<form @change>` de tu aplicación no ve el deslizador:** usa el `@change` del componente.
+
 - **SSR:** pasa `locale` para que el HTML llegue formateado.
+
 - **Idioma cambiado en caliente** (`lang` de un ancestro): no se observa; pasa `locale` reactivo.
+
 - **No existe la orientación vertical** (`orientation` reservado) y **no se puede volver a «sin elegir» desde la interfaz** (`clearable` reservado): tu aplicación puede poner `null`.
+
 - **Con movimiento reducido**, `GForm` pone `is-rejected` sin animación y la clase queda hasta el siguiente cambio (lo mismo que `GInput`); sin efecto visible en el deslizador (hallazgo 6).
-- **Navegadores:** usa `:has()` (anillo de foco en la píldora), capas CSS, subgrid y `ResizeObserver`. No se midió ningún navegador anterior a los tres motores de Playwright (Chromium, Firefox, WebKit).
 
 ## Reservado (fuera de v0.1)
 
@@ -452,6 +457,14 @@ Nombres y formas apartados para entregas siguientes; **hoy no existen** (DECISIO
 - **Auditoría de coco** con el componente real publicado (`dist/slider.umd.js` + `dist/grana.umd.js` + `dist/grana.css` + `dist/fonts.css`) y un tema distinto al por defecto (generado con `@grana/cli`: primario `#4A1D6B`, `space` 3, texto de 19 px, Georgia, sin esquinas redondeadas): `node design/lab/slider/auditoria-verificar.mjs`. **74 491 de 74 491** comprobaciones (estático 24/24, Chromium 24 855/24 855, Firefox 24 791/24 791 y WebKit 24 821/24 821). **No se repitió al documentar.** Resultado: sin defecto bloqueante, `candidate`. Hallazgos: 1 (contorno de la píldora en solo lectura a ≈ 1,5:1; corregido: `border-control` discontinuo sobre `neutral-soft`), 2 (área y píldora no crecían con su texto; corregido), 3 (mínimo con nombres de marcas desiguales; abierto), 4 (cambios de contrato que `slider.md` aún no recoge: de lima), 5 (decisiones de bruno recogidas) y 6 (información). En la primera pasada Firefox y WebKit dieron tres fallos de contraste de «tecleando» medidos a mitad del fundido de color; el verificador ahora mide tras la transición y el reposo queda en 4,20:1 o más.
 - **Empaquetado** (al documentar): `dist/slider.js`, `dist/slider.umd.js` y `dist/slider.d.ts` existen; `dist/grana.js` no contiene `GSlider`; `dist/grana.css` contiene `g-slider__pill`.
 - **Tipos:** `GSlider.meta.json` es contrato de tipos; lo que no expresa (la unión del modelo según `range`, la firma de `valueText`, la forma de `marks` y de `labels`) está en `types/overrides.mjs`.
+
+- **`aria-readonly` en un `range` puede no exponerse en Chromium** (como en `spinbutton`, DECISIONS #311). Lo que dice un lector real, sin verificar.
+
+- **Safari y Tab:** el `range` se salta con Tab sin la preferencia del sistema; Opción+Tab llega (DECISIONS #451).
+
+- **Navegadores:** usa `:has()` (anillo de foco en la píldora), capas CSS, subgrid y `ResizeObserver`. No se midió ningún navegador anterior a los tres motores de Playwright (Chromium, Firefox, WebKit).
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## No verificado
 

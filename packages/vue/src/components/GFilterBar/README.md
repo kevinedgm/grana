@@ -64,8 +64,14 @@ Evento `update:filters` al aplicar, quitar o limpiar. Para aplicar los filtros f
 - Foco visible del tema; controles de 44px con `pointer: coarse`.
 - La casilla nativa del editor usa `accent-color: --g-color-primary-text` (DECISIONS #431 y #432): sin cambio visible con el tema por defecto; **4.21:1 o más** contra la superficie (medido por coco, [`design/lab/contraste-marcado/estilo.md`](../../../../../design/lab/contraste-marcado/estilo.md), tres motores) en el tema por defecto, lustre, spotify y uno con clave `primary` propia, claro y oscuro.
 
-## Limitaciones conocidas
+## Alcance
 
-Sin grupos Y/O anidados (constructor de reglas), sin filtros guardados ni en la URL, sin reglas personalizadas. Sin verificar con lector de pantalla real ni Safari real; el editor anclado (mismo lado, alto y `--_max` en el vaivén) está medido en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/panel-estable.spec.mjs`).
+- Sin grupos Y/O anidados (constructor de reglas), sin filtros guardados ni en la URL, sin reglas personalizadas.
+
+## Verificación
+
+- **Medido en Chromium, Firefox y WebKit:** el editor anclado conserva lado, alto y `--_max` en el vaivén y se cierra al salir el ancla (`design/lab/theme-playground/tests/panel-estable.spec.mjs`, 16/16 por motor, 2026-10-18).
+- **Sin verificar:** lector de pantalla real y Safari real.
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 Fuentes: [`GFilterBar.meta.json`](./GFilterBar.meta.json) · Contrato: [`design/contracts/filter-bar.md`](../../../../../design/contracts/filter-bar.md) · Prototipo: [`design/lab/table/r02/`](../../../../../design/lab/table/r02/)

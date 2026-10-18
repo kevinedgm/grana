@@ -114,3 +114,14 @@ Totales: lote 1 **382 pasan, 5 omitidas por diseño del spec, 0 fallan (27,2 min
 
 - `check-readme-props.mjs` avisa `SIN README GFab`: `GFab` está en construcción en otra sesión; no es de esta revisión.
 - Lo de la clase (b) no se tocó más que para separar lo medido de lo real: sigue en `PENDIENTES.md` §7 y en `CLAUDE.md` «Solo en entorno real».
+
+## Segunda pasada · «Limitaciones conocidas» → «Alcance» + «Verificación» (DECISIONS #675)
+
+Reacción del usuario al sitio: «sigue apareciendo Limitaciones conocidas; da la impresión de que no está listo, que tiene fallas». Eligió dividir la sección (contrato §12 y §13 nuevos de `docs/documentacion/contrato.md`, lima). Hecho en los 47 README:
+
+- **232 viñetas → `## Alcance`**: lo que el componente no hace por diseño o reserva, con su decisión; límites de uso aceptados.
+- **117 viñetas → `## Verificación`**: qué está medido y dónde (motores, specs, verificadores), límites medidos de motor y lo que solo se comprueba en entorno real. En 17 README ya existía una sección `## Verificación` con la evidencia de pruebas y auditoría: se fusionó (evidencia primero, límites de motor después). Las secciones `## No verificado` que algunos README traían se conservan tal cual.
+- **12 viñetas → fuera de la página**, resumidas en la viñeta final **«Pendientes abiertos»** que enlaza a `PENDIENTES.md` §6 con su dueño: el 1 px de WebKit (`GNumberField`, `GTimeField`), #563 (`GSelect`, `GTextarea`, `GDatePicker`), `GDatePicker` de 37 px, el `letter-spacing` de `GFormFold`, el clic de ratón en WebKit (`GFormSection`), la marca de `GTabs`, las esquinas de `GTooltip`, el trozo de cifra de `GFileField` y el orden de cesión de `GCombobox`. Los demás README cierran con «ninguno propio de este componente».
+- De paso, otra caducada: `GFormReveal` decía que en un `GDialog` centrado el disparador sube al abrir un bloque y que quedaba para una ronda (#281); #301 lo cerró (el diálogo fija el borde superior y crece hacia abajo). Reescrita.
+- Enlaces internos `#limitaciones-conocidas` → `#verificación`; índices «En esta página» con `§ Alcance · § Verificación`.
+- El sitio (`npm run docs:build`) publica las secciones nuevas sin cambios en el generador.

@@ -417,19 +417,22 @@ Sin `window` ni `document`: con `src`, el servidor emite `is-loading` con el res
 
 Las emite el componente y las estiliza `GAvatar.css`: `g-avatar`, `g-avatar--size-{xs|sm|md|lg|xl}`, `g-avatar--shape-{circle|square}`, `g-avatar--content-{initials|icon}` (qué **respaldo** hay, también con la imagen cargada); estados `is-loading`, `is-loaded`, `is-failed` (uno a la vez, solo con `src`); `data-cat="k"` (solo con categoría fija o derivada); y las partes `g-avatar__initials`, `g-avatar__icon` (el `GIcon` interno, `g-icon g-avatar__icon`) y `g-avatar__img` (siempre la última hija). `label` no tiene clase: se expresa con `role` y `aria-label`.
 
-## Limitaciones conocidas
+## Alcance
 
-- **Lector de pantalla real sin verificar** (VoiceOver, NVDA) sobre `<span role="img" aria-label>` con una `<img alt="">` dentro, en celda, botón y elemento de menú: solo se comprobó el árbol de accesibilidad de Playwright.
-- **`forced-colors` real** (Windows) sin verificar, y fuera de Chromium no se emula.
-- **Carga diferida real por red**, imágenes de alta densidad, SSR con imagen en caché e hidratación real: sin verificar (las pruebas usan `data:`, una ruta retenida por Playwright y un PNG local). Tampoco se midió el zoom real del navegador (solo aproximado con un visor a escala 2).
-- **Escrituras complejas sin validar con hablantes:** devanagari (`Intl.Segmenter` da «प्रि» + «श»), árabe con ligadura, tailandés y secuencias ZWJ en `initials` solo se midieron (caben).
 - **«ЖШ» en `md` circular deja 0,1px de aire** dentro del margen de 1px que se exige con la fuente por defecto (Instrument Sans); en `square`, 1,7px. Un tema con **tipografía más ancha** podría tocar el borde del círculo con dos letras anchas.
+
 - **Temas con `space` y `fontSize` desacoplados:** `xs` deja de igualar el interlineado de `body-sm` (se midió `space` 4 y 5).
+
 - **Categoría inexistente en el tema:** sin relleno y sin aviso (ver «Color»).
+
 - **Turco y otros límites de `toUpperCase()` sin región:** pasa `initials`.
+
 - **Hash:** la equivalencia en otros lenguajes está comprobada solo contra los vectores; casos raros de minúsculas fuera de ellos (por ejemplo, la «İ» turca) no se verificaron.
+
 - **Sin pila de avatares** (`GAvatarGroup`, reservada), sin `status`, sin eventos `load`/`error`, sin `srcset`/`crossorigin`/`referrerpolicy`, sin `categories` por aplicación (un `provide` para no repetirlo) y sin exportar el hash: reservados o candidatos, sin consumidor.
+
 - **Estilos globales sin capa ganan:** una regla global tuya sobre `span` o `img` (sin capa) gana al CSS de Grana (capa `grana.components`); acótala con un selector más específico.
+
 - **Relación con `GAvatarMotion`:** es otro componente (una personalidad animada que reacciona a estados); `GAvatar` es la identidad de alguien concreto y no lo sustituye ni lo absorbe.
 
 ## Verificación
@@ -437,7 +440,17 @@ Las emite el componente y las estiliza `GAvatar.css`: `g-avatar`, `g-avatar--siz
 - **Pruebas** (vitest con jsdom y, para el servidor, entorno node): 80 en `GAvatar.test.js` y 4 en `GAvatar.ssr.test.js`, todas en verde en la última ejecución. Cubren el marcado y las clases, la precedencia del contenido, la tabla de iniciales (`md` y `xs`), los vectores del hash y su invariancia (también sin `TextEncoder` y sin `Intl.Segmenter`), `color` frente a `categories`, los estados de la imagen (`load`, `error`, `src` cambiado, evento tardío, imagen en caché y `decode()`), la semántica, los atributos filtrados y los siete avisos.
 - **Navegador** (Playwright en Chromium, Firefox y WebKit, sobre el componente real del playground): `avatar.spec.mjs`, 13 pruebas por motor. Ejecutadas con un solo worker: 37 pasan y 2 se omiten por diseño (`forced-colors` solo en Chromium). Con varios workers en paralelo y la máquina cargada, algunas pruebas de Firefox y WebKit agotaron el tiempo; con un worker pasan.
 - **Auditoría de coco** con el componente real y temas distintos al por defecto (`tema-cat12`, `tema-marca-cat8`, el tema alterno del playground y `space` 5): `node design/lab/avatar/auditoria-verificar.mjs`, **1084/1084** comprobaciones en los tres motores (vuelto a ejecutar al documentar, con el hallazgo del tema de categorías del playground ya cerrado); el banco de estilo, 2269/2269, y la suite completa de `@grana/vue`, 1864/1864, son las cifras de la auditoría (no se repitieron al documentar). Compuerta de build: `grep -q "g-avatar--shape-square" packages/vue/dist/grana.css`.
-- **Sin verificar:** todo lo de «Limitaciones conocidas».
+- **Sin verificar:** todo lo de «Alcance» y «Verificación».
+
+- **Lector de pantalla real sin verificar** (VoiceOver, NVDA) sobre `<span role="img" aria-label>` con una `<img alt="">` dentro, en celda, botón y elemento de menú: solo se comprobó el árbol de accesibilidad de Playwright.
+
+- **`forced-colors` real** (Windows) sin verificar, y fuera de Chromium no se emula.
+
+- **Carga diferida real por red**, imágenes de alta densidad, SSR con imagen en caché e hidratación real: sin verificar (las pruebas usan `data:`, una ruta retenida por Playwright y un PNG local). Tampoco se midió el zoom real del navegador (solo aproximado con un visor a escala 2).
+
+- **Escrituras complejas sin validar con hablantes:** devanagari (`Intl.Segmenter` da «प्रि» + «श»), árabe con ligadura, tailandés y secuencias ZWJ en `initials` solo se midieron (caben).
+
+- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): con el texto al 200 % las iniciales (en `rem`) se salen de la caja (en `px`), también fuera de un layout (hallazgo 7 de `design/lab/adaptive-layout/auditoria-coco.md`; coco).
 
 ## Fuentes
 

@@ -180,9 +180,12 @@ Las emite el componente y las estiliza `GBtn.css`: `g-btn`, `g-btn--color-*`, `g
 
 Con soporte de `round()` de CSS, la altura del botón se redondea a **0,5px** (#667): `max(24px, round(espacio × unidades × densidad, 0.5px))`, con el piso de 24px aplicado después. Por ejemplo, con `--g-space-1: 4.375px` el tamaño `md` mide 39,5 / 34,5 / 29,5px (`comfortable` / `default` / `compact`; antes 39,375 / 34,453 / 29,53). Con el tema por defecto no cambia nada (24,5 / 31,5 / 38,5 / 45,5px en `comfortable`). El relleno vertical sale de esa altura y el contenido se centra (desvío ≤ 0,5px). Un navegador sin `round()` usa la altura sin redondear. Medido por coco en Chromium, Firefox y WebKit ([auditoría](../../../../../design/lab/btn/auditoria.md), addendum 2026-10-18).
 
-## Limitaciones conocidas
+## Alcance
 
 - **Media rejilla:** en pantallas de 1× la altura puede tener medio píxel (paso de 0,5px, decisión del usuario; con 2× cae en píxel entero). Redondear a enteros cambiaría cuatro alturas del tema por defecto en ±0,5px y no se hizo. El redondeo es solo de `GBtn` (#525 sigue abierto para el resto).
+
+## Verificación
+
 - **Tema oscuro (medido, tema por defecto, `data-theme="dark"`, 7 colores × 5 variantes, reposo, hover y active):**
 
   | Medida | Oscuro | Claro |
@@ -193,6 +196,7 @@ Con soporte de `round()` de CSS, la altura del botón se redondea a **0,5px** (#
   | Texto de `disabled` | 5,65 y 6,21 | 4,47 y 5,10 |
 
   Todo pasa (texto ≥ 4,5; forma de `outline` y `solid` ≥ 3), pero varias combinaciones lo hacen por centésimas (4,51 a 4,53 en `soft` y en hover y active de `outline` y `ghost`): un tema que oscurezca `*-soft` o `on-*-soft` las bajará de 4,5. En oscuro el texto de los siete `soft` (4,51 a 4,66) mide menos que el de `disabled`. 
+
 - **Temas generados con `@grana/cli` (medido, claro y oscuro, reposo, hover y active; 5 temas, 0 errores del CLI):** el texto y el contorno de `outline` pasan en todos (0 fallos en 10 pasadas; el motor cumple su garantía). Mínimos:
 
   | Tema | Texto mín. claro / oscuro | `outline` mín. | Forma del `solid` mín. (contorno incluido, #672) |
@@ -204,8 +208,12 @@ Con soporte de `round()` de CSS, la altura del botón se redondea a **0,5px** (#
   | `primary` `#FFD400` sobre marca `#0F3D2E`, `space: 4.375` | 4,62 / 4,51 | 4,62 / 4,51 | 4,62 claro · 4,51 oscuro |
 
   Con un `primary` o una marca pálidos (amarillo, cian), el relleno de `solid` se confundía con la página (1,43 a 2,73:1) aunque el texto pasara, porque el motor garantiza el par de texto y no el relleno como forma. Desde #672 el contorno `{color}-text` separa el botón: la forma mide ≥ 4,50 en los cinco temas (medido, `btn-limitaciones.spec.mjs` 87/87 en los tres motores). Con `space: 4.375` las alturas salen `max(24, round(…, 0.5px))`. **`dark: false`:** el oscuro se obtiene con la consulta del sistema; forzar `data-theme="dark"` lo rompe (la marca llega a 1,77:1 sobre la superficie oscura de los defaults; es el aviso del CLI).
+
 - **`forced-colors`:** verificado en Chromium con la emulación que fuerza los colores: borde `ButtonText` (`link` sin caja, borde `Canvas`), hover y active con `Highlight`, `disabled` en `GrayText`, foco `Highlight` de 2px. En Firefox y WebKit la emulación solo activa la consulta de medios (no sustituye colores). Verificado también sobre el fondo de marca y dentro de `data-g-zone="brand"`. **Queda:** Windows con contraste alto real (Chromium emulado hace la misma sustitución de colores que Edge). Hover y active de `soft`, `outline`, `ghost` y `link`, verificados en los siete colores en claro y oscuro.
+
 - **Personalidad:** verificado el camino sin `linear()` (`transform` a `--g-duration-press` 160ms con `--g-ease-out`; los colores siguen en 120ms), el conteo de cuadros en los tres motores con un worker (21 a 22 cuadros en 320ms, 13 valores de escala) y el táctil emulado (área de 44 × 44). **El táctil está verificado en Safari de iOS 26** (simulador iPhone 17 Pro; ver la tabla de verificación). **Queda:** un dispositivo físico, ya no como hueco de verificación del comportamiento sino como comprobación de sensación (el simulador no es un dedo sobre un cristal).
+
+- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): el redondeo de la altura a 0,5 px es solo de `GBtn`; generalizarlo al resto de controles sigue abierto (DECISIONS #525; coco).
 
 ## Fuentes
 

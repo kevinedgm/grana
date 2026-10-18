@@ -277,17 +277,29 @@ Sin definir, el tema por defecto usa `--g-surface-inset` con contorno `--g-color
 
 Las emite el componente y las estiliza `GSidebar.css`: `g-sidebar` (con `--mode-{expanded|rail|navbar}`, `--variant-*`, `--color-*`, `--density-*`, `--overlay`, `--contained`, `is-entering`), `__head`, `__top`, `__logo`, `__toggle`, `__search`, `__hint`, `__nav`, `__groups`, `__group`, `__group-title`, `__list`, `__item`, `__link` (con `is-active`, `is-branch`), `__parent`, `__sub` (con `is-open`), `__chevron`, `__icon`, `__label`, `__badge` (y `__badge--dot`), `__sr`, `__foot`, `__fly`, `__fly-title`, `__bar`, `__tab`, `__more`, `__label--hidden` y `__drawer`. Los nodos de la pista del riel son `g-tooltip` (con `aria-hidden`), hijos de la raíz; `__tip` e `is-instant` ya no existen.
 
-## Limitaciones conocidas
+## Alcance
 
 - **Un solo nivel de hijos**; sin árboles profundos, arrastrar ni favoritos. **Sin buscador propio** ni filtro: `search` solo dispara el evento. **Sin menú contextual del usuario:** el slot `user` lo pones tú (por ejemplo con [`GMenu`](../GMenu/README.md)).
+
 - **Grana no trae textos ni los iconos de tu navegación**: `labels` y los iconos de `icon`, `toggle-icon`, `search-icon` y `more-icon` son de la aplicación (por nombre de Lucide o con `GIcon` en el slot; los que no están en la lista de la librería, con `createIcons`).
+
 - **En la píldora activa, los items inactivos no muestran su nombre** (existe para lectores) y la navbar no lleva pista (#437): un usuario nuevo no lo ve. Las etiquetas del navbar deben ser cortas.
+
 - **El item actual no rellena la fila: la marca es el asiento del icono** (DECISIONS #612 a #619; la superficie sola medía 1,08:1 frente a la carcasa y por eso la marca no es un tono de fila). Relleno `--g-sidebar-current`, tinta `--g-sidebar-on-current` y filo `--g-sidebar-current-edge` (por defecto `primary` / `on-primary` / `primary-text`, §7.1); en el riel el padre del actual lo representa con `is-rep`. Verificado en `design/lab/sidebar/auditoria.md` (addendum) con `sidebar-asiento.spec.mjs` y `sidebar-activo.spec.mjs`.
+
 - **Si tu contenedor tiene el ancho del visor**, la adaptación decide por él: da un `container` razonable. El primer instante tras montar se pinta expandido.
+
 - **El espacio lo reservas tú** (tokens y `mode-change`): el componente no empuja el contenido.
+
+## Verificación
+
 - Sin `@starting-style` ni `interpolate-size` (navegadores antiguos), el submenú y las salidas del panel y del drawer no se animan.
+
 - **Tema oscuro:** `grana.css` ya trae el esquema oscuro por defecto (`defaults.css`): sigue `prefers-color-scheme` y se fuerza con `data-theme="dark"` o `data-theme="light"` en cualquier elemento (ver [«Tema oscuro» del README raíz](../../../../../README.md#tema-oscuro)). Al documentar no se repitieron en oscuro las cifras de contraste de este README.
+
 - **Sin verificar:** un lector de pantalla real (riel, ramas, contadores, panel, píldora, drawer), Safari real, el navbar y el drawer en un dispositivo táctil real y con el teclado virtual, RTL con un idioma RTL real, cientos de items y `forced-colors` real de Windows (solo emulado en Chromium). Los cortes de adaptación, el asiento, `is-rep` y la pista del riel están medidos en Chromium, Firefox y WebKit (`tests/sidebar-asiento.spec.mjs`, `sidebar-activo.spec.mjs`, `sidebar-pista.spec.mjs`); `prefers-reduced-motion` está medido con la preferencia emulada en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`, 18/18 el 2026-10-18: con `reduce` ningún elemento conserva transiciones ni animaciones de movimiento).
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 

@@ -10,7 +10,7 @@ Encabezado de página pegado con zócalo y muelle: dónde estoy (ruta), qué es 
 
 ## En esta página
 
-[§ Uso](#uso) · [§ Ejemplos](#ejemplos) · [§ API](#props) · [§ Teclado y foco](#teclado-y-foco) · [§ Accesibilidad](#accesibilidad) · [§ Personalidad](#personalidad) · [§ Tema](#tema) · [§ Limitaciones conocidas](#limitaciones-conocidas)
+[§ Uso](#uso) · [§ Ejemplos](#ejemplos) · [§ API](#props) · [§ Teclado y foco](#teclado-y-foco) · [§ Accesibilidad](#accesibilidad) · [§ Personalidad](#personalidad) · [§ Tema](#tema) · [§ Alcance](#alcance) · [§ Verificación](#verificación)
 
 ## Uso
 
@@ -313,14 +313,23 @@ Propiedades que lee del tema. El color lo pone tu hoja de variables `--g-*`; el 
 | `--g-duration-fast`, `--g-duration-press`, `--g-duration-slow` | Duración de la entrada del muelle y del título compacto |
 | `--g-ease-out`, `--g-ease-spring` | Curva del título compacto y del muelle |
 
-## Limitaciones conocidas
+## Alcance
 
 - **En el tema oscuro por defecto, la banda de zona de marca en reposo no se separa de la página** (1,12:1 sin pegar; 1,86:1 y sombra al pegarse): límite aceptado por lima (DECISIONS #652), coherente con `tokens.md` §44.2; la propuesta para el usuario es un filo `inset` en `GPageHeader.css`. Medido en `design/lab/page-header/auditoria.md`.
+
 - **Muelle dentro de `<dialog>`**: el encabezado detecta si está dentro de un diálogo y no pinta el muelle (la zona del pulgar del diálogo es de `GDialog`).
+
 - **Pegado con ancestro que atrapa lo fijo** (aviso 8): `transform`, `translate`, `scale`, `filter`, `backdrop-filter`, `perspective`, `contain: layout/paint` o `will-change` en un ancestro hacen desaparecer el muelle. No es detectable en JS; el aviso solo se activa si el muelle no llega al borde inferior del visor.
+
+## Verificación
+
 - **Lector de pantalla en entorno real** no verificado (VoiceOver, NVDA).
+
 - **Safari real y táctil** no verificados (WebKit se prueba con el motor de Playwright).
+
 - **Motores:** `tests/page-header.spec.mjs` pasa en Chromium, Firefox y WebKit (2026-10-18, `design/lab/limitaciones/revision.md`).
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 

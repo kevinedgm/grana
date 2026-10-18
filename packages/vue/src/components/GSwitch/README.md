@@ -147,13 +147,21 @@ Con un `GForm` alrededor el campo lee su contexto: densidad, solo lectura, desha
 
 Las emite el componente y las estiliza `GSwitch.css`: `g-switch`, `g-switch--size-*`, `g-switch--density-*`, `g-switch--color-*`, `g-switch--label-*`, `g-switch--icons`, `is-disabled`, `is-readonly`, `is-invalid`, `is-loading`, y los elementos `g-switch__row`, `g-switch__control`, `g-switch__input`, `g-switch__icon` (con `--on` y `--off`), `g-switch__text`, `g-switch__label`, `g-switch__hint` y `g-switch__message`. El estado encendido se estiliza con `:checked`, sin clase propia.
 
-## Limitaciones conocidas
+## Alcance
+
+- **Sin tarjeta ni grupo** de interruptores, y valor solo booleano en v0.1.
+
+- **`loading` no bloquea:** si quieres impedir cambios mientras guarda, usa `disabled` o ignora el evento.
+
+## Verificación
 
 - **El pulgar es el `::before` del `<input>` con `appearance: none`** (las marcas son iconos de Lucide que viajan con él): medido en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`: el pulgar recorre el riel al encender, la marca lo acompaña y con `dir="rtl"` el recorrido se espeja por `:dir()`); Safari real, no.
-- **Sin tarjeta ni grupo** de interruptores, y valor solo booleano en v0.1.
-- **`loading` no bloquea:** si quieres impedir cambios mientras guarda, usa `disabled` o ignora el evento.
+
 - **Tema oscuro:** `grana.css` ya trae el esquema oscuro por defecto (`defaults.css`): sigue `prefers-color-scheme` y se fuerza con `data-theme="dark"` o `data-theme="light"` en cualquier elemento (ver [«Tema oscuro» del README raíz](../../../../../README.md#tema-oscuro)). Al documentar no se repitieron en oscuro las cifras de contraste de este README.
+
 - **Sin verificar:** un lector de pantalla real (rol `switch`, "activado", ayuda, error y `aria-busy`), `forced-colors` real de Windows (solo emulado en Chromium), el zoom al 200% y un dispositivo táctil real. `prefers-reduced-motion` está medido con la preferencia emulada en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`, 18/18 el 2026-10-18: con `reduce` ningún elemento conserva transiciones ni animaciones de movimiento).
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 

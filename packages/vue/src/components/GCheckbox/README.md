@@ -156,14 +156,23 @@ Con un `GForm` alrededor el campo lee su contexto (salvo con `:field="false"`, q
 
 Las emite el componente y las estiliza `GCheckbox.css`: `g-checkbox`, `g-checkbox--layout-*`, `g-checkbox--size-*`, `g-checkbox--density-*`, `g-checkbox--color-*`, `is-disabled`, `is-readonly`, `is-invalid`, y los elementos `g-checkbox__row`, `g-checkbox__input`, `g-checkbox__icon`, `g-checkbox__text`, `g-checkbox__label`, `g-checkbox__required`, `g-checkbox__hint`, `g-checkbox__meta` y `g-checkbox__message`. Marcada y mixta se estilizan con `:checked` e `:indeterminate`, sin clases propias.
 
-## Limitaciones conocidas
+## Alcance
+
+- **Sin detalle condicional propio** (DECISIONS #36): una casilla que revela un bloque al marcarla se compone con [`GFormReveal`](../GFormReveal/README.md) (`when`) dentro de un formulario, o con `v-if` y tu bloque.
+
+- **Sin interruptor** (`GSwitch`) ni árbol de casillas anidadas.
+
+## Verificación
 
 - **La marca es un icono de Lucide sobre el `<input>` con `appearance: none`** y se revela con `clip-path`: medido en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`: la marca cabe en el cuadro y el recorte pasa de `inset(0 100% 0 0)` a `inset(0)` al marcar); Safari real, no.
-- **Sin detalle condicional propio** (DECISIONS #36): una casilla que revela un bloque al marcarla se compone con [`GFormReveal`](../GFormReveal/README.md) (`when`) dentro de un formulario, o con `v-if` y tu bloque.
-- **Sin interruptor** (`GSwitch`) ni árbol de casillas anidadas.
+
 - **Tarjeta:** el nombre es título + dato destacado y la descripción es aparte; el orden en que la anuncia cada lector varía.
+
 - **Tema oscuro:** `grana.css` ya trae el esquema oscuro por defecto (`defaults.css`): sigue `prefers-color-scheme` y se fuerza con `data-theme="dark"` o `data-theme="light"` en cualquier elemento (ver [«Tema oscuro» del README raíz](../../../../../README.md#tema-oscuro)). Al documentar no se repitieron en oscuro las cifras de contraste de este README.
+
 - **Sin verificar:** un lector de pantalla real (estado mixto, conteo del grupo, error, nombre de la tarjeta), `forced-colors` real de Windows (solo emulado en Chromium), el zoom al 200% y un dispositivo táctil real. `prefers-reduced-motion` está medido con la preferencia emulada en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`, 18/18 el 2026-10-18: con `reduce` ningún elemento conserva transiciones ni animaciones de movimiento).
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 

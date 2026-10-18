@@ -219,12 +219,19 @@ Solo en desarrollo (`process.env.NODE_ENV !== 'production'`), una vez por instan
 6. `tabindex` tuyo en el divider.
 7. Contenido en el slot por defecto (no se pinta).
 
-## Limitaciones conocidas
+## Alcance
 
 - **Vertical con un inset de anfitriona mayor que la mitad del alto de la fila** (DECISIONS #194): el inset se resta dos veces, así que si tu anfitriona define un `--g-divider-inset` mayor que la mitad del alto de contenido de su fila, un vertical con `inset="both"` **mide 0 y desaparece sin aviso** (sigue en el árbol como separador). Elige un valor que deje línea en tu fila **más baja** (densidad `compact`, `GBtn` `xs`/`sm`). El valor por defecto (8px) deja 8px en una fila `xs` (24px) y 12px en `sm`.
+
 - **Fila que envuelve** (`flex-wrap`): un vertical puede quedar al principio o al final de una línea, separando nada. Sin aviso en v0.1.
+
 - **`subtle` como única señal:** es un mal uso que el componente no puede detectar; usa `strong`.
+
+## Verificación
+
 - **Sin verificar:** lector de pantalla real (VoiceOver, NVDA, TalkBack: si anuncian «separador» en el `<hr>` y en el vertical, si VoiceOver los omite, cómo se lee el texto entre líneas); `forced-colors` real de Windows (solo emulado en Chromium); `prefers-contrast` con un tema de alto contraste real.
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 

@@ -323,17 +323,32 @@ Las emite el componente y las estiliza `GRadioGroup.css`:
 
 Elegida, foco y hover se estilizan con `:checked`, `:focus-visible` y `:has()`, sin clases propias. Datos internos que no son API: `data-g-key-focus` en `g-radio-group__input` (foco por teclado, #441) y, en solo icono, `data-g-tooltip` en el radio, `data-g-tooltip-box` en la `__option` y los nodos `g-tooltip` (con `aria-hidden`) al final de `__options`.
 
-## Limitaciones conocidas
+## Alcance
 
 - **Sin `required` nativo:** un `<form>` nativo sin `GForm` no bloquea el envío; valida tú y usa `error`. El componente no valida.
+
 - **`<form>` externo no soportado en v0.1:** no se admite el atributo `form` para asociar los radios a un formulario fuera de su árbol.
-- **WebKit:** las flechas no envuelven ni invierten ←/→ en RTL, y en macOS Tab no llega a los radios sin «Acceso total por teclado» (DECISIONS #272).
+
 - **Ancho natural del segmentado medido en el cliente:** en render de servidor sale en una línea hasta montar.
+
 - **Opción solo icono `disabled` sin pista:** con el puntero no se lee su nombre (ver [Pista de solo icono](#pista-de-solo-icono)).
+
 - **Sin grupos de opciones**, sin deseleccionar, sin `GRadio` suelto.
+
 - **Chips de opción con `pill` fijo:** no siguen `--g-radius-shape`.
+
+## Verificación
+
+- **Pruebas** (`GRadioGroup.test.js`, vitest con jsdom): 49 pruebas de estructura por apariencia, estados del grupo, modelo con tipos originales y controlado, `FormData`, teclado y solo lectura, deshabilitado, solo icono, slots, `field: false`, contexto de `GForm` (revelado al cambiar y al enviar, `control`, marcas, orden de manejadores), medida y apilado del segmentado (también en render de servidor y sin `ResizeObserver`), `GFormRow`/`GErrorSummary` y los diez avisos. La suite completa de `@grana/vue` pasó 1670/1670 al entregar bruno.
+- **Navegador** (Playwright en Chromium, Firefox y WebKit, sobre el componente real del playground): `radio-group.spec.mjs` (teclado, solo lectura, semántica y nombres accesibles, geometría y apilado, formulario con `GErrorSummary`, movimiento y, solo en Chromium, táctil y `forced-colors`) y la fila «Fecha · Sexo · ¿Primera consulta?» de `form-distribution.spec.mjs`: 49 pasan y 8 se omiten por diseño (puntero grueso y colores forzados solo se emulan en Chromium).
+- **Auditoría de coco** con el componente real y un tema distinto: `node design/lab/radio-group/auditoria-verificar.mjs`, 81093/81093 comprobaciones en los tres motores; el banco de estilo, 61357/61357.
+
+- **WebKit:** las flechas no envuelven ni invierten ←/→ en RTL, y en macOS Tab no llega a los radios sin «Acceso total por teclado» (DECISIONS #272).
+
 - **Tema oscuro:** se verificó con los temas generados claro y oscuro. `grana.css` trae además el esquema oscuro por defecto (`prefers-color-scheme` o `data-theme="dark"`; ver [«Tema oscuro» del README raíz](../../../../../README.md#tema-oscuro)).
+
 - **Playground:** `#sec-radio` no muestra `warning`/`valid`, colores distintos de `brand`/`accent` ni la elegida de solo lectura en `chip`; esos casos se cubrieron en el banco de la auditoría (`design/lab/radio-group/auditoria-banco.html`).
+
 - **Sin verificar:**
   - un **lector de pantalla real** (VoiceOver, NVDA, JAWS, TalkBack): cómo anuncian el `fieldset role="radiogroup"` frente al `div`, si `aria-required`/`aria-invalid`/`aria-readonly` del grupo se leen (y si se repiten al moverse), la descripción por opción y el modo solo icono;
   - el árbol de accesibilidad completo en Firefox y WebKit más allá de lo que mide `tests/radio-group.spec.mjs` en los tres motores (roles, estados y teclado);
@@ -343,11 +358,7 @@ Elegida, foco y hover se estilizan con `:checked`, `:focus-visible` y `:has()`, 
   - el **zoom real** del navegador al 200 % y 400 % (se aproximó con un visor a la mitad y DPR 2);
   - fuentes de los temas generados (Inter, DM Sans): el contraste no depende de ellas, pero el ancho natural del segmentado sí; se midió con la fuente disponible.
 
-## Verificación
-
-- **Pruebas** (`GRadioGroup.test.js`, vitest con jsdom): 49 pruebas de estructura por apariencia, estados del grupo, modelo con tipos originales y controlado, `FormData`, teclado y solo lectura, deshabilitado, solo icono, slots, `field: false`, contexto de `GForm` (revelado al cambiar y al enviar, `control`, marcas, orden de manejadores), medida y apilado del segmentado (también en render de servidor y sin `ResizeObserver`), `GFormRow`/`GErrorSummary` y los diez avisos. La suite completa de `@grana/vue` pasó 1670/1670 al entregar bruno.
-- **Navegador** (Playwright en Chromium, Firefox y WebKit, sobre el componente real del playground): `radio-group.spec.mjs` (teclado, solo lectura, semántica y nombres accesibles, geometría y apilado, formulario con `GErrorSummary`, movimiento y, solo en Chromium, táctil y `forced-colors`) y la fila «Fecha · Sexo · ¿Primera consulta?» de `form-distribution.spec.mjs`: 49 pasan y 8 se omiten por diseño (puntero grueso y colores forzados solo se emulan en Chromium).
-- **Auditoría de coco** con el componente real y un tema distinto: `node design/lab/radio-group/auditoria-verificar.mjs`, 81093/81093 comprobaciones en los tres motores; el banco de estilo, 61357/61357.
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 

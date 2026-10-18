@@ -1026,24 +1026,31 @@ Las de `GInput` (raíz, caja, etiqueta, pie, `is-*`, `is-ready`, `is-rejected`) 
 - `aria-selected` y `aria-disabled` estilizan la elegida y la deshabilitada.
 - Las clases de `multiple` (frase, casilla, receta, cesta, pie) están en [«Clases con `multiple`»](#clases-con-multiple).
 
-## Limitaciones conocidas
+## Alcance
 
 - **Padre que se ajusta al contenido (#562).** Dentro de un padre que se ajusta al contenido (celda de tabla `auto`, rejilla con `justify-items: center`, flex con `fit-content`) el campo (el de `GInput`) toma su ancho por defecto (`--g-space-1 × 60`; `× 90` con acción) en lugar de colapsar a 0; con un padre que da ancho no cambia nada, y en una `GFormRow` no se aplica. Banco `design/lab/contencion/verificar.mjs`, 297/297 en los tres motores. Ver `api.md` «Contención en línea y ancho intrínseco».
+
 - **Varias opciones: `multiple`** existe desde la Fase 2 (ver [su sección](#selección-múltiple-multiple-fase-2), con sus propios límites). Siguen **sin existir**: `GTagInput` (etiquetas sin catálogo), `expandable` (ampliar a la paleta desde `field`), `GInputGroupCombobox`, el editor de valor de `GFilterBar` ni `autoHighlight`.
-- **En el campo, la ficha del valor recorta el título antes que el identificador.** `GSummary inline` cede el título hasta `4ch` antes de tocar el identificador, por el orden de cesión de la ficha: con cuatro datos, un paciente aparece como «Daniela C… Exp. 001399 +3» en un campo de **290 px**. Es el orden del contrato de `GSummary` (el identificador es lo último), pero en el campo la regla anterior era la contraria y deja el nombre corto. Si quieres el nombre primero hay que decidir un orden de cesión por anfitrión: decisión de contrato abierta (nota de coco a lima). Mientras tanto, ofrece más ancho al campo (`--g-form-min`) o sustituye la ficha con el slot `value`. La ficha del valor es `aria-hidden`, así que la etiqueta completa siempre está en el `<input>`.
+
 - **Una ficha recortada nunca es la única fuente de un dato:** el `title` nativo de lo cortado solo sirve al puntero. La vista completa está en la vista previa de la paleta (o en tu slot `preview`, que debe cumplir esa regla).
+
 - **Sin virtualización:** se pinta hasta `limit` filas con filtro local (`aria-activedescendant` necesita que la opción exista), y con `filter: false` todo lo entregado: cientos de filas acumuladas con «Mostrar más» pueden ir lentas. Entrega páginas de `limit` o menos.
+
 - **Respuestas fuera de orden y caché son tuyas.** Si no pones `loading` al recibir `search`, Intro no elige la opción resaltada sola (hay que moverse con las flechas).
+
 - **Tab solo elige en A y sin `multiple`**, con etiqueta única y lista completa; en la paleta, en móvil y con `multiple`, nunca.
+
 - **El texto fantasma** solo existe con coincidencia por prefijo (no al buscar por código o expediente) y no durante la composición IME.
+
 - **`diff` entre homónimos** exige que las fichas vecinas traigan los mismos rótulos en `facts`; con listas heterogéneas casi todo sale distinto. Se calcula sobre lo pintado: si la homónima no está a la vista, no hay marca.
+
 - **Un dato de `facts` sin `label` no existe para el componente:** ni se pinta, ni se busca, ni entra en la descripción accesible del valor (que une «rótulo valor · rótulo valor»). Ponle siempre `label`; el aviso 12 solo sale en desarrollo.
+
 - **Paleta dentro de un `GDialog`:** modal sobre modal; funciona pero tapa el contexto.
+
 - **`required`** no participa en la validación nativa: valida tu aplicación y usa `error`.
-- **WebKit:** Tab no llega al botón de cierre de la superficie (ni a «Limpiar») salvo el ajuste de teclado del sistema; Esc y el fondo cierran, y «Limpiar» se alcanza con Alt+Tab en las pruebas.
+
 - **Sin autocompletado del navegador** (`autocomplete="off"`).
-- **Navegadores:** exige `popover`, `@starting-style` y `<dialog>`; sin `@starting-style`, A se abre sin despliegue.
-- **Dos `combobox`** conviven con la superficie abierta (el disparador y el campo de búsqueda): sin verificar con lector real.
 
 ## Verificación
 
@@ -1054,6 +1061,14 @@ Las de `GInput` (raíz, caja, etiqueta, pie, `is-*`, `is-ready`, `is-rejected`) 
 - **CSS:** sin colores literales, sin `var()` con respaldo, sin `@layer`, `@property` ni `!important` (comprobado en `GCombobox.css` al documentar y en `dist/grana.css` en la auditoría); solo `--g-*` existentes en `defaults.css`.
 - **Iconos:** solo Lucide (`search`, `chevron-down`, `chevrons-up-down`, `x`, `check`, `pencil`, `plus`, `rotate-ccw`, `circle-alert`, `loader-circle`, y con `multiple` `triangle-alert` y `undo-2`, más los de las opciones); `node packages/vue/scripts/check-icons.mjs` en verde.
 - **Consola:** sin errores en los tres motores (auditoría).
+
+- **WebKit:** Tab no llega al botón de cierre de la superficie (ni a «Limpiar») salvo el ajuste de teclado del sistema; Esc y el fondo cierran, y «Limpiar» se alcanza con Alt+Tab en las pruebas.
+
+- **Navegadores:** exige `popover`, `@starting-style` y `<dialog>`; sin `@starting-style`, A se abre sin despliegue.
+
+- **Dos `combobox`** conviven con la superficie abierta (el disparador y el campo de búsqueda): sin verificar con lector real.
+
+- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): en el campo, la ficha del valor cede el título hasta `4ch` antes que el identificador («Daniela C… Exp. 001399 +3» en un campo de 290 px): es el orden de cesión de `GSummary` y decidir uno por anfitrión es de lima; mientras, dale más ancho al campo (`--g-form-min`) o sustituye la ficha con el slot `value` (la etiqueta completa siempre está en el `<input>`).
 
 ## No verificado
 

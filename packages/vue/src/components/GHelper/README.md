@@ -147,13 +147,21 @@ Sin tokens propios. El disparador por defecto mide `space × 8` (32px) y el popo
 
 `g-helper`, `g-helper--{inline|float}`, `g-helper--side-*`, `g-helper--align-*`, `g-helper--attach-*` (solo en `float`), `is-open`, `is-disabled`; `g-helper__trigger` con `--default` o `--custom`; `g-helper__content` con `data-side` (el lado usado tras el volteo). Variable en línea: `--_offset`.
 
-## Limitaciones conocidas
+## Alcance
 
 - **Sin avatar incluido:** el slot `trigger` acepta cualquier avatar, por ejemplo [`GAvatarMotion`](../GAvatarMotion/README.md) (así va en el playground), sin cambiar esta API.
+
 - **Sin flecha** en el popover (v0.1).
+
 - **Contenido más alto que el visor** en escritorio: cuenta como «no cabe» y se abre como diálogo centrado.
+
 - La presentación (popover u hoja) no cambia mientras está abierto.
+
+## Verificación
+
 - **Sin verificar:** lector de pantalla real, Safari real, `forced-colors` real, zoom al 200% y táctil real. Abrir en la capa superior, cerrar con Esc y conservar lado y alto en el vaivén está medido en Chromium, Firefox y WebKit (`tests/library.spec.mjs`, `tests/panel-estable.spec.mjs`); la entrada usa `@starting-style` (sin él, aparece sin animación) y `prefers-reduced-motion` está medido con la preferencia emulada en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`, 18/18 el 2026-10-18: con `reduce` ningún elemento conserva transiciones ni animaciones de movimiento).
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 

@@ -276,13 +276,21 @@ Importar `@grana/vue` y llamar a `createToaster` no toca `document`, `window` ni
 - **Raíz:** `g-toaster`, `g-toaster--position-*`; `data-position`, `data-edge`, `data-align` (efectivos), `data-mobile`, `data-flipped`, `is-paused`; `--_toaster-offset-top`/`-bottom` en línea.
 - **Partes:** `g-toaster__live` (2), `g-toaster__region`, `g-toaster__list`, `g-toaster__queued`; cada aviso `g-toast` + clases de `GSurface` + `g-toast--type-*`, `data-type`, `data-state` (`entering` → `visible` → `leaving`), `has-action`, `has-description`, `is-loading`, `is-swiping`; `g-toast__icon`, `__content`, `__title`, `__type`, `__count`, `__description`, `__actions`, `__action`, `__close`.
 
-## Limitaciones conocidas
+## Alcance
 
 - **Sin historial ni bandeja:** un aviso cerrado no se recupera (`toaster.toasts` solo tiene visibles y en cola).
+
 - **Solo texto:** sin enlaces en la descripción, avatar, iconos propios, slots ni varias acciones.
+
+## Verificación
+
 - **Sin verificar con lector de pantalla real** (VoiceOver, NVDA, JAWS, TalkBack): la lectura tras vaciar y reescribir el canal, la interrupción del `alert`, que el traslado al modal no repita ni pierda anuncios y que las regiones vacías de los botones no añadan ruido. Es el riesgo principal.
+
 - **Sin verificar en táctil real** (inercia del gesto, gesto «atrás» del sistema en los bordes), con **teclado virtual** (la región no se recoloca sobre él), con **varios modales apilados** ni con un `GMenu` abierto sobre un aviso; `safe-area` solo emulada en Chromium.
+
 - **Rendimiento:** un `MutationObserver` sobre todo el documento filtrado al atributo `open` (para seguir los modales); sin medir en aplicaciones grandes.
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 

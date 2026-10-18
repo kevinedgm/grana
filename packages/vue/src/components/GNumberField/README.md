@@ -382,24 +382,19 @@ Las emite el componente y las estiliza `GNumberField.css`, después de `GInput.c
 - **Elementos:** `g-number-field__value` (la celda), `__mirror`, `__field` (junto a `g-input__field`), `__roll`, `__roll-slot`, `__roll-new`, `__roll-old`, `__measure` (solo con −/+ dentro de una `GFormRow`), `__steppers`, `__step`, `__step--decrement`, `__step--increment` y `__step-label`.
 - **Estados de la personalidad:** `is-rolling` (mientras existe la capa de P2) e `is-bumping` con `data-bump="up|down"` (durante P3), en `__value`; `data-direction="up|down"` en `__roll`. Keyframes `g-number-roll-*` y `g-number-bump-*`.
 
-## Limitaciones conocidas
+## Alcance
 
 - **Padre que se ajusta al contenido (#562).** Dentro de un padre que se ajusta al contenido (celda de tabla `auto`, rejilla con `justify-items: center`, flex con `fit-content`) el campo (el de `GInput`) toma su ancho por defecto (`--g-space-1 × 60`; `× 90` con acción) en lugar de colapsar a 0; con un padre que da ancho no cambia nada, y en una `GFormRow` no se aplica. Banco `design/lab/contencion/verificar.mjs`, 297/297 en los tres motores. Ver `api.md` «Contención en línea y ancho intrínseco».
-- **WebKit desplaza 1px el número enfocado** con el cursor al final (P1), con la fuente de serie servida por `dist/fonts.css`: WebKit redondea hacia arriba el ancho del texto y reserva además el cursor, y el hueco de 1px del espejo no alcanza. Medido: 27 de 63 campos del banco se desplazan 1px (el número se corre 1px y pierde 1px del lado inicial del primer glifo); lo mismo, al final de P2. Chromium y Firefox, 0 de 63. Con el hueco a 2px, en WebKit, 0 de 63. **Abierto** (hallazgo 1 de la auditoría): es una constante de la decisión #313 y la enmienda lima; el arreglo sube 1px el mínimo publicado.
+
 - **Un número que no cabe, sin el foco, se recorta con elipsis** («1.234.567.890.12…»), la de `GInput`. Con el foco se desplaza y la unidad sigue visible. La elipsis avisa de que faltan cifras (un recorte limpio mostraría otro número sin avisar); otro tratamiento (por ejemplo alinear al final) sería una decisión de estructura (hallazgo 4).
+
 - **Un cambio de `lang` de un ancestro después de montar no se observa.** Una aplicación que cambia de idioma en caliente pasa `locale` reactivo (o vuelve a montar el campo).
-- **Chromium no resuelve `text-align: match-parent`** contra la dirección de la página cuando el `<input>` es `dir="ltr"`; el CSS fija el lado desde `:dir(rtl)`.
-- **iOS no tiene tecla «-»** en `inputmode="decimal"` ni `"numeric"`: para negativos frecuentes, usa −/+ (bajar de 0 pasa a negativos) o `inputmode="text"` por los atributos. No medido en un dispositivo.
+
 - **Teclear «.» en `es`** lo convierte en «,» (decimal): «1.234» tecleado es 1,234. Los miles se escriben sin separador y los pone `Intl` al salir («12345» → «12.345»; en `es`, «1234» queda «1234»). **Pegar** sí distingue miles. La regla de pegado no se midió con la agrupación india («12,34,567») ni con `de-CH` (apóstrofo).
-- **Chromium recorta `aria-valuenow`** al rango y, sin límites, expone `aria-valuemin` y `aria-valuemax` 0 ([Accesibilidad](#accesibilidad)).
+
 - **`GInputGroupNumber` y `field` están reservados:** un número como parte de un `GInputGroup` y el campo suelto dentro de otro componente (la cantidad por fila de una tabla) no existen; `field` exige antes el mismo slot en `GInput`. La moneda con formato es una ronda propia (DECISIONS #154).
+
 - **`GInput` gana dos slots internos** para esto ([nota en su README](../GInput/README.md#slots-internos)); no son API pública.
-- **Sin verificar:**
-  - un **lector de pantalla real** (VoiceOver, NVDA, JAWS, TalkBack): cómo anuncian el `spinbutton` editable con `valuetext`, el recorte de `valuenow`, el solo lectura (que Chromium no expone) y −/+ fuera del Tab, y el ajuste por gestos en iOS;
-  - **Safari real** y dispositivos **iOS y Android reales** (teclado decimal por región, el «-» en iOS, −/+ sin abrir el teclado, doble toque sin zoom);
-  - un **IME real** (la composición se probó con eventos sintéticos) y el pegado real en Firefox;
-  - **`forced-colors` real** de Windows (emulado en Chromium; no se emula en Firefox ni en WebKit) y el puntero grueso real (emulado en Chromium y WebKit);
-  - el **zoom real** del navegador al 200 % y 400 % (se aproximó con un visor a la mitad y DPR 2).
 
 ## Verificación
 
@@ -407,6 +402,21 @@ Las emite el componente y las estiliza `GNumberField.css`, después de `GInput.c
 - **Navegador** (Playwright en Chromium, Firefox y WebKit, sobre el componente real del playground): `number-field.spec.mjs` (15 pruebas: árbol accesible, teclado, pegado, −/+, estados, P1, P2 y P3, movimiento reducido, fila con `GInput` y `GSelect`, mínimo publicado, RTL, `is-rejected` por `GForm`, 320px y táctil), `form-distribution.spec.mjs` (signos vitales con `GNumberField`: 1, 2 y 3 líneas) y `personalidad-input.spec.mjs`: **131 pasan y 7 se omiten por diseño** (puntero grueso y colores forzados solo se emulan en Chromium).
 - **Auditoría de coco** con el componente real y un tema distinto al por defecto (`brand` `#5B1A3A`, `radius` 16, `shape` `pill`, `space` 5, `fontSize` 17, generado con `@grana/cli`), más claro y oscuro, «Tema de prueba» y los once temas de Dark Color Presence: `node design/lab/number-field/auditoria-verificar.mjs`, **20798 de 20798** comprobaciones en los tres motores. Incluye que `GInput` sin los slots internos se comporta igual que antes: 29 campos y 245 elementos con el mismo HTML salvo el `id` de la etiqueta, cajas y 26 propiedades calculadas idénticas. Consola sin errores ni avisos.
 - **Banco de estilo de coco** (`estilo-verificar.mjs`, sobre el marcado del contrato): 17354 de 17354.
+
+- **Chromium no resuelve `text-align: match-parent`** contra la dirección de la página cuando el `<input>` es `dir="ltr"`; el CSS fija el lado desde `:dir(rtl)`.
+
+- **iOS no tiene tecla «-»** en `inputmode="decimal"` ni `"numeric"`: para negativos frecuentes, usa −/+ (bajar de 0 pasa a negativos) o `inputmode="text"` por los atributos. No medido en un dispositivo.
+
+- **Chromium recorta `aria-valuenow`** al rango y, sin límites, expone `aria-valuemin` y `aria-valuemax` 0 ([Accesibilidad](#accesibilidad)).
+
+- **Sin verificar:**
+  - un **lector de pantalla real** (VoiceOver, NVDA, JAWS, TalkBack): cómo anuncian el `spinbutton` editable con `valuetext`, el recorte de `valuenow`, el solo lectura (que Chromium no expone) y −/+ fuera del Tab, y el ajuste por gestos en iOS;
+  - **Safari real** y dispositivos **iOS y Android reales** (teclado decimal por región, el «-» en iOS, −/+ sin abrir el teclado, doble toque sin zoom);
+  - un **IME real** (la composición se probó con eventos sintéticos) y el pegado real en Firefox;
+  - **`forced-colors` real** de Windows (emulado en Chromium; no se emula en Firefox ni en WebKit) y el puntero grueso real (emulado en Chromium y WebKit);
+  - el **zoom real** del navegador al 200 % y 400 % (se aproximó con un visor a la mitad y DPR 2).
+
+- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): WebKit desplaza 1 px el número enfocado con el cursor al final (27 de 63 campos del banco con la fuente de serie; Chromium y Firefox 0 de 63): el hueco de 1 px del espejo es una constante de DECISIONS #313 y el arreglo (2 px) subiría 1 px el mínimo publicado; lima → coco, hallazgo 1 de `design/lab/number-field/auditoria.md`.
 
 ## Fuentes
 
