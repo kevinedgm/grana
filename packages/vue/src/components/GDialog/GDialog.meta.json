@@ -126,8 +126,8 @@
     },
     {
       "name": "dismiss",
-      "payload": "{ reason, preventDefault() }",
-      "trigger": "Esc (no con la tecla repetida), clic en el fondo (solo sin is-stacked) o botón de cierre; reason: escape | backdrop | close. Cancelable"
+      "payload": "{ reason, depth, preventDefault(), defaultPrevented }",
+      "trigger": "Esc (no con la tecla repetida), clic en el fondo (solo sin is-stacked) o botón de cierre; reason: escape | backdrop | close. Cancelable; depth: cuántos pasos hay en el historial en modo pasos (1 sin pasos)"
     },
     {
       "name": "open",
@@ -141,11 +141,13 @@
     },
     {
       "name": "step",
-      "description": "El diálogo avanza o retrocede de paso; payload: {index, total}"
+      "payload": "{ from, to, direction, reason, result? }",
+      "trigger": "El diálogo cambia de paso (dialog.md §B, #584): from (paso de antes o null), to, direction forward | back, reason push | back | escape | trail y result (lo que devuelve el nivel al volver)"
     },
     {
       "name": "update:steps",
-      "description": "Actualización del array de pasos desde el interior del diálogo"
+      "payload": "Array",
+      "trigger": "El historial de pasos cambia desde dentro del diálogo (push, back, Esc, rastro); con v-model:steps o sin él"
     }
   ],
   "slots": [
