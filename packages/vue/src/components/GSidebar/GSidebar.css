@@ -23,6 +23,8 @@
      asiento, nodo, ruta y píldora usan las ranuras --g-sidebar-current* (#615) */
   --_color: var(--g-color-primary);
   --_on: var(--g-color-on-primary);
+  /* El punto es una forma sin par: va en {color}-text (§7.1, #439, #673); el contador es un relleno con par (exento, #431) */
+  --_text: var(--g-color-primary-text);
 
   /* Medidas (se reasignan por --density-*) */
   --_density: 1;
@@ -466,7 +468,7 @@
   padding: 0;
   border-radius: 0;
   background: none;
-  color: var(--_color);
+  color: var(--_text);
   line-height: 0;
 }
 .g-sidebar__sr,
@@ -872,6 +874,13 @@
   color: var(--g-sidebar-current);
   outline-color: var(--g-sidebar-current);
 }
+/* El punto no es una caja: sobre la píldora va sin fondo ni filo, en la tinta del actual (P1, ≥ 4.5:1 sobre current).
+   Sin esta regla heredaba el fondo invertido del contador y se veía como un cuadrado (#673) */
+.g-sidebar--mode-navbar .g-sidebar__bar > li.is-current .g-sidebar__badge.g-sidebar__badge--dot {
+  background: none;
+  color: var(--g-sidebar-on-current);
+  outline: none;
+}
 /* Píldora activa: la celda crece (240ms) y, a la vez, el asiento se abre hasta la píldora con el muelle del asiento; la
    tinta y la etiqueta entran cuando el relleno ya las cubre (40% del llenado: el muelle va por encima del 97%), así
    `on-current` nunca se ve sobre la superficie del navbar. Al salir, el relleno se funde y luego se recoge sin verse.
@@ -1014,13 +1023,13 @@
 .g-sidebar--density-comfortable { --_density: 0.875; }
 .g-sidebar--density-compact { --_density: 0.75; }
 
-.g-sidebar--color-brand { --_color: var(--g-color-primary); --_on: var(--g-color-on-primary); }
-.g-sidebar--color-accent { --_color: var(--g-color-accent); --_on: var(--g-color-on-accent); }
-.g-sidebar--color-neutral { --_color: var(--g-color-neutral); --_on: var(--g-color-on-neutral); }
-.g-sidebar--color-success { --_color: var(--g-color-success); --_on: var(--g-color-on-success); }
-.g-sidebar--color-warning { --_color: var(--g-color-warning); --_on: var(--g-color-on-warning); }
-.g-sidebar--color-danger { --_color: var(--g-color-danger); --_on: var(--g-color-on-danger); }
-.g-sidebar--color-info { --_color: var(--g-color-info); --_on: var(--g-color-on-info); }
+.g-sidebar--color-brand { --_color: var(--g-color-primary); --_on: var(--g-color-on-primary); --_text: var(--g-color-primary-text); }
+.g-sidebar--color-accent { --_color: var(--g-color-accent); --_on: var(--g-color-on-accent); --_text: var(--g-color-accent-text); }
+.g-sidebar--color-neutral { --_color: var(--g-color-neutral); --_on: var(--g-color-on-neutral); --_text: var(--g-color-neutral-text); }
+.g-sidebar--color-success { --_color: var(--g-color-success); --_on: var(--g-color-on-success); --_text: var(--g-color-success-text); }
+.g-sidebar--color-warning { --_color: var(--g-color-warning); --_on: var(--g-color-on-warning); --_text: var(--g-color-warning-text); }
+.g-sidebar--color-danger { --_color: var(--g-color-danger); --_on: var(--g-color-on-danger); --_text: var(--g-color-danger-text); }
+.g-sidebar--color-info { --_color: var(--g-color-info); --_on: var(--g-color-on-info); --_text: var(--g-color-info-text); }
 
 /* ---------- Preferencias del sistema ---------- */
 /* Movimiento reducido = menos y más suave, no cero: se conservan los fundidos y se quitan los desplazamientos y escalas */

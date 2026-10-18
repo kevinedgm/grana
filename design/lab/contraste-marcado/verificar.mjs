@@ -101,7 +101,8 @@ if (run('static')) {
     // GStepper: la única var(--_base) que queda es el relleno del completado de number/icon (lleva el icono on-{color} encima)
     const bases = [...st.matchAll(/var\(--_base\)/g)]
     ok(bases.length === 1 && /\.g-stepper__step\.is-complete \.g-stepper__indicator \{[^}]*background: var\(--_base\)/.test(st), `GStepper: solo queda var(--_base) en el completado de number/icon (${bases.length})`)
-    ok((st.match(/var\(--_text\)/g) || []).length === 3 + 8, 'GStepper: las ocho declaraciones de #440 en --_text')
+    // + 1 desde #673: el contorno del completado al pasar sigue en --_text (#438)
+    ok((st.match(/var\(--_text\)/g) || []).length === 3 + 8 + 1, 'GStepper: las ocho declaraciones de #440 y el hover de #673 en --_text')
     // La ficha de GFileField conserva su relleno propio (más específico que .g-progress__fill)
     const ff = await css('GFileField')
     ok(/\.g-file-field__progress \.g-progress__fill \{[^}]*background: var\(--g-color-accent-soft\)/.test(ff), 'GFileField: el relleno de su ficha sigue en accent-soft')

@@ -103,6 +103,8 @@ Un **velo** blanco translúcido que desenfoca y satura lo que hay detrás, con b
 - **Sin anuncios automáticos:** cambiar el contador no dispara un anuncio. Si quieres anunciarlo, pasa `role="status"` (va a la raíz) o usa tu propia región viva.
 - **Texto largo:** una línea con elipsis; el texto completo sigue en el DOM. Un contador, un icono o una figura **nunca se encogen ni se recortan**, aunque estén en una fila apretada.
 - **Contraste:** con el tema por defecto, el texto llega a 4.76:1 o más (`soft`), 5.33:1 (`solid`, `outline`) y las figuras a 5.35:1; con el tema de prueba de la auditoría, 4.76:1 o más.
+- **Figura sola `solid` con cualquier tema** (DECISIONS #673): la figura es la insignia entera y no lleva nada encima, así que se pinta en `--g-color-{color}-text`, no en `{color}`. Con los temas pálidos del CLI (amarillo `#F2C200`, `primary` `#FFD400`, magenta + cian) y dentro de `data-g-zone="brand"` llega a **4.50:1 o más** contra lo que tiene detrás (antes, entre 1.43:1 y 2.90:1); con el tema por defecto, sin cambio visible. Medido en Chromium, Firefox y WebKit ([`design/lab/relleno-familia/medida.md`](../../../../../design/lab/relleno-familia/medida.md)).
+- **Insignia `solid` con caja (texto o contador):** su relleno no lleva contorno. Lo que se lee es el texto, que mantiene ≥ 4.5:1 sobre su relleno; con una marca muy pálida, la caja casi no se distingue de la página (1.43:1 con `primary` `#FFD400`). Si la caja debe verse como forma, usa `variant="outline"` o un color con más contraste.
 
 ## Tema
 

@@ -157,8 +157,10 @@
   --_border: var(--_text);
   --_mark: var(--_text);
 }
-/* Una figura sola no tiene caja: su color sale de la variante */
-.g-badge--kind-figure.g-badge--variant-solid { --_mark: var(--_base); }
+/* Una figura sola no tiene caja: su color sale de la variante. Es una forma de familia sin par (nada on- encima): se
+   pinta entera en {color}-text (tokens.md §7.1, #439, #673); con una marca pálida el relleno base caía a 1,43:1 contra
+   la página. En el tema por defecto -text = base: sin cambio visible */
+.g-badge--kind-figure.g-badge--variant-solid { --_mark: var(--_text); }
 
 /* ---------- Cristal (liquid glass) ---------- */
 /* Velo neutro (--g-glass-tint) o, con color, el tono suave de ese color (siempre claro); opacidad mínima 0.55

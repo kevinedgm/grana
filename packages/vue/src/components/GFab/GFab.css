@@ -187,13 +187,14 @@
   scale: 1;
 }
 .g-fab[data-ack="busy"] .g-fab__badge > svg { animation: g-fab-spin var(--g-duration-spin) linear infinite; }
+/* Acuse con relleno semántico: contorno {familia}-text, como lo marcado (§7.1, #673); Δ0 en el tema por defecto */
 .g-fab[data-ack="done"] .g-fab__badge {
-  border-color: var(--g-color-success);
+  border-color: var(--g-color-success-text);
   background: var(--g-color-success);
   color: var(--g-color-on-success);
 }
 .g-fab[data-ack="failed"] .g-fab__badge {
-  border-color: var(--g-color-danger);
+  border-color: var(--g-color-danger-text);
   background: var(--g-color-danger);
   color: var(--g-color-on-danger);
 }
@@ -569,8 +570,9 @@
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
+/* Confirmar: botón sólido de peligro con contorno danger-text, como GBtn solid (#672, #673) */
 .g-fab__list .g-fab__confirm > .g-fab__confirm-action {
-  border-color: var(--g-color-danger);
+  border-color: var(--g-color-danger-text);
   background: var(--g-color-danger);
   color: var(--g-color-on-danger);
 }

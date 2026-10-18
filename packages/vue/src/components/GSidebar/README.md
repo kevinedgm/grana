@@ -241,6 +241,7 @@ El slot no trae marcado propio: tú pones **un botón de ancho completo** con el
 - **El movimiento no transmite nada que el estado no tenga** y con `prefers-reduced-motion` quedan los fundidos (se quitan desplazamientos y escalas).
 - **Objetivos:** item de 40px (`space × 10`) y **44px** con `pointer: coarse`; botones del riel de 44px; celdas del navbar de al menos 44×48px.
 - **Contraste** (auditoría): por defecto, item 6.9:1, título de grupo 4.72:1, contador 16.48:1 y borde del buscador 3.45:1; con otro tema (espacio 5, foco de 3px), 4.48:1 o más. Con **`forced-colors`**, el item activo pasa a un contorno de `CanvasText` y la píldora usa `Highlight`.
+- **Punto (`dot`) con cualquier tema** (DECISIONS #673): el punto no lleva nada encima, así que se pinta en `--g-color-{color}-text`. Con los temas pálidos del CLI y dentro de `data-g-zone="brand"` llega a **4.15:1 o más** (antes, entre 1.32:1 y 2.99:1). **Sobre la píldora actual del navbar** el punto va sin fondo y en `--g-sidebar-on-current` (10.78:1 o más). Antes de esta corrección se veía como un cuadrado blanco. El **contador** es un relleno con su número encima y no lleva contorno: con una marca muy pálida su caja casi no se distingue (1.32:1 con `primary` `#FFD400`), pero el número mantiene su contraste. Medido en Chromium, Firefox y WebKit ([`design/lab/relleno-familia/medida.md`](../../../../../design/lab/relleno-familia/medida.md)).
 
 ## Movimiento
 

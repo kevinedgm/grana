@@ -516,8 +516,10 @@ button.g-stepper__hit:focus-visible {
 /* ---------- Interacción ---------- */
 @media (hover: hover) {
   button.g-stepper__hit:hover .g-stepper__label { text-decoration: underline; text-underline-offset: var(--g-space-1); }
+  /* Al pasar: relleno -strong y el contorno sigue en -text (§7.1 «Hover», #438, #673); con -strong el borde volvía a
+     1,86:1 con una marca pálida mientras el puntero lo señalaba */
   .g-stepper__step.is-complete button.g-stepper__hit:hover .g-stepper__indicator {
-    border-color: var(--_strong);
+    border-color: var(--_text);
     background: var(--_strong);
   }
   .g-stepper__toggle:hover { text-decoration-thickness: calc(var(--g-border-width) * 2); }
