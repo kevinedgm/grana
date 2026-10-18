@@ -469,7 +469,8 @@ button.g-dialog__trail-step:focus-visible {
 }
 
 /* ---------- Estados ---------- */
-/* Cargando: barra fina sobre la inset (borde, para que sobreviva a forced-colors) */
+/* Cargando: barra fina sobre la inset (borde, para que sobreviva a forced-colors). Quieta (#539: ninguna animación de
+   carga pasa de 5 s; el pulso infinito se retiró): lo que dice «cargando» es aria-busy y el cursor, no el parpadeo */
 .g-dialog.is-loading { cursor: progress; }
 .g-dialog.is-loading .g-dialog__inset::before {
   content: "";
@@ -745,13 +746,6 @@ button.g-dialog__trail-step:focus-visible {
   @keyframes g-dialog-resize {
     from { block-size: var(--_step-from-h); }
     to { block-size: var(--_step-to-h); }
-  }
-  .g-dialog.is-loading .g-dialog__inset::before,
-  .g-dialog:not(.g-dialog--inset).is-loading::after {
-    animation: g-dialog-pulse var(--g-duration-spin) var(--g-ease-standard) infinite alternate;
-  }
-  @keyframes g-dialog-pulse {
-    from { opacity: 0.35; }
   }
 }
 

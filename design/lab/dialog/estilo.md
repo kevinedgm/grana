@@ -15,7 +15,7 @@
 | **Secciones sin cajas** | `g-dialog__section` se separa con una línea; `g-dialog__well` es la única superficie secundaria (un nivel, radio concéntrico con la inset) |
 | **Cierre dibujado con bordes** | El botón va vacío; la cruz son dos barras de `border`, que **sobreviven a `forced-colors`** (un fondo no) |
 | **Entrada y salida** (#152) | Entra desde `@starting-style` con `opacity`, un desplazamiento de `--g-space-2` y `--g-press-scale` (hoja lateral: desde su borde; hoja móvil: `--g-space-6` desde abajo), en `--g-duration-press` con `--g-ease-out`; **sale** en `--g-duration-fast` hacia `--g-press-scale` y opacidad 0 (la hoja, hacia su borde); el fondo se funde en ambos sentidos. Con movimiento reducido, solo fundido de 120 ms. Sin `overlay` (Firefox, Safari) cierra al instante |
-| **Cargando** | Barra fina de `--g-color-accent` (un borde, no un fondo) sobre la inset, que pulsa; `cursor: progress` |
+| **Cargando** | Barra fina de `--g-color-accent` (un borde, no un fondo) sobre la inset, **quieta** (#539: el pulso infinito se retiró en la auditoría de los niveles, 2026-10-17); `cursor: progress` y `aria-busy` |
 | **Móvil** | Hoja: pegada abajo, esquinas superiores redondeadas, la inset llega al borde inferior y el pie suma `env(safe-area-inset-bottom)`; ancho completo con margen; pantalla completa exacta |
 
 ## Valores por defecto agregados (`defaults.css`, capa `grana.defaults`)
@@ -88,3 +88,20 @@ Con las reglas de D1 y D2 quitadas del CSSOM, las 8 pruebas de comportamiento fa
 ### Nota para lima (hallazgo de bruno)
 
 `--_pin-top` sale de `offsetTop`, que es **entero**: según la medida de bruno (`f86be45`), cuando el borde centrado cae en una fracción de píxel, al fijarse el diálogo se mueve **≤ 0,5px** en Firefox y WebKit. En las medidas de este spec el salto fue 0px en los tres motores (no se reprodujo un caso fraccionario). Si se quiere 0 exacto siempre, el `.vue` tendría que medir con `getBoundingClientRect().top` descontando el `translate`/`scale` en curso; es decisión del contrato (`dialog.md` D2.2 dice `offsetTop`), no se cambia aquí.
+
+## Personalidad de los niveles anidados (r02 B + C; #580 a #591, #651)
+
+Qué hace que un recorrido de varios niveles se sienta como **un solo sitio que se adentra**, y no como modales que se apilan:
+
+| Detalle | Cómo |
+| --- | --- |
+| **El hilo** | Bajo el encabezado, el recorrido en una línea: los pasos lejanos son solo su número (el nombre sigue en el árbol), el **padre** (adonde lleva «Volver») enseña número y nombre, y el **actual** es una píldora de acento suave (par `accent-soft`/`on-accent-soft`, #651) con el número relleno de acento y contorno `accent-text` (§7.1). Un tramo de borde une cada paso; el que llega al actual va en `accent-text` y **se tiende** desde el padre al ir más hondo (`scale` del tramo en slow), y el número del actual aparece cuando el tramo llega. En estrecho cede primero el nombre del actual (ya está en el `h2`), luego el del padre hasta `space × 9` con puntos suspensivos, y solo entonces la lista parte línea |
+| **El paso llega de su lado** | Al ir más hondo el paso nuevo entra **desde el final** del eje en línea; al volver (o saltar desde el hilo) el destino entra **desde el inicio**: `space × 6` + fundido, `--g-duration-slow` + `--g-ease-out`, espejado en RTL. El que sale no se anima (se oculta en el mismo cuadro): la atención va al que llega. Título, descripción y pie del paso nuevo se funden en `press` |
+| **El alto cambia sin mover el borde** | La carcasa pasa del alto del paso de salida al del de entrada (`g-dialog-resize`, slow + ease-out) con el **borde superior fijo** (D2 se conserva entre pasos): lo que el usuario miraba arriba no se mueve. En móvil, la hoja **no encoge** durante el recorrido (`--_sheet-hold`): su borde sube al ir más hondo y no baja al volver |
+| **«Volver» apunta adonde va** | Aparece deslizándose hacia el inicio; al pasar el puntero, el chevron se adelanta medio paso hacia allí |
+| **La llegada** | Al bajar con resultado, la caja que recibe el valor (o el propio destino) se marca con un anillo de `--g-focus-width` en `accent-text` que nace un poco fuera y **se recoge hasta quedar justo por fuera del anillo de foco**, y se desvanece al tocarlo (`slow × 3`). Lenguaje común de «un valor que vuelve», compartido con `GFormFold` |
+| **El pliegue (C)** | No es una tarjeta: es el campo que se abre hacia abajo. El raíl de acento nace bajo el campo que lo pide y se tiende; anidados, los raíles paralelos son el hilo de lo que se crea dentro de qué (`GFormFold.css`) |
+| **Sin muelle** | Ni `--g-ease-spring` ni `--g-ease-bounce` en todo el diálogo (#299): un diálogo no rebota |
+| **Movimiento reducido** | Solo fundidos entre pasos, sin desplazamiento, sin tramo que se tiende y sin animar el alto (cambia de golpe con el borde fijo); la llegada, el mismo anillo quieto que se funde |
+
+Verificación: `design/lab/dialog/auditoria-pasos.md` y `auditoria-pasos-verificar.mjs`.
