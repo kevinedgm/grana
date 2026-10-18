@@ -6,7 +6,7 @@
 // FormData y de la validación nativa). El contenido NUNCA se desmonta (conserva lo escrito, WCAG 3.3.7). Sin eventos:
 // la aplicación ya sabe cuándo cambia `when`; quien necesite el final de la animación escucha `transitionend` nativo.
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, ref, unref, watch } from 'vue'
-import { formKey, isDev, layoutKey, nextFrame, revealKey } from '../GForm/formContext.js'
+import { formKey, layoutKey, nextFrame, revealKey } from '../GForm/formContext.js'
 import { rowRoots } from '../GFormRow/rowEngine.js'
 import { observeParent, rowGapOf } from './revealGap.js'
 
@@ -117,11 +117,15 @@ watch(() => props.when, (v) => {
 
 // ---------- Avisos de desarrollo (#279; una vez por instancia, al montar) ----------
 function check(el) {
-  const warn = (m) => console.warn(`[Grana GFormReveal] ${m}`)
-  const p = el.parentElement
-  // La fila se registra en rowRoots en su propio onMounted, que llega después del de sus hijos: también por la clase
-  if (p && (rowRoots.has(p) || p.classList.contains('g-form-row'))) warn('va dentro de una GFormRow: ocupa su propia fila y contiene filas; colócalo después de la fila de la pregunta.')
-  if (!el.previousElementSibling) warn('no tiene hermano anterior: debe ir justo después de la pregunta que lo condiciona.')
+  try {
+    if (process.env.NODE_ENV !== 'production') {
+      const warn = (m) => console.warn(`[Grana GFormReveal] ${m}`)
+      const p = el.parentElement
+      // La fila se registra en rowRoots en su propio onMounted, que llega después del de sus hijos: también por la clase
+      if (p && (rowRoots.has(p) || p.classList.contains('g-form-row'))) warn('va dentro de una GFormRow: ocupa su propia fila y contiene filas; colócalo después de la fila de la pregunta.')
+      if (!el.previousElementSibling) warn('no tiene hermano anterior: debe ir justo después de la pregunta que lo condiciona.')
+    }
+  } catch {}
 }
 
 let stopObserve = null
@@ -131,7 +135,7 @@ onMounted(() => {
   readGap()
   stopObserve = observeParent(el.parentElement, readGap)
   nextFrame(() => nextFrame(() => { ready.value = true }))
-  if (isDev) check(el)
+  try { if (process.env.NODE_ENV !== 'production') check(el) } catch {}
 })
 onBeforeUnmount(() => {
   stopObserve?.()

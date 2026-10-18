@@ -22,7 +22,6 @@ import { pagerKey, pageSizeList } from '../../utils/tablePager.js'
 import { transitionMs } from '../../utils/motion.js'
 import { nextFrame } from '../GForm/formContext.js'
 
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const toPx = (value) => {
   const n = parseFloat(value)
   if (Number.isNaN(n)) return NaN
@@ -75,9 +74,11 @@ export default defineComponent({
   },
   emits: ['update:sort', 'update:selected', 'update:filters', 'update:page', 'update:pageSize', 'retry', 'navigate', 'activate', 'update:lastOpened', 'update:expanded'],
   setup(props, { emit, slots, attrs }) {
-    if (isDev && !props.caption && !attrs['aria-label'] && !attrs['aria-labelledby']) {
-      console.warn('[Grana] <GTable> necesita caption, aria-label o aria-labelledby (nombre de la tabla).')
-    }
+    try {
+      if (process.env.NODE_ENV !== 'production' && !props.caption && !attrs['aria-label'] && !attrs['aria-labelledby']) {
+        console.warn('[Grana] <GTable> necesita caption, aria-label o aria-labelledby (nombre de la tabla).')
+      }
+    } catch {}
 
     // ---- Estado: v-model opcional (sin él, la tabla gestiona su propio estado) ----
     const mirror = (prop, event) => {
@@ -95,12 +96,16 @@ export default defineComponent({
     const [expandedState, setExpanded] = mirror('expanded', 'update:expanded')
     const live = ref('')
     provide('g-table-announces-results', true) // la tabla anuncia el recuento: la barra de filtros integrada no lo repite
-    if (isDev && props.labels && !props.labels.sorted && Array.isArray(props.columns) && props.columns.some((c) => c.sortable)) {
-      console.warn('[Grana] <GTable> tiene columnas ordenables: define labels.sorted para anunciar el cambio de orden.')
-    }
-    if (isDev && props.selectable && props.labels && !props.labels.selectedCount) {
-      console.warn('[Grana] <GTable> con selección: define labels.selectedCount para anunciar cuántas filas hay seleccionadas.')
-    }
+    try {
+      if (process.env.NODE_ENV !== 'production' && props.labels && !props.labels.sorted && Array.isArray(props.columns) && props.columns.some((c) => c.sortable)) {
+        console.warn('[Grana] <GTable> tiene columnas ordenables: define labels.sorted para anunciar el cambio de orden.')
+      }
+    } catch {}
+    try {
+      if (process.env.NODE_ENV !== 'production' && props.selectable && props.labels && !props.labels.selectedCount) {
+        console.warn('[Grana] <GTable> con selección: define labels.selectedCount para anunciar cuántas filas hay seleccionadas.')
+      }
+    } catch {}
 
     // ---- Carga (#265, #540): la región viva única anuncia «cargando» al VERSE la carga y, al terminar, el recuento ----
     // Marca de «orden escrito en este ciclo»: si la carga empieza en el mismo ciclo, el anuncio del orden no se pisa.
@@ -112,25 +117,32 @@ export default defineComponent({
     let warnedResults = false
     const warned = new Set()
     const warnOnce = (id, msg) => {
-      if (!isDev || warned.has(id)) return
-      warned.add(id)
-      console.warn(`[Grana] <GTable> ${msg}`)
+      try {
+        if (process.env.NODE_ENV !== 'production' && !warned.has(id)) {
+          warned.add(id)
+          console.warn(`[Grana] <GTable> ${msg}`)
+        }
+      } catch {}
     }
     const markSorted = () => {
       sortedThisTick = true
       setTimeout(() => { sortedThisTick = false }, 0)
     }
-    if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'production') {
-      if (props.pageSizes && !props.labels.pagination?.pageSize) warnOnce('size', 'con pageSizes: define labels.pagination.pageSize (nombre del selector de filas por página).')
-      if (props.pageSizes && !props.labels.range) warnOnce('range', 'con pageSizes: define labels.range para anunciar el rango («Filas {from}–{to} de {total}»).')
-      if (slots.detail && props.activatable) warnOnce('act', 'con el slot detail, activatable se ignora: la puerta despliega la ficha.')
-      if (slots.detail && !props.labels.detail) warnOnce('detail', 'con el slot detail: define labels.detail (nombre del grupo de la ficha, con {title}).')
-    }
-    const warnLoadStart = () => {
-      if (isDev && !warnedLoading && !props.labels.loading) {
-        warnedLoading = true
-        console.warn('[Grana] <GTable> con loading: define labels.loading para anunciar la carga (aria-busy solo no lo anuncia la mayoría de lectores).')
+    try {
+      if (process.env.NODE_ENV !== 'production') {
+        if (props.pageSizes && !props.labels.pagination?.pageSize) warnOnce('size', 'con pageSizes: define labels.pagination.pageSize (nombre del selector de filas por página).')
+        if (props.pageSizes && !props.labels.range) warnOnce('range', 'con pageSizes: define labels.range para anunciar el rango («Filas {from}–{to} de {total}»).')
+        if (slots.detail && props.activatable) warnOnce('act', 'con el slot detail, activatable se ignora: la puerta despliega la ficha.')
+        if (slots.detail && !props.labels.detail) warnOnce('detail', 'con el slot detail: define labels.detail (nombre del grupo de la ficha, con {title}).')
       }
+    } catch {}
+    const warnLoadStart = () => {
+      try {
+        if (process.env.NODE_ENV !== 'production' && !warnedLoading && !props.labels.loading) {
+          warnedLoading = true
+          console.warn('[Grana] <GTable> con loading: define labels.loading para anunciar la carga (aria-busy solo no lo anuncia la mayoría de lectores).')
+        }
+      } catch {}
     }
 
     // La tabla pinta SU COPIA de las filas: las nuevas esperan a la llegada (retraso y mínimo incluidos, #540 punto 3)
@@ -153,8 +165,8 @@ export default defineComponent({
         paintedRows.value = props.rows
         appliedError.value = props.error
         if (appliedError.value && !slots.error) {
-          if (!props.labels.failed) warnOnce('failed', 'con error: define labels.failed (texto del fallo, visible y anunciado) o el slot error.')
-          if (!props.labels.retry) warnOnce('retry', 'con error: define labels.retry («Reintentar») o el slot error.')
+          try { if (process.env.NODE_ENV !== 'production' && !props.labels.failed) warnOnce('failed', 'con error: define labels.failed (texto del fallo, visible y anunciado) o el slot error.') } catch {}
+          try { if (process.env.NODE_ENV !== 'production' && !props.labels.retry) warnOnce('retry', 'con error: define labels.retry («Reintentar») o el slot error.') } catch {}
         }
         // En el ciclo siguiente: el recuento (o el fallo) ya actualizado y el foco de vuelta a su fila (#534)
         nextTick(() => {
@@ -185,15 +197,17 @@ export default defineComponent({
       keepRows.value = shown > 0 && !resized
       skeletonRows.value = resized && sz ? Math.max(1, Math.min(sz, external.value ? props.total - (currentPage.value - 1) * sz : sz))
         : shown > 0 ? (sz ? Math.min(shown, sz) : shown) : props.loadingRows
-      warnLoadStart()
+      try { if (process.env.NODE_ENV !== 'production') warnLoadStart() } catch {}
       captureFocus()
     }
     watch(() => props.loading, (now) => {
       if (now) { pendingCount = false; begin(true); return }
-      if (isDev && !warnedResults && !props.labels.results) {
-        warnedResults = true
-        console.warn('[Grana] <GTable> terminó de cargar: define labels.results para anunciar cuántas filas hay.')
-      }
+      try {
+        if (process.env.NODE_ENV !== 'production' && !warnedResults && !props.labels.results) {
+          warnedResults = true
+          console.warn('[Grana] <GTable> terminó de cargar: define labels.results para anunciar cuántas filas hay.')
+        }
+      } catch {}
       phase.stop()
     })
     // Fuera de una carga, filas y error se aplican al cambiar
@@ -611,10 +625,10 @@ export default defineComponent({
       const st = props.rowStatus ? props.rowStatus(row) : null
       if (!st) return null
       if (!STATUS[st.status]) {
-        if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'production') warnOnce('status', `rowStatus devolvió status «${st.status}»: usa info, success, warning o error (se ignora).`)
+        try { if (process.env.NODE_ENV !== 'production') warnOnce('status', `rowStatus devolvió status «${st.status}»: usa info, success, warning o error (se ignora).`) } catch {}
         return null
       }
-      if (!st.text && typeof process !== 'undefined' && process.env.NODE_ENV !== 'production') warnOnce('text', 'rowStatus sin text: la etiqueta necesita su texto (sin él solo se pintan tono y forma).')
+      try { if (process.env.NODE_ENV !== 'production' && !st.text) warnOnce('text', 'rowStatus sin text: la etiqueta necesita su texto (sin él solo se pintan tono y forma).') } catch {}
       return st
     }
 
@@ -780,9 +794,11 @@ export default defineComponent({
       const keys = cols.value.map((c) => c.key)
       lastKeys = visible.value.map(keyOf)
       lastBase = (currentPage.value - 1) * (sizeEff.value || 0)
-      if ((typeof process !== 'undefined' && process.env.NODE_ENV !== 'production') && !detail && (props.rowHref || props.activatable) && primary.value && slots[`cell-${primary.value.key}`]) {
-        warnOnce('slot', `rowHref/activatable con el slot cell-${primary.value.key} en la columna principal: no se pinta la puerta (ponla tú en el slot).`)
-      }
+      try {
+        if (process.env.NODE_ENV !== 'production' && !detail && (props.rowHref || props.activatable) && primary.value && slots[`cell-${primary.value.key}`]) {
+          warnOnce('slot', `rowHref/activatable con el slot cell-${primary.value.key} en la columna principal: no se pinta la puerta (ponla tú en el slot).`)
+        }
+      } catch {}
       return visible.value.flatMap((row, i) => {
         const k = keyOf(row)
         const sel = selectedSet.value.has(k)
@@ -791,9 +807,11 @@ export default defineComponent({
         const href = props.rowHref ? props.rowHref(row) || undefined : undefined
         const open = Boolean(detail) && expSet.value.has(k)
         const r = { k, i, st, href, detail: Boolean(detail), open, cause: st && st.text && st.key && st.key !== primary.value?.key && keys.includes(st.key) ? st.key : null }
-        if ((typeof process !== 'undefined' && process.env.NODE_ENV !== 'production') && (detail || href || props.activatable) && !String(title ?? '').trim()) {
-          warnOnce('empty', 'Una fila con puerta tiene el título vacío: la puerta se queda sin nombre accesible.')
-        }
+        try {
+          if (process.env.NODE_ENV !== 'production' && (detail || href || props.activatable) && !String(title ?? '').trim()) {
+            warnOnce('empty', 'Una fila con puerta tiene el título vacío: la puerta se queda sin nombre accesible.')
+          }
+        } catch {}
         const tr = h('tr', {
           role: 'row', key: k, 'data-status': st ? st.status : undefined,
           class: ['g-table__row', { 'is-selected': sel, 'is-last-opened': lastState.value != null && lastState.value === k, 'is-here': hereKey.value === k, 'is-new': fresh.value.has(k), 'is-expanded': open }]

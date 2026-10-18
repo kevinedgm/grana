@@ -70,7 +70,17 @@ Si durante la construcción aparece una decisión no cubierta, Bruno se detiene 
 
 Vue es `peerDependency`. En el código fuente se importa desde `'vue'` con normalidad; el build lo externaliza (`external: ['vue']`) y el UMD lo toma de `window.Vue`.
 
-Avisos solo de desarrollo: usar `typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'`. No usar `import.meta.env.DEV`, porque Vite lo reemplaza por `false` al construir la librería y el aviso nunca llegaría al consumidor. La comprobación de `typeof process` evita un error en el UMD, donde `process` no existe.
+Avisos solo de desarrollo (#636, `api.md` «Avisos de desarrollo»): **una sola forma, en el sitio donde vive el texto**:
+
+```js
+try { if (process.env.NODE_ENV !== 'production' && !props.label) warn('label', 'falta label: …') } catch {}
+```
+
+- Sentencia, el `if` solo dentro del `try`, la prueba empieza por `process.env.NODE_ENV !== 'production'` y `catch {}` vacío. Varias comprobaciones o cálculos que solo sirven al aviso van juntos dentro de un mismo `if (…) { … }`.
+- Nunca `typeof process` (el empaquetador de la aplicación sustituye `process.env.NODE_ENV` pero no define `process`: con `typeof` el aviso no sale nunca en el navegador), ni una constante o función `isDev` (el minificador no la propaga y los textos llegan a producción), ni `import.meta.env.DEV` (Vite lo fija al construir la librería). Sin empaquetador (ESM directo, UMD) `process` no existe: el `catch` absorbe el `ReferenceError` y no se avisa.
+- Un ayudante `warn`/`warnOnce` lleva la guarda dentro **y** cada llamada con texto la lleva también. Una función que solo comprueba para avisar, guarda alrededor de todo su cuerpo. Un validador que también rechaza en producción devuelve un código fuera de la guarda y el texto dentro.
+- No poner la guarda dentro de un bucle por fila o por cuadro si puede ir fuera (en ESM sin empaquetar y UMD cada guarda lanza y absorbe una excepción, ≈ 2 a 4,5 µs).
+- Lo vigila `src/devWarnings.test.js`; lo que pasa en los empaquetadores, `node design/lab/avisos-dev/verificar.mjs` (`npm install --prefix design/lab/avisos-dev` una vez).
 
 ## Flujo A · mecanismo del tema
 

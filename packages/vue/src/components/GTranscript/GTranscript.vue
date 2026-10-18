@@ -56,7 +56,6 @@ const attrs = useAttrs()
 const uid = useId()
 const injected = inject(speechKey, null)
 const inReviewDialog = inject(REVIEW_DIALOG, false)
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 
 // ---------- Gestor, transcript y avisos ----------
 const manager = computed(() => toRaw(props.speech) || injected || null)
@@ -64,10 +63,10 @@ const api = computed(() => (manager.value && manager.value[INTERNAL]) || null)
 const tx = computed(() => (isTranscript(props.transcript) ? props.transcript : null))
 const warned = new Set()
 function warn(msg) {
-  if (api.value) { api.value.warn(msg); return }
-  if (isDev && !warned.has(msg)) { warned.add(msg); console.warn(`[Grana Speech] ${msg}`) }
+  if (api.value) { try { if (process.env.NODE_ENV !== 'production') api.value.warn(msg) } catch {} return }
+  try { if (process.env.NODE_ENV !== 'production' && !warned.has(msg)) { warned.add(msg); console.warn(`[Grana Speech] ${msg}`) } } catch {}
 }
-const L = createLabeler(() => [props.labels, api.value ? api.value.opts.labels : null], (m) => warn(m))
+const L = createLabeler(() => [props.labels, api.value ? api.value.opts.labels : null], (m) => { try { if (process.env.NODE_ENV !== 'production') warn(m) } catch {} })
 const t = L.t
 
 const inSession = computed(() => Boolean(api.value && tx.value && api.value.state.transcript === tx.value))
@@ -78,7 +77,7 @@ const roles = computed(() => {
   const out = []
   for (const r of Array.isArray(list) ? list : []) {
     if (!r || typeof r.id !== 'string') continue
-    if (out.some((x) => x.id === r.id)) { warn(`roles: id repetido «${r.id}»: se ignora la repetición.`); continue }
+    if (out.some((x) => x.id === r.id)) { try { if (process.env.NODE_ENV !== 'production') warn(`roles: id repetido «${r.id}»: se ignora la repetición.`) } catch {} continue }
     out.push(r)
   }
   return out
@@ -94,13 +93,15 @@ const ownStore = createTargetStore({ warn })
 watch(() => props.targets, (v) => { if (v !== undefined) ownStore.replace(v) }, { immediate: true, deep: false })
 const store = computed(() => (props.targets !== undefined ? ownStore : api.value ? api.value.targets : null))
 
-if (isDev) {
-  watch(() => props.transcript, (v) => {
-    if (v === undefined || v === null) warn('<GTranscript> sin transcript: la vista queda vacía.')
-    else if (!isTranscript(v)) warn('<GTranscript> necesita una instancia de createTranscript() en transcript: la vista queda vacía.')
-  }, { immediate: true })
-  if (!props.labelledby && !props.label) warn('<GTranscript> necesita labelledby (recomendado: el título visible) o label para nombrar la rejilla.')
-}
+try {
+  if (process.env.NODE_ENV !== 'production') {
+    watch(() => props.transcript, (v) => {
+      if (v === undefined || v === null) warn('<GTranscript> sin transcript: la vista queda vacía.')
+      else if (!isTranscript(v)) warn('<GTranscript> necesita una instancia de createTranscript() en transcript: la vista queda vacía.')
+    }, { immediate: true })
+    if (!props.labelledby && !props.label) warn('<GTranscript> necesita labelledby (recomendado: el título visible) o label para nombrar la rejilla.')
+  }
+} catch {}
 
 // ---------- Modo y columnas ----------
 const readMode = computed(() => !props.editable && !props.selectable)
@@ -149,7 +150,7 @@ function speakerLabel(id) {
   const sp = x.speakers.find((s) => s.id === id)
   const letter = x.letter(id)
   const role = sp && sp.role ? roles.value.find((r) => r.id === sp.role) : null
-  if (sp && sp.role && !role) warn(`el rol «${sp.role}» de un hablante no está en roles: se muestra sin rol.`)
+  try { if (process.env.NODE_ENV !== 'production' && sp && sp.role && !role) warn(`el rol «${sp.role}» de un hablante no está en roles: se muestra sin rol.`) } catch {}
   return role ? t('speakerRole', { role: role.label, letter }) : t('speaker', { letter })
 }
 // Nombre de un turno en la composición: el rol si es único entre los visibles; si no, la etiqueta completa (§21.7)
@@ -212,7 +213,7 @@ const isSelectable = (id) => { const s = tx.value && tx.value.segment(id); retur
 watch(() => props.selected, (v) => {
   const list = Array.isArray(v) ? v.map(String) : []
   const ok = list.filter((id) => isSelectable(id))
-  if (ok.length !== list.length) warn('selected trae ids que no son fragmentos confirmados (provisional, fallidos o inexistentes): se descartan.')
+  try { if (process.env.NODE_ENV !== 'production' && ok.length !== list.length) warn('selected trae ids que no son fragmentos confirmados (provisional, fallidos o inexistentes): se descartan.') } catch {}
   const same = ok.length === sel.value.size && ok.every((id) => sel.value.has(id))
   if (!same) sel.value = new Set(ok)
 }, { immediate: true })
@@ -451,7 +452,7 @@ function doUndo(redo, fromGrid) {
 }
 function setRole(speakerId, value) {
   const role = value === '' || value === null || value === undefined ? null : String(value)
-  if (role !== null && !roles.value.some((r) => r.id === role)) warn(`setRole: el rol «${role}» no está en roles.`)
+  try { if (process.env.NODE_ENV !== 'production' && role !== null && !roles.value.some((r) => r.id === role)) warn(`setRole: el rol «${role}» no está en roles.`) } catch {}
   if (!tx.value.setRole(speakerId, role)) return
   emit('change', { kind: 'setRole', ids: [] })
   const r = roles.value.find((x) => x.id === role)

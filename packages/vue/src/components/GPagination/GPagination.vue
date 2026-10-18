@@ -9,7 +9,6 @@ import { useKeyFocus } from '../../utils/keyFocus.js'
 import { pagerKey, pageSizeList } from '../../utils/tablePager.js'
 import GIcon from '../GIcon/GLibIcon.js'
 
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const toPx = (value) => {
   const n = parseFloat(value)
   if (Number.isNaN(n)) return NaN
@@ -48,7 +47,7 @@ export default defineComponent({
   },
   emits: ['update:pageSize', 'update:page'],
   setup(props, { emit }) {
-    if (isDev && !props.labels.nav) console.warn('[Grana] <GPagination> necesita labels.nav (nombre de la navegación).')
+    try { if (process.env.NODE_ENV !== 'production' && !props.labels.nav) console.warn('[Grana] <GPagination> necesita labels.nav (nombre de la navegación).') } catch {}
     const root = ref(null)
     const width = ref(0)
     const space = ref(NaN)
@@ -60,17 +59,20 @@ export default defineComponent({
     watch(() => props.pageSize, (v) => { sizeState.value = v })
     const warned = new Set()
     const warnOnce = (id, msg) => {
-      if (!isDev || warned.has(id)) return
-      warned.add(id)
-      console.warn(`[Grana] <GPagination> ${msg}`)
+      try {
+        if (process.env.NODE_ENV !== 'production' && !warned.has(id)) {
+          warned.add(id)
+          console.warn(`[Grana] <GPagination> ${msg}`)
+        }
+      } catch {}
     }
     // Lista depurada y ordenada; un pageSize fuera de ella se añade en su orden (WCAG 4.1.2)
     const sizeList = computed(() => pageSizeList(props.pageSizes, sizeState.value))
     const sizes = computed(() => sizeList.value.sizes)
     watch(sizeList, (l) => {
-      if (l.dropped) warnOnce('sizes', 'pageSizes con valores repetidos o no válidos (enteros ≥ 1): se han depurado.')
-      if (l.added) warnOnce('outside', `pageSize ${sizeState.value} no está en pageSizes: se ha añadido a la lista.`)
-      if (l.sizes.length && !props.labels.pageSize && !table) warnOnce('label', 'con pageSizes: define labels.pageSize (nombre del selector de filas por página).')
+      try { if (process.env.NODE_ENV !== 'production' && l.dropped) warnOnce('sizes', 'pageSizes con valores repetidos o no válidos (enteros ≥ 1): se han depurado.') } catch {}
+      try { if (process.env.NODE_ENV !== 'production' && l.added) warnOnce('outside', `pageSize ${sizeState.value} no está en pageSizes: se ha añadido a la lista.`) } catch {}
+      try { if (process.env.NODE_ENV !== 'production' && l.sizes.length && !props.labels.pageSize && !table) warnOnce('label', 'con pageSizes: define labels.pageSize (nombre del selector de filas por página).') } catch {}
     }, { immediate: true })
     const keyFocus = useKeyFocus(() => sizes.value.length > 0)
     const pages = computed(() => Math.max(1, Math.ceil(props.total / sizeState.value)))

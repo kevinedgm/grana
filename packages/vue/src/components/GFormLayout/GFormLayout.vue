@@ -4,7 +4,7 @@
 // No mide nada: quien mide es cada GFormRow. Cada hijo directo ocupa el ancho entero (un campo suelto es una fila de uno).
 import { computed, inject, onMounted, provide, ref, unref } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
-import { formKey, isDev, layoutKey } from '../GForm/formContext.js'
+import { formKey, layoutKey } from '../GForm/formContext.js'
 import { rowRoots } from '../GFormRow/rowEngine.js'
 
 defineOptions({ name: 'GFormLayout' })
@@ -26,30 +26,34 @@ const root = ref(null)
 
 // Avisos de desarrollo (una vez, al montar; los hijos ya están montados): form.md §4 «GFormLayout»
 function check(el) {
-  const warn = (m) => console.warn(`[Grana GFormLayout] ${m}`)
-  const cs = typeof getComputedStyle === 'function' ? getComputedStyle : null
-  let compact = false
-  let outside = false
-  let order = false
-  for (const child of el.children) {
-    if (child.classList.contains('g-form-w-xs') || child.classList.contains('g-form-w-sm')) compact = true
-    else if (child.classList.contains('g-form-w-md') || child.classList.contains('g-form-w-lg')) outside = true
-    if (cs) { const o = cs(child).order; if (o && o !== '0') order = true }
-  }
-  if (compact) warn('un campo compacto (g-form-w-xs o g-form-w-sm) queda solo en su fila y ocupa el ancho entero; agrúpalo con los campos que lo acompañan en una GFormRow.')
-  if (outside) warn('g-form-w-* solo tiene efecto dentro de una GFormRow.')
-  if (order) warn('un hijo tiene `order` distinto de 0: rompería orden del DOM = lectura = Tab = visual.')
-  // Restos de la Fase 1 (tabla «Migración desde la Fase 1»)
-  const legacy = [
-    ['.g-form-break', 'g-form-break se retiró: una fila nueva es otra GFormRow.'],
-    ['.g-form-w-full', 'g-form-w-full se retiró: un campo suelto ya ocupa el ancho entero; quita la clase.'],
-    ['.g-form-part-xs, .g-form-part-sm', 'g-form-part-* se retiró: las partes de GFieldGroup usan g-form-w-* (su contenedor es una GFormRow).']
-  ]
-  for (const [sel, msg] of legacy) if (el.querySelector(sel)) warn(msg)
-  if ([...el.querySelectorAll('.g-form-row')].some((r) => !rowRoots.has(r))) warn('un elemento con la clase g-form-row no es un GFormRow: cambia <div class="g-form-row"> por <GFormRow> (la clase sola ya no reparte en líneas).')
+  try {
+    if (process.env.NODE_ENV !== 'production') {
+      const warn = (m) => console.warn(`[Grana GFormLayout] ${m}`)
+      const cs = typeof getComputedStyle === 'function' ? getComputedStyle : null
+      let compact = false
+      let outside = false
+      let order = false
+      for (const child of el.children) {
+        if (child.classList.contains('g-form-w-xs') || child.classList.contains('g-form-w-sm')) compact = true
+        else if (child.classList.contains('g-form-w-md') || child.classList.contains('g-form-w-lg')) outside = true
+        if (cs) { const o = cs(child).order; if (o && o !== '0') order = true }
+      }
+      if (compact) warn('un campo compacto (g-form-w-xs o g-form-w-sm) queda solo en su fila y ocupa el ancho entero; agrúpalo con los campos que lo acompañan en una GFormRow.')
+      if (outside) warn('g-form-w-* solo tiene efecto dentro de una GFormRow.')
+      if (order) warn('un hijo tiene `order` distinto de 0: rompería orden del DOM = lectura = Tab = visual.')
+      // Restos de la Fase 1 (tabla «Migración desde la Fase 1»)
+      const legacy = [
+        ['.g-form-break', 'g-form-break se retiró: una fila nueva es otra GFormRow.'],
+        ['.g-form-w-full', 'g-form-w-full se retiró: un campo suelto ya ocupa el ancho entero; quita la clase.'],
+        ['.g-form-part-xs, .g-form-part-sm', 'g-form-part-* se retiró: las partes de GFieldGroup usan g-form-w-* (su contenedor es una GFormRow).']
+      ]
+      for (const [sel, msg] of legacy) if (el.querySelector(sel)) warn(msg)
+      if ([...el.querySelectorAll('.g-form-row')].some((r) => !rowRoots.has(r))) warn('un elemento con la clase g-form-row no es un GFormRow: cambia <div class="g-form-row"> por <GFormRow> (la clase sola ya no reparte en líneas).')
+    }
+  } catch {}
 }
 
-onMounted(() => { if (isDev && root.value) check(root.value) })
+onMounted(() => { try { if (process.env.NODE_ENV !== 'production' && root.value) check(root.value) } catch {} })
 
 const classes = computed(() => ['g-form-layout', `g-form-layout--density-${density.value}`, { 'g-form-layout--stack': props.stack }])
 </script>

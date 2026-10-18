@@ -917,10 +917,11 @@ describe('GCard · orden del DOM, eventos y avisos', () => {
     expect(msgs(warn).some((m) => m.includes('tarjeta dentro de tarjeta'))).toBe(true)
   })
 
-  it('el aviso de desarrollo usa typeof process (nunca import.meta.env.DEV)', async () => {
+  it('el aviso de desarrollo usa la guarda canónica de #636 (nunca import.meta.env.DEV)', async () => {
     const { readFileSync } = await import('node:fs')
     const src = readFileSync(`${process.cwd()}/src/components/GCard/GCard.vue`, 'utf8')
-    expect(src).toContain("typeof process !== 'undefined'")
+    expect(src).toMatch(/try \{\s*if \(process\.env\.NODE_ENV !== 'production'/)
+    expect(src).not.toContain('typeof process')
     expect(src).not.toContain('import.meta.env')
     expect(src).not.toMatch(/<style/)
     const code = src.replace(/\/\/[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '')

@@ -20,7 +20,6 @@ export const hasContent = (nodes) => (nodes || []).some((n) => {
  */
 export const tagItemKey = Symbol('GTagItem')
 
-export const isDev = () => typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 
 /** Una cadena vacía o solo con espacios cuenta como ausente; un número se convierte con String() */
 export const present = (v) => {

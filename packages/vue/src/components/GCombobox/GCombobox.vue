@@ -105,19 +105,21 @@ const ROWS_CAP = 6          // renglones de la receta en reposo antes de «Ver l
 const M = Boolean(props.multiple)
 
 // ---------- Avisos (una vez por instancia y motivo) ----------
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const warned = new Set()
 function warnOnce(key, text) {
-  if (!isDev || warned.has(key)) return
-  warned.add(key)
-  console.warn(`[Grana GCombobox] ${text}`)
+  try {
+    if (process.env.NODE_ENV !== 'production' && !warned.has(key)) {
+      warned.add(key)
+      console.warn(`[Grana GCombobox] ${text}`)
+    }
+  } catch {}
 }
 const L = computed(() => props.labels || {})
 /** Texto de labels que hace falta ahora: si no está, avisa una vez y devuelve '' */
 function need(key, why) {
   const v = L.value[key]
   if (v === undefined || v === null || v === '') {
-    warnOnce(`label:${key}`, `falta labels.${key}${why ? ` (${why})` : ''}: los textos los pone la aplicación.`)
+    try { if (process.env.NODE_ENV !== 'production') warnOnce(`label:${key}`, `falta labels.${key}${why ? ` (${why})` : ''}: los textos los pone la aplicación.`) } catch {}
     return ''
   }
   return v
@@ -150,16 +152,18 @@ const flat = computed(() => {
   let g = 0
   const add = (o, group) => {
     if (!validOption(o)) {
-      warnOnce('option-invalid', 'hay una opción sin value (String o Number) o sin label: se ignora.')
+      try { if (process.env.NODE_ENV !== 'production') warnOnce('option-invalid', 'hay una opción sin value (String o Number) o sin label: se ignora.') } catch {}
       return
     }
-    if (seen.has(o.value)) warnOnce(`option-dup:${String(o.value)}`, `dos opciones tienen el mismo value (${String(o.value)}): debe ser único.`)
+    try { if (process.env.NODE_ENV !== 'production' && seen.has(o.value)) warnOnce(`option-dup:${String(o.value)}`, `dos opciones tienen el mismo value (${String(o.value)}): debe ser único.`) } catch {}
     seen.add(o.value)
     // Dato sin label (#335, #356 «Dato visible»): no se pinta, no se busca ni se anuncia. Aviso propio aunque la opción
     // no llegue a pintarse (o la pinte el slot option, sin GSummary que avise)
-    if (isDev && Array.isArray(o.facts) && o.facts.some((f) => f && typeof f === 'object' && !visibleFact({ label: f.label, value: 'x' })) /* rótulo ausente, misma regla */) {
-      warnOnce('fact-label', 'una opción tiene un dato de facts sin label: no se pinta, no se busca ni se lee en la descripción accesible. El rótulo es obligatorio.')
-    }
+    try {
+      if (process.env.NODE_ENV !== 'production' && Array.isArray(o.facts) && o.facts.some((f) => f && typeof f === 'object' && !visibleFact({ label: f.label, value: 'x' }))) {
+        warnOnce('fact-label', 'una opción tiene un dato de facts sin label: no se pinta, no se busca ni se lee en la descripción accesible. El rótulo es obligatorio.')
+      }
+    } catch {}
     out.push({ o, group })
   }
   for (const o of props.options || []) {
@@ -244,13 +248,13 @@ const soMap = computed(() => {
   return m
 })
 const optionOf = (v) => optionMap.value.get(v) || soMap.value.get(v) || known.get(v) || null
-const warnModel = (k) => warnOnce(`m-${k}`, k === 'array' ? 'con multiple, modelValue y custom son arreglos: se normalizan.' : 'con multiple, un elemento repetido se pinta y se envía una vez.')
+const warnModel = (k) => { try { if (process.env.NODE_ENV !== 'production') warnOnce(`m-${k}`, k === 'array' ? 'con multiple, modelValue y custom son arreglos: se normalizan.' : 'con multiple, un elemento repetido se pinta y se envía una vez.') } catch {} }
 const values = computed(() => (M ? normValues(props.modelValue, warnModel) : []))
 const customs = computed(() => {
   if (!M) return []
   const c = normCustom(props.custom, warnModel)
   if (c.length && !props.allowCustom) {
-    warnOnce('custom-off', 'custom tiene valor sin allowCustom: se ignora.')
+    try { if (process.env.NODE_ENV !== 'production') warnOnce('custom-off', 'custom tiene valor sin allowCustom: se ignora.') } catch {}
     return []
   }
   return c
@@ -259,7 +263,7 @@ const chosen = computed(() => [
   ...values.value.map((v) => {
     const o = optionOf(v)
     if (o) known.set(v, o)
-    else warnOnce(`unknown:${keyOf(v)}`, `modelValue incluye ${String(v)}, sin opción conocida ni en selectedOptions: se pinta con String(value), se puede quitar y se envía.`)
+    else try { if (process.env.NODE_ENV !== 'production') warnOnce(`unknown:${keyOf(v)}`, `modelValue incluye ${String(v)}, sin opción conocida ni en selectedOptions: se pinta con String(value), se puede quitar y se envía.`) } catch {}
     return { key: keyOf(v), value: v, option: o, label: o ? o.label : String(v) }
   }),
   ...customs.value.map((t) => ({ key: keyOfText(t), text: t, label: t }))
@@ -287,7 +291,7 @@ const aboutMulti = computed(() => {
   const v = L.value.about
   if (typeof v === 'function') return String(v(count.value, list) ?? '')
   if (!v) {
-    warnOnce('label:about', 'falta labels.about: la descripción accesible dice solo la lista.')
+    try { if (process.env.NODE_ENV !== 'production') warnOnce('label:about', 'falta labels.about: la descripción accesible dice solo la lista.') } catch {}
     return list
   }
   return fill(v, { count: nf(count.value), list })
@@ -821,7 +825,7 @@ function scheduleAnnounce() {
     let t
     if (tot > n) {
       if (L.value.partial === undefined || L.value.partial === null || L.value.partial === '') {
-        warnOnce('label:partial', 'falta labels.partial (anuncio con más resultados que los pintados): se usa labels.results.')
+        try { if (process.env.NODE_ENV !== 'production') warnOnce('label:partial', 'falta labels.partial (anuncio con más resultados que los pintados): se usa labels.results.') } catch {}
         t = counted('results', 'anuncio del recuento', n)
       } else t = counted('partial', 'anuncio parcial', n, tot)
     } else t = counted('results', 'anuncio del recuento', n)
@@ -855,7 +859,7 @@ function expectReply() {
   needsSettle = true
   nextTick(() => {
     if (awaiting.value && !props.loading) {
-      warnOnce('no-reply', 'filter es false y, tras emitir search o more, la aplicación no respondió en el siguiente ciclo: pon loading a true en el mismo manejador (y a false al terminar). Mientras tanto, Intro no elige la opción resaltada sola.')
+      try { if (process.env.NODE_ENV !== 'production') warnOnce('no-reply', 'filter es false y, tras emitir search o more, la aplicación no respondió en el siguiente ciclo: pon loading a true en el mismo manejador (y a false al terminar). Mientras tanto, Intro no elige la opción resaltada sola.') } catch {}
     }
   })
 }
@@ -1917,7 +1921,7 @@ onMounted(() => {
     document.fonts?.ready?.then(scheduleFit)
     scheduleFit()
   }
-  if (isDev && root && root.closest('.g-input-group')) warnOnce('input-group', 'no se admite dentro de un GInputGroup en v0.1 (reservado, #338).')
+  try { if (process.env.NODE_ENV !== 'production' && root && root.closest('.g-input-group')) warnOnce('input-group', 'no se admite dentro de un GInputGroup en v0.1 (reservado, #338).') } catch {}
 })
 const disarm = () => { armed.value = null }
 let stopSize = null
@@ -1939,62 +1943,64 @@ onBeforeUnmount(() => {
 })
 
 // ---------- Avisos de desarrollo (combobox.md «Avisos», 1 a 11) ----------
-if (isDev) {
-  if (!hasLabel.value && !attrs['aria-label'] && !attrs['aria-labelledby']) warnOnce('name', 'necesita label, slot label, aria-label o aria-labelledby para tener un nombre accesible.')
-  if (!L.value.close) warnOnce('label:close', 'falta labels.close: la superficie (paleta y hoja móvil) queda sin botón de cierre.')
-  if (props.clearable && !L.value.clear) warnOnce('label:clear', 'clearable necesita labels.clear: el botón de limpiar no se pinta.')
-  if (props.allowCustom && !L.value.useCustom) warnOnce('label:useCustom', 'allowCustom necesita labels.useCustom: la fila de texto libre no se pinta.')
-  if (props.allowCustom && !L.value.custom) warnOnce('label:custom', 'allowCustom necesita labels.custom: la ficha de texto libre queda sin marca.')
-  if (props.creatable && !L.value.create) warnOnce('label:create', 'creatable necesita labels.create: la fila de agregar no se pinta.')
-  if (minChars.value > 0 && !L.value.minChars) warnOnce('label:minChars', 'minChars necesita labels.minChars para la pista de mínimo.')
-  if (!M && props.appearance === 'palette' && !L.value.preview) warnOnce('label:preview', 'appearance="palette" necesita labels.preview: la vista previa queda sin nombre.')
-  if (!props.label && !attrs['aria-label'] && !L.value.surfaceTitle) warnOnce('label:surfaceTitle', 'sin label ni aria-label, la superficie necesita labels.surfaceTitle para su título.')
-  if (props.allowCustom && props.name && !props.customName) warnOnce('custom-name', 'allowCustom con name y sin customName: el texto libre no viaja en FormData.')
-  if (attrs.type !== undefined) warnOnce('type', 'type no aplica: el campo es siempre type="text" con role="combobox".')
-  if (slots.append || slots.action) warnOnce('slots', 'los slots append y action no aplican (el final de la caja es de limpiar y flecha): no se pintan.')
-  if (slots.preview && props.appearance !== 'palette') warnOnce('preview-slot', 'el slot preview solo se pinta con appearance="palette".')
-  // Fase 2 (avisos 13 a 17)
-  watch(() => props.multiple, (v) => { if (Boolean(v) !== M) warnOnce('multiple-late', 'multiple se lee al montar: cambiarlo después no tiene efecto (cambia la key para cambiar de modo).') })
-  if (M) {
-    if (props.selectedOption) warnOnce('m-selected-option', 'selectedOption no aplica con multiple: se ignora (usa selectedOptions).')
-    if (props.numbered && props.selection !== 'list' && props.appearance !== 'palette') warnOnce('m-numbered', 'numbered numera renglones: con selection="inline" y appearance="field" no hay renglones; se ignora.')
-    if (slots.value) warnOnce('m-value-slot', 'el slot value no aplica con multiple (no hay ficha): se ignora.')
-    if (slots.preview && props.appearance === 'palette') warnOnce('m-preview-slot', 'con multiple, la cesta ocupa el sitio de la vista previa: el slot preview no se pinta.')
-    for (const k of ['selected', 'chosen', 'done']) if (!L.value[k]) warnOnce(`label:${k}`, `falta labels.${k}: los textos los pone la aplicación (multiple).`)
-    if (props.allowCustom && !L.value.customItem) warnOnce('label:customItem', 'allowCustom con multiple necesita labels.customItem: un texto libre se nombra solo con su texto.')
-    if (props.selection !== 'list' && !L.value.rest) warnOnce('label:rest', 'selection="inline" necesita labels.rest: la frase se recorta con elipsis sin decir cuántas faltan.')
-    if (props.selection === 'list' && !L.value.fresh) warnOnce('label:fresh', 'selection="list" necesita labels.fresh: lo nuevo lleva solo la barra.')
-    if (props.appearance === 'palette' && !L.value.basketEmpty) warnOnce('label:basketEmpty', 'appearance="palette" con multiple necesita labels.basketEmpty: la cesta vacía queda sin texto.')
-    if ((props.selection === 'list' || props.appearance === 'palette') && (!L.value.undo || !L.value.trace)) warnOnce('label:trace', 'los renglones necesitan labels.undo y labels.trace: sin ellos, quitar no deja rastro (Ctrl/⌘+Z sigue).')
-    if (props.max !== undefined && !(Number.isInteger(props.max) && props.max >= 1)) warnOnce('max', `max ${String(props.max)} no es un entero ≥ 1: sin límite.`)
-    if (maxN.value) {
-      if (!L.value.max) warnOnce('label:max', 'max necesita labels.max para el estado y el anuncio del tope.')
-      if (!L.value.ofMax) warnOnce('label:ofMax', 'max necesita labels.ofMax para el recuento con tope: se usa labels.selected.')
+try {
+  if (process.env.NODE_ENV !== 'production') {
+    if (!hasLabel.value && !attrs['aria-label'] && !attrs['aria-labelledby']) warnOnce('name', 'necesita label, slot label, aria-label o aria-labelledby para tener un nombre accesible.')
+    if (!L.value.close) warnOnce('label:close', 'falta labels.close: la superficie (paleta y hoja móvil) queda sin botón de cierre.')
+    if (props.clearable && !L.value.clear) warnOnce('label:clear', 'clearable necesita labels.clear: el botón de limpiar no se pinta.')
+    if (props.allowCustom && !L.value.useCustom) warnOnce('label:useCustom', 'allowCustom necesita labels.useCustom: la fila de texto libre no se pinta.')
+    if (props.allowCustom && !L.value.custom) warnOnce('label:custom', 'allowCustom necesita labels.custom: la ficha de texto libre queda sin marca.')
+    if (props.creatable && !L.value.create) warnOnce('label:create', 'creatable necesita labels.create: la fila de agregar no se pinta.')
+    if (minChars.value > 0 && !L.value.minChars) warnOnce('label:minChars', 'minChars necesita labels.minChars para la pista de mínimo.')
+    if (!M && props.appearance === 'palette' && !L.value.preview) warnOnce('label:preview', 'appearance="palette" necesita labels.preview: la vista previa queda sin nombre.')
+    if (!props.label && !attrs['aria-label'] && !L.value.surfaceTitle) warnOnce('label:surfaceTitle', 'sin label ni aria-label, la superficie necesita labels.surfaceTitle para su título.')
+    if (props.allowCustom && props.name && !props.customName) warnOnce('custom-name', 'allowCustom con name y sin customName: el texto libre no viaja en FormData.')
+    if (attrs.type !== undefined) warnOnce('type', 'type no aplica: el campo es siempre type="text" con role="combobox".')
+    if (slots.append || slots.action) warnOnce('slots', 'los slots append y action no aplican (el final de la caja es de limpiar y flecha): no se pintan.')
+    if (slots.preview && props.appearance !== 'palette') warnOnce('preview-slot', 'el slot preview solo se pinta con appearance="palette".')
+    // Fase 2 (avisos 13 a 17)
+    watch(() => props.multiple, (v) => { if (Boolean(v) !== M) warnOnce('multiple-late', 'multiple se lee al montar: cambiarlo después no tiene efecto (cambia la key para cambiar de modo).') })
+    if (M) {
+      if (props.selectedOption) warnOnce('m-selected-option', 'selectedOption no aplica con multiple: se ignora (usa selectedOptions).')
+      if (props.numbered && props.selection !== 'list' && props.appearance !== 'palette') warnOnce('m-numbered', 'numbered numera renglones: con selection="inline" y appearance="field" no hay renglones; se ignora.')
+      if (slots.value) warnOnce('m-value-slot', 'el slot value no aplica con multiple (no hay ficha): se ignora.')
+      if (slots.preview && props.appearance === 'palette') warnOnce('m-preview-slot', 'con multiple, la cesta ocupa el sitio de la vista previa: el slot preview no se pinta.')
+      for (const k of ['selected', 'chosen', 'done']) if (!L.value[k]) warnOnce(`label:${k}`, `falta labels.${k}: los textos los pone la aplicación (multiple).`)
+      if (props.allowCustom && !L.value.customItem) warnOnce('label:customItem', 'allowCustom con multiple necesita labels.customItem: un texto libre se nombra solo con su texto.')
+      if (props.selection !== 'list' && !L.value.rest) warnOnce('label:rest', 'selection="inline" necesita labels.rest: la frase se recorta con elipsis sin decir cuántas faltan.')
+      if (props.selection === 'list' && !L.value.fresh) warnOnce('label:fresh', 'selection="list" necesita labels.fresh: lo nuevo lleva solo la barra.')
+      if (props.appearance === 'palette' && !L.value.basketEmpty) warnOnce('label:basketEmpty', 'appearance="palette" con multiple necesita labels.basketEmpty: la cesta vacía queda sin texto.')
+      if ((props.selection === 'list' || props.appearance === 'palette') && (!L.value.undo || !L.value.trace)) warnOnce('label:trace', 'los renglones necesitan labels.undo y labels.trace: sin ellos, quitar no deja rastro (Ctrl/⌘+Z sigue).')
+      if (props.max !== undefined && !(Number.isInteger(props.max) && props.max >= 1)) warnOnce('max', `max ${String(props.max)} no es un entero ≥ 1: sin límite.`)
+      if (maxN.value) {
+        if (!L.value.max) warnOnce('label:max', 'max necesita labels.max para el estado y el anuncio del tope.')
+        if (!L.value.ofMax) warnOnce('label:ofMax', 'max necesita labels.ofMax para el recuento con tope: se usa labels.selected.')
+      }
+      watch(count, (n) => { if (maxN.value && n > maxN.value) warnOnce('over-max', `hay ${n} elegidos y max es ${maxN.value}: se pintan y se envían todos.`) }, { immediate: true })
+    } else {
+      if (props.selectedOptions && props.selectedOptions.length) warnOnce('selected-options', 'selectedOptions solo aplica con multiple: se ignora.')
+      if (props.selection !== 'inline' || props.numbered || props.max !== undefined) warnOnce('single-props', 'selection, numbered y max solo aplican con multiple: se ignoran.')
+      if (slots.chosen) warnOnce('chosen-slot', 'el slot chosen solo aplica con multiple: se ignora.')
     }
-    watch(count, (n) => { if (maxN.value && n > maxN.value) warnOnce('over-max', `hay ${n} elegidos y max es ${maxN.value}: se pintan y se envían todos.`) }, { immediate: true })
-  } else {
-    if (props.selectedOptions && props.selectedOptions.length) warnOnce('selected-options', 'selectedOptions solo aplica con multiple: se ignora.')
-    if (props.selection !== 'inline' || props.numbered || props.max !== undefined) warnOnce('single-props', 'selection, numbered y max solo aplican con multiple: se ignoran.')
-    if (slots.chosen) warnOnce('chosen-slot', 'el slot chosen solo aplica con multiple: se ignora.')
+    if (!(Number.isInteger(props.limit) && props.limit >= 1)) warnOnce('limit', `limit ${String(props.limit)} no es un entero ≥ 1: se usa 50.`)
+    if (!(Number.isFinite(props.delay) && props.delay >= 0)) warnOnce('delay', `delay ${String(props.delay)} no es un número ≥ 0: se usa 250.`)
+    if (!(Number.isInteger(props.minChars) && props.minChars >= 0)) warnOnce('minChars', `minChars ${String(props.minChars)} no es un entero ≥ 0: se usa 0.`)
+    if (!M) watch(() => [props.modelValue, props.custom, props.allowCustom, selected.value, props.selectedOption], () => {
+      const so = props.selectedOption
+      if (so && hasModel.value && so.value !== props.modelValue) warnOnce('selected-option', 'selectedOption.value no es modelValue: se ignora.')
+      if (hasModel.value && !selected.value) warnOnce(`unknown:${String(props.modelValue)}`, `modelValue (${String(props.modelValue)}) no corresponde a ninguna opción conocida ni a selectedOption: el campo queda vacío, pero el valor se envía.`)
+      if (props.custom) {
+        if (!props.allowCustom) warnOnce('custom-off', 'custom tiene valor sin allowCustom: se ignora.')
+        else if (hasModel.value) warnOnce('both', 'modelValue y custom tienen valor a la vez: gana modelValue.')
+      }
+    }, { immediate: true })
+    watch(() => [props.total, remote.value, flat.value.length], () => {
+      if (props.total === null || props.total === undefined) return
+      if (!remote.value) warnOnce('total-local', 'total solo cuenta con filter: false; con filtro local se ignora (lo cuenta el componente).')
+      else if (props.total < flat.value.length) warnOnce('total-less', `total (${props.total}) es menor que las opciones entregadas (${flat.value.length}).`)
+    }, { immediate: true })
   }
-  if (!(Number.isInteger(props.limit) && props.limit >= 1)) warnOnce('limit', `limit ${String(props.limit)} no es un entero ≥ 1: se usa 50.`)
-  if (!(Number.isFinite(props.delay) && props.delay >= 0)) warnOnce('delay', `delay ${String(props.delay)} no es un número ≥ 0: se usa 250.`)
-  if (!(Number.isInteger(props.minChars) && props.minChars >= 0)) warnOnce('minChars', `minChars ${String(props.minChars)} no es un entero ≥ 0: se usa 0.`)
-  if (!M) watch(() => [props.modelValue, props.custom, props.allowCustom, selected.value, props.selectedOption], () => {
-    const so = props.selectedOption
-    if (so && hasModel.value && so.value !== props.modelValue) warnOnce('selected-option', 'selectedOption.value no es modelValue: se ignora.')
-    if (hasModel.value && !selected.value) warnOnce(`unknown:${String(props.modelValue)}`, `modelValue (${String(props.modelValue)}) no corresponde a ninguna opción conocida ni a selectedOption: el campo queda vacío, pero el valor se envía.`)
-    if (props.custom) {
-      if (!props.allowCustom) warnOnce('custom-off', 'custom tiene valor sin allowCustom: se ignora.')
-      else if (hasModel.value) warnOnce('both', 'modelValue y custom tienen valor a la vez: gana modelValue.')
-    }
-  }, { immediate: true })
-  watch(() => [props.total, remote.value, flat.value.length], () => {
-    if (props.total === null || props.total === undefined) return
-    if (!remote.value) warnOnce('total-local', 'total solo cuenta con filter: false; con filtro local se ignora (lo cuenta el componente).')
-    else if (props.total < flat.value.length) warnOnce('total-less', `total (${props.total}) es menor que las opciones entregadas (${flat.value.length}).`)
-  }, { immediate: true })
-}
+} catch {}
 </script>
 
 <template>

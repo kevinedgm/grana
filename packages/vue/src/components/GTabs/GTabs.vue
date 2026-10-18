@@ -14,7 +14,6 @@ import GAppIcon from '../GIcon/GIcon.vue'
 import GBadge from '../GBadge/GBadge.vue'
 import GMenu from '../GMenu/GMenu.vue'
 
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const cls = (...v) => v.filter(Boolean)
 const hasIconValue = (v) => v !== undefined && v !== null
 // «Dato → nombre» (#202): un `icon` cadena sin slot `icon` dibuja GIcon con ese nombre (resolución de la aplicación)
@@ -54,14 +53,17 @@ export default defineComponent({
     // ---------- Avisos de desarrollo ----------
     const warned = new Set()
     const warnOnce = (key, msg) => {
-      if (!isDev || warned.has(key)) return
-      warned.add(key)
-      console.warn(`[Grana] <GTabs> ${msg}`)
+      try {
+        if (process.env.NODE_ENV !== 'production' && !warned.has(key)) {
+          warned.add(key)
+          console.warn(`[Grana] <GTabs> ${msg}`)
+        }
+      } catch {}
     }
     // Un GTabs dentro del panel de otro es un error de uso (un solo nivel)
     const nested = inject(TABS_NEST, false)
     provide(TABS_NEST, true)
-    if (isDev && nested) warnOnce('nested', 'no se anida dentro de otro GTabs ni de un panel: es un solo nivel (usa GSidebar, secciones o GStepper para la subnavegación).')
+    try { if (process.env.NODE_ENV !== 'production' && nested) warnOnce('nested', 'no se anida dentro de otro GTabs ni de un panel: es un solo nivel (usa GSidebar, secciones o GStepper para la subnavegación).') } catch {}
 
     // ---------- Datos ----------
     // Pestañas válidas: sin `id` se ignoran; los ids repetidos conservan la primera
@@ -169,33 +171,36 @@ export default defineComponent({
 
     // ---------- Avisos de validación ----------
     function validate() {
-      if (!isDev) return
-      if (!props.label && !props.labelledby) warnOnce('name', 'necesita `label` o `labelledby` para nombrar el tablist (los textos los pone la aplicación).')
-      const raws = Array.isArray(props.items) ? props.items : []
-      if (!raws.length) warnOnce('empty', 'no recibió `items`: no dibuja el tablist (usa el slot `empty`).')
-      const seen = new Set()
-      for (const raw of raws) {
-        if (!raw || typeof raw !== 'object' || raw.id === undefined || raw.id === null || raw.id === '') { warnOnce('id', 'ignora una pestaña sin `id` (el `id` es obligatorio y único).'); continue }
-        if (seen.has(raw.id)) { warnOnce(`dup-${raw.id}`, `ignora la pestaña repetida con id «${raw.id}» (los ids son únicos).`); continue }
-        seen.add(raw.id)
-        if (typeof raw.label !== 'string' || !raw.label) warnOnce(`label-${raw.id}`, `la pestaña «${raw.id}» necesita \`label\` (es su nombre accesible).`)
-        if (raw.count !== undefined && raw.count !== null && !raw.countLabel) warnOnce(`count-${raw.id}`, `la pestaña «${raw.id}» tiene \`count\` sin \`countLabel\` (texto accesible obligatorio).`)
-        if (raw.status && !raw.statusLabel) warnOnce(`status-${raw.id}`, `la pestaña «${raw.id}» tiene \`status\` sin \`statusLabel\` (texto accesible obligatorio).`)
-        if (raw.status && raw.status !== 'loading' && raw.status !== 'attention') warnOnce(`statusv-${raw.id}`, `la pestaña «${raw.id}» tiene un \`status\` desconocido («${raw.status}»): usa loading o attention.`)
-        const secondary = [raw.status, raw.badge, raw.count !== undefined && raw.count !== null ? raw.count : undefined].filter((v) => v !== undefined && v !== null && v !== '').length
-        if (secondary > 1) warnOnce(`secondary-${raw.id}`, `la pestaña «${raw.id}» combina más de una información secundaria (estado, insignia, contador): usa solo una.`)
-        if (raw.closable !== undefined || raw.closeLabel !== undefined) warnOnce('closable', '`closable` y `closeLabel` están reservados y no se publican en v0.1: se ignoran.')
-        if ((props.labelMode === 'icon' || props.labelMode === 'auto') && !tabHasIcon(raw)) warnOnce('labelmode-icon', '`labelMode` solo icono necesita `icon` en cada pestaña (un nombre de Lucide, o cualquier valor con el slot `icon`); la que no lo tenga conserva su etiqueta visible.')
-      }
-      if (raws.length && props.modelValue !== undefined && props.modelValue !== null) {
-        const hit = raws.find((r) => r && r.id === props.modelValue)
-        if (!hit) warnOnce('model-unknown', `\`modelValue\` («${String(props.modelValue)}») no coincide con ninguna pestaña: ninguna queda activa.`)
-        else if (hit.disabled) warnOnce('model-disabled', `\`modelValue\` («${String(props.modelValue)}») apunta a una pestaña deshabilitada: ninguna queda activa.`)
-      }
-      if (props.orientation === 'vertical' && (props.appearance === 'segmented' || props.appearance === 'contained')) warnOnce('vertical', `\`appearance="${props.appearance}"\` no admite \`orientation="vertical"\`: se dibuja horizontal.`)
-      if (props.appearance === 'segmented' && entries.value.length > 6) warnOnce('segmented-count', '`appearance="segmented"` está pensado para 2 a 6 opciones; con más, degrada a scroll.')
-      if (props.overflow === 'more' && !(props.labels && props.labels.more)) warnOnce('more', '`overflow="more"` necesita `labels.more` (nombre del botón «Más»); sin él cae a `scroll`.')
-      if (entries.value.some((e) => e.status === 'loading') && !(props.labels && props.labels.loading)) warnOnce('loading', 'hay una pestaña en `loading` sin `labels.loading`: no se anuncia el inicio de la carga.')
+      try {
+        if (process.env.NODE_ENV !== 'production') {
+          if (!props.label && !props.labelledby) warnOnce('name', 'necesita `label` o `labelledby` para nombrar el tablist (los textos los pone la aplicación).')
+          const raws = Array.isArray(props.items) ? props.items : []
+          if (!raws.length) warnOnce('empty', 'no recibió `items`: no dibuja el tablist (usa el slot `empty`).')
+          const seen = new Set()
+          for (const raw of raws) {
+            if (!raw || typeof raw !== 'object' || raw.id === undefined || raw.id === null || raw.id === '') { warnOnce('id', 'ignora una pestaña sin `id` (el `id` es obligatorio y único).'); continue }
+            if (seen.has(raw.id)) { warnOnce(`dup-${raw.id}`, `ignora la pestaña repetida con id «${raw.id}» (los ids son únicos).`); continue }
+            seen.add(raw.id)
+            if (typeof raw.label !== 'string' || !raw.label) warnOnce(`label-${raw.id}`, `la pestaña «${raw.id}» necesita \`label\` (es su nombre accesible).`)
+            if (raw.count !== undefined && raw.count !== null && !raw.countLabel) warnOnce(`count-${raw.id}`, `la pestaña «${raw.id}» tiene \`count\` sin \`countLabel\` (texto accesible obligatorio).`)
+            if (raw.status && !raw.statusLabel) warnOnce(`status-${raw.id}`, `la pestaña «${raw.id}» tiene \`status\` sin \`statusLabel\` (texto accesible obligatorio).`)
+            if (raw.status && raw.status !== 'loading' && raw.status !== 'attention') warnOnce(`statusv-${raw.id}`, `la pestaña «${raw.id}» tiene un \`status\` desconocido («${raw.status}»): usa loading o attention.`)
+            const secondary = [raw.status, raw.badge, raw.count !== undefined && raw.count !== null ? raw.count : undefined].filter((v) => v !== undefined && v !== null && v !== '').length
+            if (secondary > 1) warnOnce(`secondary-${raw.id}`, `la pestaña «${raw.id}» combina más de una información secundaria (estado, insignia, contador): usa solo una.`)
+            if (raw.closable !== undefined || raw.closeLabel !== undefined) warnOnce('closable', '`closable` y `closeLabel` están reservados y no se publican en v0.1: se ignoran.')
+            if ((props.labelMode === 'icon' || props.labelMode === 'auto') && !tabHasIcon(raw)) warnOnce('labelmode-icon', '`labelMode` solo icono necesita `icon` en cada pestaña (un nombre de Lucide, o cualquier valor con el slot `icon`); la que no lo tenga conserva su etiqueta visible.')
+          }
+          if (raws.length && props.modelValue !== undefined && props.modelValue !== null) {
+            const hit = raws.find((r) => r && r.id === props.modelValue)
+            if (!hit) warnOnce('model-unknown', `\`modelValue\` («${String(props.modelValue)}») no coincide con ninguna pestaña: ninguna queda activa.`)
+            else if (hit.disabled) warnOnce('model-disabled', `\`modelValue\` («${String(props.modelValue)}») apunta a una pestaña deshabilitada: ninguna queda activa.`)
+          }
+          if (props.orientation === 'vertical' && (props.appearance === 'segmented' || props.appearance === 'contained')) warnOnce('vertical', `\`appearance="${props.appearance}"\` no admite \`orientation="vertical"\`: se dibuja horizontal.`)
+          if (props.appearance === 'segmented' && entries.value.length > 6) warnOnce('segmented-count', '`appearance="segmented"` está pensado para 2 a 6 opciones; con más, degrada a scroll.')
+          if (props.overflow === 'more' && !(props.labels && props.labels.more)) warnOnce('more', '`overflow="more"` necesita `labels.more` (nombre del botón «Más»); sin él cae a `scroll`.')
+          if (entries.value.some((e) => e.status === 'loading') && !(props.labels && props.labels.loading)) warnOnce('loading', 'hay una pestaña en `loading` sin `labels.loading`: no se anuncia el inicio de la carga.')
+        }
+      } catch {}
     }
     watch(() => [props.items, props.modelValue, props.labelMode, props.appearance, props.orientation, props.overflow, props.labels, props.label, props.labelledby], validate, { immediate: true, deep: true })
 

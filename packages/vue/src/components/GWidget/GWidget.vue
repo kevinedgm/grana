@@ -9,7 +9,6 @@ import GIcon from '../GIcon/GLibIcon.js'
 import GMenu from '../GMenu/GMenu.vue'
 import { GRID_KEY, ITEM_KEY } from '../../utils/widgetContext.js'
 
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const COLORS = ['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info']
 const isEmptyNode = (v) => v.type === Comment || (v.type === Text && !String(v.children ?? '').trim()) || (v.type === Fragment && (!Array.isArray(v.children) || v.children.every(isEmptyNode)))
 const nodes = (slot, scope) => (slot ? slot(scope).filter((v) => !isEmptyNode(v)) : [])
@@ -49,9 +48,12 @@ export default defineComponent({
 
     const warned = new Set()
     const warnOnce = (key, msg) => {
-      if (!isDev || warned.has(key)) return
-      warned.add(key)
-      console.warn(`[Grana] <GWidget> ${msg}`)
+      try {
+        if (process.env.NODE_ENV !== 'production' && !warned.has(key)) {
+          warned.add(key)
+          console.warn(`[Grana] <GWidget> ${msg}`)
+        }
+      } catch {}
     }
 
     // ---------- Nivel y forma: el widget mide su propio tamaño ----------
@@ -167,14 +169,16 @@ export default defineComponent({
     }
 
     // ---------- Avisos de desarrollo ----------
-    if (isDev) {
-      if (!props.title && !slots.title && !attrs['aria-label'] && !attrs['aria-labelledby']) warnOnce('title', 'necesita title (nombre accesible).')
-      const l = props.labels || {}
-      if ((props.actions.length || grid) && !l.actions) warnOnce('actions', 'necesita labels.actions (nombre del botón de menú).')
-      if (props.state === 'loading' && !l.loading) warnOnce('loading', 'con state="loading" necesita labels.loading.')
-      if (props.state === 'error' && !l.retry && !slots.error) warnOnce('retry', 'con state="error" necesita labels.retry.')
-      if (props.state === 'stale' && !l.stale) warnOnce('stale', 'con state="stale" necesita labels.stale.')
-    }
+    try {
+      if (process.env.NODE_ENV !== 'production') {
+        if (!props.title && !slots.title && !attrs['aria-label'] && !attrs['aria-labelledby']) warnOnce('title', 'necesita title (nombre accesible).')
+        const l = props.labels || {}
+        if ((props.actions.length || grid) && !l.actions) warnOnce('actions', 'necesita labels.actions (nombre del botón de menú).')
+        if (props.state === 'loading' && !l.loading) warnOnce('loading', 'con state="loading" necesita labels.loading.')
+        if (props.state === 'error' && !l.retry && !slots.error) warnOnce('retry', 'con state="error" necesita labels.retry.')
+        if (props.state === 'stale' && !l.stale) warnOnce('stale', 'con state="stale" necesita labels.stale.')
+      }
+    } catch {}
 
     // ---------- Render ----------
     const cls = (...a) => a.filter(Boolean).join(' ')

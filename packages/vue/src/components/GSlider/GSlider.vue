@@ -64,12 +64,14 @@ const BUMP_PREFIX = 'g-slider-bump'
 const RESERVED = ['appearance', 'distribution', 'countText', 'count-text', 'pxPerStep', 'px-per-step', 'orientation', 'clearable', 'size']
 
 // ---------- Avisos (una vez por instancia) ----------
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const warned = new Set()
 function warnOnce(key, text) {
-  if (!isDev || warned.has(key)) return
-  warned.add(key)
-  console.warn(`[Grana GSlider] ${text}`)
+  try {
+    if (process.env.NODE_ENV !== 'production' && !warned.has(key)) {
+      warned.add(key)
+      console.warn(`[Grana GSlider] ${text}`)
+    }
+  } catch {}
 }
 
 // ---------- Elementos ----------
@@ -105,20 +107,20 @@ const minV = computed(() => (Number.isFinite(props.min) ? props.min : 0))
 const maxV = computed(() => (Number.isFinite(props.max) ? props.max : 100))
 const stepV = computed(() => {
   if (Number.isFinite(props.step) && props.step > 0) return props.step
-  warnOnce('step', `step ${String(props.step)} no es un número positivo: se usa 1.`)
+  try { if (process.env.NODE_ENV !== 'production') warnOnce('step', `step ${String(props.step)} no es un número positivo: se usa 1.`) } catch {}
   return 1
 })
 const travel = computed(() => maxV.value > minV.value)
-watch(travel, (t) => { if (!t) warnOnce('travel', `min (${minV.value}) ≥ max (${maxV.value}): el control queda sin recorrido.`) }, { immediate: true })
+watch(travel, (t) => { try { if (process.env.NODE_ENV !== 'production' && !t) warnOnce('travel', `min (${minV.value}) ≥ max (${maxV.value}): el control queda sin recorrido.`) } catch {} }, { immediate: true })
 const markInfo = computed(() => normalizeMarks(props.marks, { min: minV.value, max: maxV.value, step: stepV.value }))
 watch(markInfo, (m) => {
-  if (m.outside.length) warnOnce('marks-out', `marks con valores fuera de [min, max] (${m.outside.join(', ')}): se ignoran.`)
-  if (m.duplicates.length) warnOnce('marks-dup', `marks con valores repetidos (${m.duplicates.join(', ')}): se usa el primero.`)
+  try { if (process.env.NODE_ENV !== 'production' && m.outside.length) warnOnce('marks-out', `marks con valores fuera de [min, max] (${m.outside.join(', ')}): se ignoran.`) } catch {}
+  try { if (process.env.NODE_ENV !== 'production' && m.duplicates.length) warnOnce('marks-dup', `marks con valores repetidos (${m.duplicates.join(', ')}): se usa el primero.`) } catch {}
 }, { immediate: true })
 const snapMode = computed(() => {
   if (props.snap !== 'marks') return 'step'
   if (Array.isArray(props.marks) && markInfo.value.list.length) return 'marks'
-  warnOnce('snap', 'snap="marks" sin un arreglo de marcas: se usa "step".')
+  try { if (process.env.NODE_ENV !== 'production') warnOnce('snap', 'snap="marks" sin un arreglo de marcas: se usa "step".') } catch {}
   return 'step'
 })
 const base = computed(() => ({ min: minV.value, max: maxV.value, step: stepV.value, marks: markInfo.value.list, snap: snapMode.value }))
@@ -126,14 +128,14 @@ const bigStepV = computed(() => {
   const b = props.bigStep
   if (b === undefined || b === null) return undefined
   if (isMultiple(b, stepV.value)) return b
-  warnOnce('bigStep', `bigStep ${String(b)} no es un múltiplo positivo de step (${stepV.value}): se usa una décima del recorrido.`)
+  try { if (process.env.NODE_ENV !== 'production') warnOnce('bigStep', `bigStep ${String(b)} no es un múltiplo positivo de step (${stepV.value}): se usa una décima del recorrido.`) } catch {}
   return undefined
 })
 const gapV = computed(() => {
   const g = props.minGap
   if (!props.range || !g) return 0
   if (!Number.isFinite(g) || g < 0 || g > top(base.value) - bottom(base.value)) {
-    warnOnce('minGap', `minGap ${String(g)} es negativo o mayor que el recorrido: se usa 0.`)
+    try { if (process.env.NODE_ENV !== 'production') warnOnce('minGap', `minGap ${String(g)} es negativo o mayor que el recorrido: se usa 0.`) } catch {}
     return 0
   }
   return g
@@ -143,7 +145,7 @@ const gapV = computed(() => {
 const mounted = ref(false)
 const domLang = ref(null)
 watch(() => props.locale, (l) => {
-  if (l && !isValidLocale(l)) warnOnce('locale', `locale «${l}» no lo acepta Intl: se usa el idioma del documento.`)
+  try { if (process.env.NODE_ENV !== 'production' && l && !isValidLocale(l)) warnOnce('locale', `locale «${l}» no lo acepta Intl: se usa el idioma del documento.`) } catch {}
 }, { immediate: true })
 // null = el canónico (SSR y primer render sin locale); undefined = el idioma por defecto de Intl
 const locale = computed(() => {
@@ -157,10 +159,10 @@ const formatV = computed(() => {
   const f = props.format
   if (!f) return undefined
   if (!isValidFormat(locale.value || undefined, f)) {
-    warnOnce('format', 'format lo rechaza Intl.NumberFormat: se usa {}.')
+    try { if (process.env.NODE_ENV !== 'production') warnOnce('format', 'format lo rechaza Intl.NumberFormat: se usa {}.') } catch {}
     return undefined
   }
-  if (f.style === 'percent' && maxV.value > 1) warnOnce('percent', `format.style "percent" con max > 1: el modelo 40 se leería 4000 %; usa { style: 'unit', unit: 'percent' }.`)
+  try { if (process.env.NODE_ENV !== 'production' && f.style === 'percent' && maxV.value > 1) warnOnce('percent', `format.style "percent" con max > 1: el modelo 40 se leería 4000 %; usa { style: 'unit', unit: 'percent' }.`) } catch {}
   return f
 })
 const opts = computed(() => ({ ...base.value, bigStep: bigStepV.value, minGap: gapV.value, locale: locale.value, format: formatV.value, emptyText: props.labels?.empty || '' }))
@@ -170,7 +172,7 @@ function ownText(v) {
   if (typeof props.valueText !== 'function' || v === null) return null
   const t = props.valueText(v)
   if (typeof t === 'string' && t) return t
-  warnOnce('valueText', 'valueText no devolvió una cadena no vacía: se usa el texto por defecto.')
+  try { if (process.env.NODE_ENV !== 'production') warnOnce('valueText', 'valueText no devolvió una cadena no vacía: se usa el texto por defecto.') } catch {}
   return null
 }
 const pillTextOf = (v) => (v === null ? '' : ownText(v) ?? formatValue(v, opts.value))
@@ -184,18 +186,18 @@ function readModel(mv) {
   if (props.range) {
     if (mv === null || mv === undefined) return [b, t]
     if (!Array.isArray(mv) || mv.length !== 2 || !mv.every(finite)) {
-      warnOnce('model-range', 'modelValue con range debe ser [inicio, fin] con dos números finitos: se dibuja el recorrido entero.')
+      try { if (process.env.NODE_ENV !== 'production') warnOnce('model-range', 'modelValue con range debe ser [inicio, fin] con dos números finitos: se dibuja el recorrido entero.') } catch {}
       return [b, t]
     }
     if (mv[0] > mv[1]) {
-      warnOnce('model-order', `modelValue [${mv[0]}, ${mv[1]}] está desordenado: se dibuja ordenado.`)
+      try { if (process.env.NODE_ENV !== 'production') warnOnce('model-order', `modelValue [${mv[0]}, ${mv[1]}] está desordenado: se dibuja ordenado.`) } catch {}
       return [mv[1], mv[0]]
     }
     return [mv[0], mv[1]]
   }
   if (mv === null || mv === undefined) return [null]
   if (!finite(mv)) {
-    warnOnce('model', `modelValue ${Array.isArray(mv) ? 'arreglo sin range' : String(mv)} no es un número finito: se lee como sin elegir (null).`)
+    try { if (process.env.NODE_ENV !== 'production') warnOnce('model', `modelValue ${Array.isArray(mv) ? 'arreglo sin range' : String(mv)} no es un número finito: se lee como sin elegir (null).`) } catch {}
     return [null]
   }
   return [mv]
@@ -207,8 +209,8 @@ watch(() => [props.modelValue, props.range, base.value], () => {
   if (!same(next, vals.value)) vals.value = next
 }, { deep: true })
 watch(vals, (vs) => {
-  if (travel.value && vs.some((v) => v !== null && (v < minV.value || v > maxV.value))) warnOnce('outside', `modelValue fuera de [${minV.value}, ${maxV.value}]: se dibuja en el extremo; el modelo no se toca.`)
-  if (!props.range && vs[0] === null && !props.labels?.empty) warnOnce('empty', 'valor sin elegir (null) sin labels.empty: «sin elegir» no tiene texto a la vista ni para los lectores.')
+  try { if (process.env.NODE_ENV !== 'production' && travel.value && vs.some((v) => v !== null && (v < minV.value || v > maxV.value))) warnOnce('outside', `modelValue fuera de [${minV.value}, ${maxV.value}]: se dibuja en el extremo; el modelo no se toca.`) } catch {}
+  try { if (process.env.NODE_ENV !== 'production' && !props.range && vs[0] === null && !props.labels?.empty) warnOnce('empty', 'valor sin elegir (null) sin labels.empty: «sin elegir» no tiene texto a la vista ni para los lectores.') } catch {}
 }, { immediate: true })
 const empty = computed(() => !props.range && vals.value[0] === null)
 const lim = (i) => (travel.value ? limits(vals.value, i, opts.value) : [minV.value, minV.value])
@@ -300,13 +302,13 @@ const rootAttrs = computed(() => {
   return out
 })
 watch(() => RESERVED.filter((k) => attrs[k] !== undefined), (list) => {
-  if (list.length) warnOnce('reserved', `${list.join(', ')}: nombres reservados (#457), no se aplican.`)
+  try { if (process.env.NODE_ENV !== 'production' && list.length) warnOnce('reserved', `${list.join(', ')}: nombres reservados (#457), no se aplican.`) } catch {}
 }, { immediate: true })
 
 // Avisos 1 a 3 (sin nombre accesible, rango sin nombres de asa, sin elegir sin labels.empty)
 onMounted(() => {
-  if (!hasLabel.value && !attrs['aria-label'] && !attrs['aria-labelledby']) warnOnce('name', 'sin nombre accesible: falta label, el slot label, aria-label o aria-labelledby.')
-  if (props.range && (!props.labels?.start || !props.labels?.end)) warnOnce('labels-range', 'range sin labels.start o labels.end: las dos asas se llamarían igual.')
+  try { if (process.env.NODE_ENV !== 'production' && !hasLabel.value && !attrs['aria-label'] && !attrs['aria-labelledby']) warnOnce('name', 'sin nombre accesible: falta label, el slot label, aria-label o aria-labelledby.') } catch {}
+  try { if (process.env.NODE_ENV !== 'production' && props.range && (!props.labels?.start || !props.labels?.end)) warnOnce('labels-range', 'range sin labels.start o labels.end: las dos asas se llamarían igual.') } catch {}
 })
 
 // ---------- Medidas: ancho del área, --_pill-w y la fusión (B1, B2) ----------

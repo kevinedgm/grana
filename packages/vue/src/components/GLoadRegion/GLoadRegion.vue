@@ -21,7 +21,6 @@ import { acquirePageLive, announcePage } from '../../utils/liveRegion.js'
 import GBtn from '../GBtn/GBtn.vue'
 import GIcon from '../GIcon/GLibIcon.js'
 
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const raf = (f) => (typeof requestAnimationFrame === 'function' ? requestAnimationFrame(f) : setTimeout(f, 16))
 const caf = (id) => (typeof cancelAnimationFrame === 'function' ? cancelAnimationFrame(id) : clearTimeout(id))
 const known = (v) => (Array.isArray(v) ? v.length > 0 : v != null)
@@ -56,9 +55,12 @@ export default defineComponent({
     const body = ref(null)
     const warned = new Set()
     const warn = (id, msg) => {
-      if (!isDev || warned.has(id)) return
-      warned.add(id)
-      console.warn(`[Grana] <GLoadRegion> ${msg}`)
+      try {
+        if (process.env.NODE_ENV !== 'production' && !warned.has(id)) {
+          warned.add(id)
+          console.warn(`[Grana] <GLoadRegion> ${msg}`)
+        }
+      } catch {}
     }
     const L = () => props.labels || {}
 
@@ -260,18 +262,18 @@ export default defineComponent({
       const seen = new Set()
       for (const it of list) {
         const k = keyOf(it)
-        if (k === undefined || k === null) { warn('key-undefined', `keyBy devuelve undefined en ${what}: cada elemento necesita una clave (data-g-key, foco y lo nuevo).`); return }
-        if (seen.has(k)) { warn('key-dup', `keyBy devuelve claves repetidas en ${what}.`); return }
+        if (k === undefined || k === null) { try { if (process.env.NODE_ENV !== 'production') warn('key-undefined', `keyBy devuelve undefined en ${what}: cada elemento necesita una clave (data-g-key, foco y lo nuevo).`) } catch {} return }
+        if (seen.has(k)) { try { if (process.env.NODE_ENV !== 'production') warn('key-dup', `keyBy devuelve claves repetidas en ${what}.`) } catch {} return }
         seen.add(k)
       }
     }
     const checkLabels = () => {
       const l = L()
       if ((l.loading && (!l.loaded || !l.slow)) || (!l.loading && (l.loaded || l.slow))) {
-        warn('labels-trio', 'labels.loading, labels.loaded y labels.slow van juntos (al verse, al terminar y a los 5 s).')
+        try { if (process.env.NODE_ENV !== 'production') warn('labels-trio', 'labels.loading, labels.loaded y labels.slow van juntos (al verse, al terminar y a los 5 s).') } catch {}
       }
     }
-    if (!props.label && !props.labelledby) warn('name', 'sin label ni labelledby: la raíz no lleva role="group" y, si recibe el foco, no tiene nombre.')
+    try { if (process.env.NODE_ENV !== 'production' && !props.label && !props.labelledby) warn('name', 'sin label ni labelledby: la raíz no lleva role="group" y, si recibe el foco, no tiene nombre.') } catch {}
     checkLabels()
     watch(() => props.items, (v) => checkKeys(v, 'items'), { immediate: true })
     watch(() => props.sample, (v) => checkKeys(v, 'sample'), { immediate: true })
@@ -288,10 +290,10 @@ export default defineComponent({
       startedFirst.value = painted.value === null
       stopReveal()
       captureFocus()
-      if (!L().loading && !silent()) warn('no-loading', 'una carga sin labels.loading: se carga en silencio (solo vale en regiones secundarias).')
-      if (startedFirst.value && !props.sample) warn('no-sample', 'primera carga sin sample: el molde no tiene forma que pintar.')
+      try { if (process.env.NODE_ENV !== 'production' && !L().loading && !silent()) warn('no-loading', 'una carga sin labels.loading: se carga en silencio (solo vale en regiones secundarias).') } catch {}
+      try { if (process.env.NODE_ENV !== 'production' && startedFirst.value && !props.sample) warn('no-sample', 'primera carga sin sample: el molde no tiene forma que pintar.') } catch {}
       // Una primera carga con [] se toma por «respondió vacío» y no pinta molde
-      if (!arrivedOnce && Array.isArray(props.items) && props.items.length === 0) warn('first-empty', 'primera carga con items = []: pasa null hasta la primera respuesta ([] es «respondió vacío»).')
+      try { if (process.env.NODE_ENV !== 'production' && !arrivedOnce && Array.isArray(props.items) && props.items.length === 0) warn('first-empty', 'primera carga con items = []: pasa null hasta la primera respuesta ([] es «respondió vacío»).') } catch {}
       const s = speaker()
       if (s) s.groupEvent('start', ctx)
     }
@@ -310,8 +312,8 @@ export default defineComponent({
       startedFirst.value = false
       arrivedOnce = true
       if (failed.value) {
-        if (!L().failed && !(typeof props.error === 'string' && props.error)) warn('failed', 'barra de fallo sin labels.failed (ni error como texto).')
-        if (!L().retry && !slots.failed) warn('retry', 'barra de fallo sin labels.retry.')
+        try { if (process.env.NODE_ENV !== 'production' && !L().failed && !(typeof props.error === 'string' && props.error)) warn('failed', 'barra de fallo sin labels.failed (ni error como texto).') } catch {}
+        try { if (process.env.NODE_ENV !== 'production' && !L().retry && !slots.failed) warn('retry', 'barra de fallo sin labels.retry.') } catch {}
       }
       if (wasMold) startReveal()
       nextTick(() => {
@@ -329,7 +331,7 @@ export default defineComponent({
     // (la llegada ya lo aplicó si este cambio llegó con el fin de la carga: lo nuevo no se pierde)
     watch(() => props.items, (v) => { if (!ph.busy && v !== painted.value) { painted.value = v; freshKeys.value = new Set() } })
     watch(() => props.error, (v) => { if (!ph.busy) appliedError.value = v })
-    watch(stale, (on) => { if (on && !L().refreshing) warn('refreshing', 'refresco keep a la vista sin labels.refreshing (texto de la píldora).') })
+    watch(stale, (on) => { try { if (process.env.NODE_ENV !== 'production' && on && !L().refreshing) warn('refreshing', 'refresco keep a la vista sin labels.refreshing (texto de la píldora).') } catch {} })
 
     onMounted(() => {
       releaseLive = acquirePageLive()

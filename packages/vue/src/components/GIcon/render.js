@@ -2,14 +2,16 @@
 // Lo usan GIcon (público) y el icono interno de los componentes (GLibIcon): mismo marcado, distinta resolución.
 import { h } from 'vue'
 
-export const isDev = () => typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 
 // Avisos de desarrollo: una vez por causa y nombre
 const warned = new Set()
 export function warnOnce(key, msg) {
-  if (!isDev() || warned.has(key)) return
-  warned.add(key)
-  console.warn(`[Grana GIcon] ${msg}`)
+  try {
+    if (process.env.NODE_ENV !== 'production' && !warned.has(key)) {
+      warned.add(key)
+      console.warn(`[Grana GIcon] ${msg}`)
+    }
+  } catch {}
 }
 
 /**

@@ -11,7 +11,7 @@
 // - sticky (#484): --_head-size del encabezado pegado (observador de tamaño compartido, escrituras en un cuadro).
 import { computed, getCurrentInstance, inject, nextTick, onBeforeUnmount, onMounted, onUpdated, provide, ref, useId, useSlots, watch } from 'vue'
 import GIcon from '../GIcon/GLibIcon.js'
-import { formKey, isDev } from '../GForm/formContext.js'
+import { formKey } from '../GForm/formContext.js'
 import { keepInPlace, useCollapse } from '../../utils/collapse.js'
 import { transitionMs } from '../../utils/motion.js'
 import { observeSize } from '../../utils/sizeObserver.js'
@@ -43,9 +43,12 @@ const form = inject(formKey, null)
 // ---------- Avisos de desarrollo ([Grana GAccordionItem], una vez por instancia) ----------
 const warned = new Set()
 const warn = (key, msg) => {
-  if (!isDev || warned.has(key)) return
-  warned.add(key)
-  console.warn(`[Grana GAccordionItem] ${msg}`)
+  try {
+    if (process.env.NODE_ENV !== 'production' && !warned.has(key)) {
+      warned.add(key)
+      console.warn(`[Grana GAccordionItem] ${msg}`)
+    }
+  } catch {}
 }
 
 // ---------- Identidad ----------
@@ -220,25 +223,31 @@ watch(() => isOpen.value && sticky.value, syncHead, { flush: 'post' })
 // ---------- Avisos ----------
 const vnodeProps = getCurrentInstance()?.vnode.props || {}
 const passed = (k) => Object.prototype.hasOwnProperty.call(vnodeProps, k)
-if (!props.title && !slots.title && !props.meta && !slots.meta) warn('no-name', 'necesita title, meta o sus slots: el botón no tiene nombre.')
-if (group && (passed('open') || passed('onUpdate:open'))) warn('open-in-group', 'open (y v-model:open) solo vale suelto: dentro de un GAccordion el estado es el v-model del grupo; se ignora.')
+try { if (process.env.NODE_ENV !== 'production' && !props.title && !slots.title && !props.meta && !slots.meta) warn('no-name', 'necesita title, meta o sus slots: el botón no tiene nombre.') } catch {}
+try { if (process.env.NODE_ENV !== 'production' && group && (passed('open') || passed('onUpdate:open'))) warn('open-in-group', 'open (y v-model:open) solo vale suelto: dentro de un GAccordion el estado es el v-model del grupo; se ignora.') } catch {}
 if (group && group.hasModel() && (props.value === undefined || props.value === null) && !props.id) {
-  warn('no-value', 'en un grupo con v-model, sin value ni id: el modelo usará un id generado que la aplicación no conoce.')
+  try { if (process.env.NODE_ENV !== 'production') warn('no-value', 'en un grupo con v-model, sin value ni id: el modelo usará un id generado que la aplicación no conoce.') } catch {}
 }
 function checkDom() {
-  if (!isDev) return
-  if ([titleEl.value, metaEl.value].some((el) => el && el.querySelector(INTERACTIVE))) {
-    warn('interactive-name', 'hay algo interactivo en title o meta: los hijos de un botón no se pueden usar (van en el slot actions o en el contenido).')
-  }
-  if (peekEl.value && peekEl.value.querySelector(INTERACTIVE)) {
-    warn('interactive-peek', 'hay algo interactivo en el avance (peek): es la descripción del botón y abre al clic; no se puede usar.')
-  }
+  try {
+    if (process.env.NODE_ENV !== 'production') {
+      if ([titleEl.value, metaEl.value].some((el) => el && el.querySelector(INTERACTIVE))) {
+        warn('interactive-name', 'hay algo interactivo en title o meta: los hijos de un botón no se pueden usar (van en el slot actions o en el contenido).')
+      }
+      if (peekEl.value && peekEl.value.querySelector(INTERACTIVE)) {
+        warn('interactive-peek', 'hay algo interactivo en el avance (peek): es la descripción del botón y abre al clic; no se puede usar.')
+      }
+    }
+  } catch {}
 }
 function checkForm() {
-  if (!isDev || !form || !content.value) return
-  if (content.value.querySelector(FORM_CONTROLS)) {
-    warn('in-form', 'para plegar campos de un formulario, usa `GFormSection mode="collapsible"`; aquí no cuentan en el estado de errores por sección.')
-  }
+  try {
+    if (process.env.NODE_ENV !== 'production' && !(!form || !content.value)) {
+      if (content.value.querySelector(FORM_CONTROLS)) {
+        warn('in-form', 'para plegar campos de un formulario, usa `GFormSection mode="collapsible"`; aquí no cuentan en el estado de errores por sección.')
+      }
+    }
+  } catch {}
 }
 // Al montarse por primera vez un contenido lazy
 watch(everOpened, (v) => { if (v && props.lazy) nextTick(checkForm) })
@@ -246,14 +255,16 @@ onUpdated(checkDom)
 
 let offHash = null
 onMounted(() => {
-  if (isDev) {
-    checkDom()
-    checkForm()
-    const id = baseId.value
-    if (typeof document !== 'undefined' && document.querySelectorAll(`[id="${id.replace(/["\\]/g, '\\$&')}"]`).length > 1) {
-      warn('dup-id', `su id «${id}» está repetido en el documento: el ancla y aria-controls irían a otro elemento.`)
+  try {
+    if (process.env.NODE_ENV !== 'production') {
+      checkDom()
+      checkForm()
+      const id = baseId.value
+      if (typeof document !== 'undefined' && document.querySelectorAll(`[id="${id.replace(/["\\]/g, '\\$&')}"]`).length > 1) {
+        warn('dup-id', `su id «${id}» está repetido en el documento: el ancla y aria-controls irían a otro elemento.`)
+      }
     }
-  }
+  } catch {}
   offHash = subscribeHash(onHash)
   onHash(true)
   syncHead()

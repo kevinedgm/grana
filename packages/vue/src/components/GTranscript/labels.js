@@ -23,7 +23,7 @@ export function createLabeler(sources, warn) {
       try { return fill(String(v(vars && vars.count) ?? ''), vars) } catch { return '' }
     }
     if (typeof v === 'string') return fill(v, vars)
-    if (!optional) warn(`falta labels.${path}: el texto queda vacío.`)
+    try { if (process.env.NODE_ENV !== 'production' && !optional) warn(`falta labels.${path}: el texto queda vacío.`) } catch {}
     return ''
   }
   return { raw, t }

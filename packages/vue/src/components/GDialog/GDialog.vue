@@ -84,12 +84,14 @@ function finishLeave() {
 
 // ---------- Niveles anidados (dialog.md §«Niveles anidados»; #580 a #591) ----------
 // Avisos solo en desarrollo, una vez por clave. `process` puede no existir (UMD en navegador).
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const warned = new Set()
 function warnOnce(key, msg) {
-  if (!isDev || warned.has(key)) return
-  warned.add(key)
-  console.warn(`[Grana GDialog] ${msg}`)
+  try {
+    if (process.env.NODE_ENV !== 'production' && !warned.has(key)) {
+      warned.add(key)
+      console.warn(`[Grana GDialog] ${msg}`)
+    }
+  } catch {}
 }
 // B · pasos (GDialogStep): historial, push/back/backTo, hilo, alto entre pasos, hoja (steps.js)
 const {
@@ -470,38 +472,40 @@ const bodyAttrs = computed(() => {
   return { tabindex: 0, ...(named ? { role: 'region', 'aria-labelledby': titleId.value } : {}) }
 })
 
-// Avisos solo en desarrollo (isDev arriba). Modo pasos: lo declarado antes de montar el contenido se mira llamando al slot
+// Avisos solo en desarrollo (guarda canónica de #636). Modo pasos: lo declarado antes de montar el contenido se mira llamando al slot
 // (solo si hay algo que avisar); lo que aparece después, con el registro.
-if (isDev) {
-  const STEP_WARN_1 = 'en modo pasos no se usan `title`, `description` ni los slots `title`, `description`, `header` y `footer` de GDialog: el encabezado y el pie son los del paso actual.'
-  const STEP_WARN_5 = 'el slot `tabs` no se combina con pasos en esta entrega (el hilo ocupa su sitio).'
-  const usesOwnHeader = () => Boolean(props.title || props.description || slots.title || slots.description || slots.header || slots.footer)
-  let declared = null
-  // Slot crudo del vnode: el normalizado de un slot escrito con h() avisa «invoked outside of the render function» en setup
-  const instance = getCurrentInstance()
-  const rawDefault = () => {
-    const c = instance && instance.vnode.children
-    if (Array.isArray(c)) return () => c
-    return c && typeof c === 'object' ? c.default : undefined
+try {
+  if (process.env.NODE_ENV !== 'production') {
+    const STEP_WARN_1 = 'en modo pasos no se usan `title`, `description` ni los slots `title`, `description`, `header` y `footer` de GDialog: el encabezado y el pie son los del paso actual.'
+    const STEP_WARN_5 = 'el slot `tabs` no se combina con pasos en esta entrega (el hilo ocupa su sitio).'
+    const usesOwnHeader = () => Boolean(props.title || props.description || slots.title || slots.description || slots.header || slots.footer)
+    let declared = null
+    // Slot crudo del vnode: el normalizado de un slot escrito con h() avisa «invoked outside of the render function» en setup
+    const instance = getCurrentInstance()
+    const rawDefault = () => {
+      const c = instance && instance.vnode.children
+      if (Array.isArray(c)) return () => c
+      return c && typeof c === 'object' ? c.default : undefined
+    }
+    const hasSteps = () => {
+      if (declared === null) declared = declaresSteps(rawDefault(), { close: () => {}, push: () => {}, back: () => {}, backTo: () => {}, steps: [] })
+      return declared
+    }
+    const check = (steps) => {
+      if (!steps) return
+      if (usesOwnHeader()) warnOnce('steps-own-header', STEP_WARN_1)
+      if (slots.tabs) warnOnce('steps-tabs', STEP_WARN_5)
+    }
+    if (usesOwnHeader() || slots.tabs) check(hasSteps())
+    watch(stepsOn, (on) => { declared = on; check(on) })
+    if (!hasTitle.value && !hasHeaderSlot.value && !attrs['aria-label'] && !attrs['aria-labelledby'] && !hasSteps()) {
+      console.warn('[Grana] <GDialog> necesita title, slot title o header, aria-label o aria-labelledby para tener un nombre accesible.')
+    }
+    if (!props.closeLabel && !isAlert.value) {
+      console.warn('[Grana] <GDialog> necesita `closeLabel` para mostrar el botón de cierre (sin valor por defecto: los textos los pone la aplicación).')
+    }
   }
-  const hasSteps = () => {
-    if (declared === null) declared = declaresSteps(rawDefault(), { close: () => {}, push: () => {}, back: () => {}, backTo: () => {}, steps: [] })
-    return declared
-  }
-  const check = (steps) => {
-    if (!steps) return
-    if (usesOwnHeader()) warnOnce('steps-own-header', STEP_WARN_1)
-    if (slots.tabs) warnOnce('steps-tabs', STEP_WARN_5)
-  }
-  if (usesOwnHeader() || slots.tabs) check(hasSteps())
-  watch(stepsOn, (on) => { declared = on; check(on) })
-  if (!hasTitle.value && !hasHeaderSlot.value && !attrs['aria-label'] && !attrs['aria-labelledby'] && !hasSteps()) {
-    console.warn('[Grana] <GDialog> necesita title, slot title o header, aria-label o aria-labelledby para tener un nombre accesible.')
-  }
-  if (!props.closeLabel && !isAlert.value) {
-    console.warn('[Grana] <GDialog> necesita `closeLabel` para mostrar el botón de cierre (sin valor por defecto: los textos los pone la aplicación).')
-  }
-}
+} catch {}
 defineExpose({ push, back, backTo })
 </script>
 

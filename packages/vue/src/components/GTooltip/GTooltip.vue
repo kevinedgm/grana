@@ -8,7 +8,6 @@ import { Comment, Fragment, Text, cloneVNode, computed, defineComponent, h, onBe
 import { oneOf } from '../../utils/oneOf.js'
 import { attach, firstElement, resolveBox, resolveKind, resolveTarget } from '../../utils/tooltip.js'
 
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const PLACEMENTS = ['top-start', 'top', 'top-end', 'right-start', 'right', 'right-end', 'bottom-end', 'bottom', 'bottom-start', 'left-end', 'left', 'left-start']
 // #394: su caja visible es la parte y la parte fija su propio aria-labelledby; no se admiten como hijo
 const NOT_ADMITTED = ['GInputGroupInput', 'GInputGroupSelect']
@@ -56,14 +55,19 @@ export default defineComponent({
 
     const warned = new Set()
     const warn = (key, msg) => {
-      if (!isDev || warned.has(key)) return
-      warned.add(key)
-      console.warn(`[Grana GTooltip] ${msg}`)
+      try {
+        if (process.env.NODE_ENV !== 'production' && !warned.has(key)) {
+          warned.add(key)
+          console.warn(`[Grana GTooltip] ${msg}`)
+        }
+      } catch {}
     }
-    if (isDev) {
-      watch(hasText, (v) => { if (!v) warn('text', '`text` vacío o ausente: el tooltip no se activa.') }, { immediate: true })
-      watch(() => [props.shortcut, props.keyshortcuts], ([s, k]) => { if (s && !k) warn('keys', '`shortcut` sin `keyshortcuts`: el atajo no llega a la tecnología de apoyo (aria-keyshortcuts).') }, { immediate: true })
-    }
+    try {
+      if (process.env.NODE_ENV !== 'production') {
+        watch(hasText, (v) => { if (!v) warn('text', '`text` vacío o ausente: el tooltip no se activa.') }, { immediate: true })
+        watch(() => [props.shortcut, props.keyshortcuts], ([s, k]) => { if (s && !k) warn('keys', '`shortcut` sin `keyshortcuts`: el atajo no llega a la tecnología de apoyo (aria-keyshortcuts).') }, { immediate: true })
+      }
+    } catch {}
 
     const own = () => [baseId.value, nameId.value, detailId.value]
     const measure = () => { if (el && props.kind === 'auto') measured.value = resolveKind(el, props.text, own()) }
@@ -87,15 +91,15 @@ export default defineComponent({
       if (target && target === el && anchor === box && inst) return
       detach()
       if (!target || target === node.value) {
-        if (start) { warn('focusable', 'el hijo no tiene un elemento enfocable: el tooltip va en el control (no se activa).'); usable.value = false }
+        if (start) { try { if (process.env.NODE_ENV !== 'production') warn('focusable', 'el hijo no tiene un elemento enfocable: el tooltip va en el control (no se activa).') } catch {} usable.value = false }
         return
       }
       usable.value = true
       if (!node.value) return // se renderiza en el ciclo siguiente (onUpdated)
       el = target
       box = anchor
-      if (target.disabled === true) warn('disabled', 'el control tiene `disabled` nativo y no recibe foco: el tooltip no se mostrará. Usa aria-disabled si el motivo importa.')
-      if (target.hasAttribute('title')) warn('title', 'el control trae `title`: dos pistas para lo mismo (quita `title`).')
+      try { if (process.env.NODE_ENV !== 'production' && target.disabled === true) warn('disabled', 'el control tiene `disabled` nativo y no recibe foco: el tooltip no se mostrará. Usa aria-disabled si el motivo importa.') } catch {}
+      try { if (process.env.NODE_ENV !== 'production' && target.hasAttribute('title')) warn('title', 'el control trae `title`: dos pistas para lo mismo (quita `title`).') } catch {}
       measure()
       inst = attach(target, node.value, {
         box: anchor,
@@ -134,16 +138,16 @@ export default defineComponent({
       const kids = flatten(slots.default ? slots.default() : [])
       child = null
       if (kids.length !== 1) {
-        warn('one', 'necesita exactamente un hijo: el control.')
+        try { if (process.env.NODE_ENV !== 'production') warn('one', 'necesita exactamente un hijo: el control.') } catch {}
         return kids
       }
       const vnode = kids[0]
       if (vnode.type === Text) {
-        warn('focusable', 'el hijo no tiene un elemento enfocable: el tooltip va en el control (no se activa).')
+        try { if (process.env.NODE_ENV !== 'production') warn('focusable', 'el hijo no tiene un elemento enfocable: el tooltip va en el control (no se activa).') } catch {}
         return vnode
       }
       if (vnode.type && NOT_ADMITTED.includes(vnode.type.name || vnode.type.__name)) {
-        warn('part', `${vnode.type.name || vnode.type.__name} no se admite como hijo: no se activa. Usa el \`hint\` del grupo.`)
+        try { if (process.env.NODE_ENV !== 'production') warn('part', `${vnode.type.name || vnode.type.__name} no se admite como hijo: no se activa. Usa el \`hint\` del grupo.`) } catch {}
         return vnode
       }
       if (!hasText.value || !usable.value) {

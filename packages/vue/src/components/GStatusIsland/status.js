@@ -23,7 +23,6 @@ const OPTION_KEYS = ['position', 'offset', 'hotkey', 'autoOpen', 'labels']
 export const statusKey = Symbol('GStatus')
 export const INTERNAL = Symbol('GStatus.internal')
 
-const isDev = () => typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const PREFIX = '[Grana Status]'
 const isClient = () => typeof window !== 'undefined' && typeof document !== 'undefined'
 const now = () => Date.now()
@@ -45,10 +44,12 @@ export const countText = (label, count) => (typeof label === 'function' ? String
 export function createStatus(options = {}) {
   const warned = new Set()
   const warn = (msg) => {
-    if (isDev() && !warned.has(msg)) {
-      warned.add(msg)
-      console.warn(`${PREFIX} ${msg}`)
-    }
+    try {
+      if (process.env.NODE_ENV !== 'production' && !warned.has(msg)) {
+        warned.add(msg)
+        console.warn(`${PREFIX} ${msg}`)
+      }
+    } catch {}
   }
 
   const state = reactive({
@@ -75,29 +76,29 @@ export function createStatus(options = {}) {
     const o = state.opts
     for (const key of Object.keys(patch)) {
       const v = patch[key]
-      if (!OPTION_KEYS.includes(key)) { warn(`opción desconocida «${key}»: se ignora.`); continue }
+      if (!OPTION_KEYS.includes(key)) { try { if (process.env.NODE_ENV !== 'production') warn(`opción desconocida «${key}»: se ignora.`) } catch {} continue }
       if (key === 'position') {
         if (STATUS_POSITIONS.includes(v)) o.position = v
-        else warn(`position «${v}» no es válida (${STATUS_POSITIONS.join(', ')}): se conserva «${o.position}».`)
+        else try { if (process.env.NODE_ENV !== 'production') warn(`position «${v}» no es válida (${STATUS_POSITIONS.join(', ')}): se conserva «${o.position}».`) } catch {}
       } else if (key === 'autoOpen') {
         if (typeof v === 'boolean') o.autoOpen = v
-        else warn('autoOpen debe ser Boolean: se conserva.')
+        else try { if (process.env.NODE_ENV !== 'production') warn('autoOpen debe ser Boolean: se conserva.') } catch {}
       } else if (key === 'hotkey') {
         const parsed = parseHotkey(v)
         const mods = parsed.keys ? parsed.keys.mods : null
         const only = (...on) => mods && Object.entries(mods).every(([k, x]) => x === on.includes(k))
-        if (!parsed.ok) warn(`hotkey «${v}» no se puede interpretar (sintaxis de aria-keyshortcuts, p. ej. «Alt+F8»): se conserva.`)
-        else if (parsed.keys && parsed.keys.key === 'F6' && only()) warn('hotkey «F6» lo usa el navegador para moverse entre la página y sus barras: se conserva el anterior.')
+        if (!parsed.ok) try { if (process.env.NODE_ENV !== 'production') warn(`hotkey «${v}» no se puede interpretar (sintaxis de aria-keyshortcuts, p. ej. «Alt+F8»): se conserva.`) } catch {}
+        else if (parsed.keys && parsed.keys.key === 'F6' && only()) try { if (process.env.NODE_ENV !== 'production') warn('hotkey «F6» lo usa el navegador para moverse entre la página y sus barras: se conserva el anterior.') } catch {}
         else {
-          if (parsed.keys && parsed.keys.key === 'F8' && (only() || only('Shift'))) warn(`hotkey «${v}» coincide con el atajo de ${only() ? 'los avisos (GToaster)' : 'la captura de voz'}: se acepta, pero chocan si conviven.`)
+          try { if (process.env.NODE_ENV !== 'production' && parsed.keys && parsed.keys.key === 'F8' && (only() || only('Shift'))) warn(`hotkey «${v}» coincide con el atajo de ${only() ? 'los avisos (GToaster)' : 'la captura de voz'}: se acepta, pero chocan si conviven.`) } catch {}
           o.hotkey = parsed.value
           state.hotkeyKeys = parsed.keys
         }
       } else if (key === 'offset') {
-        if (!v || typeof v !== 'object' || !validOffset(v.top)) warn('offset debe ser { top? } con un número (px) o una longitud CSS: se conserva.')
+        if (!v || typeof v !== 'object' || !validOffset(v.top)) try { if (process.env.NODE_ENV !== 'production') warn('offset debe ser { top? } con un número (px) o una longitud CSS: se conserva.') } catch {}
         else o.offset = initial ? { ...v } : { ...o.offset, ...v }
       } else if (key === 'labels') {
-        if (!v || typeof v !== 'object') warn('labels debe ser un objeto: se conserva.')
+        if (!v || typeof v !== 'object') try { if (process.env.NODE_ENV !== 'production') warn('labels debe ser un objeto: se conserva.') } catch {}
         else {
           const types = v.types && typeof v.types === 'object' ? { ...(o.labels.types || {}), ...v.types } : o.labels.types
           o.labels = { ...o.labels, ...v, ...(types ? { types } : {}) }
@@ -145,25 +146,25 @@ export function createStatus(options = {}) {
   function normalize(input, full) {
     const out = {}
     if (!input || typeof input !== 'object') {
-      if (full) warn('set necesita un objeto de opciones con title: la condición no se registra.')
+      try { if (process.env.NODE_ENV !== 'production' && full) warn('set necesita un objeto de opciones con title: la condición no se registra.') } catch {}
       return full ? null : out
     }
     for (const key of Object.keys(input)) {
-      if (key === 'actions') warn('una condición admite una sola action (no «actions»): se ignora.')
-      else if (!CONDITION_KEYS.includes(key)) warn(`opción de condición desconocida «${key}»: se ignora (solo texto en v0.1).`)
+      if (key === 'actions') try { if (process.env.NODE_ENV !== 'production') warn('una condición admite una sola action (no «actions»): se ignora.') } catch {}
+      else if (!CONDITION_KEYS.includes(key)) try { if (process.env.NODE_ENV !== 'production') warn(`opción de condición desconocida «${key}»: se ignora (solo texto en v0.1).`) } catch {}
     }
     const has = (k) => k in input && input[k] !== undefined
     if (has('type')) {
       if (STATUS_TYPES.includes(input.type)) out.type = input.type
-      else warn(`type «${input.type}» no es válido (${STATUS_TYPES.join(', ')}): se usa ${full ? '«info»' : 'el anterior'}.`)
+      else try { if (process.env.NODE_ENV !== 'production') warn(`type «${input.type}» no es válido (${STATUS_TYPES.join(', ')}): se usa ${full ? '«info»' : 'el anterior'}.`) } catch {}
     }
     if (full && out.type === undefined) out.type = 'info'
     if ('title' in input) {
       if (typeof input.title === 'string' && input.title.trim()) out.title = input.title.trim()
-      else if (!full) warn('update con title vacío: se conserva el anterior.')
+      else if (!full) try { if (process.env.NODE_ENV !== 'production') warn('update con title vacío: se conserva el anterior.') } catch {}
     }
     if (full && out.title === undefined) {
-      warn('una condición necesita title: no se registra.')
+      try { if (process.env.NODE_ENV !== 'production') warn('una condición necesita title: no se registra.') } catch {}
       return null
     }
     for (const k of ['description', 'details']) {
@@ -171,33 +172,33 @@ export function createStatus(options = {}) {
         const v = input[k]
         if (v === undefined || v === null || v === '') out[k] = undefined
         else if (typeof v === 'string') out[k] = v
-        else warn(`${k} debe ser texto: se ignora.`)
+        else try { if (process.env.NODE_ENV !== 'production') warn(`${k} debe ser texto: se ignora.`) } catch {}
       } else if (full) out[k] = undefined
     }
     if ('action' in input) {
       const a = input.action
       if (a === undefined || a === null || a === false) out.action = undefined
-      else if (Array.isArray(a)) { warn('una condición admite una sola action: se ignora.'); if (full) out.action = undefined }
-      else if (typeof a !== 'object' || !text(a.label) || typeof a.onClick !== 'function') { warn('action necesita label y onClick: se ignora la acción.'); if (full) out.action = undefined }
+      else if (Array.isArray(a)) { try { if (process.env.NODE_ENV !== 'production') warn('una condición admite una sola action: se ignora.') } catch {} if (full) out.action = undefined }
+      else if (typeof a !== 'object' || !text(a.label) || typeof a.onClick !== 'function') { try { if (process.env.NODE_ENV !== 'production') warn('action necesita label y onClick: se ignora la acción.') } catch {} if (full) out.action = undefined }
       else out.action = { label: a.label, ...(text(a.busyLabel) ? { busyLabel: a.busyLabel } : {}), onClick: a.onClick }
     } else if (full) out.action = undefined
     if ('link' in input) {
       const l = input.link
       if (l === undefined || l === null || l === false) out.link = undefined
-      else if (typeof l !== 'object' || !text(l.label) || !text(l.href)) { warn('link necesita label y href: se ignora el enlace.'); if (full) out.link = undefined }
+      else if (typeof l !== 'object' || !text(l.label) || !text(l.href)) { try { if (process.env.NODE_ENV !== 'production') warn('link necesita label y href: se ignora el enlace.') } catch {} if (full) out.link = undefined }
       else out.link = { label: l.label, href: l.href, ...(text(l.target) ? { target: l.target } : {}), ...(text(l.rel) ? { rel: l.rel } : {}), ...(typeof l.onClick === 'function' ? { onClick: l.onClick } : {}) }
     } else if (full) out.link = undefined
     if ('origin' in input) {
       const g = input.origin
       const okTarget = g && (text(g.target) || typeof g.target === 'function' || (typeof g.target === 'object' && g.target !== null))
       if (g === undefined || g === null || g === false) out.origin = undefined
-      else if (typeof g !== 'object' || !text(g.label) || !okTarget) { warn('origin necesita label y target (id, elemento o función): se ignora.'); if (full) out.origin = undefined }
+      else if (typeof g !== 'object' || !text(g.label) || !okTarget) { try { if (process.env.NODE_ENV !== 'production') warn('origin necesita label y target (id, elemento o función): se ignora.') } catch {} if (full) out.origin = undefined }
       else out.origin = { label: g.label, target: typeof g.target === 'object' ? markRaw(g.target) : g.target }
     } else if (full) out.origin = undefined
     if ('persistent' in input) {
       if (input.persistent === undefined || input.persistent === null) out.persistentOpt = undefined
       else if (typeof input.persistent === 'boolean') out.persistentOpt = input.persistent
-      else warn('persistent debe ser Boolean: se ignora.')
+      else try { if (process.env.NODE_ENV !== 'production') warn('persistent debe ser Boolean: se ignora.') } catch {}
     } else if (full) out.persistentOpt = undefined
     if ('dismissible' in input) out.dismissible = Boolean(input.dismissible)
     else if (full) out.dismissible = false
@@ -206,12 +207,12 @@ export function createStatus(options = {}) {
       const ms = d instanceof Date ? d.getTime() : d
       if (d === undefined || d === null) out.deadline = undefined
       else if (typeof ms === 'number' && Number.isFinite(ms)) out.deadline = ms
-      else { warn('deadline debe ser una marca de tiempo (Number) o un Date: se ignora.'); if (full) out.deadline = undefined }
+      else { try { if (process.env.NODE_ENV !== 'production') warn('deadline debe ser una marca de tiempo (Number) o un Date: se ignora.') } catch {} if (full) out.deadline = undefined }
     } else if (full) out.deadline = undefined
     if ('politeness' in input) {
       if (input.politeness === undefined || input.politeness === null) out.politenessOpt = undefined
       else if (POLITENESS.includes(input.politeness)) out.politenessOpt = input.politeness
-      else warn(`politeness «${input.politeness}» no es válida (polite, assertive): se ignora.`)
+      else try { if (process.env.NODE_ENV !== 'production') warn(`politeness «${input.politeness}» no es válida (polite, assertive): se ignora.`) } catch {}
     } else if (full) out.politenessOpt = undefined
     for (const k of ['onRemove', 'onExpire']) {
       if (k in input) out[k] = typeof input[k] === 'function' ? input[k] : undefined
@@ -223,17 +224,17 @@ export function createStatus(options = {}) {
   // Avisos que dependen de la condición ya resuelta (falta un `labels` la primera vez que se necesita, tabla «Textos»)
   function lint(r) {
     const L = state.opts.labels
-    if (r.type === 'error' && r.politenessOpt === 'polite') warn('un error con politeness «polite» no interrumpe: la persona puede no oírlo a tiempo.')
-    if (r.title.length > TITLE_LIMIT) warn(`title de más de ${TITLE_LIMIT} caracteres: el resumen de la isla lo recorta con elipsis (el texto completo queda en el panel).`)
-    if (!(L.types && L.types[r.type])) warn(`falta labels.types.${r.type}: el tipo queda solo en el icono.`)
-    if (r.dismissible && !L.dismiss) warn('falta labels.dismiss: el botón descartar queda sin nombre accesible (se dibuja igual).')
+    try { if (process.env.NODE_ENV !== 'production' && r.type === 'error' && r.politenessOpt === 'polite') warn('un error con politeness «polite» no interrumpe: la persona puede no oírlo a tiempo.') } catch {}
+    try { if (process.env.NODE_ENV !== 'production' && r.title.length > TITLE_LIMIT) warn(`title de más de ${TITLE_LIMIT} caracteres: el resumen de la isla lo recorta con elipsis (el texto completo queda en el panel).`) } catch {}
+    try { if (process.env.NODE_ENV !== 'production' && !(L.types && L.types[r.type])) warn(`falta labels.types.${r.type}: el tipo queda solo en el icono.`) } catch {}
+    try { if (process.env.NODE_ENV !== 'production' && r.dismissible && !L.dismiss) warn('falta labels.dismiss: el botón descartar queda sin nombre accesible (se dibuja igual).') } catch {}
     if (r.details) {
-      if (!L.details) warn('falta labels.details: el detalle técnico no se dibuja (sin conmutador no hay detalle).')
-      if (!L.copy) warn('falta labels.copy: el detalle técnico va sin botón de copiar.')
-      else if (!L.copied) warn('falta labels.copied: copiar el detalle no se anuncia.')
+      try { if (process.env.NODE_ENV !== 'production' && !L.details) warn('falta labels.details: el detalle técnico no se dibuja (sin conmutador no hay detalle).') } catch {}
+      if (!L.copy) try { if (process.env.NODE_ENV !== 'production') warn('falta labels.copy: el detalle técnico va sin botón de copiar.') } catch {}
+      else if (!L.copied) try { if (process.env.NODE_ENV !== 'production') warn('falta labels.copied: copiar el detalle no se anuncia.') } catch {}
     }
-    if (r.deadline !== undefined && !L.remaining) warn('falta labels.remaining: los umbrales de la cuenta atrás no se anuncian.')
-    if (state.items.length > 1 && !L.more) warn('falta labels.more: «+N» queda sin texto para lectores de pantalla.')
+    try { if (process.env.NODE_ENV !== 'production' && r.deadline !== undefined && !L.remaining) warn('falta labels.remaining: los umbrales de la cuenta atrás no se anuncian.') } catch {}
+    try { if (process.env.NODE_ENV !== 'production' && state.items.length > 1 && !L.more) warn('falta labels.more: «+N» queda sin texto para lectores de pantalla.') } catch {}
   }
 
   // ---------- Anuncio (status.md «Anuncios»): `[tipo:] título[.] [descripción]`, sin nombres de botones ----------
@@ -324,13 +325,15 @@ export function createStatus(options = {}) {
   // ---------- API pública ----------
   function set(id, input) {
     if (!validId(id)) {
-      warn('una condición necesita id (String o Number): no se registra.')
+      try { if (process.env.NODE_ENV !== 'production') warn('una condición necesita id (String o Number): no se registra.') } catch {}
       return null
     }
-    if (isDev() && isClient() && !checkedRegion) {
-      checkedRegion = true
-      setTimeout(() => { if (!region) warn('set sin ninguna <GStatusIsland> montada para este gestor: las condiciones esperan hasta que se monte.') }, 0)
-    }
+    try {
+      if (process.env.NODE_ENV !== 'production' && isClient() && !checkedRegion) {
+        checkedRegion = true
+        setTimeout(() => { if (!region) warn('set sin ninguna <GStatusIsland> montada para este gestor: las condiciones esperan hasta que se monte.') }, 0)
+      }
+    } catch {}
     const n = normalize(input, true)
     if (!n) return null
     const existing = byId(id)
@@ -520,7 +523,7 @@ export function createStatus(options = {}) {
         const r = byId(id)
         if (!r) return false
         if (!region) {
-          warn('GStatusMark con `for` activada sin ninguna <GStatusIsland> montada: no hay isla que abrir.')
+          try { if (process.env.NODE_ENV !== 'production') warn('GStatusMark con `for` activada sin ninguna <GStatusIsland> montada: no hay isla que abrir.') } catch {}
           return false
         }
         state.open = true
@@ -531,7 +534,7 @@ export function createStatus(options = {}) {
       claim(id) {
         const n = (claims.get(id) || 0) + 1
         claims.set(id, n)
-        if (n > 1) warn(`dos <GStatus> montados con el mismo id («${id}»): comparten una sola condición.`)
+        try { if (process.env.NODE_ENV !== 'production' && n > 1) warn(`dos <GStatus> montados con el mismo id («${id}»): comparten una sola condición.`) } catch {}
         return n === 1
       },
       release(id) {
@@ -549,12 +552,12 @@ export function createStatus(options = {}) {
 // Inyecta el gestor provisto con app.use(status). Sin gestor (o fuera de setup): aviso en desarrollo y undefined.
 export function useStatus() {
   if (!hasInjectionContext()) {
-    if (isDev()) console.warn(`${PREFIX} useStatus() solo funciona dentro de setup (o de app.runWithContext): devuelve undefined.`)
+    try { if (process.env.NODE_ENV !== 'production') console.warn(`${PREFIX} useStatus() solo funciona dentro de setup (o de app.runWithContext): devuelve undefined.`) } catch {}
     return undefined
   }
   const s = inject(statusKey, null)
   if (!s) {
-    if (isDev()) console.warn(`${PREFIX} useStatus() sin gestor provisto: instala el tuyo con app.use(createStatus(…)). Devuelve undefined.`)
+    try { if (process.env.NODE_ENV !== 'production') console.warn(`${PREFIX} useStatus() sin gestor provisto: instala el tuyo con app.use(createStatus(…)). Devuelve undefined.`) } catch {}
     return undefined
   }
   return s

@@ -18,7 +18,7 @@ export default defineComponent({
     return () => {
       const paths = lookupLibrary(props.name)
       if (!paths) {
-        warnOnce(`lib:${props.name}`, `un componente pide el icono «${props.name}», que no está en la lista de la librería: añádelo a docs/contract/icons.md §4 y a scripts/icons.json.`)
+        try { if (process.env.NODE_ENV !== 'production') warnOnce(`lib:${props.name}`, `un componente pide el icono «${props.name}», que no está en la lista de la librería: añádelo a docs/contract/icons.md §4 y a scripts/icons.json.`) } catch {}
         return null
       }
       return renderSvg(paths, { filled: props.filled, attrs })

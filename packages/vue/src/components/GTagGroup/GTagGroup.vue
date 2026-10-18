@@ -15,7 +15,7 @@ import GLibIcon from '../GIcon/GLibIcon.js' // undo-2 de «Deshacer» (lista de 
 import GAppIcon from '../GIcon/GIcon.vue' // item.icon: nombre de la aplicación (registro → librería, #202)
 import { useVisualTips } from '../../utils/visualTip.js'
 import { createLiveWriter } from '../../utils/liveRegion.js'
-import { colorInfo, colorWarning, createCutWatcher, hasContent, isDev, present, say, tagItemKey, validCategories } from '../GTag/tagShared.js'
+import { colorInfo, colorWarning, createCutWatcher, hasContent, present, say, tagItemKey, validCategories } from '../GTag/tagShared.js'
 import { categoryOf } from '../../utils/categoryHash.js'
 
 const LAYOUTS = ['flow', 'facets']
@@ -63,13 +63,16 @@ export default defineComponent({
     // Avisos: una vez por instancia, causa y valor
     const warned = new Set()
     const warn = (key, msg) => {
-      if (!isDev() || warned.has(key)) return
-      warned.add(key)
-      console.warn(`[Grana GTagGroup] ${msg}`)
+      try {
+        if (process.env.NODE_ENV !== 'production' && !warned.has(key)) {
+          warned.add(key)
+          console.warn(`[Grana GTagGroup] ${msg}`)
+        }
+      } catch {}
     }
     const L = (key, vars) => {
       const t = say(props.labels, key, vars)
-      if (t === undefined) warn(`labels:${key}`, `falta labels.${key}: sin texto en ese sitio (los textos los pone la aplicación, #226).`)
+      try { if (process.env.NODE_ENV !== 'production' && t === undefined) warn(`labels:${key}`, `falta labels.${key}: sin texto en ese sitio (los textos los pone la aplicación, #226).`) } catch {}
       return t
     }
     // Forma con faceta (removeIn, undoIn, removedIn) con caída a la base y aviso G5
@@ -77,7 +80,7 @@ export default defineComponent({
       if (vars.facet === undefined) return L(key, vars)
       const t = say(props.labels, `${key}In`, vars)
       if (t !== undefined) return t
-      warn(`labels:${key}In`, `falta labels.${key}In: en un racimo se usa la forma sin faceta (labels.${key}), que puede no ser única entre facetas.`)
+      try { if (process.env.NODE_ENV !== 'production') warn(`labels:${key}In`, `falta labels.${key}In: en un racimo se usa la forma sin faceta (labels.${key}), que puede no ser única entre facetas.`) } catch {}
       return L(key, vars)
     }
 
@@ -116,9 +119,9 @@ export default defineComponent({
       const out = []
       list.forEach((it, index) => {
         if (!it || typeof it !== 'object') return
-        if (!hasId(it)) { warn('id-missing', `un item sin id se omite: la huella, el foco y el deshacer se apoyan en él (${JSON.stringify(it.label)}).`); return }
-        if (seen.has(it.id)) { warn(`id-dup:${String(it.id)}`, `id repetido «${String(it.id)}»: se omite el repetido (cada id debe ser único en el grupo).`); return }
-        if (!present(it.label)) { warn(`label:${String(it.id)}`, `el item «${String(it.id)}» no tiene label: se omite.`); return }
+        if (!hasId(it)) { try { if (process.env.NODE_ENV !== 'production') warn('id-missing', `un item sin id se omite: la huella, el foco y el deshacer se apoyan en él (${JSON.stringify(it.label)}).`) } catch {} return }
+        if (seen.has(it.id)) { try { if (process.env.NODE_ENV !== 'production') warn(`id-dup:${String(it.id)}`, `id repetido «${String(it.id)}»: se omite el repetido (cada id debe ser único en el grupo).`) } catch {} return }
+        if (!present(it.label)) { try { if (process.env.NODE_ENV !== 'production') warn(`label:${String(it.id)}`, `el item «${String(it.id)}» no tiene label: se omite.`) } catch {} return }
         seen.add(it.id)
         out.push({ id: it.id, item: it, index })
       })
@@ -390,7 +393,7 @@ export default defineComponent({
       if (props.emptyFocus !== undefined && props.emptyFocus !== null) {
         const t = resolveEmptyFocus(props.emptyFocus)
         if (t) { t.focus(); if (document.activeElement === t) return }
-        warn('empty-focus', 'emptyFocus no se encuentra (o no se puede enfocar): el foco va al contenedor del grupo.')
+        try { if (process.env.NODE_ENV !== 'production') warn('empty-focus', 'emptyFocus no se encuentra (o no se puede enfocar): el foco va al contenedor del grupo.') } catch {}
       }
       listTabindex.value = -1
       nextTick(() => { const l = root.value && root.value.querySelector('.g-tag-group__list'); if (l) l.focus() })
@@ -433,7 +436,7 @@ export default defineComponent({
         setTimeout(() => { maybeSettle(); expireCleared() }, 0)
       }, { capture: true, signal: docAbort.signal })
       if (cut) cut.refresh(root.value)
-      if (isDev() && slots.default && hasContent(slots.default())) warn('slot', 'no tiene slot por defecto: los hijos no se pintan. Pasa las etiquetas como datos en items.')
+      try { if (process.env.NODE_ENV !== 'production' && slots.default && hasContent(slots.default())) warn('slot', 'no tiene slot por defecto: los hijos no se pintan. Pasa las etiquetas como datos en items.') } catch {}
     })
     onBeforeUnmount(() => {
       if (docAbort) docAbort.abort()
@@ -470,25 +473,27 @@ export default defineComponent({
     return () => {
       const vis = display.value
       // ---------- Avisos ----------
-      if (isDev()) {
-        if (!present(props.label) && !present(props.labelledby)) warn('name', 'necesita label o labelledby: la lista se pinta sin nombre.')
-        if (props.limit !== undefined && props.limit !== null && facets.value) warn('limit-facets', 'limit no se combina con layout="facets" en v1: se ignora.')
-        if (facets.value && vis.length && !anyFacet.value) warn('facets-none', 'layout="facets" sin ningún item.facet: funciona como flow con lomo neutro.')
-        if (!validCategories(props.categories)) warn(`categories:${String(props.categories)}`, `categories=${JSON.stringify(props.categories)} no es un entero de 0 a 12: se trata como 0.`)
-        const names = new Map()
-        for (const e of vis) {
-          const it = e.item
-          if (present(it.href) && (it.pressed === true || it.pressed === false)) warn(`href-pressed:${String(e.id)}`, `el item «${String(e.id)}» tiene href y pressed: se ignora pressed (es un enlace).`)
-          const ci = colorInfo(it.color)
-          if (ci.kind === 'invalid') warn(`color:${String(ci.value)}`, colorWarning(ci.value))
-          const ctl = it.removable || present(it.href) || isToggleItem(it)
-          if (ctl && !e.ghost) {
-            const k = `${facets.value ? facetOf(it) ?? '' : ''}\u0000${normText(it.label)}`
-            if (names.has(k)) warn(`dup-name:${k}`, `dos etiquetas con control se llaman «${present(it.label)}»${facets.value && facetOf(it) ? ` en la faceta «${facetOf(it)}»` : ''}: los nombres de «Quitar» no son únicos. Usa facet o textos distintos.`)
-            names.set(k, true)
+      try {
+        if (process.env.NODE_ENV !== 'production') {
+          if (!present(props.label) && !present(props.labelledby)) warn('name', 'necesita label o labelledby: la lista se pinta sin nombre.')
+          if (props.limit !== undefined && props.limit !== null && facets.value) warn('limit-facets', 'limit no se combina con layout="facets" en v1: se ignora.')
+          if (facets.value && vis.length && !anyFacet.value) warn('facets-none', 'layout="facets" sin ningún item.facet: funciona como flow con lomo neutro.')
+          if (!validCategories(props.categories)) warn(`categories:${String(props.categories)}`, `categories=${JSON.stringify(props.categories)} no es un entero de 0 a 12: se trata como 0.`)
+          const names = new Map()
+          for (const e of vis) {
+            const it = e.item
+            if (present(it.href) && (it.pressed === true || it.pressed === false)) warn(`href-pressed:${String(e.id)}`, `el item «${String(e.id)}» tiene href y pressed: se ignora pressed (es un enlace).`)
+            const ci = colorInfo(it.color)
+            if (ci.kind === 'invalid') warn(`color:${String(ci.value)}`, colorWarning(ci.value))
+            const ctl = it.removable || present(it.href) || isToggleItem(it)
+            if (ctl && !e.ghost) {
+              const k = `${facets.value ? facetOf(it) ?? '' : ''}\u0000${normText(it.label)}`
+              if (names.has(k)) warn(`dup-name:${k}`, `dos etiquetas con control se llaman «${present(it.label)}»${facets.value && facetOf(it) ? ` en la faceta «${facetOf(it)}»` : ''}: los nombres de «Quitar» no son únicos. Usa facet o textos distintos.`)
+              names.set(k, true)
+            }
           }
         }
-      }
+      } catch {}
 
       renderedOrder = vis.map((e) => ({ id: e.id, facet: facets.value ? facetOf(e.item) : undefined }))
       const lim = effLimit.value

@@ -81,7 +81,6 @@ const hasLabel = computed(() => Boolean(props.label || slots.label))
 const hasHint = computed(() => Boolean(props.hint || slots.hint))
 
 // ---------- Opciones: se aplanan (con índice global) y se conserva la estructura para pintar grupos ----------
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const validOption = (o) => o && typeof o === 'object' && o.value !== undefined && o.value !== null && typeof o.label === 'string'
 const model = computed(() => {
   const items = []
@@ -90,7 +89,7 @@ const model = computed(() => {
   let g = 0
   const add = (o) => {
     if (!validOption(o)) return null
-    if (isDev && seen.has(o.value)) console.warn(`[Grana] <GSelect> tiene dos opciones con el mismo value (${String(o.value)}).`)
+    try { if (process.env.NODE_ENV !== 'production' && seen.has(o.value)) console.warn(`[Grana] <GSelect> tiene dos opciones con el mismo value (${String(o.value)}).`) } catch {}
     seen.add(o.value)
     const item = { index: items.length, value: o.value, label: o.label, disabled: Boolean(o.disabled), raw: o }
     items.push(item)
@@ -429,14 +428,16 @@ const emptyVisible = computed(() => items.value.length === 0 && Boolean(props.em
 // Contenido nuevo con la lista abierta: --_max se vuelve a fijar (el lado se conserva)
 watch(() => [model.value, emptyVisible.value, createVisible.value], () => { if (open.value) nextTick(() => place()) }, { flush: 'post' })
 
-if (isDev) {
-  if (!hasLabel.value && !attrs['aria-label'] && !attrs['aria-labelledby']) {
-    console.warn('[Grana] <GSelect> necesita label, slot label, aria-label o aria-labelledby para tener un nombre accesible.')
+try {
+  if (process.env.NODE_ENV !== 'production') {
+    if (!hasLabel.value && !attrs['aria-label'] && !attrs['aria-labelledby']) {
+      console.warn('[Grana] <GSelect> necesita label, slot label, aria-label o aria-labelledby para tener un nombre accesible.')
+    }
+    if (props.clearable && !props.clearLabel) {
+      console.warn('[Grana] <GSelect clearable> necesita clearLabel para mostrar el botón de limpiar.')
+    }
   }
-  if (props.clearable && !props.clearLabel) {
-    console.warn('[Grana] <GSelect clearable> necesita clearLabel para mostrar el botón de limpiar.')
-  }
-}
+} catch {}
 </script>
 
 <template>

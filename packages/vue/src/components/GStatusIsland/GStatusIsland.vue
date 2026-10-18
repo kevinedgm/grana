@@ -24,12 +24,11 @@ const props = defineProps({
   status: { type: Object, default: undefined }
 })
 
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const attrs = useAttrs()
 const injected = inject(statusKey, null)
 const manager = toRaw(props.status) || injected
 const api = manager && manager[INTERNAL] ? manager[INTERNAL] : null
-if (!api && isDev) console.warn('[Grana Status] <GStatusIsland> sin prop `status` y sin gestor provisto (app.use(createStatus(…))): no pinta nada.')
+try { if (process.env.NODE_ENV !== 'production' && !api) console.warn('[Grana Status] <GStatusIsland> sin prop `status` y sin gestor provisto (app.use(createStatus(…))): no pinta nada.') } catch {}
 const S = api ? api.state : null
 
 const ICON = { info: 'info', success: 'circle-check', warning: 'triangle-alert', error: 'circle-alert' }
@@ -359,7 +358,7 @@ let pendingOrigin = null
 function onOrigin(c) {
   const el = resolveOrigin(c)
   if (!el) {
-    api.warn(`el origin.target de «${c.id}» no existe al pulsar «${c.origin.label}»: no se hace nada.`)
+    try { if (process.env.NODE_ENV !== 'production') api.warn(`el origin.target de «${c.id}» no existe al pulsar «${c.origin.label}»: no se hace nada.`) } catch {}
     return
   }
   saved = null
@@ -494,9 +493,13 @@ function onDocFocusin(event) {
   if (isOpen.value && !mobile.value) {
     // El foco va a un elemento que la isla abierta tapa (WCAG 2.4.11): se repliega
     if (rectsOverlap(s, r)) api.setOpen(false)
-  } else if (isDev && !isOpen.value && r.width > 0 && r.height > 0 && r.left >= s.left && r.right <= s.right && r.top >= s.top && r.bottom <= s.bottom && !warnedCovered.has(t)) {
-    warnedCovered.add(t)
-    console.warn('[Grana Status] la isla replegada tapa por completo el elemento enfocado: cambia `position` u `offset` del gestor (status.md «Límites conocidos»).', t)
+  } else {
+    try {
+      if (process.env.NODE_ENV !== 'production' && !isOpen.value && r.width > 0 && r.height > 0 && r.left >= s.left && r.right <= s.right && r.top >= s.top && r.bottom <= s.bottom && !warnedCovered.has(t)) {
+        warnedCovered.add(t)
+        console.warn('[Grana Status] la isla replegada tapa por completo el elemento enfocado: cambia `position` u `offset` del gestor (status.md «Límites conocidos»).', t)
+      }
+    } catch {}
   }
 }
 const onResize = () => { measureMobile(); measure() }
@@ -514,10 +517,12 @@ watch(hasDeadline, syncClock)
 // ---------- Reacciones ----------
 watch([count, form, mobile], () => { if (active.value) nextTick(measure) }, { flush: 'post' })
 watch(mobile, (m) => {
-  if (m && isDev && active.value) {
-    if (!L.value.sheetTitle) api.warn('falta labels.sheetTitle: la hoja móvil de la isla queda sin título.')
-    if (!L.value.close) api.warn('falta labels.close: la hoja móvil de la isla queda sin botón de cierre.')
-  }
+  try {
+    if (process.env.NODE_ENV !== 'production' && m && active.value) {
+      if (!L.value.sheetTitle) api.warn('falta labels.sheetTitle: la hoja móvil de la isla queda sin título.')
+      if (!L.value.close) api.warn('falta labels.close: la hoja móvil de la isla queda sin botón de cierre.')
+    }
+  } catch {}
 })
 // Detalles abiertos de condiciones que ya no están
 watch(count, () => {
@@ -530,13 +535,15 @@ watch(count, () => {
 const frames = new Set()
 onMounted(async () => {
   if (!api) return
-  const twice = () => { if (isDev) console.warn('[Grana Status] dos <GStatusIsland> para el mismo gestor: la segunda no pinta nada.') }
+  const twice = () => { try { if (process.env.NODE_ENV !== 'production') console.warn('[Grana Status] dos <GStatusIsland> para el mismo gestor: la segunda no pinta nada.') } catch {} }
   if (S.attached) { twice(); return }
-  if (isDev) {
-    if (!L.value.region) api.warn('falta labels.region: la isla queda sin nombre de región.')
-    if (!L.value.summary) api.warn('falta labels.summary: el resumen de la isla va sin prefijo de cuenta.')
-    if (!L.value.acknowledge) api.warn('falta labels.acknowledge: el botón «Entendido» no se dibuja (sin texto no tiene nombre) y no hay forma de punto.')
-  }
+  try {
+    if (process.env.NODE_ENV !== 'production') {
+      if (!L.value.region) api.warn('falta labels.region: la isla queda sin nombre de región.')
+      if (!L.value.summary) api.warn('falta labels.summary: el resumen de la isla va sin prefijo de cuenta.')
+      if (!L.value.acknowledge) api.warn('falta labels.acknowledge: el botón «Entendido» no se dibuja (sin texto no tiene nombre) y no hay forma de punto.')
+    }
+  } catch {}
   topModal.scan()
   if (!api.attach(region, rootId.value)) { twice(); return }
   topModal.sync()

@@ -5,7 +5,7 @@
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, unref, useAttrs, useId, watch } from 'vue'
 import { fill } from '../../utils/template.js'
 import GIcon from '../GIcon/GLibIcon.js'
-import { formKey, isDev, revealAndFocus } from '../GForm/formContext.js'
+import { formKey, revealAndFocus } from '../GForm/formContext.js'
 
 defineOptions({ name: 'GErrorSummary' })
 
@@ -64,7 +64,7 @@ async function onLink(event, item) {
   await nextTick() // la aplicación pudo cambiar de pestaña o de paso en su manejador
   const control = typeof document !== 'undefined' ? document.getElementById(item.id) : null
   if (!control) {
-    if (isDev) console.warn(`[Grana GErrorSummary] no existe ningún elemento con id «${item.id}».`)
+    try { if (process.env.NODE_ENV !== 'production') console.warn(`[Grana GErrorSummary] no existe ningún elemento con id «${item.id}».`) } catch {}
     return
   }
   const root = (item.root && item.root()) || control.closest?.('.g-input, .g-textarea, .g-select, .g-datepicker, .g-checkbox-group, .g-radio-group, .g-checkbox, .g-switch, .g-field-group') || control
@@ -72,10 +72,12 @@ async function onLink(event, item) {
   await revealAndFocus(control, root)
 }
 
-if (isDev) {
-  if (!props.labels?.title) console.warn('[Grana GErrorSummary] falta labels.title: el título del resumen queda vacío.')
-  if (!form && props.errors === undefined) console.warn('[Grana GErrorSummary] fuera de GForm necesita `errors`; sin ellos no pinta nada.')
-}
+try {
+  if (process.env.NODE_ENV !== 'production') {
+    if (!props.labels?.title) console.warn('[Grana GErrorSummary] falta labels.title: el título del resumen queda vacío.')
+    if (!form && props.errors === undefined) console.warn('[Grana GErrorSummary] fuera de GForm necesita `errors`; sin ellos no pinta nada.')
+  }
+} catch {}
 </script>
 
 <template>

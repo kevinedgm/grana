@@ -5,7 +5,7 @@
 // elegida (enfocable y seleccionable, #165) más un <input type="hidden"> con el valor.
 import { computed, mergeProps, ref, useAttrs } from 'vue'
 import GIcon from '../GIcon/GLibIcon.js'
-import { isDev } from '../GForm/formContext.js'
+import {  } from '../GForm/formContext.js'
 import { useInputGroupPart } from './inputGroupContext.js'
 
 defineOptions({ name: 'GInputGroupSelect', inheritAttrs: false })
@@ -36,10 +36,12 @@ const selectedLabel = computed(() => {
   const o = flat.value.find((x) => String(x.value) === current.value)
   return o ? String(o.label ?? o.value) : ''
 })
-if (isDev) {
-  const values = flat.value.map((o) => String(o.value))
-  if (new Set(values).size !== values.length) console.warn('[Grana GInputGroup] options con valores repetidos en GInputGroupSelect.')
-}
+try {
+  if (process.env.NODE_ENV !== 'production') {
+    const values = flat.value.map((o) => String(o.value))
+    if (new Set(values).size !== values.length) console.warn('[Grana GInputGroup] options con valores repetidos en GInputGroupSelect.')
+  }
+} catch {}
 
 const partAttrs = computed(() => ({ class: attrs.class, style: attrs.style }))
 const controlAttrs = computed(() => {

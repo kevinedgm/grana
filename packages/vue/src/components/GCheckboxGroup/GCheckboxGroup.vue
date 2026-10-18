@@ -149,15 +149,16 @@ const classes = computed(() => [
 const rootBindings = computed(() => mergeProps(ff.handlers, attrs))
 
 // Avisos solo en desarrollo. `process` puede no existir (UMD en navegador): se comprueba antes de leerlo.
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
-if (isDev) {
-  if (!hasLabel.value && !attrs['aria-label'] && !attrs['aria-labelledby']) {
-    console.warn('[Grana] <GCheckboxGroup> necesita label, slot label, aria-label o aria-labelledby para tener un nombre accesible.')
+try {
+  if (process.env.NODE_ENV !== 'production') {
+    if (!hasLabel.value && !attrs['aria-label'] && !attrs['aria-labelledby']) {
+      console.warn('[Grana] <GCheckboxGroup> necesita label, slot label, aria-label o aria-labelledby para tener un nombre accesible.')
+    }
+    if (props.selectAll && !props.selectAllLabel) {
+      console.warn('[Grana] <GCheckboxGroup select-all> necesita selectAllLabel para mostrar la casilla maestra.')
+    }
   }
-  if (props.selectAll && !props.selectAllLabel) {
-    console.warn('[Grana] <GCheckboxGroup select-all> necesita selectAllLabel para mostrar la casilla maestra.')
-  }
-}
+} catch {}
 </script>
 
 <template>

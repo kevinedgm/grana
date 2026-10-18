@@ -8,7 +8,7 @@
 // cancela …»), así el envío de fuera no pasa. Cerrado y asentado: `hidden`, sin rol y sin contenido.
 // Entrada propia `@grana/vue/form-fold` (#590): todo lo que importa de fuera de su carpeta llega por `__shared`.
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, ref, unref, useAttrs, useId, useSlots, watch } from 'vue'
-import { fieldGroupKey, foldKey, formKey, isDev, layoutKey, ownFieldKey, revealKey, sectionKey } from '../GForm/formContext.js'
+import { fieldGroupKey, foldKey, formKey, layoutKey, ownFieldKey, revealKey, sectionKey } from '../GForm/formContext.js'
 import { createFormEngine } from '../GForm/formEngine.js'
 import { useCollapse } from '../../utils/collapse.js'
 import { dialogFoldKey } from '../GDialog/dialogContext.js'
@@ -60,12 +60,15 @@ const density = computed(() => unref(outerLayout?.density) ?? unref(outer?.densi
 // ---------- Avisos de desarrollo ----------
 const warned = new Set()
 function warnOnce(key, msg) {
-  if (!isDev || warned.has(key)) return
-  warned.add(key)
-  console.warn(`[Grana GFormFold] ${msg}`)
+  try {
+    if (process.env.NODE_ENV !== 'production' && !warned.has(key)) {
+      warned.add(key)
+      console.warn(`[Grana GFormFold] ${msg}`)
+    }
+  } catch {}
 }
 // Los avisos de los campos (labels.error…) van al de fuera si lo hay, para no repetirlos
-const fieldWarn = (k, m) => (outer && typeof outer.warnOnce === 'function' ? outer.warnOnce(k, m) : warnOnce(k, m))
+const fieldWarn = (k, m) => { try { if (process.env.NODE_ENV !== 'production') outer && typeof outer.warnOnce === 'function' ? outer.warnOnce(k, m) : warnOnce(k, m) } catch {} }
 
 // ---------- Estado de montaje y del plegado ----------
 const root = ref(null)
@@ -182,7 +185,7 @@ async function onOpened() {
   await nextTick()
   const el = root.value
   if (!el || !props.open) return
-  if (isDev) checkInside()
+  try { if (process.env.NODE_ENV !== 'production') checkInside() } catch {}
   // El estado cerrado ya está pintado (rejilla en 0fr): con un reflujo, is-open anima (sin is-ready, no anima)
   void el.offsetHeight
   expanded.value = true
@@ -228,10 +231,12 @@ function onClosed() {
 watch(() => props.open, (v) => {
   if (v) {
     fromEl = resolveFrom(props.from, root.value)
-    if (isDev) {
-      if (typeof props.from === 'string' && !resolveTarget(props.from)) warnOnce(`from-${props.from}`, `\`from\` nombra el id «${props.from}», que no existe al abrir.`)
-      if (props.for && !resolveTarget(props.for)) warnOnce(`for-${props.for}`, `\`for\` nombra el id «${props.for}», que no existe al abrir.`)
-    }
+    try {
+      if (process.env.NODE_ENV !== 'production') {
+        if (typeof props.from === 'string' && !resolveTarget(props.from)) warnOnce(`from-${props.from}`, `\`from\` nombra el id «${props.from}», que no existe al abrir.`)
+        if (props.for && !resolveTarget(props.for)) warnOnce(`for-${props.for}`, `\`for\` nombra el id «${props.for}», que no existe al abrir.`)
+      }
+    } catch {}
     bind(true)
     onOpened()
   } else {
@@ -289,15 +294,19 @@ function onKeydown(event) {
 
 // ---------- Avisos de desarrollo ----------
 function checkInside() {
-  const el = root.value
-  if (!el) return
-  if (!props.title) warnOnce('title', 'sin `title`: es el nombre del pliegue (y del error que bloquea el envío de fuera).')
-  if (!slots.actions) warnOnce('actions', 'sin slot `actions`: no hay forma de confirmar con el puntero.')
-  if (outer && !(props.labels && props.labels.pending)) warnOnce('pending', 'falta `labels.pending`: el envío de fuera se bloquea igual con el pliegue abierto, pero el error no tiene texto.')
-  const p = el.parentElement
-  if (p && p.classList.contains('g-form-row')) warnOnce('row', 'va dentro de una GFormRow: rompe sus pistas; colócalo después de la fila.')
-  if (bodyEl.value && bodyEl.value.querySelector('.g-form, .g-form-section')) warnOnce('nested-form', 'lleva un GForm o una GFormSection dentro: el pliegue ya es un formulario propio; usa campos, filas y otros pliegues.')
-  if (depth.value > 3) warnOnce('depth', 'más de tres pliegues anidados: cada nivel resta ancho; replantea el flujo (un paso de GDialog).')
+  try {
+    if (process.env.NODE_ENV !== 'production') {
+      const el = root.value
+      if (!el) return
+      if (!props.title) warnOnce('title', 'sin `title`: es el nombre del pliegue (y del error que bloquea el envío de fuera).')
+      if (!slots.actions) warnOnce('actions', 'sin slot `actions`: no hay forma de confirmar con el puntero.')
+      if (outer && !(props.labels && props.labels.pending)) warnOnce('pending', 'falta `labels.pending`: el envío de fuera se bloquea igual con el pliegue abierto, pero el error no tiene texto.')
+      const p = el.parentElement
+      if (p && p.classList.contains('g-form-row')) warnOnce('row', 'va dentro de una GFormRow: rompe sus pistas; colócalo después de la fila.')
+      if (bodyEl.value && bodyEl.value.querySelector('.g-form, .g-form-section')) warnOnce('nested-form', 'lleva un GForm o una GFormSection dentro: el pliegue ya es un formulario propio; usa campos, filas y otros pliegues.')
+      if (depth.value > 3) warnOnce('depth', 'más de tres pliegues anidados: cada nivel resta ancho; replantea el flujo (un paso de GDialog).')
+    }
+  } catch {}
 }
 
 onMounted(() => {
@@ -306,7 +315,7 @@ onMounted(() => {
   if (props.open) {
     fromEl = resolveFrom(props.from, root.value)
     bind(true)
-    if (isDev) checkInside()
+    try { if (process.env.NODE_ENV !== 'production') checkInside() } catch {}
   }
 })
 onBeforeUnmount(() => {

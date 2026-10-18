@@ -189,18 +189,19 @@ function focusField() {
 }
 
 // Avisos solo en desarrollo. `process` puede no existir (UMD en navegador): se comprueba antes de leerlo.
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
-if (isDev) {
-  if (!hasFieldSlot && !hasLabel.value && !attrs['aria-label'] && !attrs['aria-labelledby']) {
-    console.warn('[Grana] <GInput> necesita label, slot label, aria-label o aria-labelledby para tener un nombre accesible.')
+try {
+  if (process.env.NODE_ENV !== 'production') {
+    if (!hasFieldSlot && !hasLabel.value && !attrs['aria-label'] && !attrs['aria-labelledby']) {
+      console.warn('[Grana] <GInput> necesita label, slot label, aria-label o aria-labelledby para tener un nombre accesible.')
+    }
+    if (props.counter && maxlength.value === null) {
+      console.warn('[Grana] <GInput counter> necesita maxlength para mostrar el contador.')
+    }
+    if (props.type === 'password' && !showToggle.value) {
+      console.warn('[Grana] <GInput type="password"> necesita showPasswordLabel y hidePasswordLabel para mostrar el botón de visibilidad.')
+    }
   }
-  if (props.counter && maxlength.value === null) {
-    console.warn('[Grana] <GInput counter> necesita maxlength para mostrar el contador.')
-  }
-  if (props.type === 'password' && !showToggle.value) {
-    console.warn('[Grana] <GInput type="password"> necesita showPasswordLabel y hidePasswordLabel para mostrar el botón de visibilidad.')
-  }
-}
+} catch {}
 </script>
 
 <template>

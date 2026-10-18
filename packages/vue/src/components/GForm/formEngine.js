@@ -10,7 +10,7 @@
 //
 // Debe llamarse dentro de un setup (usa watch, onMounted y onBeforeUnmount).
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, shallowReactive, shallowRef, watch } from 'vue'
-import { byDocument, isDev, nextFrame, requestOpen, revealAndFocus } from './formContext.js'
+import { byDocument, nextFrame, requestOpen, revealAndFocus } from './formContext.js'
 
 /**
  * @param {{ errors: () => object, warnings: () => object, showErrorsOn: () => string, root: () => Element|null,
@@ -25,13 +25,15 @@ export function createFormEngine(o) {
   // ---------- Registro ----------
   const entries = shallowReactive(new Map()) // uid → registro (campos con name, grupos, pendientes de un GFormFold)
   function register(entry) {
-    if (isDev && !entry.inGroup) {
-      for (const n of entry.names()) {
-        for (const other of entries.values()) {
-          if (other !== entry && !other.inGroup && other.names().includes(n)) warnOnce(`dup-${n}`, `dos campos registrados con el mismo name («${n}»).`)
+    try {
+      if (process.env.NODE_ENV !== 'production' && !entry.inGroup) {
+        for (const n of entry.names()) {
+          for (const other of entries.values()) {
+            if (other !== entry && !other.inGroup && other.names().includes(n)) warnOnce(`dup-${n}`, `dos campos registrados con el mismo name («${n}»).`)
+          }
         }
       }
-    }
+    } catch {}
     entries.set(entry.uid, entry)
     return () => {
       if (entries.get(entry.uid) !== entry) return
@@ -210,7 +212,7 @@ export function createFormEngine(o) {
     }
   )
   function registerSummary(api) {
-    if (summaryApi && isDev) warnOnce('summaries', 'más de un GErrorSummary en el mismo formulario.')
+    try { if (process.env.NODE_ENV !== 'production' && summaryApi) warnOnce('summaries', 'más de un GErrorSummary en el mismo formulario.') } catch {}
     summaryApi = api
     return () => { if (summaryApi === api) summaryApi = null }
   }

@@ -75,7 +75,7 @@ Esas tres y el resto de compuertas están reunidas en `bash .github/scripts/gate
 - **Iconos: solo [Lucide](https://lucide.dev)** ([`docs/contract/icons.md`](docs/contract/icons.md), decisiones #85 a #87 y #197 a #203). Nada de caracteres Unicode como icono (marcas de verificación, triángulos, puntos, chevrons, signos de aviso), ni pictogramas dibujados con CSS, ni trazos escritos a mano. En los componentes se usa el `GIcon` interno; la aplicación usa el `GIcon` público con `createIcons`.
 - **Textos sin valor por defecto** (Grana es internacional): se pasan por props o por `labels`.
 - **Declara los eventos en `emits`**; si no, el listener del consumidor llega al elemento nativo por `$attrs`.
-- **Avisos de desarrollo** con `typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'`, nunca `import.meta.env.DEV`.
+- **Avisos de desarrollo** con la guarda `try { if (process.env.NODE_ENV !== 'production') … } catch {}` escrita en el sitio de cada aviso; nunca `typeof process`, una constante `isDev` ni `import.meta.env.DEV` (#636, `docs/contract/api.md` «Avisos de desarrollo»).
 - **Selectores estructurales sobre hijos de la aplicación** (`> *`, `:last-child`, `+`, `~`) ignoran el nodo de `GTooltip` con `:not(:where(.g-tooltip))` ([`api.md`](docs/contract/api.md), «Nodos hermanos de `GTooltip`»).
 
 ## El flujo de trabajo: Fruti Squad

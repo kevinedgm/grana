@@ -29,7 +29,6 @@ const MODIFIERS = { alt: 'Alt', control: 'Control', ctrl: 'Control', shift: 'Shi
 export const toasterKey = Symbol('GToaster')
 export const INTERNAL = Symbol('GToaster.internal')
 
-const isDev = () => typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const PREFIX = '[Grana GToaster]'
 const isClient = () => typeof window !== 'undefined' && typeof document !== 'undefined'
 
@@ -68,10 +67,12 @@ const now = () => Date.now()
 export function createToaster(options = {}) {
   const warned = new Set()
   const warn = (msg) => {
-    if (isDev() && !warned.has(msg)) {
-      warned.add(msg)
-      console.warn(`${PREFIX} ${msg}`)
-    }
+    try {
+      if (process.env.NODE_ENV !== 'production' && !warned.has(msg)) {
+        warned.add(msg)
+        console.warn(`${PREFIX} ${msg}`)
+      }
+    } catch {}
   }
 
   const state = reactive({
@@ -97,29 +98,29 @@ export function createToaster(options = {}) {
     const o = state.opts
     for (const key of Object.keys(patch)) {
       const v = patch[key]
-      if (!OPTION_KEYS.includes(key)) { warn(`opción desconocida «${key}»: se ignora.`); continue }
+      if (!OPTION_KEYS.includes(key)) { try { if (process.env.NODE_ENV !== 'production') warn(`opción desconocida «${key}»: se ignora.`) } catch {} continue }
       if (key === 'position') {
         if (POSITIONS.includes(v)) o.position = v
-        else warn(`position «${v}» no es válida (${POSITIONS.join(', ')}): se conserva «${o.position}».`)
+        else try { if (process.env.NODE_ENV !== 'production') warn(`position «${v}» no es válida (${POSITIONS.join(', ')}): se conserva «${o.position}».`) } catch {}
       } else if (key === 'limit' || key === 'mobileLimit') {
         if (validLimit(v)) o[key] = v
-        else warn(`${key} debe ser un entero mayor o igual que 1: se conserva ${o[key]}.`)
+        else try { if (process.env.NODE_ENV !== 'production') warn(`${key} debe ser un entero mayor o igual que 1: se conserva ${o[key]}.`) } catch {}
       } else if (key === 'duration') {
         if (validDuration(v)) o.duration = v
-        else warn(`duration «${v}» no es válida ('auto', milisegundos > 0 o Infinity): se conserva.`)
+        else try { if (process.env.NODE_ENV !== 'production') warn(`duration «${v}» no es válida ('auto', milisegundos > 0 o Infinity): se conserva.`) } catch {}
       } else if (key === 'autoClose' || key === 'swipe') {
         if (typeof v === 'boolean') o[key] = v
-        else warn(`${key} debe ser Boolean: se conserva.`)
+        else try { if (process.env.NODE_ENV !== 'production') warn(`${key} debe ser Boolean: se conserva.`) } catch {}
       } else if (key === 'hotkey') {
         const parsed = parseHotkey(v)
-        if (!parsed.ok) warn(`hotkey «${v}» no se puede interpretar (sintaxis de aria-keyshortcuts, p. ej. «F8» o «Alt+Shift+N»): se conserva.`)
-        else if (parsed.keys && parsed.keys.key === 'F6' && !Object.values(parsed.keys.mods).some(Boolean)) warn('hotkey «F6» lo usa el navegador para moverse entre la página y sus barras: se conserva el anterior.')
+        if (!parsed.ok) try { if (process.env.NODE_ENV !== 'production') warn(`hotkey «${v}» no se puede interpretar (sintaxis de aria-keyshortcuts, p. ej. «F8» o «Alt+Shift+N»): se conserva.`) } catch {}
+        else if (parsed.keys && parsed.keys.key === 'F6' && !Object.values(parsed.keys.mods).some(Boolean)) try { if (process.env.NODE_ENV !== 'production') warn('hotkey «F6» lo usa el navegador para moverse entre la página y sus barras: se conserva el anterior.') } catch {}
         else { o.hotkey = parsed.value; state.hotkeyKeys = parsed.keys }
       } else if (key === 'offset') {
-        if (!v || typeof v !== 'object' || !validOffset(v.top) || !validOffset(v.bottom)) warn('offset debe ser { top?, bottom? } con números (px) o longitudes CSS: se conserva.')
+        if (!v || typeof v !== 'object' || !validOffset(v.top) || !validOffset(v.bottom)) try { if (process.env.NODE_ENV !== 'production') warn('offset debe ser { top?, bottom? } con números (px) o longitudes CSS: se conserva.') } catch {}
         else o.offset = initial ? { ...v } : { ...o.offset, ...v }
       } else if (key === 'labels') {
-        if (!v || typeof v !== 'object') warn('labels debe ser un objeto: se conserva.')
+        if (!v || typeof v !== 'object') try { if (process.env.NODE_ENV !== 'production') warn('labels debe ser un objeto: se conserva.') } catch {}
         else {
           const types = v.types && typeof v.types === 'object' ? { ...(o.labels.types || {}), ...v.types } : o.labels.types
           o.labels = { ...o.labels, ...v, ...(types ? { types } : {}) }
@@ -168,45 +169,45 @@ export function createToaster(options = {}) {
   function normalize(input, creating) {
     const out = {}
     if (!input || typeof input !== 'object') {
-      if (creating) warn('show necesita un objeto de opciones con title: el aviso no se muestra.')
+      try { if (process.env.NODE_ENV !== 'production' && creating) warn('show necesita un objeto de opciones con title: el aviso no se muestra.') } catch {}
       return creating ? null : out
     }
     for (const key of Object.keys(input)) {
-      if (key === 'actions') warn('un aviso admite una sola action (no «actions»): se ignora.')
-      else if (!TOAST_KEYS.includes(key)) warn(`opción de aviso desconocida «${key}»: se ignora (solo texto en v0.1).`)
+      if (key === 'actions') try { if (process.env.NODE_ENV !== 'production') warn('un aviso admite una sola action (no «actions»): se ignora.') } catch {}
+      else if (!TOAST_KEYS.includes(key)) try { if (process.env.NODE_ENV !== 'production') warn(`opción de aviso desconocida «${key}»: se ignora (solo texto en v0.1).`) } catch {}
     }
     if ('id' in input && input.id !== undefined && input.id !== null) out.id = input.id
     if ('type' in input && input.type !== undefined) {
       if (TYPES.includes(input.type)) out.type = input.type
-      else warn(`type «${input.type}» no es válido (${TYPES.join(', ')}): se usa ${creating ? '«neutral»' : 'el anterior'}.`)
+      else try { if (process.env.NODE_ENV !== 'production') warn(`type «${input.type}» no es válido (${TYPES.join(', ')}): se usa ${creating ? '«neutral»' : 'el anterior'}.`) } catch {}
     }
     if ('title' in input) {
       if (typeof input.title === 'string' && input.title.trim()) out.title = input.title.trim()
-      else if (!creating) warn('update con title vacío: se conserva el anterior.')
+      else if (!creating) try { if (process.env.NODE_ENV !== 'production') warn('update con title vacío: se conserva el anterior.') } catch {}
     }
     if (creating && out.title === undefined) {
-      warn('un aviso necesita title: no se muestra.')
+      try { if (process.env.NODE_ENV !== 'production') warn('un aviso necesita title: no se muestra.') } catch {}
       return null
     }
     if ('description' in input) {
       if (input.description === undefined || input.description === null || input.description === '') out.description = undefined
       else if (typeof input.description === 'string') out.description = input.description
-      else warn('description debe ser texto: se ignora.')
+      else try { if (process.env.NODE_ENV !== 'production') warn('description debe ser texto: se ignora.') } catch {}
     }
     if ('action' in input) {
       const a = input.action
       if (a === undefined || a === null || a === false) out.action = undefined
-      else if (Array.isArray(a)) warn('un aviso admite una sola action: se ignora.')
-      else if (typeof a !== 'object' || typeof a.label !== 'string' || !a.label.trim()) warn('action necesita label: se ignora la acción.')
+      else if (Array.isArray(a)) try { if (process.env.NODE_ENV !== 'production') warn('un aviso admite una sola action: se ignora.') } catch {}
+      else if (typeof a !== 'object' || typeof a.label !== 'string' || !a.label.trim()) try { if (process.env.NODE_ENV !== 'production') warn('action necesita label: se ignora la acción.') } catch {}
       else out.action = { label: a.label, onClick: typeof a.onClick === 'function' ? a.onClick : undefined }
     }
     if ('duration' in input && input.duration !== undefined) {
       if (validDuration(input.duration)) out.durationOpt = input.duration
-      else warn(`duration «${input.duration}» no es válida ('auto', milisegundos > 0 o Infinity): se ignora.`)
+      else try { if (process.env.NODE_ENV !== 'production') warn(`duration «${input.duration}» no es válida ('auto', milisegundos > 0 o Infinity): se ignora.`) } catch {}
     }
     if ('politeness' in input && input.politeness !== undefined) {
       if (POLITENESS.includes(input.politeness)) out.politenessOpt = input.politeness
-      else warn(`politeness «${input.politeness}» no es válida (polite, assertive): se ignora.`)
+      else try { if (process.env.NODE_ENV !== 'production') warn(`politeness «${input.politeness}» no es válida (polite, assertive): se ignora.`) } catch {}
     }
     if ('onDismiss' in input) out.onDismiss = typeof input.onDismiss === 'function' ? input.onDismiss : undefined
     return out
@@ -214,13 +215,13 @@ export function createToaster(options = {}) {
 
   // Avisos que dependen del aviso ya resuelto
   function lint(r) {
-    if (typeof r.durationOpt === 'number' && forced(r)) warn(`duration en un aviso que no se cierra solo (${r.action ? 'con action' : r.type}): se ignora.`)
-    if (r.type === 'error' && r.politenessOpt === 'polite') warn('un error con politeness «polite» no interrumpe: el usuario puede no oírlo a tiempo.')
-    if (r.title.length > TEXT_LIMITS.title) warn(`title de más de ${TEXT_LIMITS.title} caracteres: un aviso no es para textos largos (no se recorta).`)
-    if (r.description && r.description.length > TEXT_LIMITS.description) warn(`description de más de ${TEXT_LIMITS.description} caracteres: un aviso no es para textos largos (no se recorta).`)
+    try { if (process.env.NODE_ENV !== 'production' && typeof r.durationOpt === 'number' && forced(r)) warn(`duration en un aviso que no se cierra solo (${r.action ? 'con action' : r.type}): se ignora.`) } catch {}
+    try { if (process.env.NODE_ENV !== 'production' && r.type === 'error' && r.politenessOpt === 'polite') warn('un error con politeness «polite» no interrumpe: el usuario puede no oírlo a tiempo.') } catch {}
+    try { if (process.env.NODE_ENV !== 'production' && r.title.length > TEXT_LIMITS.title) warn(`title de más de ${TEXT_LIMITS.title} caracteres: un aviso no es para textos largos (no se recorta).`) } catch {}
+    try { if (process.env.NODE_ENV !== 'production' && r.description && r.description.length > TEXT_LIMITS.description) warn(`description de más de ${TEXT_LIMITS.description} caracteres: un aviso no es para textos largos (no se recorta).`) } catch {}
     const L = state.opts.labels
-    if (r.type !== 'neutral' && !(L.types && L.types[r.type])) warn(`falta labels.types.${r.type}: el tipo queda solo en el icono.`)
-    if (r.action && state.opts.hotkey !== false && !L.actionHint) warn('falta labels.actionHint: el anuncio de un aviso con acción va sin pista.')
+    try { if (process.env.NODE_ENV !== 'production' && r.type !== 'neutral' && !(L.types && L.types[r.type])) warn(`falta labels.types.${r.type}: el tipo queda solo en el icono.`) } catch {}
+    try { if (process.env.NODE_ENV !== 'production' && r.action && state.opts.hotkey !== false && !L.actionHint) warn('falta labels.actionHint: el anuncio de un aviso con acción va sin pista.') } catch {}
   }
 
   // ---------- Anuncio ----------
@@ -277,7 +278,7 @@ export function createToaster(options = {}) {
       const i = state.queue.findIndex((u) => byUid(u)?.type !== 'error')
       state.queue.splice(i < 0 ? state.queue.length : i, 0, r.uid)
     } else state.queue.push(r.uid)
-    if (state.queue.length && !state.opts.labels.queued) warn('falta labels.queued: no se dibuja el texto de cola.')
+    try { if (process.env.NODE_ENV !== 'production' && state.queue.length && !state.opts.labels.queued) warn('falta labels.queued: no se dibuja el texto de cola.') } catch {}
   }
   function reveal(r) {
     r.state = 'visible'
@@ -342,10 +343,12 @@ export function createToaster(options = {}) {
 
   // ---------- API pública ----------
   function show(input) {
-    if (isDev() && isClient() && !checkedRegion) {
-      checkedRegion = true
-      setTimeout(() => { if (!region) warn('show sin ninguna <GToaster> montada para este gestor: los avisos esperan hasta que se monte.') }, 0)
-    }
+    try {
+      if (process.env.NODE_ENV !== 'production' && isClient() && !checkedRegion) {
+        checkedRegion = true
+        setTimeout(() => { if (!region) warn('show sin ninguna <GToaster> montada para este gestor: los avisos esperan hasta que se monte.') }, 0)
+      }
+    } catch {}
     const n = normalize(input, true)
     if (!n) return null
     if (n.id !== undefined && byId(n.id)) {
@@ -360,7 +363,7 @@ export function createToaster(options = {}) {
         same.count += 1
         if ('action' in n) same.action = n.action
         if ('onDismiss' in n) same.onDismiss = n.onDismiss
-        if (!state.opts.labels.repeated) warn('falta labels.repeated: el contador se dibuja sin nombre accesible propio.')
+        try { if (process.env.NODE_ENV !== 'production' && !state.opts.labels.repeated) warn('falta labels.repeated: el contador se dibuja sin nombre accesible propio.') } catch {}
         restart(same)
         announce(same)
         return same.id
@@ -457,12 +460,12 @@ export function createToaster(options = {}) {
   function promise(p, messages, opts) {
     messages = messages && typeof messages === 'object' ? messages : {}
     if (!p || typeof p.then !== 'function') {
-      warn('promise necesita una promesa.')
+      try { if (process.env.NODE_ENV !== 'production') warn('promise necesita una promesa.') } catch {}
       return p
     }
     const loading = norm(messages.loading)
     if (!loading) {
-      warn('promise necesita el mensaje loading.')
+      try { if (process.env.NODE_ENV !== 'production') warn('promise necesita el mensaje loading.') } catch {}
       return p
     }
     // La duración de `options` es para el desenlace correcto (el aviso en carga no se cierra solo)
@@ -515,7 +518,7 @@ export function createToaster(options = {}) {
         region = r
         state.attached = true
         mounted.add(toaster)
-        if (mounted.size > 1) warn('hay regiones de varios gestores montadas a la vez: sus regiones vivas compiten.')
+        try { if (process.env.NODE_ENV !== 'production' && mounted.size > 1) warn('hay regiones de varios gestores montadas a la vez: sus regiones vivas compiten.') } catch {}
         visible().sort((a, b) => a.revealSeq - b.revealSeq).forEach((v) => {
           if (Number.isFinite(v.remaining)) startTimer(v)
           announce(v)
@@ -573,12 +576,12 @@ export function createToaster(options = {}) {
 // Inyecta el gestor provisto con app.use(toaster). Sin gestor (o fuera de setup): aviso en desarrollo y undefined.
 export function useToast() {
   if (!hasInjectionContext()) {
-    if (isDev()) console.warn(`${PREFIX} useToast() solo funciona dentro de setup (o de app.runWithContext): devuelve undefined.`)
+    try { if (process.env.NODE_ENV !== 'production') console.warn(`${PREFIX} useToast() solo funciona dentro de setup (o de app.runWithContext): devuelve undefined.`) } catch {}
     return undefined
   }
   const t = inject(toasterKey, null)
   if (!t) {
-    if (isDev()) console.warn(`${PREFIX} useToast() sin gestor provisto: instala el tuyo con app.use(createToaster(…)). Devuelve undefined.`)
+    try { if (process.env.NODE_ENV !== 'production') console.warn(`${PREFIX} useToast() sin gestor provisto: instala el tuyo con app.use(createToaster(…)). Devuelve undefined.`) } catch {}
     return undefined
   }
   return t

@@ -18,8 +18,7 @@ const props = defineProps({
   size: { type: String, default: 'md', validator: oneOf(['sm', 'md', 'lg']) }
 })
 
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
-if (isDev && !props.label) console.warn('[Grana] <GMetric> necesita label (nombre accesible del valor).')
+try { if (process.env.NODE_ENV !== 'production' && !props.label) console.warn('[Grana] <GMetric> necesita label (nombre accesible del valor).') } catch {}
 
 const classes = computed(() => ['g-metric', `g-metric--size-${props.size}`, props.trend && `g-metric--trend-${props.trendColor}`])
 const trendIcon = computed(() => ({ up: 'arrow-up', down: 'arrow-down' })[props.direction] ?? 'minus')

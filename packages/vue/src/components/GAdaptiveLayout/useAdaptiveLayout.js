@@ -1,5 +1,5 @@
 import { onBeforeUnmount, onMounted, unref, watch } from 'vue'
-import { isDev } from '../GForm/formContext.js'
+import {  } from '../GForm/formContext.js'
 import { observeRow, scheduleRow } from '../GFormRow/rowEngine.js'
 import { aggregateProfiles, placeAdaptive, planAdaptive } from './adaptivePlan.js'
 import { adaptiveGroups, classify, createTextMeasurer, effectiveHints, hintKey, measureProfile, readHints, visibleChild } from './adaptiveProfiles.js'
@@ -127,8 +127,11 @@ export function useAdaptiveLayout(root, props, context) {
   let groupProfile = aggregateProfiles([])
   let lastGap = 0, pointerQuery = null, unwatchSheets = null, labelsVersion = -1, labelsChildren = []
   function warn(key, text) {
-    if (!isDev || warned.has(key)) return
-    warned.add(key); console.warn(`[Grana GAdaptiveLayout] ${text}`)
+    try {
+      if (process.env.NODE_ENV !== 'production' && !warned.has(key)) {
+        warned.add(key); console.warn(`[Grana GAdaptiveLayout] ${text}`)
+      }
+    } catch {}
   }
   const schedule = () => { if (mounted && root.value) scheduleRow(root.value) }
   /** Internal invalidation: every cached profile is stale (text measurements keyed by font stay valid). */
@@ -188,7 +191,7 @@ export function useAdaptiveLayout(root, props, context) {
   function run(width) {
     const el = root.value
     if (!mounted || !el || !(width > 0)) return
-    if ([...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) { warn('text', 'Texto suelto: envuélvelo en un elemento; se conserva la pila.'); fallback(); return }
+    if ([...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) { try { if (process.env.NODE_ENV !== 'production') warn('text', 'Texto suelto: envuélvelo en un elemento; se conserva la pila.') } catch {} fallback(); return }
     const children = [], styles = []
     for (const child of el.children) {
       const childStyle = getComputedStyle(child)
@@ -199,15 +202,15 @@ export function useAdaptiveLayout(root, props, context) {
     const dense = style.gridAutoFlow.includes('dense')
     const profiles = children.map((child, i) => {
       const childStyle = styles[i]
-      if (childStyle.order !== '0' || dense) warn('order', 'order/dense puede romper el orden lógico; conserva el orden DOM.')
+      try { if (process.env.NODE_ENV !== 'production' && (childStyle.order !== '0' || dense)) warn('order', 'order/dense puede romper el orden lógico; conserva el orden DOM.') } catch {}
       const cached = profileCache.get(child)
       const current = cached?.version === version
       const kind = current ? cached.kind : classify(child)
       // Hints live in the child (#364): its classes and its computed --g-adapt-* (same style query as `order`).
       const read = readHints(child, childStyle)
-      for (const issue of read.issues) warn(`hint-${issue}`, WARNINGS[issue])
+      for (const issue of read.issues) try { if (process.env.NODE_ENV !== 'production') warn(`hint-${issue}`, WARNINGS[issue]) } catch {}
       const { hint, ignored } = effectiveHints(read.hint, kind)
-      if (ignored) warn('hint-ignored', WARNINGS.ignored)
+      try { if (process.env.NODE_ENV !== 'production' && ignored) warn('hint-ignored', WARNINGS.ignored) } catch {}
       const key = hintKey(hint), font = fontOf(childStyle)
       if (current && cached.key === key && cached.font === font && kind !== 'group') return cached.profile
       const profile = measureProfile(child, hint, intrinsic.get(child) || 0, measurer, kind)
@@ -219,7 +222,7 @@ export function useAdaptiveLayout(root, props, context) {
     publish(aggregateProfiles(profiles, gap))
     const plan = planAdaptive(profiles, width, gap, { stack: Boolean(unref(context.stack)) })
     const placements = placeAdaptive(plan, width, gap, props.horizontal)
-    if (plan.strategy === 'linear') warn('large', 'Más de 64 hijos: se usa partición contigua voraz de coste acotado.')
+    try { if (process.env.NODE_ENV !== 'production' && plan.strategy === 'linear') warn('large', 'Más de 64 hijos: se usa partición contigua voraz de coste acotado.') } catch {}
     const peers = new Map()
     for (const item of placements) if (children[item.index].matches('.g-input,.g-select,.g-textarea')) peers.set(item.line, (peers.get(item.line) || 0) + 1)
     const sharedTracks = [...peers.values()].some(count => count >= 2)
@@ -253,7 +256,7 @@ export function useAdaptiveLayout(root, props, context) {
     const el = root.value
     if (!el) return
     mounted = true
-    if (el.parentElement?.closest('.g-form-row')) warn('row', 'No anides GAdaptiveLayout dentro de GFormRow; usa GFormLayout.')
+    try { if (process.env.NODE_ENV !== 'production' && el.parentElement?.closest('.g-form-row')) warn('row', 'No anides GAdaptiveLayout dentro de GFormRow; usa GFormLayout.') } catch {}
     measurer = createTextMeasurer(el.ownerDocument)
     adaptiveGroups.set(el, { profile: () => groupProfile })
     stop = observeRow(el, run)

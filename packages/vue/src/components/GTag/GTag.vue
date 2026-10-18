@@ -13,7 +13,7 @@ import { useVisualTips } from '../../utils/visualTip.js'
 import { categoryOf } from '../../utils/categoryHash.js'
 import { warnMissingCategory } from '../../utils/categoryToken.js'
 import { otherContext } from '../../utils/link.js'
-import { INTERACTIVE, colorInfo, colorWarning, createCutWatcher, hasContent, isDev, present, say, tagItemKey, validCategories } from './tagShared.js'
+import { INTERACTIVE, colorInfo, colorWarning, createCutWatcher, hasContent, present, say, tagItemKey, validCategories } from './tagShared.js'
 
 const SIZES = ['sm', 'md']
 // Atributos del enlace (van al <a> solo con href)
@@ -49,9 +49,12 @@ export default defineComponent({
     // Avisos: una vez por instancia, causa y valor
     const warned = new Set()
     const warn = (key, msg) => {
-      if (!isDev() || warned.has(key)) return
-      warned.add(key)
-      console.warn(`[Grana GTag] ${msg}`)
+      try {
+        if (process.env.NODE_ENV !== 'production' && !warned.has(key)) {
+          warned.add(key)
+          console.warn(`[Grana GTag] ${msg}`)
+        }
+      } catch {}
     }
 
     const root = ref(null)
@@ -119,30 +122,35 @@ export default defineComponent({
     const refreshCut = () => { if (cut) cut.refresh(root.value) }
 
     const checkSlot = () => {
-      if (!isDev() || !root.value) return
-      const text = root.value.querySelector('.g-tag__text')
-      if (text && text.querySelector(INTERACTIVE)) warn('slot', `«${label.value}»: el slot por defecto lleva contenido interactivo (a, button, input…), que no cabe en una etiqueta. Usa href (enlace), pressed (alternar) o un GBtn aparte.`)
+      try {
+        if (process.env.NODE_ENV !== 'production' && !(!root.value)) {
+          const text = root.value.querySelector('.g-tag__text')
+          if (text && text.querySelector(INTERACTIVE)) warn('slot', `«${label.value}»: el slot por defecto lleva contenido interactivo (a, button, input…), que no cabe en una etiqueta. Usa href (enlace), pressed (alternar) o un GBtn aparte.`)
+        }
+      } catch {}
     }
-    onMounted(() => { refreshCut(); checkSlot(); warnMissingCategory(root.value, cat.value, 'GTag') })
-    onUpdated(() => { refreshCut(); warnMissingCategory(root.value, cat.value, 'GTag') })
+    onMounted(() => { refreshCut(); checkSlot(); try { if (process.env.NODE_ENV !== 'production') warnMissingCategory(root.value, cat.value, 'GTag') } catch {} })
+    onUpdated(() => { refreshCut(); try { if (process.env.NODE_ENV !== 'production') warnMissingCategory(root.value, cat.value, 'GTag') } catch {} })
     onBeforeUnmount(() => { if (cut) cut.dispose() })
 
     return () => {
       const c = ctx()
       // Aviso 8: sin label no se pinta
       if (!label.value) {
-        warn('label', 'label es obligatoria y no puede estar vacía: es el texto, la base de los nombres de «Quitar» y la clave del color. La etiqueta no se pinta.')
+        try { if (process.env.NODE_ENV !== 'production') warn('label', 'label es obligatoria y no puede estar vacía: es el texto, la base de los nombres de «Quitar» y la clave del color. La etiqueta no se pinta.') } catch {}
         return null
       }
 
       // ---------- Avisos de las props (en un grupo los da GTagGroup como G8) ----------
-      if (isDev() && !inGroup) {
-        if (href.value && (props.pressed === true || props.pressed === false)) warn('href-pressed', `«${label.value}»: href y pressed a la vez; navegar y cambiar un estado son dos intenciones. Se ignora pressed (es un enlace).`)
-        const ci = colorInfo(props.color)
-        if (ci.kind === 'invalid') warn(`color:${String(ci.value)}`, colorWarning(ci.value))
-        if (!validCategories(props.categories)) warn(`categories:${String(props.categories)}`, `categories=${JSON.stringify(props.categories)} no es un entero de 0 a 12: se trata como 0 (sin color derivado). Pon el mismo número que la entrada categories del tema.`)
-        if (props.removable && !present(removeName.value)) warn('remove', `«${label.value}» es removable sin labels.remove: «Quitar» queda sin nombre accesible. Pasa :labels="{ remove: 'Quitar {label}' }".`)
-      }
+      try {
+        if (process.env.NODE_ENV !== 'production' && !inGroup) {
+          if (href.value && (props.pressed === true || props.pressed === false)) warn('href-pressed', `«${label.value}»: href y pressed a la vez; navegar y cambiar un estado son dos intenciones. Se ignora pressed (es un enlace).`)
+          const ci = colorInfo(props.color)
+          if (ci.kind === 'invalid') warn(`color:${String(ci.value)}`, colorWarning(ci.value))
+          if (!validCategories(props.categories)) warn(`categories:${String(props.categories)}`, `categories=${JSON.stringify(props.categories)} no es un entero de 0 a 12: se trata como 0 (sin color derivado). Pon el mismo número que la entrada categories del tema.`)
+          if (props.removable && !present(removeName.value)) warn('remove', `«${label.value}» es removable sin labels.remove: «Quitar» queda sin nombre accesible. Pasa :labels="{ remove: 'Quitar {label}' }".`)
+        }
+      } catch {}
 
       // ---------- Reparto de atributos (aviso 1 y 7) ----------
       const own = {}
@@ -151,11 +159,11 @@ export default defineComponent({
       for (const [k, v] of Object.entries(attrs)) {
         if (isDescribedBy(k)) { describedBy = v; continue }
         if (isA11yAttr(k)) {
-          warn(`attr:${k}`, `ignora el atributo «${k}»: el nombre lo da el texto (label); el rol y el foco los decide la etiqueta (href, pressed, removable).`)
+          try { if (process.env.NODE_ENV !== 'production') warn(`attr:${k}`, `ignora el atributo «${k}»: el nombre lo da el texto (label); el rol y el foco los decide la etiqueta (href, pressed, removable).`) } catch {}
           continue
         }
         if (k === 'onClick') {
-          warn('onClick', 'no enlaza una escucha de clic: usa navigate (enlace), update:pressed (alternar) o remove (quitar); para otra acción, un GBtn size="sm".')
+          try { if (process.env.NODE_ENV !== 'production') warn('onClick', 'no enlaza una escucha de clic: usa navigate (enlace), update:pressed (alternar) o remove (quitar); para otra acción, un GBtn size="sm".') } catch {}
           continue
         }
         if (LINK_ATTRS.has(k)) { if (href.value) link[k] = v; continue }

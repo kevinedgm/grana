@@ -18,7 +18,6 @@ const LAYOUTS = ['inline', 'row', 'stack']
 const SIZES = ['xs', 'sm', 'md', 'lg', 'xl']
 const DEFAULT_SIZE = { inline: 'xs', row: 'md', stack: 'lg' }
 
-const isDev = () => typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 
 // Una cadena vacía (o solo espacios), null y undefined cuentan como ausentes; un número se convierte con String()
 const present = (v) => {
@@ -71,20 +70,23 @@ export default defineComponent({
     // Avisos de desarrollo: una vez por instancia y motivo
     const warned = new Set()
     const warn = (key, msg) => {
-      if (!isDev() || warned.has(key)) return
-      warned.add(key)
-      console.warn(`[Grana GSummary] ${msg}`)
+      try {
+        if (process.env.NODE_ENV !== 'production' && !warned.has(key)) {
+          warned.add(key)
+          console.warn(`[Grana GSummary] ${msg}`)
+        }
+      } catch {}
     }
 
     const layout = computed(() => (LAYOUTS.includes(props.layout) ? props.layout : 'row'))
     // Líneas totales en `row` (título + lo demás): 0 = sin límite; 1, negativos y no enteros no valen (se usa 2)
     const lines = computed(() => {
       if (layout.value !== 'row') {
-        if (props.lines !== 2) warn('lines-layout', `lines solo actúa con layout="row": con layout="${layout.value}" se ignora.`)
+        try { if (process.env.NODE_ENV !== 'production' && props.lines !== 2) warn('lines-layout', `lines solo actúa con layout="row": con layout="${layout.value}" se ignora.`) } catch {}
         return 2
       }
       if (!Number.isInteger(props.lines) || props.lines === 1 || props.lines < 0) {
-        warn('lines', `lines debe ser 0 (sin límite) o un entero mayor o igual que 2 (recibió ${props.lines}): se usa 2. Una sola línea es layout="inline".`)
+        try { if (process.env.NODE_ENV !== 'production') warn('lines', `lines debe ser 0 (sin límite) o un entero mayor o igual que 2 (recibió ${props.lines}): se usa 2. Una sola línea es layout="inline".`) } catch {}
         return 2
       }
       return props.lines
@@ -98,10 +100,10 @@ export default defineComponent({
       ;(Array.isArray(props.facts) ? props.facts : []).forEach((f, i) => {
         if (!f || typeof f !== 'object') return
         const label = present(f.label)
-        if (!label) return warn('fact-label', 'un dato de facts no tiene label: se omite. El rótulo es obligatorio (y es la clave del dato).')
+        if (!label) { try { if (process.env.NODE_ENV !== 'production') warn('fact-label', 'un dato de facts no tiene label: se omite. El rótulo es obligatorio (y es la clave del dato).') } catch {} return }
         const value = present(f.value)
         if (value === undefined) return
-        if (seen.has(label)) warn(`fact-dup:${label}`, `dos datos de facts comparten el label «${label}»: se pintan los dos, pero diff es ambiguo.`)
+        try { if (process.env.NODE_ENV !== 'production' && seen.has(label)) warn(`fact-dup:${label}`, `dos datos de facts comparten el label «${label}»: se pintan los dos, pero diff es ambiguo.`) } catch {}
         seen.add(label)
         const p = typeof f.priority === 'number' && !Number.isNaN(f.priority) ? f.priority : Infinity
         list.push({ label, shown: present(f.short) ?? label, value, bare: f.bare === true, p, i })
@@ -113,7 +115,7 @@ export default defineComponent({
       if (!props.diff || typeof props.diff !== 'object') return out
       for (const [k, v] of Object.entries(props.diff)) {
         if (v === 'same' || v === 'diff') out[k] = v
-        else if (v != null) warn(`diff:${k}`, `diff['${k}'] vale «${v}»: solo se admiten 'same' y 'diff'. Se ignora esa clave.`)
+        else if (v != null) try { if (process.env.NODE_ENV !== 'production') warn(`diff:${k}`, `diff['${k}'] vale «${v}»: solo se admiten 'same' y 'diff'. Se ignora esa clave.`) } catch {}
       }
       return out
     })
@@ -123,7 +125,7 @@ export default defineComponent({
     const start = () => {
       rec = attach(root.el, {
         multi: multi.value,
-        onZero: () => warn('zero', 'mide 0 de ancho: la ficha no aporta ancho a su anfitrión (contain: inline-size). Dale sitio: min en la columna de GTable, min-inline-size o flex: 1 en una fila flex.')
+        onZero: () => { try { if (process.env.NODE_ENV !== 'production') warn('zero', 'mide 0 de ancho: la ficha no aporta ancho a su anfitrión (contain: inline-size). Dale sitio: min en la columna de GTable, min-inline-size o flex: 1 en una fila flex.') } catch {} }
       })
     }
     onMounted(() => { if (root.el && measurable()) start() })
@@ -165,8 +167,8 @@ export default defineComponent({
       }
 
       const actionSlot = slotNodes(slots.action)
-      if (actionSlot && L !== 'stack') warn('action', `el slot action solo se pinta con layout="stack": en "${L}" el anfitrión es lo accionable.`)
-      if (props.group && !title) warn('group', 'group necesita title: es el nombre del grupo (aria-labelledby).')
+      try { if (process.env.NODE_ENV !== 'production' && actionSlot && L !== 'stack') warn('action', `el slot action solo se pinta con layout="stack": en "${L}" el anfitrión es lo accionable.`) } catch {}
+      try { if (process.env.NODE_ENV !== 'production' && props.group && !title) warn('group', 'group necesita title: es el nombre del grupo (aria-labelledby).') } catch {}
 
       // Hueco inicial: slot lead › avatar › icon. La identidad es decorativa (el título ya nombra)
       let leadNode = null
@@ -180,7 +182,7 @@ export default defineComponent({
       if (empty) {
         const placeholder = present(props.placeholder)
         if (!placeholder) {
-          warn('empty', 'no tiene title, placeholder ni loading: la ficha está vacía y no pinta nada.')
+          try { if (process.env.NODE_ENV !== 'production') warn('empty', 'no tiene title, placeholder ni loading: la ficha está vacía y no pinta nada.') } catch {}
           return h('span', attrs)
         }
         return h('span', attrs, kids([
@@ -212,7 +214,7 @@ export default defineComponent({
 
       const statusSlot = slotNodes(slots.status)
       const statusLabel = props.status ? present(props.status.label) : undefined
-      if (props.status && !statusLabel && !statusSlot) warn('status', 'status necesita label (o el slot status): no se pinta.')
+      try { if (process.env.NODE_ENV !== 'production' && props.status && !statusLabel && !statusSlot) warn('status', 'status necesita label (o el slot status): no se pinta.') } catch {}
       const status = statusSlot || (statusLabel ? h(GBadge, { color: present(props.status.color) ?? 'neutral', size: 'sm' }, () => statusLabel) : null)
 
       return h('span', attrs, kids([

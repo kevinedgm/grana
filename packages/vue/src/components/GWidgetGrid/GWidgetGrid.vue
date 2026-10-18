@@ -9,7 +9,6 @@ import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GLibIcon.js'
 import { GRID_KEY, ITEM_KEY } from '../../utils/widgetContext.js'
 
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const DEFAULT_PRESETS = [{ id: 's', w: 1, h: 1 }, { id: 'm', w: 2, h: 1 }, { id: 'l', w: 2, h: 2 }, { id: 'wide', w: 4, h: 1 }, { id: 'tall', w: 1, h: 2 }]
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v))
 const fill = (tpl, vars) => (typeof tpl === 'string' ? tpl.replace(/\{(title|position|count|columns|rows)\}/g, (_, k) => String(vars[k] ?? '')) : '')
@@ -45,9 +44,12 @@ export default defineComponent({
     const L = computed(() => props.labels || {})
     const warned = new Set()
     const warnOnce = (key, msg) => {
-      if (!isDev || warned.has(key)) return
-      warned.add(key)
-      console.warn(`[Grana] <GWidgetGrid> ${msg}`)
+      try {
+        if (process.env.NODE_ENV !== 'production' && !warned.has(key)) {
+          warned.add(key)
+          console.warn(`[Grana] <GWidgetGrid> ${msg}`)
+        }
+      } catch {}
     }
 
     // ---------- Layout ----------
@@ -56,10 +58,10 @@ export default defineComponent({
       const out = []
       for (const e of props.modelValue) {
         if (!e || typeof e !== 'object' || e.id === undefined || e.id === null || !Number.isInteger(e.w) || e.w < 1 || !Number.isInteger(e.h) || e.h < 1) {
-          warnOnce('bad', 'una entrada del layout sin id o con w/h inválidos se ignora.')
+          try { if (process.env.NODE_ENV !== 'production') warnOnce('bad', 'una entrada del layout sin id o con w/h inválidos se ignora.') } catch {}
           continue
         }
-        if (seen.has(e.id)) { warnOnce(`dup-${e.id}`, `hay dos entradas con el mismo id (${String(e.id)}).`); continue }
+        if (seen.has(e.id)) { try { if (process.env.NODE_ENV !== 'production') warnOnce(`dup-${e.id}`, `hay dos entradas con el mismo id (${String(e.id)}).`) } catch {} continue }
         seen.add(e.id)
         out.push({ ...e })
       }
@@ -360,11 +362,13 @@ export default defineComponent({
     onBeforeUnmount(() => ro?.disconnect())
 
     // ---------- Avisos de desarrollo ----------
-    if (isDev) {
-      if (!props.label && !attrs['aria-label']) warnOnce('label', 'necesita label (nombre accesible de la lista).')
-      if (!useSlotsRef.item) warnOnce('item', 'necesita el slot item (el contenido de cada celda).')
-      if (props.editable && (!L.value.grab || !L.value.resize)) warnOnce('labels', 'con editable necesita labels.grab y labels.resize.')
-    }
+    try {
+      if (process.env.NODE_ENV !== 'production') {
+        if (!props.label && !attrs['aria-label']) warnOnce('label', 'necesita label (nombre accesible de la lista).')
+        if (!useSlotsRef.item) warnOnce('item', 'necesita el slot item (el contenido de cada celda).')
+        if (props.editable && (!L.value.grab || !L.value.resize)) warnOnce('labels', 'con editable necesita labels.grab y labels.resize.')
+      }
+    } catch {}
 
     expose({ focusMenu, focusHandle })
 

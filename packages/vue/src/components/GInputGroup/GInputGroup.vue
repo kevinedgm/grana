@@ -7,7 +7,7 @@
 import { computed, onMounted, provide, ref, shallowReactive, useId, useSlots } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GLibIcon.js'
-import { byDocument, isDev, layoutKey, messageIcon, useCompositeField, useFormField } from '../GForm/formContext.js'
+import { byDocument, layoutKey, messageIcon, useCompositeField, useFormField } from '../GForm/formContext.js'
 import { inputGroupKey } from './inputGroupContext.js'
 
 defineOptions({ name: 'GInputGroup' })
@@ -121,17 +121,20 @@ const classes = computed(() => [
 
 // ---------- Avisos de desarrollo (al montar; las partes ya están registradas) ----------
 onMounted(() => {
-  if (!isDev) return
-  const warn = (m) => console.warn(`[Grana GInputGroup] ${m}`)
-  if (!hasLabel.value) warn('necesita label o el slot label (nombre del grupo y de cada parte).')
-  if (controls.value.length < 2) warn('tiene menos de dos partes GInputGroupInput/GInputGroupSelect: para una sola parte, usa GInput con prefix/suffix.')
-  if (controls.value.filter((p) => p.principal()).length > 1) warn('más de una parte con `principal`.')
-  for (const p of controls.value) if (p !== principal.value && !p.partLabel()) warn('una parte no principal sin `partLabel`: su nombre accesible sería solo la etiqueta del grupo.')
-  const box = root.value?.querySelector('.g-input-group__box')
-  if (box) for (const c of box.children) {
-    if (c.matches('.g-tooltip')) continue // nodo hermano de GTooltip (#383, #394)
-    if (!c.matches('.g-input-group__part, .g-input-group__text-label')) warn(`«${c.className || c.localName}» no es una parte: solo GInputGroupInput, GInputGroupSelect y GInputGroupText (cada campo trae su propia etiqueta y caja).`)
-  }
+  try {
+    if (process.env.NODE_ENV !== 'production') {
+      const warn = (m) => console.warn(`[Grana GInputGroup] ${m}`)
+      if (!hasLabel.value) warn('necesita label o el slot label (nombre del grupo y de cada parte).')
+      if (controls.value.length < 2) warn('tiene menos de dos partes GInputGroupInput/GInputGroupSelect: para una sola parte, usa GInput con prefix/suffix.')
+      if (controls.value.filter((p) => p.principal()).length > 1) warn('más de una parte con `principal`.')
+      for (const p of controls.value) if (p !== principal.value && !p.partLabel()) warn('una parte no principal sin `partLabel`: su nombre accesible sería solo la etiqueta del grupo.')
+      const box = root.value?.querySelector('.g-input-group__box')
+      if (box) for (const c of box.children) {
+        if (c.matches('.g-tooltip')) continue // nodo hermano de GTooltip (#383, #394)
+        if (!c.matches('.g-input-group__part, .g-input-group__text-label')) warn(`«${c.className || c.localName}» no es una parte: solo GInputGroupInput, GInputGroupSelect y GInputGroupText (cada campo trae su propia etiqueta y caja).`)
+      }
+    }
+  } catch {}
 })
 </script>
 

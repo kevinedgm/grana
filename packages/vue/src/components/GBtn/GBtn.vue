@@ -100,17 +100,20 @@ function onClick(event) {
 }
 
 // Aviso solo en desarrollo. `process` puede no existir (UMD en navegador): se comprueba antes de leerlo.
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
-if (isDev && props.icon && !attrs['aria-label'] && !attrs['aria-labelledby'] && !props.tooltip) {
-  console.warn('[Grana] <GBtn icon> necesita aria-label, aria-labelledby o tooltip para tener un nombre accesible.')
-}
+try {
+  if (process.env.NODE_ENV !== 'production' && props.icon && !attrs['aria-label'] && !attrs['aria-labelledby'] && !props.tooltip) {
+    console.warn('[Grana] <GBtn icon> necesita aria-label, aria-labelledby o tooltip para tener un nombre accesible.')
+  }
+} catch {}
 
 // Prop `tooltip` (#390): con un GTooltip como padre directo gana el envoltorio (más rico y explícito) y GBtn no crea el
 // suyo. Solo el hijo directo: un GBtn tooltip más adentro de lo envuelto (el `append` de un GInput) conserva el suyo.
 const wrapped = getCurrentInstance()?.parent?.type === GTooltip
-if (isDev && wrapped && props.tooltip) {
-  console.warn('[Grana] <GBtn tooltip> dentro de un <GTooltip>: gana el envoltorio y la prop `tooltip` se ignora.')
-}
+try {
+  if (process.env.NODE_ENV !== 'production' && wrapped && props.tooltip) {
+    console.warn('[Grana] <GBtn tooltip> dentro de un <GTooltip>: gana el envoltorio y la prop `tooltip` se ignora.')
+  }
+} catch {}
 const ownTooltip = computed(() => (wrapped ? undefined : props.tooltip))
 // Envuelve el botón en un GTooltip solo con `tooltip`; si no, lo deja tal cual (estructura: botón, nodo, estado)
 const TooltipWrap = (p, { slots: s }) => {

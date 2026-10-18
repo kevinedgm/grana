@@ -18,12 +18,14 @@ const props = defineProps({
   status: { type: Object, default: undefined }
 })
 
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const warned = new Set()
 const warn = (msg) => {
-  if (!isDev || warned.has(msg)) return
-  warned.add(msg)
-  console.warn(`[Grana Status] ${msg}`)
+  try {
+    if (process.env.NODE_ENV !== 'production' && !warned.has(msg)) {
+      warned.add(msg)
+      console.warn(`[Grana Status] ${msg}`)
+    }
+  } catch {}
 }
 const slots = useSlots()
 const injected = inject(statusKey, null)
@@ -33,10 +35,12 @@ const S = api ? api.state : null
 const ICON = { info: 'info', success: 'circle-check', warning: 'triangle-alert', error: 'circle-alert' }
 
 const isLink = computed(() => props.for !== undefined && props.for !== null && props.for !== '')
-if (isDev) {
-  if (isLink.value && !api) warn('<GStatusMark for> sin prop `status` y sin gestor provisto (app.use(createStatus(…))): no pinta nada.')
-  if (isLink.value && props.type !== undefined) warn('<GStatusMark> con `for` y `type` a la vez: con `for`, el tipo es el de la condición (se ignora `type`).')
-}
+try {
+  if (process.env.NODE_ENV !== 'production') {
+    if (isLink.value && !api) warn('<GStatusMark for> sin prop `status` y sin gestor provisto (app.use(createStatus(…))): no pinta nada.')
+    if (isLink.value && props.type !== undefined) warn('<GStatusMark> con `for` y `type` a la vez: con `for`, el tipo es el de la condición (se ignora `type`).')
+  }
+} catch {}
 
 // En el servidor la marca enlace no renderiza: aparece al montar
 const mounted = ref(false)
@@ -46,7 +50,7 @@ const type = computed(() => (isLink.value ? (rec.value ? rec.value.type : 'info'
 const busy = computed(() => Boolean(rec.value && rec.value.busy))
 const prefix = computed(() => {
   const t = props.typeLabel || (S && S.opts.labels.types ? S.opts.labels.types[type.value] : undefined)
-  if (!t && !isLink.value) warn(`<GStatusMark> de texto sin prefijo de tipo: pasa \`typeLabel\` o define labels.types.${type.value} en el gestor.`)
+  try { if (process.env.NODE_ENV !== 'production' && !t && !isLink.value) warn(`<GStatusMark> de texto sin prefijo de tipo: pasa \`typeLabel\` o define labels.types.${type.value} en el gestor.`) } catch {}
   return t ? `${t}: ` : ''
 })
 const classes = computed(() => ['g-status-mark', isLink.value ? 'g-status-mark--link' : 'g-status-mark--text', `g-status-mark--type-${type.value}`, { 'is-busy': busy.value }])

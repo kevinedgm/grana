@@ -15,7 +15,6 @@ import { spaceUnit } from '../GForm/formContext.js'
 import { otherContext, newTab } from '../../utils/link.js'
 import { acquirePageLive, announcePage } from '../../utils/liveRegion.js'
 
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const TYPES = ['item', 'checkbox', 'radio', 'separator', 'group']
 const cls = (...v) => v.filter(Boolean)
 // Pausa del puntero: abre un submenú y, en M4, cambia de elemento si el puntero se para (constante neutra, #187)
@@ -60,9 +59,12 @@ export default defineComponent({
 
     const warned = new Set()
     const warnOnce = (key, msg) => {
-      if (!isDev || warned.has(key)) return
-      warned.add(key)
-      console.warn(`[Grana] <GMenu> ${msg}`)
+      try {
+        if (process.env.NODE_ENV !== 'production' && !warned.has(key)) {
+          warned.add(key)
+          console.warn(`[Grana] <GMenu> ${msg}`)
+        }
+      } catch {}
     }
 
     // ---------- Datos: árbol normalizado ----------
@@ -72,13 +74,13 @@ export default defineComponent({
     let scan = null
     const linkOf = (raw, path, isLinkable) => {
       const href = typeof raw.href === 'string' && raw.href.trim() && raw.href
-      if (href && !isLinkable) warnOnce('e1', 'ignora `href` en casilla, opción, grupo, separador o padre de submenú (E1).')
+      try { if (process.env.NODE_ENV !== 'production' && href && !isLinkable) warnOnce('e1', 'ignora `href` en casilla, opción, grupo, separador o padre de submenú (E1).') } catch {}
       if (!href || !isLinkable) {
-        if (['target', 'rel', 'external', 'current'].some((k) => raw[k])) warnOnce('e2', 'ignora target, rel, external y current sin href (E2).')
+        try { if (process.env.NODE_ENV !== 'production' && ['target', 'rel', 'external', 'current'].some((k) => raw[k])) warnOnce('e2', 'ignora target, rel, external y current sin href (E2).') } catch {}
         return null
       }
       let current = Boolean(raw.current)
-      if (current && scan.current) { warnOnce('e3', 'solo el primer `current` es la página actual (E3).'); current = false }
+      if (current && scan.current) { try { if (process.env.NODE_ENV !== 'production') warnOnce('e3', 'solo el primer `current` es la página actual (E3).') } catch {} current = false }
       if (current) { scan.current = true; path.forEach((k) => scan.branch.add(k)) }
       const ext = Boolean(raw.external)
       const tab = newTab(raw.target)
@@ -91,16 +93,16 @@ export default defineComponent({
     const normalize = (list, path, group, prefix) => {
       const out = []
       ;(list || []).forEach((raw, i) => {
-        if (!raw || typeof raw !== 'object') { warnOnce('item', 'ignora un elemento inválido de `items`.'); return }
+        if (!raw || typeof raw !== 'object') { try { if (process.env.NODE_ENV !== 'production') warnOnce('item', 'ignora un elemento inválido de `items`.') } catch {} return }
         const type = raw.type ?? 'item'
-        if (!TYPES.includes(type)) { warnOnce(`type-${type}`, `ignora un elemento de tipo desconocido («${type}»).`); return }
+        if (!TYPES.includes(type)) { try { if (process.env.NODE_ENV !== 'production') warnOnce(`type-${type}`, `ignora un elemento de tipo desconocido («${type}»).`) } catch {} return }
         const key = `${prefix}${i}`
         if (type === 'separator') { linkOf(raw, path, false); out.push({ key, type, raw }); return }
-        if (typeof raw.label !== 'string' || !raw.label) { warnOnce('label', 'ignora un elemento sin `label`.'); return }
+        if (typeof raw.label !== 'string' || !raw.label) { try { if (process.env.NODE_ENV !== 'production') warnOnce('label', 'ignora un elemento sin `label`.') } catch {} return }
         if (type === 'group') { linkOf(raw, path, false); out.push({ key, type, raw, children: normalize(raw.items, path, raw, `${key}.`) }); return }
         const isParent = Array.isArray(raw.items) && raw.items.length > 0
         // Un padre de submenú no emite `select`: su `id` es opcional
-        if (!isParent && (raw.id === undefined || raw.id === null)) { warnOnce('id', 'ignora un elemento sin `id`.'); return }
+        if (!isParent && (raw.id === undefined || raw.id === null)) { try { if (process.env.NODE_ENV !== 'production') warnOnce('id', 'ignora un elemento sin `id`.') } catch {} return }
         const node = { key, type, raw, parent: group, path, link: linkOf(raw, path, type === 'item' && !isParent) }
         if (isParent) node.children = normalize(raw.items, [...path, key], null, `${key}.`)
         out.push(node)
@@ -133,11 +135,14 @@ export default defineComponent({
     const trigger = () => elementOf(triggerEl) || (typeof document !== 'undefined' ? document.getElementById(triggerId) : null)
     // El `id` del disparador es del menú (`{id}-trigger`): la aplicación elige `{id}` con la prop `id` (#305)
     const checkTriggerId = () => {
-      if (!isDev || warned.has('trigger-id')) return
-      const id = elementOf(triggerEl)?.getAttribute('id')
-      if (!id || id === triggerId) return
-      warned.add('trigger-id')
-      console.warn(`[Grana GMenu] el disparador tiene id="${id}"; GMenu necesita "${triggerId}" (usa la prop \`id\` de GMenu).`)
+      try {
+        if (process.env.NODE_ENV !== 'production' && !warned.has('trigger-id')) {
+          const id = elementOf(triggerEl)?.getAttribute('id')
+          if (!id || id === triggerId) return
+          warned.add('trigger-id')
+          console.warn(`[Grana GMenu] el disparador tiene id="${id}"; GMenu necesita "${triggerId}" (usa la prop \`id\` de GMenu).`)
+        }
+      } catch {}
     }
     onMounted(checkTriggerId)
     const menus = () => (listRef.value ? [listRef.value, ...listRef.value.querySelectorAll('[role="menu"]')] : [])
@@ -579,7 +584,7 @@ export default defineComponent({
           e.preventDefault()
           Promise.resolve()
             .then(() => cb.writeText(new URL(node.link.href, document.baseURI).href))
-            .then(() => trace(node, 'copied'), () => warnOnce('e7', 'navigator.clipboard.writeText se rechazó (E7).'))
+            .then(() => trace(node, 'copied'), () => { try { if (process.env.NODE_ENV !== 'production') warnOnce('e7', 'navigator.clipboard.writeText se rechazó (E7).') } catch {} })
           return
         }
       }
@@ -691,9 +696,9 @@ export default defineComponent({
       scan = { branch: new Set() }
       tree = normalize(props.items, [], null, 'i')
       const L = props.labels
-      if ((scan.ext && !L.external) || (scan.tab && !L.newTab)) warnOnce('e4', 'falta labels.external o labels.newTab (E4).')
-      if ((scan.solo && !L.destExternal) || (scan.tab && !L.destNewTab)) warnOnce('e5', 'falta labels.destExternal o labels.destNewTab (E5).')
-      if (scan.live && !(hasPair('opened') && hasPair('copied'))) warnOnce('e6', 'falta labels.opened/openedLive o copied/copiedLive: ese gesto queda en el del navegador (E6).')
+      try { if (process.env.NODE_ENV !== 'production' && ((scan.ext && !L.external) || (scan.tab && !L.newTab))) warnOnce('e4', 'falta labels.external o labels.newTab (E4).') } catch {}
+      try { if (process.env.NODE_ENV !== 'production' && ((scan.solo && !L.destExternal) || (scan.tab && !L.destNewTab))) warnOnce('e5', 'falta labels.destExternal o labels.destNewTab (E5).') } catch {}
+      try { if (process.env.NODE_ENV !== 'production' && scan.live && !(hasPair('opened') && hasPair('copied'))) warnOnce('e6', 'falta labels.opened/openedLive o copied/copiedLive: ese gesto queda en el del navegador (E6).') } catch {}
       const isOpen = props.modelValue
       const triggerAttrs = {
         id: triggerId,
@@ -711,7 +716,7 @@ export default defineComponent({
       }
       const out = []
       if (slots.trigger) out.push(...[].concat(slots.trigger({ open: isOpen, attrs: triggerAttrs })))
-      else warnOnce('trigger', 'necesita el slot `trigger` (el botón que abre el menú).')
+      else try { if (process.env.NODE_ENV !== 'production') warnOnce('trigger', 'necesita el slot `trigger` (el botón que abre el menú).') } catch {}
       if (isOpen || leaving.value) {
         out.push(h('ul', {
           ...attrs,

@@ -68,12 +68,14 @@ const ROLL_PREFIX = 'g-number-roll'
 const BUMP_PREFIX = 'g-number-bump'
 
 // ---------- Avisos (una vez por instancia) ----------
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const warned = new Set()
 function warnOnce(key, text) {
-  if (!isDev || warned.has(key)) return
-  warned.add(key)
-  console.warn(`[Grana GNumberField] ${text}`)
+  try {
+    if (process.env.NODE_ENV !== 'production' && !warned.has(key)) {
+      warned.add(key)
+      console.warn(`[Grana GNumberField] ${text}`)
+    }
+  } catch {}
 }
 
 // ---------- Contexto (la misma precedencia que useFormField: prop › sub‑contexto › GForm › default) ----------
@@ -104,7 +106,7 @@ function normalize(v) {
   if (v === undefined || v === null) return null
   if (typeof v === 'number') {
     if (Number.isFinite(v)) return v
-    warnOnce('nan', `modelValue ${String(v)} no es un número finito: se lee como vacío (null).`)
+    try { if (process.env.NODE_ENV !== 'production') warnOnce('nan', `modelValue ${String(v)} no es un número finito: se lee como vacío (null).`) } catch {}
     return null
   }
   if (typeof v === 'string' && /^-?(\d+(\.\d*)?|\.\d+)$/.test(v.trim())) return Number(v.trim())
@@ -125,7 +127,7 @@ const info = computed(() => {
   return localeInfo(undefined)
 })
 watch(() => props.locale, (l) => {
-  if (l && !isValidLocale(l)) warnOnce('locale', `locale «${l}» no lo acepta Intl: se usa el idioma del documento.`)
+  try { if (process.env.NODE_ENV !== 'production' && l && !isValidLocale(l)) warnOnce('locale', `locale «${l}» no lo acepta Intl: se usa el idioma del documento.`) } catch {}
 }, { immediate: true })
 // Para escribir antes de conocer el idioma (no debería pasar: solo se escribe montado) se usa el formato canónico
 const writeInfo = () => info.value || localeInfo('en-US')
@@ -661,17 +663,19 @@ const mirrorText = computed(() => text.value || (attrs.placeholder != null ? Str
 const rootClasses = computed(() => ['g-number-field', { 'g-number-field--has-steppers': showSteppers.value }, attrs.class])
 
 // ---------- Avisos de montaje (1 a 5 y 8; 6 en normalize y 7 en el watch de locale) ----------
-if (isDev) {
-  if (!hasLabel.value && !attrs['aria-label'] && !attrs['aria-labelledby']) warnOnce('name', 'necesita label, slot label, aria-label o aria-labelledby para tener un nombre accesible.')
-  if (props.steppers && !hasStepLabels.value) warnOnce('steppers', 'steppers necesita decrementLabel e incrementLabel: −/+ no se pintan.')
-  if (limits.value.crossed) warnOnce('limits', `min (${props.min}) es mayor que max (${props.max}): se ignoran los dos límites.`)
-  if (props.step !== undefined && !(Number.isFinite(props.step) && props.step > 0)) warnOnce('step', `step ${String(props.step)} no es un número mayor que 0: se usa 1.`)
-  if (precision.value !== undefined && (decimalsOf(stepSize.value) > precision.value || (limits.value.min !== undefined && decimalsOf(limits.value.min) > precision.value))) {
-    warnOnce('precision', `precision ${precision.value} es menor que los decimales de step o de min: los pasos se redondean y pueden salir de la rejilla.`)
+try {
+  if (process.env.NODE_ENV !== 'production') {
+    if (!hasLabel.value && !attrs['aria-label'] && !attrs['aria-labelledby']) warnOnce('name', 'necesita label, slot label, aria-label o aria-labelledby para tener un nombre accesible.')
+    if (props.steppers && !hasStepLabels.value) warnOnce('steppers', 'steppers necesita decrementLabel e incrementLabel: −/+ no se pintan.')
+    if (limits.value.crossed) warnOnce('limits', `min (${props.min}) es mayor que max (${props.max}): se ignoran los dos límites.`)
+    if (props.step !== undefined && !(Number.isFinite(props.step) && props.step > 0)) warnOnce('step', `step ${String(props.step)} no es un número mayor que 0: se usa 1.`)
+    if (precision.value !== undefined && (decimalsOf(stepSize.value) > precision.value || (limits.value.min !== undefined && decimalsOf(limits.value.min) > precision.value))) {
+      warnOnce('precision', `precision ${precision.value} es menor que los decimales de step o de min: los pasos se redondean y pueden salir de la rejilla.`)
+    }
+    if (attrs.type !== undefined) warnOnce('type', 'type no aplica: el campo es siempre type="text" con role="spinbutton".')
+    if (slots.append || slots.action) warnOnce('slots', 'los slots append y action no aplican (el final de la caja es de −/+): no se pintan.')
   }
-  if (attrs.type !== undefined) warnOnce('type', 'type no aplica: el campo es siempre type="text" con role="spinbutton".')
-  if (slots.append || slots.action) warnOnce('slots', 'los slots append y action no aplican (el final de la caja es de −/+): no se pintan.')
-}
+} catch {}
 </script>
 
 <template>

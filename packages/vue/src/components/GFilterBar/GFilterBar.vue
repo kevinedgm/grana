@@ -13,7 +13,6 @@ import GMenu from '../GMenu/GMenu.vue'
 import GBtn from '../GBtn/GBtn.vue'
 import GDialog from '../GDialog/GDialog.vue'
 
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const SHEET_UNITS = 130
 const toPx = (value) => {
   const n = parseFloat(value)
@@ -50,10 +49,12 @@ export default defineComponent({
     const draftError = ref('')
     let anchorEl = null
 
-    if (isDev) {
-      const missing = ['group', 'add', 'clear', 'filterBy', 'edit', 'remove', 'apply', 'cancel', 'required', 'ops'].filter((k) => !props.labels[k])
-      if (missing.length) console.warn(`[Grana] <GFilterBar> faltan textos en labels (${missing.join(', ')}).`)
-    }
+    try {
+      if (process.env.NODE_ENV !== 'production') {
+        const missing = ['group', 'add', 'clear', 'filterBy', 'edit', 'remove', 'apply', 'cancel', 'required', 'ops'].filter((k) => !props.labels[k])
+        if (missing.length) console.warn(`[Grana] <GFilterBar> faltan textos en labels (${missing.join(', ')}).`)
+      }
+    } catch {}
 
     const filterable = computed(() => props.fields.filter((f) => f.filter && OPS[f.filter.type]))
     const fieldOf = (key) => filterable.value.find((f) => f.key === key)

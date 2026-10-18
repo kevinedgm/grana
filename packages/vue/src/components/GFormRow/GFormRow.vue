@@ -7,7 +7,7 @@
 // pone un hijo por línea (nunca desborda).
 import { computed, inject, onBeforeUnmount, onMounted, provide, ref, unref, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
-import { formKey, isDev, layoutKey, spaceUnit } from '../GForm/formContext.js'
+import { formKey, layoutKey, spaceUnit } from '../GForm/formContext.js'
 import { MAX_CHILDREN, SIZES, placement, planLines, sizeOf } from './formRowPlan.js'
 import { knownWidth, observeRow, rowRoots, scheduleRow } from './rowEngine.js'
 
@@ -71,7 +71,7 @@ function run(width) {
   const el = root.value
   if (!el || !(width > 0)) return
   const kids = rowKids(el)
-  if (isDev) checkChildren(kids)
+  try { if (process.env.NODE_ENV !== 'production') checkChildren(kids) } catch {}
   if (!kids.length) return
   const cs = typeof getComputedStyle === 'function' ? getComputedStyle(el) : null
   const g = cs ? parseFloat(cs.getPropertyValue('--_form-row-gap')) || 0 : 0
@@ -95,29 +95,33 @@ const warned = new Set()
 function warn(key, msg) {
   if (warned.has(key)) return
   warned.add(key)
-  console.warn(`[Grana GFormRow] ${msg}`)
+  try { if (process.env.NODE_ENV !== 'production') console.warn(`[Grana GFormRow] ${msg}`) } catch {}
 }
 function checkChildren(kids) {
-  if (kids.length > MAX_CHILDREN) warn('many', `tiene ${kids.length} hijos (más de ${MAX_CHILDREN}): divide la fila en filas por idea.`)
-  const cs = typeof getComputedStyle === 'function' ? getComputedStyle : null
-  for (const kid of kids) {
-    const { all, unknown } = sizeOf(kid.classList)
-    if (cs) {
-      const order = cs(kid).order
-      if (order && order !== '0') warn('order', 'un hijo tiene `order` distinto de 0: rompería orden del DOM = lectura = Tab = visual.')
+  try {
+    if (process.env.NODE_ENV !== 'production') {
+      if (kids.length > MAX_CHILDREN) warn('many', `tiene ${kids.length} hijos (más de ${MAX_CHILDREN}): divide la fila en filas por idea.`)
+      const cs = typeof getComputedStyle === 'function' ? getComputedStyle : null
+      for (const kid of kids) {
+        const { all, unknown } = sizeOf(kid.classList)
+        if (cs) {
+          const order = cs(kid).order
+          if (order && order !== '0') warn('order', 'un hijo tiene `order` distinto de 0: rompería orden del DOM = lectura = Tab = visual.')
+        }
+        if (all.length > 1) warn(`two-${all.join()}`, `un hijo tiene dos clases de tamaño (${all.join(', ')}).`)
+        for (const u of unknown) warn(`unknown-${u}`, `clase de tamaño desconocida «${u}»: cuenta como g-form-w-md${u === 'g-form-w-full' ? ' (g-form-w-full se retiró en r02: un campo suelto ya ocupa el ancho entero)' : ''}.`)
+        if (kids.length > 1 && (kid.matches(NOT_ADMITTED) || rowRoots.has(kid))) {
+          warn(`not-admitted-${kid.className}`, `«${kid.className.split(' ')[0]}» no comparte línea: va en su propia fila (hijo directo de GFormLayout).`)
+        }
+        const raw = kid.style ? kid.style.getPropertyValue('--g-form-min').trim() : ''
+        if (raw && !(Number(raw) > 0)) warn(`min-${raw}`, `--g-form-min debe ser un número positivo (múltiplos de space), no «${raw}».`)
+      }
+      if (kids.length === 1) {
+        const { size } = sizeOf(kids[0].classList)
+        if (size === 'xs' || size === 'sm') warn('alone', 'un campo compacto solo en su fila ocupa el ancho entero: agrúpalo con los campos que lo acompañan.')
+      }
     }
-    if (all.length > 1) warn(`two-${all.join()}`, `un hijo tiene dos clases de tamaño (${all.join(', ')}).`)
-    for (const u of unknown) warn(`unknown-${u}`, `clase de tamaño desconocida «${u}»: cuenta como g-form-w-md${u === 'g-form-w-full' ? ' (g-form-w-full se retiró en r02: un campo suelto ya ocupa el ancho entero)' : ''}.`)
-    if (kids.length > 1 && (kid.matches(NOT_ADMITTED) || rowRoots.has(kid))) {
-      warn(`not-admitted-${kid.className}`, `«${kid.className.split(' ')[0]}» no comparte línea: va en su propia fila (hijo directo de GFormLayout).`)
-    }
-    const raw = kid.style ? kid.style.getPropertyValue('--g-form-min').trim() : ''
-    if (raw && !(Number(raw) > 0)) warn(`min-${raw}`, `--g-form-min debe ser un número positivo (múltiplos de space), no «${raw}».`)
-  }
-  if (kids.length === 1) {
-    const { size } = sizeOf(kids[0].classList)
-    if (size === 'xs' || size === 'sm') warn('alone', 'un campo compacto solo en su fila ocupa el ancho entero: agrúpalo con los campos que lo acompañan.')
-  }
+  } catch {}
 }
 
 // ---------- Ciclo de vida ----------
@@ -127,7 +131,7 @@ onMounted(() => {
   const el = root.value
   if (!el) return
   rowRoots.add(el)
-  if (isDev) checkChildren(rowKids(el))
+  try { if (process.env.NODE_ENV !== 'production') checkChildren(rowKids(el)) } catch {}
   stop = observeRow(el, run)
   // Hijos o sus clases/estilos cambian (v-if, g-form-w-*, --g-form-min): se recalcula con el último ancho medido
   if (typeof MutationObserver !== 'undefined') {

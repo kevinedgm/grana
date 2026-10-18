@@ -4,7 +4,7 @@
 // Grana presenta y emite intención; no valida ni guarda: `errors` y `warnings` los calcula la aplicación.
 import { computed, inject, mergeProps, provide, ref, useAttrs, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
-import { formKey, isDev, nextFrame, spaceUnit } from './formContext.js'
+import { formKey, nextFrame, spaceUnit } from './formContext.js'
 import { createFormEngine } from './formEngine.js'
 
 defineOptions({ name: 'GForm', inheritAttrs: false })
@@ -33,14 +33,19 @@ const formEl = ref(null)
 // ---------- Avisos de desarrollo (una vez cada uno) ----------
 const warned = new Set()
 function warnOnce(key, msg) {
-  if (!isDev || warned.has(key)) return
-  warned.add(key)
-  console.warn(`[Grana GForm] ${msg}`)
+  try {
+    if (process.env.NODE_ENV !== 'production' && !warned.has(key)) {
+      warned.add(key)
+      console.warn(`[Grana GForm] ${msg}`)
+    }
+  } catch {}
 }
-if (isDev) {
-  if (nested) warnOnce('nested', 'un GForm dentro de otro GForm: HTML no admite formularios anidados; el interior se pinta como <div> y sigue proveyendo su contexto.')
-  if (attrs.action !== undefined || attrs.method !== undefined) warnOnce('action', 'se ignoran `action` y `method`: GForm siempre cancela el envío nativo y emite `submit`.')
-}
+try {
+  if (process.env.NODE_ENV !== 'production') {
+    if (nested) warnOnce('nested', 'un GForm dentro de otro GForm: HTML no admite formularios anidados; el interior se pinta como <div> y sigue proveyendo su contexto.')
+    if (attrs.action !== undefined || attrs.method !== undefined) warnOnce('action', 'se ignoran `action` y `method`: GForm siempre cancela el envío nativo y emite `submit`.')
+  }
+} catch {}
 
 // ---------- Motor compartido con GFormFold (formEngine.js, form.md §15, #588) ----------
 const engine = createFormEngine({
@@ -140,7 +145,7 @@ let stickyEl = null
 let stickyCount = 0
 function registerActions(getEl) {
   stickyCount++
-  if (stickyCount > 1) warnOnce('sticky', 'más de un GFormActions sticky en el mismo formulario.')
+  try { if (process.env.NODE_ENV !== 'production' && stickyCount > 1) warnOnce('sticky', 'más de un GFormActions sticky en el mismo formulario.') } catch {}
   stickyEl = getEl
   return () => {
     stickyCount--
@@ -194,7 +199,7 @@ provide(formKey, {
   registerActions
 })
 
-if (isDev && props.marks === 'required' && !props.labels?.requiredHint) warnOnce('label-requiredHint', 'falta labels.requiredHint: con marks="required" no se pinta la frase que explica el asterisco.')
+try { if (process.env.NODE_ENV !== 'production' && props.marks === 'required' && !props.labels?.requiredHint) warnOnce('label-requiredHint', 'falta labels.requiredHint: con marks="required" no se pinta la frase que explica el asterisco.') } catch {}
 
 // ---------- Marcado ----------
 const classes = computed(() => [

@@ -12,13 +12,12 @@ const props = defineProps({
   swatches: Boolean
 })
 
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const valid = (r) => r && typeof r === 'object' && r.label !== undefined
 const items = computed(() => {
   const out = []
   props.rows.forEach((r, i) => {
     if (!valid(r)) {
-      if (isDev) console.warn('[Grana] <GDataList> ignora una fila sin label.')
+      try { if (process.env.NODE_ENV !== 'production') console.warn('[Grana] <GDataList> ignora una fila sin label.') } catch {}
       return
     }
     const s = Number.isInteger(r.swatch) && r.swatch >= 0 && r.swatch <= 3 ? r.swatch : i % 4

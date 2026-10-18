@@ -13,7 +13,6 @@ import { loadRegionKey } from '../../utils/loadPhase.js'
 import GBtn from '../GBtn/GBtn.vue'
 import GIcon from '../GIcon/GLibIcon.js'
 
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const CAUSES = ['none', 'filtered', 'error', 'forbidden']
 // Iconos propios por causa (icons.md v0.9): `none` sin icono (el hueco vacío donde irá el primero)
 const ICON = { filtered: 'search', error: 'circle-alert', forbidden: 'lock' }
@@ -40,9 +39,12 @@ export default defineComponent({
     const root = ref(null)
     const warned = new Set()
     const warn = (id, msg) => {
-      if (!isDev || warned.has(id)) return
-      warned.add(id)
-      console.warn(`[Grana] <GEmpty> ${msg}`)
+      try {
+        if (process.env.NODE_ENV !== 'production' && !warned.has(id)) {
+          warned.add(id)
+          console.warn(`[Grana] <GEmpty> ${msg}`)
+        }
+      } catch {}
     }
 
     // ---------- Idioma: prop › lang del ancestro más cercano › navigator.language (al montar; como GNumberField, #310) ----------
@@ -100,15 +102,15 @@ export default defineComponent({
     const checkWarnings = () => {
       const hasFilters = Array.isArray(props.filters) && props.filters.length > 0
       if (!isFiltered.value && (hasFilters || props.total !== undefined)) {
-        warn('not-filtered', 'filters y total solo se usan con cause="filtered": se ignoran.')
+        try { if (process.env.NODE_ENV !== 'production') warn('not-filtered', 'filters y total solo se usan con cause="filtered": se ignoran.') } catch {}
       }
       if (exit.value) {
-        if (relaxing.value.length && !props.labels.relax) warn('relax', 'la salida ofrece filtros sueltos sin labels.relax (texto del botón «Quitar «{label}»»).')
-        if (props.filters.some((f) => f && typeof f.count === 'number') && !props.labels.returns) warn('returns', 'hay filtros con count sin labels.returns (cuántas vuelven, para el lector).')
-        if (!props.labels.clear) warn('clear', 'la salida con filters necesita labels.clear («Quitar todos»).')
-        if (props.total !== undefined && !props.labels.before) warn('before', 'con total, define labels.before (la traza «Antes había {total}…»).')
+        try { if (process.env.NODE_ENV !== 'production' && relaxing.value.length && !props.labels.relax) warn('relax', 'la salida ofrece filtros sueltos sin labels.relax (texto del botón «Quitar «{label}»»).') } catch {}
+        try { if (process.env.NODE_ENV !== 'production' && props.filters.some((f) => f && typeof f.count === 'number') && !props.labels.returns) warn('returns', 'hay filtros con count sin labels.returns (cuántas vuelven, para el lector).') } catch {}
+        try { if (process.env.NODE_ENV !== 'production' && !props.labels.clear) warn('clear', 'la salida con filters necesita labels.clear («Quitar todos»).') } catch {}
+        try { if (process.env.NODE_ENV !== 'production' && props.total !== undefined && !props.labels.before) warn('before', 'con total, define labels.before (la traza «Antes había {total}…»).') } catch {}
       }
-      if (isFiltered.value && !hasFilters && !slots.actions) warn('no-exit', 'cause="filtered" sin filters ni slot actions: un vacío por filtro sin salida.')
+      try { if (process.env.NODE_ENV !== 'production' && isFiltered.value && !hasFilters && !slots.actions) warn('no-exit', 'cause="filtered" sin filters ni slot actions: un vacío por filtro sin salida.') } catch {}
     }
     watch(() => [props.cause, props.filters, props.total, props.labels], checkWarnings, { immediate: true, deep: true })
 

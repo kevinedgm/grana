@@ -22,12 +22,11 @@ const props = defineProps({
   toaster: { type: Object, default: undefined }
 })
 
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const attrs = useAttrs()
 const injected = inject(toasterKey, null)
 const manager = toRaw(props.toaster) || injected
 const api = manager && manager[INTERNAL] ? manager[INTERNAL] : null
-if (!api && isDev) console.warn('[Grana GToaster] <GToaster> sin prop `toaster` y sin gestor provisto (app.use(createToaster(…))): no pinta nada.')
+try { if (process.env.NODE_ENV !== 'production' && !api) console.warn('[Grana GToaster] <GToaster> sin prop `toaster` y sin gestor provisto (app.use(createToaster(…))): no pinta nada.') } catch {}
 const S = api ? api.state : null
 
 const ICON = { info: 'info', success: 'circle-check', warning: 'triangle-alert', error: 'circle-alert', loading: 'loader-circle' }
@@ -441,18 +440,20 @@ watch(() => rendered.value.length, (n) => {
 onMounted(async () => {
   if (!api) return
   if (S.attached) {
-    if (isDev) console.warn('[Grana GToaster] dos <GToaster> para el mismo gestor: la segunda no pinta nada.')
+    try { if (process.env.NODE_ENV !== 'production') console.warn('[Grana GToaster] dos <GToaster> para el mismo gestor: la segunda no pinta nada.') } catch {}
     return
   }
-  if (isDev) {
-    if (!L.value.region) console.warn('[Grana GToaster] falta labels.region: la región de avisos queda sin nombre.')
-    if (!L.value.close) console.warn('[Grana GToaster] falta labels.close: el botón cerrar queda sin nombre accesible (se dibuja igual).')
-  }
+  try {
+    if (process.env.NODE_ENV !== 'production') {
+      if (!L.value.region) console.warn('[Grana GToaster] falta labels.region: la región de avisos queda sin nombre.')
+      if (!L.value.close) console.warn('[Grana GToaster] falta labels.close: el botón cerrar queda sin nombre accesible (se dibuja igual).')
+    }
+  } catch {}
   topModal.scan()
   // Se reclama el gestor en el acto (dos regiones montadas en el mismo ciclo: gana la primera). Los anuncios esperan
   // ANNOUNCE.delay, así que la región ya está en el árbol cuando se escribe el primero.
   if (!api.attach(region)) {
-    if (isDev) console.warn('[Grana GToaster] dos <GToaster> para el mismo gestor: la segunda no pinta nada.')
+    try { if (process.env.NODE_ENV !== 'production') console.warn('[Grana GToaster] dos <GToaster> para el mismo gestor: la segunda no pinta nada.') } catch {}
     return
   }
   topModal.sync()

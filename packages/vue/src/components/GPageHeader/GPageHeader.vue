@@ -45,12 +45,14 @@ const LEVELS = [1, 2, 3]
 const ZONES = ['none', 'brand']
 
 // ---------- Avisos de desarrollo ([Grana GPageHeader], una vez por instancia y motivo) ----------
-const isDev = () => typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const warned = new Set()
 function warnOnce(key, msg) {
-  if (!isDev() || warned.has(key)) return
-  warned.add(key)
-  console.warn(`[Grana GPageHeader] ${msg}`)
+  try {
+    if (process.env.NODE_ENV !== 'production' && !warned.has(key)) {
+      warned.add(key)
+      console.warn(`[Grana GPageHeader] ${msg}`)
+    }
+  } catch {}
 }
 
 // ---------- Datos ----------
@@ -328,13 +330,16 @@ watch(speechBelow, () => {
 // Aviso 8: un ancestro que crea bloque contenedor para lo fijo atrapa el muelle
 function checkDockEdge() {
   const dock = dockEl.value
-  if (!dockOpen.value || !dock || !isDev()) return
-  const r = dock.getBoundingClientRect()
-  if (!r.height) return // sin maquetación (jsdom): nada que medir
-  const vh = document.documentElement.clientHeight || window.innerHeight
-  if (Math.abs(r.bottom + speechBelow.value - vh) > 2) {
-    warnOnce('trap', 'el muelle no llega al borde inferior del visor: un ancestro con transform, translate, scale, filter, backdrop-filter, perspective, contain, container-type o will-change lo atrapa (page-header.md «Pegado», regla 7).')
-  }
+  try {
+    if (process.env.NODE_ENV !== 'production' && !(!dockOpen.value || !dock)) {
+      const r = dock.getBoundingClientRect()
+      if (!r.height) return // sin maquetación (jsdom): nada que medir
+      const vh = document.documentElement.clientHeight || window.innerHeight
+      if (Math.abs(r.bottom + speechBelow.value - vh) > 2) {
+        warnOnce('trap', 'el muelle no llega al borde inferior del visor: un ancestro con transform, translate, scale, filter, backdrop-filter, perspective, contain, container-type o will-change lo atrapa (page-header.md «Pegado», regla 7).')
+      }
+    }
+  } catch {}
 }
 
 function onActionsFocusOut() {
@@ -377,36 +382,39 @@ function onTabSelected() {
 
 // ---------- Comprobaciones de desarrollo que necesitan el DOM ----------
 function checkBase() {
-  if (!isDev()) return
-  const base = baseEl.value
-  if (base && M.baseH > 0) {
-    const kids = [...(tabsEl.value ? tabsEl.value.children : []), ...(actionsEl.value ? actionsEl.value.children : [])]
-    if (kids.some((k) => k.getBoundingClientRect().height > M.baseH + 0.5)) {
-      warnOnce('tall', 'el contenido del zócalo es más alto que el zócalo (max(space × 12, 44px)): GTabs en una fila y GBtn hasta size="lg".')
+  try {
+    if (process.env.NODE_ENV !== 'production') {
+      const base = baseEl.value
+      if (base && M.baseH > 0) {
+        const kids = [...(tabsEl.value ? tabsEl.value.children : []), ...(actionsEl.value ? actionsEl.value.children : [])]
+        if (kids.some((k) => k.getBoundingClientRect().height > M.baseH + 0.5)) {
+          warnOnce('tall', 'el contenido del zócalo es más alto que el zócalo (max(space × 12, 44px)): GTabs en una fila y GBtn hasta size="lg".')
+        }
+      }
+      if (tabsEl.value && tabsEl.value.querySelector('.g-tabs__panels')) {
+        warnOnce('panels', 'el slot tabs lleva un GTabs con paneles integrados: debe ir con detached y sus GTabPanel en el cuerpo de la página (#118).')
+      }
+      if (actionsEl.value && actionsEl.value.querySelectorAll('.g-btn--variant-solid.g-btn--color-brand').length > 1) {
+        warnOnce('solid', 'más de una acción sólida de marca en el grupo: una sola acción principal (tokens.md §2).')
+      }
+      const root = rootEl.value
+      if (root && isSticky.value && root.parentElement) {
+        const ph = root.parentElement.getBoundingClientRect().height
+        if (Math.abs(ph - root.getBoundingClientRect().height) < 1) {
+          warnOnce('parent', 'el padre del encabezado mide lo mismo que él: el pegado no hará nada. El encabezado debe ser hijo directo del contenedor largo (normalmente main), sin envoltorio (ni de zona).')
+        }
+      }
     }
-  }
-  if (tabsEl.value && tabsEl.value.querySelector('.g-tabs__panels')) {
-    warnOnce('panels', 'el slot tabs lleva un GTabs con paneles integrados: debe ir con detached y sus GTabPanel en el cuerpo de la página (#118).')
-  }
-  if (actionsEl.value && actionsEl.value.querySelectorAll('.g-btn--variant-solid.g-btn--color-brand').length > 1) {
-    warnOnce('solid', 'más de una acción sólida de marca en el grupo: una sola acción principal (tokens.md §2).')
-  }
-  const root = rootEl.value
-  if (root && isSticky.value && root.parentElement) {
-    const ph = root.parentElement.getBoundingClientRect().height
-    if (Math.abs(ph - root.getBoundingClientRect().height) < 1) {
-      warnOnce('parent', 'el padre del encabezado mide lo mismo que él: el pegado no hará nada. El encabezado debe ser hijo directo del contenedor largo (normalmente main), sin envoltorio (ni de zona).')
-    }
-  }
+  } catch {}
 }
 
 function checkProps() {
-  if (!titleText.value) warnOnce('title', 'falta title (o está vacío): es el texto del encabezado, del título compacto y del enlace del muelle.')
-  if (!LEVELS.includes(props.headingLevel)) warnOnce('level', `headingLevel=${props.headingLevel} no está en 1–3: se usa 1.`)
-  if (hasActions.value && !labelActions.value) warnOnce('labels', 'hay acciones y falta labels.actions (nombre del grupo de acciones).')
-  if (!ZONES.includes(props.zone)) warnOnce('zone', `zone="${props.zone}" no está en none | brand: se usa none.`)
+  try { if (process.env.NODE_ENV !== 'production' && !titleText.value) warnOnce('title', 'falta title (o está vacío): es el texto del encabezado, del título compacto y del enlace del muelle.') } catch {}
+  try { if (process.env.NODE_ENV !== 'production' && !LEVELS.includes(props.headingLevel)) warnOnce('level', `headingLevel=${props.headingLevel} no está en 1–3: se usa 1.`) } catch {}
+  try { if (process.env.NODE_ENV !== 'production' && hasActions.value && !labelActions.value) warnOnce('labels', 'hay acciones y falta labels.actions (nombre del grupo de acciones).') } catch {}
+  try { if (process.env.NODE_ENV !== 'production' && !ZONES.includes(props.zone)) warnOnce('zone', `zone="${props.zone}" no está en none | brand: se usa none.`) } catch {}
   if (zoneValue.value === 'brand' && attrs['data-theme'] !== undefined) {
-    warnOnce('zone-theme', 'zone="brand" y data-theme en la misma raíz: el tema ganaría a la zona (api.md «Zona de marca», regla 4).')
+    try { if (process.env.NODE_ENV !== 'production') warnOnce('zone-theme', 'zone="brand" y data-theme en la misma raíz: el tema ganaría a la zona (api.md «Zona de marca», regla 4).') } catch {}
   }
 }
 watch(() => [props.title, props.headingLevel, props.zone, hasActions.value, labelActions.value].join('\u0000'), checkProps, { immediate: true })
@@ -448,9 +456,11 @@ onMounted(() => {
   const root = rootEl.value
   inDialog.value = Boolean(root.closest('dialog'))
   if (dockEl.value && dockHost.value && !dockHost.value.parentNode) dockEl.value.appendChild(dockHost.value)
-  if (isDev() && level.value === 1 && document.querySelectorAll('h1').length > 1) {
-    warnOnce('h1', 'headingLevel 1 y ya hay otro h1 en el documento: un h1 por página (usa headingLevel 2 o 3 en una vista anidada).')
-  }
+  try {
+    if (process.env.NODE_ENV !== 'production' && level.value === 1 && document.querySelectorAll('h1').length > 1) {
+      warnOnce('h1', 'headingLevel 1 y ya hay otro h1 en el documento: un h1 por página (usa headingLevel 2 o 3 en una vista anidada).')
+    }
+  } catch {}
   reduced = typeof matchMedia === 'function' ? matchMedia('(prefers-reduced-motion: reduce)') : null
   onScroll = () => schedule()
   onResize = () => measure()

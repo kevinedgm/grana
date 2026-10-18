@@ -23,11 +23,12 @@ const slots = useSlots()
 const api = useDialogStepsApi()
 const panel = ref(null)
 
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
-if (isDev) {
-  if (!api) console.warn('[Grana GDialogStep] va fuera de un GDialog: no pinta nada.')
-  else if (!props.title) console.warn(`[Grana GDialog] el paso «${props.name}» no tiene \`title\`: es el nombre del paso, del panel y del hilo.`)
-}
+try {
+  if (process.env.NODE_ENV !== 'production') {
+    if (!api) console.warn('[Grana GDialogStep] va fuera de un GDialog: no pinta nada.')
+    else if (!props.title) console.warn(`[Grana GDialog] el paso «${props.name}» no tiene \`title\`: es el nombre del paso, del panel y del hilo.`)
+  }
+} catch {}
 
 const rec = {
   name: props.name,

@@ -7,7 +7,7 @@
 import { computed, inject, onMounted, provide, ref, unref, useId, useSlots } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GLibIcon.js'
-import { isDev, layoutKey, messageIcon, nextFrame, useCompositeField, useFormField } from '../GForm/formContext.js'
+import { layoutKey, messageIcon, nextFrame, useCompositeField, useFormField } from '../GForm/formContext.js'
 import GFormRow from '../GFormRow/GFormRow.vue'
 import { rowRoots } from '../GFormRow/rowEngine.js'
 
@@ -63,11 +63,14 @@ const describedBy = computed(() => [hasHint.value && hintId.value, message.value
 onMounted(() => {
   // Siempre en su propia fila (r02, L5): su <legend> no puede bajar las cajas de los vecinos. En el cuadro siguiente:
   // la GFormRow que lo contendría se monta después que sus hijos
-  if (!isDev) return
-  nextFrame(() => {
-    const p = root.value?.parentElement
-    if (p && rowRoots.has(p) && [...p.children].filter((c) => !c.classList.contains('g-tooltip')).length > 1) console.warn('[Grana GFieldGroup] va en su propia fila (hijo directo de GFormLayout), no junto a otros campos en una GFormRow.')
-  })
+  try {
+    if (process.env.NODE_ENV !== 'production') {
+      nextFrame(() => {
+        const p = root.value?.parentElement
+        if (p && rowRoots.has(p) && [...p.children].filter((c) => !c.classList.contains('g-tooltip')).length > 1) console.warn('[Grana GFieldGroup] va en su propia fila (hijo directo de GFormLayout), no junto a otros campos en una GFormRow.')
+      })
+    }
+  } catch {}
 })
 
 const classes = computed(() => [
@@ -84,7 +87,7 @@ const classes = computed(() => [
   }
 ])
 
-if (isDev && !hasLabel.value) console.warn('[Grana GFieldGroup] necesita label o el slot label (texto del <legend>).')
+try { if (process.env.NODE_ENV !== 'production' && !hasLabel.value) console.warn('[Grana GFieldGroup] necesita label o el slot label (texto del <legend>).') } catch {}
 </script>
 
 <template>

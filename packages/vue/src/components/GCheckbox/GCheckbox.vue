@@ -200,28 +200,31 @@ onBeforeUnmount(() => {
 })
 
 // Avisos solo en desarrollo. `process` puede no existir (UMD en navegador): se comprueba antes de leerlo.
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
-if (isDev) {
-  if (!hasLabel.value && !attrs['aria-label'] && !attrs['aria-labelledby']) {
-    console.warn('[Grana] <GCheckbox> necesita label, slot label, aria-label o aria-labelledby para tener un nombre accesible.')
+try {
+  if (process.env.NODE_ENV !== 'production') {
+    if (!hasLabel.value && !attrs['aria-label'] && !attrs['aria-labelledby']) {
+      console.warn('[Grana] <GCheckbox> necesita label, slot label, aria-label o aria-labelledby para tener un nombre accesible.')
+    }
+    if (group && props.value === undefined) {
+      console.warn('[Grana] <GCheckbox> dentro de un <GCheckboxGroup> necesita `value`.')
+    }
   }
-  if (group && props.value === undefined) {
-    console.warn('[Grana] <GCheckbox> dentro de un <GCheckboxGroup> necesita `value`.')
-  }
-}
+} catch {}
 // field: false (#262): los props de campo se ignoran; se avisa una vez por casilla, al crearla y al llegar después.
-if (isDev && !isField) {
-  const FIELD_ONLY = ['error', 'warning', 'valid', 'required', 'mark']
-  const given = () => FIELD_ONLY.filter((k) => (k === 'required' ? props.required : props[k] !== undefined))
-  let warned = false
-  const check = (list) => {
-    if (warned || !list.length) return
-    warned = true
-    console.warn(`[Grana] <GCheckbox> con field: false no es un campo: ${list.map((k) => `\`${k}\``).join(', ')} se ignora${list.length > 1 ? 'n' : ''} (sin región de mensaje ni marca).`)
+try {
+  if (process.env.NODE_ENV !== 'production' && !isField) {
+    const FIELD_ONLY = ['error', 'warning', 'valid', 'required', 'mark']
+    const given = () => FIELD_ONLY.filter((k) => (k === 'required' ? props.required : props[k] !== undefined))
+    let warned = false
+    const check = (list) => {
+      if (warned || !list.length) return
+      warned = true
+      console.warn(`[Grana] <GCheckbox> con field: false no es un campo: ${list.map((k) => `\`${k}\``).join(', ')} se ignora${list.length > 1 ? 'n' : ''} (sin región de mensaje ni marca).`)
+    }
+    check(given())
+    watch(given, check)
   }
-  check(given())
-  watch(given, check)
-}
+} catch {}
 </script>
 
 <template>

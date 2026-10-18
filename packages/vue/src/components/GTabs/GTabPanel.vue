@@ -5,7 +5,6 @@
 import { defineComponent, h, nextTick, onMounted, onUpdated, provide, ref, watch } from 'vue'
 import { TABS_NEST, hasFocusable, panelDomId, tabDomId } from '../../utils/tabs.js'
 
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 
 export default defineComponent({
   name: 'GTabPanel',
@@ -23,14 +22,19 @@ export default defineComponent({
 
     const warned = new Set()
     const warnOnce = (key, msg) => {
-      if (!isDev || warned.has(key)) return
-      warned.add(key)
-      console.warn(`[Grana] <GTabPanel> ${msg}`)
+      try {
+        if (process.env.NODE_ENV !== 'production' && !warned.has(key)) {
+          warned.add(key)
+          console.warn(`[Grana] <GTabPanel> ${msg}`)
+        }
+      } catch {}
     }
-    if (isDev) {
-      if (!props.tabs) warnOnce('tabs', 'necesita `tabs`: el `id` del GTabs al que pertenece.')
-      if (props.value === undefined || props.value === null || props.value === '') warnOnce('value', 'necesita `value`: el `id` de la pestaña que lo gobierna.')
-    }
+    try {
+      if (process.env.NODE_ENV !== 'production') {
+        if (!props.tabs) warnOnce('tabs', 'necesita `tabs`: el `id` del GTabs al que pertenece.')
+        if (props.value === undefined || props.value === null || props.value === '') warnOnce('value', 'necesita `value`: el `id` de la pestaña que lo gobierna.')
+      }
+    } catch {}
 
     const el = ref(null)
     const mounted = ref(props.active) // `lazy`: se monta al primer activarse y luego se conserva
@@ -41,9 +45,11 @@ export default defineComponent({
     const evaluate = () => { focusable.value = props.active && hasFocusable(el.value) }
     onMounted(() => {
       evaluate()
-      if (isDev && props.tabs && typeof document !== 'undefined' && !document.getElementById(props.tabs)) {
-        warnOnce('missing', `no encuentra un GTabs con id «${props.tabs}» al montar.`)
-      }
+      try {
+        if (process.env.NODE_ENV !== 'production' && props.tabs && typeof document !== 'undefined' && !document.getElementById(props.tabs)) {
+          warnOnce('missing', `no encuentra un GTabs con id «${props.tabs}» al montar.`)
+        }
+      } catch {}
     })
     onUpdated(evaluate)
     watch(() => props.active, () => nextTick(evaluate))

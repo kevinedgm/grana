@@ -19,8 +19,7 @@ const props = defineProps({
   showLabel: { type: Boolean, default: true }
 })
 
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
-if (isDev && !props.label) console.warn('[Grana] <GProgress> necesita label (nombre accesible de la barra).')
+try { if (process.env.NODE_ENV !== 'production' && !props.label) console.warn('[Grana] <GProgress> necesita label (nombre accesible de la barra).') } catch {}
 
 const clamped = computed(() => Math.min(Math.max(Number(props.value) || 0, 0), props.max))
 const pct = computed(() => (clamped.value / props.max) * 100)

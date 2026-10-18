@@ -17,12 +17,14 @@ const SHAPES = ['circle', 'square']
 const SEMANTIC = new Set(['brand', 'primary', 'accent', 'success', 'warning', 'danger', 'info', 'error'])
 
 // Avisos de desarrollo (avatar.md «Avisos»): una vez por causa y valor
-const isDev = () => typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const warned = new Set()
 const warnOnce = (key, msg) => {
-  if (!isDev() || warned.has(key)) return
-  warned.add(key)
-  console.warn(`[Grana GAvatar] ${msg}`)
+  try {
+    if (process.env.NODE_ENV !== 'production' && !warned.has(key)) {
+      warned.add(key)
+      console.warn(`[Grana GAvatar] ${msg}`)
+    }
+  } catch {}
 }
 
 // Una cadena vacía (o solo espacios) cuenta como ausente; un número se convierte con String()
@@ -176,42 +178,46 @@ export default defineComponent({
     })
     onMounted(() => {
       probe()
-      warnMissingCategory(root.value, cat.value, 'GAvatar')
+      try { if (process.env.NODE_ENV !== 'production') warnMissingCategory(root.value, cat.value, 'GAvatar') } catch {}
       // Aviso 1: un label dentro de un antecesor aria-hidden no llega al árbol de accesibilidad
       const el = root.value
-      if (isDev() && label.value && el && el.parentElement && el.parentElement.closest('[aria-hidden="true"]')) {
-        warnOnce(`label-hidden:${label.value}`, `<GAvatar label="${label.value}"> está dentro de un elemento aria-hidden (el hueco de un componente es decorativo): el nombre no llega. Pon el nombre en el control que lo envuelve (su texto o aria-label) o en el texto vecino, y deja el avatar sin label.`)
-      }
+      try {
+        if (process.env.NODE_ENV !== 'production' && label.value && el && el.parentElement && el.parentElement.closest('[aria-hidden="true"]')) {
+          warnOnce(`label-hidden:${label.value}`, `<GAvatar label="${label.value}"> está dentro de un elemento aria-hidden (el hueco de un componente es decorativo): el nombre no llega. Pon el nombre en el control que lo envuelve (su texto o aria-label) o en el texto vecino, y deja el avatar sin label.`)
+        }
+      } catch {}
     })
-    onUpdated(() => warnMissingCategory(root.value, cat.value, 'GAvatar'))
+    onUpdated(() => { try { if (process.env.NODE_ENV !== 'production') warnMissingCategory(root.value, cat.value, 'GAvatar') } catch {} })
     const onLoad = (want) => () => { if (src.value === want) status.value = 'loaded' }
     const onError = (want) => () => { if (src.value === want) status.value = 'failed' }
 
     return () => {
       const c = content.value
       const col = colorInfo.value
-      if (isDev()) {
-        if (c.cutInitials) warnOnce(`initials:${c.cutInitials}`, `initials="${c.cutInitials}" tiene más grafemas que el máximo (2, o 1 con escritura ancha): se cortan.`)
-        if (c.missingIcon) warnOnce(`icon:${c.missingIcon}`, `no conoce el icono «${c.missingIcon}»: no está en la lista de la librería ni en el registro de la aplicación; se usa el respaldo (iniciales de name o el icono user). Regístralo importando su cadena de lucide-static: app.use(createIcons([…])).`)
-        if (col.kind === 'invalid') {
-          const v = String(col.value)
-          warnOnce(`color:${v}`, SEMANTIC.has(v)
-            ? `color="${v}" se ignora: un avatar no lleva color semántico (un avatar de ese color diría un estado, no una identidad). Usa 'neutral' o una categoría de 1 a 12.`
-            : `color="${v}" se ignora: acepta 'neutral' o una categoría de 1 a 12 (número o cadena numérica).`)
+      try {
+        if (process.env.NODE_ENV !== 'production') {
+          if (c.cutInitials) warnOnce(`initials:${c.cutInitials}`, `initials="${c.cutInitials}" tiene más grafemas que el máximo (2, o 1 con escritura ancha): se cortan.`)
+          if (c.missingIcon) warnOnce(`icon:${c.missingIcon}`, `no conoce el icono «${c.missingIcon}»: no está en la lista de la librería ni en el registro de la aplicación; se usa el respaldo (iniciales de name o el icono user). Regístralo importando su cadena de lucide-static: app.use(createIcons([…])).`)
+          if (col.kind === 'invalid') {
+            const v = String(col.value)
+            warnOnce(`color:${v}`, SEMANTIC.has(v)
+              ? `color="${v}" se ignora: un avatar no lleva color semántico (un avatar de ese color diría un estado, no una identidad). Usa 'neutral' o una categoría de 1 a 12.`
+              : `color="${v}" se ignora: acepta 'neutral' o una categoría de 1 a 12 (número o cadena numérica).`)
+          }
+          const n = props.categories
+          if (!(Number.isInteger(n) && n >= 0 && n <= 12)) warnOnce(`categories:${String(n)}`, `categories=${JSON.stringify(n)} no es un entero de 0 a 12: se trata como 0 (sin color derivado). Pon el mismo número que la entrada categories del tema.`)
+          if (slots.default && hasContent(slots.default())) warnOnce('slot', 'no tiene slots: el contenido del slot por defecto no se pinta. Usa src, initials, icon o label.')
         }
-        const n = props.categories
-        if (!(Number.isInteger(n) && n >= 0 && n <= 12)) warnOnce(`categories:${String(n)}`, `categories=${JSON.stringify(n)} no es un entero de 0 a 12: se trata como 0 (sin color derivado). Pon el mismo número que la entrada categories del tema.`)
-        if (slots.default && hasContent(slots.default())) warnOnce('slot', 'no tiene slots: el contenido del slot por defecto no se pinta. Usa src, initials, icon o label.')
-      }
+      } catch {}
 
       const own = {}
       for (const [k, v] of Object.entries(attrs)) {
         if (isA11yAttr(k)) {
-          warnOnce(`attr:${k}`, `ignora el atributo «${k}»: para un nombre usa la prop label; si el avatar abre algo, envuélvelo en un <button> con su nombre y deja el avatar sin label.`)
+          try { if (process.env.NODE_ENV !== 'production') warnOnce(`attr:${k}`, `ignora el atributo «${k}»: para un nombre usa la prop label; si el avatar abre algo, envuélvelo en un <button> con su nombre y deja el avatar sin label.`) } catch {}
           continue
         }
         if (isListener(k)) {
-          warnOnce(`on:${k}`, `no enlaza la escucha «${k}»: un avatar nunca es interactivo (un <span> con clic no tiene rol ni teclado). Envuélvelo en un <button> con su nombre (o usa label si solo necesita un nombre).`)
+          try { if (process.env.NODE_ENV !== 'production') warnOnce(`on:${k}`, `no enlaza la escucha «${k}»: un avatar nunca es interactivo (un <span> con clic no tiene rol ni teclado). Envuélvelo en un <button> con su nombre (o usa label si solo necesita un nombre).`) } catch {}
           continue
         }
         own[k] = v

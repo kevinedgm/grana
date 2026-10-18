@@ -56,7 +56,6 @@ const emit = defineEmits([
 
 const attrs = useAttrs()
 const slots = useSlots()
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 
 // ---- Umbrales de estructura por ancho de la propia raíz (constantes literales: DECISIONS.md #34 y #39)
 const MODE_TABLET_MAX = 700
@@ -65,14 +64,16 @@ const DAY_COLUMNS_MAX = 5
 
 // ---- Zona horaria y textos
 const tz = computed(() => props.timezone || 'UTC')
-if (isDev && !props.timezone) console.warn('[Grana] <GCalendar> necesita `timezone` (zona IANA). Se usa UTC, no la del navegador.')
+try { if (process.env.NODE_ENV !== 'production' && !props.timezone) console.warn('[Grana] <GCalendar> necesita `timezone` (zona IANA). Se usa UTC, no la del navegador.') } catch {}
 const warned = new Set()
 function text(key) {
   const v = props.labels[key]
-  if (v == null && isDev && !warned.has(key)) {
-    warned.add(key)
-    console.warn(`[Grana] <GCalendar> necesita labels.${key}.`)
-  }
+  try {
+    if (process.env.NODE_ENV !== 'production' && v == null && !warned.has(key)) {
+      warned.add(key)
+      console.warn(`[Grana] <GCalendar> necesita labels.${key}.`)
+    }
+  } catch {}
   return typeof v === 'string' ? v : ''
 }
 const fn = (key, ...args) => (typeof props.labels[key] === 'function' ? props.labels[key](...args) : '')
@@ -623,7 +624,7 @@ watch(mode, () => nextTick(measure))
 // ---- Presentación
 const rootId = computed(() => props.id || undefined)
 const regionLabel = computed(() => props.label || attrs['aria-label'] || text('calendar') || undefined)
-if (isDev && !props.label && !attrs['aria-label'] && !attrs['aria-labelledby'] && !props.labels.calendar) console.warn('[Grana] <GCalendar> necesita label, aria-label, aria-labelledby o labels.calendar para tener un nombre accesible.')
+try { if (process.env.NODE_ENV !== 'production' && !props.label && !attrs['aria-label'] && !attrs['aria-labelledby'] && !props.labels.calendar) console.warn('[Grana] <GCalendar> necesita label, aria-label, aria-labelledby o labels.calendar para tener un nombre accesible.') } catch {}
 const rootAttrs = computed(() => {
   const { class: c, style: s, 'aria-label': _al, ...rest } = attrs
   return { class: c, style: s, ...Object.fromEntries(Object.entries(rest).filter(([k]) => k.startsWith('data-') || k === 'aria-labelledby')) }

@@ -14,11 +14,10 @@ const props = defineProps({
   speech: { type: Object, default: undefined }
 })
 
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const injected = inject(speechKey, null)
 const manager = toRaw(props.speech) || injected
 const api = manager && manager[INTERNAL] ? manager[INTERNAL] : null
-if (!api && isDev) console.warn('[Grana Speech] <GSpeechPill> sin prop `speech` y sin gestor provisto (app.use(createSpeech(…))): no pinta nada.')
+try { if (process.env.NODE_ENV !== 'production' && !api) console.warn('[Grana Speech] <GSpeechPill> sin prop `speech` y sin gestor provisto (app.use(createSpeech(…))): no pinta nada.') } catch {}
 
 // En el servidor (y hasta montar) se pinta; al montar, la segunda pill del mismo gestor deja de pintar
 const active = ref(Boolean(api))
@@ -28,7 +27,7 @@ let owner = false
 onMounted(() => {
   if (!api) return
   if (!api.attachPill()) {
-    if (isDev) console.warn('[Grana Speech] dos <GSpeechPill> para el mismo gestor: la segunda no pinta nada.')
+    try { if (process.env.NODE_ENV !== 'production') console.warn('[Grana Speech] dos <GSpeechPill> para el mismo gestor: la segunda no pinta nada.') } catch {}
     active.value = false
     return
   }

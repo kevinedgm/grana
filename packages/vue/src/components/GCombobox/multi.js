@@ -15,7 +15,7 @@ export const keyOfText = (t) => 'c' + fold(t)
 export function normValues(v, warn) {
   if (v === null || v === undefined || v === '') return []
   if (!Array.isArray(v)) {
-    warn('array')
+    try { if (process.env.NODE_ENV !== 'production') warn('array') } catch {}
     v = [v]
   }
   const seen = new Set()
@@ -23,7 +23,7 @@ export function normValues(v, warn) {
   for (const x of v) {
     if (x === null || x === undefined) continue
     const k = keyOf(x)
-    if (seen.has(k)) warn('dup')
+    if (seen.has(k)) try { if (process.env.NODE_ENV !== 'production') warn('dup') } catch {}
     else {
       seen.add(k)
       out.push(x)
@@ -36,7 +36,7 @@ export function normValues(v, warn) {
 export function normCustom(v, warn) {
   if (v === null || v === undefined || v === '') return []
   if (!Array.isArray(v)) {
-    warn('array')
+    try { if (process.env.NODE_ENV !== 'production') warn('array') } catch {}
     v = [v]
   }
   const seen = new Set()
@@ -45,7 +45,7 @@ export function normCustom(v, warn) {
     if (typeof x !== 'string' || !x.trim()) continue
     const t = x.trim()
     const k = keyOfText(t)
-    if (seen.has(k)) warn('dup')
+    if (seen.has(k)) try { if (process.env.NODE_ENV !== 'production') warn('dup') } catch {}
     else {
       seen.add(k)
       out.push(t)

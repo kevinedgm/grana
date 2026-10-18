@@ -81,7 +81,6 @@ const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 export const speechKey = Symbol('GSpeech')
 export const INTERNAL = Symbol('GSpeech.internal')
 
-const isDev = () => typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const PREFIX = '[Grana Speech]'
 const isClient = () => typeof window !== 'undefined' && typeof document !== 'undefined'
 const now = () => Date.now()
@@ -128,10 +127,12 @@ export function normalizeCapabilities(c) {
 export function createSpeech(options = {}) {
   const warned = new Set()
   const warn = (msg) => {
-    if (isDev() && !warned.has(msg)) {
-      warned.add(msg)
-      console.warn(`${PREFIX} ${msg}`)
-    }
+    try {
+      if (process.env.NODE_ENV !== 'production' && !warned.has(msg)) {
+        warned.add(msg)
+        console.warn(`${PREFIX} ${msg}`)
+      }
+    } catch {}
   }
 
   // ---------- Opciones ----------
@@ -202,59 +203,59 @@ export function createSpeech(options = {}) {
     if (!patch || typeof patch !== 'object') return
     for (const key of Object.keys(patch)) {
       const v = patch[key]
-      if (!OPTION_KEYS.includes(key)) { warn(`opción desconocida «${key}»: se ignora.`); continue }
+      if (!OPTION_KEYS.includes(key)) { try { if (process.env.NODE_ENV !== 'production') warn(`opción desconocida «${key}»: se ignora.`) } catch {} continue }
       if (key === 'adapter') {
-        if (!initial && state.status !== 'idle') { warn('adapter cambiado con una sesión abierta: se ignora (solo se cambia en idle).'); continue }
-        if (!v || typeof v !== 'object' || typeof v.open !== 'function' || !v.capabilities) { warn('adapter necesita open() y capabilities (speech.md §4): ningún método iniciará sesión.'); opts.adapter = null; continue }
+        if (!initial && state.status !== 'idle') { try { if (process.env.NODE_ENV !== 'production') warn('adapter cambiado con una sesión abierta: se ignora (solo se cambia en idle).') } catch {} continue }
+        if (!v || typeof v !== 'object' || typeof v.open !== 'function' || !v.capabilities) { try { if (process.env.NODE_ENV !== 'production') warn('adapter necesita open() y capabilities (speech.md §4): ningún método iniciará sesión.') } catch {} opts.adapter = null; continue }
         opts.adapter = markRaw(v)
       } else if (BOOLEAN_OPTIONS.includes(key)) {
         if (typeof v === 'boolean') opts[key] = v
-        else warn(`${key} debe ser Boolean: se conserva ${opts[key]}.`)
+        else try { if (process.env.NODE_ENV !== 'production') warn(`${key} debe ser Boolean: se conserva ${opts[key]}.`) } catch {}
       } else if (key === 'language') {
         if (v === undefined || (typeof v === 'string' && v.trim())) opts.language = v
-        else warn('language debe ser una etiqueta BCP 47 (p. ej. «es»): se conserva.')
+        else try { if (process.env.NODE_ENV !== 'production') warn('language debe ser una etiqueta BCP 47 (p. ej. «es»): se conserva.') } catch {}
       } else if (key === 'expectedSpeakers') {
         if (EXPECTED.includes(v)) opts.expectedSpeakers = v
-        else warn(`expectedSpeakers «${v}» no es válido (1, 2, 'many'): se conserva «${opts.expectedSpeakers}».`)
+        else try { if (process.env.NODE_ENV !== 'production') warn(`expectedSpeakers «${v}» no es válido (1, 2, 'many'): se conserva «${opts.expectedSpeakers}».`) } catch {}
       } else if (key === 'hotkey') {
         const parsed = parseHotkey(v)
         const bare = parsed.keys && !Object.values(parsed.keys.mods).some(Boolean)
-        if (!parsed.ok) warn(`hotkey «${v}» no se puede interpretar (sintaxis de aria-keyshortcuts, p. ej. «Shift+F8»): se conserva.`)
-        else if (bare && parsed.keys.key === 'F6') warn('hotkey «F6» lo usa el navegador para moverse entre la página y sus barras: se conserva el anterior.')
+        if (!parsed.ok) try { if (process.env.NODE_ENV !== 'production') warn(`hotkey «${v}» no se puede interpretar (sintaxis de aria-keyshortcuts, p. ej. «Shift+F8»): se conserva.`) } catch {}
+        else if (bare && parsed.keys.key === 'F6') try { if (process.env.NODE_ENV !== 'production') warn('hotkey «F6» lo usa el navegador para moverse entre la página y sus barras: se conserva el anterior.') } catch {}
         else {
-          if (bare && parsed.keys.key === 'F8') warn('hotkey «F8» es el atajo de los avisos (GToaster): se acepta, pero los dos servicios chocarán.')
+          try { if (process.env.NODE_ENV !== 'production' && bare && parsed.keys.key === 'F8') warn('hotkey «F8» es el atajo de los avisos (GToaster): se acepta, pero los dos servicios chocarán.') } catch {}
           opts.hotkey = parsed.value
           opts.hotkeyKeys = parsed.keys
         }
       } else if (key === 'position') {
         if (POSITIONS.includes(v)) opts.position = v
-        else warn(`position «${v}» no es válida (${POSITIONS.join(', ')}): se conserva «${opts.position}».`)
+        else try { if (process.env.NODE_ENV !== 'production') warn(`position «${v}» no es válida (${POSITIONS.join(', ')}): se conserva «${opts.position}».`) } catch {}
       } else if (key === 'offset') {
-        if (!v || typeof v !== 'object' || !validOffset(v.top) || !validOffset(v.bottom)) warn('offset debe ser { top?, bottom? } con números (px) o longitudes CSS: se conserva.')
+        if (!v || typeof v !== 'object' || !validOffset(v.top) || !validOffset(v.bottom)) try { if (process.env.NODE_ENV !== 'production') warn('offset debe ser { top?, bottom? } con números (px) o longitudes CSS: se conserva.') } catch {}
         else opts.offset = initial ? { ...v } : { ...opts.offset, ...v }
       } else if (key === 'labels') {
-        if (!v || typeof v !== 'object') warn('labels debe ser un objeto: se conserva.')
+        if (!v || typeof v !== 'object') try { if (process.env.NODE_ENV !== 'production') warn('labels debe ser un objeto: se conserva.') } catch {}
         else opts.labels = initial ? { ...v } : { ...opts.labels, ...v }
       } else if (key === 'roles') {
-        if (!Array.isArray(v)) { warn('roles debe ser una lista [{ id, label }]: se conserva.'); continue }
+        if (!Array.isArray(v)) { try { if (process.env.NODE_ENV !== 'production') warn('roles debe ser una lista [{ id, label }]: se conserva.') } catch {} continue }
         const out = []
         for (const r of v) {
-          if (!r || typeof r !== 'object' || typeof r.id !== 'string' || !r.id || typeof r.label !== 'string') { warn('roles: cada rol necesita id y label (String): se ignora uno.'); continue }
-          if (out.some((x) => x.id === r.id)) { warn(`roles: id repetido «${r.id}»: se ignora la repetición.`); continue }
+          if (!r || typeof r !== 'object' || typeof r.id !== 'string' || !r.id || typeof r.label !== 'string') { try { if (process.env.NODE_ENV !== 'production') warn('roles: cada rol necesita id y label (String): se ignora uno.') } catch {} continue }
+          if (out.some((x) => x.id === r.id)) { try { if (process.env.NODE_ENV !== 'production') warn(`roles: id repetido «${r.id}»: se ignora la repetición.`) } catch {} continue }
           out.push({ id: r.id, label: r.label })
         }
         opts.roles = out
       } else if (key === 'speakerColors') {
         if (Number.isInteger(v) && v >= 0 && v <= 12) opts.speakerColors = v
-        else warn(`speakerColors debe ser un entero de 0 a 12: se conserva ${opts.speakerColors}.`)
+        else try { if (process.env.NODE_ENV !== 'production') warn(`speakerColors debe ser un entero de 0 a 12: se conserva ${opts.speakerColors}.`) } catch {}
       } else if (CALLBACKS.includes(key)) {
         if (v === undefined || typeof v === 'function') opts[key] = v
-        else warn(`${key} debe ser una función: se ignora.`)
+        else try { if (process.env.NODE_ENV !== 'production') warn(`${key} debe ser una función: se ignora.`) } catch {}
       }
     }
   }
   applyOptions(options, true)
-  if (!('adapter' in (options || {}))) warn('createSpeech sin adapter: ningún método iniciará sesión (la aplicación aporta el motor, speech.md §4).')
+  try { if (process.env.NODE_ENV !== 'production' && !('adapter' in (options || {}))) warn('createSpeech sin adapter: ningún método iniciará sesión (la aplicación aporta el motor, speech.md §4).') } catch {}
 
   // ---------- Textos (sin valores por defecto; aviso la primera vez que falta uno, §9) ----------
   function raw(path) {
@@ -272,7 +273,7 @@ export function createSpeech(options = {}) {
       try { return fill(String(v(vars && vars.count) ?? ''), vars) } catch { return '' }
     }
     if (typeof v === 'string') return fill(v, vars)
-    if (!optional) warn(`falta labels.${path}: el texto queda vacío.`)
+    try { if (process.env.NODE_ENV !== 'production' && !optional) warn(`falta labels.${path}: el texto queda vacío.`) } catch {}
     return ''
   }
 
@@ -385,7 +386,7 @@ export function createSpeech(options = {}) {
     const prev = state.status
     if (prev === next) return true
     if (!TRANSITIONS[prev] || !TRANSITIONS[prev].includes(next)) {
-      warn(`transición no válida: ${prev} → ${next} (se rechaza).`)
+      try { if (process.env.NODE_ENV !== 'production') warn(`transición no válida: ${prev} → ${next} (se rechaza).`) } catch {}
       return false
     }
     state.status = next
@@ -395,7 +396,7 @@ export function createSpeech(options = {}) {
     return true
   }
   const refuse = (next) => {
-    warn(`transición no válida: ${state.status} → ${next} (se rechaza).`)
+    try { if (process.env.NODE_ENV !== 'production') warn(`transición no válida: ${state.status} → ${next} (se rechaza).`) } catch {}
     return false
   }
   const liveStatus = () => (state.voice === 'speech' ? 'speech' : state.pending > 0 ? 'transcribing' : 'listening')
@@ -409,8 +410,8 @@ export function createSpeech(options = {}) {
   // Sin anfitrión no hay micrófono (#212): también en producción. En el servidor, sin efectos.
   function canStart() {
     if (!isClient()) return false
-    if (!opts.adapter) { warn('no hay adapter válido: no se inicia la sesión.'); return false }
-    if (!ui.hostAttached) { warn('intento de iniciar sin un <GSpeechHost> montado para este gestor: no se abre el micrófono.'); return false }
+    if (!opts.adapter) { try { if (process.env.NODE_ENV !== 'production') warn('no hay adapter válido: no se inicia la sesión.') } catch {} return false }
+    if (!ui.hostAttached) { try { if (process.env.NODE_ENV !== 'production') warn('intento de iniciar sin un <GSpeechHost> montado para este gestor: no se abre el micrófono.') } catch {} return false }
     return true
   }
 
@@ -467,12 +468,12 @@ export function createSpeech(options = {}) {
   // Comprobaciones comunes al empezar: capacidades válidas y ubicación permitida, sin abrir el micrófono
   function preflight(s) {
     if (!s.caps) {
-      warn(`el adaptador «${s.adapter.id ?? '?'}» declara capacidades no válidas (speech.md §4.2): la sesión pasa a error «unsupported» sin abrir el micrófono.`)
+      try { if (process.env.NODE_ENV !== 'production') warn(`el adaptador «${s.adapter.id ?? '?'}» declara capacidades no válidas (speech.md §4.2): la sesión pasa a error «unsupported» sin abrir el micrófono.`) } catch {}
       fail('error', { kind: 'unsupported', capture: 'none', audio: 'none', recoverable: false })
       return false
     }
     if (s.caps.location === 'remote' && !s.allowRemote) {
-      warn('el adaptador procesa fuera (location: \'remote\') y la aplicación no pasó allowRemote: true: no se abre el micrófono.')
+      try { if (process.env.NODE_ENV !== 'production') warn('el adaptador procesa fuera (location: \'remote\') y la aplicación no pasó allowRemote: true: no se abre el micrófono.') } catch {}
       fail('error', { kind: 'remote-not-allowed', capture: 'none', audio: 'none', recoverable: false })
       return false
     }
@@ -603,7 +604,7 @@ export function createSpeech(options = {}) {
     if (!eng || typeof eng.push !== 'function') return
     const onFail = () => {
       if (session !== s) return
-      warn('push del adaptador lanzó o rechazó: el tramo queda como fallo no fatal con el audio perdido (la captura sigue).')
+      try { if (process.env.NODE_ENV !== 'production') warn('push del adaptador lanzó o rechazó: el tramo queda como fallo no fatal con el audio perdido (la captura sigue).') } catch {}
       const last = state.issues[state.issues.length - 1]
       if (last && last.kind === 'processing-failed' && last.segmentId === null && last.t1 === chunk.t0) last.t1 = chunk.t1
       else state.issues.push({ kind: 'processing-failed', segmentId: null, t0: chunk.t0, t1: chunk.t1, audio: 'lost', retryable: false })
@@ -621,7 +622,7 @@ export function createSpeech(options = {}) {
     watchdog = setInterval(() => {
       if (session !== s || !isLive()) return
       if (now() - lastFrame > SPEECH_TIMING.watchdogMs) {
-        if (s.caps.input.format === 'self') warn('adaptador con input.format \'self\' sin eventos level: el vigilante interrumpe la captura.')
+        try { if (process.env.NODE_ENV !== 'production' && s.caps.input.format === 'self') warn('adaptador con input.format \'self\' sin eventos level: el vigilante interrumpe la captura.') } catch {}
         fail('error', { kind: 'interrupted', capture: 'stopped' })
       }
     }, SPEECH_TIMING.watchdogTickMs)
@@ -708,7 +709,7 @@ export function createSpeech(options = {}) {
       let hint = null
       const result = await new Promise((resolve) => {
         s.selfWait = resolve
-        if (isDev()) hint = setTimeout(() => { if (s.selfWait === resolve) warn('adaptador con input.format \'self\' sin capture { state: \'live\' }: la sesión no pasa a captura.') }, SPEECH_TIMING.watchdogMs * 2)
+        try { if (process.env.NODE_ENV !== 'production') hint = setTimeout(() => { if (s.selfWait === resolve) warn('adaptador con input.format \'self\' sin capture { state: \'live\' }: la sesión no pasa a captura.') }, SPEECH_TIMING.watchdogMs * 2) } catch {}
       })
       clearTimeout(hint)
       return result
@@ -779,7 +780,7 @@ export function createSpeech(options = {}) {
   // ---------- Eventos del adaptador (§4.4): el modelo los aplica (§21.8) ----------
   function onEngine(s, type, p) {
     if (session !== s || s.finished) {
-      warn(`evento «${type}» del adaptador después de finish/abort (o de otra sesión): se ignora.`)
+      try { if (process.env.NODE_ENV !== 'production') warn(`evento «${type}» del adaptador después de finish/abort (o de otra sesión): se ignora.`) } catch {}
       return
     }
     const tx = state.transcript
@@ -890,7 +891,7 @@ export function createSpeech(options = {}) {
         return
       }
       default:
-        warn(`evento desconocido del adaptador «${type}»: se ignora.`)
+        try { if (process.env.NODE_ENV !== 'production') warn(`evento desconocido del adaptador «${type}»: se ignora.`) } catch {}
     }
   }
 
@@ -976,7 +977,7 @@ export function createSpeech(options = {}) {
     const s = newSession('conversation', null)
     if (o && o.expectedSpeakers !== undefined) {
       if (EXPECTED.includes(o.expectedSpeakers)) state.expectedSpeakers = o.expectedSpeakers
-      else warn(`expectedSpeakers «${o.expectedSpeakers}» no es válido (1, 2, 'many'): se usa «${state.expectedSpeakers}».`)
+      else try { if (process.env.NODE_ENV !== 'production') warn(`expectedSpeakers «${o.expectedSpeakers}» no es válido (1, 2, 'many'): se usa «${state.expectedSpeakers}».`) } catch {}
     }
     if (!preflight(s)) return false
     const op = ++s.op
@@ -1001,7 +1002,7 @@ export function createSpeech(options = {}) {
 
   async function start(o = {}) {
     const mode = o && o.mode
-    if (mode !== 'dictation' && mode !== 'conversation') { warn(`start necesita mode 'dictation' o 'conversation' (recibió «${mode}»).`); return false }
+    if (mode !== 'dictation' && mode !== 'conversation') { try { if (process.env.NODE_ENV !== 'production') warn(`start necesita mode 'dictation' o 'conversation' (recibió «${mode}»).`) } catch {} return false }
     if (mode === 'conversation') {
       // El AudioContext se crea ya, dentro del gesto (WebKit), aunque se espere a prepare()
       const c = canStart() && !opts.requireConsent ? normalizeCapabilities(opts.adapter.capabilities) : null
@@ -1011,7 +1012,7 @@ export function createSpeech(options = {}) {
       return begin(primed)
     }
     const tg = o.target
-    if (!tg || typeof tg.id !== 'string' || !tg.id) { warn('start({ mode: \'dictation\' }) necesita target: { id, label? }.'); return false }
+    if (!tg || typeof tg.id !== 'string' || !tg.id) { try { if (process.env.NODE_ENV !== 'production') warn('start({ mode: \'dictation\' }) necesita target: { id, label? }.') } catch {} return false }
     if (!canStart()) return false
     if (state.status !== 'idle' || session) return refuse('requesting')
     const s = newSession('dictation', { id: tg.id, label: typeof tg.label === 'string' ? tg.label : '' })
@@ -1024,7 +1025,7 @@ export function createSpeech(options = {}) {
     if (!isClient() || !session) { closeAudio(primed); return false }
     if (state.status !== 'ready') { closeAudio(primed); return refuse('requesting') }
     if (opts.requireConsent && state.consent !== true) {
-      warn('begin() con requireConsent y sin consentimiento: no se empieza a grabar.')
+      try { if (process.env.NODE_ENV !== 'production') warn('begin() con requireConsent y sin consentimiento: no se empieza a grabar.') } catch {}
       ui.consentError = true
       if (!state.panelOpen) polite(t('announce.consentRequired'))
       return false
@@ -1050,7 +1051,7 @@ export function createSpeech(options = {}) {
     const st = state.status
     if (st !== 'paused' && !isProblem(st)) return refuse('requesting')
     if (isProblem(st) && state.error && state.error.recoverable === false) return refuse('requesting')
-    if (!ui.hostAttached) { warn('intento de reanudar sin un <GSpeechHost> montado: no se abre el micrófono.'); return false }
+    if (!ui.hostAttached) { try { if (process.env.NODE_ENV !== 'production') warn('intento de reanudar sin un <GSpeechHost> montado: no se abre el micrófono.') } catch {} return false }
     const why = captured() ? 'resume' : 'start'
     session.lastWhy = why
     return acquire(why, session.caps.input.format === 'self' ? null : primeAudio())
@@ -1093,8 +1094,8 @@ export function createSpeech(options = {}) {
   function deletion(s, res) {
     const v = res && typeof res === 'object' ? res.audioDeleted : undefined
     if (s.caps.storesAudio !== 'none') {
-      if (typeof v !== 'boolean') warn('finish()/abort() del adaptador no devolvió { audioDeleted: Boolean } con storesAudio distinto de \'none\'.')
-      else if (!v) warn('el adaptador no confirmó la eliminación del audio temporal (audioDeleted: false).')
+      if (typeof v !== 'boolean') try { if (process.env.NODE_ENV !== 'production') warn('finish()/abort() del adaptador no devolvió { audioDeleted: Boolean } con storesAudio distinto de \'none\'.') } catch {}
+      else if (!v) try { if (process.env.NODE_ENV !== 'production') warn('el adaptador no confirmó la eliminación del audio temporal (audioDeleted: false).') } catch {}
     }
     return v === true
   }
@@ -1169,14 +1170,14 @@ export function createSpeech(options = {}) {
   }
 
   async function setConsent(v) {
-    if (state.status !== 'ready') { warn('setConsent fuera de ready: se ignora.'); return false }
+    if (state.status !== 'ready') { try { if (process.env.NODE_ENV !== 'production') warn('setConsent fuera de ready: se ignora.') } catch {} return false }
     state.consent = Boolean(v)
     if (state.consent) ui.consentError = false
     return true
   }
   async function setExpectedSpeakers(v) {
-    if (state.status !== 'ready') { warn('setExpectedSpeakers fuera de ready: se ignora.'); return false }
-    if (!EXPECTED.includes(v)) { warn(`expectedSpeakers «${v}» no es válido (1, 2, 'many').`); return false }
+    if (state.status !== 'ready') { try { if (process.env.NODE_ENV !== 'production') warn('setExpectedSpeakers fuera de ready: se ignora.') } catch {} return false }
+    if (!EXPECTED.includes(v)) { try { if (process.env.NODE_ENV !== 'production') warn(`expectedSpeakers «${v}» no es válido (1, 2, 'many').`) } catch {} return false }
     state.expectedSpeakers = v
     if (state.transcript) state.transcript[TX].setExpectedSpeakers(v)
     return true
@@ -1383,12 +1384,12 @@ export function createSpeech(options = {}) {
 // Inyecta el gestor provisto con app.use(speech). Sin gestor (o fuera de setup): aviso en desarrollo y undefined.
 export function useSpeech() {
   if (!hasInjectionContext()) {
-    if (isDev()) console.warn(`${PREFIX} useSpeech() solo funciona dentro de setup (o de app.runWithContext): devuelve undefined.`)
+    try { if (process.env.NODE_ENV !== 'production') console.warn(`${PREFIX} useSpeech() solo funciona dentro de setup (o de app.runWithContext): devuelve undefined.`) } catch {}
     return undefined
   }
   const s = inject(speechKey, null)
   if (!s) {
-    if (isDev()) console.warn(`${PREFIX} useSpeech() sin gestor provisto: instala el tuyo con app.use(createSpeech(…)). Devuelve undefined.`)
+    try { if (process.env.NODE_ENV !== 'production') console.warn(`${PREFIX} useSpeech() sin gestor provisto: instala el tuyo con app.use(createSpeech(…)). Devuelve undefined.`) } catch {}
     return undefined
   }
   return s
@@ -1402,11 +1403,11 @@ export function useSpeechTarget(target, options = {}) {
   const own = options && options.speech
   const manager = own || (hasInjectionContext() ? inject(speechKey, null) : null)
   if (!manager || !manager.targets || typeof manager.targets.register !== 'function') {
-    if (isDev()) console.warn(`${PREFIX} useSpeechTarget sin gestor (app.use(createSpeech(…)) u options.speech): no registra nada; usa la prop targets de GTranscript.`)
+    try { if (process.env.NODE_ENV !== 'production') console.warn(`${PREFIX} useSpeechTarget sin gestor (app.use(createSpeech(…)) u options.speech): no registra nada; usa la prop targets de GTranscript.`) } catch {}
     return noop
   }
   if (!getCurrentInstance()) {
-    if (isDev()) console.warn(`${PREFIX} useSpeechTarget solo funciona dentro de setup: no registra nada.`)
+    try { if (process.env.NODE_ENV !== 'production') console.warn(`${PREFIX} useSpeechTarget solo funciona dentro de setup: no registra nada.`) } catch {}
     return noop
   }
   let off = null

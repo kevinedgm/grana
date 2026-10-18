@@ -29,11 +29,10 @@ const props = defineProps({
 const emit = defineEmits(['remove', 'expire'])
 
 const KEYS = ['type', 'title', 'description', 'details', 'action', 'link', 'origin', 'persistent', 'dismissible', 'deadline', 'politeness']
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const injected = inject(statusKey, null)
 const manager = toRaw(props.status) || injected
 const api = manager && manager[INTERNAL] ? manager[INTERNAL] : null
-if (!api && isDev) console.warn('[Grana Status] <GStatus> sin prop `status` y sin gestor provisto (app.use(createStatus(…))): no registra nada.')
+try { if (process.env.NODE_ENV !== 'production' && !api) console.warn('[Grana Status] <GStatus> sin prop `status` y sin gestor provisto (app.use(createStatus(…))): no registra nada.') } catch {}
 
 let registered = false
 let claimed

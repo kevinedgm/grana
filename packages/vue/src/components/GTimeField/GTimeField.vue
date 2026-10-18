@@ -59,12 +59,14 @@ const uid = useId()
 const inputId = computed(() => props.id || `g-time-field-${uid}`)
 
 // ---------- Avisos (una vez por instancia) ----------
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const warned = new Set()
 function warnOnce(key, text) {
-  if (!isDev || warned.has(key)) return
-  warned.add(key)
-  console.warn(`[Grana GTimeField] ${text}`)
+  try {
+    if (process.env.NODE_ENV !== 'production' && !warned.has(key)) {
+      warned.add(key)
+      console.warn(`[Grana GTimeField] ${text}`)
+    }
+  } catch {}
 }
 
 // ---------- Contexto (la precedencia de useFormField: prop › sub‑contexto › GForm › default) ----------
@@ -80,14 +82,14 @@ function limit(key) {
   const v = props[key]
   if (v === undefined || v === null || v === '') return null
   const s = fromCanonical(v)
-  if (s === null) warnOnce(key, `${key} «${String(v)}» no es una hora «HH:mm» o «HH:mm:ss»: se ignora ese límite.`)
+  try { if (process.env.NODE_ENV !== 'production' && s === null) warnOnce(key, `${key} «${String(v)}» no es una hora «HH:mm» o «HH:mm:ss»: se ignora ese límite.`) } catch {}
   return s
 }
 const minSec = computed(() => limit('min'))
 const maxSec = computed(() => limit('max'))
 const stepSize = computed(() => {
   if (Number.isInteger(props.step) && props.step >= 1) return props.step
-  warnOnce('step', `step ${String(props.step)} no es un entero ≥ 1: se usa 1.`)
+  try { if (process.env.NODE_ENV !== 'production') warnOnce('step', `step ${String(props.step)} no es un entero ≥ 1: se usa 1.`) } catch {}
   return 1
 })
 
@@ -97,11 +99,11 @@ function normalize(v) {
   if (v === undefined || v === null || v === '') return null
   const s = typeof v === 'string' ? fromCanonical(v) : null
   if (s === null) {
-    warnOnce('format', `modelValue ${JSON.stringify(v) ?? String(v)} no es una hora «HH:mm» o «HH:mm:ss»: se lee como vacío (null).`)
+    try { if (process.env.NODE_ENV !== 'production') warnOnce('format', `modelValue ${JSON.stringify(v) ?? String(v)} no es una hora «HH:mm» o «HH:mm:ss»: se lee como vacío (null).`) } catch {}
     return null
   }
   if (!props.seconds && s % 60) {
-    warnOnce('seconds', `modelValue «${v}» lleva segundos sin seconds: se muestra y se envía sin ellos.`)
+    try { if (process.env.NODE_ENV !== 'production') warnOnce('seconds', `modelValue «${v}» lleva segundos sin seconds: se muestra y se envía sin ellos.`) } catch {}
     return s - (s % 60)
   }
   return s
@@ -123,7 +125,7 @@ const info = computed(() => {
   return localeInfo(undefined, hc)
 })
 watch(() => props.locale, (l) => {
-  if (l && !isValidLocale(l)) warnOnce('locale', `locale «${l}» no lo acepta Intl: se usa el idioma del documento.`)
+  try { if (process.env.NODE_ENV !== 'production' && l && !isValidLocale(l)) warnOnce('locale', `locale «${l}» no lo acepta Intl: se usa el idioma del documento.`) } catch {}
 }, { immediate: true })
 // Para interpretar antes de conocer el idioma (SSR sin locale: el texto es el canónico, que se lee en 24 h)
 const writeInfo = () => info.value || localeInfo('en-US', 'h23')
@@ -588,7 +590,7 @@ onMounted(() => {
     document.fonts.addEventListener?.('loadingdone', onFonts)
   }
   scheduleMeasure()
-  if (isDev && !props.labels?.invalid) warnOnce('invalid', 'sin labels.invalid: un texto que no es una hora bloqueará el envío sin mensaje.')
+  try { if (process.env.NODE_ENV !== 'production' && !props.labels?.invalid) warnOnce('invalid', 'sin labels.invalid: un texto que no es una hora bloqueará el envío sin mensaje.') } catch {}
 })
 onBeforeUnmount(() => {
   controlEl?.removeEventListener('pointerdown', onBoxDown)
@@ -678,14 +680,16 @@ const inputProps = computed(() => {
 })
 
 // ---------- Avisos de montaje (1 y 8; 2 al montar; 3 y 4 en normalize; 5 en los límites; 6 en step; 7 en locale) ----------
-if (isDev) {
-  if (!hasLabel.value && !attrs['aria-label'] && !attrs['aria-labelledby']) warnOnce('name', 'necesita label, slot label, aria-label o aria-labelledby para tener un nombre accesible.')
-  if (attrs.type !== undefined) warnOnce('type', 'type no aplica: el campo es siempre type="text" con role="spinbutton".')
-  if (slots.append || slots.action) warnOnce('slots', 'los slots append y action no aplican (el final de la caja es de a. m./p. m. y de las lecturas): no se pintan.')
-  void minSec.value
-  void maxSec.value
-  void stepSize.value
-}
+try {
+  if (process.env.NODE_ENV !== 'production') {
+    if (!hasLabel.value && !attrs['aria-label'] && !attrs['aria-labelledby']) warnOnce('name', 'necesita label, slot label, aria-label o aria-labelledby para tener un nombre accesible.')
+    if (attrs.type !== undefined) warnOnce('type', 'type no aplica: el campo es siempre type="text" con role="spinbutton".')
+    if (slots.append || slots.action) warnOnce('slots', 'los slots append y action no aplican (el final de la caja es de a. m./p. m. y de las lecturas): no se pintan.')
+    void minSec.value
+    void maxSec.value
+    void stepSize.value
+  }
+} catch {}
 </script>
 
 <template>

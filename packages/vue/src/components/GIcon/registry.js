@@ -12,7 +12,6 @@ export const iconsKey = Symbol('GIcons')
 // Acceso interno al mapa nombre → trazos (no es API: la forma del registro no se documenta)
 const MAP = Symbol('GIcons.map')
 
-const isDev = () => typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const PREFIX = '[Grana GIcon]'
 
 // §5.3: elementos de dibujo y atributos geométricos admitidos
@@ -29,16 +28,38 @@ const ELEMENT = /\s*<([a-z]+)((?:\s+[a-zA-Z0-9:_-]+="[^"<>]*")*)\s*\/>/y
 const ATTR = /\s+([a-zA-Z0-9:_-]+)="([^"<>]*)"/g
 
 /**
+ * Motivo del rechazo de una entrada: en desarrollo, el texto del aviso; en producción, solo su código (#636: el texto vive
+ * dentro de la guarda y el empaquetador de la aplicación lo quita). Se rechaza igual en los dos casos.
+ */
+function rejected(code, x) {
+  try {
+    if (process.env.NODE_ENV !== 'production') {
+      return {
+        string: 'no es una cadena de lucide-static (¿un componente u objeto?)',
+        svg: 'no es un único <svg> de lucide-static (el nombre no se escribe: se importa la cadena)',
+        mark: 'no viene de Lucide (falta class="lucide lucide-<nombre>")',
+        content: 'contenido no admitido (marcado fuera de los elementos de dibujo de Lucide)',
+        tag: `elemento <${x}> no admitido`,
+        attr: `atributo «${x}» no admitido`,
+        value: `valor de «${x}» no admitido`,
+        empty: 'el <svg> no tiene elementos de dibujo'
+      }[code]
+    }
+  } catch {}
+  return code
+}
+
+/**
  * Valida una entrada de createIcons (icons.md §5.3).
  * @returns {{ name: string, paths: string } | { error: string, name?: string }}
  */
 export function parseLucide(src) {
-  if (typeof src !== 'string') return { error: 'no es una cadena de lucide-static (¿un componente u objeto?)' }
+  if (typeof src !== 'string') return { error: rejected('string') }
   const text = src.trim()
   const svg = SVG.exec(text)
-  if (!svg) return { error: 'no es un único <svg> de lucide-static (el nombre no se escribe: se importa la cadena)' }
+  if (!svg) return { error: rejected('svg') }
   const mark = MARK.exec(svg[1] || '')
-  if (!mark) return { error: 'no viene de Lucide (falta class="lucide lucide-<nombre>")' }
+  if (!mark) return { error: rejected('mark') }
   const name = mark[1]
   const inner = svg[2]
   const out = []
@@ -48,20 +69,20 @@ export function parseLucide(src) {
     if (!/\S/.test(inner.slice(pos))) break // solo queda espacio en blanco
     ELEMENT.lastIndex = pos
     const m = ELEMENT.exec(inner)
-    if (!m) return { name, error: 'contenido no admitido (marcado fuera de los elementos de dibujo de Lucide)' }
+    if (!m) return { name, error: rejected('content') }
     const tag = m[1]
-    if (!TAGS.has(tag)) return { name, error: `elemento <${tag}> no admitido` }
+    if (!TAGS.has(tag)) return { name, error: rejected('tag', tag) }
     let attrs = ''
     for (const a of m[2].matchAll(ATTR)) {
       const [, key, value] = a
-      if (!ATTRS.has(key)) return { name, error: `atributo «${key}» no admitido` }
-      if (!VALUE.test(value) || (key === 'fill' && !FILL.has(value))) return { name, error: `valor de «${key}» no admitido` }
+      if (!ATTRS.has(key)) return { name, error: rejected('attr', key) }
+      if (!VALUE.test(value) || (key === 'fill' && !FILL.has(value))) return { name, error: rejected('value', key) }
       attrs += ` ${key}="${value}"`
     }
     out.push(`<${tag}${attrs}/>`)
     pos = ELEMENT.lastIndex
   }
-  if (!out.length) return { name, error: 'el <svg> no tiene elementos de dibujo' }
+  if (!out.length) return { name, error: rejected('empty') }
   return { name, paths: out.join('') }
 }
 
@@ -70,20 +91,20 @@ export function parseLucide(src) {
  * @param {string[]} icons cadenas tal como las exporta lucide-static
  */
 export function createIcons(icons) {
-  const warn = (msg) => { if (isDev()) console.warn(`${PREFIX} ${msg}`) }
+  const warn = (msg) => { try { if (process.env.NODE_ENV !== 'production') console.warn(`${PREFIX} ${msg}`) } catch {} }
   const map = new Map()
   if (!Array.isArray(icons)) {
-    warn('createIcons espera un arreglo de cadenas de lucide-static (import { LockOpen } from \'lucide-static\'): el registro queda vacío.')
+    try { if (process.env.NODE_ENV !== 'production') warn('createIcons espera un arreglo de cadenas de lucide-static (import { LockOpen } from \'lucide-static\'): el registro queda vacío.') } catch {}
   } else {
     icons.forEach((entry, i) => {
       const r = parseLucide(entry)
       if (r.error) {
-        warn(`createIcons: se ignora la entrada ${i}${r.name ? ` («${r.name}»)` : ''}: ${r.error}. Solo se registran cadenas de lucide-static; lo que no es Lucide va por slot.`)
+        try { if (process.env.NODE_ENV !== 'production') warn(`createIcons: se ignora la entrada ${i}${r.name ? ` («${r.name}»)` : ''}: ${r.error}. Solo se registran cadenas de lucide-static; lo que no es Lucide va por slot.`) } catch {}
         return
       }
       const prev = map.get(r.name)
       if (prev === undefined) map.set(r.name, r.paths)
-      else if (prev !== r.paths) warn(`createIcons: «${r.name}» está dos veces con dibujos distintos (¿dos versiones de lucide-static?): se queda el primero.`)
+      else if (prev !== r.paths) try { if (process.env.NODE_ENV !== 'production') warn(`createIcons: «${r.name}» está dos veces con dibujos distintos (¿dos versiones de lucide-static?): se queda el primero.`) } catch {}
     })
   }
   const registry = {
@@ -92,7 +113,7 @@ export function createIcons(icons) {
       const ctx = app._context
       const prev = typeof app.runWithContext === 'function' ? app.runWithContext(() => inject(iconsKey, null)) : null
       if (prev && prev !== registry) {
-        warn('ya había un registro de iconos en esta aplicación: el nuevo lo sustituye (no se mezclan). Pasa todos los iconos en una sola lista a createIcons.')
+        try { if (process.env.NODE_ENV !== 'production') warn('ya había un registro de iconos en esta aplicación: el nuevo lo sustituye (no se mezclan). Pasa todos los iconos en una sola lista a createIcons.') } catch {}
         if (ctx && ctx.provides) { ctx.provides[iconsKey] = registry; return }
       }
       app.provide(iconsKey, registry)

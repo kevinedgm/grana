@@ -6,7 +6,7 @@
 // Decorativo por defecto (aria-hidden); con `label`, role="img" + aria-label. Nunca enfocable.
 import { defineComponent, inject, onMounted, ref } from 'vue'
 import { iconsKey, lookupLibrary, lookupRegistry } from './registry.js'
-import { isDev, renderSvg, warnOnce } from './render.js'
+import { renderSvg, warnOnce } from './render.js'
 
 // Atributos que fija GIcon (§2.3): si llegan desde fuera se ignoran
 const FIXED = new Set(['xmlns', 'viewBox', 'viewbox', 'fill', 'stroke', 'stroke-width', 'strokeWidth', 'stroke-linecap', 'strokeLinecap', 'stroke-linejoin', 'strokeLinejoin', 'focusable', 'innerHTML'])
@@ -28,21 +28,24 @@ export default defineComponent({
 
     onMounted(() => {
       // §2.4: un label dentro de un hueco aria-hidden se pierde (solo en el cliente, al montar)
-      if (!isDev() || !props.label || !el.value) return
-      const hidden = el.value.parentElement && el.value.parentElement.closest('[aria-hidden="true"]')
-      if (hidden) warnOnce(`label-hidden:${props.name}`, `<GIcon name="${props.name}" label="${props.label}"> está dentro de un elemento aria-hidden (el hueco de un componente es decorativo): el nombre se pierde. Pon el nombre en el control (aria-label) o saca el icono del hueco.`)
+      try {
+        if (process.env.NODE_ENV !== 'production' && !(!props.label || !el.value)) {
+          const hidden = el.value.parentElement && el.value.parentElement.closest('[aria-hidden="true"]')
+          if (hidden) warnOnce(`label-hidden:${props.name}`, `<GIcon name="${props.name}" label="${props.label}"> está dentro de un elemento aria-hidden (el hueco de un componente es decorativo): el nombre se pierde. Pon el nombre en el control (aria-label) o saca el icono del hueco.`)
+        }
+      } catch {}
     })
 
     return () => {
       const paths = lookupRegistry(registry, props.name) ?? lookupLibrary(props.name)
       if (!paths) {
-        warnOnce(`name:${props.name}`, `no conoce el icono «${props.name}»: no está en la lista de la librería ni en el registro de la aplicación. Regístralo importando su cadena de lucide-static: app.use(createIcons([…])).`)
+        try { if (process.env.NODE_ENV !== 'production') warnOnce(`name:${props.name}`, `no conoce el icono «${props.name}»: no está en la lista de la librería ni en el registro de la aplicación. Regístralo importando su cadena de lucide-static: app.use(createIcons([…])).`) } catch {}
         return null
       }
       const own = {}
       for (const [k, v] of Object.entries(attrs)) {
         if (isA11yAttr(k)) {
-          warnOnce(`attr:${k}:${props.name}`, `<GIcon name="${props.name}"> ignora el atributo «${k}»: para un nombre usa la prop label; si hay que pulsarlo, el nombre y el foco van en el control.`)
+          try { if (process.env.NODE_ENV !== 'production') warnOnce(`attr:${k}:${props.name}`, `<GIcon name="${props.name}"> ignora el atributo «${k}»: para un nombre usa la prop label; si hay que pulsarlo, el nombre y el foco van en el control.`) } catch {}
           continue
         }
         if (FIXED.has(k)) continue

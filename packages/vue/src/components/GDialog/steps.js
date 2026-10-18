@@ -53,7 +53,7 @@ export function createDialogSteps(o) {
   const registry = shallowReactive(new Map()) // name → { name, order, title(), description(), summary(), slots, el() }
   let seq = 0
   function registerStep(rec) {
-    if (registry.has(rec.name) && registry.get(rec.name) !== rec) warnOnce(`step-dup-${rec.name}`, `dos GDialogStep con el mismo name («${rec.name}»): el nombre debe ser único entre los pasos del diálogo.`)
+    try { if (process.env.NODE_ENV !== 'production' && registry.has(rec.name) && registry.get(rec.name) !== rec) warnOnce(`step-dup-${rec.name}`, `dos GDialogStep con el mismo name («${rec.name}»): el nombre debe ser único entre los pasos del diálogo.`) } catch {}
     rec.order = ++seq
     registry.set(rec.name, rec)
     return () => { if (registry.get(rec.name) === rec) registry.delete(rec.name) }
@@ -84,8 +84,8 @@ export function createDialogSteps(o) {
     if (!on) return
     const seen = new Set()
     for (const n of raw()) {
-      if (!registry.has(n)) warnOnce(`steps-unknown-${n}`, `el historial \`steps\` nombra «${n}», que no es de ningún GDialogStep: se ignora.`)
-      else if (seen.has(n)) warnOnce(`steps-repeat-${n}`, `«${n}» está repetido en el historial \`steps\`: el mismo paso no se abre dos veces (un paso recursivo está reservado).`)
+      if (!registry.has(n)) try { if (process.env.NODE_ENV !== 'production') warnOnce(`steps-unknown-${n}`, `el historial \`steps\` nombra «${n}», que no es de ningún GDialogStep: se ignora.`) } catch {}
+      else if (seen.has(n)) try { if (process.env.NODE_ENV !== 'production') warnOnce(`steps-repeat-${n}`, `«${n}» está repetido en el historial \`steps\`: el mismo paso no se abre dos veces (un paso recursivo está reservado).`) } catch {}
       seen.add(n)
     }
   }, { flush: 'post' })
@@ -214,15 +214,15 @@ export function createDialogSteps(o) {
   // ---------- push / back / backTo ----------
   function push(name, { from } = {}) {
     if (!o.isOpen()) {
-      warnOnce('push-closed', '`push` con el diálogo cerrado no hace nada: abrir es `modelValue` (para abrir en un paso hondo, pon `steps` antes de abrir).')
+      try { if (process.env.NODE_ENV !== 'production') warnOnce('push-closed', '`push` con el diálogo cerrado no hace nada: abrir es `modelValue` (para abrir en un paso hondo, pon `steps` antes de abrir).') } catch {}
       return
     }
     if (!registry.has(name)) {
-      warnOnce(`push-unknown-${name}`, `\`push('${name}')\`: no hay ningún GDialogStep con ese name.`)
+      try { if (process.env.NODE_ENV !== 'production') warnOnce(`push-unknown-${name}`, `\`push('${name}')\`: no hay ningún GDialogStep con ese name.`) } catch {}
       return
     }
     if (history.value.includes(name)) {
-      warnOnce(`push-repeat-${name}`, `\`push('${name}')\`: el paso ya está en el historial (el mismo paso no se abre dos veces).`)
+      try { if (process.env.NODE_ENV !== 'production') warnOnce(`push-repeat-${name}`, `\`push('${name}')\`: el paso ya está en el historial (el mismo paso no se abre dos veces).`) } catch {}
       return
     }
     const d = o.dialog.value
@@ -357,8 +357,8 @@ export function createDialogSteps(o) {
   watch(() => history.value.length > 1, (many) => {
     if (!many) return
     const l = o.props.labels || {}
-    if (!l.back) warnOnce('labels-back', 'más de un paso sin `labels.back`: no se pinta «Volver» (Esc y el hilo siguen bajando).')
-    if (!l.trail) warnOnce('labels-trail', 'más de un paso sin `labels.trail`: el hilo (`nav`) queda sin nombre.')
+    try { if (process.env.NODE_ENV !== 'production' && !l.back) warnOnce('labels-back', 'más de un paso sin `labels.back`: no se pinta «Volver» (Esc y el hilo siguen bajando).') } catch {}
+    try { if (process.env.NODE_ENV !== 'production' && !l.trail) warnOnce('labels-trail', 'más de un paso sin `labels.trail`: el hilo (`nav`) queda sin nombre.') } catch {}
   })
 
   const api = {

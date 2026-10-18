@@ -25,7 +25,6 @@ export const ownFieldKey = Symbol('GInputOwn')
 // encabezado de un pliegue anidado. Interna: NO se exporta desde src/index.js (llega a @grana/vue/form-fold por __shared)
 export const foldKey = Symbol('GFormFold')
 
-export const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 
 // Iconos del mensaje (C6, icons.md): error circle-alert, advertencia triangle-alert, válido circle-check
 const ICONS = { error: 'circle-alert', warning: 'triangle-alert', valid: 'circle-check' }
@@ -189,7 +188,7 @@ export function useFormField(options = {}) {
   const prefixFor = (type) => {
     if (!form) return undefined
     const p = unref(form.labels)?.[type]
-    if (!p && isDev && typeof form.warnOnce === 'function') form.warnOnce(`label-${type}`, `falta labels.${type}: el mensaje de tipo «${type}» va sin prefijo oculto.`)
+    try { if (process.env.NODE_ENV !== 'production' && !p && typeof form.warnOnce === 'function') form.warnOnce(`label-${type}`, `falta labels.${type}: el mensaje de tipo «${type}» va sin prefijo oculto.`) } catch {}
     return p || undefined
   }
   const ownMessage = computed(() => {
@@ -224,7 +223,7 @@ export function useFormField(options = {}) {
   const markText = computed(() => {
     if (mark.value !== 'optional') return undefined
     const t = unref(form?.labels)?.optional
-    if (!t && isDev && typeof form?.warnOnce === 'function') form.warnOnce('label-optional', 'falta labels.optional: los campos opcionales van sin marca.')
+    try { if (process.env.NODE_ENV !== 'production' && !t && typeof form?.warnOnce === 'function') form.warnOnce('label-optional', 'falta labels.optional: los campos opcionales van sin marca.') } catch {}
     return t || undefined
   })
 

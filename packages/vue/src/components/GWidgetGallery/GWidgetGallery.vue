@@ -35,16 +35,18 @@ const keyFocus = useKeyFocus(() => props.modelValue)
 const rootId = computed(() => props.id || `g-widget-gallery-${uid}`)
 const L = computed(() => props.labels || {})
 
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const warned = new Set()
 const warnOnce = (key, msg) => {
-  if (!isDev || warned.has(key)) return
-  warned.add(key)
-  console.warn(`[Grana] <GWidgetGallery> ${msg}`)
+  try {
+    if (process.env.NODE_ENV !== 'production' && !warned.has(key)) {
+      warned.add(key)
+      console.warn(`[Grana] <GWidgetGallery> ${msg}`)
+    }
+  } catch {}
 }
-if (!props.title && !attrs['aria-label'] && !attrs['aria-labelledby']) warnOnce('title', 'necesita `title` (nombre accesible de la hoja).')
+try { if (process.env.NODE_ENV !== 'production' && !props.title && !attrs['aria-label'] && !attrs['aria-labelledby']) warnOnce('title', 'necesita `title` (nombre accesible de la hoja).') } catch {}
 for (const key of ['search', 'add', 'results', 'close']) {
-  if (!props.labels?.[key]) warnOnce(`label-${key}`, `necesita labels.${key} (sin valor por defecto: los textos los pone la aplicación).`)
+  try { if (process.env.NODE_ENV !== 'production' && !props.labels?.[key]) warnOnce(`label-${key}`, `necesita labels.${key} (sin valor por defecto: los textos los pone la aplicación).`) } catch {}
 }
 
 // ---------- Datos ----------
@@ -53,11 +55,11 @@ const validItems = computed(() => {
   const out = []
   for (const it of props.items || []) {
     if (!it || it.id === undefined || it.id === null || !it.title) {
-      warnOnce('item', 'ignora un elemento de `items` sin `id` o sin `title`.')
+      try { if (process.env.NODE_ENV !== 'production') warnOnce('item', 'ignora un elemento de `items` sin `id` o sin `title`.') } catch {}
       continue
     }
     if (seen.has(it.id)) {
-      warnOnce('dup', `hay más de un elemento con el mismo id («${it.id}»); se usa el primero.`)
+      try { if (process.env.NODE_ENV !== 'production') warnOnce('dup', `hay más de un elemento con el mismo id («${it.id}»); se usa el primero.`) } catch {}
       continue
     }
     seen.add(it.id)

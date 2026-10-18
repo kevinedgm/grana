@@ -18,7 +18,7 @@ import GBtn from '../GBtn/GBtn.vue'
 import GDialog from '../GDialog/GDialog.vue'
 import GDivider from '../GDivider/GDivider.vue'
 import GIcon from '../GIcon/GLibIcon.js'
-import { formKey, isDev, nextFrame, revealKey, sectionKey, spaceUnit } from '../GForm/formContext.js'
+import { formKey, nextFrame, revealKey, sectionKey, spaceUnit } from '../GForm/formContext.js'
 import { oneOf } from '../../utils/oneOf.js'
 import { fill } from '../../utils/template.js'
 import { useCollapse } from '../../utils/collapse.js'
@@ -124,9 +124,11 @@ const collapsed = computed(() => isCollapsible.value && !openL.value)
 const hasSummaryText = () => Boolean(slots.summary) || Boolean(props.summary)
 const showSummary = () => collapsed.value && (Boolean(statusText.value) || hasSummaryText())
 watch(() => collapsed.value && errorCount.value > 0, (v) => {
-  if (v && isDev && form && !unref(form.labels)?.sectionErrors && typeof form.warnOnce === 'function') {
-    form.warnOnce('label-sectionErrors', 'falta labels.sectionErrors: una sección plegada con errores va sin estado (un icono solo no basta).')
-  }
+  try {
+    if (process.env.NODE_ENV !== 'production' && v && form && !unref(form.labels)?.sectionErrors && typeof form.warnOnce === 'function') {
+      form.warnOnce('label-sectionErrors', 'falta labels.sectionErrors: una sección plegada con errores va sin estado (un icono solo no basta).')
+    }
+  } catch {}
 }, { immediate: true })
 
 // ---------- Transición (la de §14 en __panel, #278): motor de plegado compartido (utils/collapse.js, #486) ----------
@@ -305,35 +307,40 @@ watch(actions, (el) => {
 watch(() => props.headerPlacement, () => nextFrame(measure))
 
 // ---------- Avisos de desarrollo ([Grana GFormSection], una vez por instancia) ----------
-const warn = (m) => console.warn(`[Grana GFormSection] ${m}`)
-if (isDev) {
-  const vnodeProps = getCurrentInstance()?.vnode.props || {}
-  const passed = (k) => Object.prototype.hasOwnProperty.call(vnodeProps, k)
-  if (props.mode !== 'collapsible' && (passed('open') || passed('onUpdate:open'))) warn('open (y v-model:open) solo vale con mode="collapsible": se ignora.')
-  if (props.mode !== 'addable' && (passed('added') || passed('onUpdate:added'))) warn('added (y v-model:added) solo vale con mode="addable": se ignora.')
-  if (props.mode !== 'collapsible' && (props.summary !== undefined || slots.summary)) warn('summary (prop o slot) solo vale con mode="collapsible": no se pinta.')
-  if (props.mode === 'addable') {
-    if (!labelOf('add')) warn('mode="addable" sin labels.add: no se pinta «Agregar …» (la aplicación aún puede agregar con added).')
-    if (!labelOf('remove')) warn('mode="addable" sin labels.remove: no se pinta «Quitar …».')
-    if (!confirmable.value) warn('mode="addable" sin labels.removeTitle, removeConfirm o removeCancel: «Quitar …» quita sin confirmar.')
-    if (props.optional) warn('optional con mode="addable": no se pinta la insignia (el botón «Agregar …» ya dice que es opcional).')
+const warn = (m) => { try { if (process.env.NODE_ENV !== 'production') console.warn(`[Grana GFormSection] ${m}`) } catch {} }
+try {
+  if (process.env.NODE_ENV !== 'production') {
+    const vnodeProps = getCurrentInstance()?.vnode.props || {}
+    const passed = (k) => Object.prototype.hasOwnProperty.call(vnodeProps, k)
+    if (props.mode !== 'collapsible' && (passed('open') || passed('onUpdate:open'))) warn('open (y v-model:open) solo vale con mode="collapsible": se ignora.')
+    if (props.mode !== 'addable' && (passed('added') || passed('onUpdate:added'))) warn('added (y v-model:added) solo vale con mode="addable": se ignora.')
+    if (props.mode !== 'collapsible' && (props.summary !== undefined || slots.summary)) warn('summary (prop o slot) solo vale con mode="collapsible": no se pinta.')
+    if (props.mode === 'addable') {
+      if (!labelOf('add')) warn('mode="addable" sin labels.add: no se pinta «Agregar …» (la aplicación aún puede agregar con added).')
+      if (!labelOf('remove')) warn('mode="addable" sin labels.remove: no se pinta «Quitar …».')
+      if (!confirmable.value) warn('mode="addable" sin labels.removeTitle, removeConfirm o removeCancel: «Quitar …» quita sin confirmar.')
+      if (props.optional) warn('optional con mode="addable": no se pinta la insignia (el botón «Agregar …» ya dice que es opcional).')
+    }
+    if (!props.title && !slots.title) warn('necesita title o el slot title.')
+    if (props.optional && props.mode !== 'addable' && !badgeText.value) {
+      if (form && typeof form.warnOnce === 'function') form.warnOnce('label-sectionOptional', 'falta labels.sectionOptional: la sección opcional va sin insignia.')
+      else warn('optional necesita labels.sectionOptional de GForm para la insignia.')
+    }
+    watch(() => props.mode, () => warn('mode cambió tras montar: se espera fijo durante la vida de la sección; se pinta en el modo nuevo.'))
   }
-  if (!props.title && !slots.title) warn('necesita title o el slot title.')
-  if (props.optional && props.mode !== 'addable' && !badgeText.value) {
-    if (form && typeof form.warnOnce === 'function') form.warnOnce('label-sectionOptional', 'falta labels.sectionOptional: la sección opcional va sin insignia.')
-    else warn('optional necesita labels.sectionOptional de GForm para la insignia.')
-  }
-  watch(() => props.mode, () => warn('mode cambió tras montar: se espera fijo durante la vida de la sección; se pinta en el modo nuevo.'))
-}
+} catch {}
 // Aviso 7: nada interactivo en la línea de estado (es la descripción del botón; su contenido no se puede usar)
 const INTERACTIVE = 'a[href], button, input, select, textarea, [tabindex]'
 let warnedSummary = false
 function checkSummary() {
-  if (!isDev || warnedSummary || !summaryEl.value) return
-  if (summaryEl.value.querySelector(INTERACTIVE)) {
-    warnedSummary = true
-    warn('la línea de estado (summary) no admite nada interactivo: es la descripción del botón y su contenido no se puede usar.')
-  }
+  try {
+    if (process.env.NODE_ENV !== 'production' && !(warnedSummary || !summaryEl.value)) {
+      if (summaryEl.value.querySelector(INTERACTIVE)) {
+        warnedSummary = true
+        warn('la línea de estado (summary) no admite nada interactivo: es la descripción del botón y su contenido no se puede usar.')
+      }
+    }
+  } catch {}
 }
 onUpdated(checkSummary)
 
@@ -342,21 +349,23 @@ const BODY_FIELD_ROOTS = ['g-input', 'g-textarea', 'g-select', 'g-datepicker', '
 
 onMounted(() => {
   const el = root.value
-  if (isDev && el) {
-    // Una sección dentro de un GFormReveal (form.md §14 aviso 3, #279; no por una sección agregable, #288)
-    if (parentReveal && parentReveal.fromReveal) warn('va dentro de un GFormReveal: la sección contiene la pregunta y el bloque, no al revés.')
-    // Campos, filas o bloques condicionales directos en el cuerpo (#283): un solo aviso aunque haya varios
-    const b = body.value
-    if (b && Array.from(b.children).some((c) => BODY_FIELD_ROOTS.some((k) => c.classList.contains(k)))) {
-      warn('los campos de una sección van en un `GFormLayout` (separación, ancho completo y densidad); el cuerpo de la sección no distribuye.')
+  try {
+    if (process.env.NODE_ENV !== 'production' && el) {
+      // Una sección dentro de un GFormReveal (form.md §14 aviso 3, #279; no por una sección agregable, #288)
+      if (parentReveal && parentReveal.fromReveal) warn('va dentro de un GFormReveal: la sección contiene la pregunta y el bloque, no al revés.')
+      // Campos, filas o bloques condicionales directos en el cuerpo (#283): un solo aviso aunque haya varios
+      const b = body.value
+      if (b && Array.from(b.children).some((c) => BODY_FIELD_ROOTS.some((k) => c.classList.contains(k)))) {
+        warn('los campos de una sección van en un `GFormLayout` (separación, ancho completo y densidad); el cuerpo de la sección no distribuye.')
+      }
+      // Un GDivider a mano entre dos secciones (#192, #290)
+      const prev = el.previousElementSibling
+      if (prev && prev.classList.contains('g-divider') && prev.previousElementSibling && prev.previousElementSibling.classList.contains('g-form-section')) {
+        warn('hay un GDivider a mano antes de esta sección: entre secciones la separación es el espacio; para una línea, usa `divider` en la sección.')
+      }
+      checkSummary()
     }
-    // Un GDivider a mano entre dos secciones (#192, #290)
-    const prev = el.previousElementSibling
-    if (prev && prev.classList.contains('g-divider') && prev.previousElementSibling && prev.previousElementSibling.classList.contains('g-form-section')) {
-      warn('hay un GDivider a mano antes de esta sección: entre secciones la separación es el espacio; para una línea, usa `divider` en la sección.')
-    }
-    checkSummary()
-  }
+  } catch {}
   if (el) offRoot = observeSize(el, measure)
   if (actions.value) offActions = observeSize(actions.value, measure)
   // Primera medida en un cuadro y, DESPUÉS de pintarla, is-ready (si no, el paso a «al lado» de un panel plegado

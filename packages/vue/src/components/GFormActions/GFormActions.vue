@@ -7,7 +7,7 @@
 import { Comment, Fragment, computed, inject, onBeforeUnmount, onMounted, ref, unref, useSlots } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import GBtn from '../GBtn/GBtn.vue'
-import { formKey, isDev, nextFrame, spaceUnit } from '../GForm/formContext.js'
+import { formKey, nextFrame, spaceUnit } from '../GForm/formContext.js'
 
 defineOptions({ name: 'GFormActions' })
 
@@ -54,7 +54,7 @@ onMounted(() => {
     })
     observer.observe(el)
   }
-  if (isDev) checkButtons()
+  try { if (process.env.NODE_ENV !== 'production') checkButtons() } catch {}
 })
 onBeforeUnmount(() => {
   observer?.disconnect()
@@ -71,11 +71,15 @@ function flatten(nodes, out = []) {
   return out
 }
 function checkButtons() {
-  const nodes = flatten(slots.default ? slots.default() : [])
-  const btns = nodes.filter((n) => n.type === GBtn || n.type?.name === 'GBtn')
-  const solid = btns.filter((n) => (n.props?.variant ?? 'solid') === 'solid')
-  if (solid.length > 1) console.warn('[Grana GFormActions] hay más de una acción primaria (GBtn solid); deja una.')
-  if (solid.length === 1 && btns[btns.length - 1] !== solid[0]) console.warn('[Grana GFormActions] la primaria (GBtn solid) debe ser el último botón.')
+  try {
+    if (process.env.NODE_ENV !== 'production') {
+      const nodes = flatten(slots.default ? slots.default() : [])
+      const btns = nodes.filter((n) => n.type === GBtn || n.type?.name === 'GBtn')
+      const solid = btns.filter((n) => (n.props?.variant ?? 'solid') === 'solid')
+      if (solid.length > 1) console.warn('[Grana GFormActions] hay más de una acción primaria (GBtn solid); deja una.')
+      if (solid.length === 1 && btns[btns.length - 1] !== solid[0]) console.warn('[Grana GFormActions] la primaria (GBtn solid) debe ser el último botón.')
+    }
+  } catch {}
 }
 
 const classes = computed(() => [

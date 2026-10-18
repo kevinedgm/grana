@@ -185,6 +185,34 @@ Con un contenedor propio que se desplaza bajo la barra: las propiedades a `0px` 
      - **R2:** en el desarrollo de la aplicación en el navegador, con Vite y con webpack 5, los avisos se emiten.
      - **R3:** el ESM sin empaquetar en un navegador y el `.umd.js` desde CDN no lanzan error (el UMD puede dejar los avisos activos).
      - **R4:** las pruebas de Vitest siguen viendo los avisos.
+
+     **Forma elegida** (bruno, aplicada en todo `packages/vue/src`):
+
+     ```js
+     try { if (process.env.NODE_ENV !== 'production') warnOnce('clave', 'texto del aviso…') } catch {}
+     try { if (process.env.NODE_ENV !== 'production' && !props.label) console.warn('[Grana GX] …') } catch {}
+     try {
+       if (process.env.NODE_ENV !== 'production') {
+         // cálculos que solo sirven al aviso (recorridos, conjuntos) y los avisos
+       }
+     } catch {}
+     ```
+
+     - Es una **sentencia** (nunca una expresión dentro de otra), el `if` es lo único que hay dentro del `try`, la prueba **empieza** por `process.env.NODE_ENV !== 'production'` (lo demás va detrás con `&&`) y el `catch {}` está vacío. Nada de `typeof process`, `globalThis.process`, `import.meta.env` ni una constante o función que guarde el resultado.
+     - **Por qué funciona:** los empaquetadores sustituyen el texto `process.env.NODE_ENV` por una cadena (Vite en desarrollo, en el preempaquetado y en producción; webpack 5 con `mode`), pero **no** definen `process`. En producción la prueba queda `'production' !== 'production'` y el minificador elimina el `if` y luego el `try` vacío, con el texto dentro (R1). En desarrollo queda `'development' !== 'production'` y el aviso sale (R2). Sin empaquetador, `process` no existe: la lectura lanza `ReferenceError` y el `catch` la absorbe; no se avisa y no se rompe nada (R3). En Vitest `process` existe y `NODE_ENV` es `test` (R4).
+     - **Ayudantes:** un `warnOnce`/`warn` puede seguir existiendo, con la guarda dentro de su cuerpo, pero **cada llamada con texto lleva también la suya**. Una función que solo comprueba para avisar (`check()`, `checkChildren()`) lleva la guarda alrededor de todo su cuerpo y en sus llamadas. Un texto que también decide un rechazo en producción (un validador que devuelve el motivo) devuelve un código fuera de la guarda y el texto dentro (`parseLucide`, `invalidTarget`). Una tabla de textos o un prefijo (`const PREFIX = '[Grana Speech]'`) en el nivel del módulo vale solo si todas sus lecturas están guardadas: entonces el empaquetador la descarta como código sin usar.
+     - **Coste:** el `dist/` crece por repetir la guarda (`grana.js` +1 407 B gzip al aplicarla, 213 872 → 215 279 B); en el ESM sin empaquetar y en el UMD cada guarda que se evalúa lanza y absorbe un `ReferenceError` (≈ 2 µs en Chromium y ≈ 4,5 µs en Firefox por guarda, medido en un bucle): por eso nunca se pone una guarda dentro de un bucle por fila o por cuadro si puede ir fuera.
+     - **Lo medido** (Vite 6.4.4 con esbuild, webpack 5.112 con terser 5.51, Chromium; aplicación mínima con `GDialog` sin `closeLabel` y `GTable` sin `caption`, sobre el `dist/` real):
+
+       | Forma | R1 Vite | R1 webpack | R2 Vite dev (preempaquetado / sin) | R2 webpack dev | R3 ESM / UMD |
+       | --- | --- | --- | --- | --- | --- |
+       | `const isDev = typeof process !== 'undefined' && …` o `isDev()` (antes de #636) | falla (quedan los textos de las llamadas a ayudantes) | falla (quedan textos y `[Grana`) | no avisa / no avisa | no avisa | sin error |
+       | `typeof process !== 'undefined' && …` en línea | pasa | pasa | no avisa / no avisa | no avisa | sin error |
+       | `process.env.NODE_ENV !== 'production'` desnuda | pasa | pasa | avisa | avisa | **ESM lanza** `process is not defined` |
+       | `typeof process === 'undefined' \|\| …`, `globalThis.process?.env?.NODE_ENV`, IIFE con `try` | falla | falla | — | — | sin error |
+       | **`try { if (process.env.NODE_ENV !== 'production') … } catch {}`** | **pasa** | **pasa** | **avisa / avisa** | **avisa** | **sin error** (no avisa) |
+
+       Con la forma elegida, el banco `node design/lab/avisos-dev/verificar.mjs` da 13/13: además del principal, comprueba las once entradas publicadas y que ninguno de los 668 textos que el código escribe dentro de la guarda queda en producción. La aplicación que importa todo el principal (con Vue) pasa de 193 695 a 190 886 B gzip con Vite y de 199 373 a 179 558 B con webpack. La forma la vigila además `src/devWarnings.test.js` (Vitest), que lee el código fuente.
   3. Nuestro build **no sustituye** `process.env.NODE_ENV` en el `dist/` ESM: lo sustituye la aplicación.
   4. Las compuertas de peso siguen midiendo el `grana.js` gzip, que conserva los textos. Lo que paga la aplicación en producción se registra en `CHANGELOG.md` como cifra informativa. Si cambia la medida de las compuertas, lo decide lima.
 

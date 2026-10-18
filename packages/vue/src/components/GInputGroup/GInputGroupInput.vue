@@ -3,7 +3,7 @@
 // Contrato: design/contracts/form.md §13 · Estilo: GInputGroup.css (coco)
 import { computed, mergeProps, ref, useAttrs } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
-import { isDev } from '../GForm/formContext.js'
+import {  } from '../GForm/formContext.js'
 import { useInputGroupPart } from './inputGroupContext.js'
 
 defineOptions({ name: 'GInputGroupInput', inheritAttrs: false })
@@ -27,7 +27,7 @@ const part = ref(null)
 const p = useInputGroupPart('GInputGroupInput', 'input', props, { control, part })
 
 const charsOk = computed(() => Number.isInteger(props.chars) && props.chars > 0)
-if (isDev && props.chars !== undefined && !charsOk.value) console.warn(`[Grana GInputGroup] chars debe ser un entero positivo, no «${props.chars}».`)
+try { if (process.env.NODE_ENV !== 'production' && props.chars !== undefined && !charsOk.value) console.warn(`[Grana GInputGroup] chars debe ser un entero positivo, no «${props.chars}».`) } catch {}
 
 // class y style van a la parte; el resto (autocomplete, inputmode, placeholder, maxlength, pattern, escuchas), al <input>
 const partAttrs = computed(() => ({ class: attrs.class, style: attrs.style }))

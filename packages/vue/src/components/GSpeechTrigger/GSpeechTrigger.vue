@@ -24,12 +24,11 @@ const props = defineProps({
   speech: { type: Object, default: undefined }
 })
 
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
-const warn = (msg) => { if (isDev) console.warn(`[Grana Speech] ${msg}`) }
+const warn = (msg) => { try { if (process.env.NODE_ENV !== 'production') console.warn(`[Grana Speech] ${msg}`) } catch {} }
 const injected = inject(speechKey, null)
 const manager = toRaw(props.speech) || injected
 const api = manager && manager[INTERNAL] ? manager[INTERNAL] : null
-if (!api) warn('<GSpeechTrigger> sin prop `speech` y sin gestor provisto (app.use(createSpeech(…))): el botón no inicia nada.')
+try { if (process.env.NODE_ENV !== 'production' && !api) warn('<GSpeechTrigger> sin prop `speech` y sin gestor provisto (app.use(createSpeech(…))): el botón no inicia nada.') } catch {}
 const S = api ? api.state : null
 const ui = api ? api.ui : null
 const t = (path, vars) => (api ? api.t(path, vars) : '')
@@ -46,17 +45,17 @@ const dictation = computed(() => props.mode === 'dictation')
 const TYPES = ['text', 'search', 'url', 'tel']
 function field(report) {
   if (!props.for) {
-    if (report) warn('<GSpeechTrigger> de dictado sin `for`: necesita el id del campo.')
+    try { if (process.env.NODE_ENV !== 'production' && report) warn('<GSpeechTrigger> de dictado sin `for`: necesita el id del campo.') } catch {}
     return null
   }
   const el = document.getElementById(props.for)
   if (!el) {
-    if (report) warn(`<GSpeechTrigger for="${props.for}">: no existe ningún elemento con ese id.`)
+    try { if (process.env.NODE_ENV !== 'production' && report) warn(`<GSpeechTrigger for="${props.for}">: no existe ningún elemento con ese id.`) } catch {}
     return null
   }
   const ok = el.localName === 'textarea' || (el.localName === 'input' && TYPES.includes(String(el.type || 'text').toLowerCase()))
   if (!ok) {
-    if (report) warn(`<GSpeechTrigger for="${props.for}">: tipo de campo no admitido (solo textarea e input text, search, url o tel).`)
+    try { if (process.env.NODE_ENV !== 'production' && report) warn(`<GSpeechTrigger for="${props.for}">: tipo de campo no admitido (solo textarea e input text, search, url o tel).`) } catch {}
     return null
   }
   return el
@@ -65,7 +64,7 @@ function resolveLabel(el, report) {
   if (props.targetLabel) return props.targetLabel
   const l = el && el.labels && el.labels[0]
   const text = l ? l.textContent.replace(/\s+/g, ' ').trim() : ''
-  if (!text && report) warn(`<GSpeechTrigger for="${props.for}">: no se pudo resolver el nombre del campo (usa targetLabel); {target} queda vacío.`)
+  try { if (process.env.NODE_ENV !== 'production' && !text && report) warn(`<GSpeechTrigger for="${props.for}">: no se pudo resolver el nombre del campo (usa targetLabel); {target} queda vacío.`) } catch {}
   return text
 }
 
@@ -128,7 +127,7 @@ function noteAction() {
 
 onMounted(() => {
   if (!dictation.value) return
-  if (!props.for) { warn('<GSpeechTrigger> de dictado sin `for`: necesita el id del campo.'); return }
+  if (!props.for) { try { if (process.env.NODE_ENV !== 'production') warn('<GSpeechTrigger> de dictado sin `for`: necesita el id del campo.') } catch {} return }
   if (!props.targetLabel) label.value = resolveLabel(field(false), false)
 })
 </script>

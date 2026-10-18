@@ -10,7 +10,6 @@ import { anchorGone, followFrame, placeAround, parsePlacement, px, setVar, viewp
 import GIcon from '../GIcon/GLibIcon.js'
 import GDialog from '../GDialog/GDialog.vue'
 
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const PLACEMENTS = ['top-start', 'top', 'top-end', 'right-start', 'right', 'right-end', 'bottom-end', 'bottom', 'bottom-start', 'left-end', 'left', 'left-start']
 // Espacio mínimo del visor para un popover: space × 130 (520px con space 4), el mismo umbral en que GDialog
 // pasa a hoja. Por debajo, o si ninguna posición cabe, el contenido se abre como hoja (DECISIONS.md #103).
@@ -63,11 +62,13 @@ export default defineComponent({
     const isOpen = computed(() => (controlled.value ? props.open : internal.value))
 
     // ---- Avisos de desarrollo ----
-    if (isDev) {
-      if (!props.ariaLabel && !slots.trigger && !attrs['aria-labelledby']) console.warn('[Grana] <GHelper> necesita ariaLabel: el disparador por defecto no tiene texto visible.')
-      if (!props.contentLabel) console.warn('[Grana] <GHelper> necesita contentLabel: nombre del contenido (y título de la hoja).')
-      if (props.adaptive && !props.closeLabel) console.warn('[Grana] <GHelper> con adaptive necesita closeLabel para el botón de cierre de la hoja.')
-    }
+    try {
+      if (process.env.NODE_ENV !== 'production') {
+        if (!props.ariaLabel && !slots.trigger && !attrs['aria-labelledby']) console.warn('[Grana] <GHelper> necesita ariaLabel: el disparador por defecto no tiene texto visible.')
+        if (!props.contentLabel) console.warn('[Grana] <GHelper> necesita contentLabel: nombre del contenido (y título de la hoja).')
+        if (props.adaptive && !props.closeLabel) console.warn('[Grana] <GHelper> con adaptive necesita closeLabel para el botón de cierre de la hoja.')
+      }
+    } catch {}
 
     const setOpen = (value) => {
       if (value === isOpen.value) return

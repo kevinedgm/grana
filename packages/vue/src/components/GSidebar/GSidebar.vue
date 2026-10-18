@@ -13,7 +13,6 @@ import { useVisualTips } from '../../utils/visualTip.js'
 // Activación primaria de un enlace (#505): botón principal, sin modificadores y sin cancelar (Intro llega como clic primario)
 const primaryActivation = (e) => e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey && !e.defaultPrevented
 
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const COLORS = ['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info']
 
 export default defineComponent({
@@ -51,9 +50,12 @@ export default defineComponent({
 
     const warned = new Set()
     const warnOnce = (key, msg) => {
-      if (!isDev || warned.has(key)) return
-      warned.add(key)
-      console.warn(`[Grana] <GSidebar> ${msg}`)
+      try {
+        if (process.env.NODE_ENV !== 'production' && !warned.has(key)) {
+          warned.add(key)
+          console.warn(`[Grana] <GSidebar> ${msg}`)
+        }
+      } catch {}
     }
 
     // ---------- Modelo de items ----------
@@ -61,16 +63,16 @@ export default defineComponent({
       const seen = new Set()
       const mk = (raw, level) => {
         if (!raw || typeof raw !== 'object' || raw.id === undefined || raw.id === null || typeof raw.label !== 'string') {
-          warnOnce('bad-item', 'un item sin id o sin label se ignora.')
+          try { if (process.env.NODE_ENV !== 'production') warnOnce('bad-item', 'un item sin id o sin label se ignora.') } catch {}
           return null
         }
-        if (seen.has(raw.id)) warnOnce(`dup-${raw.id}`, `hay dos items con el mismo id (${String(raw.id)}).`)
+        try { if (process.env.NODE_ENV !== 'production' && seen.has(raw.id)) warnOnce(`dup-${raw.id}`, `hay dos items con el mismo id (${String(raw.id)}).`) } catch {}
         seen.add(raw.id)
-        if ((raw.badge !== undefined || raw.dot) && !raw.badgeLabel) warnOnce(`badge-${raw.id}`, `el item «${raw.id}» tiene badge o dot sin badgeLabel (texto para lectores).`)
+        try { if (process.env.NODE_ENV !== 'production' && (raw.badge !== undefined || raw.dot) && !raw.badgeLabel) warnOnce(`badge-${raw.id}`, `el item «${raw.id}» tiene badge o dot sin badgeLabel (texto para lectores).`) } catch {}
         const item = { id: raw.id, label: raw.label, href: raw.href, icon: raw.icon, badge: raw.badge, badgeLabel: raw.badgeLabel, dot: Boolean(raw.dot), disabled: Boolean(raw.disabled), primary: Boolean(raw.primary), raw, level, children: [] }
         if (level === 0 && Array.isArray(raw.children)) {
           item.children = raw.children.map((c) => {
-            if (c && Array.isArray(c.children) && c.children.length) warnOnce('grandchildren', 'los nietos se ignoran: solo hay un nivel de hijos.')
+            try { if (process.env.NODE_ENV !== 'production' && c && Array.isArray(c.children) && c.children.length) warnOnce('grandchildren', 'los nietos se ignoran: solo hay un nivel de hijos.') } catch {}
             return mk(c, 1)
           }).filter(Boolean)
         }
@@ -118,16 +120,16 @@ export default defineComponent({
       if (bp && typeof bp === 'object') {
         for (const k of Object.keys(bp)) {
           const v = bp[k]
-          if (!BP_KEYS.includes(k)) { warnOnce(`bp-key-${k}`, `breakpoints.${k} no válido o desconocido: se usa el valor por defecto.`); continue }
+          if (!BP_KEYS.includes(k)) { try { if (process.env.NODE_ENV !== 'production') warnOnce(`bp-key-${k}`, `breakpoints.${k} no válido o desconocido: se usa el valor por defecto.`) } catch {} continue }
           if (v === undefined) continue
-          if (typeof v !== 'number' || !Number.isFinite(v) || v < 0) { warnOnce(`bp-val-${k}`, `breakpoints.${k} no válido o desconocido: se usa el valor por defecto.`); continue }
+          if (typeof v !== 'number' || !Number.isFinite(v) || v < 0) { try { if (process.env.NODE_ENV !== 'production') warnOnce(`bp-val-${k}`, `breakpoints.${k} no válido o desconocido: se usa el valor por defecto.`) } catch {} continue }
           given[k] = v
         }
       }
       const expanded = 'expanded' in given ? given.expanded : unit.value * 240
       let rail = 'rail' in given ? given.rail : unit.value * 150
       if (rail > expanded) {
-        if ('rail' in given && 'expanded' in given) warnOnce('bp-clip', `breakpoints.rail (${rail}) es mayor que breakpoints.expanded (${expanded}): se recorta a ${expanded}.`)
+        try { if (process.env.NODE_ENV !== 'production' && 'rail' in given && 'expanded' in given) warnOnce('bp-clip', `breakpoints.rail (${rail}) es mayor que breakpoints.expanded (${expanded}): se recorta a ${expanded}.`) } catch {}
         rail = expanded
       }
       return { expanded, rail }
@@ -448,14 +450,16 @@ export default defineComponent({
     })
 
     // ---------- Avisos de desarrollo ----------
-    if (isDev) {
-      if (!props.label && !attrs['aria-label'] && !attrs['aria-labelledby']) warnOnce('label', 'necesita label (nombre accesible del <nav>).')
-      const l = props.labels || {}
-      if (!l.collapse || !l.expand) warnOnce('toggle', 'necesita labels.collapse y labels.expand (nombre del botón de contraer y expandir).')
-      if (!l.drawer) warnOnce('drawer', 'necesita labels.drawer (nombre accesible del drawer).')
-      if (!l.more) warnOnce('more', 'necesita labels.more (texto del botón «Más» del navbar).')
-      if (props.search && !l.search && !slots.search) warnOnce('search', 'con search necesita labels.search.')
-    }
+    try {
+      if (process.env.NODE_ENV !== 'production') {
+        if (!props.label && !attrs['aria-label'] && !attrs['aria-labelledby']) warnOnce('label', 'necesita label (nombre accesible del <nav>).')
+        const l = props.labels || {}
+        if (!l.collapse || !l.expand) warnOnce('toggle', 'necesita labels.collapse y labels.expand (nombre del botón de contraer y expandir).')
+        if (!l.drawer) warnOnce('drawer', 'necesita labels.drawer (nombre accesible del drawer).')
+        if (!l.more) warnOnce('more', 'necesita labels.more (texto del botón «Más» del navbar).')
+        if (props.search && !l.search && !slots.search) warnOnce('search', 'con search necesita labels.search.')
+      }
+    } catch {}
 
     // ---------- Render ----------
     const cls = (...a) => a.filter(Boolean).join(' ')

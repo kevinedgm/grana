@@ -90,12 +90,14 @@ const isReadonly = ff.readonly
 const message = ff.message
 const monthId = (i) => `${baseId.value}-m${i}`
 
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const warned = new Set()
 const warnOnce = (key, msg) => {
-  if (!isDev || warned.has(key)) return
-  warned.add(key)
-  console.warn(`[Grana] <GDatePicker> ${msg}`)
+  try {
+    if (process.env.NODE_ENV !== 'production' && !warned.has(key)) {
+      warned.add(key)
+      console.warn(`[Grana] <GDatePicker> ${msg}`)
+    }
+  } catch {}
 }
 
 const isRange = computed(() => props.mode === 'range')
@@ -135,11 +137,11 @@ const normalized = computed(() => {
   if (v === null || v === undefined || v === '') return { start: null, end: null }
   if (!isRange.value) {
     if (typeof v === 'string' && isISO(v)) return { start: v, end: null }
-    warnOnce('value', `modelValue inválido para mode="single": se esperaba una cadena ISO YYYY-MM-DD (llegó ${JSON.stringify(v)}).`)
+    try { if (process.env.NODE_ENV !== 'production') warnOnce('value', `modelValue inválido para mode="single": se esperaba una cadena ISO YYYY-MM-DD (llegó ${JSON.stringify(v)}).`) } catch {}
     return { start: null, end: null }
   }
   if (typeof v === 'object' && isISO(v.start) && isISO(v.end) && v.start <= v.end) return { start: v.start, end: v.end }
-  warnOnce('value', `modelValue inválido para mode="range": se esperaba { start, end } ISO con start ≤ end (llegó ${JSON.stringify(v)}).`)
+  try { if (process.env.NODE_ENV !== 'production') warnOnce('value', `modelValue inválido para mode="range": se esperaba { start, end } ISO con start ≤ end (llegó ${JSON.stringify(v)}).`) } catch {}
   return { start: null, end: null }
 })
 const hasValue = computed(() => Boolean(normalized.value.start))
@@ -725,26 +727,28 @@ const showFoot = computed(() => proximityItems.value.length > 0 || showSummary.v
 
 const sheetVisibleClose = computed(() => !props.inline)
 
-if (isDev) {
-  const l = props.labels || {}
-  if (!l.prev || !l.next) warnOnce('nav', 'necesita labels.prev y labels.next: sin ellos los botones de mes no tienen nombre accesible.')
-  if (!props.inline && !l.dialog) warnOnce('dialog', 'necesita labels.dialog (nombre accesible del popover).')
-  if (!props.inline && !l.close) warnOnce('close', 'necesita labels.close (nombre del botón de cierre de la hoja móvil).')
-  if (!props.inline && !hasTriggerSlot.value) {
-    if (splitOn.value) {
-      if (!props.labelStart || !props.labelEnd) warnOnce('split', 'con split necesita labelStart y labelEnd.')
-    } else if (!hasLabel.value && !attrs['aria-label'] && !attrs['aria-labelledby']) {
-      warnOnce('label', 'necesita label, slot label, aria-label o aria-labelledby para tener un nombre accesible.')
+try {
+  if (process.env.NODE_ENV !== 'production') {
+    const l = props.labels || {}
+    if (!l.prev || !l.next) warnOnce('nav', 'necesita labels.prev y labels.next: sin ellos los botones de mes no tienen nombre accesible.')
+    if (!props.inline && !l.dialog) warnOnce('dialog', 'necesita labels.dialog (nombre accesible del popover).')
+    if (!props.inline && !l.close) warnOnce('close', 'necesita labels.close (nombre del botón de cierre de la hoja móvil).')
+    if (!props.inline && !hasTriggerSlot.value) {
+      if (splitOn.value) {
+        if (!props.labelStart || !props.labelEnd) warnOnce('split', 'con split necesita labelStart y labelEnd.')
+      } else if (!hasLabel.value && !attrs['aria-label'] && !attrs['aria-labelledby']) {
+        warnOnce('label', 'necesita label, slot label, aria-label o aria-labelledby para tener un nombre accesible.')
+      }
+    }
+    if (props.inline) {
+      const fieldProps = ['label', 'hint', 'error', 'placeholder', 'required', 'name', 'split', 'size', 'density', 'rounded', 'block', 'variant']
+      const given = fieldProps.filter((k) => attrs[k] !== undefined)
+      // (los props declarados no llegan a attrs: se comprueban contra sus valores no predeterminados)
+      const set = [props.label, props.hint, props.error, props.placeholder, props.required, props.name, props.split, props.block, props.rounded].some(Boolean)
+      if (given.length || set) warnOnce('inline-fields', 'con inline se ignoran las props de campo (label, hint, error, placeholder, required, name, split, size, density, rounded, block, variant).')
     }
   }
-  if (props.inline) {
-    const fieldProps = ['label', 'hint', 'error', 'placeholder', 'required', 'name', 'split', 'size', 'density', 'rounded', 'block', 'variant']
-    const given = fieldProps.filter((k) => attrs[k] !== undefined)
-    // (los props declarados no llegan a attrs: se comprueban contra sus valores no predeterminados)
-    const set = [props.label, props.hint, props.error, props.placeholder, props.required, props.name, props.split, props.block, props.rounded].some(Boolean)
-    if (given.length || set) warnOnce('inline-fields', 'con inline se ignoran las props de campo (label, hint, error, placeholder, required, name, split, size, density, rounded, block, variant).')
-  }
-}
+} catch {}
 
 defineExpose({
   open: () => show(fieldEls.value[0] || null),

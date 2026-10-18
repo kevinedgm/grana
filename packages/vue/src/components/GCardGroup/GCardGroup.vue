@@ -12,7 +12,6 @@ import { cardGroupKey } from '../../utils/cardGroup.js'
 import { transitionMs } from '../../utils/motion.js'
 import { isPressed, keyTarget, normalizeModel, revealDelta, toggleModel } from './model.js'
 
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const FOCUSABLE = 'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"]), summary'
 const raf = (f) => (typeof requestAnimationFrame === 'function' ? requestAnimationFrame(f) : setTimeout(f, 16))
 const caf = (id) => (typeof cancelAnimationFrame === 'function' ? cancelAnimationFrame(id) : clearTimeout(id))
@@ -51,20 +50,23 @@ export default defineComponent({
 
     const warned = new Set()
     const warn = (key, msg) => {
-      if (!isDev || warned.has(key)) return
-      warned.add(key)
-      console.warn(`[Grana GCardGroup] ${msg}`)
+      try {
+        if (process.env.NODE_ENV !== 'production' && !warned.has(key)) {
+          warned.add(key)
+          console.warn(`[Grana GCardGroup] ${msg}`)
+        }
+      } catch {}
     }
 
     // G8: un grupo dentro de otro (en la barra; el panel corta el contexto)
-    if (inject(cardGroupKey, null)) warn('G8', 'un GCardGroup dentro de otro GCardGroup: cada GCard pertenece al grupo más cercano.')
+    try { if (process.env.NODE_ENV !== 'production' && inject(cardGroupKey, null)) warn('G8', 'un GCardGroup dentro de otro GCardGroup: cada GCard pertenece al grupo más cercano.') } catch {}
 
     // ---------- Modelo ----------
     const norm = computed(() => normalizeModel(props.modelValue, props.multiple))
     watch(norm, (n) => {
-      if (n.bad) warn('G7', props.multiple
+      try { if (process.env.NODE_ENV !== 'production' && n.bad) warn('G7', props.multiple
         ? 'con multiple, modelValue debe ser un arreglo ([] sin ninguna pulsada, nunca null); se trata como [].'
-        : 'sin multiple, modelValue es el value de una tarjeta o null; un arreglo se trata como null.')
+        : 'sin multiple, modelValue es el value de una tarjeta o null; un arreglo se trata como null.') } catch {}
     }, { immediate: true })
 
     // ---------- Tarjetas registradas (en el orden del documento) ----------
@@ -323,25 +325,30 @@ export default defineComponent({
 
     // ---------- Avisos de las tarjetas (G2 a G6) ----------
     const checkCards = () => {
-      if (!isDev) return
-      for (const e of cards.value) {
-        const s = status.value.get(e.uid)
-        const t = e.title() ? `«${e.title()}»` : 'sin título'
-        if (s === 'kind') warn('G2', `una tarjeta (${t}) con interaction="${e.interaction()}" cae a "none": en la barra solo hay tarjetas de alternar.`)
-        else if (s === 'no-value') warn('G3', `una tarjeta (${t}) con interaction="toggle" sin value cae a "none".`)
-        else if (s === 'dup') warn('G4', `value repetido entre tarjetas (${t}): la segunda y siguientes caen a "none".`)
-        if (s !== 'managed') continue
-        if (e.bound()) warn('G6', `v-model/modelValue en una tarjeta gestionada (${t}) se ignora: el estado es el v-model del grupo.`)
-        const content = e.el()?.querySelector?.('.g-card__content')
-        if (e.secondary() || (content && content.querySelector(FOCUSABLE))) {
-          warn('G5', `la tarjeta ${t} tiene controles secundarios (menú, casilla, «Mostrar más», actions, footer, more o enfocables): no admitidos en v1 en una barra de una parada.`)
+      try {
+        if (process.env.NODE_ENV !== 'production') {
+          for (const e of cards.value) {
+            const s = status.value.get(e.uid)
+            const t = e.title() ? `«${e.title()}»` : 'sin título'
+            if (s === 'kind') warn('G2', `una tarjeta (${t}) con interaction="${e.interaction()}" cae a "none": en la barra solo hay tarjetas de alternar.`)
+            else if (s === 'no-value') warn('G3', `una tarjeta (${t}) con interaction="toggle" sin value cae a "none".`)
+            else if (s === 'dup') warn('G4', `value repetido entre tarjetas (${t}): la segunda y siguientes caen a "none".`)
+            if (s !== 'managed') continue
+            if (e.bound()) warn('G6', `v-model/modelValue en una tarjeta gestionada (${t}) se ignora: el estado es el v-model del grupo.`)
+            const content = e.el()?.querySelector?.('.g-card__content')
+            if (e.secondary() || (content && content.querySelector(FOCUSABLE))) {
+              warn('G5', `la tarjeta ${t} tiene controles secundarios (menú, casilla, «Mostrar más», actions, footer, more o enfocables): no admitidos en v1 en una barra de una parada.`)
+            }
+          }
         }
+      } catch {}
+    }
+    try {
+      if (process.env.NODE_ENV !== 'production') {
+        const statusSig = computed(() => cards.value.map((e) => `${e.uid}:${status.value.get(e.uid)}`).join(','))
+        watch(statusSig, () => nextTick(checkCards))
       }
-    }
-    if (isDev) {
-      const statusSig = computed(() => cards.value.map((e) => `${e.uid}:${status.value.get(e.uid)}`).join(','))
-      watch(statusSig, () => nextTick(checkCards))
-    }
+    } catch {}
 
     // ---------- Medir solo cuando cambia algo medible ----------
     const pressedSig = computed(() => managed.value.map((e) => (pressedOf(e) ? e.uid : '')).join(',') + (props.multiple ? 'm' : ''))
@@ -367,16 +374,18 @@ export default defineComponent({
       measure()
       scheduleReady()
       revealInStrip(managed.value.find(pressedOf), false)
-      if (isDev) {
-        if (!props.label && !props.labelledby) warn('G1', 'necesita label o labelledby: es el nombre de la barra (role="toolbar").')
-        if (attrs['aria-label'] !== undefined || attrs['aria-labelledby'] !== undefined) warn('G1b', 'aria-label/aria-labelledby no se copian a la barra: usa las props label o labelledby.')
-        nextTick(() => {
-          if (props.controls && typeof document !== 'undefined' && !document.getElementById(props.controls)) {
-            warn('G9', `controls="${props.controls}" no existe en el documento.`)
-          }
-          checkCards()
-        })
-      }
+      try {
+        if (process.env.NODE_ENV !== 'production') {
+          if (!props.label && !props.labelledby) warn('G1', 'necesita label o labelledby: es el nombre de la barra (role="toolbar").')
+          if (attrs['aria-label'] !== undefined || attrs['aria-labelledby'] !== undefined) warn('G1b', 'aria-label/aria-labelledby no se copian a la barra: usa las props label o labelledby.')
+          nextTick(() => {
+            if (props.controls && typeof document !== 'undefined' && !document.getElementById(props.controls)) {
+              warn('G9', `controls="${props.controls}" no existe en el documento.`)
+            }
+            checkCards()
+          })
+        }
+      } catch {}
     })
     // Reordenar (v-for con otra clave) solo compara posiciones del documento: no mide ni fuerza el diseño
     onUpdated(sortCards)

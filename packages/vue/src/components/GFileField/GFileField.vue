@@ -57,12 +57,14 @@ const attrs = useAttrs()
 const slots = useSlots()
 
 // ---------- Avisos de desarrollo (`[Grana GFileField]`, una vez por instancia y motivo) ----------
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const warned = new Set()
 function warn(key, msg) {
-  if (!isDev || warned.has(key)) return
-  warned.add(key)
-  console.warn(`[Grana GFileField] ${msg}`)
+  try {
+    if (process.env.NODE_ENV !== 'production' && !warned.has(key)) {
+      warned.add(key)
+      console.warn(`[Grana GFileField] ${msg}`)
+    }
+  } catch {}
 }
 
 // ---------- Ids (internos, nunca derivados de `key`, #374) ----------
@@ -90,7 +92,7 @@ const L = computed(() => props.labels || {})
 function need(key, why) {
   const v = L.value[key]
   if (typeof v === 'string' && v) return v
-  if (typeof v !== 'function') warn(`label-${key}`, `falta labels.${key}${why ? ` (${why})` : ''}.`)
+  try { if (process.env.NODE_ENV !== 'production' && typeof v !== 'function') warn(`label-${key}`, `falta labels.${key}${why ? ` (${why})` : ''}.`) } catch {}
   return ''
 }
 // Un texto con marcadores o, si la aplicación da una función (plurales del idioma), su resultado con `args`
@@ -102,7 +104,7 @@ function text(key, vars, args, why) {
 function reasonLabel(reason) {
   const r = L.value.reasons && typeof L.value.reasons === 'object' ? L.value.reasons[reason] : undefined
   if (typeof r === 'string' && r) return r
-  warn(`label-reasons-${reason}`, `falta labels.reasons.${reason} (motivo de rechazo en el aviso y en el anuncio).`)
+  try { if (process.env.NODE_ENV !== 'production') warn(`label-reasons-${reason}`, `falta labels.reasons.${reason} (motivo de rechazo en el aviso y en el anuncio).`) } catch {}
   return ''
 }
 
@@ -126,7 +128,7 @@ const locale = computed(() => {
   return undefined
 })
 watch(() => props.locale, (l) => {
-  if (l && !validLocale(l)) warn('locale', `locale «${l}» no lo acepta Intl: se usa el idioma del documento.`)
+  try { if (process.env.NODE_ENV !== 'production' && l && !validLocale(l)) warn('locale', `locale «${l}» no lo acepta Intl: se usa el idioma del documento.`) } catch {}
 }, { immediate: true })
 function nf(n) {
   try {
@@ -163,11 +165,11 @@ function fromModel(list) {
   for (const raw of Array.isArray(list) ? list : []) {
     if (!raw || typeof raw !== 'object') continue
     if (!present(raw.key) || !present(raw.name)) {
-      warn('entry-key', 'una entrada del modelo no tiene key o name: se ignora.')
+      try { if (process.env.NODE_ENV !== 'production') warn('entry-key', 'una entrada del modelo no tiene key o name: se ignora.') } catch {}
       continue
     }
     if (seen.has(raw.key)) {
-      warn(`entry-dup-${raw.key}`, `la key «${raw.key}» está repetida en el modelo: se ignora la segunda.`)
+      try { if (process.env.NODE_ENV !== 'production') warn(`entry-dup-${raw.key}`, `la key «${raw.key}» está repetida en el modelo: se ignora la segunda.`) } catch {}
       continue
     }
     seen.add(raw.key)
@@ -175,9 +177,9 @@ function fromModel(list) {
     let state = raw.state
     if (!file) {
       // Guardado: ya está en el servidor
-      if (state !== undefined && state !== 'done') warn(`entry-stored-${raw.key}`, `la entrada guardada «${raw.name}» (sin file) tiene state «${state}»: se toma «done».`)
+      try { if (process.env.NODE_ENV !== 'production' && state !== undefined && state !== 'done') warn(`entry-stored-${raw.key}`, `la entrada guardada «${raw.name}» (sin file) tiene state «${state}»: se toma «done».`) } catch {}
       state = 'done'
-      if (raw.value === undefined || raw.value === null) warn(`entry-value-${raw.key}`, `la entrada guardada «${raw.name}» no tiene value: no se enviará.`)
+      try { if (process.env.NODE_ENV !== 'production' && (raw.value === undefined || raw.value === null)) warn(`entry-value-${raw.key}`, `la entrada guardada «${raw.name}» no tiene value: no se enviará.`) } catch {}
     } else if (props.uploader) {
       if (state !== 'done' && state !== 'error') state = 'queued' // queued, uploading, ready o sin state: a la cola desde cero
     } else state = 'ready'
@@ -243,7 +245,7 @@ function reconcile(list) {
     if (c.state === 'queued' || c.state === 'uploading') {
       // El estado de subida de una entrada que el componente gestiona es del componente (aviso 5)
       const differs = (raw.state !== undefined && raw.state !== c.state) || (raw.value ?? null) !== c.value || (raw.error ?? null) !== c.error
-      if (differs) warn(`managed-${entry.key}`, `la aplicación cambió state, value o error de «${entry.name}» mientras se sube: gana el del componente.`)
+      try { if (process.env.NODE_ENV !== 'production' && differs) warn(`managed-${entry.key}`, `la aplicación cambió state, value o error de «${entry.name}» mientras se sube: gana el del componente.`) } catch {}
       return { ...entry, state: c.state, value: c.value, error: c.error, file: c.file || entry.file }
     }
     return entry
@@ -553,7 +555,7 @@ async function run(key, ac) {
     const own = err && err.name !== 'AbortError' && typeof err.message === 'string' ? err.message.trim() : ''
     patch = { state: 'error', error: own || need('uploadFailed', 'mensaje de fallo de subida') || null }
   } else if (!res || res.value === undefined || res.value === null) {
-    warn('no-value', `el adaptador resolvió «${cur.name}» sin value: la entrada pasa a error (no se podría enviar).`)
+    try { if (process.env.NODE_ENV !== 'production') warn('no-value', `el adaptador resolvió «${cur.name}» sin value: la entrada pasa a error (no se podría enviar).`) } catch {}
     patch = { state: 'error', error: need('uploadFailed', 'mensaje de fallo de subida') || null }
   } else {
     patch = { state: 'done', value: res.value, url: res.url ?? cur.url ?? null, error: null }
@@ -685,8 +687,8 @@ watch(() => fileDrag.dragging, (d) => {
     // Textos del destino que hacen falta (aviso 2, al primer arrastre)
     need('drop', 'destino que admite')
     need('dropRejected', 'destino que no admite')
-    if (!L.value.dropInto) warn('label-dropInto', 'falta labels.dropInto (destino con el puntero encima): se usa labels.drop.')
-    if (full.value && !L.value.dropFull) warn('label-dropFull', 'falta labels.dropFull (destino de un campo lleno): se usa labels.dropRejected.')
+    try { if (process.env.NODE_ENV !== 'production' && !L.value.dropInto) warn('label-dropInto', 'falta labels.dropInto (destino con el puntero encima): se usa labels.drop.') } catch {}
+    try { if (process.env.NODE_ENV !== 'production' && full.value && !L.value.dropFull) warn('label-dropFull', 'falta labels.dropFull (destino de un campo lleno): se usa labels.dropRejected.') } catch {}
   }
 })
 const awake = computed(() => fileDrag.dragging && editable.value && reach.value)
@@ -807,28 +809,31 @@ onMounted(() => {
   applyValidity()
   pump() // al montar (también tras un desmontaje), lo que estaba en cola o subiendo vuelve a la cola desde cero
 
-  if (!isDev) return
-  // Avisos de montaje (1 a 3, 7 y 8)
-  if (!hasLabel.value && !attrs['aria-label'] && !attrs['aria-labelledby']) warn('name', 'necesita label, slot label, aria-label o aria-labelledby para tener un nombre accesible.')
-  need(props.multiple ? 'addMany' : 'add', 'cara vacía')
-  if (typeof L.value.status !== 'function' && typeof L.value.status !== 'string') warn('label-status', 'falta labels.status (estado del pie y de la descripción).')
-  for (const k of ['remove', 'cancel']) need(k, 'nombre de los botones de la ficha')
-  if (props.uploader) {
-    need('retry', 'nombre de «Reintentar»')
-    for (const k of ['pending', 'failed']) if (typeof L.value[k] !== 'function') need(k, 'error propio al enviar: sin él, el bloqueo no tiene mensaje')
-  }
-  if (isReadonly.value) { need('readonly', 'cara en solo lectura'); need('none', 'cara en solo lectura sin archivos') }
-  if (props.max !== undefined && !props.multiple) warn('max', 'max solo actúa con multiple: sin él, el máximo es 1 y se ignora.')
-  if (props.max !== undefined && !(Number.isInteger(props.max) && props.max >= 1)) warn('max-value', `max debe ser un entero ≥ 1 (recibió ${props.max}): se ignora.`)
-  if (props.maxSize !== undefined && !(props.maxSize > 0)) warn('maxSize', `maxSize debe ser > 0 (recibió ${props.maxSize}): se ignora.`)
-  if (!(Number.isInteger(props.concurrency) && props.concurrency >= 1)) warn('concurrency', `concurrency debe ser un entero ≥ 1 (recibió ${props.concurrency}): se usa 2.`)
-  if (props.multiple && maxN.value !== null && typeof L.value.full !== 'function') need('full', 'cara llena')
-  for (const k of IGNORED) {
-    if (attrs[k] === undefined) continue
-    if (k === 'appearance' || k === 'expected') warn(`attr-${k}`, `${k} está reservado para una entrega siguiente (#378): se ignora.`)
-    else warn(`attr-${k}`, `se ignora el atributo ${k}: lo controla el componente (aria-invalid no está admitido en el rol del control).`)
-  }
-  if (ff.group) warn('group', 'dentro de un GInputGroup o un GFieldGroup no está admitido en v0.1: el error propio no llegaría al envío.')
+  try {
+    if (process.env.NODE_ENV !== 'production') {
+      // Avisos de montaje (1 a 3, 7 y 8)
+      if (!hasLabel.value && !attrs['aria-label'] && !attrs['aria-labelledby']) warn('name', 'necesita label, slot label, aria-label o aria-labelledby para tener un nombre accesible.')
+      need(props.multiple ? 'addMany' : 'add', 'cara vacía')
+      if (typeof L.value.status !== 'function' && typeof L.value.status !== 'string') warn('label-status', 'falta labels.status (estado del pie y de la descripción).')
+      for (const k of ['remove', 'cancel']) need(k, 'nombre de los botones de la ficha')
+      if (props.uploader) {
+        need('retry', 'nombre de «Reintentar»')
+        for (const k of ['pending', 'failed']) if (typeof L.value[k] !== 'function') need(k, 'error propio al enviar: sin él, el bloqueo no tiene mensaje')
+      }
+      if (isReadonly.value) { need('readonly', 'cara en solo lectura'); need('none', 'cara en solo lectura sin archivos') }
+      if (props.max !== undefined && !props.multiple) warn('max', 'max solo actúa con multiple: sin él, el máximo es 1 y se ignora.')
+      if (props.max !== undefined && !(Number.isInteger(props.max) && props.max >= 1)) warn('max-value', `max debe ser un entero ≥ 1 (recibió ${props.max}): se ignora.`)
+      if (props.maxSize !== undefined && !(props.maxSize > 0)) warn('maxSize', `maxSize debe ser > 0 (recibió ${props.maxSize}): se ignora.`)
+      if (!(Number.isInteger(props.concurrency) && props.concurrency >= 1)) warn('concurrency', `concurrency debe ser un entero ≥ 1 (recibió ${props.concurrency}): se usa 2.`)
+      if (props.multiple && maxN.value !== null && typeof L.value.full !== 'function') need('full', 'cara llena')
+      for (const k of IGNORED) {
+        if (attrs[k] === undefined) continue
+        if (k === 'appearance' || k === 'expected') warn(`attr-${k}`, `${k} está reservado para una entrega siguiente (#378): se ignora.`)
+        else warn(`attr-${k}`, `se ignora el atributo ${k}: lo controla el componente (aria-invalid no está admitido en el rol del control).`)
+      }
+      if (ff.group) warn('group', 'dentro de un GInputGroup o un GFieldGroup no está admitido en v0.1: el error propio no llegaría al envío.')
+    }
+  } catch {}
 })
 
 onBeforeUnmount(() => {

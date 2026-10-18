@@ -207,24 +207,25 @@ function onInput(event) {
 const fieldBindings = computed(() => mergeProps(ff.handlers, { onInput }, { ...fieldAttrs.value, ...controlled.value }))
 
 // Avisos solo en desarrollo. `process` puede no existir (UMD en navegador): se comprueba antes de leerlo.
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
-if (isDev) {
-  if (!hasLabel.value && !attrs['aria-label'] && !attrs['aria-labelledby']) {
-    console.warn('[Grana] <GTextarea> necesita label, slot label, aria-label o aria-labelledby para tener un nombre accesible.')
+try {
+  if (process.env.NODE_ENV !== 'production') {
+    if (!hasLabel.value && !attrs['aria-label'] && !attrs['aria-labelledby']) {
+      console.warn('[Grana] <GTextarea> necesita label, slot label, aria-label o aria-labelledby para tener un nombre accesible.')
+    }
+    if (props.counter && maxlength.value === null) {
+      console.warn('[Grana] <GTextarea counter> necesita maxlength para mostrar el contador.')
+    }
+    if (!(Number.isInteger(props.rows) && props.rows >= 1)) {
+      console.warn('[Grana] <GTextarea rows> debe ser un entero mayor o igual que 1; se usa 1.')
+    }
+    if (props.maxRows !== undefined && !props.autosize) {
+      console.warn('[Grana] <GTextarea maxRows> solo tiene efecto con autosize.')
+    }
+    if (props.autosize && props.maxRows !== undefined && !(Number.isInteger(props.maxRows) && props.maxRows >= rowsN.value)) {
+      console.warn('[Grana] <GTextarea maxRows> debe ser un entero mayor o igual que rows; se usa rows.')
+    }
   }
-  if (props.counter && maxlength.value === null) {
-    console.warn('[Grana] <GTextarea counter> necesita maxlength para mostrar el contador.')
-  }
-  if (!(Number.isInteger(props.rows) && props.rows >= 1)) {
-    console.warn('[Grana] <GTextarea rows> debe ser un entero mayor o igual que 1; se usa 1.')
-  }
-  if (props.maxRows !== undefined && !props.autosize) {
-    console.warn('[Grana] <GTextarea maxRows> solo tiene efecto con autosize.')
-  }
-  if (props.autosize && props.maxRows !== undefined && !(Number.isInteger(props.maxRows) && props.maxRows >= rowsN.value)) {
-    console.warn('[Grana] <GTextarea maxRows> debe ser un entero mayor o igual que rows; se usa rows.')
-  }
-}
+} catch {}
 </script>
 
 <template>

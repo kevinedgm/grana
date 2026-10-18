@@ -7,7 +7,6 @@ import { defineComponent, h, ref, computed, watch, nextTick, onMounted, onBefore
 import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GLibIcon.js'
 
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const COLORS = ['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info']
 const STATE_KEYS = ['complete', 'current', 'pending', 'error', 'warning', 'disabled', 'optional']
 // Clases de tramo que el CSS de coco consume; MEASURE solo existe durante una lectura síncrona
@@ -189,20 +188,25 @@ export default defineComponent({
     // ---- Avisos de desarrollo (una vez por instancia) ----
     const warned = new Set()
     const warnOnce = (key, msg) => {
-      if (!isDev || warned.has(key)) return
-      warned.add(key)
-      console.warn(`[Grana] <GStepper> ${msg}`)
+      try {
+        if (process.env.NODE_ENV !== 'production' && !warned.has(key)) {
+          warned.add(key)
+          console.warn(`[Grana] <GStepper> ${msg}`)
+        }
+      } catch {}
     }
-    if (isDev) {
-      if (!attrs['aria-label'] && !attrs['aria-labelledby']) warnOnce('nav', 'necesita un nombre accesible: pasa aria-label o aria-labelledby.')
-      const missing = STATE_KEYS.filter((k) => !props.labels[k])
-      if (missing.length) warnOnce('labels', `faltan textos de estado en labels (${missing.join(', ')}): esos estados no se anunciarán.`)
-    }
+    try {
+      if (process.env.NODE_ENV !== 'production') {
+        if (!attrs['aria-label'] && !attrs['aria-labelledby']) warnOnce('nav', 'necesita un nombre accesible: pasa aria-label o aria-labelledby.')
+        const missing = STATE_KEYS.filter((k) => !props.labels[k])
+        if (missing.length) warnOnce('labels', `faltan textos de estado en labels (${missing.join(', ')}): esos estados no se anunciarán.`)
+      }
+    } catch {}
     watch(currentIndex, (i) => {
-      if (i < 0 && props.steps.length) warnOnce('model', 'modelValue no coincide con ningún paso: ninguno será el actual.')
+      try { if (process.env.NODE_ENV !== 'production' && i < 0 && props.steps.length) warnOnce('model', 'modelValue no coincide con ningún paso: ninguno será el actual.') } catch {}
     }, { immediate: true })
     watch(isCompact, (c) => {
-      if (c && !props.labels.showAll) warnOnce('showAll', 'en compacto necesita labels.showAll para el botón que muestra todos los pasos.')
+      try { if (process.env.NODE_ENV !== 'production' && c && !props.labels.showAll) warnOnce('showAll', 'en compacto necesita labels.showAll para el botón que muestra todos los pasos.') } catch {}
       if (!c) open.value = false
     }, { immediate: true })
 

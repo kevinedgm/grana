@@ -18,7 +18,6 @@ import { otherContext } from '../../utils/link.js'
 const primaryActivation = (e) => e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey && !e.defaultPrevented
 
 // Avisos solo en desarrollo. `process` puede no existir (UMD en navegador): se comprueba antes de leerlo.
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const DEPTH = Symbol('g-card-depth')
 const TAGS = ['article', 'li', 'div', 'section']
 const INTERACTIVE = ['a', 'button', 'input', 'select', 'textarea', 'summary', 'label']
@@ -126,9 +125,12 @@ export default defineComponent({
 
     const warned = new Set()
     const warnOnce = (key, msg) => {
-      if (!isDev || warned.has(key)) return
-      warned.add(key)
-      console.warn(`[Grana] <GCard> ${msg}`)
+      try {
+        if (process.env.NODE_ENV !== 'production' && !warned.has(key)) {
+          warned.add(key)
+          console.warn(`[Grana] <GCard> ${msg}`)
+        }
+      } catch {}
     }
 
     // ---------- Acción principal y selección ----------
@@ -359,38 +361,44 @@ export default defineComponent({
 
     // ---------- Avisos de desarrollo (una vez cada uno) ----------
     const devChecks = (hasMedia) => {
-      if (!isDev) return
-      const l = L.value
-      if (INTERACTIVE.includes(String(props.as).toLowerCase())) warnOnce('as', `no es un control: as="${props.as}" no está previsto (la acción principal va dentro del título). Se usa article.`)
-      if (!props.loading && !props.title && !slots.title && !attrs['aria-label'] && !attrs['aria-labelledby']) warnOnce('title', 'necesita title (o el slot title, aria-label o aria-labelledby): es su nombre accesible.')
-      if (props.interaction === 'link' && !props.href) warnOnce('link', 'interaction="link" necesita href; se trata como "none".')
-      if (props.href && !['link', 'auto'].includes(props.interaction)) warnOnce('href', `href con interaction="${props.interaction}": navegar y seleccionar con toda la tarjeta son excluyentes (usa selectable para la casilla explícita).`)
-      if (props.selectable && ['select', 'toggle'].includes(props.interaction)) warnOnce('selectable', `selectable es redundante con interaction="${props.interaction}".`)
-      if (props.current && interaction.value !== 'link') warnOnce('current', 'current solo tiene sentido con un enlace (href).')
-      if (hasBox.value && isRadio.value && !props.name) warnOnce('name', 'selectType="radio" necesita name (el grupo nativo de radios).')
-      if (props.status && !props.statusText && !slots.status) warnOnce('statusText', 'status necesita statusText (el icono es decorativo).')
-      if (props.menu.length && !l.menu) warnOnce('l-menu', 'con menu necesita labels.menu (nombre del botón de menú).')
-      if (props.loading && !l.loading) warnOnce('l-loading', 'con loading necesita labels.loading (anuncio de carga).')
-      if (props.expandable && (!l.expand || !l.collapse)) warnOnce('l-expand', 'con expandable necesita labels.expand y labels.collapse.')
-      if (slots.more && !canFold.value) warnOnce('l-more', 'con el slot more necesita labels.more y labels.less; sin ellos la región no se pliega.')
-      if (props.retryable && props.status === 'error' && !l.retry) warnOnce('l-retry', 'con retryable necesita labels.retry.')
-      if (props.empty && !slots.empty && !l.empty) warnOnce('l-empty', 'con empty necesita el slot empty o labels.empty.')
-      if (depth >= 2) warnOnce('depth', 'tarjeta dentro de tarjeta dentro de tarjeta: usa una región inset o una lista.')
-      if (props.meta.some((m) => !m || m.label == null || m.label === '' || m.value == null || m.value === '')) warnOnce('meta', 'ignora elementos de meta sin label o value.')
-      if (hasMedia && ['start', 'end'].includes(props.mediaPosition) && props.orientation === 'vertical') warnOnce('media', `mediaPosition="${props.mediaPosition}" con orientation="vertical" se pinta arriba (usa auto u horizontal).`)
-      if (props.skeleton) {
-        const unknown = Object.keys(props.skeleton).filter((k) => !SKELETON_KEYS.includes(k))
-        if (unknown.length) warnOnce('skeleton', `skeleton no conoce: ${unknown.join(', ')}.`)
-      }
+      try {
+        if (process.env.NODE_ENV !== 'production') {
+          const l = L.value
+          if (INTERACTIVE.includes(String(props.as).toLowerCase())) warnOnce('as', `no es un control: as="${props.as}" no está previsto (la acción principal va dentro del título). Se usa article.`)
+          if (!props.loading && !props.title && !slots.title && !attrs['aria-label'] && !attrs['aria-labelledby']) warnOnce('title', 'necesita title (o el slot title, aria-label o aria-labelledby): es su nombre accesible.')
+          if (props.interaction === 'link' && !props.href) warnOnce('link', 'interaction="link" necesita href; se trata como "none".')
+          if (props.href && !['link', 'auto'].includes(props.interaction)) warnOnce('href', `href con interaction="${props.interaction}": navegar y seleccionar con toda la tarjeta son excluyentes (usa selectable para la casilla explícita).`)
+          if (props.selectable && ['select', 'toggle'].includes(props.interaction)) warnOnce('selectable', `selectable es redundante con interaction="${props.interaction}".`)
+          if (props.current && interaction.value !== 'link') warnOnce('current', 'current solo tiene sentido con un enlace (href).')
+          if (hasBox.value && isRadio.value && !props.name) warnOnce('name', 'selectType="radio" necesita name (el grupo nativo de radios).')
+          if (props.status && !props.statusText && !slots.status) warnOnce('statusText', 'status necesita statusText (el icono es decorativo).')
+          if (props.menu.length && !l.menu) warnOnce('l-menu', 'con menu necesita labels.menu (nombre del botón de menú).')
+          if (props.loading && !l.loading) warnOnce('l-loading', 'con loading necesita labels.loading (anuncio de carga).')
+          if (props.expandable && (!l.expand || !l.collapse)) warnOnce('l-expand', 'con expandable necesita labels.expand y labels.collapse.')
+          if (slots.more && !canFold.value) warnOnce('l-more', 'con el slot more necesita labels.more y labels.less; sin ellos la región no se pliega.')
+          if (props.retryable && props.status === 'error' && !l.retry) warnOnce('l-retry', 'con retryable necesita labels.retry.')
+          if (props.empty && !slots.empty && !l.empty) warnOnce('l-empty', 'con empty necesita el slot empty o labels.empty.')
+          if (depth >= 2) warnOnce('depth', 'tarjeta dentro de tarjeta dentro de tarjeta: usa una región inset o una lista.')
+          if (props.meta.some((m) => !m || m.label == null || m.label === '' || m.value == null || m.value === '')) warnOnce('meta', 'ignora elementos de meta sin label o value.')
+          if (hasMedia && ['start', 'end'].includes(props.mediaPosition) && props.orientation === 'vertical') warnOnce('media', `mediaPosition="${props.mediaPosition}" con orientation="vertical" se pinta arriba (usa auto u horizontal).`)
+          if (props.skeleton) {
+            const unknown = Object.keys(props.skeleton).filter((k) => !SKELETON_KEYS.includes(k))
+            if (unknown.length) warnOnce('skeleton', `skeleton no conoce: ${unknown.join(', ')}.`)
+          }
+        }
+      } catch {}
     }
     const checkActions = (list) => {
-      if (!isDev) return
-      for (const v of list) {
-        if (v.type !== GBtn) continue
-        const p = v.props || {}
-        const icon = p.icon === '' || p.icon === true
-        if (icon && !p['aria-label'] && !p['aria-labelledby'] && !p.ariaLabel) warnOnce('icon-btn', 'un GBtn de solo icono en actions necesita aria-label.')
-      }
+      try {
+        if (process.env.NODE_ENV !== 'production') {
+          for (const v of list) {
+            if (v.type !== GBtn) continue
+            const p = v.props || {}
+            const icon = p.icon === '' || p.icon === true
+            if (icon && !p['aria-label'] && !p['aria-labelledby'] && !p.ariaLabel) warnOnce('icon-btn', 'un GBtn de solo icono en actions necesita aria-label.')
+          }
+        }
+      } catch {}
     }
 
     // ---------- Render ----------

@@ -28,12 +28,11 @@ const props = defineProps({
   speech: { type: Object, default: undefined }
 })
 
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const attrs = useAttrs()
 const injected = inject(speechKey, null)
 const manager = toRaw(props.speech) || injected
 const api = manager && manager[INTERNAL] ? manager[INTERNAL] : null
-if (!api && isDev) console.warn('[Grana Speech] <GSpeechHost> sin prop `speech` y sin gestor provisto (app.use(createSpeech(…))): no pinta nada.')
+try { if (process.env.NODE_ENV !== 'production' && !api) console.warn('[Grana Speech] <GSpeechHost> sin prop `speech` y sin gestor provisto (app.use(createSpeech(…))): no pinta nada.') } catch {}
 const S = api ? api.state : null
 const ui = api ? api.ui : null
 
@@ -433,12 +432,12 @@ function onReviewClosed() {
 onMounted(async () => {
   if (!api) return
   if (ui.hostAttached) {
-    if (isDev) console.warn('[Grana Speech] dos <GSpeechHost> para el mismo gestor: el segundo no pinta nada.')
+    try { if (process.env.NODE_ENV !== 'production') console.warn('[Grana Speech] dos <GSpeechHost> para el mismo gestor: el segundo no pinta nada.') } catch {}
     return
   }
   topModal.scan()
   if (!api.attachHost(hostApi)) {
-    if (isDev) console.warn('[Grana Speech] dos <GSpeechHost> para el mismo gestor: el segundo no pinta nada.')
+    try { if (process.env.NODE_ENV !== 'production') console.warn('[Grana Speech] dos <GSpeechHost> para el mismo gestor: el segundo no pinta nada.') } catch {}
     return
   }
   topModal.sync()

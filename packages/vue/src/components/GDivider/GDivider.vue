@@ -13,7 +13,6 @@ const isEmptyNode = (v) => v.type === Comment || (v.type === Text && !String(v.c
 const nodes = (slot) => (slot ? slot().filter((v) => !isEmptyNode(v)) : [])
 
 // Avisos solo en desarrollo. `process` puede no existir (UMD en navegador): se comprueba antes de leerlo.
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 
 // Aviso 2: padres que solo admiten sus propios hijos (WAI-ARIA list, menu…)
 const LIST_TAGS = ['UL', 'OL', 'MENU']
@@ -34,41 +33,50 @@ export default defineComponent({
     const root = ref(null)
     const warned = new Set()
     const warn = (key, msg) => {
-      if (!isDev || warned.has(key)) return
-      warned.add(key)
-      console.warn(`[Grana GDivider] ${msg}`)
+      try {
+        if (process.env.NODE_ENV !== 'production' && !warned.has(key)) {
+          warned.add(key)
+          console.warn(`[Grana GDivider] ${msg}`)
+        }
+      } catch {}
     }
 
     // ---------- Avisos que miran el DOM (al montar, al cambiar la orientación y, el 5, al actualizar) ----------
     const checkParent = () => {
       const el = root.value
-      if (!isDev || !el || typeof getComputedStyle !== 'function') return
-      const direct = el.parentElement
-      if (direct) {
-        const role = (direct.getAttribute('role') || '').trim().toLowerCase()
-        if (LIST_TAGS.includes(direct.tagName) || LIST_ROLES.includes(role)) {
-          warn('list', 'un divider no puede ser hijo de una lista o un menú: parte la lista en dos y pon el divider entre ellas (en GMenu, usa su separador).')
+      try {
+        if (process.env.NODE_ENV !== 'production' && !(!el || typeof getComputedStyle !== 'function')) {
+          const direct = el.parentElement
+          if (direct) {
+            const role = (direct.getAttribute('role') || '').trim().toLowerCase()
+            if (LIST_TAGS.includes(direct.tagName) || LIST_ROLES.includes(role)) {
+              warn('list', 'un divider no puede ser hijo de una lista o un menú: parte la lista en dos y pon el divider entre ellas (en GMenu, usa su separador).')
+            }
+          }
+          if (props.orientation !== 'vertical') return
+          // El primer ancestro que no sea display: contents es el que da (o no) el alto de la fila
+          let p = direct
+          while (p && getComputedStyle(p).display === 'contents') p = p.parentElement
+          if (!p) return
+          const cs = getComputedStyle(p)
+          const display = cs.display
+          const dir = cs.flexDirection || 'row'
+          const row = (display === 'flex' || display === 'inline-flex') && (dir === 'row' || dir === 'row-reverse')
+          const grid = display === 'grid' || display === 'inline-grid'
+          if (!row && !grid) {
+            warn('parent', `vertical necesita un padre flex en fila o grid para tomar su alto (padre: display ${display || 'desconocido'}${display === 'flex' || display === 'inline-flex' ? `, flex-direction ${dir}` : ''}).`)
+          }
         }
-      }
-      if (props.orientation !== 'vertical') return
-      // El primer ancestro que no sea display: contents es el que da (o no) el alto de la fila
-      let p = direct
-      while (p && getComputedStyle(p).display === 'contents') p = p.parentElement
-      if (!p) return
-      const cs = getComputedStyle(p)
-      const display = cs.display
-      const dir = cs.flexDirection || 'row'
-      const row = (display === 'flex' || display === 'inline-flex') && (dir === 'row' || dir === 'row-reverse')
-      const grid = display === 'grid' || display === 'inline-grid'
-      if (!row && !grid) {
-        warn('parent', `vertical necesita un padre flex en fila o grid para tomar su alto (padre: display ${display || 'desconocido'}${display === 'flex' || display === 'inline-flex' ? `, flex-direction ${dir}` : ''}).`)
-      }
+      } catch {}
     }
     const checkLabel = () => {
       const el = root.value
-      if (!isDev || !el || typeof el.querySelector !== 'function') return
-      const label = el.querySelector('.g-divider__label')
-      if (label && label.querySelector(INTERACTIVE)) warn('interactive', 'el texto del divider no admite contenido interactivo.')
+      try {
+        if (process.env.NODE_ENV !== 'production' && !(!el || typeof el.querySelector !== 'function')) {
+          const label = el.querySelector('.g-divider__label')
+          if (label && label.querySelector(INTERACTIVE)) warn('interactive', 'el texto del divider no admite contenido interactivo.')
+        }
+      } catch {}
     }
     onMounted(() => { checkParent(); checkLabel() })
     onUpdated(checkLabel)
@@ -83,12 +91,14 @@ export default defineComponent({
       // Clase de inset con el valor efectivo: start solo existe en horizontal
       const inset = vertical && props.inset === 'start' ? 'both' : props.inset
 
-      if (isDev) {
-        if (hasLabel && vertical) warn('label-vertical', 'label solo en horizontal; en vertical se ignora.')
-        if (vertical && props.inset === 'start') warn('inset-start', 'inset="start" solo en horizontal; en vertical se usa both.')
-        if (attrs.tabindex !== undefined || attrs.tabIndex !== undefined) warn('tabindex', 'GDivider no es enfocable (un separador enfocable es un splitter).')
-        if (nodes(slots.default).length) warn('default-slot', 'usa label o el slot label: el slot por defecto no se pinta.')
-      }
+      try {
+        if (process.env.NODE_ENV !== 'production') {
+          if (hasLabel && vertical) warn('label-vertical', 'label solo en horizontal; en vertical se ignora.')
+          if (vertical && props.inset === 'start') warn('inset-start', 'inset="start" solo en horizontal; en vertical se usa both.')
+          if (attrs.tabindex !== undefined || attrs.tabIndex !== undefined) warn('tabindex', 'GDivider no es enfocable (un separador enfocable es un splitter).')
+          if (nodes(slots.default).length) warn('default-slot', 'usa label o el slot label: el slot por defecto no se pinta.')
+        }
+      } catch {}
 
       const cls = ['g-divider', `g-divider--orientation-${props.orientation}`, labeled && 'g-divider--labeled', `g-divider--inset-${inset}`, `g-divider--emphasis-${props.emphasis}`]
 

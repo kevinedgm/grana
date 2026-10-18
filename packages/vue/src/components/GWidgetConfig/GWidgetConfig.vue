@@ -33,23 +33,25 @@ const rootId = computed(() => props.id || `g-widget-config-${uid}`)
 const formId = computed(() => `${rootId.value}-form`)
 const L = computed(() => props.labels || {})
 
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const warned = new Set()
 const warnOnce = (key, msg) => {
-  if (!isDev || warned.has(key)) return
-  warned.add(key)
-  console.warn(`[Grana] <GWidgetConfig> ${msg}`)
+  try {
+    if (process.env.NODE_ENV !== 'production' && !warned.has(key)) {
+      warned.add(key)
+      console.warn(`[Grana] <GWidgetConfig> ${msg}`)
+    }
+  } catch {}
 }
-if (!props.title && !attrs['aria-label'] && !attrs['aria-labelledby']) warnOnce('title', 'necesita `title` (nombre accesible de la hoja).')
+try { if (process.env.NODE_ENV !== 'production' && !props.title && !attrs['aria-label'] && !attrs['aria-labelledby']) warnOnce('title', 'necesita `title` (nombre accesible de la hoja).') } catch {}
 for (const key of ['apply', 'cancel', 'close']) {
-  if (!props.labels?.[key]) warnOnce(`label-${key}`, `necesita labels.${key} (sin valor por defecto: los textos los pone la aplicación).`)
+  try { if (process.env.NODE_ENV !== 'production' && !props.labels?.[key]) warnOnce(`label-${key}`, `necesita labels.${key} (sin valor por defecto: los textos los pone la aplicación).`) } catch {}
 }
-if (props.resettable && !props.labels?.reset) warnOnce('reset', 'con `resettable` necesita labels.reset; sin él no se muestra el botón.')
+try { if (process.env.NODE_ENV !== 'production' && props.resettable && !props.labels?.reset) warnOnce('reset', 'con `resettable` necesita labels.reset; sin él no se muestra el botón.') } catch {}
 
 // ---------- Pestañas ----------
 const tabList = computed(() => (props.tabs || []).filter((t) => t && t.id !== undefined && t.label))
 const showTabs = computed(() => tabList.value.length > 1)
-if (tabList.value.length > 1 && !props.labels?.tabs) warnOnce('tabs', 'con dos o más pestañas necesita labels.tabs (nombre de la lista de pestañas).')
+try { if (process.env.NODE_ENV !== 'production' && tabList.value.length > 1 && !props.labels?.tabs) warnOnce('tabs', 'con dos o más pestañas necesita labels.tabs (nombre de la lista de pestañas).') } catch {}
 
 const active = ref(props.tab ?? tabList.value[0]?.id)
 watch(() => props.tab, (v) => { if (v !== undefined) active.value = v })

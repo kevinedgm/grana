@@ -47,7 +47,7 @@ import GIcon from './components/GIcon/GIcon.vue'
 import GSummary from './components/GSummary/GSummary.vue'
 import GEmpty from './components/GEmpty/GEmpty.vue'
 import { summaryDiff } from './components/GSummary/diff.js'
-import { fieldGroupKey, foldKey, formKey, isDev, layoutKey, messageIcon, nextFrame, ownFieldKey, revealKey, sectionKey, spaceUnit, useFormField } from './components/GForm/formContext.js'
+import { fieldGroupKey, foldKey, formKey, layoutKey, messageIcon, nextFrame, ownFieldKey, revealKey, sectionKey, spaceUnit, useFormField } from './components/GForm/formContext.js'
 import { createFormEngine } from './components/GForm/formEngine.js'
 import { dialogFoldKey } from './components/GDialog/dialogContext.js'
 import { useCollapse } from './utils/collapse.js'
@@ -86,7 +86,7 @@ export const shared = {
   'components/GSummary/GSummary.vue': { default: GSummary },
   'components/GSummary/diff.js': { summaryDiff },
   'components/GEmpty/GEmpty.vue': { default: GEmpty },
-  'components/GForm/formContext.js': { fieldGroupKey, foldKey, formKey, isDev, layoutKey, messageIcon, nextFrame, ownFieldKey, revealKey, sectionKey, spaceUnit, useFormField },
+  'components/GForm/formContext.js': { fieldGroupKey, foldKey, formKey, layoutKey, messageIcon, nextFrame, ownFieldKey, revealKey, sectionKey, spaceUnit, useFormField },
   'components/GForm/formEngine.js': { createFormEngine },
   'components/GDialog/dialogContext.js': { dialogFoldKey },
   'utils/collapse.js': { useCollapse },

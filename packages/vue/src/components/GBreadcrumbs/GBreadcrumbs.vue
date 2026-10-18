@@ -17,7 +17,6 @@ import { fill } from '../../utils/template.js'
 import { useVisualTips } from '../../utils/visualTip.js'
 import { nextFrame, spaceUnit } from '../GForm/formContext.js'
 
-const isDev = () => typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const B = 'g-breadcrumbs'
 const str = (v) => typeof v === 'string' && v !== ''
 // Identidad de un nivel para la regla de subir o bajar (L13): su href y, sin él, su label
@@ -85,33 +84,43 @@ export default defineComponent({
     // ---------- Avisos de desarrollo (una vez por instancia y motivo; sin el texto de la aplicación) ----------
     const warned = new Set()
     const warn = (k, msg) => {
-      if (!isDev() || warned.has(k)) return
-      warned.add(k)
-      console.warn(`[Grana GBreadcrumbs] ${msg}`)
+      try {
+        if (process.env.NODE_ENV !== 'production' && !warned.has(k)) {
+          warned.add(k)
+          console.warn(`[Grana GBreadcrumbs] ${msg}`)
+        }
+      } catch {}
     }
     function check() {
-      const { levels, bad } = model.value
-      const L = props.labels || {}
-      if (bad.level) warn('label', 'un nivel sin label (o vacío) se ignora.')
-      if (!levels.length) { warn('items', 'items está vacío o no es un arreglo: no se pinta nada.'); return }
-      if (!L.nav && !attrs['aria-labelledby']) warn('nav', 'falta labels.nav (nombre del nav) y no hay aria-labelledby.')
-      if (levels.length >= 2 && (!L.up || !L.path)) warn('up-path', 'con dos o más niveles necesita labels.up y labels.path (la última etapa puede llegar en cualquier ancho).')
-      const doors = levels.filter((l) => l.children.length).length
-      if (doors && !L.children) warn('children', 'hay al menos una puerta (children) y falta labels.children.')
-      const noMark = (v) => typeof v === 'string' && !v.includes('{label}')
-      if (noMark(L.up) || noMark(L.path)) warn('mark', 'labels.up y labels.path deben contener {label}: el nombre debe incluir el texto visible (WCAG 2.5.3).')
-      if (doors > 1 && noMark(L.children)) warn('mark-children', 'labels.children sin {label}: con varias puertas todas se llamarían igual.')
-      if (bad.last) warn('last-children', 'children en el último nivel no se pinta (reservado).')
-      if (bad.child) warn('child', 'un hijo de children sin label se ignora.')
+      try {
+        if (process.env.NODE_ENV !== 'production') {
+          const { levels, bad } = model.value
+          const L = props.labels || {}
+          if (bad.level) warn('label', 'un nivel sin label (o vacío) se ignora.')
+          if (!levels.length) { warn('items', 'items está vacío o no es un arreglo: no se pinta nada.'); return }
+          if (!L.nav && !attrs['aria-labelledby']) warn('nav', 'falta labels.nav (nombre del nav) y no hay aria-labelledby.')
+          if (levels.length >= 2 && (!L.up || !L.path)) warn('up-path', 'con dos o más niveles necesita labels.up y labels.path (la última etapa puede llegar en cualquier ancho).')
+          const doors = levels.filter((l) => l.children.length).length
+          if (doors && !L.children) warn('children', 'hay al menos una puerta (children) y falta labels.children.')
+          const noMark = (v) => typeof v === 'string' && !v.includes('{label}')
+          if (noMark(L.up) || noMark(L.path)) warn('mark', 'labels.up y labels.path deben contener {label}: el nombre debe incluir el texto visible (WCAG 2.5.3).')
+          if (doors > 1 && noMark(L.children)) warn('mark-children', 'labels.children sin {label}: con varias puertas todas se llamarían igual.')
+          if (bad.last) warn('last-children', 'children en el último nivel no se pinta (reservado).')
+          if (bad.child) warn('child', 'un hijo de children sin label se ignora.')
+        }
+      } catch {}
     }
     function checkSlot() {
       const r = root.value
-      if (!isDev() || !slots.link || !r) return
-      const ls = model.value.levels
-      const lis = r.querySelector(`:scope > .${B}__list`)?.children || []
-      let bad = [...lis].some((li, i) => ls[i] && ls[i].href && !li.classList.contains('is-leaving') && !li.querySelector(`:scope > .${B}__link[href]`))
-      if (stage.value === 'step' && upIndex.value >= 0 && !r.querySelector(`:scope > .${B}__face > .${B}__up[href]`)) bad = true
-      if (bad) warn('slot', 'el elemento del slot link no recibió attrs (v-bind="attrs"): falta g-breadcrumbs__link o el href.')
+      try {
+        if (process.env.NODE_ENV !== 'production' && !(!slots.link || !r)) {
+          const ls = model.value.levels
+          const lis = r.querySelector(`:scope > .${B}__list`)?.children || []
+          let bad = [...lis].some((li, i) => ls[i] && ls[i].href && !li.classList.contains('is-leaving') && !li.querySelector(`:scope > .${B}__link[href]`))
+          if (stage.value === 'step' && upIndex.value >= 0 && !r.querySelector(`:scope > .${B}__face > .${B}__up[href]`)) bad = true
+          if (bad) warn('slot', 'el elemento del slot link no recibió attrs (v-bind="attrs"): falta g-breadcrumbs__link o el href.')
+        }
+      } catch {}
     }
 
     // ---------- Pistas (modo visual del motor del tooltip, #496) ----------
@@ -627,7 +636,7 @@ export default defineComponent({
     }
 
     return () => {
-      if (isDev()) check()
+      try { if (process.env.NODE_ENV !== 'production') check() } catch {}
       const ls = model.value.levels
       if (!ls.length) return null
       const labelledby = attrs['aria-labelledby']

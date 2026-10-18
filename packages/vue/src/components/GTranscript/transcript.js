@@ -23,7 +23,6 @@ export const TX = Symbol('GTranscript.internal')
 export const USER_PREFIX = 'user-'
 export const isTranscript = (x) => Boolean(x && typeof x === 'object' && x[TX])
 
-const isDev = () => typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
 const PREFIX = '[Grana Speech]'
 const MODES = ['dictation', 'conversation']
 const EXPECTED = [1, 2, 'many']
@@ -98,36 +97,38 @@ let created = 0
 export function createTranscript(data) {
   const warned = new Set()
   const warn = (msg) => {
-    if (isDev() && !warned.has(msg)) {
-      warned.add(msg)
-      console.warn(`${PREFIX} ${msg}`)
-    }
+    try {
+      if (process.env.NODE_ENV !== 'production' && !warned.has(msg)) {
+        warned.add(msg)
+        console.warn(`${PREFIX} ${msg}`)
+      }
+    } catch {}
   }
 
   // ---------- Carga ----------
-  if (data !== undefined && (data === null || typeof data !== 'object' || Array.isArray(data))) warn('createTranscript(data) espera el objeto que devolvió toJSON(): se crea un transcript vacío.')
+  try { if (process.env.NODE_ENV !== 'production' && data !== undefined && (data === null || typeof data !== 'object' || Array.isArray(data))) warn('createTranscript(data) espera el objeto que devolvió toJSON(): se crea un transcript vacío.') } catch {}
   const src = data && typeof data === 'object' && !Array.isArray(data) ? data : {}
-  for (const k of Object.keys(src)) if (!TOP_KEYS.includes(k)) warn(`createTranscript: campo desconocido «${k}» (se ignora; los datos propios de la aplicación van en derived con su kind).`)
+  for (const k of Object.keys(src)) try { if (process.env.NODE_ENV !== 'production' && !TOP_KEYS.includes(k)) warn(`createTranscript: campo desconocido «${k}» (se ignora; los datos propios de la aplicación van en derived con su kind).`) } catch {}
   let mode = src.mode === undefined ? 'conversation' : src.mode
-  if (!MODES.includes(mode)) { warn(`createTranscript: mode «${mode}» no es válido: se usa 'conversation'.`); mode = 'conversation' }
+  if (!MODES.includes(mode)) { try { if (process.env.NODE_ENV !== 'production') warn(`createTranscript: mode «${mode}» no es válido: se usa 'conversation'.`) } catch {} mode = 'conversation' }
   let expected = src.expectedSpeakers === undefined ? 'many' : src.expectedSpeakers
-  if (!EXPECTED.includes(expected)) { warn('createTranscript: expectedSpeakers no es válido (1, 2, \'many\'): se usa \'many\'.'); expected = 'many' }
+  if (!EXPECTED.includes(expected)) { try { if (process.env.NODE_ENV !== 'production') warn('createTranscript: expectedSpeakers no es válido (1, 2, \'many\'): se usa \'many\'.') } catch {} expected = 'many' }
 
   const speakers = []
   for (const x of Array.isArray(src.speakers) ? src.speakers : []) {
-    if (!x || typeof x !== 'object' || optId(x.id) === null) { warn('createTranscript: hablante sin id: se ignora.'); continue }
-    for (const k of Object.keys(x)) if (!SPK_KEYS.includes(k)) warn(`createTranscript: campo desconocido «${k}» en un hablante (se ignora).`)
+    if (!x || typeof x !== 'object' || optId(x.id) === null) { try { if (process.env.NODE_ENV !== 'production') warn('createTranscript: hablante sin id: se ignora.') } catch {} continue }
+    for (const k of Object.keys(x)) try { if (process.env.NODE_ENV !== 'production' && !SPK_KEYS.includes(k)) warn(`createTranscript: campo desconocido «${k}» en un hablante (se ignora).`) } catch {}
     const id = String(x.id)
-    if (speakers.some((s) => s.id === id)) { warn(`createTranscript: hablante repetido «${id}»: se conserva el primero.`); continue }
+    if (speakers.some((s) => s.id === id)) { try { if (process.env.NODE_ENV !== 'production') warn(`createTranscript: hablante repetido «${id}»: se conserva el primero.`) } catch {} continue }
     speakers.push({ id, role: optId(x.role), mergedInto: optId(x.mergedInto), origin: ORIGINS.includes(x.origin) ? x.origin : 'engine' })
   }
   const segments = []
   const seen = new Set()
   for (const x of Array.isArray(src.segments) ? src.segments : []) {
-    if (!x || typeof x !== 'object' || optId(x.id) === null) { warn('createTranscript: fragmento sin id: se ignora.'); continue }
-    for (const k of Object.keys(x)) if (!SEG_KEYS.includes(k)) warn(`createTranscript: campo desconocido «${k}» en un fragmento (se ignora).`)
+    if (!x || typeof x !== 'object' || optId(x.id) === null) { try { if (process.env.NODE_ENV !== 'production') warn('createTranscript: fragmento sin id: se ignora.') } catch {} continue }
+    for (const k of Object.keys(x)) try { if (process.env.NODE_ENV !== 'production' && !SEG_KEYS.includes(k)) warn(`createTranscript: campo desconocido «${k}» en un fragmento (se ignora).`) } catch {}
     const id = String(x.id)
-    if (seen.has(id)) { warn(`createTranscript: fragmento repetido «${id}»: se conserva el primero.`); continue }
+    if (seen.has(id)) { try { if (process.env.NODE_ENV !== 'production') warn(`createTranscript: fragmento repetido «${id}»: se conserva el primero.`) } catch {} continue }
     seen.add(id)
     segments.push({
       id,
@@ -152,10 +153,10 @@ export function createTranscript(data) {
   // mergedInto roto (inexistente o en ciclo) → null
   for (const sp of speakers) {
     if (sp.mergedInto === null) continue
-    if (!speakers.some((x) => x.id === sp.mergedInto) || sp.mergedInto === sp.id) { warn(`createTranscript: mergedInto de «${sp.id}» apunta a un hablante inexistente: pasa a null.`); sp.mergedInto = null; continue }
+    if (!speakers.some((x) => x.id === sp.mergedInto) || sp.mergedInto === sp.id) { try { if (process.env.NODE_ENV !== 'production') warn(`createTranscript: mergedInto de «${sp.id}» apunta a un hablante inexistente: pasa a null.`) } catch {} sp.mergedInto = null; continue }
     let x = sp.mergedInto
     for (let k = 0; k <= speakers.length && x !== null; k++) {
-      if (x === sp.id) { warn(`createTranscript: mergedInto de «${sp.id}» forma un ciclo: pasa a null.`); sp.mergedInto = null; break }
+      if (x === sp.id) { try { if (process.env.NODE_ENV !== 'production') warn(`createTranscript: mergedInto de «${sp.id}» forma un ciclo: pasa a null.`) } catch {} sp.mergedInto = null; break }
       const next = speakers.find((y) => y.id === x)
       x = next ? next.mergedInto : null
     }
@@ -181,8 +182,13 @@ export function createTranscript(data) {
   st.segments.forEach((s) => index.set(s.id, s))
   let derivedSeq = derived.length
   for (const d of st.derived) if (d.id === undefined || d.id === null || d.id === '') d.id = nextDerivedId()
-  const view = isDev() ? readonly(st) : st
-  const ro = (o) => (o && isDev() ? readonly(o) : o)
+  // En desarrollo, lo que se entrega es de solo lectura (en producción, el objeto tal cual)
+  let view = st
+  try { if (process.env.NODE_ENV !== 'production') view = readonly(st) } catch {}
+  const ro = (o) => {
+    try { if (process.env.NODE_ENV !== 'production' && o) return readonly(o) } catch {}
+    return o
+  }
 
   function nextDerivedId() {
     let id
@@ -231,7 +237,7 @@ export function createTranscript(data) {
   function compose(source, options = {}) {
     const o = { withSpeakers: false, withTimes: false, multiline: true, ...options }
     const s = source && typeof source === 'object' ? source : { kind: 'all' }
-    if (o.withSpeakers && typeof o.speakerName !== 'function') { warn('compose con withSpeakers necesita speakerName (los textos son de la vista): sin nombres.'); o.withSpeakers = false }
+    if (o.withSpeakers && typeof o.speakerName !== 'function') { try { if (process.env.NODE_ENV !== 'production') warn('compose con withSpeakers necesita speakerName (los textos son de la vista): sin nombres.') } catch {} o.withSpeakers = false }
     let items
     if (s.kind === 'text') {
       // Una cita: tal cual, sin hablantes ni horas
@@ -262,7 +268,7 @@ export function createTranscript(data) {
   function notify(source, kind, ids) {
     const payload = { source, kind, ids: [...(ids || [])] }
     for (const cb of [...subs]) {
-      try { cb({ ...payload, ids: [...payload.ids] }) } catch (e) { warn(`una función de onChange lanzó un error: ${e && e.message ? e.message : e}`) }
+      try { cb({ ...payload, ids: [...payload.ids] }) } catch (e) { try { if (process.env.NODE_ENV !== 'production') warn(`una función de onChange lanzó un error: ${e && e.message ? e.message : e}`) } catch {} }
     }
   }
   function onChange(callback) {
@@ -316,12 +322,12 @@ export function createTranscript(data) {
   const asIds = (ids) => (Array.isArray(ids) ? ids : ids === undefined || ids === null ? [] : [ids]).map(String)
   function known(ids, op) {
     const missing = ids.find((id) => !index.has(id))
-    if (missing !== undefined) { warn(`${op}: no existe el fragmento «${missing}» (devuelve false).`); return false }
+    if (missing !== undefined) { try { if (process.env.NODE_ENV !== 'production') warn(`${op}: no existe el fragmento «${missing}» (devuelve false).`) } catch {} return false }
     return true
   }
   function knownSpeaker(id, op) {
     if (speakerById(id)) return true
-    warn(`${op}: no existe el hablante «${id}» (devuelve false).`)
+    try { if (process.env.NODE_ENV !== 'production') warn(`${op}: no existe el hablante «${id}» (devuelve false).`) } catch {}
     return false
   }
   let userSeq = 0
@@ -341,7 +347,7 @@ export function createTranscript(data) {
     id = String(id)
     if (!known([id], 'edit')) return false
     const s = index.get(id)
-    if (s.failed || s.removed) { warn(`edit: el fragmento «${id}» está ${s.failed ? 'fallido' : 'eliminado (primero restore)'}: no se edita.`); return false }
+    if (s.failed || s.removed) { try { if (process.env.NODE_ENV !== 'production') warn(`edit: el fragmento «${id}» está ${s.failed ? 'fallido' : 'eliminado (primero restore)'}: no se edita.`) } catch {} return false }
     const norm = String(text ?? '').replace(/\s+/g, ' ').trim()
     if (!norm) return commit('remove', [id], () => { s.removed = true }, { t0: s.t0, op: 'edit' }) ? 'emptied' : false
     return commit('edit', [id], () => { s.corrected = norm === s.literal ? null : norm }, { t0: s.t0, op: 'edit' }) ? 'edited' : false
@@ -403,7 +409,7 @@ export function createTranscript(data) {
     const into = optId(intoId)
     if (from === null || into === null || !knownSpeaker(from, 'mergeSpeakers') || !knownSpeaker(into, 'mergeSpeakers')) return false
     const to = resolve(into)
-    if (from === into || to === from) { warn('mergeSpeakers: un hablante no se une consigo mismo ni en ciclo (devuelve false).'); return false }
+    if (from === into || to === from) { try { if (process.env.NODE_ENV !== 'production') warn('mergeSpeakers: un hablante no se une consigo mismo ni en ciclo (devuelve false).') } catch {} return false }
     const ids = st.segments.filter((s) => s.speaker === from).map((s) => s.id)
     return commit('merge', ids, () => {
       speakerById(from).mergedInto = to
@@ -444,8 +450,8 @@ export function createTranscript(data) {
 
   // ---------- Capa derivada (§21.6) ----------
   function addDerived(entry) {
-    if (!entry || typeof entry !== 'object' || typeof entry.kind !== 'string' || !entry.kind) { warn('addDerived necesita un objeto con kind (devuelve false).'); return false }
-    if (entry.kind === 'insert') { warn('addDerived: kind \'insert\' está reservado a las inserciones de Grana (devuelve false).'); return false }
+    if (!entry || typeof entry !== 'object' || typeof entry.kind !== 'string' || !entry.kind) { try { if (process.env.NODE_ENV !== 'production') warn('addDerived necesita un objeto con kind (devuelve false).') } catch {} return false }
+    if (entry.kind === 'insert') { try { if (process.env.NODE_ENV !== 'production') warn('addDerived: kind \'insert\' está reservado a las inserciones de Grana (devuelve false).') } catch {} return false }
     const copy = clone(entry)
     if (copy.id === undefined || copy.id === null || copy.id === '' || st.derived.some((d) => d.id === copy.id)) copy.id = nextDerivedId()
     if (!copy.at) copy.at = new Date().toISOString()
@@ -456,8 +462,8 @@ export function createTranscript(data) {
   }
   function removeDerived(id) {
     const i = st.derived.findIndex((d) => d.id === id)
-    if (i < 0) { warn(`removeDerived: no existe la entrada «${id}» (devuelve false).`); return false }
-    if (st.derived[i].kind === 'insert') { warn('removeDerived: un uso \'insert\' solo se quita deshaciendo su inserción (devuelve false).'); return false }
+    if (i < 0) { try { if (process.env.NODE_ENV !== 'production') warn(`removeDerived: no existe la entrada «${id}» (devuelve false).`) } catch {} return false }
+    if (st.derived[i].kind === 'insert') { try { if (process.env.NODE_ENV !== 'production') warn('removeDerived: un uso \'insert\' solo se quita deshaciendo su inserción (devuelve false).') } catch {} return false }
     st.derived.splice(i, 1)
     notify('app', 'removeDerived', [])
     return true
@@ -466,7 +472,7 @@ export function createTranscript(data) {
   // ---------- Eventos del motor (internos; §21.8) ----------
   function ensureEngineSpeaker(id) {
     if (id === null || speakerById(id)) return
-    if (id.startsWith(USER_PREFIX)) warn(`el adaptador usa el id de hablante «${id}», con el prefijo reservado «${USER_PREFIX}» de los hablantes que crea quien revisa (§4.4).`)
+    try { if (process.env.NODE_ENV !== 'production' && id.startsWith(USER_PREFIX)) warn(`el adaptador usa el id de hablante «${id}», con el prefijo reservado «${USER_PREFIX}» de los hablantes que crea quien revisa (§4.4).`) } catch {}
     st.speakers.push({ id, role: null, mergedInto: null, origin: 'engine' })
   }
   function insertSorted(seg) {
@@ -483,7 +489,7 @@ export function createTranscript(data) {
     partial(p) {
       if (!p || p.id === undefined || p.id === null) return
       const speaker = optId(p.speaker)
-      if (speaker !== null && speaker.startsWith(USER_PREFIX)) warn(`el adaptador usa el id de hablante «${speaker}», con el prefijo reservado «${USER_PREFIX}» (§4.4).`)
+      try { if (process.env.NODE_ENV !== 'production' && speaker !== null && speaker.startsWith(USER_PREFIX)) warn(`el adaptador usa el id de hablante «${speaker}», con el prefijo reservado «${USER_PREFIX}» (§4.4).`) } catch {}
       st.partial = { id: String(p.id), text: String(p.text ?? ''), speaker }
     },
     clearPartial() { st.partial = null },
@@ -493,7 +499,7 @@ export function createTranscript(data) {
       const id = String(p.id)
       const speaker = optId(p.speaker)
       let seg = index.get(id)
-      if (seg && !seg.failed) { warn(`final repetido para el fragmento «${id}»: el literal confirmado no se sobrescribe.`); return null }
+      if (seg && !seg.failed) { try { if (process.env.NODE_ENV !== 'production') warn(`final repetido para el fragmento «${id}»: el literal confirmado no se sobrescribe.`) } catch {} return null }
       if (seg) {
         seg.literal = String(p.text ?? '')
         seg.engineSpeaker = speaker
@@ -525,7 +531,7 @@ export function createTranscript(data) {
         const b = optId(to)
         if (a === null || b === null) continue
         const userTarget = speakerById(b) && speakerById(b).origin === 'user'
-        if (a.startsWith(USER_PREFIX) || b.startsWith(USER_PREFIX) || userTarget) { warn('relabel del motor con un hablante del usuario (prefijo «user-»): se ignora ese par.'); continue }
+        if (a.startsWith(USER_PREFIX) || b.startsWith(USER_PREFIX) || userTarget) { try { if (process.env.NODE_ENV !== 'production') warn('relabel del motor con un hablante del usuario (prefijo «user-»): se ignora ese par.') } catch {} continue }
         pairs.push([a, b])
       }
       if (!pairs.length) return []
@@ -577,7 +583,7 @@ export function createTranscript(data) {
   const field = (key) => ({
     enumerable: true,
     get: () => view[key],
-    set: () => warn(`escribir «${key}» directamente no está soportado: usa las operaciones del modelo (§21.4).`)
+    set: () => { try { if (process.env.NODE_ENV !== 'production') warn(`escribir «${key}» directamente no está soportado: usa las operaciones del modelo (§21.4).`) } catch {} }
   })
   Object.defineProperties(instance, {
     id: field('id'),
@@ -599,6 +605,6 @@ export function createTranscript(data) {
   // La instancia no se vuelve reactiva al guardarla en un estado: su estado interno ya lo es
   markRaw(instance)
   // En desarrollo se congela la forma: añadir claves a la instancia no tiene efecto
-  if (isDev()) Object.preventExtensions(instance)
+  try { if (process.env.NODE_ENV !== 'production') Object.preventExtensions(instance) } catch {}
   return instance
 }

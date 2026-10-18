@@ -340,44 +340,45 @@ const ctx = (o, i) => ({ option: o, index: i, checked: i === checkedIndex.value,
 const iconCtx = (o, i) => ({ option: o, index: i, checked: i === checkedIndex.value })
 
 // ---------- Avisos de desarrollo (una vez por instancia y mensaje) ----------
-const isDev = typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production'
-if (isDev) {
-  const warned = new Set()
-  const warn = (key, msg) => {
-    if (warned.has(key)) return
-    warned.add(key)
-    console.warn(`[Grana GRadioGroup] ${msg}`)
-  }
-  const check = () => {
-    const app = props.appearance
-    const list = items.value
-    const p = parsed.value.problems
-    if (!hasLabel.value && !attrs['aria-label'] && !attrs['aria-labelledby']) warn('name', 'necesita label, slot label, aria-label o aria-labelledby para tener un nombre accesible.')
-    if (list.length < 2) warn('few', `tiene ${list.length} opción(es) válida(s): una pregunta de radios necesita al menos 2.`)
-    if (app === 'segmented' && list.length > 6) warn('many', `appearance="segmented" con ${list.length} opciones (más de 6): usa list, chip o GSelect.`)
-    if (p.invalid) warn('invalid', 'una opción sin value (o con value null/undefined o que no es String, Number ni Boolean) o sin label se ignora.')
-    if (p.group) warn('group', 'una opción con `options` (grupo) se ignora: un grupo de opciones dentro de una pregunta de radios es otra pregunta.')
-    if (p.dup) warn('dup', 'hay un value repetido (por === o por String(value), que es lo que se envía).')
-    if (hasModel.value && checkedIndex.value === -1) warn(`model-${String(props.modelValue)}`, `modelValue «${String(props.modelValue)}» no está en options: se trata como sin selección.`)
-    const chosen = list[checkedIndex.value]
-    if (chosen && chosen.disabled) warn('chosen-disabled', `la opción elegida («${chosen.label}») está deshabilitada: una flecha elegiría otra y no se enviaría. Usa readonly si el valor no se puede cambiar.`)
-    if (!descOk.value && list.some((o) => o.description)) warn('description', `\`description\` solo se muestra en list y card; en ${app} se ignora.`)
-    if (props.labelMode === 'icon') {
-      if (app !== 'segmented' && app !== 'chip') warn('icon-mode', `labelMode="icon" solo se admite en segmented y chip; en ${app} cuenta como full.`)
-      else if (slots.option) warn('icon-slot', 'labelMode="icon" no tiene efecto con el slot `option`.')
-      else if (list.some((o) => !hasIcon(o))) warn('icon-missing', 'labelMode="icon" necesita `icon` en cada opción (un nombre de Lucide, o cualquier valor con el slot `icon`); la que no lo tenga conserva su etiqueta visible.')
+try {
+  if (process.env.NODE_ENV !== 'production') {
+    const warned = new Set()
+    const warn = (key, msg) => {
+      if (warned.has(key)) return
+      warned.add(key)
+      console.warn(`[Grana GRadioGroup] ${msg}`)
     }
-    if (!isField) {
-      const given = ['error', 'warning', 'valid', 'required', 'mark'].filter((k) => (k === 'required' ? props.required : props[k] !== undefined))
-      if (given.length) warn('field', `con field: false no es un campo: ${given.map((k) => `\`${k}\``).join(', ')} se ignora${given.length > 1 ? 'n' : ''} (sin región de mensaje ni marca).`)
+    const check = () => {
+      const app = props.appearance
+      const list = items.value
+      const p = parsed.value.problems
+      if (!hasLabel.value && !attrs['aria-label'] && !attrs['aria-labelledby']) warn('name', 'necesita label, slot label, aria-label o aria-labelledby para tener un nombre accesible.')
+      if (list.length < 2) warn('few', `tiene ${list.length} opción(es) válida(s): una pregunta de radios necesita al menos 2.`)
+      if (app === 'segmented' && list.length > 6) warn('many', `appearance="segmented" con ${list.length} opciones (más de 6): usa list, chip o GSelect.`)
+      if (p.invalid) warn('invalid', 'una opción sin value (o con value null/undefined o que no es String, Number ni Boolean) o sin label se ignora.')
+      if (p.group) warn('group', 'una opción con `options` (grupo) se ignora: un grupo de opciones dentro de una pregunta de radios es otra pregunta.')
+      if (p.dup) warn('dup', 'hay un value repetido (por === o por String(value), que es lo que se envía).')
+      if (hasModel.value && checkedIndex.value === -1) warn(`model-${String(props.modelValue)}`, `modelValue «${String(props.modelValue)}» no está en options: se trata como sin selección.`)
+      const chosen = list[checkedIndex.value]
+      if (chosen && chosen.disabled) warn('chosen-disabled', `la opción elegida («${chosen.label}») está deshabilitada: una flecha elegiría otra y no se enviaría. Usa readonly si el valor no se puede cambiar.`)
+      if (!descOk.value && list.some((o) => o.description)) warn('description', `\`description\` solo se muestra en list y card; en ${app} se ignora.`)
+      if (props.labelMode === 'icon') {
+        if (app !== 'segmented' && app !== 'chip') warn('icon-mode', `labelMode="icon" solo se admite en segmented y chip; en ${app} cuenta como full.`)
+        else if (slots.option) warn('icon-slot', 'labelMode="icon" no tiene efecto con el slot `option`.')
+        else if (list.some((o) => !hasIcon(o))) warn('icon-missing', 'labelMode="icon" necesita `icon` en cada opción (un nombre de Lucide, o cualquier valor con el slot `icon`); la que no lo tenga conserva su etiqueta visible.')
+      }
+      if (!isField) {
+        const given = ['error', 'warning', 'valid', 'required', 'mark'].filter((k) => (k === 'required' ? props.required : props[k] !== undefined))
+        if (given.length) warn('field', `con field: false no es un campo: ${given.map((k) => `\`${k}\``).join(', ')} se ignora${given.length > 1 ? 'n' : ''} (sin región de mensaje ni marca).`)
+      }
     }
+    check()
+    watch(() => [props.options, props.modelValue, props.appearance, props.labelMode, props.label, props.error, props.warning, props.valid, props.required, props.mark, attrs['aria-label'], attrs['aria-labelledby']], check, { deep: true })
+    onMounted(() => {
+      if (!props.name && rootEl.value && rootEl.value.closest('form')) warn('form-name', 'está dentro de un <form> sin `name`: el envío llevaría una clave generada y GForm no podría asociarle errores.')
+    })
   }
-  check()
-  watch(() => [props.options, props.modelValue, props.appearance, props.labelMode, props.label, props.error, props.warning, props.valid, props.required, props.mark, attrs['aria-label'], attrs['aria-labelledby']], check, { deep: true })
-  onMounted(() => {
-    if (!props.name && rootEl.value && rootEl.value.closest('form')) warn('form-name', 'está dentro de un <form> sin `name`: el envío llevaría una clave generada y GForm no podría asociarle errores.')
-  })
-}
+} catch {}
 </script>
 
 <template>

@@ -7,9 +7,11 @@ export const inputGroupKey = Symbol('GInputGroup')
 /** Contexto del GInputGroup que contiene a la parte, o null (la parte avisa y pinta solo su control nativo). */
 export function useInputGroup(part) {
   const ctx = inject(inputGroupKey, null)
-  if (!ctx && typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production') {
-    console.warn(`[Grana GInputGroup] ${part} fuera de un GInputGroup: se pinta solo el control nativo (sin etiqueta ni caja).`)
-  }
+  try {
+    if (process.env.NODE_ENV !== 'production' && !ctx) {
+      console.warn(`[Grana GInputGroup] ${part} fuera de un GInputGroup: se pinta solo el control nativo (sin etiqueta ni caja).`)
+    }
+  } catch {}
   return ctx
 }
 

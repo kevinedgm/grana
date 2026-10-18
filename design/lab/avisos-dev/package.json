@@ -1,0 +1,16 @@
+{
+  "name": "grana-avisos-dev",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Banco de #636: los avisos de desarrollo de @grana/vue se emiten en el desarrollo de una aplicación (Vite y webpack 5), desaparecen de su producción y no rompen el ESM sin empaquetar ni el UMD. Solo verificación; no forma parte de los paquetes publicados.",
+  "type": "module",
+  "scripts": {
+    "verificar": "node verificar.mjs"
+  },
+  "devDependencies": {
+    "vite": "^6.4.3",
+    "vue": "^3.5.43",
+    "webpack": "^5.112.0",
+    "webpack-cli": "^5.1.4"
+  }
+}

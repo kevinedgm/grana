@@ -10,14 +10,26 @@ import { TX } from './transcript.js'
 
 const POSITIONS = ['end', 'cursor', 'selection']
 
-/** Valida un destino (§24.1). Devuelve un mensaje de aviso o null. */
+/**
+ * Valida un destino (§24.1). Devuelve null si vale; si no, el motivo: en desarrollo, el texto del aviso; en producción,
+ * solo su código (#636: el texto vive dentro de la guarda y el empaquetador de la aplicación lo quita).
+ */
 export function invalidTarget(t) {
-  if (!t || typeof t !== 'object') return 'un destino debe ser un objeto { id, label, get, set } o { id, label, insert }: se rechaza.'
-  if (typeof t.id !== 'string' || !t.id) return 'destino sin id: se rechaza.'
-  if (typeof t.label !== 'string' || !t.label) return `destino «${t.id}» sin label: se rechaza.`
-  const io = typeof t.get === 'function' && typeof t.set === 'function'
-  if (!io && typeof t.insert !== 'function') return `destino «${t.id}» sin get + set ni insert: se rechaza.`
-  return null
+  const io = Boolean(t) && typeof t.get === 'function' && typeof t.set === 'function'
+  const code = !t || typeof t !== 'object' ? 'type'
+    : typeof t.id !== 'string' || !t.id ? 'id'
+      : typeof t.label !== 'string' || !t.label ? 'label'
+        : !io && typeof t.insert !== 'function' ? 'io' : null
+  if (!code) return null
+  try {
+    if (process.env.NODE_ENV !== 'production') {
+      return code === 'type' ? 'un destino debe ser un objeto { id, label, get, set } o { id, label, insert }: se rechaza.'
+        : code === 'id' ? 'destino sin id: se rechaza.'
+          : code === 'label' ? `destino «${t.id}» sin label: se rechaza.`
+            : `destino «${t.id}» sin get + set ni insert: se rechaza.`
+    }
+  } catch {}
+  return code
 }
 
 export function createTargetStore({ warn = () => {} } = {}) {
@@ -30,11 +42,11 @@ export function createTargetStore({ warn = () => {} } = {}) {
 
   function register(target) {
     const why = invalidTarget(target)
-    if (why) { warn(why); return () => {} }
+    if (why) { try { if (process.env.NODE_ENV !== 'production') warn(why) } catch {} return () => {} }
     const t = markRaw(target)
     const i = list.findIndex((x) => x.id === t.id)
     if (i >= 0) {
-      warn(`dos destinos con el id «${t.id}»: el último que se registra sustituye al anterior.`)
+      try { if (process.env.NODE_ENV !== 'production') warn(`dos destinos con el id «${t.id}»: el último que se registra sustituye al anterior.`) } catch {}
       list.splice(i, 1, t)
     } else list.push(t)
     return () => {
@@ -47,9 +59,9 @@ export function createTargetStore({ warn = () => {} } = {}) {
     const next = []
     for (const t of Array.isArray(targets) ? targets : []) {
       const why = invalidTarget(t)
-      if (why) { warn(why); continue }
+      if (why) { try { if (process.env.NODE_ENV !== 'production') warn(why) } catch {} continue }
       const i = next.findIndex((x) => x.id === t.id)
-      if (i >= 0) { warn(`dos destinos con el id «${t.id}»: el último sustituye al anterior.`); next.splice(i, 1, markRaw(t)) } else next.push(markRaw(t))
+      if (i >= 0) { try { if (process.env.NODE_ENV !== 'production') warn(`dos destinos con el id «${t.id}»: el último sustituye al anterior.`) } catch {} next.splice(i, 1, markRaw(t)) } else next.push(markRaw(t))
     }
     list.splice(0, list.length, ...next)
   }
@@ -109,7 +121,7 @@ export function createTargetStore({ warn = () => {} } = {}) {
     if (typeof t.insert === 'function') {
       // Vía de escape: el destino resuelve su cursor o selección; Grana no calcula separadores
       if (position === 'selection') position = 'cursor'
-      try { handle = t.insert(raw, { position }) } catch (e) { warn(`insert del destino «${t.id}» lanzó un error: ${e && e.message ? e.message : e}`); return null }
+      try { handle = t.insert(raw, { position }) } catch (e) { try { if (process.env.NODE_ENV !== 'production') warn(`insert del destino «${t.id}» lanzó un error: ${e && e.message ? e.message : e}`) } catch {} return null }
       if (!handle || typeof handle.undo !== 'function') handle = { undo: () => false }
     } else {
       before = valueOf(t)
@@ -132,7 +144,7 @@ export function createTargetStore({ warn = () => {} } = {}) {
         if (b && !/^[\s.,;:!?)\]}»”…]/.test(b)) post = ' '
       }
       after = a + pre + text + post + b
-      try { t.set(after) } catch (e) { warn(`set del destino «${t.id}» lanzó un error: ${e && e.message ? e.message : e}`); return null }
+      try { t.set(after) } catch (e) { try { if (process.env.NODE_ENV !== 'production') warn(`set del destino «${t.id}» lanzó un error: ${e && e.message ? e.message : e}`) } catch {} return null }
       if (m) { const c = (a + pre + text).length; mem.set(t.id, { start: c, end: c, value: after }) }
     }
     const use = tx[TX].recordUse({ target: { id: t.id, label: t.label }, position, sourceSegmentIds: [...sourceIds], text: raw, sources: { ...sources } })

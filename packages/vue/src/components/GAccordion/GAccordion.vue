@@ -7,7 +7,7 @@
 // Render con función (no plantilla) para contar los GAccordionItem del slot ANTES de que se pinten: la regla de `region`
 // (≤ 6 o exclusive, #477) sale igual en el servidor y en el cliente.
 import { computed, defineComponent, getCurrentInstance, h, onMounted, provide, ref, shallowReactive, watch } from 'vue'
-import { byDocument, isDev, nextFrame } from '../GForm/formContext.js'
+import { byDocument, nextFrame } from '../GForm/formContext.js'
 import { scrollParent } from '../../utils/collapse.js'
 import { accordionKey } from './accordionContext.js'
 
@@ -40,9 +40,12 @@ export default defineComponent({
     // ---------- Avisos de desarrollo ([Grana GAccordion], una vez por instancia) ----------
     const warned = new Set()
     const warn = (key, msg) => {
-      if (!isDev || warned.has(key)) return
-      warned.add(key)
-      console.warn(`[Grana GAccordion] ${msg}`)
+      try {
+        if (process.env.NODE_ENV !== 'production' && !warned.has(key)) {
+          warned.add(key)
+          console.warn(`[Grana GAccordion] ${msg}`)
+        }
+      } catch {}
     }
     const vnodeProps = getCurrentInstance()?.vnode.props || {}
     const passed = (k) => Object.prototype.hasOwnProperty.call(vnodeProps, k)
@@ -53,7 +56,7 @@ export default defineComponent({
     function normalize(v) {
       if (v === null || v === undefined) return []
       if (!Array.isArray(v)) {
-        warn('not-array', `modelValue debe ser un arreglo de value; se trata ${JSON.stringify(v)} como [${JSON.stringify(v)}].`)
+        try { if (process.env.NODE_ENV !== 'production') warn('not-array', `modelValue debe ser un arreglo de value; se trata ${JSON.stringify(v)} como [${JSON.stringify(v)}].`) } catch {}
         return [v]
       }
       return [...v]
@@ -96,7 +99,7 @@ export default defineComponent({
       return [sortDoc(l)[0]]
     })
     watch(() => props.exclusive && local.value.length > 1, (many) => {
-      if (many) warn('exclusive-many', 'exclusive con más de un valor abierto: solo se abre el primero en orden del documento (no se emite; corrige el modelo de la aplicación).')
+      try { if (process.env.NODE_ENV !== 'production' && many) warn('exclusive-many', 'exclusive con más de un valor abierto: solo se abre el primero en orden del documento (no se emite; corrige el modelo de la aplicación).') } catch {}
     }, { immediate: true })
     // Aviso 3: dos elementos del grupo con el mismo value
     watch(() => {
@@ -108,7 +111,7 @@ export default defineComponent({
       }
       return undefined
     }, (dup) => {
-      if (dup !== undefined) warn('dup-value', `dos elementos tienen el mismo value (${JSON.stringify(dup)}): se abrirán y cerrarán juntos.`)
+      try { if (process.env.NODE_ENV !== 'production' && dup !== undefined) warn('dup-value', `dos elementos tienen el mismo value (${JSON.stringify(dup)}): se abrirán y cerrarán juntos.`) } catch {}
     }, { immediate: true })
 
     /** Cambio de lo abierto por el usuario, la búsqueda de la página, un #id o OPEN_REQUEST: emite siempre. */
