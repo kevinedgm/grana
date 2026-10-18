@@ -45,8 +45,9 @@ const structure = (page, { ignoreThemeOptions = false } = {}) => page.evaluate((
   const walk = (el) => `${el.tagName.toLowerCase()}.${[...el.classList].filter((c) => !skip.test(c)).sort().join('.')}[${el.getAttribute('data-testid') ?? ''}](${[...el.children].filter((c) => !(ignore && c.tagName === 'OPTION' && el.dataset.testid === 'sel-theme')).map(walk).join(',')})`
   return walk(document.getElementById('app'))
 }, ignoreThemeOptions)
-// Grupo de color del tema: también los velos relativos a la superficie anfitriona de GTabs (#120) y GCard (#134), que cambian con el esquema
-const COLOR_GROUP = /^--g-(color-|calendar-|glass-|shadow-|surface-(shell|inset|backdrop)|tabs-(track|thumb|band|panel)|card-(hover|pressed|selected|scrim|on-scrim))/
+// Grupo de color del tema: también los velos relativos a la superficie anfitriona de GTabs (#120) y GCard (#134), que cambian con
+// el esquema, y las ranuras del asiento de GSidebar (#612 a #619, alias de primary)
+const COLOR_GROUP = /^--g-(color-|calendar-|glass-|shadow-|surface-(shell|inset|backdrop)|tabs-(track|thumb|band|panel)|card-(hover|pressed|selected|scrim|on-scrim)|sidebar-(on-)?current)/
 
 test.describe('estado por URL y selectores', () => {
   for (const [q, label] of [
@@ -154,7 +155,7 @@ test.describe('cambios dinámicos, sin recargar', () => {
     const a = await allTokens(page)
     await change(page, 'sel-strategy', 'b')
     const changed = diff(a, await allTokens(page))
-    const roleFamilies = new RegExp(`^--g-color-(on-)?(${ROLES.join('|')}|primary)(-|$)|^--g-color-(link|selection|active|focus)$|^--g-calendar-now-color$`) // --g-calendar-now-color es un alias de danger
+    const roleFamilies = new RegExp(`^--g-color-(on-)?(${ROLES.join('|')}|primary)(-|$)|^--g-color-(link|selection|active|focus)$|^--g-calendar-now-color$|^--g-sidebar-(on-)?current(-edge)?$`) // --g-calendar-now-color es un alias de danger; las del asiento de GSidebar, de primary (#612)
     expect(changed.length).toBeGreaterThan(10)
     expect(changed.filter((k) => !roleFamilies.test(k)), 'tokens inesperados').toEqual([])
   })
