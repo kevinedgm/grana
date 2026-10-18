@@ -8,13 +8,15 @@
      DENTRO de la capa grana.components, como lo registrará bruno) y GBtn y GTooltip reales de dist/ como FAB, principal y
      cola. XFab (estilo-banco.js) hace lo que hará GFab.vue y SOLO lo que el estilo necesita: estados (opening dos cuadros,
      closing), política `auto` de A, colocación de pila y paneles (--_x/--_y/--_w/--_max/--_minh), vector y orden de cada
-     píldora (--_fx/--_fy/--_i), recorte de C (--_clip-from), velo con hueco (--_hole-*), resaltado M1, cabecera de C,
-     confirmación armada, acuse (data-ack) y se aparta (is-tucked). No es la implementación de bruno.
+     píldora (--_fx/--_fy/--_i), recorte de C (--_clip-from), velo en cuatro piezas con su ventana (--_hole-*, #668),
+     resaltado M1, cabecera de C, confirmación armada, acuse (data-ack en la raíz y en el elemento, #669) y se aparta
+     (is-tucked). No es la implementación de bruno.
      Requiere dist/. Desde la raíz del repo:  python3 -m http.server 4244  →  /design/lab/fab/estilo-banco.html
      Parámetros: ?scene=a3|a6|a15|panel|c|single|main1 (por defecto a6)  ?pos=bottom-end|bottom-start|bottom-center|top-end|
        top-start|top-center  ?anchor=container  ?dark=1  ?theme=nsa|<generado>  ?zone=1  ?rtl=1  ?coarse=1  ?slow=1 (×5)
-       ?open=1  ?more=1  ?arm=purge  ?ack=busy|done|failed  ?tuck=1  ?find=exp  ?find=zzz
-     Verificación: GRANA_PW_PORT=4244 node design/lab/fab/estilo-verificar.mjs -->
+       ?open=1  ?more=1  ?arm=purge  ?ack=busy|done|failed (&ackid=<id> o &ackmain=1; por defecto csv)  ?tuck=1
+       ?find=exp  ?find=zzz
+     Verificación: GRANA_PW_PORT=4214 node design/lab/fab/estilo-verificar.mjs -->
 <link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
 <link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
 <style>@import url("../../../packages/vue/src/components/GFab/GFab.css") layer(grana.components);</style>

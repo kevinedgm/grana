@@ -1,6 +1,6 @@
 /*
   GFab · estilo (coco)
-  Contrato: design/contracts/fab.md (DECISIONS.md #654 a #666; tokens.md §29.5, §29.6 y §47). Estructura:
+  Contrato: design/contracts/fab.md (DECISIONS.md #654 a #671; tokens.md §29.5, §29.6 y §47). Estructura:
   design/lab/fab/r01/ (kiwi). Estilo, constantes, medidas y preguntas: design/lab/fab/estilo.md.
   Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo pone components.css); sin respaldos; sin literales
   de tema; únicas medidas literales 24px y 44px (área táctil) y el patrón de texto oculto accesible.
@@ -8,14 +8,16 @@
 
   Del .vue (bruno), en línea:
     raíz       --_reserve (px, reserva leída de su borde) · --_offset (longitud: offset.top u offset.bottom del borde de
-               su `position`; pregunta para lima en estilo.md) · data-position, data-anchor, data-appearance, data-state,
-               data-ack, is-tucked, is-coarse (opcional: la consulta pointer: coarse ya lo resuelve)
+               su `position`, tal cual; #671) · data-position, data-anchor, data-appearance, data-state, data-ack,
+               is-tucked, is-coarse (opcional: la consulta pointer: coarse ya lo resuelve)
     listas     --_x, --_y (px, esquina superior izquierda en el visor) · --_w, --_max (px, panel) · --_minh (px, panel de
-               la cola de A cuando cubre la pila; pregunta para lima) · --_clip-from (panel de C) · --_active-y,
-               --_active-h, has-highlight, is-highlight-instant (panel, M1) · data-state, data-appearance
+               la cola de A, solo cuando cubre la pila; #671) · --_clip-from (panel de C) · --_active-y, --_active-h,
+               has-highlight, is-highlight-instant (panel, M1) · data-state, data-appearance
     li (pila)  --_fx, --_fy (px, vector del centro de la fila al centro del FAB) · --_i (índice desde el FAB, tope 4)
-    velo       --_x, --_y, --_w, --_h (px, con anchor="container") · --_hole-x, --_hole-y, --_hole-w, --_hole-h (px,
-               hueco del FAB relativo al velo; pregunta para lima)
+    elemento   data-ack="busy|failed" en el g-fab__item (o el GBtn de single y de la principal de C) que ejecuta esa
+               acción (#669)
+    velo       --_hole-x, --_hole-y, --_hole-w, --_hole-h (px enteros del visor, redondeados hacia fuera: la ventana
+               sobre el disparador contraído con su anillo; #668). --_x/--_y/--_w/--_h no se escriben en el velo
   Las listas y el velo son popovers dentro de la raíz: heredan la zona de marca, el `dir` y los alias de la raíz.
   `display` solo bajo :popover-open (#383): cerrados manda el display: none del agente de usuario.
 */
@@ -98,12 +100,15 @@
 
 /* ---------- El FAB (GBtn icon pill xl) y C (principal + cola) ----------
    Elevación de GFab, no de GBtn. Contorno primary-text (como lo marcado de §7.1): en el tema por defecto es el mismo
-   color que el relleno y no se ve; con una marca pálida separa el FAB de la página (≥ 3:1) */
-.g-fab > .g-btn:not([aria-disabled="true"], .is-disabled, :disabled),
+   color que el relleno y no se ve; con una marca pálida separa el FAB de la página (≥ 3:1). Una sola acción en curso
+   (single) es aria-disabled pero no se pinta como no disponible (#669): conserva contorno y elevación */
+.g-fab > .g-btn,
 .g-fab__main-group {
   box-shadow: 0 0 0 var(--g-border-width) var(--g-color-primary-text), var(--g-shadow-2);
 }
-.g-fab > .g-btn:is([aria-disabled="true"], .is-disabled, :disabled) { box-shadow: var(--g-shadow-1); }
+.g-fab > .g-btn:is([aria-disabled="true"], .is-disabled, :disabled):not([data-ack="busy"]) { box-shadow: var(--g-shadow-1); }
+.g-fab > .g-btn[data-ack="busy"],
+.g-fab__main[data-ack="busy"] { cursor: progress; }
 .g-fab__main-group {
   display: inline-flex;
   border-radius: var(--g-radius-pill);
@@ -149,9 +154,9 @@
 
 /* ---------- Acuse (#663): insignia en la esquina de dentro ----------
    Siempre en la esquina que mira al contenido (arriba con el FAB abajo; al inicio con el FAB al final): así sigue a la
-   vista cuando el FAB se aparta. Centro sobre el borde del círculo a 45° (1 − 1/√2)/2 = 0.1464 del lado */
+   vista cuando el FAB se aparta. Centro sobre el borde del círculo a 45°: a (1 − 1/√2)/2 del lado (#671, factor geométrico) */
 .g-fab__badge {
-  --_b45: calc(var(--_fab) * 0.1464 - var(--_badge) / 2 - var(--g-border-width));
+  --_b45: calc(var(--_fab) * (1 - 1 / sqrt(2)) / 2 - var(--_badge) / 2 - var(--g-border-width));
   position: absolute;
   z-index: 1;
   display: grid;
@@ -299,12 +304,17 @@
 /* Peligrosa: color, peso y triangle-alert (nunca solo color) */
 .g-fab__item--danger { color: var(--g-color-danger-text); }
 .g-fab__item--danger .g-fab__label { font-weight: var(--g-text-title-sm-weight); }
-/* Deshabilitada (enfocable): atenuada y tachada; el motivo se lee entero (≥ 4,5:1) */
-.g-fab__item[aria-disabled="true"] {
+/* Deshabilitada (enfocable): atenuada y tachada; el motivo se lee entero (≥ 4,5:1). Una acción en curso también es
+   aria-disabled (no se lanza dos veces), pero está en marcha, no «no disponible» (#669): ni tachada ni atenuada; la
+   distingue su motivo visible («Exportando…») y el cursor de progreso. Una fallida está habilitada y su motivo, el texto del
+   fallo, va en danger-text (con el texto, nunca solo color) */
+.g-fab__item[aria-disabled="true"]:not([data-ack="busy"]) {
   color: var(--g-color-text-subtle);
   cursor: not-allowed;
 }
-.g-fab__item[aria-disabled="true"] .g-fab__label { text-decoration: line-through; }
+.g-fab__item[aria-disabled="true"]:not([data-ack="busy"]) .g-fab__label { text-decoration: line-through; }
+.g-fab__item[data-ack="busy"] { cursor: progress; }
+.g-fab__item[data-ack="failed"] .g-fab__reason { color: var(--g-color-danger-text); }
 .g-fab__sr {
   position: absolute;
   inline-size: 1px;
@@ -412,7 +422,7 @@
   color: var(--g-color-on-danger);
 }
 .g-fab__list--stack .g-fab__item--danger .g-fab__icon { color: var(--g-color-danger-text); }
-.g-fab__list--stack .g-fab__item[aria-disabled="true"] .g-fab__icon { color: var(--g-color-text-subtle); }
+.g-fab__list--stack .g-fab__item[aria-disabled="true"]:not([data-ack="busy"]) .g-fab__icon { color: var(--g-color-text-subtle); }
 .g-fab__list--stack .g-fab__item:focus-visible {
   outline: var(--g-focus-width) solid var(--g-color-focus);
   outline-offset: var(--g-focus-offset);
@@ -536,7 +546,7 @@
 @starting-style {
   .g-fab__confirm { opacity: 0; }
 }
-.g-fab__list .g-fab__confirm :is(.g-fab__cancel, .g-fab__confirm-action) {
+.g-fab__list .g-fab__confirm > :is(.g-fab__cancel, .g-fab__confirm-action) {
   flex: 1 1 0;
   display: flex;
   align-items: center;
@@ -558,14 +568,14 @@
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
-.g-fab__list .g-fab__confirm .g-fab__confirm-action {
+.g-fab__list .g-fab__confirm > .g-fab__confirm-action {
   border-color: var(--g-color-danger);
   background: var(--g-color-danger);
   color: var(--g-color-on-danger);
 }
-.g-fab__list .g-fab__confirm .g-fab__cancel:focus { background: var(--g-color-surface-sunken); }
-.g-fab__list .g-fab__confirm :is(.g-fab__cancel, .g-fab__confirm-action):focus { outline: 0; }
-.g-fab__list .g-fab__confirm :is(.g-fab__cancel, .g-fab__confirm-action):focus-visible {
+.g-fab__list .g-fab__confirm > .g-fab__cancel:focus { background: var(--g-color-surface-sunken); }
+.g-fab__list .g-fab__confirm > :is(.g-fab__cancel, .g-fab__confirm-action):focus { outline: 0; }
+.g-fab__list .g-fab__confirm > :is(.g-fab__cancel, .g-fab__confirm-action):focus-visible {
   outline: var(--g-focus-width) solid var(--g-color-focus);
   outline-offset: calc(var(--g-focus-width) * -1);
 }
@@ -574,7 +584,7 @@
   border-radius: var(--g-radius-pill);
   box-shadow: var(--g-shadow-2);
 }
-.g-fab__list--stack .g-fab__confirm :is(.g-fab__cancel, .g-fab__confirm-action) {
+.g-fab__list--stack .g-fab__confirm > :is(.g-fab__cancel, .g-fab__confirm-action) {
   flex: 1 0 auto;
   min-block-size: var(--_pill);
   padding-inline: var(--g-space-4);
@@ -589,22 +599,21 @@
   border-start-start-radius: var(--g-radius-sm);
   border-end-start-radius: var(--g-radius-sm);
 }
-.g-fab__list--stack .g-fab__confirm :is(.g-fab__cancel, .g-fab__confirm-action):focus-visible {
+.g-fab__list--stack .g-fab__confirm > :is(.g-fab__cancel, .g-fab__confirm-action):focus-visible {
   outline-offset: var(--g-focus-offset);
 }
 
-/* ---------- Velo táctil (solo pointer: coarse; #664) ----------
-   Un velo partido en tres bandas (el elemento y sus dos pseudoelementos) que rodean el hueco del FAB: así el hueco no
-   solo se ve, también deja pasar el toque al FAB (una máscara no cambia dónde cae el toque, y docs/contract/icons.md
-   prohíbe recortar con polígonos en CSS nuevo). Con el FAB abajo, el elemento es la banda de arriba (hasta el hueco) y las
-   pseudo, los lados del hueco hasta el borde de abajo; con el FAB arriba, al revés. La ventana llega hasta su borde de
-   bloque: la franja entre el FAB y el borde (margen, reservas) no queda velada (límite en estilo.md). Los
-   pseudoelementos son fijos (sin transform en el velo, su bloque contenedor es el visor), así que 100 % es el visor */
+/* ---------- Velo táctil (solo pointer: coarse; #664, #668) ----------
+   Cuatro piezas que no se solapan y cierran la ventana sobre el disparador contraído por los cuatro lados: el elemento es la
+   banda de arriba (todo el ancho, hasta la ventana), ::before y ::after los lados de la ventana y span.g-fab__scrim-part la
+   banda de abajo (todo el ancho, desde la ventana hasta el borde). Así la franja entre el FAB y su borde (margen, offset,
+   reservas: la pill de la voz, el muelle de GPageHeader) también se vela, en las seis posiciones, y nada depende de la
+   posición ni de `dir`: --_hole-* son px enteros del visor (físicos), con el anillo ya sumado y redondeados hacia fuera, de
+   modo que las costuras caen en píxeles enteros. Las piezas son fijas: sin transform, filter, contain ni will-change en el
+   velo, su bloque contenedor es el visor (100 % = visor), también con anchor="container" (#668). La opacidad del elemento
+   se aplica al grupo: cuatro piezas sin solapes pintan un solo velo. Una máscara no cambiaría dónde cae el toque y
+   docs/contract/icons.md prohíbe recortar con polígonos. Sin --_hole-* la ventana es nula y la banda de abajo lo cubre todo */
 .g-fab__scrim {
-  --_x: var(--_zero);
-  --_y: var(--_zero);
-  --_w: 100%;
-  --_h: 100%;
   --_hole-x: var(--_zero);
   --_hole-y: var(--_zero);
   --_hole-w: var(--_zero);
@@ -613,9 +622,9 @@
   --_hy2: calc(var(--_hole-y) + var(--_hole-h));
   position: fixed;
   inset: auto;
-  left: var(--_x);
-  top: var(--_y);
-  inline-size: var(--_w);
+  left: 0;
+  top: 0;
+  inline-size: 100%;
   block-size: var(--_hole-y);
   max-inline-size: none;
   max-block-size: none;
@@ -632,26 +641,25 @@
 .g-fab__scrim::after {
   content: "";
   position: fixed;
-  top: calc(var(--_y) + var(--_hole-y));
-  block-size: calc(var(--_h) - var(--_hole-y));
+  top: var(--_hole-y);
+  block-size: var(--_hole-h);
   background: inherit;
 }
 .g-fab__scrim::before {
-  left: var(--_x);
+  left: 0;
   inline-size: var(--_hole-x);
 }
 .g-fab__scrim::after {
-  left: calc(var(--_x) + var(--_hx2));
-  inline-size: calc(var(--_w) - var(--_hx2));
+  left: var(--_hx2);
+  inline-size: calc(100% - var(--_hx2));
 }
-.g-fab[data-position^="top"] .g-fab__scrim {
-  top: calc(var(--_y) + var(--_hy2));
-  block-size: calc(var(--_h) - var(--_hy2));
-}
-.g-fab[data-position^="top"] .g-fab__scrim::before,
-.g-fab[data-position^="top"] .g-fab__scrim::after {
-  top: var(--_y);
-  block-size: var(--_hy2);
+.g-fab__scrim > .g-fab__scrim-part {
+  position: fixed;
+  left: 0;
+  top: var(--_hy2);
+  inline-size: 100%;
+  block-size: calc(100% - var(--_hy2));
+  background: inherit;
 }
 .g-fab__scrim:popover-open { display: block; }
 .g-fab:not([data-state="open"]) .g-fab__scrim { opacity: 0; }
@@ -807,13 +815,13 @@
   .g-fab__list--stack .g-fab__item,
   .g-fab__list--panel,
   .g-fab__badge,
-  .g-fab__list .g-fab__confirm :is(.g-fab__cancel, .g-fab__confirm-action) { border-color: CanvasText; }
+  .g-fab__list .g-fab__confirm > :is(.g-fab__cancel, .g-fab__confirm-action) { border-color: CanvasText; }
   .g-fab__list--stack .g-fab__item--more { border-color: CanvasText; }
   .g-fab__list--stack .g-fab__icon { border: var(--g-border-width) solid CanvasText; }
   /* Sin capa de resaltado ni semilla encendida: manda el contorno del sistema (foco, también el del puntero) */
   .g-fab__list--panel::before { display: none; }
   .g-fab__list .g-fab__item:focus,
-  .g-fab__list .g-fab__confirm :is(.g-fab__cancel, .g-fab__confirm-action):focus {
+  .g-fab__list .g-fab__confirm > :is(.g-fab__cancel, .g-fab__confirm-action):focus {
     outline: var(--g-focus-width) solid Highlight;
     outline-offset: calc(var(--g-focus-width) * -1);
   }

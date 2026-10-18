@@ -116,11 +116,13 @@ const XFab = defineComponent({
       const top = outUp.value ? Math.max(hh - t.height, 0) : 0, bottom = outUp.value ? 0 : Math.max(hh - t.height, 0)
       ul.style.setProperty('--_clip-from', `inset(${top}px ${right}px ${bottom}px ${left}px round var(--g-radius-pill))`)
     }
+    // Velo (#668): siempre el visor entero (también con anchor="container"; sin --_x/--_y/--_w/--_h). La ventana es la caja
+    // del disparador contraído (A y single: el FAB; C: principal + cola) más el anillo de coco (space × 1 por lado), en px
+    // enteros del visor redondeados hacia fuera (floor del origen, ceil del extremo)
     function placeScrim() {
       const s = scrim.value, f = fRect(), g = SP()
-      const r = props.anchor === 'viewport' ? { left: 0, top: 0 } : root.value.parentElement.getBoundingClientRect()
-      if (props.anchor !== 'viewport') set(s, { '--_x': r.left, '--_y': r.top, '--_w': r.width, '--_h': r.height })
-      set(s, { '--_hole-x': f.left - r.left - g, '--_hole-y': f.top - r.top - g, '--_hole-w': f.width + 2 * g, '--_hole-h': f.height + 2 * g })
+      const x = Math.floor(f.left - g), y = Math.floor(f.top - g)
+      set(s, { '--_hole-x': x, '--_hole-y': y, '--_hole-w': Math.ceil(f.right + g) - x, '--_hole-h': Math.ceil(f.bottom + g) - y })
     }
     function place() {
       if (st.shape === 'stack') placeStack(); else { placePanel(menu.value, isC.value ? tRect() : fRect()); if (isC.value) clipFrom() }
@@ -212,7 +214,11 @@ const XFab = defineComponent({
     })
 
     // ---------- Pintado ----------
-    const reasonOf = (it) => (st.ack === 'busy' && st.ackId === it.id ? LABELS.busy : st.ack === 'failed' && st.ackId === it.id ? LABELS.failed : typeof it.disabled === 'string' ? it.disabled : '')
+    // Acuse por elemento (#669): data-ack="busy|failed" en el elemento que ejecuta; en curso sigue aria-disabled con su
+    // texto; fallida, habilitada con el texto del fallo como motivo
+    const ackOf = (id) => (st.ackId === id && (st.ack === 'busy' || st.ack === 'failed') ? st.ack : undefined)
+    const reasonOf = (it) => (ackOf(it.id) === 'busy' ? LABELS.busy : ackOf(it.id) === 'failed' ? LABELS.failed : typeof it.disabled === 'string' ? it.disabled : '')
+    const offOf = (it) => ackOf(it.id) === 'busy' || (typeof it.disabled === 'string' && ackOf(it.id) !== 'failed')
     function itemBtn(it, { inPanel }) {
       if (st.armed === it.id) {
         return h('div', { class: 'g-fab__confirm', role: 'group', 'aria-label': it.confirm || it.label }, [
@@ -220,10 +226,10 @@ const XFab = defineComponent({
           h('button', { type: 'button', role: 'menuitem', tabindex: -1, class: 'g-fab__confirm-action', 'data-id': it.id }, it.confirmLabel || it.label)
         ])
       }
-      const reason = reasonOf(it), disabled = !!reason
+      const reason = reasonOf(it), disabled = offOf(it)
       const did = `${props.id}-d-${it.id}`, rid = `${props.id}-r-${it.id}`
       return h('button', {
-        type: 'button', role: 'menuitem', tabindex: -1, 'data-id': it.id,
+        type: 'button', role: 'menuitem', tabindex: -1, 'data-id': it.id, 'data-ack': ackOf(it.id),
         class: ['g-fab__item', it.danger && 'g-fab__item--danger'],
         'aria-disabled': disabled ? 'true' : undefined,
         'aria-describedby': [it.description && did, reason && rid].filter(Boolean).join(' ') || undefined
@@ -275,11 +281,13 @@ const XFab = defineComponent({
       if (isC.value || (props.main && single.value)) {
         const m = mainItem.value
         head = h('div', { class: 'g-fab__main-group', role: 'group', 'aria-label': props.label }, [
-          h(Grana.GBtn, { class: 'g-fab__main', id: `${props.id}-main`, size: 'xl', rounded: 'pill', color: 'brand', variant: 'solid', tooltip: detail }, { prepend: () => I(m.icon), default: () => [m.label, badge()] }),
+          h(Grana.GBtn, { class: 'g-fab__main', id: `${props.id}-main`, size: 'xl', rounded: 'pill', color: 'brand', variant: 'solid', tooltip: detail, 'data-ack': ackOf(m.id), 'aria-disabled': ackOf(m.id) === 'busy' ? 'true' : undefined }, { prepend: () => I(m.icon), default: () => [m.label, badge()] }),
           !single.value && h(Grana.GBtn, { id: `${props.id}-trigger`, icon: true, size: 'xl', rounded: 'pill', color: 'brand', variant: 'solid', tooltip: LABELS.moreShort, ...trigAttrs, onClick: onTrigger }, { default: () => glyphs('ellipsis-vertical') })
         ])
       } else {
-        head = h(Grana.GBtn, { id: `${props.id}-trigger`, icon: true, size: 'xl', rounded: 'pill', color: 'brand', variant: 'solid', tooltip: single.value ? props.items[0].label : props.label, ...trigAttrs, onClick: onTrigger }, { default: () => [...(single.value ? [h('span', { class: 'g-fab__glyph', innerHTML: svg(props.items[0].icon) })] : glyphs('plus')), badge()] })
+        const one = single.value ? props.items[0] : null
+        const oneAttrs = one ? { 'data-ack': ackOf(one.id), 'aria-disabled': ackOf(one.id) === 'busy' ? 'true' : undefined } : {}
+        head = h(Grana.GBtn, { id: `${props.id}-trigger`, icon: true, size: 'xl', rounded: 'pill', color: 'brand', variant: 'solid', tooltip: single.value ? props.items[0].label : props.label, ...trigAttrs, ...oneAttrs, onClick: onTrigger }, { default: () => [...(single.value ? [h('span', { class: 'g-fab__glyph', innerHTML: svg(props.items[0].icon) })] : glyphs('plus')), badge()] })
       }
       const list = isC.value ? filtered.value : shown.value
       let listChildren
@@ -297,7 +305,7 @@ const XFab = defineComponent({
         head,
         !single.value && h('ul', { ref: menu, id: `${props.id}-menu`, class: ['g-fab__list', `g-fab__list--${st.shape}`], role: 'menu', popover: 'manual', tabindex: -1, 'aria-labelledby': `${props.id}-trigger`, 'data-state': st.phase, 'data-appearance': st.shape, inert: st.phase === 'closing' || undefined }, listChildren),
         !single.value && !isC.value && h('ul', { ref: sub, id: `${props.id}-more`, class: 'g-fab__list g-fab__list--panel', role: 'menu', popover: 'manual', tabindex: -1, 'aria-labelledby': `${props.id}-tail`, 'data-state': st.subPhase, 'data-appearance': 'panel' }, st.sub ? panelChildren(st.overflow, false) : []),
-        !single.value && h('div', { ref: scrim, class: 'g-fab__scrim', popover: 'manual', 'aria-hidden': 'true', onClick: () => close() })
+        !single.value && h('div', { ref: scrim, class: 'g-fab__scrim', popover: 'manual', 'aria-hidden': 'true', onClick: () => close() }, [h('span', { class: 'g-fab__scrim-part' })])
       ])
     }
   }
@@ -315,7 +323,7 @@ createApp({
       await new Promise((r) => setTimeout(r, 30))
       const F = window.__fab
       if (Q.get('tuck') === '1') F.tuck(true)
-      if (Q.get('ack')) F.setAck(Q.get('ack'), scene.main && Q.get('ackmain') ? scene.main : 'csv')
+      if (Q.get('ack')) F.setAck(Q.get('ack'), Q.get('ackid') || (scene.main && Q.get('ackmain') ? scene.main : 'csv'))
       if (Q.get('open') === '1' || Q.get('more') || Q.get('arm') || Q.get('find')) {
         await F.open()
         if (Q.get('more') === '1') await F.openSub()

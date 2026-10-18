@@ -8,8 +8,11 @@
 // desplazamiento horizontal, texto al 200 %); movimiento (salida desde el FAB: la semilla nace en el centro del FAB,
 // escalonado fast × i / 8, salida corta, nada > 240ms, C con recorte y relleno de la cola en slow, reducido = solo
 // fundidos); contraste en el tema por defecto, NisaNabani y los once generados, claro y oscuro, y dentro de la zona de
-// marca; foco visible; forced-colors (Chromium); consola limpia.
-// Ejecutar desde la raíz del repo (requiere dist/):  GRANA_PW_PORT=4244 node design/lab/fab/estilo-verificar.mjs
+// marca; foco visible; forced-colors (Chromium); consola limpia. Velo táctil en cuatro piezas (#668): seis posiciones × LTR
+// y RTL, el toque en el FAB llega al FAB y fuera de la ventana (también en la franja entre el FAB y su borde) es velo, las
+// piezas cubren el visor menos la ventana sin solaparse, sin costuras (píxeles), con anchor="container" el visor entero.
+// Acuse en el elemento (#669): en curso sin tachado ni aspecto de deshabilitada, fallo con el motivo en danger-text.
+// Ejecutar desde la raíz del repo (requiere dist/):  GRANA_PW_PORT=4214 node design/lab/fab/estilo-verificar.mjs
 // Opcional: --engines=chromium,firefox,webkit  --themes=all|base (por defecto: todos en Chromium, base en Firefox y WebKit)  --verbose
 import http from 'node:http'
 import { readFile } from 'node:fs/promises'
@@ -91,6 +94,18 @@ const track = (k, v) => { if (!(k in mins) || v < mins[k].v) mins[k] = { v } }
   ok(structural.every((s) => /g-fab__confirm >$|g-fab__main-group > \.g-btn$|g-fab__list--panel > li$/.test(s.replace(/:(first|last)-(child|of-type).*$/, '').replace(/:not\(.*$/, '').trim())), 'CSS: selector estructural fuera de las piezas propias: ' + structural)
   ok(!/\.g-fab__(trigger|tail)\b/.test(css), 'CSS: clases que el contrato no fija para el disparador')
   ok(!/clip-path\s*:\s*polygon|\bpath\(|\bshape\(/.test(raw), 'CSS: clip-path con polígono, path() o shape() (docs/contract/icons.md, check-icons.mjs)')
+  // Velo (#668): cuatro piezas (el elemento, ::before, ::after y span.g-fab__scrim-part), sin transform/filter/contain/
+  // will-change (su bloque contenedor es el visor) y sin --_x/--_y/--_w/--_h (el .vue no los escribe en el velo)
+  const scrimBlocks = blocks.filter(([, sel]) => /g-fab__scrim/.test(sel) && !/forced-colors/.test(sel))
+  ok(/\.g-fab__scrim::before/.test(css) && /\.g-fab__scrim::after/.test(css) && /\.g-fab__scrim > \.g-fab__scrim-part/.test(css), 'CSS: velo sin sus cuatro piezas')
+  ok(scrimBlocks.every(([, , body]) => !/(^|;|\s)(transform|filter|contain|will-change|translate|scale|rotate)\s*:/.test(body)), 'CSS: transform, filter, contain o will-change en el velo')
+  ok(scrimBlocks.every(([, , body]) => !/var\(--_(x|y|w|h)\)/.test(body)), 'CSS: el velo lee --_x/--_y/--_w/--_h')
+  ok(/\(1 - 1 \/ sqrt\(2\)\) \/ 2/.test(css) && !/0\.1464/.test(css), 'CSS: el factor de la insignia escrito como (1 − 1/√2)/2 (#671)')
+  // Acuse en el elemento (#669)
+  ok(/\.g-fab__item\[aria-disabled="true"\]:not\(\[data-ack="busy"\]\) \.g-fab__label \{ text-decoration: line-through; \}/.test(css), 'CSS: el tachado excluye la acción en curso')
+  ok(/\.g-fab__item\[data-ack="failed"\] \.g-fab__reason \{ color: var\(--g-color-danger-text\); \}/.test(css), 'CSS: el motivo del fallo en danger-text')
+  // Par de confirmación: hijos directos (#671)
+  ok(!/\.g-fab__confirm (?!>)[:.]/.test(css), 'CSS: el par de confirmación se selecciona como hijos directos de .g-fab__confirm')
 }
 
 /* ---------- Utilidades del navegador ---------- */
@@ -208,35 +223,88 @@ for (const engine of ENGINES) {
     const g = await fabGeom(page)
     ok(g.lis.every((p) => p.h >= 44 - 0.01), `${E}[táctil] píldoras ≥ 44px: ${g.lis.map((p) => p.h)}`)
     ok(g.lis.every((p) => Math.abs(p.icx - g.fab.cx) < 0.75), `${E}[táctil] semillas en el eje del FAB`)
-    const s = await page.evaluate(() => {
-      const sc = document.querySelector('.g-fab__scrim'); const f = document.querySelector('.g-fab > button').getBoundingClientRect(); const cs = getComputedStyle(sc)
-      const at = (x, y) => document.elementFromPoint(x, y)
-      const hx = parseFloat(sc.style.getPropertyValue('--_hole-x')), hy = parseFloat(sc.style.getPropertyValue('--_hole-y')), hw = parseFloat(sc.style.getPropertyValue('--_hole-w')), hh = parseFloat(sc.style.getPropertyValue('--_hole-h'))
-      const cx = f.left + f.width / 2, cy = f.top + f.height / 2
-      return {
-        open: sc.matches(':popover-open'), op: parseFloat(cs.opacity),
-        fabHit: !!at(cx, cy)?.closest('.g-fab > button'), fabEdgeHit: !!at(f.left + f.width / 2, f.top + 1)?.closest('.g-fab > button'),
-        pageHit: at(20, 200) === sc, above: at(cx, hy - 1) === sc, left: at(hx - 1, cy) === sc, right: at(hx + hw + 1, cy) === sc || hx + hw + 1 >= innerWidth,
-        topLeft: at(hx - 1, hy - 1) === sc, belowStrip: at(cx, Math.min(innerHeight - 1, hy + hh + 2)) !== sc,
-        bands: [cs, getComputedStyle(sc, '::before'), getComputedStyle(sc, '::after')].map((c) => c.backgroundColor)
-      }
-    })
-    ok(s.open && Math.abs(s.op - 0.5) < 0.01, `${E}[táctil] velo abierto con opacidad 0,5: ${s.op}`)
-    ok(s.fabHit && s.fabEdgeHit, `${E}[táctil] el toque en el FAB (centro y borde) llega al FAB: ${s.fabHit} ${s.fabEdgeHit}`)
-    ok(s.pageHit && s.above && s.left && s.right && s.topLeft, `${E}[táctil] fuera del hueco todo es velo (arriba, a los lados, esquina): ${JSON.stringify(s)}`)
-    ok(s.belowStrip, `${E}[táctil] la franja entre el FAB y su borde queda sin velo (límite documentado)`)
-    ok(new Set(s.bands).size === 1 && !/rgba\(0, 0, 0, 0\)/.test(s.bands[0]), `${E}[táctil] las tres bandas pintan el mismo velo: ${s.bands}`)
-    // Arriba: las bandas se invierten
-    await page.evaluate(() => window.__fab.close({ focus: false }))
     await ctx.close()
-    {
-      const t = await open(browser, 'scene=a6&open=1&coarse=1&pos=top-start&rtl=1', { width: 390, height: 740 }, touch)
-      const u = await t.page.evaluate(() => { const sc = document.querySelector('.g-fab__scrim'); const f = document.querySelector('.g-fab > button').getBoundingClientRect(); const at = (x, y) => document.elementFromPoint(x, y); const hy = parseFloat(sc.style.getPropertyValue('--_hole-y')), hh = parseFloat(sc.style.getPropertyValue('--_hole-h')); const cx = f.left + f.width / 2; return { fab: !!at(cx, f.top + f.height / 2)?.closest('.g-fab > button'), below: at(cx, hy + hh + 1) === sc, page: at(20, 600) === sc, side: at(f.left - 6, f.top + f.height / 2) === sc } })
-      ok(u.fab && u.below && u.page && u.side, `${E}[táctil·top-start·rtl] hueco arriba: FAB tocable y velo debajo y al lado: ${JSON.stringify(u)}`)
-      ok(!t.errs.length, `${E}[táctil·top] consola limpia: ${t.errs}`)
+    ok(!errs.length, `${E}[táctil] consola limpia: ${errs}`)
+    // Velo en cuatro piezas (#668), seis posiciones × LTR y RTL (y C, y anchor="container"): el toque en el FAB llega al
+    // FAB; fuera de la ventana todo es velo, también la franja entre el FAB y su borde; las piezas teselan el visor menos
+    // la ventana, sin solapes; la ventana es el disparador + ≤ space × 1 en px enteros
+    const scrimCases = []
+    for (const rtl of [false, true]) for (const pos of POS) scrimCases.push(`scene=a6&pos=${pos}${rtl ? '&rtl=1' : ''}`)
+    scrimCases.push('scene=c', 'scene=c&pos=top-start&rtl=1', 'scene=a6&anchor=container', 'scene=a6&anchor=container&pos=top-center')
+    for (const sq of scrimCases) {
+      // Con anchor="container" el marco empieza más abajo: un visor más alto deja el FAB a la vista
+      const t = await open(browser, `${sq}&open=1&coarse=1`, { width: 390, height: /container/.test(sq) ? 1200 : 740 }, { ...touch, deviceScaleFactor: 1 })
+      const P = `${E}[velo·${sq.replace('scene=', '')}]`
+      const v = await t.page.evaluate(() => {
+        const sc = document.querySelector('.g-fab__scrim'), part = sc.querySelector(':scope > .g-fab__scrim-part')
+        const trig = document.querySelector('.g-fab__main-group') || document.querySelector('.g-fab > button')
+        const f = trig.getBoundingClientRect(), vw = document.documentElement.clientWidth, vh = innerHeight
+        const space = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--g-space-1'))
+        const num = (n) => parseFloat(sc.style.getPropertyValue(n))
+        const hx = num('--_hole-x'), hy = num('--_hole-y'), hw = num('--_hole-w'), hh = num('--_hole-h')
+        const at = (x, y) => document.elementFromPoint(Math.min(Math.max(x, 0), vw - 1), Math.min(Math.max(y, 0), vh - 1))
+        const veil = (x, y) => !!at(x, y)?.closest('.g-fab__scrim')
+        const onTrig = (x, y) => !!at(x, y)?.closest('.g-fab__main-group, .g-fab > button')
+        const rect = (cs) => ({ l: parseFloat(cs.left), t: parseFloat(cs.top), w: parseFloat(cs.width), h: parseFloat(cs.height) })
+        const pieces = [getComputedStyle(sc), getComputedStyle(sc, '::before'), getComputedStyle(sc, '::after'), getComputedStyle(part)].map(rect)
+        const cx = f.left + f.width / 2, cy = f.top + f.height / 2
+        const btns = [...document.querySelectorAll('.g-fab__main-group > button, .g-fab > button')].map((b) => b.getBoundingClientRect())
+        // Puntos fuera de la ventana: a 1px de cada lado, en las cuatro esquinas, y la franja hasta los bordes del visor
+        const outside = {
+          above: veil(cx, hy - 1), below: veil(cx, hy + hh), start: veil(hx - 1, cy), end: veil(hx + hw, cy),
+          tl: veil(hx - 1, hy - 1), tr: veil(hx + hw, hy - 1), bl: veil(hx - 1, hy + hh), br: veil(hx + hw, hy + hh),
+          stripBlock: f.top > vh / 2 ? veil(cx, (hy + hh + vh) / 2) && veil(cx, vh - 1) : veil(cx, hy / 2) && veil(cx, 0),
+          stripInline: (cx > vw / 2 ? veil((hx + hw + vw) / 2, cy) && veil(vw - 1, cy) : veil(hx / 2, cy) && veil(0, cy)) || (hx <= 0 || hx + hw >= vw),
+          // Los puntos de la página que no están bajo una lista abierta (la lista va sobre el velo; en C estrecho el panel cubre casi todo)
+          page: (() => { const lists = [...document.querySelectorAll('.g-fab__list:popover-open')].map((u) => u.getBoundingClientRect()); const free = [[20, 300], [vw - 20, 300], [vw / 2, vh / 2], [20, vh - 80], [vw - 20, 80], [20, 80], [vw - 20, vh - 80]].filter(([x, y]) => !lists.some((r) => x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) && !(x >= hx && x < hx + hw && y >= hy && y < hy + hh)); return free.every(([x, y]) => veil(x, y)) })(),
+          far: veil(vw - 2, 2) && veil(1, vh - 2)
+        }
+        return {
+          open: sc.matches(':popover-open'), op: parseFloat(getComputedStyle(sc).opacity), space, vw, vh,
+          hole: { hx, hy, hw, hh }, ints: [hx, hy, hw, hh].every(Number.isInteger),
+          ring: Math.max(f.left - hx, f.top - hy, hx + hw - f.right, hy + hh - f.bottom), ringMin: Math.min(f.left - hx, f.top - hy, hx + hw - f.right, hy + hh - f.bottom),
+          trigHit: btns.every((b) => onTrig(b.left + b.width / 2, b.top + b.height / 2) && onTrig(b.left + b.width / 2, b.top + 1) && onTrig(b.left + b.width / 2, b.bottom - 1)),
+          outside, pieces, bg: [getComputedStyle(sc), getComputedStyle(sc, '::before'), getComputedStyle(sc, '::after'), getComputedStyle(part)].map((c) => c.backgroundColor),
+          xywh: ['--_x', '--_y', '--_w', '--_h'].map((n) => sc.style.getPropertyValue(n)).join('')
+        }
+      })
+      ok(v.open && Math.abs(v.op - 0.5) < 0.01, `${P} velo abierto con opacidad 0,5: ${v.op}`)
+      ok(v.ints, `${P} ventana en px enteros: ${JSON.stringify(v.hole)}`)
+      ok(v.ringMin >= 0 && v.ring <= v.space + 1, `${P} ventana = disparador + anillo ≤ space × 1 (+ redondeo): ${v.ringMin.toFixed(2)}–${v.ring.toFixed(2)}`)
+      ok(v.trigHit, `${P} el toque en el disparador (centro y bordes; en C, principal y cola) llega al disparador`)
+      ok(Object.values(v.outside).every(Boolean), `${P} fuera de la ventana todo es velo, también la franja hasta el borde: ${JSON.stringify(v.outside)}`)
+      ok(v.xywh === '', `${P} el velo no lleva --_x/--_y/--_w/--_h: ${v.xywh}`)
+      // Teselado: área de las piezas = visor − ventana (dentro del visor) y sin solapes dos a dos
+      const clip = (r) => ({ l: Math.max(0, r.l), t: Math.max(0, r.t), r: Math.min(v.vw, r.l + Math.max(0, r.w)), b: Math.min(v.vh, r.t + Math.max(0, r.h)) })
+      const ps = v.pieces.map(clip), area = (r) => Math.max(0, r.r - r.l) * Math.max(0, r.b - r.t)
+      const win = clip({ l: v.hole.hx, t: v.hole.hy, w: v.hole.hw, h: v.hole.hh })
+      const sum = ps.reduce((a, r) => a + area(r), 0), expect = v.vw * v.vh - area(win)
+      const inter = (a, b) => area({ l: Math.max(a.l, b.l), t: Math.max(a.t, b.t), r: Math.min(a.r, b.r), b: Math.min(a.b, b.b) })
+      const overlap = ps.reduce((acc, a, i) => acc + ps.slice(i + 1).reduce((x, b) => x + inter(a, b), 0), 0) + ps.reduce((acc, r) => acc + inter(r, win), 0)
+      ok(Math.abs(sum - expect) < 1 && overlap < 1, `${P} cuatro piezas que cubren el visor menos la ventana sin solaparse: ${sum} vs ${expect} · solape ${overlap}`)
+      ok(new Set(v.bg).size === 1 && !/rgba\(0, 0, 0, 0\)/.test(v.bg[0]), `${P} las cuatro piezas pintan el mismo velo: ${v.bg}`)
+      ok(!t.errs.length, `${P} consola limpia: ${t.errs}`)
+      // Costuras (píxeles): con la página vacía, fuera de la ventana y de la sombra del FAB el velo es un solo color
+      if (/pos=(bottom-end|top-start)(&|$)|scene=c$/.test(sq) || sq === 'scene=a6&pos=bottom-end') {
+        await t.page.addStyleTag({ content: '.bar,#main,.g-fab__list,.g-tooltip{visibility:hidden!important}' })
+        await t.page.waitForTimeout(80)
+        const png = (await t.page.screenshot()).toString('base64')
+        const seams = await t.page.evaluate(async ({ png, hole }) => {
+          const img = new Image(); img.src = 'data:image/png;base64,' + png; await img.decode()
+          const cv = document.createElement('canvas'); cv.width = img.width; cv.height = img.height
+          const cx = cv.getContext('2d', { willReadFrequently: true }); cx.drawImage(img, 0, 0)
+          const d = cx.getImageData(0, 0, cv.width, cv.height).data, M = 32, seen = new Map()
+          for (let y = 0; y < cv.height; y++) for (let x = 0; x < cv.width; x++) {
+            if (x > hole.hx - M && x < hole.hx + hole.hw + M && y > hole.hy - M && y < hole.hy + hole.hh + M) continue
+            const i = (y * cv.width + x) * 4, k = d[i] + ',' + d[i + 1] + ',' + d[i + 2]
+            seen.set(k, (seen.get(k) || 0) + 1)
+          }
+          return [...seen.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4)
+        }, { png, hole: v.hole })
+        ok(seams.length === 1, `${P} sin costuras: un solo color de velo fuera de la ventana: ${JSON.stringify(seams)}`)
+      }
       await t.ctx.close()
     }
-    ok(!errs.length, `${E}[táctil] consola limpia: ${errs}`)
     for (const q of ['scene=a6&open=1', 'scene=c&open=1', 'scene=a15&open=1&more=1', 'scene=a3&open=1&arm=purge']) {
       const r = await open(browser, q, { width: 320, height: 640 })
       const d = await r.page.evaluate(() => { const els = [...document.querySelectorAll('.g-fab__list:popover-open, .g-fab__list:popover-open > li, .g-fab__item, .g-fab__confirm')].map((e) => e.getBoundingClientRect()); return { sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth, minL: Math.min(...els.map((r) => r.left)), maxR: Math.max(...els.map((r) => r.right)), clip: [...document.querySelectorAll('.g-fab__label, .g-fab__cancel, .g-fab__confirm-action')].filter((e) => e.getClientRects().length && e.scrollWidth > e.clientWidth + 1).length } })
@@ -361,8 +429,18 @@ for (const engine of ENGINES) {
           pIcon: Math.min(...$$('#fab-more .g-fab__item:not([aria-disabled]):not(.g-fab__item--danger) .g-fab__icon').map((e) => __c.txt(e, sub))),
           pDanger: Math.min(...$$('#fab-more .g-fab__item--danger .g-fab__label').map((e) => __c.txt(e, sub))),
           pEdge: __c.cr(__c.rgba(getComputedStyle(sub).borderTopColor), __c.bgOf(page)),
-          pFocus: __c.cr(__c.tok(sub, '--g-color-focus'), __c.bgOf(sub))
+          pFocus: __c.cr(__c.tok(sub, '--g-color-focus'), __c.bgOf(sub)),
+          // En curso (#669): la etiqueta se lee como la de una disponible y el motivo («Exportando…») entero
+          pBusy: __c.txt($('#fab-more [data-ack="busy"] .g-fab__label'), sub),
+          pBusyReason: __c.txt($('#fab-more [data-ack="busy"] .g-fab__reason'), sub)
         }
+      }))
+      await page.evaluate(() => window.__fab.setAck('failed', 'csv')); await page.waitForTimeout(120)
+      Object.assign(R, await page.evaluate(() => {
+        const $ = (s) => document.querySelector(s), sub = $('#fab-more'), b = $('#fab-more [data-ack="failed"]'), rs = b.querySelector('.g-fab__reason')
+        window.__fab.focusEl(b)
+        const sunk = __c.over(__c.tok(sub, '--g-color-surface-sunken'), __c.bgOf(sub))
+        return { pFail: __c.txt(rs, sub), pFailHi: __c.cr(__c.over(__c.rgba(getComputedStyle(rs).color), sunk), sunk) }
       }))
       await ctx.close()
     }
@@ -382,16 +460,18 @@ for (const engine of ENGINES) {
     }
     // Confirmación armada en la pila y acuse fallido
     {
-      const { ctx, page } = await open(browser, `${q}&scene=a3&open=1&arm=purge&ack=failed`)
+      const { ctx, page } = await open(browser, `${q}&scene=a3&open=1&arm=purge&ack=failed&ackid=photo`)
       Object.assign(R, await page.evaluate(() => {
         const $ = (s) => document.querySelector(s), page = $('main')
-        return { cancel: __c.txt($('.g-fab__cancel'), $('.g-fab__cancel')), confirm: __c.txt($('.g-fab__confirm-action'), $('.g-fab__confirm-action')), cancelEdge: __c.cr(__c.rgba(getComputedStyle($('.g-fab__cancel')).borderTopColor), __c.bgOf(page)), badgeFail: __c.txt($('.g-fab__badge'), $('.g-fab__badge')) }
+        const fb = $('.g-fab__list--stack [data-ack="failed"]'), rs = fb.querySelector('.g-fab__reason')
+        const sunk = __c.over(__c.tok(fb, '--g-color-surface-sunken'), __c.bgOf(fb))
+        return { cancel: __c.txt($('.g-fab__cancel'), $('.g-fab__cancel')), confirm: __c.txt($('.g-fab__confirm-action'), $('.g-fab__confirm-action')), cancelEdge: __c.cr(__c.rgba(getComputedStyle($('.g-fab__cancel')).borderTopColor), __c.bgOf(page)), badgeFail: __c.txt($('.g-fab__badge'), $('.g-fab__badge')), sFail: __c.txt(rs, fb), sFailHi: __c.cr(__c.over(__c.rgba(getComputedStyle(rs).color), sunk), sunk) }
       }))
       await page.keyboard.press('Escape'); await page.waitForTimeout(250)
       R.danger = await page.evaluate(() => { const b = document.querySelector('.g-fab__item--danger'); return __c.txt(b.querySelector('.g-fab__label'), b) })
       await ctx.close()
     }
-    const T = { pill: 4.5, actLabel: 4.5, pLabel: 4.5, pLabelHi: 4.5, pDesc: 4.5, pDescHi: 4.5, pGroup: 4.5, pDanger: 4.5, mainLabel: 4.5, findQ: 4.5, findCount: 4.5, findHint: 4.5, findNone: 4.5, cancel: 4.5, confirm: 4.5, danger: 4.5, seed: 3, seedOn: 3, fabIcon: 3, fabEdge: 3, more: 3, focus: 3, badgeIcon: 3, badgeEdge: 3, badgeDone: 3, badgeFail: 3, pIcon: 3, pEdge: 3, pFocus: 3, mainEdge: 3, cancelEdge: 3 }
+    const T = { pill: 4.5, actLabel: 4.5, pLabel: 4.5, pLabelHi: 4.5, pDesc: 4.5, pDescHi: 4.5, pGroup: 4.5, pDanger: 4.5, mainLabel: 4.5, findQ: 4.5, findCount: 4.5, findHint: 4.5, findNone: 4.5, cancel: 4.5, confirm: 4.5, danger: 4.5, pBusy: 4.5, pBusyReason: 4.5, pFail: 4.5, pFailHi: 4.5, sFail: 4.5, sFailHi: 4.5, seed: 3, seedOn: 3, fabIcon: 3, fabEdge: 3, more: 3, focus: 3, badgeIcon: 3, badgeEdge: 3, badgeDone: 3, badgeFail: 3, pIcon: 3, pEdge: 3, pFocus: 3, mainEdge: 3, cancelEdge: 3 }
     for (const [k, min] of Object.entries(T)) { ok(R[k] >= min, `${name} ${k} ${R[k] && R[k].toFixed(2)} < ${min}`); if (Number.isFinite(R[k])) track(k + (c.zone ? '·zona' : ''), R[k]) }
     if (args.verbose || c.zone || !c.th || c.th === 'nsa') note(`${name} ` + Object.keys(T).concat('fabFill').map((k) => `${k} ${R[k] && R[k].toFixed(2)}`).join(' · '))
     else note(`${name} fabFill ${R.fabFill.toFixed(2)} · fabEdge ${R.fabEdge.toFixed(2)}`)
@@ -412,6 +492,45 @@ for (const engine of ENGINES) {
     await ctx.close()
   }
 
+  /* ---------- 6b · Acuse en el elemento (#669) ---------- */
+  {
+    const look = (sel) => { const b = document.querySelector(sel); if (!b) return null; const l = b.querySelector('.g-fab__label'), r = b.querySelector('.g-fab__reason'), ic = b.querySelector('.g-fab__icon'); return { ack: b.dataset.ack || null, dis: b.getAttribute('aria-disabled'), color: getComputedStyle(b).color, deco: l && getComputedStyle(l).textDecorationLine, lcolor: l && getComputedStyle(l).color, icolor: ic && getComputedStyle(ic).color, cursor: getComputedStyle(b).cursor, reason: r ? r.textContent : null, rcolor: r && getComputedStyle(r).color, rshown: !!r && r.getClientRects().length > 0 } }
+    const tokOf = (n) => { const i = document.createElement('i'); i.style.color = `var(${n})`; document.querySelector('.g-fab').appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c }
+    // Pila: «Tomar foto» en curso frente a «Dictar nota» en reposo; «Preferencias» deshabilitada (panel de a15)
+    const a = await open(browser, 'scene=a6&open=1&ack=busy&ackid=photo')
+    const busy = await a.page.evaluate(`(${look})('.g-fab__list--stack [data-id="photo"]')`), rest = await a.page.evaluate(`(${look})('.g-fab__list--stack [data-id="note"]')`)
+    const rootAck = await a.page.evaluate(() => document.querySelector('.g-fab').dataset.ack)
+    ok(rootAck === 'busy' && busy.ack === 'busy' && busy.dis === 'true', `${E}[acuse·pila] en curso: data-ack en la raíz y en el elemento, aria-disabled: ${rootAck} ${busy.ack} ${busy.dis}`)
+    ok(busy.deco === 'none' && busy.lcolor === rest.lcolor && busy.icolor === rest.icolor, `${E}[acuse·pila] en curso sin tachar ni atenuar (como una disponible): ${busy.deco} · ${busy.lcolor} vs ${rest.lcolor}`)
+    ok(busy.cursor === 'progress' && busy.rshown && busy.reason === 'Exportando…', `${E}[acuse·pila] en curso: cursor de progreso y motivo visible: ${busy.cursor} · ${busy.reason}`)
+    ok(rest.ack === null, `${E}[acuse·pila] sin data-ack en reposo`)
+    await a.page.evaluate(() => window.__fab.setAck('failed', 'photo')); await a.page.waitForTimeout(150)
+    const fail = await a.page.evaluate(`(${look})('.g-fab__list--stack [data-id="photo"]')`), dt = await a.page.evaluate(`(${tokOf})('--g-color-danger-text')`)
+    ok(fail.ack === 'failed' && fail.dis === null && fail.deco === 'none', `${E}[acuse·pila] fallida: data-ack, habilitada y sin tachar: ${fail.ack} ${fail.dis} ${fail.deco}`)
+    ok(fail.rcolor === dt && fail.rshown && fail.reason === 'No se pudo exportar', `${E}[acuse·pila] el motivo del fallo en danger-text: ${fail.rcolor} vs ${dt}`)
+    await a.page.evaluate(() => window.__fab.setAck('done', 'photo')); await a.page.waitForTimeout(150)
+    const done = await a.page.evaluate(`(${look})('.g-fab__list--stack [data-id="photo"]')`)
+    ok(done.ack === null && done.dis === null && done.reason === null, `${E}[acuse·pila] hecha: el elemento pierde data-ack y vuelve a reposo: ${JSON.stringify(done)}`)
+    ok(!a.errs.length, `${E}[acuse] consola limpia: ${a.errs}`)
+    await a.ctx.close()
+    // Panel: en curso frente a deshabilitada
+    const p = await open(browser, 'scene=panel&open=1&ack=busy&ackid=csv')
+    const pb = await p.page.evaluate(`(${look})('#fab-menu [data-id="csv"]')`), pd = await p.page.evaluate(`(${look})('#fab-menu [data-id="prefs"]')`), pr = await p.page.evaluate(`(${look})('#fab-menu [data-id="print"]')`)
+    ok(pb.dis === 'true' && pd.dis === 'true' && pb.deco === 'none' && pd.deco === 'line-through', `${E}[acuse·panel] en curso sin tachar; deshabilitada tachada: ${pb.deco} · ${pd.deco}`)
+    ok(pb.lcolor === pr.lcolor && pb.color !== pd.color, `${E}[acuse·panel] en curso con el color de una disponible, no el de una deshabilitada: ${pb.lcolor} · ${pd.color}`)
+    await p.ctx.close()
+    // single y principal de C: el GBtn lleva data-ack; en curso conserva contorno y elevación (no se pinta como deshabilitado)
+    const sg = await open(browser, 'scene=single'), sgRest = await sg.page.evaluate(() => getComputedStyle(document.querySelector('.g-fab > button')).boxShadow); await sg.ctx.close()
+    const sb = await open(browser, 'scene=single&ack=busy&ackid=photo')
+    const sbv = await sb.page.evaluate(() => { const b = document.querySelector('.g-fab > button'); return { ack: b.dataset.ack, dis: b.getAttribute('aria-disabled'), sh: getComputedStyle(b).boxShadow, op: getComputedStyle(b).opacity, cur: getComputedStyle(b).cursor } })
+    ok(sbv.ack === 'busy' && sbv.dis === 'true' && sbv.sh === sgRest && sbv.op === '1' && sbv.cur === 'progress', `${E}[acuse·single] en curso: data-ack, aria-disabled, mismo contorno y elevación que en reposo: ${JSON.stringify(sbv)}`)
+    await sb.ctx.close()
+    const cm = await open(browser, 'scene=c&ack=busy&ackmain=1')
+    const cmv = await cm.page.evaluate(() => { const b = document.querySelector('.g-fab__main'); return { ack: b.dataset.ack, cur: getComputedStyle(b).cursor, root: document.querySelector('.g-fab').dataset.ack } })
+    ok(cmv.ack === 'busy' && cmv.root === 'busy' && cmv.cur === 'progress', `${E}[acuse·C] la principal en curso lleva data-ack: ${JSON.stringify(cmv)}`)
+    await cm.ctx.close()
+  }
+
   /* ---------- 7 · Colores forzados (Chromium) ---------- */
   if (engine === 'chromium') {
     const { ctx, page } = await open(browser, 'scene=a15&open=1&ack=busy', { width: 1000, height: 700 }, { forcedColors: 'active' })
@@ -422,6 +541,10 @@ for (const engine of ENGINES) {
     ok(f.seed === 'solid', `[chromium][forzados] semillas con contorno: ${f.seed}`)
     ok(f.fabSh === 'none', `[chromium][forzados] FAB sin sombra: ${f.fabSh}`)
     await ctx.close()
+    const fv = await open(browser, 'scene=a6&open=1&coarse=1', { width: 390, height: 740 }, { forcedColors: 'active', hasTouch: true, isMobile: true })
+    const fvv = await fv.page.evaluate(() => { const sc = document.querySelector('.g-fab__scrim'); const vh = innerHeight; const at = (x, y) => !!document.elementFromPoint(x, y)?.closest('.g-fab__scrim'); return { op: getComputedStyle(sc).opacity, top: at(20, 100), strip: at(document.documentElement.clientWidth - 40, vh - 2) } })
+    ok(fvv.op === '0' && fvv.top && fvv.strip, `[chromium][forzados] velo transparente que sigue tragándose el toque (también en la franja del borde): ${JSON.stringify(fvv)}`)
+    await fv.ctx.close()
   }
   await browser.close()
 }
