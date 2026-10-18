@@ -24,8 +24,8 @@ beforeEach(() => {
   warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 })
 afterEach(async () => {
-  // Ningún aviso de Vue (props, Teleport, refs) en ninguna prueba
-  expect(warn.mock.calls.map((c) => String(c[0])).filter((m) => m.includes('[Vue warn]'))).toEqual([])
+  // Ningún aviso de Vue (props, Teleport, refs) en ninguna prueba; se comprueba tras limpiar para no contaminar la siguiente
+  const vueWarns = warn.mock.calls.map((c) => String(c[0])).filter((m) => m.includes('[Vue warn]'))
   while (wrappers.length) {
     const { w, speech } = wrappers.pop()
     if (speech.state.status !== 'idle' && speech.state.status !== 'processing') await speech.discard()
@@ -37,6 +37,7 @@ afterEach(async () => {
   vi.restoreAllMocks()
   document.body.innerHTML = ''
   document.documentElement.style.removeProperty('--g-space-1')
+  expect(vueWarns).toEqual([])
 })
 
 const flush = async () => { await nextTick(); await nextTick() }

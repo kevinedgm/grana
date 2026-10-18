@@ -359,6 +359,14 @@ describe('GDialog · modo pasos', () => {
     expect(warned(/necesita title, slot title o header/)).toBe(false)
   })
 
+  it('el aviso 1 mira el slot sin invocarlo fuera del render: un slot escrito con h() en el render del padre no da [Vue warn]', () => {
+    const App = (step) => defineComponent({ setup: () => () => h(GDialog, { title: 'X', closeLabel: 'C' }, { default: () => (step ? h(GDialogStep, { name: 'a', title: 'A' }) : h('p', 'Contenido')) }) })
+    mount(App(false))
+    mount(App(true))
+    expect(warned(/\[Vue warn\]/)).toBe(false)
+    expect(warned(/en modo pasos no se usan/)).toBe(true)
+  })
+
   it('useDialogSteps(): dentro del contenido da { steps, current, depth, push, back, backTo }; fuera, null', async () => {
     let api = 'sin llamar'
     const Probe = defineComponent({ setup() { api = useDialogSteps(); return () => h('i') } })

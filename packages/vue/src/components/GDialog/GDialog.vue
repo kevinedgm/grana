@@ -1,7 +1,7 @@
 <script setup>
 // GDialog · diálogo modal con carcasa e inset (dueño: bruno)
 // Contrato: design/contracts/dialog.md · Estructura: design/lab/dialog/r01/ · Estilo: GDialog.css (coco)
-import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, useAttrs, useId, useSlots, watch } from 'vue'
+import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, provide, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import { TABS_NEST } from '../../utils/tabs.js'
 import { escRepeating, pushDialog, removeDialog } from '../../utils/dialogStack.js'
@@ -477,8 +477,15 @@ if (isDev) {
   const STEP_WARN_5 = 'el slot `tabs` no se combina con pasos en esta entrega (el hilo ocupa su sitio).'
   const usesOwnHeader = () => Boolean(props.title || props.description || slots.title || slots.description || slots.header || slots.footer)
   let declared = null
+  // Slot crudo del vnode: el normalizado de un slot escrito con h() avisa «invoked outside of the render function» en setup
+  const instance = getCurrentInstance()
+  const rawDefault = () => {
+    const c = instance && instance.vnode.children
+    if (Array.isArray(c)) return () => c
+    return c && typeof c === 'object' ? c.default : undefined
+  }
   const hasSteps = () => {
-    if (declared === null) declared = declaresSteps(slots.default, { close: () => {}, push: () => {}, back: () => {}, backTo: () => {}, steps: [] })
+    if (declared === null) declared = declaresSteps(rawDefault(), { close: () => {}, push: () => {}, back: () => {}, backTo: () => {}, steps: [] })
     return declared
   }
   const check = (steps) => {
