@@ -393,6 +393,7 @@ edgeReserve(edge, { doc, except, before } = {})                // before: solo s
 - Por **borde**, sin mirar la alineación (la isla abierta ocupa el centro y en visores estrechos todo se solapa).
 - La isla **no** cambia de borde (`data-flipped` no existe aquí). Si la pill de voz aparece o cambia de borde, la isla se recoloca con una transición de `--g-duration-press` (sin muelle).
 - **Tercer cliente: `GPageHeader`** (`page-header.md` «Bordes compartidos», DECISIONS.md #631). `EDGE_ORDER` pasa a `{ speech: 10, pageHeader: 15, status: 20 }`. El zócalo pegado publica su alto en `top` (no lee: es `sticky`), así que la isla, que lee `before: EDGE_ORDER.status`, queda **debajo** del zócalo sin cambiar su llamada; el muelle (solo en estrecho) publica en `bottom` y lee la voz. La isla no cambia.
+- **Cuarto cliente: `GFab`** (`fab.md` «Bordes compartidos», DECISIONS.md #659). `EDGE_ORDER` pasa a `{ speech: 10, pageHeader: 15, status: 20, fab: 25 }`. Con `anchor="viewport"`, el FAB lee `before: EDGE_ORDER.fab` en su borde (arriba: voz, zócalo e isla) y publica su alto contraído; como va después de la isla, **la isla no lo ve y no cambia**: un FAB arriba queda debajo de la isla, y los avisos más allá del FAB.
 
 Cambios mínimos anotados en `speech.md` §6.7 y en `toast.md` «Convivencia» (ningún comportamiento de la voz ni de los avisos cambia).
 
