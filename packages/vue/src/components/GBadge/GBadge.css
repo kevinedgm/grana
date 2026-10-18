@@ -146,9 +146,13 @@
 
 /* ---------- Variante ---------- */
 /* soft: los valores por defecto del esqueleto */
+/* Contorno {color}-text, como GBtn solid (#672, #674; decisión del usuario): con una marca pálida la caja seguía siendo
+   una forma (1,43:1 contra la página); en el tema por defecto -text = base y no se ve. El borde ya existía: no cambia el
+   tamaño. La figura sola no tiene caja (su borde sigue transparente) */
 .g-badge--variant-solid {
   --_bg: var(--_base);
   --_fg: var(--_on);
+  --_border: var(--_text);
   --_mark: var(--_on);
 }
 .g-badge--variant-outline {

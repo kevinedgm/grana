@@ -2,8 +2,9 @@
 // (dist/), la forma de cada relleno o figura de familia contra lo que tiene detrás, con el tema por defecto, los cinco
 // temas del CLI de btn-limitaciones.spec.mjs (más `categories: 8`) y dentro de data-g-zone="brand", claro y oscuro.
 // Forma = el mayor de relleno y contorno (si se ve) contra la superficie; en una figura sin caja, su tinta (color).
-// Los casos «exigidos» deben dar ≥ 3:1 en todos los temas; los «exentos» se miden y se imprimen (justificación en
-// design/lab/relleno-familia/medida.md). Además: Δ0 en reposo con el tema por defecto (contorno = relleno).
+// Los casos «exigidos» deben dar ≥ 3:1 en todos los temas; los «exentos» (pares soft de GAvatar y GTag estática) se
+// miden y se imprimen (justificación en design/lab/relleno-familia/medida.md). Desde #674 la insignia con caja y el
+// contador de GSidebar también se exigen. Además: Δ0 en reposo con el tema por defecto (contorno = relleno).
 // Ejecutar: GRANA_PW_PORT=4211 npx playwright test tests/relleno-familia.spec.mjs   (VERBOSE=1 imprime las tablas)
 import { test, expect } from '@playwright/test'
 
@@ -85,23 +86,27 @@ const probeSrc = () => {
     if (mode === 'ink') { const ink = over(rgba(cs.color), surf); return { shape: ratio(ink, surf), fill: 0, edge: 0, raw: cs.color } }
     const bg = over(rgba(cs.backgroundColor), surf)
     const bw = parseFloat(cs.borderTopWidth); const bc = rgba(cs.borderTopColor)
-    const edge = bw > 0 && bc[3] > 0 ? ratio(over(bc, surf), surf) : 0
+    let edge = bw > 0 && bc[3] > 0 ? ratio(over(bc, surf), surf) : 0
+    let rawEdge = bw > 0 ? cs.borderTopColor : null
+    // Sin borde visible, el contorno puede ser un trazo interior (box-shadow inset, §7.1)
+    const inset = cs.boxShadow.includes('inset') && cs.boxShadow.match(/rgba?\([^)]*\)/)
+    if (!edge && inset) { const k = rgba(inset[0]); if (k[3] > 0) { edge = ratio(over(k, surf), surf); rawEdge = inset[0] } }
     const fill = ratio(bg, surf)
-    return { shape: Math.max(fill, edge), fill, edge, raw: cs.backgroundColor, rawEdge: bw > 0 ? cs.borderTopColor : null }
+    return { shape: Math.max(fill, edge), fill, edge, raw: cs.backgroundColor, rawEdge }
   }
 }
 
 // [clave, selector dentro de [data-m], modo, exigido]
 const TARGETS = [
-  ['badge-count', ':scope', 'box', false],
-  ['badge-text', ':scope', 'box', false],
+  ['badge-count', ':scope', 'box', true],
+  ['badge-text', ':scope', 'box', true],
   ['badge-figure', '.g-badge__shape', 'ink', true],
   ['progress', '.g-progress__fill', 'box', true],
   ['slider-pill', '.g-slider__pill', 'box', true],
   ['slider-fill', '.g-slider__fill', 'box', true],
   ['stepper-complete', '.g-stepper__step.is-complete .g-stepper__indicator', 'box', true],
   ['stepper-current', '.g-stepper__step.is-current .g-stepper__indicator', 'box', true],
-  ['sidebar-count', '.g-sidebar__badge:not(.g-sidebar__badge--dot)', 'box', false],
+  ['sidebar-count', '.g-sidebar__badge:not(.g-sidebar__badge--dot)', 'box', true],
   ['sidebar-dot', '.g-sidebar__badge--dot', 'ink', true],
   ['card-tick', '.g-card__tick', 'box', true],
   ['tag-pressed', ':scope', 'box', true],
@@ -149,9 +154,9 @@ const report = (label, rows) => {
 
 const CASES = [
   ...['light', 'dark'].map((scheme) => ({ name: `defecto · ${scheme}`, theme: scheme, catsHref: DEFAULT_CATS })),
-  // En la zona, las categorías van con el bloque [data-g-zone] del CLI (cat-k-text = on-brand-zone, tokens.md §44.6): la
-  // copia del playground (tag-categories.css) es anterior a la zona y no lo trae, así que aquí se genera con el CLI
-  ...['light', 'dark'].map((scheme) => ({ name: `defecto · zona de marca · ${scheme}`, scheme, cli: { name: 'defecto', config: { categories: 8, dark: true } }, zone: true })),
+  // En la zona, las categorías llevan el bloque [data-g-zone] del CLI (cat-k-text = on-brand-zone, tokens.md §44.6); la copia
+  // del playground lo trae desde #673 (antes, sin él, GTag pulsada con cat-k daba 2,81–2,92 en la zona clara)
+  ...['light', 'dark'].map((scheme) => ({ name: `defecto · zona de marca · ${scheme}`, theme: scheme, catsHref: DEFAULT_CATS, zone: true })),
   ...CLI_THEMES.flatMap((th) => ['light', 'dark'].map((scheme) => ({ name: `${th.name} · ${scheme}`, scheme, cli: th }))),
   ...['light', 'dark'].map((scheme) => ({ name: `T2 #F2C200 · zona de marca · ${scheme}`, scheme, cli: CLI_THEMES[1], zone: true }))
 ]
@@ -240,5 +245,91 @@ test.describe('GFab · acuse y confirmar con contorno {sem}-text (#673)', () => 
     if (V) console.log(`[fab ${name} ${test.info().project.name}] ${rows.map((r) => `${r.k} ${r.shape.toFixed(2)}`).join(' · ')}`)
     expect(fails, fails.join('\n')).toEqual([])
     if (!o.cli && !o.zone) for (const r of rows) expect(r.rawEdge, `${r.k}: Δ0 (contorno = relleno)`).toBe(r.raw)
+  })
+})
+
+// GFab montado (UMD de dist/fab.umd.js): acuse failed y done en la insignia y el par de confirmación de una acción peligrosa
+test.describe('GFab montado · acuse y confirmar (#673)', () => {
+  const MOUNT_CASES = [
+    ['defecto · light', { theme: 'light' }], ['defecto · dark', { theme: 'dark' }],
+    ...[CLI_THEMES[1], CLI_THEMES[2], CLI_THEMES[4]].flatMap((th) => ['light', 'dark'].map((s) => [`${th.name} · ${s}`, { cli: th, scheme: s }]))
+  ]
+  for (const [name, o] of MOUNT_CASES) test(name, async ({ page }) => {
+    const tokens = o.cli ? buildTheme(o.cli.config).css : ''
+    const theme = o.cli ? o.scheme : o.theme
+    await page.route('**/__fab-real.html', (r) => r.fulfill({ contentType: 'text/html', body: `<!doctype html><html data-theme="${theme}"><head><meta charset="utf-8"><link rel="stylesheet" href="/packages/vue/dist/grana.css"><style>*,*::before,*::after{transition:none!important;animation:none!important}body{margin:0;min-height:100vh;background:var(--g-color-surface)}${tokens}</style></head><body><div id="app"></div><script src="/node_modules/vue/dist/vue.global.js"></script><script src="/packages/vue/dist/grana.umd.js"></script><script src="/packages/vue/dist/fab.umd.js"></script></body></html>` }))
+    await page.goto('/__fab-real.html')
+    await page.evaluate(async () => {
+      const labels = { more: ({ count }) => `${count} más`, moreShort: 'Más', cancel: 'Cancelar', busy: 'En curso', done: 'Hecho', failed: 'Falló' }
+      window.__mode = 'failed'
+      Vue.createApp({ render: () => Vue.h(GranaFab.GFab, { label: 'Acciones', labels, items: [{ id: 'exp', label: 'Exportar', icon: 'download' }, { id: 'del', label: 'Borrar', icon: 'trash-2', danger: true }], onSelect: (e) => { if (e.id === 'exp') e[window.__mode]() } }) }).mount('#app')
+      await Vue.nextTick()
+    })
+    await page.evaluate(probeSrc)
+    const read = (sel) => page.locator(sel).first().evaluate((el) => window.__shape(el, 'box'))
+    const fab = page.locator('.g-fab > .g-btn, .g-fab .g-btn').first()
+    const rows = []
+    for (const mode of ['failed', 'done']) {
+      await page.evaluate((m) => { window.__mode = m }, mode)
+      await fab.click()
+      await page.getByRole('menuitem', { name: 'Exportar' }).click()
+      await expect(page.locator(`.g-fab[data-ack="${mode}"] .g-fab__badge`)).toHaveCount(1)
+      // La insignia va dentro del botón del FAB con un aro de surface (box-shadow de 2 × border-width): lo que toca su
+      // contorno es el aro, no el relleno del FAB. Se mide el contorno y el relleno contra el color del aro
+      rows.push({ k: `acuse ${mode}`, ...await page.locator(`.g-fab[data-ack="${mode}"] .g-fab__badge`).evaluate((el) => {
+        const cs = getComputedStyle(el); const ring = cs.boxShadow.match(/rgba?\([^)]*\)/)[0]
+        const host = document.createElement('i'); host.style.backgroundColor = ring; document.body.append(host)
+        const probe = document.createElement('i'); probe.style.cssText = `background:${cs.backgroundColor};border:${cs.borderTopWidth} solid ${cs.borderTopColor}`; host.append(probe)
+        const r = window.__shape(probe, 'box'); host.remove(); return { ...r, raw: cs.backgroundColor, rawEdge: cs.borderTopColor }
+      }) })
+      if (await page.locator('.g-fab[data-state="open"]').count()) await page.keyboard.press('Escape')
+    }
+    await fab.click()
+    await page.getByRole('menuitem', { name: 'Borrar' }).click()
+    await expect(page.locator('.g-fab__confirm-action')).toHaveCount(1)
+    rows.push({ k: 'confirmar', ...await read('.g-fab__confirm-action') })
+    if (V) console.log(`[fab montado ${name} ${test.info().project.name}] ${rows.map((r) => `${r.k} ${r.shape.toFixed(2)}`).join(' · ')}`)
+    const fails = rows.filter((r) => r.shape < 3).map((r) => `${r.k}: ${r.shape.toFixed(2)}`)
+    expect(fails, fails.join('\n')).toEqual([])
+    if (!o.cli) for (const r of rows) expect(r.rawEdge, `${r.k}: Δ0`).toBe(r.raw)
+  })
+})
+
+// Anfitriones que redefinen .g-btn sobre otra superficie (§7.1 «Sobre otra superficie»): GToast, GStatusIsland (lista y
+// superficie inversa), panel y disparador de la voz, barra de GTranscript. Ninguno pinta un relleno de familia salvo
+// «Descartar» (solid danger) del panel, que hereda #672; se mide la forma de cada uno contra su superficie real
+test.describe('Anfitriones de .g-btn sobre otra superficie (#673)', () => {
+  const b = (cls, extra = '') => `<button type="button" class="g-btn g-btn--size-sm ${cls}" ${extra}><span class="g-btn__label">Acción</span></button>`
+  const BODY = `
+    <div class="g-toaster"><div class="g-toast"><div class="g-toast__actions">${b('g-btn--variant-outline g-btn--color-neutral g-toast__action', 'data-x="toast · acción"')}</div></div></div>
+    <ul class="g-status-list"><li class="g-status-item">${b('g-btn--variant-outline g-btn--color-neutral g-status-item__action', 'data-x="isla · acción en la lista"')}</li></ul>
+    <div class="g-status-island"><div class="g-status-island__shape">${b('g-btn--variant-outline g-btn--color-neutral g-status-island__ack', 'data-x="isla · «Entendido» sobre la inversa"')}</div></div>
+    <div class="g-speech-panel">${b('g-btn--variant-outline g-btn--color-neutral', 'data-x="panel de voz · outline"')}${b('g-btn--variant-solid g-btn--color-danger', 'data-x="panel de voz · descartar (solid)"')}<div class="g-speech-panel__activity">${b('g-btn--variant-ghost g-btn--color-neutral', 'aria-pressed="true" data-x="panel de voz · actividad pulsada"')}</div></div>
+    <span class="g-speech-trigger" data-status="listening">${b('g-btn--variant-ghost g-btn--color-neutral g-btn--icon g-speech-trigger__btn', 'aria-pressed="true" data-x="disparador · escuchando" data-inset')}</span>
+    <span class="g-speech-trigger" data-status="error">${b('g-btn--variant-ghost g-btn--color-neutral g-btn--icon g-speech-trigger__btn', 'data-x="disparador · error"')}</span>
+    <div class="g-transcript"><div class="g-transcript__bar">${b('g-btn--variant-ghost g-btn--color-neutral', 'aria-pressed="true" data-x="transcripción · pulsado"')}</div></div>`
+  const HOST_CASES = [
+    ['defecto · light', { theme: 'light' }], ['defecto · dark', { theme: 'dark' }],
+    ...CLI_THEMES.flatMap((th) => ['light', 'dark'].map((s) => [`${th.name} · ${s}`, { cli: th, scheme: s }])),
+    ['T2 · zona de marca · light', { cli: CLI_THEMES[1], scheme: 'light', zone: true }]
+  ]
+  for (const [name, o] of HOST_CASES) test(name, async ({ page }) => {
+    let tokens = ''; let theme = o.theme
+    if (o.cli) { tokens = buildTheme(o.cli.config).css; theme = o.scheme; if (o.scheme === 'dark' && o.cli.config.dark === false) { await page.emulateMedia({ colorScheme: 'dark' }); theme = undefined } }
+    await page.route('**/__hosts.html', (r) => r.fulfill({ contentType: 'text/html', body: `<!doctype html><html${theme ? ` data-theme="${theme}"` : ''}><head><meta charset="utf-8"><link rel="stylesheet" href="/packages/vue/dist/grana.css"><style>*,*::before,*::after{transition:none!important;animation:none!important}body{background:var(--g-color-surface)}.g-toaster,.g-status-island,.g-speech-panel{position:static!important;inset:auto!important;translate:none!important;transform:none!important;opacity:1!important;visibility:visible!important}${tokens}</style></head><body><div${o.zone ? ' data-g-zone="brand" style="padding:16px"' : ''}>${BODY}</div></body></html>` }))
+    await page.goto('/__hosts.html')
+    await page.evaluate(probeSrc)
+    const rows = await page.evaluate(() => [...document.querySelectorAll('[data-x]')].map((el) => {
+      const r = window.__shape(el, 'box')
+      if (el.hasAttribute('data-inset')) {
+        // contorno interior (box-shadow inset) contra la superficie: se mide con una sonda de ese color
+        const cs = getComputedStyle(el); const ring = cs.boxShadow.match(/rgba?\([^)]*\)/)?.[0]
+        if (ring) { const p = document.createElement('i'); p.style.cssText = `display:block;border:1px solid ${ring}`; el.parentElement.append(p); const q = window.__shape(p, 'box'); p.remove(); r.shape = Math.max(r.shape, q.edge); r.edge = q.edge }
+      }
+      return { k: el.dataset.x, ...r }
+    }))
+    if (V) console.log(`[anfitriones ${name} ${test.info().project.name}] ${rows.map((r) => `${r.k} ${r.shape.toFixed(2)}`).join(' · ')}`)
+    const fails = rows.filter((r) => r.shape < 3).map((r) => `${r.k}: ${r.shape.toFixed(2)} (relleno ${r.fill.toFixed(2)}, contorno ${r.edge.toFixed(2)})`)
+    expect(fails, fails.join('\n')).toEqual([])
   })
 })

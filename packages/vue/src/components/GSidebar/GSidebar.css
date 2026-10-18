@@ -445,6 +445,8 @@
   border-radius: var(--g-radius-pill);
   background: var(--_color);
   color: var(--_on);
+  /* Trazo interior {color}-text (sin borde propio: §7.1), como la insignia solid (#674); Δ0 en el tema por defecto */
+  box-shadow: inset 0 0 0 var(--g-border-width) var(--_text);
   font-size: var(--g-text-caption-size);
   line-height: calc(var(--g-space-1) * 5);
   text-align: center;
@@ -468,6 +470,7 @@
   padding: 0;
   border-radius: 0;
   background: none;
+  box-shadow: none;
   color: var(--_text);
   line-height: 0;
 }
@@ -873,6 +876,7 @@
   background: var(--g-sidebar-on-current);
   color: var(--g-sidebar-current);
   outline-color: var(--g-sidebar-current);
+  box-shadow: none;
 }
 /* El punto no es una caja: sobre la píldora va sin fondo ni filo, en la tinta del actual (P1, ≥ 4.5:1 sobre current).
    Sin esta regla heredaba el fondo invertido del contador y se veía como un cuadrado (#673) */

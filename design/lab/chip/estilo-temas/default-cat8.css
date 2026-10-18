@@ -52,7 +52,7 @@
   --g-color-on-cat-8-soft: #944B81;
 }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root:where(:not([data-theme="light"])) {
     color-scheme: dark;
     --g-color-cat-1: #C86A67;
     --g-color-cat-1-strong: #DC7C79;
@@ -154,5 +154,15 @@
   --g-color-cat-8-text: #B76BA3;
   --g-color-on-cat-8: #17151A;
   --g-color-on-cat-8-soft: #BE71A9;
+}
+[data-g-zone="brand"] {
+  --g-color-cat-1-text: var(--g-color-on-brand-zone);
+  --g-color-cat-2-text: var(--g-color-on-brand-zone);
+  --g-color-cat-3-text: var(--g-color-on-brand-zone);
+  --g-color-cat-4-text: var(--g-color-on-brand-zone);
+  --g-color-cat-5-text: var(--g-color-on-brand-zone);
+  --g-color-cat-6-text: var(--g-color-on-brand-zone);
+  --g-color-cat-7-text: var(--g-color-on-brand-zone);
+  --g-color-cat-8-text: var(--g-color-on-brand-zone);
 }
 
