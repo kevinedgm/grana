@@ -157,7 +157,7 @@ div.g-empty.g-empty--cause-{cause}  [is-exit]
 
 ## Avisos de desarrollo
 
-`typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'`, una vez cada uno, prefijo `[Grana] <GEmpty>`, sin contenido de la aplicación:
+Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production' …) … } catch {}`, `api.md` «Avisos de desarrollo»), una vez cada uno, prefijo `[Grana] <GEmpty>`, sin contenido de la aplicación:
 
 1. `filters` o `total` con una `cause` distinta de `filtered` (se ignoran).
 2. Salida con filtros sueltos sin `labels.relax`; con `count` sin `labels.returns`; con `filters` sin `labels.clear`; con `total` sin `labels.before`. El botón se dibuja igual con el texto que haya.

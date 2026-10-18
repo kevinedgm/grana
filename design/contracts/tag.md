@@ -377,7 +377,7 @@ Sin valores por defecto (#226). Cada clave es una **cadena con marcadores** (`fi
 
 ## Avisos de desarrollo (#462, #463)
 
-`typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'` (nunca `import.meta.env.DEV`), una vez por instancia, causa y valor.
+Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production' …) … } catch {}`, `api.md` «Avisos de desarrollo»; nunca `import.meta.env.DEV`), una vez por instancia, causa y valor.
 
 **`[Grana GTag]`**
 

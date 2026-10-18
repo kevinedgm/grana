@@ -241,7 +241,7 @@ Propios, de la lista de la librería, con `GLibIcon`, decorativos: **`refresh-cw
 
 ## Avisos de desarrollo
 
-`typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'`, una vez cada uno, prefijo `[Grana] <GLoadRegion>`, sin datos de la aplicación:
+Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production' …) … } catch {}`, `api.md` «Avisos de desarrollo»), una vez cada uno, prefijo `[Grana] <GLoadRegion>`, sin datos de la aplicación:
 
 1. Una carga sin `labels.loading`, **solo** si ninguna región que la contiene habla.
 2. `labels.loading` sin `labels.loaded` o sin `labels.slow`, o al revés.

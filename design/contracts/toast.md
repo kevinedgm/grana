@@ -354,7 +354,7 @@ Orden del DOM = orden de lectura = orden de foco. El más reciente queda **junto
 
 ## Avisos de desarrollo
 
-Con `typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'`, `console.warn` con prefijo `[Grana GToaster]`:
+Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production' …) … } catch {}`, `api.md` «Avisos de desarrollo»), `console.warn` con prefijo `[Grana GToaster]`:
 
 1. `show` en el cliente sin **ninguna** `GToaster` montada para ese gestor (se comprueba tras el siguiente ciclo del primer `show`; los avisos esperan y se muestran al montar).
 2. Dos `GToaster` montadas para el **mismo gestor**: la segunda no pinta nada.

@@ -364,7 +364,7 @@ Convención: modificadores de prop `--{prop}` (`api.md`), estados `is-*`/`has-*`
 
 ## Avisos de desarrollo
 
-Una vez por instancia, con `typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'`.
+Una vez por instancia, con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production' …) … } catch {}`, `api.md` «Avisos de desarrollo»).
 
 **`[Grana GAccordion]`**
 

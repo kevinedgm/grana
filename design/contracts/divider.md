@@ -163,7 +163,7 @@ No aplica: no es enfocable ni interactivo (aviso 6 si recibe `tabindex`).
 
 ## Avisos de desarrollo (`[Grana GDivider]`)
 
-Con `typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'` (nunca `import.meta.env.DEV`), **una vez por instancia y motivo**, con `console.warn`. Los que miran el DOM se comprueban en `onMounted` y al cambiar `orientation`.
+Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production' …) … } catch {}`, `api.md` «Avisos de desarrollo»; nunca `import.meta.env.DEV`), **una vez por instancia y motivo**, con `console.warn`. Los que miran el DOM se comprueban en `onMounted` y al cambiar `orientation`.
 
 | # | Cuándo | Texto (idea) | Qué hace el componente |
 | --- | --- | --- | --- |

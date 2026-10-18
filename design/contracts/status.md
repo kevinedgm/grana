@@ -457,7 +457,7 @@ Cambios mínimos anotados en `speech.md` §6.7 y en `toast.md` «Convivencia» (
 
 ## Avisos de desarrollo
 
-`console.warn` con prefijo `[Grana Status]`, una vez por caso, con la guarda `typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'`:
+`console.warn` con prefijo `[Grana Status]`, una vez por caso, con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production' …) … } catch {}`, `api.md` «Avisos de desarrollo»):
 
 1. `set` en el cliente sin ninguna `GStatusIsland` montada para ese gestor (tras el siguiente ciclo; las condiciones esperan).
 2. Dos `GStatusIsland` del mismo gestor (la segunda no pinta nada).

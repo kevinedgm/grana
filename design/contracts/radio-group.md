@@ -275,7 +275,7 @@ Los `handlers` (`onChange`, `onFocusout`…) se fusionan **primero** en la raíz
 
 ## Avisos de desarrollo (`[Grana GRadioGroup]`)
 
-Una vez por instancia y mensaje; con `typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'`.
+Una vez por instancia y mensaje; con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production' …) … } catch {}`, `api.md` «Avisos de desarrollo»).
 
 1. Sin nombre accesible (`label`, slot `label`, `aria-label`, `aria-labelledby`).
 2. Menos de 2 opciones válidas; `segmented` con más de 6.

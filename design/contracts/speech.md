@@ -852,7 +852,7 @@ Verificado por kiwi: en una conversación con cambios de pestaña y paso, el ini
 
 (Los de la Fase 2, en §30.)
 
-Con `typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'`, `console.warn` con prefijo `[Grana Speech]`, una vez por causa. **Nunca incluyen texto transcrito** ni datos del audio.
+Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production' …) … } catch {}`, `api.md` «Avisos de desarrollo»), `console.warn` con prefijo `[Grana Speech]`, una vez por causa. **Nunca incluyen texto transcrito** ni datos del audio.
 
 1. `createSpeech` sin `adapter`, o adaptador sin `open`/`capabilities`.
 2. Capacidades inválidas (la sesión pasa a `error` `unsupported`).

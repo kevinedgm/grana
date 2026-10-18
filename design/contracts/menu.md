@@ -120,7 +120,7 @@ Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Men
 - El `id` del disparador lo genera `GMenu` (`{id}-trigger`, con `{id}` la prop `id` o el generado) y es el que `aria-labelledby` de la lista usa **cuando el disparador no trae otro**. **Regla:** la aplicación **no** pone su propio `id` al disparador; si necesita conocerlo o fijarlo, usa la **prop `id`** de `GMenu`.
 - **Causa raíz (medida por bruno, #308):** `GBtn` tiene **dos raíces** (el botón y su región de estado), así que la referencia del slot `trigger` es una instancia cuyo `$el` es el **ancla vacía del fragmento**, no el botón. Antes, `GMenu` solo encontraba el botón por `document.getElementById('{id}-trigger')`; con un `id` propio (p. ej. `id` después de `v-bind="attrs"`) no había ancla, `place` no llamaba a `showPopover` y **el menú no se abría, sin avisar**. **Ahora** `GMenu` resuelve el elemento del disparador por la **referencia**: si es un componente de varias raíces, toma **el primer hermano elemento** del ancla (que no sea una lista de menú); la búsqueda por `{id}-trigger` queda solo de respaldo.
 - **Un `id` propio ya no rompe el menú, pero sigue sin ser el camino** (#308): el menú **se abre** y la lista usa **ese `id` real en `aria-labelledby`** (el nombre accesible de la lista no se pierde). Esto **no es** «adoptar en silencio» el `id` de la aplicación (alternativa descartada en #305): el **aviso de desarrollo se mantiene** y la regla de arriba sigue vigente; solo se evita que un descuido deje el menú muerto o sin nombre.
-- **Aviso de desarrollo** (una vez, `typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'`): al montar y al abrir, si el elemento del disparador (por su referencia) tiene un `id` distinto de `{id}-trigger`: «[Grana GMenu] el disparador tiene `id="…"`; GMenu necesita `…-trigger` (usa la prop `id` de GMenu)». Es obligatorio aunque el menú se abra.
+- **Aviso de desarrollo** (una vez, con la guarda canónica de #653): al montar y al abrir, si el elemento del disparador (por su referencia) tiene un `id` distinto de `{id}-trigger`: «[Grana GMenu] el disparador tiene `id="…"`; GMenu necesita `…-trigger` (usa la prop `id` de GMenu)». Es obligatorio aunque el menú se abra.
 - mora-docs: documentarlo en el README de `GMenu` («El disparador»), con la causa de las dos raíces de `GBtn`.
 
 ## Estructura accesible
@@ -376,7 +376,7 @@ Sin valores por defecto (#226): todo lo pone la aplicación. Cadenas; las que ll
 
 ### Avisos de desarrollo (nuevos)
 
-Una vez por menú, con `typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'`.
+Una vez por menú, con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production' …) … } catch {}`, `api.md` «Avisos de desarrollo»).
 
 | # | Cuándo | Qué hace el componente |
 | --- | --- | --- |

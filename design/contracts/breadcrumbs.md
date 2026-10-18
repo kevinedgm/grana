@@ -360,7 +360,7 @@ Se renderiza la etapa `liquid` con todos los niveles, las pistas cerradas y los 
 
 ## Avisos de desarrollo (`[Grana GBreadcrumbs]`, una vez por instancia y motivo)
 
-Con `typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'`; sin el texto del usuario en el mensaje.
+Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production' …) … } catch {}`, `api.md` «Avisos de desarrollo»); sin el texto del usuario en el mensaje.
 
 1. Falta `labels.nav` y no hay `aria-labelledby` en los atributos.
 2. `items` vacío o no es un arreglo: no se pinta nada.

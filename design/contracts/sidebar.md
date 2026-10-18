@@ -133,7 +133,7 @@ Se decide por el **ancho del contenedor** (`container`), medido con un observado
 - **Caso real del hallazgo** (drawer por debajo de 1024px, sin riel): `:breakpoints="{ expanded: 1024, rail: 1024 }" mobile="drawer"` (medido por kiwi en r02: 1000px → drawer, 1100px → expandida).
 - **Límite asumido:** unos px de la aplicación **no siguen a `space`** si el integrador lo cambia; es el precio de que el corte sea explícito y por instancia (10-B, tokens leídos con `getComputedStyle`, y 10-C, `contentMin`, quedan descartados en #618).
 - **Comparación:** `≥` en los dos cortes, como hoy; sin histéresis nueva.
-- **Avisos** (`[Grana] GSidebar`, una vez por instancia y causa, con el patrón de `typeof process`): **B1** `breakpoints.{clave}` no válido o desconocido, se usa el valor por defecto; **B2** `breakpoints.rail` (N) es mayor que `breakpoints.expanded` (M), se recorta a M.
+- **Avisos** (`[Grana] GSidebar`, una vez por instancia y causa, con la guarda canónica de #653): **B1** `breakpoints.{clave}` no válido o desconocido, se usa el valor por defecto; **B2** `breakpoints.rail` (N) es mayor que `breakpoints.expanded` (M), se recorta a M.
 
 ## Movimiento
 

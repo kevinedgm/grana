@@ -421,7 +421,7 @@ El deslizador **publica su mínimo intrínseco** a la fila con `setIntrinsicMin(
 
 ## Avisos de desarrollo (`[Grana GSlider]`, una vez por instancia)
 
-Con el patrón `typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'`.
+Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production' …) … } catch {}`, `api.md` «Avisos de desarrollo»).
 
 1. Sin nombre accesible: sin `label`, slot `label`, `aria-label` ni `aria-labelledby`.
 2. `range` sin `labels.start` o sin `labels.end`: las dos asas se llamarían igual.

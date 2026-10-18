@@ -516,7 +516,7 @@ Importar y renderizar en el servidor no toca `document`, `window`, `navigator` n
 
 ## Avisos de desarrollo (`[Grana GCombobox]`, una vez por instancia y motivo)
 
-Con el patrón `typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'`.
+Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production' …) … } catch {}`, `api.md` «Avisos de desarrollo»).
 
 1. Sin nombre accesible: sin `label`, slot `label`, `aria-label` ni `aria-labelledby`.
 2. Un texto de `labels` que hace falta y no está (tabla de «Textos»): `close` al montar; los demás, la primera vez que se necesitan.

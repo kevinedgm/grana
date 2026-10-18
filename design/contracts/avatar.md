@@ -297,7 +297,7 @@ Imagen cargada · cargando · fallida (con iniciales o con icono) · iniciales �
 
 ## Avisos de desarrollo (bruno; L11)
 
-`typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'` (nunca `import.meta.env.DEV`), una vez por causa y valor (el aviso 8, por número de categoría y carga), prefijo `[Grana GAvatar]`:
+Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production' …) … } catch {}`, `api.md` «Avisos de desarrollo»; nunca `import.meta.env.DEV`), una vez por causa y valor (el aviso 8, por número de categoría y carga), prefijo `[Grana GAvatar]`:
 
 | # | Causa | Qué hace el componente |
 | --- | --- | --- |

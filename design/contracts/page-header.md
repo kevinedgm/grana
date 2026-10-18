@@ -320,7 +320,7 @@ Expuesto con `defineExpose`; consta en el `meta.json` (`methods`).
 
 ## Avisos de desarrollo (`[Grana GPageHeader]`, una vez por instancia y motivo)
 
-Con `typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'`.
+Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production' …) … } catch {}`, `api.md` «Avisos de desarrollo»).
 
 1. Falta `title` (o está vacío).
 2. `headingLevel` 1 y al montar ya hay otro `h1` en el documento.

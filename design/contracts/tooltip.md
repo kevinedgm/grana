@@ -397,7 +397,7 @@ El nodo y las referencias se renderizan en el servidor (ids estables, como `GMen
 
 ## Avisos de desarrollo (`[Grana GTooltip]`, una vez por instancia y motivo)
 
-Con `typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'`. Sin el texto del usuario en el mensaje.
+Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production' …) … } catch {}`, `api.md` «Avisos de desarrollo»). Sin el texto del usuario en el mensaje.
 
 1. El slot no tiene **un único hijo** (vacío, varios nodos o texto suelto).
 2. El hijo **no tiene elemento enfocable** (incluido un `GIcon` con `label`): no se activa.

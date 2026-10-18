@@ -102,7 +102,7 @@ Las **figuras que codifican estado o serie** (círculo, cuadrado, rombo y trián
 
 ### 2.6 Avisos de desarrollo
 
-`typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'` (nunca `import.meta.env.DEV`), una vez por causa y nombre, prefijo `[Grana GIcon]`:
+Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production' …) … } catch {}`, `api.md` «Avisos de desarrollo»; nunca `import.meta.env.DEV`), una vez por causa y nombre, prefijo `[Grana GIcon]`:
 
 | Causa | Qué hace el componente |
 | --- | --- |

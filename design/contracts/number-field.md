@@ -293,7 +293,7 @@ Un campo con −/+ necesita más sitio que su clase de tamaño (−/+ ocupan 2 �
 
 ## Avisos de desarrollo (`[Grana GNumberField]`, una vez por instancia)
 
-Con el patrón `typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'`.
+Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production' …) … } catch {}`, `api.md` «Avisos de desarrollo»).
 
 1. Sin nombre accesible: sin `label`, slot `label`, `aria-label` ni `aria-labelledby`. (`GInput` no avisa por su cuenta cuando lo compone `GNumberField`: «Cambio por `GNumberField`» de `input.md`.)
 2. `steppers` sin `decrementLabel` o sin `incrementLabel`: −/+ no se pintan.

@@ -430,7 +430,7 @@ Importar y renderizar en el servidor no toca `document`, `window` ni `matchMedia
 
 ## Avisos de desarrollo (`[Grana GSummary]`, una vez por instancia y motivo)
 
-Con el patrón `typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'`.
+Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production' …) … } catch {}`, `api.md` «Avisos de desarrollo»).
 
 1. Sin `title`, sin `placeholder` y sin `loading`: ficha vacía.
 2. Un dato sin `label` (se omite); dos datos con el mismo `label` (se pintan los dos; `diff` es ambiguo).

@@ -395,7 +395,7 @@ Bruno las emite; coco las estiliza. Las de `GInput` siguen siendo de `GInput`.
 
 ## Avisos de desarrollo (`[Grana GTimeField]`, una vez por instancia)
 
-Con el patrón `typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'`.
+Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production' …) … } catch {}`, `api.md` «Avisos de desarrollo»).
 
 1. Sin nombre accesible: sin `label`, slot `label`, `aria-label` ni `aria-labelledby`. (`GInput` compuesto no avisa por su cuenta, N2.)
 2. Sin `labels.invalid` (al montar): «un texto que no es una hora bloqueará el envío sin mensaje».

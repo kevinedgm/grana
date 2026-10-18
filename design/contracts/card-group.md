@@ -234,7 +234,7 @@ La `GCard` hija conserva sus clases (`is-selected`, `g-card--interaction-toggle`
 
 ## Avisos de desarrollo
 
-`typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'`, una vez cada uno, prefijo `[Grana GCardGroup]`:
+Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production' …) … } catch {}`, `api.md` «Avisos de desarrollo»), una vez cada uno, prefijo `[Grana GCardGroup]`:
 
 | # | Aviso |
 | --- | --- |
