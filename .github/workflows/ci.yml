@@ -122,7 +122,8 @@ jobs:
       # paneles anclados, tooltip y los componentes de formulario, más la Fase C (slider, tag,
       # acordeón, migas, vacío, región de carga y carga de la tabla; las pruebas de «rendimiento» de
       # bd888df viven en slider y breadcrumbs y son relativas, fiables con 2 workers), y los niveles de
-      # GDialog y GFormFold (17 pruebas, ~10 s; sus medidas de movimiento toleran cuadros perdidos). Los
+      # GDialog y GFormFold (17 pruebas, ~10 s; sus medidas de movimiento toleran cuadros perdidos), y GFab
+      # (#656: forma, teclado, confirmación, acuse, bordes, se aparta y velo; 17 pruebas, ~1 min). Los
       # personalidad-* (cuadros de animación), los -perf (un worker), el combobox y la voz
       # quedan para la pasada nocturna. Archivos explícitos: el filtro de Playwright es una
       # expresión regular sobre la ruta y «playground» coincidiría con todo el directorio.
@@ -152,7 +153,8 @@ jobs:
             tests/empty.spec.mjs \
             tests/load-region.spec.mjs \
             tests/table-load.spec.mjs \
-            tests/sidebar-activo.spec.mjs
+            tests/sidebar-activo.spec.mjs \
+            tests/fab.spec.mjs
 
       # Contención de tamaño en padres que se ajustan (hallazgo 3 de la integración real): 3 s en Chromium;
       # los tres motores van en la pasada completa.

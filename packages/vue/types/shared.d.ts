@@ -218,6 +218,51 @@ export interface MenuSelectEvent {
   event: Event
 }
 
+/** Acción de `GFab` (fab.md «Elementos»; el orden del arreglo es el de frecuencia). */
+export interface FabItem extends GranaExtra {
+  id: GranaKey
+  label: string
+  /** Nombre de Lucide (registro de la aplicación → lista de la librería). */
+  icon?: IconName | unknown
+  /** Segunda línea en el panel y descripción accesible. */
+  description?: string
+  /** Título del grupo en el panel (plano, por primera aparición). */
+  group?: string
+  /** `aria-disabled`; con texto, ese motivo se ve. */
+  disabled?: boolean | string
+  danger?: boolean
+  /** Solo con `danger`: la pregunta de la confirmación en el sitio; `false`, sin confirmación. */
+  confirm?: string | false
+  /** Solo con `danger` y `confirm`: el texto del botón que confirma. */
+  confirmLabel?: string
+}
+/** `select` de `GFab` con el ticket de acuse (fab.md «Acuse», #663; regla 3 de «Acciones con acuse», #643). */
+export interface FabSelectEvent {
+  id: GranaKey
+  item: FabItem
+  event: Event
+  /** La acción venía de un fallo. */
+  retry: boolean
+  busy(text?: string): void
+  done(text?: string): void
+  failed(text?: string): void
+  cancel(): void
+  waitUntil(promise: Promise<string | { message?: string } | boolean | null | void>): void
+}
+/** Textos de `GFab` (sin valores por defecto, #226). */
+export interface FabLabels {
+  more?: GranaText<{ count: number }>
+  moreShort?: string
+  cancel?: string
+  findHint?: string
+  matches?: GranaText<{ count: number }>
+  matchesOne?: string
+  none?: string
+  busy?: string
+  done?: string
+  failed?: string
+}
+
 /** Pestaña de `GTabs` (tabs.md «Elementos»). */
 export interface TabItem extends GranaExtra {
   id: GranaKey

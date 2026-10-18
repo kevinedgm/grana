@@ -76,4 +76,11 @@ const onClick = (e: MouseEvent) => e.clientX
   <g-page-header title="X" :heading-level="4" />
   <!-- @vue-expect-error GPageHeader: zone fuera de la lista -->
   <g-page-header title="X" zone="inverse" />
+
+  <!-- GFab (#656) -->
+  <g-fab label="Crear" :items="[{ id: 'a', label: 'Nueva muestra' }]" position="bottom-center" :labels="{ more: 'Más ({count})' }">
+    <template #trigger-icon="{ open }">{{ open ? 'abierto' : 'cerrado' }}</template>
+  </g-fab>
+  <!-- @vue-expect-error GFab: anchor fuera de la lista -->
+  <g-fab label="X" anchor="page" />
 </template>

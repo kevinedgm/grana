@@ -104,3 +104,6 @@
 /* GPageHeader (page-header.md, entrada @grana/vue/page-header, #633; su CSS sigue en grana.css): reapunta su fondo en
    GSurface y GDialog y es anfitriona de --g-tabs-inset en el zócalo; va después de sus hojas (GSurface, GDialog, GTabs) */
 @import url("../components/GPageHeader/GPageHeader.css");
+/* GFab (fab.md, entrada @grana/vue/fab, #656; su CSS sigue en grana.css): su FAB, su principal y su cola son GBtn y su
+   nombre lo da GTooltip; añade su elevación y sus selectores sobre .g-btn: va después de GBtn.css y GTooltip.css */
+@import url("../components/GFab/GFab.css");

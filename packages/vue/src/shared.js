@@ -30,6 +30,10 @@
 // El encabezado de página (`@grana/vue/page-header`, #633: vite.page-header.config.js y src/page-header.test.js) toma de
 // aquí el registro de reservas de borde (edgeReserve con EDGE_ORDER.pageHeader: un solo registro por documento, o la isla y
 // los avisos no verían el zócalo ni el muelle), sizeObserver, spaceUnit y nextFrame (formContext) y transitionMs.
+// El botón flotante con acciones (`@grana/vue/fab`, #656: vite.fab.config.js y src/fab.test.js) toma de aquí GBtn, GTooltip,
+// los dos GIcon, el motor de menú compartido con GMenu (utils/menuNav.js, #657), el registro de reservas de borde
+// (edgeReserve con EDGE_ORDER.fab: uno por documento), el modal superior (topModal), el canal de página (liveRegion),
+// followFrame y anchorGone (anchor), el observador de tamaño, spaceUnit y nextFrame (formContext), transitionMs y oneOf.
 //
 // vite.speech.config.js redirige cada importación relativa de la entrada speech que sale de sus carpetas
 // (GSpeechHost, GSpeechPill, GSpeechTrigger, GTranscript) a la clave correspondiente de este mapa (ruta relativa a src/). Si la
@@ -46,6 +50,7 @@ import GAvatar from './components/GAvatar/GAvatar.vue'
 import GIcon from './components/GIcon/GIcon.vue'
 import GSummary from './components/GSummary/GSummary.vue'
 import GEmpty from './components/GEmpty/GEmpty.vue'
+import GTooltip from './components/GTooltip/GTooltip.vue'
 import { summaryDiff } from './components/GSummary/diff.js'
 import { fieldGroupKey, foldKey, formKey, layoutKey, messageIcon, nextFrame, ownFieldKey, revealKey, sectionKey, spaceUnit, useFormField } from './components/GForm/formContext.js'
 import { createFormEngine } from './components/GForm/formEngine.js'
@@ -55,7 +60,7 @@ import { observeParent, rowGapOf } from './components/GFormReveal/revealGap.js'
 import { firstFocusable, focusChain, land, resolveFrom, resolveTarget, usable } from './utils/landing.js'
 import GLibIcon from './components/GIcon/GLibIcon.js'
 import { ANNOUNCE, MOBILE_SPACES, POSITIONS, matchesHotkey, parseHotkey } from './components/GToast/toaster.js'
-import { placeBlock } from './utils/anchor.js'
+import { anchorGone, followFrame, placeBlock, px, setVar } from './utils/anchor.js'
 import { EDGE_ORDER, clearEdgeReserve, edgeReserve, setEdgeReserve } from './utils/edgeReserve.js'
 import { acquirePageLive, announcePage, createLiveWriter } from './utils/liveRegion.js'
 import { createLoadPhase, loadRegionKey, rememberFocus, restoreFocus } from './utils/loadPhase.js'
@@ -70,6 +75,7 @@ import { categoryOf } from './utils/categoryHash.js'
 import { otherContext } from './utils/link.js'
 import { cardGroupKey } from './utils/cardGroup.js'
 import { transitionMs } from './utils/motion.js'
+import { createHighlight, createPointer, createTypeahead, focusItem, repeatGesture, stepTo } from './utils/menuNav.js'
 import { warnMissingCategory } from './utils/categoryToken.js'
 
 // Literal de objetos sin llamadas: quien importa @grana/vue sin usar la captura lo poda entero.
@@ -86,6 +92,7 @@ export const shared = {
   'components/GSummary/GSummary.vue': { default: GSummary },
   'components/GSummary/diff.js': { summaryDiff },
   'components/GEmpty/GEmpty.vue': { default: GEmpty },
+  'components/GTooltip/GTooltip.vue': { default: GTooltip },
   'components/GForm/formContext.js': { fieldGroupKey, foldKey, formKey, layoutKey, messageIcon, nextFrame, ownFieldKey, revealKey, sectionKey, spaceUnit, useFormField },
   'components/GForm/formEngine.js': { createFormEngine },
   'components/GDialog/dialogContext.js': { dialogFoldKey },
@@ -94,7 +101,7 @@ export const shared = {
   'utils/landing.js': { firstFocusable, focusChain, land, resolveFrom, resolveTarget, usable },
   'components/GIcon/GLibIcon.js': { default: GLibIcon },
   'components/GToast/toaster.js': { ANNOUNCE, MOBILE_SPACES, POSITIONS, matchesHotkey, parseHotkey },
-  'utils/anchor.js': { placeBlock },
+  'utils/anchor.js': { anchorGone, followFrame, placeBlock, px, setVar },
   'utils/edgeReserve.js': { EDGE_ORDER, clearEdgeReserve, edgeReserve, setEdgeReserve },
   'utils/liveRegion.js': { acquirePageLive, announcePage, createLiveWriter },
   'utils/loadPhase.js': { createLoadPhase, loadRegionKey, rememberFocus, restoreFocus },
@@ -109,5 +116,6 @@ export const shared = {
   'utils/link.js': { otherContext },
   'utils/cardGroup.js': { cardGroupKey },
   'utils/motion.js': { transitionMs },
+  'utils/menuNav.js': { createHighlight, createPointer, createTypeahead, focusItem, repeatGesture, stepTo },
   'utils/categoryToken.js': { warnMissingCategory }
 }

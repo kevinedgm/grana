@@ -33,6 +33,7 @@ export const ENTRIES = [
   { name: 'load-region', src: 'src/load-region.js' },
   { name: 'card-group', src: 'src/card-group.js' },
   { name: 'page-header', src: 'src/page-header.js' },
+  { name: 'fab', src: 'src/fab.js' },
   { name: 'form-fold', src: 'src/form-fold.js' }
 ]
 

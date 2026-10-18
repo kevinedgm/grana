@@ -123,6 +123,14 @@ must_have grana.css "g-page-header__base" "$CSS_MSG"
 must_not_have grana.js "GPageHeader" "GPageHeader viajó en el paquete principal grana.js; debe vivir solo en su entrada propia page-header.js"
 must_exist "page-header.js" "No se generó la entrada propia page-header.js (revisar vite.page-header.config.js y el script build de packages/vue)"
 
+# GFab: entrada propia `@grana/vue/fab` (#656); GBtn, GTooltip, el motor de menú (menuNav, compartido con GMenu, #657) y
+# el registro de reservas de borde llegan por __shared, sin copia (uno por documento: los avisos quedan más allá del FAB)
+must_have grana.css "g-fab" "$CSS_MSG"
+must_have grana.css "g-fab__item" "$CSS_MSG"
+must_not_have grana.js "GFab" "GFab viajó en el paquete principal grana.js; debe vivir solo en su entrada propia fab.js"
+must_exist "fab.js" "No se generó la entrada propia fab.js (revisar vite.fab.config.js y el script build de packages/vue)"
+must_not_have fab.js "is-highlight-instant" "El motor de menú (utils/menuNav.js) quedó copiado en fab.js; debe llegar por __shared sin copia"
+
 echo
 if [ "$failed" -eq 0 ]; then
   echo "Compuertas: $total/$total superadas."

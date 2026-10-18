@@ -10,8 +10,8 @@
 import { reactive } from 'vue'
 
 /** Orden desde el borde: menor = más cerca. Los avisos (GToaster) no publican. GPageHeader (zócalo pegado arriba, muelle
- * abajo) va entre la voz y la isla (#631). */
-export const EDGE_ORDER = Object.freeze({ speech: 10, pageHeader: 15, status: 20 })
+ * abajo) va entre la voz y la isla (#631); el FAB contraído (GFab, `anchor="viewport"`) después de la isla (#659). */
+export const EDGE_ORDER = Object.freeze({ speech: 10, pageHeader: 15, status: 20, fab: 25 })
 
 const registries = new WeakMap() // document → Map(dueño → { edge, px, order })
 

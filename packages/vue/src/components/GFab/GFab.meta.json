@@ -1,0 +1,275 @@
+{
+  "schemaVersion": 1,
+  "name": "GFab",
+  "tag": "g-fab",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Botón flotante con acciones: un círculo con icono en un borde del visor (o de un contenedor) para crear o capturar desde cualquier sitio. Botón de menú de APG con el motor de GMenu. A · «La pila que crece» por defecto (las que caben, ≤ 5, como píldoras pegadas al botón; si sobran, la más lejana es «Más acciones (N)» y abre el resto agrupado) y C · «Acción con cola» con main (la principal a un toque, con su etiqueta, y una cola que abre un panel donde escribir filtra). Confirmación en el sitio para lo peligroso, acuse en el propio botón con el ticket de select, se aparta del foco (2.4.11), velo táctil, una activación por gesto.",
+  "contract": "design/contracts/fab.md",
+  "decisions": [
+    "#654",
+    "#655",
+    "#656",
+    "#657",
+    "#658",
+    "#659",
+    "#660",
+    "#661",
+    "#662",
+    "#663",
+    "#664",
+    "#665",
+    "#666",
+    "#668",
+    "#669",
+    "#670",
+    "#671"
+  ],
+  "prototype": "design/lab/fab/r01/",
+  "style": "packages/vue/src/components/GFab/GFab.css",
+  "entry": "@grana/vue/fab",
+  "bundle": {
+    "measured": "2026-10-18",
+    "entry": "dist/fab.js (GFab)",
+    "gzip": 10142,
+    "umdGzip": 9253,
+    "global": "GranaFab",
+    "budget": 8192,
+    "note": "gzip (zlib por defecto, como src/fab.test.js). Vue y @grana/vue externos; GBtn, GTooltip, los dos GIcon, menuNav, edgeReserve (con EDGE_ORDER.fab), topModal, liveRegion, anchor, sizeObserver, formContext, motion, match y template llegan de __shared, sin copia. El CSS va en grana.css. En el principal crecen el motor extraído (utils/menuNav.js) y EDGE_ORDER.fab."
+  },
+  "props": [
+    {
+      "name": "items",
+      "type": "Array",
+      "default": [],
+      "description": "Acciones: { id, label, icon?, description?, group?, disabled?, danger?, confirm?, confirmLabel? }. El orden del arreglo es el de frecuencia: la primera, la más cercana al FAB. Sin label o sin id no se pinta (avisos 3 y 4); un id repetido se pinta (aviso 5); más de 15 se pintan todas (aviso 14)."
+    },
+    {
+      "name": "modelValue",
+      "type": "Boolean",
+      "default": null,
+      "description": "Abierto. Con valor, controlado (emite update:modelValue y no cambia por su cuenta); sin valor, guarda su estado y emite igual. true con una sola acción, sin acciones o bajo un modal no abre (aviso 12)."
+    },
+    {
+      "name": "label",
+      "type": "String",
+      "default": null,
+      "description": "Nombre del FAB (A) o del grupo principal + cola (C). Obligatorio salvo con una sola acción (aviso 2)."
+    },
+    {
+      "name": "main",
+      "type": "String | Number",
+      "default": null,
+      "description": "id de la acción principal: activa C. Se ignora (forma A) si no es pintable, si es peligrosa o sin labels.moreShort (avisos 8, 9 y 11)."
+    },
+    {
+      "name": "appearance",
+      "type": "String",
+      "values": [
+        "auto",
+        "panel"
+      ],
+      "default": "auto",
+      "description": "auto: política de A (pila, pila con cola o panel según el sitio, con alturas medidas); panel: siempre panel. arc está reservado (B): avisa (aviso 10) y se comporta como auto. Con main no cuenta."
+    },
+    {
+      "name": "position",
+      "type": "String",
+      "values": [
+        "bottom-end",
+        "bottom-start",
+        "bottom-center",
+        "top-end",
+        "top-start",
+        "top-center"
+      ],
+      "default": "bottom-end",
+      "description": "Borde y alineación lógicos (start/end siguen a dir). Abajo la lista sube; arriba baja."
+    },
+    {
+      "name": "anchor",
+      "type": "String",
+      "values": [
+        "viewport",
+        "container"
+      ],
+      "default": "viewport",
+      "description": "viewport: fijo al visor, publica y lee reservas de borde (EDGE_ORDER.fab); container: absoluto en el antecesor posicionado, sin reservas (sin uno de la aplicación, aviso 15)."
+    },
+    {
+      "name": "offset",
+      "type": "Object",
+      "default": {},
+      "description": "{ top?, bottom? } longitudes CSS (o px en número): se suman al margen seguro de su borde (--_offset); el del lado contrario limita el alto de la lista."
+    },
+    {
+      "name": "closeOnSelect",
+      "type": "String",
+      "values": [
+        "auto",
+        "never"
+      ],
+      "default": "auto",
+      "description": "auto cierra al elegir (event.preventDefault() en select lo mantiene abierto esa vez); never no cierra."
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": {},
+      "description": "Textos, sin valores por defecto (#226): more ({count}), moreShort, cancel, findHint, matches ({count}), matchesOne, none, busy, done, failed. Los de {count} admiten una función ({ count }) => string. Los que faltan: aviso 11 y la salida de fab.md «Textos»."
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null,
+      "description": "Base de los ids (raíz, {id}-trigger, {id}-main, {id}-menu, {id}-tail, {id}-more); generado y SSR-seguro sin ella."
+    }
+  ],
+  "events": [
+    {
+      "name": "select",
+      "payload": "FabSelectEvent { id, item, event, retry, busy(text?), done(text?), failed(text?), cancel(), waitUntil(promise) }",
+      "trigger": "Se activa una acción (también la principal de C, la de single y la confirmación de una peligrosa); nunca una deshabilitada o en curso, la cola ni «Cancelar». Síncrono en el gesto; el ticket de #643 da el acuse en el FAB. event.preventDefault() mantiene la lista abierta esa vez"
+    },
+    {
+      "name": "update:modelValue",
+      "payload": "Boolean",
+      "trigger": "Se abre o cierra por una vía del usuario (con o sin v-model)"
+    },
+    {
+      "name": "open",
+      "payload": "",
+      "trigger": "La lista ya se muestra"
+    },
+    {
+      "name": "closed",
+      "payload": "",
+      "trigger": "La lista ya se ocultó"
+    }
+  ],
+  "slots": [
+    {
+      "name": "trigger-icon",
+      "purpose": "Icono del FAB contraído en A (sustituye a plus; decorativo, dentro de g-fab__glyph--rest). En C no se usa.",
+      "scope": "{ open: boolean }"
+    }
+  ],
+  "methods": [],
+  "labels": [
+    "more",
+    "moreShort",
+    "cancel",
+    "findHint",
+    "matches",
+    "matchesOne",
+    "none",
+    "busy",
+    "done",
+    "failed"
+  ],
+  "tokens": [
+    "--g-color-primary*",
+    "--g-color-surface",
+    "--g-color-surface-sunken",
+    "--g-color-border",
+    "--g-color-border-control",
+    "--g-color-text*",
+    "--g-color-danger*",
+    "--g-color-success",
+    "--g-color-on-success",
+    "--g-color-focus",
+    "--g-surface-backdrop",
+    "--g-radius-*",
+    "--g-shadow-1",
+    "--g-shadow-2",
+    "--g-shadow-3",
+    "--g-text-*",
+    "--g-space-*",
+    "--g-duration-*",
+    "--g-ease-out",
+    "--g-ease-standard"
+  ],
+  "states": [
+    "closed",
+    "opening",
+    "open",
+    "closing",
+    "single",
+    "stack",
+    "panel",
+    "main",
+    "item-disabled",
+    "item-danger",
+    "armed",
+    "find",
+    "find-empty",
+    "ack-busy",
+    "ack-done",
+    "ack-failed",
+    "tucked",
+    "scrim"
+  ],
+  "classes": {
+    "root": "g-fab [data-position data-anchor data-appearance (single|stack|panel|main) data-state data-ack] is-tucked; en línea --_reserve (px, solo viewport) y --_offset",
+    "head": "A: GBtn icon pill xl hijo directo con span.g-fab__glyph--rest/--open y span.g-fab__badge; C: div.g-fab__main-group role=group con GBtn.g-fab__main (primero) y la cola (último); single: GBtn con span.g-fab__glyph",
+    "lists": "ul.g-fab__list(--stack|--panel) role=menu popover=manual tabindex=-1 [data-state data-appearance], inerte al cerrarse; en línea --_x --_y (y --_w --_max en el panel; --_minh en el panel de la cola cuando cubre la pila; --_clip-from en C; --_active-y/-h con has-highlight e is-highlight-instant)",
+    "items": "button.g-fab__item(--danger|--more) role=menuitem [data-key data-ack aria-disabled aria-describedby] con g-fab__icon, g-fab__label, g-fab__desc (+ g-fab__sr en la pila), g-fab__reason, g-fab__mark; li de la pila con --_fx --_fy --_i",
+    "confirm": "div.g-fab__confirm role=group aria-label=pregunta con dos hijos directos: g-fab__cancel y g-fab__confirm-action (sin g-fab__item)",
+    "find": "li.g-fab__find aria-hidden (is-empty-result) con g-fab__find-query y g-fab__find-count",
+    "scrim": "div.g-fab__scrim popover=manual aria-hidden > span.g-fab__scrim-part; en línea --_hole-x/-y/-w/-h (px enteros del visor, redondeados hacia fuera, con el anillo de space × 1)"
+  },
+  "keyboard": [
+    "Intro / Espacio en el FAB o la cola: abre con el foco en la primera por frecuencia; en single y la principal de C, ejecuta",
+    "Flecha hacia la lista / la contraria en el FAB o la cola: abre en la primera / en la más lejana",
+    "↑ ↓ cíclicas, Inicio y Fin en la lista (motor de GMenu)",
+    "Letra: salta (pila, panel de A y appearance=panel); en el panel de C, filtra (Retroceso corrige)",
+    "→ (← en RTL) en la cola de A: abre su panel; ← (→ en RTL) o Esc en ese panel: vuelve a la cola",
+    "← → en el par de confirmación",
+    "Esc: deshace la confirmación → limpia lo escrito → cierra el panel de la cola → cierra y devuelve el foco; repetida se ignora",
+    "Tab / Mayús+Tab: cierra y el foco sigue su curso desde el FAB"
+  ],
+  "constants": {
+    "MAX_STACK": 5,
+    "GAP": "space × 3",
+    "PILL": "max(24px, space × 10); 44px con pointer: coarse",
+    "SEP": "space × 2",
+    "EDGE": "space × 4",
+    "PANEL_W": "space × 80",
+    "NARROW": "space × 130",
+    "PANEL_MIN": "space × 20",
+    "COVER": "space × 40",
+    "HOLE_RING": "space × 1 (pregunta 10 de coco a lima)",
+    "RECEIPT_MS": 4000,
+    "TYPE_MS": 500
+  },
+  "warnings": [
+    "1 · items no es un arreglo (no pinta nada)",
+    "2 · más de una acción y sin label",
+    "3 · elemento sin label (no se pinta)",
+    "4 · elemento sin id (no se pinta)",
+    "5 · id repetido (se pintan los dos)",
+    "6 · danger sin confirm (pregunta con su label)",
+    "7 · confirm o confirmLabel sin danger (se ignoran)",
+    "8 · main no es una acción pintable (forma A)",
+    "9 · main peligrosa (forma A)",
+    "10 · appearance=arc reservado (como auto)",
+    "11 · falta un texto de labels que hace falta (more, moreShort, cancel, findHint/matches/matchesOne/none, busy/done/failed)",
+    "12 · modelValue true sin nada que abrir",
+    "13 · método del ticket fuera de tiempo",
+    "14 · más de 15 acciones (se pintan todas)",
+    "15 · anchor=container sin antecesor posicionado (como viewport, sin reservas)"
+  ],
+  "composes": [
+    "GBtn",
+    "GTooltip",
+    "GIcon (aplicación, iconos de items)",
+    "GLibIcon (plus, x, ellipsis-vertical, loader-circle, check, circle-alert, triangle-alert)"
+  ],
+  "pending": [
+    "Auditoría de coco sobre el componente real (paso 5)",
+    "Lector de pantalla real: orden invertido de la pila, par de confirmación dentro de un menu, filtro de C",
+    "Táctil real (velo, primer toque del FAB apartado) y teclado en pantalla real",
+    "Peso de la entrada sobre el tope de 8 KiB (#656): vuelve a lima",
+    "README (mora-docs)"
+  ]
+}

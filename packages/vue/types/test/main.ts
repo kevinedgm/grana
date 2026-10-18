@@ -27,11 +27,14 @@ import type { EmptyFilter, LoadRegionLabels } from '@grana/vue/load-region'
 import CardGroup, { GCardGroup } from '@grana/vue/card-group'
 // GPageHeader (entrada propia, #633)
 import PageHeader, { GPageHeader } from '@grana/vue/page-header'
+// GFab (entrada propia, #656)
+import Fab, { GFab } from '@grana/vue/fab'
+import type { FabItem, FabSelectEvent } from '@grana/vue/fab'
 
 const toaster: Toaster = createToaster({ position: 'bottom-end', limit: 3 })
 const status = createStatus({ position: 'top-center' })
 const speech = createSpeech({ adapter: createSimulatedSpeechAdapter({ location: 'local' }) })
-createApp(App).use(Grana).use(Combobox).use(FileField).use(TimeField).use(Slider).use(Tag).use(LoadRegion).use(CardGroup).use(PageHeader).use(toaster).use(status).use(speech).use(createIcons([]))
+createApp(App).use(Grana).use(Combobox).use(FileField).use(TimeField).use(Slider).use(Tag).use(LoadRegion).use(CardGroup).use(PageHeader).use(Fab).use(toaster).use(status).use(speech).use(createIcons([]))
 
 toaster.success('Guardado', { description: 'Listo' })
 toaster.show({ title: 'Hola', type: 'info', duration: 'auto' })
@@ -206,3 +209,18 @@ h(GMenu, {
 h(GMenu, { items: [{ id: 'a', label: 'A', href: '/a', current: 'sí' }] })
 // @ts-expect-error GMenu: labels.external es texto
 h(GMenu, { labels: { external: 3 } })
+
+// ---- GFab ----
+const fabItems: FabItem[] = [
+  { id: 'sample', label: 'Nueva muestra', icon: 'flask-conical', description: 'Con código' },
+  { id: 'purge', label: 'Vaciar borradores', group: 'Mantenimiento', danger: true, confirm: '¿Vaciar?', confirmLabel: 'Vaciar' },
+  { id: 2, label: 'Preferencias', disabled: 'Solo coordinación' }
+]
+h(GFab, { items: fabItems, label: 'Crear', main: 'sample', appearance: 'panel', position: 'top-start', anchor: 'container', offset: { top: '56px', bottom: 8 }, closeOnSelect: 'never', labels: { more: ({ count }: { count: number }) => `Más (${count})`, cancel: 'Cancelar' }, modelValue: false, id: 'fab' })
+h(GFab, { items: fabItems, label: 'Crear', onSelect: (e: FabSelectEvent) => { e.waitUntil(Promise.resolve('Hecho')); if (e.retry) e.cancel(); return e.item.label }, 'onUpdate:modelValue': (v: boolean) => v })
+// @ts-expect-error GFab: position fuera de la lista
+h(GFab, { items: fabItems, position: 'left' })
+// @ts-expect-error GFab: appearance arc está reservado (no entra en el tipo)
+h(GFab, { items: fabItems, appearance: 'arc' })
+// @ts-expect-error GFab: confirm es texto o false
+h(GFab, { items: [{ id: 'x', label: 'X', danger: true, confirm: true }] })

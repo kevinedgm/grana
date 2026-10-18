@@ -139,6 +139,11 @@
     .lr-after { margin-block-start: var(--g-space-3); color: var(--g-color-text-muted); font-size: var(--g-text-body-sm-size); }
     .lr-stack { display: grid; gap: var(--g-space-3); }
     .lr-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-space-2); margin: 0 0 var(--g-space-3); }
+    /* GFab (#sec-fab): el marco es el antecesor posicionado de anchor="container" (la aplicación pone position: relative) */
+    .fab-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-space-2); margin: 0 0 var(--g-space-3); }
+    .fab-frame { position: relative; inline-size: 720px; block-size: 480px; max-inline-size: 100%; box-sizing: border-box; border: var(--g-border-width) solid var(--g-color-border-strong); border-radius: var(--g-radius-md); overflow: hidden; background: var(--g-color-bg); }
+    .fab-scroll { position: absolute; inset: 0; overflow: auto; padding: var(--g-space-4); }
+    .fab-row { display: flex; justify-content: space-between; gap: var(--g-space-3); padding: var(--g-space-3); border-block-end: var(--g-border-width) solid var(--g-color-border); color: var(--g-color-text); text-decoration: none; }
   </style>
   <!-- Categorías del tema de la aplicación (tokens.md §16.3): la salida de `grana theme` con {"categories": 8}, solo la familia
        que lee GAvatar (cat-K-soft / on-cat-K-soft). Grana no la trae por defecto: la declara la aplicación, y por eso los
@@ -359,6 +364,11 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
     </div>
 
           </div>
+        </section>
+        <section class="pg-section" id="sec-fab" data-pg-section>
+          <h2>GFab</h2>
+          <p class="pg-lead">Botón flotante para <b>crear o capturar desde cualquier sitio</b>. A · <b>«La pila que crece»</b> (por defecto): salen del botón las que caben (hasta 5), la más usada pegada a él; si sobran, la más lejana es «Más acciones (N)» y abre el resto agrupado; de 6 a 15 acciones no se mueve ninguna de las cuatro primeras. C · <b>«Acción con cola»</b> (<code>main</code>): la principal a un toque, con su nombre, y una cola cuyo panel <b>filtra al escribir</b>. Lo peligroso se confirma en la misma fila; el FAB cuenta lo que hizo (acuse con el ticket de <code>select</code>: «Exportar CSV» tarda y acaba bien; «Tomar foto» falla); se aparta del foco. Va en su propia entrada, <code>@grana/vue/fab</code> (aquí <code>dist/fab.umd.js</code>, global <code>GranaFab</code>). Lo monta su propia aplicación de Vue (<code>window.fabApp</code>; estado en <code>window.fab</code>, eventos en <code>window.fabEvents</code>). Con los parámetros <code>fab=N</code>, <code>fabmain=1</code>, <code>fabpos=…</code>, <code>fabanchor=viewport</code>, <code>fabappearance=panel</code>, <code>fabrtl=1</code> y <code>fabcoarse=1</code> la página arranca con esa configuración; en el visor (<code>fabanchor=viewport</code>) el FAB publica su reserva de borde y los avisos quedan por encima.</p>
+          <div id="fab-app"></div>
         </section>
       </div>
       <div class="pg-group" id="cat-1">
@@ -2717,6 +2727,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
   <script src="../dist/tag.umd.js"></script>
   <script src="../dist/load-region.umd.js"></script>
   <script src="../dist/form-fold.umd.js"></script>
+  <script src="../dist/fab.umd.js"></script>
   <script src="./combobox-data.js"></script>
   <script src="./accordion-data.js"></script>
   <script src="../dist/testing.umd.js"></script>
@@ -3510,7 +3521,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         }
 
         // Armazón del playground: índice, filtro, sección activa y controles globales de modo y tema (recordados en localStorage).
-        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "number", "name": "GNumberField"}, {"id": "time", "name": "GTimeField"}, {"id": "slider", "name": "GSlider"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "combobox", "name": "GCombobox"}, {"id": "combobox-multiple", "name": "GCombobox multiple"}, {"id": "file-field", "name": "GFileField"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "radio", "name": "GRadioGroup"}, {"id": "switch", "name": "GSwitch"}, {"id": "form", "name": "Formularios (GForm)"}, {"id": "adaptive", "name": "GAdaptiveLayout"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "breadcrumbs", "name": "GBreadcrumbs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "divider", "name": "GDivider"}, {"id": "summary", "name": "GSummary"}, {"id": "accordion", "name": "GAccordion"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}, {"id": "load-region", "name": "GLoadRegion y GEmpty"}, {"id": "tag", "name": "GTag y GTagGroup"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}, {"id": "tooltip", "name": "GTooltip"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}, {"id": "status", "name": "Isla de estado"}]}, {"cat": "Avatar", "items": [{"id": "gavatar", "name": "GAvatar"}, {"id": "avatar", "name": "GAvatarMotion"}]}, {"cat": "Captura de voz", "items": [{"id": "speech", "name": "Captura de voz (GSpeechHost)"}]}]
+        const pgNav = [{"cat": "Acciones", "items": [{"id": "btn", "name": "GBtn"}, {"id": "icons", "name": "Iconos (Lucide)"}, {"id": "fab", "name": "GFab"}]}, {"cat": "Formularios", "items": [{"id": "input", "name": "GInput"}, {"id": "number", "name": "GNumberField"}, {"id": "time", "name": "GTimeField"}, {"id": "slider", "name": "GSlider"}, {"id": "textarea", "name": "GTextarea"}, {"id": "select", "name": "GSelect"}, {"id": "combobox", "name": "GCombobox"}, {"id": "combobox-multiple", "name": "GCombobox multiple"}, {"id": "file-field", "name": "GFileField"}, {"id": "checkbox", "name": "GCheckbox"}, {"id": "radio", "name": "GRadioGroup"}, {"id": "switch", "name": "GSwitch"}, {"id": "form", "name": "Formularios (GForm)"}, {"id": "adaptive", "name": "GAdaptiveLayout"}]}, {"cat": "Fechas", "items": [{"id": "calendar", "name": "GCalendar"}, {"id": "datepicker", "name": "GDatePicker"}]}, {"cat": "Navegación", "items": [{"id": "sidebar", "name": "GSidebar"}, {"id": "tabs", "name": "GTabs"}, {"id": "breadcrumbs", "name": "GBreadcrumbs"}, {"id": "stepper", "name": "GStepper"}, {"id": "menu", "name": "GMenu"}]}, {"cat": "Superficies y contenido", "items": [{"id": "surface", "name": "GSurface"}, {"id": "card", "name": "GCard"}, {"id": "badge", "name": "GBadge"}, {"id": "divider", "name": "GDivider"}, {"id": "summary", "name": "GSummary"}, {"id": "accordion", "name": "GAccordion"}, {"id": "widget", "name": "GWidget (y métrica, progreso)"}]}, {"cat": "Datos", "items": [{"id": "table", "name": "GTable (y filtros, paginación)"}, {"id": "load-region", "name": "GLoadRegion y GEmpty"}, {"id": "tag", "name": "GTag y GTagGroup"}]}, {"cat": "Diálogos y ayuda", "items": [{"id": "dialog", "name": "GDialog"}, {"id": "helper", "name": "GHelper"}, {"id": "tooltip", "name": "GTooltip"}]}, {"cat": "Avisos", "items": [{"id": "toaster", "name": "GToaster"}, {"id": "status", "name": "Isla de estado"}]}, {"cat": "Avatar", "items": [{"id": "gavatar", "name": "GAvatar"}, {"id": "avatar", "name": "GAvatarMotion"}]}, {"cat": "Captura de voz", "items": [{"id": "speech", "name": "Captura de voz (GSpeechHost)"}]}]
         const pgModes = [{ value: 'auto', label: 'Automático' }, { value: 'light', label: 'Claro' }, { value: 'dark', label: 'Oscuro' }]
         const pgQuery = ref('')
         const pgNavOpen = ref(false)
@@ -4352,6 +4363,82 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
       }).use(Grana).use(GranaLoadRegion).use(appIcons)
       window.lrApp.mount('#lr-app')
       if (!Q.has('lrmanual')) loadAll()
+    })()
+  </script>
+  <script>
+    // GFab (design/contracts/fab.md): su propia aplicación de Vue montada en #fab-app (dentro de #sec-fab). Por defecto el FAB
+    // vive en un marco de 720 × 480 (anchor="container"); con ?fabanchor=viewport va fijo al visor. Parámetros: fab (1, 3, 6,
+    // 10, 15), fabmain=1 (C), fabpos, fabappearance, fabrtl=1, fabcoarse=1 (fuerza el modo táctil). Acuse simulado: csv
+    // acaba bien a los 600 ms y photo falla a los 400 ms. Cada evento queda en window.fabEvents (para las pruebas).
+    ;(function () {
+      const { createApp, reactive, computed } = Vue
+      const Q = new URLSearchParams(location.search)
+      window.fabEvents = []
+      const ALL = [
+        { id: 'sample', label: 'Nueva muestra', icon: 'pencil', description: 'Registro con código de barras' },
+        { id: 'photo', label: 'Tomar foto', icon: 'image' },
+        { id: 'note', label: 'Dictar nota', icon: 'message-circle' },
+        { id: 'upload', label: 'Subir archivo', icon: 'folder', description: 'PDF, imagen o CSV' },
+        { id: 'agenda', label: 'Programar toma', icon: 'calendar' },
+        { id: 'csv', label: 'Exportar CSV', icon: 'download', group: 'Exportar', description: 'Lo filtrado, en UTF-8' },
+        { id: 'print', label: 'Imprimir etiquetas', icon: 'inbox', group: 'Exportar' },
+        { id: 'share', label: 'Compartir lote', icon: 'share-2', group: 'Compartir', description: 'Con el equipo del laboratorio' },
+        { id: 'mail', label: 'Enviar por correo', icon: 'mail', group: 'Compartir' },
+        { id: 'tag', label: 'Etiquetar', icon: 'tag', group: 'Organizar' },
+        { id: 'move', label: 'Mover a carpeta', icon: 'folder', group: 'Organizar' },
+        { id: 'copy', label: 'Duplicar', icon: 'check', group: 'Organizar' },
+        { id: 'link', label: 'Copiar enlace', icon: 'globe', group: 'Compartir' },
+        { id: 'prefs', label: 'Preferencias', icon: 'settings', group: 'Mantenimiento', disabled: 'Solo para coordinación' },
+        { id: 'purge', label: 'Vaciar borradores', icon: 'trash', group: 'Mantenimiento', danger: true, confirm: '¿Vaciar los 12 borradores?', confirmLabel: 'Vaciar' }
+      ]
+      // Con 3, la peligrosa entra en la pila; con 6, la sexta es la peligrosa (como en el banco de coco)
+      const itemsFor = (n) => (n === 3 ? [ALL[0], ALL[1], { ...ALL[14], group: undefined }] : n === 6 ? ALL.slice(0, 5).concat(ALL[14]) : ALL.slice(0, n))
+      const LABELS = { more: 'Más acciones ({count})', moreShort: 'Más acciones', cancel: 'Cancelar', findHint: 'Escribe para buscar', matches: '{count} acciones', matchesOne: '1 acción', none: 'Ninguna acción con', busy: 'En curso…', done: 'Hecho', failed: 'No se pudo' }
+      const fab = reactive({
+        n: Number(Q.get('fab')) || 6,
+        main: Q.get('fabmain') === '1',
+        position: Q.get('fabpos') || 'bottom-end',
+        anchor: Q.get('fabanchor') === 'viewport' ? 'viewport' : 'container',
+        appearance: Q.get('fabappearance') || 'auto',
+        rtl: Q.get('fabrtl') === '1',
+        coarse: Q.get('fabcoarse') === '1',
+        open: undefined,
+        log: '—'
+      })
+      window.fab = fab
+      const wait = (ms, ok, text) => new Promise((res, rej) => setTimeout(() => (ok ? res(text) : rej({ message: text })), ms))
+      const onSelect = (e) => {
+        window.fabEvents.push({ type: 'select', id: e.id, label: e.item.label, retry: e.retry })
+        fab.log = `select ${e.id}${e.retry ? ' (reintento)' : ''}`
+        if (e.id === 'csv') e.waitUntil(wait(600, true, 'CSV exportado'))
+        if (e.id === 'photo') e.waitUntil(wait(400, false, 'Sin conexión'))
+      }
+      const ev = (type) => () => window.fabEvents.push({ type })
+      const PARA = Array.from({ length: 12 }, (_, i) => `Muestra M-${100 + i}`)
+      window.fabApp = createApp({
+        setup: () => ({ fab, PARA, LABELS, items: computed(() => itemsFor(fab.n)), onSelect, onOpen: ev('open'), onClosed: ev('closed') }),
+        template: `
+          <div class="fab-ctl" role="group" aria-label="Configuración del FAB">
+            <label>Acciones <select id="fab-n" v-model.number="fab.n"><option v-for="n in [1, 3, 6, 10, 15]" :key="n" :value="n">{{ n }}</option></select></label>
+            <label><input type="checkbox" id="fab-main" v-model="fab.main"> C · principal</label>
+            <label>Posición <select id="fab-pos" v-model="fab.position"><option v-for="p in ['bottom-end', 'bottom-start', 'bottom-center', 'top-end', 'top-start', 'top-center']" :key="p">{{ p }}</option></select></label>
+            <label>Ancla <select id="fab-anchor" v-model="fab.anchor"><option>container</option><option>viewport</option></select></label>
+            <label>Forma <select id="fab-appearance" v-model="fab.appearance"><option>auto</option><option>panel</option></select></label>
+            <span>Último evento: <b id="fab-log">{{ fab.log }}</b></span>
+          </div>
+          <div :dir="fab.rtl ? 'rtl' : undefined">
+            <div class="fab-frame" id="fab-frame">
+              <div class="fab-scroll">
+                <a v-for="p in PARA" :key="p" class="fab-row" href="#fab-followed"><span>{{ p }}</span><span>En análisis</span></a>
+                <label style="display:block;margin-block:16px">Nota <input id="fab-field" style="inline-size:100%;min-block-size:44px"></label>
+              </div>
+              <g-fab v-if="fab.anchor === 'container'" id="fab" :class="{ 'is-coarse': fab.coarse }" label="Crear y capturar" :items="items" :main="fab.main ? 'sample' : undefined" :position="fab.position" anchor="container" :appearance="fab.appearance" :labels="LABELS" v-model="fab.open" @select="onSelect" @open="onOpen" @closed="onClosed" />
+            </div>
+            <g-fab v-if="fab.anchor === 'viewport'" id="fab" :class="{ 'is-coarse': fab.coarse }" label="Crear y capturar" :items="items" :main="fab.main ? 'sample' : undefined" :position="fab.position" anchor="viewport" :appearance="fab.appearance" :labels="LABELS" v-model="fab.open" @select="onSelect" @open="onOpen" @closed="onClosed" />
+          </div>
+        `
+      }).use(Grana).use(GranaFab).use(appIcons)
+      window.fabApp.mount('#fab-app')
     })()
   </script>
 </body>

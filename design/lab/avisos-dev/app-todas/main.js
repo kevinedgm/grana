@@ -11,6 +11,7 @@ import * as loadRegion from '@grana/vue/load-region'
 import * as formFold from '@grana/vue/form-fold'
 import * as cardGroup from '@grana/vue/card-group'
 import * as pageHeader from '@grana/vue/page-header'
+import * as fab from '@grana/vue/fab'
 
-window.GranaAll = { main, speech, status, combobox, fileField, timeField, slider, tag, loadRegion, formFold, cardGroup, pageHeader }
+window.GranaAll = { main, speech, status, combobox, fileField, timeField, slider, tag, loadRegion, formFold, cardGroup, pageHeader, fab }
 document.title = 'done'
