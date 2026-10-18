@@ -1,0 +1,826 @@
+/*
+  GFab · estilo (coco)
+  Contrato: design/contracts/fab.md (DECISIONS.md #654 a #666; tokens.md §29.5, §29.6 y §47). Estructura:
+  design/lab/fab/r01/ (kiwi). Estilo, constantes, medidas y preguntas: design/lab/fab/estilo.md.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo pone components.css); sin respaldos; sin literales
+  de tema; únicas medidas literales 24px y 44px (área táctil) y el patrón de texto oculto accesible.
+  Sin --g-ease-spring ni --g-ease-bounce propios (#299, #655): el rebote al soltar el FAB es el de GBtn (#300).
+
+  Del .vue (bruno), en línea:
+    raíz       --_reserve (px, reserva leída de su borde) · --_offset (longitud: offset.top u offset.bottom del borde de
+               su `position`; pregunta para lima en estilo.md) · data-position, data-anchor, data-appearance, data-state,
+               data-ack, is-tucked, is-coarse (opcional: la consulta pointer: coarse ya lo resuelve)
+    listas     --_x, --_y (px, esquina superior izquierda en el visor) · --_w, --_max (px, panel) · --_minh (px, panel de
+               la cola de A cuando cubre la pila; pregunta para lima) · --_clip-from (panel de C) · --_active-y,
+               --_active-h, has-highlight, is-highlight-instant (panel, M1) · data-state, data-appearance
+    li (pila)  --_fx, --_fy (px, vector del centro de la fila al centro del FAB) · --_i (índice desde el FAB, tope 4)
+    velo       --_x, --_y, --_w, --_h (px, con anchor="container") · --_hole-x, --_hole-y, --_hole-w, --_hole-h (px,
+               hueco del FAB relativo al velo; pregunta para lima)
+  Las listas y el velo son popovers dentro de la raíz: heredan la zona de marca, el `dir` y los alias de la raíz.
+  `display` solo bajo :popover-open (#383): cerrados manda el display: none del agente de usuario.
+*/
+
+/* ---------- Raíz: sitio en el borde con área segura ---------- */
+.g-fab {
+  --_zero: calc(var(--g-space-1) * 0);
+  /* Margen al borde (fab.md «Posición»); el FAB es un GBtn xl: 52px con space 4 (max de 24px, como GBtn) */
+  --_m: calc(var(--g-space-1) * 4);
+  --_fab: max(24px, calc(var(--g-space-1) * 13));
+  /* Píldora de la pila (p de la política) y fila del panel (la de GMenu md); 44px con puntero grueso */
+  --_pill: max(24px, calc(var(--g-space-1) * 10));
+  --_ctl: max(24px, calc(var(--g-space-1) * 9));
+  --_gap: calc(var(--g-space-1) * 2);
+  /* Semilla: el círculo del icono de cada píldora, concéntrico con su extremo redondo y con el FAB */
+  --_seed: calc(var(--_pill) - var(--g-space-1) * 2);
+  --_mark: calc(var(--g-space-1) * 5);
+  --_glyph: calc(var(--g-text-body-size) * 1.4);
+  --_badge: calc(var(--g-space-1) * 5);
+  --_pad: calc(var(--g-space-1) * 1.5);
+  /* Datos del .vue (en línea ganan a estos valores de partida) */
+  --_reserve: var(--_zero);
+  --_offset: var(--_zero);
+  --_safe-b: var(--_zero);
+  --_safe-i: var(--_zero);
+  --_edge-b: calc(var(--_m) + var(--_safe-b) + var(--_offset) + var(--_reserve));
+  --_edge-i: calc(var(--_m) + var(--_safe-i));
+  /* Lado físico del FAB: 1 derecha, −1 izquierda, 0 centro (sigue a `dir`). Lo usan la salida desde el FAB y la semilla */
+  --_k: 0;
+  /* Esquina de origen de los paneles (la del FAB) */
+  --_ox: center;
+  --_oy: bottom;
+
+  position: fixed;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  inline-size: max-content;
+  margin: 0;
+}
+.g-fab[data-anchor="container"] { position: absolute; }
+.g-fab[data-anchor="viewport"][data-position^="bottom"] { --_safe-b: env(safe-area-inset-bottom); }
+.g-fab[data-anchor="viewport"][data-position^="top"] { --_safe-b: env(safe-area-inset-top); }
+.g-fab[data-anchor="viewport"][data-position$="-end"],
+.g-fab[data-anchor="viewport"][data-position$="-start"]:dir(rtl) { --_safe-i: env(safe-area-inset-right); }
+.g-fab[data-anchor="viewport"][data-position$="-start"],
+.g-fab[data-anchor="viewport"][data-position$="-end"]:dir(rtl) { --_safe-i: env(safe-area-inset-left); }
+
+.g-fab[data-position^="bottom"] { inset-block-end: var(--_edge-b); }
+.g-fab[data-position^="top"] { inset-block-start: var(--_edge-b); --_oy: top; }
+.g-fab[data-position$="-end"] { inset-inline-end: var(--_edge-i); --_k: 1; --_ox: right; }
+.g-fab[data-position$="-start"] { inset-inline-start: var(--_edge-i); --_k: -1; --_ox: left; }
+.g-fab[data-position$="-end"]:dir(rtl) { --_k: -1; --_ox: left; }
+.g-fab[data-position$="-start"]:dir(rtl) { --_k: 1; --_ox: right; }
+/* Centro con márgenes automáticos: `translate` queda libre para apartarse */
+.g-fab[data-position$="-center"] {
+  inset-inline: 0;
+  margin-inline: auto;
+}
+@media (pointer: coarse) {
+  .g-fab {
+    --_pill: 44px;
+    --_ctl: 44px;
+  }
+}
+.g-fab.is-coarse {
+  --_pill: 44px;
+  --_ctl: 44px;
+}
+
+/* ---------- Se aparta (2.4.11, #664): contra su borde, con 24px visibles y operables ----------
+   El desplazamiento sale del propio ancho o alto (100 %) y de lo que lo separa del borde; nada de la página se mueve */
+.g-fab.is-tucked[data-position$="-end"] { translate: calc(100% + var(--_edge-i) - 24px) 0; }
+.g-fab.is-tucked[data-position$="-start"] { translate: calc((100% + var(--_edge-i) - 24px) * -1) 0; }
+.g-fab.is-tucked[data-position$="-end"]:dir(rtl) { translate: calc((100% + var(--_edge-i) - 24px) * -1) 0; }
+.g-fab.is-tucked[data-position$="-start"]:dir(rtl) { translate: calc(100% + var(--_edge-i) - 24px) 0; }
+.g-fab.is-tucked[data-position="bottom-center"] { translate: 0 calc(100% + var(--_edge-b) - 24px); }
+.g-fab.is-tucked[data-position="top-center"] { translate: 0 calc((100% + var(--_edge-b) - 24px) * -1); }
+
+/* ---------- El FAB (GBtn icon pill xl) y C (principal + cola) ----------
+   Elevación de GFab, no de GBtn. Contorno primary-text (como lo marcado de §7.1): en el tema por defecto es el mismo
+   color que el relleno y no se ve; con una marca pálida separa el FAB de la página (≥ 3:1) */
+.g-fab > .g-btn:not([aria-disabled="true"], .is-disabled, :disabled),
+.g-fab__main-group {
+  box-shadow: 0 0 0 var(--g-border-width) var(--g-color-primary-text), var(--g-shadow-2);
+}
+.g-fab > .g-btn:is([aria-disabled="true"], .is-disabled, :disabled) { box-shadow: var(--g-shadow-1); }
+.g-fab__main-group {
+  display: inline-flex;
+  border-radius: var(--g-radius-pill);
+}
+/* La principal y la cola son una sola forma: la principal cede su final redondo y la cola su inicio */
+.g-fab__main-group > .g-btn:first-of-type:not(:last-of-type) {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+  padding-inline-end: var(--g-space-4);
+}
+.g-fab__main-group > .g-btn:last-of-type:not(:first-of-type) {
+  inline-size: max(44px, calc(var(--g-space-1) * 11));
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+  /* Costura: el propio color del icono al 35 %, sin token nuevo (decorativa: los dos botones se nombran por su icono y
+     su etiqueta) */
+  border-inline-start-color: color-mix(in srgb, currentColor 35%, transparent);
+}
+
+/* Iconos que se cruzan (plus ↔ x; ellipsis-vertical ↔ x): el + gira 45° y se convierte en la x que llega */
+.g-fab__glyph {
+  display: grid;
+  place-items: center;
+}
+.g-fab__glyph > svg {
+  inline-size: var(--_glyph);
+  block-size: var(--_glyph);
+}
+.g-fab__glyph--open {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  rotate: -45deg;
+}
+.g-fab:is([data-state="opening"], [data-state="open"]) .g-fab__glyph--rest {
+  opacity: 0;
+  rotate: 45deg;
+}
+.g-fab:is([data-state="opening"], [data-state="open"]) .g-fab__glyph--open {
+  opacity: 1;
+  rotate: 0deg;
+}
+
+/* ---------- Acuse (#663): insignia en la esquina de dentro ----------
+   Siempre en la esquina que mira al contenido (arriba con el FAB abajo; al inicio con el FAB al final): así sigue a la
+   vista cuando el FAB se aparta. Centro sobre el borde del círculo a 45° (1 − 1/√2)/2 = 0.1464 del lado */
+.g-fab__badge {
+  --_b45: calc(var(--_fab) * 0.1464 - var(--_badge) / 2 - var(--g-border-width));
+  position: absolute;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  inline-size: var(--_badge);
+  block-size: var(--_badge);
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  box-shadow: 0 0 0 calc(var(--g-border-width) * 2) var(--g-color-surface);
+  pointer-events: none;
+  opacity: 0;
+  scale: 0.5;
+}
+.g-fab[data-position^="bottom"] .g-fab__badge { inset-block-start: var(--_b45); }
+.g-fab[data-position^="top"] .g-fab__badge { inset-block-end: var(--_b45); }
+.g-fab[data-position$="-end"] .g-fab__badge { inset-inline-start: var(--_b45); }
+.g-fab:not([data-position$="-end"]) .g-fab__badge { inset-inline-end: var(--_b45); }
+.g-fab__badge > svg {
+  inline-size: calc(var(--g-space-1) * 3.5);
+  block-size: calc(var(--g-space-1) * 3.5);
+}
+.g-fab[data-ack] .g-fab__badge {
+  opacity: 1;
+  scale: 1;
+}
+.g-fab[data-ack="busy"] .g-fab__badge > svg { animation: g-fab-spin var(--g-duration-spin) linear infinite; }
+.g-fab[data-ack="done"] .g-fab__badge {
+  border-color: var(--g-color-success);
+  background: var(--g-color-success);
+  color: var(--g-color-on-success);
+}
+.g-fab[data-ack="failed"] .g-fab__badge {
+  border-color: var(--g-color-danger);
+  background: var(--g-color-danger);
+  color: var(--g-color-on-danger);
+}
+@keyframes g-fab-spin {
+  to { rotate: 1turn; }
+}
+
+/* ---------- Listas (popover manual dentro de la raíz) ---------- */
+.g-fab__list {
+  --_x: var(--_zero);
+  --_y: var(--_zero);
+  --_w: auto;
+  --_max: 100%;
+  --_minh: var(--_zero);
+  position: fixed;
+  inset: auto;
+  left: var(--_x);
+  top: var(--_y);
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  overflow: visible;
+  list-style: none;
+  color: var(--g-color-text);
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-body-weight);
+  transform-origin: var(--_ox) var(--_oy);
+}
+.g-fab__list ul,
+.g-fab__list li {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.g-fab__list li[hidden] { display: none; }
+.g-fab__list[data-state="closing"] { pointer-events: none; }
+
+/* Elemento: rejilla con icono, etiqueta, descripción y motivo (segundas líneas) y la marca de peligro. Las filas 1fr de
+   arriba y abajo centran el bloque de texto (una, dos o tres líneas) frente al icono sin que este reparta su alto entre
+   las líneas */
+.g-fab__item {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-rows: 1fr auto auto auto 1fr;
+  grid-template-areas:
+    ". . ."
+    "icon label mark"
+    ". desc ."
+    ". reason ."
+    ". . .";
+  align-items: center;
+  align-content: center;
+  /* Sin column-gap: una pista vacía (sin icono o sin marca) no debe dejar hueco; la separación la ponen los márgenes */
+  --_icon-gap: var(--g-space-3);
+  box-sizing: border-box;
+  margin: 0;
+  border: var(--g-border-width) solid transparent;
+  background: transparent;
+  color: var(--g-color-text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.g-fab__item:focus { outline: 0; }
+.g-fab__icon {
+  grid-area: icon;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  margin-inline-end: var(--_icon-gap);
+}
+.g-fab__icon > svg {
+  inline-size: var(--_mark);
+  block-size: var(--_mark);
+}
+.g-fab__label {
+  grid-area: label;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+  font-weight: var(--g-text-action-weight);
+}
+.g-fab__desc,
+.g-fab__reason {
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-body-weight);
+  color: var(--g-color-text-muted);
+  overflow-wrap: anywhere;
+}
+.g-fab__desc { grid-area: desc; }
+.g-fab__reason { grid-area: reason; }
+.g-fab__mark {
+  grid-area: mark;
+  display: grid;
+  place-items: center;
+  margin-inline-start: var(--g-space-2);
+  color: var(--g-color-danger-text);
+}
+.g-fab__mark > svg {
+  inline-size: calc(var(--g-space-1) * 3.5);
+  block-size: calc(var(--g-space-1) * 3.5);
+}
+/* Peligrosa: color, peso y triangle-alert (nunca solo color) */
+.g-fab__item--danger { color: var(--g-color-danger-text); }
+.g-fab__item--danger .g-fab__label { font-weight: var(--g-text-title-sm-weight); }
+/* Deshabilitada (enfocable): atenuada y tachada; el motivo se lee entero (≥ 4,5:1) */
+.g-fab__item[aria-disabled="true"] {
+  color: var(--g-color-text-subtle);
+  cursor: not-allowed;
+}
+.g-fab__item[aria-disabled="true"] .g-fab__label { text-decoration: line-through; }
+.g-fab__sr {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- A · la pila: una columna de semillas sobre el FAB ----------
+   Cada píldora tiene el icono en una semilla redonda, en el extremo del lado del FAB y concéntrica con él: la pila se lee
+   como brotes del botón. La lista se aparta (fab − píldora)/2 del borde del FAB para que extremo, semilla y FAB compartan
+   eje. Cada píldora es su propia superficie y pinta su estado activo: la semilla se invierte */
+.g-fab__list--stack:popover-open {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--_gap);
+}
+.g-fab__list--stack {
+  /* 100 % es el visor (posición fija): reflujo a 320px sin desplazamiento horizontal */
+  max-inline-size: calc(100% - var(--_m) * 2);
+}
+.g-fab[data-position$="-end"] .g-fab__list--stack {
+  align-items: flex-end;
+  padding-inline-end: calc((var(--_fab) - var(--_pill)) / 2);
+}
+.g-fab[data-position$="-start"] .g-fab__list--stack {
+  align-items: flex-start;
+  padding-inline-start: calc((var(--_fab) - var(--_pill)) / 2);
+}
+.g-fab__list--stack > li {
+  display: flex;
+  max-inline-size: 100%;
+  border-radius: var(--g-radius-pill);
+}
+.g-fab__list--stack .g-fab__item {
+  --_inset: calc((var(--_pill) - var(--_seed)) / 2 - var(--g-border-width));
+  --_icon-gap: var(--g-space-2);
+  grid-template-columns: auto minmax(0, auto) auto;
+  grid-template-rows: 1fr auto auto 1fr;
+  grid-template-areas:
+    "icon . mark"
+    "icon label mark"
+    "icon reason mark"
+    "icon . mark";
+  max-inline-size: 100%;
+  min-block-size: var(--_pill);
+  padding-block: var(--_inset);
+  padding-inline: var(--_inset) var(--g-space-4);
+  border-color: var(--g-color-border);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-surface);
+  box-shadow: var(--g-shadow-2);
+}
+.g-fab[data-position$="-end"] .g-fab__list--stack .g-fab__item {
+  grid-template-areas:
+    "mark . icon"
+    "mark label icon"
+    "mark reason icon"
+    "mark . icon";
+  padding-inline: var(--g-space-4) var(--_inset);
+}
+.g-fab[data-position$="-end"] .g-fab__list--stack .g-fab__icon {
+  margin-inline: var(--_icon-gap) 0;
+}
+.g-fab[data-position$="-end"] .g-fab__list--stack .g-fab__mark {
+  margin-inline: 0 var(--g-space-2);
+}
+/* Sin icono, la píldora es simétrica */
+.g-fab__list--stack .g-fab__item:not(:has(> .g-fab__icon:not(:empty))) { padding-inline: var(--g-space-4); }
+/* La descripción no se pinta en la pila (la píldora es una línea) pero sigue siendo la descripción accesible */
+.g-fab__list--stack .g-fab__desc {
+  grid-area: auto;
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+.g-fab__list--stack .g-fab__icon {
+  inline-size: var(--_seed);
+  block-size: var(--_seed);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-surface-sunken);
+  color: var(--g-color-text);
+}
+.g-fab__list--stack .g-fab__icon:empty { display: none; }
+.g-fab__list--stack .g-fab__label { white-space: normal; }
+/* Activa (foco, también el que pone el puntero, M1): la píldora se hunde y su semilla se enciende (par inverso, #325) */
+.g-fab__list--stack .g-fab__item:focus { background: var(--g-color-surface-sunken); }
+.g-fab__list--stack .g-fab__item:focus:not([aria-disabled="true"]) .g-fab__icon {
+  background: var(--g-color-text);
+  color: var(--g-color-surface);
+}
+.g-fab__list--stack .g-fab__item--danger:focus:not([aria-disabled="true"]) .g-fab__icon {
+  background: var(--g-color-danger);
+  color: var(--g-color-on-danger);
+}
+.g-fab__list--stack .g-fab__item--danger .g-fab__icon { color: var(--g-color-danger-text); }
+.g-fab__list--stack .g-fab__item[aria-disabled="true"] .g-fab__icon { color: var(--g-color-text-subtle); }
+.g-fab__list--stack .g-fab__item:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+/* La cola «Más acciones (N)»: contorno discontinuo (forma, no solo color); con su panel abierto, contorno pleno */
+.g-fab__list--stack .g-fab__item--more {
+  border-style: dashed;
+  border-color: var(--g-color-border-control);
+}
+.g-fab__list--stack .g-fab__item--more:is(.is-expanded, [aria-expanded="true"]) {
+  border-style: solid;
+  border-color: var(--g-color-text);
+  background: var(--g-color-surface-sunken);
+}
+
+/* ---------- Panel (cola de A, appearance="panel" y C) ---------- */
+.g-fab__list--panel:popover-open { display: block; }
+.g-fab__list--panel {
+  inline-size: var(--_w);
+  max-block-size: var(--_max);
+  min-block-size: min(var(--_minh), var(--_max));
+  padding: var(--_pad);
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-lg);
+  background: var(--g-color-surface);
+  box-shadow: var(--g-shadow-3);
+}
+.g-fab__list--panel .g-fab__item {
+  inline-size: 100%;
+  min-block-size: var(--_ctl);
+  padding-block: var(--g-space-2);
+  padding-inline: var(--g-space-3);
+  border-width: 0;
+  border-radius: var(--g-radius-md);
+}
+/* En el panel, icono y marca van en la línea de la etiqueta (con descripción, la fila tiene dos o tres) */
+.g-fab__list--panel .g-fab__icon {
+  inline-size: var(--_mark);
+  color: var(--g-color-text-muted);
+}
+.g-fab__list--panel .g-fab__icon:empty { display: none; }
+.g-fab__list--panel .g-fab__item--danger .g-fab__icon { color: inherit; }
+.g-fab__list--panel .g-fab__item:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: calc(var(--g-focus-width) * -1);
+}
+/* Resaltado único que viaja (M1, motor compartido con GMenu): una capa por panel, bajo los elementos, que se desplaza
+   con el contenido */
+.g-fab__list--panel {
+  --_active-y: var(--_zero);
+  --_active-h: var(--_zero);
+}
+.g-fab__list--panel::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: var(--_pad);
+  block-size: var(--_active-h);
+  translate: 0 var(--_active-y);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface-sunken);
+  opacity: 0;
+  pointer-events: none;
+}
+.g-fab__list--panel.has-highlight::before { opacity: 1; }
+/* Grupos */
+.g-fab__group-title {
+  display: block;
+  padding: var(--g-space-3) var(--g-space-3) var(--g-space-1);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-text-subtle);
+}
+.g-fab__list--panel > li:first-child > .g-fab__group-title,
+.g-fab__list--panel > .g-fab__find + li > .g-fab__group-title { padding-block-start: var(--g-space-1); }
+
+/* Cabecera de búsqueda (#658): primera fila, pegada arriba mientras el panel desplaza, de alto constante. Nada en ella es
+   propio de C: vale para cualquier panel que filtre (pregunta abierta al usuario). Lo escrito, como ficha */
+.g-fab__list--panel > .g-fab__find {
+  position: sticky;
+  inset-block-start: calc(var(--_pad) * -1);
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-1) var(--g-space-2);
+  box-sizing: border-box;
+  min-block-size: max(24px, calc(var(--g-space-1) * 9));
+  margin: calc(var(--_pad) * -1) calc(var(--_pad) * -1) var(--_pad);
+  padding-block: var(--g-space-1);
+  padding-inline: calc(var(--_pad) + var(--g-space-3));
+  border-block-end: var(--g-border-width) solid var(--g-color-border);
+  background: var(--g-color-surface);
+  color: var(--g-color-text-subtle);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+}
+.g-fab__find.is-empty-result {
+  color: var(--g-color-text);
+  font-weight: var(--g-text-action-weight);
+}
+.g-fab__find-query {
+  padding-inline: calc(var(--g-space-1) * 1.5);
+  border-radius: var(--g-radius-sm);
+  background: var(--g-color-surface-sunken);
+  color: var(--g-color-text);
+  font-weight: var(--g-text-action-weight);
+}
+.g-fab__find-count { color: var(--g-color-text-muted); }
+
+/* ---------- Peligrosas: la fila se parte en dos sin mover nada (#662) ---------- */
+.g-fab__confirm {
+  display: flex;
+  gap: var(--g-border-width);
+  inline-size: 100%;
+  opacity: 1;
+}
+@starting-style {
+  .g-fab__confirm { opacity: 0; }
+}
+.g-fab__list .g-fab__confirm :is(.g-fab__cancel, .g-fab__confirm-action) {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-inline-size: 0;
+  min-block-size: var(--_ctl);
+  margin: 0;
+  padding-block: var(--g-space-1);
+  padding-inline: var(--g-space-3);
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  font: inherit;
+  font-weight: var(--g-text-action-weight);
+  text-align: center;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.g-fab__list .g-fab__confirm .g-fab__confirm-action {
+  border-color: var(--g-color-danger);
+  background: var(--g-color-danger);
+  color: var(--g-color-on-danger);
+}
+.g-fab__list .g-fab__confirm .g-fab__cancel:focus { background: var(--g-color-surface-sunken); }
+.g-fab__list .g-fab__confirm :is(.g-fab__cancel, .g-fab__confirm-action):focus { outline: 0; }
+.g-fab__list .g-fab__confirm :is(.g-fab__cancel, .g-fab__confirm-action):focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: calc(var(--g-focus-width) * -1);
+}
+/* En la pila, la píldora se parte por una costura: los dos medios conservan los extremos redondos de fuera */
+.g-fab__list--stack .g-fab__confirm {
+  border-radius: var(--g-radius-pill);
+  box-shadow: var(--g-shadow-2);
+}
+.g-fab__list--stack .g-fab__confirm :is(.g-fab__cancel, .g-fab__confirm-action) {
+  flex: 1 0 auto;
+  min-block-size: var(--_pill);
+  padding-inline: var(--g-space-4);
+  border-radius: var(--g-radius-pill);
+  overflow-wrap: normal;
+}
+.g-fab__list--stack .g-fab__confirm > :first-child {
+  border-start-end-radius: var(--g-radius-sm);
+  border-end-end-radius: var(--g-radius-sm);
+}
+.g-fab__list--stack .g-fab__confirm > :last-child {
+  border-start-start-radius: var(--g-radius-sm);
+  border-end-start-radius: var(--g-radius-sm);
+}
+.g-fab__list--stack .g-fab__confirm :is(.g-fab__cancel, .g-fab__confirm-action):focus-visible {
+  outline-offset: var(--g-focus-offset);
+}
+
+/* ---------- Velo táctil (solo pointer: coarse; #664) ----------
+   Cubre el visor (o el contenedor) salvo el FAB. El hueco tiene la forma del FAB (estadio: círculo en A, píldora en C)
+   con un anillo de space × 1 de página sin velar alrededor: el FAB queda iluminado. Es un polígono evenodd (el recorte
+   también decide dónde cae el toque, cosa que una máscara no hace) con un puente de ancho cero desde la esquina; los
+   extremos redondos son polígonos de 16 lados (cos y sen de 22,5° × k): a 30px de radio se apartan 0,6px de un círculo */
+.g-fab__scrim {
+  --_x: var(--_zero);
+  --_y: var(--_zero);
+  --_w: 100%;
+  --_h: 100%;
+  --_hole-x: var(--_zero);
+  --_hole-y: var(--_zero);
+  --_hole-w: var(--_zero);
+  --_hole-h: var(--_zero);
+  --_h-r: calc(var(--_hole-h) / 2);
+  --_hc: calc(var(--_hole-y) + var(--_h-r));
+  --_hl: calc(var(--_hole-x) + var(--_h-r));
+  --_hr: calc(var(--_hole-x) + var(--_hole-w) - var(--_h-r));
+  position: fixed;
+  inset: auto;
+  left: var(--_x);
+  top: var(--_y);
+  inline-size: var(--_w);
+  block-size: var(--_h);
+  max-inline-size: none;
+  max-block-size: none;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--g-surface-backdrop);
+  opacity: 0.5;
+  clip-path: polygon(evenodd,
+    0 0, 100% 0, 100% 100%, 0 100%, 0 0,
+    var(--_hr) calc(var(--_hc) - var(--_h-r)),
+    calc(var(--_hr) + var(--_h-r) * .3827) calc(var(--_hc) - var(--_h-r) * .9239),
+    calc(var(--_hr) + var(--_h-r) * .7071) calc(var(--_hc) - var(--_h-r) * .7071),
+    calc(var(--_hr) + var(--_h-r) * .9239) calc(var(--_hc) - var(--_h-r) * .3827),
+    calc(var(--_hr) + var(--_h-r)) var(--_hc),
+    calc(var(--_hr) + var(--_h-r) * .9239) calc(var(--_hc) + var(--_h-r) * .3827),
+    calc(var(--_hr) + var(--_h-r) * .7071) calc(var(--_hc) + var(--_h-r) * .7071),
+    calc(var(--_hr) + var(--_h-r) * .3827) calc(var(--_hc) + var(--_h-r) * .9239),
+    var(--_hr) calc(var(--_hc) + var(--_h-r)),
+    var(--_hl) calc(var(--_hc) + var(--_h-r)),
+    calc(var(--_hl) - var(--_h-r) * .3827) calc(var(--_hc) + var(--_h-r) * .9239),
+    calc(var(--_hl) - var(--_h-r) * .7071) calc(var(--_hc) + var(--_h-r) * .7071),
+    calc(var(--_hl) - var(--_h-r) * .9239) calc(var(--_hc) + var(--_h-r) * .3827),
+    calc(var(--_hl) - var(--_h-r)) var(--_hc),
+    calc(var(--_hl) - var(--_h-r) * .9239) calc(var(--_hc) - var(--_h-r) * .3827),
+    calc(var(--_hl) - var(--_h-r) * .7071) calc(var(--_hc) - var(--_h-r) * .7071),
+    calc(var(--_hl) - var(--_h-r) * .3827) calc(var(--_hc) - var(--_h-r) * .9239),
+    var(--_hl) calc(var(--_hc) - var(--_h-r)),
+    var(--_hr) calc(var(--_hc) - var(--_h-r)),
+    0 0);
+  -webkit-tap-highlight-color: transparent;
+}
+.g-fab__scrim:popover-open { display: block; }
+.g-fab:not([data-state="open"]) .g-fab__scrim { opacity: 0; }
+
+/* ---------- Movimiento (#655; tokens.md §29) ---------- */
+/* Pila: cada píldora sale del centro del FAB como una semilla (el círculo de su extremo) y se despliega mientras viaja a su
+   sitio; la más cercana primero. Vuelve, sin escalonado y más corta. El vector de la semilla es el de la fila (--_fx)
+   corregido por su lado: la semilla está a (ancho − píldora)/2 del centro de la fila */
+.g-fab__list--stack > li {
+  --_fx: var(--_zero);
+  --_fy: var(--_zero);
+  --_i: 0;
+  --_half: calc(50% - var(--_pill) / 2);
+  clip-path: inset(calc(var(--g-space-1) * -6) round var(--g-radius-pill));
+}
+.g-fab__list--stack:is([data-state="opening"], [data-state="closing"]) > li {
+  translate: calc(var(--_fx) - var(--_k) * var(--_half)) var(--_fy);
+  clip-path: inset(0 calc(var(--_half) * (1 - var(--_k))) 0 calc(var(--_half) * (1 + var(--_k))) round var(--g-radius-pill));
+  opacity: 0;
+}
+/* Paneles de la cola de A y appearance="panel": entrada de popover desde la esquina del FAB (la de GMenu) */
+.g-fab__list--panel:is([data-state="opening"], [data-state="closing"]) {
+  opacity: 0;
+  scale: 0.96;
+}
+/* C · el panel nace de la cola (transformación de contenedor): el recorte parte de la cola y crece hasta su caja, y el
+   relleno pasa del color de la cola al de la superficie; el contenido entra cuando la caja ya casi está */
+.g-fab[data-appearance="main"] .g-fab__list--panel {
+  --_clip-from: inset(0 round var(--g-radius-lg));
+  clip-path: inset(calc(var(--g-space-1) * -12) round var(--g-radius-lg));
+}
+.g-fab[data-appearance="main"] .g-fab__list--panel:is([data-state="opening"], [data-state="closing"]) {
+  clip-path: var(--_clip-from);
+  border-color: var(--g-color-primary);
+  background: var(--g-color-primary);
+  opacity: 1;
+  scale: none;
+}
+.g-fab[data-appearance="main"] .g-fab__list--panel:is([data-state="opening"], [data-state="closing"]) > li { opacity: 0; }
+.g-fab[data-appearance="main"] .g-fab__list--panel:is([data-state="opening"], [data-state="closing"])::before { opacity: 0; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .g-fab { transition: translate var(--g-duration-press) var(--g-ease-out); }
+  .g-fab__glyph {
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-out),
+      rotate var(--g-duration-press) var(--g-ease-out);
+  }
+  .g-fab__badge {
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-out),
+      scale var(--g-duration-press) var(--g-ease-out);
+  }
+  .g-fab__list--stack > li {
+    transition:
+      translate var(--g-duration-press) var(--g-ease-out),
+      clip-path var(--g-duration-press) var(--g-ease-out),
+      opacity var(--g-duration-fast) var(--g-ease-out);
+    transition-delay: calc(var(--g-duration-fast) * var(--_i) / 8);
+  }
+  .g-fab__list--stack[data-state="closing"] > li {
+    transition-duration: var(--g-duration-fast);
+    transition-delay: calc(var(--g-duration-fast) * 0);
+  }
+  .g-fab__list--panel {
+    transition:
+      opacity var(--g-duration-press) var(--g-ease-out),
+      scale var(--g-duration-press) var(--g-ease-out);
+  }
+  .g-fab__list--panel[data-state="closing"] { transition-duration: var(--g-duration-fast); }
+  .g-fab[data-appearance="main"] .g-fab__list--panel {
+    transition:
+      clip-path var(--g-duration-slow) var(--g-ease-out),
+      background-color var(--g-duration-slow) var(--g-ease-out),
+      border-color var(--g-duration-slow) var(--g-ease-out);
+  }
+  .g-fab[data-appearance="main"] .g-fab__list--panel[data-state="closing"] { transition-duration: var(--g-duration-press); }
+  .g-fab[data-appearance="main"] .g-fab__list--panel > li {
+    transition: opacity var(--g-duration-fast) var(--g-ease-out) var(--g-duration-fast);
+  }
+  .g-fab[data-appearance="main"] .g-fab__list--panel[data-state="closing"] > li {
+    transition: opacity var(--g-duration-fast) var(--g-ease-out);
+  }
+  .g-fab__list--panel::before {
+    transition:
+      translate var(--g-duration-press) var(--g-ease-out),
+      block-size var(--g-duration-press) var(--g-ease-out),
+      opacity var(--g-duration-fast) var(--g-ease-standard);
+  }
+  .g-fab__list--panel.is-highlight-instant::before { transition: opacity var(--g-duration-fast) var(--g-ease-standard); }
+  .g-fab__item,
+  .g-fab__icon {
+    transition:
+      background-color var(--g-duration-fast) var(--g-ease-standard),
+      color var(--g-duration-fast) var(--g-ease-standard);
+  }
+  .g-fab__confirm,
+  .g-fab__scrim { transition: opacity var(--g-duration-fast) var(--g-ease-out); }
+}
+/* Movimiento reducido, patrón único (#299 (3)): se quedan colores y opacidad (fundido fast); se van desplazamiento, giro,
+   escala, recorte y escalonado: todo aparece en su sitio. La insignia en curso se queda quieta */
+@media (prefers-reduced-motion: reduce) {
+  .g-fab__glyph {
+    rotate: none;
+    transition: opacity var(--g-duration-fast) linear;
+  }
+  .g-fab:is([data-state="opening"], [data-state="open"]) :is(.g-fab__glyph--rest, .g-fab__glyph--open) { rotate: none; }
+  .g-fab__badge,
+  .g-fab[data-ack] .g-fab__badge {
+    scale: none;
+    transition: opacity var(--g-duration-fast) linear;
+  }
+  .g-fab[data-ack="busy"] .g-fab__badge > svg { animation: none; }
+  .g-fab__list--stack > li,
+  .g-fab__list--stack:is([data-state="opening"], [data-state="closing"]) > li {
+    translate: none;
+    clip-path: none;
+    transition: opacity var(--g-duration-fast) linear;
+  }
+  .g-fab__list--panel,
+  .g-fab__list--panel:is([data-state="opening"], [data-state="closing"]) {
+    scale: none;
+    transition: opacity var(--g-duration-fast) linear;
+  }
+  .g-fab[data-appearance="main"] .g-fab__list--panel,
+  .g-fab[data-appearance="main"] .g-fab__list--panel:is([data-state="opening"], [data-state="closing"]) {
+    clip-path: none;
+    border-color: var(--g-color-border-control);
+    background: var(--g-color-surface);
+    transition: opacity var(--g-duration-fast) linear;
+  }
+  .g-fab[data-appearance="main"] .g-fab__list--panel:is([data-state="opening"], [data-state="closing"]) { opacity: 0; }
+  .g-fab[data-appearance="main"] .g-fab__list--panel:is([data-state="opening"], [data-state="closing"]) > li { opacity: 1; }
+  .g-fab__list--panel::before { transition: opacity var(--g-duration-fast) linear; }
+  .g-fab__item,
+  .g-fab__icon { transition: background-color var(--g-duration-fast) linear, color var(--g-duration-fast) linear; }
+  .g-fab__confirm,
+  .g-fab__scrim { transition: opacity var(--g-duration-fast) linear; }
+}
+
+/* El estado de partida no se anima (los dos cuadros de `opening`, fab.md «Estados»): el .vue mide y escribe --_x, --_y,
+   --_fx, --_fy y --_clip-from con la lista ya mostrada, y cada lectura de la caja fija el estilo; si `opening` tuviera
+   transición, el navegador empezaría a ir hacia la semilla desde donde estaba y la entrada se perdería (medido en el banco).
+   Así, sea cual sea el orden de escrituras, la entrada sale de la semilla cuando la lista pasa a `open`. Volver a abrir
+   durante la salida va de `closing` a `open` directamente (desde donde esté) */
+.g-fab .g-fab__list[data-state="opening"],
+.g-fab .g-fab__list[data-state="opening"] > li { transition: none; }
+
+/* ---------- Colores forzados ---------- */
+@media (forced-colors: active) {
+  .g-fab > .g-btn,
+  .g-fab__main-group { box-shadow: none; }
+  .g-fab__list--stack .g-fab__item,
+  .g-fab__list--panel,
+  .g-fab__badge,
+  .g-fab__list .g-fab__confirm :is(.g-fab__cancel, .g-fab__confirm-action) { border-color: CanvasText; }
+  .g-fab__list--stack .g-fab__item--more { border-color: CanvasText; }
+  .g-fab__list--stack .g-fab__icon { border: var(--g-border-width) solid CanvasText; }
+  /* Sin capa de resaltado ni semilla encendida: manda el contorno del sistema (foco, también el del puntero) */
+  .g-fab__list--panel::before { display: none; }
+  .g-fab__list .g-fab__item:focus,
+  .g-fab__list .g-fab__confirm :is(.g-fab__cancel, .g-fab__confirm-action):focus {
+    outline: var(--g-focus-width) solid Highlight;
+    outline-offset: calc(var(--g-focus-width) * -1);
+  }
+  .g-fab__item[aria-disabled="true"] { color: GrayText; }
+  .g-fab__item--danger,
+  .g-fab__mark { color: LinkText; }
+  .g-fab__list > .g-fab__find { border-block-end-color: CanvasText; }
+  .g-fab__scrim { opacity: 0; }
+}
+
+/* ---------- Impresión ---------- */
+@media print {
+  .g-fab { display: none; }
+}

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GFab · banco de estilo (coco)</title>
+<!-- Banco de coco: marcado de design/contracts/fab.md («Anatomía» y «Clases y datos») con el CSS real de GFab.css (cargado
+     DENTRO de la capa grana.components, como lo registrará bruno) y GBtn y GTooltip reales de dist/ como FAB, principal y
+     cola. XFab (estilo-banco.js) hace lo que hará GFab.vue y SOLO lo que el estilo necesita: estados (opening dos cuadros,
+     closing), política `auto` de A, colocación de pila y paneles (--_x/--_y/--_w/--_max/--_minh), vector y orden de cada
+     píldora (--_fx/--_fy/--_i), recorte de C (--_clip-from), velo con hueco (--_hole-*), resaltado M1, cabecera de C,
+     confirmación armada, acuse (data-ack) y se aparta (is-tucked). No es la implementación de bruno.
+     Requiere dist/. Desde la raíz del repo:  python3 -m http.server 4244  →  /design/lab/fab/estilo-banco.html
+     Parámetros: ?scene=a3|a6|a15|panel|c|single|main1 (por defecto a6)  ?pos=bottom-end|bottom-start|bottom-center|top-end|
+       top-start|top-center  ?anchor=container  ?dark=1  ?theme=nsa|<generado>  ?zone=1  ?rtl=1  ?coarse=1  ?slow=1 (×5)
+       ?open=1  ?more=1  ?arm=purge  ?ack=busy|done|failed  ?tuck=1  ?find=exp  ?find=zzz
+     Verificación: GRANA_PW_PORT=4244 node design/lab/fab/estilo-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<style>@import url("../../../packages/vue/src/components/GFab/GFab.css") layer(grana.components);</style>
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style id="slow-css"></style>
+<style>
+  /* Andamio del banco (la «aplicación», no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  .zone-wrap{min-block-size:100vh}
+  .bar{position:sticky;top:0;z-index:1;display:flex;gap:6px 14px;flex-wrap:wrap;align-items:center;padding:8px 16px;background:var(--g-color-surface);border-block-end:1px solid var(--g-color-border-strong);font-size:13px}
+  main{max-inline-size:880px;margin:0 auto;padding:16px}
+  main p{max-inline-size:65ch;color:var(--g-color-text-muted)}
+  .row{display:flex;justify-content:space-between;gap:12px;padding:12px;border-block-end:1px solid var(--g-color-border);color:var(--g-color-text);text-decoration:none}
+  .row:focus-visible{outline:2px solid var(--g-color-focus);outline-offset:-2px}
+  .frame{position:relative;inline-size:720px;block-size:480px;max-inline-size:100%;border:1px solid var(--g-color-border-strong);border-radius:8px;overflow:hidden;background:var(--g-color-bg)}
+  .frame__scroll{position:absolute;inset:0;overflow:auto;padding:16px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../lucide-icons.js"></script>
+<script src="./estilo-banco.js"></script>
+</body>
+</html>
