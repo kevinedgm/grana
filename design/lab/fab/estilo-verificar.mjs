@@ -90,6 +90,7 @@ const track = (k, v) => { if (!(k in mins) || v < mins[k].v) mins[k] = { v } }
   const structural = [...css.replace(/\{[^}]*\}/g, '{}').matchAll(/([^{}]*):(first-child|last-child|nth-child|nth-last-child|first-of-type|last-of-type)/g)].map((m) => m[1].trim().split(',').pop().trim() + ':' + m[2])
   ok(structural.every((s) => /g-fab__confirm >$|g-fab__main-group > \.g-btn$|g-fab__list--panel > li$/.test(s.replace(/:(first|last)-(child|of-type).*$/, '').replace(/:not\(.*$/, '').trim())), 'CSS: selector estructural fuera de las piezas propias: ' + structural)
   ok(!/\.g-fab__(trigger|tail)\b/.test(css), 'CSS: clases que el contrato no fija para el disparador')
+  ok(!/clip-path\s*:\s*polygon|\bpath\(|\bshape\(/.test(raw), 'CSS: clip-path con polígono, path() o shape() (docs/contract/icons.md, check-icons.mjs)')
 }
 
 /* ---------- Utilidades del navegador ---------- */
@@ -207,13 +208,35 @@ for (const engine of ENGINES) {
     const g = await fabGeom(page)
     ok(g.lis.every((p) => p.h >= 44 - 0.01), `${E}[táctil] píldoras ≥ 44px: ${g.lis.map((p) => p.h)}`)
     ok(g.lis.every((p) => Math.abs(p.icx - g.fab.cx) < 0.75), `${E}[táctil] semillas en el eje del FAB`)
-    const s = await page.evaluate(() => { const sc = document.querySelector('.g-fab__scrim'); const f = document.querySelector('.g-fab > button').getBoundingClientRect(); const cs = getComputedStyle(sc); const at = (x, y) => document.elementFromPoint(x, y); return { open: sc.matches(':popover-open'), op: parseFloat(cs.opacity), fabHit: at(f.left + f.width / 2, f.top + f.height / 2)?.closest('.g-fab > button') !== null && at(f.left + f.width / 2, f.top + f.height / 2)?.closest('.g-fab__scrim') === null, edgeHit: at(f.left + 2, f.top + 2)?.closest('.g-fab__scrim') === null, pageHit: at(20, 200) === sc, cornerHole: at(f.left - 3, f.top - 3) === sc } })
+    const s = await page.evaluate(() => {
+      const sc = document.querySelector('.g-fab__scrim'); const f = document.querySelector('.g-fab > button').getBoundingClientRect(); const cs = getComputedStyle(sc)
+      const at = (x, y) => document.elementFromPoint(x, y)
+      const hx = parseFloat(sc.style.getPropertyValue('--_hole-x')), hy = parseFloat(sc.style.getPropertyValue('--_hole-y')), hw = parseFloat(sc.style.getPropertyValue('--_hole-w')), hh = parseFloat(sc.style.getPropertyValue('--_hole-h'))
+      const cx = f.left + f.width / 2, cy = f.top + f.height / 2
+      return {
+        open: sc.matches(':popover-open'), op: parseFloat(cs.opacity),
+        fabHit: !!at(cx, cy)?.closest('.g-fab > button'), fabEdgeHit: !!at(f.left + f.width / 2, f.top + 1)?.closest('.g-fab > button'),
+        pageHit: at(20, 200) === sc, above: at(cx, hy - 1) === sc, left: at(hx - 1, cy) === sc, right: at(hx + hw + 1, cy) === sc || hx + hw + 1 >= innerWidth,
+        topLeft: at(hx - 1, hy - 1) === sc, belowStrip: at(cx, Math.min(innerHeight - 1, hy + hh + 2)) !== sc,
+        bands: [cs, getComputedStyle(sc, '::before'), getComputedStyle(sc, '::after')].map((c) => c.backgroundColor)
+      }
+    })
     ok(s.open && Math.abs(s.op - 0.5) < 0.01, `${E}[táctil] velo abierto con opacidad 0,5: ${s.op}`)
-    ok(s.fabHit, `${E}[táctil] el toque en el FAB llega al FAB (hueco en el velo)`)
-    ok(s.pageHit, `${E}[táctil] el toque fuera cae en el velo`)
-    ok(s.cornerHole, `${E}[táctil] el hueco tiene la forma del FAB (la esquina de su caja ampliada es velo)`)
-    ok(!errs.length, `${E}[táctil] consola limpia: ${errs}`)
+    ok(s.fabHit && s.fabEdgeHit, `${E}[táctil] el toque en el FAB (centro y borde) llega al FAB: ${s.fabHit} ${s.fabEdgeHit}`)
+    ok(s.pageHit && s.above && s.left && s.right && s.topLeft, `${E}[táctil] fuera del hueco todo es velo (arriba, a los lados, esquina): ${JSON.stringify(s)}`)
+    ok(s.belowStrip, `${E}[táctil] la franja entre el FAB y su borde queda sin velo (límite documentado)`)
+    ok(new Set(s.bands).size === 1 && !/rgba\(0, 0, 0, 0\)/.test(s.bands[0]), `${E}[táctil] las tres bandas pintan el mismo velo: ${s.bands}`)
+    // Arriba: las bandas se invierten
+    await page.evaluate(() => window.__fab.close({ focus: false }))
     await ctx.close()
+    {
+      const t = await open(browser, 'scene=a6&open=1&coarse=1&pos=top-start&rtl=1', { width: 390, height: 740 }, touch)
+      const u = await t.page.evaluate(() => { const sc = document.querySelector('.g-fab__scrim'); const f = document.querySelector('.g-fab > button').getBoundingClientRect(); const at = (x, y) => document.elementFromPoint(x, y); const hy = parseFloat(sc.style.getPropertyValue('--_hole-y')), hh = parseFloat(sc.style.getPropertyValue('--_hole-h')); const cx = f.left + f.width / 2; return { fab: !!at(cx, f.top + f.height / 2)?.closest('.g-fab > button'), below: at(cx, hy + hh + 1) === sc, page: at(20, 600) === sc, side: at(f.left - 6, f.top + f.height / 2) === sc } })
+      ok(u.fab && u.below && u.page && u.side, `${E}[táctil·top-start·rtl] hueco arriba: FAB tocable y velo debajo y al lado: ${JSON.stringify(u)}`)
+      ok(!t.errs.length, `${E}[táctil·top] consola limpia: ${t.errs}`)
+      await t.ctx.close()
+    }
+    ok(!errs.length, `${E}[táctil] consola limpia: ${errs}`)
     for (const q of ['scene=a6&open=1', 'scene=c&open=1', 'scene=a15&open=1&more=1', 'scene=a3&open=1&arm=purge']) {
       const r = await open(browser, q, { width: 320, height: 640 })
       const d = await r.page.evaluate(() => { const els = [...document.querySelectorAll('.g-fab__list:popover-open, .g-fab__list:popover-open > li, .g-fab__item, .g-fab__confirm')].map((e) => e.getBoundingClientRect()); return { sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth, minL: Math.min(...els.map((r) => r.left)), maxR: Math.max(...els.map((r) => r.right)), clip: [...document.querySelectorAll('.g-fab__label, .g-fab__cancel, .g-fab__confirm-action')].filter((e) => e.getClientRects().length && e.scrollWidth > e.clientWidth + 1).length } })

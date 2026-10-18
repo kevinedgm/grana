@@ -594,10 +594,12 @@
 }
 
 /* ---------- Velo táctil (solo pointer: coarse; #664) ----------
-   Cubre el visor (o el contenedor) salvo el FAB. El hueco tiene la forma del FAB (estadio: círculo en A, píldora en C)
-   con un anillo de space × 1 de página sin velar alrededor: el FAB queda iluminado. Es un polígono evenodd (el recorte
-   también decide dónde cae el toque, cosa que una máscara no hace) con un puente de ancho cero desde la esquina; los
-   extremos redondos son polígonos de 16 lados (cos y sen de 22,5° × k): a 30px de radio se apartan 0,6px de un círculo */
+   Un velo partido en tres bandas (el elemento y sus dos pseudoelementos) que rodean el hueco del FAB: así el hueco no
+   solo se ve, también deja pasar el toque al FAB (una máscara no cambia dónde cae el toque, y docs/contract/icons.md
+   prohíbe recortar con polígonos en CSS nuevo). Con el FAB abajo, el elemento es la banda de arriba (hasta el hueco) y las
+   pseudo, los lados del hueco hasta el borde de abajo; con el FAB arriba, al revés. La ventana llega hasta su borde de
+   bloque: la franja entre el FAB y el borde (margen, reservas) no queda velada (límite en estilo.md). Los
+   pseudoelementos son fijos (sin transform en el velo, su bloque contenedor es el visor), así que 100 % es el visor */
 .g-fab__scrim {
   --_x: var(--_zero);
   --_y: var(--_zero);
@@ -607,47 +609,49 @@
   --_hole-y: var(--_zero);
   --_hole-w: var(--_zero);
   --_hole-h: var(--_zero);
-  --_h-r: calc(var(--_hole-h) / 2);
-  --_hc: calc(var(--_hole-y) + var(--_h-r));
-  --_hl: calc(var(--_hole-x) + var(--_h-r));
-  --_hr: calc(var(--_hole-x) + var(--_hole-w) - var(--_h-r));
+  --_hx2: calc(var(--_hole-x) + var(--_hole-w));
+  --_hy2: calc(var(--_hole-y) + var(--_hole-h));
   position: fixed;
   inset: auto;
   left: var(--_x);
   top: var(--_y);
   inline-size: var(--_w);
-  block-size: var(--_h);
+  block-size: var(--_hole-y);
   max-inline-size: none;
   max-block-size: none;
   box-sizing: border-box;
   margin: 0;
   padding: 0;
   border: 0;
+  overflow: visible;
   background: var(--g-surface-backdrop);
   opacity: 0.5;
-  clip-path: polygon(evenodd,
-    0 0, 100% 0, 100% 100%, 0 100%, 0 0,
-    var(--_hr) calc(var(--_hc) - var(--_h-r)),
-    calc(var(--_hr) + var(--_h-r) * .3827) calc(var(--_hc) - var(--_h-r) * .9239),
-    calc(var(--_hr) + var(--_h-r) * .7071) calc(var(--_hc) - var(--_h-r) * .7071),
-    calc(var(--_hr) + var(--_h-r) * .9239) calc(var(--_hc) - var(--_h-r) * .3827),
-    calc(var(--_hr) + var(--_h-r)) var(--_hc),
-    calc(var(--_hr) + var(--_h-r) * .9239) calc(var(--_hc) + var(--_h-r) * .3827),
-    calc(var(--_hr) + var(--_h-r) * .7071) calc(var(--_hc) + var(--_h-r) * .7071),
-    calc(var(--_hr) + var(--_h-r) * .3827) calc(var(--_hc) + var(--_h-r) * .9239),
-    var(--_hr) calc(var(--_hc) + var(--_h-r)),
-    var(--_hl) calc(var(--_hc) + var(--_h-r)),
-    calc(var(--_hl) - var(--_h-r) * .3827) calc(var(--_hc) + var(--_h-r) * .9239),
-    calc(var(--_hl) - var(--_h-r) * .7071) calc(var(--_hc) + var(--_h-r) * .7071),
-    calc(var(--_hl) - var(--_h-r) * .9239) calc(var(--_hc) + var(--_h-r) * .3827),
-    calc(var(--_hl) - var(--_h-r)) var(--_hc),
-    calc(var(--_hl) - var(--_h-r) * .9239) calc(var(--_hc) - var(--_h-r) * .3827),
-    calc(var(--_hl) - var(--_h-r) * .7071) calc(var(--_hc) - var(--_h-r) * .7071),
-    calc(var(--_hl) - var(--_h-r) * .3827) calc(var(--_hc) - var(--_h-r) * .9239),
-    var(--_hl) calc(var(--_hc) - var(--_h-r)),
-    var(--_hr) calc(var(--_hc) - var(--_h-r)),
-    0 0);
   -webkit-tap-highlight-color: transparent;
+}
+.g-fab__scrim::before,
+.g-fab__scrim::after {
+  content: "";
+  position: fixed;
+  top: calc(var(--_y) + var(--_hole-y));
+  block-size: calc(var(--_h) - var(--_hole-y));
+  background: inherit;
+}
+.g-fab__scrim::before {
+  left: var(--_x);
+  inline-size: var(--_hole-x);
+}
+.g-fab__scrim::after {
+  left: calc(var(--_x) + var(--_hx2));
+  inline-size: calc(var(--_w) - var(--_hx2));
+}
+.g-fab[data-position^="top"] .g-fab__scrim {
+  top: calc(var(--_y) + var(--_hy2));
+  block-size: calc(var(--_h) - var(--_hy2));
+}
+.g-fab[data-position^="top"] .g-fab__scrim::before,
+.g-fab[data-position^="top"] .g-fab__scrim::after {
+  top: var(--_y);
+  block-size: var(--_hy2);
 }
 .g-fab__scrim:popover-open { display: block; }
 .g-fab:not([data-state="open"]) .g-fab__scrim { opacity: 0; }
