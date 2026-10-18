@@ -94,6 +94,7 @@ El rastro (`v-model:lastOpened`): al pulsar, la tabla marca la fila con `is-last
 Sin `href`, pon `activatable`. La puerta es un `<button>` que emite `activate`. No se combina con el slot `detail` (la tabla avisa en desarrollo).
 
 ```vue
+<!-- Fragmento: `columns`, `filas` y `abrirDetalle` son de tu aplicación -->
 <g-table :columns="columns" :rows="filas" caption="Alertas" activatable
          @activate="({ row }) => abrirDetalle(row)" />
 ```
@@ -103,6 +104,7 @@ Sin `href`, pon `activatable`. La puerta es un `<button>` que emite `activate`. 
 Ambos modos emiten `update:lastOpened` con la clave de la fila abierta, también si la aplicación cancela la navegación en `navigate`. Vincula con `v-model:last-opened` para que la marca permanezca entre cargas:
 
 ```vue
+<!-- Fragmento: `columns`, `filas`, `ultimaAbierta` y `navegar` son de tu aplicación -->
 <g-table :columns="columns" :rows="filas" :row-href="(r) => `/p/${r.id}`"
          v-model:last-opened="ultimaAbierta" @navigate="navegar" />
 ```
@@ -150,6 +152,7 @@ const estadoDe = (row) => {
 ```
 
 ```vue
+<!-- Fragmento: `columns`, `filas` y `estadoDe` (el de arriba) son de tu aplicación -->
 <g-table :columns="columns" :rows="filas" caption="Pedidos" :row-status="estadoDe" />
 ```
 
@@ -160,7 +163,10 @@ Valores de `status`: `info` · `success` · `warning` · `error`.
 Con `pageSizes` (arreglo de enteros, p. ej. `[10, 25, 50]`), el pie de la paginación muestra un selector «Filas por página». La tabla necesita `labels.pagination.pageSize` y `labels.range`. Al cambiar, se emite `update:pageSize` antes de `update:page` (ambos en el mismo manejador):
 
 ```vue
+<!-- Fragmento: `columns` y `filas` son de tu aplicación -->
 <script setup>
+import { ref } from 'vue'
+
 const pagina = ref(1), tamano = ref(25)
 const alCambiarTamano = (n) => { tamano.value = n; pagina.value = 1 }
 </script>

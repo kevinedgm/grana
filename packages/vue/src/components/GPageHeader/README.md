@@ -34,6 +34,7 @@ Receta de la aplicación (una sola variable):
 ```
 
 ```vue
+<!-- Fragmento: `masAcciones` es de tu aplicación -->
 <script setup>
 import { ref } from 'vue'
 
@@ -173,6 +174,7 @@ Con pestañas hay zócalo y el encabezado se pega de serie (`sticky: true`). Al 
 ### e3 · Acción principal que se adapta al ancho
 
 ```vue
+<!-- Fragmento: `masAcciones` es de tu aplicación; el slot `actions` va dentro de `<GPageHeader>` -->
 <!--
   En estrecho (< space×150 ≈ 600px), la acción secundaria se oculta y la principal
   puede cambiar a solo icono (con nombre accesible y tooltip).

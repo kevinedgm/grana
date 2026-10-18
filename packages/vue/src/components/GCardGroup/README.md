@@ -84,6 +84,7 @@ const tablabels = { caption: 'Facturas', /* … */ }
 ### e1 · Filtro de estado con lengüeta
 
 ```vue
+<!-- Fragmento: `estado`, `columns`, `rows`, `filters` y `tablabels` son de tu aplicación -->
 <!-- La tarjeta pulsada y el chip de la barra son la misma verdad; el computed las une -->
 <g-card-group v-model="estado" label="Filtrar facturas por estado">
   <g-card value="pendiente" title="Pendientes" :labels="{ loading: 'Cargando', loaded: 'Listo' }">
@@ -106,7 +107,10 @@ const tablabels = { caption: 'Facturas', /* … */ }
 ### e2 · Filtro múltiple: Pendientes y Vencidas a la vez
 
 ```vue
+<!-- Fragmento: `filters`, `columns`, `rows` y `tablabels` son de tu aplicación -->
 <script setup>
+import { computed } from 'vue'
+
 const estados = computed({
   get: () => {
     const f = filters.value.find((x) => x.key === 'estado' && x.op === 'in')
@@ -139,6 +143,7 @@ Con `multiple`, el modelo es un arreglo. Pulsar Pendientes y Vencidas aplica un 
 ### e3 · Sin panel: rejilla de métricas independiente
 
 ```vue
+<!-- Fragmento: `estado`, `columns`, `rows`, `filters` y `tablabels` son de tu aplicación -->
 <!-- Sin slot panel: el grupo se convierte en una rejilla; la tabla va fuera -->
 <g-card-group v-model="estado" label="Resumen por estado">
   <g-card value="pendiente" title="Pendientes" :labels="{ loading: 'Cargando', loaded: 'Listo' }">
@@ -164,6 +169,7 @@ Con `multiple`, el modelo es un arreglo. Pulsar Pendientes y Vencidas aplica un 
 ### e4 · Tarjeta de total estática (sin `value`)
 
 ```vue
+<!-- Fragmento: `estado`, `columns`, `rows`, `filters` y `tablabels` son de tu aplicación -->
 <!-- Una GCard sin value es estática: se pinta en la rejilla pero queda fuera de la parada de Tab -->
 <g-card-group v-model="estado" label="Filtrar facturas por estado">
   <g-card title="Total" :labels="{ loading: 'Cargando', loaded: 'Listo' }">

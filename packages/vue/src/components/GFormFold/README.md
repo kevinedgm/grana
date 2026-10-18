@@ -24,6 +24,7 @@ createApp(App).use(Grana).use(GranaFormFold).mount('#app')
 ```
 
 ```vue
+<!-- Fragmento: `categorias` es de tu aplicación -->
 <script setup>
 import { ref, computed } from 'vue'
 
@@ -130,6 +131,7 @@ El `GFormFold` se abre desde el botón «Crear categoría» que está junto al `
 ### e2 · Pliegues anidados: contacto que agrega una dirección
 
 ```vue
+<!-- Fragmento: `abiertoContacto`, `abiertoDir`, `erroresContacto`, `erroresDir`, `guardarContacto`, `guardarDireccion`, `nombre`, `calle` y `ciudad` son de tu aplicación -->
 <!--
   Un GFormFold dentro de otro: al crear un contacto se puede crear
   la dirección al mismo tiempo, sin diálogos separados.
@@ -180,6 +182,7 @@ Cada nivel de anidado añade un raíl de acento y una sangría. El límite recom
 En un `GFormFold` con un solo campo de texto de una línea, pulsar Enter en ese campo llama a `confirm()` sin enviar el formulario exterior. No hace falta un botón de confirmación para flujos de creación rápida, aunque sigue siendo necesario el slot `actions` con el botón de cancelar.
 
 ```vue
+<!-- Fragmento: `abierto`, `errores`, `etiquetas` y `nueva` son de tu aplicación -->
 <!-- El Enter en el input llama confirm(); sin textarea, sin composición activa -->
 <g-form-fold
   v-model:open="abierto"
