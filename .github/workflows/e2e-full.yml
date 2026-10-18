@@ -44,7 +44,7 @@ jobs:
             all) echo 'browsers=["chromium","firefox","webkit"]' >> "$GITHUB_OUTPUT" ;;
             *)   echo "browsers=[\"$CHOICE\"]" >> "$GITHUB_OUTPUT" ;;
           esac
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -75,7 +75,7 @@ jobs:
       run:
         working-directory: design/lab/theme-playground
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v4
         with:
