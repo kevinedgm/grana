@@ -1,6 +1,6 @@
 # Contrato · GFab (botón flotante con acciones)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #654 a #666, 2026-10-18; cambios en archivos compartidos aplicados en `api.md` «Convivencia de servicios», «Entradas propias que no son servicios», «Paquete, entradas y tipos», «Acciones con acuse», «Una activación por gesto», «Letras en listas de comandos», «Flotantes persistentes y el foco» y el mapa de huecos; `tokens.md` §29.5, §29.6 y §47; `status.md` «`utils/edgeReserve.js` generalizado») · **Basado en:** `design/lab/fab/r01/` (kiwi, commit 7c0b032: `brief.md`, `declaracion.md` con 27 decisiones de base, fronteras, conceptos A/B/C, hallazgos L1 a L16 y propuesta de API; `index.html`, `fab.js`, `fab.css`, `frontera.html` con `GBtn`, `GMenu` y `GDialog` reales; `verificar.mjs` 553/553 en Chromium, Firefox y WebKit, puerto 4213)
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #654 a #666, 2026-10-18; **respuestas a las 9 preguntas de coco** de `design/lab/fab/estilo.md` en #668 a #671, mismo día: velo cerrado en cuatro piezas, `data-ack` en el elemento, política con alturas medidas y anotaciones; cambios en archivos compartidos aplicados en `api.md` «Convivencia de servicios», «Entradas propias que no son servicios», «Paquete, entradas y tipos», «Acciones con acuse», «Una activación por gesto», «Letras en listas de comandos», «Flotantes persistentes y el foco» y el mapa de huecos; `tokens.md` §29.5, §29.6 y §47; `status.md` «`utils/edgeReserve.js` generalizado») · **Basado en:** `design/lab/fab/r01/` (kiwi, commit 7c0b032: `brief.md`, `declaracion.md` con 27 decisiones de base, fronteras, conceptos A/B/C, hallazgos L1 a L16 y propuesta de API; `index.html`, `fab.js`, `fab.css`, `frontera.html` con `GBtn`, `GMenu` y `GDialog` reales; `verificar.mjs` 553/553 en Chromium, Firefox y WebKit, puerto 4213)
 **Tag:** `g-fab` · **Categoría:** superposiciones · **Paquete:** entrada propia **`@grana/vue/fab`** (global UMD `GranaFab`; #656)
 
 **Componente complejo** (teclado compuesto de menú; se posiciona sobre otros elementos; compone `GBtn` y `GTooltip` y comparte el motor de `GMenu`; convive con `edgeReserve`): **coco y bruno en Opus** (regla de `CLAUDE.md`).
@@ -146,23 +146,25 @@ Los iconos de las acciones son nombres de Lucide de la aplicación (registro de 
 
 ### A · Política `auto` (medible)
 
-`k = min(n, 5, ⌊(H + g) / (p + g)⌋)`, con:
+**Estimación:** `k₀ = min(n, 5, ⌊(H + g) / (p + g)⌋)`, con:
 
 - `n` = número de acciones pintables;
 - `H` = espacio en el eje de bloque entre el FAB (más `space × 3`) y el margen seguro del lado hacia el que crece (visor o contenedor, ya descontados `offset` y las reservas que lee, §«Bordes compartidos»);
-- `p` = alto de la píldora: `space × 10`; **44px** con `pointer: coarse`;
+- `p` = alto de una píldora **de una línea**: `max(24px, space × 10)`; **44px** con `pointer: coarse` (es el `--_pill` del CSS; con `space` ≥ 2,4 vale `space × 10`);
 - `g` = separación: `space × 2`.
 
-Resultado: **`n ≤ k`** → todas en la pila; **`n > k ≥ 2`** → `k − 1` píldoras + la cola «Más acciones (N)» (N = `n − k + 1`); **`k ≤ 1`** → panel directo. `k` se calcula al abrir y al redimensionar con la lista abierta, **nunca al desplazar**. Constantes de diseño (`k ≤ 5`, `space × 3`, `space × 10`, `space × 2`): no son tokens (`tokens.md` §47).
+**Ajuste con lo medido (#670):** una píldora con motivo visible (deshabilitada con String, fallo con texto) añade una línea `caption`, y una etiqueta larga se parte en dos a 320px o con texto al 200 %; ninguna de las dos cabe en `p`. Por eso `k` es **el mayor entero ≤ `k₀`** con el que la pila **medida** cabe en `H`: las `k − 1` primeras más la cola (o las `k`, si `k = n`), con sus altos reales y `g` entre ellas. El `.vue` lo mide en `opening` (lista ya mostrada y sin transición, §«Estados») y baja `k` de uno en uno mientras no quepa; nunca lo sube por encima de `k₀`. La cola mide lo que mida su etiqueta (`labels.more`).
 
-**Promesa de A (criterio de hecho):** con el mismo `H`, pasar de 6 a 10 o a 15 acciones no mueve ninguna de las cuatro primeras (Δ ≤ 0,5px; kiwi midió 0,02px) y con 3 están donde estaban con 15. La peligrosa respeta el orden que da la aplicación (la protege la confirmación en el sitio).
+Resultado: **`n ≤ k`** → todas en la pila; **`n > k ≥ 2`** → `k − 1` píldoras + la cola «Más acciones (N)» (N = `n − k + 1`); **`k ≤ 1`** → panel directo. `k` se calcula **al abrir**, **al redimensionar** con la lista abierta y **cuando la pila abierta deja de caber en `H`** porque cambió el alto de una píldora (un fallo que añade su motivo mientras está abierta; `ResizeObserver` sobre la lista, una vez por cuadro); **nunca al desplazar** y nunca para subir `k` con la lista abierta (lo que entró en el panel no vuelve a la pila hasta cerrar). Constantes de diseño (`k ≤ 5`, `space × 3`, `space × 10`, `space × 2`): no son tokens (`tokens.md` §47).
+
+**Promesa de A (criterio de hecho):** con el mismo `H`, pasar de 6 a 10 o a 15 acciones no mueve ninguna de las cuatro primeras (Δ ≤ 0,5px; kiwi midió 0,02px) y con 3 están donde estaban con 15. El ajuste medido no la rompe: el sitio de cada píldora solo depende de las que tiene entre ella y el FAB, no de `n` ni de `k`. La peligrosa respeta el orden que da la aplicación (la protege la confirmación en el sitio).
 
 ### Panel (A con cola, `appearance="panel"` y C)
 
 - Contenido: los elementos que no están en la pila (A), todos (`panel`) o todos menos `main` (C), **agrupados por `group`** con el orden escrito de arriba abajo; descripciones visibles.
 - Ancho: `min(space × 80, ancho disponible)`; en **estrecho** (ancho del visor o del contenedor < `space × 130`, umbral de `GDialog`), todo el ancho menos los márgenes seguros.
 - Alto: el espacio entre el disparador (+ `space × 3`) y el margen seguro, con un mínimo de `space × 20`; si el contenido es mayor, **el panel se desplaza** y el FAB (el cierre) queda siempre **fuera** del panel y visible. `--_max` fijo durante el desplazamiento (#358 regla 2).
-- **Dónde, en A con cola:** encima de la pila si en ese lado quedan ≥ `space × 40`; si no, **la cubre entera** (cascada, como `GMenu`). Abrir el panel no mueve la pila.
+- **Dónde, en A con cola:** encima de la pila si en ese lado quedan ≥ `space × 40`; si no, **la cubre entera** (cascada, como `GMenu`): el `.vue` escribe entonces en el panel **`--_minh`** (px, alto de la caja de la lista de la pila) para que una pila más alta que el contenido del panel no asome por debajo; sin cubrirla, no lo escribe. Abrir el panel no mueve la pila.
 - **Dónde, en C y `panel`:** pegado al disparador (la cola en C), hacia dentro.
 
 ### Estados (todos con comportamiento explícito)
@@ -170,14 +172,14 @@ Resultado: **`n ≤ k`** → todas en la pila; **`n > k ≥ 2`** → `k − 1` p
 | Estado | `data-state` | Comportamiento |
 | --- | --- | --- |
 | Contraído | `closed` | Lista oculta (`popover` cerrado, fuera del árbol de accesibilidad); FAB (o cola) con `aria-expanded="false"`; reserva de borde publicada |
-| Abriéndose | `opening` (dos cuadros) | La lista **ya es operable y tiene el foco**; el segundo clic de una ráfaga (`detail > 1`) se ignora (#661); el velo táctil aparece |
+| Abriéndose | `opening` (dos cuadros) | **Estado de partida, sin transición** (#671): el `.vue` muestra la lista (popover abierto), mide (política `auto` con alturas medidas), escribe **en `opening`** todos sus datos de colocación (`--_x`, `--_y`, `--_w`, `--_max`, `--_minh`, `--_fx`, `--_fy`, `--_i`, `--_clip-from`, `--_hole-*`) y pasa a `open` en el **segundo cuadro**; así la entrada sale siempre de la semilla, con cualquier orden de escrituras. La lista **ya es operable y tiene el foco**; el segundo clic de una ráfaga (`detail > 1`) se ignora (#661); el velo táctil aparece |
 | Abierto | `open` | Foco itinerante en la lista; `aria-expanded="true"`; el FAB no se aparta |
-| Cerrándose | `closing` | La lista es **inerte** (`inert`) y todos sus elementos llevan `tabindex="-1"` (sin ello Chromium hace del panel una parada de Tab y el foco cae en `body`, medido; L7). Volver a abrir durante la salida la cancela y vuelve a `open` desde donde esté (transiciones, no keyframes: nada queda a medias) |
+| Cerrándose | `closing` | La lista es **inerte** (`inert`) y todos sus elementos llevan `tabindex="-1"` (sin ello Chromium hace del panel una parada de Tab y el foco cae en `body`, medido; L7). Volver a abrir durante la salida la cancela y pasa **directamente a `open`, sin volver a `opening`** (si pasara por `opening`, la fila saltaría a la semilla): desde donde esté (transiciones, no keyframes: nada queda a medias); los datos se reescriben solo si la geometría cambió |
 | Sin acciones | — | No se pinta nada; sin aviso; sin reserva |
 | Deshabilitadas | — | `aria-disabled` enfocables con su motivo visible (String). **Todas** deshabilitadas: el FAB se abre igual y enseña los motivos. **Una sola** (`single`): el FAB lleva `aria-disabled` y el motivo es la `detail` de su `GTooltip` (descripción y segunda etapa visible) |
-| Acción en curso | `data-ack="busy"` | Ticket de #663: insignia que gira en el FAB, el texto como descripción del FAB, anuncio cortés; la acción `aria-disabled` con ese texto mientras dura (no se lanza dos veces) |
-| Hecha | `data-ack="done"` | Insignia `check` durante `RECEIPT_MS` (4000 ms) y anuncio; la acción vuelve a estar disponible |
-| Fallida | `data-ack="failed"` | Insignia `circle-alert` y anuncio; el motivo queda como descripción visible de la acción, que **se puede reintentar** (`retry: true` en el `select`) |
+| Acción en curso | `data-ack="busy"` (raíz **y** el elemento, #669) | Ticket de #663: insignia que gira en el FAB, el texto como descripción del FAB, anuncio cortés; la acción `aria-disabled` con ese texto mientras dura (no se lanza dos veces). **No se pinta como deshabilitada** (ni tachada ni atenuada como una no disponible): `data-ack="busy"` en el elemento dice «en marcha» |
+| Hecha | `data-ack="done"` (solo la raíz) | Insignia `check` durante `RECEIPT_MS` (4000 ms) y anuncio; la acción vuelve a estar disponible (el elemento pierde `data-ack`) |
+| Fallida | `data-ack="failed"` (raíz **y** el elemento) | Insignia `circle-alert` y anuncio; el motivo queda como descripción visible de la acción (`g-fab__reason`, que coco puede pintar en `danger-text`), que **se puede reintentar** (`retry: true` en el `select`) |
 | Contenido que excede la altura | — | La pila **nunca** desplaza (solo entra lo que cabe, ≤ 5); el panel limita su alto y desplaza; el FAB queda fuera del panel |
 | Apartado | `is-tucked` | §«Se aparta» |
 | Bajo un modal | — | §«Modal» |
@@ -190,22 +192,31 @@ div.g-fab  data-position data-anchor data-appearance data-state data-ack? is-tuc
 ├─ A / single:  GTooltip text=label [detail=acuse|motivo]
 │               └─ GBtn icon rounded="pill" size="xl"  id="ID-trigger"
 │                  aria-haspopup="menu" aria-expanded aria-controls="ID-menu"     (single: sin haspopup/expanded/controls)
-│                  ├─ slot trigger-icon (por defecto GLibIcon plus) ↔ GLibIcon x   (se cruzan; aria-hidden)
-│                  └─ span.g-fab__badge aria-hidden                               (insignia del acuse)
+│                  ├─ span.g-fab__glyph.g-fab__glyph--rest aria-hidden > slot trigger-icon (por defecto GLibIcon plus)
+│                  ├─ span.g-fab__glyph.g-fab__glyph--open aria-hidden > GLibIcon x  (los dos se cruzan, #671)
+│                  └─ span.g-fab__badge aria-hidden > GLibIcon (loader-circle|check|circle-alert)   (insignia del acuse)
 ├─ C:  div.g-fab__main-group role="group" aria-label=label
 │      ├─ GTooltip text=main.label [detail=acuse|motivo] └─ GBtn size="xl" id="ID-main"   (icono del elemento + etiqueta visible + insignia)
 │      └─ GBtn icon id="ID-trigger" aria-haspopup="menu" aria-expanded aria-controls="ID-menu"
-│         nombre labels.moreShort (GTooltip) · GLibIcon ellipsis-vertical ↔ x
+│         nombre labels.moreShort (GTooltip) · span.g-fab__glyph--rest > ellipsis-vertical ↔ span.g-fab__glyph--open > x
+│         (la principal es el primer `button` del grupo y la cola el último; los `div.g-tooltip` hermanos no cuentan)
 ├─ ul.g-fab__list  id="ID-menu" role="menu" popover="manual" tabindex="-1" aria-labelledby="ID-trigger"
-│  ├─ (pila)  li role="none" > button.g-fab__item role="menuitem" tabindex="-1|0" aria-describedby="…"
+│  ├─ (pila)  li role="none" > button.g-fab__item role="menuitem" tabindex="-1|0" aria-describedby="…" [data-ack]
 │  │          span.g-fab__icon aria-hidden · span.g-fab__label · span.g-fab__desc|__reason · span.g-fab__mark (danger)
 │  │          … y la cola: button.g-fab__item--more role="menuitem" id="ID-tail" aria-haspopup="menu"
 │  │                       aria-expanded aria-controls="ID-more"  → labels.more con {count}
-│  ├─ (panel C) li.g-fab__find role="none" aria-hidden  → pista / lo escrito y el recuento
+│  │          armada:  li role="none" > div.g-fab__confirm role="group" aria-label=pregunta
+│  │                   ├─ button.g-fab__cancel role="menuitem"           ← hijos directos, solo estos dos, en el orden
+│  │                   └─ button.g-fab__confirm-action role="menuitem"   ← visual (Cancelar bajo la pulsación); sin g-fab__item
+│  ├─ (panel C) li.g-fab__find role="none" aria-hidden  → pista, o span.g-fab__find-query (lo escrito)
+│  │                                                       + span.g-fab__find-count (recuento); sin coincidencias, is-empty-result
 │  └─ (panel)  li role="none" > div.g-fab__group-title id="ID-g0" role="presentation" + ul role="group" aria-labelledby="ID-g0"
 ├─ ul.g-fab__list  id="ID-more" role="menu" popover="manual" tabindex="-1" aria-labelledby="ID-tail"   ← panel de la cola de A
-└─ div.g-fab__scrim popover="manual" aria-hidden="true"                            ← solo pointer: coarse; con hueco en el FAB
+└─ div.g-fab__scrim popover="manual" aria-hidden="true" > span.g-fab__scrim-part   ← solo pointer: coarse; cuatro piezas alrededor del disparador (#668)
 ```
+
+- **Iconos que se cruzan (#671):** el FAB de A y la cola de C llevan **dos** `span.g-fab__glyph` (`--rest` y `--open`), uno sobre otro; el CSS los cruza con `data-state` de la raíz. El slot `trigger-icon` va **dentro** de `--rest` (no sustituye al `span`). Los dos son `aria-hidden`: el estado lo da `aria-expanded`.
+- **Par de confirmación (#671):** `.g-fab__cancel` y `.g-fab__confirm-action` son **hijos directos** de `.g-fab__confirm` y **sus únicos hijos elemento** (el nombre del grupo va en `aria-label`, no en un hijo visible): el CSS pone los extremos de la píldora partida con `:first-child`/`:last-child`, sea cual sea el orden. **No llevan** `g-fab__item` (heredarían la sombra de la píldora en cada medio). El par **sustituye** al `button.g-fab__item` dentro del mismo `li` y al deshacerse vuelve el `button`.
 
 - **El disparador es un `GBtn`** `icon rounded="pill" size="xl"` (52 × 52 con `space` 4, medido; sin tamaño ni variante nuevos de `GBtn`), con el rebote al soltar de #300 tal cual. El nombre visible lo da `GTooltip` (#380; con `aria-expanded="true"` no abre, #384). La elevación (`--g-shadow-2`) es del CSS de `GFab`, no de `GBtn`.
 - **Una sola descripción:** el texto del acuse (o el motivo de una sola acción deshabilitada) es la **`detail` del `GTooltip`** del FAB (o de la principal en C): es la descripción accesible y, al pasar o al enfocar por navegación, se ve en la segunda etapa (#389). Sustituye al `span` de estado oculto del prototipo: así quien ve tiene el texto y el lector no lo oye dos veces.
@@ -288,6 +299,7 @@ type FabSelectEvent = {
 - **En curso:** insignia `loader-circle` que gira (quieta con movimiento reducido) en la esquina del FAB (o de la principal, si es ella); el texto, `detail` del `GTooltip` del FAB y anuncio cortés; al reabrir, la acción está `aria-disabled` con ese texto visible. Pulsarla no hace nada.
 - **Hecho:** insignia `check` durante **`RECEIPT_MS` = 4000 ms** (la constante de `GDocumentPreview`, `tokens.md` §29.6) y anuncio; luego se retira sola.
 - **Fallo:** insignia `circle-alert` y anuncio; el texto queda como **descripción visible de la acción** y como `detail` del FAB hasta que esa acción vuelve a empezar, se cancela o sale de `items`. La acción vuelve a estar habilitada: activarla emite `select` con `retry: true`.
+- **Dato en el elemento (#669):** además de `data-ack` en la raíz (lo que pinta la insignia), el `.vue` pone **`data-ack="busy"`** o **`data-ack="failed"`** en **el elemento que ejecuta esa acción**: el `button.g-fab__item` de la pila o del panel, o el `GBtn` del FAB en `single` y el de la principal en C (llega al `button` por `$attrs`). Sin valor (atributo ausente) en reposo y tras `done`/`cancel`. En curso el elemento sigue `aria-disabled="true"` (no se lanza dos veces), pero el CSS **no lo tacha ni lo pinta como no disponible**: una acción que se está haciendo no es una que no se puede hacer. En el fallo el elemento está habilitado y su motivo es el texto del fallo.
 - **Varias a la vez:** cada elemento tiene su estado (clave interna, no `id`); la insignia muestra el más prioritario (en curso › fallo › hecho) y la `detail`, el texto más reciente de ese nivel.
 - **Anuncios:** todos por `announcePage` (#533); nada de `role="alert"`. Un aviso flotante (`GToast`) es decisión de la aplicación.
 
@@ -300,13 +312,21 @@ type FabSelectEvent = {
 5. **No se esconde al desplazar** (moverse con el scroll es un estorbo y un riesgo vestibular) ni por el puntero.
 6. Límite (README): el teclado en pantalla se detecta por el foco en un campo, no por `visualViewport` (no verificado en móvil real).
 
-## Velo táctil (#664)
+## Velo táctil (#664, #668)
 
-Solo con `pointer: coarse`: bajo la lista, un velo (`div.g-fab__scrim`, `popover="manual"`, `aria-hidden`) con `--g-surface-backdrop` (la opacidad la decide coco; sin token nuevo) que cubre la pantalla **salvo el FAB** (`clip-path` con hueco, `evenodd`). Tocar el velo **cierra sin activar lo de debajo** (medido: el enlace tocado no se sigue) y el FAB sigue siendo el cierre. Con puntero fino no hay velo y el clic fuera llega a su destino (convención de escritorio, como `GMenu`).
+Solo con `pointer: coarse`: bajo la lista, un velo (`div.g-fab__scrim`, `popover="manual"`, `aria-hidden`) con `--g-surface-backdrop` a la mitad de su opacidad (constante de coco, `tokens.md` §47; sin token nuevo) que cubre **el visor entero salvo una ventana sobre el disparador**. Tocar el velo **cierra sin activar lo de debajo** (medido: el enlace tocado no se sigue) y el FAB sigue siendo el cierre. Con puntero fino no hay velo y el clic fuera llega a su destino (convención de escritorio, como `GMenu`).
+
+**Forma (#668), sustituye al «`clip-path` con hueco, `evenodd`»** (`polygon()` está prohibido en CSS de componente, `icons.md` §1, y una máscara no cambia dónde cae el toque):
+
+1. **Cuatro piezas** que no se solapan alrededor de la ventana y la **cierran por los cuatro lados**: el elemento, su `::before`, su `::after` y **un hijo `span.g-fab__scrim-part`** (geometría de cada pieza: coco). **La franja entre el disparador y su borde también se vela**: ahí viven el margen seguro, `offset` y las reservas, es decir, la pill de la voz y el muelle de `GPageHeader` (§«Bordes compartidos»); un toque que falla el FAB por abajo es justo el que no debe activar nada.
+2. **La ventana** es la caja del **disparador contraído** (en A y `single`, el FAB; en C, el grupo principal + cola: los dos siguen operables, la cola cierra y la principal ejecuta y cierra), **más como mucho `space × 1` por lado** (para no velar el contorno ni la sombra; coco elige entre 0 y `space × 1`). Un toque en ese anillo, o en las esquinas de la caja fuera de la forma redonda, llega a lo que haya debajo: **límite aceptado** (README), a ≤ `space × 1` del borde visible del FAB.
+3. **Datos:** `--_hole-x`, `--_hole-y`, `--_hole-w`, `--_hole-h` (px **enteros**, redondeados **hacia fuera**: `floor` del origen, `ceil` del extremo) de la ventana en coordenadas del visor (el velo lo cubre entero, así que «relativo al velo» = «del visor»). Con fracciones, la costura entre piezas dejaría una línea más clara. Se escriben en `opening` y al redimensionar con la lista abierta (el FAB no se aparta con la lista abierta, §«Se aparta»). Sin ellos la ventana es nula y el velo lo cubre todo, también el FAB.
+4. **También con `anchor="container"`** el velo cubre **el visor entero**, no solo el contenedor: «tocar fuera no activa lo de debajo» (personalidad 6) no depende de dónde acabe el contenedor, y un contenedor dentro de un `<dialog>` ya tiene el fondo del modal alrededor. El `.vue` **no escribe** `--_x`/`--_y`/`--_w`/`--_h` en el velo (los valores de partida del CSS ya cubren el visor; quedan sin uso).
+5. **Sin** `transform`, `filter`, `contain` ni `will-change` en el velo (sus piezas son fijas y su bloque contenedor debe ser el visor; como popover de la capa superior, el `translate` de la raíz no le afecta).
 
 ## Posición y paneles anclados
 
-- **Margen seguro:** `space × 4` desde el borde + `env(safe-area-inset-*)` del lado (solo `viewport`) + `offset` + la reserva leída (§«Bordes compartidos»).
+- **Margen seguro:** `space × 4` desde el borde + `env(safe-area-inset-*)` del lado (solo `viewport`) + `offset` + la reserva leída (§«Bordes compartidos»). El `.vue` escribe en la raíz **`--_offset`** = la longitud de `offset.bottom` (posiciones `bottom-*`) u `offset.top` (`top-*`) **tal cual** (longitud CSS de la aplicación, sin convertir; como `--_toaster-offset-*` de `GToaster`) y **`--_reserve`** (px); el margen y el apartarse los suman en CSS (#671).
 - **La lista siempre crece hacia dentro** (FAB abajo → sube; arriba → baja): no hay cambio de lado (la regla 1 de #358 se cumple trivialmente). Si no hay sitio, se limita el alto y el panel desplaza (regla 2: `--_max` fijo al desplazar; se recalcula al abrir, al cambiar el contenido y al redimensionar).
 - **Regla 3:** con `anchor="viewport"` el FAB no sale nunca del visor; con `container`, si el contenedor (o su contenedor con desplazamiento) saca al FAB de la vista, la lista **se cierra sin devolver el foco**. La lista sigue al FAB con `followFrame` de `utils/anchor.js` (una escritura por cuadro y solo si cambia).
 - **Regla 4:** el puntero quieto no cambia el activo ni desplaza (motor compartido).
@@ -366,24 +386,33 @@ Nada de esto toca contraste, foco ni movimiento reducido: los estados llevan for
 
 ## Tokens consumidos (`tokens.md` §47; **ninguno nuevo**)
 
+Corregido en #671 con el CSS real de coco: el FAB no lee `brand` (lo impide `roles.test.js`); su relleno llega por **`GBtn color="brand"`, que lee la familia `primary`** (§17.4: `primary` es el color de la acción principal y, sin valor propio, alias de `brand`).
+
 | Token | Para qué |
 | --- | --- |
-| `--g-color-brand`, `--g-color-on-brand` (los del `GBtn` sólido `brand`) | FAB, principal y cola |
-| `--g-color-surface`, `--g-color-surface-sunken`, `--g-color-border`, `--g-color-border-control` | Píldoras, panel, activo, separadores, contorno de la cola |
-| `--g-color-text`, `--g-color-text-muted`, `--g-color-text-subtle` | Etiqueta, descripción y motivo, título de grupo y pista de C |
-| `--g-color-danger-text` | Etiqueta y marca de la peligrosa sobre `surface` |
-| `--g-color-danger`, `--g-color-on-danger` | Botón que confirma |
-| `--g-color-{success\|danger}` + `on-{…}` **o** `-soft` + `on-{…}-soft` | Insignias «hecho» y «fallo» (**siempre un relleno con su par**: un `-text` sobre un `-soft` se rompe dentro de la zona de marca, donde `-text` se redeclara y `-soft` no; corrige L14 de kiwi) |
+| `--g-color-primary`, `--g-color-on-primary`, `-strong`, `-soft` (por `GBtn color="brand"`) | FAB, principal y cola |
+| `--g-color-primary-text` (en `GFab.css`) | **Contorno** de `--g-border-width` del FAB y del grupo de C: el mecanismo de `tokens.md` §7.1 aplicado a un control flotante cuyo relleno de familia es su forma sobre contenido arbitrario (el relleno solo da 1,77:1 frente a la página con una marca pálida; con el contorno, ≥ 4,53:1 medido en los trece temas). En el tema por defecto no se ve (`primary-text` = `primary`) |
+| `--g-color-primary` (en `GFab.css`) | Relleno y borde de **partida** del panel de C en la transformación de contenedor (el color de la cola) |
+| `--g-color-surface`, `--g-color-surface-sunken`, `--g-color-border`, `--g-color-border-control` | Píldoras, panel, activo, separadores, contorno de la cola, ficha de lo escrito, borde de la insignia en curso |
+| `--g-color-text`, `--g-color-text-muted`, `--g-color-text-subtle` | Etiqueta, descripción y motivo, título de grupo y pista de C; `text`/`surface` es el par inverso de la semilla encendida (#325) |
+| `--g-color-danger-text` | Etiqueta y marca de la peligrosa sobre `surface`; motivo de un fallo (#669) |
+| `--g-color-danger`, `--g-color-on-danger` | Botón que confirma, semilla encendida de la peligrosa, insignia «fallo» |
+| `--g-color-success`, `--g-color-on-success` | Insignia «hecho» (**siempre un relleno con su par**: un `-text` sobre un `-soft` se rompe dentro de la zona de marca, donde `-text` se redeclara y `-soft` no; corrige L14 de kiwi) |
 | `--g-color-focus`, `--g-focus-width`, `--g-focus-offset` | Foco |
-| `--g-surface-backdrop` | Velo táctil |
-| `--g-radius-pill`, `--g-radius-lg`, `--g-radius-md`, `--g-border-width` | Forma |
-| `--g-shadow-1`, `--g-shadow-2` (y `--g-shadow-3` si coco la elige para el panel) | Elevación del FAB, píldoras y panel |
-| `--g-text-body-sm-*`, `--g-text-caption-*`, `--g-text-action-weight`, `--g-font-ui` | Etiquetas, descripciones, títulos de grupo |
+| `--g-surface-backdrop` | Velo táctil (a la mitad de su opacidad) |
+| `--g-radius-pill`, `--g-radius-lg`, `--g-radius-md`, `--g-radius-sm`, `--g-border-width` | Forma (`sm`: medios de la píldora partida y ficha de lo escrito) |
+| `--g-shadow-1`, `--g-shadow-2`, `--g-shadow-3` | Elevación: FAB deshabilitado, FAB y píldoras, panel (elegida por coco) |
+| `--g-text-body-size`, `--g-text-body-weight`, `--g-text-body-sm-*`, `--g-text-caption-*`, `--g-text-action-weight`, `--g-text-title-sm-weight`, `--g-font-ui` | Etiquetas, descripciones, títulos de grupo; tamaño del icono del FAB (`body-size × 1.4`, el de `GBtn xl`); peso de la peligrosa (`title-sm`) |
 | `--g-space-*` | Márgenes, separaciones y constantes de la política |
-| `--g-duration-fast`, `--g-duration-press`, `--g-duration-slow`, `--g-duration-spin`, `--g-ease-out` | Movimiento |
+| `--g-duration-fast`, `--g-duration-press`, `--g-duration-slow`, `--g-duration-spin`, `--g-ease-out`, `--g-ease-standard` | Movimiento (`standard` en los cambios de color y en el fundido del resaltado, como `GMenu`) |
 
 - **Zona de marca:** todos los del grupo de color que se pintan sobre una superficie están en la lista de `tokens.md` §44.5 o en «no se redeclaran» con su par; no se añade ninguno (`api.md` «Zona de marca», regla 5). Dentro de una zona, el FAB sólido `brand` es la tinta invertida (§44.1). coco lo mide dentro de una zona.
-- **Mínimos (no son tema):** objetivos ≥ 24px (píldora `space × 10` = 40px) y **≥ 44px con `pointer: coarse`**; texto ≥ 12px; etiquetas ≥ 4,5:1; FAB, icono e insignias ≥ 3:1 frente a lo que tienen al lado (1.4.11); foco visible.
+- **Constantes de `GFab.css` (#671; no son tokens ni literales de tema):**
+  - **De coreografía** (`tokens.md` §29.6, #187): giro de **45°** de los iconos que se cruzan (es la geometría que hace del `+` una `x`, como los giros de 90° y 180° de `GBreadcrumbs`, #500); **`0.96`** de escala de partida del panel de la cola y de `appearance="panel"` (la de `GMenu`); márgenes del recorte en reposo **`space × −6`** (fila de la pila) y **`space × −12`** (panel de C), que dejan ver el anillo de foco y la sombra sin quitar el `clip-path` (no se interpola con `none`).
+  - **Factores geométricos** (#187, como `50% − 50%/sqrt(2)` de `GBadge`): **`0.1464`** = `(1 − 1/√2)/2`, el punto del círculo a 45° donde se centra la insignia. Mejor escrito como `calc((1 - 1 / sqrt(2)) / 2)` (se lee de dónde sale; `sqrt()` está en los tres motores): opcional para coco.
+  - **De diseño** (como #532 y las medidas de `estilo.md` derivadas de `space`): **opacidad `0.5`** del velo (la mitad del fondo de un modal: el velo no bloquea una tarea, solo se traga el toque); la **costura de C al 35 %** de `currentColor` (decorativa: la principal y la cola se nombran por su etiqueta y su icono); `space × 13` del FAB (el `GBtn xl`), `space × 11` de la cola, `space × 5` de insignia e iconos, `space × 3,5` de sus glifos, `space × 1,5` de relleno del panel. Un tema no las cambia.
+  - **Límite (README):** un tema cuya `--g-shadow-2` o `--g-shadow-3` se extienda más allá de `space × 6` (24px con `space` 4) o `space × 12` verá su sombra recortada en las píldoras o en el panel de C en reposo. Las del tema por defecto caben con margen.
+- **Mínimos (no son tema):** objetivos ≥ 24px (píldora `max(24px, space × 10)` = 40px) y **≥ 44px con `pointer: coarse`**; texto ≥ 12px; etiquetas ≥ 4,5:1; FAB, icono e insignias ≥ 3:1 frente a lo que tienen al lado (1.4.11); foco visible.
 
 ## Clases y datos (contrato bruno ↔ coco)
 
@@ -394,25 +423,32 @@ Nada de esto toca contraste, foco ni movimiento reducido: los estados llevan for
 | `data-appearance` | Raíz y cada lista | `single` · `stack` · `panel` (en la raíz de C, `main`) |
 | `data-state` | Raíz y lista | `closed` · `opening` · `open` · `closing` |
 | `data-ack` | Raíz | `busy` · `done` · `failed` (sin valor: sin acuse) |
+| `data-ack` | **Elemento que ejecuta** (`g-fab__item`, o el `GBtn` de `single` y de la principal de C) | `busy` · `failed` mientras dura ese estado de esa acción; ausente en reposo y tras `done` (#669) |
 | `is-tucked` | Raíz | Apartado |
-| `is-coarse` | Raíz | `pointer: coarse` (si coco no lo resuelve con la consulta) |
+| `is-coarse` | Raíz | Opcional: fuerza el modo táctil (la consulta `pointer: coarse` ya lo resuelve; Firefox no emula el puntero grueso) |
 | `--_reserve` | Raíz, en línea | Reserva leída de su borde (px) |
+| `--_offset` | Raíz, en línea | `offset.bottom` (`bottom-*`) u `offset.top` (`top-*`), longitud CSS tal cual; ausente sin `offset` de ese borde (#671) |
 | `g-fab__main-group`, `g-fab__main` | C | Con `main` |
+| `g-fab__glyph` (+ `--rest`, `--open`) | Dentro del FAB de A y de la cola de C | Siempre: `--rest` con `trigger-icon`/`plus` o `ellipsis-vertical`, `--open` con `x` (#671) |
 | `g-fab__badge` | Dentro del FAB (o de la principal) | Siempre (vacía sin acuse) |
 | `g-fab__list` (+ `--stack`, `--panel`) | `ul role="menu"` | Siempre |
 | `--_x`, `--_y`, `--_w`, `--_max` | Cada lista, en línea | Abierta |
+| `--_minh` | Panel de la cola de A, en línea | Solo cuando cubre la pila: alto de la caja de la lista de la pila (px) (#671) |
 | `--_clip-from` | Panel de C, en línea | Al abrir (recorte de partida) |
 | `g-fab__item` (+ `--danger`, `--more`), `is-expanded` | Elemento | Siempre (`is-expanded` en la cola con su panel abierto) |
-| `--_fx`, `--_fy`, `--_i` | Cada `li` de la pila, en línea | Al colocar la pila (vector al centro del FAB e índice desde el FAB, tope 4) |
+| `--_fx`, `--_fy`, `--_i` | Cada `li` de la pila, en línea | Al colocar la pila, **en `opening`** (vector del centro de la fila al centro del FAB, px, e índice desde el FAB, tope 4) |
 | `g-fab__icon`, `__label`, `__desc`, `__reason`, `__mark` | Partes del elemento | Según el elemento |
 | `g-fab__group-title` | Título de grupo | Panel con `group` |
 | `g-fab__find` (+ `is-empty-result`) | Cabecera de C | Panel de C con sus textos |
-| `g-fab__confirm`, `__cancel`, `__confirm-action` | Par de confirmación | Armada |
+| `g-fab__find-query`, `g-fab__find-count` | Dentro de `g-fab__find` | Con algo escrito: lo escrito y el recuento (o `labels.none` + lo intentado) (#671) |
+| `g-fab__confirm`, `__cancel`, `__confirm-action` | Par de confirmación | Armada (estructura en §«Anatomía») |
 | `has-highlight`, `is-highlight-instant`, `--_active-y`, `--_active-h` | Panel | M1 (motor compartido) |
-| `g-fab__scrim` | Velo | `pointer: coarse` y abierto |
+| `g-fab__scrim`, `g-fab__scrim-part` | Velo y su cuarta pieza | `pointer: coarse` y abierto (#668) |
+| `--_hole-x`, `--_hole-y`, `--_hole-w`, `--_hole-h` | Velo, en línea | Ventana sobre el disparador en px enteros del visor, redondeada hacia fuera (#668) |
+| `--_x`, `--_y`, `--_w`, `--_h` | Velo | **No se escriben** (el velo cubre siempre el visor, #668) |
 | `g-fab__sr` | Texto oculto (patrón accesible) | Descripción en la pila |
 
-**Selectores sobre hijos de la aplicación:** ninguno (el slot `trigger-icon` va dentro del hueco del `GBtn`). Si alguno llega, con la exclusión de `.g-tooltip` de #383.
+**Selectores sobre hijos de la aplicación:** uno, `.g-fab__glyph > svg`, que da al icono del slot `trigger-icon` el tamaño del hueco (como `GBtn` con el suyo; `icons.md` §2.2, #204: el hueco fija el tamaño y una clase de la aplicación gana por capa). Un `svg` no puede ser un `.g-tooltip`, así que no necesita la exclusión de #383; cualquier otro que llegue, con ella.
 
 ## Slots
 
@@ -564,6 +600,8 @@ Un icono que no existe lo avisa `GIcon` (no es un aviso de `GFab`). Medido por k
 - **Lo escrito en C no lleva espacios.**
 - **Lector de pantalla real** sin verificar: el orden invertido de la pila («Nueva muestra, 5 de 5» al abrir), el par de confirmación dentro de un `menu` y el filtro de C.
 - Estilos de elemento de la aplicación sin capa ganan (#516).
+- **Velo táctil:** un toque a ≤ `space × 1` del FAB (el anillo de la ventana) o en las esquinas de su caja fuera de la forma redonda llega a lo que haya debajo (#668).
+- **Sombras del tema** más extensas que `space × 6` (píldoras) o `space × 12` (panel de C) se recortan en reposo (#671).
 
 ## Verificación (cómo se da por hecho)
 
@@ -573,7 +611,7 @@ Un icono que no existe lo avisa `GIcon` (no es un aviso de `GFab`). Medido por k
 
 ### Playwright (`design/lab/theme-playground/`, **puerto propio**; las comprobaciones de `verificar.mjs` como base)
 
-`tests/fab.spec.mjs` y `tests/personalidad-fab.spec.mjs`, en Chromium, Firefox y WebKit, con `GBtn`, `GTooltip`, `GMenu` y `GDialog` reales y la isla (`@grana/vue/status`), `GToaster`, la voz simulada y `GPageHeader` reales en el borde: semántica (botón de menú, `menuitem`, `li role="none"`, grupos con nombre, una parada); forma por cantidad (1, 3, 6, 10, 15) en 720 × 480 y 360 × 600; **Δ ≤ 0,5px de las cuatro primeras con 6, 10 y 15**; la cola con `aria-haspopup`, `aria-controls` y la cuenta; el panel encima de la pila o cubriéndola; dentro del marco con margen ≥ 8px y sin solapes; foco al abrir y al cerrar por cada vía; Esc con el foco en `body` (WebKit); el par de confirmación; el acuse con insignia, `detail` y un anuncio por cambio; doble clic y Intro mantenido; se aparta (≤ 5 % y nunca el centro, ≥ 24px visibles, primer toque solo devuelve); velo táctil (Chromium y WebKit con `hasTouch`: el enlace tocado no se sigue); voz → muelle → FAB → avisos sin solapes, y arriba zócalo → isla → FAB → avisos; un modal cierra la lista y deja el FAB inerte; 320px sin desplazamiento horizontal; RTL; oscuro y movimiento reducido (sin `translate`, sin recorte en C); dentro de una zona de marca; `GMenu` → `GDialog` y vuelta del foco; consola limpia. Rendimiento: abrir con 15 no supera 1 cuadro largo; el desplazamiento no vuelve a pintar Vue (**lección de bd888df**: ningún `watch` con getter que devuelva un arreglo nuevo). Los specs de `GMenu` pasan sin cambios tras la extracción.
+`tests/fab.spec.mjs` y `tests/personalidad-fab.spec.mjs`, en Chromium, Firefox y WebKit, con `GBtn`, `GTooltip`, `GMenu` y `GDialog` reales y la isla (`@grana/vue/status`), `GToaster`, la voz simulada y `GPageHeader` reales en el borde: semántica (botón de menú, `menuitem`, `li role="none"`, grupos con nombre, una parada); forma por cantidad (1, 3, 6, 10, 15) en 720 × 480 y 360 × 600; **Δ ≤ 0,5px de las cuatro primeras con 6, 10 y 15**; la cola con `aria-haspopup`, `aria-controls` y la cuenta; el panel encima de la pila o cubriéndola; dentro del marco con margen ≥ 8px y sin solapes; foco al abrir y al cerrar por cada vía; Esc con el foco en `body` (WebKit); el par de confirmación; el acuse con insignia, `detail` y un anuncio por cambio; doble clic y Intro mantenido; se aparta (≤ 5 % y nunca el centro, ≥ 24px visibles, primer toque solo devuelve); velo táctil (Chromium y WebKit con `hasTouch`: el enlace tocado no se sigue; un toque en la franja entre el FAB y su borde, sobre la pill de la voz o el muelle, cierra sin activarlos, #668; con `anchor="container"`, un toque fuera del contenedor también); política con alturas medidas (una píldora con motivo de dos líneas y etiquetas partidas a 320px: la pila no pasa de `H` y las primeras no se mueven, #670); `data-ack` en el elemento en curso y en el fallo (#669); voz → muelle → FAB → avisos sin solapes, y arriba zócalo → isla → FAB → avisos; un modal cierra la lista y deja el FAB inerte; 320px sin desplazamiento horizontal; RTL; oscuro y movimiento reducido (sin `translate`, sin recorte en C); dentro de una zona de marca; `GMenu` → `GDialog` y vuelta del foco; consola limpia. Rendimiento: abrir con 15 no supera 1 cuadro largo; el desplazamiento no vuelve a pintar Vue (**lección de bd888df**: ningún `watch` con getter que devuelva un arreglo nuevo). Los specs de `GMenu` pasan sin cambios tras la extracción.
 
 ### coco (Opus) · CSS y auditoría
 
@@ -587,6 +625,9 @@ Lector de pantalla real (VoiceOver, NVDA, TalkBack) sobre el orden invertido de 
 
 - **coco (Opus):** `GFab.css` (raíz y sitio con área segura, `--_reserve`, FAB con elevación e insignia, C con principal y cola, pila con salida desde el FAB y escalonado, panel con grupos y descripciones, cabecera de C, par de confirmación, velo con hueco, se aparta, estrecho, `pointer: coarse`, RTL, forzados, movimiento y reducido); banco y `design/lab/fab/estilo.md`; después, la auditoría. Sin cambios en `defaults.css`.
 - **bruno (Opus):** `utils/menuNav.js` extraído de `GMenu.vue` sin cambiar `GMenu`; `GFab.vue` (formas y política, foco y teclado, filtro de C, confirmación, ticket y acuse, se aparta, velo, `edgeReserve`, `topModal`, `anchor`); `EDGE_ORDER.fab` en `utils/edgeReserve.js`; entrada `@grana/vue/fab` (`exports`, `typesVersions`, `ENTRIES`, `types.test.js`, `__shared`); `meta.json`, `overrides.mjs`; compuertas en `gates.sh`; specs y playground `#sec-fab`; medir los dos pesos.
+- **Tras las respuestas a coco (#668 a #671), antes de que bruno cierre:**
+  - **coco:** (1) velo en **cuatro piezas** con `span.g-fab__scrim-part`, cerrado también por el lado del borde, ventana = caja del disparador contraído (en C, el grupo) + 0 a `space × 1`; con `anchor="container"` sigue cubriendo el visor (#668); (2) **`data-ack` en el elemento:** `busy` sin tachado ni aspecto de no disponible (también el `GBtn` de `single` y de la principal de C, hoy con la sombra de deshabilitado) y `failed` con el motivo en `danger-text` si lo mide ≥ 4,5:1 (#669); (3) opcional: `0.1464` escrito como `(1 − 1/√2)/2` con `sqrt()`. Medir de nuevo velo y acuse en el banco.
+  - **bruno:** todo lo de «Clases y datos» y «Estados» marcado con #668 a #671: `opening` sin transición con todos los datos escritos ahí y `open` en el segundo cuadro, reabrir en `closing` → `open`; `--_offset`, `--_minh`, `--_hole-*` (enteros hacia fuera, del visor) y la cuarta pieza; `data-ack` en el elemento; `k` con alturas medidas y el `ResizeObserver` de la pila abierta (sin `watch` con getter que devuelva un arreglo nuevo, lección de bd888df); el par de confirmación con sus dos hijos directos y sin `g-fab__item`.
 - **mora-docs (Sonnet):** `GFab/README.md` tras la auditoría: cuándo usarlo (fronteras), A y C, el ticket, la receta con `GPageHeader` y con la voz, el orden de Tab, la entrada y el global UMD en el `README.md` raíz, y los límites.
 
 ## Dudas para el usuario (no bloquean)
