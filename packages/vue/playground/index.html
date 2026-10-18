@@ -4368,7 +4368,7 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
   <script>
     // GFab (design/contracts/fab.md): su propia aplicación de Vue montada en #fab-app (dentro de #sec-fab). Por defecto el FAB
     // vive en un marco de 720 × 480 (anchor="container"); con ?fabanchor=viewport va fijo al visor. Parámetros: fab (1, 3, 6,
-    // 10, 15), fabmain=1 (C), fabpos, fabappearance, fabrtl=1, fabcoarse=1 (fuerza el modo táctil). Acuse simulado: csv
+    // 10, 15), fabmain=1 (C), fabpos, fabappearance, fabrtl=1, fabcoarse=1 (fuerza el modo táctil), fablong=1 (etiqueta larga en la primera). Acuse simulado: csv
     // acaba bien a los 600 ms y photo falla a los 400 ms. Cada evento queda en window.fabEvents (para las pruebas).
     ;(function () {
       const { createApp, reactive, computed } = Vue
@@ -4392,7 +4392,10 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         { id: 'purge', label: 'Vaciar borradores', icon: 'trash', group: 'Mantenimiento', danger: true, confirm: '¿Vaciar los 12 borradores?', confirmLabel: 'Vaciar' }
       ]
       // Con 3, la peligrosa entra en la pila; con 6, la sexta es la peligrosa (como en el banco de coco)
-      const itemsFor = (n) => (n === 3 ? [ALL[0], ALL[1], { ...ALL[14], group: undefined }] : n === 6 ? ALL.slice(0, 5).concat(ALL[14]) : ALL.slice(0, n))
+      // fablong=1: una etiqueta larga en la primera acción (#687: el panel que cubre la pila no es más estrecho que ella)
+      const LONG = new URLSearchParams(location.search).get('fablong') === '1'
+      const itemsFor0 = (n) => (n === 3 ? [ALL[0], ALL[1], { ...ALL[14], group: undefined }] : n === 6 ? ALL.slice(0, 5).concat(ALL[14]) : ALL.slice(0, n))
+      const itemsFor = (n) => (LONG ? itemsFor0(n).map((it, i) => (i === 0 ? { ...it, label: 'Nueva muestra con código de barras del lote completo' } : it)) : itemsFor0(n))
       const LABELS = { more: 'Más acciones ({count})', moreShort: 'Más acciones', cancel: 'Cancelar', findHint: 'Escribe para buscar', matches: '{count} acciones', matchesOne: '1 acción', none: 'Ninguna acción con', busy: 'En curso…', done: 'Hecho', failed: 'No se pudo' }
       const fab = reactive({
         n: Number(Q.get('fab')) || 6,

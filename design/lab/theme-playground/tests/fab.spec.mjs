@@ -337,6 +337,44 @@ test.describe('GFab · en el visor: bordes, se aparta, velo y estrecho (#659, #6
     expect(errs).toEqual([])
   })
 
+  // #687: el panel de la cola que cubre la pila nunca es más estrecho que ella (nada de la pila asoma, texto incluido)
+  for (const [w, h] of [[1000, 420], [320, 420]]) {
+    test(`el panel que cubre la pila la contiene con una etiqueta larga a ${w}px (#687); no sale del visor`, async ({ page }) => {
+      const errs = watchConsole(page)
+      await load(page, 'fab=15&fabanchor=viewport&fablong=1', { width: w, height: h })
+      await openFab(page)
+      await page.click('#fab-menu .g-fab__item--more')
+      await page.waitForTimeout(300)
+      expect(await page.evaluate(() => document.getElementById('fab-more').style.getPropertyValue('--_minh'))).not.toBe('')
+      const vw = await page.evaluate(() => document.documentElement.clientWidth)
+      const panel = await rect(page, '#fab-more')
+      const stack = await rect(page, '#fab-menu')
+      expect(panel.left).toBeLessThanOrEqual(stack.left + 0.5)
+      expect(panel.right).toBeGreaterThanOrEqual(stack.right - 0.5)
+      for (const r of await page.evaluate(() => [...document.querySelectorAll('#fab-menu > li')].flatMap((li) => [...li.querySelectorAll('*')].concat(li).map((e) => { const b = e.getBoundingClientRect(); return { left: b.left, right: b.right, w: b.width } })))) {
+        if (r.w === 0) continue
+        expect(r.left).toBeGreaterThanOrEqual(panel.left - 0.5)
+        expect(r.right).toBeLessThanOrEqual(panel.right + 0.5)
+      }
+      expect(panel.left).toBeGreaterThanOrEqual(-0.5)
+      expect(panel.right).toBeLessThanOrEqual(vw + 0.5)
+      expect(errs).toEqual([])
+    })
+  }
+
+  test('sin cubrir, el panel de la cola mide lo de siempre aunque la pila sea más ancha (#687)', async ({ page }) => {
+    const errs = watchConsole(page)
+    await load(page, 'fab=15&fabanchor=viewport&fablong=1', { width: 1000, height: 900 })
+    await openFab(page)
+    await page.click('#fab-menu .g-fab__item--more')
+    await page.waitForTimeout(300)
+    expect(await page.evaluate(() => document.getElementById('fab-more').style.getPropertyValue('--_minh'))).toBe('')
+    const space = await page.evaluate(() => parseFloat(getComputedStyle(document.getElementById('fab')).getPropertyValue('--g-space-1')) || 4)
+    const panel = await rect(page, '#fab-more')
+    expect(Math.abs(panel.width - space * 80)).toBeLessThanOrEqual(0.5)
+    expect(errs).toEqual([])
+  })
+
   test('velo táctil: tocar fuera cierra sin seguir el enlace de debajo y el foco vuelve al FAB; ventana en px enteros', async ({ browser, browserName }) => {
     test.skip(browserName === 'firefox', 'Firefox no emula el toque (hasTouch); el velo se mide en Chromium y WebKit')
     const ctx = await browser.newContext({ viewport: { width: 390, height: 760 }, hasTouch: true, baseURL: test.info().project.use.baseURL })

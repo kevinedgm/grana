@@ -11,13 +11,13 @@ import { EDGE_ORDER, clearEdgeReserve, edgeReserve, setEdgeReserve } from '../..
 import { pageLiveNode } from '../../utils/liveRegion.js'
 
 let warnSpy
-let geo = { room: 600, stackH: null }
+let geo = { room: 600, stackH: null, stackW: 0, stackTop: 0 }
 const realRect = HTMLElement.prototype.getBoundingClientRect
 beforeEach(() => {
-  geo = { room: 600, stackH: null }
+  geo = { room: 600, stackH: null, stackW: 0, stackTop: 0 }
   vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function () {
     if (this.classList.contains('g-fab')) return fabBox(geo.room)
-    if (geo.stackH && this.classList.contains('g-fab__list--stack')) return { ...zero, height: geo.stackH(this.children.length) }
+    if (geo.stackH && this.classList.contains('g-fab__list--stack')) return { ...zero, top: geo.stackTop, bottom: geo.stackTop + geo.stackH(this.children.length), height: geo.stackH(this.children.length), width: geo.stackW }
     return realRect.call(this)
   })
   HTMLElement.prototype.showPopover = function () { this.setAttribute('data-popover-open', '') }
@@ -60,8 +60,8 @@ const fabBox = (room, h0 = 52) => {
 }
 const zero = { left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0, x: 0, y: 0 }
 // Monta GFab con el FAB en `room` px de su borde opuesto; `stackH(n)` = alto medido de la pila con n filas
-function mk(props = {}, { room = 600, stackH = null, attrs = {}, slots } = {}) {
-  geo = { room, stackH }
+function mk(props = {}, { room = 600, stackH = null, stackW = 0, stackTop = 0, attrs = {}, slots } = {}) {
+  geo = { room, stackH, stackW, stackTop }
   const w = mount(GFab, { attachTo: document.body, props: { label: 'Crear y capturar', labels: LABELS, ...props }, attrs, slots })
   wrappers.push(w)
   return w
@@ -733,6 +733,42 @@ describe('GFab · datos del .vue al CSS (#677)', () => {
     expect(more.exists()).toBe(true)
     click(more, 0); await settle()
     expect(subList(w).element.style.getPropertyValue('--_minh')).toBe('123px')
+  })
+})
+
+describe('GFab · el panel que cubre la pila no es más estrecho que ella (#687)', () => {
+  const wOf = (w) => parseFloat(subList(w).element.style.getPropertyValue('--_w'))
+  const openMore = async (w) => { await open(w); click(w.find('.g-fab__item--more'), 0); await settle() }
+
+  it('al cubrir, --_w = min(max(space × 80, ancho de la pila), ancho disponible)', async () => {
+    // Pila más ancha que el panel por defecto
+    const base = mk({ items: ALL.slice(0, 8) }, { stackH: () => 123, stackW: 10 })
+    await openMore(base)
+    const normal = wOf(base)
+    expect(subList(base).element.style.getPropertyValue('--_minh')).toBe('123px')
+    base.unmount(); wrappers.pop()
+    const wide = mk({ items: ALL.slice(0, 8) }, { stackH: () => 123, stackW: normal + 100 })
+    await openMore(wide)
+    expect(subList(wide).element.style.getPropertyValue('--_minh')).toBe('123px')
+    expect(wOf(wide)).toBe(normal + 100)
+    expect(wOf(wide)).toBeLessThanOrEqual(1024 - 2 * 16)
+    wide.unmount(); wrappers.pop()
+    // Nunca más que el ancho disponible
+    const huge = mk({ items: ALL.slice(0, 8) }, { stackH: () => 123, stackW: 5000 })
+    await openMore(huge)
+    expect(wOf(huge)).toBeLessThanOrEqual(1024)
+    expect(wOf(huge)).toBeLessThan(5000)
+  })
+
+  it('sin cubrir (encima de la pila), el ancho es el de siempre aunque la pila sea más ancha', async () => {
+    const w = mk({ items: ALL.slice(0, 8) }, { stackH: () => 123, stackW: 900, stackTop: 500 })
+    await openMore(w)
+    expect(subList(w).element.style.getPropertyValue('--_minh')).toBe('')
+    const wide = wOf(w)
+    w.unmount(); wrappers.pop()
+    const ref = mk({ items: ALL.slice(0, 8) }, { stackH: () => 123, stackW: 10, stackTop: 500 })
+    await openMore(ref)
+    expect(wOf(ref)).toBe(wide)
   })
 })
 

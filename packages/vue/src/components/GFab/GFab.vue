@@ -255,10 +255,10 @@ export default defineComponent({
       const right = p.endsWith('end') !== rtl()
       return Math.min(Math.max(p.endsWith('center') ? f.left + f.width / 2 - w / 2 : right ? f.right - w : f.left, b.left), b.right - w)
     }
-    const placePanel = (ul, from, full) => {
+    const placePanel = (ul, from, full, minW = 0) => {
       const b = bounds()
       const s = S()
-      const w = b.narrow ? b.width : Math.min(s * PANEL_W, b.width)
+      const w = b.narrow ? b.width : Math.min(Math.max(s * PANEL_W, minW), b.width)
       setPx(ul, '--_w', w)
       if (full) setPx(ul, '--_max', Math.max(s * PANEL_MIN, room(from, b)))
       const hh = ul.offsetHeight
@@ -303,7 +303,7 @@ export default defineComponent({
         const cover = room(st) + s * GAP < s * COVER
         if (cover) setPx(su, '--_minh', st.height)
         else su.style.removeProperty('--_minh')
-        placePanel(su, cover ? f : st, full)
+        placePanel(su, cover ? f : st, full, cover ? st.width : 0)
       }
       const sc = scrimEl.value
       if (shown(sc)) {
