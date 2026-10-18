@@ -125,6 +125,9 @@ Spec `design/lab/theme-playground/tests/personalidad-btn.spec.mjs` sobre el `GBt
 | Carga: salida | la etiqueta vuelve a 1 y 0px; el indicador sale con fundido y termina oculto |
 | Montar ya en carga | 0 transiciones; indicador centrado (< 1px) |
 | Carga con `reduce` | solo `opacity`, ninguna transición de `translate` |
+| Sin `linear()` | `transform` 160ms con `--g-ease-out`; colores a 120ms |
+| Cuadros en tiempo real (un worker) | 21 a 22 en 320ms, 13 valores de escala, en los tres motores |
+| Táctil emulado | área de 44 × 44 |
 | Solo Chromium | 5 cuadros intermedios en tiempo real en etiqueta e indicador; nombre accesible en carga = «Enviar informe» (árbol de accesibilidad por CDP) |
 
 ## Sobre una superficie de marca
@@ -145,7 +148,7 @@ Si pones un `GBtn` sobre un fondo `var(--g-color-brand)` (cabecera, barra o pane
 - **Evita la misma familia que el fondo** (`color="brand"`) sobre una superficie `brand`: no es un fallo del botón, es que sus roles `brand` y `brand-text` valen lo mismo que el fondo.
 - **Las variantes `soft` son las que conservan una forma clara** (≥ 12,8:1 contra la superficie) con un texto ≥ 4,5:1 en ambos esquemas del tema por defecto.
 - Un `soft` cuyo texto ronda 4,5:1 mide casi lo mismo que un botón deshabilitado (4,47 en claro, 5,65 en oscuro con el tema por defecto): no hay diferencia de contraste que los separe. Un informe de integración midió 4,68:1 para `neutral` `soft` con su tema y lo leyó como deshabilitado, y `accent` `soft` le funcionó mejor; **ese tema no se reprodujo aquí**. Mide con tus tokens (los tuyos mandan: el tema va sin capa).
-- **No medido:** un tema generado con `@grana/cli` (los resultados dependen de tu `brand`), `forced-colors`, el estado `hover` y `active`.
+- **Hover y active** se midieron sobre la superficie por defecto, en claro y oscuro, y `forced-colors` en Chromium; **no medido:** esos estados sobre `--g-color-brand` ni un tema generado con `@grana/cli` (los resultados dependen de tu `brand`).
 
 ## Tema
 
@@ -168,12 +171,25 @@ Tokens que consume: `--g-color-{color}` (y `-strong`, `-soft`, `-text`), `--g-co
 
 Las emite el componente y las estiliza `GBtn.css`: `g-btn`, `g-btn--color-*`, `g-btn--variant-*`, `g-btn--size-*`, `g-btn--density-*`, `g-btn--rounded-*` (solo si se pasa `rounded`), `g-btn--block`, `g-btn--icon`, `is-disabled`, `is-loading`, y los elementos `g-btn__prepend`, `g-btn__label`, `g-btn__append`, `g-btn__loader` y `g-btn__status`.
 
+## Altura y densidad
+
+Con soporte de `round()` de CSS, la altura del botón se redondea a **0,5px** (#667): `max(24px, round(espacio × unidades × densidad, 0.5px))`, con el piso de 24px aplicado después. Por ejemplo, con `--g-space-1: 4.375px` el tamaño `md` mide 39,5 / 34,5 / 29,5px (`comfortable` / `default` / `compact`; antes 39,375 / 34,453 / 29,53). Con el tema por defecto no cambia nada (24,5 / 31,5 / 38,5 / 45,5px en `comfortable`). El relleno vertical sale de esa altura y el contenido se centra (desvío ≤ 0,5px). Un navegador sin `round()` usa la altura sin redondear. Medido por coco en Chromium, Firefox y WebKit ([auditoría](../../../../../design/lab/btn/auditoria.md), addendum 2026-10-18).
+
 ## Limitaciones conocidas
 
-- Con `density="comfortable"` y ciertos valores de espacio, la altura es fraccionaria (por ejemplo 39.375px) y el borde puede verse difuso en pantallas de baja densidad. Está pendiente evaluar `round()` de CSS.
-- **Tema oscuro:** `grana.css` ya trae el esquema oscuro por defecto (`defaults.css`): sigue `prefers-color-scheme` y se fuerza con `data-theme="dark"` o `data-theme="light"` en cualquier elemento (ver [«Tema oscuro» del README raíz](../../../../../README.md#tema-oscuro)). Al documentar no se repitieron en oscuro las cifras de contraste de este README.
-- Sin verificar en navegador: `forced-colors` (la regla está escrita, no emulada en la prueba de personalidad) y hover/active de las variantes `soft`, `outline`, `ghost` y `link`.
-- **Personalidad, sin verificar:** el respaldo de un navegador sin `linear()` (los tres motores actuales lo soportan; ninguno del banco ejerce el camino de `@supports`), una pantalla táctil real (allí el rebote se ve al levantar el dedo) y el conteo de cuadros en tiempo real fuera de Chromium (con carga en paralelo es inestable; en los tres motores la transición se mide de forma determinista).
+- **Media rejilla:** en pantallas de 1× la altura puede tener medio píxel (paso de 0,5px, decisión del usuario; con 2× cae en píxel entero). Redondear a enteros cambiaría cuatro alturas del tema por defecto en ±0,5px y no se hizo. El redondeo es solo de `GBtn` (#525 sigue abierto para el resto).
+- **Tema oscuro (medido, tema por defecto, `data-theme="dark"`, 7 colores × 5 variantes, reposo, hover y active):**
+
+  | Medida | Oscuro | Claro |
+  | --- | --- | --- |
+  | Texto, mínimo | 4,51 (`success` `soft`) | 4,76 (`success` `soft`) |
+  | Borde de `outline`, mínimo | 4,52 (`danger`) | 5,33 (`neutral`) |
+  | Relleno de `solid`, mínimo | 4,52 (`danger`) | 5,33 (`neutral`) |
+  | Texto de `disabled` | 5,65 y 6,21 | 4,47 y 5,10 |
+
+  Todo pasa (texto ≥ 4,5; forma de `outline` y `solid` ≥ 3), pero varias combinaciones lo hacen por centésimas (4,51 a 4,53 en `soft` y en hover y active de `outline` y `ghost`): un tema que oscurezca `*-soft` o `on-*-soft` las bajará de 4,5. En oscuro el texto de los siete `soft` (4,51 a 4,66) mide menos que el de `disabled`. No hay un tema generado con `@grana/cli` medido.
+- **`forced-colors`:** verificado en Chromium con la emulación que fuerza los colores: borde `ButtonText` (`link` sin caja, borde `Canvas`), hover y active con `Highlight`, `disabled` en `GrayText`, foco `Highlight` de 2px. En Firefox y WebKit la emulación solo activa la consulta de medios (no sustituye colores). **Queda:** Windows con contraste alto real. Hover y active de `soft`, `outline`, `ghost` y `link`, verificados en los siete colores en claro y oscuro.
+- **Personalidad:** verificado el camino sin `linear()` (`transform` a `--g-duration-press` 160ms con `--g-ease-out`; los colores siguen en 120ms), el conteo de cuadros en los tres motores con un worker (21 a 22 cuadros en 320ms, 13 valores de escala) y el táctil emulado (área de 44 × 44). **Queda:** un dispositivo táctil real.
 
 ## Fuentes
 

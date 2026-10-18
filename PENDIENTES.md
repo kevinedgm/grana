@@ -71,7 +71,7 @@ Recuperación tras cerrar la aplicación, contrato y kit de pruebas del audio te
 | --- | --- |
 | Dark Color Presence: evidencia reunida, opción D preferida pero **no adoptada**; exige especificación, pruebas del motor y decisión del usuario | `design/lab/tema-oscuro/dark-color-presence/recommendation.md` |
 | Tema opcional grana + añil | `tokens.md` §9 |
-| `round()` para alturas fraccionarias | CLAUDE.md |
+| `round()` para alturas fraccionarias | CLAUDE.md. Hecho en `GBtn` (#667, paso 0,5px); queda generalizar al sistema (#525, `GTag` y demás controles) |
 | `--g-radius-shape` se describe como «chip» pero los chips de opción usan `pill` fijo (solo documentación) | `radio-group.md` |
 
 ## 6. Defectos y límites conocidos

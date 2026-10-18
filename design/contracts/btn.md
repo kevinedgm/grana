@@ -174,7 +174,7 @@ Además de los de «Tokens consumidos»: **`--g-duration-slow`** y **`--g-ease-b
 
 | # | Hallazgo | Resolución | Base |
 | --- | --- | --- | --- |
-| 1 | ¿`density` reduce la altura? | **Sí:** altura × 1, 0.875 o 0.75, con piso de 24px. Actualizado en `docs/contract/tokens.md` §4 | Una tabla compacta con botones de altura completa no gana densidad |
+| 1 | ¿`density` reduce la altura? | **Sí:** altura × 1, 0.875 o 0.75, con piso de 24px. **Nota (#667):** la altura se redondea a 0,5px con `round()` bajo `@supports` (`--_snap: 0.5px`), antes del piso de 24px; alcance solo `GBtn`. Actualizado en `docs/contract/tokens.md` §4 | Una tabla compacta con botones de altura completa no gana densidad |
 | 2 | ¿Texto de carga para lectores de pantalla? | Prop `loadingText` con región viva externa (ver arriba) | Decisión del usuario; mecanismo por WCAG 4.1.3 (mensajes de estado) |
 | 3 | `href` + `disabled` | Regla incorporada en "Reglas de props propias" | Un enlace no tiene estado deshabilitado nativo |
 | 4 | `type` fuera de la API compartida | Prop propia, por defecto `button` | Evita envíos accidentales |

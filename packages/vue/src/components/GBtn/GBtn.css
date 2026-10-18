@@ -84,6 +84,20 @@
   }
 }
 
+/* Altura sobre la rejilla de medio píxel. Con --g-space-1 fraccionario, la altura (space × unidades × densidad) salía
+   con fracciones finas (39,375px) y los botones de una fila derivaban unos de otros. Con round() queda en múltiplos de
+   0,5px: en una pantalla de 2× es un píxel físico entero, y las alturas del tema por defecto (24,5 / 31,5 / 38,5 / 45,5 con
+   `comfortable`) no cambian. El paso es la unidad del redondeo, no una medida de tema (no hay token para ella).
+   Dentro de @supports: un round() no soportado dentro de var() invalidaría --_h en tiempo de cómputo y el botón se
+   quedaría sin alto (mismo patrón que linear(), arriba). El piso de 24px se aplica después del redondeo. El padding sale
+   de --_h, así que la suma sigue siendo --_h exacta; --_px y el gap solo mueven el ancho y no se redondean. */
+@supports (inline-size: round(1px, 1px)) {
+  .g-btn {
+    --_snap: 0.5px;
+    --_h: max(24px, round(calc(var(--g-space-1) * var(--_units) * var(--_density)), var(--_snap)));
+  }
+}
+
 /* Área táctil: no cambia el aspecto, solo la zona que recibe el toque. Centrado con `left` físico: `translate` es
    físico y, con inset-inline-start en RTL (= right: 50%), el área se iba un ancho entero a la izquierda y desbordaba
    su contenedor (r02, banco de formularios en RTL). Centrar es simétrico: no depende del sentido de lectura */
@@ -383,10 +397,23 @@
   .g-btn:focus-visible {
     outline-color: Highlight;
   }
+  /* hover y active: la regla de arriba (especificidad 0,1,0) perdía contra `.g-btn:hover { border-color: var(--_border-hover) }`
+     (0,2,0). Chromium pisaba el color del autor con el indicador del sistema (Highlight); Firefox lo dejaba pasar y el borde
+     desaparecía o salía del color del tema. Se fija el mismo resultado en todos: Highlight */
+  .g-btn:hover,
+  .g-btn:active {
+    border-color: Highlight;
+  }
   .g-btn:disabled:where(:not(.g-form-reveal:not(.is-open) *)):where(:not(.g-form-section--mode-addable:not(.is-open) > .g-form-section__panel *)),
   .g-btn[disabled],
   .g-btn.is-disabled {
     color: GrayText;
     border-color: GrayText;
+  }
+  /* El enlace es texto subrayado sin padding: con el borde en ButtonText (o GrayText) quedaba una caja pegada a las letras y
+     al subrayado. Canvas (el fondo del sistema) lo deja sin caja, también deshabilitado y en hover/active (por eso va después
+     y con la misma especificidad); su indicador de hover es el grosor del subrayado */
+  .g-btn.g-btn--variant-link {
+    border-color: Canvas;
   }
 }
