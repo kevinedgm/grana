@@ -45,8 +45,8 @@ const textos = { pending: 'Termina o cancela «{title}» antes de enviar.' }
         label="Categoría"
         name="categoria"
         :options="categorias"
-        :create="() => (abierto = true)"
         create-label="Crear categoría…"
+        @create="abierto = true"
       />
       <g-form-fold
         v-model:open="abierto"
@@ -279,7 +279,7 @@ Con `prefers-reduced-motion: reduce`, el deslizamiento desaparece y solo queda e
 
 ## Limitaciones conocidas
 
-- **Pruebas de Playwright pendientes** (nivel `sin verificar`): el contrato §15 exige pruebas en los tres motores (Chromium, Firefox, WebKit). Pendiente de bruno.
+- **Pruebas de Playwright:** `design/lab/theme-playground/tests/form-fold.spec.mjs` (7 casos: el recorrido de tres pliegues anidados, Esc y Esc mantenida, el fondo, confirmar con error y con resultado, 375px, RTL y movimiento reducido) más un pliegue abierto en `form-distribution.spec.mjs`. Nivel `medido`: 7/7 en Chromium (reejecutado por mora-docs el 2026-10-18) y 17/17 en WebKit junto con `dialog-levels.spec.mjs` (auditoría de los niveles de `GDialog`, [`auditoria-pasos.md`](../../../../../design/lab/dialog/auditoria-pasos.md)). Firefox: sin repetir en esta documentación.
 - **Lector de pantalla en entorno real** no verificado: `role="group"` con nombre al recibir el foco, anuncio tras la llegada, cambio de valor en el destino.
 - **Táctil y zoom al 200 %** no verificados en dispositivo real.
 - **H1** (no bloqueante): el CSS de `.g-form-fold__description` aplica `font-size` y `line-height` de la escala `body-sm` pero omite `letter-spacing: var(--g-text-body-sm-tracking)`. El valor del token es `0` en el tema por defecto; sin diferencia visual. Pendiente de bruno para completar la tripleta tipográfica.
