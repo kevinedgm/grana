@@ -1,6 +1,6 @@
 /*
   GFab · estilo (coco)
-  Contrato: design/contracts/fab.md (DECISIONS.md #654 a #671; tokens.md §29.5, §29.6 y §47). Estructura:
+  Contrato: design/contracts/fab.md (DECISIONS.md #654 a #671 y #676 a #678; tokens.md §29.5, §29.6 y §47). Estructura:
   design/lab/fab/r01/ (kiwi). Estilo, constantes, medidas y preguntas: design/lab/fab/estilo.md.
   Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo pone components.css); sin respaldos; sin literales
   de tema; únicas medidas literales 24px y 44px (área táctil) y el patrón de texto oculto accesible.
@@ -14,6 +14,7 @@
                la cola de A, solo cuando cubre la pila; #671) · --_clip-from (panel de C) · --_active-y, --_active-h,
                has-highlight, is-highlight-instant (panel, M1) · data-state, data-appearance
     li (pila)  --_fx, --_fy (px, vector del centro de la fila al centro del FAB) · --_i (índice desde el FAB, tope 4)
+    li armado  --_armed-w (px, ancho de la píldora al armar el par de confirmación; pila y panel; #677)
     elemento   data-ack="busy|failed" en el g-fab__item (o el GBtn de single y de la principal de C) que ejecuta esa
                acción (#669)
     velo       --_hole-x, --_hole-y, --_hole-w, --_hole-h (px enteros del visor, redondeados hacia fuera: la ventana
@@ -107,17 +108,28 @@
 .g-fab__main-group {
   box-shadow: var(--g-shadow-2);
 }
-.g-fab > .g-btn:is([aria-disabled="true"], .is-disabled, :disabled):not([data-ack="busy"]) { box-shadow: var(--g-shadow-1); }
+/* Deshabilitada (single o principal de C con aria-disabled, no en curso): conserva el contorno de GBtn (#678 (3)); baja a
+   shadow-1 y lleva el cursor de no disponible, como los elementos deshabilitados de la lista. Medido: el relleno, el
+   contorno y el icono son los de la habilitada (pregunta 12 de estilo.md) */
+.g-fab > .g-btn:is([aria-disabled="true"], .is-disabled, :disabled):not([data-ack="busy"]) {
+  box-shadow: var(--g-shadow-1);
+  cursor: not-allowed;
+}
+.g-fab__main[aria-disabled="true"]:not([data-ack="busy"]) { cursor: not-allowed; }
 .g-fab > .g-btn[data-ack="busy"],
 .g-fab__main[data-ack="busy"] { cursor: progress; }
 .g-fab__main-group {
   display: inline-flex;
   border-radius: var(--g-radius-pill);
 }
-/* La principal y la cola son una sola forma: la principal cede su final redondo y la cola su inicio */
+/* La principal y la cola son una sola forma: la principal cede su final redondo y la cola su inicio. Junta con una sola
+   línea (#678): la costura de la cola; el borde final de la principal (el primary-text de GBtn solid, #672) queda
+   transparente en reposo, hover y active (0,4,0 gana a .g-btn:hover y .g-btn:active), así que con una marca pálida no se
+   leen dos líneas paralelas. El contorno exterior del grupo sigue entero */
 .g-fab__main-group > .g-btn:first-of-type:not(:last-of-type) {
   border-start-end-radius: 0;
   border-end-end-radius: 0;
+  border-inline-end-color: transparent;
   padding-inline-end: var(--g-space-4);
 }
 .g-fab__main-group > .g-btn:last-of-type:not(:first-of-type) {
@@ -538,7 +550,13 @@
 }
 .g-fab__find-count { color: var(--g-color-text-muted); }
 
-/* ---------- Peligrosas: la fila se parte en dos sin mover nada (#662) ---------- */
+/* ---------- Peligrosas: la fila se parte en dos sin mover nada (#662) ----------
+   El par es más estrecho que la píldora: la fila armada conserva su ancho con --_armed-w, que el .vue escribe en su li al
+   armar (px, ancho de la píldora en ese momento) y retira al deshacer o confirmar (#677). Sin el dato, auto */
+.g-fab__list li {
+  --_armed-w: auto;
+  min-inline-size: var(--_armed-w);
+}
 .g-fab__confirm {
   display: flex;
   gap: var(--g-border-width);
@@ -815,6 +833,9 @@
 @media (forced-colors: active) {
   .g-fab > .g-btn,
   .g-fab__main-group { box-shadow: none; }
+  /* Junta de C con una sola línea también aquí (#678): el sistema convierte el transparente en ButtonText; ButtonFace es
+     el fondo del botón y deja solo la costura de la cola */
+  .g-fab__main-group > .g-btn:first-of-type:not(:last-of-type) { border-inline-end-color: ButtonFace; }
   .g-fab__list--stack .g-fab__item,
   .g-fab__list--panel,
   .g-fab__badge,

@@ -12,8 +12,13 @@
 // y RTL, el toque en el FAB llega al FAB y fuera de la ventana (también en la franja entre el FAB y su borde) es velo, las
 // piezas cubren el visor menos la ventana sin solaparse, sin costuras (píxeles), con anchor="container" el visor entero.
 // Acuse en el elemento (#669): en curso sin tachado ni aspecto de deshabilitada, fallo con el motivo en danger-text.
+// Remates de #677 y #678: la fila armada conserva su ancho con --_armed-w (nada se mueve al armar); junta de C con una sola
+// línea (reposo, hover y active, con marca pálida, RTL y forzados; contorno exterior entero); single y principal
+// deshabilitadas conservan el contorno con shadow-1 y cursor de no disponible; --_minh exacto: la sombra de la pila no asoma
+// por el lado lejano del panel que la cubre (lo del lado del FAB y la pila más ancha que el panel, medido como nota).
 // Ejecutar desde la raíz del repo (requiere dist/):  GRANA_PW_PORT=4214 node design/lab/fab/estilo-verificar.mjs
 // Opcional: --engines=chromium,firefox,webkit  --themes=all|base (por defecto: todos en Chromium, base en Firefox y WebKit)  --verbose
+//   --dist=<carpeta> sirve /packages/vue/dist/ desde una copia (para no medir un dist/ a medio reconstruir por otro agente)
 import http from 'node:http'
 import { readFile } from 'node:fs/promises'
 import { extname, join, normalize } from 'node:path'
@@ -26,8 +31,9 @@ const ENGINES = (args.engines || 'chromium,firefox,webkit').split(',')
 const TYPES = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.mjs': 'text/javascript', '.svg': 'image/svg+xml', '.json': 'application/json', '.woff2': 'font/woff2' }
 const server = http.createServer(async (req, res) => {
   try {
-    const p = normalize(join(ROOT, decodeURIComponent(new URL(req.url, 'http://x').pathname)))
-    if (!p.startsWith(ROOT)) throw new Error('fuera')
+    const u = decodeURIComponent(new URL(req.url, 'http://x').pathname)
+    const p = args.dist && u.startsWith('/packages/vue/dist/') ? normalize(join(String(args.dist), u.slice(19))) : normalize(join(ROOT, u))
+    if (!p.startsWith(ROOT) && !(args.dist && p.startsWith(normalize(String(args.dist))))) throw new Error('fuera')
     const body = await readFile(p)
     res.writeHead(200, { 'content-type': TYPES[extname(p)] || 'application/octet-stream' }).end(body)
   } catch { res.writeHead(404).end() }
@@ -52,6 +58,7 @@ const track = (k, v) => { if (!(k in mins) || v < mins[k].v) mins[k] = { v } }
   ok([...css.matchAll(/color-mix\(([^;]*)\)/g)].every((m) => /currentColor/.test(m[1]) && !/#|\brgba?\(/.test(m[1])), 'CSS: color-mix que no parte de currentColor')
   const named = [...css.matchAll(/(?:color|background(?:-color)?|border[\w-]*|outline[\w-]*)\s*:[^;]*\b(CanvasText|Canvas|Highlight|ButtonText|GrayText|LinkText|red|blue|black|white|transparent)\b/g)].map((m) => m[1])
   ok(named.every((w) => ['CanvasText', 'Highlight', 'GrayText', 'LinkText', 'transparent'].includes(w)), 'CSS: color con nombre no permitido: ' + named)
+  ok(!/ButtonFace/.test(css.replace(/@media \(forced-colors: active\) \{[\s\S]*?\n\}/g, '')), 'CSS: ButtonFace fuera de forced-colors')
   ok(!/var\(\s*--[\w-]+\s*,/.test(css), 'CSS: var() con valor de respaldo')
   ok(!/@layer/.test(css) && !/!important/.test(css), 'CSS: @layer o !important')
   const vars = [...css.matchAll(/var\((--[\w-]+)/g)].map((m) => m[1])
@@ -61,9 +68,9 @@ const track = (k, v) => { if (!(k in mins) || v < mins[k].v) mins[k] = { v } }
   const missing = [...new Set(vars.filter((v) => v.startsWith('--g-') && !defined.has(v)))]
   ok(!missing.length, 'CSS: tokens que no existen en defaults.css: ' + missing)
   ok(!vars.some((v) => /^--g-color-(on-)?brand/.test(v)), 'CSS: lee --g-color-brand* (roles.test.js: primary)')
-  // Tokens de color: los de tokens.md §47 más primary-text (contorno del FAB) y primary (relleno de partida del panel de C):
-  // los dos están en la lista de la zona (§44.5); preguntas para lima en estilo.md
-  const allowed = ['--g-color-surface', '--g-color-surface-sunken', '--g-color-border', '--g-color-border-control', '--g-color-text', '--g-color-text-muted', '--g-color-text-subtle', '--g-color-danger-text', '--g-color-danger', '--g-color-on-danger', '--g-color-success', '--g-color-on-success', '--g-color-focus', '--g-surface-backdrop', '--g-color-primary-text', '--g-color-primary']
+  // Tokens de color: los de tokens.md §47 (con los bordes -text de las insignias de #673) y primary (relleno de partida del
+  // panel de C, en la lista de la zona §44.5). primary-text ya no: el contorno del FAB lo pinta GBtn solid (#672, #678)
+  const allowed = ['--g-color-surface', '--g-color-surface-sunken', '--g-color-border', '--g-color-border-control', '--g-color-text', '--g-color-text-muted', '--g-color-text-subtle', '--g-color-danger-text', '--g-color-danger', '--g-color-on-danger', '--g-color-success', '--g-color-success-text', '--g-color-on-success', '--g-color-focus', '--g-surface-backdrop', '--g-color-primary']
   const colors = [...new Set(vars.filter((v) => v.startsWith('--g-color') || v.startsWith('--g-surface')))]
   ok(colors.every((v) => allowed.includes(v)), 'CSS: tokens de color fuera de la lista: ' + colors.filter((v) => !allowed.includes(v)))
   note(`[estático] tokens de color leídos: ${colors.join(', ')}`)
@@ -106,6 +113,14 @@ const track = (k, v) => { if (!(k in mins) || v < mins[k].v) mins[k] = { v } }
   ok(/\.g-fab__item\[data-ack="failed"\] \.g-fab__reason \{ color: var\(--g-color-danger-text\); \}/.test(css), 'CSS: el motivo del fallo en danger-text')
   // Par de confirmación: hijos directos (#671)
   ok(!/\.g-fab__confirm (?!>)[:.]/.test(css), 'CSS: el par de confirmación se selecciona como hijos directos de .g-fab__confirm')
+  // #677: la fila armada lee --_armed-w como min-inline-size (sin respaldo; sin el dato, auto)
+  ok(/\.g-fab__list li \{\s*--_armed-w: auto;\s*min-inline-size: var\(--_armed-w\);\s*\}/.test(css), 'CSS: el li de la fila armada aplica --_armed-w como min-inline-size (#677)')
+  // #678: el contorno del FAB es de GBtn solid; GFab.css no lee primary-text ni pinta un anillo propio; junta con una sola línea
+  ok(!/--g-color-primary-text/.test(css), 'CSS: GFab.css lee --g-color-primary-text (el contorno es de GBtn solid, #678)')
+  const fabShadows = blocks.filter(([, sel]) => /\.g-fab > \.g-btn|\.g-fab__main-group(?! >)|\.g-fab__main\b/.test(sel)).map(([, , body]) => (body.match(/box-shadow\s*:\s*([^;]+)/) || [])[1]).filter(Boolean)
+  ok(fabShadows.length && fabShadows.every((v) => /^var\(--g-shadow-[12]\)$|^none$/.test(v.trim())), 'CSS: el FAB y el grupo de C solo con su elevación (sin anillo de box-shadow, #678): ' + fabShadows)
+  ok(/\.g-fab__main-group > \.g-btn:first-of-type:not\(:last-of-type\) \{[^}]*border-inline-end-color: transparent;/.test(css), 'CSS: junta de C: el borde final de la principal transparente (#678)')
+  ok(/\.g-fab__main-group > \.g-btn:first-of-type:not\(:last-of-type\) \{ border-inline-end-color: ButtonFace; \}/.test(css), 'CSS: junta de C en forzados: el borde final de la principal en ButtonFace')
 }
 
 /* ---------- Utilidades del navegador ---------- */
@@ -214,6 +229,111 @@ for (const engine of ENGINES) {
     ok(!/rgba\(0, 0, 0, 0\)/.test(m.seam), `${E}[C] costura visible entre principal y cola: ${m.seam}`)
     ok(!c.errs.length, `${E}[C] consola limpia: ${c.errs}`)
     await c.ctx.close()
+  }
+
+  /* ---------- 2b · Remates de #677 y #678 ---------- */
+  {
+    // Fila armada (#677): --_armed-w en su li; al armar nada se mueve (pila a 1000 y 320px, panel); al deshacer se retira
+    for (const [q, vp] of [['scene=a3&open=1', { width: 1000, height: 700 }], ['scene=a3&open=1', { width: 320, height: 640 }], ['scene=panel&open=1', { width: 1000, height: 700 }]]) {
+      const r = await open(browser, q, vp)
+      const P = `${E}[armada·${q.replace(/scene=|&open=1/g, '')}·${vp.width}]`
+      const geo = () => r.page.evaluate(() => [...document.querySelectorAll('.g-fab__list:popover-open li')].map((li) => { const b = li.getBoundingClientRect(); return { l: b.left, t: b.top, w: b.width, v: li.style.getPropertyValue('--_armed-w'), min: getComputedStyle(li).minInlineSize } }))
+      const before = await geo()
+      const pill = await r.page.evaluate(() => document.querySelector('.g-fab__list [data-id="purge"]').getBoundingClientRect().width)
+      await r.page.evaluate(() => window.__fab.arm('purge')); await r.page.waitForTimeout(250)
+      const armed = await geo()
+      const row = armed.filter((x) => x.v)
+      const d = Math.max(...before.map((x, i) => Math.max(Math.abs(x.l - armed[i].l), Math.abs(x.t - armed[i].t), Math.abs(x.w - armed[i].w))))
+      ok(row.length === 1 && Math.abs(parseFloat(row[0].v) - pill) < 0.01 && Math.abs(parseFloat(row[0].min) - pill) < 0.01, `${P} --_armed-w en el li armado, aplicado como min-inline-size: ${JSON.stringify(row)} · píldora ${pill}`)
+      ok(d <= 0.5, `${P} al armar no se mueve ninguna fila: Δ ${d.toFixed(2)}px`)
+      await r.page.keyboard.press('Escape'); await r.page.waitForTimeout(250)
+      const after = await geo()
+      ok(after.every((x) => !x.v) && !(await r.page.evaluate(() => !!document.querySelector('.g-fab__confirm'))), `${P} al deshacer se retira --_armed-w`)
+      ok(!r.errs.length, `${P} consola limpia: ${r.errs}`)
+      await r.ctx.close()
+    }
+    // Junta de C (#678): una sola línea (la costura de la cola) en reposo, hover y active, con el tema por defecto y dos marcas
+    // pálidas, también en RTL; el contorno exterior del grupo sigue entero
+    for (const q of ['scene=c', 'scene=c&theme=lustre', 'scene=c&theme=spotify', 'scene=c&theme=lustre&rtl=1']) {
+      const r = await open(browser, q, { width: 1000, height: 700 }, { deviceScaleFactor: 1 })
+      const P = `${E}[junta·${q.replace(/scene=c&?|theme=/g, '') || 'defecto'}]`
+      const read = () => r.page.evaluate(() => {
+        const [m, t] = document.querySelectorAll('.g-fab__main-group > button'), a = getComputedStyle(m), c = getComputedStyle(t), rtl = getComputedStyle(m).direction === 'rtl'
+        const edge = __c.tok(m, '--g-color-primary-text').join(), col = (s) => __c.rgba(s).join()
+        const mEnd = rtl ? a.borderLeftColor : a.borderRightColor, mStart = rtl ? a.borderRightColor : a.borderLeftColor
+        const tStart = rtl ? c.borderRightColor : c.borderLeftColor, tEnd = rtl ? c.borderLeftColor : c.borderRightColor
+        return { mEndOff: __c.rgba(mEnd)[3] === 0, seam: __c.rgba(tStart)[3] > 0 && col(tStart) !== col(c.backgroundColor), outer: [a.borderTopColor, a.borderBottomColor, mStart, c.borderTopColor, c.borderBottomColor, tEnd].every((x) => col(x) === edge) }
+      })
+      const rest = await read()
+      const mb = await r.page.locator('.g-fab__main').boundingBox()
+      await r.page.mouse.move(mb.x + mb.width / 2, mb.y + mb.height / 2); await r.page.waitForTimeout(250)
+      const hov = await read()
+      await r.page.mouse.down(); await r.page.waitForTimeout(250)
+      const act = await read()
+      await r.page.mouse.up(); await r.page.mouse.move(5, 5); await r.page.waitForTimeout(300)
+      ok(rest.mEndOff && hov.mEndOff && act.mEndOff, `${P} el borde final de la principal transparente en reposo, hover y active: ${rest.mEndOff} ${hov.mEndOff} ${act.mEndOff}`)
+      ok(rest.seam && hov.seam && act.seam, `${P} la costura de la cola se ve en los tres estados`)
+      ok(rest.outer && hov.outer && act.outer, `${P} contorno exterior del grupo entero en primary-text (de GBtn solid): ${rest.outer} ${hov.outer} ${act.outer}`)
+      // Píxeles: a media altura, entre los dos rellenos solo hay una columna distinta (la costura)
+      await r.page.addStyleTag({ content: '.g-tooltip{visibility:hidden!important}' })
+      const j = await r.page.evaluate(() => { const [m, t] = document.querySelectorAll('.g-fab__main-group > button'); const a = m.getBoundingClientRect(), b = t.getBoundingClientRect(); const x = Math.round(getComputedStyle(m).direction === 'rtl' ? a.left : a.right); return { x, y: Math.round(a.top + a.height / 2), mFill: __c.rgba(getComputedStyle(m).backgroundColor), tFill: __c.rgba(getComputedStyle(t).backgroundColor) } })
+      const png = (await r.page.screenshot({ clip: { x: j.x - 8, y: j.y, width: 16, height: 1 } })).toString('base64')
+      const cols = await r.page.evaluate(async ({ png, j }) => {
+        const img = new Image(); img.src = 'data:image/png;base64,' + png; await img.decode()
+        const cv = document.createElement('canvas'); cv.width = img.width; cv.height = 1; const cx = cv.getContext('2d'); cx.drawImage(img, 0, 0)
+        const d = cx.getImageData(0, 0, img.width, 1).data, near = (i, f) => Math.max(...[0, 1, 2].map((k) => Math.abs(d[i + k] - f[k]))) <= 3
+        let n = 0; for (let x = 0; x < img.width; x++) { const i = x * 4; if (!near(i, j.mFill) && !near(i, j.tFill)) n++ } return n
+      }, { png, j })
+      ok(cols === 1, `${P} una sola línea en la junta (columnas distintas de los rellenos): ${cols}`)
+      ok(!r.errs.length, `${P} consola limpia: ${r.errs}`)
+      await r.ctx.close()
+    }
+    // Deshabilitadas (#678 (3)): single y principal de C conservan el contorno; single baja a shadow-1; las dos, cursor de no
+    // disponible. Medido como nota: relleno, contorno e icono iguales a los de la habilitada (pregunta 12)
+    const sOn = await open(browser, 'scene=single&theme=lustre')
+    const on = await sOn.page.evaluate(() => { const b = document.querySelector('.g-fab > button'), cs = getComputedStyle(b); return { sh: cs.boxShadow, bg: cs.backgroundColor, bc: cs.borderTopColor, fg: cs.color } })
+    await sOn.ctx.close()
+    for (const q of ['scene=single&off=1&theme=lustre', 'scene=single&off=1', 'scene=c&off=1&theme=lustre']) {
+      const r = await open(browser, q)
+      const P = `${E}[deshabilitada·${q.replace(/scene=|&off=1|theme=/g, '')}]`
+      const v = await r.page.evaluate(() => { const b = document.querySelector('.g-fab__main') || document.querySelector('.g-fab > button'), cs = getComputedStyle(b); const edge = __c.tok(b, '--g-color-primary-text').join(); return { dis: b.getAttribute('aria-disabled'), edge: [cs.borderTopColor, cs.borderBottomColor].every((x) => __c.rgba(x).join() === edge), sh: cs.boxShadow, grpSh: getComputedStyle(b.parentElement).boxShadow, cur: cs.cursor, bg: cs.backgroundColor, bc: cs.borderTopColor, fg: cs.color, edgeCr: __c.cr(__c.rgba(cs.borderTopColor), __c.bgOf(document.querySelector('main'))) } })
+      ok(v.dis === 'true' && v.edge && v.cur === 'not-allowed', `${P} aria-disabled, contorno primary-text conservado y cursor de no disponible: ${v.dis} ${v.edge} ${v.cur}`)
+      ok(v.edgeCr >= 3, `${P} contorno ≥ 3:1 frente a la página: ${v.edgeCr.toFixed(2)}`)
+      if (/single/.test(q)) ok(v.sh !== on.sh && v.sh !== 'none', `${P} baja a shadow-1: ${v.sh}`)
+      if (/lustre/.test(q) && /single/.test(q)) note(`${P} relleno/contorno/icono iguales a la habilitada: ${v.bg === on.bg && v.bc === on.bc && v.fg === on.fg} (pregunta 12)`)
+      ok(!r.errs.length, `${P} consola limpia: ${r.errs}`)
+      await r.ctx.close()
+    }
+    // --_minh exacto (#677): el panel que cubre la pila la tapa justa; por el lado lejano no asoma nada de la pila (sin
+    // margen en el CSS); lo que asoma por el lado del FAB y la pila más ancha que el panel quedan como nota (preguntas 13 y 14)
+    for (const [q, vp] of [['scene=a15&open=1&more=1', { width: 1000, height: 480 }], ['scene=a15&open=1&more=1&dark=1', { width: 1000, height: 480 }], ['scene=a15&open=1&more=1&pos=top-start&rtl=1', { width: 1000, height: 480 }], ['scene=a15&open=1&more=1', { width: 320, height: 480 }], ['scene=a15&open=1&more=1&long=1', { width: 1000, height: 480 }], ['scene=a15&open=1&more=1&long=1', { width: 320, height: 480 }]]) {
+      const r = await open(browser, q, vp, { deviceScaleFactor: 1 })
+      const P = `${E}[cubre·${q.replace(/scene=a15&open=1&more=1&?/, '') || 'a15'}·${vp.width}]`
+      await r.page.addStyleTag({ content: '.g-tooltip{visibility:hidden!important}' }); await r.page.waitForTimeout(400)
+      const g = await r.page.evaluate(() => { const s = document.querySelector('#fab-more'), st = document.querySelector('.g-fab__list--stack'); const a = s.getBoundingClientRect(), b = st.getBoundingClientRect(), up = document.querySelector('.g-fab').dataset.position.startsWith('bottom'); return { minh: parseFloat(s.style.getPropertyValue('--_minh')), sh: b.height, p: { l: a.left, t: a.top, r: a.right, b: a.bottom }, s: { l: b.left, t: b.top, r: b.right, b: b.bottom }, up } })
+      ok(Math.abs(g.minh - g.sh) < 0.01, `${P} --_minh es el alto exacto de la pila: ${g.minh} vs ${g.sh}`)
+      ok(g.p.t <= g.s.t + 0.5 && g.p.b >= g.s.b - 0.5, `${P} el panel cubre la pila en bloque: ${g.p.t}–${g.p.b} vs ${g.s.t}–${g.s.b}`)
+      const a = (await r.page.screenshot()).toString('base64')
+      await r.page.addStyleTag({ content: '.g-fab__list--stack{visibility:hidden!important}' }); await r.page.waitForTimeout(100)
+      const b = (await r.page.screenshot()).toString('base64')
+      const d = await r.page.evaluate(async ({ a, b, p, up }) => {
+        const load = async (s) => { const i = new Image(); i.src = 'data:image/png;base64,' + s; await i.decode(); const c = document.createElement('canvas'); c.width = i.width; c.height = i.height; const x = c.getContext('2d'); x.drawImage(i, 0, 0); return x.getImageData(0, 0, c.width, c.height) }
+        const A = await load(a), B = await load(b), w = { far: 0, near: 0, side: 0, max: 0, sideMax: 0 }
+        for (let y = 0; y < A.height; y++) for (let x = 0; x < A.width; x++) {
+          const i = (y * A.width + x) * 4, dd = Math.max(...[0, 1, 2].map((k) => Math.abs(A.data[i + k] - B.data[i + k]))); if (dd <= 1) continue
+          if (y < p.t) up ? w.far++ : w.near++
+          else if (y >= p.b) up ? w.near++ : w.far++
+          else if (x < p.l || x >= p.r) { w.side++; w.sideMax = Math.max(w.sideMax, dd) }
+          if (y < p.t || y >= p.b) w.max = Math.max(w.max, dd)
+        }
+        return w
+      }, { a, b, p: g.p, up: g.up })
+      ok(d.far === 0, `${P} por el lado lejano no asoma la pila (sin margen en min-block-size): ${d.far} px`)
+      note(`${P} lado del FAB: ${d.near} px de sombra (Δ máx ${d.max}); por los lados: ${d.side} px (Δ máx ${d.sideMax}); pila ${(g.s.r - g.s.l).toFixed(0)} px, panel ${(g.p.r - g.p.l).toFixed(0)} px`)
+      if (!/long/.test(q)) ok(d.sideMax <= 24, `${P} por los lados solo sombra (Δ ≤ 24): ${d.sideMax}`)
+      ok(!r.errs.length, `${P} consola limpia: ${r.errs}`)
+      await r.ctx.close()
+    }
   }
 
   /* ---------- 3 · Táctil, 320px, texto al 200 % ---------- */

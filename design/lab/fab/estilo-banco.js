@@ -102,7 +102,7 @@ const XFab = defineComponent({
       set(ul, { '--_w': w })
       const avail = Math.max(SP() * 20, outUp.value ? from.top - SP() * 3 - b.top : b.bottom - from.bottom - SP() * 3)
       set(ul, { '--_max': avail })
-      const hh = Math.min(Math.max(ul.scrollHeight, parseFloat(getComputedStyle(ul).minBlockSize) || 0), avail)
+      const hh = Math.min(ul.offsetHeight, avail) // como el .vue: la caja ya con min-block-size (--_minh) y --_max
       let x = b.narrow ? b.left : k > 0 ? f.right - w : k < 0 ? f.left : f.left + f.width / 2 - w / 2
       x = Math.min(Math.max(x, b.left), b.right - w)
       const y = outUp.value ? from.top - SP() * 3 - hh : from.bottom + SP() * 3
@@ -133,7 +133,8 @@ const XFab = defineComponent({
       const b = bounds(), stack = menu.value.getBoundingClientRect()
       const room = outUp.value ? stack.top - b.top : b.bottom - stack.bottom
       const cover = room < SP() * 40
-      set(sub.value, { '--_minh': cover ? stack.height + SP() : 0 })
+      // --_minh exacto (#677): el alto de la caja de la pila, sin margen; solo cuando la cubre
+      if (cover) set(sub.value, { '--_minh': stack.height }); else sub.value.style.removeProperty('--_minh')
       placePanel(sub.value, cover ? fRect() : box(stack.left, stack.top, stack.width, stack.height))
     }
     const focusables = (ul) => [...ul.querySelectorAll('.g-fab__item, .g-fab__cancel, .g-fab__confirm-action')].filter((b) => !b.closest('[hidden]'))
@@ -160,7 +161,7 @@ const XFab = defineComponent({
     }
     function close({ focus = true } = {}) {
       if (!st.open) return
-      st.open = false; st.armed = null; st.find = ''; st.findEmpty = false
+      st.open = false; unarm(); st.find = ''; st.findEmpty = false
       closeSub()
       for (const x of menu.value.querySelectorAll('[role="menuitem"]')) x.tabIndex = -1
       st.phase = 'closing'
@@ -190,13 +191,24 @@ const XFab = defineComponent({
       const ul = e.target.closest('ul.g-fab__list'); if (!ul) return
       const els = focusables(ul), i = els.indexOf(e.target)
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); focusEl(els[(i + (e.key === 'ArrowDown' ? 1 : -1) + els.length) % els.length]) }
-      else if (e.key === 'Escape') { e.preventDefault(); if (st.armed) { const id = st.armed; st.armed = null; nextTick(() => focusEl(root.value.querySelector(`[data-id="${id}"]`))) } else if (st.sub) { closeSub(); focusEl(menu.value.querySelector('.g-fab__item--more')) } else close() }
+      else if (e.key === 'Escape') { e.preventDefault(); if (st.armed) { const id = st.armed; unarm(); nextTick(() => focusEl(root.value.querySelector(`[data-id="${id}"]`))) } else if (st.sub) { closeSub(); focusEl(menu.value.querySelector('.g-fab__item--more')) } else close() }
     }
-    async function arm(id) { st.armed = id; await nextTick(); focusEl(root.value.querySelector('.g-fab__cancel')) }
+    // Fila armada (#677): el ancho de la píldora al armarse en --_armed-w de su li (el CSS lo aplica como min-inline-size);
+    // se retira al deshacer o confirmar
+    async function arm(id) {
+      const b = root.value.querySelector(`.g-fab__list [data-id="${id}"]`)
+      if (b) set(b.closest('li'), { '--_armed-w': b.getBoundingClientRect().width })
+      st.armed = id; await nextTick(); focusEl(root.value.querySelector('.g-fab__cancel'))
+    }
+    function unarm() {
+      if (!st.armed) return
+      for (const li of root.value.querySelectorAll('.g-fab__list li')) li.style.removeProperty('--_armed-w')
+      st.armed = null
+    }
     function onClick(e) {
       const b = e.target.closest('button[role="menuitem"]'); if (!b) return
       if (b.classList.contains('g-fab__item--more')) return openSub()
-      if (b.classList.contains('g-fab__cancel')) { const id = st.armed; st.armed = null; return nextTick(() => focusEl(root.value.querySelector(`[data-id="${id}"]`))) }
+      if (b.classList.contains('g-fab__cancel')) { const id = st.armed; unarm(); return nextTick(() => focusEl(root.value.querySelector(`[data-id="${id}"]`))) }
       const it = props.items.find((x) => x.id === b.dataset.id)
       if (it && it.danger && !b.classList.contains('g-fab__confirm-action')) return arm(it.id)
       if (b.getAttribute('aria-disabled') !== 'true') close()
@@ -281,12 +293,12 @@ const XFab = defineComponent({
       if (isC.value || (props.main && single.value)) {
         const m = mainItem.value
         head = h('div', { class: 'g-fab__main-group', role: 'group', 'aria-label': props.label }, [
-          h(Grana.GBtn, { class: 'g-fab__main', id: `${props.id}-main`, size: 'xl', rounded: 'pill', color: 'brand', variant: 'solid', tooltip: detail, 'data-ack': ackOf(m.id), 'aria-disabled': ackOf(m.id) === 'busy' ? 'true' : undefined }, { prepend: () => I(m.icon), default: () => [m.label, badge()] }),
+          h(Grana.GBtn, { class: 'g-fab__main', id: `${props.id}-main`, size: 'xl', rounded: 'pill', color: 'brand', variant: 'solid', tooltip: detail || (typeof m.disabled === 'string' ? m.disabled : undefined), 'data-ack': ackOf(m.id), 'aria-disabled': ackOf(m.id) === 'busy' || m.disabled ? 'true' : undefined }, { prepend: () => I(m.icon), default: () => [m.label, badge()] }),
           !single.value && h(Grana.GBtn, { id: `${props.id}-trigger`, icon: true, size: 'xl', rounded: 'pill', color: 'brand', variant: 'solid', tooltip: LABELS.moreShort, ...trigAttrs, onClick: onTrigger }, { default: () => glyphs('ellipsis-vertical') })
         ])
       } else {
         const one = single.value ? props.items[0] : null
-        const oneAttrs = one ? { 'data-ack': ackOf(one.id), 'aria-disabled': ackOf(one.id) === 'busy' ? 'true' : undefined } : {}
+        const oneAttrs = one ? { 'data-ack': ackOf(one.id), 'aria-disabled': ackOf(one.id) === 'busy' || one.disabled ? 'true' : undefined } : {}
         head = h(Grana.GBtn, { id: `${props.id}-trigger`, icon: true, size: 'xl', rounded: 'pill', color: 'brand', variant: 'solid', tooltip: single.value ? props.items[0].label : props.label, ...trigAttrs, ...oneAttrs, onClick: onTrigger }, { default: () => [...(single.value ? [h('span', { class: 'g-fab__glyph', innerHTML: svg(props.items[0].icon) })] : glyphs('plus')), badge()] })
       }
       const list = isC.value ? filtered.value : shown.value
@@ -313,6 +325,10 @@ const XFab = defineComponent({
 
 const PARA = Array.from({ length: 10 }, (_, i) => `Fila ${i + 1}: contenido de la página para comprobar que el FAB no tapa lo que tiene el foco y que la pila flota sobre lo que hay debajo.`)
 const scene = (SCENES[Q.get('scene')] || SCENES.a6)()
+// ?off=1: la acción de single (o la principal de C) deshabilitada con su motivo (#678 (3)); ?long=1: «Nueva muestra» con
+// una etiqueta larga (pila más ancha que el panel de space × 80 que la cubre)
+if (Q.get('off') === '1') scene.items = scene.items.map((it) => (scene.items.length === 1 || it.id === scene.main ? { ...it, disabled: 'Solo para coordinación' } : it))
+if (Q.get('long') === '1') scene.items = scene.items.map((it) => (it.id === 'sample' ? { ...it, label: 'Nueva muestra con código de barras del lote completo' } : it))
 const CONTAINER = Q.get('anchor') === 'container'
 createApp({
   components: { XFab },
