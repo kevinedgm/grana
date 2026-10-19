@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Isla de estado · cápsula D1 · banco de estilo</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<style>
+/* =====================================================================================================================
+   coco · isla de estado r04 · estética de la cápsula D1 (kiwi, declaracion.md §6). Tres variantes visuales para elegir:
+     V1 · Tinta     superficie inversa opaca (#325 tal cual), pulida: proporción de isla, sombra en capas, filo de luz
+     V2 · Cristal   material translúcido del sistema (--g-glass-*): se adapta al claro y al oscuro como un aviso de iOS
+     V3 · Obsidiana la isla profunda en claro y en oscuro (la isla dinámica): la cápsula es una zona de marca (#620 a #625)
+   La estructura, el orden del DOM, los estados y el movimiento son los de kiwi (§6.1 a §6.3) y NO cambian: el script
+   (estilo-banco.js) es la lógica D1 de r04/index.html copiada; solo cambia este CSS (y tres detalles de marcado, §5 de
+   estilo.md: data-g-zone en V3, la pista del anillo y un envoltorio para «+N» y el chevrón).
+   Reglas: solo var(--g-*) y alias --_*; sin respaldos; sin literales de tema. Literales: 24px, 44px y el texto oculto.
+   ===================================================================================================================== */
+*{box-sizing:border-box}
+html{color-scheme:light}
+html[data-theme=dark]{color-scheme:dark}
+body{margin:0;font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line);color:var(--g-color-text);background:var(--g-color-bg)}
+.sr{position:absolute;inline-size:1px;block-size:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+.g-icon{inline-size:1em;block-size:1em;flex:none}
+
+/* ---------- Página de ejemplo (andamio del banco, no es la isla) ---------- */
+.sh-bar{position:sticky;inset-block-start:0;z-index:20;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--g-space-2);
+  min-block-size:var(--g-space-16);padding:var(--g-space-2) var(--g-space-4);background:var(--g-color-bg);color:var(--g-color-text)}
+.sh-brand{font-weight:var(--g-text-title-sm-weight)}
+.sh-pick{display:flex;flex-wrap:wrap;gap:var(--g-space-1)}
+.sh-pick a{display:inline-flex;align-items:center;min-block-size:var(--g-space-8);padding-inline:var(--g-space-3);border:var(--g-border-width) solid var(--g-color-border-control);border-radius:var(--g-radius-md);color:inherit;text-decoration:none;font-size:var(--g-text-body-sm-size)}
+.sh-pick a[aria-current]{background:var(--g-color-text);color:var(--g-color-bg);border-color:var(--g-color-text)}
+.sh-pick a:focus-visible,.btn:focus-visible,.x-field input:focus-visible{outline:var(--g-focus-width) solid var(--g-color-focus);outline-offset:var(--g-focus-offset)}
+main{max-inline-size:56rem;margin:0 auto;padding:var(--g-space-6) var(--g-space-4) var(--g-space-16)}
+h1{font-size:var(--g-text-title-lg-size);line-height:var(--g-text-title-lg-line);margin:0 0 var(--g-space-1)}
+.lead{color:var(--g-color-text-muted);margin:0 0 var(--g-space-6);max-inline-size:70ch}
+.card-p{padding:var(--g-space-6);background:var(--g-color-surface);border:var(--g-border-width) solid var(--g-color-border);border-radius:var(--g-radius-lg);margin-block-end:var(--g-space-6);min-inline-size:0}
+.card-p h2{font-size:var(--g-text-title-sm-size);line-height:var(--g-text-title-sm-line);margin:0 0 var(--g-space-4)}
+.x-field{display:grid;gap:var(--g-space-1);max-inline-size:28rem}
+.x-field input{font:inherit;min-block-size:calc(var(--g-space-1) * 10);padding-inline:var(--g-space-3);border:var(--g-border-width) solid var(--g-color-border-control);border-radius:var(--g-radius-md);background:var(--g-color-surface);color:inherit}
+.x-actions{display:flex;justify-content:flex-end;align-items:center;gap:var(--g-space-2);margin-block-start:var(--g-space-4);min-block-size:calc(var(--g-space-1) * 10)}
+.btn{font:inherit;font-weight:var(--g-text-action-weight);display:inline-flex;align-items:center;justify-content:center;gap:var(--g-space-2);min-block-size:calc(var(--g-space-1) * 10);padding-inline:var(--g-space-4);
+  border:var(--g-border-width) solid var(--g-color-border-control);border-radius:var(--g-radius-md);background:var(--g-color-surface);color:var(--g-color-text);cursor:pointer}
+.btn--solid{background:var(--g-color-brand);border-color:var(--g-color-brand);color:var(--g-color-on-brand)}
+.btn--sm{min-block-size:var(--g-space-8);padding-inline:var(--g-space-3);font-size:var(--g-text-body-sm-size)}
+.x-table{inline-size:100%;border-collapse:collapse}
+.x-table th,.x-table td{padding:var(--g-space-2) var(--g-space-3);text-align:start;border-block-end:var(--g-border-width) solid var(--g-color-border)}
+.x-table th{font-size:var(--g-text-body-sm-size);color:var(--g-color-text-muted)}
+.sim{display:flex;flex-wrap:wrap;gap:var(--g-space-2);align-items:center;padding:var(--g-space-4);border:var(--g-border-width) dashed var(--g-color-border-strong);border-radius:var(--g-radius-lg);font-size:var(--g-text-body-sm-size)}
+.sim strong{flex:1 0 100%}
+.sim label{display:inline-flex;gap:var(--g-space-1);align-items:center;min-block-size:24px}
+.note{color:var(--g-color-text-muted);font-size:var(--g-text-body-sm-size);margin:var(--g-space-3) 0 0}
+
+/* =====================================================================================================================
+   ISLA · común a las tres variantes
+   ===================================================================================================================== */
+/* Valores de la PÁGINA resueltos en la raíz, fuera de cualquier zona: V3 los necesita dentro de su zona para delimitarse
+   y para que su sombra sea la de la página (la zona redeclara las sombras con las del oscuro) */
+html{--_page:var(--g-color-bg);--_page-text:var(--g-color-text);--_sh-near:var(--g-shadow-1);--_sh-far:var(--g-shadow-3)}
+[data-type=error]  {--_c:var(--g-color-danger); --_on:var(--g-color-on-danger); --_soft:var(--g-color-danger-soft); --_on-soft:var(--g-color-on-danger-soft); --_tx:var(--g-color-danger-text)}
+[data-type=warning]{--_c:var(--g-color-warning);--_on:var(--g-color-on-warning);--_soft:var(--g-color-warning-soft);--_on-soft:var(--g-color-on-warning-soft);--_tx:var(--g-color-warning-text)}
+[data-type=info]   {--_c:var(--g-color-info);   --_on:var(--g-color-on-info);   --_soft:var(--g-color-info-soft);   --_on-soft:var(--g-color-on-info-soft);   --_tx:var(--g-color-info-text)}
+[data-type=success]{--_c:var(--g-color-success);--_on:var(--g-color-on-success);--_soft:var(--g-color-success-soft);--_on-soft:var(--g-color-on-success-soft);--_tx:var(--g-color-success-text)}
+
+.isle{
+  /* Geometría (constantes derivadas de space; cada variante cambia la fila) */
+  --_m:var(--g-space-2);
+  --_top:var(--g-space-16);
+  --_row:calc(var(--g-space-1) * 10);
+  --_badge:calc(var(--g-space-1) * 6);
+  --_glyph:calc(var(--_badge) * 0.62);
+  --_gap:var(--g-space-2);
+  --_pad-s:calc((var(--_row) - var(--_badge)) / 2);   /* insignia concéntrica con el extremo de la cápsula */
+  --_pad-e:var(--g-space-4);
+  --_wide:min(calc(var(--g-space-1) * 104), calc(100vw - var(--_m) * 2));
+  position:fixed;z-index:50;inset-inline:0;inset-block-start:calc(var(--_top) + var(--_m));
+  display:flex;flex-direction:column;align-items:center;pointer-events:none}
+/* Táctil: el resumen (la diana de la fila) mide 44 por dentro del borde */
+@media (pointer:coarse){html .isle[data-v]{--_row:calc(44px + var(--g-border-width) * 2)}}
+
+.d1{position:relative;inline-size:var(--_w);block-size:var(--_h);max-inline-size:calc(100vw - var(--_m) * 2);overflow:clip;pointer-events:auto;isolation:isolate;
+  border:var(--g-border-width) solid transparent;border-radius:calc(var(--_row) / 2);background:var(--_fill);color:var(--_ink);
+  font-size:var(--g-text-body-sm-size);line-height:var(--g-text-body-sm-line)}
+.d1[hidden]{display:none}
+.d1__inner{inline-size:max-content;max-inline-size:calc(100vw - var(--_m) * 2 - var(--g-border-width) * 2);display:flex;flex-direction:column}
+.d1.is-peek .d1__inner,.d1.is-list .d1__inner{inline-size:calc(var(--_wide) - var(--g-border-width) * 2)}
+/* La lista nunca pasa del visor: desplaza por dentro (el alto medido es el del interior ya acotado) */
+.d1.is-list .d1__inner{max-block-size:calc(100dvh - var(--_top) - var(--_m) * 2);overflow-y:auto;overscroll-behavior:contain}
+.d1__row{display:flex;align-items:center;gap:var(--_gap);min-block-size:calc(var(--_row) - var(--g-border-width) * 2);padding-block:0;padding-inline:calc(var(--_pad-s) - var(--g-border-width)) var(--_pad-e)}
+.d1__summary{font:inherit;color:inherit;background:none;border:0;display:flex;align-items:center;gap:var(--_gap);min-inline-size:0;flex:1;cursor:pointer;text-align:start;
+  min-block-size:24px;align-self:stretch;border-radius:calc(var(--_row) / 2);
+  /* el resumen ocupa todo el alto de la fila (diana) y deja aire al anillo de foco sin mover la insignia */
+  padding-block:0;padding-inline:var(--g-space-1);margin-inline:calc(var(--g-space-1) * -1)}
+.d1__text{min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:var(--g-text-title-sm-weight);letter-spacing:var(--g-text-body-sm-tracking)}
+.d1.is-peek .d1__text,.d1.is-list .d1__text{white-space:normal}
+/* «+N» y el chevrón: un solo grupo al final, como el elemento final de la isla */
+.d1__tail{display:inline-flex;align-items:center;gap:var(--g-space-1);flex:none;margin-inline-start:var(--g-space-1);color:var(--_muted)}
+.d1__count{display:inline-flex;align-items:center;min-block-size:calc(var(--g-space-1) * 5);padding-inline:var(--g-space-2);border-radius:var(--g-radius-pill);
+  font-size:var(--g-text-caption-size);line-height:var(--g-text-caption-line);font-weight:var(--g-text-title-sm-weight);font-variant-numeric:tabular-nums;white-space:nowrap;
+  background:var(--_chip);color:var(--_chip-ink);box-shadow:inset 0 0 0 var(--g-border-width) var(--_chip-edge)}
+.d1__chev{display:inline-grid;place-items:center;font-size:calc(var(--g-space-1) * 4)}
+.d1__chev .g-icon{transition:rotate var(--g-duration-slow) var(--g-ease-spring)}
+.d1.is-peek .d1__chev .g-icon{rotate:180deg}
+/* Asomo y lista: la descripción y las acciones arrancan donde arranca el título (continuidad, no un panel aparte) */
+.d1__more{display:grid;gap:var(--g-space-3);padding-block:0 var(--g-space-3);padding-inline:calc(var(--_pad-s) - var(--g-border-width) + var(--_badge) + var(--_gap)) var(--_pad-e)}
+.d1.is-list .d1__more{gap:0;padding:0 0 var(--g-space-2)}
+.d1__more[hidden]{display:none}
+.d1__desc{margin:0;color:var(--_muted)}
+.d1__acts{display:flex;flex-wrap:wrap;align-items:center;gap:var(--g-space-1) var(--g-space-2)}
+
+/* Insignia: 24px; la variante decide disco o glifo. El anillo de tiempo la rodea a space × 1 */
+.badge{position:relative;display:inline-grid;place-items:center;flex:none;inline-size:var(--_badge);block-size:var(--_badge);border-radius:50%;font-size:var(--_glyph);
+  background:var(--_badge-bg);color:var(--_badge-ink)}
+.badge.is-busy .g-icon{animation:x-spin var(--g-duration-spin) linear infinite}
+@keyframes x-spin{to{rotate:1turn}}
+/* El anillo se pinta con un degradado cónico recortado a corona (no con stroke-dashoffset: Firefox descarta el calc() sin
+   unidades y lo dejaba siempre lleno). Arranca arriba, en el sentido del reloj; grosor = 2 bordes */
+.ring{position:absolute;inset:calc(var(--g-border-width) * -3);inline-size:calc(100% + var(--g-border-width) * 6);block-size:calc(100% + var(--g-border-width) * 6);pointer-events:none;
+  border-radius:50%;color:var(--_ring);
+  background:conic-gradient(var(--_ring) calc(var(--_left) * 1turn),var(--_ring-track) 0);
+  -webkit-mask:radial-gradient(closest-side,transparent calc(100% - var(--g-border-width) * 2),currentColor calc(100% - var(--g-border-width) * 2));
+  mask:radial-gradient(closest-side,transparent calc(100% - var(--g-border-width) * 2),currentColor calc(100% - var(--g-border-width) * 2))}
+.ring circle{display:none}
+.d1{--_left:1}
+/* Pausa a la vista: la pista del anillo se completa (el tiempo «se sostiene»); sin movimiento */
+.isle[data-paused=true] .ring{background:conic-gradient(var(--_ring) calc(var(--_left) * 1turn),var(--_ring-hold) 0)}
+
+/* Botones de la isla: la acción es una cápsula rellena de tinta; lo demás, texto */
+.ibtn{font:inherit;font-size:var(--g-text-body-sm-size);font-weight:var(--g-text-title-sm-weight);display:inline-flex;align-items:center;justify-content:center;gap:var(--g-space-1);
+  min-block-size:var(--g-space-8);min-inline-size:var(--g-space-8);padding-inline:var(--g-space-3);border:var(--g-border-width) solid transparent;border-radius:var(--g-radius-pill);
+  background:transparent;color:var(--_ink);cursor:pointer;white-space:nowrap;text-decoration:none}
+.ibtn:hover{background:var(--_veil)}
+.ibtn[data-do=act]{background:var(--_ink);color:var(--_on-ink)}
+.ibtn[data-do=act]:hover{background:var(--_ink-hover)}
+.ibtn--quiet{font-weight:var(--g-text-action-weight)}
+.ibtn--quiet[data-do=origin],.ibtn--quiet[data-do=link]{text-decoration:underline;text-decoration-thickness:var(--g-border-width);text-underline-offset:0.25em}
+.ibtn[aria-disabled=true]{cursor:progress}
+.ibtn--icon{padding-inline:0}
+.timer{display:inline-flex;align-items:center;min-block-size:calc(var(--g-space-1) * 5);padding-inline:var(--g-space-2);border-radius:var(--g-radius-pill);flex:none;
+  font-size:var(--g-text-caption-size);line-height:var(--g-text-caption-line);font-weight:var(--g-text-title-sm-weight);font-variant-numeric:tabular-nums;color:var(--_timer)}
+.isle :is(button,a,[tabindex]):focus-visible{outline:var(--g-focus-width) solid var(--_focus);outline-offset:calc(var(--g-focus-width) * -1)}
+.d1__summary:focus-visible{outline-offset:calc(var(--g-focus-width) * -1 - var(--g-border-width))}
+
+/* Lista «Pendiente»: renglones con separador fino (sin teselas): se lee como la isla abierta, no como un formulario */
+.list-head{display:flex;align-items:center;justify-content:flex-end;gap:var(--g-space-2);padding-block:var(--g-space-1);padding-inline:calc(var(--_pad-s) - var(--g-border-width) + var(--_badge) + var(--_gap)) var(--g-space-2);
+  font-size:var(--g-text-caption-size);line-height:var(--g-text-caption-line);font-weight:var(--g-text-caption-weight);color:var(--_muted)}
+/* «Pendiente» ya lo dice el resumen («Pendiente (N)») justo encima: el rótulo de la cabecera es un duplicado visual */
+.list-head > span[aria-hidden]{display:none}
+.items{display:grid;margin:0;padding:0;list-style:none}
+.item{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr);gap:var(--g-space-1) var(--_gap);align-items:start;padding-block:var(--g-space-3);padding-inline:calc(var(--_pad-s) - var(--g-border-width)) var(--_pad-e)}
+/* separador con sangría desde el texto, como una lista agrupada */
+.item + .item::before{content:"";position:absolute;inset-block-start:0;inset-inline:calc(var(--_pad-s) - var(--g-border-width) + var(--_badge) + var(--_gap)) 0;border-block-start:var(--g-border-width) solid var(--_hair)}
+.item > .badge{margin-block-start:calc((var(--g-text-body-sm-line) - var(--_badge)) / 2)}
+.item__title{margin:0;font-weight:var(--g-text-title-sm-weight)}
+.item__desc{margin:0;color:var(--_muted)}
+.item__actions{grid-column:2;display:flex;flex-wrap:wrap;align-items:center;gap:var(--g-space-1) var(--g-space-2);margin-block-start:var(--g-space-1)}
+.item .timer{padding-inline:0}
+
+/* Marca junto al origen (GStatusMark enlace): el mismo material que la isla, a escala de control */
+.mark{font:inherit;font-size:var(--g-text-body-sm-size);font-weight:var(--g-text-title-sm-weight);display:inline-flex;align-items:center;gap:var(--g-space-2);
+  min-block-size:var(--g-space-8);padding-block:0;padding-inline:calc((var(--g-space-8) - var(--_badge-m)) / 2 - var(--g-border-width)) var(--g-space-3);
+  border:var(--g-border-width) solid transparent;border-radius:var(--g-radius-pill);background:var(--_fill);color:var(--_ink);cursor:pointer;--_badge:var(--_badge-m)}
+.mark{--_badge-m:calc(var(--g-space-1) * 5);--_glyph:calc(var(--_badge-m) * 0.62)}
+.mark[hidden]{display:none}
+.mark:focus-visible{outline:var(--g-focus-width) solid var(--g-color-focus);outline-offset:var(--g-focus-offset)}
+.mark.is-echo{animation:x-echo calc(var(--g-duration-slow) * 3) var(--g-ease-out)}
+@keyframes x-echo{from{outline:var(--g-focus-width) solid var(--g-color-focus);outline-offset:0}to{outline:var(--g-focus-width) solid transparent;outline-offset:var(--g-space-2)}}
+@media (pointer:coarse){.ibtn,.mark{min-block-size:44px;min-inline-size:44px}}
+
+/* =====================================================================================================================
+   V1 · TINTA — superficie inversa opaca (#325, #692). Lo que cambia frente a D1 tal cual: fila de 40, título 14/600,
+   insignia de 24 (disco del tipo, sin contorno de estilo) con el anillo de tiempo en la tinta y su pista, sombra en dos
+   capas (cerca + lejos), filo de luz arriba y el «doble filo» del color de la página (lo separa de la zona de marca)
+   ===================================================================================================================== */
+.isle[data-v=V1],.mark[data-v=V1]{
+  --_fill:var(--g-color-text);--_ink:var(--g-color-surface);--_muted:var(--_ink);--_on-ink:var(--_fill);
+  --_ink-hover:color-mix(in oklab,var(--_ink) 86%,var(--_fill));
+  --_veil:color-mix(in oklab,var(--_ink) 14%,transparent);
+  --_hair:color-mix(in oklab,var(--_ink) 18%,transparent);
+  --_chip:transparent;--_chip-ink:var(--_ink);--_chip-edge:color-mix(in oklab,var(--_ink) 36%,transparent);
+  --_ring:var(--_ink);--_ring-track:color-mix(in oklab,var(--_ink) 18%,transparent);--_ring-hold:color-mix(in oklab,var(--_ink) 45%,transparent);
+  --_timer:var(--_ink);--_focus:var(--_ink)}
+:is(.isle,.mark)[data-v=V1] .badge{--_badge-bg:var(--_c);--_badge-ink:var(--_on)}
+.isle[data-v=V1] .d1{box-shadow:inset 0 var(--g-border-width) 0 var(--_hair),0 0 0 var(--g-border-width) var(--_page),var(--_sh-near),var(--_sh-far)}
+.mark[data-v=V1]{box-shadow:inset 0 var(--g-border-width) 0 var(--_hair),var(--g-shadow-1)}
+
+/* =====================================================================================================================
+   V2 · CRISTAL — el material del sistema (tokens.md §12): velo translúcido que desenfoca lo de detrás, filo luminoso
+   arriba, brillo especular y sombra en dos capas. Se adapta: blanco esmerilado en claro, grafito en oscuro. Toda la tinta
+   es --g-color-text (la única garantizada sobre el peor fondo del cristal, §12); la delimitación la da un hilo de
+   --g-color-border-control (≥ 3:1 con la página). Insignia en el tono suave del tipo (par garantizado)
+   ===================================================================================================================== */
+.isle[data-v^=V2]{--_row:calc(var(--g-space-1) * 11)}
+.isle[data-v^=V2],.mark[data-v^=V2]{
+  --_fill:color-mix(in srgb,var(--g-glass-tint) calc(var(--g-glass-opacity) * 100%),transparent);
+  --_ink:var(--g-color-text);--_muted:var(--_ink);--_on-ink:var(--g-color-surface);
+  --_ink-hover:color-mix(in oklab,var(--_ink) 86%,var(--g-color-surface));
+  --_veil:color-mix(in oklab,var(--_ink) 10%,transparent);
+  --_hair:var(--g-color-border);
+  --_chip:var(--g-color-surface);--_chip-ink:var(--_ink);--_chip-edge:var(--g-color-border);
+  --_ring:var(--_ink);--_ring-track:color-mix(in oklab,var(--_ink) 14%,transparent);--_ring-hold:color-mix(in oklab,var(--_ink) 40%,transparent);
+  --_timer:var(--_ink);--_focus:var(--_ink)}
+:is(.isle,.mark)[data-v^=V2] .badge{--_badge-bg:var(--_soft);--_badge-ink:var(--_on-soft)}
+.isle[data-v^=V2] .d1,.mark[data-v^=V2]{-webkit-backdrop-filter:var(--g-glass-filter);backdrop-filter:var(--g-glass-filter)}
+.isle[data-v^=V2] .d1{box-shadow:inset 0 var(--g-border-width) 0 var(--g-glass-edge),0 0 0 var(--g-border-width) var(--g-color-border-control),var(--_sh-near),var(--_sh-far)}
+.isle[data-v^=V2] .d1::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;background:linear-gradient(180deg,var(--g-glass-sheen),transparent 55%);pointer-events:none}
+.mark[data-v^=V2]{box-shadow:inset 0 var(--g-border-width) 0 var(--g-glass-edge),0 0 0 var(--g-border-width) var(--g-color-border-control)}
+
+/* =====================================================================================================================
+   V2C · CRISTAL CORREGIDA (reporte del usuario: «en la versión en blanco se pierde»). Solo cambia el CLARO: cada valor va
+   en light-dark(claro, oscuro) y la rama oscura es exactamente la de V2. light-dark() sigue a color-scheme, que fija
+   defaults.css en cada esquema (light en :root, dark en la consulta y en [data-theme="dark"]). En claro:
+   - material esmerilado (el tinte del cristal con un 8 % de la tinta) en vez de blanco sobre blanco;
+   - el hilo de control con un 30 % de la tinta (≈ 4,5:1 frente a la página en vez de 3,45:1): el borde se ve como borde;
+   - una capa de sombra propia, solo en claro (desplazamiento y difuminado de space, color la tinta al 12 %): la cápsula
+     flota sobre el blanco; en oscuro esa capa es transparente;
+   - insignia con el disco pleno del tipo (el tono suave desaparecía sobre el cristal blanco: 1,1:1);
+   - un segundo filo exterior con la tinta de la zona al 75 % (blanco sobre blanco en la página; separa de una cabecera
+     de marca, donde V2 caía a 1,79:1);
+   - el hilo de control sigue siendo el que delimita frente a la página (≥ 3:1)
+   ===================================================================================================================== */
+.isle[data-v=V2C],.mark[data-v=V2C]{
+  --_fill:light-dark(color-mix(in srgb,color-mix(in oklab,var(--g-glass-tint),var(--g-color-text) 8%) calc(var(--g-glass-opacity) * 100%),transparent),color-mix(in srgb,var(--g-glass-tint) calc(var(--g-glass-opacity) * 100%),transparent));
+  --_rim:light-dark(color-mix(in oklab,var(--g-color-border-control),var(--g-color-text) 30%),var(--g-color-border-control));
+  --_lift:light-dark(color-mix(in srgb,var(--g-color-text) 12%,transparent),transparent);
+  --_zone-ring:light-dark(color-mix(in srgb,var(--g-color-on-brand-zone) 75%,transparent),transparent)}
+:is(.isle,.mark)[data-v=V2C] .badge{--_badge-bg:light-dark(var(--_c),var(--_soft));--_badge-ink:light-dark(var(--_on),var(--_on-soft))}
+.isle[data-v=V2C] .d1{box-shadow:inset 0 var(--g-border-width) 0 var(--g-glass-edge),0 0 0 var(--g-border-width) var(--_rim),0 0 0 calc(var(--g-border-width) * 2) var(--_zone-ring),
+  0 var(--g-space-2) var(--g-space-6) calc(var(--g-space-2) * -1) var(--_lift),var(--_sh-near),var(--_sh-far)}
+.mark[data-v=V2C]{box-shadow:inset 0 var(--g-border-width) 0 var(--g-glass-edge),0 0 0 var(--g-border-width) var(--_rim)}
+
+/* =====================================================================================================================
+   V3 · OBSIDIANA — la isla profunda en claro y en oscuro (la isla dinámica). La cápsula lleva data-g-zone="brand": dentro,
+   superficie, tinta, tinta secundaria, semánticos -text, acento y foco son los de la zona (contraste ≥ 4,5:1 por la
+   guarda del CLI, §44). Glifo del tipo en color, sin disco; el anillo de tiempo en el color del tipo. Fila de 36 (más
+   baja, como la isla de referencia). Delimitación: hilo interior (borde de control de la página con un 25 % de su tinta:
+   apagado en claro, luminoso en oscuro) + doble filo del color de la página. Sombras de la página, no las de la zona
+   ===================================================================================================================== */
+.isle[data-v=V3]{--_row:calc(var(--g-space-1) * 9)}
+.isle[data-v=V3] .d1,.mark[data-v=V3]{
+  --_fill:var(--g-color-surface);--_ink:var(--g-color-text);--_muted:var(--g-color-text-muted);--_on-ink:var(--g-color-on-primary);
+  --_ink-hover:var(--g-color-primary-strong);
+  --_veil:var(--g-color-border);
+  --_hair:var(--g-color-border);
+  --_chip:var(--g-color-neutral-soft);--_chip-ink:var(--g-color-on-neutral-soft);--_chip-edge:transparent;
+  --_timer:var(--g-color-warning-text);--_focus:var(--g-color-focus);
+  /* Filo exterior: la tinta de la zona (fuente on-brand-zone, ≥ 4,5:1 frente a la zona por la guarda del CLI). La
+     cápsula ES una zona: frente a una cabecera de la misma zona solo la separa su propia tinta. En claro, por defecto,
+     es blanco sobre blanco (no se ve); al 75 % es un hilo de luz en oscuro, no un contorno (≥ 3:1 medido en 24 casos) */
+  --_zone-ink:color-mix(in srgb,var(--g-color-on-brand-zone) 75%,transparent)}
+/* El tipo en color sobre la zona: glifo y anillo con --g-color-{tipo}-text de la zona (on-brand-{tipo}), declarados en la
+   insignia, que es la que lleva data-type */
+:is(.isle,.mark)[data-v=V3] .badge{--_badge-bg:transparent;--_badge-ink:var(--_tx);--_ring:var(--_tx);
+  --_ring-track:color-mix(in oklab,var(--_tx) 26%,transparent);--_ring-hold:color-mix(in oklab,var(--_tx) 55%,transparent)}
+/* Sin disco, el anillo ES el borde de la insignia (glifo dentro de su anillo); en la lista y en la marca, el glifo solo */
+:is(.isle,.mark)[data-v=V3] .badge:not(:has(.ring)){font-size:calc(var(--_badge) * 0.8)}
+.isle[data-v=V3] .ring{inset:0;inline-size:100%;block-size:100%}
+.isle[data-v=V3] .d1{box-shadow:0 0 0 var(--g-border-width) var(--_zone-ink),var(--_sh-near),var(--_sh-far)}
+.mark[data-v=V3]{--_zone-ink:color-mix(in srgb,var(--g-color-on-brand-zone) 75%,transparent);box-shadow:0 0 0 var(--g-border-width) var(--_zone-ink)}
+
+/* =====================================================================================================================
+   Movimiento: el de kiwi (§6.3), sin cambios. Tamaño entre px medidos ANTES de mostrar; caer y subir
+   ===================================================================================================================== */
+.isle.is-ready .d1{transition:inline-size var(--g-duration-slow) var(--g-ease-spring),block-size var(--g-duration-slow) var(--g-ease-spring),border-radius var(--g-duration-slow) var(--g-ease-out)}
+.isle.is-ready .d1.is-leaving{transition:inline-size var(--g-duration-slow) var(--g-ease-out),block-size var(--g-duration-slow) var(--g-ease-out)}
+.isle.no-tr .d1,.isle.no-tr .d1__inner{transition:none !important}
+.d1__inner{transition:opacity var(--g-duration-press) var(--g-ease-out)}
+.d1.is-veiled .d1__inner{opacity:0;transition:opacity var(--g-duration-fast) var(--g-ease-standard)}
+.d1.is-in{animation:x-fall var(--g-duration-slow) var(--g-ease-out)}
+.d1.is-out{animation:x-rise var(--g-duration-slow) var(--g-ease-standard) forwards}
+.roll{display:block;animation:x-roll var(--g-duration-slow) var(--g-ease-out)}
+@keyframes x-roll{from{translate:0 60%;opacity:0}}
+@keyframes x-fall{from{translate:0 calc(-100% - var(--_m));scale:0.9;opacity:0}}
+@keyframes x-rise{to{translate:0 calc(-100% - var(--_m));scale:0.9;opacity:0}}
+@keyframes x-fade{from{opacity:0}}
+@keyframes x-fadeout{to{opacity:0}}
+
+@media (prefers-reduced-motion:reduce){
+  .isle.is-ready .d1,.isle.is-ready .d1.is-leaving{transition:opacity var(--g-duration-fast) var(--g-ease-standard)}
+  .d1.is-in{animation:x-fade var(--g-duration-fast) var(--g-ease-standard)}
+  .d1.is-out{animation:x-fadeout var(--g-duration-fast) var(--g-ease-standard) forwards}
+  .roll,.mark.is-echo,.badge.is-busy .g-icon{animation:none}
+  .d1__chev .g-icon{transition:none}
+}
+@media (forced-colors:active){
+  .d1,.mark{border-color:CanvasText}
+  .badge{outline:var(--g-border-width) solid CanvasText}
+  .ring,.isle[data-paused=true] .ring{background:conic-gradient(CanvasText calc(var(--_left) * 1turn),transparent 0)}
+  .ibtn[data-do=act]{border-color:ButtonText}
+  .d1::before{display:none}
+}
+
+/* =====================================================================================================================
+   Galería (?vista=galeria | comparativa): los mismos nodos, quietos, sobre tres fondos para las capturas
+   ===================================================================================================================== */
+.gal{display:none;padding:var(--g-space-6) var(--g-space-4);gap:var(--g-space-6)}
+html[data-vista] .gal{display:grid}
+html[data-vista] .sh-bar,html[data-vista] main,html[data-vista] #isle{display:none}
+.gal h2{margin:0;font-size:var(--g-text-title-sm-size);line-height:var(--g-text-title-sm-line)}
+.gal h3{margin:0 0 var(--g-space-3);font-size:var(--g-text-body-sm-size);font-weight:var(--g-text-title-sm-weight);color:var(--g-color-text-muted)}
+.gal__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,calc(var(--g-space-1) * 112)),1fr));gap:var(--g-space-4)}
+.gal__panel{position:relative;padding:var(--g-space-6) var(--g-space-4);border-radius:var(--g-radius-lg);min-inline-size:0;overflow:hidden}
+.gal__panel--page{background:var(--g-color-bg);border:var(--g-border-width) dashed var(--g-color-border-strong)}
+.gal__bg{position:absolute;inset:0;z-index:0}
+.gal__bg--table{background:var(--g-color-surface);border:var(--g-border-width) solid var(--g-color-border);border-radius:inherit;padding:var(--g-space-4)}
+.gal__bg--zone{border-radius:inherit}
+.gal__bg .x-table td,.gal__bg .x-table th{white-space:nowrap}
+.gal__stack{position:relative;z-index:1;display:grid;gap:var(--g-space-4);justify-items:center}
+.gal__cap{display:grid;gap:var(--g-space-1);justify-items:center}
+.gal__cap > span{font-size:var(--g-text-caption-size);line-height:var(--g-text-caption-line);color:var(--g-color-text-muted)}
+.gal__panel--zone .gal__cap > span,.gal__panel--table .gal__cap > span{padding-inline:var(--g-space-2);border-radius:var(--g-radius-pill);background:var(--g-color-bg);color:var(--g-color-text-muted)}
+.isle.isle--static{position:relative;inset:auto;z-index:auto;pointer-events:auto}
+.gal .d1.is-focus-demo .d1__summary{outline:var(--g-focus-width) solid var(--_focus);outline-offset:calc(var(--g-focus-width) * -1 - var(--g-border-width))}
+.gal__cmp{display:grid;grid-template-columns:repeat(var(--_cols),minmax(calc(var(--g-space-1) * 112),1fr));gap:var(--g-space-4)}
+@media (max-width:900px){.gal__cmp{grid-template-columns:1fr}}
+.gal__col{display:grid;gap:var(--g-space-4);align-content:start}
+.gal__col > h3{text-align:center;margin:0}
+</style>
+</head>
+<body>
+<header class="sh-bar" id="hdr" data-g-zone="brand">
+  <span class="sh-brand">Facturación</span>
+  <nav class="sh-pick" aria-label="Variante">
+    <a href="?v=V1" id="pick-V1">V1 · Tinta</a><a href="?v=V2" id="pick-V2">V2 · Cristal</a><a href="?v=V2C" id="pick-V2C">V2C · Cristal corregida</a><a href="?v=V3" id="pick-V3">V3 · Obsidiana</a><a href="#" id="pick-theme">Tema</a><a href="#" id="pick-gal">Galería</a>
+  </nav>
+</header>
+<main>
+  <h1 id="ref-h1">Facturas</h1>
+  <p class="lead" id="lead"></p>
+  <section class="card-p" id="form-card">
+    <h2>Nueva factura</h2>
+    <form id="form" aria-label="Factura" onsubmit="return false">
+      <div class="x-field"><label for="cliente">Cliente</label><input id="cliente" value="Clínica Norte"></div>
+      <div class="x-actions" id="actions">
+        <button type="button" class="mark" id="mark-save" hidden></button>
+        <button type="submit" class="btn btn--solid" id="save">Guardar</button>
+      </div>
+    </form>
+  </section>
+  <section class="card-p" id="ref-table" aria-label="Últimas facturas">
+    <h2>Últimas facturas</h2>
+    <table class="x-table"><thead><tr><th>Folio</th><th>Cliente</th><th>Total</th></tr></thead>
+      <tbody><tr id="ref-row1"><td>F-0040</td><td>Clínica Norte</td><td>$1,200</td></tr><tr><td>F-0041</td><td>Laboratorio Sur</td><td>$860</td></tr></tbody></table>
+  </section>
+  <div class="sim" id="sim">
+    <strong>Simular (la aplicación)</strong>
+    <label><input type="checkbox" id="fails" checked> El servidor falla al guardar</label>
+    <button class="btn btn--sm" id="s-offline">Sin conexión</button>
+    <button class="btn btn--sm" id="s-online">Vuelve la conexión</button>
+    <button class="btn btn--sm" id="s-maint">Mantenimiento</button>
+    <button class="btn btn--sm" id="s-session">Sesión por caducar</button>
+    <button class="btn btn--sm" id="s-three">Tres a la vez</button>
+    <button class="btn btn--sm" id="s-clear">Quitar todas</button>
+  </div>
+  <p class="note" id="explain"></p>
+</main>
+<div class="isle" id="isle" data-form="empty">
+  <section class="isle__region" id="region" aria-label="Estado de la aplicación (Alt+F8)"></section>
+</div>
+<div class="gal" id="gal"></div>
+<script src="../../lucide-icons.js"></script>
+<script src="./base.js"></script>
+<script src="./estilo-banco.js"></script>
+</body>
+</html>
