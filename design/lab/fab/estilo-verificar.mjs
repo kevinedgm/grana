@@ -14,7 +14,7 @@
 // Acuse en el elemento (#669): en curso sin tachado ni aspecto de deshabilitada, fallo con el motivo en danger-text.
 // Remates de #677 y #678: la fila armada conserva su ancho con --_armed-w (nada se mueve al armar); junta de C con una sola
 // línea (reposo, hover y active, con marca pálida, RTL y forzados; contorno exterior entero); single y principal
-// deshabilitadas conservan el contorno con shadow-1 y cursor de no disponible; --_minh exacto: la sombra de la pila no asoma
+// deshabilitadas con el aspecto de GBtn deshabilitado y contorno border-control (#686); --_minh exacto: la sombra de la pila no asoma
 // por el lado lejano del panel que la cubre (lo del lado del FAB y la pila más ancha que el panel, medido como nota).
 // Ejecutar desde la raíz del repo (requiere dist/):  GRANA_PW_PORT=4214 node design/lab/fab/estilo-verificar.mjs
 // Opcional: --engines=chromium,firefox,webkit  --themes=all|base (por defecto: todos en Chromium, base en Firefox y WebKit)  --verbose
@@ -70,7 +70,7 @@ const track = (k, v) => { if (!(k in mins) || v < mins[k].v) mins[k] = { v } }
   ok(!vars.some((v) => /^--g-color-(on-)?brand/.test(v)), 'CSS: lee --g-color-brand* (roles.test.js: primary)')
   // Tokens de color: los de tokens.md §47 (con los bordes -text de las insignias de #673) y primary (relleno de partida del
   // panel de C, en la lista de la zona §44.5). primary-text ya no: el contorno del FAB lo pinta GBtn solid (#672, #678)
-  const allowed = ['--g-color-surface', '--g-color-surface-sunken', '--g-color-border', '--g-color-border-control', '--g-color-text', '--g-color-text-muted', '--g-color-text-subtle', '--g-color-danger-text', '--g-color-danger', '--g-color-on-danger', '--g-color-success', '--g-color-success-text', '--g-color-on-success', '--g-color-focus', '--g-surface-backdrop', '--g-color-primary']
+  const allowed = ['--g-color-surface', '--g-color-surface-sunken', '--g-color-border', '--g-color-border-control', '--g-color-text', '--g-color-text-muted', '--g-color-text-subtle', '--g-color-danger-text', '--g-color-danger', '--g-color-on-danger', '--g-color-success', '--g-color-success-text', '--g-color-on-success', '--g-color-focus', '--g-surface-backdrop', '--g-color-primary', '--g-color-neutral-soft']
   const colors = [...new Set(vars.filter((v) => v.startsWith('--g-color') || v.startsWith('--g-surface')))]
   ok(colors.every((v) => allowed.includes(v)), 'CSS: tokens de color fuera de la lista: ' + colors.filter((v) => !allowed.includes(v)))
   note(`[estático] tokens de color leídos: ${colors.join(', ')}`)
@@ -288,19 +288,27 @@ for (const engine of ENGINES) {
       ok(!r.errs.length, `${P} consola limpia: ${r.errs}`)
       await r.ctx.close()
     }
-    // Deshabilitadas (#678 (3)): single y principal de C conservan el contorno; single baja a shadow-1; las dos, cursor de no
-    // disponible. Medido como nota: relleno, contorno e icono iguales a los de la habilitada (pregunta 12)
+    // Deshabilitadas (#686): single y principal de C con el aspecto de GBtn deshabilitado (neutral-soft, text-subtle) con
+    // contorno border-control (≥ 3:1 frente a la página); single en shadow-1; cursor de no disponible; pasar y apretar no
+    // cambian nada (ni escala). El grupo de C conserva su elevación (la cola sigue habilitada)
     const sOn = await open(browser, 'scene=single&theme=lustre')
-    const on = await sOn.page.evaluate(() => { const b = document.querySelector('.g-fab > button'), cs = getComputedStyle(b); return { sh: cs.boxShadow, bg: cs.backgroundColor, bc: cs.borderTopColor, fg: cs.color } })
+    const on = await sOn.page.evaluate(() => ({ sh: getComputedStyle(document.querySelector('.g-fab > button')).boxShadow }))
     await sOn.ctx.close()
-    for (const q of ['scene=single&off=1&theme=lustre', 'scene=single&off=1', 'scene=c&off=1&theme=lustre']) {
+    for (const q of ['scene=single&off=1&theme=lustre', 'scene=single&off=1', 'scene=c&off=1&theme=lustre', 'scene=single&off=1&dark=1', 'scene=c&off=1&zone=1']) {
       const r = await open(browser, q)
       const P = `${E}[deshabilitada·${q.replace(/scene=|&off=1|theme=/g, '')}]`
-      const v = await r.page.evaluate(() => { const b = document.querySelector('.g-fab__main') || document.querySelector('.g-fab > button'), cs = getComputedStyle(b); const edge = __c.tok(b, '--g-color-primary-text').join(); return { dis: b.getAttribute('aria-disabled'), edge: [cs.borderTopColor, cs.borderBottomColor].every((x) => __c.rgba(x).join() === edge), sh: cs.boxShadow, grpSh: getComputedStyle(b.parentElement).boxShadow, cur: cs.cursor, bg: cs.backgroundColor, bc: cs.borderTopColor, fg: cs.color, edgeCr: __c.cr(__c.rgba(cs.borderTopColor), __c.bgOf(document.querySelector('main'))) } })
-      ok(v.dis === 'true' && v.edge && v.cur === 'not-allowed', `${P} aria-disabled, contorno primary-text conservado y cursor de no disponible: ${v.dis} ${v.edge} ${v.cur}`)
+      const read = () => r.page.evaluate(() => { const b = document.querySelector('.g-fab__main') || document.querySelector('.g-fab > button'), cs = getComputedStyle(b); const tk = (n) => __c.tok(b, n).join(), col = (x) => __c.rgba(x).join(); return { dis: b.getAttribute('aria-disabled'), bg: col(cs.backgroundColor) === tk('--g-color-neutral-soft'), fg: col(cs.color) === tk('--g-color-text-subtle'), edge: [cs.borderTopColor, cs.borderBottomColor].every((x) => col(x) === tk('--g-color-border-control')), raw: [cs.backgroundColor, cs.color, cs.borderTopColor, cs.transform].join(' / '), sh: cs.boxShadow, cur: cs.cursor, edgeCr: __c.cr(__c.rgba(cs.borderTopColor), __c.bgOf(document.querySelector('main'))) } })
+      const v = await read()
+      ok(v.dis === 'true' && v.bg && v.fg && v.edge && v.cur === 'not-allowed', `${P} neutral-soft, text-subtle, contorno border-control y cursor de no disponible: ${v.raw}`)
       ok(v.edgeCr >= 3, `${P} contorno ≥ 3:1 frente a la página: ${v.edgeCr.toFixed(2)}`)
-      if (/single/.test(q)) ok(v.sh !== on.sh && v.sh !== 'none', `${P} baja a shadow-1: ${v.sh}`)
-      if (/lustre/.test(q) && /single/.test(q)) note(`${P} relleno/contorno/icono iguales a la habilitada: ${v.bg === on.bg && v.bc === on.bc && v.fg === on.fg} (pregunta 12)`)
+      if (/single/.test(q)) ok(v.sh !== 'none' && v.sh !== on.sh, `${P} baja a shadow-1: ${v.sh}`)
+      const bx = await r.page.locator('.g-fab__main, .g-fab > button').first().boundingBox()
+      await r.page.mouse.move(bx.x + bx.width / 2, bx.y + bx.height / 2); await r.page.waitForTimeout(250)
+      const hv = await read()
+      await r.page.mouse.down(); await r.page.waitForTimeout(250)
+      const ac = await read()
+      await r.page.mouse.up(); await r.page.mouse.move(5, 5)
+      ok(hv.raw === v.raw && ac.raw === v.raw, `${P} al pasar y al apretar no cambia nada (ni escala): ${hv.raw} · ${ac.raw}`)
       ok(!r.errs.length, `${P} consola limpia: ${r.errs}`)
       await r.ctx.close()
     }

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GFab auditoría (coco)</title>
+<!-- Auditoría de coco (paso 5) de GFab sobre el COMPONENTE REAL: GFab de dist/fab.umd.js (entrada @grana/vue/fab, global
+     GranaFab) con GBtn, GTooltip, GIcon, GToaster y GDialog de dist/grana.umd.js, GStatusIsland de dist/status.umd.js, GPageHeader de dist/page-header.umd.js,
+     dist/grana.css (GFab.css dentro de @layer grana.components) y dist/fonts.css. No inyecta marcado: lo pinta GFab.vue.
+     Las acciones son las del playground (#sec-fab). El acuse lo da la «aplicación» con el ticket de select: por defecto
+     «Exportar CSV» acaba bien a los 600 ms y «Tomar foto» falla a los 400 ms; window.__b.plan cambia el plan por id
+     (busy, done, failed, ok:<ms>, fail:<ms>, none) y window.__b.tk guarda el último ticket de cada id.
+     Requiere dist/ (npm run build). Lo verifica: GRANA_PW_PORT=4214 node design/lab/fab/auditoria-verificar.mjs
+     Parámetros: ?n=1|3|6|10|15 (por defecto 6) · ?main=1 (C) · ?appearance=panel · ?pos=… (las seis) · ?anchor=container
+       ?rtl=1 · ?dark=1 · ?theme=audit (auditoria-tema.css, @grana/cli) | <generado de dark-color-presence> · ?zone=1
+       ?coarse=1 (is-coarse) · ?off=1 (la acción de single o la principal de C deshabilitada) · ?long=1 (etiqueta larga en la
+       primera) · ?text=2 (texto al 200 %) · ?slow=1 · ?toast=1 (un aviso persistente) · ?status=1 (una condición en la isla)
+       ?offset=<px> (offset del borde del FAB) · ?ph=1 (GPageHeader pegado con acciones: el zócalo arriba y, en estrecho, el muelle
+       abajo) -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style id="param-css"></style>
+<style>
+  /* Andamio del banco (la «aplicación», no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  .wrap{min-block-size:100vh}
+  main{max-inline-size:880px;margin:0 auto;padding:16px}
+  main p{max-inline-size:65ch;color:var(--g-color-text-muted)}
+  .row{display:flex;justify-content:space-between;gap:12px;padding:12px;border-block-end:1px solid var(--g-color-border);color:var(--g-color-text);text-decoration:none}
+  .row:focus-visible{outline:2px solid var(--g-color-focus);outline-offset:-2px}
+  .frame{position:relative;inline-size:720px;block-size:480px;max-inline-size:100%;border:1px solid var(--g-color-border-strong);border-radius:8px;overflow:hidden;background:var(--g-color-bg)}
+  .frame__scroll{position:absolute;inset:0;overflow:auto;padding:16px}
+  [v-cloak]{display:none}
+</style>
+</head>
+<body>
+<div id="app" v-cloak></div>
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../../packages/vue/dist/status.umd.js"></script>
+<script src="../../../packages/vue/dist/page-header.umd.js"></script>
+<script src="../../../packages/vue/dist/fab.umd.js"></script>
+<script src="../../../packages/vue/playground/lucide-icons.js"></script>
+<script>
+const Q = new URLSearchParams(location.search)
+const TH = Q.get('theme') || ''
+if (Q.get('dark') === '1') document.documentElement.dataset.theme = 'dark'
+if (Q.get('rtl') === '1') document.documentElement.dir = 'rtl'
+document.getElementById('gen').href = TH === 'audit' ? 'auditoria-tema.css' : TH ? '../tema-oscuro/dark-color-presence/generated/' + TH + '.css' : 'data:text/css,'
+document.getElementById('param-css').textContent =
+  (Q.get('text') === '2' ? 'html{font-size:200%}' : '') +
+  (Q.get('slow') === '1' ? ':root{--g-duration-press:800ms;--g-duration-fast:600ms;--g-duration-slow:1200ms}' : '')
+
+const { createApp, reactive, ref, computed, nextTick } = Vue
+const ALL = [
+  { id: 'sample', label: 'Nueva muestra', icon: 'pencil', description: 'Registro con código de barras' },
+  { id: 'photo', label: 'Tomar foto', icon: 'image' },
+  { id: 'note', label: 'Dictar nota', icon: 'message-circle' },
+  { id: 'upload', label: 'Subir archivo', icon: 'folder', description: 'PDF, imagen o CSV' },
+  { id: 'agenda', label: 'Programar toma', icon: 'calendar' },
+  { id: 'csv', label: 'Exportar CSV', icon: 'download', group: 'Exportar', description: 'Lo filtrado, en UTF-8' },
+  { id: 'print', label: 'Imprimir etiquetas', icon: 'inbox', group: 'Exportar' },
+  { id: 'share', label: 'Compartir lote', icon: 'share-2', group: 'Compartir', description: 'Con el equipo del laboratorio' },
+  { id: 'mail', label: 'Enviar por correo', icon: 'mail', group: 'Compartir' },
+  { id: 'tag', label: 'Etiquetar', icon: 'tag', group: 'Organizar' },
+  { id: 'move', label: 'Mover a carpeta', icon: 'folder', group: 'Organizar' },
+  { id: 'copy', label: 'Duplicar', icon: 'check', group: 'Organizar' },
+  { id: 'link', label: 'Copiar enlace', icon: 'globe', group: 'Compartir' },
+  { id: 'prefs', label: 'Preferencias', icon: 'settings', group: 'Mantenimiento', disabled: 'Solo para coordinación' },
+  { id: 'purge', label: 'Vaciar borradores', icon: 'trash', group: 'Mantenimiento', danger: true, confirm: '¿Vaciar los 12 borradores?', confirmLabel: 'Vaciar' }
+]
+const N = Number(Q.get('n')) || 6
+const LONG = Q.get('long') === '1'
+const OFF = Q.get('off') === '1'
+const MAIN = Q.get('main') === '1'
+const base = N === 3 ? [ALL[0], ALL[1], { ...ALL[14], group: undefined }] : N === 6 ? ALL.slice(0, 5).concat(ALL[14]) : ALL.slice(0, N)
+const items = ref(base.map((it, i) => ({ ...it, ...(LONG && i === 0 ? { label: 'Nueva muestra con código de barras del lote completo' } : {}), ...(OFF && i === 0 ? { disabled: 'Sin conexión' } : {}) })))
+const LABELS = { more: 'Más acciones ({count})', moreShort: 'Más acciones', cancel: 'Cancelar', findHint: 'Escribe para buscar', matches: '{count} acciones', matchesOne: '1 acción', none: 'Ninguna acción con', busy: 'En curso…', done: 'Hecho', failed: 'No se pudo' }
+const events = []
+const plan = reactive({ csv: 'ok:600', photo: 'fail:400' })
+const tk = {}
+const wait = (ms, ok, text) => new Promise((res, rej) => setTimeout(() => (ok ? res(text) : rej({ message: text })), ms))
+function onSelect(e) {
+  events.push({ type: 'select', id: e.id, retry: e.retry, t: performance.now() })
+  tk[e.id] = e
+  const p = plan[e.id] || 'none'
+  const [kind, ms] = p.split(':')
+  if (kind === 'ok') e.waitUntil(wait(Number(ms), true, e.id === 'csv' ? 'CSV exportado' : 'Hecho: ' + e.id))
+  else if (kind === 'fail') e.waitUntil(wait(Number(ms), false, e.id === 'photo' ? 'Sin conexión' : 'Falló: ' + e.id))
+  else if (kind === 'busy') e.busy(e.id === 'csv' ? 'Exportando…' : 'En curso: ' + e.id)
+  else if (kind === 'failed') e.failed(e.id === 'csv' ? 'No se pudo exportar' : 'Falló: ' + e.id)
+  else if (kind === 'done') e.done(e.id === 'csv' ? 'CSV exportado' : 'Hecho: ' + e.id)
+}
+const toaster = Grana.createToaster({ labels: { region: 'Notificaciones ({hotkey})', close: 'Cerrar notificación', types: { info: 'Información', success: 'Correcto', warning: 'Advertencia', error: 'Error', loading: 'En curso' }, repeated: '{count} veces', queued: '{count} más en espera', actionHint: 'Pulsa {hotkey} para {action}.' } })
+const status = GranaStatus.createStatus({ labels: { region: 'Estado de la aplicación ({hotkey})', summary: (n) => (n === 1 ? 'Estado: 1 aviso.' : 'Estado: ' + n + ' avisos.'), more: 'y {count} más', types: { info: 'Información', success: 'Correcto', warning: 'Advertencia', error: 'Error' }, acknowledge: 'Entendido', dismiss: 'Descartar: {title}', details: 'Detalle técnico', copy: 'Copiar', copied: 'Detalle copiado', remaining: 'Quedan {time}', sheetTitle: 'Estado de la aplicación', close: 'Cerrar' } })
+if (Q.get('status') === '1') status.info('maint', 'Mantenimiento programado esta noche', { description: 'De 23:00 a 23:30 no se podrá guardar.', dismissible: true })
+const st = reactive({ open: undefined, dialog: false })
+const off = Q.get('offset')
+const cfg = {
+  main: MAIN ? 'sample' : undefined,
+  appearance: Q.get('appearance') || 'auto',
+  position: Q.get('pos') || 'bottom-end',
+  anchor: Q.get('anchor') === 'container' ? 'container' : 'viewport',
+  coarse: Q.get('coarse') === '1',
+  zone: Q.get('zone') === '1',
+  offset: off ? (Q.get('pos') || 'bottom').startsWith('top') ? { top: off + 'px' } : { bottom: off + 'px' } : {}
+}
+window.__b = { events, plan, tk, items, st, toaster, status, cfg, ALL, LABELS }
+const app = createApp({
+  setup() {
+    const PARA = Array.from({ length: Q.get('ph') === '1' ? 40 : 14 }, (_, i) => i)
+    return { st, items, cfg, PARA, PH: Q.get('ph') === '1', LABELS, onSelect, ev: (type) => () => events.push({ type, t: performance.now() }) }
+  },
+  template: `
+  <div class="wrap" :data-g-zone="cfg.zone ? 'brand' : undefined">
+    <main id="main">
+      <g-page-header v-if="PH" id="ph" title="Lote 2026-0412" description="Muestras de entrada del laboratorio." :labels="{ actions: 'Acciones de la página' }">
+        <template #actions><g-btn id="ph-edit" variant="outline" color="neutral">Editar</g-btn><g-btn id="ph-primary">Validar lote</g-btn></template>
+      </g-page-header>
+      <h1 v-else>Muestras del lote 2026-0412</h1>
+      <p>Registro de entrada del laboratorio. Las acciones de crear y capturar van en el botón flotante.</p>
+      <p><g-btn id="open-dialog" variant="outline" color="neutral" @click="st.dialog = true">Abrir diálogo</g-btn></p>
+      <div v-if="cfg.anchor === 'container'" class="frame" id="frame"><div class="frame__scroll"><a v-for="i in PARA" :key="i" class="row" href="#followed"><span>Muestra M-{{ 100 + i }}</span><span>En análisis</span></a></div>
+        <g-fab id="fab" :class="{ 'is-coarse': cfg.coarse }" label="Crear y capturar" :items="items" :main="cfg.main" :appearance="cfg.appearance" :position="cfg.position" anchor="container" :offset="cfg.offset" :labels="LABELS" v-model="st.open" @select="onSelect" @open="ev('open')()" @closed="ev('closed')()" />
+      </div>
+      <a v-for="i in PARA" :key="'r' + i" class="row" href="#followed" :id="'row' + i"><span>Muestra M-{{ i }}</span><span>En análisis</span></a>
+      <label style="display:block;margin-block:16px">Nota <input id="field" style="inline-size:100%;min-block-size:44px"></label>
+      <a class="row" href="#followed" id="last"><span>Última fila</span><span>junto al borde</span></a>
+    </main>
+    <g-fab v-if="cfg.anchor === 'viewport'" id="fab" :class="{ 'is-coarse': cfg.coarse }" label="Crear y capturar" :items="items" :main="cfg.main" :appearance="cfg.appearance" :position="cfg.position" :offset="cfg.offset" :labels="LABELS" v-model="st.open" @select="onSelect" @open="ev('open')()" @closed="ev('closed')()" />
+    <g-dialog v-model="st.dialog" title="Diálogo de la aplicación" close-label="Cerrar">
+      <p>Un modal encima: el FAB queda inerte bajo el fondo.</p>
+      <template #footer="{ close }"><g-btn id="dlg-ok" @click="close()">Aceptar</g-btn></template>
+    </g-dialog>
+    <g-toaster></g-toaster>
+    <g-status-island></g-status-island>
+  </div>`
+})
+app.use(Grana).use(GranaPageHeader).use(GranaFab).use(Grana.createIcons(Object.values(window.LUCIDE_STATIC))).use(toaster).use(status)
+app.mount('#app')
+if (Q.get('toast') === '1') toaster.show({ title: 'Lote guardado', duration: Infinity })
+window.__ready = true
+</script>
+</body>
+</html>

@@ -108,14 +108,26 @@
 .g-fab__main-group {
   box-shadow: var(--g-shadow-2);
 }
-/* Deshabilitada (single o principal de C con aria-disabled, no en curso): conserva el contorno de GBtn (#678 (3)); baja a
-   shadow-1 y lleva el cursor de no disponible, como los elementos deshabilitados de la lista. Medido: el relleno, el
-   contorno y el icono son los de la habilitada (pregunta 12 de estilo.md) */
-.g-fab > .g-btn:is([aria-disabled="true"], .is-disabled, :disabled):not([data-ack="busy"]) {
-  box-shadow: var(--g-shadow-1);
+/* Deshabilitada (single o principal de C con aria-disabled, no en curso; #686): el aspecto de GBtn deshabilitado —relleno
+   neutral-soft, icono y etiqueta text-subtle— con contorno border-control (≥ 3:1 frente a la página: el FAB flota sobre
+   contenido arbitrario y es donde se lee el motivo) y shadow-1. Se escriben los alias de color de GBtn (los mismos en reposo,
+   hover y active: pasar y apretar no cambian nada) y se anula la escala al apretar (GBtn solo la quita con :disabled o
+   .is-disabled; el FAB usa aria-disabled porque sigue enfocable). En C la sombra es del grupo y se queda en shadow-2: la cola
+   sigue habilitada y el grupo es una sola forma. En curso (data-ack="busy") no entra (#669) */
+.g-fab > .g-btn:is([aria-disabled="true"], .is-disabled, :disabled):not([data-ack="busy"]),
+.g-fab__main-group > .g-fab__main[aria-disabled="true"]:not([data-ack="busy"]) {
+  --_bg: var(--g-color-neutral-soft);
+  --_fg: var(--g-color-text-subtle);
+  --_border: var(--g-color-border-control);
+  --_bg-hover: var(--g-color-neutral-soft);
+  --_fg-hover: var(--g-color-text-subtle);
+  --_border-hover: var(--g-color-border-control);
   cursor: not-allowed;
 }
-.g-fab__main[aria-disabled="true"]:not([data-ack="busy"]) { cursor: not-allowed; }
+.g-fab > .g-btn:is([aria-disabled="true"], .is-disabled, :disabled):not([data-ack="busy"]) { box-shadow: var(--g-shadow-1); }
+/* 0,6,0 como la regla de GBtn que aprieta (.g-btn:active:not(…) × 4) y después de ella en components.css */
+.g-fab.g-fab > .g-btn[aria-disabled="true"]:not([data-ack="busy"]):active,
+.g-fab__main-group > .g-fab__main.g-btn[aria-disabled="true"]:not([data-ack="busy"]):active { transform: none; }
 .g-fab > .g-btn[data-ack="busy"],
 .g-fab__main[data-ack="busy"] { cursor: progress; }
 .g-fab__main-group {
@@ -833,6 +845,13 @@
 @media (forced-colors: active) {
   .g-fab > .g-btn,
   .g-fab__main-group { box-shadow: none; }
+  /* Deshabilitada (#686), como GBtn deshabilitado: texto y borde en GrayText, también al pasar y al apretar (0,4,0 gana al
+     Highlight de .g-btn:hover/:active). Va antes de la junta: el borde final de la principal sigue en ButtonFace */
+  .g-fab > .g-btn[aria-disabled="true"]:not([data-ack="busy"]),
+  .g-fab__main-group > .g-fab__main[aria-disabled="true"]:not([data-ack="busy"]) {
+    color: GrayText;
+    border-color: GrayText;
+  }
   /* Junta de C con una sola línea también aquí (#678): el sistema convierte el transparente en ButtonText; ButtonFace es
      el fondo del botón y deja solo la costura de la cola */
   .g-fab__main-group > .g-btn:first-of-type:not(:last-of-type) { border-inline-end-color: ButtonFace; }
@@ -849,7 +868,10 @@
     outline: var(--g-focus-width) solid Highlight;
     outline-offset: calc(var(--g-focus-width) * -1);
   }
-  .g-fab__item[aria-disabled="true"] { color: GrayText; }
+  /* Deshabilitada no en curso, con su icono: GrayText. Con la especificidad de las reglas de color de fuera (0,3,0 y 0,5,0),
+     que van antes: si no, el sistema convertía su text-subtle en CanvasText (medido en la auditoría). En curso, CanvasText */
+  .g-fab__item[aria-disabled="true"]:not([data-ack="busy"]),
+  .g-fab__list .g-fab__item[aria-disabled="true"]:not([data-ack="busy"]) .g-fab__icon { color: GrayText; }
   .g-fab__item--danger,
   .g-fab__mark { color: LinkText; }
   .g-fab__list > .g-fab__find { border-block-end-color: CanvasText; }
