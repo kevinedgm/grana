@@ -53,6 +53,10 @@ Grana no quiere ser «otro framework genérico». Cada componente debe aportar *
 - **lima:** registra la decisión de personalidad del componente en `DECISIONS.md` para que no se pierda ni se reabra sin motivo.
 - La innovación **nunca** sacrifica accesibilidad, rendimiento ni el contrato de tokens; si una idea choca con eso, se anota como pendiente y se busca otra.
 
+## Auditoría visual y estructural (regla obligatoria del usuario, 2026-10-18)
+
+Antes de crear, modificar o implementar cualquier vista de gestión (CRUD, dashboard, tabla, lista, formulario) **o un componente de Grana que la compone**, se hace la auditoría previa de `docs/documentacion/auditoria-visual.md` (estructura, jerarquía, contraste y delimitación, espaciado, controles, tablas, formularios, estados de interfaz, consistencia con tokens y componentes existentes) y, después de implementar, la auditoría posterior (jerarquía, estados de interacción, carga/vacío/error, alineación, espaciado, contraste, consistencia). Nada «flota» sin relación visual con su sección; sin decoración indiscriminada; tokens y componentes existentes antes que valores nuevos. No se omite aunque la petición parezca sencilla, no se reconstruye sin comprobar si se reutiliza, no se sacrifica accesibilidad por estética, no se toca lo ajeno al alcance sin justificación y no se declara verificado lo que no se comprobó. **Todo encargo y todo informe cierran con «Cumplimientos / Correcciones / Pendientes»**: funcionar o compilar no es estar terminado, y cualquier límite de verificación queda explícito.
+
 ## Reglas que no se rompen
 
 - Los componentes solo leen `var(--g-*)` y alias locales `var(--_*)`. **Sin valores de respaldo** y sin literales de tema. Únicas medidas literales permitidas: `24px`, `44px` (área táctil) y el patrón de texto oculto accesible.
