@@ -518,7 +518,7 @@ Importar `@grana/vue` y `createStatus` no tocan `document`, `window` ni `navigat
 
 ## Límites conocidos (para el README)
 
-- **`Alt+F8` en Linux:** GNOME y Xfce lo reservan para redimensionar la ventana y no llega a la página (**conocido, no comprobado en esta ronda**). La isla se alcanza con Tab y con la marca; la aplicación puede cambiar `hotkey`.
+- **`Alt+F8` en Linux:** GNOME y Xfce lo reservan para redimensionar la ventana y no llega a la página (**límite de alcance documentado, #692**, no una verificación pendiente). La isla se alcanza con Tab y con la marca; la aplicación lo cambia con `hotkey` (p. ej. `Alt+Shift+F8`) y el README lo dice. Comprobarlo en un escritorio Linux real queda en «solo entorno real».
 - **La isla replegada puede tapar por completo un control pequeño** situado bajo ella (p. ej. un buscador centrado en la cabecera): no cambia de borde (un elemento persistente no salta). Se evita con `position` u `offset`; aviso de desarrollo 13. WCAG 2.4.11 solo se garantiza para la isla **abierta**.
 - **Orden de capa:** en la capa superior manda el último `showPopover()`. Montar `GStatusIsland` después de `GToaster` y `GSpeechHost`. La isla abierta y el panel de voz abierto (los dos bajo `top-center`) pueden solaparse cuando se abren con teclado; con puntero, pulsar en uno cierra el otro.
 - El reconocimiento no sobrevive a una recarga. No hay historial.
@@ -542,12 +542,12 @@ Importar `@grana/vue` y `createStatus` no tocan `document`, `window` ni `navigat
   - Avisos de desarrollo; `check-icons.mjs`; `levels.test.js`. Compuerta nueva: `grep -q "g-status-island__shape" packages/vue/dist/grana.css`.
 - **coco** (auditoría con un tema distinto): texto ≥ 4.5:1 y insignia, borde y foco ≥ 3:1 sobre la superficie inversa, en claro y oscuro y **por tipo** (kiwi solo midió `error` y `warning`); tipo reconocible sin color; `forced-colors`; 24/44px (también en punto); 320px sin desplazamiento horizontal; RTL; zoom 200 % y 400 %; movimiento reducido (0 animaciones en curso); más de 6 condiciones y desplazamiento del panel; rebase del muelle medido.
 - **`GForm` (#326):** spec propio `tests/form-blur-click.spec.mjs`.
-- **No verificado y pendiente (entorno real):** lector de pantalla (nombre del resumen al cambiar, canales tras el traslado, `role="timer"`, `Alt+F8` con lector y en teclados sin fila de función); Safari y táctil reales; `forced-colors` real; convivencia real con la voz (especificada, no prototipada); el atajo en Linux.
+- **No verificado y pendiente (entorno real):** lector de pantalla (nombre del resumen al cambiar, canales tras el traslado, `role="timer"`, `Alt+F8` con lector y en teclados sin fila de función); Safari y táctil reales; `forced-colors` real; convivencia real con la voz (especificada, no prototipada); el atajo en un escritorio Linux real (límite de alcance, #692).
 
-## Para confirmar con el usuario
+## Decididas (el usuario delegó: «decide tú», #692)
 
-1. **Color de la isla:** superficie inversa (`text`/`surface`) en vez de `brand`/`on-brand` del prototipo. Con el tema por defecto se ve igual (casi negro); con un `brand` de color, la isla **no** se tiñe de marca. Deriva de la regla «un solo sólido de `brand` por vista» (#325).
-2. **`Alt+F8`** se mantiene pese al límite en Linux (#321). Alternativa si se prefiere: `Alt+Shift+F8`.
+1. **Color de la isla:** superficie inversa (`text`/`surface`) en vez de `brand`/`on-brand` del prototipo. Con el tema por defecto se ve igual (casi negro); con un `brand` de color, la isla **no** se tiñe de marca. Deriva de la regla «un solo sólido de `brand` por vista» (#325). **Ratificada en #692**: región persistente y neutra que no compite con la marca, contraste garantizado por el par texto/superficie en cualquier tema, y se separa de una cabecera en zona de marca.
+2. **`Alt+F8`** se mantiene (#321); en GNOME y Xfce el gestor de ventanas lo reserva y es límite de alcance, no pendiente (#692). La aplicación usa `hotkey` (p. ej. `Alt+Shift+F8`).
 
 ## Fuera de v0.1
 

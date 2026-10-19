@@ -461,7 +461,10 @@ Con prefijo `[Grana Status]`, una vez por caso, solo fuera de producción: `set`
 
 - **No verificado:** lector de pantalla real (nombre del resumen al cambiar, canales tras el traslado al modal, `role="timer"`, `Alt+F8` con lector y en teclados sin fila de función), **Safari real**, **táctil real** (en Firefox y WebKit `pointer: coarse` no se emula), **`forced-colors` real** (solo emulado en Chromium), **zoom real del navegador** (aproximado con visor reducido y DPR), `Alt+F8` en escritorios Linux, y el aviso de desarrollo del tapado en navegador (la UMD no tiene avisos).
 
-- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): `Alt+F8` en escritorios Linux (GNOME y Xfce lo reservan; alternativa `Alt+Shift+F8`, sin comprobar) y el color de superficie inversa en vez de `brand` (#325), pendiente de que el usuario lo vea con un tema de color (usuario / lima).
+- **Superficie inversa ratificada (DECISIONS #692, cierra el «a la vista del usuario» de #325):** la isla y su marca siguen con fondo `--g-color-text` y texto `--g-color-surface`, no `brand`/`on-brand`: una región persistente y neutra no compite con la marca, el par texto/superficie garantiza el contraste con cualquier tema del CLI en claro y oscuro, y sobre una cabecera en `data-g-zone="brand"` una isla del color de la marca se fundiría con la zona. El color del tipo sigue en las insignias.
+- **`Alt+F8` en GNOME y Xfce** lo reserva el gestor de ventanas (límite de alcance, #692): cambia el atajo con `hotkey` (p. ej. `Alt+Shift+F8`). Comprobarlo en un escritorio Linux real queda como entorno real.
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 

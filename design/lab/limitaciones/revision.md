@@ -148,7 +148,7 @@ El usuario pidió cerrar todos los pendientes que la segunda pasada dejó en las
 | `GAccordion` #519 | #683 + #685 (`overflow-anchor: none` temporal, restaurado) | bruno `utils/collapse.js` | `accordion.spec` `scrollTo`: 288 px deshechos → 0; `collapse.test.js` |
 | Cuadro largo de `GFormReveal` | — | bruno `revealGap.js` (lectura por lotes) | 128 → 59 ms abrir, 110 → 55 cerrar (Chromium) |
 
-**Quedan, y por qué:** `GStatusIsland` (`Alt+F8` en GNOME/Xfce exige ese escritorio; la superficie inversa #325 espera que el usuario la vea con un tema de color); `GTable` Meta+clic en WebKit (`table-rows.spec.mjs:141`, fallo previo del motor de Playwright, sin Safari real); todo lo de entorno real de «Verificación».
+**Quedan, y por qué:** `GStatusIsland` cerrado después (#692: el usuario delegó la decisión; la superficie inversa se queda —no compite con la marca, contraste garantizado por el par texto/superficie, se separa de la zona de marca— y `Alt+F8` en GNOME/Xfce pasa a límite de alcance con `hotkey`); `GTable` Meta+clic en WebKit (`table-rows.spec.mjs:141`, fallo previo del motor de Playwright, sin Safari real); todo lo de entorno real de «Verificación».
 
 **Avisos del lote** (no son de estos pendientes): verificadores de estilo con fallos previos a esta tanda —`tooltip/estilo` (4 de #383 por el `contain-intrinsic` de #562), `slider/estilo` «solo lectura cambia al pasar», `file-field/estilo` (el banco nunca marca `[data-ready]`), `radio-group/auditoria` (hijos `.g-tooltip` en `__options`)— y el `<select>` del editor de `GFilterBar` que mide 23 px en WebKit. Van a `PENDIENTES.md` §6 (coco).
 
