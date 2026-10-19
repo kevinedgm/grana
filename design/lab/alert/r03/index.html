@@ -100,7 +100,7 @@ h1{font-size:var(--g-text-title-lg-size);line-height:var(--g-text-title-lg-line)
 
 /* Movimiento (comportamiento, no estética final): tamaño entre px medidos ANTES de mostrar */
 .isle.is-ready .isle__shape{transition:inline-size var(--g-duration-slow) var(--g-ease-spring),block-size var(--g-duration-slow) var(--g-ease-spring),border-radius var(--g-duration-slow) var(--g-ease-out)}
-.isle.no-tr .isle__shape{transition:none}
+.isle.no-tr .isle__shape,.isle.no-tr .isle__inner{transition:none}
 .isle.is-ready .item{transition:opacity var(--g-duration-press) var(--g-ease-out)}
 @starting-style{.isle.is-ready .item{opacity:0}}
 @keyframes x-drop{from{clip-path:inset(0 0 100% 0 round var(--g-radius-xl));translate:0 calc(var(--g-space-2) * -1)}to{clip-path:inset(0 0 0 0 round 0);translate:0 0}}
@@ -155,7 +155,25 @@ h1{font-size:var(--g-text-title-lg-size);line-height:var(--g-text-title-lg-line)
 @keyframes x-slide{from{translate:0 -100%}}
 .hidden-h{margin:var(--g-space-2) 0 0;padding-inline-start:var(--g-space-2);font-size:var(--g-text-body-sm-size);font-weight:var(--g-text-action-weight)}
 
+/* =====================================================================
+   D · ISLA DINÁMICA: cae del borde como cápsula, se ensancha con el titular, se lee y se recoge subiendo. Transitoria:
+   sin punto; lo vigente queda en la marca junto a su control y en Alt+F8.
+   ===================================================================== */
+.isle[data-c=D]{--_cap-w:calc(var(--g-space-1) * 24)}
+.isle[data-c=D] .isle__inner{transition:opacity var(--g-duration-press) var(--g-ease-out)}
+.isle[data-c=D].is-veiled .isle__inner{opacity:0;transition:opacity var(--g-duration-fast) var(--g-ease-standard)}
+.isle[data-c=D].is-veiled.no-tr .isle__inner{transition:none}
+.isle.is-fall .isle__shape{animation:x-fall var(--g-duration-slow) var(--g-ease-out)}
+.isle.is-ready.is-leaving .isle__shape{transition:inline-size var(--g-duration-slow) var(--g-ease-out),block-size var(--g-duration-slow) var(--g-ease-out),border-radius var(--g-duration-slow) var(--g-ease-out)}
+.isle.is-rise .isle__shape{animation:x-rise var(--g-duration-slow) var(--g-ease-standard) forwards}
+@keyframes x-fall{from{translate:0 calc(-100% - var(--_m));scale:0.9;opacity:0}}
+@keyframes x-rise{to{translate:0 calc(-100% - var(--_m));scale:0.9;opacity:0}}
+@keyframes x-fadeout{to{opacity:0}}
+
 @media (prefers-reduced-motion:reduce){
+  .isle.is-ready.is-leaving .isle__shape{transition:none}
+  .isle.is-fall .isle__shape{animation:x-fade var(--g-duration-fast) var(--g-ease-standard)}
+  .isle.is-rise .isle__shape{animation:x-fadeout var(--g-duration-fast) var(--g-ease-standard) forwards}
   .isle.is-ready .isle__shape{transition:none}
   .isle.is-drop .isle__shape,.isle.is-nudge .isle__shape,.isle.is-slide .isle__shape{animation:x-fade var(--g-duration-fast) var(--g-ease-standard)}
   .isle.is-ring .badge,.num.is-roll,.badge.is-busy .g-icon{animation:none}
@@ -169,7 +187,7 @@ h1{font-size:var(--g-text-title-lg-size);line-height:var(--g-text-title-lg-line)
 <header class="sh-bar">
   <span class="sh-brand">Isla de estado · r03</span>
   <nav class="sh-pick" aria-label="Concepto">
-    <a href="?c=A" id="pick-A">A · Hilo</a><a href="?c=B" id="pick-B">B · Punto que habla</a><a href="?c=C" id="pick-C">C · Titular</a>
+    <a href="?c=A" id="pick-A">A · Hilo</a><a href="?c=B" id="pick-B">B · Punto que habla</a><a href="?c=C" id="pick-C">C · Titular</a><a href="?c=D" id="pick-D">D · Isla dinámica</a>
   </nav>
 </header>
 <main>
@@ -197,6 +215,7 @@ h1{font-size:var(--g-text-title-lg-size);line-height:var(--g-text-title-lg-line)
     <button class="btn btn--sm" id="s-maint">Mantenimiento</button>
     <button class="btn btn--sm" id="s-leave">Salir del formulario</button>
     <button class="btn btn--sm" id="s-back">Volver al formulario</button>
+    <button class="btn btn--sm" id="s-session">Sesión por caducar</button>
     <button class="btn btn--sm" id="s-clear">Quitar todas</button>
   </div>
   <p class="note" id="explain"></p>
@@ -221,10 +240,13 @@ h1{font-size:var(--g-text-title-lg-size);line-height:var(--g-text-title-lg-line)
   const LEAD = {
     A: 'A · Hilo. Lo que nace de un control sale de él y vuelve a él. Nada se abre solo; la isla aterriza replegada con el título a la vista. Resuelto, vuelve a su marca y se va. Sin punto: la memoria queda junto al origen, y lo que la persona oculta no se pierde.',
     B: 'B · Punto que habla. La isla de hoy, explicada: nace del borde, se abre en dos tiempos, se recoge sola cuando la persona no la usa (con una línea que lo enseña), «Replegar» a la vista, y el punto lleva cuenta y pista.',
-    C: 'C · Titular. Una lengüeta colgada del borde con una cifra por tipo. Lo nuevo se lee como titular unos segundos y se recoge en su cifra; nada se abre solo. «Visto» y «Ocultar» son de la persona; lo vigente sigue contado.'
+    C: 'C · Titular. Una lengüeta colgada del borde con una cifra por tipo. Lo nuevo se lee como titular unos segundos y se recoge en su cifra; nada se abre solo. «Visto» y «Ocultar» son de la persona; lo vigente sigue contado.',
+    D: 'D · Isla dinámica. Cae del borde como una cápsula, se ensancha con el titular, se lee y se recoge subiendo. Nada se queda flotando: lo que exige acción queda en la marca junto a su control y en Alt+F8; solo una cuenta atrás (sesión por caducar) se queda hasta que actúes.'
   }
   document.getElementById('lead').textContent = LEAD[C]
-  const READ = B.T || { A: 6000, B: 8000, C: 6000 }[C]
+  const READ = B.T || { A: 6000, B: 8000, C: 6000, D: 6000 }[C]
+  // D: tiempo de lectura de GToast (#142): clamp(5000, 2000 + 60 × caracteres, 12000) ms
+  const readFor = (c) => B.T || Math.min(12000, Math.max(5000, 2000 + 60 * ((c.title || '').length + (c.description || '').length)))
   const isle = document.getElementById('isle'); isle.dataset.c = C
   const shape = isle.querySelector('.isle__shape')
   const inner = isle.querySelector('.isle__inner')
@@ -232,7 +254,7 @@ h1{font-size:var(--g-text-title-lg-size);line-height:var(--g-text-title-lg-line)
   const panel = document.getElementById('isle-panel')
   const tip = isle.querySelector('.isle__tip')
   const mark = document.getElementById('mark-save')
-  let open = false, auto = false, headline = null, saved = null
+  let open = false, auto = false, headline = null, saved = null, showing = null, leaving = 0
   const I = B.icon, E = B.esc
 
   // ---------- lectura con pausa (B: recoger la abierta sola; A: volver a la marca; C: recoger el titular) ----------
@@ -243,7 +265,7 @@ h1{font-size:var(--g-text-title-lg-size);line-height:var(--g-text-title-lg-line)
     reads.set(key, r)
     r.iv = setInterval(() => {
       const now = performance.now(), dt = now - r.t; r.t = now
-      const paused = isle.matches(':hover') || isle.contains(document.activeElement) || (C === 'A' && mark.matches(':hover,:focus'))
+      const paused = document.visibilityState === 'hidden' || isle.matches(':hover') || isle.contains(document.activeElement) || ((C === 'A' || C === 'D') && mark.matches(':hover,:focus'))
       isle.dataset.paused = paused ? 'true' : 'false'
       if (!paused) r.left -= dt
       if (key === 'open') isle.style.setProperty('--_left', Math.max(0, r.left / r.total).toFixed(3))
@@ -270,6 +292,11 @@ h1{font-size:var(--g-text-title-lg-size);line-height:var(--g-text-title-lg-line)
     const sr = `<span class="sr">Estado: ${n} ${n === 1 ? 'aviso' : 'avisos'}. ${B.TYPES[first.type]}: </span>`
     const badge = `<span class="badge${first.busy ? ' is-busy' : ''}" data-type="${first.type}" aria-hidden="true">${I(first.busy ? 'loader-circle' : B.ICON[first.type])}${C === 'B' && n > 1 ? `<span class="count">${n}</span>` : ''}</span>`
     const more = n > 1 ? `<span class="isle__more"><span aria-hidden="true">+${n - 1}</span><span class="sr"> y ${n - 1} más</span></span>` : ''
+    if (C === 'D') {
+      const d = (!open && showing && B.conds.get(showing)) || first
+      const k = open ? n : 1
+      return `<span class="badge${d.busy ? ' is-busy' : ''}" data-type="${d.type}" aria-hidden="true">${I(d.busy ? 'loader-circle' : B.ICON[d.type])}</span><span class="isle__text"><span class="sr">Estado${open ? ': ' + k + ' ' + (k === 1 ? 'aviso' : 'avisos') : ''}. ${B.TYPES[d.type]}: </span>${E(d.title)}</span>${open && n > 1 ? `<span class="isle__more"><span aria-hidden="true">+${n - 1}</span><span class="sr"> y ${n - 1} más</span></span>` : ''}<span class="isle__chev" aria-hidden="true">${I('chevron-down')}</span>`
+    }
     if (C === 'C') {
       if (headline && B.conds.has(headline)) {
         const h = B.conds.get(headline)
@@ -300,7 +327,7 @@ h1{font-size:var(--g-text-title-lg-size);line-height:var(--g-text-title-lg-line)
   }
   function panelHTML () {
     const shown = vis(), hidden = B.list((c) => c.hidden)
-    const close = C === 'C' ? `<button type="button" class="ibtn" data-do="close">${I('x')} Cerrar</button>` : `<button type="button" class="ibtn" data-do="close"><span class="isle__chev" style="rotate:180deg">${I('chevron-down')}</span> Replegar</button>`
+    const close = C === 'C' || C === 'D' ? `<button type="button" class="ibtn" data-do="close">${I('x')} Cerrar</button>` : `<button type="button" class="ibtn" data-do="close"><span class="isle__chev" style="rotate:180deg">${I('chevron-down')}</span> Replegar</button>`
     let h = `<div class="panel__head"><span class="panel__title" aria-hidden="true">Estado</span>${close}</div><ul class="items">${shown.map(itemHTML).join('')}</ul>`
     if (C === 'C' && hidden.length) h += `<p class="hidden-h">Ocultos (${hidden.length})</p><ul class="items">${hidden.map(itemHTML).join('')}</ul>`
     if (C === 'B') h += `<div class="isle__foot"><p>${auto ? 'Se recoge sola si no la usas.' : 'Lo que siga vigente queda arriba.'}</p><button type="button" class="ibtn" data-do="ack">Entendido</button></div>${auto ? '<div class="drain" aria-hidden="true"></div>' : ''}`
@@ -308,6 +335,7 @@ h1{font-size:var(--g-text-title-lg-size);line-height:var(--g-text-title-lg-line)
     return h
   }
   function formOf () {
+    if (C === 'D') { if (!B.conds.size) return 'empty'; if (open) return 'open'; return showing && B.conds.has(showing) ? 'compact' : 'empty' }
     const items = vis()
     if (!items.length && !(C === 'C' && open)) return 'empty'
     if (open) return 'open'
@@ -328,6 +356,7 @@ h1{font-size:var(--g-text-title-lg-size);line-height:var(--g-text-title-lg-line)
   function paint ({ birth } = {}) {
     const keepFocus = isle.contains(document.activeElement) ? document.activeElement : null
     const focusKey = keepFocus && (keepFocus === summary ? 'summary' : keepFocus.closest('[data-id]') && keepFocus.dataset.do ? keepFocus.closest('[data-id]').dataset.id + '|' + keepFocus.dataset.do : null)
+    if (C === 'D' && leaving) { paintMark(); return }
     const form = formOf()
     isle.dataset.form = form
     paintMark()
@@ -344,8 +373,12 @@ h1{font-size:var(--g-text-title-lg-size);line-height:var(--g-text-title-lg-line)
     const wasHidden = shape.hidden
     if (wasHidden) { isle.classList.add('no-tr'); shape.style.visibility = 'hidden'; shape.hidden = false }
     const w = inner.offsetWidth, h = inner.offsetHeight
-    shape.style.setProperty('--_w', w + 2 * borderW() + 'px')
-    shape.style.setProperty('--_h', h + 2 * borderW() + 'px')
+    const target = [w + 2 * borderW() + 'px', h + 2 * borderW() + 'px']
+    const capsule = C === 'D' && wasHidden && form === 'compact' && !B.reduced()
+    shape.style.setProperty('--_w', capsule ? 'var(--_cap-w)' : target[0])
+    shape.style.setProperty('--_h', capsule ? 'var(--_row)' : target[1])
+    if (capsule) isle.classList.add('is-veiled')
+    if (C === 'D' && wasHidden) birth = 'fall'
     if (wasHidden) { void shape.offsetWidth; shape.style.visibility = ''; requestAnimationFrame(() => isle.classList.remove('no-tr')) }
     // tip del punto (B): visual, aria-hidden; el nombre accesible ya lo dice
     if (C === 'B') { const n = items.length, f = items[0]; tip.textContent = form === 'dot' ? `${n === 1 ? '1 aviso sigue vigente' : n + ' avisos siguen vigentes'}: ${f.title} · pulsa para ver` : '' }
@@ -355,7 +388,8 @@ h1{font-size:var(--g-text-title-lg-size);line-height:var(--g-text-title-lg-line)
       if (focusKey && focusKey !== 'summary') { const [id, d] = focusKey.split('|'); back = panel.querySelector(`[data-id="${CSS.escape(id)}"] [data-do="${d}"]`) }
       ;(back || summary).focus()
     }
-    if (birth) birthOf(birth)
+    if (birth === 'fall') fall(capsule ? target : null)
+    else if (birth) birthOf(birth)
     lastForm = form
   }
   const borderW = () => parseFloat(getComputedStyle(shape).borderTopWidth) || 0
@@ -364,6 +398,69 @@ h1{font-size:var(--g-text-title-lg-size);line-height:var(--g-text-title-lg-line)
     void isle.offsetWidth
     isle.classList.add(cls)
     setTimeout(() => isle.classList.remove(cls), 800)
+  }
+  // D: cae del borde (cápsula → titular). Cuando acaba la caída, se ensancha con el muelle y el texto aparece.
+  const once = (el, ev, name, ms, fn) => {
+    let done = false
+    const end = (e) => { if (done || (e && name && e.animationName !== name)) return; done = true; el.removeEventListener(ev, end); fn() }
+    el.addEventListener(ev, end); setTimeout(end, ms)
+  }
+  function fall (target) {
+    isle.classList.remove('is-rise', 'is-leaving')
+    play('is-fall')
+    if (!target) return
+    const tok = ++fallTok
+    once(shape, 'animationend', 'x-fall', 500, () => {
+      if (tok !== fallTok || leaving) return
+      shape.style.setProperty('--_w', target[0]); shape.style.setProperty('--_h', target[1])
+      isle.classList.remove('is-veiled')
+    })
+  }
+  let fallTok = 0
+  function focusOut () {
+    if (!isle.contains(document.activeElement)) return
+    ;(saved && saved.isConnected && !isle.contains(saved) ? saved : !mark.hidden ? mark : B.neighbour(document.getElementById('sim'))).focus()
+  }
+  // D: se recoge subiendo: el texto se apaga, la cápsula se estrecha y sube por el borde. Nada se borra del modelo.
+  function leave (after) {
+    if (shape.hidden || leaving) { if (after) after(); return }
+    focusOut()
+    stopRead('show'); fallTok++
+    const tok = ++leaving
+    const finish = () => {
+      if (tok !== leaving) return
+      leaving = 0; open = false; showing = null
+      isle.classList.remove('is-leaving', 'is-rise', 'is-veiled')
+      paint()
+      if (after) after()
+    }
+    if (B.reduced()) { isle.classList.add('is-rise'); once(shape, 'animationend', null, 400, finish); return }
+    isle.classList.add('is-veiled', 'is-leaving')
+    shape.style.setProperty('--_w', 'var(--_cap-w)'); shape.style.setProperty('--_h', 'var(--_row)')
+    setTimeout(() => {
+      if (tok !== leaving) return
+      isle.classList.add('is-rise')
+      once(shape, 'animationend', 'x-rise', 600, finish)
+    }, 240)
+  }
+  function abortLeave () {
+    if (!leaving) return
+    leaving = 0
+    isle.classList.remove('is-leaving', 'is-rise', 'is-veiled')
+  }
+  function show (id) {
+    const c = B.conds.get(id); if (!c) return
+    abortLeave()
+    showing = id
+    paint()
+    if (open) return
+    if (c.deadline) stopRead('show') // una cuenta atrás (2.2.1) no se recoge: se queda hasta que la persona actúe
+    else startRead('show', readFor(c), recoge)
+  }
+  function recoge () {
+    if (open) return
+    const c = showing && B.conds.get(showing)
+    leave(() => { if (c && c.type === 'success' && !c.link && B.conds.has(c.id)) B.remove(c.id, 'read') })
   }
   function birthOf (kind) {
     if (kind === 'flight' && !B.reduced() && !mark.hidden && mark.getClientRects().length) return fly(mark, shape, false)
@@ -391,6 +488,11 @@ h1{font-size:var(--g-text-title-lg-size);line-height:var(--g-text-title-lg-line)
 
   // ---------- Abrir / cerrar ----------
   function setOpen (v, { focus = false, isAuto = false } = {}) {
+    if (C === 'D') {
+      if (v) { abortLeave(); stopRead('show'); open = true; if (!showing) showing = (B.list()[0] || {}).id; paint(); if (focus) summary.focus() }
+      else if (open) { open = false; paint(); recoge() }
+      return
+    }
     open = v; auto = v && isAuto
     if (!v) { auto = false; stopRead('open'); if (C === 'C') B.list((c) => c.type === 'success').forEach((c) => B.conds.delete(c.id)) }
     if (v && C === 'C') { headline = null; stopRead('headline') }
@@ -410,6 +512,12 @@ h1{font-size:var(--g-text-title-lg-size);line-height:var(--g-text-title-lg-line)
   B.on((ev) => {
     if (!B.mounted) { paint(); return }
     const before = lastForm
+    if (C === 'D') {
+      if (ev.kind === 'remove') { if (ev.id === showing && !open) { leave(); return } if (!B.conds.size) { open = false; stopAll(); leave(); return } }
+      if (ev.kind === 'remove' || ev.kind === 'state') { paint(); return }
+      if (ev.kind === 'appear' || ev.kind === 'announce' || ev.changed) show(ev.id); else paint()
+      return
+    }
     if (ev.kind === 'remove' || ev.kind === 'state') {
       if (!B.conds.size) { open = false; stopAll(); headline = null }
       if (headline && !B.conds.has(headline)) { headline = null }
@@ -465,7 +573,7 @@ h1{font-size:var(--g-text-title-lg-size);line-height:var(--g-text-title-lg-line)
     const t = e.target.closest('[data-do]'); if (!t) return
     const li = t.closest('[data-id]'); const id = li && li.dataset.id
     const d = t.dataset.do
-    if (d === 'close') { setOpen(false); summary.focus() }
+    if (d === 'close') { if (C === 'D') { focusOut(); setOpen(false) } else { setOpen(false); summary.focus() } }
     else if (d === 'act') { if (t.getAttribute('aria-disabled') !== 'true') B.act(id) }
     else if (d === 'origin') { const c = B.conds.get(id); setOpen(false); const el = document.getElementById(c.origin.target); if (el) { if (!el.matches('a,button,input,[tabindex]')) el.tabIndex = -1; el.focus(); el.scrollIntoView({ block: 'nearest' }) } }
     else if (d === 'hide') { B.patch(id, { hidden: true }); if (!vis().length) { open = false; paint(); (mark.hidden ? (saved && saved.isConnected ? saved : B.neighbour(document.getElementById('sim'))) : mark).focus() } }
@@ -481,13 +589,13 @@ h1{font-size:var(--g-text-title-lg-size);line-height:var(--g-text-title-lg-line)
     else if (d === 'link') { e.preventDefault(); setOpen(false) }
   })
   isle.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && open) { e.preventDefault(); e.stopPropagation(); setOpen(false); summary.focus() }
+    if (e.key === 'Escape' && (open || C === 'D') && !shape.hidden) { e.preventDefault(); e.stopPropagation(); if (C === 'D') { focusOut(); if (open) setOpen(false); else recoge() } else { setOpen(false); summary.focus() } }
   })
   document.addEventListener('pointerdown', (e) => { if (open && !isle.contains(e.target) && !mark.contains(e.target)) setOpen(false) }, true)
   document.addEventListener('keydown', (e) => {
     if (!B.hotkey(e) || !B.conds.size) return
     e.preventDefault()
-    if (isle.contains(document.activeElement)) { setOpen(false); (saved && saved.isConnected ? saved : B.neighbour(document.getElementById('sim'))).focus(); return }
+    if (isle.contains(document.activeElement)) { if (C === 'D') { focusOut(); setOpen(false); return } setOpen(false); (saved && saved.isConnected ? saved : B.neighbour(document.getElementById('sim'))).focus(); return }
     saved = document.activeElement
     B.list().forEach((c) => { if (C !== 'C') c.hidden = false })
     setOpen(true, { focus: true })
@@ -496,6 +604,7 @@ h1{font-size:var(--g-text-title-lg-size);line-height:var(--g-text-title-lg-line)
     saved = mark
     const c = B.conds.get('save'); if (!c) return
     c.hidden = false
+    if (C === 'D') showing = 'save'
     setOpen(true)
     const li = panel.querySelector('[data-id="save"]')
     const target = li && (li.querySelector('[data-do=act]:not([aria-disabled=true])') || li.querySelector('[data-do]'))
@@ -518,14 +627,16 @@ h1{font-size:var(--g-text-title-lg-size);line-height:var(--g-text-title-lg-line)
   const card = document.getElementById('form-card'); const cardParent = card.parentNode; const cardNext = card.nextSibling
   document.getElementById('s-leave').onclick = () => card.remove()
   document.getElementById('s-back').onclick = () => { if (!card.isConnected) cardParent.insertBefore(card, cardNext) }
+  document.getElementById('s-session').onclick = () => B.set('session', { type: 'warning', title: 'La sesión caduca en 2 minutos', description: 'Sigue conectado para no perder los cambios.', deadline: Date.now() + 120000, action: { label: 'Seguir conectado', onClick: () => { B.resolve('session', 'Sesión renovada') } } })
   document.getElementById('s-clear').onclick = () => { [...B.conds.keys()].forEach((id) => B.remove(id, 'clear')) }
   const EXPLAIN = {
     A: 'Prueba: Guardar (falla) → la cápsula sale de «No se guardó» y aterriza arriba, replegada. Ábrela; «Replegar» o «Ocultar» (la marca sigue junto al botón). Desmarca el fallo y «Reintentar»: se lee arriba y vuelve a su marca. «Salir del formulario» retira lo que nació ahí.',
     B: 'Prueba: Guardar (falla) → nace del borde y, un instante después, se abre; la línea inferior se vacía y se recoge sola (se detiene con el puntero o el foco dentro). «Entendido» → punto con cuenta; pasa el puntero o enfócalo.',
-    C: 'Prueba: Guardar (falla) → la lengüeta baja del borde con el titular y, a los segundos, se recoge en su cifra. Púlsala: «Visto», «Ocultar», «Cerrar». Lo vigente sigue contado.'
+    C: 'Prueba: Guardar (falla) → la lengüeta baja del borde con el titular y, a los segundos, se recoge en su cifra. Púlsala: «Visto», «Ocultar», «Cerrar». Lo vigente sigue contado.',
+    D: 'Prueba: Guardar (falla) → cae del borde, se lee y se recoge subiendo (el puntero o el foco encima la detienen; Esc la recoge ya). El error sigue en la marca «No se guardó»: púlsala para volver a verlo y «Reintentar». Alt+F8 trae todo lo vigente. «Sesión por caducar» se queda hasta que actúes.'
   }
   document.getElementById('explain').textContent = EXPLAIN[C]
-  window.__S = { B, C, setOpen, get open () { return open }, get headline () { return headline }, READ, paint }
+  window.__S = { B, C, setOpen, get open () { return open }, get headline () { return headline }, get showing () { return showing }, READ, paint }
   if (q.get('seed') === '1') B.set('maint', { type: 'info', title: 'Mantenimiento esta noche', description: 'De 23:00 a 23:30 no se podrá guardar.', dismissible: true })
   B.mount(isle)
   paint()

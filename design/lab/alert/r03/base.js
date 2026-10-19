@@ -50,7 +50,7 @@
     conds.set(id, c)
     const changed = !prev || prev.type !== c.type || prev.title !== c.title || prev.description !== c.description
     if (mounted && changed) announce(say(c), c.type === 'error' ? 'assertive' : 'polite')
-    emit({ kind: prev ? 'change' : 'appear', id, toError: c.type === 'error' && (!prev || prev.type !== 'error'), typeChanged: !!prev && prev.type !== c.type })
+    emit({ kind: prev ? 'change' : 'appear', id, changed, toError: c.type === 'error' && (!prev || prev.type !== 'error'), typeChanged: !!prev && prev.type !== c.type })
     return id
   }
   // r03: resolver limpia lo que pertenecía a la condición (descripción, detalle, acción, origen), no solo el tipo

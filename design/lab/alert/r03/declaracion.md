@@ -1,6 +1,8 @@
 # Declaración — isla de estado, r03: que se entienda
 
-**kiwi · 2026-10-18.** Reproducción sobre la isla **real** del playground (`reproducir.mjs`, tres motores) y tres conceptos de comportamiento sobre una base común (`base.js`, `index.html?c=A|B|C`, tokens reales del tema por defecto). Verificación: `node design/lab/alert/r03/verificar.mjs` (`GRANA_PW_PORT=4213`), **285/285** en Chromium, Firefox y WebKit. Solo lectura sobre código y contrato: los cambios van como hallazgos a sus dueños (§8).
+**kiwi · 2026-10-18.** Reproducción sobre la isla **real** del playground (`reproducir.mjs`, tres motores) y tres conceptos de comportamiento sobre una base común (`base.js`, `index.html?c=A|B|C`, tokens reales del tema por defecto). Verificación: `node design/lab/alert/r03/verificar.mjs` (`GRANA_PW_PORT=4213`), **381/381** en Chromium, Firefox y WebKit (A, B, C y D). Solo lectura sobre código y contrato: los cambios van como hallazgos a sus dueños (§8).
+
+> **Addendum del 2026-10-19 · D · Isla dinámica.** Tras leer A, B y C, el usuario dio una dirección que ninguna cumple del todo: que un error se muestre **y desaparezca**, sin quedarse estorbando, y que caiga del borde con suavidad, «como la isla dinámica de los iPhone», sin fogonazos. D está en §5bis (`index.html?c=D`); la comparativa (§6) y la pregunta (§9) ya incluyen D.
 
 ## 0. En una frase
 
@@ -108,26 +110,55 @@ Tres cambios para los tres conceptos (corrigen F1, R4 y R5):
 - **Coste de accesibilidad:** medio. El titular es temporal (pausable; el contenido sigue en la carta y en el anuncio). Las cifras dependen de reconocer las insignias (forma + borde + prefijo oculto, como hoy); «visto» se distingue por contorno frente a relleno (no solo color). Pegada al borde, convive con `GPageHeader` por la reserva de borde (#631) igual que hoy.
 - **Decisiones que cambia:** #316 D2 (memoria = cifra) y D3 (sin apertura sola), #319 (formas `headline`/`tab`/`open`; «Visto» y «Ocultar» por condición en vez de «Entendido» global), #324 (bajar del borde y cifra que rueda; reutiliza la idea P2 de `GNumberField`, #313). Medido: 29/29 por motor.
 
+### 5bis. D · Isla dinámica: cae, se lee y se recoge subiendo
+
+Es **A sin su vuelo y sin quedarse**: toma de A que la memoria vive junto al control (la marca) y que la condición vive con su origen, y le añade lo que pidió el usuario: la isla es **transitoria** y se mueve como la isla dinámica.
+
+- **Nacer:** una cápsula sin texto (`space × 24` de ancho, la altura de la fila) **cae del borde superior**: `translate` desde fuera del borde, escala 0,9 → 1 y fundido, `--g-duration-slow` con `--g-ease-out` (es una entrada: sin muelle, #299 y #324). Al tocar su sitio **se ensancha** hasta el titular con `--g-duration-slow` y `--g-ease-spring` (el mismo uso aprobado del muelle: el cambio de tamaño, #324 a), y el texto aparece con `--g-duration-press`. Entrada completa ≈ 480ms. **Nada se abre solo.**
+- **Leer y recogerse:** el titular se queda el **tiempo de lectura de `GToast`** (#142): `clamp(5000, 2000 + 60 × caracteres, 12000)` ms; el error de «Guardar» (89 caracteres) dura 7,3 s. **Se pausa** con el puntero sobre la isla o sobre su marca, con el foco dentro y con la pestaña oculta; al reanudar sigue el tiempo que quedaba. Al acabar se recoge al revés: el texto se apaga (`--g-duration-fast`), la cápsula **se estrecha** (`--g-duration-slow`, `--g-ease-out`, sin muelle: es una salida) y **sube** por el borde mientras se funde (`--g-duration-slow`, `--g-ease-standard`). Esc con el foco dentro la recoge al momento.
+- **Lo que exige acción** («Reintentar», «Ir a…») **no se pierde, pero no se queda flotando:** la isla se recoge y la condición sigue **vigente en la marca** junto a su control («No se guardó»). Pulsar la marca trae la isla **abierta** con el foco en «Reintentar»; Alt+F8 trae todo lo vigente. Sin marca (sin conexión), Alt+F8 es la única vuelta: si la aplicación necesita un indicador permanente de «sin conexión», es una `GStatusMark` de texto en su cabecera, no la isla. **Única excepción: una cuenta atrás** (`deadline`, sesión por caducar) **se queda hasta que la persona actúe**: WCAG 2.2.1 exige avisar y dejar ampliar el tiempo, y un aviso que se va solo no lo cumple.
+- **Resultados:** sin enlace («Conexión restablecida») se leen, se recogen y se van del modelo; con enlace («Factura guardada · Ver factura») se recogen y quedan en la marca («Guardada») hasta que el origen se va.
+- **Abierta:** la abre la persona (titular, marca, Alt+F8); se expande con continuidad desde la cápsula; «Cerrar» con su icono, Esc o pulsar fuera la cierran **y se recoge**. El foco vuelve al elemento guardado, a la marca o al siguiente tabulable; nunca a `body`.
+- **Qué lo hace distinto:** no hay superficie de avisos que *ocupe* la pantalla: hay una cápsula que **nace del borde, dice una cosa y vuelve al borde**, y la memoria está donde la persona la necesita (junto al botón que falló), no flotando. La forma cuenta la vida del aviso: cápsula vacía → titular → cápsula vacía → nada. Sirve porque lo urgente se lee sin estorbar y lo pendiente se recupera desde su sitio.
+- **Coste de accesibilidad:** medio y conocido. El texto visible es temporal: se mitiga con el anuncio (enérgico para `error`, sin cambios), la pausa con puntero y foco, Esc, la marca, Alt+F8 y la excepción de `deadline`. **El lector de pantalla no se detecta**: quien lo usa recibe el anuncio completo y vuelve con Alt+F8 o la marca, igual que con `GToast`. 1.4.13 se respeta en su espíritu (se mantiene mientras el puntero está encima, se descarta con Esc, no desaparece mientras se usa). Con movimiento reducido: solo fundidos de `--g-duration-fast`.
+- **Decisiones que reabre:** **#316 D2** (desaparece: ya no hay un sitio visible con memoria; la memoria es la marca y Alt+F8) y **D3** (sin apertura sola); **#319** (formas `empty`/`compact`/`open`, sin punto, sin «Entendido», recogida por tiempo, «no desaparece mientras dure alguna condición» pasa a valer para el **modelo**, no para la pantalla); **#315** y la frontera de `toast.md` (la isla deja de ser «información persistente de página»); **#324** (caer y subir; muelle solo al ensancharse); **#323** (la marca guarda lo vigente); **#318** (vive con su origen). Se conservan D1 (nada se mueve) y D4 (continuidad, mismo elemento).
+- **Medido** (Chromium; tres motores en §7): primer cuadro visible = cápsula de 91px a media caída (y=31 frente a 72) con opacidad 0,29 y **sin texto**; 5 anchos intermedios al ensancharse, salto máximo 56px de 211; opacidad como máximo +0,24 por cuadro; al recogerse, 29 cuadros estrechando y 14 subiendo. Tira de cuadros: `evidencia-d.png` (arriba: caer y ensancharse; abajo: apagarse, estrecharse y subir).
+
+#### D frente a `GToast`, con honestidad
+
+Con D, **a la vista** la isla se parece mucho a un aviso flotante: aparece, se lee y se va. Lo que la sigue separando no es la forma, es **lo que queda cuando se va**:
+
+| | `GToast` | Isla D |
+| --- | --- | --- |
+| Qué cuenta | Algo que **pasó** («Copiado», «Cambios guardados», «Informe subido») | Algo que **está pasando** y tiene estado («No se pudo guardar», «Sin conexión», «La sesión caduca») |
+| Cuando se va | Se fue: no hay nada a lo que volver | La condición sigue vigente: **la marca** junto a su control y **Alt+F8** la traen de vuelta, abierta y con su acción |
+| Modelo | Suceso (sin clave salvo la promesa) | Condición con clave: se actualiza en el mismo elemento (error → reintentando → éxito), `resolve`, vive con su origen, `<GStatus>` |
+| Error | No se cierra solo (#142: no tiene otro sitio donde vivir) | Se recoge, porque vive en su marca |
+| Dónde | Esquina, pila | Arriba al centro, una sola cápsula |
+
+**Regla que propongo:** si cuando el aviso se va **no queda nada que hacer**, es `GToast`; si **queda algo pendiente** (reintentar, esperar a la conexión, renovar la sesión), es la isla. «Un suceso, un canal» se mantiene. Si el usuario no ve valor en esa diferencia, la alternativa honesta es **fusionar**: que la isla sea un modo de `GToaster` (aviso con clave, arriba al centro) y la marca su memoria. No lo recomiendo hoy: duplicaría el gestor de `GToast` con reglas de error contrarias.
+
 ## 6. Comparativa
 
-| | A · Hilo | B · Punto que habla | C · Titular |
-| --- | --- | --- | --- |
-| Nacer | Sale de la marca y vuela al borde; sin origen, cae del borde | Cae del borde como píldora; si es grave, se abre 360ms después | Baja del borde como titular |
-| ¿Se abre sola? | No | Sí (dos tiempos) y **se recoge sola** si no la usas | No |
-| Cierre visible | «Replegar»; resuelto, vuelve a su marca | «Replegar» + línea de lectura + nota en el pie | «Cerrar»; el titular se recoge en su cifra |
-| Lo que queda | Replegada con texto (sin origen) o la marca junto al control | Punto con cuenta y pestaña | Lengüeta con una cifra por tipo (rellena o vista) |
-| Error que nadie retira | Vive con su origen; la persona lo oculta y la marca lo guarda | Vive con su origen; si no, se queda (D2) | Vive con su origen; la persona lo marca visto u oculto |
-| Cuánto cambia el contrato | Medio (D2, D3, punto, marca) | **Poco** (dos reglas de #319, nacer) | Alto (formas nuevas, «Entendido» por «Visto»/«Ocultar») |
-| Riesgo | Sin origen, A es la isla de hoy sin punto | El punto sigue siendo lo menos claro; en táctil no hay pestaña | Lectura de cifras por tipo; dos verbos nuevos que aprender |
-| Verificado (3 motores) | 32/32 × 3 | 34/34 × 3 | 29/29 × 3 |
+| | A · Hilo | B · Punto que habla | C · Titular | **D · Isla dinámica** |
+| --- | --- | --- | --- | --- |
+| Nacer | Sale de la marca y vuela al borde | Cae del borde como píldora; si es grave, se abre 360ms después | Baja del borde como titular | **Cae del borde como cápsula y se ensancha con el titular** |
+| ¿Se abre sola? | No | Sí, y se recoge sola si no la usas | No | No |
+| ¿Se va sola? | No (sin origen se queda replegada) | No (queda el punto) | No (queda la lengüeta) | **Sí**: se lee y se recoge subiendo; solo una cuenta atrás se queda |
+| Lo que queda a la vista | Replegada con texto o la marca | Punto con cuenta y pestaña | Lengüeta con cifras | **Nada flotando**; la marca junto al control |
+| Volver a lo pendiente | Marca, Alt+F8 | Punto, marca, Alt+F8 | Lengüeta, marca, Alt+F8 | Marca, Alt+F8 |
+| Frontera con `GToast` | Clara (persistente) | Clara (persistente) | Clara (persistente) | **Se acerca**: la separa lo que queda (marca y estado), no la forma |
+| Cuánto cambia el contrato | Medio | Poco | Alto | **Medio-alto** (D2, D3, #319, #315 y la frontera de `toast.md`) |
+| Riesgo | Sin origen, sigue fija | El punto sigue siendo lo menos claro | Cifras por tipo; dos verbos nuevos | Sin marca, lo pendiente solo vuelve con Alt+F8 |
+| Verificado (3 motores) | 32/32 × 3 | 34/34 × 3 | 29/29 × 3 | 32/32 × 3 |
 
-**Recomendación de kiwi: A**, con la nota del pie de B («lo que siga vigente queda arriba») para las condiciones sin origen. Es la única que responde a la queja de raíz («no me queda clara la intención»): la intención se **ve** (de dónde sale, adónde vuelve) en lugar de explicarse con textos. B es el cambio más barato si se quiere conservar lo aprobado tal cual. **F1 a F4 y la base de §4 se corrigen elija lo que elija.**
+**Recomendación de kiwi tras la dirección del usuario: D.** Cumple las dos cosas que pidió (mostrar y desaparecer; caer del borde sin fogonazos) y conserva lo que A tenía de bueno: lo pendiente se recuerda junto a su botón. A, B y C quedan como alternativas medidas. **F1 a F4 y la base de §4 se corrigen elija lo que elija.**
 
 ## 7. Verificación
 
-**Hecha** (`verificar.mjs`, Chromium, Firefox y WebKit; **285/285**): carga sin anuncios; error al guardar con un anuncio enérgico exacto, foco en «Guardar» y Δ0 en cuatro referencias; **ningún cuadro del nacimiento más ancho que la isla** (máx. medido 309px en A, 422px en B con el sobrepaso del muelle, 360px en C; antes, 1264px); dentro del visor; comportamiento propio de cada concepto (A: aterriza replegada, vuelo sin clones, «Replegar», «Ocultar» con el foco a la marca, la marca devuelve la condición y enfoca «Reintentar», `aria-busy`, éxito anunciado, vuelta a la marca, salida del formulario sin anuncio; B: dos tiempos, línea de lectura, nota de estado, pausa con puntero, recogida sin mover el foco, abierta por la persona no se recoge, punto ≥ 24px con cuenta y pestaña, `resolve` limpio; C: titular sin panel, recogida en la cifra, «Cerrar», «Visto» con contorno y nombre accesible, ocultar con foco en la marca, Alt+F8 llega a lo oculto); Alt+F8 ida y vuelta, Esc, Enter; un solo par de canales y la isla no es región viva; sin anuncios repetidos; abrir y replegar no anuncian; contraste con el tema por defecto (texto 17,4:1, descripción 13,97:1, iconos sobre insignia 5,35 a 5,73:1 en los cuatro tipos, anillo y bordes 13,97:1); controles ≥ 24×24; 320px sin desplazamiento horizontal; móvil sin apertura sola (B); movimiento reducido sin nada que se mueva ni cambie de tamaño, sin vuelo. `reproducir.mjs` mide F1 en los tres motores (4, 3 y 1 cuadros a 1264px).
+**Hecha** (`verificar.mjs`, Chromium, Firefox y WebKit; **381/381**: A 32, B 34, C 29 y D 32 por motor): carga sin anuncios; error al guardar con un anuncio enérgico exacto, foco en «Guardar» y Δ0 en cuatro referencias; **ningún cuadro del nacimiento más ancho que la isla** (máx. medido 309px en A, 422px en B con el sobrepaso del muelle, 360px en C; antes, 1264px); dentro del visor; comportamiento propio de cada concepto (A: aterriza replegada, vuelo sin clones, «Replegar», «Ocultar» con el foco a la marca, la marca devuelve la condición y enfoca «Reintentar», `aria-busy`, éxito anunciado, vuelta a la marca, salida del formulario sin anuncio; B: dos tiempos, línea de lectura, nota de estado, pausa con puntero, recogida sin mover el foco, abierta por la persona no se recoge, punto ≥ 24px con cuenta y pestaña, `resolve` limpio; C: titular sin panel, recogida en la cifra, «Cerrar», «Visto» con contorno y nombre accesible, ocultar con foco en la marca, Alt+F8 llega a lo oculto; D: el primer cuadro visible es una cápsula que cae sin texto, se ensancha con anchos intermedios y sin saltos de más del 65 % ni de opacidad de más de 0,7 por cuadro, titular sin abrirse, pausa con el puntero, se recoge estrechándose y subiendo, sin punto y con el error vigente en la marca, la marca la trae abierta con el foco en «Reintentar», Esc la recoge con el foco en la marca, resultado sin enlace que se va, cuenta atrás que se queda, Esc y Alt+F8 con la isla ya ida); Alt+F8 ida y vuelta, Esc, Enter; un solo par de canales y la isla no es región viva; sin anuncios repetidos; abrir y replegar no anuncian; contraste con el tema por defecto (texto 17,4:1, descripción 13,97:1, iconos sobre insignia 5,35 a 5,73:1 en los cuatro tipos, anillo y bordes 13,97:1); controles ≥ 24×24; 320px sin desplazamiento horizontal; móvil sin apertura sola (B); movimiento reducido sin nada que se mueva ni cambie de tamaño, sin vuelo. `reproducir.mjs` mide F1 en los tres motores (4, 3 y 1 cuadros a 1264px).
 
-**No hecha:** lector de pantalla real (el nombre que cambia en el titular de C; la pestaña del punto de B, que es solo visual); táctil real (pulsación en el punto de B; el vuelo de A con el teclado virtual abierto); `forced-colors` real; RTL de los conceptos (el vuelo usa coordenadas físicas: hay que comprobarlo); la hoja móvil real en los conceptos (los prototipos abren el panel no modal en 320px: la regla de `GDialog` de #322 no cambia); convivencia con la voz y con `GPageHeader` (especificada, no prototipada); tema oscuro de los conceptos.
+**No hecha:** la medida de movimiento de coco sobre D (su `auditoria-movimiento-verificar.mjs`, puerto 4214, mide el componente real; aún sin informe en el repositorio): D usa solo tokens existentes y la misma regla de muelle que #324; lector de pantalla real (que el anuncio basta cuando el titular se va solo en D; el nombre que cambia en el titular de C; la pestaña del punto de B, que es solo visual); táctil real (pulsación en el punto de B; el vuelo de A con el teclado virtual abierto); `forced-colors` real; RTL de los conceptos (el vuelo usa coordenadas físicas: hay que comprobarlo); la hoja móvil real en los conceptos (los prototipos abren el panel no modal en 320px: la regla de `GDialog` de #322 no cambia); convivencia con la voz y con `GPageHeader` (especificada, no prototipada); tema oscuro de los conceptos.
 
 ## 8. Hallazgos para sus dueños
 
@@ -139,10 +170,10 @@ Tres cambios para los tres conceptos (corrigen F1, R4 y R5):
 
 ## 9. Pregunta al usuario
 
-**¿Qué comportamiento quieres para la isla?**
+**¿Construimos D · Isla dinámica?** (recomendada; A, B y C quedan como alternativas). Si es que sí, solo hay tres cosas que decidir, cada una con una recomendación:
 
-- **A · Hilo** (recomendada): nace de lo que la provocó y vuelve ahí al resolverse; nada se abre solo; sin punto: lo pendiente se recuerda junto a su botón y la persona puede ocultarlo.
-- **B · Punto que habla**: la isla de hoy, pero cada regla se ve: nace en dos tiempos, se recoge sola si no la usas, «Replegar» a la vista, y el punto lleva cuenta y una pestaña que dice qué guarda.
-- **C · Titular**: una lengüeta en el borde con una cifra por tipo; lo nuevo se lee como titular y se recoge en su cifra; «Visto» y «Ocultar» son de la persona.
+1. **Cuánto se queda a la vista.** Recomendado: el tiempo de lectura de `GToast`, de 5 a 12 s según el largo del texto (7,3 s para «No se pudo guardar la factura» con su descripción), en pausa mientras el puntero o el foco están encima. Alternativa: un tiempo fijo.
+2. **Qué pasa con lo que exige acción** («Reintentar»). Recomendado: **se recoge igual** y queda en la marca junto a su botón (y en Alt+F8); solo una cuenta atrás (sesión por caducar) se queda hasta que actúes, porque WCAG lo exige. Alternativa: que todo lo que lleva acción se quede hasta actuar (vuelve a «se queda ahí»).
+3. **Frontera con `GToast`.** Recomendado: **dos servicios con una regla**: si al irse no queda nada pendiente, `GToast`; si queda algo pendiente (reintentar, esperar la conexión, renovar), la isla. Alternativa: fusionar la isla en `GToaster` como «aviso con clave arriba al centro».
 
-Con cualquiera, se corrigen el nacimiento (franja a todo el ancho), la descripción vieja de `resolve`, el detalle del 500 en el éxito y el error de la demo que no se retira nunca.
+Con cualquier respuesta se corrigen el nacimiento (franja a todo el ancho), la descripción vieja de `resolve`, el detalle del 500 en el éxito y el error de la demo que no se retira nunca.

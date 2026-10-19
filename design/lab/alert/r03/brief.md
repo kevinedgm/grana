@@ -15,7 +15,11 @@ El usuario **eligió** este concepto y aun así no entiende su intención. Es un
 3. Dos o tres conceptos de **comportamiento** (A/B/C) con la base funcional intacta, tokens reales del tema por defecto, verificados en los tres motores.
 4. Comparativa y una pregunta de elección.
 
+## Addendum (2026-10-19): D · Isla dinámica
+
+Tras leer A, B y C, el usuario pidió, en lo esencial: que un error no se quede ahí estorbando, que se muestre y desaparezca, y que caiga del borde de forma sutil, como la isla dinámica de los iPhone, sin fogonazos. D (`?c=D`) es esa dirección: transitoria, sin punto, con la memoria en la marca y Alt+F8, y con movimiento de caer, ensancharse, recogerse y subir medido cuadro a cuadro.
+
 ## Ver
 
-- Reproducción sobre la isla real: `node design/lab/alert/r03/reproducir.mjs` (`ENGINES=chromium,firefox,webkit`; `SHOTS=1` guarda capturas en `r03/capturas/`, no versionadas). Evidencia del nacimiento: `evidencia-nacer.png`.
-- Conceptos: `index.html?c=A`, `?c=B`, `?c=C` (`&t=ms` cambia el tiempo de lectura). Verificación: `node design/lab/alert/r03/verificar.mjs` (`GRANA_PW_PORT=4213`).
+- Reproducción sobre la isla real: `node design/lab/alert/r03/reproducir.mjs` (`ENGINES=chromium,firefox,webkit`; `SHOTS=1` guarda capturas en `r03/capturas/`, no versionadas). Evidencia del nacimiento real: `evidencia-nacer.png`; de D: `evidencia-d.png`.
+- Conceptos: `index.html?c=A`, `?c=B`, `?c=C`, `?c=D` (`&t=ms` cambia el tiempo de lectura). Verificación: `node design/lab/alert/r03/verificar.mjs` (`GRANA_PW_PORT=4213`).

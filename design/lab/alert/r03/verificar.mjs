@@ -34,15 +34,16 @@ const refs = () => ['ref-h1', 'cliente', 'save', 'ref-row1'].map((id) => { const
 
 for (const engine of (process.env.ENGINES || 'chromium,firefox,webkit').split(',')) {
   const browser = await pw[engine].launch()
-  for (const C of (process.env.CONCEPTS || 'A,B,C').split(',')) {
+  for (const C of (process.env.CONCEPTS || 'A,B,C,D').split(',')) {
     let pass = 0; const fails = []; const errs = []
+    const RT = C === 'C' || C === 'D' ? 2600 : READ
     const ok = (c, m) => { if (c) pass++; else fails.push(m); if (process.env.VERBOSE) console.log(engine, C, c ? 'ok ' : 'NO ', m) }
     const open = async ({ vw = 1100, vh = 760, q = '', ...ctx } = {}) => {
       const context = await browser.newContext({ viewport: { width: vw, height: vh }, ...ctx })
       const p = await context.newPage()
       p.on('console', (m) => { if (['error', 'warning'].includes(m.type())) errs.push(m.text()) })
       p.on('pageerror', (e) => errs.push(String(e)))
-      await p.goto(`${BASE}?c=${C}&t=${READ}${q}`)
+      await p.goto(`${BASE}?c=${C}&t=${RT}${q}`)
       await p.waitForFunction(() => window.__S && document.querySelector('.isle.is-ready'))
       await p.waitForTimeout(50)
       return { p, context }
@@ -52,7 +53,7 @@ for (const engine of (process.env.ENGINES || 'chromium,firefox,webkit').split(',
       await p.evaluate(() => {
         const shape = document.querySelector('.isle__shape'); window.__fr = []
         const t0 = performance.now()
-        const tick = () => { if (!shape.hidden && getComputedStyle(shape).visibility !== 'hidden') { const r = shape.getBoundingClientRect(); window.__fr.push({ t: performance.now() - t0, w: r.width, op: +getComputedStyle(shape).opacity }) } if (performance.now() - t0 < 1400) requestAnimationFrame(tick) }
+        const tick = () => { if (!shape.hidden && getComputedStyle(shape).visibility !== 'hidden') { const r = shape.getBoundingClientRect(); window.__fr.push({ t: performance.now() - t0, w: r.width, y: r.top, op: +getComputedStyle(shape).opacity, io: +getComputedStyle(shape.firstElementChild).opacity }) } if (performance.now() - t0 < 1400) requestAnimationFrame(tick) }
         requestAnimationFrame(tick)
       })
       await act()
@@ -153,7 +154,7 @@ for (const engine of (process.env.ENGINES || 'chromium,firefox,webkit').split(',
         ok(s1.form === 'headline' || early.form === 'headline', `C: llega como titular, sin abrirse (${s1.form})`)
         ok(/No se pudo guardar la factura/.test(await p.locator('.isle__text').innerText()), 'C: el titular dice el título')
         ok(await p.locator('#isle-panel').isHidden(), 'C: ningún panel se abre solo')
-        await p.waitForTimeout(READ + 400)
+        await p.waitForTimeout(RT + 400)
         const s2 = await p.evaluate(look)
         const num = await p.locator('.ctr[data-type=error] .num').innerText()
         ok(s2.form === 'tab' && num === '1', `C: el titular se recoge en su cifra (${s2.form}, ${num})`)
@@ -170,6 +171,49 @@ for (const engine of (process.env.ENGINES || 'chromium,firefox,webkit').split(',
         await p.locator('#cliente').focus(); await p.keyboard.press('Alt+F8'); await p.waitForTimeout(300)
         ok((await p.evaluate(look)).focus === 'isle-summary' && await p.locator('.hidden-h').isVisible(), 'C: Alt+F8 llega también a lo oculto')
       }
+      if (C === 'D') {
+        const capW = await p.evaluate(() => parseFloat(getComputedStyle(document.querySelector('.isle')).getPropertyValue('--g-space-1')) * 24 + 2)
+        const vis2 = frames.filter((f) => f.op > 0.05)
+        const f0 = vis2[0], fin = vis2[vis2.length - 1]
+        ok(f0 && (f0.op < 0.9 || f0.y < fin.y - 1) && f0.w <= capW + 2, `D: el primer cuadro visible es una cápsula que cae, no un fogonazo (${f0 && JSON.stringify({ w: Math.round(f0.w), y: Math.round(f0.y), op: f0.op })}; final ${Math.round(fin.w)}px en y=${Math.round(fin.y)})`)
+        ok(f0 && f0.io < 0.1, `D: mientras cae, la cápsula va sin texto (opacidad del contenido ${f0 && f0.io})`)
+        const mid = new Set(vis2.filter((f) => f.w > capW + 2 && f.w < fin.w - 2).map((f) => Math.round(f.w)))
+        let jump = 0; for (let i = 1; i < vis2.length; i++) jump = Math.max(jump, Math.abs(vis2[i].w - vis2[i - 1].w))
+        ok(mid.size >= 2 && jump <= 0.65 * (fin.w - capW), `D: se ensancha con continuidad (${mid.size} anchos intermedios; salto máx ${Math.round(jump)}px de ${Math.round(fin.w - capW)})`)
+        let opJump = 0; for (let i = 1; i < vis2.length; i++) opJump = Math.max(opJump, vis2[i].op - vis2[i - 1].op)
+        ok(opJump <= 0.7, `D: sin saltos de opacidad (máx ${opJump.toFixed(2)} por cuadro)`)
+        ok(s1.form === 'compact' && await p.locator('#isle-panel').isHidden() && /No se pudo guardar/.test(await p.locator('.isle__text').innerText()), `D: titular sin abrirse (${s1.form})`)
+        await p.locator('.isle__shape').hover(); await p.waitForTimeout(RT + 300)
+        ok((await p.evaluate(look)).form === 'compact', 'D: con el puntero encima no se recoge (pausa)')
+        await p.evaluate(() => {
+          const shape = document.querySelector('.isle__shape'); window.__lv = []
+          const t0 = performance.now()
+          const tick = () => { const r = shape.getBoundingClientRect(); window.__lv.push({ t: performance.now() - t0, hidden: shape.hidden, w: r.width, y: r.top, op: +getComputedStyle(shape).opacity, tr: getComputedStyle(shape).translate }); if (performance.now() - t0 < 4500) requestAnimationFrame(tick) }
+          requestAnimationFrame(tick)
+        })
+        await p.mouse.move(5, 740); await p.waitForTimeout(RT + 1200)
+        const lv = await p.evaluate(() => window.__lv)
+        const shown = lv.filter((f) => !f.hidden)
+        const y0 = shown.length ? shown[0].y : 0
+        const rising = shown.filter((f) => f.y < y0 - 2 && f.op < 1)
+        const narrowing = shown.filter((f) => f.w < shown[0].w - 2)
+        ok(rising.length >= 1 && narrowing.length >= 1 && lv[lv.length - 1].hidden, `D: se recoge estrechándose y subiendo (${narrowing.length} cuadros estrechando, ${rising.length} subiendo)`)
+        const s2 = await p.evaluate(look)
+        ok(s2.form === 'empty' && await p.evaluate(() => window.__S.B.conds.has('save')) && await p.locator('#mark-save').isVisible(), `D: sin punto; el error sigue vigente en la marca (${s2.form})`)
+        await p.locator('#mark-save').click(); await p.waitForTimeout(450)
+        const s3 = await p.evaluate(look)
+        ok(s3.form === 'open' && s3.focus === 'act', `D: la marca la trae abierta con el foco en «Reintentar» (${s3.form}, ${s3.focus})`)
+        await p.keyboard.press('Escape'); await p.waitForTimeout(900)
+        const s4 = await p.evaluate(look)
+        ok(s4.form === 'empty' && s4.focus === 'mark-save', `D: Esc la recoge y el foco vuelve a la marca (${s4.form}, ${s4.focus})`)
+        await p.locator('#s-offline').click(); await p.waitForTimeout(300)
+        await p.locator('#s-online').click(); await p.mouse.move(5, 740); await p.locator('#cliente').focus()
+        await p.waitForTimeout(RT + 1200)
+        ok(await p.evaluate(() => !window.__S.B.conds.has('offline')) && (await p.evaluate(look)).form === 'empty', 'D: un resultado sin enlace se lee, se recoge y se va')
+        await p.locator('#s-session').click(); await p.mouse.move(5, 740); await p.locator('#cliente').focus()
+        await p.waitForTimeout(RT + 1200)
+        ok((await p.evaluate(look)).form === 'compact', 'D: una cuenta atrás (sesión por caducar) se queda hasta que la persona actúa (2.2.1)')
+      }
       ok(errs.length === 0, `sin errores de consola (${errs.join(' | ')})`)
       await context.close()
     }
@@ -182,11 +226,17 @@ for (const engine of (process.env.ENGINES || 'chromium,firefox,webkit').split(',
       await p.keyboard.press('Alt+F8'); await p.waitForTimeout(300)
       const a = await p.evaluate(look)
       ok(a.form === 'open' && a.focus === 'isle-summary', `Alt+F8: abre y enfoca el resumen (${a.form}, ${a.focus})`)
-      await p.keyboard.press('Escape'); await p.waitForTimeout(250)
+      await p.keyboard.press('Escape'); await p.waitForTimeout(C === 'D' ? 900 : 250)
       const b = await p.evaluate(look)
-      ok(b.form !== 'open' && b.focus === 'isle-summary', `Esc: repliega y deja el foco en el resumen (${b.form})`)
-      await p.keyboard.press('Enter'); await p.waitForTimeout(250)
-      ok((await p.evaluate(look)).form === 'open', 'Enter en el resumen abre')
+      if (C === 'D') {
+        ok(b.form === 'empty' && b.focus === 'cliente', `D · Esc: la recoge y devuelve el foco al campo (${b.form}, ${b.focus})`)
+        await p.keyboard.press('Alt+F8'); await p.waitForTimeout(450)
+        ok((await p.evaluate(look)).form === 'open', 'D · Alt+F8 trae lo vigente aunque la isla se haya ido')
+      } else {
+        ok(b.form !== 'open' && b.focus === 'isle-summary', `Esc: repliega y deja el foco en el resumen (${b.form})`)
+        await p.keyboard.press('Enter'); await p.waitForTimeout(250)
+        ok((await p.evaluate(look)).form === 'open', 'Enter en el resumen abre')
+      }
       await p.keyboard.press('Alt+F8'); await p.waitForTimeout(250)
       ok((await p.evaluate(look)).focus === 'cliente', 'Alt+F8 dentro: vuelve al campo')
       const a11y = await p.evaluate(() => ({ lives: document.querySelectorAll('[aria-live],[role=status],[role=alert]').length, shapeLive: document.querySelector('.isle__shape').hasAttribute('aria-live') }))
