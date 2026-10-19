@@ -1,6 +1,6 @@
 # Contrato · Isla de estado (gestor `createStatus`, región `GStatusIsland`, marca `GStatusMark`, declarativo `GStatus`)
 
-**Dueño:** lima · **Estado:** aprobado y **enmendado por la ronda r03/r04** (2026-10-19, DECISIONS.md **#693 a #705**): la isla pasa a ser **transitoria** (decisión del usuario: «un error no se queda», «siento que estorba») con la forma **D1 · Cápsula de relevo** (`design/lab/alert/r04/declaracion.md`, elegida por el usuario) y la estética **V2C · Cristal con filo** en oscuro y **L1 · Grafito esmerilado** en claro (`design/lab/alert/r04/estilo.md`, elegidas por el usuario). Construcción pendiente: coco (`GStatusIsland.css`, `GStatusMark.css`) y bruno (`.vue`, motor, pruebas). · **Basado en:** `design/lab/alert/r01/` (base funcional, 27 puntos), `r02/` (B · isla, D1 a D5), **`r03/declaracion.md`** (ciclo reproducido, F1 a F4, R1 a R5, concepto D), **`r04/declaracion.md`** (D1, §6 y §7), `auditoria-movimiento.md` (coco: F1 a F3, M1 a M3, I1 a I5), `r04/estilo.md` (coco) y la rúbrica `docs/documentacion/rubrica-movimiento.md` · **Compone:** `dialog.md` (hoja móvil), `btn.md`, `GIcon` interno · **Convive con:** `toast.md`, `speech.md` §6.7, `page-header.md`, `fab.md`, `form.md` (`GErrorSummary`, `GFormActions`), `dialog.md` (traslado al modal superior) · **Decisiones:** DECISIONS.md #315 a #328 y **#693 a #705** (#319, #324 y #325 sustituidas; #315, #316, #318, #320, #322, #323 y #692 enmendadas)
+**Dueño:** lima · **Estado:** aprobado y **enmendado por la ronda r03/r04** (2026-10-19, DECISIONS.md **#693 a #705**): la isla pasa a ser **transitoria** (decisión del usuario: «un error no se queda», «siento que estorba») con la forma **D1 · Cápsula de relevo** (`design/lab/alert/r04/declaracion.md`, elegida por el usuario) y la estética **V2C · Cristal con filo** en oscuro y **L1 · Grafito esmerilado** en claro (`design/lab/alert/r04/estilo.md`, elegidas por el usuario). **Construida** por coco (`GStatusIsland.css`, `GStatusMark.css`, 74e2404) y bruno (`.vue`, motor y pruebas, 3f8f39b), en `draft`; **pendiente la auditoría de coco** sobre el componente real. Peso y precisiones de construcción: **#706** y **#707**. · **Basado en:** `design/lab/alert/r01/` (base funcional, 27 puntos), `r02/` (B · isla, D1 a D5), **`r03/declaracion.md`** (ciclo reproducido, F1 a F4, R1 a R5, concepto D), **`r04/declaracion.md`** (D1, §6 y §7), `auditoria-movimiento.md` (coco: F1 a F3, M1 a M3, I1 a I5), `r04/estilo.md` (coco) y la rúbrica `docs/documentacion/rubrica-movimiento.md` · **Compone:** `dialog.md` (hoja móvil), `btn.md`, `GIcon` interno · **Convive con:** `toast.md`, `speech.md` §6.7, `page-header.md`, `fab.md`, `form.md` (`GErrorSummary`, `GFormActions`), `dialog.md` (traslado al modal superior) · **Decisiones:** DECISIONS.md #315 a #328 y **#693 a #707** (#319, #324 y #325 sustituidas; #315, #316, #318, #320, #322, #323 y #692 enmendadas)
 **Tags:** `g-status-island` (región, una por aplicación) · `g-status-mark` (marca junto al origen) · `g-status` (declarativo, sin pintura) · **Categoría:** comunicación y estado
 **Componente complejo** (CLAUDE.md «Modelos por rol»: servicio con estado y motor de tiempo, se posiciona sobre otros elementos, traslado al modal, compone `GDialog` y `GBtn`): **coco y bruno en Opus**.
 
@@ -21,7 +21,7 @@ Una **cápsula transitoria** en el borde superior del visor que dice **lo que es
 - **Solo texto** (#139): título, descripción, un enlace, una acción, un detalle técnico. Sin slots ni HTML en la isla.
 - **Sin textos por defecto** (#226): `labels` del gestor, todos sin valor.
 - **Sin red ni globals:** el gestor no usa `fetch` ni toca `document`/`window` al importarse ni al crearse (SSR).
-- **Se reutiliza:** `GDialog` (hoja móvil), `GBtn`, `GIcon` interno, `utils/liveRegion.js`, `utils/topModal.js`, `utils/edgeReserve.js`, `utils/template.js` (`fill`), las constantes de lectura de `GToast` (`TOAST_DURATION`, #142, por `__shared`, sin copia), el umbral de hoja `space × 130` (#103).
+- **Se reutiliza:** `GDialog` (hoja móvil), `GBtn`, `GIcon` interno, `utils/liveRegion.js`, `utils/topModal.js`, `utils/edgeReserve.js`, `utils/template.js` (`fill`), las constantes de lectura de `GToast` (`TOAST_DURATION` y el mínimo al reanudar `RESUME_MIN`, #142, por `__shared`, sin copia; #707), el umbral de hoja `space × 130` (#103).
 
 ## Frontera (#704; sustituye la tabla de r01)
 
@@ -60,7 +60,7 @@ export const status = createStatus({ labels: { /* textos de la app */ } })
 createApp(App).use(status).mount('#app')
 ```
 
-**Empaquetado (#328, #705).** `dist/status.js` y `dist/status.umd.js`; lo compartido con el principal (`GBtn`, `GDialog`, `GIcon`, `liveRegion.js`, `topModal.js`, `edgeReserve.js`, `TOAST_DURATION`) llega por `__shared` (#240) **sin duplicarse**. El CSS sigue en `grana.css`. Peso: «Encargos y peso».
+**Empaquetado (#328, #705, #706).** `dist/status.js` y `dist/status.umd.js`; lo compartido con el principal (`GBtn`, `GDialog`, `GIcon`, `liveRegion.js`, `topModal.js`, `edgeReserve.js`, `TOAST_DURATION`) llega por `__shared` (#240) **sin duplicarse**. El CSS sigue en `grana.css`. Peso: «Encargos y peso».
 
 ```vue
 <!-- App.vue -->
@@ -169,7 +169,7 @@ Una sola superficie (`g-status-island__shape`) que cuenta la vida del aviso: **c
 | --- | --- | --- | --- |
 | Vacía | `empty` | Nada que mostrar (el modelo puede tener condiciones ya vistas) | La `section` está `hidden`; la raíz y los canales siguen montados |
 | **Titular** | `line` | Hay una condición mostrándose, entrando o recogiéndose | Una línea: insignia con el **anillo de tiempo** (o `m:ss` con `deadline`), título (elipsis si no cabe; el texto completo está en el nombre accesible y en la lista), «+N» si esperan otras, chevrón decorativo |
-| **Asomo** | `line` + `is-peek` | Puntero encima, foco dentro, o un toque (ver «Asomo táctil») | El titular **crece hacia abajo** y enseña la descripción, la cuenta atrás, la acción, «Ir a…», el enlace y «Ocultar». La lectura está en pausa |
+| **Asomo** | `line` + `is-peek` | Puntero encima, foco dentro, o un toque (ver «Asomo táctil») | El titular **crece hacia abajo** y enseña la descripción, la acción, «Ir a…», el enlace y «Ocultar». La cuenta atrás **no se repite**: sigue en el titular, que el asomo no tapa (#707). La lectura está en pausa |
 | **Lista** | `list` | La persona la abre: activar el titular, la marca, Alt+F8, `open()` | El resumen dice `labels.listTitle` («Pendiente (N)»); debajo, **todas** las condiciones del modelo con su detalle técnico y «Descartar»; «Cerrar». En móvil, la lista es una **hoja** (`GDialog`) |
 
 **Etapas** (`data-stage` en la raíz, **solo mientras dura el movimiento**; sin atributo en reposo):
@@ -189,7 +189,7 @@ bruno avanza de etapa al terminar las transiciones de esa etapa en `__shape` (`t
 
 - Cada titular se muestra su **tiempo de lectura**: `duration` del gestor (`'auto'`: `clamp(5000, 2000 + 60 × n, 12000)` ms, `n` = caracteres de título + descripción; constantes de `GToast`, #142).
 - **El tiempo empieza cuando el texto ya se ve** (fin de `grow`), no durante la caída.
-- **Se ve:** un **anillo alrededor de la insignia** que se vacía con el tiempo y se queda quieto en pausa (`is-paused`: la pista del anillo se completa; ninguna animación). Es solo visual (`aria-hidden`). Con `deadline`, el anillo cede el sitio a `m:ss`.
+- **Se ve:** un **anillo alrededor de la insignia** que se vacía con el tiempo y se queda quieto en pausa (`is-paused`: la pista del anillo se completa; ninguna animación). Es solo visual (`aria-hidden`). Con `deadline`, el anillo cede el sitio a `m:ss`. **Sin tiempo que contar** (#707): con `duration: false` no hay tramo y el anillo queda **lleno y quieto** (`is-paused`, porque `duration: false` es causa de pausa); una condición que **no puede recogerse** (abajo) gasta su tramo y deja el anillo **vacío y quieto**, sin `is-paused`: su tiempo de lectura pasó y espera a la persona. Ese anillo vacío es lo contratado; no hay otro estado visible (la acción está en el asomo y el titular no se va).
 - **Pausa** (`is-paused`), mientras se cumpla cualquiera: puntero sobre la isla o sobre una marca enlace de una condición mostrada o en espera; foco dentro de la isla o en esa marca; un dedo o lápiz apoyado en la isla; el asomo abierto por un toque; la lista abierta; la condición mostrada `busy`; `document.visibilityState === 'hidden'`; `duration: false`. **Al reanudar** sigue el tiempo que quedaba, **con un mínimo de 1000 ms** (#142); nunca se reinicia.
 - **Datos para el anillo** (sin escrituras por cuadro): bruno escribe en `__shape` **`--_left`** (número 0–1: fracción que queda al empezar el tramo) y **`--_run-ms`** (número: ms del tramo) al empezar cada tramo (inicio de lectura, reanudación) y, al pausar, `--_left` con la fracción actual más `is-paused`. Cada tramo es un elemento nuevo de `g-status-island__ring` (clave por tramo en el `.vue`) para que su animación empiece desde `--_left`. coco lo anima de `--_left` a 0 en `--_run-ms`, detenido con `is-paused`. El gestor manda: el anillo es indicativo.
 
@@ -199,6 +199,7 @@ bruno avanza de etapa al terminar las transiciones de esa etapa en `__shape` (`t
 - **Una cada vez, en la misma cápsula:** al acabar el tiempo de la actual, pasa a `seen` y entra la siguiente con el **relevo** (el texto nuevo entra desde abajo y el ancho se ajusta), **sin que la cápsula desaparezca** entre una y otra.
 - **Lo más grave pasa delante:** si llega una condición de **más gravedad** que la mostrada, la **releva al momento**; la relevada vuelve a la **cabeza** de la cola con el tiempo que le quedaba (mínimo 1000 ms). Una de igual o menor gravedad espera su turno.
 - **Nunca se releva bajo la mano** (#702): mientras la lectura está en pausa por la persona (puntero, foco, dedo, asomo, lista) o la mostrada está `busy`, **nada la releva**; lo nuevo espera, sube «+N» y se anuncia igual (por su canal, al llegar). El relevo pendiente ocurre al terminar la pausa.
+- **La copia que sale** (#707): el titular viejo se queda un `--g-duration-slow` como **otro `__text` con `aria-hidden="true"`** (mismo elemento de clase, clave por condición; fuera del nombre accesible del resumen) y sale hacia arriba mientras el nuevo entra desde abajo en la misma celda; bruno la quita al terminar su transición. Con la lista abierta no hay copia.
 - **«+N»** = cuántas **esperan** su turno (no el total). Texto oculto `fill(labels.waiting, { count })`. Sin espera, no hay «+N».
 - **El relevo no anuncia** (#698): cada condición se anunció al llegar.
 - **En el sitio** (D4): un cambio de la condición mostrada (`resolve`, el desenlace de la acción, `update` que cambia título o descripción) entra con el mismo relevo de texto y empieza **su** tiempo.
@@ -215,7 +216,7 @@ bruno avanza de etapa al terminar las transiciones de esa etapa en `__shape` (`t
 ### Lo que no se recoge solo (WCAG 2.2.1)
 
 - **Cuenta atrás (`deadline`):** el titular **no se recoge por tiempo** (avisar y dejar ampliar). La persona puede ocultarlo; **cada umbral de anuncio** (5 min, 1 min, 30 s) **lo vuelve a mostrar** (`seen: false`), con su anuncio.
-- **Condición con `action` sin otra vuelta visible:** si su marca enlace (`GStatusMark for`) **no está montada** (conectada y con caja), el titular **no se recoge por tiempo**: se queda con su acción al alcance (asomo) hasta que la persona lo oculte o la condición cambie. Con marca montada, se recoge y la acción sigue en la marca y en Alt+F8. Una acción con tiempo es una carrera (#142); con la marca deja de serlo. Aviso de desarrollo 14.
+- **Condición con `action` sin otra vuelta visible:** si su marca enlace (`GStatusMark for`) **no está montada** (conectada y con caja), el titular **no se recoge por tiempo**: se queda con su acción al alcance (asomo) hasta que la persona lo oculte o la condición cambie. Con marca montada, se recoge y la acción sigue en la marca y en Alt+F8. Una acción con tiempo es una carrera (#142); con la marca deja de serlo. Aviso de desarrollo 14. **Cómo se queda** (#707): lee su tramo como cualquiera; al acabar, si espera algo **aún sin leer** (de cualquier gravedad), le cede el turno y vuelve a la cabeza con 1000 ms; cuando no queda nada sin leer, se queda en el titular con el anillo vacío hasta «Ocultar», Esc, `hide()`, la lista, el foco tapado o un cambio de la condición. Que su marca se monte **después** no la recoge (no se vuelve a evaluar mientras se queda).
 - **`duration: false`:** nada se recoge por tiempo.
 - En esos casos **sigue habiendo relevo**: lo más grave pasa delante con las reglas de arriba, y lo que no puede recogerse vuelve a la cabeza de la cola.
 
@@ -227,7 +228,7 @@ Se recoge (`fold` → `rise`) cuando:
 3. **Esc** (ver «Teclado»), **`hide()`**: todo lo mostrado y en espera pasa a `seen` y se recoge.
 4. **Cerrar la lista** («Cerrar», activar el resumen, Esc, pulsar fuera, Alt+F8 desde dentro, `close()`): abrir la lista ya enseñó todo, así que todo pasa a `seen` y se recoge.
 5. **«Ir a…»** y el **enlace**: se recoge (y «Ir a…» enfoca el origen).
-6. **El foco va a algo que la isla tapa** (WCAG 2.4.11): si el foco, fuera de la isla, cae en un elemento que el titular, el asomo o la lista tapan aunque sea en parte, la lista y el asomo se cierran y la isla **se recoge al momento sin mover el foco** (lo mostrado pasa a `seen`). Sustituye al aviso 13 de la versión anterior: la isla ya no tapa nada que se use.
+6. **El foco va a algo que la isla tapa** (WCAG 2.4.11): si el foco, fuera de la isla, cae en un elemento que el titular, el asomo o la lista tapan aunque sea en parte, la lista y el asomo se cierran y la isla **se recoge al momento sin mover el foco**. **Es `hide()`** (#707): lo mostrado **y lo que espera** pasa a `seen`; si solo pasara lo mostrado, lo que espera caería otra vez sobre el foco. Sin motivo propio: `seen` no retira del modelo, y un resultado sin enlace se retira con `read`, como en cualquier recogida. Sustituye al aviso 13 de la versión anterior: la isla ya no tapa nada que se use.
 7. El modelo se vacía.
 
 ### Eco en la marca (#700)
@@ -284,7 +285,7 @@ Sin eventos públicos ni slots. Dos `GStatusIsland` del mismo gestor: la segunda
   <div class="g-status-island__live" role="status" aria-live="polite" aria-atomic="true"></div>
   <div class="g-status-island__live" role="alert" aria-atomic="true"></div>
   <section class="g-status-island__shape" aria-label="Estado de la aplicación (Alt+F8)"
-           style="--_island-w: 312px; --_island-h: 44px; --_left: 1; --_run-ms: 7340">         <!-- hidden en empty -->
+           style="--_island-w: 310px; --_island-h: 42px; --_left: 1; --_run-ms: 7340">         <!-- hidden en empty; w/h sin el borde: fila de 44px = 42 + 2 -->
     <div class="g-status-island__inner">
       <button class="g-status-island__summary" id="ID-summary" type="button"
               aria-expanded="false" aria-controls="ID-panel" aria-keyshortcuts="Alt+F8"
@@ -322,10 +323,10 @@ Sin eventos públicos ni slots. Dos `GStatusIsland` del mismo gestor: la segunda
 
 - **Raíz:** `popover="manual"` **abierta siempre** desde el montaje (`showPopover()`), capa superior como `GToaster` (#141). Sin rol. No captura el puntero; `__shape` sí.
 - **Canales:** dos `__live` (texto oculto accesible), presentes y vacíos desde el montaje, **fuera** de la `section`; viajan con la raíz al modal.
-- **`__shape`:** `section` con nombre (`fill(labels.region, { hotkey })`); `hidden` solo en `empty` (después de `rise`). Lee `--_island-w`/`--_island-h` (px del destino medido) salvo en `drop`/`fold`, donde coco usa el tamaño de cápsula.
-- **Resumen:** un `button` con todo el titular dentro (insignia, texto, cuenta atrás, «+N» y chevrón: pulsar el chevrón es pulsar el resumen). Nombre accesible = contenido: prefijo de tipo + título + `labels.waiting` (con espera); en `list`, `fill(labels.listTitle, { count })`. `aria-expanded` = lista abierta; `aria-controls` → panel (escritorio); `aria-describedby` → la descripción del asomo cuando existe (quien enfoca oye la descripción). `aria-keyshortcuts` = `hotkey`. Área ≥ 24px (≥ 44px con `pointer: coarse`).
+- **`__shape`:** `section` con nombre (`fill(labels.region, { hotkey })`); `hidden` solo en `empty` (después de `rise`). Lee `--_island-w`/`--_island-h` (px del destino medido) salvo en `drop`/`fold`, donde coco usa el tamaño de cápsula. **Son `offsetWidth`/`offsetHeight` de `__inner`, sin el borde de `__shape`** (#707): el CSS suma `2 × --g-border-width`, así que con la fila de 44px y un borde de 1px el `.vue` escribe `--_island-h: 42px`. Puede escribirlas ya durante `drop` (el CSS usa la cápsula hasta `grow`).
+- **Resumen:** un `button` con todo el titular dentro (insignia, texto, cuenta atrás, «+N» y chevrón: pulsar el chevrón es pulsar el resumen). Nombre accesible = contenido: prefijo de tipo + título + `labels.waiting` (con espera); en `list`, `fill(labels.listTitle, { count })`. `aria-expanded` = lista abierta; `aria-controls` → panel (escritorio); `aria-describedby` → la descripción del asomo cuando existe (quien enfoca oye la descripción). `aria-keyshortcuts` = `hotkey`. Área ≥ 24px (≥ 44px con `pointer: coarse`), **medida en el resumen, por dentro del borde** (#707: la fila es esa diana más 2 bordes).
 - **Insignia:** icono por tipo (`info` · `circle-check` · `triangle-alert` · `circle-alert`; `loader-circle` con `busy`), `.g-icon` hijo directo. **Tipo sin color** (WCAG 1.4.1): forma del icono + prefijo oculto. El borde de estilo por tipo (sólido, discontinuo, punteado) **deja de ser obligatorio en la cápsula** (el anillo de tiempo ocupa ese sitio, #694); en la marca enlace y en la lista coco decide si se conserva. La forma del icono basta y es la misma convención que `GToast`.
-- **Asomo (`__peek`):** `hidden` fuera de `is-peek`; orden del DOM: descripción → cuenta atrás → acción → «Ir a…» → enlace → «Ocultar». Sin detalle técnico ni «Descartar» (son de la lista).
+- **Asomo (`__peek`):** `hidden` fuera de `is-peek`; orden del DOM: descripción → acción → «Ir a…» → enlace → «Ocultar» (la cuenta atrás no se repite: está en el titular, #707; un segundo `role="timer"` diría lo mismo dos veces). Sin detalle técnico ni «Descartar» (son de la lista).
 - **Lista (`__panel`):** los `li` como hasta ahora (orden: contenido → acciones → descartar); `id` derivado de un contador interno. Detalle técnico: Disclosure; «Copiar» con `navigator.clipboard.writeText` (solo al pulsar) y `labels.copied`. «Cerrar» (`labels.close`) al pie.
 - **Botones:** `GBtn` con las props que fije coco (`size="sm"`; «Ocultar», «Ir a…» y el conmutador del detalle, discretos). coco reasigna sus alias sobre el material de la isla.
 - **Cuenta atrás:** `m:ss` (`h:mm:ss` desde una hora), cifras tabulares; un solo intervalo de 1 s para todas, solo en el cliente y con la isla montada.
@@ -510,7 +511,7 @@ Lista exacta de coco (`r04/estilo.md` §10.3), con lo que fija este contrato:
 
 **El chevrón** gira con `--g-duration-slow` + **`--g-ease-out`**, no con el muelle (el banco de coco lo giraba con muelle: un giro no es un uso aprobado de `--g-ease-spring`, §29.1; el muelle de la isla es solo el cambio de tamaño).
 
-**No son tokens** (constantes, `tokens.md` §29.6 y §31): escala de partida **0,9** (sustituye a 0,86); cápsula `space × 24` × fila; fila `space × 11` (44px también con `pointer: coarse`); insignia `space × 6` (marca: cápsula `space × 8`, insignia `space × 5`); margen `space × 2`; ancho de la lista `min(space × 104, 100% − 2 × margen)`; los porcentajes de mezcla del material (constantes de diseño de coco en su `estilo.md`, como #532); los umbrales de la cuenta atrás y `ANNOUNCE` (JS); `TOAST_DURATION` y el mínimo de 1000 ms al reanudar (JS, #142). **Datos del `.vue`** (§29.5): `--_island-w`, `--_island-h`, `--_left`, `--_run-ms`, `--_status-offset-top`, `data-form`, `data-stage`. Medidas literales: solo `24px`/`44px`.
+**No son tokens** (constantes, `tokens.md` §29.6 y §31): escala de partida **0,9** (sustituye a 0,86); cápsula `space × 24` × fila; **fila** `max(space × 11, 24px + 2 × --g-border-width)` con el borde y, con `pointer: coarse`, `max(space × 11, 44px + 2 × --g-border-width)`: la diana es el resumen, por dentro del borde (44 y 46px con el tema por defecto; #707); insignia `space × 6` (marca: cápsula `space × 8`, insignia `space × 5`); margen `space × 2`; ancho de la lista `min(space × 104, 100% − 2 × margen)`; los porcentajes de mezcla del material (84, 30, 75, 40, 22, 12, 18 y 14 %, el 86 % de la acción al pasar y el 55 % del brillo; constantes de diseño de coco en su `estilo.md`, como #532); **el relevo** una línea (`100%`, geometría de la celda, como P2 de `GNumberField`); **media vuelta** `0.5turn` del chevrón (= 180°, como la divulgación de `GBreadcrumbs`) y `1turn` del anillo; **`1ms`**, unidad que convierte el número `--_run-ms` en tiempo, y `0px`/`0` como `initial-value` (literales de unidad de `tokens.md` §7, #187); las **propiedades registradas privadas** `--_status-w`, `--_status-w-out`, `--_status-h`, `--_status-h-out` (`<length>`: el tamaño animado, muelle solo al crecer) y `--_status-ring` (`<number>`: el avance del anillo) (`tokens.md` §29.7; #707); los umbrales de la cuenta atrás y `ANNOUNCE` (JS); `TOAST_DURATION` y el mínimo de 1000 ms al reanudar (JS, #142). **Datos del `.vue`** (§29.5): `--_island-w`, `--_island-h`, `--_left`, `--_run-ms`, `--_status-offset-top`, `data-form`, `data-stage`. Medidas literales: solo `24px`/`44px`.
 
 ## Clases y datos (contrato bruno ↔ coco)
 
@@ -526,7 +527,7 @@ Lista exacta de coco (`r04/estilo.md` §10.3), con lo que fija este contrato:
 | **`is-paused`** | Raíz | Lectura en pausa (cualquier causa) |
 | `--_status-offset-top` | Raíz (en línea) | Con `offset.top` o reserva |
 | `--_island-w`, `--_island-h`, **`--_left`**, **`--_run-ms`** | `__shape` (en línea) | Tamaño de destino medido; tramo del anillo |
-| `g-status-island__live` (2), `__shape` (`hidden` en `empty`), `__inner`, `__summary`, `__badge` (`data-type`, `is-busy`), **`__ring`**, `__text`, `__sr`, `__timer`, **`__tail`**, `__more`, **`__chevron`**, **`__peek`** (`hidden` sin `is-peek`), **`__desc`**, **`__acts`**, **`__action`**, **`__origin`**, **`__link`**, **`__hide`**, `__panel` (`hidden` fuera de `list` o en móvil), `__list`, `__foot`, **`__close`** | Partes de la isla | Según contenido |
+| `g-status-island__live` (2), `__shape` (`hidden` en `empty`), `__inner`, `__summary`, `__badge` (`data-type`, `is-busy`), **`__ring`**, `__text` (y **`__text[aria-hidden="true"]`**: la copia que sale en el relevo, #707), `__sr`, `__timer`, **`__tail`**, `__more`, **`__chevron`**, **`__peek`** (`hidden` sin `is-peek`), **`__desc`**, **`__acts`**, **`__action`**, **`__origin`**, **`__link`**, **`__hide`**, `__panel` (`hidden` fuera de `list` o en móvil), `__list`, `__foot`, **`__close`** | Partes de la isla | Según contenido |
 | `g-status-item`, `g-status-item--type-*`, `data-type`, `is-busy` (+ `aria-busy`), `has-action`, `has-details`, `is-dismissible`, y sus partes (`__badge`, `__content`, `__title`, `__type`, `__description`, `__timer`, `__link`, `__details-toggle`, `__details`, `__details-text`, `__copy`, `__actions`, `__action`, `__origin`, `__dismiss`) | `li` de la lista | Sin cambios |
 | `g-status-sheet` | `GDialog` de la hoja | Móvil |
 | `g-status-mark`, `--link` \| `--text`, `--type-*`, `data-type`, `is-busy`, **`is-echo`** | Marca | Siempre / con `busy` / durante el eco |
@@ -560,7 +561,7 @@ En producción no hay avisos ni comprobaciones extra.
 
 Importar `@grana/vue` y `createStatus` no tocan `document`, `window` ni `navigator`. En el servidor: `GStatusIsland` no renderiza nada; `GStatus` no hace nada; `GStatusMark` de texto renderiza normal y con `for` no renderiza. Escuchas (`keydown`, `pointerdown`, `pointerover`/`pointerout`, `focusin`/`focusout`, `resize`, `visibilitychange`), el intervalo de la cuenta atrás, los temporizadores de lectura, el `ResizeObserver`, el `MutationObserver` de los orígenes y el seguimiento del modal se crean al montar la isla y se retiran al desmontarla.
 
-## Encargos y peso (#705)
+## Encargos y peso (#705, #706)
 
 ### coco (Opus)
 
@@ -587,7 +588,16 @@ Importar `@grana/vue` y `createStatus` no tocan `document`, `window` ni `navigat
 
 ### Peso
 
-Entrada `@grana/vue/status` hoy **15,8 KB gzip**. Estimación de lima: salen la apertura automática, `openRect`, el punto, el toque y «Entendido» (≈ −0,8 KB); entran el motor de lectura y relevo, las etapas, el asomo, el seguimiento de orígenes y el eco (≈ +2,8 KB). **≈ 17,5–18 KB**. **Tope: 19,0 KB gzip** (bruno lo mide y lo anota en el `meta.json`; superarlo abre una valoración de lima, no un recorte de contrato). `dist/grana.js` **no crece** más allá de exportar `TOAST_DURATION` por `__shared` y la constante de `EDGE_ORDER` (≤ 100 B). El CSS va en `grana.css` (sin tope propio; bruno anota la diferencia).
+**Tope vigente (#706, enmienda #705): 19,5 KiB = 19 968 B** de `gzip` (nivel por defecto) de `dist/status.js`, en KiB como todo el repo (#550). Con más, vuelve a lima y **no se sube otra vez**: la salida es una decisión de producto del usuario (ver #706).
+
+| Medida (lima, copia aislada del `src` de 3f8f39b; ruido ±60 B, #636) | Antes (74e2404) | Ahora |
+| --- | --- | --- |
+| `dist/status.js` gzip | 16 156 B | **19 591 B** (+3 435 B) |
+| `dist/status.umd.js` gzip (Vite) | 13 910 B | 17 240 B |
+| Minificado para producción, sin avisos (esbuild, informativo, #653 punto 6) | 11 565 B | 14 830 B |
+| Avisos de desarrollo (minificado con avisos − sin avisos) | ≈ 2 099 B | ≈ 2 146 B |
+
+El crecimiento es **código del comportamiento elegido**, no avisos: el motor de lectura y relevo (`status.js`, fuente gzip 7 989 → 12 309 B) y las etapas, el asomo, la copia del relevo y el eco (`GStatusIsland.vue` 10 005 → 12 334 B; `GStatusMark.vue` 1 900 → 2 787 B). La estimación de #705 (≈ 17,5–18 KB) se quedó corta en ≈ 1,4 KiB. `dist/grana.js` crece **+30 B** (`TOAST_DURATION` y `RESUME_MIN` en `__shared`, `EDGE_ORDER.status`), dentro de los ≤ 100 B de #705. El CSS va en `grana.css` (sin tope propio): 90 080 → 91 320 B gzip. bruno pone `bundle.cap` 19 968 en `GStatusIsland.meta.json` y corrige `overCap` y la línea de `CHANGELOG.md` (el exceso sobre 19,0 KiB era de 135 B, no de 580: la cifra de 19 000 B contaba en kB, #550).
 
 ## Verificación (cómo se da por hecho)
 
