@@ -1,5 +1,7 @@
 # Estilo · isla de estado r04 · la cápsula de D1 (coco)
 
+> **Decisión del usuario (§10): L1 · Grafito esmerilado en claro + el oscuro de V2C con filo.** Es lo que queda fijado para `GStatusIsland.css` y `GStatusMark.css`. §1 a §9 son la exploración que llevó hasta aquí.
+>
 > **Ronda 2 (§9):** el usuario: «me gusta el V2C oscuro, pero el claro no, de ninguno». El oscuro de V2C queda fijado y §9 propone tres claros (L1, L2, L3). **La pregunta vigente es la de §9.6**; la de §8 queda sustituida.
 
 **Encargo:** el usuario eligió **D1 · Cápsula de relevo** y pidió: «en el diseño de la pill mejóralo, hazlo más atractivo, visual, moderno», con la referencia «algo estilo Apple». Después, al ver las capturas: «Cristal se ve bien en modo oscuro, pero creo que el detalle en la versión en blanco es que se pierde».
@@ -266,3 +268,92 @@ Ninguna necesita tokens nuevos. Usan `--g-color-text`/`-surface`, `--g-glass-*` 
 ### 9.6 Pregunta de elección
 
 **Con el oscuro de V2C fijado, ¿qué claro quieres: L1 · Grafito esmerilado (recomendada: el mismo cristal oscuro, también sobre fondo claro), L2 · Obsidiana neutra (isla oscura sólida, como la del iPhone) o L3 · Porcelana (cápsula clara con estructura)?**
+
+## 10. Decisión (2026-10-19): lo que queda fijado para `GStatusIsland.css` y `GStatusMark.css`
+
+**Elegido por el usuario:** **L1 · Grafito esmerilado** en claro, y el **oscuro de V2C con un filo** que lo delimita sobre las zonas de marca oscuras. En el banco: `estilo-banco.html?v=L1` (reglas `.isle[data-l=L1]` sobre la base `[data-v^=V2]` / `V2C`). En el CSS real no habrá variantes: se escriben solo estos valores.
+
+### 10.1 El filo del oscuro (aplicado y medido)
+
+Dos piezas, solo en la rama oscura de `light-dark()`:
+1. El hilo exterior de 1 px pasa de `--g-color-border-control` a `color-mix(in oklab, var(--g-color-border-control), var(--g-color-text) 30%)`. Es la luz que separa la cápsula de las zonas oscuras profundas (grana y caracol-púrpura).
+2. Un segundo anillo exterior de 2 px con el color de la **página** (`--g-color-bg`, resuelto fuera de cualquier zona). Separa la cápsula de las zonas oscuras de tono medio (linear y stripe); sobre la página no se ve.
+
+**Medido:**
+- Antes, frente a las cuatro zonas: 2,03 / 2,66 / 2,65 / 2,69:1. Ahora, delimitación mínima en los 11 temas, claro y oscuro: **3,10:1**. Con el tema por defecto en oscuro: página 7,11, superficie 6,58, zona 6,36 (antes 4,66 / 4,32 / 4,17).
+- **Fuera de las zonas, el oscuro es idéntico** salvo el tono de ese hilo (de #808080 a ≈ #9C con el tema por defecto). Relleno (1,06:1), tinta, insignia (disco 1,07:1), filo de luz superior, brillo, sombras y movimiento no cambian. El anillo de la página es invisible sobre la página.
+- La subida mínima que pasa en los 11 temas fue 30 %: al 25 %, grana quedaba a 2,89.
+
+### 10.2 Lo fijado
+
+| Pieza | Claro (L1) | Oscuro (V2C + filo) |
+| --- | --- | --- |
+| Cuerpo | `color-mix(in srgb, var(--g-color-text) 84%, transparent)` + `backdrop-filter: var(--g-glass-filter)` | `color-mix(in srgb, var(--g-glass-tint) calc(var(--g-glass-opacity) * 100%), transparent)` + el mismo filtro |
+| Tinta (texto, iconos, anillo, chevrón, foco interior) | `--g-color-surface` | `--g-color-text` |
+| Acción (cápsula rellena) | fondo `--g-color-surface`, texto `--g-color-text`; al pasar, la tinta al 86 % con su par | fondo `--g-color-text`, texto `--g-color-surface`; ídem |
+| Filo de luz superior (inset 1 px) | `color-mix(in srgb, var(--g-color-surface) 22%, transparent)` | `--g-glass-edge` |
+| Brillo especular (degradado de arriba al 55 %) | `color-mix(in srgb, var(--g-color-surface) 12%, transparent)` | `--g-glass-sheen` |
+| Hilo exterior (1 px) | transparente | `color-mix(in oklab, var(--g-color-border-control), var(--g-color-text) 30%)` |
+| Anillo exterior (2 px) | `color-mix(in srgb, var(--g-color-on-brand-zone) 75%, transparent)` | `--g-color-bg` de la página |
+| Sombra | capa propia `0 space×3 space×8 −space×2` con `color-mix(in srgb, var(--g-color-text) 22%, transparent)` + `--g-shadow-1` + `--g-shadow-3` | la capa propia transparente + `--g-shadow-1` + `--g-shadow-3` |
+| Insignia (24 px, concéntrica) | disco `color-mix(in oklab, var(--g-color-{tipo}) 40%, transparent)`, glifo `--g-color-surface` | disco `--g-color-{tipo}-soft`, glifo `--g-color-on-{tipo}-soft` |
+| Anillo de tiempo | degradado cónico de la tinta (`calc(var(--_left) * 1turn)`) recortado a corona de 2 bordes; pista: la tinta al 14 %; en pausa, al 40 % | ídem con la tinta del oscuro |
+| «+N» | cápsula transparente con contorno de la tinta al 40 % | fondo `--g-color-surface`, contorno `--g-color-border` |
+| Separadores de la lista | la tinta al 18 % | `--g-color-border` |
+| Marca junto al origen | el mismo cuerpo, filo superior e hilo (sin anillo exterior ni sombra propia) | ídem |
+
+**Comunes a los dos esquemas:**
+- fila de `space × 11` (44 px), con `pointer: coarse` `44px + 2 bordes`;
+- radio de la mitad de la fila;
+- insignia de `space × 6` con el glifo al 62 %;
+- título `body-sm` / `title-sm-weight`;
+- «+N» y temporizador en `caption`;
+- asomo y lista alineados con el título;
+- movimiento de kiwi (§6.3) sin cambios: muelle en el chevrón y en el tamaño;
+- con `reduce`, solo fundidos;
+- `forced-colors`: borde `CanvasText`, contorno de la insignia, anillo `CanvasText` y acción `ButtonText`.
+
+**Medido (191/191 en Chromium con 11 temas, Firefox y WebKit):**
+- texto ≥ 5,99;
+- glifo, anillo, acción y foco ≥ 4,51;
+- delimitación ≥ 3,10 en los 11 temas;
+- con el tema por defecto, en claro: página 10,59, superficie 10,59, zona 9,75;
+- sin destellos al nacer ni al recogerse (≤ 0,29 de opacidad por cuadro);
+- 320 px y texto al 200 % sin recorte;
+- concéntrica en LTR y RTL.
+
+**Capturas finales:** `estilo-L1-claro-y-oscuro.png` (los tres fondos, los dos esquemas) y `estilo-L1-claro.png` / `estilo-L1-oscuro.png` (todos los estados).
+
+### 10.3 Tokens que consume (lista exacta para lima)
+
+**Color:**
+- `--g-color-text`, `--g-color-surface`, `--g-color-bg`, `--g-color-border`, `--g-color-border-control`, `--g-color-focus` (anillo exterior y eco de la marca).
+- `--g-color-{danger|warning|info|success}`, `--g-color-{danger|warning|info|success}-soft`, `--g-color-on-{danger|warning|info|success}-soft`.
+- `--g-color-on-brand-zone` ⚑.
+
+**Cristal:** `--g-glass-tint`, `--g-glass-opacity`, `--g-glass-filter`, `--g-glass-edge`, `--g-glass-sheen`.
+
+**Sombra:** `--g-shadow-1`, `--g-shadow-3`.
+
+**Medidas:** `--g-space-1`, `--g-space-2`, `--g-space-3`, `--g-space-4`, `--g-space-8`, `--g-border-width`, `--g-focus-width`, `--g-focus-offset`, `--g-radius-pill`.
+
+**Texto:** `--g-font-ui`; `--g-text-body-sm-{size|line|tracking}`; `--g-text-title-sm-weight`; `--g-text-action-weight`; `--g-text-caption-{size|line|weight}`.
+
+**Movimiento:** `--g-duration-{fast|press|slow|spin}`, `--g-ease-{out|standard|spring}`.
+
+**Deja de consumir** (frente a la isla vigente, `tokens.md` §31): `--g-color-on-{tipo}` en las insignias (el claro usa el disco al 40 % con glifo `surface`; el oscuro, `-soft`/`on-…-soft`) y `--g-shadow-2`.
+
+**Para lima, marcados ⚑ (precedente, regla o decisión; ningún token nuevo es imprescindible):**
+1. ⚑ **Enmienda de #325 y #692:** la isla y su marca dejan la superficie inversa por un **cristal grafito en los dos esquemas** (claro: la tinta del tema translúcida; oscuro: el cristal de §12 con filo).
+2. ⚑ **`light-dark()` en un componente** (primer uso). Depende de que `color-scheme` siga al esquema: hoy lo fijan `defaults.css` (`:root`, la consulta, `[data-theme="dark"]` y la zona) y los temas del CLI. Regla a escribir: un tema que redeclare los colores sin `color-scheme` rompe la rama.
+3. ⚑ **`--g-color-on-brand-zone` leído fuera de la zona.** `tokens.md` §44.2 dice que las fuentes de la zona solo las leen el bloque `[data-g-zone]` y `GSurface`. La isla la usa (al 75 %) como el único color garantizado ≥ 4,5:1 frente a cualquier zona, para separarse de una cabecera de marca en claro. Necesita excepción documentada, o un alias, p. ej. `--g-color-zone-ink` de nivel Semantic.
+4. ⚑ **Regla de contraste del cristal oscuro en claro** (§12 solo cubre la tinta oscura sobre el velo claro): la tinta `surface` sobre `text` al 84 %, contra el peor fondo (blanco), medido ≥ 5,99 en 11 temas. Proponer al CLI la misma guarda que §12 (opacidad mínima o contraste compuesto).
+5. ⚑ **Insignia del claro:** disco `{tipo}` al 40 % con glifo `surface`. No es un par garantizado por construcción; está medido (glifo ≥ 4,51 en 11 temas). Lima decide si el CLI lo valida o si se escribe como par derivado.
+6. Opcional: la capa de sombra solo en claro es una receta de `space` + la tinta al 22 %; si se repite en otros componentes, valorar un `--g-shadow-lift`.
+7. Constantes de mezcla del componente (no son tema): 84 %, 30 %, 75 %, 40 %, 22 %, 12 %, 18 % y 14 %, más `1turn` en el anillo.
+
+**Para bruno:**
+1. El anillo con degradado cónico (no `stroke-dashoffset`: Firefox descarta el `calc()` sin unidades).
+2. El `ResizeObserver` y la medida de kiwi sin cambios.
+3. `light-dark()` requiere Chrome 123, Firefox 120 y Safari 17.5.
+4. Valorar el coste de `backdrop-filter` en una forma que cambia de tamaño (rúbrica G).

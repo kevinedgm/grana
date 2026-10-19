@@ -254,6 +254,10 @@ html,[data-theme]{--_page:var(--g-color-bg);--_page-text:var(--g-color-text);--_
 /* L1 · GRAFITO ESMERILADO: el material del oscuro de V2C llevado al claro. Cuerpo translúcido de la tinta del tema al
    78 % (desenfoca lo de detrás), filo de luz arriba y brillo especular suaves (la tinta clara al 22 % y al 12 %) */
 .isle[data-l=L1],.mark[data-l=L1]{
+  /* Filo del oscuro (decisión del usuario): el hilo de control con un 40 % de la tinta, solo en oscuro. Sube de 2,03–2,69
+     a ≥ 3:1 frente a las zonas de marca oscuras; en la página es el mismo hilo, un tono más claro */
+  --_rim:light-dark(transparent,color-mix(in oklab,var(--g-color-border-control),var(--g-color-text) 30%));
+  --_zone-ring:light-dark(color-mix(in srgb,var(--g-color-on-brand-zone) 75%,transparent),var(--_page));
   --_fill:light-dark(color-mix(in srgb,var(--g-color-text) 84%,transparent),color-mix(in srgb,var(--g-glass-tint) calc(var(--g-glass-opacity) * 100%),transparent));
   --_sheen:light-dark(color-mix(in srgb,var(--g-color-surface) 12%,transparent),var(--g-glass-sheen));
   --_edge-top:light-dark(color-mix(in srgb,var(--g-color-surface) 22%,transparent),var(--g-glass-edge))}
