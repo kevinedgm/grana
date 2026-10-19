@@ -276,6 +276,7 @@ Todos están en **`candidate`**: ver [Estado](#estado-010-beta). «Propia» indi
 | [`GBreadcrumbs`](packages/vue/src/components/GBreadcrumbs/README.md) | Migas de pan: la ruta entera se aprieta por prioridad sin esconder niveles; al final, «Subir · página»; con `children`, puertas a los hermanos | principal |
 | [`GPagination`](packages/vue/src/components/GPagination/README.md) | Paginación de una colección | principal |
 | [`GStepper`](packages/vue/src/components/GStepper/README.md) | Avance por pasos discretos | principal |
+| [`GFab`](packages/vue/src/components/GFab/README.md) | Botón flotante para crear o capturar desde cualquier sitio: la pila que crece (las que caben, la más usada pegada al botón) o, con `main`, la acción principal a un toque con una cola que filtra al escribir; confirmación en la misma fila y acuse en el propio botón | **propia** (`fab`) |
 | [`GTooltip`](packages/vue/src/components/GTooltip/README.md) | Nombre visible, descripción y atajo de un control enfocable | principal |
 | [`GHelper`](packages/vue/src/components/GHelper/README.md), [`GHelperScope`](packages/vue/src/components/GHelperScope/README.md) | Ayuda contextual anclada a una región | principal |
 
