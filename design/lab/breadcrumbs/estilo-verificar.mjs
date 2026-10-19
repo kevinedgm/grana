@@ -57,13 +57,13 @@ const near = (a, b, t = 0.5) => Math.abs(a - b) <= t
   ok(!missing.length, 'CSS: tokens que no existen en defaults.css ' + missing)
   const own = new Set([...css.matchAll(/(--_[\w-]+)\s*:/g)].map((m) => m[1]))
   const fromVue = ['--_depth', '--_x', '--_y', '--_max']
-  ok([...own].every((v) => v.startsWith('--_bc-')), 'CSS: alias propio sin prefijo --_bc-: ' + [...own].filter((v) => !v.startsWith('--_bc-')))
+  ok([...own].every((v) => v.startsWith('--_bc-') || v === '--_snap'), 'CSS: alias propio sin prefijo --_bc-: ' + [...own].filter((v) => !v.startsWith('--_bc-') && v !== '--_snap'))
   const strange = [...new Set(vars.filter((v) => v.startsWith('--_') && !own.has(v) && !fromVue.includes(v)))]
   ok(!strange.length, 'CSS: alias --_* que no son propios ni datos del .vue: ' + strange)
   ok(fromVue.every((v) => vars.includes(v)), 'CSS: no lee --_depth, --_x, --_y y --_max del .vue')
   const px = [...css.matchAll(/(-?\d*\.?\d+)px\b/g)].map((m) => m[0])
-  ok(px.every((p) => ['24px', '44px', '1px', '-1px'].includes(p)), 'CSS: medidas literales no permitidas ' + px.filter((p) => !['24px', '44px', '1px', '-1px'].includes(p)))
-  const onePx = css.split('\n').filter((l) => /\b-?1px\b/.test(l)).map((l) => l.trim())
+  ok(px.every((p) => ['24px', '44px', '1px', '-1px', '0.5px'].includes(p)), 'CSS: medidas literales no permitidas ' + px.filter((p) => !['24px', '44px', '1px', '-1px', '0.5px'].includes(p)))
+  const onePx = css.split('\n').filter((l) => /\b-?1px\b/.test(l) && !/@supports \(inline-size: round\(1px, 1px\)\)/.test(l)) /* #682: la condición de @supports no es una medida */.map((l) => l.trim())
   ok(onePx.every((l) => /^(inline-size|block-size|margin): -?1px;$/.test(l)), 'CSS: 1px fuera del texto oculto: ' + onePx)
   const ch = [...css.matchAll(/(\d*\.?\d+)ch\b/g)].map((m) => m[0])
   ok(ch.length >= 3 && ch.every((c) => ['20ch', '3ch', '8ch'].includes(c)), 'CSS: ch fuera de 20ch, 3ch y 8ch (#501): ' + ch)

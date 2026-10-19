@@ -69,3 +69,8 @@ Lector de pantalla real (incluido el riesgo de `aria-activedescendant` en la hoj
 ## Sin verificar (no bloquea)
 
 Lector de pantalla real (cómo anuncia la fila crear como opción y los iconos), preferencias reales del sistema, Firefox y Safari, y un dispositivo táctil real.
+
+## Correcciones posteriores (lote de pendientes de los README, commit pendiente)
+
+- **#563 · contención en línea.** En un padre que se ajusta al contenido el campo medía lo que su etiqueta (200,5px). La raíz lleva `contain: inline-size` y `contain-intrinsic-inline-size: space × 60` (como `GInput`, #562), con `contain: none` dentro de una `GFormRow` y en las pistas compartidas de `GAdaptiveLayout`. `node design/lab/contencion/verificar.mjs`: 240px en los cuatro padres, 336/336 en los tres motores.
+- **Alto vacío con el texto al 200 %.** Sin valor ni marcador, `.g-select__value` no tenía línea y la caja medía 36px (`md`) y 30px (`sm`) junto a los 42px de `GInput`. Ahora `min-block-size: var(--_lh)`; `node design/lab/datepicker/altura-verificar.mjs` lo mide junto a `GDatePicker` (186/186 en los tres motores). Sin cambio al 100 %.

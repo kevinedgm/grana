@@ -1030,3 +1030,83 @@ describe('GDialog · L3 y L4: diálogos apilados', () => {
     lower.unmount(); upper.unmount()
   })
 })
+
+// Hallazgo 4 de design/lab/form-section/auditoria.md: en WebKit el clic de ratón no enfoca el botón que abre; al abrir,
+// activeElement es <body> y el navegador devuelve ahí el foco. GDialog recuerda el control del último pointerdown.
+describe('GDialog · abridor por puntero (foco en <body> al abrir)', () => {
+  // Cierre como el nativo: el foco vuelve al que lo tenía al abrir (aquí, <body>) antes del evento close
+  const nativeClose = () => {
+    HTMLDialogElement.prototype.close = function () {
+      if (!this.hasAttribute('open')) return
+      this.removeAttribute('open')
+      if (this.contains(document.activeElement)) document.activeElement.blur()
+      this.dispatchEvent(new Event('close'))
+    }
+  }
+  const setup = () => {
+    const btn = document.createElement('button')
+    btn.textContent = 'Quitar'
+    const icon = document.createElement('span')
+    btn.append(icon)
+    document.body.append(btn)
+    const w = mount(GDialog, { attachTo: document.body, props: { ...base, modelValue: false } })
+    return { btn, icon, w }
+  }
+
+  it('pulsado sin foco: al cerrar, el foco vuelve al control del pointerdown (también desde un hijo suyo)', async () => {
+    nativeClose()
+    const { btn, icon, w } = setup()
+    icon.dispatchEvent(new Event('pointerdown', { bubbles: true }))
+    expect(document.activeElement).toBe(document.body)
+    await w.setProps({ modelValue: true })
+    await nextTick()
+    expect(dlg(w).contains(document.activeElement)).toBe(true)
+    await w.setProps({ modelValue: false })
+    await nextTick()
+    expect(document.activeElement).toBe(btn)
+    w.unmount(); btn.remove()
+  })
+
+  it('WebKit: si al cerrar el foco sigue dentro del <dialog> cerrado, también vuelve al control del pointerdown', async () => {
+    // cierre del beforeEach: no mueve el foco (queda en el botón de cierre del diálogo)
+    const { btn, w } = setup()
+    btn.dispatchEvent(new Event('pointerdown', { bubbles: true }))
+    await w.setProps({ modelValue: true })
+    await nextTick()
+    expect(dlg(w).contains(document.activeElement)).toBe(true)
+    await w.setProps({ modelValue: false })
+    await nextTick()
+    expect(document.activeElement).toBe(btn)
+    w.unmount(); btn.remove()
+  })
+
+  it('una tecla después del clic anula el abridor por puntero', async () => {
+    nativeClose()
+    const { btn, w } = setup()
+    btn.dispatchEvent(new Event('pointerdown', { bubbles: true }))
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }))
+    await w.setProps({ modelValue: true })
+    await nextTick()
+    await w.setProps({ modelValue: false })
+    await nextTick()
+    expect(document.activeElement).toBe(document.body)
+    w.unmount(); btn.remove()
+  })
+
+  it('con un disparador enfocado al abrir no se usa el puntero (el navegador ya devuelve el foco)', async () => {
+    nativeClose()
+    const { btn, w } = setup()
+    const other = document.createElement('button')
+    document.body.append(other)
+    btn.dispatchEvent(new Event('pointerdown', { bubbles: true }))
+    other.focus()
+    await w.setProps({ modelValue: true })
+    await nextTick()
+    // Simula el retorno nativo al que tenía el foco
+    other.focus()
+    await w.setProps({ modelValue: false })
+    await nextTick()
+    expect(document.activeElement).toBe(other)
+    w.unmount(); btn.remove(); other.remove()
+  })
+})

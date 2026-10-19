@@ -31,7 +31,7 @@ export const FOCUSABLE = 'button, a[href], input, select, textarea, summary, [ta
 export const BOX = '[data-g-tooltip-box]'
 const GROUP = '[role="toolbar"], [role="tablist"], [role="radiogroup"], [role="menubar"], [role="group"], nav, [role="navigation"]'
 // Geometría que viaja (receta TT.travel del banco de coco)
-const GEOM = ['--_x', '--_y', '--_yb', '--_tooltip-ax', '--_tooltip-ay', '--_tooltip-aw', '--_tooltip-ah']
+const GEOM = ['--_x', '--_y', '--_yb', '--_tooltip-ax', '--_tooltip-ay', '--_tooltip-aw', '--_tooltip-ah', '--_tooltip-ar1', '--_tooltip-ar2']
 const STATES = ['data-instant', 'data-travel', 'data-dwell', 'data-touch']
 
 const now = () => Date.now()
@@ -153,6 +153,54 @@ export function resolveTarget(start, end, own = []) {
   return is(e, FOCUSABLE) ? e : e.querySelector(FOCUSABLE)
 }
 
+// ---------- Radio del control en las esquinas que dan a la pestaña (#680) ----------
+const CORNERS = ['top-left', 'top-right', 'bottom-right', 'bottom-left']
+/** Una componente de radio calculado («14px», «50%»), resuelta contra `len` */
+const radiusPart = (v, len) => {
+  const n = parseFloat(v)
+  if (!Number.isFinite(n) || n <= 0) return 0
+  return /%\s*$/.test(v) ? (n / 100) * len : n
+}
+/**
+ * Radios USADOS de las cuatro esquinas de `cs` (estilo calculado) en una caja `w`×`h`: { 'top-left': [x, y], … }, con
+ * los porcentajes resueltos y la reducción proporcional de CSS (Backgrounds 3 §5.5: si la suma de dos radios vecinos
+ * excede el lado, todos se escalan por el mismo factor; así una píldora de 9999px da la mitad del alto).
+ */
+export function usedRadii(cs, w, h) {
+  const r = {}
+  for (const c of CORNERS) {
+    const parts = String(cs.getPropertyValue(`border-${c}-radius`) || '').trim().split(/\s+/)
+    r[c] = [radiusPart(parts[0], w), radiusPart(parts[1] ?? parts[0], h)]
+  }
+  const ratio = (len, a, b) => (a + b > len ? len / (a + b) : 1)
+  const f = Math.min(
+    ratio(w, r['top-left'][0], r['top-right'][0]),
+    ratio(w, r['bottom-left'][0], r['bottom-right'][0]),
+    ratio(h, r['top-left'][1], r['bottom-left'][1]),
+    ratio(h, r['top-right'][1], r['bottom-right'][1])
+  )
+  if (f < 1) for (const c of CORNERS) r[c] = [r[c][0] * f, r[c][1] * f]
+  return r
+}
+/**
+ * --_tooltip-ar1/-ar2 (#680): la componente del radio del control A LO LARGO del borde que toca la pestaña, en las dos
+ * esquinas de ese borde (1 = izquierda con top/bottom, arriba con left/right; físicos), menos lo que la pestaña queda
+ * dentro del control en ese extremo. `a`: caja del control (viewport); `t`: extremos de la pestaña en el eje del borde
+ * ({ start, end }, viewport). `side`: lado físico de la etiqueta respecto al control. Sin radios, [0, 0].
+ */
+export function tabRadii(radii, side, a, t) {
+  const horizontal = side === 'top' || side === 'bottom'
+  const pair = side === 'bottom' ? ['bottom-left', 'bottom-right']
+    : side === 'top' ? ['top-left', 'top-right']
+      : side === 'right' ? ['top-right', 'bottom-right'] : ['top-left', 'bottom-left']
+  const k = horizontal ? 0 : 1
+  const lo = horizontal ? a.left : a.top
+  const hi = horizontal ? a.right : a.bottom
+  const in1 = Math.max(0, t.start - lo)
+  const in2 = Math.max(0, hi - t.end)
+  return [Math.max(0, radii[pair[0]][k] - in1), Math.max(0, radii[pair[1]][k] - in2)]
+}
+
 /**
  * Ancla del tooltip (#395): el ancestro más cercano del elemento resuelto (`target`, él incluido) con
  * `data-g-tooltip-box`, si está dentro del primer elemento del hijo (`first`) o es él; si no, el propio `target`.
@@ -219,7 +267,23 @@ export function attach(ctrl, node, opt = {}) {
     setVar(node, '--_yb', px(vh - r.y - node.offsetHeight))
     setVar(node, '--_tooltip-ax', px(a.left - r.x))
     setVar(node, '--_tooltip-ay', px(a.top - r.y))
+    corners(a, r, cur)
     return cur
+  }
+  // Esquinas de la pestaña (#680), en la misma pasada que mide la caja. La pestaña ocupa la intersección de la caja del
+  // control y la de la etiqueta en el eje del borde (left/right: max(0, ax) y max(0, tail) en GTooltip.css). Con
+  // left/right el lado físico sale de la geometría (data-side es lógico: en RTL «right» queda a la izquierda)
+  function corners(a, r, side) {
+    const w = node.offsetWidth, hh = node.offsetHeight
+    const phys = side === 'top' || side === 'bottom' ? side : r.x + w / 2 >= a.left + a.width / 2 ? 'right' : 'left'
+    const horizontal = phys === 'top' || phys === 'bottom'
+    const t = horizontal
+      ? { start: Math.max(r.x, a.left), end: Math.min(r.x + w, a.right) }
+      : { start: Math.max(r.y, a.top), end: Math.min(r.y + hh, a.bottom) }
+    let pair = [0, 0]
+    if (a.width > 0 && a.height > 0) pair = tabRadii(usedRadii(getComputedStyle(box), a.width, a.height), phys, a, t)
+    setVar(node, '--_tooltip-ar1', px(pair[0]))
+    setVar(node, '--_tooltip-ar2', px(pair[1]))
   }
   const geom = () => ({ vars: GEOM.map((k) => node.style.getPropertyValue(k)), w: node.getBoundingClientRect().width, side: node.getAttribute('data-side') })
   const writeGeom = (g) => { GEOM.forEach((k, i) => setVar(node, k, g.vars[i])); node.style.inlineSize = px(g.w) }

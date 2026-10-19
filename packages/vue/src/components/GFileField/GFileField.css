@@ -194,14 +194,9 @@
   flex: 1 1 0;
   min-inline-size: 0;
 }
-/* El tamaño se ve entero o no se ve (sigue en el árbol): sin datos, la GSummary inline le da a la línea secundaria lo
-   que sobra tras el título, y una sobra menor que la elipsis pintaba un trozo de cifra junto al nombre (auditoría,
-   hallazgo 3: «Receta guardada md.pdf ⌐2»). Aquí no encoge: si no cabe entera junto al título, pasa a una segunda
-   línea que el cuerpo recorta (el patrón de la cabecera de GSummary). El título cede igual que antes */
-.g-file-field__chip .g-summary:not(:has(.g-summary__fact)) .g-summary__body {
-  flex-wrap: wrap;
-  max-block-size: var(--_lh);
-}
+/* El tamaño se ve entero o no se ve (sigue en el árbol). El salto a la línea recortada lo pone ya GSummary.css (inline
+   sin datos: la secundaria con ≥ 4ch o en la línea oculta; auditoría, hallazgo 3: «Receta guardada md.pdf ⌐2»). Aquí,
+   además, la cifra no encoge: un tamaño a medias («12,…») se leería como otro. El título cede igual que antes */
 .g-file-field__chip .g-summary:not(:has(.g-summary__fact)) .g-summary__subtitle {
   flex: 0 0 auto;
 }
@@ -584,6 +579,18 @@
   36% { translate: calc(var(--g-space-1) * 0.75) 0; }
   56% { translate: calc(var(--g-space-1) * -0.5) 0; }
   76% { translate: calc(var(--g-space-1) * 0.25) 0; }
+}
+
+/* Altura sobre la rejilla de medio píxel (#682, tokens.md §7; precedente GBtn, #667): con --g-space-1 fraccionario la
+   caja salía con fracciones finas y derivaba de sus vecinos de fila. round() la deja en múltiplos de 0,5px; con el tema
+   por defecto ninguna altura cambia. Solo la altura base: lo que deriva de ella la sigue sin redondeo propio. El piso de
+   24px va después del redondeo (y el de 44px táctil, que lee --_h). Dentro de @supports: un round() no soportado dentro
+   de var() invalidaría --_h y la caja se quedaría sin alto */
+@supports (inline-size: round(1px, 1px)) {
+  .g-file-field {
+    --_snap: 0.5px;
+    --_h: max(24px, round(calc(var(--g-space-1) * var(--_units) * var(--_density)), var(--_snap)));
+  }
 }
 
 /* ---------- Tamaño (los de GInput) ---------- */

@@ -47,9 +47,9 @@ const near = (a, b, t = 1) => Math.abs(a - b) <= t
   const vars = [...css.matchAll(/var\((--[\w-]+)/g)].map((m) => m[1])
   ok(vars.every((v) => v.startsWith('--g-') || v.startsWith('--_')), 'CSS: var() que no es --g-* ni --_*: ' + vars.filter((v) => !/^--(g|_)/.test(v)))
   const px = [...css.matchAll(/(-?\d*\.?\d+)px/g)].map((m) => m[0])
-  const badPx = px.filter((p) => !['24px', '44px', '0px', '1px', '-1px'].includes(p))
+  const badPx = px.filter((p) => !['24px', '44px', '0px', '1px', '-1px', '0.5px'].includes(p))
   ok(!badPx.length, 'CSS: medidas literales no permitidas ' + badPx)
-  const onePx = css.split('\n').filter((l) => /\b-?1px\b/.test(l))
+  const onePx = css.split('\n').filter((l) => /\b-?1px\b/.test(l) && !/@supports \(inline-size: round\(1px, 1px\)\)/.test(l)) /* #682: la condición de @supports no es una medida */
   ok(onePx.every((l) => /^\s*(inline-size|block-size|margin): -?1px;$/.test(l)), 'CSS: 1px fuera del patrón de texto oculto: ' + onePx.filter((l) => !/^\s*(inline-size|block-size|margin): -?1px;$/.test(l)).join(' | '))
   const defaults = await readFile(join(ROOT, 'packages/vue/src/styles/defaults.css'), 'utf8')
   const defined = new Set([...defaults.matchAll(/(--g-[a-z0-9-]+)\s*:/g)].map((m) => m[1]))

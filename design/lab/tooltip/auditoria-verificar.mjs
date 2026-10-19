@@ -144,6 +144,50 @@ const LIB = () => {
   window.A = { find, geo, openCount, visible, contrast, sys, snap, frame, R, parse, ratio, bgOf }
 }
 
+/* #680 · Esquinas de la pestaña contra la silueta del control. mode: 'real' (lo que escribe el .vue; si aún no lo
+   escribe, el test calcula --_tooltip-ar1/-ar2 como dice el contrato y los fija en línea: 'sim') o 'zero' (alias a 0,
+   la pestaña de antes de #680). Devuelve, por extremo, cuánto pasa la línea de contacto de la pestaña del tramo recto
+   del borde del control (px; 0 = dentro de la silueta) y si el navegador redujo los radios de la pestaña */
+const CORNERS = async ([c, mode]) => {
+  const f = A.find(c), node = f.node, tab = node.querySelector('.g-tooltip__tab'), box = f.box
+  const side = node.dataset.side, rtl = getComputedStyle(f.res).direction === 'rtl'
+  const phys = side === 'top' || side === 'bottom' ? side : (side === 'right') !== rtl ? 'right' : 'left'
+  const horiz = phys === 'top' || phys === 'bottom'
+  // Radios usados (calculados, % resueltos y reducción proporcional del navegador) de una caja
+  const used = (el) => {
+    const cs = getComputedStyle(el), r = el.getBoundingClientRect()
+    const one = (k) => { const p = cs[k].split(' '); const v = (x, basis) => x.endsWith('%') ? parseFloat(x) / 100 * basis : parseFloat(x) || 0; return [v(p[0], r.width), v(p[1] ?? p[0], r.height)] }
+    const k = { tl: one('borderTopLeftRadius'), tr: one('borderTopRightRadius'), bl: one('borderBottomLeftRadius'), br: one('borderBottomRightRadius') }
+    const ratio = (L, x, y) => (x + y > 0 ? L / (x + y) : Infinity)
+    const fct = Math.min(1, ratio(r.width, k.tl[0], k.tr[0]), ratio(r.width, k.bl[0], k.br[0]), ratio(r.height, k.tl[1], k.bl[1]), ratio(r.height, k.tr[1], k.br[1]))
+    for (const x in k) k[x] = [k[x][0] * fct, k[x][1] * fct]
+    return { k, fct, r }
+  }
+  const B = used(box), b = B.r, t0 = tab.getBoundingClientRect()
+  // Esquinas del control que dan a la pestaña y su componente a lo largo del borde
+  const [c1, c2] = phys === 'bottom' ? ['bl', 'br'] : phys === 'top' ? ['tl', 'tr'] : phys === 'right' ? ['tr', 'br'] : ['tl', 'bl']
+  const ax = horiz ? 0 : 1
+  const R1 = B.k[c1][ax], R2 = B.k[c2][ax]
+  const sim = horiz ? [Math.max(0, R1 - (t0.left - b.left)), Math.max(0, R2 - (b.right - t0.right))] : [Math.max(0, R1 - (t0.top - b.top)), Math.max(0, R2 - (b.bottom - t0.bottom))]
+  const prev = [node.style.getPropertyValue('--_tooltip-ar1'), node.style.getPropertyValue('--_tooltip-ar2')]
+  const written = prev[0] !== ''
+  let source = 'real'
+  if (mode === 'zero') { node.style.setProperty('--_tooltip-ar1', '0px'); node.style.setProperty('--_tooltip-ar2', '0px'); source = 'zero' }
+  else if (!written) { node.style.setProperty('--_tooltip-ar1', sim[0] + 'px'); node.style.setProperty('--_tooltip-ar2', sim[1] + 'px'); source = 'sim' }
+  await A.frame()
+  const ar = [parseFloat(getComputedStyle(node).getPropertyValue('--_tooltip-ar1')), parseFloat(getComputedStyle(node).getPropertyValue('--_tooltip-ar2'))]
+  const T = used(tab), t = T.r
+  // Esquinas de la pestaña del lado del control
+  const [d1, d2] = phys === 'bottom' ? ['tl', 'tr'] : phys === 'top' ? ['bl', 'br'] : phys === 'right' ? ['tl', 'bl'] : ['tr', 'br']
+  const h1 = T.k[d1][ax], h2 = T.k[d2][ax], o1 = T.k[d1][1 - ax], o2 = T.k[d2][1 - ax]
+  const thick = horiz ? t.height : t.width
+  // Línea de contacto de la pestaña frente al tramo recto del borde del control
+  const out = horiz ? [(b.left + R1) - (t.left + h1), (t.right - h2) - (b.right - R2)] : [(b.top + R1) - (t.top + h1), (t.bottom - h2) - (b.bottom - R2)]
+  // Deja el nodo como estaba (los valores del .vue, si los había)
+  if (source !== 'real') for (const [i, k] of ['--_tooltip-ar1', '--_tooltip-ar2'].entries()) prev[i] ? node.style.setProperty(k, prev[i]) : node.style.removeProperty(k)
+  return { phys, source, R: [+R1.toFixed(2), +R2.toFixed(2)], sim: sim.map((v) => +v.toFixed(2)), ar, tabR: [+h1.toFixed(2), +h2.toFixed(2)], off: [+o1.toFixed(2), +o2.toFixed(2)], thick: +thick.toFixed(2), fct: +T.fct.toFixed(4), out: out.map((v) => +Math.max(0, v).toFixed(2)), fl: parseFloat(getComputedStyle(node).getPropertyValue('--g-radius-sm')) }
+}
+
 /* ---------- Utilidades de Playwright ---------- */
 const g = (page, c) => page.evaluate((c) => A.geo(c), c)
 async function load(page, { q = '', part = 'all', motion = 'reduce', w = 1280, h = 900, css = '' } = {}) {
@@ -323,6 +367,42 @@ for (const engine of ENGINES) {
       ok(m0 && near(m.body.t, m0.body.t), `${th} · detail: el borde junto al control se movió`)
       if (args.shots) await page.waitForTimeout(250); await page.screenshot({ path: `${SHOTS}/${engine}-${th.replace(' ', '-')}-detail.png`, clip: { x: Math.max(0, m.box.l - 200), y: Math.max(0, m.box.t - 20), width: 520, height: 200 } })
     }
+  }
+
+  /* 2b · #680: esquinas de la pestaña con el radio del control. 0px de pestaña fuera de la silueta del control (la línea
+     de contacto de la pestaña dentro del tramo recto del borde) en los doce lados con GBtn relleno y GInput, block arriba
+     y abajo, cuatro temas; sin reducción proporcional; radio 0 = la pestaña de antes (Δ0 si --g-radius-sm ≤ grosor) */
+  {
+    const worst = { real: 0, sim: 0, zero: 0 }
+    let src = new Set()
+    for (const [th, q] of THEMES) {
+      const cases = []
+      await load(page, { q, part: 'sides' })
+      for (const p of PLACEMENTS) cases.push('side-' + p)
+      cases.push('block')
+      const run = async (list) => {
+        for (const c of list) {
+          const m = await hoverOpen(page, c)
+          if (!m) { ok(false, `${th} · ${c}: no abre (#680)`); continue }
+          const z = await page.evaluate(CORNERS, [c, 'zero'])
+          const r = await page.evaluate(CORNERS, [c, 'real'])
+          src.add(r.source)
+          worst.zero = Math.max(worst.zero, ...z.out)
+          worst[r.source] = Math.max(worst[r.source], ...r.out)
+          ok(r.out.every((v) => v <= 0.5), `${th} · ${c} (${r.phys}, ${r.source}): la pestaña sale de la silueta del control ${JSON.stringify(r)}`)
+          ok(r.fct >= 0.9999, `${th} · ${c}: el navegador redujo los radios de la pestaña (×${r.fct})`)
+          ok(r.off.every((v, i) => v <= r.thick + 0.01 && near(v, Math.min(r.tabR[i], r.thick), 0.05)), `${th} · ${c}: radio en el otro eje ${r.off} ≠ min(${r.tabR}, grosor ${r.thick})`)
+          ok(r.tabR.every((v, i) => near(v, Math.max(r.fl, r.ar[i]), 0.05)), `${th} · ${c}: radio a lo largo del borde ${r.tabR} ≠ max(${r.fl}, ${r.ar})`)
+          if (r.source === 'real') ok(r.ar.every((v, i) => near(v, r.sim[i], 0.5)), `${th} · ${c}: --_tooltip-ar del .vue ${r.ar} ≠ geometría ${r.sim}`)
+          if (c === 'square') ok(r.R.every((v) => v === 0) && r.tabR.every((v) => near(v, r.fl, 0.01)), `${th} · square: radio 0 no deja la pestaña de antes ${JSON.stringify(r)}`)
+          if (engine === 'chromium' && (c === 'side-bottom' || c === 'cin-bottom' || c === 'square')) note('#680 esquinas (chromium)', `${th} · ${c}: control ${r.R}, ar ${r.ar} (${r.source}), pestaña ${r.tabR}/${r.off} (grosor ${r.thick}); fuera antes ${z.out}, ahora ${r.out}`)
+        }
+      }
+      await run(cases)
+      await load(page, { q, part: 'corners' })
+      await run([...PLACEMENTS.map((p) => 'cin-' + p), 'block-top', 'square'])
+    }
+    note('#680 esquinas: lo peor fuera de la silueta', `${engine}: con los alias a 0 (antes) ${worst.zero.toFixed(2)}px; ahora ${[...src].map((k) => k + ' ' + worst[k].toFixed(2) + 'px').join(', ')}`)
   }
 
   /* 3 · Desbordes del visor, RTL y 320 px (tema de auditoría) */

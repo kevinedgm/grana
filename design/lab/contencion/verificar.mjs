@@ -31,8 +31,9 @@ const PAGE = `http://127.0.0.1:${server.address().port}/design/lab/contencion/ba
 
 /* Ancho esperado en un padre que se ajusta, en unidades de --g-space-1, de los componentes CON contención (su tamaño
    intrínseco es contain-intrinsic-inline-size). null: sin contención; su tamaño intrínseco es el de su contenido (la
-   etiqueta), y solo se exige un ancho útil (≥ 160 px) y la etiqueta en una línea. El calendario: 80 unidades con bordes */
-const UNITS = { input: 60, 'input-action': 90, textarea: null, select: null, 'date-picker': null, 'number-field': 60, 'time-field': 60, combobox: 60, calendar: 80, summary: 60, slider: null }
+   etiqueta), y solo se exige un ancho útil (≥ 160 px) y la etiqueta en una línea. El calendario: 80 unidades con bordes.
+   GTextarea, GSelect y GDatePicker (100 con split) tienen contención desde #563: antes medían su etiqueta (~200px) */
+const UNITS = { input: 60, 'input-action': 90, textarea: 60, select: 60, 'date-picker': 60, 'date-picker-split': 100, 'number-field': 60, 'time-field': 60, combobox: 60, calendar: 80, summary: 60, slider: null }
 const FIT = ['table', 'grid', 'flex', 'form']
 
 let total = 0, failed = 0

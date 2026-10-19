@@ -18,6 +18,16 @@
   color: var(--g-color-text);
 }
 
+/* Altura sobre la rejilla de medio píxel (#682, tokens.md §7; precedente GBtn, #667): round() a 0,5px y el piso después;
+   con el tema por defecto ninguna altura cambia. Dentro de @supports: un round() no soportado dentro de var() invalidaría
+   la altura. Solo la altura base; anchos, rellenos, radios y formas no se redondean */
+@supports (inline-size: round(1px, 1px)) {
+  .g-filter-bar {
+    --_snap: 0.5px;
+    --_h: round(calc(var(--g-space-1) * 8), var(--_snap));
+  }
+}
+
 /* Texto oculto accesible (etiquetas del editor, región viva) */
 .g-filter-bar__sr {
   position: absolute;
@@ -155,6 +165,14 @@
   background: var(--g-color-surface);
   color: var(--g-color-text);
   font: inherit;
+}
+@supports (inline-size: round(1px, 1px)) {
+  .g-filter-bar__rule,
+  .g-filter-bar__value input:not([type="checkbox"]) {
+    /* El editor puede vivir fuera de la barra (en hoja lo estiliza GDialog): el campo declara su propio paso */
+    --_snap: 0.5px;
+    min-block-size: max(24px, round(calc(var(--g-space-1) * 9), var(--_snap)));
+  }
 }
 .g-filter-bar__value {
   display: flex;

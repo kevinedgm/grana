@@ -246,6 +246,31 @@ test.describe('GAccordion · Δ0 (#481)', () => {
     expect(errs, errs.join('\n')).toEqual([])
   })
 
+  // #683 (límite (3) de #519): la compensación compara cada cuadro con lo que ella escribió; si otro movió el contenedor
+  // (scrollTo de la aplicación, barra arrastrada = scrollTop sin wheel), se cancela y la posición ajena se queda
+  for (const how of ['scrollTo', 'scrollTop']) {
+    test(`exclusive: un ${how} de la aplicación 100 ms después del clic no se deshace (#683)`, async ({ page }) => {
+      const errs = await watchConsole(page)
+      await open(page)
+      if ((await exp(page, 'ex-resultados')) !== 'true') { await page.evaluate(() => { window.__ac().excl = ['resultados'] }); await settle(page, 600) }
+      await toView(page, '#ex-pago-toggle', 520)
+      await frames(page)
+      await page.click('#ex-pago-toggle', { noWaitAfter: true })
+      const target = await page.evaluate(async (how) => {
+        await new Promise((r) => setTimeout(r, 100))
+        const y = Math.max(0, scrollY - 300)
+        if (how === 'scrollTo') window.scrollTo({ top: y, behavior: 'instant' })
+        else document.scrollingElement.scrollTop = y
+        return scrollY
+      }, how)
+      await settle(page, 700)
+      const end = await page.evaluate(() => scrollY)
+      expect(await exp(page, 'ex-pago')).toBe('true')
+      expect(Math.abs(end - target), `${how}: final ${end}, ajeno ${target}`).toBeLessThanOrEqual(1)
+      expect(errs, errs.join('\n')).toEqual([])
+    })
+  }
+
   test('overflow-anchor: none en el grupo y en el suelto (el navegador no compensa dos veces)', async ({ page }) => {
     await open(page)
     const oa = await page.evaluate(() => [getComputedStyle(document.getElementById('ac-excl')).overflowAnchor, getComputedStyle(document.getElementById('ac-solo')).overflowAnchor])

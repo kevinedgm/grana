@@ -191,6 +191,10 @@ for (const engine of ENGINES) {
 
   /* ---------- 3 · Ajuste de iniciales por tamaño y escritura (componente real del UMD) ---------- */
   const NAMES = ['Ana María López', 'William Moore', 'Жанна Шевченко', '李小龙', '山田 太郎', '김민수', 'محمد علي', 'ØRSTED', '🦊 Zorro Plateado', 'Émile Zola', 'łukasz żółw', 'Straße', 'Wolfgang Mozart', 'नरेन्द्र मोदी', 'สมชาย ใจดี']
+  // Texto al 100 % y al 200 % (html 200 %, zoom de solo texto): el tipo va en rem y la caja en px; el tope lado × factor
+  // de GAvatar.css mantiene las iniciales dentro (hallazgo 7 de design/lab/adaptive-layout/auditoria-coco.md)
+  for (const text of ['100', '200']) {
+  await p.evaluate((t) => { document.documentElement.style.fontSize = t === '200' ? '200%' : '' }, text)
   for (const shape of ['circle', 'square']) {
     await p.evaluate(({ NAMES, SIZES, shape }) => window.__mount('au-fit', (h, G) => NAMES.flatMap((n) => SIZES.map((s) => h(G.GAvatar, { name: n, size: s, shape, 'data-n': n, 'data-s': s })))), { NAMES, SIZES, shape })
     await settle(p)
@@ -201,14 +205,20 @@ for (const engine of ENGINES) {
       const avail = shape === 'circle' ? 2 * Math.sqrt(r * r - (cap / 2) ** 2) - 2 : ar.width - 2
       return { n: a.dataset.n, s: a.dataset.s, drawn: sp.textContent, w: tr.width, avail, fs, inside: tr.left >= ar.left - 0.01 && tr.right <= ar.right + 0.01, cy: (tr.top + tr.height / 2) - (ar.top + ar.height / 2), cx: (tr.left + tr.width / 2) - (ar.left + ar.width / 2) }
     }), shape)
-    const bad = fit.filter((f) => f.none || !(f.w <= f.avail && f.inside && f.fs >= 12 && Math.abs(f.cy) <= 1 && Math.abs(f.cx) <= 0.75))
-    ok(fit.length === NAMES.length * 5 && !bad.length, `${shape}: iniciales caben, ≥ 12px y centradas en ${fit.length} casos (${JSON.stringify(bad.slice(0, 3))})`)
+    // Centrado: ±1px; con el texto al 200 % la letra de xl crece de 20 a 28px y el descentrado propio de una fuente de
+    // respaldo (tailandés en Firefox: −1,5px en xl, −1,0 en lg; es de la fuente, proporcional al tamaño) se mide en
+    // proporción: ±5,5 % de la letra, que a 100 % sigue siendo ±1px en todos los tamaños
+    const tol = (f) => text === '200' ? Math.max(1, f.fs * 0.055) : 1
+    const bad = fit.filter((f) => f.none || !(f.w <= f.avail && f.inside && f.fs >= 12 && Math.abs(f.cy) <= tol(f) && Math.abs(f.cx) <= 0.75))
+    const tx = text === '200' ? ' (texto 200 %)' : ''
+    ok(fit.length === NAMES.length * 5 && !bad.length, `${shape}${tx}: iniciales caben, ≥ 12px y centradas en ${fit.length} casos (${JSON.stringify(bad.slice(0, 3))})`)
     const smallOne = fit.filter((f) => ['xs', 'sm'].includes(f.s)).every((f) => [...new Intl.Segmenter().segment(f.drawn)].length === 1)
-    ok(smallOne, `${shape}: una sola letra en xs y sm`)
+    ok(smallOne, `${shape}${tx}: una sola letra en xs y sm`)
     const worst = fit.filter((f) => !['xs', 'sm'].includes(f.s) && [...new Intl.Segmenter().segment(f.drawn)].length > 1).map((f) => ({ d: f.avail - f.w, at: `${f.s} ${f.drawn}` })).sort((a, b) => a.d - b.d)[0]
-    info.push(`${engine} ${shape}: aire mínimo de dos letras ${worst?.d.toFixed(1)}px (${worst?.at})`)
+    info.push(`${engine} ${shape}${tx}: aire mínimo de dos letras ${worst?.d.toFixed(1)}px (${worst?.at})`)
   }
-  await p.evaluate(() => document.getElementById('au-fit')?.remove())
+  }
+  await p.evaluate(() => { document.documentElement.style.fontSize = ''; document.getElementById('au-fit')?.remove() })
 
   /* ---------- 4 · Contraste: neutro y todas las categorías, claro y oscuro, en cuatro temas ---------- */
   await p.evaluate(() => window.__mount('au-cat', (h, G) => [

@@ -52,6 +52,23 @@
   }
 }
 
+/* Altura sobre la rejilla de medio píxel (#682, tokens.md §7; precedente GBtn, #667): round() a 0,5px y el piso después;
+   con el tema por defecto ninguna altura cambia. Dentro de @supports: un round() no soportado dentro de var() invalidaría
+   la altura. El área (la caja md de GInput, para centrar el riel con sus vecinos) y la píldora; su suelo de texto no se
+   redondea. Solo la altura base; anchos, rellenos, radios y formas no se redondean */
+@supports (inline-size: round(1px, 1px)) {
+  .g-slider {
+    --_snap: 0.5px;
+    --_h: max(24px, round(calc(var(--g-space-1) * 9 * var(--_density)), var(--_snap)), var(--_text-box));
+    --_ph: max(24px, round(calc(var(--g-space-1) * 7 * var(--_density)), var(--_snap)), var(--_text-box));
+  }
+  @media (pointer: coarse) {
+    .g-slider {
+      --_h: max(44px, round(calc(var(--g-space-1) * 9 * var(--_density)), var(--_snap)), var(--_text-box));
+    }
+  }
+}
+
 /* ---------- Cabecera: etiqueta y «sin elegir» ---------- */
 .g-slider__head {
   display: flex;

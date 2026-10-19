@@ -6,6 +6,7 @@ import { oneOf } from '../../utils/oneOf.js'
 import { TABS_NEST } from '../../utils/tabs.js'
 import { escRepeating, pushDialog, removeDialog } from '../../utils/dialogStack.js'
 import { resolveTarget, usable } from '../../utils/landing.js'
+import { focusNowhere, pointerOpener, retainPointer } from '../../utils/lastPointerTarget.js'
 import { dialogFoldKey } from './dialogContext.js'
 import { createDialogSteps, declaresSteps, StepSlot, STEP_SKIP } from './steps.js'
 import { fieldGroupKey, formKey, layoutKey, ownFieldKey, revealKey, sectionKey } from '../GForm/formContext.js'
@@ -132,6 +133,10 @@ const origin = ref(null) // { x, y } en px, o null sin has-origin
 let trigger = null // elemento con el foco al abrir: el mismo al que el navegador devuelve el foco al cerrar
 let exitAimed = false
 let fromEl = null // `from` resuelto al abrir
+// Abridor por puntero: con el foco en <body> al abrir (WebKit no enfoca un botón al pulsarlo con el ratón), el control del
+// último pointerdown. El navegador devuelve el foco a <body>; al cerrar se lleva a él.
+let pressEl = null
+const releasePointer = retainPointer()
 function hasBox(node) {
   return Boolean(node && node.isConnected && node.getClientRects && node.getClientRects().length)
 }
@@ -163,7 +168,8 @@ function aimEntry() {
   const active = document.activeElement
   // `from` (#583) manda sobre el elemento con el foco: es el origen de D1 y adonde vuelve el foco al cerrar
   fromEl = resolveTarget(props.from)
-  trigger = fromEl || (active && active !== document.body && active !== document.documentElement && !el.contains(active) ? active : null)
+  pressEl = !fromEl && focusNowhere() ? pointerOpener(el) : null
+  trigger = fromEl || pressEl || (active && active !== document.body && active !== document.documentElement && !el.contains(active) ? active : null)
   if (!centered.value || !hasBox(trigger)) return clearOrigin()
   const t = centerOf(trigger.getBoundingClientRect())
   writeOrigin(t.x - window.innerWidth / 2, t.y - window.innerHeight / 2)
@@ -306,7 +312,9 @@ function onNativeClose() {
   removeDialog(stackEntry)
   // `from`: el foco vuelve a él si sigue usable (el navegador ya lo devolvió al elemento que lo tenía al abrir)
   if (fromEl && usable(fromEl)) fromEl.focus({ preventScroll: true })
-  fromEl = null
+  // WebKit: tras un clic en un botón del diálogo el foco queda en el propio <dialog> ya cerrado
+  else if (pressEl && usable(pressEl) && (focusNowhere() || dialog.value?.contains(document.activeElement))) pressEl.focus({ preventScroll: true })
+  fromEl = pressEl = null
   if (props.modelValue) emit('update:modelValue', false)
   const ms = transitionMs(dialog.value)
   if (ms > 0) leaveTimer = setTimeout(finishLeave, ms)
@@ -411,6 +419,7 @@ watch(body, (el, old) => {
   measure()
 }, { flush: 'post' })
 onBeforeUnmount(() => {
+  releasePointer()
   clearTimeout(leaveTimer)
   listenResize(false)
   if (pinFrame) cancelAnimationFrame(pinFrame)

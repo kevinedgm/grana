@@ -60,7 +60,7 @@ if (run('css')) {
   const strange = [...new Set(vars.filter((v) => v.startsWith('--_') && !own.has(v)))]
   ok(!strange.length, 'CSS: lee un alias --_* que no declara: ' + strange)
   const px = [...css.matchAll(/(-?\d*\.?\d+)px/g)].map((m) => m[0])
-  ok(px.every((p) => ['24px', '44px', '1px', '-1px'].includes(p)), 'CSS: medidas literales no permitidas ' + px.filter((p) => !['24px', '44px', '1px', '-1px'].includes(p)))
+  ok(px.every((p) => ['24px', '44px', '1px', '-1px', '0.5px'].includes(p)), 'CSS: medidas literales no permitidas ' + px.filter((p) => !['24px', '44px', '1px', '-1px', '0.5px'].includes(p)))
   ok(!/\d(?:ch|em|rem|vw|vh|lh)\b/.test(css.replace(/-0\.125em/g, '')), 'CSS: unidad literal no permitida')
   ok(!/--g-ease-spring|--g-ease-bounce/.test(css), 'CSS: muelle o rebote (L24)')
   ok(/--_ff-py: calc\(\(var\(--_h\) - max\(var\(--_ff-chip-h\), var\(--_lh\)\)\) \/ 2 - var\(--g-border-width\)\);/.test(css), 'CSS: el reparto de la caja no cuenta la línea de texto (hallazgo 2)')

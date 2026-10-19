@@ -85,6 +85,19 @@
   --_tag-weight: var(--g-text-caption-weight);
 }
 
+/* Altura sobre la rejilla de medio píxel (#682, tokens.md §7; precedente GBtn, #667): round() a 0,5px (la etiqueta no tiene piso propio: el área de 24px la da su ::after; su suelo de texto + bordes no se redondea);
+   con el tema por defecto ninguna altura cambia. Dentro de @supports: un round() no soportado dentro de var() invalidaría
+   la altura. Solo la altura base; anchos, rellenos, radios y formas no se redondean */
+@supports (inline-size: round(1px, 1px)) {
+  .g-tag {
+    --_snap: 0.5px;
+    --_tag-h: max(round(calc(var(--g-space-1) * 8), var(--_snap)), calc(var(--_tag-lh) + var(--g-border-width) * 2));
+  }
+  .g-tag--size-sm {
+    --_tag-h: max(round(calc(var(--g-space-1) * 6), var(--_snap)), calc(var(--_tag-lh) + var(--g-border-width) * 2));
+  }
+}
+
 /* ---------- Categoría (solo con data-cat; reposo = par soft garantizado ≥ 4.5:1) ---------- */
 .g-tag[data-cat="1"]  { --_tag-soft: var(--g-color-cat-1-soft);  --_tag-on-soft: var(--g-color-on-cat-1-soft);  --_tag-fill: var(--g-color-cat-1);  --_tag-fill-strong: var(--g-color-cat-1-strong);  --_tag-on-fill: var(--g-color-on-cat-1);  --_tag-line: var(--g-color-cat-1-text);  --_tag-pick: var(--g-color-cat-1-soft);  --_tag-on-pick: var(--g-color-on-cat-1-soft); }
 .g-tag[data-cat="2"]  { --_tag-soft: var(--g-color-cat-2-soft);  --_tag-on-soft: var(--g-color-on-cat-2-soft);  --_tag-fill: var(--g-color-cat-2);  --_tag-fill-strong: var(--g-color-cat-2-strong);  --_tag-on-fill: var(--g-color-on-cat-2);  --_tag-line: var(--g-color-cat-2-text);  --_tag-pick: var(--g-color-cat-2-soft);  --_tag-on-pick: var(--g-color-on-cat-2-soft); }

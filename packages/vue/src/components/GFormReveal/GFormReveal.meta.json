@@ -52,7 +52,7 @@
   "inlineVariables": [
     {
       "name": "--_reveal-gap",
-      "note": "row-gap calculado del elemento padre en px (0px si no es un número), al montar, en cada cambio de when y cuando el padre cambia de tamaño (ResizeObserver compartido, lectura en requestAnimationFrame)"
+      "note": "row-gap calculado del elemento padre en px (0px si no es un número), al montar, en cada cambio de when (leído por lotes al terminar la actualización: un solo recálculo de estilo aunque cambien muchos bloques a la vez) y cuando el padre cambia de tamaño (ResizeObserver compartido, lectura en requestAnimationFrame)"
     }
   ],
   "context": {

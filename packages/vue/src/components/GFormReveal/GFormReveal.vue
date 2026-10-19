@@ -8,7 +8,7 @@
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, ref, unref, watch } from 'vue'
 import { formKey, layoutKey, nextFrame, revealKey } from '../GForm/formContext.js'
 import { rowRoots } from '../GFormRow/rowEngine.js'
-import { observeParent, rowGapOf } from './revealGap.js'
+import { observeParent, readLater, rowGapOf } from './revealGap.js'
 
 defineOptions({ name: 'GFormReveal' })
 
@@ -101,7 +101,9 @@ function focusTarget(rootEl) {
 watch(() => props.when, (v) => {
   const el = root.value
   if (!el) return
-  readGap()
+  // La separación se relee por lotes al terminar la actualización (hallazgo 3 de design/lab/form-reveal/auditoria.md):
+  // leída aquí, cada bloque forzaba un recálculo de estilo tras el parcheo del anterior (80 bloques ≈ 80 recálculos)
+  readLater(readGap)
   if (!v && typeof document !== 'undefined' && el.contains(document.activeElement)) {
     const t = focusTarget(el)
     if (t && typeof t.focus === 'function') t.focus({ preventScroll: true })

@@ -143,3 +143,7 @@ Contraste **medido** (compuesto real de capas con `elementsFromPoint`, no estima
 ## No ejecutado
 
 Firefox y Safari (`@starting-style`, `mask-image`, `:dir()`, `:popover-open` del «Más»), `forced-colors` real de Windows (emulado: la paleta de Playwright no es la de Windows), lector de pantalla (el CSS no cambia el árbol), zoom al 200%, táctil con dedo y `snap`, el menú «Más» abierto (lo pinta `GMenu`), `prefers-contrast` con un tema de alto contraste real.
+
+## Rejilla de medio píxel (#682)
+
+Regla única de #682 (`docs/contract/tokens.md` §4 y §7; precedente `GBtn`, #667): dentro de `@supports (inline-size: round(1px, 1px))`, con `--_snap: 0.5px` declarado en la raíz, la altura base pasa a `--_h: max(var(--_tap), round(calc(var(--g-space-1) * 10 * var(--_d)), var(--_snap)))`. El piso va **después** del redondeo (y el de 44px táctil, que lee la misma variable o se aplica detrás); lo que deriva de esa altura la sigue sin redondeo propio; anchos, radios, bordes, rellenos, interlineados y formas no se redondean. Fuera de `@supports`, la fórmula sin `round()`. `--_th` del segmentado deriva de `--_h`. Medido con `node design/lab/redondeo/verificar.mjs` (banco `design/lab/redondeo/banco.html`, tres motores, `space` 4 / 4,375 / 3,75): alto × 2 entero en todas las combinaciones con 4,375 y 3,75 (antes no), y con el tema por defecto ninguna altura cambia frente al `dist/` anterior.

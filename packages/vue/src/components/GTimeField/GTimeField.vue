@@ -529,7 +529,7 @@ function measure() {
   const gap = parseFloat(cs.columnGap) || 0
   const c = cell.getBoundingClientRect()
   const textW = measureTextEl.value ? measureTextEl.value.getBoundingClientRect().width : 0
-  const ref = textW + 1 // el hueco del cursor del espejo (§7)
+  const ref = textW + 2 // el hueco del cursor del espejo (§7; #679: 1px de cursor + 1px de redondeo en WebKit)
   let after = 0
   let past = false
   for (const k of ctl.children) {

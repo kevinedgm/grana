@@ -35,7 +35,7 @@
 
 El CSS de la descripción aplica `font-size` y `line-height` de `body-sm` pero omite `letter-spacing: var(--g-text-body-sm-tracking)`. El valor del token en `defaults.css` es `0`, así que no hay diferencia visual con el tema por defecto. No es un defecto bloqueante.
 
-**Pendiente para bruno (si lo considera oportuno):** añadir `letter-spacing: var(--g-text-body-sm-tracking)` al selector `.g-form-fold__description` en `GFormFold.css` para completar la tripleta tipográfica.
+**Cerrado (coco, lote de pendientes de los README; commit pendiente):** `.g-form-fold__description` declara `letter-spacing: var(--g-text-body-sm-tracking)` en `GFormFold.css` (el archivo es de coco). Comprobado en el `dist/` y con el valor calculado en los tres motores (con `--g-text-body-sm-tracking: 0.05em`, 0,7px); sin cambio visible porque la descripción ya heredaba ese valor de su contexto.
 
 ---
 

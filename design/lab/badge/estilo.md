@@ -58,3 +58,7 @@ Al calcular el contraste real se vio que **el contrato original no se sostenía*
 ## Sin verificar (lo audita el paso 5 o queda pendiente)
 
 Lector de pantalla real; `prefers-reduced-transparency` real (se simuló) y `backdrop-filter`/`color-mix` en Firefox y Safari; tema oscuro (no existe); cristal sobre imágenes fotográficas reales.
+
+## Rejilla de medio píxel (#682)
+
+Regla única de #682 (`docs/contract/tokens.md` §4 y §7; precedente `GBtn`, #667): dentro de `@supports (inline-size: round(1px, 1px))`, con `--_snap: 0.5px` declarado en la raíz, la altura base pasa a `--_h: round(calc(var(--g-space-1) * var(--_units)), var(--_snap))`. El piso va **después** del redondeo (y el de 44px táctil, que lee la misma variable o se aplica detrás); lo que deriva de esa altura la sigue sin redondeo propio; anchos, radios, bordes, rellenos, interlineados y formas no se redondean. Fuera de `@supports`, la fórmula sin `round()`. La insignia no tiene piso (no es objetivo de toque); la figura sola (`--_fig`) es una forma y no se redondea. Medido con `node design/lab/redondeo/verificar.mjs` (banco `design/lab/redondeo/banco.html`, tres motores, `space` 4 / 4,375 / 3,75): alto × 2 entero en todas las combinaciones con 4,375 y 3,75 (antes no), y con el tema por defecto ninguna altura cambia frente al `dist/` anterior.

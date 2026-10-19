@@ -19,6 +19,7 @@ import { accordionKey, currentHash, FORM_CONTROLS, INTERACTIVE, subscribeHash } 
 
 defineOptions({ name: 'GAccordionItem' })
 
+let stopKeep = null // detiene la compensación Δ0 en curso (#685)
 const props = defineProps({
   value: { type: [String, Number], default: undefined },
   id: { type: String, default: undefined },
@@ -128,7 +129,7 @@ function request(open, { inst = false, keep = true } = {}) {
   const stuck = !open && sticky.value && h && r && h.getBoundingClientRect().top - r.getBoundingClientRect().top > 1
   if (inst || stuck) openInstant()
   // Δ0 solo cuando lo tocó el usuario (#481)
-  if (keep && h) keepInPlace(h, movementMs)
+  if (keep && h) stopKeep = keepInPlace(h, movementMs)
   if (group) group.set(val.value, open, { instant: inst })
   else {
     localOpen.value = open
@@ -270,6 +271,9 @@ onMounted(() => {
   syncHead()
 })
 onBeforeUnmount(() => {
+  // #685: desmontado a media compensación, se detiene ya y repone el overflow-anchor previo de cada contenedor
+  stopKeep?.()
+  stopKeep = null
   offHash?.()
   offLoad?.()
   offHead?.()

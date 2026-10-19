@@ -1,7 +1,7 @@
 // Motor de GTooltip (utils/tooltip.js) · design/contracts/tooltip.md §«Comportamiento», §«Táctil», §«El viaje y el grupo»,
 // §«Segunda etapa» (#384 a #389) y §«Caja visible» (#395). jsdom no tiene popover: showPopover/hidePopover se simulan con un atributo.
 import { describe, it, expect, vi, beforeAll, afterEach } from 'vitest'
-import { attach, firstElement, nameOf, resolveBox, resolveKind, resolveTarget, readTime, _state, OPEN, CLOSE, SKIP, DWELL, LONG, LINGER, READ_MAX } from './tooltip.js'
+import { attach, firstElement, tabRadii, usedRadii, nameOf, resolveBox, resolveKind, resolveTarget, readTime, _state, OPEN, CLOSE, SKIP, DWELL, LONG, LINGER, READ_MAX } from './tooltip.js'
 import { _track } from './keyFocus.js'
 
 beforeAll(() => {
@@ -612,5 +612,56 @@ describe('escuchas', () => {
     vi.advanceTimersByTime(OPEN)
     expect(isOpen(a.node)).toBe(false)
     expect(isOpen(b.node)).toBe(false)
+  })
+})
+
+describe('esquinas de la pestaña con el radio del control (#680)', () => {
+  const cs = (map) => ({ getPropertyValue: (k) => map[k.replace(/^border-|-radius$/g, '')] ?? '0px' })
+  const R = (left, top, width, height) => ({ left, top, width, height, right: left + width, bottom: top + height })
+  it('usedRadii: px, elípticos, porcentajes contra la caja y reducción proporcional de CSS (píldora = mitad del alto)', () => {
+    const r = usedRadii(cs({ 'top-left': '14px', 'top-right': '10px 6px', 'bottom-right': '50%', 'bottom-left': '0px' }), 200, 40)
+    expect(r['top-left']).toEqual([14, 14])
+    expect(r['top-right']).toEqual([10, 6])
+    // 50 % → 100 × 20; el lado derecho suma 6 + 20 = 26 ≤ 40 y el inferior 100 + 0 ≤ 200: sin reducción
+    expect(r['bottom-right']).toEqual([100, 20])
+    const pill = usedRadii(cs({ 'top-left': '9999px', 'top-right': '9999px', 'bottom-right': '9999px', 'bottom-left': '9999px' }), 120, 36)
+    for (const c of Object.values(pill)) { expect(c[0]).toBeCloseTo(18, 5); expect(c[1]).toBeCloseTo(18, 5) }
+    expect(usedRadii(cs({}), 100, 30)['top-left']).toEqual([0, 0])
+  })
+  it('tabRadii: las dos esquinas del borde que toca la pestaña, la componente a lo largo del borde, descontando lo que la pestaña queda dentro', () => {
+    const radii = { 'top-left': [14, 4], 'top-right': [12, 5], 'bottom-right': [10, 6], 'bottom-left': [8, 7] }
+    const a = R(100, 50, 200, 40)
+    // Abajo: esquinas inferiores (izquierda, derecha), componente horizontal; la pestaña cubre el control entero
+    expect(tabRadii(radii, 'bottom', a, { start: 100, end: 300 })).toEqual([8, 10])
+    expect(tabRadii(radii, 'top', a, { start: 100, end: 300 })).toEqual([14, 12])
+    // Derecha: esquinas derechas (arriba, abajo), componente vertical; izquierda: esquinas izquierdas
+    expect(tabRadii(radii, 'right', a, { start: 50, end: 90 })).toEqual([5, 6])
+    expect(tabRadii(radii, 'left', a, { start: 50, end: 90 })).toEqual([4, 7])
+    // Pestaña acotada a la etiqueta sobre un block: entra 3px por la izquierda y 150px por la derecha
+    expect(tabRadii(radii, 'bottom', a, { start: 103, end: 150 })).toEqual([5, 0])
+  })
+  it('el motor escribe --_tooltip-ar1/-ar2 al abrir, con la caja visible y los cuatro lados; radio 0 → 0px', () => {
+    vi.useFakeTimers()
+    const cases = [['bottom', '6px', '10px'], ['top', '14px', '12px'], ['right', '12px', '10px'], ['left', '14px', '6px']]
+    for (const [placement, ar1, ar2] of cases) {
+      document.body.innerHTML = ''
+      const { ctrl, node, inst } = make(document.body, { opt: { placement: () => placement } })
+      Object.assign(ctrl.style, { borderTopLeftRadius: '14px', borderTopRightRadius: '12px', borderBottomRightRadius: '10px', borderBottomLeftRadius: '6px' })
+      vi.spyOn(node, 'offsetWidth', 'get').mockReturnValue(placement === 'top' || placement === 'bottom' ? 300 : 120)
+      vi.spyOn(node, 'offsetHeight', 'get').mockReturnValue(60)
+      vi.spyOn(ctrl, 'getBoundingClientRect').mockReturnValue({ ...R(400, 300, 200, 40), x: 400, y: 300 })
+      inst.show('test')
+      expect(node.getAttribute('data-side'), placement).toBe(placement)
+      expect(node.style.getPropertyValue('--_tooltip-ar1'), placement).toBe(ar1)
+      expect(node.style.getPropertyValue('--_tooltip-ar2'), placement).toBe(ar2)
+      inst.hide('test')
+    }
+    document.body.innerHTML = ''
+    const { ctrl, node, inst } = make(document.body)
+    vi.spyOn(node, 'offsetWidth', 'get').mockReturnValue(300)
+    vi.spyOn(ctrl, 'getBoundingClientRect').mockReturnValue({ ...R(400, 300, 200, 40), x: 400, y: 300 })
+    inst.show('test')
+    expect(node.style.getPropertyValue('--_tooltip-ar1')).toBe('0px')
+    expect(node.style.getPropertyValue('--_tooltip-ar2')).toBe('0px')
   })
 })

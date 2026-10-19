@@ -54,7 +54,7 @@ const note = (k, v) => { (measures[k] ??= []).push(v) }
   ok(!missing.length, 'CSS: tokens que no existen en defaults.css ' + missing)
   ok(![...css.matchAll(/(--g-[\w-]+)\s*:/g)].length, 'CSS: declara propiedades --g-*')
   const props = [...css.matchAll(/@property\s+(--[\w-]+)/g)].map((m) => m[1])
-  ok(props.length === 4 && props.every((p) => /^--_tooltip-a[xywh]$/.test(p)), 'CSS: @property fuera de --_tooltip-ax/ay/aw/ah: ' + props)
+  ok(props.length === 6 && props.every((p) => /^--_tooltip-a([xywh]|r[12])$/.test(p)), 'CSS: @property fuera de --_tooltip-ax/ay/aw/ah/ar1/ar2 (#680): ' + props)
   const own = new Set([...css.matchAll(/(--_[\w-]+)\s*:/g)].map((m) => m[1]).concat(props))
   const DATA = ['--_x', '--_y', '--_yb']
   const strange = [...new Set(vars.filter((v) => v.startsWith('--_') && !own.has(v) && !DATA.includes(v)))]
@@ -96,6 +96,8 @@ const note = (k, v) => { (measures[k] ??= []).push(v) }
   const splitTop = (sel) => { const out = []; let depth = 0, cur = ''; for (const ch of sel) { if (ch === '(') depth++; if (ch === ')') depth--; if (ch === ',' && !depth) { out.push(cur); cur = '' } else cur += ch } out.push(cur); return out }
   const norm = (src, undo) => {
     let c = src.replace(/\/\*[\s\S]*?\*\//g, '')
+    // #682: la rejilla de medio píxel se añadió después (no forma parte de #383)
+    c = c.replace(/@supports \(inline-size: round\(1px, 1px\)\)\s*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, '')
     if (undo) {
       c = c.replace(/:nth-last-child\(1 of :not\(:where\(\.g-tooltip\)\)\)/g, ':last-child').replace(/:not\(:where\(\.g-tooltip\)\)/g, '*')
       c = c.replace(/([^{}]+)\{/g, (m, pre) => splitTop(pre).filter((x) => !/\.g-tooltip/.test(x)).join(',') + '{')

@@ -451,3 +451,23 @@ test.describe('GTimeField · toque (hasTouch + isMobile)', () => {
     expect(errs).toEqual([])
   })
 })
+
+// ---------- #679 · hueco del cursor de 2px: con el foco y el cursor al final, el campo no se desplaza ----------
+test.describe('#679 · hueco del cursor', () => {
+  test('cada campo con valor de #sec-time, enfocado con el cursor al final: scrollLeft 0', async ({ page }) => {
+    await open(page)
+    const moved = await page.evaluate(async ({ sec, sel }) => {
+      const out = []
+      for (const i of document.querySelector(sec).querySelectorAll(sel)) {
+        if (!i.value || i.disabled || i.readOnly || !i.getClientRects().length) continue
+        i.focus()
+        i.setSelectionRange(i.value.length, i.value.length)
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+        if (i.scrollLeft !== 0) out.push(`${i.id || i.name || i.value}: scrollLeft ${i.scrollLeft}`)
+        i.blur()
+      }
+      return out
+    }, { sec: '#sec-time', sel: '.g-time-field input[role="spinbutton"]' })
+    expect(moved, moved.join('\n')).toEqual([])
+  })
+})

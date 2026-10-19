@@ -67,6 +67,17 @@
   font-family: var(--g-font-ui);
   color: var(--g-color-text);
 }
+/* Filas sobre la rejilla de medio píxel (#682, tokens.md §7; precedente GBtn, #667): el alto de caja de las apariencias
+   de campo (--_field, el de GInput) y el de la fila con círculo (--_row, el mayor del círculo y de space × unidades ×
+   densidad, hacia arriba con `up` para no quedar por debajo del círculo) se redondean a 0,5px; el piso de 24px va después (el de 44px táctil lee las dos). El círculo es una forma: no
+   se redondea. Con el tema por defecto, Δ0. Dentro de @supports: un round() no soportado dentro de var() invalidaría la altura */
+@supports (inline-size: round(1px, 1px)) {
+  .g-radio-group {
+    --_snap: 0.5px;
+    --_field: max(24px, round(calc(var(--g-space-1) * var(--_units) * var(--_density)), var(--_snap)));
+    --_row: max(24px, round(up, max(var(--_box), calc(var(--g-space-1) * var(--_row-units) * var(--_density))), var(--_snap)));
+  }
+}
 @media (pointer: coarse) {
   .g-radio-group {
     --_target: max(44px, var(--_row));

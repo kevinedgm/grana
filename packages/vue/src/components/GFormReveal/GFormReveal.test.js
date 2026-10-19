@@ -225,7 +225,27 @@ describe('GFormReveal · --_reveal-gap desde el row-gap del padre (#278)', () =>
     w.find('#p').element.style.rowGap = '12px'
     on.value = true
     await nextTick()
+    // Se relee por lotes al terminar la actualización (hallazgo 3 de la auditoría): la variable llega en el ciclo siguiente
+    await nextTick()
     expect(el.style.getPropertyValue('--_reveal-gap')).toBe('12px')
+  })
+
+  it('al cambiar when a la vez, los bloques leen la separación juntos después del parcheo (una lectura por bloque, por lotes)', async () => {
+    const on = ref(false)
+    const w = make(`<div id="p" style="row-gap: 20px"><span>q</span><GFormReveal id="a" :when="on"><i /></GFormReveal><span>r</span><GFormReveal id="b" :when="on"><i /></GFormReveal></div>`, () => ({ on }))
+    await nextTick()
+    const reads = []
+    const real = window.getComputedStyle
+    vi.spyOn(window, 'getComputedStyle').mockImplementation((el, ps) => {
+      // Al leer, el DOM ya está parcheado: los dos bloques llevan is-open
+      if (el.id === 'p') reads.push(['a', 'b'].map((id) => document.getElementById(id).classList.contains('is-open')))
+      return real.call(window, el, ps)
+    })
+    on.value = true
+    await nextTick()
+    await nextTick()
+    expect(reads).toEqual([[true, true], [true, true]])
+    w.unmount()
   })
 
   it('el estilo del consumidor se conserva junto a la variable', async () => {

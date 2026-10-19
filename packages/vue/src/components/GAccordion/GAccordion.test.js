@@ -786,3 +786,18 @@ describe('GAccordion · avisos de desarrollo (#488)', () => {
     expect(warn).not.toHaveBeenCalled()
   })
 })
+
+// #685 (2): desmontado a media compensación Δ0, el overflow-anchor previo se repone en el acto (no un cuadro después)
+describe('GAccordionItem · Δ0 y desmontaje (#685)', () => {
+  it('al desmontar dentro de la ventana de ≈ 320 ms se detiene la compensación y vuelve el valor en línea previo', async () => {
+    const root = document.scrollingElement || document.documentElement
+    root.style.overflowAnchor = 'auto'
+    const w = mount(defineComponent({ components, template: `<g-accordion>${FAQ}</g-accordion>` }), { attachTo: document.body })
+    await w.find('#cambiar-peek').trigger('click')
+    expect(keepInPlace).toHaveBeenCalledTimes(1)
+    expect(root.style.overflowAnchor).toBe('none')
+    w.unmount()
+    expect(root.style.overflowAnchor).toBe('auto')
+    root.style.overflowAnchor = ''
+  })
+})

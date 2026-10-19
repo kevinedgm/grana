@@ -98,6 +98,7 @@
   }
   .g-adaptive-layout.is-ready.has-shared-tracks > :is(.g-input, .g-select, .g-textarea) {
     container-type: normal;
+    contain: none;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: subgrid;

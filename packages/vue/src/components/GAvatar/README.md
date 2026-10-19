@@ -435,6 +435,8 @@ Las emite el componente y las estiliza `GAvatar.css`: `g-avatar`, `g-avatar--siz
 
 - **Relación con `GAvatarMotion`:** es otro componente (una personalidad animada que reacciona a estados); `GAvatar` es la identidad de alguien concreto y no lo sustituye ni lo absorbe.
 
+- **`xs` con `space` 3:** el tope de la letra del monograma queda en 9 px, por debajo del mínimo de 12 px; usa `sm` o un tema con `space` ≥ 4.
+
 ## Verificación
 
 - **Pruebas** (vitest con jsdom y, para el servidor, entorno node): 80 en `GAvatar.test.js` y 4 en `GAvatar.ssr.test.js`, todas en verde en la última ejecución. Cubren el marcado y las clases, la precedencia del contenido, la tabla de iniciales (`md` y `xs`), los vectores del hash y su invariancia (también sin `TextEncoder` y sin `Intl.Segmenter`), `color` frente a `categories`, los estados de la imagen (`load`, `error`, `src` cambiado, evento tardío, imagen en caché y `decode()`), la semántica, los atributos filtrados y los siete avisos.
@@ -450,7 +452,9 @@ Las emite el componente y las estiliza `GAvatar.css`: `g-avatar`, `g-avatar--siz
 
 - **Escrituras complejas sin validar con hablantes:** devanagari (`Intl.Segmenter` da «प्रि» + «श»), árabe con ligadura, tailandés y secuencias ZWJ en `initials` solo se midieron (caben).
 
-- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): con el texto al 200 % las iniciales (en `rem`) se salen de la caja (en `px`), también fuera de un layout (hallazgo 7 de `design/lab/adaptive-layout/auditoria-coco.md`; coco).
+- **Iniciales al 200 % (cerrado 2026-10-18, coco):** la letra del monograma es `min(rol, lado × 0,4375)` con dos letras (`× 0,6` con una) y el interlineado `min(rol, lado)`; al 100 % nada cambia («ЖШ» sigue dejando 0,1 px en el círculo y 1,7 px en el cuadrado) y al 200 % todas las iniciales caben (`design/lab/avatar/auditoria-verificar.mjs`, sección 3 con 200 %, en los tres motores; hallazgo 7 de `adaptive-layout/auditoria-coco.md`).
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 

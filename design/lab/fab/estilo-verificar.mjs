@@ -78,8 +78,8 @@ const track = (k, v) => { if (!(k in mins) || v < mins[k].v) mins[k] = { v } }
   const strange = [...new Set(vars.filter((v) => v.startsWith('--_') && !own.has(v)))]
   ok(!strange.length, 'CSS: lee alias --_* que no declara: ' + strange)
   const px = [...css.matchAll(/(-?\d*\.?\d+)px/g)].map((m) => m[0])
-  ok(px.every((p) => ['24px', '44px', '1px', '-1px'].includes(p)), 'CSS: medidas literales no permitidas: ' + px.filter((p) => !['24px', '44px', '1px', '-1px'].includes(p)))
-  ok((css.match(/(?<!-)\b1px\b/g) || []).length === 4 && (css.match(/-1px/g) || []).length === 2, 'CSS: 1px / -1px solo en el patrón de texto oculto (g-fab__sr y la descripción de la pila)')
+  ok(px.every((p) => ['24px', '44px', '1px', '-1px', '0.5px'].includes(p)), 'CSS: medidas literales no permitidas: ' + px.filter((p) => !['24px', '44px', '1px', '-1px', '0.5px'].includes(p)))
+  ok((css.replace(/@supports \(inline-size: round\(1px, 1px\)\)/g, '').match(/(?<!-)\b1px\b/g) || []).length === 4 && (css.match(/-1px/g) || []).length === 2, 'CSS: 1px / -1px solo en el patrón de texto oculto (g-fab__sr y la descripción de la pila)')
   ok(!/\d(?:rem|em|ch|vh|vw|vmin|vmax|dvh|svh)\b/.test(css), 'CSS: rem/em/ch/vh/vw literales')
   ok(!/\d(?:ms|s)\b/.test(css.replace(/@keyframes[\s\S]*?\}\s*\}/g, '')), 'CSS: duraciones literales')
   ok(!/ease-spring|ease-bounce/.test(css), 'CSS: --g-ease-spring o --g-ease-bounce (no aplican a menús ni paneles, #299, #655)')

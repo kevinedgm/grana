@@ -445,7 +445,8 @@ async function staticPass() {
   const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/[^{}]*\{[^{}]*clip-path:\s*inset\(50%\)[^{}]*\}/g, '')
   const css = strip(await readFile(join(ROOT, 'packages/vue/src/components/GTable/GTable.css'), 'utf8'))
   const pag = strip(await readFile(join(ROOT, 'packages/vue/src/components/GPagination/GPagination.css'), 'utf8'))
-  for (const [name, src] of [['GTable.css', css], ['GPagination.css', pag]]) {
+  // #682: la condición de @supports (round(1px, 1px)) y el paso --_snap: 0.5px no son medidas de diseño
+  for (const [name, src] of [['GTable.css', css], ['GPagination.css', pag.replace(/@supports \(inline-size: round\(1px, 1px\)\)/g, '').replace(/--_snap: 0\.5px;/g, '')]]) {
     const hex = src.match(/#[0-9a-fA-F]{3,8}\b/g) || []
     const fns = src.match(/\b(rgba?|hsla?|oklch|oklab|lab|lch|hwb)\(/g) || []
     const px = (src.match(/\b\d*\.?\d+px\b/g) || []).filter((v) => v !== '24px' && v !== '44px' && v !== '1px' && v !== '0px')

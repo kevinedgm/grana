@@ -291,3 +291,79 @@ test.describe('GSummary · componente real', () => {
     console.log(`[summary ${testInfo.project.name}] rendimiento`, JSON.stringify(out))
   })
 })
+
+// ---------- #681 · keep="title": el título se conserva, el valor del identificador cede hasta 0 ----------
+// Ficha suelta montada en la página con el UMD real (Vue + Grana). Criterio de summary.md «Orden de cesión» (#681):
+// de 400 a 160px de 1 en 1, mientras el título lleve elipsis el valor del identificador mide 0 de ancho visible; a 290px
+// el título se lee entero; Δ0 de alto en todo el barrido; con keep por defecto, el identificador sigue ganando (#351).
+const KEEP_FACTS = [
+  { label: 'Expediente', short: 'Exp.', value: '001399', priority: 1 },
+  { label: 'Edad', value: '41 años', priority: 2, bare: true },
+  { label: 'Última visita', value: '12/09/2026', priority: 3 },
+  { label: 'Médico', value: 'Dr. Ortega', priority: 4, bare: true }
+]
+async function mountKeep(page, keep) {
+  await page.evaluate(({ keep, facts }) => {
+    document.getElementById('kt-host')?.remove()
+    const host = document.createElement('div')
+    host.id = 'kt-host'
+    host.style.cssText = 'inline-size: 400px; font-size: 16px'
+    document.body.prepend(host)
+    window.__kt = Vue.createApp({ render: () => Vue.h(Grana.GSummary, { title: 'Daniela Castañeda Ruiz', facts, layout: 'inline', size: 'xs', keep }) })
+    window.__kt.mount(host)
+  }, { keep, facts: KEEP_FACTS })
+  await frames(page)
+}
+// Ancho visible de un elemento dentro de la ficha: 0 si un ancestro lo recorta con clip-path/clip (texto oculto accesible)
+function keepProbe(su) {
+  const vis = (e) => {
+    if (!e) return 0
+    let b = e.getBoundingClientRect(), l = b.left, r = b.right
+    for (let a = e; a && a !== su.parentElement; a = a.parentElement) {
+      const cs = getComputedStyle(a)
+      if ((cs.clipPath && cs.clipPath !== 'none') || (cs.clip && cs.clip !== 'auto')) return 0
+      if (a !== e && cs.display !== 'contents' && (cs.overflowX !== 'visible')) { const q = a.getBoundingClientRect(); l = Math.max(l, q.left); r = Math.min(r, q.right) }
+    }
+    return Math.max(0, r - l)
+  }
+  const title = su.querySelector('.g-summary__title')
+  const value = su.querySelector('.g-summary__fact.is-anchor .g-summary__fact-value')
+  return { keep: su.classList.contains('g-summary--keep-title'), cut: title.scrollWidth > title.clientWidth + 0.5, titleVis: vis(title), idVis: vis(value), h: su.getBoundingClientRect().height }
+}
+
+test.describe('GSummary · keep="title" (#681)', () => {
+  test('de 400 a 160px: mientras el título lleva elipsis, el identificador mide 0 visible; a 290px el título entero; Δ0 de alto', async ({ page }) => {
+    const errs = watchConsole(page)
+    await open(page)
+    await mountKeep(page, 'title')
+    const rows = await page.evaluate(async (src) => {
+      const probe = new Function(`return (${src})`)()
+      const host = document.getElementById('kt-host')
+      const su = host.querySelector('.g-summary')
+      const out = []
+      for (let w = 400; w >= 160; w--) {
+        host.style.inlineSize = w + 'px'
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+        out.push({ w, ...probe(su) })
+      }
+      return out
+    }, keepProbe.toString())
+    expect(rows[0].keep).toBe(true)
+    const bad = rows.filter((r) => r.cut && r.idVis > 0.5).map((r) => `${r.w}px: identificador ${r.idVis.toFixed(1)}px con el título cortado`)
+    expect(bad, bad.slice(0, 5).join('\n')).toEqual([])
+    const at290 = rows.find((r) => r.w === 290)
+    expect(at290.cut, 'a 290px «Daniela Castañeda Ruiz» se lee entero').toBe(false)
+    const hs = rows.map((r) => r.h)
+    expect(Math.max(...hs) - Math.min(...hs), 'Δ0 de alto').toBeLessThanOrEqual(0.5)
+    expect(errs).toEqual([])
+  })
+  test('con keep por defecto la misma ficha conserva el identificador (#351): a 200px el valor del identificador se ve entero', async ({ page }) => {
+    await open(page)
+    await mountKeep(page, undefined)
+    await page.evaluate(() => { document.getElementById('kt-host').style.inlineSize = '200px' })
+    await frames(page)
+    const r = await page.evaluate((src) => new Function(`return (${src})`)()(document.querySelector('#kt-host .g-summary')), keepProbe.toString())
+    expect(r.keep).toBe(false)
+    expect(r.idVis).toBeGreaterThan(20)
+  })
+})

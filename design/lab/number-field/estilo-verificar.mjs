@@ -60,12 +60,13 @@ const near = (a, b, t = 0.5) => Math.abs(a - b) <= t
   const strange = [...new Set(vars.filter((v) => v.startsWith('--_') && !own.has(v) && !fromInput.includes(v)))]
   ok(!strange.length, 'CSS: alias --_* que no son de GInput ni propios: ' + strange)
   ok([...own].every((v) => v.startsWith('--_nf-')), 'CSS: alias propio sin prefijo --_nf- (no pisar los de GInput): ' + [...own])
-  // Literales de medida: 24px, 44px, 1px (texto oculto y hueco del cursor, #313); 1ch (#187); 0.5 (P3, #313); 100% (P2)
+  // Literales de medida: 24px, 44px, 1px (texto oculto), 2px (hueco del cursor, #313 enmendado por #679); 1ch (#187); 0.5 (P3, #313); 100% (P2)
   const px = [...css.matchAll(/(-?\d*\.?\d+)px/g)].map((m) => m[0])
-  ok(px.every((p) => ['24px', '44px', '1px', '-1px'].includes(p)), 'CSS: medidas literales no permitidas ' + px.filter((p) => !['24px', '44px', '1px', '-1px'].includes(p)))
+  ok(px.every((p) => ['24px', '44px', '1px', '-1px', '2px'].includes(p)), 'CSS: medidas literales no permitidas ' + px.filter((p) => !['24px', '44px', '1px', '-1px', '2px'].includes(p)))
   const onePx = css.split('\n').filter((l) => /\b-?1px\b/.test(l)).map((l) => l.trim())
-  ok(onePx.every((l) => /^(inline-size|block-size|margin): -?1px;$/.test(l) || l === 'padding-inline-end: 1px;'), 'CSS: 1px fuera del texto oculto y del hueco del cursor: ' + onePx)
-  ok(css.split('\n').filter((l) => /padding-inline-end: 1px/.test(l)).length === 2, 'CSS: el hueco del cursor (1px) debe estar en el espejo y el medidor, y solo ahí')
+  ok(onePx.every((l) => /^(inline-size|block-size|margin): -?1px;$/.test(l) ), 'CSS: 1px fuera del texto oculto: ' + onePx)
+  ok(css.split('\n').filter((l) => /\b2px\b/.test(l)).every((l) => l.trim() === 'padding-inline-end: 2px;'), 'CSS: 2px fuera del hueco del cursor (#679)')
+  ok(css.split('\n').filter((l) => /padding-inline-end: 2px/.test(l)).length === 2, 'CSS: el hueco del cursor (2px, #679) debe estar en el espejo y el medidor, y solo ahí')
   const nums = [...css.matchAll(/\*\s*(-?\d*\.?\d+)\b(?!px|ms|%)/g)].map((m) => m[1])
   ok(nums.every((n) => ['-1', '2', '0.5', '-0.5'].includes(n)), 'CSS: factores fuera de −1, 2 (doble trazo de GInput) y 0.5 (P3): ' + nums)
   // Keyframes: nombres g-number-roll… / g-number-bump…, nunca g-reject…
@@ -311,7 +312,7 @@ for (const engine of ENGINES) {
       const p = g.p1[sid]
       ok(p.gaps.every((x) => near(x, p.expected, 0.5)), t(`${sid}: P1 valor–sufijo ${p.gaps} ≠ gap ${p.expected}`))
       // Tinta: con 1 carácter el espejo puede tener el piso de 1ch (una fuente sin cifras tabulares, «7» < «0»)
-      ok(Math.max(...p.ink) - Math.min(...p.ink) <= 1 && p.ink.every((x) => x >= p.expected - 0.01 && x <= p.expected + 2), t(`${sid}: P1 distancia de tinta ${p.ink} (gap ${p.expected} + 1px del cursor)`))
+      ok(Math.max(...p.ink) - Math.min(...p.ink) <= 1 && p.ink.every((x) => x >= p.expected - 0.01 && x <= p.expected + 2.05), t(`${sid}: P1 distancia de tinta ${p.ink} (gap ${p.expected} + 2px del hueco del cursor, #679)`))
       ok(p.fromStart < p.boxW / 3, t(`${sid}: P1 el sufijo no está pegado (${p.fromStart} de ${p.boxW})`))
     }
     for (const [c, s] of Object.entries(g.states)) {

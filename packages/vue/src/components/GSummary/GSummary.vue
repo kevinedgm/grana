@@ -1,6 +1,6 @@
 <script>
 // GSummary · ficha de resumen adaptable (dueño: bruno). Estilo: GSummary.css (coco).
-// Contrato: design/contracts/summary.md · DECISIONS.md #349 a #357 · Estructura: design/lab/summary/r01 y r02 (kiwi).
+// Contrato: design/contracts/summary.md · DECISIONS.md #349 a #357, #681 (keep) · Estructura: design/lab/summary/r01 y r02 (kiwi).
 // Identidad + título + línea secundaria + datos con prioridad + estado. La cesión es CSS intrínseco (nada con
 // display:none: lo que no cabe salta a una línea recortada y se sigue leyendo); el .vue solo CUENTA (measure.js): «+N»,
 // data-clipped, data-terse, data-tight, title en lo cortado y data-enter. Esos estados se escriben en el DOM fuera del
@@ -17,6 +17,8 @@ import { attach, detach, touch } from './measure.js'
 const LAYOUTS = ['inline', 'row', 'stack']
 const SIZES = ['xs', 'sm', 'md', 'lg', 'xl']
 const DEFAULT_SIZE = { inline: 'xs', row: 'md', stack: 'lg' }
+// Qué conserva al final la ficha inline (#681): el identificador (#351, por defecto) o el título (el valor ya elegido)
+const KEEPS = ['identifier', 'title']
 
 
 // Una cadena vacía (o solo espacios), null y undefined cuentan como ausentes; un número se convierte con String()
@@ -56,6 +58,7 @@ export default defineComponent({
     layout: { type: String, default: 'row', validator: oneOf(LAYOUTS) },
     lines: { type: Number, default: 2 },
     size: { type: String, default: undefined, validator: oneOf(SIZES) },
+    keep: { type: String, default: 'identifier', validator: oneOf(KEEPS) },
     diff: { type: Object, default: undefined },
     highlight: { type: String, default: undefined },
     group: Boolean,
@@ -147,7 +150,7 @@ export default defineComponent({
       const empty = !title && !props.loading
       const attrs = {
         ref: (el) => { root.el = el },
-        class: ['g-summary', `g-summary--layout-${L}`, `g-summary--size-${S}`, { 'g-summary--multi': multi.value, 'g-summary--free': L === 'row' && n === 0, 'is-loading': props.loading, 'is-empty': empty }]
+        class: ['g-summary', `g-summary--layout-${L}`, `g-summary--size-${S}`, { 'g-summary--multi': multi.value, 'g-summary--free': L === 'row' && n === 0, 'g-summary--keep-title': L === 'inline' && props.keep === 'title', 'is-loading': props.loading, 'is-empty': empty }]
       }
       const leadSlot = slotNodes(slots.lead, { size: S })
       const hasLead = !!(leadSlot || props.avatar || present(props.icon))

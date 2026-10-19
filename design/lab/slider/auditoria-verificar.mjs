@@ -61,8 +61,8 @@ if (run(0)) {
   ok(![...new Set(vars.filter((v) => v.startsWith('--_') && !own.has(v) && !fromVue.includes(v)))].length, 'CSS: alias --_* que ni declara ni recibe del .vue')
   ok(!/--g-[\w-]+\s*:/.test(css), 'CSS: declara un token del tema')
   const px = [...css.matchAll(/(-?\d*\.?\d+)px/g)].map((m) => m[0])
-  ok(px.every((p) => ['24px', '44px', '1px', '-1px'].includes(p)), 'CSS: medidas literales no permitidas ' + px)
-  const onePx = css.split('\n').filter((l) => /\b-?1px\b/.test(l)).map((l) => l.trim())
+  ok(px.every((p) => ['24px', '44px', '1px', '-1px', '0.5px'].includes(p)), 'CSS: medidas literales no permitidas ' + px)
+  const onePx = css.split('\n').filter((l) => /\b-?1px\b/.test(l) && !/@supports \(inline-size: round\(1px, 1px\)\)/.test(l)) /* #682: la condición de @supports no es una medida */.map((l) => l.trim())
   ok(onePx.every((l) => /^(inline-size|block-size|margin): -?1px;$/.test(l)), 'CSS: 1px fuera del texto oculto')
   const ems = [...css.matchAll(/(-?\d*\.?\d+)(em|rem|ch|vw|vh)\b/g)].map((m) => m[0])
   ok(ems.every((e) => e === '-0.125em'), 'CSS: medidas relativas literales ' + ems)
@@ -77,7 +77,7 @@ if (run(0)) {
   // Solo lectura (hallazgo 1): contorno border-control en trazo discontinuo, relleno neutral-soft, como GInput
   ok(/\.g-slider\.is-readonly \.g-slider__thumb\s*\{[^}]*--_pill-edge: var\(--g-color-border-control\)[^}]*\}/.test(css) && /\.g-slider\.is-readonly \.g-slider__pill\s*\{\s*border-style: dashed;\s*\}/.test(css) && !/border-strong\);\s*\n?\s*--_pill-shadow/.test(css), 'CSS: solo lectura sin border-control discontinuo (hallazgo 1)')
   // Área y píldora crecen con su texto como la caja de GInput (hallazgo 2)
-  ok(/--_text-box: calc\(var\(--g-text-body-sm-line\) \+ var\(--g-border-width\) \* 2\)/.test(css) && (css.match(/var\(--_text-box\)\)/g) || []).length === 3, 'CSS: área/píldora sin el alto de su texto (hallazgo 2)')
+  ok(/--_text-box: calc\(var\(--g-text-body-sm-line\) \+ var\(--g-border-width\) \* 2\)/.test(css) && (css.match(/var\(--_text-box\)\)/g) || []).length === 6 /* 3 + las 3 redondeadas de #682 */, 'CSS: área/píldora sin el alto de su texto (hallazgo 2)')
   // Publicado
   const dcss = await readFile(join(DISTDIR, 'grana.css'), 'utf8')
   const djs = await readFile(join(DISTDIR, 'grana.js'), 'utf8')

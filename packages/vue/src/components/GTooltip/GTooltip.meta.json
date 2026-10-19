@@ -6,7 +6,7 @@
   "since": "0.1.0",
   "description": "Nombre visible, descripción breve y atajo de un control enfocable: aparece con el puntero (350 ms), con el foco por navegación y con la pulsación larga en táctil. Forma A «pestaña que viaja» (la etiqueta cuelga del control por una pestaña de su tamaño y acompaña de un control al siguiente en un grupo) con segunda etapa para detail. Envoltorio de un único hijo sin elementos añadidos; su nodo role=\"tooltip\" persistente (popover=\"manual\") va detrás del control.",
   "contract": "design/contracts/tooltip.md",
-  "decisions": "DECISIONS.md #380 a #399",
+  "decisions": "DECISIONS.md #380 a #399, #680",
   "prototype": "design/lab/tooltip/r01/ y design/lab/tooltip/r02/",
   "style": "packages/vue/src/components/GTooltip/GTooltip.css",
   "entry": "@grana/vue (principal, #380)",
@@ -33,7 +33,7 @@
     "attribute": "data-g-tooltip-box (no es prop: la pone cada componente en su caja, vacío y estático; api.md «Caja visible», #395)",
     "rule": "Ancla = el ancestro más cercano del elemento resuelto (él incluido) con data-g-tooltip-box dentro del primer elemento del hijo (o él mismo); sin marca, el propio elemento resuelto. Una marca fuera del hijo se ignora.",
     "marked": ["GInput (g-input__control; lo heredan GNumberField y GCombobox en sus dos apariencias)", "GTextarea (g-textarea__control)", "GSelect (g-select__control)", "GFileField (g-file-field__add)"],
-    "box": ["posición y volteo", "pestaña (--_tooltip-ax/ay/aw/ah)", "seguimiento y anchorGone", "puntero (entrar, salir, quieto para DWELL)", "pulsar para usar", "pulsación larga", "menú contextual", "pulsar fuera", "clic bloqueado tras la pulsación larga"],
+    "box": ["posición y volteo", "pestaña (--_tooltip-ax/ay/aw/ah y el radio del control en --_tooltip-ar1/ar2, #680)", "seguimiento y anchorGone", "puntero (entrar, salir, quieto para DWELL)", "pulsar para usar", "pulsación larga", "menú contextual", "pulsar fuera", "clic bloqueado tras la pulsación larga"],
     "resolved": ["referencias ARIA y data-g-tooltip", "foco y :focus-visible", "aria-expanded", "disabled", "nombre que mide kind=\"auto\""],
     "innermost": "Un [data-g-tooltip] ajeno dentro de la caja (o su nodo) no abre ni mantiene el exterior; los botones propios de la caja (contraseña, borrar de GSelect, −/+ de GNumberField) muestran el del campo al pasar y su foco no lo abre",
     "appRecipe": "Un control compuesto de la aplicación marca su caja con data-g-tooltip-box y reenvía los atributos a su elemento enfocable"
@@ -51,7 +51,7 @@
     "Motor interno utils/tooltip.js (no público): una escucha de documento compartida (teclas de navegación, Esc en captura, pulsar fuera, clic tras la pulsación larga) que se retira con el último tooltip; escuchas nativas en el elemento resuelto y en el nodo.",
     "Uno solo abierto en el documento; relevo del grupo al instante. Perder el foco cierra en el ciclo siguiente para que el control siguiente (Tab, flechas) tome el relevo y viaje.",
     "Viaje (#388, receta TT.travel de design/lab/tooltip/estilo-banco.html): el entrante abre con data-instant en su sitio con el lado del saliente, salta a la geometría del saliente (variables + inline-size) y transiciona a la suya con data-travel; el saliente se oculta con data-instant + hidePopover. data-travel e inline-size se retiran en transitionend de translate o a --g-duration-press + 80 ms.",
-    "Posición: placeAround de utils/anchor.js con gap = space × 1,5 y pad = space × 2; data-side y --_tooltip-aw/-ah antes de medir; si el lado cambia, se mide de nuevo con ese lado (only). Regla 1 estricta de #358: desplazamiento, resize y segunda etapa conservan el lado (placeAround con only: true). Regla 3: anchorGone cierra sin mover el foco.",
+    "Posición: placeAround de utils/anchor.js con gap = space × 1,5 y pad = space × 2; data-side y --_tooltip-aw/-ah antes de medir; si el lado cambia, se mide de nuevo con ese lado (only). Regla 1 estricta de #358: desplazamiento, resize y segunda etapa conservan el lado (placeAround con only: true). Regla 3: anchorGone cierra sin mover el foco. En la misma pasada (#680): radio usado de la caja visible (estilo calculado, porcentajes y reducción proporcional resueltos) en las dos esquinas del borde que toca la pestaña, menos lo que la pestaña queda dentro del control → --_tooltip-ar1/-ar2 en px (1 = izquierda con top/bottom, arriba con left/right; físicos), que viajan con la geometría.",
     "kind=\"auto\": label hasta medir (SSR y primer render); al montar, por el nombre real del control (aria-labelledby ajeno, aria-label, <label>, contenido sin aria-hidden); se reevalúa al cambiar text y con un MutationObserver sobre el control (que también cierra si aparece aria-expanded=\"true\" o disabled).",
     "GBtn tooltip (#390): GBtn envuelve su botón en un GTooltip con text; si su padre directo es un GTooltip, no crea el suyo y avisa. GHelper (#391) reenvía los cuatro atributos a su botón.",
     "GFormRow, GAdaptiveLayout (visibleChild y mutaciones), GInputGroup (aviso de partes), GFormSection (ancho de las acciones) y GFieldGroup saltan el nodo .g-tooltip al medir o recorrer hijos (#394)."

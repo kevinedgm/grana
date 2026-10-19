@@ -492,7 +492,9 @@ Hoy **no existen**: la opción **B «La barra habla»** (leyenda fija de un grup
 
 - **Fundido de salida solo en Chromium:** Firefox y WebKit no transicionan `display` de un popover y cierran en el acto, igual que `GMenu` y `GSelect`.
 
-- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): esquinas de la pestaña junto a controles rellenos con radio grande: con la pestaña a ancho completo, sus esquinas `--g-radius-sm` asoman en la curva del control, ~2 px con el tema por defecto y más con `--g-radius-md` de 14 px y en oscuro; cerrarlo exigiría un token con el radio de cada control, decisión de lima (hallazgo 2 de la auditoría, no bloqueante).
+- **Esquinas de la pestaña (cerrado, DECISIONS #680):** el motor lee el radio calculado de la caja visible y escribe `--_tooltip-ar1`/`--_tooltip-ar2`; la pestaña toma esquinas elípticas `max(--_fl, arN)` a lo largo del borde y `min(…, grosor)` en el otro eje, con `@property` y dentro de la transición del viaje. Pestaña fuera de la silueta del control: 4,02 px (tema de la auditoría) y 2,01 px (defecto) → 0,02 px en Chromium y Firefox y 0,01 en WebKit, en los doce lados y cuatro temas (`design/lab/tooltip/auditoria-verificar.mjs` 2b, 8576/8576; `utils/tooltip.test.js`).
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## No verificado
 

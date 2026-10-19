@@ -349,7 +349,9 @@ Y los que ya existían: dentro de un `GFormReveal` («la sección contiene la pr
   - **secciones dentro de un `GDialog`**;
   - **rendimiento con muchas secciones** y el `ResizeObserver` compartido.
 
-- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): en WebKit un clic de ratón no enfoca el botón: tras plegar con el ratón el foco no queda en él y, si la confirmación de «Quitar …» se abrió con el ratón, Cancelar o Esc devuelven el foco a `<body>` (hallazgo 4, sin verificar en Safari real; es de `GDialog`, bruno / lima; con teclado funciona en los tres motores).
+- **Clic de ratón en WebKit (cerrado 2026-10-18, bruno):** `GDialog` recuerda el control del último `pointerdown` cuando al abrir el foco estaba en `<body>` y lo enfoca al cerrar (`utils/lastPointerTarget.js`): tras cancelar «Quitar …» abierto con el ratón, el foco vuelve al botón (`tests/form-section.spec.mjs` «quitar con el ratón», antes `body` en WebKit, ahora pasa en los tres motores).
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 

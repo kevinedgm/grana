@@ -220,14 +220,14 @@ Comportamiento del componente, no opcional, en grupo y suelto:
 
 1. Cuando el usuario cambia un elemento (clic en el botón o en el avance, Intro, Espacio), el componente mide el borde superior del **encabezado tocado** antes del cambio y, en cada cuadro mientras dura el movimiento (duración calculada del panel con el cambio aplicado + 80 ms), desplaza **su contenedor de desplazamiento** lo que se haya movido (≥ 0,5 px), en el mismo cuadro, antes de pintar. Criterio: **≤ 1 px por cuadro** en los tres motores (kiwi: 0,5 px Chromium y Firefox, 0,9 px WebKit; sin compensar, 336 px).
 2. **Contenedor de desplazamiento y cadena** (#519): el antepasado desplazable más cercano en el eje de bloque o, sin él, `document.scrollingElement`. Si ese contenedor **no puede desplazarse más** en el sentido que hace falta (está en su tope), o un antepasado se movió por su propio anclaje al encogerse el de dentro, la compensación **sigue con el siguiente contenedor hacia fuera** hasta el documento, recalculando lo que falta tras cada uno. Medido con el contenedor arriba del todo y el documento compensando 360 px: Δ ≤ 0,92 px en los tres motores.
-3. El grupo (y el elemento suelto) llevan **`overflow-anchor: none`** para que el navegador no compense dos veces (coco).
+3. El grupo (y el elemento suelto) llevan **`overflow-anchor: none`** para que el navegador no compense dos veces (coco). Además (#685), mientras dura la ventana el motor (`keepInPlace`) escribe **`overflow-anchor: none` en línea** en cada contenedor de la cadena que compensa y **restaura el valor en línea previo** al acabar, cancelarse o desmontar; sin prop ni token.
 4. **Se cancela** si el usuario desplaza durante el movimiento (`wheel`, `touchstart`, teclas de desplazamiento): no se pelea con quien desplaza.
 5. **Sin compensación** cuando el cambio no lo tocó el usuario: `modelValue` desde la aplicación, `beforematch`, `#id`, `OPEN_REQUEST`.
 6. **Cerrar con el principio del elemento por encima de la vista** (solo puede ocurrir con `sticky`): cierre **instantáneo** y el encabezado se queda donde estaba (#484).
 7. **Límite** (README, como `form.md` §14): sin página debajo para conservar el desplazamiento, el navegador lo recorta.
-8. **Límite aceptado: un desplazamiento ajeno dentro de la ventana** (#519, hallazgo 6 de la auditoría). Durante la ventana (duración + 80 ms, ≈ 320 ms) la compensación deshace un desplazamiento que **no** llegue por rueda, toque ni teclas de desplazamiento: **arrastrar la barra de desplazamiento** (no emite `wheel`) o un `scrollTo` de la aplicación justo después del clic. No se corrige en v0.1: es corto y raro, y cancelar por `pointerdown` no es fiable entre motores (la barra no siempre emite eventos de puntero en el elemento). Mejora opcional para bruno si alguien lo reporta: cancelar cuando la posición observada no es la que dejó la propia compensación. Va a los límites del README.
+8. **Desplazamiento ajeno dentro de la ventana** (#683; antes límite aceptado de #519): en cada cuadro de la ventana la compensación compara la posición de cada contenedor que tocó con la que **ella misma escribió** en el cuadro anterior (en el primero, la leída al empezar); si difiere en más de **1px**, otro la movió (barra arrastrada, `scrollTo` de la aplicación) y la compensación **se cancela** para el resto de la ventana sin deshacerlo. Criterio: `scrollTo` 100 ms después del clic y `scrollTop` sin `wheel` dentro de la ventana terminan en la posición ajena (±1px) en los tres motores; Δ0 sin interferencia sigue ≤ 1px.
 
-La compensación es una función del motor compartido (`keepInPlace`, «Motor de plegado compartido»), la usa solo el acordeón en esta entrega.
+La compensación es una función del motor compartido (`keepInPlace`, «Motor de plegado compartido»), la usan el acordeón, `GFormSection` y `GFormReveal` (#685).
 
 ---
 
@@ -309,6 +309,7 @@ Un acordeón dentro de un `GForm` funciona (`OPEN_REQUEST` abre lo que haga falt
 | `g-accordion` | Raíz del grupo | Siempre |
 | `g-accordion--exclusive` | Raíz del grupo | `exclusive` |
 | `g-accordion--sticky` | Raíz del grupo | `sticky` |
+| (estilo en línea temporal, #685) | Contenedores de desplazamiento antepasados | `overflow-anchor: none` solo durante la compensación Δ0; restaurado después |
 | `g-accordion-item` | Raíz del elemento | Siempre |
 | `is-open` | Raíz del elemento | Abierto (en el acto, también mientras abre) |
 | `is-animating` | Raíz del elemento | Del cambio al `transitionend` del panel o al respaldo |
@@ -428,7 +429,6 @@ Ninguno cambia el comportamiento.
 - La cabecera fija de la aplicación es de su `scroll-padding-block-start` (#515): sin él, un `#id` o el foco pueden quedar bajo ella. La receta pone la misma variable en `--g-accordion-sticky-top` y en `scroll-padding-block-start`.
 - Un estilo de elemento de la aplicación sin capa (`h3 { margin: 28px 0 }`) gana al `margin: 0` del encabezado del componente (#4; se resuelve con una capa anterior, `api.md` «Estilos de elemento de la aplicación», #516): el encabezado baja ese margen dentro de su elemento y se pega más abajo.
 - `sticky` anidado no soportado (#517); no anidar grupos `sticky`.
-- Un desplazamiento ajeno (arrastrar la barra, un `scrollTo` de la aplicación) en los ≈ 320 ms posteriores a un clic se deshace por Δ0 (#519).
 - Acciones con un control más alto que la línea del título quedan bajo el centro la mitad del exceso (#518).
 - La línea que se despega del encabezado pegado solo existe donde hay consultas `scroll-state` (Chromium); en los demás, fondo opaco sin línea.
 - Ajustes con avance distinto del contenido: al abrir, el avance y el primer renglón coinciden en el sitio durante el fundido y, al plegar, el avance asoma por debajo del contenido que se va; con el mismo texto no se nota.
@@ -445,7 +445,7 @@ Auditoría: `design/lab/accordion/auditoria.md` (1602/1602 en los tres motores, 
 | 2 · receta que suma la cabecera dos veces | **(b)** (#515): el componente solo suma lo suyo; la cabecera de la aplicación es de su `scroll-padding` | coco: quitar `scroll-margin-block-start: var(--g-accordion-sticky-top)` del botón (`.g-accordion-item__toggle`) y de la raíz `.g-accordion-item` (el del hallazgo 5), y dejar en el contenido `var(--_head-size)` a secas; el verificador mide `#id` y foco con `?pad=1` y sin él (sin él, 0 px es lo esperado). bruno: ajustar el comentario de `bringIntoView` y sus specs a la receta con `scroll-padding` |
 | 3 · estilo de elemento sin capa | Regla general en `api.md` (#516) | mora-docs: receta en el README |
 | 5 · `#id` al cargar bajo la cabecera | Resuelto por #515: el `scroll-padding` de la aplicación vale para la navegación nativa y para `scrollIntoView`; el `scroll-margin` de la raíz que añadió coco se retira | coco (ver arriba) |
-| 6 · Δ0 y desplazamiento ajeno | Límite aceptado (#519) | mora-docs: README |
+| 6 · Δ0 y desplazamiento ajeno | Límite aceptado (#519); **cerrado por #683** (cancelar si la posición no es la que dejó la compensación) | bruno; mora-docs retira la viñeta del README |
 | 1 · `--_head-size` corto en `GDialog` | Medir el tamaño de maquetación (`offsetHeight` o `parseFloat(getComputedStyle(hd).height)`), no `getBoundingClientRect`, que incluye la escala de entrada del diálogo (#299) | bruno (`PENDIENTES.md`) |
 | «Para lima» 1 a 7 de `estilo.md` | Registrados en este contrato (#517, #518) | — |
 | Δ0 en cadena y `#id` en `load` | Registrados (#519) | — |

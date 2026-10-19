@@ -369,7 +369,9 @@ Para que la pregunta de un bloque se lea bien en un formulario RTL, el texto de 
   - **rendimiento con pantalla real** (las cifras de muchos bloques son de motores sin pantalla);
   - un `GBtn` dentro de un bloque del playground (no hay ninguno; el «salto a gris» al cerrar solo está medido en el banco de coco con el `GBtn` real de `dist/`).
 
-- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): perfilar de dónde viene el cuadro de 59 a 81 ms al abrir 40 bloques a la vez (bruno; un formulario real abre uno o dos).
+- **Cuadro largo con 40 bloques (cerrado 2026-10-18, bruno):** la causa era `readGap()` llamando a `getComputedStyle` en el watcher de cada bloque tras parchear el anterior (80 recálculos de estilo forzados); la lectura va ahora por lotes en una microtarea (`revealGap.js`). En Chromium el cuadro baja de ≈ 128 a ≈ 59 ms al abrir y de 110 a 55 al cerrar (medianas); Firefox y WebKit dentro del ruido. Queda un único recálculo de todo el árbol (~46 ms) más la actualización de Vue, aceptado (`GFormReveal.test.js`; `auditoria-verificar.mjs` 40 bloques: 52 ms Chromium, 67–83 Firefox, 80–90 WebKit).
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 

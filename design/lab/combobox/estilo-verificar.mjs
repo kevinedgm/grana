@@ -99,13 +99,13 @@ function ink(img, t = 60) {
   ok(/\.g-form-row > \.g-combobox--appearance-field \{\s*--g-form-min: 60;/.test(css), 'CSS: --g-form-min: 60 sobre .g-form-row > .g-combobox--appearance-field')
   // Alias: propios --_cb-*, heredados de GInput/GDialog o escritos en línea por bruno (tokens.md §29.5)
   const own = new Set([...css.matchAll(/(--_[\w-]+)\s*:/g)].map((m) => m[1]))
-  ok([...own].every((v) => v.startsWith('--_cb-')), 'CSS: alias propio sin prefijo --_cb-: ' + [...own])
+  ok([...own].every((v) => v.startsWith('--_cb-') || v === '--_snap'), 'CSS: alias propio sin prefijo --_cb-: ' + [...own])
   const allowed = ['--_focus', '--_radius', '--_fs', '--_lh', '--_gap', '--_density', '--_inset-radius', '--_x', '--_top', '--_bottom', '--_w', '--_max', '--_field-h', '--_travel-x', '--_travel-y']
   const strange = [...new Set(vars.filter((v) => v.startsWith('--_') && !own.has(v) && !allowed.includes(v)))]
   ok(!strange.length, 'CSS: alias --_* no previsto: ' + strange)
   const px = [...css.matchAll(/(-?\d*\.?\d+)px/g)].map((m) => m[0])
-  ok(px.every((p) => ['24px', '44px', '1px', '-1px', '0px'].includes(p)), 'CSS: medidas literales no permitidas ' + px.filter((p) => !['24px', '44px', '1px', '-1px', '0px'].includes(p)))
-  const onePx = css.split('\n').filter((l) => /\b-?1px\b/.test(l)).map((l) => l.trim())
+  ok(px.every((p) => ['24px', '44px', '1px', '-1px', '0px', '0.5px'].includes(p)), 'CSS: medidas literales no permitidas ' + px.filter((p) => !['24px', '44px', '1px', '-1px', '0px', '0.5px'].includes(p)))
+  const onePx = css.split('\n').filter((l) => /\b-?1px\b/.test(l) && !/@supports \(inline-size: round\(1px, 1px\)\)/.test(l)) /* #682: la condición de @supports no es una medida */.map((l) => l.trim())
   ok(onePx.every((l) => /^(inline-size|block-size|margin): -?1px;$/.test(l)), 'CSS: 1px fuera del texto oculto: ' + onePx)
   const zero = css.split('\n').filter((l) => /\b0px\b/.test(l)).map((l) => l.trim())
   ok(zero.every((l) => /max\(0px, calc\(var\(--_cb-r\) - var\(--g-border-width\)\)\)/.test(l)), 'CSS: 0px fuera del radio interior: ' + zero)

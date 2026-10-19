@@ -63,13 +63,13 @@ const note = (k, v) => { (measures[k] ??= []).push(v) }
   ok(declaredG.length === 1 && declaredG[0] === '--g-form-min', 'CSS: declara propiedades --g-* distintas de --g-form-min: ' + declaredG)
   ok(/\.g-form-row > \.g-file-field \{\s*--g-form-min: 62;/.test(css), 'CSS: --g-form-min: 62 sobre .g-form-row > .g-file-field')
   const own = new Set([...css.matchAll(/(--_[\w-]+)\s*:/g)].map((m) => m[1]))
-  const SHARED = ['--_bg', '--_border', '--_border-end', '--_units', '--_density', '--_px', '--_fs', '--_lh', '--_h', '--_radius']
+  const SHARED = ['--_bg', '--_border', '--_border-end', '--_units', '--_density', '--_px', '--_fs', '--_lh', '--_h', '--_radius', '--_snap']
   ok([...own].every((v) => v.startsWith('--_ff-') || SHARED.includes(v)), 'CSS: alias propio fuera de --_ff-* y los de GInput: ' + [...own])
   const strange = [...new Set(vars.filter((v) => v.startsWith('--_') && !own.has(v)))]
   ok(!strange.length, 'CSS: lee un alias --_* que no declara: ' + strange)
   const px = [...css.matchAll(/(-?\d*\.?\d+)px/g)].map((m) => m[0])
-  ok(px.every((p) => ['24px', '44px', '1px', '-1px'].includes(p)), 'CSS: medidas literales no permitidas ' + px.filter((p) => !['24px', '44px', '1px', '-1px'].includes(p)))
-  const onePx = css.split('\n').filter((l) => /\b-?1px\b/.test(l)).map((l) => l.trim())
+  ok(px.every((p) => ['24px', '44px', '1px', '-1px', '0.5px'].includes(p)), 'CSS: medidas literales no permitidas ' + px.filter((p) => !['24px', '44px', '1px', '-1px', '0.5px'].includes(p)))
+  const onePx = css.split('\n').filter((l) => /\b-?1px\b/.test(l) && !/@supports \(inline-size: round\(1px, 1px\)\)/.test(l)) /* #682: la condición de @supports no es una medida */.map((l) => l.trim())
   ok(onePx.every((l) => /^(inline-size|block-size|margin): -?1px;$/.test(l)), 'CSS: 1px fuera del texto oculto: ' + onePx)
   ok(!/\d(?:ch|em|rem|vw|vh|lh)\b/.test(css.replace(/-0\.125em/g, '')), 'CSS: unidad literal no permitida (ch, em, rem, vw, vh, lh)')
   const nums = [...css.matchAll(/[*/]\s*(-?\d*\.?\d+)\b(?!px|ms|%|fr|turn)/g)].map((m) => m[1])

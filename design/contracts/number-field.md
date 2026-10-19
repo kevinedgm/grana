@@ -201,7 +201,7 @@ Las tres están prototipadas y medidas por kiwi (r01 §11), no cambian la API ni
 ### P1 · La unidad va pegada al número
 
 - La celda `__value` **mide el texto**: el espejo (`__mirror`, `aria-hidden`, invisible, misma tipografía y `tabular-nums` que el campo) y el `<input>` comparten la celda; el `<input>` toma el ancho del espejo. El sufijo (y el `output`) van **justo detrás**, a la separación de la caja: en `md` con densidad por defecto, **`space × 2` = 8px** del valor (la medida del usuario); en los demás tamaños, la separación de la caja de ese tamaño (la misma que prefijo–valor), para no romper la proporción en `xs`/`xl`. El hueco libre queda **después** (antes de −/+).
-- **Espejo:** el texto del campo o, vacío, el `placeholder` (`$attrs`); con ninguno, ancho mínimo de `1ch`. Al final, el hueco del cursor (constante neutra `1px`, `tokens.md` §7, #313).
+- **Espejo:** el texto del campo o, vacío, el `placeholder` (`$attrs`); con ninguno, ancho mínimo de `1ch`. Al final, el hueco del cursor (constante neutra **`2px`**: 1px de cursor + 1px de redondeo del ancho del texto en WebKit; `tokens.md` §7, #313 enmendada por **#679**). El `__measure` lleva el mismo hueco; el mínimo publicado sube 1px («Cantidad» 1–99 con −/+: 113px en `md`) y la tinta de P1 queda a `gap + 2px` con el foco.
 - **Número que no cabe:** la celda encoge (`min-inline-size: 0`) y el `<input>` se desplaza; **la unidad sigue visible** (medido a 320px con «personas»).
 - **Pulsar el área vacía de la caja** (o prefijo, sufijo, `output`) enfoca el campo con el **cursor al final**, sin abrir nada; −/+ quedan fuera de esta regla. Lo implementa `GNumberField` sobre el `g-input__control` de su `GInput` (escucha de `pointerdown` puesta al montar y quitada al desmontar); no cambia `GInput`.
 - Siempre activa (con o sin sufijo). Solo `GNumberField`: para `GInput` sería otra decisión.
@@ -248,7 +248,7 @@ Las tres están prototipadas y medidas por kiwi (r01 §11), no cambian la API ni
 | `--g-focus-width` y el color de foco del campo | Anillo de seguridad **por dentro** de −/+ si una tecnología de apoyo los enfoca (no reciben foco por Tab ni al pulsarlos; no es un estilo nuevo); el anillo del campo es el de `GInput` |
 | `--_nf-border`, `--_nf-stroke` (alias locales, no tokens) | Borde real de la caja y trazo visible por estado (×2 en error y advertencia): −/+ cubren la caja de borde a borde (`tokens.md` §30) |
 
-**No son tokens** (`tokens.md` §29.6, §7, §30): repetición **400ms / 60ms** (constantes de JS, como `HOVER_MS`); **`0.5`** de P3; **`1px`** del cursor al final del espejo; **`1ch`** de ancho mínimo del espejo (unidad, #187); el **100 %** de P2 (geometría); `24px`/`44px` (área táctil, §7).
+**No son tokens** (`tokens.md` §29.6, §7, §30): repetición **400ms / 60ms** (constantes de JS, como `HOVER_MS`); **`0.5`** de P3; **`2px`** del cursor al final del espejo y del medidor (#679); **`1ch`** de ancho mínimo del espejo (unidad, #187); el **100 %** de P2 (geometría); `24px`/`44px` (área táctil, §7).
 
 ## Clases y datos (contrato bruno ↔ coco)
 
@@ -316,7 +316,7 @@ Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production
 | L6 | Slots | `label`, `hint`, `error`, `prepend`; **sin** `append` ni `action` (aviso si se pasan) | #310 |
 | L7 | Clases | Tabla de «Clases y datos»; P3 como clase de una vez **`is-bumping` + `data-bump`** (no WAAPI: las duraciones y curvas son de coco, en CSS); P2 con `data-direction` en `__roll` | #313; reglas de literales |
 | L8 | Tokens y `--g-form-min` | **Ningún token nuevo.** El mínimo de un campo con −/+ se **publica medido** (`setIntrinsicMin`, #271) con la regla de «Mínimo en una `GFormRow`»; `--g-form-min` sigue disponible para subirlo | #312, #313 |
-| L9 | Constantes neutras | 400ms / 60ms de repetición, `0.5` de P3 y `1px` del cursor: no son tema (`tokens.md` §29.6 y §7) | #313; #187 |
+| L9 | Constantes neutras | 400ms / 60ms de repetición, `0.5` de P3 y `2px` del cursor (1px hasta #679): no son tema (`tokens.md` §29.6 y §7) | #313; #187; #679 |
 | L10 | `required` | `aria-required`, nunca `required` nativo (medido por kiwi: en Chromium el nativo no marca inválido un `spinbutton` vacío, pero el `<input>` visible no es el que se envía y la restricción nativa no tendría sentido). **Extiende #270 solo a `GNumberField`**; el pendiente de `GInput`, `GTextarea` y `GInputGroupSelect` sigue abierto (el dato de kiwi le sirve, `PENDIENTES.md` §2) | #311; #269, #270 |
 | L11 | Avisos | Lista de «Avisos de desarrollo» (los seis de kiwi más `locale` inválido y `type`/slots que no aplican) | #310 |
 | L12 | Receta de signos vitales | Frecuencia, Saturación, Peso y Estatura pasan a `GNumberField` (`form.md` §8); Temperatura sigue en `GInputGroup` (unidad elegible) hasta `GInputGroupNumber` | #314 |

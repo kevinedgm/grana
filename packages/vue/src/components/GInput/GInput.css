@@ -431,6 +431,18 @@
   76% { translate: calc(var(--g-space-1) * 0.25) 0; }
 }
 
+/* Altura sobre la rejilla de medio píxel (#682, tokens.md §7; precedente GBtn, #667): con --g-space-1 fraccionario la
+   caja salía con fracciones finas y derivaba de sus vecinos de fila. round() la deja en múltiplos de 0,5px; con el tema
+   por defecto ninguna altura cambia. Solo la altura base: lo que deriva de ella la sigue sin redondeo propio. El piso de
+   24px va después del redondeo (y el de 44px táctil, que lee --_h). Dentro de @supports: un round() no soportado dentro
+   de var() invalidaría --_h y la caja se quedaría sin alto */
+@supports (inline-size: round(1px, 1px)) {
+  .g-input {
+    --_snap: 0.5px;
+    --_h: max(24px, round(calc(var(--g-space-1) * var(--_units) * var(--_density)), var(--_snap)));
+  }
+}
+
 /* ---------- Tamaño ---------- */
 .g-input--size-xs { --_units: 6;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs: var(--g-text-caption-size); --_lh: var(--g-text-caption-line); }
 .g-input--size-sm { --_units: 7;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }

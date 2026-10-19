@@ -165,7 +165,9 @@ Las emite el componente y las estiliza `GTextarea.css`: `g-textarea`, `g-textare
 
 - **Sin verificar:** un lector de pantalla real (etiqueta, ayuda, error y el aviso del contador), `forced-colors` real de Windows (solo emulado en Chromium), Safari real y un dispositivo táctil real. El tirador (`resize`) y el anillo del control por `:has()` están medidos en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`); `prefers-reduced-motion` está medido con la preferencia emulada en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`, 18/18 el 2026-10-18: con `reduce` ningún elemento conserva transiciones ni animaciones de movimiento).
 
-- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): sin contención en línea (DECISIONS #563, abierto): en un padre que se ajusta al contenido (celda `auto`, rejilla centrada, flex con `fit-content`) mide lo que su etiqueta (~200 px), no un ancho por defecto como `GInput`; dale ancho al padre o al componente (`api.md` «Contención en línea y ancho intrínseco»; bruno / coco).
+- **Contención en línea (#563 cerrado por #686, coco):** la raíz lleva `contain: inline-size` y `contain-intrinsic-inline-size: space × 60` (`contain: none` en `GFormRow`): en un padre que se ajusta al contenido mide 240 px en vez de 202 (`design/lab/contencion/verificar.mjs` 336/336 en los tres motores).
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 

@@ -387,7 +387,9 @@ Sin tokens propios: encabezado en `--g-color-text-muted`, separadores `--g-color
 
 - **Sin verificar:** lector de pantalla real (sobre todo en tarjetas), Safari real, zoom al 200% y táctil real. En concreto para la carga: VoiceOver y NVDA con `aria-busy` en el `<table>` y la región viva hermana (si anuncian `labels.loading`, `labels.slow`, el recuento final o el fallo, y en qué orden frente a un `sorted`), y el foco que vuelve por `rowKey`. La auditoría de la carga (coco, `design/lab/empty-skeleton/auditoria.md`) midió la tabla en los tres motores con el componente real; los specs `table-load.spec.mjs` y `table-page-size.spec.mjs` pasan en Chromium, Firefox y WebKit (ejecutados el 2026-10-18; ver `design/lab/limitaciones/revision.md`); `GTable.test.js` 112 de 112 en jsdom.
 
-- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): en WebKit, al volver de la puerta con el ratón no aparece «aquí estabas» (el clic de ratón no enfoca el enlace y el foco queda en la tabla; hallazgo 1 de `design/lab/table/auditoria-rows.md`; bruno).
+- **«Aquí estabas» en WebKit al volver con el ratón:** cerrado en `c7dbc1e` (`tests/table-rows.spec.mjs:125` pasa en WebKit; 49/52 en tres repeticiones, los 2 fallos por un `dist/` a medio reconstruir).
+
+- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): Meta+clic en la puerta en WebKit (`tests/table-rows.spec.mjs:141`): `<html>` intercepta el clic en el motor de Playwright; fallo previo, sin verificar en Safari real (bruno).
 
 ## Fuentes
 

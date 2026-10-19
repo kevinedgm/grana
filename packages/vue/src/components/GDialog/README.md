@@ -536,7 +536,9 @@ Las emite el componente y las estiliza `GDialog.css`: `g-dialog`, `g-dialog--siz
 
 - **Sin verificar:** un lector de pantalla real (nombre, descripción, `alertdialog` y cuerpo desplazable; con pasos, además el cambio de nombre del `<dialog>` por paso, el `role="group"` al recibir el foco, el orden de la frase tras el foco y el hilo), el teclado virtual en móvil (el visor se reduce y una hoja alta puede tapar campos), un dispositivo táctil real y el zoom real, `forced-colors` real de Windows (solo emulado en Chromium), Safari real (WebKit solo en Playwright) y `dvh` en Safari móvil. `prefers-reduced-motion` está medido con la preferencia emulada en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`, 18/18 el 2026-10-18: con `reduce` ningún elemento conserva transiciones ni animaciones de movimiento).
 
-- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): el peso del modo pasos (tope +4 KiB gzip en el principal, DECISIONS #590) no tiene cifra registrada (bruno); con ratón en WebKit, un botón que abre la confirmación no recibe foco y Esc lo devuelve al `body` (hallazgo 4 de `GFormSection`; bruno / lima).
+- **Cerrados el 2026-10-18 (bruno):** el peso del modo pasos está medido, +4 741 B gzip en `grana.js` (212 489 → 217 230 B) y el tope de #590 pasa a 4 864 B (DECISIONS #684; `CHANGELOG.md`). Foco en WebKit: si al abrir el foco estaba en `<body>` (un clic de ratón no enfoca botones en WebKit), el diálogo recuerda el control del último `pointerdown` (`utils/lastPointerTarget.js`) y lo enfoca al cerrar; una tecla posterior lo anula y `from` sigue mandando (`GDialog.test.js`; `tests/form-section.spec.mjs` «quitar con el ratón», antes el foco acababa en `body` en WebKit, ahora pasa en los tres motores).
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Verificación de los niveles
 

@@ -357,7 +357,7 @@ El campo **publica su mínimo intrínseco** a la fila con `setIntrinsicMin` (#27
 | `--g-duration-press`, `--g-ease-out` | Entrada de la palabra y de las lecturas |
 | `--g-focus-width` y el color de foco del campo | Anillo de seguridad **por dentro** de los botones si una tecnología de apoyo los enfoca (no reciben foco por Tab ni al pulsarlos); el anillo del campo es el de `GInput` |
 
-**No son tokens:** `--g-space-1 × 1` de la entrada (§29.6); `1px` del cursor al final del espejo y `1ch` de su ancho mínimo (§7, como P1); `24px`/`44px` (área táctil, §7); el mínimo publicado (px medidos, #410).
+**No son tokens:** `--g-space-1 × 1` de la entrada (§29.6); `2px` del cursor al final del espejo y de `__measure` (#679; antes `1px`) y `1ch` de su ancho mínimo (§7, como P1); `24px`/`44px` (área táctil, §7); el mínimo publicado (px medidos, #410).
 
 ## Clases y datos (contrato bruno ↔ coco)
 
@@ -484,7 +484,7 @@ B (#414) volvería a decidirse; con esta entrada ya es la casa natural de `picke
 - **Idioma cambiado en caliente** (`lang` de un ancestro): no se observa; pasar `locale` reactivo.
 - **SSR:** pasar `locale` para que el HTML llegue formateado; la lectura en palabras aparece al montar.
 - **Zona horaria y horario de verano:** fuera del campo (#411).
-- **Hueco del cursor de 1px en WebKit:** con el cursor al final, WebKit desplaza 1px la hora en algunos anchos con la fuente de serie (medido en «21:30» `md`, `lg` y `xl`, y «9:30 p.m.» `xl`). Es el **mismo límite compartido** con `GNumberField` (hallazgo 1 abierto de su auditoría, #313; `PENDIENTES.md`): la constante de `1px` de `__mirror` y `__measure` es de #313/§7 y se enmendará en los dos a la vez si se sube a 2px (el mínimo publicado subiría 1px); no se cambia aquí por separado.
+- **Hueco del cursor (cerrado por #679):** la constante de `__mirror` y `__measure` pasa a **`2px`** a la vez que en `GNumberField` (1px de cursor + 1px de redondeo de WebKit); el mínimo publicado sube 1px (187px en 12 h `es-MX`, 67px en 24 h `es`, `md`, `space` 4). Criterio: con el cursor al final, `scrollLeft` 0 en toda la matriz en los tres motores.
 - **Inicio/Fin** editan el texto; en macOS (Firefox, WebKit) no mueven el cursor por convención del sistema.
 
 **Encargo opcional a bruno (no decidido; cambiaría #403 si se adopta):** medir, con el árbol de cada motor o con un lector real, si un `aria-describedby` hacia un texto **solo con la franja** («de la noche», visualmente oculto) aporta algo en Chromium sin que Firefox y WebKit la digan dos veces (`aria-valuetext` + descripción). Si la duplicación existe en algún motor y no hay forma de evitarla sin detectar el motor (prohibido), no se adopta y el límite se queda como límite. Si hay una forma conforme, bruno la presenta a lima con la medida y lima decide.

@@ -79,6 +79,17 @@
   inset-inline: 0;
   margin-inline: auto;
 }
+/* Rejilla de medio píxel (#682, tokens.md §7): el FAB (un GBtn xl, que ya redondea su alto, #667), la píldora de la pila
+   y la fila del panel se redondean a 0,5px con el piso después; así --_fab sigue al alto real del botón y la semilla y
+   los rellenos que salen de ellos lo acompañan. Va antes del bloque táctil (44px). Con el tema por defecto, Δ0 */
+@supports (inline-size: round(1px, 1px)) {
+  .g-fab {
+    --_snap: 0.5px;
+    --_fab: max(24px, round(calc(var(--g-space-1) * 13), var(--_snap)));
+    --_pill: max(24px, round(calc(var(--g-space-1) * 10), var(--_snap)));
+    --_ctl: max(24px, round(calc(var(--g-space-1) * 9), var(--_snap)));
+  }
+}
 @media (pointer: coarse) {
   .g-fab {
     --_pill: 44px;

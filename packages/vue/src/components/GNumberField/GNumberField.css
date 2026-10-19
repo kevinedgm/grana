@@ -6,7 +6,7 @@
   interno `end`, la capa de cifras que ruedan (P2) y el tope (P3).
   Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin valores de respaldo.
   Literales: 24px y 44px (área táctil), el patrón de texto oculto accesible y las constantes neutras de #313
-  (tokens.md §7 y §29.6): 1px de hueco del cursor al final del espejo, 1ch de ancho mínimo del espejo, 0.5 del tope y
+  (tokens.md §7 y §29.6): 2px de hueco del cursor al final del espejo y del medidor (#679: 1px de cursor + 1px de redondeo del texto en WebKit), 1ch de ancho mínimo del espejo, 0.5 del tope y
   el 100 % de la celda de la cifra (geometría).
   Keyframes: g-number-roll-* y g-number-bump-* (nunca g-reject-*: GInput y GForm retiran is-rejected filtrando por ese
   prefijo; si una animación propia empezara así, retiraría el rechazo antes de tiempo).
@@ -67,13 +67,13 @@
   text-align: right;
 }
 
-/* Espejo: invisible, misma tipografía que el campo, solo da ancho. 1px al final = el hueco del cursor (constante
-   neutra, #313); 1ch = ancho mínimo sin texto ni placeholder (#187) */
+/* Espejo: invisible, misma tipografía que el campo, solo da ancho. 2px al final = el hueco del cursor (constante
+   neutra, #313; #679: 1px de cursor + 1px de redondeo del ancho del texto en WebKit); 1ch = ancho mínimo sin texto ni placeholder (#187) */
 .g-number-field__mirror {
   visibility: hidden;
   overflow: hidden;
   min-inline-size: 1ch;
-  padding-inline-end: 1px;
+  padding-inline-end: 2px;
   font-size: var(--_fs);
   line-height: var(--_lh);
   font-variant-numeric: tabular-nums;
@@ -90,7 +90,7 @@
   inset-block-start: 0;
   inset-inline-start: 0;
   visibility: hidden;
-  padding-inline-end: 1px;
+  padding-inline-end: 2px;
   font-size: var(--_fs);
   line-height: var(--_lh);
   font-variant-numeric: tabular-nums;

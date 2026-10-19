@@ -448,7 +448,9 @@ Nombres y formas apartados para entregas siguientes; **hoy no existen**.
 
 - **Navegadores:** el campo usa `Intl.DateTimeFormat` con `dayPeriod`, `:has()` (en el CSS del par de lecturas) y `ResizeObserver`. No se midió ningún navegador anterior a los tres motores de Playwright (Chromium, Firefox, WebKit).
 
-- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): el mismo hueco de 1 px de WebKit que `GNumberField` (medido en «21:30» `md`, `lg` y `xl` y «9:30 p.m.» `xl`; constante de DECISIONS #313, lima → coco; la enmienda sube 1 px el mínimo publicado). Un `GDatePicker` vacío mide 37 px junto a los 42 px de este campo con el texto al 200 % (hallazgo 3 de la auditoría; coco).
+- **Hueco del cursor de 2 px (cerrado, DECISIONS #679):** `GTimeField.vue` publica `textW + 2` y el CSS deja 2 px; en WebKit los campos desplazados pasan de 7 a 0 de 41 (Chromium y Firefox 0); mínimos con la fuente servida 181 px (12 h) y 66 px (24 h); fuera de fila el 12 h con el tema de auditoría mide 181 px frente a los 180 de su `GInput` vecino porque manda el mínimo (#416). `design/lab/time-field/auditoria-verificar.mjs` con el barrido de los 41 campos: 5665/5665 en Chromium tras ajustar esa comprobación (Firefox y WebKit 16 891/16 894 antes del ajuste, los 3 fallos eran esa comprobación). El `GDatePicker` vacío de 37 px lo cerró coco en `GDatePicker.css` (42 px al 200 %).
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## No verificado
 

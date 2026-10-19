@@ -593,7 +593,9 @@ Nombres y formas apartados para entregas siguientes; **hoy no existen** y, si lo
 
 - **Navegadores:** exige `DataTransfer` construible y `:has()`.
 
-- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): el trozo de cifra junto al nombre nace en `GSummary` `inline` sin datos; aquí se corrigió desde el anfitrión y falta llevarlo a `GSummary.css` (hallazgo 3 de la auditoría; coco).
+- **Trozo de cifra junto al nombre (cerrado 2026-10-18, coco):** ya se corrige en `GSummary.css` (en `inline` sin datos la línea secundaria se ve con al menos 4ch o salta entera a la línea oculta, y el nombre nunca salta); la regla redundante del anfitrión se retiró y se conserva que la cifra no encoja (`design/lab/file-field/auditoria-verificar.mjs` 3846/3846; `summary/auditoria-verificar.mjs` sección 8: 157 + 119 anchos con texto cortado → 0, en los tres motores).
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## No verificado
 

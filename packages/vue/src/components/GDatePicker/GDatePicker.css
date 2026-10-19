@@ -47,6 +47,13 @@
   flex-direction: column;
   vertical-align: top;
   box-sizing: border-box;
+  /* Contención en línea (#562, #563): sin ella, en un padre que se ajusta al contenido (celda `auto`, rejilla o flex con
+     fit-content, <form> hijo de flex) el porcentaje de inline-size no se resuelve y el campo medía lo que su etiqueta
+     (~200px), no su ancho por defecto. Con contención su tamaño intrínseco es el ancho por defecto, como GInput; con un
+     padre que da ancho no cambia nada (min(100%, …) manda). En una GFormRow (y en las pistas compartidas de
+     GAdaptiveLayout) la raíz es subgrid y el ancho lo da la fila: allí contain: none. Banco: design/lab/contencion/ */
+  contain: inline-size;
+  contain-intrinsic-inline-size: calc(var(--g-space-1) * 60);
   inline-size: min(100%, calc(var(--g-space-1) * 60));
   min-inline-size: 0;
   font-family: var(--g-font-ui);
@@ -59,9 +66,12 @@
   }
 }
 .g-datepicker--split {
+  contain-intrinsic-inline-size: calc(var(--g-space-1) * 100);
   inline-size: min(100%, calc(var(--g-space-1) * 100));
 }
+/* En línea la superficie mide sus meses (su contenido): sin contención */
 .g-datepicker--inline {
+  contain: none;
   display: block;
   inline-size: 100%;
 }
@@ -178,6 +188,9 @@
   color: var(--g-color-text-subtle);
 }
 .g-datepicker__value {
+  /* Una línea aunque esté vacío (sin valor ni marcador): la caja crece con el interlineado como la de GInput, también
+     con el texto al 200 % (antes, vacío, solo crecía con el icono: 37px junto a los 42px de GInput en md) */
+  min-block-size: var(--_lh);
   flex: 1 1 auto;
   min-inline-size: 0;
   overflow: hidden;
@@ -629,6 +642,18 @@
   border: 0;
 }
 
+/* Altura sobre la rejilla de medio píxel (#682, tokens.md §7; precedente GBtn, #667): con --g-space-1 fraccionario la
+   caja salía con fracciones finas y derivaba de sus vecinos de fila. round() la deja en múltiplos de 0,5px; con el tema
+   por defecto ninguna altura cambia. Solo la altura base: lo que deriva de ella la sigue sin redondeo propio. El piso de
+   24px va después del redondeo (y el de 44px táctil, que lee --_h). Dentro de @supports: un round() no soportado dentro
+   de var() invalidaría --_h y la caja se quedaría sin alto */
+@supports (inline-size: round(1px, 1px)) {
+  .g-datepicker {
+    --_snap: 0.5px;
+    --_h: max(24px, round(calc(var(--g-space-1) * var(--_units) * var(--_density)), var(--_snap)));
+  }
+}
+
 /* ---------- Tamaño del campo ---------- */
 .g-datepicker--size-xs { --_units: 6;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs: var(--g-text-caption-size); --_lh: var(--g-text-caption-line); }
 .g-datepicker--size-sm { --_units: 7;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
@@ -740,6 +765,7 @@
 /* Etiqueta · caja · pie toman las tres pistas de su línea por subgrid; la etiqueta se apoya abajo y nunca se recorta.
    Lo que cuelga fuera de flujo (los <input type="hidden"> y el panel, que es un popover) no genera celda. El ancho lo da la fila */
 .g-form-row > .g-datepicker:not(.g-datepicker--inline) {
+  contain: none;
   display: grid;
   grid-template-rows: subgrid;
   grid-template-columns: minmax(0, 1fr);

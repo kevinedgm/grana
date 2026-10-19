@@ -48,6 +48,18 @@
   color: var(--g-color-text);
 }
 
+/* Fila sobre la rejilla de medio píxel (#682, tokens.md §7; precedente GBtn, #667): el alto de la fila (el mayor
+   del riel y de space × unidades × densidad) se redondea hacia arriba a 0,5px (`up`: la fila nunca
+   queda por debajo de su forma, que no se redondea) y el piso de 24px va después (el de 44px táctil lee
+   --_row). El riel es una forma: no se redondea. Con el tema por defecto, Δ0. Dentro de @supports: un round() no
+   soportado dentro de var() invalidaría la altura */
+@supports (inline-size: round(1px, 1px)) {
+  .g-switch {
+    --_snap: 0.5px;
+    --_row: max(24px, round(up, max(var(--_th), calc(var(--g-space-1) * var(--_row-units) * var(--_density))), var(--_snap)));
+  }
+}
+
 /* La fila completa es el objetivo de toque; con puntero grueso mide 44px reales */
 .g-switch__row {
   position: relative;

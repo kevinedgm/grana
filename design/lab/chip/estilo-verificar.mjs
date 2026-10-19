@@ -51,7 +51,7 @@ const rec = (row, v, where) => { if (!mins[row] || v < mins[row].v) mins[row] = 
   const defined = new Set([...defaults.matchAll(/(--g-[a-z0-9-]+)\s*:/g)].map((m) => m[1]))
   const K = '(?:[1-9]|1[0-2])'
   const SHEETS = {
-    'GTag/GTag.css': { cat: new RegExp(`^--g-color-(?:cat-${K}(?:-strong|-soft|-text)?|on-cat-${K}(?:-soft)?)$`), alias: /^--_(?:tag-[a-z-]+|ghost-w)$/ },
+    'GTag/GTag.css': { cat: new RegExp(`^--g-color-(?:cat-${K}(?:-strong|-soft|-text)?|on-cat-${K}(?:-soft)?)$`), alias: /^--_(?:tag-[a-z-]+|ghost-w|snap)$/ },
     'GTagGroup/GTagGroup.css': { cat: new RegExp(`^--g-color-cat-${K}-text$`), alias: /^--_tgg-[a-z-]+$/ }
   }
   for (const [name, rule] of Object.entries(SHEETS)) {
@@ -68,7 +68,7 @@ const rec = (row, v, where) => { if (!mins[row] || v < mins[row].v) mins[row] = 
     ok(!/@layer|!important|@keyframes|@property/.test(css), `${name}: @layer, !important, @keyframes o @property`)
     ok(!/ease-spring|ease-bounce/.test(css), `${name}: muelle o rebote (#471: ningún uso nuevo)`)
     const px = [...css.matchAll(/(-?\d*\.?\d+)px/g)].map((m) => m[1])
-    ok(px.every((n) => ['24', '44', '1', '-1'].includes(n)), `${name}: medidas literales ${[...new Set(px)].join(', ')}`)
+    ok(px.every((n) => ['24', '44', '1', '-1', '0.5'].includes(n)), `${name}: medidas literales ${[...new Set(px)].join(', ')}`)
     const ms = [...css.matchAll(/\b\d+m?s\b/g)].map((m) => m[0])
     ok(!ms.length, `${name}: duraciones literales ${ms.join(', ')}`)
     // :hover solo dentro de (hover: hover)

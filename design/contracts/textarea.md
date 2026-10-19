@@ -114,6 +114,9 @@ Sin manejadores de teclado propios.
 
 Los mismos que `GInput` (`design/contracts/input.md`, "Tokens consumidos"), sin el slot de acción ni el botón de contraseña, más `--g-text-{caption|body-sm|body}-line` (interlineado del texto escrito y de las filas). El **relleno vertical** se calcula para que `rows` 1 iguale la altura de `GInput` (6, 7, 9, 11 y 13 unidades de `--g-space-1` para `xs` a `xl`, `tokens.md` §4) y, con más filas, se suman los interlineados. **Tokens nuevos:** ninguno.
 
+
+**Ancho por defecto (#563):** `contain-intrinsic-inline-size: --g-space-1 × 60` (240 px) en un padre que se ajusta al contenido; `contain: none` en `GFormRow` (`api.md` «Contención en línea y ancho intrínseco»).
+
 ## Clases (contrato entre bruno y coco)
 
 Bruno las emite; coco las estiliza. Ninguno usa otras.

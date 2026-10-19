@@ -11,6 +11,8 @@
     --_tooltip-ax, -ay, -aw, -ah  caja del control relativa a la etiqueta (px): de ella salen la pestaña, las curvas de
                                  unión y las esquinas de la etiqueta. Se escriben -aw/-ah ANTES de medir la etiqueta
                                  (la etiqueta mide al menos lo que el control, en el eje del lado)
+    --_tooltip-ar1, -ar2          radio del control en las dos esquinas que dan a la pestaña, ya descontado (px; #680):
+                                 1 = izquierda con top/bottom y arriba con left/right (físicos, como -ax); sin medida, 0px
     data-side (top right bottom left, lógico; antes de medir), data-instant, data-travel, data-dwell, data-touch
     inline-size (solo durante el viaje: del ancho del saliente al propio; se retira al terminar)
 
@@ -40,6 +42,17 @@
   inherits: true;
   initial-value: 0px;
 }
+/* Radio del control en las esquinas que dan a la pestaña (#680): registrado para que viaje con la pestaña */
+@property --_tooltip-ar1 {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 0px;
+}
+@property --_tooltip-ar2 {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 0px;
+}
 
 /* ---------- El nodo: capa superior, sin caja propia ---------- */
 .g-tooltip {
@@ -55,6 +68,13 @@
   --_tail-x: calc(100% - var(--_tooltip-ax) - var(--_tooltip-aw));
   --_lead-y: var(--_tooltip-ay);
   --_tail-y: calc(100% - var(--_tooltip-ay) - var(--_tooltip-ah));
+  /* Esquinas de la pestaña del lado del control (#680): el radio del control a lo largo del borde, nunca menos que
+     --g-radius-sm; en el otro eje, como mucho el grosor de la pestaña. Sin medida del .vue, 0px (el en línea gana) */
+  --_tooltip-ar1: 0px;
+  --_tooltip-ar2: 0px;
+  --_tab-t: calc(var(--_tab) + var(--_bw));
+  --_ar1: max(var(--_fl), var(--_tooltip-ar1));
+  --_ar2: max(var(--_fl), var(--_tooltip-ar2));
 
   /* Reinicio del popover del agente de usuario; coordenadas físicas de visor (como GHelper y GMenu) */
   position: fixed;
@@ -167,7 +187,10 @@
 }
 
 /* ---------- La pestaña: mide lo que mide el control y llena el hueco hasta su borde (es el puente del puntero) ----------
-   Entra --g-border-width en la etiqueta para que no quede costura. Las esquinas del lado del control, --g-radius-sm */
+   Entra --g-border-width en la etiqueta para que no quede costura. Las esquinas del lado del control siguen la curva del
+   control (#680): radio elíptico, a lo largo del borde el del control (mínimo --g-radius-sm) y en el otro eje como mucho
+   el grosor de la pestaña. Escrito por componentes: así ninguna suma de radios pasa del lado y el navegador no reduce
+   las cuatro esquinas a la vez. La pestaña empieza a tocar el control donde termina su curva */
 .g-tooltip__tab {
   position: absolute;
   background: var(--g-color-text);
@@ -185,21 +208,25 @@
 }
 .g-tooltip[data-side="bottom"] .g-tooltip__tab {
   bottom: calc(100% - var(--_bw));
-  border-radius: var(--_fl) var(--_fl) 0 0;
+  border-radius: 0;
+  border-top-left-radius: var(--_ar1) min(var(--_ar1), var(--_tab-t));
+  border-top-right-radius: var(--_ar2) min(var(--_ar2), var(--_tab-t));
 }
 .g-tooltip[data-side="top"] .g-tooltip__tab {
   top: calc(100% - var(--_bw));
-  border-radius: 0 0 var(--_fl) var(--_fl);
+  border-radius: 0;
+  border-bottom-left-radius: var(--_ar1) min(var(--_ar1), var(--_tab-t));
+  border-bottom-right-radius: var(--_ar2) min(var(--_ar2), var(--_tab-t));
 }
 .g-tooltip[data-side="right"] .g-tooltip__tab {
   inset-inline-end: calc(100% - var(--_bw));
-  border-start-start-radius: var(--_fl);
-  border-end-start-radius: var(--_fl);
+  border-start-start-radius: min(var(--_ar1), var(--_tab-t)) var(--_ar1);
+  border-end-start-radius: min(var(--_ar2), var(--_tab-t)) var(--_ar2);
 }
 .g-tooltip[data-side="left"] .g-tooltip__tab {
   inset-inline-start: calc(100% - var(--_bw));
-  border-start-end-radius: var(--_fl);
-  border-end-end-radius: var(--_fl);
+  border-start-end-radius: min(var(--_ar1), var(--_tab-t)) var(--_ar1);
+  border-end-end-radius: min(var(--_ar2), var(--_tab-t)) var(--_ar2);
 }
 
 /* ---------- Curvas de unión: la pestaña nace de la etiqueta como la de una carpeta ----------
@@ -323,6 +350,8 @@
       --_tooltip-ay var(--g-duration-press) var(--g-ease-out),
       --_tooltip-aw var(--g-duration-press) var(--g-ease-out),
       --_tooltip-ah var(--g-duration-press) var(--g-ease-out),
+      --_tooltip-ar1 var(--g-duration-press) var(--g-ease-out),
+      --_tooltip-ar2 var(--g-duration-press) var(--g-ease-out),
       opacity var(--g-duration-fast) var(--g-ease-out),
       overlay var(--g-duration-fast) allow-discrete,
       display var(--g-duration-fast) allow-discrete;

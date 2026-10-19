@@ -427,6 +427,27 @@
   .g-breadcrumbs__stair .g-breadcrumbs__link { min-block-size: 44px; }
 }
 
+/* ---------- Rejilla de medio píxel (#682, tokens.md §7; precedente GBtn, #667) ----------
+   El alto de la fila (y de la cara de B) y el de los destinos de panel y escalera se redondean a 0,5px; el piso va
+   después (24px, y 44px con puntero grueso, repetido aquí porque este bloque va detrás del táctil); el suelo de la línea
+   de texto no se redondea. La puerta es un círculo (una forma): no se redondea. Con el tema por defecto, Δ0. Dentro de
+   @supports: un round() no soportado dentro de var() invalidaría la altura */
+@supports (inline-size: round(1px, 1px)) {
+  .g-breadcrumbs {
+    --_snap: 0.5px;
+    --_bc-h: max(24px, round(calc(var(--g-space-1) * 7), var(--_snap)), var(--g-text-body-sm-line));
+  }
+  .g-breadcrumbs__panel .g-breadcrumbs__link,
+  .g-breadcrumbs__stair .g-breadcrumbs__link { min-block-size: max(24px, round(calc(var(--g-space-1) * 8), var(--_snap))); }
+  @media (pointer: coarse) {
+    .g-breadcrumbs {
+      --_bc-h: max(44px, round(calc(var(--g-space-1) * 7), var(--_snap)), var(--g-text-body-sm-line));
+    }
+    .g-breadcrumbs__panel .g-breadcrumbs__link,
+    .g-breadcrumbs__stair .g-breadcrumbs__link { min-block-size: 44px; }
+  }
+}
+
 /* ---------- Movimiento (#500): nada al montar (is-ready), ni el despliegue por foco ni el cambio de etapa ---------- */
 /* Color y fondo: pastilla que aparece o se va, el acento que pasa de un nivel a otro, la puerta que se abre */
 .g-breadcrumbs.is-ready :is(.g-breadcrumbs__link, .g-breadcrumbs__door, .g-breadcrumbs__up, .g-breadcrumbs__toggle) {

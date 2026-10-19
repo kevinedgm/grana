@@ -327,6 +327,34 @@ test.describe('GFormSection Fase 3 · componente real (form.md §3)', () => {
     expect(errs, browserName).toEqual([])
   })
 
+  test('quitar con el RATÓN: al cancelar (clic o Esc) el foco vuelve a «Quitar…», también en WebKit (hallazgo 4)', async ({ page, browserName }) => {
+    const errs = await watchConsole(page)
+    await open(page)
+    await page.evaluate(() => document.getElementById('fm-sec-fiscal').scrollIntoView({ block: 'center' }))
+    await page.click('#fm-sec-fiscal .g-form-section__add-button')
+    await settled(page, 'fm-sec-fiscal')
+    await page.fill('#fm-rfc', 'GOD')
+    const isRemove = () => page.evaluate(() => document.activeElement?.classList.contains('g-form-section__remove') || document.activeElement?.tagName)
+    // Clic en «Quitar…» y clic en «Cancelar»
+    await page.click('#fm-sec-fiscal .g-form-section__remove')
+    await page.waitForSelector('#fm-sec-fiscal dialog[open]')
+    await page.waitForTimeout(300)
+    await page.locator('#fm-sec-fiscal dialog').getByRole('button', { name: 'Cancelar' }).click()
+    await page.waitForFunction(() => !document.querySelector('#fm-sec-fiscal dialog').open)
+    await page.waitForTimeout(400)
+    expect(await isRemove(), `${browserName}: clic en Cancelar`).toBe(true)
+    // Clic en «Quitar…» y Esc
+    await page.click('#fm-sec-fiscal .g-form-section__remove')
+    await page.waitForSelector('#fm-sec-fiscal dialog[open]')
+    await page.waitForTimeout(300)
+    await page.keyboard.press('Escape')
+    await page.waitForFunction(() => !document.querySelector('#fm-sec-fiscal dialog').open)
+    await page.waitForTimeout(400)
+    expect(await isRemove(), `${browserName}: Esc`).toBe(true)
+    expect(await page.evaluate(() => __fm().fiscal)).toBe(true)
+    expect(errs, browserName).toEqual([])
+  })
+
   test('headerPlacement y L9 por ancho propio: al lado ≥ space × 200 con el título alineado a la primera etiqueta; acciones abajo a 320', async ({ page, browserName }) => {
     const errs = await watchConsole(page)
     await open(page, { width: 1440 })

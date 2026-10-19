@@ -411,7 +411,9 @@ Las emite el componente y las estiliza `GTabs.css` (que cubre también `GTabPane
 
 - **Sin verificar:** un lector de pantalla real (VoiceOver, NVDA, TalkBack: anuncio de estado y contador y el menú «Más»), un dispositivo táctil real (`snap` con dedo y la pulsación larga de la pista, que solo se probó con `pointer: coarse` emulado en Chromium y WebKit), zoom al 200%, `forced-colors` real de Windows (se probó emulado), rendimiento con decenas de pestañas y redimensionar con «Más» abierto.
 
-- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): la marca no se vuelve a medir si una pestaña cambia de ancho sin que cambie la raíz ni el `scroller` (p. ej. al cambiar en caliente la familia tipográfica del tema; las fuentes que cargan por `@font-face` sí se cubren) (bruno).
+- **La marca sigue a una pestaña que cambia de ancho (cerrado 2026-10-18, bruno):** cada pestaña entra en el `ResizeObserver`, sincronizado en `onMounted`/`onUpdated` comparando elementos (sin `watch` de arreglos): `tests/personalidad-tabs.spec.mjs` «cambia de ancho» pasaba con 50 y 26 px de desvío de la marca y ahora 0 en los tres motores (`GTabs.test.js`).
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 

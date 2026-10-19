@@ -25,6 +25,7 @@
 // 7 · Bidi con RTL real (árabe, hebreo, latino en RTL): orden rótulo/valor, filete al inicio (derecha), identidad a la
 //     derecha, sin desplazamiento del anfitrión. Móvil 320 sin desplazamiento horizontal. Acción de stack: área ≥ 24px y
 //     foco visible. Consola limpia.
+// 9 · keep="title" (#681): barrido 400–160 LTR y RTL; con el título cortado, identificador 0 visible; a 290px título entero.
 // --perf: punto (b) de bruno: 500 fichas, maquetado forzado y devolución del observador con y sin contain/:has().
 // Ejecutar desde la raíz (requiere `npm run build`): GRANA_PW_PORT=4209 node design/lab/summary/auditoria-verificar.mjs
 // Opcional: --engines=chromium,firefox,webkit  --perf  --verbose. GRANA_DIST=<copia de dist> sirve una copia fija.
@@ -467,6 +468,124 @@ for (const engine of ENGINES) {
     const s = await m.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
     ok(s <= 1, tag(`${th} móvil 320: desplazamiento horizontal ${s}px`))
     await close(m)
+  }
+
+  /* 8 · inline sin datos: la línea secundaria se ve con ≥ 4ch (o su ancho entero, si es menor) o salta entera a la línea
+     oculta; nunca un trozo junto al nombre (hallazgo 3 de design/lab/file-field/auditoria.md, ahora en GSummary.css).
+     Barrido de 1px de 100 a 360px, xs/md, con y sin código, con icono; el nombre siempre en la primera línea */
+  for (const theme of ['', 'auditoria']) {
+    const th = theme || 'defecto'
+    const p = await newPage({ theme })
+    await go(p, '?w=360')
+    await p.evaluate(() => {
+      const host = document.createElement('div'); host.id = 'au-inline'; host.style.cssText = 'position:absolute;inset-inline-start:0;inset-block-start:0;inline-size:360px;background:var(--g-color-bg)'
+      document.body.append(host)
+      const C = [
+        { title: 'Receta guardada md.pdf', subtitle: '12,4 MB', size: 'xs', icon: 'file-text' },
+        { title: 'Receta guardada md.pdf', subtitle: '2 KB', size: 'md' },
+        { title: 'Ana Torres', code: 'PAC-0042', subtitle: 'Consultorio 4, segundo piso', size: 'md' },
+        { title: 'Fernando de la Cruz Villanueva', subtitle: 'Cardiología', size: 'sm', avatar: true },
+      ]
+      Vue.createApp({ render: () => C.map((c, i) => Vue.h('div', { class: 'fld fld--md', 'data-inl': i, style: 'display:block;margin-block-end:4px' }, [Vue.h(Grana.GSummary, { ...c, layout: 'inline' })])) }).mount(host)
+    })
+    await frames(p)
+    let bad = 0
+    for (let w = 100; w <= 360; w += 1) {
+      await p.evaluate((w) => { document.getElementById('au-inline').style.inlineSize = w + 'px' }, w)
+      await frames(p, 2)
+      const r = await p.evaluate(() => [...document.querySelectorAll('#au-inline [data-inl]')].map((h) => {
+        const su = h.querySelector('.g-summary'), body = su.querySelector('.g-summary__body').getBoundingClientRect()
+        const sub = su.querySelector('.g-summary__subtitle'), sb = sub.getBoundingClientRect(), nm = su.querySelector('.g-summary__name'), name = (getComputedStyle(nm).display === 'contents' ? su.querySelector('.g-summary__code') || su.querySelector('.g-summary__title') : nm).getBoundingClientRect()
+        const probe = document.createElement('span'); probe.style.cssText = 'position:absolute;inline-size:4ch'; sub.append(probe); const ch4 = probe.getBoundingClientRect().width; probe.remove()
+        const rg = document.createRange(); rg.selectNodeContents(sub); const need = rg.getBoundingClientRect().width
+        const shown = sb.top < body.bottom - 1 && sb.width > 0.5
+        return { i: h.dataset.inl, shown, sw: +sb.width.toFixed(2), need: +need.toFixed(2), ch4: +ch4.toFixed(2), nameOk: name.top < body.bottom - 1 && name.width > 0, over: su.getBoundingClientRect().right - h.getBoundingClientRect().right }
+      }))
+      for (const x of r) {
+        const fine = !x.shown || x.sw >= Math.min(x.need, x.ch4) - 0.5
+        if (!fine || !x.nameOk || x.over > 0.5) { bad++; ok(false, tag(`${th} inline sin datos ${w}px #${x.i}: secundaria ${x.sw}px a la vista (necesita ${x.need}, 4ch ${x.ch4}); nombre ${x.nameOk ? 'en línea' : 'FUERA'}; desborde ${x.over.toFixed(1)}`)) }
+        else total++
+      }
+    }
+    note('inline sin datos (barrido 100–360 de 1px)', tag(`${th}: ${bad} anchos con un trozo de la secundaria o el nombre fuera`))
+    // forced-colors en la misma ficha: tesela del icono en Canvas y trazo en CanvasText (GIcon conserva el color del padre)
+    await close(p)
+  }
+  {
+    const p = await newPage({ forcedColors: 'active' })
+    await go(p, '?w=360')
+    const f = await p.evaluate(() => {
+      const sys = (c, prop) => { const i = document.createElement('i'); i.style[prop] = c; document.body.append(i); const v = getComputedStyle(i)[prop]; i.remove(); return v }
+      const icon = document.querySelector('[data-case="opt-dx"] .g-summary__lead > .g-icon')
+      return { active: matchMedia('(forced-colors: active)').matches, bg: icon && getComputedStyle(icon).backgroundColor, color: icon && getComputedStyle(icon).color, canvas: sys('Canvas', 'backgroundColor'), ct: sys('CanvasText', 'color') }
+    })
+    if (f.active) {
+      ok(f.bg === f.canvas, tag(`forced-colors: tesela del icono ${f.bg} ≠ Canvas ${f.canvas}`))
+      ok(f.color === f.ct, tag(`forced-colors: trazo del icono ${f.color} ≠ CanvasText ${f.ct}`))
+    } else note('forced-colors', tag('tesela del icono: emulación no disponible'))
+    await close(p)
+  }
+
+  /* 9 · keep="title" (#681, summary.md «Orden de cesión»): barrido de 1px de 400 a 160 en LTR y RTL. Mientras el título
+     lleva elipsis, el valor del identificador mide 0 de ancho visible; a 290px (tema por defecto, 16px) «Daniela
+     Castañeda Ruiz» se lee entero; Δ0 de alto; la ficha no desborda a su anfitrión; con keep por defecto, la misma ficha
+     conserva el identificador a 200px (#351) */
+  for (const theme of ['', 'auditoria']) for (const dir of ['ltr', 'rtl']) {
+    const th = `${theme || 'defecto'} ${dir}`
+    const p = await newPage({ theme })
+    await go(p, '?w=360')
+    const KF = [
+      { label: 'Expediente', short: 'Exp.', value: '001399', priority: 1 },
+      { label: 'Edad', value: '41 años', priority: 2, bare: true },
+      { label: 'Última visita', value: '12/09/2026', priority: 3 },
+      { label: 'Médico', value: 'Dr. Ortega', priority: 4, bare: true }
+    ]
+    await p.evaluate(({ facts, dir }) => {
+      const mk = (id, keep) => { const host = document.createElement('div'); host.id = id; host.dir = dir; host.style.cssText = 'inline-size:400px;font-size:16px'; document.body.prepend(host)
+        Vue.createApp({ render: () => Vue.h(Grana.GSummary, { title: 'Daniela Castañeda Ruiz', facts, layout: 'inline', size: 'xs', keep }) }).mount(host) }
+      mk('au-kt', 'title'); mk('au-kd', undefined)
+    }, { facts: KF, dir })
+    await frames(p)
+    const rows = await p.evaluate(async () => {
+      const vis = (su, e) => {
+        let b = e.getBoundingClientRect(), l = b.left, r = b.right
+        for (let a = e; a && a !== su.parentElement; a = a.parentElement) {
+          const cs = getComputedStyle(a)
+          if ((cs.clipPath && cs.clipPath !== 'none') || (cs.clip && cs.clip !== 'auto')) return 0
+          if (a !== e && cs.display !== 'contents' && cs.overflowX !== 'visible') { const q = a.getBoundingClientRect(); l = Math.max(l, q.left); r = Math.min(r, q.right) }
+        }
+        return Math.max(0, r - l)
+      }
+      const out = []
+      for (let w = 400; w >= 160; w--) {
+        for (const id of ['au-kt', 'au-kd']) document.getElementById(id).style.inlineSize = w + 'px'
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+        const row = { w }
+        for (const id of ['au-kt', 'au-kd']) {
+          const host = document.getElementById(id), su = host.querySelector('.g-summary'), t = su.querySelector('.g-summary__title'), hb = host.getBoundingClientRect(), sb = su.getBoundingClientRect()
+          row[id] = { keep: su.classList.contains('g-summary--keep-title'), cut: t.scrollWidth > t.clientWidth + 0.5, tVis: vis(su, t), idVis: vis(su, su.querySelector('.is-anchor .g-summary__fact-value')), h: sb.height, over: Math.max(sb.right - hb.right, hb.left - sb.left) }
+        }
+        out.push(row)
+      }
+      return out
+    })
+    const kt = rows.map((r) => ({ w: r.w, ...r['au-kt'] })), kd = rows.map((r) => ({ w: r.w, ...r['au-kd'] }))
+    ok(kt[0].keep && !kd[0].keep, tag(`${th} keep-title: clase ${kt[0].keep} / por defecto ${kd[0].keep}`))
+    for (const r of kt) {
+      ok(!(r.cut && r.idVis > 0.5), tag(`${th} keep-title ${r.w}px: identificador ${r.idVis.toFixed(1)}px visible con el título cortado`))
+      ok(r.tVis > 0.5, tag(`${th} keep-title ${r.w}px: el título no se ve`))
+      ok(r.over <= 0.5, tag(`${th} keep-title ${r.w}px: la ficha desborda ${r.over.toFixed(1)}px`))
+    }
+    const hs = kt.map((r) => r.h)
+    ok(Math.max(...hs) - Math.min(...hs) <= 0.5, tag(`${th} keep-title: alto variable ${Math.min(...hs)}–${Math.max(...hs)}`))
+    const whole = kt.filter((r) => !r.cut).map((r) => r.w)
+    const minWhole = Math.min(...whole)
+    if (!theme) ok(!kt.find((r) => r.w === 290).cut, tag(`${th} keep-title: a 290px el título no se lee entero`))
+    ok(kt.every((r) => r.cut === (r.w < minWhole)), tag(`${th} keep-title: el título se corta y vuelve a entrar en el barrido (no monótono)`))
+    ok(kd.find((r) => r.w === 200).idVis > 20, tag(`${th} keep por defecto: a 200px el identificador no se ve (#351)`))
+    const wd = kd.filter((r) => !r.cut).map((r) => r.w)
+    note('keep="title" (#681): ancho mínimo con el título entero', tag(`${th}: keep-title ${minWhole}px · por defecto ${wd.length ? Math.min(...wd) : '—'}px`))
+    await close(p)
   }
 
   /* --perf · punto (b): 500 fichas; del cambio de ancho a la devolución del observador, con y sin contain / :has(), y

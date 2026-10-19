@@ -1417,3 +1417,31 @@ describe('GTabs · pista de solo icono (modo visual del motor del tooltip)', () 
     expect(document.querySelectorAll('.g-tooltip')).toHaveLength(0)
   })
 })
+
+// PENDIENTES.md §6: la marca se vuelve a medir si una pestaña cambia de ancho sin que cambien raíz, scroller ni lista
+describe('GTabs · cada pestaña se observa', () => {
+  it('observa cada [role=tab]; al quitar o añadir pestañas sincroniza, y al desmontar desconecta', async () => {
+    const observed = new Set()
+    let instances = 0
+    let disconnected = 0
+    vi.stubGlobal('ResizeObserver', class {
+      constructor() { instances++ }
+      observe(el) { observed.add(el) }
+      unobserve(el) { observed.delete(el) }
+      disconnect() { observed.clear(); disconnected++ }
+    })
+    const w = mk()
+    await nextTick()
+    const tabs = () => [...w.element.querySelectorAll('[role="tab"]')]
+    expect(instances).toBe(1)
+    expect(tabs().length).toBe(items.length)
+    expect(tabs().every((t) => observed.has(t))).toBe(true)
+    await w.setProps({ items: items.slice(0, 3) })
+    await nextTick()
+    expect(tabs().length).toBe(3)
+    expect(tabs().every((t) => observed.has(t))).toBe(true)
+    expect([...observed].filter((el) => el.getAttribute?.('role') === 'tab').length).toBe(3)
+    w.unmount()
+    expect(disconnected).toBe(1)
+  })
+})

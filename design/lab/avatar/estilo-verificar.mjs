@@ -72,7 +72,7 @@ const info = []
   ok(cats.length === 24 && cats.every((v) => CAT_OK.test(v)), `GAvatar.css: lee solo cat-K-soft y on-cat-K-soft, K 1..12 (${cats.length})`)
   // Números sueltos: solo los de la escala (5 6 8 10 16), la proporción del icono (0.5), el asentamiento (1.06, 1) y 50%
   const nums = [...av.replace(/margin:\s*0;|data-cat="\d+"|cat-\d+-soft|grid-area:\s*1 \/ 1|inset:\s*0|opacity:\s*[01]|scale:\s*1;/g, '').matchAll(/(?<![\w-])(\d*\.?\d+)(%?)(?![\w-])/g)].map((m) => m[0])
-  const allowed = new Set(['5', '6', '8', '10', '16', '0.5', '1.06', '2', '50%', '100%'])
+  const allowed = new Set(['5', '6', '8', '10', '16', '0.5', '1.06', '2', '50%', '100%', '0.4375', '0.6'])  // 0.4375 y 0.6: factores de geometría del monograma, declarados como --_mono-two/--_mono-one
   ok(nums.every((n) => allowed.has(n)), `GAvatar.css: números sueltos fuera de escala, proporción y geometría ${nums.filter((n) => !allowed.has(n))}`)
   ok(/@media \(prefers-reduced-motion: no-preference\)/.test(av) && /@media \(forced-colors: active\)/.test(av), 'GAvatar.css: bloques de movimiento y forced-colors')
   ok(/--g-duration-fast/.test(av) && /--g-ease-standard/.test(av) && /--g-border-width/.test(av), 'GAvatar.css: tokens de movimiento y borde del contrato')

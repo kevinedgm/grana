@@ -235,6 +235,7 @@ Con `group`, la raíz lleva `role="group"` y `aria-labelledby` apuntando al tít
 | `facts` | Array | `[{ label, value, short?, priority?, bare? }]` | `[]` |
 | `status` | Object | `{ label, color? }` | sin valor |
 | `layout` | String | `inline` `row` `stack` | `row` |
+| `keep` | String | `identifier` `title` | `identifier` |
 | `lines` | Number | `0` o entero ≥ 2 (solo `row`) | `2` |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `inline` `xs`, `row` `md`, `stack` `lg` |
 | `diff` | Object | `{ [label]: 'same' \| 'diff' }` | sin valor |
@@ -410,7 +411,9 @@ Con `NODE_ENV` distinto de `production`, `console.warn` con el prefijo `[Grana G
 
 - **Navegadores:** exige la unidad `lh` y `:has()`.
 
-- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): en `inline` el tamaño u otro dato puede verse cortado 1–10 px junto al nombre (`GFileField` lo corrige desde el anfitrión) y en `forced-colors` la tesela del icono no se fuerza y el icono puede desaparecer (coco).
+- **Cerrados el 2026-10-18 (coco):** en `inline` sin datos la línea secundaria se ve con al menos 4ch o salta entera a la línea oculta y el nombre nunca salta (157 + 119 anchos con texto cortado → 0); en `forced-colors` la tesela del icono pasa a `Canvas` y el trazo a `CanvasText`; con `keep="title"` (DECISIONS #681, `g-summary--keep-title`) el título queda entero desde 184 px frente a 321 (tema de la auditoría 205 frente a 356), Δ0. `design/lab/summary/auditoria-verificar.mjs` secciones 8 y 9: 23 315/23 315 en los tres motores.
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## No verificado
 

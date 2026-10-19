@@ -96,12 +96,12 @@ if (run('static')) {
   const missing = [...new Set(vars.filter((v) => v.startsWith('--g-') && !defined.has(v)))]
   ok(!missing.length, 'CSS: tokens que no existen en defaults.css ' + missing)
   const own = new Set([...css.matchAll(/(--_[\w-]+)\s*:/g)].map((m) => m[1]))
-  ok([...own].every((v) => v.startsWith('--_cb-') || v === '--_row-h'), 'CSS: alias propio sin prefijo --_cb-: ' + [...own]) // --_row-h: dato del .vue (#429) con su valor por defecto
+  ok([...own].every((v) => v.startsWith('--_cb-') || v === '--_row-h' || v === '--_snap'), 'CSS: alias propio sin prefijo --_cb-: ' + [...own]) // --_row-h: dato del .vue (#429) con su valor por defecto
   const allowed = ['--_focus', '--_radius', '--_fs', '--_lh', '--_gap', '--_density', '--_inset-radius', '--_x', '--_top', '--_bottom', '--_w', '--_max', '--_field-h', '--_travel-x', '--_travel-y']
   const strange = [...new Set(vars.filter((v) => v.startsWith('--_') && !own.has(v) && !allowed.includes(v)))]
   ok(!strange.length, 'CSS: alias --_* no previsto: ' + strange)
   const px = [...css.matchAll(/(-?\d*\.?\d+)px/g)].map((m) => m[0])
-  ok(px.every((p) => ['24px', '44px', '1px', '-1px', '0px'].includes(p)), 'CSS: medidas literales no permitidas ' + px.filter((p) => !['24px', '44px', '1px', '-1px', '0px'].includes(p)))
+  ok(px.every((p) => ['24px', '44px', '1px', '-1px', '0px', '0.5px'].includes(p)), 'CSS: medidas literales no permitidas ' + px.filter((p) => !['24px', '44px', '1px', '-1px', '0px', '0.5px'].includes(p))) // 0.5px: --_snap (#682)
   // dist/grana.css: todas las reglas cuyo selector nombra g-combobox (minificado; se parte por bloques)
   const dist = await readFile(process.env.GRANA_DIST ? join(process.env.GRANA_DIST, 'grana.css') : join(ROOT, 'packages/vue/dist/grana.css'), 'utf8')
   const blocks = []
@@ -125,7 +125,7 @@ if (run('static')) {
   const lay = blocks.filter((b) => !/grana\.components/.test(b.ctx))
   ok(!lay.length, 'dist: reglas g-combobox fuera de la capa grana.components ' + lay.map((b) => b.s).slice(0, 3))
   const dpx = [...new Set(blocks.flatMap((b) => [...b.body.matchAll(/(-?\d*\.?\d+)px/g)].map((m) => m[0])))]
-  ok(dpx.every((p) => ['24px', '44px', '1px', '-1px', '0px', '0'].includes(p)), 'dist: medidas literales en g-combobox* ' + dpx)
+  ok(dpx.every((p) => ['24px', '44px', '1px', '-1px', '0px', '0', '.5px', '0.5px'].includes(p)), 'dist: medidas literales en g-combobox* ' + dpx)
   note('dist/grana.css', `${blocks.length} reglas g-combobox*, sin literales de color ni respaldos; colores de sistema solo en forced-colors; todas en grana.components`)
   const js = await readFile(process.env.GRANA_DIST ? join(process.env.GRANA_DIST, 'grana.js') : join(ROOT, 'packages/vue/dist/grana.js'), 'utf8')
   ok(!/GCombobox/.test(js), 'dist: GCombobox viaja en grana.js (debe ir en su propia entrada)')
@@ -397,12 +397,21 @@ for (const engine of ENGINES) {
       ok(Math.abs(h.center) <= 0.5 && Math.abs(h.center2) <= 0.5 && h.inside, t(`ficha descentrada ${h.center.toFixed(2)} / ${h.center2.toFixed(2)}`))
       ok(/rgba\(0, 0, 0, 0\)|transparent/.test(h.color), t('el texto del <input> se ve bajo la ficha ' + h.color))
       note('C Δ0 (px)', `${engine} ${theme || 'defecto'}: fila ${h.row.toFixed(2)} · vacío→ficha ${h.dEmpty.toFixed(2)} · centrado ${h.center.toFixed(2)}`)
-      // Recorte: el dato secundario (capítulo) se recorta antes que la etiqueta; nada sale de la caja
+      // Recorte (#689): la secundaria de la ficha inline sin datos mide 0 o ≥ 4ch, nunca intermedio; la etiqueta lleva elipsis
+      // solo con la secundaria retirada (ancho 0 o saltada a la segunda línea que el cuerpo recorta); la ficha no sale de la caja;
+      // algún ancho muestra la secundaria con elipsis y la etiqueta intacta
       const sw = await page.evaluate(() => { const r = document.getElementById('cb-dx').closest('.g-combobox'); const lab = r.querySelector('.g-combobox__token .g-summary__title'), meta = r.querySelector('.g-combobox__token .g-summary__subtitle'), tk = r.querySelector('.g-combobox__token'); const res = []
-        for (let w = 760; w >= 150; w -= 10) { r.style.inlineSize = w + 'px'; const c = r.querySelector('.g-input__control').getBoundingClientRect(), T = tk.getBoundingClientRect(); res.push({ w, lc: lab.scrollWidth > lab.clientWidth + 1, mc: meta.scrollWidth > meta.clientWidth + 1, mw: meta.getBoundingClientRect().width, out: T.right > c.right + 0.5 || T.left < c.left - 0.5 }) }
+        const probe = document.createElement('span'); probe.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;inline-size:4ch'; meta.appendChild(probe); const ch4 = probe.getBoundingClientRect().width; probe.remove()
+        const noFacts = !tk.querySelector('.g-summary__fact')
+        for (let w = 760; w >= 150; w -= 10) { r.style.inlineSize = w + 'px'; const c = r.querySelector('.g-input__control').getBoundingClientRect(), T = tk.getBoundingClientRect(), m = meta.getBoundingClientRect(), l = lab.getBoundingClientRect()
+          const wrapped = m.top >= l.bottom - 1 || m.top - T.top >= T.height - 1
+          res.push({ w, ch4, noFacts, lc: lab.scrollWidth > lab.clientWidth + 1, mc: meta.scrollWidth > meta.clientWidth + 1, mw: m.width, retired: m.width < 1 || wrapped, out: T.right > c.right + 0.5 || T.left < c.left - 0.5 }) }
         r.style.inlineSize = ''; return res })
-      ok(sw.every((x) => !(x.lc && x.mw > 1)) && sw.some((x) => x.mc && !x.lc) && sw.every((x) => !x.out), t('recorte: la etiqueta se recorta antes que el secundario o la ficha sale de la caja ' + JSON.stringify(sw.find((x) => (x.lc && x.mw > 1) || x.out))))
-      note('C recorte', `${engine} ${theme || 'defecto'}: secundario desde ${sw.find((x) => x.mc)?.w}px, etiqueta desde ${sw.find((x) => x.lc)?.w}px`)
+      ok(sw.every((x) => !x.noFacts || x.mw < 1 || x.mw >= x.ch4 - 1 || x.retired), t('recorte (a): la secundaria sin datos mide 0 o ≥ 4ch ' + JSON.stringify(sw.find((x) => x.noFacts && x.mw >= 1 && x.mw < x.ch4 - 1 && !x.retired))))
+      ok(sw.every((x) => !x.lc || x.retired), t('recorte (b): la etiqueta con elipsis solo con la secundaria retirada ' + JSON.stringify(sw.find((x) => x.lc && !x.retired))))
+      ok(sw.every((x) => !x.out), t('recorte (c): la ficha no sale de la caja ' + JSON.stringify(sw.find((x) => x.out))))
+      ok(sw.some((x) => x.mc && !x.lc && !x.retired), t('recorte (d): algún ancho muestra la secundaria con elipsis y la etiqueta intacta'))
+      note('C recorte', `${engine} ${theme || 'defecto'}: secundario con elipsis desde ${sw.find((x) => x.mc)?.w}px, etiqueta con elipsis desde ${sw.find((x) => x.lc)?.w}px`)
       await page.evaluate(() => { window.__cb.dx = null })
     }
     // Seleccionada con el foco

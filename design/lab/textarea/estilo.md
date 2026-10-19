@@ -46,3 +46,7 @@
 ## Sin verificar (lo audita el paso 5 o queda pendiente)
 
 Lector de pantalla real; preferencias reales de `prefers-reduced-motion` y `forced-colors`; Firefox y Safari (tirador y `:has()`); tema oscuro (no existe); el tirador nativo sobre esquinas muy redondeadas con temas extremos.
+
+## Rejilla de medio píxel (#682)
+
+Regla única de #682 (`docs/contract/tokens.md` §4 y §7; precedente `GBtn`, #667): dentro de `@supports (inline-size: round(1px, 1px))`, con `--_snap: 0.5px` declarado en la raíz, la altura base pasa a `--_h: max(24px, round(calc(var(--g-space-1) * var(--_units) * var(--_density)), var(--_snap)))` (alto de `rows` 1). El piso va **después** del redondeo (y el de 44px táctil, que lee la misma variable o se aplica detrás); lo que deriva de esa altura la sigue sin redondeo propio; anchos, radios, bordes, rellenos, interlineados y formas no se redondean. Fuera de `@supports`, la fórmula sin `round()`. Las filas extra suman interlineado sin redondear. Medido con `node design/lab/redondeo/verificar.mjs` (banco `design/lab/redondeo/banco.html`, tres motores, `space` 4 / 4,375 / 3,75): alto × 2 entero en todas las combinaciones con 4,375 y 3,75 (antes no), y con el tema por defecto ninguna altura cambia frente al `dist/` anterior.

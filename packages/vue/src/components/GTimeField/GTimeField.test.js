@@ -780,7 +780,7 @@ describe('GTimeField · mínimo publicado en una GFormRow (#410)', () => {
     expect(meas.find('span').text().split('\n').length).toBe(24)
     const [el, px] = calls.at(-1)
     expect(el).toBe(w.find('.g-input').element)
-    expect(px).toBe(Math.ceil(40 + 91 + 32 + 80))
+    expect(px).toBe(Math.ceil(40 + 92 + 32 + 80)) // 90 de texto + 2 de hueco del cursor (#679)
     w.unmount()
     mounted.pop()
     expect(calls.at(-1)[1]).toBe(0)
@@ -807,7 +807,7 @@ describe('GTimeField · mínimo publicado en una GFormRow (#410)', () => {
     const { w, calls } = rowHost({ label: 'Hora', locale: 'es', modelValue: '21:30', labels: INVALID })
     await settle()
     expect(w.find('.g-time-field__measure .g-time-field__half').exists()).toBe(false)
-    expect(calls.at(-1)[1]).toBe(Math.ceil(10 + 41))
+    expect(calls.at(-1)[1]).toBe(Math.ceil(10 + 42))
   })
 
   // Fuera de una fila y sin block (#416): el mismo mínimo como suelo de la raíz, --_min-inline + data-fit
@@ -829,7 +829,7 @@ describe('GTimeField · mínimo publicado en una GFormRow (#410)', () => {
     expect(fitOf(w)).toEqual({ fit: false, v: '' }) // primer render: sin medir
     await settle()
     expect(w.find('.g-time-field__measure').exists()).toBe(true)
-    expect(fitOf(w)).toEqual({ fit: true, v: `${Math.ceil(40 + 91 + 32 + 80)}px` })
+    expect(fitOf(w)).toEqual({ fit: true, v: `${Math.ceil(40 + 92 + 32 + 80)}px` })
     expect(w.find('input.g-time-field__field').attributes('data-fit')).toBeUndefined() // en la raíz, no en el <input>
   })
 
@@ -860,7 +860,7 @@ describe('GTimeField · mínimo publicado en una GFormRow (#410)', () => {
     expect(fitOf(w)).toEqual({ fit: false, v: '' })
     await w.setProps({ block: false })
     await settle()
-    expect(fitOf(w)).toEqual({ fit: true, v: `${Math.ceil(40 + 91 + 80)}px` })
+    expect(fitOf(w)).toEqual({ fit: true, v: `${Math.ceil(40 + 92 + 80)}px` })
   })
 
   it('el style del consumidor se conserva; si define --_min-inline, gana el suyo', async () => {
@@ -868,7 +868,7 @@ describe('GTimeField · mínimo publicado en una GFormRow (#410)', () => {
     const a = mk({ locale: 'es-MX' }, { attrs: { style: 'color: red; inline-size: 200px' } })
     await settle()
     const ra = a.find('.g-input').element
-    expect([ra.style.color, ra.style.inlineSize, ra.style.getPropertyValue('--_min-inline')]).toEqual(['red', '200px', `${Math.ceil(40 + 91 + 80)}px`])
+    expect([ra.style.color, ra.style.inlineSize, ra.style.getPropertyValue('--_min-inline')]).toEqual(['red', '200px', `${Math.ceil(40 + 92 + 80)}px`])
     const b = mk({ locale: 'es-MX' }, { attrs: { style: { '--_min-inline': '300px', color: 'blue' } } })
     await settle()
     expect(fitOf(b)).toEqual({ fit: true, v: '300px' })

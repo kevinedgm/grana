@@ -125,3 +125,31 @@ Reacción del usuario al sitio: «sigue apareciendo Limitaciones conocidas; da l
 - De paso, otra caducada: `GFormReveal` decía que en un `GDialog` centrado el disparador sube al abrir un bloque y que quedaba para una ronda (#281); #301 lo cerró (el diálogo fija el borde superior y crece hacia abajo). Reescrita.
 - Enlaces internos `#limitaciones-conocidas` → `#verificación`; índices «En esta página» con `§ Alcance · § Verificación`.
 - El sitio (`npm run docs:build`) publica las secciones nuevas sin cambios en el generador.
+
+## Tercera pasada · cierre de los «Pendientes abiertos» (2026-10-18)
+
+El usuario pidió cerrar todos los pendientes que la segunda pasada dejó en las páginas. Flujo Fruti Squad en tres lotes (lima → coco y bruno en paralelo → coco y bruno sobre las decisiones nuevas → remates), cada agente con su puerto de Playwright (4208 bruno, 4209 coco, 4213/4214 lote B) y verificación por niveles (fallaba antes, pasa después; conteos en los `auditoria.md` de cada componente).
+
+| Pendiente | Decisión | Cierre | Evidencia |
+| --- | --- | --- | --- |
+| 1 px de WebKit en `GNumberField`/`GTimeField` | #679 (hueco 2 px, mínimo +1 px) | coco CSS, bruno `GTimeField.vue` | WebKit 27 → 0 de 63 y 7 → 0 de 41; `number-field/auditoria-verificar.mjs` 20 795/20 795; `time-field` 5665/5665 Chromium |
+| Esquinas de la pestaña de `GTooltip` | #680 (alias `--_tooltip-ar1/2`, sin token) | bruno `utils/tooltip.js`, coco `GTooltip.css` | fuera de la silueta 4,02 / 2,01 px → 0,02 / 0,01; `tooltip/auditoria-verificar.mjs` 2b 8576/8576 |
+| Orden de cesión en el campo de `GCombobox` | #681 (`keep` de `GSummary`, `title` en la ficha del valor) | bruno `.vue` + `meta.json` + tipos, coco `g-summary--keep-title` | título entero desde 184 px (antes 321); `summary/auditoria-verificar.mjs` 23 315/23 315; `summary.spec` y `combobox.spec` en tres motores |
+| #525 `round()` general | #682 (+ #687 `round(up)` en filas con forma, #688 excepciones `GTag` estática y `GBadge`) | coco, 20 CSS | banco `design/lab/redondeo/verificar.mjs` 10 135/10 135; 504 alturas no enteras → 0; 0 cambios con el tema por defecto |
+| #563 contención de `GSelect`, `GTextarea`, `GDatePicker` | #686 | coco | `contencion/verificar.mjs` 297 → 336/336; ~200 → 240 px (400 con `split`) |
+| `GDatePicker`/`GSelect` vacíos al 200 % (37 px) | — | coco | 37 → 42 px; `datepicker/altura-verificar.mjs` 186/186 |
+| `letter-spacing` de `GFormFold` | — | coco | valor calculado correcto en tres motores |
+| Iniciales de `GAvatar` al 200 % | — | coco | `avatar/auditoria-verificar.mjs` sección 3 con 200 %; límite nuevo: `xs` con `space` 3 queda en 9 px |
+| `GSummary` inline recortado y `forced-colors`; trozo de cifra de `GFileField` | #689 (manda `GSummary` sobre el criterio C del combobox) | coco | 157 + 119 anchos cortados → 0; tesela `Canvas`; `file-field` 3846/3846 |
+| Clic de ratón en WebKit (`GDialog`/`GFormSection`) | — | bruno `utils/lastPointerTarget.js`, `GDialog.vue` | `form-section.spec` «quitar con el ratón» en tres motores |
+| «Aquí estabas» de `GTable` en WebKit | — | ya cerrado en `c7dbc1e` | `table-rows.spec.mjs:125` pasa en WebKit; queda `:141` Meta+clic (previo) |
+| Marca de `GTabs` al cambiar el ancho de una pestaña | — | bruno `GTabs.vue` | `personalidad-tabs.spec` 50/26 px de desvío → 0 |
+| Peso del modo pasos de `GDialog` | #684 (tope 4 864 B) | bruno medida | +4 741 B gzip (212 489 → 217 230) |
+| `GAccordion` #519 | #683 + #685 (`overflow-anchor: none` temporal, restaurado) | bruno `utils/collapse.js` | `accordion.spec` `scrollTo`: 288 px deshechos → 0; `collapse.test.js` |
+| Cuadro largo de `GFormReveal` | — | bruno `revealGap.js` (lectura por lotes) | 128 → 59 ms abrir, 110 → 55 cerrar (Chromium) |
+
+**Quedan, y por qué:** `GStatusIsland` (`Alt+F8` en GNOME/Xfce exige ese escritorio; la superficie inversa #325 espera que el usuario la vea con un tema de color); `GTable` Meta+clic en WebKit (`table-rows.spec.mjs:141`, fallo previo del motor de Playwright, sin Safari real); todo lo de entorno real de «Verificación».
+
+**Avisos del lote** (no son de estos pendientes): verificadores de estilo con fallos previos a esta tanda —`tooltip/estilo` (4 de #383 por el `contain-intrinsic` de #562), `slider/estilo` «solo lectura cambia al pasar», `file-field/estilo` (el banco nunca marca `[data-ready]`), `radio-group/auditoria` (hijos `.g-tooltip` en `__options`)— y el `<select>` del editor de `GFilterBar` que mide 23 px en WebKit. Van a `PENDIENTES.md` §6 (coco).
+
+**Pasada completa sobre el estado final (2026-10-18, `--workers=3`, 1,4 h):** 2628 pasan, 72 omitidas, 15 fallan; 13 eran el `dist/` a medio reconstruir por la sesión de GFab (`GranaFab is not defined`, `window.Grana` indefinido) y pasan solos (46/47 y 30/32 al repetir); los 2 restantes, `personalidad-menu-links.spec.mjs` :108 y :168, fallan igual sin esta tanda y sin `5bdb4c1` (canal de anuncios compartido con la demo de `GLoadRegion`; WebKit borra la selección al enfocar): defecto de la prueba, anotado en `PENDIENTES.md` §6 (bruno). Vitest 3696/3696, build, compuertas 73/73, avisos-dev 13/13, `check-readme-*` y `docs:build` en verde (salvo el aviso de `GFab` sin README, de la otra sesión).

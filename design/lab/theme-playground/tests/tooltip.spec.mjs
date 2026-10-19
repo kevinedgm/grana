@@ -664,3 +664,55 @@ test.describe('GTooltip · matriz de componentes hijo', () => {
     expect(r.nodes).toBe(1)
   })
 })
+
+// ---------- #680 · las esquinas de la pestaña con el radio del control ----------
+// El motor escribe --_tooltip-ar1/-ar2 (px) con el radio usado de la caja visible en las dos esquinas del borde que toca
+// la pestaña, ya descontado. Control con --g-radius-md 14px (el tema de la auditoría) en los cuatro lados y un GInput
+// (caja visible data-g-tooltip-box). La comprobación visual «0px de pestaña fuera de la silueta» es de coco, con su CSS.
+test.describe('GTooltip · radio del control en la pestaña (#680)', () => {
+  test('cuatro placement con un GBtn de radio 14px y un GInput: ar1/ar2 = radio usado de las esquinas que dan a la pestaña', async ({ page }) => {
+    const errs = await watchConsole(page)
+    await open(page, { target: null })
+    await page.evaluate(() => {
+      const host = document.createElement('div')
+      host.id = 'tt-ar'
+      host.style.cssText = '--g-radius-sm: 14px; --g-radius-md: 14px; position: fixed; inset: 300px auto auto 200px; display: flex; align-items: center; gap: 110px; z-index: 5'
+      document.body.append(host)
+      const { h, createApp } = Vue
+      const { GTooltip, GBtn, GInput } = Grana
+      createApp({
+        render: () => [
+          ...['top', 'right', 'bottom', 'left'].map((p) => h(GTooltip, { text: `Lado ${p}`, placement: p }, () => h(GBtn, { id: `ar-${p}` }, () => 'Guardar'))),
+          h(GTooltip, { text: 'Campo', placement: 'bottom' }, () => h(GInput, { id: 'ar-in', label: 'Nombre', hideLabel: true }))
+        ]
+      }).mount(host)
+    })
+    await frames(page)
+    for (const [id, side, corners] of [
+      ['ar-top', 'top', ['top-left', 'top-right']], ['ar-right', 'right', ['top-right', 'bottom-right']],
+      ['ar-bottom', 'bottom', ['bottom-left', 'bottom-right']], ['ar-left', 'left', ['top-left', 'bottom-left']],
+      ['ar-in', 'bottom', ['bottom-left', 'bottom-right']]
+    ]) {
+      await page.mouse.move(2, 2)
+      await page.waitForTimeout(150)
+      await hover(page, `#${id}`)
+      await page.waitForTimeout(600)
+      const r = await page.evaluate(({ id, corners }) => {
+        const ctrl = document.getElementById(id)
+        const node = [...document.querySelectorAll('.g-tooltip')].find((n) => n.matches(':popover-open'))
+        if (!node) return { side: null, ar: [], want: [1] }
+        const box = ctrl.closest('[data-g-tooltip-box]') || ctrl
+        const cs = getComputedStyle(box)
+        const k = /left|right/.test(node.getAttribute('data-side')) ? 1 : 0
+        const want = corners.map((c) => { const p = cs.getPropertyValue(`border-${c}-radius`).trim().split(/\s+/); return parseFloat(p[k] ?? p[0]) })
+        return { side: node.getAttribute('data-side'), ar: [node.style.getPropertyValue('--_tooltip-ar1'), node.style.getPropertyValue('--_tooltip-ar2')].map(parseFloat), want }
+      }, { id, corners })
+      expect(r.side, id).toBe(side)
+      expect(r.want[0], `${id}: el control tiene radio`).toBeGreaterThan(0)
+      // La pestaña puede quedar unas décimas dentro del control (posición subpíxel): se descuenta
+      expect(Math.abs(r.ar[0] - r.want[0]), `${id} ar1 ${r.ar[0]} frente a ${r.want[0]}`).toBeLessThan(0.5)
+      expect(Math.abs(r.ar[1] - r.want[1]), `${id} ar2 ${r.ar[1]} frente a ${r.want[1]}`).toBeLessThan(0.5)
+    }
+    expect(errs).toEqual([])
+  })
+})

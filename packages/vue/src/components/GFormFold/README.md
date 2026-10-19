@@ -285,7 +285,9 @@ Con `prefers-reduced-motion: reduce`, el deslizamiento desaparece y solo queda e
 
 - **Táctil y zoom al 200 %** no verificados en dispositivo real.
 
-- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): `.g-form-fold__description` aplica `font-size` y `line-height` de `body-sm` pero omite `letter-spacing: var(--g-text-body-sm-tracking)` (el token vale `0` en el tema por defecto, sin diferencia visual; coco).
+- **`letter-spacing` de la descripción (cerrado 2026-10-18, coco):** `.g-form-fold__description` lleva `letter-spacing: var(--g-text-body-sm-tracking)`; valor calculado correcto en los tres motores (sin cambio a la vista: ya se heredaba).
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 

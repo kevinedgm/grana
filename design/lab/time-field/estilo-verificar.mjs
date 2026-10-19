@@ -62,15 +62,17 @@ const bwOf = (qs) => (/propio/.test(qs) ? 2 : 1)
   ok(!missing.length, 'CSS: tokens que no existen en defaults.css ' + missing)
   const own = new Set([...css.matchAll(/(--_[\w-]+)\s*:/g)].map((m) => m[1]))
   const fromInput = ['--_h', '--_fs', '--_lh', '--_radius', '--_focus', '--_gap', '--_density']
-  const strange = [...new Set(vars.filter((v) => v.startsWith('--_') && !own.has(v) && !fromInput.includes(v)))]
+  const fromVue = ['--_min-inline'] // la escribe GTimeField.vue en la raíz (#416), como en auditoria-verificar.mjs
+  const strange = [...new Set(vars.filter((v) => v.startsWith('--_') && !own.has(v) && !fromInput.includes(v) && !fromVue.includes(v)))]
   ok(!strange.length, 'CSS: alias --_* que no son de GInput ni propios: ' + strange)
   ok([...own].every((v) => v.startsWith('--_tf-')), 'CSS: alias propio sin prefijo --_tf-: ' + [...own])
-  // Literales de medida: 24px, 44px, 1px (texto oculto y hueco del cursor); 1ch (espejo)
+  // Literales de medida: 24px, 44px, 1px (texto oculto), 2px (hueco del cursor, #679); 1ch (espejo)
   const px = [...css.matchAll(/(-?\d*\.?\d+)px/g)].map((m) => m[0])
-  ok(px.every((p) => ['24px', '44px', '1px', '-1px'].includes(p)), 'CSS: medidas literales no permitidas ' + px.filter((p) => !['24px', '44px', '1px', '-1px'].includes(p)))
+  ok(px.every((p) => ['24px', '44px', '1px', '-1px', '2px'].includes(p)), 'CSS: medidas literales no permitidas ' + px.filter((p) => !['24px', '44px', '1px', '-1px', '2px'].includes(p)))
   const onePx = css.split('\n').filter((l) => /\b-?1px\b/.test(l)).map((l) => l.trim())
-  ok(onePx.every((l) => /^(inline-size|block-size|margin): -?1px;$/.test(l) || l === 'padding-inline-end: 1px;'), 'CSS: 1px fuera del texto oculto y del hueco del cursor: ' + onePx)
-  ok(css.split('\n').filter((l) => /padding-inline-end: 1px/.test(l)).length === 2, 'CSS: el hueco del cursor (1px) en el espejo y el medidor, y solo ahí')
+  ok(onePx.every((l) => /^(inline-size|block-size|margin): -?1px;$/.test(l) ), 'CSS: 1px fuera del texto oculto: ' + onePx)
+  ok(css.split('\n').filter((l) => /\b2px\b/.test(l)).every((l) => l.trim() === 'padding-inline-end: 2px;'), 'CSS: 2px fuera del hueco del cursor (#679)')
+  ok(css.split('\n').filter((l) => /padding-inline-end: 2px/.test(l)).length === 2, 'CSS: el hueco del cursor (2px, #679) en el espejo y el medidor, y solo ahí')
   const nums = [...css.matchAll(/\*\s*(-?\d*\.?\d+)\b(?!px|ms|%)/g)].map((m) => m[1])
   ok(nums.every((n) => ['-1', '1', '2'].includes(n)), 'CSS: factores fuera de −1, 1 (§29.6) y 2 (doble trazo de GInput): ' + nums)
   const kf = [...css.matchAll(/@keyframes\s+([\w-]+)/g)].map((m) => m[1])
@@ -286,7 +288,7 @@ for (const engine of ENGINES) {
       ok(near(s.box, s.inputBox) && near(s.box24, s.inputBox), t(`${sid}: caja ${s.box}/${s.box24} ≠ GInput ${s.inputBox}`))
       for (const r of s.reads) {
         ok(near(r.gap, s.gap, 0.5), t(`${sid}: lectura a ${r.gap}px de la celda ≠ gap ${s.gap}`))
-        ok(r.ink >= s.gap - 0.01 && r.ink <= s.gap + 1.5, t(`${sid}: tinta lectura–hora ${r.ink} (gap ${s.gap} + 1px del cursor)`))
+        ok(r.ink >= s.gap - 0.01 && r.ink <= s.gap + 2.5, t(`${sid}: tinta lectura–hora ${r.ink} (gap ${s.gap} + 2px del cursor, #679)`))
         ok(Math.abs(r.dy) <= 0.5 && r.fs[0] === r.fs[1], t(`${sid}: la lectura no está en la línea del texto (Δ ${r.dy}px) o cambia de tamaño ${r.fs}`))
       }
     }
@@ -506,9 +508,7 @@ for (const engine of ENGINES) {
   for (const id of ['rtl-ar12', 'rtl-ar24', 's-rest', 't12-xs', 't24-xl']) {
     await page.focus('#' + id); await page.keyboard.press('End'); await page.waitForTimeout(30)
     const sl = await page.evaluate((i) => { const f = document.getElementById(i); return { sl: f.scrollLeft, sw: f.scrollWidth, cw: f.clientWidth } }, id)
-    // WebKit redondea hacia arriba el ancho del texto del <input> y reserva además el cursor: el 1px del espejo (constante
-    // de §7, #313) no alcanza en algunos anchos. Mismo hallazgo abierto que GNumberField (auditoría, hallazgo 1; lima)
-    if (engine === 'webkit' && sl.sl === 1) { notes.push(`webkit: ${id} se desplaza 1px con el cursor al final (hueco del cursor de 1px, hallazgo 1 de GNumberField)`); continue }
+    // #679: con el hueco del cursor de 2px, 0 en los tres motores (antes WebKit se desplazaba 1px)
     ok(sl.sl === 0 && sl.sw <= sl.cw + 1, tag(`con foco: ${id} se desplaza ${JSON.stringify(sl)}`))
   }
   await page.evaluate(() => document.activeElement.blur())

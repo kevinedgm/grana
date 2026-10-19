@@ -83,6 +83,16 @@
 
 `design/lab/summary/auditoria.md` y `auditoria-verificar.mjs` (paso 5, con `auditoria-tema.css` y el oscuro). Cambio en el CSS: elipsis de último recurso del código (arriba). Lo que queda «No verificado» abajo se midió allí sobre el componente real, salvo lector, `forced-colors` real, Safari y táctil reales y CJK.
 
+## inline sin datos: la secundaria entera o nada a medias
+
+Sin datos, la línea secundaria de `inline` se ve con **al menos 4ch** (una cifra o sílaba y la elipsis) o salta entera a una segunda línea que el cuerpo recorta (sigue en el árbol), el patrón de la cabecera. El nombre (código + título) es una sola caja: como primer elemento nunca salta y cede dentro. Antes la secundaria recibía lo que sobraba tras el título y, con una sobra menor que la elipsis, pintaba un trozo de cifra junto al nombre (hallazgo 3 de `design/lab/file-field/auditoria.md`). En `forced-colors`, la tesela del icono pasa a `Canvas` con trazo `CanvasText` (`GIcon` conserva el color del padre y su fondo no se fuerza).
+
+## `keep="title"`: el título se queda, el identificador cede hasta 0 (#681)
+
+Con `g-summary--keep-title` (solo `inline`; la pone `GSummary.vue` con `keep="title"`, y `GCombobox` la pide en la ficha del valor ya elegido) el título es `flex: none` con tope `100% − space × 2` (el cuerpo menos el hueco que lo separa del identificador) y el identificador es `flex: 0 1 auto` con `min-inline-size: 0`: cede él, con su elipsis, hasta 0. Como el título no encoge mientras quepa en su tope, **mientras lleva elipsis el identificador mide 0 de ancho visible**. El rótulo del identificador y «+N» ya se habían retirado con `data-tight` (la medida lo pone en cuanto el identificador lleva elipsis). Ninguna medida nueva; con `identifier`, sin cambio.
+
+Medido sobre el componente real (`node design/lab/summary/auditoria-verificar.mjs`, sección 9, barrido de 1px de 400 a 160 en LTR y RTL, tema por defecto y de auditoría, tres motores): el título entero desde **184px** con `keep-title` (205px con el tema de auditoría, 17px Georgia) frente a 321px (356px) con el orden por defecto; a 290px «Daniela Castañeda Ruiz» se lee entero; Δ0 de alto; la ficha no desborda a su anfitrión; con `keep` por defecto, a 200px el identificador sigue a la vista (#351). Los casos `keep="title"` de `summary.spec.mjs` y `combobox.spec.mjs` pasan en Chromium, Firefox y WebKit.
+
 ## No verificado
 
 Lector de pantalla real; `forced-colors` real (solo emulado); `prefers-contrast: more` (regla escrita, sin medir); Safari y táctil reales; CJK y palabras muy largas; la ficha dentro de `GCombobox` (después, con la adopción); el componente real de bruno (el banco simula su medida).

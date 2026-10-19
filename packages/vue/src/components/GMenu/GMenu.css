@@ -67,6 +67,15 @@
   padding: 0;
   list-style: none;
 }
+/* Altura sobre la rejilla de medio píxel (#682, tokens.md §7; precedente GBtn, #667): round() a 0,5px y el piso después;
+   con el tema por defecto ninguna altura cambia. Dentro de @supports: un round() no soportado dentro de var() invalidaría
+   la altura. Solo el alto del elemento (antes del bloque táctil, que lo sustituye por 44px); anchos, rellenos, radios y formas no se redondean */
+@supports (inline-size: round(1px, 1px)) {
+  .g-menu__list {
+    --_snap: 0.5px;
+    --_ctl: max(24px, round(calc(var(--g-space-1) * 9 * var(--_d)), var(--_snap)));
+  }
+}
 @media (pointer: coarse) {
   .g-menu__list { --_ctl: 44px; }
 }

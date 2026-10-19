@@ -28,6 +28,14 @@
   /* Alto de fila del panel: el de la caja md de GInput (space × 9), piso 24px; 44px con puntero grueso y en la hoja */
   --_cb-row: max(24px, calc(var(--g-space-1) * 9));
 }
+/* Fila del panel sobre la rejilla de medio píxel (#682, tokens.md §7): la misma que la caja md de GInput, redondeada
+   igual; el piso va después. La caja del campo la redondea GInput.css */
+@supports (inline-size: round(1px, 1px)) {
+  .g-combobox {
+    --_snap: 0.5px;
+    --_cb-row: max(24px, round(calc(var(--g-space-1) * 9), var(--_snap)));
+  }
+}
 @media (pointer: coarse) {
   .g-combobox { --_cb-row: 44px; }
 }

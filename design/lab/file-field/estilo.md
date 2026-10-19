@@ -97,3 +97,7 @@ Las del contrato («Clases y datos»), más:
 ## No verificado
 
 Lector de pantalla real, arrastre real del sistema (el banco simula las clases), `forced-colors` real (solo emulado), táctil real (solo `isMobile` de Chromium), zoom de texto al 200 %, el componente real (aún no existe).
+
+## Rejilla de medio píxel (#682)
+
+Regla única de #682 (`docs/contract/tokens.md` §4 y §7; precedente `GBtn`, #667): dentro de `@supports (inline-size: round(1px, 1px))`, con `--_snap: 0.5px` declarado en la raíz, la altura base pasa a `--_h: max(24px, round(calc(var(--g-space-1) * var(--_units) * var(--_density)), var(--_snap)))`. El piso va **después** del redondeo (y el de 44px táctil, que lee la misma variable o se aplica detrás); lo que deriva de esa altura la sigue sin redondeo propio; anchos, radios, bordes, rellenos, interlineados y formas no se redondean. Fuera de `@supports`, la fórmula sin `round()`. La ficha (`--_ff-chip-h`) y el relleno vertical derivan de `--_h`. Medido con `node design/lab/redondeo/verificar.mjs` (banco `design/lab/redondeo/banco.html`, tres motores, `space` 4 / 4,375 / 3,75): alto × 2 entero en todas las combinaciones con 4,375 y 3,75 (antes no), y con el tema por defecto ninguna altura cambia frente al `dist/` anterior.

@@ -67,7 +67,7 @@ const bwOf = (qs) => (/propio/.test(qs) ? 2 : 1)
   const fromVue = ['--_min-inline'] // la escribe GTimeField.vue en la raíz (#416); la regla [data-fit] solo existe con ella
   s(!vars.filter((v) => v.startsWith('--_') && !own.has(v) && !fromInput.includes(v) && !fromVue.includes(v)).length && [...own].every((v) => v.startsWith('--_tf-')), 'CSS: alias --_* ajenos')
   const px = [...css.matchAll(/(-?\d*\.?\d+)px/g)].map((m) => m[0])
-  s(px.every((p) => ['24px', '44px', '1px', '-1px'].includes(p)), 'CSS: medidas literales no permitidas ' + px)
+  s(px.every((p) => ['24px', '44px', '1px', '-1px', '2px'].includes(p)), 'CSS: medidas literales no permitidas ' + px)
   const kf = [...css.matchAll(/@keyframes\s+([\w-]+)/g)].map((m) => m[1])
   s(kf.length === 2 && kf.every((k) => /^g-time-reading-/.test(k)), 'CSS: keyframes ' + kf)
   s(!/g-reject/.test(css) && !/is-rejected/.test(css) && !/ease-spring|ease-bounce/.test(css), 'CSS: g-reject, is-rejected, muelle o rebote')
@@ -442,7 +442,7 @@ for (const engine of ENGINES) {
       ok(near(s.box, s.inputBox) && near(s.box24, s.inputBox), t(`${sid}: caja ${s.box}/${s.box24} ≠ GInput ${s.inputBox}`))
       for (const r of s.reads) {
         ok(near(r.gap, s.gap, 0.5), t(`${sid}: lectura a ${r.gap}px de la celda ≠ gap ${s.gap}`))
-        ok(r.ink >= s.gap - 0.01 && r.ink <= s.gap + 1.5, t(`${sid}: tinta lectura–hora ${r.ink} (gap ${s.gap} + 1px)`))
+        ok(r.ink >= s.gap - 0.01 && r.ink <= s.gap + 2.5, t(`${sid}: tinta lectura–hora ${r.ink} (gap ${s.gap} + 2px, #679)`))
         ok(Math.abs(r.dy) <= 0.5 && r.fs[0] === r.fs[1], t(`${sid}: la lectura fuera de la línea (Δ ${r.dy}px) o de otro tamaño ${r.fs}`))
       }
     }
@@ -738,10 +738,22 @@ for (const engine of ENGINES) {
   for (const id of ['rtl-ar12', 'rtl-ar24', 's-rest', 't12-xs', 't24-xl', 'mn-12']) {
     await page.focus('#' + id); await page.keyboard.press('End'); await page.waitForTimeout(30)
     const sl = await page.evaluate((i) => { const f = document.getElementById(i); return { sl: Math.abs(f.scrollLeft), sw: f.scrollWidth, cw: f.clientWidth } }, id)
-    if (engine === 'webkit' && sl.sl === 1) { notes.push(`webkit: ${id} se desplaza 1px con el cursor al final (hueco del cursor de 1px; hallazgo 1 de GNumberField, de lima)`); continue }
     ok(sl.sl === 0 && sl.sw <= sl.cw + 1, tag(`con foco: ${id} se desplaza ${JSON.stringify(sl)}`))
   }
   await blur()
+  // #679: toda la matriz con el foco y el cursor al final (antes, con 1px, WebKit desplazaba algunos 1px)
+  {
+    const ids = await page.evaluate(() => [...document.querySelectorAll('.g-time-field__field')].filter((f) => f.id && !f.disabled && !f.readOnly && f.getClientRects().length && !f.closest('.w320, [data-row], .sweep')).map((f) => f.id))
+    const moved = []
+    for (const id of ids) {
+      await page.focus('#' + id); await page.keyboard.press('End'); await page.waitForTimeout(10)
+      const sl = await page.evaluate((i) => Math.abs(document.getElementById(i).scrollLeft), id)
+      if (sl) moved.push(`${id} ${sl}`)
+    }
+    await blur()
+    notes.push(`${engine} con foco y cursor al final: ${moved.length} de ${ids.length} campos de hora se desplazan${moved.length ? ' (' + moved.slice(0, 6).join(', ') + '…)' : ''}`)
+    ok(!moved.length, tag(`con foco: se desplazan ${moved}`))
+  }
 
   /* 12 · GTooltip envolviendo el campo: la pestaña mide la caja visible (data-g-tooltip-box = g-input__control) */
   {
@@ -818,7 +830,7 @@ for (const engine of ENGINES) {
       const capped = r.expected > r.cont + 0.5
       ok(capped || r.clips <= 1, tag3(`${id} la hora no cabe entera (${r.clips}px, «${r.value}»)`))
       ok(r.root >= Math.min(r.expected, r.cont) - 0.51 && r.root <= r.cont + 0.01, tag3(`${id} la raíz mide ${r.root}px, mínimo por posiciones ${r.expected}, contenedor ${r.cont}`))
-      if (!wide && vp.width > 400) ok(near(r.root, f.ref.root, 0.01) && (qs.includes('auditoria') || near(r.root, 240, 0.01)), tag3(`${id} mide ${r.root}px y el GInput vecino ${f.ref.root}px (esperado 240 a texto normal)`))
+      if (!wide && vp.width > 400) ok(near(r.root, Math.max(f.ref.root, Math.ceil(r.expected - 0.01)), 0.51) && (qs.includes('auditoria') || near(r.root, 240, 0.01)), tag3(`${id} mide ${r.root}px y el GInput vecino ${f.ref.root}px, mínimo ${r.expected} (esperado el mayor; 240 a texto normal)`)) // #679: en el tema de auditoría (space 3) el 12 h necesita 181px y el GInput mide 180: manda el mínimo (#416)
     }
     ok(f.overflow <= 0, tag3(`desborde de la página ${f.overflow}`))
     if (engine === 'chromium' && vp.width <= 400 && wide) notes.push(`${engine} fit ${label}: el mínimo (${f['fit-12'].expected}px en 12 h) supera el contenedor (${f['fit-12'].cont}px): la raíz se acota al 100 % (${f['fit-12'].root}px), sin desborde, y la hora cede ${f['fit-12'].clips}px (límite aceptado de #416)`)

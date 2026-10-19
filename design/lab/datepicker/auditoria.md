@@ -37,6 +37,11 @@
   Decisión de producto y de estética: se pregunta al usuario.
 - **El hover** (`surface-sunken`, ≈ 1.06:1) es solo una ayuda: no es una señal de estado.
 
+## Correcciones posteriores (lote de pendientes de los README, commit pendiente)
+
+- **#563 · contención en línea.** En un padre que se ajusta al contenido (celda `auto`, rejilla centrada, flex `fit-content`, `<form>` hijo de flex) el campo medía lo que su etiqueta (200,5px) y no su ancho por defecto. La raíz lleva ahora `contain: inline-size` y `contain-intrinsic-inline-size: space × 60` (`× 100` con `split`; sin contención con `inline`, que mide sus meses), con `contain: none` dentro de una `GFormRow` (subgrid; el ancho lo da la fila). Lo mismo en `GSelect` y `GTextarea`. Banco `design/lab/contencion/` (caso nuevo `date-picker-split`): antes 200,5px en los cuatro padres, ahora 240px (400px con `split`); `node design/lab/contencion/verificar.mjs` 336/336 en los tres motores (antes 297, con estos tres componentes sin exigir ancho). `tests/panel-estable.spec.mjs` y `tests/form-distribution.spec.mjs` sin cambios (pasan).
+- **Hallazgo 3 de `design/lab/time-field/auditoria.md` · alto del campo vacío con el texto al 200 %.** Vacío y sin marcador el valor no tenía línea y la caja solo crecía con el icono: 37px junto a los 42px de `GInput` (`md`). `.g-datepicker__value` lleva `min-block-size: var(--_lh)`: la caja sale del interlineado como la de `GInput`, con o sin valor. Mismo arreglo en `.g-select__value` (vacío medía 36px en `md` y 30px en `sm` al 200 %). Verificación propia `node design/lab/datepicker/altura-verificar.mjs` (banco `altura.html`: `sm`/`md`/`lg` × texto 100/200 % × vacío, marcador, valor, tramo vacío y con valor, `split`, junto a `GInput`, `GTimeField` y `GSelect`): antes 47/62 en Chromium, ahora 186/186 en los tres motores. Sin cambio al 100 %.
+
 ## Sin verificar (no bloquea `candidate`)
 
 Lector de pantalla real (cuadrícula, rango, título vivo, hoja móvil); `forced-colors` y `prefers-reduced-motion` reales (se aplicaron los bloques sin condición); RTL con datos en un idioma RTL real; hoja móvil con teclado virtual y deslizamiento en táctil real; Firefox y Safari (`popover`, `::backdrop`, `Intl.Locale.getWeekInfo`, `scale` y `rotate` individuales); tema oscuro (no existe).

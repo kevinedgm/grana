@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Altura del campo de GDatePicker</title>
+<!-- Banco de coco (hallazgo 3 de design/lab/time-field/auditoria.md): con el texto al 200 % un GDatePicker vacío medía 37px
+     junto a los 42px de GInput/GTimeField. Mide la caja del campo con y sin valor, una fecha y un tramo, en los tres tamaños,
+     junto a GInput, GTimeField y GSelect. Componentes REALES (dist/). ?text=200 pone html al 200 %.
+     Lo verifica: node design/lab/datepicker/altura-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<style>
+  body{margin:0;padding:24px;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
+  .row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;margin-block-end:16px}
+</style>
+<script>if (new URLSearchParams(location.search).get('text') === '200') document.documentElement.style.fontSize = '200%'</script>
+</head>
+<body>
+<div id="app">
+  <div v-for="s in sizes" :key="s" class="row" :data-size="s">
+    <div data-k="input"><g-input label="Texto" :size="s" /></div>
+    <div data-k="input-v"><g-input label="Texto" :size="s" model-value="Ana" /></div>
+    <div data-k="time"><g-time-field label="Hora" :size="s" /></div>
+    <div data-k="select"><g-select label="Lista" :size="s" :options="opts" /></div>
+    <div data-k="date"><g-date-picker label="Fecha" :size="s" /></div>
+    <div data-k="date-ph"><g-date-picker label="Fecha" :size="s" placeholder="Elige una fecha" /></div>
+    <div data-k="date-v"><g-date-picker label="Fecha" :size="s" model-value="2026-05-12" /></div>
+    <div data-k="range"><g-date-picker label="Tramo" mode="range" :size="s" /></div>
+    <div data-k="range-v"><g-date-picker label="Tramo" mode="range" :size="s" :model-value="{ start: '2026-05-12', end: '2026-05-19' }" /></div>
+    <div data-k="split"><g-date-picker label="Tramo" mode="range" split label-start="Llegada" label-end="Salida" :size="s" /></div>
+  </div>
+</div>
+<script src="../../../node_modules/vue/dist/vue.global.prod.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../../packages/vue/dist/time-field.umd.js"></script>
+<script>
+const app = Vue.createApp({ data: () => ({ sizes: ['sm', 'md', 'lg'], opts: [{ value: 'a', label: 'Uno' }] }) })
+app.use(Grana).use(GranaTimeField)
+app.mount('#app')
+window.__ready = true
+</script>
+</body>
+</html>

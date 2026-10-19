@@ -83,3 +83,7 @@
 ## Sin verificar (no bloquea `candidate`)
 
 Lector de pantalla; `forced-colors` y `pointer: coarse` reales (solo comprobé que las reglas existen); Firefox y Safari (`popover`, `:dir()`, `@starting-style`); textos largos o traducidos; el menú dentro de un `GDialog`.
+
+## Rejilla de medio píxel (#682)
+
+Regla única de #682 (`docs/contract/tokens.md` §4 y §7; precedente `GBtn`, #667): dentro de `@supports (inline-size: round(1px, 1px))`, con `--_snap: 0.5px` declarado en la raíz, la altura base pasa a `--_ctl: max(24px, round(calc(var(--g-space-1) * 9 * var(--_d)), var(--_snap)))`. El piso va **después** del redondeo (y el de 44px táctil, que lee la misma variable o se aplica detrás); lo que deriva de esa altura la sigue sin redondeo propio; anchos, radios, bordes, rellenos, interlineados y formas no se redondean. Fuera de `@supports`, la fórmula sin `round()`. El bloque va antes del táctil (`--_ctl: 44px`). El pie de destino (× 8) no entra. Medido con `node design/lab/redondeo/verificar.mjs` (banco `design/lab/redondeo/banco.html`, tres motores, `space` 4 / 4,375 / 3,75): alto × 2 entero en todas las combinaciones con 4,375 y 3,75 (antes no), y con el tema por defecto ninguna altura cambia frente al `dist/` anterior.

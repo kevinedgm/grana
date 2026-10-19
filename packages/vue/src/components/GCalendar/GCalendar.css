@@ -62,6 +62,17 @@
   line-height: var(--g-text-body-sm-line);
   overflow: hidden;
 }
+/* Alturas sobre la rejilla de medio píxel (#682, tokens.md §7; precedente GBtn, #667): round() a 0,5px y el piso después;
+   con el tema por defecto ninguna altura cambia. Dentro de @supports: un round() no soportado dentro de var() invalidaría
+   la altura. Solo las alturas de los objetivos de toque (botones de la barra, selector de recurso, alto mínimo de evento,
+   filas de recurso y días de la tira); el alto de la celda de Mes (hora × 1,9) no: con `compact` daría 83,6 → 83,5 en el
+   tema por defecto, y la hora mide la rejilla de minutos, que no se redondea. Anchos, rellenos y formas tampoco */
+@supports (inline-size: round(1px, 1px)) {
+  .g-calendar {
+    --_snap: 0.5px;
+    --_evmin: max(24px, round(calc(var(--g-space-1) * 6), var(--_snap)));
+  }
+}
 @media (pointer: coarse) {
   .g-calendar {
     --_evmin: 44px;
@@ -99,6 +110,11 @@
     background-color var(--g-duration-fast) var(--g-ease-standard),
     border-color var(--g-duration-fast) var(--g-ease-standard);
 }
+@supports (inline-size: round(1px, 1px)) {
+  .g-calendar__toolbar button,
+  .g-calendar__retry,
+  .g-calendar__sheet-close { min-block-size: max(24px, round(calc(var(--g-space-1) * 8), var(--_snap))); }
+}
 @media (pointer: coarse) {
   .g-calendar__toolbar button,
   .g-calendar__retry,
@@ -135,6 +151,9 @@
   font: inherit;
   font-weight: var(--g-text-action-weight);
   cursor: pointer;
+}
+@supports (inline-size: round(1px, 1px)) {
+  .g-calendar__resource-select select { min-block-size: max(24px, round(calc(var(--g-space-1) * 8), var(--_snap))); }
 }
 @media (pointer: coarse) {
   .g-calendar__resource-select select {
@@ -884,6 +903,10 @@
   color: var(--g-color-text);
   font: inherit;
   cursor: pointer;
+}
+@supports (inline-size: round(1px, 1px)) {
+  .g-calendar__resource,
+  .g-calendar__strip > button { min-block-size: max(44px, round(calc(var(--g-space-1) * 14), var(--_snap))); }
 }
 .g-calendar__strip > button[aria-pressed="true"] {
   background: var(--g-color-primary);

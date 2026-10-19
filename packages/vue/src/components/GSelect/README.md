@@ -206,7 +206,9 @@ Las emite el componente y las estiliza `GSelect.css`: `g-select`, `g-select--var
 
 - **Sin verificar:** un lector de pantalla real (incluido cómo anuncia la fila «Agregar nuevo…» y los iconos), la hoja inferior con el teclado virtual, un dispositivo táctil real, `forced-colors` real de Windows (solo emulado en Chromium) y Safari real. El `popover` (abrir, elegir, cerrar) está medido en Chromium, Firefox y WebKit (`tests/library.spec.mjs` y `tests/panel-estable.spec.mjs`); `prefers-reduced-motion` está medido con la preferencia emulada en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`, 18/18 el 2026-10-18: con `reduce` ningún elemento conserva transiciones ni animaciones de movimiento).
 
-- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): sin contención en línea (DECISIONS #563, abierto): en un padre que se ajusta al contenido (celda `auto`, rejilla centrada, flex con `fit-content`) mide lo que su etiqueta (~200 px), no un ancho por defecto como `GInput`; dale ancho al padre o al componente (`api.md` «Contención en línea y ancho intrínseco»; bruno / coco).
+- **Contención en línea (#563 cerrado por #686) y altura vacío (cerrados 2026-10-18, coco):** la raíz lleva `contain: inline-size` y `contain-intrinsic-inline-size: space × 60` (`contain: none` en `GFormRow`): en un padre que se ajusta al contenido mide 240 px en vez de ~200 (`design/lab/contencion/verificar.mjs` 336/336 en los tres motores). Vacío mide lo mismo que con valor (antes 36 px en `md` y 30 en `sm`; `.g-select__value` con `min-block-size`; `design/lab/datepicker/altura-verificar.mjs` 186/186).
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 

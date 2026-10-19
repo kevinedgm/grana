@@ -182,7 +182,7 @@ Con soporte de `round()` de CSS, la altura del botón se redondea a **0,5px** (#
 
 ## Alcance
 
-- **Media rejilla:** en pantallas de 1× la altura puede tener medio píxel (paso de 0,5px, decisión del usuario; con 2× cae en píxel entero). Redondear a enteros cambiaría cuatro alturas del tema por defecto en ±0,5px y no se hizo. El redondeo es solo de `GBtn` (#525 sigue abierto para el resto).
+- **Media rejilla:** en pantallas de 1× la altura puede tener medio píxel (paso de 0,5px, decisión del usuario; con 2× cae en píxel entero). Redondear a enteros cambiaría cuatro alturas del tema por defecto en ±0,5px y no se hizo. Desde DECISIONS #682 el redondeo es de todos los controles (banco `design/lab/redondeo/verificar.mjs`).
 
 ## Verificación
 
@@ -213,7 +213,9 @@ Con soporte de `round()` de CSS, la altura del botón se redondea a **0,5px** (#
 
 - **Personalidad:** verificado el camino sin `linear()` (`transform` a `--g-duration-press` 160ms con `--g-ease-out`; los colores siguen en 120ms), el conteo de cuadros en los tres motores con un worker (21 a 22 cuadros en 320ms, 13 valores de escala) y el táctil emulado (área de 44 × 44). **El táctil está verificado en Safari de iOS 26** (simulador iPhone 17 Pro; ver la tabla de verificación). **Queda:** un dispositivo físico, ya no como hueco de verificación del comportamiento sino como comprobación de sensación (el simulador no es un dedo sobre un cristal).
 
-- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): el redondeo de la altura a 0,5 px es solo de `GBtn`; generalizarlo al resto de controles sigue abierto (DECISIONS #525; coco).
+- **`round()` en todos los controles (DECISIONS #682, cerrado 2026-10-18):** la altura base de campos, pestañas, etiquetas, insignias, píldora del deslizador, paginación, filtros, items de menú, celdas del calendario, migas, FAB y filas de casilla, radio e interruptor se redondea a `--_snap: 0.5px` como aquí. Banco `design/lab/redondeo/verificar.mjs` 10 135/10 135 en los tres motores: alturas con ×2 no entero con `space` 4,375 y 3,75 px, 504 → 0; filas `GBtn`/`GInput`/`GSelect`/`GDatePicker` con Δ ≠ 0, 12 y 10 de 15 → 0; con el tema por defecto ninguna altura cambia; los 44 px táctiles intactos.
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 

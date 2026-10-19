@@ -1068,7 +1068,9 @@ Las de `GInput` (raíz, caja, etiqueta, pie, `is-*`, `is-ready`, `is-rejected`) 
 
 - **Dos `combobox`** conviven con la superficie abierta (el disparador y el campo de búsqueda): sin verificar con lector real.
 
-- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): en el campo, la ficha del valor cede el título hasta `4ch` antes que el identificador («Daniela C… Exp. 001399 +3» en un campo de 290 px): es el orden de cesión de `GSummary` y decidir uno por anfitrión es de lima; mientras, dale más ancho al campo (`--g-form-min`) o sustituye la ficha con el slot `value` (la etiqueta completa siempre está en el `<input>`).
+- **`keep="title"` en la ficha del valor (DECISIONS #681, cerrado 2026-10-18):** el identificador cede con elipsis hasta 0 antes que el título, que ya no se corta: «Daniela Castañeda Ruiz» se lee entero desde 184 px (antes 321; con el tema de la auditoría 205 frente a 356), Δ0 de alto. No se aplica en las opciones, la vista previa, la lista de `multiple` ni la cesta (`tests/combobox.spec.mjs`, `tests/summary.spec.mjs` en los tres motores; `design/lab/summary/auditoria-verificar.mjs` sección 9, 23 315/23 315).
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## No verificado
 

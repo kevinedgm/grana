@@ -375,7 +375,7 @@ test.describe('GCombobox · C · el valor es un objeto', () => {
     }, id)
     let t = await tok('cb-pac')
     // Con facts la ficha no pinta description (sigue en ID-about): los datos van como facts, el identificador el primero
-    expect(t).toMatchObject({ hidden: 'true', pe: 'none', inline: 'g-summary g-summary--layout-inline g-summary--size-xs', avatar: true, code: null, label: 'María García López', meta: null, inputTransparent: true, value: 'María García López', inside: true, prependHidden: true })
+    expect(t).toMatchObject({ hidden: 'true', pe: 'none', inline: 'g-summary g-summary--layout-inline g-summary--size-xs g-summary--keep-title', avatar: true, code: null, label: 'María García López', meta: null, inputTransparent: true, value: 'María García López', inside: true, prependHidden: true })
     expect(t.facts.length).toBe(4)
     expect(t.facts.slice(0, 2)).toEqual(['Exp. 001000', 'Edad 22 años'])
     let s = await st(page, 'cb-pac')

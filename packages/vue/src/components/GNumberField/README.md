@@ -416,7 +416,9 @@ Las emite el componente y las estiliza `GNumberField.css`, después de `GInput.c
   - **`forced-colors` real** de Windows (emulado en Chromium; no se emula en Firefox ni en WebKit) y el puntero grueso real (emulado en Chromium y WebKit);
   - el **zoom real** del navegador al 200 % y 400 % (se aproximó con un visor a la mitad y DPR 2).
 
-- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): WebKit desplaza 1 px el número enfocado con el cursor al final (27 de 63 campos del banco con la fuente de serie; Chromium y Firefox 0 de 63): el hueco de 1 px del espejo es una constante de DECISIONS #313 y el arreglo (2 px) subiría 1 px el mínimo publicado; lima → coco, hallazgo 1 de `design/lab/number-field/auditoria.md`.
+- **Hueco del cursor de 2 px (cerrado, DECISIONS #679):** el espejo y el medidor dejan 2 px al final; en WebKit los campos que se desplazaban 1 px pasan de 27 a 0 de 63 (Chromium y Firefox 0 antes y después); el mínimo publicado sube 1 px solo («99» en `md`: 111 → 112 px medido; referencia del banco de estilo 113 px). `design/lab/number-field/auditoria-verificar.mjs` 20 795/20 795 en los tres motores.
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 

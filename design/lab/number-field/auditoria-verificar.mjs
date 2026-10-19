@@ -12,7 +12,7 @@
 // space 5, fontSize 17) claro y oscuro, «Tema de prueba» (Georgia, borde 2px, space 5) y los once generados de
 // design/lab/tema-oscuro/dark-color-presence/generated/ claro y oscuro: 27 configuraciones de contraste por motor.
 // Ejecutar desde la raíz del repo (requiere `npm run build`): node design/lab/number-field/auditoria-verificar.mjs
-// Opcional: --engines=chromium,firefox,webkit   --old-dist=<carpeta dist/ construida desde c466132>   --verbose
+// Opcional: GRANA_DIST=<copia de dist/>   --engines=chromium,firefox,webkit   --old-dist=<carpeta dist/ construida desde c466132>   --verbose
 // Puerto: GRANA_PW_PORT (coco usa 4209; sin él, uno libre)
 import http from 'node:http'
 import { readFile } from 'node:fs/promises'
@@ -28,8 +28,10 @@ const OLD = typeof args['old-dist'] === 'string' && existsSync(join(args['old-di
 const TYPES = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.mjs': 'text/javascript', '.svg': 'image/svg+xml', '.json': 'application/json', '.woff2': 'font/woff2' }
 const server = http.createServer(async (req, res) => {
   try {
-    const p = normalize(join(ROOT, decodeURIComponent(new URL(req.url, 'http://x').pathname)))
-    if (!p.startsWith(ROOT)) throw new Error('fuera')
+    const path = decodeURIComponent(new URL(req.url, 'http://x').pathname)
+    // GRANA_DIST=<copia de dist/>: medir sin depender de un build en curso de otro rol
+    const p = process.env.GRANA_DIST && path.startsWith('/packages/vue/dist/') ? join(process.env.GRANA_DIST, path.slice('/packages/vue/dist/'.length)) : normalize(join(ROOT, path))
+    if (!process.env.GRANA_DIST && !p.startsWith(ROOT)) throw new Error('fuera')
     const body = await readFile(p)
     res.writeHead(200, { 'content-type': TYPES[extname(p)] || 'application/octet-stream' }).end(body)
   } catch { res.writeHead(404).end() }
@@ -67,12 +69,13 @@ const near = (a, b, t = 0.5) => Math.abs(a - b) <= t
   const strange = [...new Set(vars.filter((v) => v.startsWith('--_') && !own.has(v) && !fromInput.includes(v)))]
   ok(!strange.length, 'CSS: alias --_* que no son de GInput ni propios: ' + strange)
   ok([...own].every((v) => v.startsWith('--_nf-')), 'CSS: alias propio sin prefijo --_nf- (no pisar los de GInput): ' + [...own])
-  // Literales de medida: 24px, 44px, 1px (texto oculto y hueco del cursor, #313); 1ch (#187); 0.5 (P3, #313); 100% (P2)
+  // Literales de medida: 24px, 44px, 1px (texto oculto), 2px (hueco del cursor, #313 enmendado por #679); 1ch (#187); 0.5 (P3, #313); 100% (P2)
   const px = [...css.matchAll(/(-?\d*\.?\d+)px/g)].map((m) => m[0])
-  ok(px.every((p) => ['24px', '44px', '1px', '-1px'].includes(p)), 'CSS: medidas literales no permitidas ' + px.filter((p) => !['24px', '44px', '1px', '-1px'].includes(p)))
-  const onePx = css.split('\n').filter((l) => /\b-?1px\b/.test(l)).map((l) => l.trim())
-  ok(onePx.every((l) => /^(inline-size|block-size|margin): -?1px;$/.test(l) || l === 'padding-inline-end: 1px;'), 'CSS: 1px fuera del texto oculto y del hueco del cursor: ' + onePx)
-  ok(css.split('\n').filter((l) => /padding-inline-end: 1px/.test(l)).length === 2, 'CSS: el hueco del cursor (1px) debe estar en el espejo y el medidor, y solo ahí')
+  ok(px.every((p) => ['24px', '44px', '1px', '-1px', '2px'].includes(p)), 'CSS: medidas literales no permitidas ' + px.filter((p) => !['24px', '44px', '1px', '-1px', '2px'].includes(p)))
+  const onePx = css.split('\n').filter((l) => /\b-?1px\b/.test(l) && !/@supports \(inline-size: round\(1px, 1px\)\)/.test(l)) /* #682: la condición de @supports no es una medida */.map((l) => l.trim())
+  ok(onePx.every((l) => /^(inline-size|block-size|margin): -?1px;$/.test(l) ), 'CSS: 1px fuera del texto oculto: ' + onePx)
+  ok(css.split('\n').filter((l) => /\b2px\b/.test(l)).every((l) => l.trim() === 'padding-inline-end: 2px;'), 'CSS: 2px fuera del hueco del cursor (#679)')
+  ok(css.split('\n').filter((l) => /padding-inline-end: 2px/.test(l)).length === 2, 'CSS: el hueco del cursor (2px, #679) debe estar en el espejo y el medidor, y solo ahí')
   const nums = [...css.matchAll(/\*\s*(-?\d*\.?\d+)\b(?!px|ms|%)/g)].map((m) => m[1])
   ok(nums.every((n) => ['-1', '2', '0.5', '-0.5'].includes(n)), 'CSS: factores fuera de −1, 2 (doble trazo de GInput) y 0.5 (P3): ' + nums)
   // Keyframes: nombres g-number-roll… / g-number-bump…, nunca g-reject…
@@ -272,7 +275,7 @@ const SAMPLER = ([id, ms]) => new Promise((res) => {
   ok(!/#[0-9a-fA-F]{3,8}\b|\b(?:rgba?|hsla?|oklch|lab|lch)\(/.test(body), 'dist: color literal en g-number-field')
   ok(!/var\(\s*--[\w-]+\s*,/.test(body), 'dist: var() con respaldo en g-number-field')
   const px = [...body.matchAll(/(-?\d*\.?\d+)px/g)].map((m) => m[0])
-  ok(px.every((p) => ['24px', '44px', '1px', '-1px'].includes(p)), 'dist: medidas literales ' + px.filter((p) => !['24px', '44px', '1px', '-1px'].includes(p)))
+  ok(px.every((p) => ['24px', '44px', '1px', '-1px', '2px'].includes(p)), 'dist: medidas literales ' + px.filter((p) => !['24px', '44px', '1px', '-1px', '2px'].includes(p)))
   const vars = [...body.matchAll(/var\((--[\w-]+)/g)].map((m) => m[1])
   ok(vars.every((v) => /^--(g|_)/.test(v)), 'dist: var() que no es --g-*/--_*')
   // Colores de sistema: solo dentro de @media (forced-colors: active) (bloques con llaves emparejadas)
@@ -428,7 +431,7 @@ for (const engine of ENGINES) {
       ok(near(s.icon, s.fs, 0.1), t(`${sid}: icono ${s.icon} ≠ 1em del texto (${s.fs})`))
       const p = g.p1[sid]
       ok(p.gaps.every((x) => near(x, p.expected, 0.5)), t(`${sid}: P1 valor–sufijo ${p.gaps} ≠ gap ${p.expected}`))
-      ok(Math.max(...p.ink) - Math.min(...p.ink) <= 1 && p.ink.every((x) => x >= p.expected - 0.01 && x <= p.expected + 2), t(`${sid}: P1 distancia de tinta ${p.ink} (gap ${p.expected} + 1px del cursor)`))
+      ok(Math.max(...p.ink) - Math.min(...p.ink) <= 1 && p.ink.every((x) => x >= p.expected - 0.01 && x <= p.expected + 2.05), t(`${sid}: P1 distancia de tinta ${p.ink} (gap ${p.expected} + 2px del hueco del cursor, #679)`))
       ok(p.fromStart < p.boxW / 3, t(`${sid}: P1 el sufijo no está pegado (${p.fromStart} de ${p.boxW})`))
     }
     for (const [c, s] of Object.entries(g.states)) {
@@ -548,8 +551,8 @@ for (const engine of ENGINES) {
   for (const id of ['p1-xs-6', 'p1-md-1', 'p1-md-6', 'p1-xl-6', 'st-md', 'rtl-ar', 'rtl-he', 'nf-md']) {
     await page.focus('#' + id); await page.keyboard.press('End'); await page.waitForTimeout(40)
     const sl = await page.evaluate((i) => { const f = document.getElementById(i); const r = f.closest('.g-input'); const sf = r.querySelector('.g-input__suffix'); const v = r.querySelector('.g-number-field__value').getBoundingClientRect(); const rtl = getComputedStyle(r).direction === 'rtl'; return { sl: f.scrollLeft, sw: f.scrollWidth, cw: f.clientWidth, gap: sf ? +(rtl ? v.left - sf.getBoundingClientRect().right : sf.getBoundingClientRect().left - v.right).toFixed(2) : null, cg: parseFloat(getComputedStyle(r.querySelector('.g-input__control')).columnGap) } }, id)
-    // WebKit: hallazgo 1 de auditoria.md (el ancho del texto se redondea hacia arriba: 1px de desplazamiento con el cursor al final)
-    ok(engine === 'webkit' ? sl.sl <= 1 : sl.sl === 0 && sl.sw <= sl.cw + 1, tag(`P1 con foco: ${id} se desplaza ${JSON.stringify(sl)}`))
+    // Hallazgo 1 cerrado por #679 (hueco del cursor de 2px): 0 en los tres motores, WebKit incluido
+    ok(sl.sl === 0 && sl.sw <= sl.cw + 1, tag(`P1 con foco: ${id} se desplaza ${JSON.stringify(sl)}`))
     if (sl.gap != null) ok(near(sl.gap, sl.cg, 0.5), tag(`P1 con foco: ${id} valor–sufijo ${sl.gap} ≠ gap ${sl.cg}`))
   }
   await page.evaluate(() => document.activeElement.blur())
@@ -564,7 +567,7 @@ for (const engine of ENGINES) {
     }
     await page.evaluate(() => document.activeElement.blur())
     notes.push(`${engine} P1 con foco y cursor al final: ${moved.length} de ${ids.length} campos se desplazan${moved.length ? ' (' + moved.slice(0, 6).join(', ') + '…)' : ''}`)
-    ok(engine === 'webkit' ? moved.every((m) => / 1$/.test(m)) : !moved.length, tag(`P1 con foco: se desplazan ${moved}`))
+    ok(!moved.length, tag(`P1 con foco: se desplazan ${moved}`))
   }
   // Pulsar el área vacía de la caja enfoca con el cursor al final (P1, lo hace el .vue)
   {

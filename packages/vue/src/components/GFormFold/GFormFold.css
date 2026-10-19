@@ -103,6 +103,7 @@
   margin: 0;
   font-size: var(--g-text-body-sm-size);
   line-height: var(--g-text-body-sm-line);
+  letter-spacing: var(--g-text-body-sm-tracking);
   color: var(--g-color-text-muted);
   overflow-wrap: anywhere;
 }

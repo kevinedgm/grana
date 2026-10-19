@@ -14,7 +14,7 @@ No es una tarjeta: no tiene superficie, selección, enlace ni media. Es **conten
 
 - **Sin versiones ni umbrales** (#349, #352). No hay «ficha compacta» y «ficha completa», ni consultas de contenedor, ni anchos en píxeles: la disposición es **intrínseca** y contesta en cada ancho «qué cabe aquí, con este texto», dato a dato.
 - **Ceder no es ocultar** (#353). Nada se retira con `display: none` ni `visibility: hidden`: lo que no cabe salta entero a una línea recortada. Deja de verse y **sigue en el árbol de accesibilidad**.
-- **El identificador es lo último en ceder** y, en una línea, **gana al título** (#351): entre cuatro «María García López», «Mar… 001000» distingue y «María García Ló…» no.
+- **El identificador es lo último en ceder** y, en una línea, **gana al título** (#351; un anfitrión que muestra un valor ya elegido puede pedir lo contrario con `keep="title"`, #681): entre cuatro «María García López», «Mar… 001000» distingue y «María García Ló…» no.
 - **Todo es contenido de frase** (`span`): válido dentro de `option`, `button`, `a` y `td`. Dentro de un anfitrión interactivo no lleva roles ni controles.
 - **No formatea ni traduce.** Fechas y cifras llegan como texto ya formateado; no tiene textos propios (#226): no hay `labels`.
 - **El alto lo decide el anfitrión** (`layout`, `lines`), que es quien conoce su fila; el ancho lo da el contenedor, nunca el contenido.
@@ -78,6 +78,7 @@ import { GSummary, summaryDiff } from '@grana/vue'   // app.use(Grana) registra 
 | `layout` | String | `inline` `row` `stack` | `row` | propia |
 | `lines` | Number | `0` o entero ≥ 2 | `2` | propia |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | según `layout` (`inline` `xs`, `row` `md`, `stack` `lg`) | compartida (los lados de `GAvatar`, #293) |
+| `keep` | String | `identifier` `title` | `identifier` | propia (#681): qué conserva al final la ficha `inline`; sin efecto en `row` y `stack` |
 | `diff` | Object | `{ [label]: 'same' \| 'diff' }` | sin valor | propia (#354) |
 | `highlight` | String | texto buscado | sin valor | propia |
 | `group` | Boolean | | `false` | propia |
@@ -175,9 +176,12 @@ Al estrechar, en este orden:
 5. **«+N»** y el **rótulo del identificador** (`data-tight`). En `inline` y en `row` de una línea de datos (`lines: 2`), `data-tight` **retira de la vista todos los demás datos** (texto oculto accesible, nunca `display: none`): si no, al callar el rótulo del identificador cabría otra vez un dato y el orden de cesión se invertiría (medido por coco). El identificador pierde su margen final, que es ancho útil. En `inline` el **suelo de `4ch` del título cede también aquí** (hasta 0) **antes** que el valor del identificador, y este se limita a `100% − space × 2`.
 6. El **valor del identificador**, con elipsis. Es lo último.
 
-- En `inline` todo compite en una línea, y por eso **el identificador gana al título** (pasos 4 a 6): el título conserva `4ch` mientras no haya `data-tight` y, con él, cede su suelo antes de que el valor del identificador toque su elipsis. En `row`, cabecera y datos son líneas distintas: ceden en paralelo.
+**Con `keep="title"` (#681; solo `inline`):** pasos 1 a 3 iguales; el título **no cede su suelo** y conserva el ancho que pide. 4) «+N» y el rótulo del identificador (`data-tight`, que retira de la vista los demás datos, como el paso 5). 5) El **valor del identificador**, con elipsis, **hasta 0** (fuera de la vista con el patrón de texto oculto, nunca `display: none`; sigue en el texto accesible). 6) El **título**, con elipsis, lo último (limitado a `100% − space × 2`). Raíz con `g-summary--keep-title`. Ninguna medida nueva. Uso: el campo de `GCombobox` (el valor ya elegido se comprueba por su nombre); donde se elige entre homónimos, el valor por defecto. **Criterio:** mientras el título lleve elipsis, el valor del identificador mide 0 de ancho visible; Δ0 de alto; con `identifier`, sin cambio.
+
+- Con `keep` por defecto, en `inline` todo compite en una línea, y por eso **el identificador gana al título** (pasos 4 a 6): el título conserva `4ch` mientras no haya `data-tight` y, con él, cede su suelo antes de que el valor del identificador toque su elipsis. En `row`, cabecera y datos son líneas distintas: ceden en paralelo.
 - La **identidad** (hueco inicial) no cede. El **código** no cede por reparto ante los demás datos; si él solo no cabe, lleva elipsis y `title` con el texto completo, como el valor del identificador en el paso 6.
 - Los dos suelos (`7ch`, `4ch`) y el `1lh` son literales de unidad, no medidas de tema (`tokens.md` §34).
+- **`inline` sin datos: la secundaria entera o nada a medias (enmienda, #689):** la línea secundaria se ve con **al menos 4ch** o salta entera a la línea oculta (sigue en el árbol); nunca un fragmento. El nombre (código + título) no salta: cede con su elipsis solo después de que la secundaria se haya retirado. **Criterio:** para todo ancho, la secundaria mide 0 o ≥ 4ch visibles; el título lleva elipsis solo con la secundaria retirada.
 
 ---
 
@@ -367,6 +371,7 @@ Con el lenguaje de #299 (`tokens.md` §29). **Ningún uso del muelle ni del rebo
 | `is-loading`, `is-empty` | Raíz | `loading`; sin `title` | render |
 | `g-summary__lead`, `__body`, `__head`, `__name`, `__code`, `__title`, `__status`, `__subtitle`, `__data`, `__flow`, `__facts`, `__more`, `__action`, `__sep`, `__mark`, `__bone` | Partes | Según contenido | render |
 | `g-summary__fact`, `__fact-label`, `__fact-value` | Dato | Por dato | render |
+| `g-summary--keep-title` | Raíz | `layout="inline"` y `keep="title"` (#681) | render |
 | `is-anchor` | Dato | El identificador | render |
 | `is-bare` | Dato | `bare: true` | render |
 | `is-diff`, `is-same` | Dato | Según `diff` | render |

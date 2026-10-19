@@ -129,7 +129,8 @@ const scrolls = (e) => {
  * Δ0 (accordion.md «Teclado, deshabilitado y Δ0», #481): el elemento `el` (el encabezado tocado) no se mueve mientras dura
  * el movimiento. Mide su borde superior ahora (antes del cambio) y, en cada cuadro hasta `getMs()` + 80 ms (calculado en el
  * primer cuadro, con el cambio ya aplicado), desplaza su contenedor de desplazamiento lo que se haya movido (≥ 0,5 px).
- * Se cancela si el usuario desplaza (rueda, toque, teclas de desplazamiento que nadie atendió). Devuelve la función que la
+ * Se cancela si el usuario desplaza (rueda, toque, teclas de desplazamiento que nadie atendió) o si un contenedor no está
+ * donde la compensación lo dejó en el cuadro anterior (#683). Devuelve la función que la
  * detiene. Sin requestAnimationFrame (servidor, jsdom antiguo) no hace nada.
  */
 export function keepInPlace(el, getMs) {
@@ -146,6 +147,10 @@ export function keepInPlace(el, getMs) {
   const onKey = (e) => {
     if (scrolls(e)) stop()
   }
+  // El anclaje de desplazamiento del navegador se apaga en la cadena mientras dura: compensa solo Δ0 y todo cambio de
+  // posición que no escribió ella es ajeno. #685: se guarda el valor EN LÍNEA previo de cada contenedor y se repone tal cual al
+  // terminar, al cancelar y al detenerla quien la pidió (p. ej. al desmontarse); un valor de hoja de estilos no se toca
+  const anchors = chain.map((sc) => { const was = sc.style.overflowAnchor; sc.style.overflowAnchor = 'none'; return was })
   const opts = { passive: true, capture: true }
   function stop() {
     if (stopped) return
@@ -154,13 +159,30 @@ export function keepInPlace(el, getMs) {
     window.removeEventListener('wheel', stop, opts)
     window.removeEventListener('touchstart', stop, opts)
     window.removeEventListener('keydown', onKey)
+    chain.forEach((sc, i) => { sc.style.overflowAnchor = anchors[i] })
     if (keepStop === stop) keepStop = null
   }
   window.addEventListener('wheel', stop, opts)
   window.addEventListener('touchstart', stop, opts)
   window.addEventListener('keydown', onKey)
+  // #683: lo que la propia compensación dejó en cada contenedor que tocó (el primer cuadro, lo leído al empezar en todos).
+  // Si un contenedor no está donde ella lo dejó (± 1px de redondeo), otro lo movió —barra arrastrada, scrollTo de la
+  // aplicación— y la compensación se cancela sin deshacerlo. Un antepasado que no tocó (p. ej. recortado al encogerse el
+  // de dentro) no cuenta.
+  const left = chain.map((sc) => sc.scrollTop)
+  const touched = new Set()
+  // Otro lo movió: más de 1px desde lo que ella dejó, salvo el recorte al tope cuando el contenido se encoge
+  const moved = (sc, was) => {
+    const d = sc.scrollTop - was
+    if (Math.abs(d) <= 1) return false
+    return !(d < 0 && sc.scrollTop >= sc.scrollHeight - sc.clientHeight - 1)
+  }
+  let first = true
   const step = () => {
     if (stopped) return
+    if (!el.isConnected) return stop()
+    if (chain.some((sc, i) => (first || touched.has(sc)) && moved(sc, left[i]))) return stop()
+    first = false
     if (!end) end = now() + (typeof getMs === 'function' ? getMs() : 0) + 80
     let d = el.getBoundingClientRect().top - y0
     for (const sc of chain) {
@@ -168,8 +190,9 @@ export function keepInPlace(el, getMs) {
       const before = sc.scrollTop
       if (typeof sc.scrollBy === 'function') sc.scrollBy({ top: d, left: 0, behavior: 'instant' })
       else sc.scrollTop += d
-      if (sc.scrollTop !== before) d = el.getBoundingClientRect().top - y0
+      if (sc.scrollTop !== before) { touched.add(sc); d = el.getBoundingClientRect().top - y0 }
     }
+    chain.forEach((sc, i) => { left[i] = sc.scrollTop })
     if (now() < end && el.isConnected) raf = requestAnimationFrame(step)
     else stop()
   }

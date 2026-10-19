@@ -21,8 +21,9 @@ export async function serve(port = Number(process.env.GRANA_PW_PORT) || 4209) {
         if (!cache.has(rel)) cache.set(rel, execFileSync('git', ['show', `${REF}:${rel}`], { cwd: ROOT }))
         body = cache.get(rel)
       } else {
-        const p = normalize(join(ROOT, path))
-        if (!p.startsWith(ROOT)) throw new Error('fuera')
+        // GRANA_DIST=<copia de dist/>: medir sin depender de un build en curso de otro rol
+        const p = process.env.GRANA_DIST && path.startsWith('/packages/vue/dist/') ? join(process.env.GRANA_DIST, path.slice('/packages/vue/dist/'.length)) : normalize(join(ROOT, path))
+        if (!process.env.GRANA_DIST && !p.startsWith(ROOT)) throw new Error('fuera')
         body = await readFile(p)
       }
       res.writeHead(200, { 'content-type': TYPES[extname(path)] || 'application/octet-stream', 'cache-control': 'no-store' }).end(body)

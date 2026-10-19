@@ -33,3 +33,7 @@
 ## Sin verificar (no bloquea `candidate`)
 
 Lector de pantalla real (etiqueta, ayuda, error y aviso del contador), preferencias reales del sistema (solo se aplicaron los bloques sin condición), Firefox y Safari (tirador y `:has()`), un dispositivo táctil real, el rendimiento de `autosize` con miles de líneas, el tema oscuro (no existe) y el tirador nativo sobre esquinas muy redondeadas con temas extremos.
+
+## Corrección posterior (lote de pendientes de los README, commit pendiente)
+
+- **#563 · contención en línea.** En un padre que se ajusta al contenido (celda `auto`, rejilla centrada, flex `fit-content`, `<form>` hijo de flex) el campo medía lo que su etiqueta (202px). La raíz lleva `contain: inline-size` y `contain-intrinsic-inline-size: space × 60` (como `GInput`, #562), con `contain: none` dentro de una `GFormRow` y en las pistas compartidas de `GAdaptiveLayout`. `node design/lab/contencion/verificar.mjs`: 240px en los cuatro padres, 336/336 en los tres motores.

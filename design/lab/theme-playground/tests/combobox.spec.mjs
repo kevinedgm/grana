@@ -581,3 +581,65 @@ test.describe('GCombobox · toque (hasTouch + isMobile)', () => {
     expect(errs).toEqual([])
   })
 })
+
+// ---------- #681 · la ficha del valor conserva el título (keep="title") ----------
+// Campo montado con el UMD real. Barrido del campo de 400 a 160px: mientras el título de la ficha lleva elipsis, el valor
+// del identificador mide 0 de ancho visible; con la ficha a 290px o más, «Daniela Castañeda Ruiz» se lee entero; Δ0 de
+// alto. Las opciones de la lista siguen con el orden por defecto (#351).
+test.describe('GCombobox · ficha del valor con keep="title" (#681)', () => {
+  test('el título se lee entero antes que el identificador; Δ0 de alto; la lista sin keep-title', async ({ page }) => {
+    const errs = await watchConsole(page)
+    await open(page, { target: null })
+    await page.evaluate(() => {
+      const host = document.createElement('div')
+      host.id = 'kt-cb'
+      host.style.cssText = 'inline-size: 400px'
+      document.body.prepend(host)
+      const facts = [
+        { label: 'Expediente', short: 'Exp.', value: '001399', priority: 1 },
+        { label: 'Edad', value: '41 años', priority: 2, bare: true },
+        { label: 'Última visita', value: '12/09/2026', priority: 3 },
+        { label: 'Médico', value: 'Dr. Ortega', priority: 4, bare: true }
+      ]
+      const options = [{ value: 'p1', label: 'Daniela Castañeda Ruiz', facts }, { value: 'p2', label: 'Daniela Castañeda Ruiz', facts: [{ ...facts[0], value: '001400' }, facts[1]] }]
+      Vue.createApp({ render: () => Vue.h(GranaCombobox.GCombobox, { id: 'kt-cb-f', label: 'Paciente', options, modelValue: 'p1', style: 'inline-size: 100%' }) }).mount(host)
+    })
+    await frames(page)
+    const rows = await page.evaluate(async () => {
+      const host = document.getElementById('kt-cb')
+      const su = host.querySelector('.g-combobox__token .g-summary')
+      const vis = (e) => {
+        let b = e.getBoundingClientRect(), l = b.left, r = b.right
+        for (let a = e; a && a !== su.parentElement; a = a.parentElement) {
+          const cs = getComputedStyle(a)
+          if ((cs.clipPath && cs.clipPath !== 'none') || (cs.clip && cs.clip !== 'auto')) return 0
+          if (a !== e && cs.display !== 'contents' && cs.overflowX !== 'visible') { const q = a.getBoundingClientRect(); l = Math.max(l, q.left); r = Math.min(r, q.right) }
+        }
+        return Math.max(0, r - l)
+      }
+      const out = []
+      for (let w = 400; w >= 160; w--) {
+        host.style.inlineSize = w + 'px'
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+        const t = su.querySelector('.g-summary__title')
+        out.push({ w, suW: su.getBoundingClientRect().width, keep: su.classList.contains('g-summary--keep-title'), cut: t.scrollWidth > t.clientWidth + 0.5, idVis: vis(su.querySelector('.is-anchor .g-summary__fact-value')), h: host.querySelector('.g-input__control').getBoundingClientRect().height })
+      }
+      return out
+    })
+    expect(rows[0].keep, 'la ficha del valor pide keep="title"').toBe(true)
+    const bad = rows.filter((r) => r.cut && r.idVis > 0.5).map((r) => `${r.w}px (ficha ${r.suW.toFixed(0)}): identificador ${r.idVis.toFixed(1)}px con el título cortado`)
+    expect(bad, bad.slice(0, 5).join('\n')).toEqual([])
+    const wide = rows.filter((r) => r.suW >= 290 && r.cut).map((r) => `ficha ${r.suW.toFixed(0)}px: título cortado`)
+    expect(wide, wide.slice(0, 3).join('\n')).toEqual([])
+    const hs = rows.map((r) => r.h)
+    expect(Math.max(...hs) - Math.min(...hs), 'Δ0 de alto del campo').toBeLessThanOrEqual(0.5)
+    // En la lista se elige entre homónimos: las opciones conservan el identificador
+    await page.evaluate(() => { document.getElementById('kt-cb').style.inlineSize = '400px' })
+    await page.focus('#kt-cb-f')
+    await page.keyboard.press('ArrowDown')
+    await page.waitForSelector('#kt-cb-f-popup [role="option"] .g-summary')
+    const listKeep = await page.evaluate(() => [...document.querySelectorAll('#kt-cb-f-popup [role="option"] .g-summary')].some((s) => s.classList.contains('g-summary--keep-title')))
+    expect(listKeep).toBe(false)
+    expect(errs).toEqual([])
+  })
+})

@@ -303,7 +303,40 @@
 .g-summary--layout-inline[data-tight] .g-summary__fact.is-anchor { max-inline-size: calc(100% - var(--g-space-2)); }
 /* Apretado: el suelo del título cede antes que el valor del identificador (que es lo último) y que el código */
 .g-summary--layout-inline[data-tight] .g-summary__title { min-inline-size: 0; }
+/* keep="title" (#681; el valor ya elegido, p. ej. el campo de GCombobox): el título no cede su suelo y conserva el
+   ancho que pide; cede antes el identificador, con elipsis hasta 0 (el rótulo y «+N» ya se retiraron con data-tight).
+   El título solo encoge cuando el identificador ya mide 0: su tope es el cuerpo menos el hueco que lo separa del
+   identificador, así que mientras lleva elipsis el identificador no tiene ancho visible. Ninguna medida nueva.
+   Sin identificador no hay nada que ceder antes: la ficha sigue el orden de siempre (la línea secundaria, etc.) */
+.g-summary--keep-title:has(.g-summary__fact.is-anchor) .g-summary__title {
+  flex: none;
+  min-inline-size: 0;
+  max-inline-size: calc(100% - var(--g-space-1) * 2);
+}
+.g-summary--keep-title .g-summary__fact.is-anchor,
+.g-summary--keep-title[data-tight] .g-summary__fact.is-anchor {
+  flex: 0 1 auto;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
 .g-summary--layout-inline .g-summary__subtitle { flex: 1 1 0; }
+/* Sin datos, la línea secundaria se ve con al menos 4ch (una cifra o sílaba y la elipsis) o salta entera a una segunda
+   línea que el cuerpo recorta (sigue en el árbol), el patrón de la cabecera. Antes recibía lo que sobraba tras el título y,
+   con una sobra menor que la elipsis, pintaba un trozo de cifra junto al nombre (hallazgo 3 de
+   design/lab/file-field/auditoria.md: «Receta guardada md.pdf ⌐2»). El nombre (código + título) es una sola caja: como
+   primer elemento nunca salta; si no cabe, cede dentro (el título con su elipsis) y la secundaria va a la línea oculta */
+.g-summary--layout-inline:not(.is-loading):not(:has(.g-summary__fact)) .g-summary__body {
+  flex-wrap: wrap;
+  max-block-size: 1lh;
+}
+.g-summary--layout-inline:not(.is-loading):not(:has(.g-summary__fact)) .g-summary__name {
+  display: flex;
+  flex: 0 1000 auto;
+  min-inline-size: min(4ch, 100%);
+}
+.g-summary--layout-inline:not(.is-loading):not(:has(.g-summary__fact)) .g-summary__subtitle {
+  min-inline-size: min(4ch, 100%);
+}
 
 /* ---------- stack: la vista completa. Cabecera + rejilla de pares; no cede ni recorta, crece en alto ---------- */
 .g-summary--layout-stack {
@@ -418,7 +451,13 @@
 @media (forced-colors: active) {
   .g-summary__fact:not(.is-anchor)::before { border-inline-start-color: CanvasText; }
   .g-summary__more { border-color: CanvasText; }
-  .g-summary__lead > .g-icon { outline: var(--g-border-width) solid CanvasText; }
+  /* GIcon conserva el color del padre (preserve-parent-color): su tesela no se fuerza y el trazo CanvasText podía
+     desaparecer sobre surface-sunken (con un tema de alto contraste oscuro). La tesela pasa a Canvas y el trazo a CanvasText */
+  .g-summary__lead > .g-icon {
+    outline: var(--g-border-width) solid CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
   .g-summary.is-loading .g-summary__bone {
     forced-color-adjust: none;
     background: GrayText;

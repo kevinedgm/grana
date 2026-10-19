@@ -357,3 +357,34 @@ test.describe('GTabs · slot tabs de GDialog (detached)', () => {
     expect(r.over, 'el cuerpo no se desplaza en horizontal').toBeLessThanOrEqual(0)
   })
 })
+
+// PENDIENTES.md §6: una pestaña que cambia de ancho sin que cambie la raíz, el scroller ni la lista (la lista llena el
+// scroller con min-inline-size: 100%) —p. ej. otra familia tipográfica en caliente— vuelve a medir la marca.
+test.describe('GTabs · la marca sigue a la pestaña que cambia de ancho', () => {
+  const markVsTab = (page, id, label) => page.evaluate(([id, label]) => {
+    const root = document.getElementById(id)
+    const t = [...root.querySelectorAll('[role="tab"]')].find((x) => x.textContent.includes(label)).getBoundingClientRect()
+    const m = root.querySelector('.g-tabs__mark').getBoundingClientRect()
+    return { ds: Math.abs(m.left - t.left), de: Math.abs(m.right - t.right) }
+  }, [id, label])
+  for (const who of ['activa', 'anterior']) {
+    test(`cambio de font-family de la pestaña ${who}`, async ({ page }) => {
+      await mount(page, [{ id: 'tw' }])
+      await page.click('#tw [role="tab"]:has-text("Actividad")')
+      await page.waitForTimeout(700)
+      expect(await markVsTab(page, 'tw', 'Actividad')).toEqual({ ds: expect.any(Number), de: expect.any(Number) })
+      const before = await tabBox(page, 'tw', 'Actividad')
+      await page.evaluate((label) => {
+        const t = [...document.querySelectorAll('#tw [role="tab"]')].find((x) => x.textContent.includes(label))
+        t.style.fontFamily = 'monospace'
+        t.style.letterSpacing = '0.3em'
+      }, who === 'activa' ? 'Actividad' : 'Resumen')
+      await page.waitForTimeout(700)
+      const after = await tabBox(page, 'tw', 'Actividad')
+      expect(Math.abs(after.s - before.s) + Math.abs(after.e - before.e), 'la pestaña activa sí se movió o cambió de ancho').toBeGreaterThan(4)
+      const d = await markVsTab(page, 'tw', 'Actividad')
+      expect(d.ds, `inicio de la marca (${who})`).toBeLessThanOrEqual(0.5)
+      expect(d.de, `fin de la marca (${who})`).toBeLessThanOrEqual(0.5)
+    })
+  }
+})

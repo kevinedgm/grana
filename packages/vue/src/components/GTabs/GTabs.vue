@@ -259,6 +259,19 @@ export default defineComponent({
     let ro = null
     let observedScroller = null
     let observedList = null
+    let observedTabs = new Set()
+    // Cada pestaña se observa: con la lista llenando el scroller (min-inline-size: 100%), una pestaña puede cambiar de ancho
+    // (otra familia tipográfica en caliente) sin que cambien la raíz, el scroller ni la lista. Sin arreglos nuevos en un
+    // watch (bd888df): se sincroniza en onMounted y onUpdated comparando elementos.
+    function observeTabs() {
+      if (!ro) return
+      const now = tabEls()
+      if (now.length === observedTabs.size && now.every((t) => observedTabs.has(t))) return
+      const next = new Set(now)
+      observedTabs.forEach((t) => { if (!next.has(t)) ro.unobserve(t) })
+      now.forEach((t) => { if (!observedTabs.has(t)) ro.observe(t) })
+      observedTabs = next
+    }
     let animHost = null
     let unmounted = false
     const listEl = () => rootEl.value?.querySelector('.g-tabs__list') || null
@@ -427,6 +440,7 @@ export default defineComponent({
         if (scrollerEl.value) { ro.observe(scrollerEl.value); observedScroller = scrollerEl.value }
         observedList = listEl()
         if (observedList) ro.observe(observedList) // el ancho de las pestañas cambia (p. ej. otra fuente) sin cambiar raíz ni scroller
+        observeTabs()
       }
       if (typeof document !== 'undefined' && document.fonts) {
         document.fonts.ready?.then(() => fit())
@@ -449,11 +463,13 @@ export default defineComponent({
         observedList = listEl()
         if (observedList) ro.observe(observedList)
       }
+      observeTabs()
       refresh()
     })
     onBeforeUnmount(() => {
       unmounted = true
       ro?.disconnect()
+      observedTabs = new Set()
       animHost?.removeEventListener('animationend', refresh)
       if (typeof document !== 'undefined') document.fonts?.removeEventListener?.('loadingdone', fit)
     })

@@ -18,3 +18,18 @@ export function rowGapOf(el) {
  * Es el observador compartido de utils/sizeObserver.js (el mismo que usan las secciones de GFormSection).
  */
 export const observeParent = observeSize
+
+// Lecturas por lotes: los bloques que cambian en la misma actualización de Vue leen todos juntos en una microtarea
+// posterior (con el DOM ya parcheado), un solo recálculo de estilo en vez de uno por bloque. Sin efectos al importar.
+let pending = null
+export function readLater(fn) {
+  if (!pending) {
+    pending = new Set()
+    Promise.resolve().then(() => {
+      const fns = pending
+      pending = null
+      fns.forEach((f) => f())
+    })
+  }
+  pending.add(fn)
+}

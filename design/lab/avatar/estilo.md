@@ -74,6 +74,10 @@
 - En los anfitriones, el `GAvatar` debe ser **hijo directo** del hueco (`g-card__lead`, `g-table__leading`, `g-menu__icon`, `g-select__icon`) o del ancla de `GBadge` (`g-badge-anchor > .g-avatar`).
 - `GAvatar.css` entra en `CAT_FAMILY_READERS` de `levels.test.js` (lo añade bruno) y en `components.css`.
 
+## 7b. Texto al 200 % (zoom de solo texto)
+
+El tipo de las iniciales va en `rem` y la caja en `space` (px): con el texto al doble, el monograma de `md` medía 41,7px en una caja de 32px. La letra toma el rol de tipo de su tamaño **con un tope relativo a la caja**: `min(rol, lado × factor)`, factor 0,4375 con dos letras (el ajuste medido de «ЖШ» en `md`) y 0,6 con una (`xs`, `sm`); el icono de respaldo (1em) hereda el tope y el interlineado se acota al lado (`min(rol, lado)`), para que la letra no se descentre. Con el texto al 100 % y `space` ≥ 4 no cambia nada en el tema por defecto. Límite: con `space` 3, el tope de `xs` (9px) queda bajo los 12px. Un tema con un `body-sm` mayor que 14px verá el monograma de `md` acotado a 14px con `space` 4: es lo que mantiene el margen de 1px que pide la auditoría.
+
 ## 8. No verificado
 
 `forced-colors` real (Windows) y en Firefox/WebKit (no se emula); lectores de pantalla; carga diferida real por motor; escrituras complejas validadas por hablantes (devanagari y tailandés solo medidos: caben); temas con `space` y tipografía desacoplados más allá de `space` 5. Auditoría sobre el componente real: `auditoria.md` y `node design/lab/avatar/auditoria-verificar.mjs`.

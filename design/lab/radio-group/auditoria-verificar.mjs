@@ -64,7 +64,7 @@ const info = []
   ok(!/var\(\s*--[\w-]+\s*,/.test(body), 'dist: var() con respaldo en g-radio-group')
   const vars = [...body.matchAll(/var\((--[\w-]+)/g)].map((m) => m[1])
   ok(vars.every((v) => /^--(g|_)[-\w]/.test(v)), 'dist: var() ajena ' + vars.filter((v) => !/^--(g|_)/.test(v)))
-  const px = [...body.matchAll(/(-?\d*\.?\d+)px/g)].map((m) => m[0]).filter((p) => !['24px', '44px', '0px', '1px', '-1px'].includes(p))
+  const px = [...body.matchAll(/(-?\d*\.?\d+)px/g)].map((m) => m[0]).filter((p) => !['24px', '44px', '0px', '1px', '-1px', '0.5px', '.5px'].includes(p))
   ok(!px.length, 'dist: medidas literales ' + px)
   ok(!/--g-tabs-/.test(body), 'dist: lee --g-tabs-*')
   // Sistema de colores solo en forced-colors

@@ -54,7 +54,7 @@ if (run(0)) {
   const defined = new Set([...defaults.matchAll(/(--g-[a-z0-9-]+)\s*:/g)].map((m) => m[1]))
   const K = '(?:[1-9]|1[0-2])'
   const SHEETS = {
-    'GTag/GTag.css': { cat: new RegExp(`^--g-color-(?:cat-${K}(?:-strong|-soft|-text)?|on-cat-${K}(?:-soft)?)$`), alias: /^--_(?:tag-[a-z-]+|ghost-w)$/ },
+    'GTag/GTag.css': { cat: new RegExp(`^--g-color-(?:cat-${K}(?:-strong|-soft|-text)?|on-cat-${K}(?:-soft)?)$`), alias: /^--_(?:tag-[a-z-]+|ghost-w|snap)$/ },
     'GTagGroup/GTagGroup.css': { cat: new RegExp(`^--g-color-cat-${K}-text$`), alias: /^--_tgg-[a-z-]+$/ }
   }
   for (const [name, rule] of Object.entries(SHEETS)) {
@@ -70,7 +70,7 @@ if (run(0)) {
     ok(!/@layer|!important|@keyframes|@property/.test(css), `${name}: @layer, !important, @keyframes o @property`)
     ok(!/ease-spring|ease-bounce|cubic-bezier|steps\(/.test(css), `${name}: muelle, rebote o curva propia (#471)`)
     const px = [...css.matchAll(/(-?\d*\.?\d+)px/g)].map((m) => m[1])
-    ok(px.every((n) => ['24', '44', '1', '-1'].includes(n)), `${name}: medidas literales ${[...new Set(px)].join(', ')}`)
+    ok(px.every((n) => ['24', '44', '1', '-1', '0.5'].includes(n)), `${name}: medidas literales ${[...new Set(px)].join(', ')}`)
     ok(![...css.matchAll(/\b\d+m?s\b/g)].length, `${name}: duraciones literales`)
     const outside = css.replace(/@media \(hover: hover\) \{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, '').replace(/@media \(forced-colors: active\) \{[\s\S]*$/, '')
     ok(!/:hover/.test(outside), `${name}: :hover fuera de @media (hover: hover)`)
@@ -250,6 +250,21 @@ async function contrast(page) {
     rec('«Ver N más» / surface', tl.more, where); ok(tl.more >= 4.5, `${where}: «Ver N más» ${tl.more.toFixed(2)}`)
     rec('Texto de vacío / surface', tl.empty, where); ok(tl.empty >= 4.5, `${where}: texto de vacío ${tl.empty.toFixed(2)}`)
   }
+}
+
+/* ---------- 2b · #688 · space 3,75: el cuerpo interactivo y la tapa de quitar miden ≥ 24px (≥ 44px con puntero grueso) ---------- */
+const HIT_TAGS = ['sm-rem', 'md-rem', 'sm-toggle', 'sm-link', 'md-pressed-rem', 'g-facets-sm-a1', 'g-flow-sm-pen']
+const HIT_JS = (tags) => tags.map((t) => {
+  const el = $t(t); if (!el) return [t, 'ausente', 0, 0, false]
+  return [...[el.querySelector('.g-tag__remove'), el.querySelector('a.g-tag__body, button.g-tag__body')].filter(Boolean)].map((x) => { const a = getComputedStyle(x, '::after'); return [t, x.className.split(' ')[0], parseFloat(a.width), parseFloat(a.height), true] })
+}).flat().filter((r) => r[1] !== 'ausente' || true)
+async function hitSpace(page, qs) {
+  await open(page, qs)
+  await page.evaluate(() => { document.documentElement.style.setProperty('--g-space-1', '3.75px') })
+  await frames(page)
+  const r = await page.evaluate(`(${HIT_JS})(${JSON.stringify(HIT_TAGS)})`)
+  ok(r.length >= 8, `${qs} space 3,75: partes interactivas medidas ${r.length}`)
+  for (const [t, part, w, h, present] of r) ok(present && w >= 24 - 0.5 && h >= 24 - 0.5, `${qs} space 3,75 ${t} ${part}: área ${w}×${h} < 24`)
 }
 
 /* ---------- 2 · Geometría ---------- */
@@ -612,6 +627,12 @@ async function coarse(browser, engine) {
     return parts.map((x) => { const a = getComputedStyle(x, '::after'); const b = x.getBoundingClientRect(); return [t, parseFloat(a.width), parseFloat(a.height), Math.abs(parseFloat(a.left) - b.width / 2) < 0.6 || a.translate !== 'none'] })
   }).flat())
   for (const [t, w, h, c] of r) ok(w >= 44 - 0.5 && h >= 44 - 0.5 && c, `${engine} puntero grueso ${t}: área ${w}×${h}`)
+  // #688 · con space 3,75 el área sigue ≥ 44px con puntero grueso
+  await p.evaluate(() => { document.documentElement.style.setProperty('--g-space-1', '3.75px') })
+  await frames(p)
+  const r2 = await p.evaluate(`(${HIT_JS})(${JSON.stringify(HIT_TAGS)})`)
+  for (const [t, part, w, h, present] of r2) ok(present && w >= 44 - 0.5 && h >= 44 - 0.5, `${engine} puntero grueso space 3,75 ${t} ${part}: área ${w}×${h}`)
+  await p.evaluate(() => { document.documentElement.style.removeProperty('--g-space-1') })
   ok(await p.evaluate(() => document.scrollingElement.scrollWidth <= innerWidth), `${engine} puntero grueso: desplazamiento horizontal`)
   // Un toque en la tapa quita y deja huella con el foco en «Deshacer»
   await p.tap('#g-flow [data-id="lat"] .g-tag__remove')
@@ -662,6 +683,7 @@ for (const engine of ENGINES) {
   if (run('m')) await markup(page)
   if (run(1)) await contrast(page)
   if (run(2)) for (const qs of ['theme=default-cat8', 'theme=propio-cat12', 'theme=lustre-cat12', 'theme=auditoria-cat12', 'theme=auditoria-cat8&dark=1', 'theme=auditoria-cat12&text=200', 'theme=default-cat8&text=200']) await geometry(page, qs)
+  if (run(2)) await hitSpace(page, 'theme=default-cat8')
   if (run(3)) await huella(page)
   if (run(4)) await tools(page)
   if (run(5)) await pista(page)

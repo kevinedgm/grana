@@ -37,7 +37,7 @@ describe('SSR · GCombobox', () => {
     expect(html).toContain('is-token')
     expect(html).toMatch(/<input[^>]*id="c"[^>]*aria-describedby="c-about"[^>]*value="Hipertensión esencial"/)
     // La ficha del valor es una GSummary inline xs pintada entera en el servidor (#356)
-    expect(html).toMatch(/<span class="g-combobox__token"[^>]*aria-hidden="true">.*<span class="g-summary g-summary--layout-inline g-summary--size-xs">.*<span class="g-summary__code" dir="auto">I10<\/span>.*<span class="g-summary__title" id="[^"]+" dir="auto">Hipertensión esencial<\/span>.*<span class="g-summary__subtitle" dir="auto">Circulatorio<\/span>/)
+    expect(html).toMatch(/<span class="g-combobox__token"[^>]*aria-hidden="true">.*<span class="g-summary g-summary--layout-inline g-summary--size-xs g-summary--keep-title">.*<span class="g-summary__code" dir="auto">I10<\/span>.*<span class="g-summary__title" id="[^"]+" dir="auto">Hipertensión esencial<\/span>.*<span class="g-summary__subtitle" dir="auto">Circulatorio<\/span>/)
     expect(html).not.toContain('g-combobox__token-label')
     expect(html).toContain('<span id="c-about" class="g-combobox__about">Circulatorio</span>')
     expect(html).toContain('<input type="hidden" name="dx" value="I10">')

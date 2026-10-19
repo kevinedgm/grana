@@ -81,6 +81,16 @@
 }
 .g-tabs:dir(rtl) { --_dir: -1; --_to: to left; }
 
+/* Altura sobre la rejilla de medio píxel (#682, tokens.md §7; precedente GBtn, #667): round() a 0,5px y el piso después;
+   con el tema por defecto ninguna altura cambia. Dentro de @supports: un round() no soportado dentro de var() invalidaría
+   la altura. Solo la altura base; anchos, rellenos, radios y formas no se redondean */
+@supports (inline-size: round(1px, 1px)) {
+  .g-tabs {
+    --_snap: 0.5px;
+    --_h: max(var(--_tap), round(calc(var(--g-space-1) * 10 * var(--_d)), var(--_snap)));
+  }
+}
+
 /* Densidad: altura, relleno, separación y grosor de la marca (tipografía y lógica no cambian) */
 .g-tabs--density-comfortable { --_d: 0.875; --_mark-t: var(--g-tabs-mark-comfortable); }
 .g-tabs--density-compact { --_d: 0.75; --_mark-t: var(--g-tabs-mark-compact); }

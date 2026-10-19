@@ -78,6 +78,17 @@
 <div class="host" style="margin-block-start:24px"><g-tooltip text="Continúa con el pago"><g-btn block data-case="block">Continuar</g-btn></g-tooltip></div>
 </template>
 
+<template v-if="on('corners')">
+<h2>2b · Esquinas de la pestaña con el radio del control (#680): GInput a los doce lados, block arriba y abajo, radio 0</h2>
+<div class="host sides">
+  <div class="cell" v-for="p in PLACEMENTS" :key="p">
+    <div style="inline-size:240px"><g-tooltip :text="/left|right/.test(p) ? LONG : 'Importe con impuestos'" :placement="p" kind="description"><g-input :data-case="'cin-' + p" label="Importe" prefix="$" suffix="MXN"></g-input></g-tooltip></div>
+  </div>
+  <div class="cell"><g-tooltip text="Continúa con el pago" placement="top"><g-btn block data-case="block-top">Continuar</g-btn></g-tooltip></div>
+  <div class="cell"><g-tooltip text="Guardar y continuar"><g-btn style="border-radius:0" data-case="square">Ir</g-btn></g-tooltip></div>
+</div>
+</template>
+
 <template v-if="on('edge')">
   <g-tooltip text="Esquina superior izquierda con nombre largo" placement="top"><g-btn class="edge" style="inset-block-start:0;inset-inline-start:0" data-case="edge-tl">A</g-btn></g-tooltip>
   <g-tooltip text="Esquina superior derecha con nombre largo"><g-btn class="edge" style="inset-block-start:0;inset-inline-end:0" data-case="edge-tr">B</g-btn></g-tooltip>

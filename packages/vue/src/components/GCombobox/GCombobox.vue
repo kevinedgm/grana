@@ -1691,8 +1691,8 @@ const Preview = () => {
  * secundaria y el lápiz en el hueco inicial (la cursiva cuelga de is-custom, en el CSS) */
 const TokenCard = () => {
   const o = selected.value
-  if (o) return h(GSummary, { ...summaryProps(o), layout: 'inline', size: 'xs' }, leadSlot(o))
-  return h(GSummary, { title: customText.value, subtitle: L.value.custom || undefined, layout: 'inline', size: 'xs' }, { lead: () => h(GIcon, { name: 'pencil' }) })
+  if (o) return h(GSummary, { ...summaryProps(o), layout: 'inline', size: 'xs', keep: 'title' }, leadSlot(o))
+  return h(GSummary, { title: customText.value, subtitle: L.value.custom || undefined, layout: 'inline', size: 'xs', keep: 'title' }, { lead: () => h(GIcon, { name: 'pencil' }) })
 }
 const hasPreview = computed(() => !M && props.appearance === 'palette' && !narrow.value)
 

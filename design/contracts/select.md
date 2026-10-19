@@ -195,6 +195,9 @@ Los mismos que `GInput` (`design/contracts/input.md`, "Tokens consumidos"), sin 
 
 **Tokens nuevos:** ninguno. La **altura de la opción** sale de la caja del mismo `size` y `density` (`tokens.md` §4) con piso de 24px y 44px con `pointer: coarse`; el **alto máximo** de la lista es de unas 8 opciones (derivado de esa altura) o el 60% del visor.
 
+
+**Ancho por defecto (#563):** `contain-intrinsic-inline-size: --g-space-1 × 60` (240 px) en un padre que se ajusta al contenido; `contain: none` en `GFormRow` (`api.md` «Contención en línea y ancho intrínseco»).
+
 ## Clases (contrato entre bruno y coco)
 
 Bruno las emite; coco las estiliza. Ninguno usa otras.

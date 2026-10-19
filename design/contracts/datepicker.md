@@ -267,6 +267,9 @@ Con el slot `trigger`, la aplicación es responsable del **nombre accesible y de
 
 **Tokens nuevos: ninguno.** Todo sale del contrato vigente (DECISIONS.md #63): la celda y el umbral de meses derivan de `--g-space-1`; el resto reutiliza colores, superficies y sombras.
 
+
+**Ancho por defecto (#563):** `contain-intrinsic-inline-size: --g-space-1 × 60` (240 px), `× 100` (400 px) con `split`; `contain: none` en `--inline` y en `GFormRow` (`api.md` «Contención en línea y ancho intrínseco»).
+
 ## Clases (contrato entre bruno y coco)
 
 Bruno las emite; coco las estiliza. Ninguno usa otras.

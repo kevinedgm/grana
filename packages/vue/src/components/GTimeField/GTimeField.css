@@ -8,7 +8,7 @@
   `end`, el medidor del mínimo (#410) y la entrada de la palabra.
   Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin valores de respaldo.
   Literales: 24px y 44px (área táctil), el patrón de texto oculto accesible y las constantes neutras de §7 y §29.6:
-  1px de hueco del cursor al final del espejo, 1ch de ancho mínimo del espejo y --g-space-1 × 1 de la entrada.
+  2px de hueco del cursor al final del espejo y del medidor (#679: 1px de cursor + 1px de redondeo del texto en WebKit), 1ch de ancho mínimo del espejo y --g-space-1 × 1 de la entrada.
   Keyframes: g-time-reading-* (nunca g-reject-*: GInput y GForm retiran is-rejected filtrando por ese prefijo).
   No se estiliza :invalid ni :user-invalid (#409): el estado visible es el de GInput (aria-invalid + mensaje).
   Ningún selector toma hijos de la aplicación por estructura (#383, #394): solo clases propias.
@@ -67,13 +67,13 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Espejo: invisible, misma tipografía que el campo, solo da ancho. 1px al final = el hueco del cursor (constante
-   neutra, §7); 1ch = ancho mínimo sin texto ni placeholder */
+/* Espejo: invisible, misma tipografía que el campo, solo da ancho. 2px al final = el hueco del cursor (constante
+   neutra, §7; #679: 1px de cursor + 1px de redondeo del ancho del texto en WebKit); 1ch = ancho mínimo sin texto ni placeholder */
 .g-time-field__mirror {
   visibility: hidden;
   overflow: hidden;
   min-inline-size: 1ch;
-  padding-inline-end: 1px;
+  padding-inline-end: 2px;
   font-size: var(--_fs);
   line-height: var(--_lh);
   font-variant-numeric: tabular-nums;
@@ -302,7 +302,7 @@
   display: flex;
   align-items: flex-start;
   visibility: hidden;
-  padding-inline-end: 1px;
+  padding-inline-end: 2px;
   font-size: var(--_fs);
   line-height: var(--_lh);
   font-variant-numeric: tabular-nums;

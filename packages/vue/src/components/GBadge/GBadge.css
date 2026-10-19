@@ -131,6 +131,16 @@
 }
 
 /* ---------- Tamaño ---------- */
+/* Altura sobre la rejilla de medio píxel (#682, tokens.md §7; precedente GBtn, #667): round() a 0,5px (la insignia no tiene piso: no es un objetivo de toque);
+   con el tema por defecto ninguna altura cambia. Dentro de @supports: un round() no soportado dentro de var() invalidaría
+   la altura. Solo la altura base; anchos, rellenos, radios y formas no se redondean */
+@supports (inline-size: round(1px, 1px)) {
+  .g-badge {
+    --_snap: 0.5px;
+    --_h: round(calc(var(--g-space-1) * var(--_units)), var(--_snap));
+  }
+}
+
 .g-badge--size-sm { --_units: 5; --_fig-units: 3; --_fs: var(--g-text-caption-size); --_lh: var(--g-text-caption-line); --_px: var(--g-space-2); }
 .g-badge--size-md { --_units: 6; --_fig-units: 4; --_fs: var(--g-text-caption-size); --_lh: var(--g-text-caption-line); --_px: var(--g-space-2); }
 .g-badge--size-lg { --_units: 7; --_fig-units: 5; --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); --_px: var(--g-space-3); }

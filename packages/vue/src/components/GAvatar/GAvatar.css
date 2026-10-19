@@ -27,6 +27,15 @@
   --_av-fs: var(--g-text-body-sm-size);
   --_av-lh: var(--g-text-body-sm-line);
   --_av-track: var(--g-text-body-sm-tracking);
+  /* Tope del monograma respecto a la caja (hallazgo 7 de design/lab/adaptive-layout/auditoria-coco.md): el tipo va en rem
+     y la caja en space (px); con el texto al 200 % las iniciales medían 41,7px en una caja de 32px. La letra toma el rol
+     de tipo del tamaño, pero nunca más que lado × factor. Constantes de proporción, no tema: dos letras (md, lg, xl)
+     0.4375 = 14/32, el ajuste medido de «ЖШ» en md con Instrument Sans (0,1px de aire dentro del margen de 1px); una
+     letra (xs, sm) 0.6 = 12/20. Con space ≥ 4 y el texto al 100 % el tope no actúa en el tema por defecto (md queda
+     justo en 14px). El icono de respaldo (1em) hereda el mismo tope. Límite: con space 3 el tope de xs (9px) baja de 12px */
+  --_mono-two: 0.4375;
+  --_mono-one: 0.6;
+  --_av-fit: var(--_mono-two);
   /* Icono de respaldo: la mitad del lado, nunca menor que un GIcon junto al mismo texto (1em) */
   --_av-icon: max(1em, calc(var(--_av-side) * 0.5));
 
@@ -44,8 +53,9 @@
   background: var(--_av-bg);
   color: var(--_av-ink);
   font-family: var(--g-font-ui);
-  font-size: var(--_av-fs);
-  line-height: var(--_av-lh);
+  font-size: min(var(--_av-fs), calc(var(--_av-side) * var(--_av-fit)));
+  /* Interlineado: tampoco más alto que la caja (una línea mayor que el lado se alinea arriba y descentra la letra) */
+  line-height: min(var(--_av-lh), var(--_av-side));
   font-weight: var(--g-text-title-sm-weight);
   letter-spacing: var(--_av-track);
   font-style: normal;
@@ -55,8 +65,8 @@
 }
 
 /* Escala: xs 5 · sm 6 · md 8 · lg 10 · xl 16 (× space) */
-.g-avatar--size-xs { --_av-n: 5;  --_av-fs: var(--g-text-caption-size); --_av-lh: var(--g-text-caption-line); --_av-track: var(--g-text-caption-tracking); --_av-square: var(--g-radius-xs); }
-.g-avatar--size-sm { --_av-n: 6;  --_av-fs: var(--g-text-caption-size); --_av-lh: var(--g-text-caption-line); --_av-track: var(--g-text-caption-tracking); --_av-square: var(--g-radius-xs); }
+.g-avatar--size-xs { --_av-n: 5;  --_av-fit: var(--_mono-one); --_av-fs: var(--g-text-caption-size); --_av-lh: var(--g-text-caption-line); --_av-track: var(--g-text-caption-tracking); --_av-square: var(--g-radius-xs); }
+.g-avatar--size-sm { --_av-n: 6;  --_av-fit: var(--_mono-one); --_av-fs: var(--g-text-caption-size); --_av-lh: var(--g-text-caption-line); --_av-track: var(--g-text-caption-tracking); --_av-square: var(--g-radius-xs); }
 .g-avatar--size-md { --_av-n: 8;  --_av-fs: var(--g-text-body-sm-size); --_av-lh: var(--g-text-body-sm-line); --_av-track: var(--g-text-body-sm-tracking); --_av-square: var(--g-radius-sm); }
 .g-avatar--size-lg { --_av-n: 10; --_av-fs: var(--g-text-body-size); --_av-lh: var(--g-text-body-line); --_av-track: var(--g-text-body-tracking); --_av-square: var(--g-radius-md); }
 .g-avatar--size-xl { --_av-n: 16; --_av-fs: var(--g-text-title-sm-size); --_av-lh: var(--g-text-title-sm-line); --_av-track: var(--g-text-title-sm-tracking); --_av-square: var(--g-radius-lg); }

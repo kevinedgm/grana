@@ -218,7 +218,9 @@ Las emite el componente y las estiliza `GDatePicker.css`: `g-datepicker` (con `-
 
 - **Sin verificar:** un lector de pantalla real (cuadrícula, rango, título vivo, hoja móvil), RTL con un idioma RTL real, Safari real, la hoja móvil con teclado virtual, el deslizamiento en un dispositivo táctil real y `forced-colors` real de Windows (solo emulado en Chromium). El `popover` (abrir con clic, Esc, lado y alto estables en el vaivén) está medido en Chromium, Firefox y WebKit (`tests/panel-estable.spec.mjs`); `prefers-reduced-motion` está medido con la preferencia emulada en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`, 18/18 el 2026-10-18: con `reduce` ningún elemento conserva transiciones ni animaciones de movimiento).
 
-- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): sin contención en línea (DECISIONS #563, abierto): en un padre que se ajusta al contenido (celda `auto`, rejilla centrada, flex con `fit-content`) mide lo que su etiqueta (~200 px), no un ancho por defecto como `GInput`; dale ancho al padre o al componente (`api.md` «Contención en línea y ancho intrínseco»; bruno / coco). Vacío mide 37 px junto a los 42 px de `GInput`/`GTimeField` con el texto al 200 % (hallazgo 3 de `design/lab/time-field/auditoria.md`; coco).
+- **Contención en línea (#563 cerrado por #686) y altura vacío (cerrados 2026-10-18, coco):** la raíz lleva `contain: inline-size` y `contain-intrinsic-inline-size: space × 60` (`× 100` con `split`; `contain: none` en `GFormRow` y en `--inline`): en un padre que se ajusta al contenido mide 240 px (400 con `split`) en vez de ~200 (`design/lab/contencion/verificar.mjs` 336/336 en los tres motores). Vacío con el texto al 200 % mide 42 px como `GInput` (antes 37; `.g-datepicker__value` con `min-block-size: var(--_lh)`; `design/lab/datepicker/altura-verificar.mjs` 186/186 en los tres motores).
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 

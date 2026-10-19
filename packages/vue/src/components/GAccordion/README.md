@@ -436,7 +436,7 @@ Prefijos `[Grana GAccordion]` y `[Grana GAccordionItem]`; una vez por instancia 
 
 - **Un control de acciones más alto que la línea del título queda bajo el centro.** Con el tema de la auditoría, un `GBtn sm` de 35 px frente a una línea de 32 px queda **1,5 px** por debajo (la mitad del exceso), en los tres motores.
 
-- **Δ0 deshace, durante ≈ 320 ms, un desplazamiento que no llegue por rueda, toque ni teclas de desplazamiento** (DECISIONS #519): arrastrar la barra de desplazamiento (no emite `wheel`) o un `scrollTo` de tu aplicación justo después del clic. Es corto y raro; no se corrige en v0.1.
+- **Δ0 cede ante un desplazamiento ajeno** (DECISIONS #683, cierra #519): si durante los ≈ 320 ms de la compensación la posición de un contenedor no es la que dejó el propio motor (arrastrar la barra, un `scrollTo` de tu aplicación), la compensación se cancela sin deshacer nada; mientras dura, el motor pone `overflow-anchor: none` en línea en la cadena de desplazamiento y repone el valor previo al acabar, cancelar o desmontar (#685).
 
 - **Sin página debajo, cerrar al final recorta el desplazamiento:** Δ0 no puede conservar lo que el navegador ya recortó.
 
@@ -468,7 +468,9 @@ Prefijos `[Grana GAccordion]` y `[Grana GAccordionItem]`; una vez por instancia 
 
 - **Navegadores:** usa `:has()`, capas CSS, `hidden="until-found"`, `inert` y `ResizeObserver`. No se midió ningún navegador anterior a los tres motores de Playwright (Chromium, Firefox, WebKit).
 
-- **Pendientes abiertos** ([`PENDIENTES.md`](../../../../../PENDIENTES.md) §6): Δ0 que cancele cuando la posición observada no es la que dejó la propia compensación (arrastrar la barra, `scrollTo` de la aplicación): opcional, solo si alguien lo reporta (DECISIONS #519; bruno).
+- **Δ0 ante un desplazamiento ajeno (cerrado, DECISIONS #683 y #685):** el motor compara en cada cuadro la posición de cada contenedor con la que escribió; con más de 1 px de diferencia (arrastrar la barra, `scrollTo` de la aplicación) cancela sin deshacer, y mientras dura pone `overflow-anchor: none` en línea y repone el valor previo al acabar, cancelar o desmontar (`utils/collapse.test.js`, `GAccordion.test.js`; `tests/accordion.spec.mjs` «`scrollTo` a los 100 ms»: antes 288 px deshechos, ahora 0; Δ0 y `sticky` siguen 9/9).
+
+- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## No verificado
 

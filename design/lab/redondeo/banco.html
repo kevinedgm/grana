@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Banco de redondeo</title>
+<!--
+  Banco de coco de #682 (rejilla de medio píxel en las alturas de los controles; tokens.md §7). Lo recorre
+  design/lab/redondeo/verificar.mjs. Parámetros: ?dist=<ruta del dist> (por defecto /packages/vue/dist) y
+  ?space=<px> (--g-space-1 del tema, sin capa: gana a grana.defaults como el tema de una aplicación).
+  Dos partes: (A) sondas de variable: la raíz real de cada componente (sus clases de size y density) con un hijo que mide
+  block-size: var(--_alto) o el elemento real de CSS puro; (B) componentes montados con el UMD real.
+-->
+<script>
+  const q = new URLSearchParams(location.search)
+  const DIST = q.get('dist') || '/packages/vue/dist'
+  const SPACE = q.get('space')
+  document.write(`<link rel="stylesheet" href="${DIST}/fonts.css"><link rel="stylesheet" href="${DIST}/grana.css">`)
+  if (SPACE) document.write(`<style>:root { --g-space-1: ${SPACE}px; }</style>`)
+  document.write(`<script src="/node_modules/vue/dist/vue.global.js"><\/script>`)
+  for (const f of ['grana', 'combobox', 'time-field', 'file-field', 'slider', 'tag']) document.write(`<script src="${DIST}/${f}.umd.js"><\/script>`)
+</script>
+<style>
+  body { margin: 0; padding: 16px; background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui); }
+  .probe { display: block; inline-size: 8px; }
+  .cell { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; margin-block-end: 8px; }
+  .cell > * { flex: none; }
+  /* Las sondas miden en reposo: sin la escala de entrada de los paneles (GMenu entra con escala) */
+  #sec-var * { animation: none !important; transform: none !important; scale: none !important; }
+  #sec-real .g-form-layout { inline-size: 900px; margin-block-end: 8px; }
+</style>
+</head>
+<body>
+<section id="sec-var"></section>
+<section id="sec-real"></section>
+<script>
+  const SIZES = ['xs', 'sm', 'md', 'lg', 'xl']
+  const DENS = ['default', 'comfortable', 'compact']
+  // ---------- A · sondas: [clave, html de la raíz con {s} y {d}, selector a medir dentro] ----------
+  const P = (v) => `<i class="probe" data-v="${v}" style="block-size: var(${v})"></i>`
+  const VAR = []
+  for (const s of SIZES) for (const d of DENS) {
+    const sd = (b) => `${b}--size-${s} ${b}--density-${d}`
+    VAR.push([`GBtn ${s}/${d}`, `<button class="g-btn ${sd('g-btn')}">Ag</button>`, '.g-btn'])
+    VAR.push([`GInput ${s}/${d}`, `<div class="g-input ${sd('g-input')}">${P('--_h')}</div>`, '.probe'])
+    VAR.push([`GTextarea ${s}/${d}`, `<div class="g-textarea ${sd('g-textarea')}">${P('--_h')}</div>`, '.probe'])
+    VAR.push([`GSelect caja ${s}/${d}`, `<div class="g-select ${sd('g-select')}">${P('--_h')}</div>`, '.probe'])
+    VAR.push([`GSelect opción ${s}/${d}`, `<div class="g-select ${sd('g-select')}">${P('--_opt')}</div>`, '.probe'])
+    VAR.push([`GDatePicker ${s}/${d}`, `<div class="g-datepicker ${sd('g-datepicker')}">${P('--_h')}</div>`, '.probe'])
+    VAR.push([`GFileField ${s}/${d}`, `<div class="g-file-field ${sd('g-file-field')}">${P('--_h')}</div>`, '.probe'])
+    VAR.push([`GInputGroup ${s}/${d}`, `<div class="g-input-group ${sd('g-input-group')}">${P('--_h')}</div>`, '.probe'])
+    VAR.push([`GCheckbox ${s}/${d}`, `<div class="g-checkbox ${sd('g-checkbox')}">${P('--_row')}</div>`, '.probe'])
+    VAR.push([`GSwitch ${s}/${d}`, `<div class="g-switch ${sd('g-switch')}">${P('--_row')}</div>`, '.probe'])
+    VAR.push([`GRadioGroup fila ${s}/${d}`, `<div class="g-radio-group ${sd('g-radio-group')}">${P('--_row')}</div>`, '.probe'])
+    VAR.push([`GRadioGroup campo ${s}/${d}`, `<div class="g-radio-group ${sd('g-radio-group')}">${P('--_field')}</div>`, '.probe'])
+  }
+  for (const d of DENS) {
+    const dd = d === 'default' ? '' : `g-tabs--density-${d}`
+    VAR.push([`GTabs ${d}`, `<div class="g-tabs ${dd}">${P('--_h')}</div>`, '.probe'])
+    VAR.push([`GMenu item ${d}`, `<ul class="g-menu__list ${d === 'default' ? '' : `g-menu__list--density-${d}`}">${P('--_ctl')}</ul>`, '.probe'])
+    VAR.push([`GSlider área ${d}`, `<div class="g-slider g-slider--density-${d}">${P('--_h')}</div>`, '.probe'])
+    VAR.push([`GSlider píldora ${d}`, `<div class="g-slider g-slider--density-${d}">${P('--_ph')}</div>`, '.probe'])
+  }
+  for (const s of ['sm', 'md', 'lg']) VAR.push([`GBadge ${s}`, `<span class="g-badge g-badge--size-${s}">${P('--_h')}</span>`, '.probe'])
+  for (const s of ['sm', 'md']) VAR.push([`GTag ${s}`, `<span class="g-tag ${s === 'sm' ? 'g-tag--size-sm' : ''}">${P('--_tag-h')}</span>`, '.probe'])
+  VAR.push(['GCombobox fila', `<div class="g-combobox">${P('--_cb-row')}</div>`, '.probe'])
+  VAR.push(['GBreadcrumbs fila', `<nav class="g-breadcrumbs">${P('--_bc-h')}</nav>`, '.probe'])
+  VAR.push(['GBreadcrumbs destino de panel', `<nav class="g-breadcrumbs"><ul class="g-breadcrumbs__panel"><li><a class="g-breadcrumbs__link">Ag</a></li></ul></nav>`, '.g-breadcrumbs__link'])
+  VAR.push(['GFab botón', `<div class="g-fab" data-anchor="container">${P('--_fab')}</div>`, '.probe'])
+  VAR.push(['GFab píldora', `<div class="g-fab" data-anchor="container">${P('--_pill')}</div>`, '.probe'])
+  VAR.push(['GFab fila del panel', `<div class="g-fab" data-anchor="container">${P('--_ctl')}</div>`, '.probe'])
+  VAR.push(['GPagination página', `<nav class="g-pagination"><ul class="g-pagination__pages"><li><button class="g-pagination__page">1</button></li></ul></nav>`, '.g-pagination__page'])
+  VAR.push(['GPagination filas por página', `<nav class="g-pagination"><span class="g-pagination__size-text">25</span></nav>`, '.g-pagination__size-text'])
+  VAR.push(['GFilterBar botón', `<div class="g-filter-bar"><button class="g-filter-bar__add">Ag</button></div>`, '.g-filter-bar__add'])
+  // El <select> de la regla no entra en la sonda: WebKit lo dibuja nativo a 23px aunque pida min-block-size (antes y después
+  // de #682; anotado en estilo.md). Se mide el campo de valor, con la misma regla
+  VAR.push(['GFilterBar campo del editor', `<div class="g-filter-bar__editor" style="display:flex"><div class="g-filter-bar__value"><input value="Ag"></div></div>`, '.g-filter-bar__value input'])
+  VAR.push(['GCalendar botón de la barra', `<div class="g-calendar"><div class="g-calendar__toolbar"><button>Ag</button></div></div>`, '.g-calendar__toolbar button'])
+  VAR.push(['GCalendar evento mínimo', `<div class="g-calendar">${P('--_evmin')}</div>`, '.probe'])
+  VAR.push(['GCalendar día de la tira', `<div class="g-calendar"><div class="g-calendar__strip"><button>L 1</button></div></div>`, '.g-calendar__strip > button'])
+  VAR.push(['GCalendar fila de recurso', `<div class="g-calendar"><ul class="g-calendar__resources"><li><button class="g-calendar__resource"><span>Sala</span><span>2</span></button></li></ul></div>`, '.g-calendar__resource'])
+  const sv = document.getElementById('sec-var')
+  sv.innerHTML = VAR.map(([k, html]) => `<div class="cell" data-k="${k}">${html}</div>`).join('')
+  window.__var = () => VAR.map(([k, , sel]) => ({ k, h: document.querySelector(`[data-k="${CSS.escape(k)}"] ${sel}`).getBoundingClientRect().height }))
+
+  // ---------- B · componentes reales ----------
+  const { h, createApp } = Vue
+  const G = Grana
+  const opts = [{ value: 'a', label: 'Uno' }, { value: 'b', label: 'Dos' }]
+  const REAL = []
+  for (const s of SIZES) for (const d of DENS) REAL.push({ s, d })
+  const app = createApp({
+    render: () => REAL.map(({ s, d }) => h('div', { 'data-r': `${s}/${d}` }, [
+      // Fila de controles del mismo size/density (alineados por el final, como una barra de filtros)
+      h('div', { class: 'cell', 'data-row': '', style: 'align-items: flex-end' }, [
+        h(G.GInput, { label: 'Nombre', size: s, density: d }),
+        h(G.GSelect, { label: 'Tipo', size: s, density: d, options: opts }),
+        h(G.GDatePicker, { label: 'Fecha', size: s, density: d }),
+        h(G.GBtn, { size: s, density: d }, () => 'Guardar')
+      ]),
+      // Los tres campos en una GFormRow (form.md): mismas cajas y mismo top
+      h(G.GFormLayout, null, () => [
+        h(G.GFormRow, { 'data-frow': '' }, () => [
+          h(G.GInput, { label: 'Nombre', size: s, density: d }),
+          h(G.GSelect, { label: 'Tipo', size: s, density: d, options: opts }),
+          h(G.GDatePicker, { label: 'Fecha', size: s, density: d })
+        ])
+      ]),
+      h('div', { class: 'cell' }, [
+        h(G.GTextarea, { label: 'Nota', rows: 1, size: s, density: d }),
+        h(G.GNumberField, { label: 'Cantidad', size: s, density: d }),
+        h(GranaTimeField.GTimeField, { label: 'Hora', size: s, density: d }),
+        h(GranaCombobox.GCombobox, { label: 'Paciente', size: s, density: d, options: opts }),
+        h(GranaFileField.GFileField, { label: 'Archivo', size: s, density: d }),
+        h(G.GCheckbox, { label: 'Acepto', size: s, density: d }),
+        h(G.GSwitch, { label: 'Activo', size: s, density: d }),
+        h(G.GRadioGroup, { label: 'Lista', size: s, density: d, options: opts }),
+        h(G.GRadioGroup, { label: 'Segmentos', appearance: 'segmented', size: s, density: d, options: opts })
+      ])
+    ]))
+  })
+  app.mount('#sec-real')
+  // Cajas reales a medir por combinación (la caja de cada campo; filas de casilla, interruptor y radio)
+  const RSEL = {
+    btn: '[data-row] > .g-btn', input: '[data-row] .g-input__control', select: '[data-row] .g-select__control', date: '[data-row] .g-datepicker__field',
+    number: '.cell .g-number-field .g-input__control', time: '.cell .g-time-field .g-input__control',
+    combobox: '.cell .g-combobox .g-input__control', file: '.cell .g-file-field__box', checkbox: '.cell .g-checkbox__row', switch: '.cell .g-switch__row',
+    radio: '.cell .g-radio-group--appearance-list .g-radio-group__option', segment: '.cell .g-radio-group--appearance-segmented .g-radio-group__option'
+  }
+  window.__real = () => REAL.map(({ s, d }) => {
+    const root = document.querySelector(`[data-r="${s}/${d}"]`)
+    const out = { k: `${s}/${d}` }
+    for (const [n, sel] of Object.entries(RSEL)) { const el = root.querySelector(sel); out[n] = el ? el.getBoundingClientRect().height : null }
+    const ta = root.querySelector('.cell textarea'); out.textarea = ta ? ta.getBoundingClientRect().height : null
+    const fr = ['.g-input__control', '.g-select__control', '.g-datepicker__field'].map((q) => root.querySelector(`[data-frow] ${q}`).getBoundingClientRect())
+    out.frow = { h: fr.map((b) => b.height), top: fr.map((b) => b.top) }
+    return out
+  })
+  document.documentElement.dataset.ready = ''
+</script>
+</body>
+</html>
