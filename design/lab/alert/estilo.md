@@ -1,100 +1,217 @@
-# Estilo · Isla de estado (coco)
+# Estilo · Isla de estado transitoria (coco)
 
-**Contrato:** `design/contracts/status.md` (lima, #315 a #327; personalidad #316, curva #324, color #325). **Estructura:** `design/lab/alert/r02/` (kiwi, **B · Isla de estado**, `index.html?c=B`: el prototipo que el usuario aprobó mirándolo) y `r01/` (base funcional).
-**CSS:** `packages/vue/src/components/GStatusIsland/GStatusIsland.css` (isla, avisos `g-status-item`, hoja `g-status-sheet`) y `packages/vue/src/components/GStatusMark/GStatusMark.css`.
-**Banco:** `estilo-banco.html` (componentes reales de `dist/`: `GBtn`, `GDialog` de la hoja, `GFormActions`; el marcado exacto del contrato en `XIsland`, `XList` y `XMark`, que hacen de `.vue` solo en lo que el CSS necesita: medir `__inner`, escribir `--_island-w/h`, `is-ready`, `is-nudge`). **Verificación:** `node design/lab/alert/estilo-verificar.mjs` (Chromium, Firefox y WebKit; puerto `GRANA_PW_PORT`, por defecto 4209). Resultado: **2107/2107** en Chromium (incluye los once temas generados, claro y oscuro) y **466/466** en Firefox + WebKit.
+**Contrato:** `design/contracts/status.md` (lima, reescrito en 181c524; #693 a #705). **Estructura:** `design/lab/alert/r04/` (kiwi, **D1 · Cápsula de relevo**). **Estética elegida:** `r04/estilo.md` §10 (L1 · Grafito esmerilado en claro, V2C · Cristal con filo en oscuro). Este documento sustituye al de la isla persistente (#325, superficie inversa, punto y «Entendido»).
+**CSS:** `packages/vue/src/components/GStatusIsland/GStatusIsland.css` (cápsula, lista `g-status-item`, hoja `g-status-sheet`) y `packages/vue/src/components/GStatusMark/GStatusMark.css`.
+**Banco:** `estilo-banco.html`, con el marcado exacto del contrato y el CSS real de `src/` (`packages/vue/src/styles/grana.css`). `XIsland`, `XList` y `XMark` hacen de `.vue` solo en lo que el CSS necesita: miden `__inner`, escriben `--_island-w/-h`, `--_left` y `--_run-ms`, ponen `data-stage` y avanzan al terminar las transiciones de `__shape`, y ponen `is-peek`, `is-paused` e `is-echo`. Parámetros: `?dark`, `?rtl`, `?mobile`, `?t=ms` y `?solo` (sin los ejemplares quietos).
+**Verificación:** `node design/lab/alert/estilo-verificar.mjs [--capturas]` (puerto 4214). Resultado: **285/285**.
+- análisis estático: 49/49;
+- Chromium con el tema por defecto y los 11 temas del CLI, claro y oscuro: 124/124;
+- Firefox: 56/56;
+- WebKit: 56/56.
 
-## 1. Geometría (constantes derivadas de `space`, no tokens)
+**Capturas:** `estilo-isla-claro.png` y `estilo-isla-oscuro.png`.
 
-| Pieza | Medida | Nota |
+## 1. Auditoría previa: el CSS vigente frente al contrato nuevo
+
+| | Qué había | Qué pasa |
 | --- | --- | --- |
-| Margen al borde | `space × 2`, con `env(safe-area-inset-*)` y `--_status-offset-top` | también en móvil |
-| Compacta | alto `space × 12` (48px) **con el borde** | como mínimo `24px + 2 bordes` (`44px + 2 bordes` con `pointer: coarse`): el resumen, que es la diana, mide ≥ 24 / ≥ 44 (auditoría, hallazgo 1) |
-| Punto | `space × 8` (32px) **con el borde** | como mínimo `24px + 2 bordes` (`44px + 2 bordes` con `pointer: coarse`): la forma recorta y el área no puede salir por un `::after`, así que crece el punto hasta que **el resumen** mida ≥ 24 / ≥ 44 (auditoría, hallazgo 1) |
-| Abierta | `min(space × 104, ancho disponible)` (416px) | la compacta **nunca** la supera: compacta → abierta siempre crece |
-| Insignia | `space × 8` (resumen, abierta, avisos), `space × 6` (punto y marcas); icono `space × 5` / `space × 4` | |
-| Anillo de insignia | `border-width × 2`: **sólido** `error`, **discontinuo** `warning`, **punteado** `info`, **sin anillo** `success` | señal no cromática; a 1px el punteado no se leía en 24px |
-| Radio | compacta `min(radius-pill, alto / 2)`, punto igual, abierta `radius-xl`, aviso `radius-lg`, detalle `radius-md` | el radio de estadio sale del alto (no de `999px`), así interpola sin salto hacia `xl` |
-| Cápsula de la marca | alto `space × 8` con el borde; `::after` ≥ 24/44 | |
+| **Se reutiliza** | Raíz fija en la capa superior (`popover`) con `container-type`, margen `space × 2` con `safe-area` y `--_status-offset-top`, `data-align` y su origen. Una sola superficie que mide `__inner` + borde con `border-box` explícito. Texto oculto. Lista con desplazamiento propio y pie a la vista. Detalle técnico partido. Alias de `GBtn`. Hoja móvil. Área táctil de la marca. Marca de texto con sangría francesa | Se conserva. Cambian los valores |
+| **Sobra** | Superficie inversa (#325). Formas `compact`, `dot` y `open`. Toque (`is-nudge`, `g-status-nudge`, 0,86). Nacer en `press`. Eco de la insignia «hay más». «Entendido» (`__ack`). `is-acknowledged`. Bordes de estilo por tipo en la insignia. Cascada del panel. Radio `xl` de la abierta. Apertura automática. Insignias de 32 px | Fuera (#694, #696, #701) |
+| **Falta** | El material de cristal con `light-dark()`. Las etapas `drop`, `grow`, `fold` y `rise` con transiciones interrumpibles. La cápsula `space × 24`. El asomo `__peek`. La cola `__tail` con el chevrón. El anillo de tiempo con `--_left`, `--_run-ms` e `is-paused`. El relevo del texto. El muelle solo al crecer. El eco de la marca. Las respuestas a `prefers-reduced-transparency` y a la falta de `light-dark()` | Hecho (§2) |
 
-- La forma (`__shape`) mide `--_island-w/h` **+ el borde** con `box-sizing: border-box` explícito: un reinicio de la aplicación sin capa (`* { box-sizing: border-box }`) gana a la capa de Grana; el banco lo tiene a propósito y la medida pasa.
-- `__inner` se mide a su tamaño natural: `max-content` hasta `min(space × 104, 100cqi) − 2 × borde`. La raíz es contenedor (`container-type: inline-size`): `100cqi` es el visor menos márgenes y no depende del tamaño animado de la forma (sin ciclo).
-- Abierta: `__inner` limita su alto a `100dvh − top − margen`; el panel es columna flexible: la lista desplaza (`overflow-y: auto`, `overscroll-behavior: contain`) y el pie «Entendido» queda siempre visible (medido con 9 condiciones a 900 y 600px de alto).
-- En móvil (`data-mobile`) la forma se queda compacta aunque `data-form="open"` (la abierta es la hoja).
+Lo que podía romper el comportamiento: nada. El CSS solo lee las clases y los datos del contrato.
 
-## 2. Color (#325)
+## 2. Implementación
 
-- **Superficie inversa:** fondo `--g-color-text`, tinta `--g-color-surface` (texto, iconos de los botones, anillos, «+N», enlace). Nunca `brand`: medido en `spotify` y `caracol-purpura` (marca de color), la isla sigue siendo `--g-color-text`.
-- **Todo el texto en la tinta plena** (sin `opacity` ni mezclas de texto): un tema solo garantiza el par texto/superficie, y apagar la descripción lo bajaría de 4,5 en los temas justos. La jerarquía la da el peso: **`title-sm-weight` en el título del aviso** (el prototipo aprobado lo llevaba en negrita; auditoría, hallazgo 2), `action-weight` en el título del resumen, temporizador y enlace; normal en la descripción.
-- **Aviso dentro de la isla:** tinte `color-mix(surface 8 %)`; reconocido, sin tinte y con contorno `surface 16 %` («ya visto»). Detalle técnico: pozo `surface 8 %` sobre el tinte.
-- **Insignia:** relleno `--g-color-{info|success|warning|danger}`, icono `on-…`, anillo en la tinta.
-- **Botones (GBtn, alias reasignados):** acción y «Entendido» `outline` en la tinta; **al pasar se encienden** (relleno `surface`, texto `text`: par garantizado). «Ir a…», detalle, copiar y descartar `ghost` con velo `surface 12 %` al pasar; **«Ir a…» subrayado** como el enlace del prototipo (auditoría, hallazgo 3). Reintentando: `aria-disabled`, mismo color, cursor de progreso, sin pulsación.
-- **Hoja móvil:** los mismos avisos sobre la superficie del diálogo (tile `surface` + borde `border`, anillo de insignia en `text`, botones como `GToast`: texto `text`, borde `border-control`).
-- **Marca enlace:** cápsula inversa (`text` / `surface`). **Marca de texto:** sin caja; insignia **sin relleno** (anillo e icono en `--g-color-{tipo}-text`), texto `--g-color-text`.
-- **Foco:** replegada, el resumen **es** la isla: anillo **exterior** `--g-color-focus` alrededor de la forma (`:has(:focus-visible)`), porque un anillo interior en el punto coincidiría con el anillo de la insignia. Abierta, anillo **interior** en la tinta sobre la fila del resumen; dentro de los avisos, anillos en la tinta (#325). Marca enlace: anillo exterior `--g-color-focus`.
+### 2.1 Geometría (constantes de `space`, no tokens)
 
-**Contraste medido** (mínimo entre el tema por defecto y los once generados, claro y oscuro, los cuatro tipos): texto del resumen 15,20; título, descripción, temporizador, enlace y acciones de los avisos 13,01; detalle técnico 10,83; botones fantasma al pasar 9,52; «+N» 15,20; marca enlace 15,20; marca de texto 15,20 (texto) y 4,51 (insignia, `linear` oscuro `error`); icono sobre la insignia 4,81; anillos 13,01. Tema por defecto claro: texto 17,40; icono de insignia `error` 5,49, `warning` 5,73, `info` 5,69, `success` 5,35. Relleno de la insignia sobre la isla (informativo, no obligatorio: la insignia tiene anillo o el icono la define): mínimo 3,03.
+| Pieza | Medida |
+| --- | --- |
+| Fila del titular | `space × 11` (44 px) con el borde. Mínimo `24px + 2 bordes`; con `pointer: coarse`, `44px + 2 bordes` (el resumen mide 44 por dentro) |
+| Radio | La mitad de la fila en todas las formas, también en el asomo y la lista |
+| Insignia | `space × 6`, concéntrica con el extremo (hueco al inicio = hueco arriba = 10 px), glifo al 62 % |
+| Columna del texto | El asomo, la lista y los separadores arrancan en `--_text-start` (relleno + insignia + `space × 2`) |
+| Cápsula al caer y al recogerse | `space × 24` × la fila (96 × 44) |
+| Ancho máximo y ancho de la lista | `min(space × 104, ancho disponible)`. El titular y el asomo miden su contenido (`max-content`) hasta ese máximo. La lista ocupa ese ancho |
+| Marca enlace | Cápsula `space × 8` con insignia `space × 5` concéntrica; área táctil de 24 y 44 px |
 
-## 3. Movimiento (#324, `tokens.md` §29)
+### 2.2 Material
 
-| Qué | Curva y duración | Con `reduce` |
+Valores de `r04/estilo.md` §10.2, sin variantes. Cada valor va en `light-dark(claro, oscuro)` sobre `.g-status-island__shape` y `.g-status-mark--link`. La lista, la insignia y los botones heredan los alias `--_ink`, `--_on-ink`, `--_veil`, `--_hair`, `--_focus` y `--_ring-*`; la hoja móvil los redefine con los colores de la página. La rama clara se declara también en `@supports not (color: light-dark(red, red))`.
+
+**`prefers-reduced-transparency` y la falta de `backdrop-filter`:** el cuerpo pasa a ser opaco (claro: `text`; oscuro: `--g-glass-tint`).
+
+### 2.3 Tamaño animado: el muelle solo al crecer (M1)
+
+El contrato pide el muelle al ensancharse, en el relevo y al abrir el asomo y la lista, y nunca al encoger. El `.vue` no dice en qué sentido cambia el tamaño, así que el CSS lo resuelve solo:
+- el ancho es `max(--_status-w, --_status-w-out)`, y el alto, lo mismo con `-h`;
+- son cuatro propiedades registradas (`@property`, `<length>`) que van al mismo destino;
+- la primera usa `--g-ease-spring` y la segunda, `--g-ease-out`, las dos en `slow`.
+
+Al crecer manda la del muelle, que sobrepasa (3,6–3,7 % medido). Al encoger manda la de `ease-out`, que nunca baja del destino.
+
+**Medido:**
+- cerrar el asomo nunca baja del titular;
+- estrecharse nunca baja de la cápsula;
+- las dos propiedades interpolan desde el valor actual, así que una interrupción no reinicia el movimiento (#702).
+
+`min-inline-size` y `min-block-size` de cápsula garantizan que, sin destino medido, la forma nunca colapse.
+
+### 2.4 Etapas, coreografía y solape de la salida
+
+| Etapa | Forma | Texto | Curva |
+| --- | --- | --- | --- |
+| `drop` | Cápsula; `@starting-style` desde `translate: 0 calc(-100% - margen)`, escala 0,9, opacidad 0 | Fuera. **La insignia, sí** | `slow` + `ease-out` |
+| `grow` | Al destino medido | Entra (`press` + `ease-out`) | Tamaño `slow`, con muelle al crecer |
+| reposo | El destino; el asomo y la lista crecen hacia abajo | El relevo (`slow` + `ease-out`) | Muelle al crecer y `ease-out` al encoger |
+| `fold` | A la cápsula | Sale (`fast` + `standard`) **a la vez** que se estrecha | `slow` + `ease-out` |
+| `rise` | Sube a `-(100% + margen)`, 0,9 y se funde, con su insignia | Fuera | `slow` + `standard` |
+
+**Solape:** entrada = `drop` + `grow` = 2 × `slow`. Salida = `fold` + `rise` = 2 × `slow`, con el texto fuera dentro del primer tramo (`fast` < `slow`). La salida nunca dura más que la entrada (#152).
+
+**Medido en el banco:**
+
+| | Entrada | Salida |
 | --- | --- | --- |
-| Cambio de forma (ancho, alto, radio) | `--g-ease-spring` + `--g-duration-slow` dentro de `@supports (linear())`; fuera, `--g-ease-out` | instantáneo |
-| Toque (`is-nudge`) | `g-status-nudge`, `scale` 0,86 → 1, muelle + `slow` | no existe |
-| Nacer | `@starting-style` opacidad 0 y escala 0,86, `--g-duration-press` + `--g-ease-out` (entrada: sin muelle) | solo fundido `fast` |
-| Vaciarse | fundido `fast` (`display` con `allow-discrete`) | igual |
-| Recolocación por la reserva de borde | `inset-block-start`, `press` + `ease-out` | instantánea |
-| Contenido del panel | cascada: cada aviso cae `space × 1` y se funde en `press`, retardo `fast / 5` por aviso, como mucho 3 escalones (≤ 232ms) | solo fundido `fast` |
-| Pulsar la isla replegada | `--g-press-scale` (como `GBtn`) | no |
-| Reintentando | `loader-circle` gira en `--g-duration-spin` | sin giro |
+| Chromium | 521 ms | 506 ms |
+| Firefox | 519 ms | 493 ms |
+| WebKit | 543 ms | 503 ms |
 
-- **Nada se anima al montar:** toda transición de forma, cascada y nacer vive bajo `.is-ready`.
-- **Medido** (tres motores): compacta → abierta 295×48 → 416×448, **sobrepaso 3,6–3,8 %** del cambio, asienta en 209–238ms; abierta → punto y punto → compacta igual. Toque: `g-status-nudge` desde 0,86 en 240ms y la clase se retira en `animationend`. Con `reduce`: 0 animaciones en curso salvo fundidos; la forma salta a su tamaño.
+El banco suma unos cuadros por etapa al avanzar.
 
-## 4. Personalidad: qué conserva del prototipo aprobado y qué afiné
+### 2.5 Las demás piezas
 
-**Conserva (lo que el usuario vio en `?c=B`):** la píldora oscura colgada del borde superior; una sola superficie que crece de la compacta a la abierta y se repliega a un **punto** (D2, D4) con el muelle; la insignia redonda rellena del tipo con su anillo en el color de la tinta y la forma del anillo por tipo; el título en peso de acción; «+N» como cápsula con contorno; el toque desde 0,86; avisos como piezas redondeadas dentro de la isla con «Reintentar» en contorno de cápsula; la marca enlace como cápsula del mismo lenguaje; la marca de texto como una línea sin caja.
+**Relevo.** Un `__text` nuevo (el `.vue` le pone su clave) entra desde una línea por debajo con `@starting-style`. La copia que sale, con `aria-hidden="true"` y la misma clase, se va una línea por encima. Las dos comparten la celda: el resumen es una rejilla y la copia se coloca en absoluto dentro de esa celda, así que no mide. El resumen recorta (`overflow: clip`).
 
-**Afinado (coco):**
+**Anillo de tiempo.**
+- Se dibuja con un degradado cónico de la tinta, recortado a corona de 2 bordes, a un borde de la insignia.
+- La propiedad registrada `--_status-ring` avanza de 0 a 1 en `calc(var(--_run-ms) * 1ms)`, en `linear`. El arco es `--_left × (1 − avance)`.
+- **Con `is-paused`:** `animation-play-state: paused`, el arco pasa a ser `--_left` (lo que el `.vue` escribe al pausar) y la pista sube del 14 al 40 % de la tinta.
+- **Sin `--_run-ms`:** el anillo no se anima y queda en `--_left`.
+- **Sentido:** arranca arriba y gira en el del reloj, también en RTL (un reloj no se espeja).
+- **Firefox:** medido, se vacía.
 
-1. **Insignia concéntrica.** El hueco al inicio es el mismo que arriba y abajo (`(alto − insignia) / 2`, borde incluido): la insignia es un círculo concéntrico con el extremo de la píldora, en la compacta (8/8/8px), en el punto y en la cápsula de la marca. El prototipo tenía 4px al inicio y 8px arriba. Medido en LTR y RTL.
-2. **La isla cuelga del borde.** El toque y el nacer escalan con origen **arriba** (centro, inicio o fin según `data-align`): el borde que toca el visor no se mueve, solo «respira» hacia abajo. Coherente con D1 (nada se mueve) y con la idea de un objeto anclado al shell.
-3. **El radio también es forma.** Estadio (mitad del alto) → `radius-xl` con la misma curva; con `999px` el radio saltaba al final.
-4. **Memoria visible en el punto.** Con más de una condición, un eco fino rodea la insignia del resumen (anillo de la tinta a dos bordes de distancia), también en el punto: el punto dice «hay varias» sin texto. Decorativo; el número está en el nombre accesible.
-5. **El panel se vierte desde el resumen.** Al abrirse, los avisos caen `space × 1` en una cascada corta (tres escalones como mucho, dentro de los 240ms). Al llegar una condición con la isla abierta, ese aviso entra igual.
-6. **«Reintentar» se enciende al pasar** (relleno de la tinta): la única acción de cada aviso se lee como tal sin color de marca.
-7. **La compacta no supera a la abierta** (`space × 104`): abrir siempre es crecer, nunca encoger de ancho.
-8. **Pulsar la isla replegada** la aprieta como un `GBtn` (no la abierta).
-9. **Marca de texto con sangría francesa:** la insignia cuelga a la izquierda del texto; al partirse, las líneas y la acción quedan alineadas con el texto (medido en 320px). Insignia sin relleno, en el color `-text` del tipo, para que sea contenido y no una segunda isla.
+**Asomo y lista.**
+- El contenido se funde al aparecer (`press`) con `@starting-style` y sale primero (`fast`) al quitar `is-peek` o `data-form="list"`.
+- En el asomo el título se ve entero (sin elipsis).
+- La lista son renglones con separador sangrado desde el texto, sin teselas.
+- La acción es una cápsula rellena de tinta. «Ir a…» y el enlace son texto subrayado. «Ocultar», «Cerrar», el detalle, «Copiar» y «Descartar» son texto en la tinta.
+- El foco va dentro de la isla, como anillo interior de la tinta.
 
-## 5. Para bruno (marcado que espera el CSS)
+**Chevrón.** Media vuelta en `slow` + `ease-out` con el asomo o la lista abiertos (corrección de lima: no muelle).
 
-Coincide con `status.md` y con `StatusList.vue` / `GStatusIsland.vue` en curso. Lo que el CSS da por hecho:
+**Eco de la marca.** Es un `::before` que abre un anillo de `--g-color-focus` `space × 2` y se apaga: keyframes `g-status-echo`, `slow` + `ease-out` (corrección de lima: no `slow × 3`). Con movimiento reducido es la misma keyframe redefinida dentro de la consulta: un fundido del anillo en su sitio. Así `animationend` llega igual a la marca.
 
-- Raíz `div.g-status-island` con `popover`, `data-align` (`start|center|end`), `data-form`, `data-type`, `data-mobile`, `is-ready`, `is-nudge`, `--_status-offset-top` en línea. **No** poner `display` en la raíz (lo decide `:popover-open`).
-- `section.g-status-island__shape` con `--_island-w`/`--_island-h` = `offsetWidth`/`offsetHeight` de `__inner` (sin el borde: el CSS lo suma). Sin ellos la forma mide `auto`.
-- `__summary` > `__badge` (`data-type`, `is-busy`, `.g-icon` hijo directo) + `__text` (con `__sr` dentro) + `__timer` + `__more`; `__panel` > `__list` + `__foot` > `__ack`.
-- `li.g-status-item.g-status-item--type-*` (+ `is-busy`, `is-acknowledged`, `is-dismissible`): `__badge`, `__content` (título, descripción, temporizador, enlace, `__details-toggle`, `__details` > `__details-text` + `__copy`), `__actions` (`__action`, `__origin`), `__dismiss`. Si `__actions` no tiene hijos, mejor no pintarlo (el CSS lo oculta con `:empty`).
-- Botones: acción y «Entendido» `size="sm" variant="outline" color="neutral"`; «Ir a…», detalle y copiar `size="sm" variant="ghost" color="neutral"`; descartar `icon size="sm" variant="ghost" color="neutral"` con `x`. (Es lo que ya hace `StatusList.vue`.)
-- Hoja: `GDialog class="g-status-sheet" mobile="sheet"` dentro de la raíz; «Entendido» en el pie del diálogo.
-- Marca: `button.g-status-mark.g-status-mark--link.g-status-mark--type-*` (+ `is-busy`) > `__badge` + `span.__text` (> `__type`); `div.g-status-mark--text` > `__badge` + `p.__text` + `div.__action`.
-- **Toque con movimiento reducido:** no hay animación y por tanto no hay `animationend`; `is-nudge` debe retirarse sin esperar ese evento (el `.vue` en curso ya comprueba `getAnimations`). Filtrar `animationend` por `animationName === 'g-status-nudge'` (el giro `g-status-spin` es infinito y la cascada son transiciones).
+**Movimiento reducido** (solo fundidos de `fast`):
 
-## 6. Accesibilidad y preferencias
+| Etapa | Qué se ve |
+| --- | --- |
+| `drop` | Nada (opacidad 0, sin transición) |
+| `grow` | La isla aparece con su tamaño y en su sitio, fundida |
+| `fold` | No hace nada |
+| `rise` | Se funde entera con su texto |
 
-- Tipo sin color: forma del icono, prefijo oculto y forma del anillo (sólido, discontinuo, punteado, ninguno). En `forced-colors` (Chromium) el anillo conserva su forma en `CanvasText`, la isla y la marca llevan borde `CanvasText` (siempre presente, transparente fuera de ese modo: sin cambio de tamaño, medido) y el foco pasa a `Highlight`.
-- `prefers-contrast: more`: avisos sin tinte y con contorno pleno.
-- Texto ≥ 12px (detalle técnico y «+N» en `caption`, 12px).
-- 375 y 320px: hoja inferior a todo el ancho pegada abajo, detalle partido, sin desplazamiento horizontal, isla dentro del margen.
-- RTL: insignia al inicio (derecha) y concéntrica; marca de texto con la sangría espejada.
+- El relevo es un fundido cruzado.
+- El tamaño no se anima.
+- El anillo sigue diciendo el tiempo: cambia el arco y no desplaza nada.
 
-## 7. Auditoría sobre el componente real
+**`forced-colors`:**
+- borde `CanvasText`;
+- sin brillo especular;
+- contorno `CanvasText` en la insignia;
+- el anillo con `forced-color-adjust: none` en `CanvasText` sobre `GrayText` (el modo quita los degradados: medido);
+- «+N» y separadores en `CanvasText`;
+- acción con borde `ButtonText`;
+- foco `Highlight`.
 
-`auditoria.md` y `node design/lab/alert/auditoria-verificar.mjs` (playground real, ocho temas, tres motores). Corrigió aquí: el mínimo de la diana del punto y de la compacta (hallazgo 1), el peso del título del aviso (2) y el subrayado de «Ir a…» (3).
+## 3. Qué le da personalidad (regla «Personalidad e innovación»)
 
-## 8. No verificado aquí (en el banco)
+- **La cápsula cae con su insignia.** El tipo se reconoce antes de leer y la insignia viaja con el extremo cuando la cápsula se ensancha o se estrecha. Al recogerse, se va con ella. La cápsula nunca es una caja vacía (I4).
+- **El tiempo se ve sin un número.** El anillo se vacía alrededor de la insignia y, en pausa, se queda quieto con la pista completa.
+- **El muelle solo cuando algo llega.** Crecer tiene masa y volver es seco. Va resuelto en el CSS, sin que el `.vue` tenga que decir el sentido.
+- **El relevo es un rodillo.** El titular nuevo sube desde abajo mientras el viejo se va arriba, en la misma cápsula.
+- **Un solo objeto oscuro en los dos esquemas** («estilo Apple»): el mismo cristal con otra luz.
+- **El eco** une la cápsula que se va con el sitio donde queda lo pendiente.
 
-- Con el `.vue` real de bruno (el banco usa el marcado del contrato a mano): queda para la auditoría (paso 5), igual que zoom 200 % / 400 %, el traslado al modal, la convivencia con la píldora de voz (`--_status-offset-top`) y la isla junto a `GToaster`.
-- `pointer: coarse` solo en Chromium (`isMobile`); en Firefox y WebKit el táctil no se emula.
-- `forced-colors` real, Safari y táctil reales, lector de pantalla.
-- `@starting-style` y `transition-behavior: allow-discrete` (nacer y vaciarse): soportados en los tres motores de Playwright; en navegadores sin ellos la isla aparece y desaparece sin fundido (degrada sin romper).
+## 4. Medidas
+
+**Mínimos medidos:**
+
+| | Texto (≥ 4,5) | Gráficos (≥ 3) | Delimitación (≥ 3) |
+| --- | --- | --- | --- |
+| Chromium, 24 temas × esquemas | 4,56 | 4,14 | 3,10 |
+| Firefox y WebKit, tema por defecto | 4,58 | 4,51 | 6,36 |
+
+En gráficos cuentan el glifo, el anillo, el chevrón, la acción, «+N» y el foco.
+
+**Delimitación con el tema por defecto:**
+
+| | Página | Tabla | Zona | Marca en la página | Marca en la zona |
+| --- | --- | --- | --- | --- | --- |
+| Claro | 10,59 | 10,59 | 9,75 | 10,59 | 12,41 |
+| Oscuro | 7,11 | 6,58 | 6,36 | 6,58 | 12,41 |
+
+**Cómo se mide el contraste:**
+- La isla se mide contra el peor fondo (negro, blanco) y contra el fondo real.
+- La marca en la página, igual.
+- La marca dentro de una zona se mide contra la zona, que es una superficie opaca. Con el peor fondo, `linear` y `stripe` darían 2,85 y 2,92; detrás de la marca solo está la zona.
+
+### Rúbrica de movimiento (B, D, F y G)
+
+| Dimensión | Estado | Evidencia | Riesgo | Recomendación |
+| --- | --- | --- | --- | --- |
+| **B · Profundidad y brillo** | Cumple | Una luz: filo arriba, sombra cerca y lejos. Opacidad por cuadro ≤ 0,5 al nacer y al recogerse (normalizada a 16,7 ms) en los tres motores | Bajo | — |
+| **B · Delimitación sobre tres fondos** | Cumple | ≥ 3,10 en los 11 temas, claro y oscuro (§4) | Bajo | — |
+| **D · Nacer sin tamaño ajeno (F1/F2)** | Cumple | Primer cuadro visible: cápsula de 96 px sin texto, por encima de su sitio. Durante `drop`, tamaño de cápsula. Ningún cuadro pasa del destino más que el muelle (3,7 %) | Bajo | — |
+| **D · Interrumpible desde el estado actual** | Cumple | Algo nuevo durante `fold`: vuelve a crecer desde el ancho actual, sin bajar a la cápsula. Durante `rise`: baja desde donde está, sin reaparecer. La lista se abre en cualquier etapa | Bajo | bruno lo repite con el `.vue` real |
+| **D · Sin muelle al encoger (M1)** | Cumple | Asomo 44 → 136 → 44 sin bajar de 44. Estrecharse sin bajar de 96 | Bajo | — |
+| **F · Sin depender del movimiento** | Cumple | Tipo por la forma y el prefijo. Pausa visible por la pista. Con `reduce`, nada se desplaza ni cambia de tamaño (0 animaciones de desplazamiento, escala o tamaño en la isla y la marca) y el anillo sigue avanzando | Bajo | — |
+| **F · `forced-colors`** | Cumple (emulado en Chromium) | §2.5 | Bajo | Verificar en Windows real |
+| **G · Coste del cristal** | Parcial | Chromium sin GPU: con la isla viva como única superficie de cristal, 17 ms por cuadro mientras cambia de tamaño (lo mismo que sin `backdrop-filter`). Con 20 ejemplares de cristal más en la página, 41 ms | Medio | Una aplicación tiene una isla y pocas marcas. Medir en equipo modesto real; con muchas marcas a la vista, valorar marcas sin `backdrop-filter` |
+
+## 5. Informe
+
+**Cumplimientos:**
+- material, tokens y valores de §10.2, sin variantes;
+- formas, etapas, asomo, lista, relevo, anillo, «+N», ocupado y cuenta atrás del contrato;
+- movimiento con las duraciones y curvas del contrato, con las dos correcciones de lima (chevrón y eco);
+- reducido, transparencia reducida, `forced-colors`, 320 px, texto al 200 %, dianas de 24 y 44, RTL;
+- solo `var(--g-*)` y alias `--_*`, sin respaldos ni literales de tema;
+- `on-brand-zone` solo en `GStatusIsland.css`.
+
+**Correcciones** (frente al CSS vigente y al banco de r04):
+- deja la superficie inversa;
+- el muelle ya no actúa al encoger (M1);
+- la salida no dura más que la entrada;
+- el eco pasa a `slow` (antes `slow × 3`);
+- el chevrón gira con `ease-out` (antes con muelle);
+- el anillo, visible en `forced-colors`;
+- la marca de texto pierde el borde de estilo por tipo (el tipo se lee por la forma del icono, como en la isla).
+
+**Pendientes:**
+- **No verificado:** Safari real, `forced-colors` real, lector de pantalla, táctil real y el coste de `backdrop-filter` en un equipo modesto (G).
+- El detalle técnico en oscuro está justo (4,56 a 4,58): vigilar si un tema baja `--g-glass-opacity`.
+- La compilación y las compuertas no se corrieron: `npm run build` reescribe `dist/` mientras bruno usa el suyo. Las dos compuertas de la isla ven selectores que siguen en el CSS: `g-status-island__shape` y `g-status-island__peek` (esta, nueva y de bruno). La minificación de esbuild 0.25 (la de Vite 6.4) conserva `light-dark()`, `@starting-style` y `@property`; comprobado.
+
+**Para bruno (el marcado que espera el CSS):**
+1. Quitar `hidden` de `__shape` **y** poner `data-stage="drop"` en el mismo cuadro, y solo con `is-ready`. La caída es un `@starting-style`: si la forma se muestra antes sin etapa, aparece sin caer.
+2. `--_island-w/-h` = `offsetWidth`/`offsetHeight` de `__inner`, **sin** el borde (el CSS lo suma; el ejemplo de 44 px del contrato es la fila con el borde). El `.vue` puede escribirlas durante `drop`: el CSS usa la cápsula hasta `grow`.
+3. Avanzar de etapa con `transitionend`/`transitioncancel` de `__shape` (`e.target === shape`) cuando `shape.getAnimations()` no tenga ninguna en curso. Las transiciones de tamaño son de las propiedades `--_status-w`, `--_status-w-out`, `--_status-h` y `--_status-h-out` (llegan como `transitionend` con ese `propertyName`).
+4. **Relevo:** `__text` con clave por condición mostrada (un elemento nuevo entra desde abajo). Para que el viejo salga hacia arriba, conservarlo un `slow` como copia con `aria-hidden="true"` (fuera del nombre accesible) y quitarlo después.
+5. Un `__ring` nuevo por tramo con `--_left` y `--_run-ms`. Al pausar, `is-paused` en la raíz y `--_left` con la fracción actual. Sin `deadline` y sin tramo, sin `--_run-ms`.
+6. **Cerrar el asomo:** quitar `is-peek` primero y `hidden` de `__peek` tras `--g-duration-fast`. Si se ponen a la vez, el contenido desaparece sin fundido: Firefox no transiciona `display`. Lo mismo con `__panel`.
+7. En `fold` y `rise`, conservar el contenido que se mostraba (texto y, si venía de la lista, el panel) hasta el fin de `rise`.
+8. **Eco:** la clase `is-echo` en la marca; `animationend` y `animationcancel` llegan desde su `::before` (`animationName === 'g-status-echo'`), también con movimiento reducido.
+9. Botones: la acción `GBtn size="sm"`; «Ir a…», «Ocultar», «Cerrar», el detalle, «Copiar» y «Descartar» `GBtn size="sm" variant="ghost" color="neutral"`. El CSS reasigna todos sus alias.
+10. **Compuerta:** `g-status-island__shape` sigue. Añadir la de `__peek` (#705).
+
+**Para lima:**
+1. El ejemplo de «Estructura accesible» escribe `--_island-h: 44px`. El CSS (y el `.vue` vigente) tratan `--_island-w/-h` como el tamaño de `__inner` sin el borde: con borde de 1 px el titular es 42 + 2. Fijarlo en el contrato.
+2. «Relevo» no nombra la copia que sale. El CSS usa `.g-status-island__text[aria-hidden="true"]`: es el mismo elemento de clase, que además debe quedar fuera del nombre accesible. Anotarlo en «Clases y datos».
+3. «Fila `space × 11` (44px también con `pointer: coarse`)», en `tokens.md` §31 y en el contrato. El CSS sigue `r04/estilo.md` §10.2: con `coarse`, `44px + 2 bordes`, para que el resumen (la diana) mida 44 por dentro. Unificar el texto.
+4. El asomo, por contrato, lleva la «cuenta atrás» en su orden del DOM, pero la cuenta atrás ya está en el titular (`__timer`). El CSS no da estilo a una segunda. Aclarar si el asomo la repite.
+5. **Constantes nuevas de este CSS** (para §29.6 y §31):
+   - `100 %` del relevo, la geometría de una línea, como el rodillo de `GNumberField`;
+   - `0.5turn` del chevrón;
+   - `1ms` como conversión del número `--_run-ms`;
+   - las propiedades registradas privadas `--_status-w`, `--_status-w-out`, `--_status-h`, `--_status-h-out` y `--_status-ring` (§29.7).

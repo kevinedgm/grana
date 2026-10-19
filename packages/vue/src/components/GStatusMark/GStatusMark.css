@@ -1,24 +1,27 @@
 /*
-  GStatusMark · estilo de la marca en línea de la isla de estado: enlace (cápsula inversa, abre la isla en su condición) y
-  texto (línea sin caja, contenido de una sección)
-  Dueño: coco. Contrato: design/contracts/status.md «GStatusMark» (#323). Estructura: design/lab/alert/r02/ (XbMark).
-  Notas y personalidad: design/lab/alert/estilo.md.
+  GStatusMark · estilo de la marca de la isla de estado: enlace (la memoria de lo pendiente junto a su control: abre la
+  lista en su condición y recibe el eco al recogerse la isla) y texto (línea sin caja, contenido de una sección)
+  Dueño: coco. Contrato: design/contracts/status.md «GStatusMark» (#323, enmendado por #700) y «Estética» (#694).
+  Estética: design/lab/alert/r04/estilo.md §10 (el mismo material que la cápsula, a escala de control). Implementación y
+  medidas: design/lab/alert/estilo.md.
   Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin tokens nuevos (tokens.md §31).
   Únicos literales: 24px y 44px (área táctil) y el patrón de texto oculto accesible.
   La acción de la marca de texto es un GBtn sm de la aplicación: este archivo va DESPUÉS de GBtn.css.
 
+  Material del enlace (light-dark(), tokens.md §12.1): claro, el cuerpo --g-color-text al 84 % con --g-glass-filter y
+  tinta surface; oscuro, el cristal de §12 con tinta text y el hilo border-control con un 30 % de text. Filo de luz
+  arriba. Sin anillo exterior ni sombra propia (son de la isla, que flota; la marca está en el flujo). Dentro de una zona
+  de marca, light-dark() sigue el color-scheme de la zona (tokens.md §44.9).
+
   Constantes de diseño derivadas de space (no son tokens):
-    cápsula            alto space × 8 (borde incluido), insignia space × 6 concéntrica con su extremo, icono space × 4
-    marca de texto     insignia space × 6 colgada a la izquierda del texto (sangría francesa: el texto, al partirse,
-                       queda alineado consigo mismo y la acción baja bajo el texto, nunca bajo la insignia)
-    anillo de insignia border-width × 2 (sólido error, discontinuo warning, punteado info, sin anillo success)
+    cápsula            alto space × 8 (borde incluido), insignia space × 5 concéntrica con su extremo, glifo al 62 %
+    marca de texto     insignia space × 6 colgada al inicio del texto (sangría francesa: el texto, al partirse, queda
+                       alineado consigo mismo y la acción baja bajo el texto, nunca bajo la insignia), glifo space × 4
+    eco                un anillo que se abre space × 2 desde la cápsula y se apaga, una vez (--g-duration-slow)
 */
 
 /* ---------- Común ---------- */
 .g-status-mark {
-  --_size: calc(var(--g-space-1) * 6);
-  --_g: calc(var(--g-space-1) * 4);
-  --_cap: calc(var(--g-space-1) * 8);
   --_line: var(--g-text-body-sm-line);
 
   box-sizing: border-box;
@@ -39,18 +42,18 @@
   border: 0;
 }
 
-/* Tipo: alias de relleno (cápsula), de tinta (marca de texto) y forma del anillo */
+/* Tipo: color del disco (enlace) y tinta del glifo (texto). El tipo se lee por la forma del icono y el prefijo oculto */
 .g-status-mark--type-info {
-  --_fill: var(--g-color-info); --_on: var(--g-color-on-info); --_kind: var(--g-color-info-text); --_ring-style: dotted;
+  --_c: var(--g-color-info); --_soft: var(--g-color-info-soft); --_on-soft: var(--g-color-on-info-soft); --_kind: var(--g-color-info-text);
 }
 .g-status-mark--type-success {
-  --_fill: var(--g-color-success); --_on: var(--g-color-on-success); --_kind: var(--g-color-success-text); --_ring-style: none;
+  --_c: var(--g-color-success); --_soft: var(--g-color-success-soft); --_on-soft: var(--g-color-on-success-soft); --_kind: var(--g-color-success-text);
 }
 .g-status-mark--type-warning {
-  --_fill: var(--g-color-warning); --_on: var(--g-color-on-warning); --_kind: var(--g-color-warning-text); --_ring-style: dashed;
+  --_c: var(--g-color-warning); --_soft: var(--g-color-warning-soft); --_on-soft: var(--g-color-on-warning-soft); --_kind: var(--g-color-warning-text);
 }
 .g-status-mark--type-error {
-  --_fill: var(--g-color-danger); --_on: var(--g-color-on-danger); --_kind: var(--g-color-danger-text); --_ring-style: solid;
+  --_c: var(--g-color-danger); --_soft: var(--g-color-danger-soft); --_on-soft: var(--g-color-on-danger-soft); --_kind: var(--g-color-danger-text);
 }
 
 .g-status-mark__badge {
@@ -60,24 +63,26 @@
   box-sizing: border-box;
   inline-size: var(--_size);
   block-size: var(--_size);
-  border: calc(var(--g-border-width) * 2) var(--_ring-style) var(--_rim);
-  border-radius: var(--g-radius-pill);
+  border-radius: 50%;
   background: var(--_badge-bg);
   color: var(--_badge-ink);
-  transition:
-    background-color var(--g-duration-fast) var(--g-ease-standard),
-    color var(--g-duration-fast) var(--g-ease-standard);
 }
 .g-status-mark__badge > .g-icon {
   inline-size: var(--_g);
   block-size: var(--_g);
 }
 
-/* ---------- Enlace: cápsula del mismo lenguaje que la isla (superficie inversa, #325) ---------- */
+/* ---------- Enlace: el material de la isla a escala de control ---------- */
 .g-status-mark--link {
-  --_rim: var(--g-color-surface);
-  --_badge-bg: var(--_fill);
-  --_badge-ink: var(--_on);
+  --_cap: calc(var(--g-space-1) * 8);
+  --_size: calc(var(--g-space-1) * 5);
+  --_g: calc(var(--_size) * 0.62);
+  --_fill: light-dark(color-mix(in srgb, var(--g-color-text) 84%, transparent), color-mix(in srgb, var(--g-glass-tint) calc(var(--g-glass-opacity) * 100%), transparent));
+  --_ink: light-dark(var(--g-color-surface), var(--g-color-text));
+  --_edge-top: light-dark(color-mix(in srgb, var(--g-color-surface) 22%, transparent), var(--g-glass-edge));
+  --_rim: light-dark(transparent, color-mix(in oklab, var(--g-color-border-control), var(--g-color-text) 30%));
+  --_badge-bg: light-dark(color-mix(in oklab, var(--_c) 40%, transparent), var(--_soft));
+  --_badge-ink: light-dark(var(--g-color-surface), var(--_on-soft));
 
   position: relative;
   display: inline-flex;
@@ -91,15 +96,22 @@
   padding-inline: calc((var(--_cap) - var(--_size)) / 2 - var(--g-border-width)) var(--g-space-3);
   border: var(--g-border-width) solid transparent;
   border-radius: min(var(--g-radius-pill), calc(var(--_cap) / 2));
-  background: var(--g-color-text);
-  color: var(--g-color-surface);
-  font-weight: var(--g-text-action-weight);
+  background: var(--_fill);
+  -webkit-backdrop-filter: var(--g-glass-filter);
+  backdrop-filter: var(--g-glass-filter);
+  color: var(--_ink);
+  box-shadow:
+    inset 0 var(--g-border-width) 0 var(--_edge-top),
+    0 0 0 var(--g-border-width) var(--_rim);
+  font: inherit;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--_line);
+  font-weight: var(--g-text-title-sm-weight);
   text-align: start;
   vertical-align: middle;
   cursor: pointer;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
-  transition: transform var(--g-duration-press) var(--g-ease-out);
 }
 /* Área táctil (como GBtn): no cambia el aspecto */
 .g-status-mark--link::after {
@@ -117,6 +129,18 @@
     block-size: max(100%, 44px);
   }
 }
+/* El eco: un anillo del color del foco que se abre desde la cápsula y se apaga (is-echo, una vez; bruno quita la clase en
+   animationend/animationcancel, que llegan a la marca desde su ::before) */
+.g-status-mark--link::before {
+  content: "";
+  position: absolute;
+  inset: calc(var(--g-border-width) * -1);
+  border-radius: inherit;
+  pointer-events: none;
+}
+.g-status-mark--link.is-echo::before {
+  animation: g-status-echo var(--g-duration-slow) var(--g-ease-out);
+}
 .g-status-mark--link .g-status-mark__text {
   min-inline-size: 0;
   overflow: hidden;
@@ -125,14 +149,9 @@
   text-decoration: underline transparent;
   text-decoration-thickness: var(--g-border-width);
   text-underline-offset: var(--g-focus-offset);
-  transition: text-decoration-color var(--g-duration-fast) var(--g-ease-standard);
 }
 @media (hover: hover) {
   .g-status-mark--link:hover .g-status-mark__text { text-decoration-color: currentColor; }
-}
-.g-status-mark--link:active:not([aria-busy="true"]) {
-  transform: scale(var(--g-press-scale));
-  transition: transform var(--g-duration-fast) var(--g-ease-out);
 }
 /* Abierta en su condición: el subrayado se queda (estado, no solo hover) */
 .g-status-mark--link[aria-expanded="true"] .g-status-mark__text { text-decoration-color: currentColor; }
@@ -144,7 +163,8 @@
 
 /* ---------- Texto: una línea sin caja (insignia + texto + una acción opcional) ---------- */
 .g-status-mark--text {
-  --_rim: var(--_kind);
+  --_size: calc(var(--g-space-1) * 6);
+  --_g: calc(var(--g-space-1) * 4);
   --_badge-bg: transparent;
   --_badge-ink: var(--_kind);
   /* Alto de la primera línea: el del texto o, con acción, el del GBtn sm (space × 7) para que los tres se centren */
@@ -184,23 +204,60 @@
 @keyframes g-status-mark-spin {
   to { rotate: 1turn; }
 }
+@keyframes g-status-echo {
+  from { box-shadow: 0 0 0 var(--g-focus-width) var(--g-color-focus); }
+  to { box-shadow: 0 0 0 calc(var(--g-focus-width) + var(--g-space-2)) transparent; }
+}
 @media (prefers-reduced-motion: no-preference) {
   .g-status-mark.is-busy .g-status-mark__badge > .g-icon {
     animation: g-status-mark-spin var(--g-duration-spin) linear infinite;
   }
-}
-@media (prefers-reduced-motion: reduce) {
-  .g-status-mark--link,
-  .g-status-mark--link:active:not([aria-busy="true"]) {
-    transform: none;
-    transition: none;
+  .g-status-mark--link {
+    transition: transform var(--g-duration-press) var(--g-ease-out);
   }
-  .g-status-mark--link .g-status-mark__text { transition: text-decoration-color var(--g-duration-fast) var(--g-ease-standard); }
+  .g-status-mark--link:active:not([aria-busy="true"]) {
+    transform: scale(var(--g-press-scale));
+    transition: transform var(--g-duration-fast) var(--g-ease-out);
+  }
+  .g-status-mark--link .g-status-mark__text {
+    transition: text-decoration-color var(--g-duration-fast) var(--g-ease-standard);
+  }
+}
+/* Movimiento reducido: el eco es un fundido de color en su sitio (el anillo no se abre); mismo nombre, para que el .vue
+   reciba igual su animationend */
+@media (prefers-reduced-motion: reduce) {
+  @keyframes g-status-echo {
+    from { box-shadow: 0 0 0 var(--g-focus-width) var(--g-color-focus); }
+    to { box-shadow: 0 0 0 var(--g-focus-width) transparent; }
+  }
+  .g-status-mark--link .g-status-mark__text {
+    transition: text-decoration-color var(--g-duration-fast) var(--g-ease-standard);
+  }
 }
 
-/* ---------- forced-colors ---------- */
+/* ---------- Transparencia, forced-colors y sin light-dark() ---------- */
+@supports not ((backdrop-filter: none) or (-webkit-backdrop-filter: none)) {
+  .g-status-mark--link { --_fill: light-dark(var(--g-color-text), var(--g-glass-tint)); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .g-status-mark--link {
+    --_fill: light-dark(var(--g-color-text), var(--g-glass-tint));
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
 @media (forced-colors: active) {
   .g-status-mark--link { border-color: CanvasText; }
-  .g-status-mark__badge { border-color: CanvasText; }
+  .g-status-mark__badge { outline: var(--g-border-width) solid CanvasText; }
   .g-status-mark--link:focus-visible { outline-color: Highlight; }
+}
+@supports not (color: light-dark(red, red)) {
+  .g-status-mark--link {
+    --_fill: color-mix(in srgb, var(--g-color-text) 84%, transparent);
+    --_ink: var(--g-color-surface);
+    --_edge-top: color-mix(in srgb, var(--g-color-surface) 22%, transparent);
+    --_rim: transparent;
+    --_badge-bg: color-mix(in oklab, var(--_c) 40%, transparent);
+    --_badge-ink: var(--g-color-surface);
+  }
 }

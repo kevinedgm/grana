@@ -1,29 +1,53 @@
 /*
-  GStatusIsland · estilo de la isla de estado (g-status-island), de cada condición (g-status-item) y de la hoja móvil
-  (g-status-sheet)
-  Dueño: coco. Contrato: design/contracts/status.md. Estructura: design/lab/alert/r02/ (B · Isla de estado, aprobada por
-  el usuario mirándola). Notas y personalidad: design/lab/alert/estilo.md.
+  GStatusIsland · estilo de la isla de estado transitoria (g-status-island: la cápsula D1), de cada condición de la
+  lista (g-status-item) y de la hoja móvil (g-status-sheet)
+  Dueño: coco. Contrato: design/contracts/status.md (#693 a #705). Estructura: design/lab/alert/r04/ (kiwi, D1 · Cápsula
+  de relevo). Estética: design/lab/alert/r04/estilo.md §10 (decisión del usuario: L1 · Grafito esmerilado en claro, V2C
+  · Cristal con filo en oscuro). Implementación y medidas: design/lab/alert/estilo.md.
   Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin tokens nuevos (tokens.md §31).
-  Únicos literales: 24px y 44px (área táctil), 0px (valor neutro de una variable en línea) y el patrón de texto oculto.
-  Los botones son GBtn: este archivo va DESPUÉS de GBtn.css (reasigna sus alias). La hoja es un GDialog real: va después
-  de GDialog.css.
+  Únicos literales: 24px y 44px (área táctil), 0px (valor neutro de una variable), 1ms (conversión del número --_run-ms
+  a tiempo) y el patrón de texto oculto. Los botones son GBtn: este archivo va DESPUÉS de GBtn.css (reasigna sus alias).
+  La hoja es un GDialog real: va después de GDialog.css.
 
-  Superficie inversa (#325): fondo --g-color-text, texto/iconos/anillos --g-color-surface. Nunca brand.
+  Material (tokens.md §12.1, primer uso de light-dark()): el mismo objeto oscuro en los dos esquemas.
+    claro  cuerpo --g-color-text al 84 % con --g-glass-filter, tinta --g-color-surface, filo y brillo de surface (22 % y
+           12 %), anillo exterior de la tinta de la zona (--g-color-on-brand-zone al 75 %, excepción de §44.2 solo para
+           este archivo, #694) y una capa de sombra propia (space y text al 22 %)
+    oscuro el cristal de §12 (--g-glass-*), tinta --g-color-text, filo: hilo border-control con un 30 % de text y
+           anillo de 2 bordes de --g-color-bg (la página)
+  Sin light-dark() (Chrome < 123, Firefox < 120, Safari < 17.5) se declara el claro (@supports not, al final).
 
-  Constantes de diseño derivadas de space (no son tokens; status.md «No son tokens», estilo.md):
-    margen al borde            space × 2, combinado con env(safe-area-inset-*) y --_status-offset-top
-    alto de la compacta        space × 12 (borde incluido)          punto: space × 8 (borde incluido)
-                               los dos, como mínimo 24px (44px táctil) + los dos bordes: el resumen es la diana
-    insignia                   space × 8 (compacta, abierta, avisos) · space × 6 (punto) · icono space × 5 / space × 4
-    ancho de la abierta        min(space × 104, ancho disponible); la compacta nunca lo supera (crece al abrirse)
-    anillo de insignia         border-width × 2 (sólido error, discontinuo warning, punteado info, sin anillo success)
-    cascada del panel          retardo duration-fast / 5 por aviso, máximo 3 escalones (≤ 240ms en total, #71)
-  Constante de coreografía (tokens.md §29.6): 0.86, escala de partida del toque y del nacer.
+  Constantes de diseño (no son tokens; status.md «No son tokens», tokens.md §29.6 y §31, estilo.md):
+    fila (alto del titular)      space × 11 con el borde; mínimo 24px + 2 bordes (44px + 2 bordes con pointer: coarse)
+    radio                        la mitad de la fila en todas las formas (también el asomo y la lista)
+    insignia                     space × 6, concéntrica con el extremo (hueco al inicio = hueco arriba), glifo al 62 %
+    cápsula (caer y recogerse)   space × 24 × la fila; escala de partida 0.9 (tokens.md §29.6)
+    margen al borde              space × 2, con env(safe-area-inset-*) y --_status-offset-top
+    ancho máximo y de la lista   min(space × 104, ancho disponible)
+    mezclas del material         84, 30, 75, 40, 22, 12, 18 y 14 %; acción al pasar, la tinta al 86 %; 1turn del anillo
+    relevo                       el texto entra una línea por debajo (100 %) y el que sale, una por encima (geometría
+                                 de la celda, como el rodillo de GNumberField; tokens.md §30)
 
-  Datos del .vue (status.md «Clases y datos»; se declaran aquí solo los que tienen valor neutro):
-    --_island-w, --_island-h   px del tamaño natural de __inner (ResizeObserver). Sin ellos, la forma mide auto
-    --_status-offset-top       calc(<offset.top> + <reserva de borde>px); neutro 0px
+  Datos del .vue (status.md «Clases y datos»; tokens.md §29.5):
+    --_island-w, --_island-h  px del tamaño de __inner (sin el borde) medido ANTES de mostrarlo; el CSS suma el borde.
+                              Sin ellos, la forma no baja de la cápsula (min-inline-size / min-block-size)
+    --_left, --_run-ms        fracción que queda al empezar el tramo de lectura y ms del tramo (un __ring nuevo por tramo)
+    --_status-offset-top      calc(<offset.top> + <reserva de borde>px); neutro 0px
+    data-form, data-stage, is-ready, is-peek, is-paused, data-mobile, data-align
+
+  Tamaño animado (M1: el muelle solo al crecer). El tamaño es max() de dos propiedades registradas que van al mismo
+  destino, una con --g-ease-spring y otra con --g-ease-out: al crecer manda la del muelle (sobrepasa), al encoger manda
+  la de --g-ease-out (nunca baja del destino). Así el relevo, el asomo y la lista crecen con muelle y vuelven sin él,
+  sin que el .vue tenga que decir en qué sentido va. Las dos interpolan desde el valor actual: ninguna etapa reinicia
+  el movimiento (#702).
 */
+
+@property --_status-w { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@property --_status-w-out { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@property --_status-h { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@property --_status-h-out { syntax: "<length>"; inherits: false; initial-value: 0px; }
+/* Avance del tramo del anillo de tiempo (0 → 1); el arco es --_left × (1 − avance) */
+@property --_status-ring { syntax: "<number>"; inherits: false; initial-value: 0; }
 
 /* ---------- Raíz: capa superior (popover="manual" siempre abierto), sin pintura, no captura el puntero ---------- */
 .g-status-island {
@@ -32,14 +56,16 @@
   --_safe-start: env(safe-area-inset-left);
   --_safe-end: env(safe-area-inset-right);
   --_top: calc(max(var(--_m), env(safe-area-inset-top)) + var(--_status-offset-top));
-  /* La diana es el resumen (la forma recorta: no cabe un ::after): forma ≥ 24px + los dos bordes, para que el botón
-     mida ≥ 24px aunque space sea pequeño (auditoría: con space 3 el punto medía 24 y el resumen 22) */
-  --_row: max(calc(24px + var(--g-border-width) * 2), calc(var(--g-space-1) * 12));
-  --_dot: max(calc(24px + var(--g-border-width) * 2), calc(var(--g-space-1) * 8));
-  --_badge: calc(var(--g-space-1) * 8);
-  --_badge-dot: calc(var(--g-space-1) * 6);
-  --_glyph: calc(var(--g-space-1) * 5);
-  --_glyph-dot: calc(var(--g-space-1) * 4);
+  --_row: max(calc(24px + var(--g-border-width) * 2), calc(var(--g-space-1) * 11));
+  --_badge: calc(var(--g-space-1) * 6);
+  --_glyph: calc(var(--_badge) * 0.62);
+  --_gap: var(--g-space-2);
+  /* insignia concéntrica: hueco al inicio (con el borde) = hueco arriba = (fila − insignia) / 2 */
+  --_pad-s: calc((var(--_row) - var(--_badge)) / 2 - var(--g-border-width));
+  --_pad-e: var(--g-space-4);
+  /* columna del texto (desde el borde interior): el asomo y la lista arrancan aquí */
+  --_text-start: calc(var(--_pad-s) + var(--_badge) + var(--_gap));
+  --_cap-w: calc(var(--g-space-1) * 24);
   --_wide: calc(var(--g-space-1) * 104);
   --_origin-x: 50%;
 
@@ -61,9 +87,10 @@
   font-family: var(--g-font-ui);
   font-size: var(--g-text-body-sm-size);
   line-height: var(--g-text-body-sm-line);
+  letter-spacing: var(--g-text-body-sm-tracking);
   text-align: start;
-  /* El ancho disponible (visor menos márgenes) es el contenedor de la forma: __inner lo lee en cqi sin depender del
-     tamaño animado de __shape (que a su vez sale de __inner: así no hay ciclo) */
+  /* El ancho disponible (visor menos márgenes) es el contenedor: __inner lo lee en cqi sin depender del tamaño animado
+     de la forma (que sale de __inner: así no hay ciclo) */
   container-type: inline-size;
   pointer-events: none;
 }
@@ -76,19 +103,14 @@
 .g-status-island[data-align="start"]:dir(rtl) { --_origin-x: 100%; }
 .g-status-island[data-align="end"]:dir(rtl) { --_origin-x: 0%; }
 @media (pointer: coarse) {
-  .g-status-island {
-    --_row: max(calc(44px + var(--g-border-width) * 2), calc(var(--g-space-1) * 12));
-    --_dot: max(calc(44px + var(--g-border-width) * 2), calc(var(--g-space-1) * 8));
-  }
+  /* El resumen (la diana de la fila) mide 44 por dentro del borde */
+  .g-status-island { --_row: max(calc(44px + var(--g-border-width) * 2), calc(var(--g-space-1) * 11)); }
 }
 
-/* ---------- Texto oculto accesible: canales, prefijos y lo que el punto esconde ---------- */
+/* ---------- Texto oculto accesible: canales y prefijos ---------- */
 .g-status-island__live,
 .g-status-island__sr,
-.g-status-item__type,
-.g-status-island[data-form="dot"] .g-status-island__text,
-.g-status-island[data-form="dot"] .g-status-island__timer,
-.g-status-island[data-form="dot"] .g-status-island__more {
+.g-status-item__type {
   position: absolute;
   inline-size: 1px;
   block-size: 1px;
@@ -100,44 +122,83 @@
   border: 0;
 }
 
-/* ---------- La forma: una sola superficie que cambia de tamaño (D4) ---------- */
+/* ---------- La cápsula: una sola superficie que cuenta la vida del aviso (D4) ---------- */
 .g-status-island__shape {
-  /* Contexto inverso: lo heredan el resumen, los avisos, sus insignias y sus botones */
-  --_ink: var(--g-color-surface);
-  --_rim: var(--g-color-surface);
-  --_tile: color-mix(in oklab, var(--g-color-surface) 8%, transparent);
-  --_tile-edge: transparent;
-  --_well: color-mix(in oklab, var(--g-color-surface) 8%, transparent);
-  --_veil: color-mix(in oklab, var(--g-color-surface) 12%, transparent);
-  --_link: var(--g-color-surface);
-  --_ring-color: var(--g-color-surface);
-  --_radius: min(var(--g-radius-pill), calc(var(--_row) / 2));
+  /* Material (light-dark: claro L1 · Grafito esmerilado | oscuro V2C · Cristal con filo) */
+  --_fill: light-dark(color-mix(in srgb, var(--g-color-text) 84%, transparent), color-mix(in srgb, var(--g-glass-tint) calc(var(--g-glass-opacity) * 100%), transparent));
+  --_ink: light-dark(var(--g-color-surface), var(--g-color-text));
+  --_on-ink: light-dark(var(--g-color-text), var(--g-color-surface));
+  --_edge-top: light-dark(color-mix(in srgb, var(--g-color-surface) 22%, transparent), var(--g-glass-edge));
+  --_sheen: light-dark(color-mix(in srgb, var(--g-color-surface) 12%, transparent), var(--g-glass-sheen));
+  --_rim: light-dark(transparent, color-mix(in oklab, var(--g-color-border-control), var(--g-color-text) 30%));
+  --_zone-ring: light-dark(color-mix(in srgb, var(--g-color-on-brand-zone) 75%, transparent), var(--g-color-bg));
+  --_lift: light-dark(color-mix(in srgb, var(--g-color-text) 22%, transparent), transparent);
+  --_hair: light-dark(color-mix(in oklab, var(--g-color-surface) 18%, transparent), var(--g-color-border));
+  --_chip: light-dark(transparent, var(--g-color-surface));
+  --_chip-edge: light-dark(color-mix(in oklab, var(--g-color-surface) 40%, transparent), var(--g-color-border));
+  /* Derivados de la tinta (siguen a la rama de --_ink) */
+  --_ink-hover: color-mix(in oklab, var(--_ink) 86%, var(--_on-ink));
+  --_veil: color-mix(in oklab, var(--_ink) 12%, transparent);
+  --_well: color-mix(in oklab, var(--_ink) 12%, transparent);
+  --_ring-track: color-mix(in oklab, var(--_ink) 14%, transparent);
+  --_ring-hold: color-mix(in oklab, var(--_ink) 40%, transparent);
+  --_focus: var(--_ink);
+  --_cap-h: var(--_row);
 
-  /* El borde (transparente; CanvasText en forced-colors) se suma al tamaño medido de __inner. Se calcula con border-box
-     explícito: un reinicio de la aplicación sin capa (`* { box-sizing: border-box }`) gana a esta capa y no debe cambiarlo */
+  /* Tamaño: el destino medido más el borde (ver la cabecera: max() de muelle y ease-out) */
+  --_target-w: calc(var(--_island-w) + var(--g-border-width) * 2);
+  --_target-h: calc(var(--_island-h) + var(--g-border-width) * 2);
+  --_status-w: var(--_target-w);
+  --_status-w-out: var(--_target-w);
+  --_status-h: var(--_target-h);
+  --_status-h-out: var(--_target-h);
+
+  position: relative;
+  isolation: isolate;
+  /* El borde (transparente; CanvasText en forced-colors) va dentro del tamaño: border-box explícito, para que un reinicio
+     de la aplicación sin capa (`* { box-sizing: border-box }`) no lo cambie */
   box-sizing: border-box;
   display: block;
-  inline-size: calc(var(--_island-w) + var(--g-border-width) * 2);
-  block-size: calc(var(--_island-h) + var(--g-border-width) * 2);
+  inline-size: max(var(--_status-w), var(--_status-w-out));
+  block-size: max(var(--_status-h), var(--_status-h-out));
+  /* Sin destino medido (nunca debería verse así), la cápsula: nunca colapsa */
+  min-inline-size: min(var(--_cap-w), 100%);
+  min-block-size: var(--_cap-h);
   max-inline-size: 100%;
   margin-inline: auto;
   overflow: clip;
   border: var(--g-border-width) solid transparent;
-  border-radius: var(--_radius);
-  background: var(--g-color-text);
+  border-radius: calc(var(--_row) / 2);
+  background: var(--_fill);
+  -webkit-backdrop-filter: var(--g-glass-filter);
+  backdrop-filter: var(--g-glass-filter);
   color: var(--_ink);
-  box-shadow: var(--g-shadow-2);
+  /* Una sola luz: filo arriba (dentro), hilo y anillo exterior que la delimitan, sombra propia del claro, cerca y lejos */
+  box-shadow:
+    inset 0 var(--g-border-width) 0 var(--_edge-top),
+    0 0 0 var(--g-border-width) var(--_rim),
+    0 0 0 calc(var(--g-border-width) * 2) var(--_zone-ring),
+    0 calc(var(--g-space-1) * 3) calc(var(--g-space-1) * 8) calc(var(--g-space-2) * -1) var(--_lift),
+    var(--g-shadow-1),
+    var(--g-shadow-3);
   transform-origin: var(--_origin-x) 0;
   pointer-events: auto;
+}
+/* Brillo especular: degradado de arriba a transparente al 55 % del alto */
+.g-status-island__shape::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(to bottom, var(--_sheen), transparent 55%);
+  pointer-events: none;
 }
 .g-status-island__shape[hidden] { display: none; }
 .g-status-island[data-align="start"] .g-status-island__shape { margin-inline: 0 auto; }
 .g-status-island[data-align="end"] .g-status-island__shape { margin-inline: auto 0; }
-.g-status-island[data-form="dot"] .g-status-island__shape { --_radius: min(var(--g-radius-pill), calc(var(--_dot) / 2)); }
-/* En móvil la abierta es la hoja: la forma se queda como la compacta */
-.g-status-island[data-form="open"]:not([data-mobile]) .g-status-island__shape { --_radius: var(--g-radius-xl); }
 
-/* El contenido se mide a su tamaño natural: max-content hasta el ancho de la abierta (la compacta nunca la supera) */
+/* El contenido se mide a su tamaño natural: max-content hasta el ancho máximo */
 .g-status-island__inner {
   box-sizing: border-box;
   display: flex;
@@ -145,151 +206,240 @@
   inline-size: max-content;
   max-inline-size: calc(min(var(--_wide), 100cqi) - var(--g-border-width) * 2);
 }
-.g-status-island[data-form="open"]:not([data-mobile]) .g-status-island__inner {
+/* Lista (escritorio): ancho estable y alto acotado al visor; la lista desplaza por dentro y el pie queda a la vista */
+.g-status-island[data-form="list"]:not([data-mobile]) .g-status-island__inner {
   inline-size: calc(min(var(--_wide), 100cqi) - var(--g-border-width) * 2);
-  /* Sin máximo de condiciones: la lista desplaza y el pie queda a la vista */
   max-block-size: calc(100dvh - var(--_top) - var(--_m) - var(--g-border-width) * 2);
 }
 
-/* ---------- Resumen (button): insignia concéntrica con el extremo de la píldora ---------- */
+/* ---------- Titular: un solo botón con insignia, texto, cuenta atrás, «+N» y chevrón ---------- */
 .g-status-island__summary {
   position: relative;
   flex: none;
-  display: flex;
+  display: grid;
+  /* insignia | texto (cede con elipsis) | cuenta atrás | cola; las columnas vacías no existen (flujo implícito) */
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-auto-flow: column;
+  grid-auto-columns: auto;
   align-items: center;
-  gap: var(--g-space-2);
+  column-gap: var(--_gap);
   box-sizing: border-box;
   min-inline-size: 0;
   min-block-size: calc(var(--_row) - var(--g-border-width) * 2);
   margin: 0;
-  padding-block: var(--g-space-1);
-  padding-inline: calc((var(--_row) - var(--_badge)) / 2 - var(--g-border-width)) calc(var(--g-space-1) * 4);
+  padding-block: 0;
+  padding-inline: var(--_pad-s) var(--_pad-e);
+  /* El relevo entra y sale por debajo y por encima de la fila: se recorta en ella (el foco es su propio contorno) */
+  overflow: clip;
   border: 0;
-  border-radius: calc(var(--_radius) - var(--g-border-width));
+  border-radius: calc(var(--_row) / 2 - var(--g-border-width));
   background: transparent;
   color: inherit;
   font: inherit;
+  letter-spacing: inherit;
   text-align: start;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: background-color var(--g-duration-fast) var(--g-ease-standard);
-}
-.g-status-island[data-form="dot"] .g-status-island__summary {
-  justify-content: center;
-  min-block-size: calc(var(--_dot) - var(--g-border-width) * 2);
-  padding: calc((var(--_dot) - var(--_badge-dot)) / 2 - var(--g-border-width));
-}
-.g-status-island[data-form="open"]:not([data-mobile]) .g-status-island__summary {
-  border-end-start-radius: 0;
-  border-end-end-radius: 0;
 }
 @media (hover: hover) {
-  .g-status-island__summary:hover { background: var(--_veil); }
+  /* Con puntero, pasar ya abre el asomo: el velo dice que el titular, además, se pulsa (abre la lista) */
+  .g-status-island.is-peek .g-status-island__summary:hover,
+  .g-status-island[data-form="list"] .g-status-island__summary:hover { background: var(--_veil); }
 }
-/* Foco: replegada, el anillo rodea toda la isla por fuera (es la isla); abierta, anillo interior en surface */
-.g-status-island__summary:focus-visible { outline: none; }
-.g-status-island:not([data-form="open"]) .g-status-island__shape:has(.g-status-island__summary:focus-visible),
-.g-status-island[data-mobile] .g-status-island__shape:has(.g-status-island__summary:focus-visible) {
-  outline: var(--g-focus-width) solid var(--g-color-focus);
-  outline-offset: var(--g-focus-offset);
-}
-.g-status-island[data-form="open"]:not([data-mobile]) .g-status-island__summary:focus-visible {
-  outline: var(--g-focus-width) solid var(--_ring-color);
-  outline-offset: calc((var(--g-focus-width) + var(--g-border-width)) * -1);
+/* Foco: anillo interior en la tinta (≥ 4,5:1 con el cuerpo); el resumen es la fila entera */
+.g-status-island__summary:focus-visible {
+  outline: var(--g-focus-width) solid var(--_focus);
+  outline-offset: calc(var(--g-focus-width) * -1);
 }
 
 .g-status-island__text {
-  flex: 0 1 auto;
+  grid-column: 2;
+  grid-row: 1;
   min-inline-size: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-weight: var(--g-text-action-weight);
+  font-weight: var(--g-text-title-sm-weight);
 }
-.g-status-island__timer {
-  flex: none;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-/* «+N»: cápsula con contorno (no es un control) */
-.g-status-island__more {
-  flex: none;
-  box-sizing: border-box;
-  padding-inline: var(--g-space-2);
-  border: var(--g-border-width) solid currentColor;
-  border-radius: var(--g-radius-pill);
-  font-size: var(--g-text-caption-size);
-  line-height: var(--g-text-caption-line);
-  font-weight: var(--g-text-caption-weight);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+/* El asomo enseña el título entero (en la línea, elipsis; el texto completo está en el nombre accesible) */
+.g-status-island.is-peek .g-status-island__text { white-space: normal; overflow-wrap: anywhere; }
+/* Relevo: la copia que sale (aria-hidden: no entra en el nombre accesible) ocupa la misma celda sin medir */
+.g-status-island__text[aria-hidden="true"] {
+  position: absolute;
+  inset-inline: 0;
+  align-self: center;
+  pointer-events: none;
 }
 
-/* ---------- Insignia de tipo (isla, avisos): relleno del tipo, icono on-tipo y anillo con forma por tipo ---------- */
+.g-status-island__timer {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: calc(var(--g-space-1) * 5);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-title-sm-weight);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+/* «+N» y el chevrón: un solo grupo, el elemento final de la isla */
+.g-status-island__tail {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--g-space-1);
+  margin-inline-start: var(--g-space-1);
+}
+.g-status-island__more {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-block-size: calc(var(--g-space-1) * 5);
+  padding-inline: var(--g-space-2);
+  border-radius: var(--g-radius-pill);
+  background: var(--_chip);
+  box-shadow: inset 0 0 0 var(--g-border-width) var(--_chip-edge);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-title-sm-weight);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.g-status-island__chevron {
+  display: inline-grid;
+  place-items: center;
+}
+.g-status-island__chevron > .g-icon {
+  inline-size: calc(var(--g-space-1) * 4);
+  block-size: calc(var(--g-space-1) * 4);
+}
+.g-status-island.is-peek .g-status-island__chevron,
+.g-status-island[data-form="list"] .g-status-island__chevron { rotate: 0.5turn; }
+
+/* ---------- Insignia (titular y lista): callada, el tipo por la forma del icono y el prefijo oculto ---------- */
+.g-status-island__badge[data-type="info"],
+.g-status-item--type-info { --_c: var(--g-color-info); --_soft: var(--g-color-info-soft); --_on-soft: var(--g-color-on-info-soft); }
+.g-status-island__badge[data-type="success"],
+.g-status-item--type-success { --_c: var(--g-color-success); --_soft: var(--g-color-success-soft); --_on-soft: var(--g-color-on-success-soft); }
+.g-status-island__badge[data-type="warning"],
+.g-status-item--type-warning { --_c: var(--g-color-warning); --_soft: var(--g-color-warning-soft); --_on-soft: var(--g-color-on-warning-soft); }
+.g-status-island__badge[data-type="error"],
+.g-status-item--type-error { --_c: var(--g-color-danger); --_soft: var(--g-color-danger-soft); --_on-soft: var(--g-color-on-danger-soft); }
+
 .g-status-island__badge,
 .g-status-item__badge {
-  --_size: var(--_badge);
-  --_g: var(--_glyph);
+  /* claro: disco del tipo al 40 % y glifo surface (par derivado, guarda del CLI §12.1); oscuro: par -soft garantizado */
+  --_disc: light-dark(color-mix(in oklab, var(--_c) 40%, transparent), var(--_soft));
+  --_glyph-ink: light-dark(var(--g-color-surface), var(--_on-soft));
+  position: relative;
   flex: none;
   display: inline-grid;
   place-items: center;
   box-sizing: border-box;
-  inline-size: var(--_size);
-  block-size: var(--_size);
-  border: calc(var(--g-border-width) * 2) var(--_ring-style) var(--_rim);
-  border-radius: var(--g-radius-pill);
-  background: var(--_fill);
-  color: var(--_on);
-  transition:
-    background-color var(--g-duration-fast) var(--g-ease-standard),
-    color var(--g-duration-fast) var(--g-ease-standard);
+  inline-size: var(--_badge);
+  block-size: var(--_badge);
+  border-radius: 50%;
+  background: var(--_disc);
+  color: var(--_glyph-ink);
 }
 .g-status-island__badge > .g-icon,
 .g-status-item__badge > .g-icon {
-  inline-size: var(--_g);
-  block-size: var(--_g);
-}
-.g-status-island[data-form="dot"] .g-status-island__badge {
-  --_size: var(--_badge-dot);
-  --_g: var(--_glyph-dot);
-}
-/* Tipo sin color (WCAG 1.4.1): forma del icono + prefijo oculto + estilo del anillo */
-.g-status-island__badge[data-type="info"],
-.g-status-item--type-info {
-  --_fill: var(--g-color-info); --_on: var(--g-color-on-info); --_ring-style: dotted;
-}
-.g-status-island__badge[data-type="success"],
-.g-status-item--type-success {
-  --_fill: var(--g-color-success); --_on: var(--g-color-on-success); --_ring-style: none;
-}
-.g-status-island__badge[data-type="warning"],
-.g-status-item--type-warning {
-  --_fill: var(--g-color-warning); --_on: var(--g-color-on-warning); --_ring-style: dashed;
-}
-.g-status-island__badge[data-type="error"],
-.g-status-item--type-error {
-  --_fill: var(--g-color-danger); --_on: var(--g-color-on-danger); --_ring-style: solid;
-}
-/* Memoria (D2): con más de una condición, un eco fino rodea la insignia del resumen, también en el punto («hay más») */
-.g-status-island__summary:has(.g-status-island__more) .g-status-island__badge {
-  box-shadow:
-    0 0 0 calc(var(--g-border-width) * 2) var(--g-color-text),
-    0 0 0 calc(var(--g-border-width) * 3) var(--_ink);
+  inline-size: var(--_glyph);
+  block-size: var(--_glyph);
 }
 
-/* ---------- Panel (escritorio): lista con desplazamiento propio y pie siempre visible ---------- */
+/* Anillo de tiempo: degradado cónico recortado a corona de 2 bordes, a un borde de la insignia. Arranca arriba y va en
+   el sentido del reloj (también en RTL: un reloj no se espeja). Se vacía de --_left a 0 en --_run-ms; en pausa, quieto
+   y con la pista completa (la pista pasa del 14 al 40 % de la tinta). No usa stroke-dashoffset: Firefox descarta el
+   calc() sin unidades y lo dejaba siempre lleno (r04) */
+.g-status-island__ring {
+  --_arc: calc(var(--_left) * (1 - var(--_status-ring)) * 1turn);
+  --_track: var(--_ring-track);
+  position: absolute;
+  inset: calc(var(--g-border-width) * -3);
+  border-radius: 50%;
+  background: conic-gradient(var(--_ink) var(--_arc), var(--_track) 0);
+  -webkit-mask: radial-gradient(closest-side, transparent calc(100% - var(--g-border-width) * 2), currentColor calc(100% - var(--g-border-width) * 2));
+  mask: radial-gradient(closest-side, transparent calc(100% - var(--g-border-width) * 2), currentColor calc(100% - var(--g-border-width) * 2));
+  animation: g-status-ring calc(var(--_run-ms) * 1ms) linear forwards;
+  pointer-events: none;
+}
+.g-status-island.is-paused .g-status-island__ring {
+  --_arc: calc(var(--_left) * 1turn);
+  --_track: var(--_ring-hold);
+  animation-play-state: paused;
+}
+@keyframes g-status-ring {
+  to { --_status-ring: 1; }
+}
+
+/* ---------- Asomo: crece hacia abajo; la descripción y las acciones arrancan donde el título ---------- */
+.g-status-island__peek {
+  display: grid;
+  gap: var(--g-space-3);
+  padding-block: 0 var(--g-space-3);
+  padding-inline: var(--_text-start) var(--_pad-e);
+}
+.g-status-island__peek[hidden] { display: none; }
+.g-status-island__desc {
+  margin: 0;
+  color: var(--_ink);
+  overflow-wrap: anywhere;
+}
+.g-status-island__acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-1) var(--g-space-2);
+}
+/* Enlace del asomo (<a> nativo): texto subrayado en la tinta, con la diana de un GBtn sm */
+.g-status-island__link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-block-size: max(24px, calc(var(--g-space-1) * 7));
+  padding-inline: var(--g-space-3);
+  border-radius: var(--g-radius-pill);
+  color: var(--_ink);
+  font-weight: var(--g-text-action-weight);
+  text-decoration: underline;
+  text-decoration-thickness: var(--g-border-width);
+  text-underline-offset: var(--g-focus-offset);
+  white-space: nowrap;
+}
+.g-status-island__link::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  inline-size: max(100%, 24px);
+  block-size: max(100%, 24px);
+}
+@media (pointer: coarse) {
+  .g-status-island__link::after {
+    inline-size: max(100%, 44px);
+    block-size: max(100%, 44px);
+  }
+}
+@media (hover: hover) {
+  .g-status-island__link:hover { background: var(--_veil); }
+}
+.g-status-island__link:focus-visible {
+  outline: var(--g-focus-width) solid var(--_focus);
+  outline-offset: calc(var(--g-focus-width) * -1);
+}
+
+/* ---------- Lista (escritorio): la isla abierta; renglones con separador sangrado, sin teselas ---------- */
 .g-status-island__panel {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
   min-block-size: 0;
-  padding: 0 var(--g-space-2) var(--g-space-2);
 }
 .g-status-island__panel[hidden] { display: none; }
 .g-status-island__list {
   display: grid;
   align-content: start;
-  gap: var(--g-space-1);
   flex: 1 1 auto;
   min-block-size: 0;
   margin: 0;
@@ -298,69 +448,49 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in oklab, var(--_ink) 40%, transparent) transparent;
+  scrollbar-color: var(--_ring-hold) transparent;
 }
 .g-status-island__foot {
   flex: none;
   display: flex;
   justify-content: flex-end;
-  padding-block-start: var(--g-space-2);
+  padding-block: var(--g-space-1) var(--g-space-2);
+  padding-inline: var(--_pad-s) var(--g-space-2);
 }
 
-/* ---------- Aviso (li): insignia | contenido | descartar; acciones bajo el contenido ---------- */
+/* ---------- Condición de la lista (li): insignia | contenido | descartar; acciones bajo el contenido ---------- */
 .g-status-item {
-  /* Contexto por defecto = superficie de la página (la hoja móvil); dentro de __shape, el inverso */
-  --_ink: var(--g-color-text);
-  --_rim: var(--g-color-text);
-  --_tile: var(--g-color-surface);
-  --_tile-edge: var(--g-color-border);
-  --_well: var(--g-color-surface-sunken);
-  --_link: var(--g-color-link);
-  --_ring-color: var(--g-color-focus);
-  --_size-badge: calc(var(--g-space-1) * 8);
-
+  position: relative;
   display: grid;
   grid-template-columns: [badge] auto [content] minmax(0, 1fr) [end] auto;
   align-items: start;
-  column-gap: var(--g-space-3);
-  row-gap: var(--g-space-2);
+  column-gap: var(--_gap);
+  row-gap: var(--g-space-1);
   box-sizing: border-box;
   margin: 0;
-  padding: var(--g-space-2);
-  border: var(--g-border-width) solid var(--_tile-edge);
-  border-radius: var(--g-radius-lg);
-  background: var(--_tile);
+  padding-block: var(--g-space-3);
+  padding-inline: var(--_pad-s) var(--_pad-e);
   color: var(--_ink);
   overflow-wrap: anywhere;
-  transition: background-color var(--g-duration-fast) var(--g-ease-standard);
 }
-.g-status-island__shape .g-status-item {
-  --_ink: var(--g-color-surface);
-  --_rim: var(--g-color-surface);
-  --_tile: color-mix(in oklab, var(--g-color-surface) 8%, transparent);
-  --_tile-edge: transparent;
-  --_well: color-mix(in oklab, var(--g-color-surface) 8%, transparent);
-  --_link: var(--g-color-surface);
-  --_ring-color: var(--g-color-surface);
-}
-/* Reconocida: sin tinte (ya vista); el contorno la mantiene como pieza */
-.g-status-item.is-acknowledged {
-  --_tile: transparent;
-}
-.g-status-island__shape .g-status-item.is-acknowledged {
-  --_tile-edge: color-mix(in oklab, var(--g-color-surface) 16%, transparent);
+/* Separador con sangría desde el texto (como una lista agrupada); el primero separa la lista del titular */
+.g-status-item::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: var(--_text-start) 0;
+  border-block-start: var(--g-border-width) solid var(--_hair);
 }
 /* El li recibe el foco (tabindex="-1") en la hoja o cuando la marca no encuentra otro destino */
 .g-status-item:focus-visible {
-  outline: var(--g-focus-width) solid var(--_ring-color);
+  outline: var(--g-focus-width) solid var(--_focus);
   outline-offset: calc(var(--g-focus-width) * -1);
 }
-
 .g-status-item__badge {
-  --_size: var(--_size-badge);
-  --_g: calc(var(--g-space-1) * 5);
   grid-column: badge;
   grid-row: 1 / span 2;
+  /* centrada con la primera línea del título */
+  margin-block-start: calc((var(--g-text-body-sm-line) - var(--_badge)) / 2);
 }
 .g-status-item__content {
   grid-column: content / end;
@@ -370,8 +500,6 @@
   align-items: flex-start;
   gap: calc(var(--g-space-1) / 2);
   min-inline-size: 0;
-  /* El título se centra con la insignia */
-  padding-block-start: calc((var(--_size-badge) - var(--g-text-body-sm-line)) / 2);
 }
 .g-status-item.is-dismissible .g-status-item__content { grid-column: content; }
 .g-status-item__title,
@@ -381,15 +509,16 @@
   font-size: var(--g-text-body-sm-size);
   line-height: var(--g-text-body-sm-line);
 }
-/* El título manda dentro del aviso (en el prototipo aprobado iba en negrita): la descripción no se apaga (contraste
-   garantizado solo para el par texto/superficie), así que la jerarquía la da el peso del título */
+/* La jerarquía la da el peso: el texto va siempre en la tinta plena (el único par garantizado sobre el cuerpo) */
 .g-status-item__title { font-weight: var(--g-text-title-sm-weight); }
 .g-status-item__timer {
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-title-sm-weight);
   font-variant-numeric: tabular-nums;
-  font-weight: var(--g-text-action-weight);
 }
 .g-status-item__link {
-  color: var(--_link);
+  color: var(--_ink);
   text-decoration: underline;
   text-decoration-thickness: var(--g-border-width);
   text-underline-offset: var(--g-focus-offset);
@@ -400,7 +529,7 @@
   .g-status-item__link:hover { text-decoration-thickness: calc(var(--g-border-width) * 2); }
 }
 .g-status-item__link:focus-visible {
-  outline: var(--g-focus-width) solid var(--_ring-color);
+  outline: var(--g-focus-width) solid var(--_focus);
   outline-offset: var(--g-focus-offset);
 }
 /* Detalle técnico: un pozo con el texto partido (se lee en 320px) y «Copiar» */
@@ -422,6 +551,7 @@
   font-family: var(--g-font-ui);
   font-size: var(--g-text-caption-size);
   line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-caption-weight);
   font-variant-numeric: tabular-nums;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -434,39 +564,45 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--g-space-2);
+  gap: var(--g-space-1) var(--g-space-2);
 }
 .g-status-item__actions:empty { display: none; }
 .g-status-item__dismiss {
   grid-column: end;
   grid-row: 1;
-  /* Centrado con la insignia (GBtn sm mide space × 7) */
-  margin-block-start: calc((var(--_size-badge) - var(--g-space-1) * 7) / 2);
+  /* centrado con la primera línea (GBtn sm mide space × 7) */
+  margin-block-start: calc((var(--g-text-body-sm-line) - var(--g-space-1) * 7) / 2);
 }
 
-/* ---------- Botones (GBtn): acción y «Entendido» outline + neutral + sm; el resto ghost + neutral + sm ---------- */
+/* ---------- Botones (GBtn sm): la acción es una cápsula rellena de tinta; lo demás, texto en la tinta ---------- */
+.g-status-island__action.g-btn,
 .g-status-item__action.g-btn,
-.g-status-island__ack.g-btn,
+.g-status-island__origin.g-btn,
+.g-status-island__hide.g-btn,
+.g-status-island__close.g-btn,
 .g-status-item__origin.g-btn,
 .g-status-item__details-toggle.g-btn,
 .g-status-item__copy.g-btn,
 .g-status-item__dismiss.g-btn {
   --_radius: var(--g-radius-pill);
-  --_fg: var(--_ink);
-  --_fg-hover: var(--_ink);
   --_bg: transparent;
-  --_bg-hover: var(--g-color-neutral-soft);
+  --_fg: var(--_ink);
   --_border: transparent;
+  --_bg-hover: var(--_veil);
+  --_fg-hover: var(--_ink);
   --_border-hover: transparent;
   white-space: nowrap;
 }
-.g-status-item__action.g-btn,
-.g-status-island__ack.g-btn {
-  --_border: var(--g-color-border-control);
-  --_border-hover: var(--g-color-text-muted);
+.g-status-island__action.g-btn,
+.g-status-item__action.g-btn {
+  --_bg: var(--_ink);
+  --_fg: var(--_on-ink);
+  --_bg-hover: var(--_ink-hover);
+  --_fg-hover: var(--_on-ink);
+  font-weight: var(--g-text-title-sm-weight);
 }
-/* «Ir a…» se lee como enlace (subrayado, como en el prototipo aprobado): ghost sin borde sobre la isla no tenía
-   otra señal de que es una acción */
+/* «Ir a…» se lee como enlace (subrayado): un botón de texto sin borde no tendría otra señal de que es una acción */
+.g-status-island__origin.g-btn,
 .g-status-item__origin.g-btn {
   text-decoration: underline;
   text-decoration-thickness: var(--g-border-width);
@@ -476,181 +612,308 @@
 .g-status-item__details-toggle.g-btn {
   margin-inline-start: calc(var(--_px) * var(--_density) * -1);
 }
-/* Indicador del detalle técnico (chevron-down de la librería): gira media vuelta al abrirse */
 .g-status-item__details-toggle[aria-expanded="true"] .g-status-item__details-chevron { rotate: 0.5turn; }
 .g-status-item__dismiss .g-icon {
   inline-size: calc(var(--g-space-1) * 4);
   block-size: calc(var(--g-space-1) * 4);
 }
+/* Dentro de la isla, el anillo de foco va en la tinta y por dentro (el exterior del tema no se ve sobre el cristal) */
+.g-status-island__shape .g-btn:focus-visible {
+  outline-color: var(--_focus);
+  outline-offset: calc(var(--g-focus-width) * -1);
+}
 /* Reintentando: enfocable con aria-disabled (nunca loading de GBtn): mismo color, cursor de progreso, sin pulsación */
-.g-status-item__action.g-btn[aria-disabled="true"] { cursor: progress; }
+.g-status-island__action.g-btn[aria-disabled="true"],
+.g-status-item__action.g-btn[aria-disabled="true"] {
+  --_bg-hover: var(--_bg);
+  --_fg-hover: var(--_fg);
+  cursor: progress;
+}
+.g-status-island__action.g-btn[aria-disabled="true"]:active:not(:disabled):not(.is-loading),
 .g-status-item__action.g-btn[aria-disabled="true"]:active:not(:disabled):not(.is-loading) { transform: none; }
 
-/* Sobre la superficie inversa: outline en surface que se ilumina al pasar (relleno surface, texto text: par garantizado) */
-.g-status-island__shape .g-btn {
-  --_bg-hover: var(--_veil);
-}
-.g-status-island__shape .g-status-item__action.g-btn,
-.g-status-island__shape .g-status-island__ack.g-btn {
-  --_border: var(--g-color-surface);
-  --_border-hover: var(--g-color-surface);
-  --_bg-hover: var(--g-color-surface);
-  --_fg-hover: var(--g-color-text);
-}
-.g-status-island__shape .g-status-item__action.g-btn[aria-disabled="true"] {
-  --_bg-hover: transparent;
-  --_fg-hover: var(--g-color-surface);
-}
-.g-status-island__shape .g-btn:focus-visible {
-  outline-color: var(--_ring-color);
-}
-
 /* ---------- Hoja móvil (GDialog real, mobile="sheet"): la misma lista sobre la superficie del diálogo ---------- */
-/* La raíz no captura el puntero; la hoja es su descendiente en el DOM (capa superior propia) */
-.g-status-sheet { pointer-events: auto; }
+.g-status-sheet {
+  --_ink: var(--g-color-text);
+  --_on-ink: var(--g-color-surface);
+  --_ink-hover: color-mix(in oklab, var(--_ink) 86%, var(--_on-ink));
+  --_veil: var(--g-color-neutral-soft);
+  --_well: var(--g-color-surface-sunken);
+  --_hair: var(--g-color-border);
+  --_focus: var(--g-color-focus);
+  --_ring-hold: var(--g-color-border-strong);
+  /* la raíz no captura el puntero; la hoja es su descendiente en el DOM (capa superior propia) */
+  pointer-events: auto;
+}
+.g-status-sheet .g-status-item__badge {
+  --_disc: var(--_soft);
+  --_glyph-ink: var(--_on-soft);
+}
 .g-status-sheet .g-status-island__list {
   display: grid;
-  gap: var(--g-space-2);
   margin: 0;
   padding: 0;
   list-style: none;
 }
+.g-status-sheet .g-status-item { padding-inline: 0; }
+.g-status-sheet .g-status-item::before { inset-inline-start: calc(var(--_badge) + var(--_gap)); }
+.g-status-sheet .g-status-item:first-child::before { display: none; }
 .g-status-sheet .g-status-island__foot {
   display: flex;
   justify-content: flex-end;
 }
 
-/* ---------- Movimiento ---------- */
-/* Giro de loader-circle (reintentando): solo con movimiento permitido */
+/* ---------- Movimiento (status.md «Movimiento», #701; interrupciones #702) ----------
+   Coreografía (cada paso ≤ 240 ms; nada bloquea a la persona; todo lo interrumpible es transición y parte del estado
+   actual; keyframes solo para el anillo, el giro y el eco):
+     drop  la cápsula (space × 24 × fila) con su insignia cae desde −(100 % + margen), 0.9 → 1 y fundido: slow + ease-out
+     grow  se ensancha al titular medido (slow, muelle al crecer) y el texto entra (press + ease-out)
+     peek / list  crecen hacia abajo (slow, muelle al crecer) y su contenido se funde (press); al cerrarse, el contenido
+                  sale primero (fast) y el tamaño vuelve sin muelle (slow + ease-out; el max() de la cabecera)
+     relevo  el texto nuevo entra desde una línea por debajo y la copia que sale se va una por encima (slow + ease-out);
+             el ancho se ajusta (slow, muelle al crecer)
+     fold  el texto sale (fast + standard) a la vez que la cápsula se estrecha (slow + ease-out); la insignia se queda
+     rise  sube y se funde con su insignia (slow + standard)
+   Entrada = drop + grow = 2 × slow; salida = fold + rise = 2 × slow, con el texto fuera dentro del primer tramo: la salida
+   no dura más que la entrada (#152). */
 @keyframes g-status-spin {
   to { rotate: 1turn; }
 }
-/* Toque (is-nudge, una vez por suceso; bruno quita la clase en animationend con animationName === 'g-status-nudge') */
-@keyframes g-status-nudge {
-  from { scale: 0.86; }
-}
 
 @media (prefers-reduced-motion: no-preference) {
+  /* Caer, estrecharse y subir: la cápsula, no el destino medido */
+  .g-status-island:is([data-stage="drop"], [data-stage="fold"], [data-stage="rise"]) .g-status-island__shape {
+    --_status-w: var(--_cap-w);
+    --_status-w-out: var(--_cap-w);
+    --_status-h: var(--_cap-h);
+    --_status-h-out: var(--_cap-h);
+  }
+  /* Sin texto mientras cae, se estrecha o sube: la insignia sí (el tipo se reconoce antes de leer) */
+  .g-status-island:is([data-stage="drop"], [data-stage="fold"], [data-stage="rise"]) :is(.g-status-island__text, .g-status-island__timer, .g-status-island__tail, .g-status-island__peek, .g-status-island__panel) {
+    opacity: 0;
+  }
+  .g-status-island[data-stage="rise"] .g-status-island__shape {
+    translate: 0 calc(-100% - var(--_m));
+    scale: 0.9;
+    opacity: 0;
+  }
+
+  .g-status-island.is-ready {
+    /* Recolocación por la reserva del borde (voz, zócalo o FAB): sin muelle */
+    transition: inset-block-start var(--g-duration-press) var(--g-ease-out);
+  }
+  /* Vigente fuera de @supports (con var(), una curva no soportada invalidaría la declaración entera) */
+  .g-status-island.is-ready .g-status-island__shape {
+    transition:
+      --_status-w var(--g-duration-slow) var(--g-ease-out),
+      --_status-w-out var(--g-duration-slow) var(--g-ease-out),
+      --_status-h var(--g-duration-slow) var(--g-ease-out),
+      --_status-h-out var(--g-duration-slow) var(--g-ease-out),
+      translate var(--g-duration-slow) var(--g-ease-out),
+      scale var(--g-duration-slow) var(--g-ease-out),
+      opacity var(--g-duration-slow) var(--g-ease-out);
+  }
+  .g-status-island.is-ready[data-stage="rise"] .g-status-island__shape {
+    transition:
+      --_status-w var(--g-duration-slow) var(--g-ease-out),
+      --_status-w-out var(--g-duration-slow) var(--g-ease-out),
+      --_status-h var(--g-duration-slow) var(--g-ease-out),
+      --_status-h-out var(--g-duration-slow) var(--g-ease-out),
+      translate var(--g-duration-slow) var(--g-ease-standard),
+      scale var(--g-duration-slow) var(--g-ease-standard),
+      opacity var(--g-duration-slow) var(--g-ease-standard);
+  }
+  @supports (transition-timing-function: linear(0, 1)) {
+    /* El muelle (#324 (a), #701): solo el cambio de tamaño, y por el max() solo manda al crecer */
+    .g-status-island.is-ready .g-status-island__shape {
+      transition:
+        --_status-w var(--g-duration-slow) var(--g-ease-spring),
+        --_status-w-out var(--g-duration-slow) var(--g-ease-out),
+        --_status-h var(--g-duration-slow) var(--g-ease-spring),
+        --_status-h-out var(--g-duration-slow) var(--g-ease-out),
+        translate var(--g-duration-slow) var(--g-ease-out),
+        scale var(--g-duration-slow) var(--g-ease-out),
+        opacity var(--g-duration-slow) var(--g-ease-out);
+    }
+    .g-status-island.is-ready[data-stage="rise"] .g-status-island__shape {
+      transition:
+        --_status-w var(--g-duration-slow) var(--g-ease-spring),
+        --_status-w-out var(--g-duration-slow) var(--g-ease-out),
+        --_status-h var(--g-duration-slow) var(--g-ease-spring),
+        --_status-h-out var(--g-duration-slow) var(--g-ease-out),
+        translate var(--g-duration-slow) var(--g-ease-standard),
+        scale var(--g-duration-slow) var(--g-ease-standard),
+        opacity var(--g-duration-slow) var(--g-ease-standard);
+    }
+  }
+  /* Nacer: la cápsula cae del borde (solo al dejar de estar hidden con data-stage="drop", nunca al montar) */
+  @starting-style {
+    .g-status-island.is-ready[data-stage="drop"] .g-status-island__shape {
+      translate: 0 calc(-100% - var(--_m));
+      scale: 0.9;
+      opacity: 0;
+    }
+  }
+
+  /* Texto del titular: entra al terminar la caída (press); en reposo, el relevo (slow); sale con fast */
+  .g-status-island.is-ready :is(.g-status-island__timer, .g-status-island__tail) {
+    transition: opacity var(--g-duration-press) var(--g-ease-out);
+  }
+  .g-status-island.is-ready .g-status-island__text {
+    transition:
+      opacity var(--g-duration-slow) var(--g-ease-out),
+      translate var(--g-duration-slow) var(--g-ease-out);
+  }
+  .g-status-island.is-ready[data-stage="grow"] .g-status-island__text {
+    transition:
+      opacity var(--g-duration-press) var(--g-ease-out),
+      translate var(--g-duration-slow) var(--g-ease-out);
+  }
+  /* Relevo: un __text nuevo (el .vue lo pone con su clave) entra desde una línea por debajo */
+  @starting-style {
+    .g-status-island.is-ready .g-status-island__text {
+      opacity: 0;
+      translate: 0 100%;
+    }
+  }
+  /* La copia que sale (nueva o la misma con aria-hidden) parte de su sitio y se va una línea por encima */
+  @starting-style {
+    .g-status-island.is-ready .g-status-island__text[aria-hidden="true"] {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+  .g-status-island.is-ready .g-status-island__text[aria-hidden="true"] {
+    opacity: 0;
+    translate: 0 -100%;
+  }
+  .g-status-island.is-ready:is([data-stage="drop"], [data-stage="fold"], [data-stage="rise"]) :is(.g-status-island__text, .g-status-island__timer, .g-status-island__tail, .g-status-island__peek, .g-status-island__panel) {
+    transition: opacity var(--g-duration-fast) var(--g-ease-standard);
+  }
+
+  /* Asomo y lista: su contenido se funde al aparecer (press) y sale primero al cerrarse (fast) */
+  .g-status-island.is-ready :is(.g-status-island__peek, .g-status-island__panel) {
+    transition: opacity var(--g-duration-press) var(--g-ease-out);
+  }
+  @starting-style {
+    .g-status-island.is-ready :is(.g-status-island__peek, .g-status-island__panel) { opacity: 0; }
+  }
+  .g-status-island.is-ready:not(.is-peek) .g-status-island__peek,
+  .g-status-island.is-ready:not([data-form="list"]) .g-status-island__panel {
+    opacity: 0;
+    transition: opacity var(--g-duration-fast) var(--g-ease-standard);
+  }
+
+  .g-status-island.is-ready .g-status-island__chevron {
+    transition: rotate var(--g-duration-slow) var(--g-ease-out);
+  }
+  .g-status-island.is-ready .g-status-island__summary,
+  .g-status-island.is-ready .g-status-island__link {
+    transition: background-color var(--g-duration-fast) var(--g-ease-standard);
+  }
+  .g-status-island.is-ready .g-status-island__ring {
+    transition: background-color var(--g-duration-fast) var(--g-ease-standard);
+  }
   .g-status-island__badge.is-busy > .g-icon,
   .g-status-item.is-busy .g-status-item__badge > .g-icon {
     animation: g-status-spin var(--g-duration-spin) linear infinite;
   }
   .g-status-item__details-chevron { transition: rotate var(--g-duration-fast) var(--g-ease-out); }
-  /* Recolocación por la reserva del borde (la voz aparece o cambia): sin muelle */
-  .g-status-island.is-ready {
-    transition: inset-block-start var(--g-duration-press) var(--g-ease-out);
-  }
-  /* Cambio de forma (vigente fuera de @supports: con var(), una curva no soportada invalida la declaración entera) */
-  .g-status-island.is-ready .g-status-island__shape {
-    transition:
-      inline-size var(--g-duration-slow) var(--g-ease-out),
-      block-size var(--g-duration-slow) var(--g-ease-out),
-      border-radius var(--g-duration-slow) var(--g-ease-out),
-      opacity var(--g-duration-press) var(--g-ease-out),
-      scale var(--g-duration-press) var(--g-ease-out),
-      outline-color var(--g-duration-fast) var(--g-ease-standard),
-      display var(--g-duration-press);
-    transition-behavior: allow-discrete;
-  }
-  .g-status-island.is-ready.is-nudge .g-status-island__shape {
-    animation: g-status-nudge var(--g-duration-slow) var(--g-ease-out);
-  }
-  @supports (transition-timing-function: linear(0, 1)) {
-    .g-status-island.is-ready .g-status-island__shape {
-      transition:
-        inline-size var(--g-duration-slow) var(--g-ease-spring),
-        block-size var(--g-duration-slow) var(--g-ease-spring),
-        border-radius var(--g-duration-slow) var(--g-ease-spring),
-        opacity var(--g-duration-press) var(--g-ease-out),
-        scale var(--g-duration-press) var(--g-ease-out),
-        outline-color var(--g-duration-fast) var(--g-ease-standard),
-        display var(--g-duration-press);
-    transition-behavior: allow-discrete;
-    }
-    .g-status-island.is-ready.is-nudge .g-status-island__shape {
-      animation: g-status-nudge var(--g-duration-slow) var(--g-ease-spring);
-    }
-  }
-  /* Nacer (de vacía a visible): fundido y escala desde 0.86 colgando del borde; es una entrada, sin muelle (#324) */
-  @starting-style {
-    .g-status-island.is-ready .g-status-island__shape {
-      opacity: 0;
-      scale: 0.86;
-    }
-  }
-  /* Vaciarse: fundido corto */
-  .g-status-island.is-ready .g-status-island__shape[hidden] {
-    opacity: 0;
-    transition:
-      opacity var(--g-duration-fast) var(--g-ease-standard),
-      display var(--g-duration-fast);
-    transition-behavior: allow-discrete;
-  }
-  /* Pulsar la isla replegada: se aprieta como un GBtn (la abierta no) */
-  .g-status-island.is-ready:not([data-form="open"]) .g-status-island__shape:has(.g-status-island__summary:active),
-  .g-status-island.is-ready[data-mobile] .g-status-island__shape:has(.g-status-island__summary:active) {
-    scale: var(--g-press-scale);
-  }
-  /* Contenido del panel: cae desde el resumen en una cascada corta (fundido + space × 1) */
-  .g-status-island.is-ready .g-status-island__shape .g-status-item,
-  .g-status-island.is-ready .g-status-island__shape .g-status-island__foot {
-    --_i: 0;
-    transition:
-      background-color var(--g-duration-fast) var(--g-ease-standard),
-      opacity var(--g-duration-press) var(--g-ease-out) calc(var(--g-duration-fast) / 5 * var(--_i)),
-      translate var(--g-duration-press) var(--g-ease-out) calc(var(--g-duration-fast) / 5 * var(--_i));
-  }
-  .g-status-island.is-ready .g-status-island__shape .g-status-item:nth-child(2) { --_i: 1; }
-  .g-status-island.is-ready .g-status-island__shape .g-status-item:nth-child(3) { --_i: 2; }
-  .g-status-island.is-ready .g-status-island__shape .g-status-item:nth-child(n + 4),
-  .g-status-island.is-ready .g-status-island__shape .g-status-island__foot { --_i: 3; }
-  @starting-style {
-    .g-status-island.is-ready .g-status-island__shape .g-status-item,
-    .g-status-island.is-ready .g-status-island__shape .g-status-island__foot {
-      opacity: 0;
-      translate: 0 calc(var(--g-space-1) * -1);
-    }
-  }
 }
 
-/* Movimiento reducido (tokens.md §29.3): la isla no se mueve; solo fundidos de duration-fast */
+/* Movimiento reducido (tokens.md §29.3): la isla no se mueve ni cambia de tamaño animado; solo fundidos de fast.
+   drop: invisible (sin caída); grow: aparece con su tamaño, fundida; fold: nada (se queda con su texto); rise: se funde
+   entera. El anillo sigue diciendo el tiempo (cambia de arco, no desplaza nada); el relevo es un fundido cruzado */
 @media (prefers-reduced-motion: reduce) {
+  .g-status-island[data-stage="drop"] .g-status-island__shape,
+  .g-status-island[data-stage="rise"] .g-status-island__shape { opacity: 0; }
   .g-status-island.is-ready .g-status-island__shape {
-    transition:
-      opacity var(--g-duration-fast) var(--g-ease-standard),
-      display var(--g-duration-fast);
-    transition-behavior: allow-discrete;
+    transition: opacity var(--g-duration-fast) var(--g-ease-standard);
   }
   @starting-style {
     .g-status-island.is-ready .g-status-island__shape { opacity: 0; }
   }
-  .g-status-island.is-ready .g-status-island__shape[hidden] { opacity: 0; }
-  .g-status-island.is-ready .g-status-island__shape .g-status-item,
-  .g-status-island.is-ready .g-status-island__shape .g-status-island__foot {
+  .g-status-island.is-ready .g-status-island__text {
     transition: opacity var(--g-duration-fast) var(--g-ease-standard);
   }
   @starting-style {
-    .g-status-island.is-ready .g-status-island__shape .g-status-item,
-    .g-status-island.is-ready .g-status-island__shape .g-status-island__foot { opacity: 0; }
+    .g-status-island.is-ready .g-status-island__text { opacity: 0; }
   }
+  @starting-style {
+    .g-status-island.is-ready .g-status-island__text[aria-hidden="true"] { opacity: 1; }
+  }
+  .g-status-island.is-ready .g-status-island__text[aria-hidden="true"] { opacity: 0; }
+  .g-status-island.is-ready :is(.g-status-island__peek, .g-status-island__panel) {
+    transition: opacity var(--g-duration-fast) var(--g-ease-standard);
+  }
+  @starting-style {
+    .g-status-island.is-ready :is(.g-status-island__peek, .g-status-island__panel) { opacity: 0; }
+  }
+  .g-status-island.is-ready:not(.is-peek) .g-status-island__peek,
+  .g-status-island.is-ready:not([data-form="list"]) .g-status-island__panel { opacity: 0; }
 }
 
-/* ---------- Preferencias de contraste ---------- */
-@media (prefers-contrast: more) {
-  .g-status-island__shape .g-status-item {
-    --_tile: transparent;
-    --_tile-edge: var(--g-color-surface);
+/* ---------- Preferencias: transparencia, contraste, forced-colors ---------- */
+/* Sin backdrop-filter o con prefers-reduced-transparency: el cristal se ve opaco (tokens.md §12) */
+@supports not ((backdrop-filter: none) or (-webkit-backdrop-filter: none)) {
+  .g-status-island__shape { --_fill: light-dark(var(--g-color-text), var(--g-glass-tint)); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .g-status-island__shape {
+    --_fill: light-dark(var(--g-color-text), var(--g-glass-tint));
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
-  .g-status-item { --_tile-edge: var(--g-color-border-control); }
+}
+@media (prefers-contrast: more) {
+  .g-status-island__shape { --_hair: color-mix(in oklab, var(--_ink) 40%, transparent); }
 }
 @media (forced-colors: active) {
   .g-status-island__shape,
-  .g-status-item { border-color: CanvasText; }
+  .g-status-sheet .g-status-item { border-color: CanvasText; }
+  .g-status-island__shape::before { display: none; }
   .g-status-island__badge,
-  .g-status-item__badge { border-color: CanvasText; }
+  .g-status-item__badge { outline: var(--g-border-width) solid CanvasText; }
+  /* el modo de colores forzados quita los degradados: el anillo los conserva, en colores del sistema */
+  .g-status-island__ring,
+  .g-status-island.is-paused .g-status-island__ring {
+    forced-color-adjust: none;
+    background: conic-gradient(CanvasText var(--_arc), GrayText 0);
+  }
+  .g-status-island__more { box-shadow: inset 0 0 0 var(--g-border-width) CanvasText; }
+  .g-status-island__action.g-btn,
+  .g-status-item__action.g-btn { border-color: ButtonText; }
+  .g-status-item::before { border-color: CanvasText; }
   .g-status-item__details { border: var(--g-border-width) solid CanvasText; }
   .g-status-island__summary:focus-visible,
-  .g-status-island__shape:has(.g-status-island__summary:focus-visible),
+  .g-status-island__link:focus-visible,
   .g-status-item:focus-visible,
-  .g-status-item__link:focus-visible { outline-color: Highlight; }
+  .g-status-item__link:focus-visible,
+  .g-status-island__shape .g-btn:focus-visible { outline-color: Highlight; }
+}
+
+/* ---------- Sin light-dark() (Chrome < 123, Firefox < 120, Safari < 17.5): el claro (tokens.md §12.1, regla 3) ---------- */
+@supports not (color: light-dark(red, red)) {
+  .g-status-island__shape {
+    --_fill: color-mix(in srgb, var(--g-color-text) 84%, transparent);
+    --_ink: var(--g-color-surface);
+    --_on-ink: var(--g-color-text);
+    --_edge-top: color-mix(in srgb, var(--g-color-surface) 22%, transparent);
+    --_sheen: color-mix(in srgb, var(--g-color-surface) 12%, transparent);
+    --_rim: transparent;
+    --_zone-ring: color-mix(in srgb, var(--g-color-on-brand-zone) 75%, transparent);
+    --_lift: color-mix(in srgb, var(--g-color-text) 22%, transparent);
+    --_hair: color-mix(in oklab, var(--g-color-surface) 18%, transparent);
+    --_chip: transparent;
+    --_chip-edge: color-mix(in oklab, var(--g-color-surface) 40%, transparent);
+  }
+  .g-status-island__badge,
+  .g-status-item__badge {
+    --_disc: color-mix(in oklab, var(--_c) 40%, transparent);
+    --_glyph-ink: var(--g-color-surface);
+  }
+  .g-status-sheet .g-status-item__badge {
+    --_disc: var(--_soft);
+    --_glyph-ink: var(--_on-soft);
+  }
 }

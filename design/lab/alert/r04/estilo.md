@@ -357,3 +357,13 @@ Dos piezas, solo en la rama oscura de `light-dark()`:
 2. El `ResizeObserver` y la medida de kiwi sin cambios.
 3. `light-dark()` requiere Chrome 123, Firefox 120 y Safari 17.5.
 4. Valorar el coste de `backdrop-filter` en una forma que cambia de tamaño (rúbrica G).
+
+## 11. Implementación (paso 3 del flujo)
+
+Lo fijado en §10 está escrito en `GStatusIsland.css` y `GStatusMark.css` sobre las clases y datos de `status.md` (181c524). El documento de implementación, con la auditoría previa frente al CSS vigente, la coreografía y el solape de la salida, el muelle solo al crecer (M1), las medidas, la rúbrica y los encargos a bruno y a lima, es **`design/lab/alert/estilo.md`**. Banco: `design/lab/alert/estilo-banco.html`. Verificación: `node design/lab/alert/estilo-verificar.mjs`, **285/285** en Chromium (11 temas del CLI, claro y oscuro), Firefox y WebKit.
+
+Dos correcciones de lima a este banco, aplicadas en el CSS real:
+- el eco de la marca dura `--g-duration-slow`, no `slow × 3`;
+- el chevrón gira con `--g-ease-out`, no con el muelle.
+
+Este banco (`estilo-banco.html` de r04) queda como registro de la exploración.
