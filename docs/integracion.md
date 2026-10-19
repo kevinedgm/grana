@@ -52,8 +52,9 @@ Los archivos `.umd.js` existen para esto (`dist/grana.umd.js`; el paquete aún n
 <script src="/vendor/vue/vue.global.prod.js"></script>
 <script src="/vendor/grana/grana.umd.js"></script>      <!-- global Grana -->
 <script src="/vendor/grana/status.umd.js"></script>     <!-- global GranaStatus (opcional) -->
+<script src="/vendor/grana/fab.umd.js"></script>        <!-- global GranaFab (opcional) -->
 <script>
-  Vue.createApp({}).use(Grana).mount('#app')
+  Vue.createApp({}).use(Grana).use(GranaFab).mount('#app')
 </script>
 ```
 
@@ -62,14 +63,16 @@ Los archivos `.umd.js` existen para esto (`dist/grana.umd.js`; el paquete aún n
 | `grana.umd.js` | `Grana` | Los componentes del paquete principal y `install` (`app.use(Grana)`), `createToaster`, `useToast`, `createIcons`… |
 | `speech.umd.js` | `GranaSpeech` | `createSpeech`, `useSpeech`, los tres componentes de voz y `GTranscript` |
 | `status.umd.js` | `GranaStatus` | `createStatus`, `useStatus`, `GStatusIsland`, `GStatusMark`, `GStatus` |
-| `combobox.umd.js`, `file-field.umd.js`, `time-field.umd.js`, `slider.umd.js`, `tag.umd.js`, `load-region.umd.js` | `GranaCombobox`, `GranaFileField`, `GranaTimeField`, `GranaSlider`, `GranaTag`, `GranaLoadRegion` | Un componente (o par) por archivo; se registran con `app.use(GranaCombobox)` |
+| `combobox.umd.js`, `file-field.umd.js`, `time-field.umd.js`, `slider.umd.js`, `tag.umd.js`, `load-region.umd.js`, `card-group.umd.js`, `page-header.umd.js`, `fab.umd.js`, `form-fold.umd.js` | `GranaCombobox`, `GranaFileField`, `GranaTimeField`, `GranaSlider`, `GranaTag`, `GranaLoadRegion`, `GranaCardGroup`, `GranaPageHeader`, `GranaFab`, `GranaFormFold` | Un componente (o par) por archivo: `GCombobox`, `GFileField`, `GTimeField`, `GSlider`, `GTag` y `GTagGroup`, `GLoadRegion`, `GCardGroup`, `GPageHeader`, `GFab`, `GFormFold`. Cada global exporta el componente y `install` (leído en `src/<entrada>.js`); se registra con `app.use(GranaFab)` |
 | `testing.umd.js` | `GranaTesting` | Ayudas para probar; no es para producción |
 
 - Los globales salen de la configuración de Vite de cada entrada (`packages/vue/vite.*.config.js`). Las entradas propias dependen del global `Grana` (comparten con él las piezas comunes), por eso `grana.umd.js` va antes.
 - **Plantillas dentro del HTML (sin compilar):** escribe las etiquetas con cierre explícito, `<g-btn></g-btn>`: el compilador del navegador no admite componentes autocerrados, y los nombres van en kebab-case.
 - **`fonts.css` y la carpeta `fonts/` van juntos:** `fonts.css` apunta a `./fonts/*.woff2`. Se genera con `scripts/build-fonts.mjs` en `npm run build`. Si tu tema define otra fuente, omítelo.
 - **No guardes un gestor en `window.status`:** es una propiedad heredada del navegador (ver el README de `GStatusIsland`).
-- Verificado: `grana.umd.js` + `status.umd.js` (este construido con `vite build -c vite.status.config.js` en una carpeta temporal) funcionan juntos con `vue.global.js` en Chromium, como en la sección siguiente.
+- Los pesos de cada entrada están en el [README principal](../README.md#entradas-propias) (tabla «Entradas propias»).
+- **Sin avisos de desarrollo.** Sin empaquetador no existe `process`, y la guarda de los avisos (`try { if (process.env.NODE_ENV !== 'production' …) … } catch {}`, #653) se salta en silencio: con los UMD desde un `<script>` no verás avisos de configuración en la consola (un `GDialog` abierto sin `closeLabel` no emitió ninguno). Si quieres esos avisos mientras integras, usa los módulos ESM con un empaquetador en modo desarrollo.
+- Verificado en Chromium (solo estas cuatro entradas; el resto sigue el mismo patrón de `src/<entrada>.js`, leído, no cargado): `vue.global.prod.js` + `grana.umd.js` + `card-group.umd.js` + `page-header.umd.js` + `form-fold.umd.js` + `fab.umd.js` de `packages/vue/dist/` desde `file://`; los cuatro globales exportan componente e `install`, `app.use(...)` los registra (`GCardGroup`, `GPageHeader`, `GFormFold`, `GFab`), montaron `g-card-group`, `g-page-header` y `g-fab` (con dos `items`) y la consola quedó vacía. Antes se había verificado `grana.umd.js` + `status.umd.js` juntos.
 
 ## 4. Varias aplicaciones de Vue en la misma página
 
