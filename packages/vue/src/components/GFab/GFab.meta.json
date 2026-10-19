@@ -31,8 +31,8 @@
   "bundle": {
     "measured": "2026-10-18",
     "entry": "dist/fab.js (GFab)",
-    "gzip": 10136,
-    "umdGzip": 9248,
+    "gzip": 10239,
+    "umdGzip": 9340,
     "global": "GranaFab",
     "budget": 10496,
     "note": "gzip (zlib por defecto, como src/fab.test.js). Vue y @grana/vue externos; GBtn, GTooltip, los dos GIcon, menuNav, edgeReserve (con EDGE_ORDER.fab), topModal, liveRegion, anchor, sizeObserver, formContext, motion, match y template llegan de __shared, sin copia. El CSS va en grana.css. En el principal crecen el motor extraído (utils/menuNav.js) y EDGE_ORDER.fab."

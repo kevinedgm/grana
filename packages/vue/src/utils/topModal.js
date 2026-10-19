@@ -3,7 +3,7 @@
 // y una pila de los <dialog> que están en `:modal`. No es API pública.
 //
 //   const tm = createTopModal({ ignore: (d) => root.contains(d), onChange: (top) => { … } })
-//   tm.scan()      // pila inicial con los <dialog> modales ya abiertos (al montar)
+//   tm.scan()      // pila con los <dialog> modales abiertos ahora (al montar o al volver a mirar sin observar)
 //   tm.observe()   // empieza a observar (un <dialog> hermano posterior puede abrirse en este mismo ciclo)
 //   tm.top()       // el modal superior o null
 //   tm.disconnect()
@@ -23,12 +23,16 @@ export function createTopModal({ ignore = () => false, onChange = () => {} } = {
     try { return Boolean(ignore(d)) } catch { return false }
   }
   const top = () => stack[stack.length - 1] || null
-  // Quita de la pila lo que ya no está abierto, conectado o modal y avisa del modal superior
-  function sync() {
+  // Quita de la pila lo que ya no está abierto, conectado o modal
+  function prune() {
     for (let i = stack.length - 1; i >= 0; i--) {
       const d = stack[i]
       if (!d.isConnected || !d.hasAttribute('open') || !isModal(d) || skip(d)) stack.splice(i, 1)
     }
+  }
+  // …y avisa del modal superior
+  function sync() {
+    prune()
     onChange(top())
   }
   function onMutations(records) {
@@ -47,6 +51,9 @@ export function createTopModal({ ignore = () => false, onChange = () => {} } = {
     sync,
     scan() {
       if (typeof document === 'undefined' || typeof document.querySelectorAll !== 'function') return
+      // Sin observar entre dos escaneos (GFab escanea al abrir y solo observa abierto) la pila puede guardar un modal ya
+      // cerrado: se poda antes de añadir, o un FAB rechazado una vez por un modal no volvería a abrir (fab-bordes.spec.mjs)
+      prune()
       for (const d of document.querySelectorAll('dialog[open]')) if (isModal(d) && !skip(d) && !stack.includes(d)) stack.push(d)
     },
     observe() {

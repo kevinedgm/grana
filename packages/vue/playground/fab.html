@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GFab · banco de bruno (personalidad, rendimiento y bordes)</title>
+<!-- Banco ligero de bruno para GFab (design/contracts/fab.md «Verificación · Playwright»; auditoría de coco H3) sobre el
+     COMPONENTE REAL: GFab de dist/fab.umd.js (entrada @grana/vue/fab, global GranaFab) con GBtn, GTooltip, GIcon, GToaster y
+     GDialog de dist/grana.umd.js, GStatusIsland de dist/status.umd.js, GPageHeader de dist/page-header.umd.js y la voz de
+     dist/speech.umd.js con el adaptador simulado de dist/testing.umd.js. Solo, en una página ligera: en el playground completo
+     la cifra de rendimiento sería de la página (miles de elementos de las demás secciones), no del componente.
+     Lo usan design/lab/theme-playground/tests/personalidad-fab.spec.mjs, fab-perf.spec.mjs y fab-bordes.spec.mjs.
+     Requiere `npm run build`. Desde la raíz del repo: python3 -m http.server 4173 → /packages/vue/playground/fab.html
+     Parámetros: ?n=1|3|6|10|15 (por defecto 6) · ?main=1 (C) · ?appearance=panel · ?pos=… (las seis) · ?anchor=container
+       ?rtl=1 · ?dark=1 · ?zone=1 (data-g-zone="brand" en la raíz de la aplicación) · ?coarse=1 (is-coarse) · ?long=1
+       ?toast=1 (un aviso persistente) · ?toastpos=top-end|bottom-end|… · ?status=1 (una condición en la isla)
+       ?ph=1 (GPageHeader pegado con acciones: el zócalo arriba y, en estrecho, el muelle abajo) · ?speech=1 (GSpeechHost con
+       el adaptador simulado; window.__b.speech.start()) · ?inline=1 (items como arreglo nuevo en cada render del padre)
+     window.__b: events, st (open, dialog, tick), items, toaster, status, speech -->
+<link rel="stylesheet" href="../dist/fonts.css">
+<link rel="stylesheet" href="../dist/grana.css">
+<style>
+  /* Andamio del banco (la «aplicación», no es de Grana) */
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  .wrap{min-block-size:100vh;background:var(--g-color-bg)}
+  main{max-inline-size:880px;margin:0 auto;padding:16px}
+  main p{max-inline-size:65ch;color:var(--g-color-text-muted)}
+  .row{display:flex;justify-content:space-between;gap:12px;padding:12px;border-block-end:1px solid var(--g-color-border);color:var(--g-color-text);text-decoration:none}
+  .frame{position:relative;inline-size:720px;block-size:480px;max-inline-size:100%;border:1px solid var(--g-color-border-strong);border-radius:8px;overflow:hidden;background:var(--g-color-bg)}
+  .frame__scroll{position:absolute;inset:0;overflow:auto;padding:16px}
+  [v-cloak]{display:none}
+</style>
+</head>
+<body>
+<div id="app" v-cloak></div>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="../dist/grana.umd.js"></script>
+<script src="../dist/status.umd.js"></script>
+<script src="../dist/page-header.umd.js"></script>
+<script src="../dist/speech.umd.js"></script>
+<script src="../dist/testing.umd.js"></script>
+<script src="../dist/fab.umd.js"></script>
+<script src="./lucide-icons.js"></script>
+<script>
+const Q = new URLSearchParams(location.search)
+if (Q.get('dark') === '1') document.documentElement.dataset.theme = 'dark'
+if (Q.get('rtl') === '1') document.documentElement.dir = 'rtl'
+
+const { createApp, reactive, ref } = Vue
+// Las acciones del playground (#sec-fab)
+const ALL = [
+  { id: 'sample', label: 'Nueva muestra', icon: 'pencil', description: 'Registro con código de barras' },
+  { id: 'photo', label: 'Tomar foto', icon: 'image' },
+  { id: 'note', label: 'Dictar nota', icon: 'message-circle' },
+  { id: 'upload', label: 'Subir archivo', icon: 'folder', description: 'PDF, imagen o CSV' },
+  { id: 'agenda', label: 'Programar toma', icon: 'calendar' },
+  { id: 'csv', label: 'Exportar CSV', icon: 'download', group: 'Exportar', description: 'Lo filtrado, en UTF-8' },
+  { id: 'print', label: 'Imprimir etiquetas', icon: 'inbox', group: 'Exportar' },
+  { id: 'share', label: 'Compartir lote', icon: 'share-2', group: 'Compartir', description: 'Con el equipo del laboratorio' },
+  { id: 'mail', label: 'Enviar por correo', icon: 'mail', group: 'Compartir' },
+  { id: 'tag', label: 'Etiquetar', icon: 'tag', group: 'Organizar' },
+  { id: 'move', label: 'Mover a carpeta', icon: 'folder', group: 'Organizar' },
+  { id: 'copy', label: 'Duplicar', icon: 'check', group: 'Organizar' },
+  { id: 'link', label: 'Copiar enlace', icon: 'globe', group: 'Compartir' },
+  { id: 'prefs', label: 'Preferencias', icon: 'settings', group: 'Mantenimiento', disabled: 'Solo para coordinación' },
+  { id: 'purge', label: 'Vaciar borradores', icon: 'trash', group: 'Mantenimiento', danger: true, confirm: '¿Vaciar los 12 borradores?', confirmLabel: 'Vaciar' }
+]
+const N = Number(Q.get('n')) || 6
+const LONG = Q.get('long') === '1'
+const base = N === 3 ? [ALL[0], ALL[1], { ...ALL[14], group: undefined }] : N === 6 ? ALL.slice(0, 5).concat(ALL[14]) : ALL.slice(0, N)
+const items = ref(base.map((it, i) => (LONG && i === 0 ? { ...it, label: 'Nueva muestra con código de barras del lote completo' } : it)))
+const LABELS = { more: 'Más acciones ({count})', moreShort: 'Más acciones', cancel: 'Cancelar', findHint: 'Escribe para buscar', matches: '{count} acciones', matchesOne: '1 acción', none: 'Ninguna acción con', busy: 'En curso…', done: 'Hecho', failed: 'No se pudo' }
+const events = []
+// El acuse lo da la «aplicación» con el ticket de select: plan por id (ok:<ms>, fail:<ms>, busy, none)
+const plan = reactive({ csv: 'ok:600', photo: 'fail:400' })
+const wait = (ms, ok, text) => new Promise((res, rej) => setTimeout(() => (ok ? res(text) : rej({ message: text })), ms))
+function onSelect(e) {
+  events.push({ type: 'select', id: e.id, retry: e.retry })
+  const [kind, ms] = (plan[e.id] || 'none').split(':')
+  if (kind === 'ok') e.waitUntil(wait(Number(ms), true, e.id === 'csv' ? 'CSV exportado' : 'Hecho'))
+  else if (kind === 'fail') e.waitUntil(wait(Number(ms), false, e.id === 'photo' ? 'Sin conexión' : 'Falló'))
+  else if (kind === 'busy') e.busy('En curso')
+}
+const toaster = Grana.createToaster({ position: Q.get('toastpos') || 'bottom-end', labels: { region: 'Notificaciones ({hotkey})', close: 'Cerrar notificación', types: { info: 'Información', success: 'Correcto', warning: 'Advertencia', error: 'Error', loading: 'En curso' }, repeated: '{count} veces', queued: '{count} más en espera', actionHint: 'Pulsa {hotkey} para {action}.' } })
+const status = GranaStatus.createStatus({ labels: { region: 'Estado de la aplicación ({hotkey})', summary: (n) => (n === 1 ? 'Estado: 1 aviso.' : 'Estado: ' + n + ' avisos.'), more: 'y {count} más', types: { info: 'Información', success: 'Correcto', warning: 'Advertencia', error: 'Error' }, acknowledge: 'Entendido', dismiss: 'Descartar: {title}', details: 'Detalle técnico', copy: 'Copiar', copied: 'Detalle copiado', remaining: 'Quedan {time}', sheetTitle: 'Estado de la aplicación', close: 'Cerrar' } })
+if (Q.get('status') === '1') status.info('maint', 'Mantenimiento programado esta noche', { description: 'De 23:00 a 23:30 no se podrá guardar.', dismissible: true })
+// Voz: el adaptador simulado de @grana/vue/testing (sin red) que simula también el micrófono
+const SPEECH = Q.get('speech') === '1'
+const speech = SPEECH ? GranaSpeech.createSpeech({
+  adapter: GranaTesting.createSimulatedSpeechAdapter({ latency: 300, input: { format: 'self' }, script: { dictation: ['Refiere dolor lumbar de tres días.'], conversation: [{ speaker: 'A', text: 'Buenos días.' }, { speaker: 'B', text: 'Me duele la espalda.' }] } }),
+  language: 'es',
+  labels: {
+    region: 'Grabación de voz', openPanel: 'abrir panel', closePanel: 'Cerrar panel', duration: 'Duración:',
+    actions: { start: 'Empezar a grabar', cancel: 'Cancelar', pause: 'Pausar', resume: 'Reanudar', retry: 'Reintentar', finish: 'Finalizar', discard: 'Descartar', discardAsk: '¿Descartar la grabación?', discardConfirm: 'Sí, descartar', closeSession: 'Cerrar sesión', dismiss: 'Cerrar', retrySegment: 'Reintentar fragmento', hideActivity: 'Ocultar actividad', review: 'Revisar', reviewCompleted: 'Revisar transcripción' },
+    states: {
+      requesting: { short: 'Pidiendo permiso', long: 'Esperando el permiso del micrófono', longGranted: 'Activando el micrófono' },
+      ready: { short: 'Listo', long: 'Listo para grabar' }, listening: { short: 'Grabando', long: 'Grabando' },
+      speech: { short: 'Voz detectada', long: 'Grabando · voz detectada' }, transcribing: { short: 'Transcribiendo', long: 'Grabando · transcribiendo' },
+      paused: { short: 'En pausa', long: 'En pausa' }, processing: { short: 'Procesando', long: 'Procesando el audio pendiente' },
+      reconnecting: { short: 'Reconectando', shortLive: 'Reconectando · grabando', long: 'Reconectando', longLive: 'Reconectando' },
+      denied: { short: 'Permiso denegado', long: 'Permiso del micrófono denegado' }, unavailable: { short: 'Sin micrófono', long: 'Micrófono no disponible' },
+      error: { short: 'Error', long: 'Error en la grabación' }, completed: { short: 'Lista', long: 'Transcripción lista' }
+    },
+    mode: { dictation: 'Dictado en «{target}»', conversation: 'Conversación · {speakers}' },
+    speaker: 'Hablante {letter}', unassigned: 'Sin asignar', attempt: 'Intento {attempt}', signalFlat: 'No llega sonido del micrófono.',
+    pending: (n) => n + ' pendientes', pendingNone: 'Todo transcrito', progress: 'Procesando',
+    privacy: { device: 'Procesamiento en este dispositivo.', local: 'Procesamiento local.', remote: 'Procesamiento externo.' },
+    audio: { none: 'El audio no se guarda.', memory: 'Audio temporal en memoria.', disk: 'Audio temporal cifrado.', deleted: 'Audio eliminado.', notConfirmed: 'Sin confirmar.' }
+  }
+}) : null
+const PH = Q.get('ph') === '1'
+const INLINE = Q.get('inline') === '1'
+const st = reactive({ open: undefined, dialog: false, tick: 0 })
+const cfg = {
+  main: Q.get('main') === '1' ? 'sample' : undefined,
+  appearance: Q.get('appearance') || 'auto',
+  position: Q.get('pos') || 'bottom-end',
+  anchor: Q.get('anchor') === 'container' ? 'container' : 'viewport',
+  coarse: Q.get('coarse') === '1',
+  zone: Q.get('zone') === '1'
+}
+window.__b = { events, plan, items, st, toaster, status, speech, cfg }
+const app = createApp({
+  setup() {
+    const PARA = Array.from({ length: PH ? 40 : 16 }, (_, i) => i)
+    // ?inline=1: un arreglo nuevo en cada render del padre (como `:items="acciones.filter(…)"` en una plantilla)
+    const list = () => (INLINE ? items.value.slice() : items.value)
+    return { st, cfg, PARA, PH, LABELS, list, onSelect, ev: (type) => events.push({ type }) }
+  },
+  template: `
+  <div class="wrap" :data-g-zone="cfg.zone ? 'brand' : undefined">
+    <main id="main">
+      <g-page-header v-if="PH" id="ph" title="Lote 2026-0412" description="Muestras de entrada del laboratorio." :labels="{ actions: 'Acciones de la página' }">
+        <template #actions><g-btn id="ph-edit" variant="outline" color="neutral">Editar</g-btn><g-btn id="ph-primary">Validar lote</g-btn></template>
+      </g-page-header>
+      <h1 v-else>Muestras del lote 2026-0412</h1>
+      <p>Registro de entrada del laboratorio. <span id="tick">Renders del padre: {{ st.tick }}</span></p>
+      <p><g-btn id="open-dialog" variant="outline" color="neutral" @click="st.dialog = true">Abrir diálogo</g-btn></p>
+      <div v-if="cfg.anchor === 'container'" class="frame" id="frame"><div class="frame__scroll" id="frame-scroll"><a v-for="i in PARA" :key="i" class="row" href="#followed"><span>Muestra M-{{ 100 + i }}</span><span>En análisis</span></a></div>
+        <g-fab id="fab" :class="{ 'is-coarse': cfg.coarse }" label="Crear y capturar" :items="list()" :main="cfg.main" :appearance="cfg.appearance" :position="cfg.position" anchor="container" :labels="LABELS" v-model="st.open" @select="onSelect" @open="ev('open')" @closed="ev('closed')" />
+      </div>
+      <a v-for="i in PARA" :key="'r' + i" class="row" href="#followed" :id="'row' + i"><span>Muestra M-{{ i }}</span><span>En análisis</span></a>
+      <label style="display:block;margin-block:16px">Nota <input id="field" style="inline-size:100%;min-block-size:44px"></label>
+      <a class="row" href="#followed" id="last"><span>Última fila</span><span>junto al borde</span></a>
+    </main>
+    <g-fab v-if="cfg.anchor === 'viewport'" id="fab" :class="{ 'is-coarse': cfg.coarse }" label="Crear y capturar" :items="list()" :main="cfg.main" :appearance="cfg.appearance" :position="cfg.position" :labels="LABELS" v-model="st.open" @select="onSelect" @open="ev('open')" @closed="ev('closed')" />
+    <g-dialog v-model="st.dialog" title="Diálogo de la aplicación" :labels="{ close: 'Cerrar' }">
+      <p>Un modal encima: el FAB queda inerte bajo el fondo.</p>
+      <template #footer="{ close }"><g-btn id="dlg-ok" @click="close()">Aceptar</g-btn></template>
+    </g-dialog>
+    <g-toaster></g-toaster>
+    ${SPEECH ? '<g-speech-host></g-speech-host>' : ''}
+    <g-status-island></g-status-island>
+  </div>`
+})
+app.use(Grana).use(GranaPageHeader).use(GranaFab).use(Grana.createIcons(Object.values(window.LUCIDE_STATIC))).use(toaster).use(status)
+if (speech) app.use(speech)
+app.mount('#app')
+if (Q.get('toast') === '1') toaster.show({ title: 'Lote guardado', duration: Infinity })
+window.__ready = true
+</script>
+</body>
+</html>

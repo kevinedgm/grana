@@ -611,6 +611,25 @@ describe('GFab · v-model, closeOnSelect y eventos', () => {
     expect(c.find('[id$="-trigger"]').attributes('aria-expanded')).toBe('false')
   })
 
+  it('con un modal encima no abre; cerrado el modal, vuelve a abrir (el modal cerrado no se queda en la pila)', async () => {
+    vi.spyOn(HTMLElement.prototype, 'matches').mockImplementation(function (sel) {
+      if (sel === ':modal') return this.localName === 'dialog' && this.hasAttribute('open')
+      if (sel === ':popover-open') return this.hasAttribute('data-popover-open')
+      return Element.prototype.matches.call(this, sel)
+    })
+    const d = document.createElement('dialog')
+    document.body.append(d)
+    d.setAttribute('open', '')
+    const w = mk({ items: ALL.slice(0, 3), modelValue: false })
+    await w.setProps({ modelValue: true }); await settle()
+    expect(trig(w).attributes('aria-expanded')).toBe('false')
+    d.removeAttribute('open')
+    await w.setProps({ modelValue: false }); await settle()
+    await w.setProps({ modelValue: true }); await settle()
+    expect(trig(w).attributes('aria-expanded')).toBe('true')
+    expect(active().textContent).toContain('Nueva muestra')
+  })
+
   it('modelValue true con una sola acción no abre y avisa (aviso 12)', async () => {
     mk({ items: [ALL[1]], modelValue: true }); await settle()
     expect(fabWarns().some((m) => m.includes('aviso 12'))).toBe(true)
@@ -769,6 +788,32 @@ describe('GFab · el panel que cubre la pila no es más estrecho que ella (#691)
     const ref = mk({ items: ALL.slice(0, 8) }, { stackH: () => 123, stackW: 10, stackTop: 500 })
     await openMore(ref)
     expect(wOf(ref)).toBe(wide)
+  })
+})
+
+// Lección de bd888df: un watch cuya fuente devuelve un arreglo nuevo se dispara en cada render del padre. Con
+// `:items="acciones.filter(…)"` cada render da un arreglo nuevo e igual: con la lista abierta no debe medir ni recolocar
+// (tests/fab-perf.spec.mjs lo mide en los tres motores: 150 lecturas de caja en 30 renders antes de la firma)
+describe('GFab · un arreglo nuevo e igual en items no vuelve a medir (bd888df)', () => {
+  const rects = () => HTMLElement.prototype.getBoundingClientRect.mock.calls.length
+  it('con la lista abierta, items igual con otra identidad: ni medidas ni foco movido; un cambio real sí recoloca', async () => {
+    const w = mk({ items: ALL.slice(0, 10) })
+    await open(w)
+    const f = active()
+    const n0 = rects()
+    for (let i = 0; i < 5; i++) { await w.setProps({ items: ALL.slice(0, 10) }); await settle() }
+    expect(rects()).toBe(n0)
+    expect(active()).toBe(f)
+    // Mismo contenido con objetos nuevos (p. ej. un .map de la aplicación): tampoco
+    await w.setProps({ items: ALL.slice(0, 10).map((x) => ({ ...x })) }); await settle()
+    expect(rects()).toBe(n0)
+    // Un cambio que sí altera lo pintado (una etiqueta, un motivo, una acción más) recoloca
+    await w.setProps({ items: ALL.slice(0, 10).map((x, i) => (i === 1 ? { ...x, disabled: 'Sin cámara' } : x)) }); await settle()
+    expect(rects()).toBeGreaterThan(n0)
+    const n1 = rects()
+    await w.setProps({ items: ALL.slice(0, 11) }); await settle()
+    expect(rects()).toBeGreaterThan(n1)
+    expect(w.find('.g-fab__item--more').text()).toContain('Más acciones (7)')
   })
 })
 

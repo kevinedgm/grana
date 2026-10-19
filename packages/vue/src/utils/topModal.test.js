@@ -48,6 +48,22 @@ describe('topModal', () => {
     expect(tm.top()).toBeNull()
     tm.disconnect()
   })
+
+  it('scan sin observar rehace la pila: un modal ya cerrado no se queda arriba (GFab escanea al abrir)', () => {
+    const a = document.createElement('dialog')
+    document.body.append(a)
+    a.showModal()
+    const tm = createTopModal()
+    tm.scan()
+    expect(tm.top()).toBe(a)
+    a.close()
+    tm.scan()
+    expect(tm.top()).toBeNull()
+    a.showModal()
+    a.remove()
+    tm.scan()
+    expect(tm.top()).toBeNull()
+  })
 })
 
 describe('edgeReserve', () => {

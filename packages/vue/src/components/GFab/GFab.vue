@@ -713,8 +713,16 @@ export default defineComponent({
       queueHl()
     }
 
+    // Firma de lo que cambia la forma o lo pintado de cada elemento. Con `:items="acciones.filter(…)"` cada render del padre
+    // da un arreglo nuevo e igual: vigilar `model` (un arreglo nuevo cada vez) mediría y recolocaría en cada render
+    // (lección de bd888df; tests/fab-perf.spec.mjs). La firma solo cambia si cambia algo que se ve o que se mide
+    const shapeKey = computed(() => model.value.map((x) => {
+      const r = x.raw
+      return [x.key, x.label, typeof r.icon === 'string' ? r.icon : '', r.description ?? '', r.group ?? '', r.disabled ?? '', x.danger, x.ask, r.confirmLabel ?? ''].join('\u001f')
+    }).join('\u001e'))
     // Si `items` cambia con la lista abierta: se rehace la forma (sin subir k) y el foco sigue a su elemento
-    watch(model, async (list) => {
+    watch(shapeKey, async () => {
+      const list = model.value
       const keys = new Set(list.map((x) => x.key))
       for (const m of [acks, owners]) for (const key of [...m.keys()]) if (!keys.has(key)) m.delete(key)
       if (idle()) return
