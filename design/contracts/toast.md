@@ -27,7 +27,7 @@ Un **aviso breve y no modal** que confirma o informa del resultado de algo que e
 | Error de un campo o formulario | Debe estar junto al campo (3.3.1) | Error de `GInput`, `GSelect`… |
 | Estado de una tarjeta o widget | Vive en su contenedor | `status` de `GCard` (#133), estados de `GWidget` (#73) |
 | Ayuda contextual | Se abre a petición | `GHelper` (#101) |
-| Información persistente de página, fallo del servidor que dura, resultado que debe quedarse | No desaparece | **Isla de estado** (`GStatusIsland`, `design/contracts/status.md`, #315). **Un suceso, un canal:** o aviso flotante o isla, nunca los dos |
+| Algo que **deja algo pendiente** al irse: fallo del servidor que se reintenta, condición que dura (sin conexión, sesión por caducar, mantenimiento), resultado que vuelve a su origen | Lo pendiente vive en una marca y en Alt+F8 | **Isla de estado** (`GStatusIsland`, `design/contracts/status.md`, #315, #704). **Regla (#704):** si al irse el aviso **no queda nada pendiente**, `GToast`; si queda algo, la isla. Dos servicios, no uno. **Un suceso, un canal:** o aviso flotante o isla, nunca los dos |
 | Bandeja o historial de notificaciones | Es una vista, no un aviso | Fuera de v0.1 (#138); si entra, **componente propio que lea del mismo gestor** (`toaster.toasts`) |
 
 ## Entrega (API pública)
@@ -298,7 +298,7 @@ Orden del DOM = orden de lectura = orden de foco. El más reciente queda **junto
 
 ### Convivencia con la isla de estado (`status.md`, #322)
 
-- **Borde compartido, voz → isla → avisos:** la isla (`GStatusIsland`, siempre arriba) también publica una reserva en el registro interno (`utils/edgeReserve.js`, ahora con `order`). **`GToaster` no cambia:** su llamada `edgeReserve(lado)` suma todas las reservas de su borde efectivo, así que con los avisos arriba quedan bajo la isla replegada (y bajo la pill de voz si la hay). `GToast.css` no cambia.
+- **Borde compartido, voz → isla → avisos:** la isla (`GStatusIsland`, siempre arriba) también publica una reserva en el registro interno (`utils/edgeReserve.js`, ahora con `order`). **`GToaster` no cambia:** su llamada `edgeReserve(lado)` suma todas las reservas de su borde efectivo, así que con los avisos arriba quedan bajo la isla **mientras se ve** (desde #699 la isla es transitoria y publica solo entre su caída y el final de su subida; los avisos se recolocan con su propia transición) y bajo la pill de voz si la hay. `GToast.css` no cambia.
 - **Atajos y canales:** F8 avisos, Mayús+F8 voz, Alt+F8 isla; cada servicio con su par de canales. Regla de uso: un suceso va a los avisos **o** a la isla.
 - **Hoja móvil de la isla:** es un `GDialog` modal; la región de avisos se traslada a ella como a cualquier modal.
 

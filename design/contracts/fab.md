@@ -339,11 +339,11 @@ Solo con `pointer: coarse`: bajo la lista, un velo (`div.g-fab__scrim`, `popover
 
 ## Bordes compartidos (`edgeReserve`, #659)
 
-**Cuarto cliente de `utils/edgeReserve.js`** (#322, #631). Cambio interno en el principal (bruno): **`EDGE_ORDER = { speech: 10, pageHeader: 15, status: 20, fab: 25 }`**.
+**Cuarto cliente de `utils/edgeReserve.js`** (#322, #631). Cambio interno en el principal (bruno): **`EDGE_ORDER = { speech: 10, pageHeader: 15, status: 20, fab: 25 }`** (**enmendado por #699:** la isla pasa a `status: 30`, detrás del FAB, porque ahora es transitoria y lo persistente conserva el borde, #225).
 
 | Pieza | Borde | Publica | Lee | Efecto |
 | --- | --- | --- | --- | --- |
-| FAB contraído (`anchor="viewport"`) | el de su `position` | Su alto **contraído** + el margen seguro (px; `order: EDGE_ORDER.fab`) | `edgeReserve(borde, { before: EDGE_ORDER.fab })`: abajo, la pill de la voz y el muelle de `GPageHeader`; arriba, la voz, el zócalo pegado y la isla | El FAB queda **encima** de la voz y del muelle (abajo) o **debajo** del zócalo y la isla (arriba); `GToaster`, que suma todo, queda **más allá** del FAB, sin cambiar su llamada |
+| FAB contraído (`anchor="viewport"`) | el de su `position` | Su alto **contraído** + el margen seguro (px; `order: EDGE_ORDER.fab`) | `edgeReserve(borde, { before: EDGE_ORDER.fab })`: abajo, la pill de la voz y el muelle de `GPageHeader`; arriba, la voz y el zócalo pegado (desde #699 **no** la isla, que va después) | El FAB queda **encima** de la voz y del muelle (abajo) o **debajo** del zócalo (arriba), y **la isla debajo del FAB**; `GToaster`, que suma todo, queda **más allá** del FAB, sin cambiar su llamada |
 
 - **El FAB abierto no cambia su reserva** (movería los avisos bajo el dedo); apartado, tampoco.
 - **Por borde, sin mirar la alineación** (regla de #322): un FAB en `bottom-end` también eleva los avisos de `bottom-start`. Se acepta como en la isla.

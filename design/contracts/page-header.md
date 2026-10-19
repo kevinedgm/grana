@@ -240,7 +240,7 @@ Expuesto con `defineExpose`; consta en el `meta.json` (`methods`).
 
 | Pieza | Borde | Publica | Lee | Efecto |
 | --- | --- | --- | --- | --- |
-| Zócalo pegado (`is-stuck`) | `top` | Alto del zócalo (px; el sitio final) con `order: EDGE_ORDER.pageHeader` | Nada (es `sticky` en `--g-page-header-top`; no puede moverse por una reserva) | La isla (`before: 20`) y los avisos de arriba se colocan **debajo** del zócalo |
+| Zócalo pegado (`is-stuck`) | `top` | Alto del zócalo (px; el sitio final) con `order: EDGE_ORDER.pageHeader` | Nada (es `sticky` en `--g-page-header-top`; no puede moverse por una reserva) | La isla (`before: EDGE_ORDER.status`, 30 desde #699) y los avisos de arriba se colocan **debajo** del zócalo |
 | Muelle abierto (`is-open`) | `bottom` | Alto del muelle con su área segura (px; el sitio final, no la traslación en curso) con `order: EDGE_ORDER.pageHeader` | `edgeReserve('bottom', { before: EDGE_ORDER.pageHeader })` → la pill de la voz, si está abajo | Se coloca **encima** de la voz; los avisos de abajo (`GToaster`, que suma todo) **encima** del muelle |
 
 - **Dos dueños por instancia** (el registro guarda un borde por dueño): uno para el zócalo y otro para el muelle. Cada uno se retira al dejar de estar pegado / abierto y al desmontar.
