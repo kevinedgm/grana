@@ -14,7 +14,7 @@
 // Acuse en el elemento (#669): en curso sin tachado ni aspecto de deshabilitada, fallo con el motivo en danger-text.
 // Remates de #677 y #678: la fila armada conserva su ancho con --_armed-w (nada se mueve al armar); junta de C con una sola
 // línea (reposo, hover y active, con marca pálida, RTL y forzados; contorno exterior entero); single y principal
-// deshabilitadas con el aspecto de GBtn deshabilitado y contorno border-control (#686); --_minh exacto: la sombra de la pila no asoma
+// deshabilitadas con el aspecto de GBtn deshabilitado y contorno border-control (#690); --_minh exacto: la sombra de la pila no asoma
 // por el lado lejano del panel que la cubre (lo del lado del FAB y la pila más ancha que el panel, medido como nota).
 // Ejecutar desde la raíz del repo (requiere dist/):  GRANA_PW_PORT=4214 node design/lab/fab/estilo-verificar.mjs
 // Opcional: --engines=chromium,firefox,webkit  --themes=all|base (por defecto: todos en Chromium, base en Firefox y WebKit)  --verbose
@@ -288,7 +288,7 @@ for (const engine of ENGINES) {
       ok(!r.errs.length, `${P} consola limpia: ${r.errs}`)
       await r.ctx.close()
     }
-    // Deshabilitadas (#686): single y principal de C con el aspecto de GBtn deshabilitado (neutral-soft, text-subtle) con
+    // Deshabilitadas (#690): single y principal de C con el aspecto de GBtn deshabilitado (neutral-soft, text-subtle) con
     // contorno border-control (≥ 3:1 frente a la página); single en shadow-1; cursor de no disponible; pasar y apretar no
     // cambian nada (ni escala). El grupo de C conserva su elevación (la cola sigue habilitada)
     const sOn = await open(browser, 'scene=single&theme=lustre')

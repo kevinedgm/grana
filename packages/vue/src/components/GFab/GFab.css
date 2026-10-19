@@ -119,7 +119,7 @@
 .g-fab__main-group {
   box-shadow: var(--g-shadow-2);
 }
-/* Deshabilitada (single o principal de C con aria-disabled, no en curso; #686): el aspecto de GBtn deshabilitado —relleno
+/* Deshabilitada (single o principal de C con aria-disabled, no en curso; #690): el aspecto de GBtn deshabilitado —relleno
    neutral-soft, icono y etiqueta text-subtle— con contorno border-control (≥ 3:1 frente a la página: el FAB flota sobre
    contenido arbitrario y es donde se lee el motivo) y shadow-1. Se escriben los alias de color de GBtn (los mismos en reposo,
    hover y active: pasar y apretar no cambian nada) y se anula la escala al apretar (GBtn solo la quita con :disabled o
@@ -856,7 +856,7 @@
 @media (forced-colors: active) {
   .g-fab > .g-btn,
   .g-fab__main-group { box-shadow: none; }
-  /* Deshabilitada (#686), como GBtn deshabilitado: texto y borde en GrayText, también al pasar y al apretar (0,4,0 gana al
+  /* Deshabilitada (#690), como GBtn deshabilitado: texto y borde en GrayText, también al pasar y al apretar (0,4,0 gana al
      Highlight de .g-btn:hover/:active). Va antes de la junta: el borde final de la principal sigue en ButtonFace */
   .g-fab > .g-btn[aria-disabled="true"]:not([data-ack="busy"]),
   .g-fab__main-group > .g-fab__main[aria-disabled="true"]:not([data-ack="busy"]) {

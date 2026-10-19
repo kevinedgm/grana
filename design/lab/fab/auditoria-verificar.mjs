@@ -1,13 +1,13 @@
 // Auditoría de coco (paso 5) de GFab sobre el COMPONENTE REAL: design/lab/fab/auditoria-banco.html con GFab de
 // dist/fab.umd.js, GBtn/GTooltip/GIcon/GToaster/GDialog de dist/grana.umd.js, GStatusIsland de dist/status.umd.js,
 // dist/grana.css y dist/fonts.css; la voz, en el playground (#sec-fab con ?fabanchor=viewport&speech=self).
-// Qué mide: 0 · CSS fuente y publicado (tokens, respaldos, literales, curvas, #686, clases y datos de fab.md frente al CSS,
+// Qué mide: 0 · CSS fuente y publicado (tokens, respaldos, literales, curvas, #690, clases y datos de fab.md frente al CSS,
 // al .vue y al meta.json, peso de la entrada); M · marcado real frente a «Anatomía»; 1 · contraste (defecto, el tema de la
 // auditoría de @grana/cli y, en Chromium, los once de dark-color-presence/generated; claro y oscuro; zona de marca);
 // 2 · áreas (≥ 24px, ≥ 44px con puntero grueso) y texto ≥ 12px; 3 · foco visible; 4 · comportamiento (abrir y cerrar por
 // cada vía, la pila y la cola, Δ de las cuatro primeras, C con main y búsqueda, confirmación, acuse, se aparta, velo táctil,
 // seis posiciones LTR y RTL, bordes con GToaster, la isla y la voz, GDialog modal); 5 · movimiento y reducido; 6 · reflujo a
-// 320px y texto al 200 %; 7 · forced-colors (donde el motor lo emula); 8 · remates de #686 (deshabilitada) y #687 (panel que
+// 320px y texto al 200 %; 7 · forced-colors (donde el motor lo emula); 8 · remates de #690 (deshabilitada) y #691 (panel que
 // cubre la pila con una etiqueta larga). Consola limpia en cada página.
 // Ejecutar desde la raíz del repo (requiere dist/):  GRANA_PW_PORT=4214 node design/lab/fab/auditoria-verificar.mjs
 // Opcional: --engines=chromium,firefox,webkit  --themes=all|base (por defecto: todos en Chromium, base en Firefox y WebKit)
@@ -68,7 +68,7 @@ if (run(0)) {
   const missing = [...new Set(vars.filter((v) => v.startsWith('--g-') && !defined.has(v)))]
   ok(!missing.length, 'GFab.css: tokens que no existen en defaults.css: ' + missing)
   ok(!vars.some((v) => /^--g-color-(on-)?brand/.test(v)), 'GFab.css: lee --g-color-brand* (roles.test.js)')
-  // §47 (#686 añade neutral-soft; primary-text es de GBtn solid, #678)
+  // §47 (#690 añade neutral-soft; primary-text es de GBtn solid, #678)
   const allowed = ['--g-color-surface', '--g-color-surface-sunken', '--g-color-border', '--g-color-border-control', '--g-color-text', '--g-color-text-muted', '--g-color-text-subtle', '--g-color-danger-text', '--g-color-danger', '--g-color-on-danger', '--g-color-success', '--g-color-success-text', '--g-color-on-success', '--g-color-focus', '--g-surface-backdrop', '--g-color-primary', '--g-color-neutral-soft']
   const colors = [...new Set(vars.filter((v) => /^--g-(color|surface)/.test(v)))]
   ok(colors.every((v) => allowed.includes(v)), 'GFab.css: tokens de color fuera de tokens.md §47: ' + colors.filter((v) => !allowed.includes(v)))
@@ -90,12 +90,12 @@ if (run(0)) {
   ok(outsideT.length === 1 && /transition: none;/.test(outsideT[0][2]), 'GFab.css: transición fuera de las consultas de movimiento')
   const reduce = (css.match(/@media \(prefers-reduced-motion: reduce\) \{([\s\S]*?)\n\}/) || [])[1] || ''
   ok(!/translate\s+var|scale\s+var|rotate\s+var|clip-path\s+var/.test(reduce) && /animation: none/.test(reduce), 'GFab.css: reducido con transiciones de desplazamiento o con el giro de la insignia')
-  // #686: deshabilitada no en curso con los alias de GBtn deshabilitado + border-control; sin escala; GrayText en forzados
+  // #690: deshabilitada no en curso con los alias de GBtn deshabilitado + border-control; sin escala; GrayText en forzados
   const dis = (css.match(/\.g-fab > \.g-btn:is\(\[aria-disabled="true"\], \.is-disabled, :disabled\):not\(\[data-ack="busy"\]\),\s*\.g-fab__main-group > \.g-fab__main\[aria-disabled="true"\]:not\(\[data-ack="busy"\]\) \{([^}]*)\}/) || [])[1] || ''
-  ok(/--_bg: var\(--g-color-neutral-soft\)/.test(dis) && /--_fg: var\(--g-color-text-subtle\)/.test(dis) && /--_border: var\(--g-color-border-control\)/.test(dis) && /--_bg-hover: var\(--g-color-neutral-soft\)/.test(dis) && /--_fg-hover: var\(--g-color-text-subtle\)/.test(dis) && /--_border-hover: var\(--g-color-border-control\)/.test(dis) && /cursor: not-allowed/.test(dis), 'GFab.css: deshabilitada (#686) sin neutral-soft / text-subtle / border-control en reposo y al pasar')
-  ok(/\.g-fab\.g-fab > \.g-btn\[aria-disabled="true"\]:not\(\[data-ack="busy"\]\):active,\s*\.g-fab__main-group > \.g-fab__main\.g-btn\[aria-disabled="true"\]:not\(\[data-ack="busy"\]\):active \{ transform: none; \}/.test(css), 'GFab.css: la deshabilitada sin escala al apretar (#686)')
+  ok(/--_bg: var\(--g-color-neutral-soft\)/.test(dis) && /--_fg: var\(--g-color-text-subtle\)/.test(dis) && /--_border: var\(--g-color-border-control\)/.test(dis) && /--_bg-hover: var\(--g-color-neutral-soft\)/.test(dis) && /--_fg-hover: var\(--g-color-text-subtle\)/.test(dis) && /--_border-hover: var\(--g-color-border-control\)/.test(dis) && /cursor: not-allowed/.test(dis), 'GFab.css: deshabilitada (#690) sin neutral-soft / text-subtle / border-control en reposo y al pasar')
+  ok(/\.g-fab\.g-fab > \.g-btn\[aria-disabled="true"\]:not\(\[data-ack="busy"\]\):active,\s*\.g-fab__main-group > \.g-fab__main\.g-btn\[aria-disabled="true"\]:not\(\[data-ack="busy"\]\):active \{ transform: none; \}/.test(css), 'GFab.css: la deshabilitada sin escala al apretar (#690)')
   ok(/@media \(forced-colors: active\)[\s\S]*\.g-fab__item\[aria-disabled="true"\]:not\(\[data-ack="busy"\]\),\s*\.g-fab__list \.g-fab__item\[aria-disabled="true"\]:not\(\[data-ack="busy"\]\) \.g-fab__icon \{ color: GrayText; \}/.test(css), 'GFab.css: elemento deshabilitado (no en curso) e icono en GrayText en forzados, con la especificidad de las reglas de color')
-  ok(/@media \(forced-colors: active\)[\s\S]*\.g-fab__main\[aria-disabled="true"\]:not\(\[data-ack="busy"\]\) \{\s*color: GrayText;\s*border-color: GrayText;/.test(css), 'GFab.css: deshabilitada en GrayText en forzados (#686)')
+  ok(/@media \(forced-colors: active\)[\s\S]*\.g-fab__main\[aria-disabled="true"\]:not\(\[data-ack="busy"\]\) \{\s*color: GrayText;\s*border-color: GrayText;/.test(css), 'GFab.css: deshabilitada en GrayText en forzados (#690)')
   // Clases y datos de fab.md frente al CSS y al .vue
   const table = contract.slice(contract.indexOf('## Clases y datos'), contract.indexOf('## Slots'))
   const names = [...new Set([...table.matchAll(/`(g-fab[\w-]*|is-[\w-]+|has-[\w-]+|--_[\w-]+|data-[\w-]+)`/g)].map((m) => m[1]))]
@@ -114,7 +114,7 @@ if (run(0)) {
   const dcss = await readFile(join(DIST, 'grana.css'), 'utf8')
   const layerAt = dcss.indexOf('@layer grana.components')
   ok(layerAt >= 0 && dcss.indexOf('.g-fab__item') > layerAt, 'dist: GFab.css fuera de @layer grana.components')
-  ok(/g-fab__main\[aria-disabled=["]?true["]?\]:not\(\[data-ack=["]?busy["]?\]\)\{--_bg: ?var\(--g-color-neutral-soft\)/.test(dcss), 'dist: grana.css sin la deshabilitada de #686 (reconstruir)')
+  ok(/g-fab__main\[aria-disabled=["]?true["]?\]:not\(\[data-ack=["]?busy["]?\]\)\{--_bg: ?var\(--g-color-neutral-soft\)/.test(dcss), 'dist: grana.css sin la deshabilitada de #690 (reconstruir)')
   ok(dcss.split('.g-fab').length >= css.split('.g-fab').length - 2, 'dist: grana.css no recoge GFab.css entero')
   ok(!/data:font/.test(dcss), 'dist: fuente incrustada')
   const gjs = await readFile(join(DIST, 'grana.js'), 'utf8'), fjs = await readFile(join(DIST, 'fab.js'))
@@ -298,7 +298,7 @@ for (const engine of ENGINES) {
         M.findNone = await page.evaluate(() => __c.txt(document.querySelector('.g-fab__find > span'), document.querySelector('.g-fab__find')))
         await ctx.close()
       }
-      // Deshabilitada (#686): single y principal de C; el contorno frente a la página y el texto sobre neutral-soft
+      // Deshabilitada (#690): single y principal de C; el contorno frente a la página y el texto sobre neutral-soft
       {
         const { ctx, page } = await open(browser, `${q}&n=1&off=1`)
         Object.assign(M, await page.evaluate(() => { const b = document.querySelector('.g-fab > button'), cs = getComputedStyle(b), pg = __c.bgOf(document.querySelector('main')); return { offEdge: __c.cr(__c.over(__c.rgba(cs.borderTopColor), pg), pg), offText: __c.txt(b, b) } }))
@@ -672,12 +672,12 @@ for (const engine of ENGINES) {
     }
   }
 
-  /* ---------- 8 · Remates #686 y #687 ---------- */
+  /* ---------- 8 · Remates #690 y #691 ---------- */
   if (run(8)) {
-    // #686: single y principal de C deshabilitadas (no en curso), claro, oscuro, zona y el tema de la auditoría
+    // #690: single y principal de C deshabilitadas (no en curso), claro, oscuro, zona y el tema de la auditoría
     for (const q of ['n=1&off=1', 'theme=audit&n=1&off=1', 'theme=audit&n=1&off=1&dark=1', 'n=1&off=1&zone=1', 'theme=audit&n=6&main=1&off=1', 'theme=audit&n=6&main=1&off=1&dark=1', 'n=6&main=1&off=1&zone=1', 'theme=lustre&n=1&off=1', 'theme=spotify&n=6&main=1&off=1']) {
       const { ctx, page, errs } = await open(browser, q, { width: 1000, height: 700 }, { deviceScaleFactor: 1 })
-      const P = `${E}[#686·${q}]`
+      const P = `${E}[#690·${q}]`
       await page.addStyleTag({ content: '.g-tooltip{visibility:hidden!important}' })
       const read = () => page.evaluate(() => { const b = document.querySelector('.g-fab__main') || document.querySelector('.g-fab > button'), cs = getComputedStyle(b); const tk = (n) => __c.tok(b.parentElement, n).join(); const col = (s) => __c.rgba(s).join(); return { dis: b.getAttribute('aria-disabled'), bg: col(cs.backgroundColor) === tk('--g-color-neutral-soft'), fg: col(cs.color) === tk('--g-color-text-subtle'), bd: [cs.borderTopColor, cs.borderBottomColor].every((x) => col(x) === tk('--g-color-border-control')), sh: cs.boxShadow, tf: cs.transform, cur: cs.cursor, raw: [cs.backgroundColor, cs.color, cs.borderTopColor].join(' / '), main: b.classList.contains('g-fab__main'), grpSh: getComputedStyle(b.parentElement).boxShadow } })
       const rest = await read()
@@ -719,13 +719,13 @@ for (const engine of ENGINES) {
       await page.evaluate(() => { window.__b.plan.sample = 'busy' })
       await page.click('#fab-trigger'); await page.mouse.move(5, 5); await settle(page)
       const b = await page.evaluate(() => { const e = document.querySelector('.g-fab > button'), cs = getComputedStyle(e); return { ack: e.dataset.ack, dis: e.getAttribute('aria-disabled'), v: [cs.backgroundColor, cs.borderTopColor, cs.boxShadow].join(' / '), cur: cs.cursor } })
-      ok(b.ack === 'busy' && b.dis === 'true' && b.v === restV && b.cur === 'progress', `${E}[#686·en curso] single en curso con el aspecto de la habilitada y cursor de progreso: ${JSON.stringify(b)}`)
+      ok(b.ack === 'busy' && b.dis === 'true' && b.v === restV && b.cur === 'progress', `${E}[#690·en curso] single en curso con el aspecto de la habilitada y cursor de progreso: ${JSON.stringify(b)}`)
       await ctx.close()
     }
-    // #687: el panel que cubre la pila la contiene con una etiqueta larga, a 1000 y 320px, LTR y RTL; sin texto que asome
+    // #691: el panel que cubre la pila la contiene con una etiqueta larga, a 1000 y 320px, LTR y RTL; sin texto que asome
     for (const [q, vp] of [['n=15&long=1', { width: 1000, height: 480 }], ['n=15&long=1&rtl=1', { width: 1000, height: 480 }], ['theme=audit&n=15&long=1', { width: 1000, height: 480 }], ['n=15&long=1', { width: 320, height: 480 }], ['theme=audit&n=15&long=1&pos=top-start', { width: 1000, height: 480 }]]) {
       const { ctx, page, errs } = await open(browser, q, vp, { deviceScaleFactor: 1 })
-      const P = `${E}[#687·${q}·${vp.width}]`
+      const P = `${E}[#691·${q}·${vp.width}]`
       await page.addStyleTag({ content: '.g-tooltip{visibility:hidden!important}' })
       await openFab(page); await openTail(page)
       const g = await page.evaluate(() => { const s = document.getElementById('fab-more').getBoundingClientRect(), st = document.getElementById('fab-menu').getBoundingClientRect(); return { p: { l: s.left, t: s.top, r: s.right, b: s.bottom }, s: { l: st.left, t: st.top, r: st.right, b: st.bottom }, minh: document.getElementById('fab-more').style.getPropertyValue('--_minh'), w: document.getElementById('fab-more').style.getPropertyValue('--_w'), vw: document.documentElement.clientWidth, sw: document.documentElement.scrollWidth } })

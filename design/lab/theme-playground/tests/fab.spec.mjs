@@ -337,9 +337,9 @@ test.describe('GFab · en el visor: bordes, se aparta, velo y estrecho (#659, #6
     expect(errs).toEqual([])
   })
 
-  // #687: el panel de la cola que cubre la pila nunca es más estrecho que ella (nada de la pila asoma, texto incluido)
+  // #691: el panel de la cola que cubre la pila nunca es más estrecho que ella (nada de la pila asoma, texto incluido)
   for (const [w, h] of [[1000, 420], [320, 420]]) {
-    test(`el panel que cubre la pila la contiene con una etiqueta larga a ${w}px (#687); no sale del visor`, async ({ page }) => {
+    test(`el panel que cubre la pila la contiene con una etiqueta larga a ${w}px (#691); no sale del visor`, async ({ page }) => {
       const errs = watchConsole(page)
       await load(page, 'fab=15&fabanchor=viewport&fablong=1', { width: w, height: h })
       await openFab(page)
@@ -362,7 +362,7 @@ test.describe('GFab · en el visor: bordes, se aparta, velo y estrecho (#659, #6
     })
   }
 
-  test('sin cubrir, el panel de la cola mide lo de siempre aunque la pila sea más ancha (#687)', async ({ page }) => {
+  test('sin cubrir, el panel de la cola mide lo de siempre aunque la pila sea más ancha (#691)', async ({ page }) => {
     const errs = watchConsole(page)
     await load(page, 'fab=15&fabanchor=viewport&fablong=1', { width: 1000, height: 900 })
     await openFab(page)

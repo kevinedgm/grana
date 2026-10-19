@@ -736,7 +736,7 @@ describe('GFab · datos del .vue al CSS (#677)', () => {
   })
 })
 
-describe('GFab · el panel que cubre la pila no es más estrecho que ella (#687)', () => {
+describe('GFab · el panel que cubre la pila no es más estrecho que ella (#691)', () => {
   const wOf = (w) => parseFloat(subList(w).element.style.getPropertyValue('--_w'))
   const openMore = async (w) => { await open(w); click(w.find('.g-fab__item--more'), 0); await settle() }
 
