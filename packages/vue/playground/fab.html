@@ -83,7 +83,7 @@ function onSelect(e) {
   else if (kind === 'busy') e.busy('En curso')
 }
 const toaster = Grana.createToaster({ position: Q.get('toastpos') || 'bottom-end', labels: { region: 'Notificaciones ({hotkey})', close: 'Cerrar notificación', types: { info: 'Información', success: 'Correcto', warning: 'Advertencia', error: 'Error', loading: 'En curso' }, repeated: '{count} veces', queued: '{count} más en espera', actionHint: 'Pulsa {hotkey} para {action}.' } })
-const status = GranaStatus.createStatus({ labels: { region: 'Estado de la aplicación ({hotkey})', summary: (n) => (n === 1 ? 'Estado: 1 aviso.' : 'Estado: ' + n + ' avisos.'), more: 'y {count} más', types: { info: 'Información', success: 'Correcto', warning: 'Advertencia', error: 'Error' }, acknowledge: 'Entendido', dismiss: 'Descartar: {title}', details: 'Detalle técnico', copy: 'Copiar', copied: 'Detalle copiado', remaining: 'Quedan {time}', sheetTitle: 'Estado de la aplicación', close: 'Cerrar' } })
+const status = GranaStatus.createStatus({ labels: { region: 'Estado de la aplicación ({hotkey})', waiting: 'y {count} más en espera', listTitle: 'Pendiente ({count})', hide: 'Ocultar', types: { info: 'Información', success: 'Correcto', warning: 'Advertencia', error: 'Error' }, dismiss: 'Descartar: {title}', details: 'Detalle técnico', copy: 'Copiar', copied: 'Detalle copiado', remaining: 'Quedan {time}', sheetTitle: 'Estado de la aplicación', close: 'Cerrar' } })
 if (Q.get('status') === '1') status.info('maint', 'Mantenimiento programado esta noche', { description: 'De 23:00 a 23:30 no se podrá guardar.', dismissible: true })
 // Voz: el adaptador simulado de @grana/vue/testing (sin red) que simula también el micrófono
 const SPEECH = Q.get('speech') === '1'

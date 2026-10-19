@@ -55,7 +55,7 @@ for cls in \
   g-divider--labeled g-icon--flip-rtl g-form-section__lead g-speech-panel__privacy \
   g-transcript__orig g-radio-group__segment g-form-reveal__body g-form-section__panel \
   g-avatar--shape-square g-reject-shake g-menu__highlight g-number-field \
-  g-status-island__shape g-summary__more g-adaptive-layout g-file-field__chip \
+  g-status-island__shape g-status-island__peek g-summary__more g-adaptive-layout g-file-field__chip \
   g-tooltip__tab g-time-field__reading g-combobox__sentence g-combobox__trace g-combobox__ghost \
   g-slider__pill
 do

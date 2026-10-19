@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GStatus",
   "tag": "g-status",
-  "status": "candidate",
+  "status": "draft",
   "since": "0.1.0",
   "description": "Condición declarativa de la isla de estado, sin pintura: mientras está montado, su condición existe (set al montar, update al cambiar una prop, remove al desmontar). En el servidor no hace nada.",
   "contract": "design/contracts/status.md",
@@ -82,7 +82,7 @@
     {
       "name": "remove",
       "payload": "reason",
-      "trigger": "La condición se retiró por una vía distinta de su propio desmontaje (dismiss, acknowledge, api, clear)"
+      "trigger": "La condición se retiró por una vía distinta de su propio desmontaje (dismiss, read, api, clear, origin): la aplicación apaga su v-if"
     },
     {
       "name": "expire",
@@ -94,5 +94,10 @@
   "tokens": [],
   "states": [],
   "pending": [],
-  "entry": "@grana/vue/status (#328)"
+  "entry": "@grana/vue/status (#328)",
+  "decisions": [
+    "#318",
+    "#697",
+    "#698"
+  ]
 }

@@ -1,26 +1,31 @@
 <script setup>
 // GStatusIsland · la isla de estado de un gestor (dueño: bruno)
-// Contrato: design/contracts/status.md · Estructura: design/lab/alert/r02/ (B) · Estilo: de coco · DECISIONS.md #315 a #325.
-// Una por gestor: raíz popover="manual" siempre abierta (capa superior), dos canales vivos permanentes fuera de la section,
-// una sola superficie (`__shape`) que cambia de tamaño entre punto, compacta y abierta, y la hoja móvil (GDialog real).
-// Se traslada (mismos nodos) al <dialog> modal superior que no sea su hoja y vuelve al body. NUNCA toma el foco al
-// aparecer, actualizarse o abrirse sola. En el servidor no pinta nada: todo empieza al montar.
-import { computed, inject, nextTick, onBeforeUnmount, onBeforeUpdate, onMounted, onUpdated, reactive, ref, toRaw, useAttrs, useId, watch } from 'vue'
+// Contrato: design/contracts/status.md · Estructura: design/lab/alert/r04/ (D1 · Cápsula de relevo) · Estilo: de coco ·
+// DECISIONS.md #315 a #328 y #693 a #705.
+// Una por gestor: raíz popover="manual" siempre abierta (capa superior), dos canales vivos permanentes fuera de la section y
+// una sola superficie (`__shape`) que cuenta la vida del aviso: cae sin texto (drop), se ensancha con su titular (grow), se
+// lee (el gestor mide el tiempo), se releva, asoma (is-peek), abre la lista y se recoge (fold → rise). Cada etapa avanza al
+// terminar sus transiciones en `__shape`; toda transición parte del estado actual (#702): esta región nunca reinicia un
+// movimiento ni pone `transition` en línea (F1). El tamaño de destino se mide con el contenido montado antes de usarse (F2).
+// NUNCA toma el foco al aparecer, relevarse o cambiar. En el servidor no pinta nada: todo empieza al montar.
+import { computed, inject, nextTick, onBeforeUnmount, onBeforeUpdate, onMounted, onUpdated, reactive, ref, shallowRef, toRaw, useAttrs, useId, watch } from 'vue'
 import { fill } from '../../utils/template.js'
 import GBtn from '../GBtn/GBtn.vue'
 import GDialog from '../GDialog/GDialog.vue'
 import GIcon from '../GIcon/GLibIcon.js'
 import StatusList from './StatusList.vue'
-import { INTERNAL, countText, formatRemaining, statusKey } from './status.js'
+import { INTERNAL, STATUS_ICONS as ICON, countText, formatRemaining, statusKey } from './status.js'
 import { ANNOUNCE, MOBILE_SPACES, matchesHotkey } from '../GToast/toaster.js'
 import { createTopModal } from '../../utils/topModal.js'
+import { spaceUnit as unitOf } from '../GForm/formContext.js'
+import { transitionMs } from '../../utils/motion.js'
 import { createLiveWriter } from '../../utils/liveRegion.js'
 import { EDGE_ORDER, clearEdgeReserve, edgeReserve, setEdgeReserve } from '../../utils/edgeReserve.js'
 
 defineOptions({ name: 'GStatusIsland', inheritAttrs: false })
 
+// `status`: gestor que pinta esta isla; por defecto, el provisto con app.use(status)
 const props = defineProps({
-  // Gestor que pinta esta isla; por defecto, el provisto con app.use(status)
   status: { type: Object, default: undefined }
 })
 
@@ -31,7 +36,6 @@ const api = manager && manager[INTERNAL] ? manager[INTERNAL] : null
 try { if (process.env.NODE_ENV !== 'production' && !api) console.warn('[Grana Status] <GStatusIsland> sin prop `status` y sin gestor provisto (app.use(createStatus(…))): no pinta nada.') } catch {}
 const S = api ? api.state : null
 
-const ICON = { info: 'info', success: 'circle-check', warning: 'triangle-alert', error: 'circle-alert' }
 const raf = (cb) => (typeof requestAnimationFrame === 'function' ? requestAnimationFrame(cb) : setTimeout(cb, 16))
 const caf = (h) => (typeof cancelAnimationFrame === 'function' ? cancelAnimationFrame(h) : clearTimeout(h))
 
@@ -40,15 +44,28 @@ const uid = useId()
 const rootId = computed(() => attrs.id || `g-status-island-${uid}`)
 const summaryId = computed(() => `${rootId.value}-summary`)
 const panelId = computed(() => `${rootId.value}-panel`)
+const descId = computed(() => `${rootId.value}-desc`)
 const active = ref(false)
 const host = ref(null) // body o el <dialog> modal superior
 const rootEl = ref(null)
 const shapeEl = ref(null)
 const innerEl = ref(null)
 const summaryEl = ref(null)
-const panelEl = ref(null)
 const ready = ref(false)
-const nudging = ref(false)
+const stage = ref(null) // 'drop' | 'grow' | 'fold' | 'rise' | null (en reposo)
+const shown = shallowRef(null) // la condición del titular; se conserva hasta el fin de `rise` aunque el modelo la retire (I4)
+const textKey = ref(0) // cada relevo es un `__text` nuevo (el texto entra desde abajo)
+const outgoing = ref(null) // la copia que sale en el relevo ({ key, title }, aria-hidden; se va por arriba)
+let outTimer = 0
+// Relevo en reposo: el texto anterior sale como copia oculta a la lectura y entra el nuevo (coco: el rodillo)
+function roll(prev) {
+  if (prev && stage.value === null) {
+    outgoing.value = { key: textKey.value, title: prev }
+    clearTimeout(outTimer)
+    outTimer = setTimeout(() => { outgoing.value = null }, 1000)
+  }
+  textKey.value++
+}
 const size = reactive({ w: 0, h: 0 })
 const details = reactive(new Set()) // uids con el detalle técnico abierto
 const live = reactive({ polite: '', assertive: '' })
@@ -58,78 +75,172 @@ const owner = Symbol('GStatusIsland') // dueño en el registro de reservas de bo
 const L = computed(() => (S ? S.opts.labels : {}))
 const items = computed(() => (api ? api.ordered.value : []))
 const count = computed(() => items.value.length)
-const first = computed(() => items.value[0] || null)
 const form = computed(() => (api ? api.form.value : 'empty'))
 const mobile = computed(() => Boolean(S && S.mobile))
-const isOpen = computed(() => Boolean(S && S.open))
+const isList = computed(() => form.value === 'list')
 const position = computed(() => (S ? S.opts.position : 'top-center'))
 const align = computed(() => position.value.split('-')[1])
 const hotkey = computed(() => (S && S.opts.hotkey !== false ? S.opts.hotkey : ''))
 const regionLabel = computed(() => (L.value.region ? fill(L.value.region, { hotkey: hotkey.value }) : undefined))
 const typeLabel = (c) => (L.value.types ? L.value.types[c.type] : undefined)
-// Prefijo oculto del resumen: «Estado: 3 avisos. Error: »
-const summaryPrefix = computed(() => {
-  const c = first.value
-  if (!c) return ''
-  const head = L.value.summary ? `${countText(L.value.summary, count.value)} ` : ''
-  return head + (typeLabel(c) ? `${typeLabel(c)}: ` : '')
+// El titular: la condición mostrada; en la lista, la que lo era o la primera de la lista
+const head = computed(() => (isList.value ? shown.value || items.value[0] || null : form.value === 'empty' ? null : shown.value))
+const waiting = computed(() => (api && S.current && !isList.value ? api.queue.value.length : 0))
+const waitingText = computed(() => (L.value.waiting ? countText(L.value.waiting, waiting.value) : ''))
+const peekOpen = computed(() => Boolean(S && S.peek) && form.value === 'line' && Boolean(shown.value))
+// Cerrar el asomo: primero sale is-peek (el contenido se funde) y `hidden` llega tras su transición (Firefox no
+// transiciona `display`). La lista que se recoge conserva su panel hasta el fin de `rise` (I4).
+const peekEl = ref(null)
+const peekLinger = ref(false)
+const fromList = ref(false)
+const panelOpen = computed(() => isList.value || fromList.value)
+let peekTimer = 0
+watch(peekOpen, (on) => {
+  clearTimeout(peekTimer)
+  peekLinger.value = !on
+  if (!on) nextTick(() => { const ms = transitionMs(peekEl.value); if (ms) peekTimer = setTimeout(() => { peekLinger.value = false }, ms); else peekLinger.value = false })
 })
-const moreText = computed(() => (L.value.more ? countText(L.value.more, count.value - 1) : ''))
-const firstTimer = computed(() => (first.value && first.value.deadline !== undefined ? formatRemaining(first.value.deadline - S.now) : ''))
+const paused = computed(() => Boolean(api && api.paused.value))
+const timer = computed(() => (head.value && head.value.deadline !== undefined ? formatRemaining(head.value.deadline - S.now) : ''))
+const ring = computed(() => (S && S.reading && !timer.value && !isList.value ? S.ring : null))
 
 const toLength = (v) => (typeof v === 'number' ? `${v}px` : v)
-// Borde compartido (#322): la isla lee la reserva de quien va antes (la pill de voz) y se coloca debajo
+// Borde compartido (#322, #699): la isla lee la reserva de quien va antes (voz, zócalo, FAB) y se coloca debajo
 const rootStyle = computed(() => {
   const own = S && S.opts.offset.top !== undefined ? toLength(S.opts.offset.top) : undefined
   const reserve = active.value ? edgeReserve('top', { before: EDGE_ORDER.status }) : 0
   if (reserve > 0) return { '--_status-offset-top': `calc(${own ?? '0px'} + ${reserve}px)` }
   return own !== undefined ? { '--_status-offset-top': own } : {}
 })
-const rootClasses = computed(() => ['g-status-island', `g-status-island--position-${position.value}`, { 'is-ready': ready.value, 'is-nudge': nudging.value }])
-// Tamaño natural de __inner en px: lo lee coco para animar la superficie (datos, no tokens)
-const shapeStyle = computed(() => (size.w > 0 && size.h > 0 ? { '--_island-w': `${size.w}px`, '--_island-h': `${size.h}px` } : undefined))
+const rootClasses = computed(() => ['g-status-island', `g-status-island--position-${position.value}`, { 'is-ready': ready.value, 'is-peek': peekOpen.value, 'is-paused': paused.value && form.value !== 'empty' }])
+// Datos del `.vue` para coco (§29.5): tamaño de destino medido y tramo del anillo (números; sin escrituras por cuadro)
+const shapeStyle = computed(() => {
+  const s = {}
+  if (size.w > 0 && size.h > 0) { s['--_island-w'] = `${size.w}px`; s['--_island-h'] = `${size.h}px` }
+  if (ring.value) { s['--_left'] = String(Math.round(ring.value.left * 1000) / 1000); s['--_run-ms'] = String(Math.round(ring.value.run)) }
+  return s
+})
 
 // ---------- Medidas ----------
-const spaceUnit = () => {
-  const rs = getComputedStyle(document.documentElement)
-  const raw = rs.getPropertyValue('--g-space-1').trim()
-  let space = parseFloat(raw)
-  if (raw.endsWith('rem')) space *= parseFloat(rs.fontSize)
-  return Number.isFinite(space) && space > 0 ? space : 0
+const spaceUnit = () => unitOf(document.documentElement)
+const measureMobile = () => api.setMobile(window.innerWidth < spaceUnit() * MOBILE_SPACES)
+// Tamaño natural de __inner (no depende del tamaño animado de la forma): el destino de grow, del asomo y de la lista.
+// En `empty` se borra (F2: la siguiente vez no nace con el tamaño de la anterior).
+function measure() {
+  if (form.value === 'empty') { size.w = 0; size.h = 0 } else {
+    const el = innerEl.value
+    const w = el ? el.offsetWidth : 0
+    const h = el ? el.offsetHeight : 0
+    if (w > 0 && h > 0) { size.w = Math.ceil(w); size.h = Math.ceil(h) }
+  }
+  publishReserve()
 }
-function measureMobile() {
-  const space = spaceUnit()
-  api.setMobile(space > 0 && window.innerWidth < space * MOBILE_SPACES)
-}
-function writeSize(w, h) {
-  if (!(w > 0 && h > 0)) return
-  size.w = Math.ceil(w)
-  size.h = Math.ceil(h)
-}
-// La isla publica el alto de su forma REPLEGADA (el del resumen, nunca el de la abierta) más su margen, mientras no esté vacía
+// La isla publica el alto del TITULAR (nunca el del asomo ni el de la lista) más su margen, solo mientras se ve (#699)
 function publishReserve() {
   if (!active.value) return
   const s = summaryEl.value
-  const h = count.value && s ? s.offsetHeight : 0
+  const h = form.value !== 'empty' && s ? s.offsetHeight : 0
   if (!(h > 0)) { clearEdgeReserve(owner); return }
   setEdgeReserve(owner, 'top', h + spaceUnit() * 2, { order: EDGE_ORDER.status })
 }
 let ro = null
-function measure() {
-  // Sin ResizeObserver (jsdom): medida directa tras cada parche
-  if (!ro && innerEl.value) writeSize(innerEl.value.offsetWidth, innerEl.value.offsetHeight)
-  publishReserve()
-}
-function onResizeObserved(entries) {
-  // Se observan __inner (tamaño de la forma) y el resumen (reserva de borde): el tamaño sale solo de __inner
-  const inner = innerEl.value
-  const e = [...entries].reverse().find((x) => x.target === inner)
-  const box = e && e.borderBoxSize && e.borderBoxSize[0]
-  if (box) writeSize(box.inlineSize, box.blockSize)
-  else if (e && inner) writeSize(inner.offsetWidth, inner.offsetHeight)
-  publishReserve()
-}
 const rectsOverlap = (a, b) => a.width > 0 && a.height > 0 && b.left < a.right && b.right > a.left && b.top < a.bottom && b.bottom > a.top
+
+// ---------- Etapas (status.md «Formas» e «Interrupciones») ----------
+let cycle = new Set() // uids mostrados desde la última caída (los que reciben el eco)
+let stageFrame = 0
+let stageTimer = 0
+// Transiciones o animaciones finitas de la propia forma en curso (sin las de sus hijos: anillo, giro)
+function moving() {
+  const el = shapeEl.value
+  if (!el || typeof el.getAnimations !== 'function') return false
+  try {
+    return el.getAnimations().some((a) => {
+      const t = a.effect && typeof a.effect.getTiming === 'function' ? a.effect.getTiming() : null
+      return a.playState === 'running' && (!t || t.iterations !== Infinity)
+    })
+  } catch { return false }
+}
+// Comprueba en el cuadro siguiente (sin transición en curso: movimiento reducido, sin CSS) y, de respaldo, más tarde
+function checkStage() {
+  caf(stageFrame)
+  clearTimeout(stageTimer)
+  if (!stage.value) return
+  const s = stage.value
+  stageFrame = raf(() => {
+    stageFrame = 0
+    if (stage.value !== s) return
+    if (!moving()) { advance(); return }
+    stageTimer = setTimeout(checkStage, 600)
+  })
+}
+function onShapeTransition(event) {
+  if (event.target === shapeEl.value && stage.value) checkStage()
+}
+function advance() {
+  const s = stage.value
+  if (s === 'drop') stage.value = 'grow'
+  else if (s === 'grow') { stage.value = null; if (S.current) api.shown(S.current) }
+  else if (s === 'fold') { stage.value = 'rise'; echo() }
+  else if (s === 'rise') { stage.value = null; api.collapsed() }
+}
+watch(stage, () => { if (stage.value) nextTick(checkStage) }, { flush: 'post' })
+// El gestor manda: cada cambio de titular, de recogida o de lista se traduce en una etapa que parte de la actual
+watch(() => (S ? [S.current, S.leaving, S.list] : []), (now, before) => {
+  if (!api) return
+  const [cur, leaving, list] = now
+  const [pc, pl, plist] = before || []
+  if (list) {
+    stage.value = null
+    if (cur) shown.value = api.byUid(cur) || shown.value
+    return
+  }
+  if (cur) {
+    const r = api.byUid(cur)
+    const s = stage.value
+    const prev = shown.value
+    shown.value = r
+    cycle.add(cur)
+    if (!pc && !pl && !plist && s !== 'fold' && s !== 'rise') { cycle = new Set([cur]); stage.value = 'drop'; return } // nace
+    if (s === 'fold') { stage.value = 'grow'; textKey.value++; return } // se cancela la recogida: se ensancha desde donde está
+    if (s === 'rise') { stage.value = 'drop'; return } // baja otra vez desde donde está
+    if (s === null && prev !== r) { roll(prev && prev.title); nextTick(() => api.shown(cur)) } // relevo: el texto nuevo ya se ve
+    else if (s === 'grow') textKey.value++
+    return
+  }
+  if (leaving) {
+    if (plist) fromList.value = true
+    shown.value = api.byUid(leaving) || shown.value
+    if (!shown.value) { nextTick(() => api.collapsed()); return } // nada que recoger con su texto
+    if (stage.value !== 'fold' && stage.value !== 'rise') stage.value = 'fold'
+    return
+  }
+  stage.value = null
+  shown.value = null
+  fromList.value = false
+  cycle = new Set()
+})
+// Un cambio de texto de la mostrada entra con el mismo relevo (en el sitio, D4)
+watch(() => (shown.value ? `${shown.value.type}\u0000${shown.value.title}\u0000${shown.value.description || ''}` : ''), (v, o) => {
+  if (v && o && stage.value !== 'drop') roll(o.split('\u0000')[1])
+})
+watch([form, stage, shown, textKey, peekOpen, mobile], () => { if (active.value) measure() }, { flush: 'post' })
+
+// ---------- Eco en la marca (#700): solo si la marca se ve; una vez por recogida ----------
+function markVisible(el) {
+  if (!el || !el.isConnected || (el.closest && el.closest('[inert],[hidden]'))) return false
+  const h = host.value
+  if (h && h !== document.body && !h.contains(el)) return false // bajo un modal
+  const r = el.getBoundingClientRect()
+  return r.width > 0 && r.height > 0 && r.bottom > 0 && r.right > 0 && r.top < window.innerHeight && r.left < window.innerWidth
+}
+function echo() {
+  for (const u of cycle) {
+    const r = api.byUid(u)
+    if (!r) continue
+    for (const m of api.marksOf(r.id)) if (markVisible(m.el())) m.echo()
+  }
+}
 
 // ---------- Foco ----------
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
@@ -151,19 +262,26 @@ function neighbour() {
   const next = root ? all.find((el) => root.compareDocumentPosition(el) & 4) : null // DOCUMENT_POSITION_FOLLOWING
   return next || all[all.length - 1] || (h !== document.body ? h : null)
 }
-let saved = null // elemento enfocado antes del atajo o la marca que abrió la isla (vuelta, D5)
+let saved = null // elemento enfocado antes del atajo o la marca que abrió la lista (vuelta, D5)
 let markReturn = null // la marca que abrió la hoja móvil
+// Al recogerse con el foco dentro: al guardado, a la marca de lo mostrado o al siguiente tabulable. Nunca a body.
 function leaveFocus() {
-  const target = usable(saved) ? saved : neighbour()
+  let target = usable(saved) ? saved : null
   saved = null
-  focusEl(target)
+  if (!target && shown.value) target = api.marksOf(shown.value.id).map((m) => m.el()).find(usable) || null
+  focusEl(target || neighbour())
+}
+// Recoge por un gesto de la persona; si el foco estaba dentro, sale según «Foco»
+function collapseByPerson() {
+  const inside = focusInside()
+  manager.hide()
+  if (inside) leaveFocus()
 }
 const uidOfItem = (li) => {
   const m = li && li.id ? /-i-(\d+)$/.exec(li.id) : null
   return m ? Number(m[1]) : null
 }
-const itemEl = (id) => (rootEl.value ? rootEl.value.querySelector(`#${CSS_ESCAPE(`${rootId.value}-i-${id}`)}`) : null)
-const CSS_ESCAPE = (s) => (typeof CSS !== 'undefined' && typeof CSS.escape === 'function' ? CSS.escape(s) : s.replace(/[^\w-]/g, '\\$&'))
+const itemEl = (id) => document.getElementById(`${rootId.value}-i-${id}`)
 const sheetEl = () => (rootEl.value ? rootEl.value.querySelector('.g-status-sheet') : null)
 let sheetShown = false // la hoja está (o sigue) en pantalla: de `open` a `closed`
 
@@ -177,7 +295,7 @@ const guard = {
     if (memo || !rootEl.value) return
     const a = document.activeElement
     if (!a || a === document.body || !inRoot(a)) return
-    memo = { el: a, uid: uidOfItem(a.closest('.g-status-item')) }
+    memo = { el: a, uid: uidOfItem(a.closest('.g-status-item')) ?? (a.closest('.g-status-island__peek') && shown.value ? shown.value.uid : null) }
   },
   after() {
     const m = memo
@@ -191,111 +309,52 @@ const guard = {
       return
     }
     // Hoja móvil cerrándose: el foco se decide al terminar (onSheetClosed)
-    if (mobile.value && sheetShown && !isOpen.value) return
-    if (!count.value) { leaveFocus(); return }
+    if (mobile.value && sheetShown && !isList.value) return
+    if (!count.value || form.value === 'empty' || stage.value === 'fold' || stage.value === 'rise') { leaveFocus(); return }
     movedFor = m.uid
-    if (mobile.value && isOpen.value) {
+    if (mobile.value && isList.value) {
       const li = m.uid !== null ? itemEl(m.uid) : null
       const sheet = sheetEl()
-      if (li) { li.setAttribute('tabindex', '-1'); focusEl(li) }
-      else focusEl((sheet && sheet.querySelector('.g-dialog__close')) || sheet)
+      if (li) { li.setAttribute('tabindex', '-1'); focusEl(li) } else focusEl((sheet && sheet.querySelector('.g-dialog__close')) || sheet)
       return
     }
     focusEl(summaryEl.value)
   }
 }
 onBeforeUpdate(() => guard.before())
-onUpdated(() => { guard.after(); measure() })
+onUpdated(() => guard.after())
 
-// ---------- Sucesos del gestor: anuncio, apertura automática y toque ----------
-let liveOn = false // lo que existe al montar no anuncia, no abre y no da el toque
+// ---------- Anuncios: uno por suceso, tras pintar ----------
+let liveOn = false // lo que existe al montar no se anuncia (pero se muestra, #698)
 let queue = []
 let scheduled = false
-let lastPress = null // destino del último pointerdown (WebKit no enfoca botones con el ratón)
-function actor() {
-  const a = document.activeElement
-  if (a && a !== document.body && a !== document.documentElement) return inRoot(a) ? null : a
-  return lastPress && lastPress.isConnected && !inRoot(lastPress) ? lastPress : null
-}
-// Rectángulo de la isla ABIERTA, medido antes de pintarla (en el mismo cuadro, sin transición): ¿taparía lo que se usa?
-function openRect() {
-  const root = rootEl.value
-  const shape = shapeEl.value
-  const inner = innerEl.value
-  const panel = panelEl.value
-  if (!root || !shape || !inner || !panel) return null
-  const prev = { form: root.getAttribute('data-form'), hidden: panel.hidden, w: shape.style.getPropertyValue('--_island-w'), h: shape.style.getPropertyValue('--_island-h'), transition: shape.style.transition }
-  shape.style.transition = 'none'
-  root.setAttribute('data-form', 'open')
-  panel.hidden = false
-  const w = inner.offsetWidth
-  const h = inner.offsetHeight
-  if (w > 0 && h > 0) {
-    shape.style.setProperty('--_island-w', `${w}px`)
-    shape.style.setProperty('--_island-h', `${h}px`)
-  }
-  const rect = shape.getBoundingClientRect()
-  root.setAttribute('data-form', prev.form)
-  panel.hidden = prev.hidden
-  if (prev.w) shape.style.setProperty('--_island-w', prev.w)
-  else shape.style.removeProperty('--_island-w')
-  if (prev.h) shape.style.setProperty('--_island-h', prev.h)
-  else shape.style.removeProperty('--_island-h')
-  void shape.offsetWidth // reflujo: la vuelta tampoco transiciona
-  shape.style.transition = prev.transition
-  return rect
-}
-function fitsOpen() {
-  const a = actor()
-  if (!a || typeof a.getBoundingClientRect !== 'function') return true
-  const rect = openRect()
-  return !rect || !rectsOverlap(rect, a.getBoundingClientRect())
-}
-let nudgeFrames = []
-function nudge() {
-  nudging.value = false
-  nudgeFrames.forEach(caf)
-  nudgeFrames = [raf(() => {
-    nudging.value = true
-    // Sin animación en curso (movimiento reducido, sin CSS): no hay animationend que la quite
-    nudgeFrames = [raf(() => {
-      const root = rootEl.value
-      if (!root || typeof root.getAnimations !== 'function') return
-      let running = false
-      try { running = root.getAnimations({ subtree: true }).some((x) => x.animationName === 'g-status-nudge') } catch { running = true }
-      if (!running) nudging.value = false
-    })]
-  })]
-}
-function onAnimationend(event) {
-  if (event.animationName === 'g-status-nudge') nudging.value = false
-}
 function flushEvents() {
   scheduled = false
   const evs = queue
   queue = []
   // Varios sucesos de la misma condición en un ciclo son uno solo: vale el último texto
   const byUid = new Map()
-  for (const ev of evs) {
-    const prev = byUid.get(ev.uid)
-    byUid.set(ev.uid, prev ? { ...ev, kind: prev.kind === 'change' ? ev.kind : prev.kind, toError: prev.toError || ev.toError, typeChanged: prev.typeChanged || ev.typeChanged, countBefore: prev.countBefore } : ev)
-  }
-  let wantOpen = false
-  let wantNudge = false
+  for (const ev of evs) byUid.set(ev.uid, { ...ev, kind: byUid.has(ev.uid) && byUid.get(ev.uid).kind !== 'change' ? byUid.get(ev.uid).kind : ev.kind })
   for (const ev of byUid.values()) {
     const rec = api.byUid(ev.uid)
     if (!rec) continue // retirada en el mismo ciclo
     // El cambio que quitó el control con foco: el foco ya está en el resumen (o en el `li` de la hoja) y lee el nombre nuevo
-    const focusReads = ev.kind === 'change' && movedFor === ev.uid && (mobile.value || first.value === rec)
+    const focusReads = ev.kind === 'change' && movedFor === ev.uid && (mobile.value || shown.value === rec)
     if (!focusReads) writer.announce(ev.text, ev.politeness)
-    if (ev.toError) wantOpen = true
-    if ((ev.kind === 'appear' && ev.countBefore > 0) || ev.kind === 'announce' || ev.typeChanged) wantNudge = true
   }
   movedFor = null
-  if (isOpen.value) return
-  if (wantOpen && S.opts.autoOpen && !mobile.value && fitsOpen()) api.setOpen(true)
-  else if (wantNudge) nudge()
 }
+let lastPress = null // destino del último pointerdown
+// Faltan textos de la lista la primera vez que se abre
+function warnList() {
+  try {
+    if (process.env.NODE_ENV !== 'production') {
+      if (!L.value.listTitle) api.warn('falta labels.listTitle: el resumen conserva el titular.')
+      if (!L.value.close) api.warn('falta labels.close: «Cerrar» no se dibuja.')
+    }
+  } catch {}
+}
+// opened: abrir en una condición (open(id) o la marca) desplaza hasta ella y, solo con `focus`, enfoca su acción
 const region = {
   event(ev) {
     if (!liveOn) return
@@ -308,10 +367,10 @@ const region = {
   say(message, politeness) {
     if (liveOn) writer.announce(message, politeness)
   },
-  // Abrir en una condición (open(id) o la marca): desplaza hasta ella y, solo con `focus`, enfoca su acción
   opened(id, focus, from) {
     if (from) { saved = from; markReturn = from }
     pending = { uid: id, focus }
+    warnList()
     if (!mobile.value || sheetShown) nextTick(applyPending)
   }
 }
@@ -319,7 +378,7 @@ let pending = null
 function applyPending() {
   const p = pending
   pending = null
-  if (!p || !isOpen.value) return
+  if (!p || !isList.value) return
   const li = p.uid !== null ? itemEl(p.uid) : null
   if (li && typeof li.scrollIntoView === 'function') li.scrollIntoView({ block: 'nearest' })
   if (!p.focus) return
@@ -330,13 +389,51 @@ function applyPending() {
   else { li.setAttribute('tabindex', '-1'); focusEl(li) }
 }
 
-// ---------- Acciones de la persona ----------
-function toggle() {
-  if (isOpen.value) api.setOpen(false)
-  else { markReturn = null; api.setOpen(true) }
+// ---------- Gestos de la persona ----------
+const hoverMedia = () => typeof matchMedia === 'function' && matchMedia('(hover: hover)').matches
+const byHover = (e) => e.pointerType === 'mouse' || (e.pointerType === 'pen' && hoverMedia())
+const byTouch = (e) => e.pointerType === 'touch' || (e.pointerType === 'pen' && !hoverMedia())
+let touchDown = false // el último pointerdown en el resumen fue un toque (su click abre el asomo, no la lista)
+function onSummaryPointerdown(e) { touchDown = byTouch(e) }
+function onSummaryClick() {
+  const touch = touchDown
+  touchDown = false
+  if (touch && form.value === 'line' && S.peek !== 'touch') { api.setPeek('touch'); return } // primer toque: asomo (#703)
+  if (isList.value) { collapseByPerson(); return }
+  markReturn = null
+  api.openList()
+  warnList()
 }
-function ack() {
-  manager.acknowledge()
+function onPointerenter(e) {
+  if (!byHover(e)) return
+  api.hold('pointer', true)
+  if (!S.peek) api.setPeek('pointer')
+}
+function onPointerleave(e) {
+  if (!byHover(e)) return
+  api.hold('pointer', false)
+  if (S.peek === 'pointer') api.setPeek(focusInside() ? 'focus' : '')
+}
+function onShapePointerdown(e) {
+  if (byTouch(e)) api.hold('touch', true)
+}
+function onDocPointerup(e) {
+  if (byTouch(e) && S && S.hold.touch) api.hold('touch', false)
+}
+function onFocusin() {
+  api.hold('focus', true)
+  if (!S.peek) api.setPeek('focus')
+}
+function onFocusout(e) {
+  if (inRoot(e.relatedTarget)) return
+  api.hold('focus', false)
+  if (S.peek === 'focus') api.setPeek('')
+}
+// «Ocultar»: si esperan otras, relevo (el foco sigue en «Ocultar»); si no, se recoge y el foco sale según «Foco»
+function onHide() {
+  const inside = focusInside()
+  api.hideShown()
+  if (inside && !S.current) leaveFocus()
 }
 function resolveOrigin(c) {
   const t = c.origin.target
@@ -354,7 +451,7 @@ function focusOrigin(el) {
   focusEl(el)
 }
 let pendingOrigin = null
-// «Ir a…»: repliega la isla y enfoca el origen
+// «Ir a…»: recoge la isla y enfoca el origen
 function onOrigin(c) {
   const el = resolveOrigin(c)
   if (!el) {
@@ -364,24 +461,24 @@ function onOrigin(c) {
   saved = null
   if (mobile.value && sheetShown) {
     pendingOrigin = el // al terminar de cerrarse la hoja (el <dialog> devuelve antes el foco a quien la abrió)
-    api.setOpen(false)
+    manager.hide()
     return
   }
-  api.setOpen(false)
+  manager.hide()
   focusOrigin(el)
 }
-// El enlace: evento nativo cancelable para la aplicación (router) y la isla se repliega
+// El enlace: evento nativo cancelable para la aplicación (router) y la isla se recoge
 function onLink(event, c) {
   if (c.link && typeof c.link.onClick === 'function') {
     try { c.link.onClick(event, api.copy(c)) } catch (e) { console.error(e) }
   }
-  api.setOpen(false)
+  collapseByPerson()
 }
 
 // ---------- Hoja móvil (GDialog real) ----------
 const sheetOpen = computed({
-  get: () => mobile.value && isOpen.value,
-  set: (v) => api.setOpen(v)
+  get: () => mobile.value && isList.value,
+  set: (v) => { if (!v && isList.value) manager.hide() }
 })
 function onSheetOpen() {
   sheetShown = true
@@ -396,16 +493,12 @@ function onSheetClosed() {
   const byKey = closedByHotkey
   closedByHotkey = false
   if (origin) { markReturn = null; focusOrigin(origin); return }
-  if (!count.value) {
-    markReturn = null
-    const a = document.activeElement
-    if (!a || a === document.body || inRoot(a)) leaveFocus()
-    return
-  }
-  const back = byKey && usable(saved) ? saved : usable(markReturn) ? markReturn : summaryEl.value
-  if (byKey) saved = null
+  const back = byKey && usable(saved) ? saved : usable(markReturn) ? markReturn : null
+  saved = null
   markReturn = null
-  focusEl(back)
+  const a = document.activeElement
+  if (back) focusEl(back)
+  else if (!a || a === document.body || inRoot(a)) leaveFocus()
 }
 
 // ---------- Traslado al <dialog> modal superior (sin contar la hoja propia) ----------
@@ -449,60 +542,57 @@ watch(host, () => {
   publishReserve()
 }, { flush: 'post' })
 
-// ---------- Escuchas ----------
+// ---------- Escuchas de documento ----------
 function onDocKeydown(event) {
   if (event.isComposing || !S || S.opts.hotkey === false || !matchesHotkey(event, S.hotkeyKeys)) return
   if (!count.value) return // sin condiciones no se intercepta
   event.preventDefault()
   if (focusInside()) {
-    // Vuelta: repliega y devuelve el foco al elemento guardado
-    if (mobile.value && sheetShown) { closedByHotkey = true; api.setOpen(false); return }
-    const back = saved
-    saved = null
-    api.setOpen(false)
-    focusEl(usable(back) ? back : summaryEl.value)
+    // Vuelta: cierra la lista, recoge y devuelve el foco al elemento guardado
+    if (mobile.value && sheetShown) { closedByHotkey = true; manager.hide(); return }
+    collapseByPerson()
     return
   }
   const a = document.activeElement
   saved = a && a !== document.body ? a : null
   markReturn = null
-  api.setOpen(true)
-  if (!mobile.value) focusEl(summaryEl.value) // en móvil, el foco sigue la regla de GDialog (#292)
+  manager.open()
+  if (!mobile.value) nextTick(() => focusEl(summaryEl.value)) // en móvil, el foco sigue la regla de GDialog (#292)
 }
-// Esc con el foco dentro de la isla abierta: repliega sin llegar al <dialog> anfitrión y deja el foco en el resumen
+// Esc con el foco dentro de la isla: recoge sin llegar al <dialog> anfitrión
 function onShapeKeydown(event) {
-  if (event.key !== 'Escape' || event.isComposing || !isOpen.value || mobile.value) return
+  if (event.key !== 'Escape' || event.isComposing || form.value === 'empty' || (mobile.value && isList.value)) return
   event.preventDefault()
   event.stopPropagation()
-  api.setOpen(false)
-  focusEl(summaryEl.value)
+  collapseByPerson()
 }
+// Esc con el asomo abierto por el puntero y el foco fuera (1.4.13 «descartable», #703): sin detener la propagación
+function onPeekEscape(event) {
+  if (event.key !== 'Escape' || event.isComposing || S.peek !== 'pointer' || focusInside()) return
+  event.preventDefault()
+  manager.hide()
+}
+watch(() => Boolean(S && S.peek === 'pointer'), (on) => {
+  if (!active.value) return
+  if (on) document.addEventListener('keydown', onPeekEscape, true)
+  else document.removeEventListener('keydown', onPeekEscape, true)
+})
 function onDocPointerdown(event) {
   const t = event.target
   lastPress = t && t.nodeType === 1 ? t : null
-  if (!isOpen.value || mobile.value || !lastPress) return
-  if (inRoot(t) || (t.closest && t.closest('.g-status-mark--link'))) return
-  api.setOpen(false) // pulsar fuera repliega; no mueve el foco
+  if (!lastPress || inRoot(t) || (t.closest && t.closest('.g-status-mark--link'))) return
+  if (isList.value && !mobile.value) manager.hide() // pulsar fuera cierra la lista y recoge; no mueve el foco
+  else if (S.peek === 'touch') api.setPeek('') // tocar fuera cierra el asomo táctil; la lectura sigue
 }
-const warnedCovered = new WeakSet()
+// El foco va a algo que la isla tapa (2.4.11): se recoge al momento sin mover el foco
 function onDocFocusin(event) {
   const t = event.target
-  if (!t || t.nodeType !== 1 || inRoot(t) || !shapeEl.value || !count.value || typeof t.getBoundingClientRect !== 'function') return
-  const s = shapeEl.value.getBoundingClientRect()
-  const r = t.getBoundingClientRect()
-  if (isOpen.value && !mobile.value) {
-    // El foco va a un elemento que la isla abierta tapa (WCAG 2.4.11): se repliega
-    if (rectsOverlap(s, r)) api.setOpen(false)
-  } else {
-    try {
-      if (process.env.NODE_ENV !== 'production' && !isOpen.value && r.width > 0 && r.height > 0 && r.left >= s.left && r.right <= s.right && r.top >= s.top && r.bottom <= s.bottom && !warnedCovered.has(t)) {
-        warnedCovered.add(t)
-        console.warn('[Grana Status] la isla replegada tapa por completo el elemento enfocado: cambia `position` u `offset` del gestor (status.md «Límites conocidos»).', t)
-      }
-    } catch {}
-  }
+  if (!t || t.nodeType !== 1 || inRoot(t) || form.value === 'empty' || !shapeEl.value || typeof t.getBoundingClientRect !== 'function') return
+  if (mobile.value && isList.value) return
+  if (rectsOverlap(shapeEl.value.getBoundingClientRect(), t.getBoundingClientRect())) manager.hide()
 }
 const onResize = () => { measureMobile(); measure() }
+const onVisibility = () => api.hold('hidden', document.visibilityState === 'hidden')
 
 // ---------- Cuenta atrás: un solo intervalo de 1 s, solo con algún plazo y la isla montada ----------
 let clock = null
@@ -514,13 +604,39 @@ function syncClock() {
 }
 watch(hasDeadline, syncClock)
 
-// ---------- Reacciones ----------
-watch([count, form, mobile], () => { if (active.value) nextTick(measure) }, { flush: 'post' })
-watch(mobile, (m) => {
+// ---------- Vive con su origen (#697): un MutationObserver solo mientras alguna condición tenga `origin` ----------
+const met = new WeakMap() // registro → el `origin` cuyo destino llegó a existir
+let mo = null
+let moFrame = 0
+const withOrigin = computed(() => Boolean(S && S.items.some((r) => r.origin)))
+function checkOrigins() {
+  moFrame = 0
+  for (const r of S.items.slice()) {
+    if (!r.origin) continue
+    const raw = toRaw(r)
+    const el = resolveOrigin(r)
+    if (el) met.set(raw, r.origin)
+    else if (met.get(raw) === r.origin) api.removeAs(r.id, 'origin')
+  }
+}
+const scheduleOrigins = () => { if (!moFrame) moFrame = raf(checkOrigins) }
+function syncOrigins() {
+  const want = active.value && withOrigin.value
+  if (want && !mo && typeof MutationObserver !== 'undefined') {
+    mo = new MutationObserver(scheduleOrigins)
+    mo.observe(document.documentElement, { childList: true, subtree: true })
+  } else if (!want && mo) { mo.disconnect(); mo = null }
+  if (want) scheduleOrigins()
+}
+watch(withOrigin, syncOrigins)
+watch(() => (S ? S.items.length : 0), () => { if (mo) scheduleOrigins() })
+
+// ---------- Avisos de textos que faltan (la primera vez que se necesitan) ----------
+watch([waiting, mobile], ([n, m]) => {
   try {
-    if (process.env.NODE_ENV !== 'production' && m && active.value) {
-      if (!L.value.sheetTitle) api.warn('falta labels.sheetTitle: la hoja móvil de la isla queda sin título.')
-      if (!L.value.close) api.warn('falta labels.close: la hoja móvil de la isla queda sin botón de cierre.')
+    if (process.env.NODE_ENV !== 'production' && active.value) {
+      if (n > 0 && !L.value.waiting) api.warn('falta labels.waiting: «+N» queda sin texto para lectores de pantalla.')
+      if (m && !L.value.sheetTitle) api.warn('falta labels.sheetTitle: la hoja móvil de la isla queda sin título.')
     }
   } catch {}
 })
@@ -537,13 +653,7 @@ onMounted(async () => {
   if (!api) return
   const twice = () => { try { if (process.env.NODE_ENV !== 'production') console.warn('[Grana Status] dos <GStatusIsland> para el mismo gestor: la segunda no pinta nada.') } catch {} }
   if (S.attached) { twice(); return }
-  try {
-    if (process.env.NODE_ENV !== 'production') {
-      if (!L.value.region) api.warn('falta labels.region: la isla queda sin nombre de región.')
-      if (!L.value.summary) api.warn('falta labels.summary: el resumen de la isla va sin prefijo de cuenta.')
-      if (!L.value.acknowledge) api.warn('falta labels.acknowledge: el botón «Entendido» no se dibuja (sin texto no tiene nombre) y no hay forma de punto.')
-    }
-  } catch {}
+  try { if (process.env.NODE_ENV !== 'production' && !L.value.region) api.warn('falta labels.region: la isla queda sin nombre de región.') } catch {}
   topModal.scan()
   if (!api.attach(region, rootId.value)) { twice(); return }
   topModal.sync()
@@ -554,51 +664,58 @@ onMounted(async () => {
   reopen()
   measureMobile()
   if (typeof ResizeObserver !== 'undefined' && innerEl.value) {
-    ro = new ResizeObserver(onResizeObserved)
+    ro = new ResizeObserver(() => measure())
     ro.observe(innerEl.value)
-    if (summaryEl.value) ro.observe(summaryEl.value)
   }
   measure()
   syncClock()
+  syncOrigins()
+  onVisibility()
   document.addEventListener('keydown', onDocKeydown)
   document.addEventListener('pointerdown', onDocPointerdown, true)
+  document.addEventListener('pointerup', onDocPointerup, true)
+  document.addEventListener('pointercancel', onDocPointerup, true)
   document.addEventListener('focusin', onDocFocusin)
+  document.addEventListener('visibilitychange', onVisibility)
   window.addEventListener('resize', onResize)
   // Las condiciones declaradas en este mismo ciclo de montaje (<GStatus> hermanos, onMounted de la aplicación) ya existían
   liveOn = true
-  // Nada se anima al montar: is-ready dos cuadros después de la primera escritura de tamaño
+  // Nada se anima al montar: is-ready dos cuadros después; lo presente al cargar entra entonces, con su caída
   const h1 = raf(() => {
     frames.delete(h1)
-    const h2 = raf(() => { frames.delete(h2); ready.value = true })
+    const h2 = raf(() => { frames.delete(h2); ready.value = true; api.ready() })
     frames.add(h2)
   })
   frames.add(h1)
 })
-// El resumen aparece y desaparece con las condiciones: el observador lo sigue (su alto es la reserva de borde)
-watch(summaryEl, (el, old) => {
-  if (!ro) return
-  if (old) ro.unobserve(old)
-  if (el) ro.observe(el)
-}, { flush: 'post' })
 onBeforeUnmount(() => {
   if (!api || !active.value) return
   active.value = false
   liveOn = false
   api.detach(region)
-  api.setOpen(false)
   document.removeEventListener('keydown', onDocKeydown)
+  document.removeEventListener('keydown', onPeekEscape, true)
   document.removeEventListener('pointerdown', onDocPointerdown, true)
+  document.removeEventListener('pointerup', onDocPointerup, true)
+  document.removeEventListener('pointercancel', onDocPointerup, true)
   document.removeEventListener('focusin', onDocFocusin)
+  document.removeEventListener('visibilitychange', onVisibility)
   window.removeEventListener('resize', onResize)
   topModal.disconnect()
   writer.dispose()
   if (ro) ro.disconnect()
   ro = null
+  if (mo) mo.disconnect()
+  mo = null
   if (clock) clearInterval(clock)
   clock = null
   clearEdgeReserve(owner)
   frames.forEach((h) => caf(h))
-  nudgeFrames.forEach(caf)
+  caf(stageFrame)
+  caf(moFrame)
+  clearTimeout(stageTimer)
+  clearTimeout(outTimer)
+  clearTimeout(peekTimer)
 })
 </script>
 
@@ -614,44 +731,75 @@ onBeforeUnmount(() => {
       :data-position="position"
       :data-align="align"
       :data-form="form"
-      :data-type="first ? first.type : undefined"
+      :data-stage="stage || undefined"
+      :data-type="head ? head.type : undefined"
       :data-mobile="mobile ? '' : undefined"
-      @animationend="onAnimationend"
     >
       <div class="g-status-island__live" role="status" aria-live="polite" aria-atomic="true">{{ live.polite }}</div>
       <div class="g-status-island__live" role="alert" aria-atomic="true">{{ live.assertive }}</div>
-      <section ref="shapeEl" class="g-status-island__shape" :hidden="count ? undefined : true" :aria-label="regionLabel" :style="shapeStyle" @keydown="onShapeKeydown">
+      <section
+        ref="shapeEl"
+        class="g-status-island__shape"
+        :hidden="form === 'empty' ? true : undefined"
+        :aria-label="regionLabel"
+        :style="shapeStyle"
+        @keydown="onShapeKeydown"
+        @pointerenter="onPointerenter"
+        @pointerleave="onPointerleave"
+        @pointerdown="onShapePointerdown"
+        @focusin="onFocusin"
+        @focusout="onFocusout"
+        @transitionend="onShapeTransition"
+        @transitioncancel="onShapeTransition"
+      >
         <div ref="innerEl" class="g-status-island__inner">
           <button
-            v-if="first"
+            v-if="head"
             :id="summaryId"
             ref="summaryEl"
             class="g-status-island__summary"
             type="button"
-            :aria-expanded="isOpen ? 'true' : 'false'"
+            :aria-expanded="isList ? 'true' : 'false'"
             :aria-controls="mobile ? undefined : panelId"
             :aria-haspopup="mobile ? 'dialog' : undefined"
             :aria-keyshortcuts="hotkey || undefined"
-            @click="toggle"
+            :aria-describedby="!isList && head.description ? descId : undefined"
+            @pointerdown="onSummaryPointerdown"
+            @click="onSummaryClick"
           >
-            <span class="g-status-island__badge" :class="{ 'is-busy': first.busy }" :data-type="first.type" aria-hidden="true"><GIcon :name="first.busy ? 'loader-circle' : ICON[first.type]" /></span>
-            <span class="g-status-island__text"><span v-if="summaryPrefix" class="g-status-island__sr">{{ summaryPrefix }}</span>{{ first.title }}</span>
-            <span v-if="firstTimer" class="g-status-island__timer" role="timer" aria-live="off">{{ firstTimer }}</span>
-            <span v-if="count > 1" class="g-status-island__more"><span aria-hidden="true">+{{ count - 1 }}</span><span v-if="moreText" class="g-status-island__sr">{{ moreText }}</span></span>
+            <span class="g-status-island__badge" :class="{ 'is-busy': head.busy }" :data-type="head.type" aria-hidden="true"><GIcon :name="head.busy ? 'loader-circle' : ICON[head.type]" /><span v-if="ring" :key="ring.seg" class="g-status-island__ring"></span></span>
+            <span v-if="isList && L.listTitle" class="g-status-island__text">{{ countText(L.listTitle, count) }}</span>
+            <span v-else :key="textKey" class="g-status-island__text"><span v-if="typeLabel(head)" class="g-status-island__sr">{{ typeLabel(head) + ': ' }}</span>{{ head.title }}</span>
+            <span v-if="outgoing && !isList" :key="`o${outgoing.key}`" class="g-status-island__text" aria-hidden="true" @transitionend.self="outgoing = null">{{ outgoing.title }}</span>
+            <span v-if="timer && !isList" class="g-status-island__timer" role="timer" aria-live="off">{{ timer }}</span>
+            <span class="g-status-island__tail">
+              <span v-if="waiting" class="g-status-island__more"><span aria-hidden="true">+{{ waiting }}</span><span v-if="waitingText" class="g-status-island__sr">{{ ' ' + waitingText }}</span></span>
+              <span class="g-status-island__chevron" aria-hidden="true"><GIcon name="chevron-down" /></span>
+            </span>
           </button>
-          <div v-if="!mobile" :id="panelId" ref="panelEl" class="g-status-island__panel" :hidden="isOpen ? undefined : true">
-            <StatusList :api="api" :root-id="rootId" :details="details" :guard="guard" @origin="onOrigin" @link="onLink" />
-            <div v-if="L.acknowledge" class="g-status-island__foot">
-              <GBtn class="g-status-island__ack" size="sm" variant="outline" color="neutral" @click="ack">{{ L.acknowledge }}</GBtn>
+          <div v-if="head && !isList" :id="`${rootId}-peek`" ref="peekEl" class="g-status-island__peek" :hidden="peekOpen || peekLinger ? undefined : true">
+            <p v-if="head.description" :id="descId" class="g-status-island__desc">{{ head.description }}</p>
+            <div class="g-status-island__acts">
+              <GBtn v-if="head.action" class="g-status-island__action" size="sm" :aria-disabled="head.busy ? 'true' : undefined" @click="api.action(head.uid)">{{ head.busy && head.action.busyLabel ? head.action.busyLabel : head.action.label }}</GBtn>
+              <GBtn v-if="head.origin" class="g-status-island__origin" size="sm" variant="ghost" color="neutral" @click="onOrigin(head)">{{ head.origin.label }}</GBtn>
+              <a v-if="head.link" class="g-status-island__link" :href="head.link.href" :target="head.link.target" :rel="head.link.rel" @click="onLink($event, head)">{{ head.link.label }}</a>
+              <GBtn v-if="L.hide" class="g-status-island__hide" size="sm" variant="ghost" color="neutral" @click="onHide">{{ L.hide }}</GBtn>
+            </div>
+          </div>
+          <div v-if="!mobile" :id="panelId" class="g-status-island__panel" :hidden="panelOpen ? undefined : true">
+            <ul class="g-status-island__list" :aria-labelledby="summaryId">
+              <StatusList v-if="panelOpen" :api="api" :root-id="rootId" :details="details" :guard="guard" @origin="onOrigin" @link="onLink" />
+            </ul>
+            <div v-if="L.close" class="g-status-island__foot">
+              <GBtn class="g-status-island__close" size="sm" variant="ghost" color="neutral" @click="collapseByPerson">{{ L.close }}</GBtn>
             </div>
           </div>
         </div>
       </section>
       <GDialog v-if="mobile" v-model="sheetOpen" class="g-status-sheet" mobile="sheet" :title="L.sheetTitle" :close-label="L.close" @open="onSheetOpen" @closed="onSheetClosed">
-        <StatusList :api="api" :root-id="rootId" :details="details" :guard="guard" @origin="onOrigin" @link="onLink" />
-        <template v-if="L.acknowledge" #footer>
-          <GBtn class="g-status-island__ack" size="sm" variant="outline" color="neutral" @click="ack">{{ L.acknowledge }}</GBtn>
-        </template>
+        <ul class="g-status-island__list" :aria-labelledby="summaryId">
+          <StatusList :api="api" :root-id="rootId" :details="details" :guard="guard" @origin="onOrigin" @link="onLink" />
+        </ul>
       </GDialog>
     </div>
   </Teleport>

@@ -2,13 +2,15 @@
 // GStatus · condición declarativa de la isla de estado, sin pintura (dueño: bruno)
 // Contrato: design/contracts/status.md «GStatus» (#318). Mientras está montado, su condición existe: `set` al montar,
 // `update` al cambiar una prop, `remove` al desmontar (motivo `unmount`). Si la persona la retira con el componente aún
-// montado (descartar, «Entendido»), no se vuelve a registrar hasta que se monte de nuevo: avisa con `remove`.
+// montado (descartar, un resultado ya leído, su origen fuera del documento), no se vuelve a registrar hasta que se monte de
+// nuevo: avisa con `remove(reason)`.
 // En el servidor no hace nada.
 import { inject, onBeforeUnmount, onMounted, toRaw, watch } from 'vue'
 import { INTERNAL, statusKey } from '../GStatusIsland/status.js'
 
 defineOptions({ name: 'GStatus' })
 
+// `persistent` y `dismissible` sin valor (no `false`): el modelo decide el suyo (persistent depende del tipo)
 const props = defineProps({
   id: { type: [String, Number], required: true },
   type: { type: String, default: undefined },
@@ -18,7 +20,6 @@ const props = defineProps({
   action: { type: Object, default: undefined },
   link: { type: Object, default: undefined },
   origin: { type: Object, default: undefined },
-  // Sin valor (no `false`): el modelo decide el suyo (persistent depende del tipo)
   persistent: { type: Boolean, default: undefined },
   dismissible: { type: Boolean, default: undefined },
   deadline: { type: [Number, Date], default: undefined },

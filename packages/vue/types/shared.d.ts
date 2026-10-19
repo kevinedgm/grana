@@ -653,7 +653,7 @@ export type IconsPlugin = GranaPlugin
 
 export type StatusType = 'info' | 'success' | 'warning' | 'error'
 export type StatusId = string | number
-export type StatusRemoveReason = 'dismiss' | 'acknowledge' | 'api' | 'clear' | 'unmount'
+export type StatusRemoveReason = 'dismiss' | 'read' | 'api' | 'clear' | 'unmount' | 'origin'
 
 export interface StatusConditionOptions {
   type?: StatusType
@@ -684,7 +684,8 @@ export interface StatusCondition {
   readonly dismissible: boolean
   readonly deadline?: number | Date
   readonly politeness: 'polite' | 'assertive'
-  readonly acknowledged: boolean
+  /** Ya se mostró y se leyó, se ocultó o se vio en la lista (#697). */
+  readonly seen: boolean
   readonly busy: boolean
   readonly since: number
   readonly updatedAt: number
@@ -693,7 +694,8 @@ export interface StatusOptions {
   position?: 'top-center' | 'top-start' | 'top-end'
   offset?: { top?: number | string }
   hotkey?: string | false
-  autoOpen?: boolean
+  /** Tiempo de lectura de cada titular: 'auto' (el de GToast), ms ≥ 5000, o false (no se recoge por tiempo). */
+  duration?: 'auto' | number | false
   labels?: GranaLabels
 }
 export interface Status extends GranaPlugin {
@@ -707,6 +709,9 @@ export interface Status extends GranaPlugin {
   remove(id: StatusId): boolean
   clear(): void
   announce(id: StatusId): boolean
+  /** Recoge la isla ya: lo mostrado y lo que espera pasa a `seen`. */
+  hide(): void
+  /** @deprecated Retirado (#697): avisa y hace `hide()`. */
   acknowledge(): void
   open(id?: StatusId, options?: { focus?: boolean }): boolean
   close(): void
@@ -714,7 +719,15 @@ export interface Status extends GranaPlugin {
   get(id: StatusId): StatusCondition | undefined
   configure(patch: StatusOptions): void
   readonly conditions: readonly StatusCondition[]
-  readonly state: { readonly form: string; readonly count: number; readonly mobile: boolean }
+  readonly state: {
+    readonly form: 'empty' | 'line' | 'list'
+    readonly peek: boolean
+    readonly paused: boolean
+    readonly current: StatusId | null
+    readonly waiting: number
+    readonly count: number
+    readonly mobile: boolean
+  }
 }
 
 // ---------------------------------------------------------------------------------------------------------------------

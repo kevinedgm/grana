@@ -186,12 +186,13 @@ describe('zona de marca · lista del grupo (tokens.md §44.5)', () => {
     for (const css of [light, media, dark]) expect(SOURCES.filter((n) => !names(css).has(n))).toEqual([])
   })
 
-  it('ningún componente lee las fuentes de la zona, salvo GSurface.css con --g-color-zone-edge', () => {
+  it('ningún componente lee las fuentes de la zona, salvo GSurface.css con --g-color-zone-edge y GStatusIsland.css con --g-color-on-brand-zone (#694)', () => {
     const bad = []
     for (const s of sheets) {
       for (const m of s.css.matchAll(/var\((--g-color-[a-z0-9-]+)/g)) {
         if (!SOURCES.includes(m[1])) continue
         if (s.name === 'GSurface/GSurface.css' && m[1] === '--g-color-zone-edge') continue
+        if (s.name === 'GStatusIsland/GStatusIsland.css' && m[1] === '--g-color-on-brand-zone') continue
         bad.push(`${s.name}: ${m[1]}`)
       }
     }

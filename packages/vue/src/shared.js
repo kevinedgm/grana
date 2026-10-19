@@ -59,7 +59,7 @@ import { useCollapse } from './utils/collapse.js'
 import { observeParent, rowGapOf } from './components/GFormReveal/revealGap.js'
 import { firstFocusable, focusChain, land, resolveFrom, resolveTarget, usable } from './utils/landing.js'
 import GLibIcon from './components/GIcon/GLibIcon.js'
-import { ANNOUNCE, MOBILE_SPACES, POSITIONS, matchesHotkey, parseHotkey } from './components/GToast/toaster.js'
+import { ANNOUNCE, MOBILE_SPACES, POSITIONS, RESUME_MIN, TOAST_DURATION, matchesHotkey, parseHotkey } from './components/GToast/toaster.js'
 import { anchorGone, followFrame, placeBlock, px, setVar } from './utils/anchor.js'
 import { EDGE_ORDER, clearEdgeReserve, edgeReserve, setEdgeReserve } from './utils/edgeReserve.js'
 import { acquirePageLive, announcePage, createLiveWriter } from './utils/liveRegion.js'
@@ -100,7 +100,7 @@ export const shared = {
   'components/GFormReveal/revealGap.js': { observeParent, rowGapOf },
   'utils/landing.js': { firstFocusable, focusChain, land, resolveFrom, resolveTarget, usable },
   'components/GIcon/GLibIcon.js': { default: GLibIcon },
-  'components/GToast/toaster.js': { ANNOUNCE, MOBILE_SPACES, POSITIONS, matchesHotkey, parseHotkey },
+  'components/GToast/toaster.js': { ANNOUNCE, MOBILE_SPACES, POSITIONS, RESUME_MIN, TOAST_DURATION, matchesHotkey, parseHotkey },
   'utils/anchor.js': { anchorGone, followFrame, placeBlock, px, setVar },
   'utils/edgeReserve.js': { EDGE_ORDER, clearEdgeReserve, edgeReserve, setEdgeReserve },
   'utils/liveRegion.js': { acquirePageLive, announcePage, createLiveWriter },

@@ -48,6 +48,19 @@ Fase C del plan de v1: seis componentes nuevos, la carga común y varias reglas 
 - **`GMenu`: una activación por gesto (#661, defecto L8):** un doble clic en el disparador ya no abre y vuelve a cerrar el menú; el segundo clic de una ráfaga sobre una casilla u opción no la vuelve a alternar, e Intro o Espacio mantenidos no repiten la acción. Su motor de teclado y puntero pasa a `utils/menuNav.js` (interno), compartido con `GFab`, sin otro cambio de comportamiento (#657).
 - **Avisos de desarrollo (#636):** los avisos `[Grana …]` se ven por fin en el desarrollo de tu aplicación (Vite, con y sin preempaquetar, y webpack 5) y desaparecen de su build de producción. Antes no salían nunca en el navegador (la guarda comprobaba `typeof process`, que el empaquetador no define) y sus textos llegaban al JS de producción. Ahora cada aviso va escrito en su sitio con una sola forma, `try { if (process.env.NODE_ENV !== 'production') … } catch {}`; sin empaquetador (ESM directo o UMD desde un CDN) no avisa y no lanza nada. Si tu aplicación tiene muchos avisos de golpe al actualizar, son reales: siempre estuvieron ahí. Verificación: `node design/lab/avisos-dev/verificar.mjs`.
 
+### Cambios de comportamiento en la isla de estado (`@grana/vue/status`, en construcción, `draft`)
+
+La isla pasa a ser **transitoria** (D1 · Cápsula de relevo, #693 a #705). Quien ya la usaba verá estos cambios:
+
+- **Cae, se lee y se recoge sola.** La cápsula cae del borde sin texto, se ensancha con su titular y se recoge pasado el tiempo de lectura de `GToast` (#142), en pausa mientras el puntero, el foco o un dedo están en ella o en la marca de lo que muestra, con la lista abierta, durante un reintento o con la pestaña oculta. La condición **sigue en el modelo**: vuelve con su `GStatusMark for` y con Alt+F8. Lo que lleva cuenta atrás, o acción sin marca montada, no se recoge por tiempo.
+- **Una cada vez:** las condiciones se relevan en la misma cápsula, la más grave primero; «+N» cuenta lo que espera. Asomo al pasar el puntero, al enfocar o con un primer toque; la lista, al pulsar el titular (o con el segundo toque).
+- **Nueva opción `duration`** (`'auto'`, ms ≥ 5000 o `false` para «no ocultar solo»), **método `hide()`** y, en la copia de cada condición, **`seen`** (sustituye a `acknowledged`). `state` es ahora `{ form, peek, paused, current, waiting, count, mobile }` y `form` vale `empty`, `line` o `list`.
+- **`resolve(id, resultado)` limpia la descripción y el detalle técnico**, y una acción que se cumple con `{ type: 'success', … }` se aplica como `resolve`: el éxito ya no arrastra la traza del fallo.
+- **Una condición con `origin` vive con su origen:** si su destino, que llegó a existir, sale del documento, se retira (motivo `origin`). Nuevo motivo `read` para un resultado ya leído (sustituye a `acknowledge`).
+- **Retirados:** `autoOpen`, `acknowledge()` (avisa y hace `hide()`), `labels.acknowledge`, `labels.summary` y `labels.more` (usa `labels.waiting`). Textos nuevos: `waiting`, `listTitle` y `hide`; `close` también cierra la lista.
+- **Borde compartido:** la isla publica su reserva solo mientras se ve y va detrás del FAB (`EDGE_ORDER.status` 20 → 30, #699): un FAB de arriba ya no baja cuando cae la isla.
+- **CLI:** dos guardas nuevas para el cristal grafito de la isla en claro (`status-glass-ink`, `status-glass-badge`; `tokens.md` §12.1).
+
 ### Cambios de comportamiento en `GTable`
 
 Quien ya usaba `GTable` verá estos cambios al actualizar:
@@ -66,6 +79,8 @@ Quien ya usaba `GTable` verá estos cambios al actualizar:
 
 - **`GFab` (#656):** la entrada `@grana/vue/fab` pesa **10 136 B gzip** (`dist/fab.js`; `fab.umd.js` 9 248 B), dentro de su tope de **10 496 B** (#676, que sustituye al de 8 192 B; no se vuelve a subir). En el principal crecen el motor de menú extraído de `GMenu` (`utils/menuNav.js`), `EDGE_ORDER.fab` y las piezas nuevas de `__shared`: `grana.js` **215 555 → 216 016 B gzip (+461 B)**, dentro de su presupuesto de 512 B (medido sobre el árbol de antes del cambio; la base de #653, 215 279 B, ya había crecido con otros lotes).
 - **Modo pasos de `GDialog` (#590):** medido en copia aislada del árbol actual (`vite build` del principal, gzip de `grana.js`) con y sin `GDialogStep`, `useDialogSteps`, el motor de pasos (`GDialog/steps.js`), el hilo, «Volver», el pie por paso y `utils/landing.js`: **212 489 → 217 230 B (+4 741 B, 4,63 KiB)**, dentro del tope de **4 864 B** (#684, que enmienda los 4 096 B de #590; 123 B de holgura). Se queda en el principal.
+
+- **Isla de estado transitoria (#705):** la entrada `@grana/vue/status` pasa de **16 150 a 19 580 B gzip** (`dist/status.js`, gzip de Vite; `status.umd.js` 13 910 → 17 240 B), **580 B por encima del tope de 19 000 B**: queda para la valoración de lima. Minificada para producción (esbuild, sin avisos): 11 555 → 14 812 B. En el principal solo crecen `TOAST_DURATION` y `RESUME_MIN` en `__shared` y la constante de `EDGE_ORDER` (`grana.js` 217 210 → 217 240 B); `grana.css` 90 080 → 91 320 B por el CSS nuevo de coco.
 
 ## [0.1.0-beta.0] - fecha por fijar al publicar
 

@@ -42,8 +42,9 @@ describe('@grana/vue/fab · entrada propia (#656)', () => {
     expect(app2.component('GFab')).toBe(Mine)
   })
 
-  it('EDGE_ORDER: el FAB después de la voz, el encabezado y la isla (#659)', () => {
-    expect(edge.EDGE_ORDER).toEqual({ speech: 10, pageHeader: 15, status: 20, fab: 25 })
+  it('EDGE_ORDER: el FAB después de la voz y el encabezado; la isla, transitoria, detrás del FAB (#659, #699)', () => {
+    expect(edge.EDGE_ORDER).toEqual({ speech: 10, pageHeader: 15, fab: 25, status: 30 })
+    expect(edge.EDGE_ORDER.fab).toBeLessThan(edge.EDGE_ORDER.status)
   })
 
   it('package.json, build y configuración: exports ./fab, global GranaFab, Vue y @grana/vue externos', () => {

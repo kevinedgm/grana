@@ -3,10 +3,12 @@
 // banco ligero packages/vue/playground/fab.html (GFab de dist/fab.umd.js; GToaster y GDialog de dist/grana.umd.js;
 // GStatusIsland de dist/status.umd.js; GPageHeader de dist/page-header.umd.js; GSpeechHost de dist/speech.umd.js con el
 // adaptador simulado de dist/testing.umd.js), en Chromium, Firefox y WebKit:
-//   · un solo registro de bordes (edgeReserve llega a cada entrada por __shared) con EDGE_ORDER.fab = 25;
+//   · un solo registro de bordes (edgeReserve llega a cada entrada por __shared) con EDGE_ORDER.fab = 25 y la isla,
+//     transitoria, detrás del FAB (EDGE_ORDER.status = 30, #699);
 //   · abajo, en estrecho, desde el borde: pill de la voz → muelle de GPageHeader → FAB → aviso, sin solaparse; la pila
 //     abierta no baja al muelle ni a la voz;
-//   · arriba: zócalo pegado de GPageHeader → isla de estado → FAB → aviso, sin solaparse; la pila abierta no sube a ellos;
+//   · arriba: zócalo pegado de GPageHeader → FAB → isla de estado → aviso, sin solaparse; un FAB de arriba no se mueve al
+//     caer la isla; la pila abierta no sube a ellos;
 //   · un GDialog modal cierra la lista sin tocar el foco; el FAB no se traslada al modal, queda bajo el fondo (el toque no
 //     le llega), no cambia su reserva y no se abre mientras el modal esté; al cerrarlo vuelve a abrir;
 //   · dentro de la zona de marca y en oscuro: la pila, el panel de la cola y C heredan el tema de su sitio y conservan los
@@ -51,7 +53,7 @@ const openFab = async (page) => {
 test('un solo registro de bordes para todas las entradas, con el orden del contrato', async ({ page }) => {
   await load(page, 'n=6')
   const order = await page.evaluate(() => ({ ...Grana.__shared['utils/edgeReserve.js'].EDGE_ORDER }))
-  expect(order).toEqual({ speech: 10, pageHeader: 15, status: 20, fab: 25 })
+  expect(order).toEqual({ speech: 10, pageHeader: 15, fab: 25, status: 30 })
   // fab.umd.js toma edgeReserve de Grana.__shared: una reserva publicada en el registro del principal mueve al FAB (lee lo
   // que va antes que él, 10 < 25) y una de después (30) no; con una copia del módulo no se movería con ninguna
   const r = await page.evaluate(async () => {
@@ -107,23 +109,28 @@ test('abajo, en estrecho: voz → muelle de GPageHeader → FAB → aviso, sin s
   expect(errs).toEqual([])
 })
 
-test('arriba: zócalo pegado → isla → FAB → aviso, sin solaparse; la pila abierta baja sin tocarlos', async ({ page }) => {
+test('arriba: zócalo pegado → FAB → isla → aviso, sin solaparse; el FAB no se mueve al caer la isla; la pila abierta baja sin tocarlos', async ({ page }) => {
   const errs = watchConsole(page)
-  await load(page, 'n=6&ph=1&status=1&toast=1&toastpos=top-end&pos=top-end', { width: 1000, height: 700 })
+  await load(page, 'n=6&ph=1&toast=1&toastpos=top-end&pos=top-end', { width: 1000, height: 700 })
   await page.evaluate(() => window.scrollTo(0, 700))
   await settle(page, 800)
   expect(await page.evaluate(() => document.getElementById('ph').classList.contains('is-stuck'))).toBe(true)
-  const b = await boxes(page, { ph: '#ph', island: '.g-status-island', fab: '#fab-trigger', toast: '.g-toast' })
+  const before = await boxes(page, { fab: '#fab-trigger' })
+  // La isla es transitoria (#699): cae detrás del FAB, que conserva su borde
+  await page.evaluate(() => window.__b.status.info('maint', 'Mantenimiento programado esta noche', { description: 'De 23:00 a 23:30 no se podrá guardar.' }))
+  await settle(page, 800)
+  const b = await boxes(page, { ph: '#ph', island: '.g-status-island__shape', fab: '#fab-trigger', toast: '.g-toast' })
   for (const k of Object.keys(b)) expect(b[k], `${k} en pantalla`).not.toBeNull()
-  const msg = `zócalo …–${b.ph.bottom} · isla ${b.island.top}–${b.island.bottom} · FAB ${b.fab.top}–${b.fab.bottom} · aviso ${b.toast.top}–${b.toast.bottom}`
+  expect(Math.abs(b.fab.top - before.fab.top), 'el FAB no baja al caer la isla').toBeLessThan(0.5)
+  const msg = `zócalo …–${b.ph.bottom} · FAB ${b.fab.top}–${b.fab.bottom} · isla ${b.island.top}–${b.island.bottom} · aviso ${b.toast.top}–${b.toast.bottom}`
   expect(b.island.height, msg).toBeGreaterThan(0)
-  expect(b.island.top, msg).toBeGreaterThanOrEqual(b.ph.bottom - 0.5)
-  expect(b.fab.top, msg).toBeGreaterThanOrEqual(b.island.bottom - 0.5)
-  expect(b.toast.top, msg).toBeGreaterThanOrEqual(b.fab.bottom - 0.5)
+  expect(b.fab.top, msg).toBeGreaterThanOrEqual(b.ph.bottom - 0.5)
+  expect(b.island.top, msg).toBeGreaterThanOrEqual(b.fab.bottom - 0.5)
+  expect(b.toast.top, msg).toBeGreaterThanOrEqual(b.island.bottom - 0.5)
   const all = [{ ...b.ph, top: Math.max(0, b.ph.top) }, b.island, b.fab, b.toast]
   for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++) expect(hit(all[i], all[j]), msg).toBe(false)
   await openFab(page)
-  const o = await boxes(page, { list: '#fab-menu', fab: '#fab-trigger', island: '.g-status-island', ph: '#ph' })
+  const o = await boxes(page, { list: '#fab-menu', fab: '#fab-trigger', island: '.g-status-island__shape', ph: '#ph' })
   expect(o.list.top).toBeGreaterThanOrEqual(o.fab.bottom - 0.5)
   expect(o.list.bottom).toBeLessThanOrEqual(700)
   expect(hit(o.list, o.island)).toBe(false)

@@ -1,17 +1,19 @@
 // Registro de reservas de borde del visor (interno; dueño: bruno). speech.md §6.7, toast.md «Convivencia», status.md
-// «Borde compartido», DECISIONS.md #225 y #322.
-// Los elementos PERSISTENTES (la pill flotante de GSpeechHost, la isla de estado) conservan su borde y publican aquí su
-// reserva (alto + margen); el TRANSITORIO (GToaster) con el mismo borde efectivo suma todas a su `offset` de ese borde.
-// Cada reserva lleva su `order` (menor = más cerca del borde): quien va después lee solo las anteriores (`before`), así
-// el orden voz → encabezado de página → isla → avisos es por prioridad y no por montaje. No es API pública ni opción de ningún servicio.
+// «Borde compartido», DECISIONS.md #225, #322 y #699.
+// Los elementos PERSISTENTES (la pill flotante de GSpeechHost, el encabezado de página, el FAB) conservan su borde y
+// publican aquí su reserva (alto + margen); la isla de estado, transitoria, publica solo mientras se ve; el TRANSITORIO
+// (GToaster) con el mismo borde efectivo suma todas a su `offset` de ese borde. Cada reserva lleva su `order` (menor = más
+// cerca del borde): quien va después lee solo las anteriores (`before`), así el orden voz → encabezado de página → FAB →
+// isla → avisos es por prioridad y no por montaje. No es API pública ni opción de ningún servicio.
 // Un registro por documento (el visor es compartido aunque haya varias aplicaciones montadas). Solo en el cliente: se
 // crea al primer uso y solo lo usan componentes montados. Reactivo (Vue): quien lee `edgeReserve` en un `computed`
 // se actualiza al cambiar la reserva.
 import { reactive } from 'vue'
 
 /** Orden desde el borde: menor = más cerca. Los avisos (GToaster) no publican. GPageHeader (zócalo pegado arriba, muelle
- * abajo) va entre la voz y la isla (#631); el FAB contraído (GFab, `anchor="viewport"`) después de la isla (#659). */
-export const EDGE_ORDER = Object.freeze({ speech: 10, pageHeader: 15, status: 20, fab: 25 })
+ * abajo) va después de la voz (#631); el FAB contraído (GFab, `anchor="viewport"`), después (#659); la isla de estado, que
+ * es transitoria, detrás del FAB (#699: lo persistente conserva el borde y lo transitorio se apila por dentro, #225). */
+export const EDGE_ORDER = Object.freeze({ speech: 10, pageHeader: 15, fab: 25, status: 30 })
 
 const registries = new WeakMap() // document → Map(dueño → { edge, px, order })
 

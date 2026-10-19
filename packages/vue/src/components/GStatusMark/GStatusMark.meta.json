@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "name": "GStatusMark",
   "tag": "g-status-mark",
-  "status": "candidate",
+  "status": "draft",
   "since": "0.1.0",
-  "description": "Marca en línea, complemento de la isla de estado. Con `for`: cápsula `button` junto al origen de una condición; existe solo mientras exista la condición, su tipo y su `busy` se derivan de ella y abre la isla en su condición con el foco en su acción. Sin `for`: línea de texto de una sección (insignia + texto + una acción opcional) que no entra en la isla. Ninguna anuncia.",
+  "description": "Marca en línea, complemento de la isla de estado y memoria de lo pendiente (#323, #700). Con `for`: cápsula `button` junto al origen de una condición; existe mientras la condición esté en el modelo (también vista), su tipo y su `busy` se derivan de ella, abre la lista en su condición con el foco en su acción, pausa la lectura de lo mostrado mientras el puntero o el foco están sobre ella, y recibe el eco (`is-echo`, una vez) cuando la isla se recoge si se ve. Sin `for`: línea de texto de una sección (insignia + texto + una acción opcional) que no entra en la isla. Ninguna anuncia.",
   "contract": "design/contracts/status.md",
-  "prototype": "design/lab/alert/r02/",
+  "prototype": "design/lab/alert/r04/",
   "style": "packages/vue/src/components/GStatusMark/GStatusMark.css",
   "props": [
     {
@@ -55,6 +55,7 @@
     "g-status-mark--type-*",
     "data-type",
     "is-busy",
+    "is-echo (marca enlace, durante el eco)",
     "g-status-mark__badge",
     "g-status-mark__text",
     "g-status-mark__type",
@@ -64,8 +65,15 @@
   "states": [
     "link",
     "text",
-    "busy"
+    "busy",
+    "echo"
   ],
   "pending": [],
-  "entry": "@grana/vue/status (#328)"
+  "entry": "@grana/vue/status (#328)",
+  "decisions": [
+    "#323",
+    "#694",
+    "#696",
+    "#700"
+  ]
 }

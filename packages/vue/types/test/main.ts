@@ -32,7 +32,7 @@ import Fab, { GFab } from '@grana/vue/fab'
 import type { FabItem, FabSelectEvent } from '@grana/vue/fab'
 
 const toaster: Toaster = createToaster({ position: 'bottom-end', limit: 3 })
-const status = createStatus({ position: 'top-center' })
+const status = createStatus({ position: 'top-center', duration: 'auto' })
 const speech = createSpeech({ adapter: createSimulatedSpeechAdapter({ location: 'local' }) })
 createApp(App).use(Grana).use(Combobox).use(FileField).use(TimeField).use(Slider).use(Tag).use(LoadRegion).use(CardGroup).use(PageHeader).use(Fab).use(toaster).use(status).use(speech).use(createIcons([]))
 
@@ -40,6 +40,10 @@ toaster.success('Guardado', { description: 'Listo' })
 toaster.show({ title: 'Hola', type: 'info', duration: 'auto' })
 status.set('red', { type: 'error', title: 'Sin conexión' })
 const n: number = status.conditions.length
+const stForm: 'empty' | 'line' | 'list' = status.state.form
+const stSeen: boolean | undefined = status.get('red')?.seen
+status.hide()
+status.configure({ duration: false })
 const sizeText: string = formatFileSize(2048, 'es')
 const diff = summaryDiff([{ title: 'Ana', facts: [{ label: 'Edad', value: '30' }] }])
 const t = createTranscript()

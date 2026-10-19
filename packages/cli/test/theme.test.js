@@ -158,6 +158,26 @@ describe('validateTheme', () => {
     expect(errors({ overrides: { '--g-color-text': '#3B2A1A', '--g-glass-tint': '#FFF6E5', '--g-glass-opacity': '0.72', '--g-color-brand-soft': '#F6E4EE' } }).filter((i) => i.id === 'glass-contrast')).toEqual([])
   })
 
+  it('isla de estado en claro (§12.1, #694): la tinta sobre el cuerpo grafito y el glifo sobre el disco del tipo se validan; el tema por defecto pasa', () => {
+    const ids = (o) => errors(o).map((i) => i.id)
+    expect(ids({}).filter((i) => i.startsWith('status-glass'))).toEqual([])
+    // Texto claro: el cuerpo al 84 % sobre blanco queda claro y la superficie blanca no se lee
+    const ink = errors({ overrides: { '--g-color-text': '#8A8A8A', '--g-color-text-muted': '#6B6B6B', '--g-color-text-subtle': '#6B6B6B' } }).find((i) => i.id === 'status-glass-ink')
+    expect(ink).toMatchObject({ severity: 'error', min: 4.5, tokens: ['--g-color-text', '--g-color-surface'] })
+    expect(ink.ratio).toBeLessThan(4.5)
+    // Un tipo muy claro sobre un cuerpo gris medio: el disco al 40 % aclara el cuerpo y el glifo blanco cae por debajo de
+    // 3:1 aunque la tinta sobre el cuerpo pase (con el texto por defecto el disco nunca supera ~3,3:1)
+    const badge = errors({ overrides: { '--g-color-text': '#555555', '--g-color-warning': '#FFF3B0' } }).find((i) => i.id === 'status-glass-badge')
+    expect(badge).toMatchObject({ severity: 'error', min: 3 })
+    expect(badge.message).toContain('warning')
+    expect(badge.ratio).toBeLessThan(3)
+  })
+
+  it('isla de estado: las guardas solo miran el claro (el oscuro es el cristal de §12)', () => {
+    const r = buildTheme({ dark: { overrides: { '--g-color-warning': '#FFF3B0' } } })
+    expect((r.dark ? r.dark.issues || [] : []).some((i) => i.id === 'status-glass-badge')).toBe(false)
+  })
+
   it('un color ilegible avisa (warning) y no bloquea', () => {
     const i = issuesOf({ overrides: { '--g-color-text-muted': 'color-mix(in srgb, red, blue)' } })
     expect(i.some((x) => x.id === 'unverifiable' && x.severity === 'warning')).toBe(true)

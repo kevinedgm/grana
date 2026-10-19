@@ -8,6 +8,8 @@ import { toOklch } from './color.js'
 export const COLOR_NAMES = ['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info']
 const BLACK = [0, 0, 0]
 const WHITE = [255, 255, 255]
+// Mezclas del cristal grafito en claro de la isla de estado (constantes de GStatusIsland.css, tokens.md §12.1 y §31)
+export const STATUS_GLASS = Object.freeze({ body: 0.84, disc: 0.4 })
 
 // Resuelve `var(--x)` recursivamente y devuelve el valor final como texto
 const resolve = (tokens, value, depth = 0) => {
@@ -106,6 +108,34 @@ export const validateTheme = (tokens, { generated = {}, scheme = 'light', accent
       }
     } else unreadable('--g-color-text')
   } else add('unverifiable', 'warning', `No se pudo leer --g-glass-opacity («${tokens['--g-glass-opacity']}»).`, 'Debe ser un número entre 0 y 1.', { tokens: ['--g-glass-opacity'] })
+
+  // Cristal grafito en claro de la isla de estado (tokens.md §12.1, DECISIONS.md #694): el cuerpo es --g-color-text al 84 %
+  // compuesto sobre el peor fondo, el blanco; su tinta, --g-color-surface, necesita 4.5:1 sobre él (a), y el glifo de la
+  // insignia (--g-color-surface) 3:1 sobre el disco del tipo al 40 % compuesto sobre ese cuerpo (b). Solo en el claro: en
+  // oscuro la isla es el cristal de §12, que ya se valida arriba. Los porcentajes son constantes del componente (§31).
+  if (!dark) {
+    const body = colorOf(tokens, '--g-color-text')
+    const ink = colorOf(tokens, '--g-color-surface')
+    if (!body) unreadable('--g-color-text')
+    else if (!ink) unreadable('--g-color-surface')
+    else {
+      const glass = over(body, STATUS_GLASS.body, WHITE)
+      const ratio = contrast(ink, glass)
+      if (ratio + 1e-9 < 4.5) add('status-glass-ink', 'error', `Isla de estado en claro: --g-color-surface sobre --g-color-text al ${STATUS_GLASS.body * 100} % (compuesto sobre blanco, ${toHex(glass)}): contraste ${fmt(ratio)}:1, mínimo 4.5:1.`, 'WCAG 1.4.3: la isla es cristal grafito en claro; su texto es la superficie sobre el texto translúcido, y el peor fondo es el blanco. Oscurece --g-color-text o aclara --g-color-surface.', { tokens: ['--g-color-text', '--g-color-surface'], ratio: +ratio.toFixed(2), min: 4.5 })
+      const failing = []
+      for (const t of ['info', 'success', 'warning', 'danger']) {
+        const c = colorOf(tokens, `--g-color-${t}`)
+        if (!c) { unreadable(`--g-color-${t}`); continue }
+        const disc = over(c, STATUS_GLASS.disc, glass)
+        const r = contrast(ink, disc)
+        if (r + 1e-9 < 3) failing.push({ t, r, disc })
+      }
+      if (failing.length) {
+        const worst = failing.reduce((a, b) => (b.r < a.r ? b : a))
+        add('status-glass-badge', 'error', `Isla de estado en claro: el glifo (--g-color-surface) sobre el disco de --g-color-${worst.t} al ${STATUS_GLASS.disc * 100} % (${toHex(worst.disc)}): contraste ${fmt(worst.r)}:1, mínimo 3:1. Fallan: ${failing.map((f) => f.t).join(', ')}.`, 'WCAG 1.4.11: el icono de la insignia dice el tipo del aviso (junto con el texto oculto); necesita 3:1 sobre su disco. Usa un color de tipo más profundo o un --g-color-text más oscuro.', { tokens: ['--g-color-surface', '--g-color-text', ...failing.map((f) => `--g-color-${f.t}`)], ratio: +worst.r.toFixed(2), min: 3 })
+      }
+    }
+  }
 
   // Espaciado: los controles tienen piso de 24px, pero con una unidad muy pequeña se pierde densidad
   const unit = lengthPx(tokens['--g-space-1'])

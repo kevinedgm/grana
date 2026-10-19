@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "name": "GStatusIsland",
   "tag": "g-status-island",
-  "status": "candidate",
+  "status": "draft",
   "since": "0.1.0",
-  "description": "Isla de estado: región única y persistente de la aplicación (borde superior del visor, fuera del flujo) que reúne lo que pasa y dura: condiciones de página, fallos del servidor y resultados que deben quedarse. Servicio con clave (createStatus, también plugin de Vue): declarar dos veces la misma clave sustituye la condición en el mismo elemento. Tres formas sobre una sola superficie (punto, compacta, abierta), par propio de canales vivos, nunca toma el foco, Alt+F8 va y vuelve, lo grave se abre solo si no tapa lo que se usa, traslado al <dialog> modal superior, hoja móvil con GDialog real y borde compartido voz → isla → avisos.",
+  "description": "Isla de estado transitoria (D1 · Cápsula de relevo, #693 a #705): una cápsula en el borde superior del visor, fuera del flujo, que dice lo que está pasando y tiene estado (sin conexión, sesión por caducar, el servidor falló al guardar, un resultado que vuelve a su origen) y se va: cae del borde sin texto, se ensancha con su titular, se lee con el tiempo de GToast (en pausa mientras se usa) y se recoge subiendo. La memoria de lo pendiente vive en el modelo, en la marca junto a su control (GStatusMark) y en Alt+F8. Servicio con clave (createStatus, también plugin de Vue): declarar dos veces la misma clave sustituye la condición en el mismo elemento. Relevo por gravedad y llegada en la misma cápsula («+N»), asomo por puntero, foco o toque, lista (hoja móvil con GDialog real en estrecho), par propio de canales vivos, nunca toma el foco ni mueve nada de la página, toda transición parte del estado actual, traslado al <dialog> modal superior y borde compartido voz → zócalo → FAB → isla → avisos.",
   "contract": "design/contracts/status.md",
-  "prototype": "design/lab/alert/r02/",
+  "prototype": "design/lab/alert/r04/",
   "style": "packages/vue/src/components/GStatusIsland/GStatusIsland.css",
   "exports": [
     {
@@ -64,9 +64,10 @@
       "values": "sintaxis de aria-keyshortcuts; F6 o ilegible se rechaza; F8 y Shift+F8 se aceptan con aviso"
     },
     {
-      "name": "autoOpen",
-      "type": "Boolean",
-      "default": true
+      "name": "duration",
+      "type": "'auto' | Number | false",
+      "default": "auto",
+      "values": "'auto' = clamp(5000, 2000 + 60 × caracteres de título y descripción, 12000) ms (TOAST_DURATION, #142); ms ≥ 5000 (menos: aviso y 5000); false = la isla no se recoge por tiempo (preferencia «no ocultar solo», WCAG 2.2.1)"
     },
     {
       "name": "labels",
@@ -104,7 +105,7 @@
     {
       "name": "action",
       "type": "Object",
-      "values": "{ label, busyLabel?, onClick(condition) }; promesa → busy; cumplida con objeto = update; rechazada = se reanuncia"
+      "values": "{ label, busyLabel?, onClick(condition) }; promesa → busy (la lectura queda en pausa); cumplida con un objeto de type 'success' = resolve (sin descripción ni detalle, F4); con otro objeto = update; rechazada = se reanuncia y se vuelve a mostrar"
     },
     {
       "name": "link",
@@ -114,7 +115,7 @@
     {
       "name": "origin",
       "type": "Object",
-      "values": "{ label, target }: id, Element o función"
+      "values": "{ label, target }: id, Element o función. Vive con su origen: si su destino, que llegó a existir, sale del documento, la condición se retira (motivo origin, sin anuncio)"
     },
     {
       "name": "persistent",
@@ -128,7 +129,8 @@
     },
     {
       "name": "deadline",
-      "type": "Number | Date"
+      "type": "Number | Date",
+      "values": "marca de tiempo: m:ss en lugar del anillo; no se recoge por tiempo; cada umbral (5 min, 1 min, 30 s) se anuncia y la vuelve a mostrar"
     },
     {
       "name": "politeness",
@@ -142,7 +144,7 @@
     {
       "name": "onRemove",
       "type": "Function",
-      "values": "(reason, condition): dismiss · acknowledge · api · clear · unmount"
+      "values": "(reason, condition): dismiss · read · api · clear · unmount · origin"
     },
     {
       "name": "onExpire",
@@ -154,33 +156,33 @@
     "set(id, options) → id | null",
     "info|success|warning|error(id, title, options?) → id",
     "update(id, patch) → Boolean",
-    "resolve(id, result?) → Boolean",
+    "resolve(id, result?) → Boolean (limpia description, details, action, busy y deadline; R5)",
     "remove(id) → Boolean",
     "clear()",
-    "announce(id) → Boolean",
-    "acknowledge()",
-    "open(id?, { focus }?) → Boolean",
-    "close()",
+    "announce(id) → Boolean (reanuncia y vuelve a mostrar)",
+    "hide() (recoge ya: lo mostrado y lo que espera pasa a seen)",
+    "open(id?, { focus }?) → Boolean (abre la lista)",
+    "close() (cierra la lista y recoge)",
     "has(id)",
-    "get(id)",
+    "get(id) → copia con seen, busy, since, updatedAt",
     "configure(patch)",
-    "conditions (reactivo, en el orden de la isla)",
-    "state { form, count, mobile } (reactivo)",
+    "conditions (reactivo, en el orden de la lista)",
+    "state { form: 'empty' | 'line' | 'list', peek, paused, current, waiting, count, mobile } (reactivo)",
     "install(app)"
   ],
   "labels": [
     "region {hotkey}",
-    "summary {count}",
-    "more {count}",
+    "waiting {count} (String o Function)",
+    "listTitle {count} (String o Function)",
+    "hide",
+    "close",
     "types.info|success|warning|error",
-    "acknowledge",
     "dismiss {title}",
     "details",
     "copy",
     "copied",
-    "remaining {time}",
-    "sheetTitle",
-    "close"
+    "remaining {time} (String o Function)",
+    "sheetTitle"
   ],
   "props": [
     {
@@ -196,30 +198,42 @@
     "g-status-island--position-top-{start|center|end}",
     "data-position",
     "data-align",
-    "data-form=empty|compact|open|dot",
+    "data-form=empty|line|list",
+    "data-stage=drop|grow|fold|rise (solo durante la etapa)",
     "data-type",
     "data-mobile",
     "is-ready",
-    "is-nudge",
+    "is-peek",
+    "is-paused",
     "--_status-offset-top (raíz, en línea)",
-    "--_island-w / --_island-h (__shape, en línea, px)",
+    "--_island-w / --_island-h (__shape, en línea, px del destino medido; borrados en empty)",
+    "--_left / --_run-ms (__shape, en línea, números: tramo del anillo)",
     "g-status-island__live (2)",
-    "__shape",
+    "__shape (hidden en empty)",
     "__inner",
     "__summary",
     "__badge (data-type, is-busy)",
-    "__text",
+    "__ring (un elemento por tramo)",
+    "__text (uno por relevo)",
     "__sr",
     "__timer",
+    "__tail",
     "__more",
-    "__panel",
+    "__chevron",
+    "__peek (hidden sin is-peek)",
+    "__desc",
+    "__acts",
+    "__action",
+    "__origin",
+    "__link",
+    "__hide",
+    "__panel (hidden fuera de list o en móvil)",
     "__list",
     "__foot",
-    "__ack",
+    "__close",
     "g-status-item",
     "g-status-item--type-*",
     "is-busy",
-    "is-acknowledged",
     "has-action",
     "has-details",
     "is-dismissible",
@@ -229,24 +243,64 @@
   "tokens": [],
   "states": [
     "empty",
-    "compact",
-    "open",
-    "dot",
+    "line",
+    "peek",
+    "list",
+    "drop",
+    "grow",
+    "fold",
+    "rise",
+    "paused",
     "busy",
-    "acknowledged",
     "mobile"
   ],
   "bundle": {
-    "measured": "2026-10-04",
+    "measured": "2026-10-19",
     "entry": "dist/status.js",
-    "gzip": 15828,
-    "umdGzip": 13740,
-    "main": "dist/grana.js gzip 155 025 (antes de la isla 154 745: +280 B por edgeReserve con order y #326); createStatus no está en el principal",
-    "history": "Registrada en el paquete principal pesaba +14,7 KB gzip (154 745 → 169 451), por encima de la compuerta de 8 KB de #317: pasó a entrada propia (#328). Lo compartido (GBtn, GDialog, GIcon interno, toaster.js, topModal, liveRegion, edgeReserve, template, oneOf) llega por __shared, sin copia."
+    "gzip": 19580,
+    "umdGzip": 17240,
+    "cap": 19000,
+    "overCap": "580 B por encima del tope de #705: abre la valoración de lima (status.md «Peso»: no es un recorte de contrato)",
+    "before": "16 150 B gzip (status.umd.js 13 910 B) con la isla persistente, medido con la misma build de Vite",
+    "productionMinified": "esbuild --minify con NODE_ENV=production (sin textos de aviso): 11 555 → 14 812 B gzip",
+    "main": "dist/grana.js gzip 217 210 → 217 240 B (+30 B: TOAST_DURATION y RESUME_MIN en __shared, EDGE_ORDER.status 30); createStatus no está en el principal",
+    "css": "grana.css gzip 90 080 → 91 320 B (CSS nuevo de coco, 74e2404)",
+    "history": "Registrada en el paquete principal pesaba +14,7 KB gzip (154 745 → 169 451), por encima de la compuerta de 8 KB de #317: pasó a entrada propia (#328). Lo compartido (GBtn, GDialog, GIcon interno, toaster.js con TOAST_DURATION, topModal, liveRegion, edgeReserve, template, oneOf, formContext.spaceUnit, motion.transitionMs) llega por __shared, sin copia."
   },
   "pending": [
-    "Anuncio del cambio que quita el control con foco: se omite solo si el foco queda leyendo esa condición (es la del resumen, o está en la hoja móvil); si el resumen muestra otra, se anuncia. Confirmado por la coordinación; lima lo anota en el contrato.",
-    "Solo en entorno real: lector de pantalla (nombre del resumen al cambiar, canales tras el traslado, role=timer), Safari y táctil reales, forced-colors, Alt+F8 en Linux."
+    "Solo en entorno real: lector de pantalla (el titular que se va solo, el relevo sin anuncio, el asomo con aria-describedby, Alt+F8 con lector), táctil real (primer y segundo toque, pausa del asomo), Safari real a 60/120 Hz, forced-colors real, coste de backdrop-filter en equipos modestos, Alt+F8 en Linux (#692).",
+    "Auditoría de coco sobre el componente real (rúbrica B, D, F y G) antes de pasar a candidate."
   ],
-  "entry": "@grana/vue/status (dist/status.js, dist/status.umd.js global GranaStatus; #328). app.use(status) registra GStatusIsland, GStatusMark y GStatus. El CSS va en grana.css."
+  "entry": "@grana/vue/status (dist/status.js, dist/status.umd.js global GranaStatus; #328). app.use(status) registra GStatusIsland, GStatusMark y GStatus. El CSS va en grana.css.",
+  "decisions": [
+    "#315",
+    "#316",
+    "#317",
+    "#318",
+    "#320",
+    "#321",
+    "#322",
+    "#323",
+    "#326",
+    "#328",
+    "#692",
+    "#693",
+    "#694",
+    "#695",
+    "#696",
+    "#697",
+    "#698",
+    "#699",
+    "#700",
+    "#701",
+    "#702",
+    "#703",
+    "#704",
+    "#705"
+  ],
+  "retired": [
+    "autoOpen (#696: nada se abre solo; avisa y se ignora)",
+    "acknowledge() (#697: avisa y hace hide())",
+    "labels.acknowledge, labels.summary, labels.more (#697: avisan y se ignoran; «+N» usa labels.waiting)"
+  ]
 }

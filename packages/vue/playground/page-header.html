@@ -77,7 +77,7 @@
   if (P.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
   if (P.get('dark') === '1') document.documentElement.dataset.theme = 'dark'
   const toaster = Grana.createToaster({ position: 'top-end', offset: { top: 56 }, labels: { region: 'Notificaciones ({hotkey})', close: 'Cerrar notificación', types: { info: 'Información', success: 'Correcto', warning: 'Advertencia', error: 'Error', loading: 'En curso' } } })
-  const status = GranaStatus.createStatus({ offset: { top: 56 }, labels: { region: 'Estado de la aplicación ({hotkey})', summary: (n) => 'Estado: ' + n + ' avisos.', more: 'y {count} más', types: { info: 'Información', success: 'Correcto', warning: 'Advertencia', error: 'Error' }, acknowledge: 'Entendido', dismiss: 'Descartar: {title}', sheetTitle: 'Estado de la aplicación', close: 'Cerrar' } })
+  const status = GranaStatus.createStatus({ offset: { top: 56 }, labels: { region: 'Estado de la aplicación ({hotkey})', waiting: 'y {count} más en espera', listTitle: 'Pendiente ({count})', hide: 'Ocultar', types: { info: 'Información', success: 'Correcto', warning: 'Advertencia', error: 'Error' }, dismiss: 'Descartar: {title}', sheetTitle: 'Estado de la aplicación', close: 'Cerrar' } })
   const events = []
   window.ph = { toaster, status, events, edge: Grana.__shared['utils/edgeReserve.js'] }
   const para = 'La muestra se procesó en el analizador 2 con control de calidad vigente. Los valores fuera de rango se marcan para validación por el químico responsable; la validación libera el resultado al expediente del paciente y al médico solicitante.'
