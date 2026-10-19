@@ -277,6 +277,18 @@ El raíl de acento nace bajo el campo que abrió el pliegue y se tiende hacia ab
 
 Con `prefers-reduced-motion: reduce`, el deslizamiento desaparece y solo queda el fundido.
 
+## Alcance
+
+- **Es un componente del formulario y no un slot `create` de `GSelect` o `GCombobox`** (#587): la puerta sigue siendo el evento `create` del campo, que tu aplicación usa para poner `open` en `true`. Así un pliegue no rompe las tres pistas de `GFormRow` y sirve también para lo que no es una opción de un selector.
+- **Sin `<form>` propio** (#588): HTML no anida formularios. El pliegue provee su propio registro de campos, intercepta Enter y Escape y deja fuera del `FormData` exterior sus controles abiertos, incluso con `formnovalidate`.
+- **No valida, no crea y no anuncia por su cuenta:** los `errors` y `warnings` los calcula tu aplicación; crear lo que falta es de tu `@confirm`; el valor lo escribes tú en el destino y la frase de `announce` también es tuya (#581). Sin `announce`, no se dice nada.
+- **Cerrado se desmonta** (a diferencia de `GFormReveal`, que conserva): el borrador vive en tu modelo. Cancelar o cerrar el pliegue padre desmonta también los de dentro (#588).
+- **Dentro, solo campos, filas, grupos y otros `GFormFold`:** un `GForm` o un `GFormSection` dentro avisa en desarrollo. Dentro de una `GFormRow` también avisa; colócalo después de la fila.
+- **Más de tres anidados avisa:** cada nivel resta ancho al contenido (el contrato estima unos 30 px por nivel). Si el flujo necesita más, es un paso de `GDialog` (#591).
+- **Sin muelle** (#299, #586): el pliegue se abre y se cierra con el motor de plegado, sin rebote.
+- **Fuera de su alcance, por frontera** (#591): un valor para un campo de la tarea actual es `GFormFold`; otra tarea del recorrido cuyo resultado vuelve es un `GDialogStep`; algo independiente que no devuelve valor es otro `GDialog`; un proceso conocido es `GStepper`.
+- **Entrada propia** (#590): `@grana/vue/form-fold` (global UMD `GranaFormFold`); no viaja en el paquete principal.
+
 ## Verificación
 
 - **Pruebas de Playwright:** `design/lab/theme-playground/tests/form-fold.spec.mjs` (7 casos: el recorrido de tres pliegues anidados, Esc y Esc mantenida, el fondo, confirmar con error y con resultado, 375px, RTL y movimiento reducido) más un pliegue abierto en `form-distribution.spec.mjs`. Nivel `medido`: 7/7 en Chromium, Firefox y WebKit (reejecutado por mora-docs el 2026-10-18, `design/lab/limitaciones/revision.md`) y 17/17 en WebKit junto con `dialog-levels.spec.mjs` (auditoría de los niveles de `GDialog`, [`auditoria-pasos.md`](../../../../../design/lab/dialog/auditoria-pasos.md)).
