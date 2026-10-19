@@ -1,9 +1,11 @@
 # Estilo · isla de estado r04 · la cápsula de D1 (coco)
 
+> **Ronda 2 (§9):** el usuario: «me gusta el V2C oscuro, pero el claro no, de ninguno». El oscuro de V2C queda fijado y §9 propone tres claros (L1, L2, L3). **La pregunta vigente es la de §9.6**; la de §8 queda sustituida.
+
 **Encargo:** el usuario eligió **D1 · Cápsula de relevo** y pidió: «en el diseño de la pill mejóralo, hazlo más atractivo, visual, moderno», con la referencia «algo estilo Apple». Después, al ver las capturas: «Cristal se ve bien en modo oscuro, pero creo que el detalle en la versión en blanco es que se pierde».
 **Estructura y movimiento:** los de kiwi (`declaracion.md` §6.1 a §6.3), **sin cambios**. **Reglas:** `docs/documentacion/auditoria-visual.md` (§1 a §5) y `docs/documentacion/rubrica-movimiento.md` (dimensiones B y lo visual de D y F).
 **Banco:** `estilo-banco.html` + `estilo-banco.js`. El script es la lógica D1 de `index.html` copiada sin cambios. `?v=V1|V2|V2C|V3`, `&theme=dark`, `&vista=galeria|comparativa|cristal`, `&dir=rtl`. No se ha tocado `GStatusIsland.css`, el `.vue`, el contrato ni `index.html`.
-**Verificación:** `node design/lab/alert/r04/estilo-verificar.mjs [--capturas]` (puerto 4214). **752/764** en Chromium, Firefox y WebKit. Los 12 fallos son todos de la misma clase: el cristal no se delimita frente a algunas zonas de marca (§3). V1 y V3 dan 100 %.
+**Verificación:** `node design/lab/alert/r04/estilo-verificar.mjs [--capturas]` (puerto 4214; `VARIANTS=L1,L2,L3` para la ronda 2: 560/573 en la pasada completa, 561 tras aislar la prueba del anillo, §9.3). Ronda 1: **752/764** en Chromium, Firefox y WebKit. Los 12 fallos son todos de la misma clase: el cristal no se delimita frente a algunas zonas de marca (§3). V1 y V3 dan 100 %.
 
 ## 1. Auditoría previa: la cápsula de D1 tal cual (brief §1 y §3)
 
@@ -164,6 +166,103 @@ Medido sobre `index.html?p=D1` (kiwi) y su `verificar.mjs`; los siete puntos de 
 2. `light-dark()` necesita Chrome 123, Firefox 120 y Safari 17.5.
 3. El rendimiento de `backdrop-filter` en la cápsula que cambia de tamaño (rúbrica G, riesgo 4 del agente principal).
 
-## 8. Pregunta de elección
+## 8. Pregunta de elección (ronda 1, sustituida por §9.6)
 
-**¿Qué cápsula dejamos para la isla: V1 · Tinta (la de hoy, pulida), V2C · Cristal corregida (recomendada: tu oscuro intacto y el claro arreglado) o V3 · Obsidiana (siempre profunda, como la isla del iPhone, pero del color de la marca en temas de color)?** Si eliges V2C o V3, la isla deja la superficie inversa de #325 y #692. ¿Lo confirmas?
+~~**¿Qué cápsula dejamos para la isla: V1 · Tinta (la de hoy, pulida), V2C · Cristal corregida (recomendada: tu oscuro intacto y el claro arreglado) o V3 · Obsidiana (siempre profunda, como la isla del iPhone, pero del color de la marca en temas de color)?** Si eliges V2C o V3, la isla deja la superficie inversa de #325 y #692. ¿Lo confirmas?~~ Respondida: el oscuro de V2C sí; ningún claro.
+
+## 9. Ronda 2 · solo el claro, con el oscuro de V2C fijado
+
+L1, L2 y L3 son V2C con otra rama clara: cada valor va en `light-dark(claro, oscuro)` y la rama oscura es la de V2C. **Medido idéntico** en los tres motores: relleno 1,06:1, delimitación 4,66 / 4,32 / 4,17, disco 1,07, texto 6,01. Banco: `?v=L1|L2|L3`, `&vista=par` (claro junto a su oscuro) y `&vista=propuestas`. Marcado: `data-v="V2C"` + `data-l`.
+
+### 9.1 Por qué los claros de la ronda 1 fallan a la vista (frente al oscuro de V2C)
+
+El oscuro de V2C gusta porque **es un material y no una pieza de interfaz**: un cuerpo translúcido que deja ver, apagado, lo que pasa por detrás; un filo de luz arriba que le da volumen; una insignia callada (disco tenue, glifo); y casi ningún salto de brillo con la página. Es un objeto que flota.
+
+- **V1 (Tinta) en claro:** losa negra opaca y plana, sin filo de luz ni translucidez. El disco saturado grita; el asomo es una caja negra. Pesa más de lo que dice.
+- **V2 y V2C (Cristal) en claro:** blanco sobre blanco. El cuerpo desaparece, así que todo lo sostiene un hilo gris, y eso es exactamente lo que dibuja un **campo de formulario o un chip**, no una isla. Sobre la cabecera de marca se vuelve un gris sucio.
+- **V3 (Obsidiana) en claro:** acierta en la idea (oscura sobre claro, como la isla del iPhone), pero es una placa plana sin material, casi igual a V1. Con una marca de color se tiñe.
+
+**La clave:** en claro la isla también debe ser **oscura**, y llevar las mismas señales del oscuro de V2C (material, filo de luz, insignia callada) para que sea **el mismo objeto** en los dos esquemas.
+
+### 9.2 Las tres propuestas para el claro
+
+Comunes a L1 y L2:
+- tinta `--g-color-surface` sobre el cuerpo `--g-color-text` (par garantizado, neutro con cualquier marca, a diferencia de V3);
+- insignia **callada** como en el oscuro: disco del color del tipo al 40 % y glifo en la tinta;
+- la acción, una cápsula clara;
+- filo exterior con la tinta de la zona al 75 % (no se ve en la página y separa de una cabecera de marca);
+- una capa de sombra propia en claro (`space` y la tinta al 22 %).
+
+**L1 · Grafito esmerilado.** El material del oscuro de V2C llevado al claro: cuerpo translúcido de la tinta del tema al 84 % que desenfoca lo de detrás (se ve sobre la tabla), filo de luz y brillo especular suaves (la tinta clara al 22 % y al 12 %).
+- **Qué la hace distinta:** es el único claro que es el *mismo material* que el oscuro; solo cambia la luz.
+- **Coste:** `backdrop-filter` en GPU, como V2C.
+
+**L2 · Obsidiana neutra.** Isla oscura **opaca y mate** de la tinta del tema, sin brillo: solo un hilo de luz arriba.
+- **Qué la hace distinta:** la más nítida y la más cercana a la isla del iPhone; con cuerpo opaco el desenfoque no se ve. Frente al oscuro de V2C es el mismo objeto, pero «sólido» en claro y «cristal» en oscuro.
+- **Coste:** el mayor salto de brillo con la página (17,4:1, aunque sin destello); en claro la translucidez se pierde.
+
+**L3 · Porcelana.** La única clara, con estructura de objeto y no de campo: cuerpo opaco de superficie, hilo con un 45 % de la tinta (7,56:1), filo interior de luz, sombra propia más presente y disco pleno del tipo.
+- **Qué la hace distinta:** respeta el claro del tema.
+- **Coste:** sigue siendo una cápsula clara sobre página clara (cuerpo 1,00:1); se lee como la mejor versión del chip, no como la isla. Se incluye como control.
+
+Ninguna necesita tokens nuevos. Usan `--g-color-text`/`-surface`, `--g-glass-*` (la rama oscura) y la fuente `--g-color-on-brand-zone`.
+
+### 9.3 Auditoría posterior (`estilo-verificar.mjs`, 2026-10-19)
+
+**Recuento:**
+
+| | L1 | L2 | L3 |
+| --- | --- | --- | --- |
+| Chromium (24 temas × esquemas) | 105/109 | 105/109\* | 105/109 |
+| Firefox | 41/41 | 41/41 | 41/41 |
+| WebKit | 41/41 | 41/41 | 41/41 |
+
+**Mínimos en claro, en los 11 temas:**
+
+| | L1 | L2 | L3 |
+| --- | --- | --- | --- |
+| Texto | ≥ 5,99 | ≥ 5,99 | ≥ 5,99 |
+| Glifo, anillo, acción y foco | ≥ 4,51 | ≥ 4,51 | ≥ 4,51 |
+| **Delimitación en claro** (todas las combinaciones pasan; con el tema por defecto, página / superficie / zona) | 10,59 / 10,59 / 9,75 | 17,4 / 17,4 / 9,75 | 7,56 / 7,56 / 16,48 |
+
+**Los 4 fallos de cada fila de Chromium** son siempre los mismos: la rama oscura heredada de V2C frente a la zona de marca oscura de grana, caracol-púrpura, linear y stripe (2,03 a 2,69:1). Son del oscuro fijado, no de las propuestas (§3, V2C).
+
+\*L2 dio 104/109 en la pasada completa: un falso fallo de la comprobación «el anillo sigue diciendo el tiempo con `reduce`», porque el relevo rearmó el anillo a mitad de la medida. Corregido el aislamiento de la prueba, da 43/43 dos veces seguidas en Chromium con el tema por defecto.
+
+**Capturas:**
+- `estilo-propuestas-claro.png`: L1, L2 y L3 en claro junto al oscuro de V2C.
+- `estilo-L{1,2,3}-claro-y-oscuro.png`: cada propuesta con sus dos esquemas.
+- `estilo-L{1,2,3}-claro.png`: todos los estados en claro.
+
+### 9.4 Rúbrica (B y lo visual de D y F)
+
+| Dimensión | Estado | Evidencia | Riesgo | Recomendación |
+| --- | --- | --- | --- | --- |
+| B · Profundidad coherente entre esquemas | Cumple (L1); Parcial (L2, L3) | L1: mismo material y misma luz en los dos esquemas. L2: sólido en claro y cristal en oscuro. L3: claro en claro y oscuro en oscuro | Bajo / Medio | L1 si se quiere un solo objeto |
+| B · Cambios de brillo al nacer y al recogerse | Cumple | Opacidad por cuadro ≤ +0,30 / −0,26 en los tres motores. Salto cápsula/página en claro: L1 10,59, L2 17,4, L3 1,0. Oscuro sobre claro es el caso de la isla de referencia; el fundido de 240 ms evita el destello | Bajo | Ninguna |
+| B · Delimitación sobre tres fondos (riesgo 3) | Cumple en claro (11 temas); Parcial en oscuro (heredado) | §9.3 | Medio (solo el oscuro de V2C sobre 4 zonas oscuras) | Decidir si el oscuro gana un filo en zonas oscuras |
+| D · Sin flashes | Cumple | Igual que la ronda 1 | Bajo | — |
+| F · Sin depender del movimiento; `forced-colors` | Cumple | Anillo por estilo, pausa visible, tipo por la forma; `forced-colors` emulado | Bajo | Verificarlo en Windows real |
+
+### 9.5 Comparativa y recomendación
+
+| | L1 · Grafito | L2 · Obsidiana neutra | L3 · Porcelana |
+| --- | --- | --- | --- |
+| Claro | Oscuro translúcido | Oscuro opaco y mate | Claro con estructura |
+| ¿El mismo objeto que el oscuro de V2C? | **Sí**: el mismo material | Casi: la misma forma, otro acabado | No |
+| Estilo Apple | Material oscuro de iOS | Isla del iPhone | Aviso claro de iOS |
+| Coste | GPU (desenfoque) | Salto de brillo mayor | Sigue pareciendo un chip |
+
+**Recomendación: L1 · Grafito esmerilado.** Es la única en la que claro y oscuro son **el mismo objeto**: el material que gustó en oscuro, con la luz del claro. Es oscura sobre claro como la isla de referencia y no se tiñe con la marca. Pasa la delimitación en claro en los 11 temas (≥ 9,75 con el tema por defecto). Si se prefiere una isla sólida y más barata, **L2**.
+
+**Informe (brief §5):**
+- **Cumplimientos:** el oscuro de V2C intacto (medido); comportamiento y movimiento de kiwi intactos; texto ≥ 5,99 y gráficos ≥ 4,51 en todos los temas.
+- **Correcciones:** el claro deja de ser blanco sobre blanco (L1 10,59:1, L2 17,4:1 frente a la página); la insignia callada como en el oscuro; la delimitación frente a la zona en claro ≥ 3 en los 11 temas.
+- **Pendientes:**
+  - el oscuro heredado frente a 4 zonas oscuras;
+  - para lima: `light-dark()` como precedente y la enmienda de #325 y #692 (la isla deja la superficie inversa);
+  - no verificados: Safari real, `forced-colors` real y el coste de `backdrop-filter` en equipos modestos (L1).
+
+### 9.6 Pregunta de elección
+
+**Con el oscuro de V2C fijado, ¿qué claro quieres: L1 · Grafito esmerilado (recomendada: el mismo cristal oscuro, también sobre fondo claro), L2 · Obsidiana neutra (isla oscura sólida, como la del iPhone) o L3 · Porcelana (cápsula clara con estructura)?**

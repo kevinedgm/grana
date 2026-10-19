@@ -1,5 +1,5 @@
-// coco · auditoría posterior de las tres variantes visuales de la cápsula D1 (isla de estado r04): V1 Tinta, V2 Cristal,
-// V3 Obsidiana. Chromium, Firefox y WebKit. Sobre estilo-banco.html (la lógica D1 de kiwi copiada sin cambios + el CSS de coco).
+// coco · auditoría posterior de las variantes visuales de la cápsula D1 (isla de estado r04): V1 Tinta, V2 Cristal,
+// V2C Cristal corregida, V3 Obsidiana y, en la ronda 2 (solo el claro, con el oscuro de V2C), L1 Grafito, L2 Obsidiana neutra, L3 Porcelana. Chromium, Firefox y WebKit. Sobre estilo-banco.html (la lógica D1 de kiwi copiada sin cambios + el CSS de coco).
 //   1. Comportamiento y movimiento sin cambios (lo esencial de r04/verificar.mjs para D1)
 //   2. Contraste en la galería: texto ≥ 4,5; glifo, anillo, chevrón, contorno de la acción y foco ≥ 3; delimitación ≥ 3
 //      frente a la página, la superficie (tabla/formulario) y la zona de marca. Tema por defecto claro y oscuro en los tres
@@ -94,7 +94,7 @@ const total = { pass: 0, fail: 0 }
 const tally = {}
 for (const engine of (process.env.ENGINES || 'chromium,firefox,webkit').split(',')) {
   const browser = await pw[engine].launch()
-  for (const V of (process.env.VARIANTS || 'V1,V2,V2C,V3').split(',')) {
+  for (const V of (process.env.VARIANTS || 'V1,V2,V2C,V3,L1,L2,L3').split(',')) {
     let pass = 0; const fails = []; const errs = []; const data = []
     const ok = (c, m) => { if (c) pass++; else fails.push(m); if (process.env.VERBOSE) console.log(engine, V, c ? 'ok ' : 'NO ', m) }
     const open = async ({ vw = 1100, vh = 760, q = '', live = true, css = '', ...ctx } = {}) => {
@@ -343,7 +343,8 @@ for (const engine of (process.env.ENGINES || 'chromium,firefox,webkit').split(',
       const mv = await p.evaluate(() => [...new Set(window.__moving)])
       ok(mv.length === 0, `reducido: nada se mueve, gira ni cambia de tamaño animado (${mv.join(', ')})`)
       // el anillo se lee sin movimiento: su arco se acorta por estilo (no por animación) también con reduce
-      await p.evaluate(() => window.__S.B.set('x', { type: 'info', title: 'Prueba del anillo' })); await p.mouse.move(5, 740); await p.locator('#cliente').focus()
+      await p.evaluate(() => { const B = window.__S.B; [...B.conds.keys()].forEach((id) => B.remove(id)) }); await p.waitForTimeout(300)
+      await p.evaluate(() => window.__S.B.set('x', { type: 'info', title: 'Prueba del anillo' })); await p.waitForTimeout(300); await p.mouse.move(5, 740); await p.locator('#cliente').focus()
       const a1 = await p.evaluate(() => { const a = document.querySelector('#region .ring'); return a ? parseFloat((getComputedStyle(a).backgroundImage.match(/([\d.]+)(deg|turn)/) || [0, NaN])[1]) : null })
       await p.waitForTimeout(800)
       const a2 = await p.evaluate(() => { const a = document.querySelector('#region .ring'); return a ? parseFloat((getComputedStyle(a).backgroundImage.match(/([\d.]+)(deg|turn)/) || [0, NaN])[1]) : null })
@@ -400,11 +401,14 @@ for (const engine of (process.env.ENGINES || 'chromium,firefox,webkit').split(',
 // Capturas de la comparativa (Chromium)
 if (CAPS) {
   const browser = await pw.chromium.launch()
-  for (const [vista, dark] of [['comparativa', false], ['comparativa', true], ['cristal', false], ['cristal', true]]) {
-    const p = await browser.newPage({ viewport: { width: vista === 'cristal' ? 1000 : 1900, height: 900 } })
-    await p.goto(`${BASE}?vista=${vista}${dark ? '&theme=dark' : ''}`)
+  const vistas = (process.env.CAPS_VISTAS || 'comparativa,cristal,propuestas,par:L1,par:L2,par:L3').split(',')
+  const shots = vistas.flatMap((x) => x === 'comparativa' || x === 'cristal' ? [[x, false], [x, true]] : [[x, false]])
+  for (const [vista0, dark] of shots) {
+    const [vista, pv] = vista0.split(':')
+    const p = await browser.newPage({ viewport: { width: vista === 'cristal' || vista === 'par' ? 1000 : 1900, height: 900 } })
+    await p.goto(`${BASE}?vista=${vista}${pv ? '&v=' + pv : ''}${dark ? '&theme=dark' : ''}`)
     await p.waitForFunction(() => window.__G && window.__G.ready); await p.evaluate(() => document.fonts.ready); await p.evaluate(() => window.__G.size()); await p.waitForTimeout(100)
-    await p.screenshot({ path: join(HERE, `estilo-${vista}-${dark ? 'oscuro' : 'claro'}.png`), fullPage: true })
+    await p.screenshot({ path: join(HERE, vista === 'par' ? `estilo-${pv}-claro-y-oscuro.png` : vista === 'propuestas' ? 'estilo-propuestas-claro.png' : `estilo-${vista}-${dark ? 'oscuro' : 'claro'}.png`), fullPage: true })
     await p.close()
   }
   await browser.close()

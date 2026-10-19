@@ -6,7 +6,7 @@
 (function () {
   const B = window.Base
   const q = new URLSearchParams(location.search)
-  const V = /^(V[123]|V2C)$/.test((q.get('v') || '').toUpperCase()) ? q.get('v').toUpperCase() : 'V1'
+  const V = /^(V[123]|V2C|L[123])$/.test((q.get('v') || '').toUpperCase()) ? q.get('v').toUpperCase() : 'V1'
   const VISTA = q.get('vista')
   if (q.get('theme') === 'dark') document.documentElement.dataset.theme = 'dark'
   if (q.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
@@ -22,12 +22,18 @@
     V1: 'V1 · Tinta. La superficie inversa de hoy (#325), pulida: más baja y con más aire, título 14/600, insignia de 24 con el anillo de tiempo en la tinta, sombra en dos capas y un filo de luz arriba.',
     V2: 'V2 · Cristal. El material translúcido del sistema: desenfoca lo que pasa por detrás, blanco esmerilado en claro y grafito en oscuro, con un hilo que la delimita y la insignia en el tono suave del tipo.',
     V2C: 'V2C · Cristal corregida. El oscuro de V2 sin cambios; en claro, esmerilado gris en vez de blanco sobre blanco, el disco pleno del tipo y un segundo filo que la separa de una cabecera de marca.',
+    L1: 'L1 · Grafito esmerilado. En claro, el material del oscuro de V2C: cuerpo translúcido oscuro que desenfoca lo de detrás, filo de luz arriba, insignia callada. El oscuro es el de V2C.',
+    L2: 'L2 · Obsidiana neutra. En claro, una isla oscura opaca y mate de la tinta del tema, neutra con cualquier marca. El oscuro es el de V2C.',
+    L3: 'L3 · Porcelana. En claro, una cápsula clara con estructura de objeto: hilo marcado, filo de luz, sombra propia y disco pleno. El oscuro es el de V2C.',
     V3: 'V3 · Obsidiana. La isla profunda en claro y en oscuro, como la isla dinámica: el tipo es el color del glifo y del anillo, la acción es tinta invertida. La cápsula es una zona de marca.'
   }
   document.getElementById('lead').textContent = LEAD[V] + ' Comportamiento y movimiento: los de D1 (kiwi), sin cambios.'
-  const isle = document.getElementById('isle'); isle.dataset.p = 'D1'; isle.dataset.v = V
+  // L1–L3: V2C con otra rama clara (data-l)
+  const dv = (v) => v[0] === 'L' ? 'V2C' : v
+  const tagV = (el, v) => { el.dataset.v = dv(v); if (v[0] === 'L') el.dataset.l = v }
+  const isle = document.getElementById('isle'); isle.dataset.p = 'D1'; tagV(isle, V)
   const region = document.getElementById('region')
-  const mark = document.getElementById('mark-save'); mark.dataset.v = V
+  const mark = document.getElementById('mark-save'); tagV(mark, V)
   if (ZONE(V)) mark.setAttribute('data-g-zone', 'brand')
   const hdr = document.getElementById('hdr')
   const I = B.icon, E = B.esc
@@ -274,7 +280,7 @@
     // una cápsula quieta: el mismo marcado que la viva, medida igual (inner + 2 bordes)
     const capsule = (v, cur, o = {}) => {
       const wrap = document.createElement('div')
-      wrap.className = 'isle isle--static'; wrap.dataset.v = v; wrap.dataset.p = 'D1'
+      wrap.className = 'isle isle--static'; tagV(wrap, v); wrap.dataset.p = 'D1'
       wrap.dataset.paused = String(!!o.paused)
       wrap.dataset.form = o.list ? 'list' : 'line'
       wrap.innerHTML = newShape(v)
@@ -290,7 +296,7 @@
       shape.style.setProperty('--_w', inner.offsetWidth + 2 * b + 'px'); shape.style.setProperty('--_h', inner.offsetHeight + 2 * b + 'px')
     })
     const cap = (label, el) => { const d = document.createElement('div'); d.className = 'gal__cap'; d.append(el); const s = document.createElement('span'); s.textContent = label; d.append(s); return d }
-    const markEl = (v, c) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'mark'; b.dataset.v = v; if (ZONE(v)) b.setAttribute('data-g-zone', 'brand'); b.innerHTML = markHTML(c); return b }
+    const markEl = (v, c) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'mark'; tagV(b, v); if (ZONE(v)) b.setAttribute('data-g-zone', 'brand'); b.innerHTML = markHTML(c); return b }
     const TABLE = '<table class="x-table"><thead><tr><th>Folio</th><th>Cliente</th><th>Total</th><th>Estado</th></tr></thead><tbody>' +
       ['F-0040 Clínica Norte $1,200 Pagada', 'F-0041 Laboratorio Sur $860 Pendiente', 'F-0042 Hospital Centro $2,430 Pagada', 'F-0043 Farmacia Río $310 Vencida', 'F-0044 Consultorio Uno $1,050 Pagada'].map((r) => { const [f, a, b, t, e] = r.split(' '); return `<tr><td>${f}</td><td>${a} ${b}</td><td>${t}</td><td>${e}</td></tr>` }).join('') + '</tbody></table>'
     const panel = (kind, title, items) => {
@@ -302,14 +308,18 @@
       const outer = document.createElement('div'); outer.append(h, p); p.append(st)
       return outer
     }
-    const vs = VISTA === 'comparativa' ? ['V1', 'V2', 'V2C', 'V3'] : VISTA === 'cristal' ? ['V2', 'V2C'] : [V]
-    const NAME = { V1: 'V1 · Tinta', V2: 'V2 · Cristal', V2C: 'V2C · Cristal corregida', V3: 'V3 · Obsidiana' }
-    if (VISTA === 'comparativa' || VISTA === 'cristal') {
-      const h = document.createElement('h2'); h.textContent = `${VISTA === 'cristal' ? 'Cristal y Cristal corregida' : 'Comparativa'} · ${dark ? 'oscuro' : 'claro'}`; gal.append(h)
-      const row = document.createElement('div'); row.className = 'gal__cmp'; row.style.setProperty('--_cols', String(vs.length))
-      for (const v of vs) {
+    // columnas: [variante, oscuro?]. «par»: la variante en claro junto a su oscuro; «propuestas»: L1–L3 en claro + el oscuro de V2C
+    const cols = VISTA === 'comparativa' ? ['V1', 'V2', 'V2C', 'V3'].map((v) => [v, false]) : VISTA === 'cristal' ? [['V2', false], ['V2C', false]]
+      : VISTA === 'par' ? [[V, false], [V, true]] : VISTA === 'propuestas' ? [['L1', false], ['L2', false], ['L3', false], ['V2C', true]] : [[V, false]]
+    const NAME = { V1: 'V1 · Tinta', V2: 'V2 · Cristal', V2C: 'V2C · Cristal corregida', V3: 'V3 · Obsidiana', L1: 'L1 · Grafito esmerilado', L2: 'L2 · Obsidiana neutra', L3: 'L3 · Porcelana' }
+    if (['comparativa', 'cristal', 'par', 'propuestas'].includes(VISTA)) {
+      const TITLE = { comparativa: `Comparativa · ${dark ? 'oscuro' : 'claro'}`, cristal: `Cristal y Cristal corregida · ${dark ? 'oscuro' : 'claro'}`, par: `${NAME[V]} · claro junto a su oscuro (el de V2C)`, propuestas: 'Propuestas para el claro (L1, L2, L3) junto al oscuro de V2C' }
+      const h = document.createElement('h2'); h.textContent = TITLE[VISTA]; gal.append(h)
+      const row = document.createElement('div'); row.className = 'gal__cmp'; row.style.setProperty('--_cols', String(cols.length))
+      for (const [v, dk] of cols) {
         const col = document.createElement('div'); col.className = 'gal__col'
-        const t = document.createElement('h3'); t.textContent = NAME[v]; col.append(t)
+        if (dk) col.dataset.theme = 'dark'
+        const t = document.createElement('h3'); t.textContent = NAME[v] + (VISTA === 'par' || VISTA === 'propuestas' ? (dk ? ' · oscuro' : ' · claro') : ''); col.append(t)
         col.append(panel('page', 'Página', [cap('Titular · +2 en espera', capsule(v, S.error, { waiting: 2 })), cap('Asomo (puntero o foco)', capsule(v, S.error, { peek: true }))]))
         col.append(panel('table', 'Sobre una tabla', [cap('Titular', capsule(v, S.warning, { left: 0.4 }))]))
         col.append(panel('zone', 'Sobre la zona de marca', [cap('Titular', capsule(v, S.info, { left: 0.8 }))]))
