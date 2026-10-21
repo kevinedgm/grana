@@ -76,6 +76,21 @@
   inline-size: 100%;
 }
 
+/* Con el slot trigger (B-L7, #739): la raíz no es caja; el botón de la aplicación queda en la línea de su texto (la
+   frase de GBookingBar) y el panel sigue en la capa superior. Como el panel vive dentro de ese texto, fija su letra */
+.g-datepicker--trigger {
+  display: contents;
+}
+.g-datepicker--trigger .g-datepicker__pop {
+  font-size: var(--g-text-body-size);
+  line-height: var(--g-text-body-line);
+  font-weight: var(--g-text-body-weight);
+  letter-spacing: var(--g-text-body-tracking);
+  font-style: normal;
+  text-align: start;
+  white-space: normal;
+}
+
 /* ---------- Etiqueta ---------- */
 .g-datepicker__label {
   overflow-wrap: anywhere;
@@ -533,6 +548,18 @@
   color: var(--g-color-text-subtle);
   text-decoration: line-through;
   cursor: not-allowed;
+}
+
+/* Solo salida (#739, datepicker.md «Noches y salida»): su noche está agotada pero la de antes no; sin inicio pendiente no
+   puede ser inicio. Forma distinta del tachado (no solo color): sin tachar, con un subrayado punteado bajo la cifra, que
+   dice «aquí se puede terminar». Texto en voz baja (sigue ≥ 4.5:1); el sufijo labels.checkoutOnly lo dice al lector */
+.g-datepicker__day.is-checkout-only {
+  color: var(--g-color-text-muted);
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-decoration-thickness: calc(var(--g-border-width) * 2);
+  text-underline-offset: calc(var(--g-border-width) * 3);
+  cursor: default;
 }
 
 /* ---------- Pie: proximidad, resumen y acciones ---------- */

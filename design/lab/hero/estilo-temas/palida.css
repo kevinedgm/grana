@@ -1,0 +1,99 @@
+/* Generado por @grana/cli a partir de palida.json. No editar a mano: vuelve a ejecutar «grana theme». */
+/* Sin @layer: el tema del usuario gana siempre sobre grana.defaults (DECISIONS.md #4). */
+:root {
+  --g-radius-xs: 8px;
+  --g-radius-sm: 11px;
+  --g-radius-md: 16px;
+  --g-radius-lg: 22px;
+  --g-radius-xl: 31px;
+  --g-radius-shape: var(--g-radius-md);
+  --g-space-1: 5px;
+  --g-space-2: 10px;
+  --g-space-3: 15px;
+  --g-space-4: 20px;
+  --g-space-5: 25px;
+  --g-space-6: 30px;
+  --g-space-8: 40px;
+  --g-space-12: 60px;
+  --g-space-16: 80px;
+}
+:root,
+[data-theme="light"] {
+  --g-color-brand: #F5B940;
+  --g-color-brand-strong: #DA9F18;
+  --g-color-brand-soft: #FFEED1;
+  --g-color-brand-text: #976C00;
+  --g-color-on-brand: #17151A;
+  --g-color-on-brand-soft: #8C6400;
+  --g-color-accent: #5B3FE0;
+  --g-color-accent-strong: #481EC4;
+  --g-color-accent-soft: #EDEFFF;
+  --g-color-accent-text: #5B3FE0;
+  --g-color-on-accent: #FFFFFF;
+  --g-color-on-accent-soft: #5B3FE0;
+  --g-color-brand-zone: #F5B940;
+  --g-color-on-brand-zone: #17151A;
+  --g-color-on-brand-muted: #382F26;
+  --g-color-on-brand-accent: #4618C1;
+  --g-color-on-brand-success: #004F27;
+  --g-color-on-brand-warning: #633D00;
+  --g-color-on-brand-danger: #8E0E00;
+  --g-color-on-brand-info: #004393;
+  --g-color-on-brand-veil: #C3953E;
+  --g-color-on-brand-accent-veil: #CBA275;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --g-color-brand: #F5B940;
+    --g-color-brand-strong: #FFD07B;
+    --g-color-brand-soft: #312101;
+    --g-color-brand-text: #F5B940;
+    --g-color-on-brand: #17151A;
+    --g-color-on-brand-soft: #F5B940;
+    --g-color-accent: #7D72FF;
+    --g-color-accent-strong: #8F8CFF;
+    --g-color-accent-soft: #201C49;
+    --g-color-accent-text: #7D72FF;
+    --g-color-on-accent: #17151A;
+    --g-color-on-accent-soft: #8077FF;
+    --g-color-brand-zone: #F5B940;
+    --g-color-on-brand-zone: #17151A;
+    --g-color-on-brand-muted: #382F26;
+    --g-color-on-brand-accent: #4618C1;
+    --g-color-on-brand-success: #004F27;
+    --g-color-on-brand-warning: #633D00;
+    --g-color-on-brand-danger: #8E0E00;
+    --g-color-on-brand-info: #004393;
+    --g-color-on-brand-veil: #C3953E;
+    --g-color-on-brand-accent-veil: #CBA275;
+  }
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+  --g-color-brand: #F5B940;
+  --g-color-brand-strong: #FFD07B;
+  --g-color-brand-soft: #312101;
+  --g-color-brand-text: #F5B940;
+  --g-color-on-brand: #17151A;
+  --g-color-on-brand-soft: #F5B940;
+  --g-color-accent: #7D72FF;
+  --g-color-accent-strong: #8F8CFF;
+  --g-color-accent-soft: #201C49;
+  --g-color-accent-text: #7D72FF;
+  --g-color-on-accent: #17151A;
+  --g-color-on-accent-soft: #8077FF;
+  --g-color-brand-zone: #F5B940;
+  --g-color-on-brand-zone: #17151A;
+  --g-color-on-brand-muted: #382F26;
+  --g-color-on-brand-accent: #4618C1;
+  --g-color-on-brand-success: #004F27;
+  --g-color-on-brand-warning: #633D00;
+  --g-color-on-brand-danger: #8E0E00;
+  --g-color-on-brand-info: #004393;
+  --g-color-on-brand-veil: #C3953E;
+  --g-color-on-brand-accent-veil: #CBA275;
+}
+[data-g-zone="brand"] {
+  color-scheme: light;
+}

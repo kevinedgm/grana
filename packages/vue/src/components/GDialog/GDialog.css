@@ -500,6 +500,20 @@ button.g-dialog__trail-step:focus-visible {
   box-shadow: none;
 }
 
+/* ---------- Visor desnudo (bare, #732; dialog.md «Visor a pantalla completa») ----------
+   Sin encabezado (no lo pinta el .vue), sin inset ni relleno de carcasa: el slot llena la carcasa en una columna flexible
+   para que el contenido reparta el alto (barra, escenario, navegación). El fondo y el radio siguen siendo los de la
+   carcasa salvo que el consumidor los pinte (el visor de GGallery pone la zona de marca y su fondo). (0,3,0): gana a la
+   regla «sin inset» del cuerpo */
+.g-dialog--bare {
+  padding: 0;
+}
+.g-dialog.g-dialog--bare > .g-dialog__body {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
 /* ---------- Hoja lateral (placement="end", DECISIONS.md #77) ----------
    Pegada al borde final (derecha en LTR, izquierda en RTL), de alto completo y con el ancho de size.
    Solo fuera del móvil: con el visor angosto actúa `mobile` (hoja inferior por defecto). */

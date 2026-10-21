@@ -1,0 +1,557 @@
+/*
+  GBookingBar · la consulta de disponibilidad
+  Dueño: coco. Contrato: design/contracts/booking-bar.md (DECISIONS.md #736 a #742, #744, #745; tokens.md §29.6 y §53;
+  api.md «Flotantes persistentes», tercera salida, y «Convivencia de servicios», EDGE_ORDER.bookingDock = 20).
+  Estructura: design/lab/booking-bar/r01/ (kiwi). Estética, medidas y encargos: design/lab/booking-bar/estilo.md.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin respaldos. Literales: 24px y
+  44px (área táctil), 0s de los retardos y el patrón de texto oculto; la constante de contrato del muelle
+  max(space × 16, 44px + space × 4) (§29.6); el interlineado de la frase title-line × 1.25 (con puntero grueso, ≥ 44px).
+
+  Carácter (#741): la consulta se escribe como se dice.
+  - A · La frase: el texto de la aplicación con huecos. Vacío y lleno se distinguen por FORMA: el hueco vacío lleva un
+    subrayado discontinuo; al llenarse, la tinta se asienta: un trazo continuo se dibuja sobre él desde el inicio de la
+    línea (slow + ease-out; reducido: aparece). Con error, el trazo es continuo y del color del peligro. La frase refluye
+    como texto a cualquier ancho; con puntero grueso, cada hueco tiene 44px de alto sin pisar la línea de al lado.
+  - La barra: o cabe en una fila o es un resumen que abre la hoja; nunca se parte.
+  - B · El muelle: una banda de borde a borde abajo, con el alto de contrato, que entra desde abajo y reserva su alto en
+    el scroll-padding del documento: lo enfocado nunca queda debajo.
+  La raíz no se pinta (sin superficie ni sombra): vive dentro de la tarjeta del héroe (C), de una GCard o de la página.
+
+  Marcado que espera (lo pinta bruno; booking-bar.md «Anatomía» y «Clases y datos»):
+    form.g-booking-bar.g-booking-bar--appearance-{phrase|bar}.g-booking-bar--kind-{stay|table|tour}[.is-compact][.is-disabled]
+      h.g-booking-bar__title · input[hidden] ×n
+      (phrase) div.g-booking-bar__phrase > texto + [div.g-datepicker.g-datepicker--trigger | div.g-party-field--trigger] >
+               button.g-booking-bar__slot(.is-empty|.is-filled)(.is-invalid)[aria-expanded] > span.__slot-label + span.__slot-value
+               + div.g-booking-bar__slot-panel[popover][data-side] (--_x, --_y, --_max)
+               p.__checkout · ul.__messages > li · GBtn.__submit
+      (bar)    div.__row > div.__field ×n + GBtn.__submit | div.__compact > button.__summary + GBtn.__submit
+      p.__digest · GDialog.__sheet · (dock) div.__dock[hidden][inert](.is-shown) (--_reserve) > p.__dock-summary + GBtn.__dock-change + GBtn.__submit
+    Encargo (bruno, estilo.md): dentro del resumen compacto, span.__summary-title, span.__summary-text, span.__summary-change.
+*/
+
+/* ---------- Raíz ---------- */
+.g-booking-bar {
+  display: grid;
+  gap: var(--g-space-4);
+  min-inline-size: 0;
+  margin: 0;
+  color: var(--g-color-text);
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-size);
+  line-height: var(--g-text-body-line);
+}
+.g-booking-bar__title {
+  margin: 0;
+  font-size: var(--g-text-body-size);
+  line-height: var(--g-text-body-line);
+  font-weight: var(--g-text-title-sm-weight);
+  overflow-wrap: break-word;
+}
+.g-booking-bar__submit {
+  justify-self: start;
+}
+/* El resumen: visible en la barra en fila; oculto accesible en la frase y en compacto (lo dicen la frase y el botón) */
+.g-booking-bar__digest {
+  margin: 0;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text-muted);
+  overflow-wrap: break-word;
+}
+.g-booking-bar--appearance-phrase .g-booking-bar__digest,
+.g-booking-bar.is-compact .g-booking-bar__digest,
+.g-booking-bar__slot-label {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* =====================================================================================================================
+   A · La frase
+   ===================================================================================================================== */
+.g-booking-bar__phrase {
+  /* Interlineado: el de title por 1.25 (kiwi); con puntero grueso, al menos 44px para que la diana de 44px de un hueco
+     no pise la línea de al lado */
+  --_line: calc(var(--g-text-title-line) * 1.25);
+  margin: 0;
+  min-inline-size: 0;
+  font-size: var(--g-text-title-size);
+  line-height: var(--_line);
+  letter-spacing: var(--g-text-title-tracking);
+  font-weight: var(--g-text-body-weight);
+  overflow-wrap: break-word;
+}
+@media (pointer: coarse) {
+  .g-booking-bar__phrase {
+    --_line: max(calc(var(--g-text-title-line) * 1.25), 44px);
+  }
+}
+/* El hueco: un botón en la línea. Su alto visual es el interlineado de title; la diana se completa con ::before */
+.g-booking-bar__slot {
+  --_ink: calc(var(--g-border-width) * 2);
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--g-space-1);
+  box-sizing: border-box;
+  max-inline-size: 100%;
+  margin: 0;
+  padding: 0 var(--g-space-1);
+  vertical-align: baseline;
+  border: 0;
+  border-block-end: var(--_ink) dashed var(--g-color-border-control);
+  border-radius: var(--g-radius-xs) var(--g-radius-xs) 0 0;
+  background: transparent;
+  color: var(--g-color-text);
+  font: inherit;
+  line-height: var(--g-text-title-line);
+  font-weight: var(--g-text-title-weight);
+  text-align: start;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color var(--g-duration-fast) var(--g-ease-standard);
+}
+/* Diana: ≥ 24px y 44px con puntero grueso, centrada en el hueco; el interlineado ≥ 44px garantiza que no se solapan */
+.g-booking-bar__slot::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  /* Centrada en la caja con su subrayado (el 50 % es de la caja de relleno, sin el borde inferior) */
+  inset-block-start: calc(50% + var(--_ink) / 2);
+  block-size: max(100% + var(--_ink), 24px);
+  translate: 0 -50%;
+}
+@media (pointer: coarse) {
+  .g-booking-bar__slot::before {
+    block-size: max(100% + var(--_ink), 44px);
+  }
+}
+/* La tinta que se asienta: un trazo continuo sobre el discontinuo, del grosor del subrayado, que se dibuja desde el
+   inicio de la línea al llenarse el hueco y se recoge (fast) al vaciarse */
+.g-booking-bar__slot::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: calc(var(--_ink) * -1);
+  block-size: 0;
+  border-block-end: var(--_ink) solid var(--g-color-text);
+  scale: 0 1;
+  transform-origin: left center;
+  pointer-events: none;
+  transition: scale var(--g-duration-fast) var(--g-ease-out);
+}
+.g-booking-bar__slot:dir(rtl)::after {
+  transform-origin: right center;
+}
+.g-booking-bar__slot.is-filled::after,
+.g-booking-bar__slot.is-invalid::after {
+  scale: 1 1;
+  transition: scale var(--g-duration-slow) var(--g-ease-out);
+}
+.g-booking-bar__slot.is-invalid {
+  border-block-end-color: var(--g-color-danger-text);
+}
+.g-booking-bar__slot.is-invalid::after {
+  border-block-end-color: var(--g-color-danger-text);
+}
+.g-booking-bar__slot-value {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+/* Vacío: «¿qué día?» en voz baja (sigue ≥ 4.5:1); la forma (discontinuo) dice que falta */
+.g-booking-bar__slot.is-empty .g-booking-bar__slot-value {
+  color: var(--g-color-text-muted);
+}
+/* Un chevron, si bruno lo pinta: pequeño y en voz baja; gira al abrir */
+.g-booking-bar__slot > .g-icon {
+  flex: none;
+  align-self: center;
+  inline-size: var(--g-text-body-sm-size);
+  block-size: var(--g-text-body-sm-size);
+  color: var(--g-color-text-muted);
+  transition: rotate var(--g-duration-press) var(--g-ease-out);
+}
+.g-booking-bar__slot[aria-expanded="true"] > .g-icon {
+  rotate: 180deg;
+}
+@media (hover: hover) {
+  .g-booking-bar__slot:not(:disabled):hover {
+    border-block-end-color: var(--g-color-text-muted);
+  }
+}
+.g-booking-bar__slot:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+.g-booking-bar__slot:disabled {
+  color: var(--g-color-text-subtle);
+  border-block-end-color: var(--g-color-border-strong);
+  cursor: not-allowed;
+}
+.g-booking-bar__slot:disabled::after {
+  border-block-end-color: var(--g-color-border-strong);
+}
+/* Los huecos de GDatePicker y GPartyField con el slot trigger: sus raíces no son caja (display: contents, B-L7) */
+
+/* ---------- Panel propio del hueco (noches, turno, recorrido, días rápidos) ----------
+   Capa superior colocada por bruno (#358: --_x, --_y, --_max, data-side). Como vive dentro de la frase, fija su letra */
+.g-booking-bar__slot-panel {
+  position: fixed;
+  inset: auto;
+  left: var(--_x);
+  top: var(--_y);
+  box-sizing: border-box;
+  inline-size: max-content;
+  min-inline-size: calc(var(--g-space-1) * 64);
+  max-inline-size: min(calc(var(--g-space-1) * 96), calc(100vw - var(--g-space-1) * 4));
+  max-block-size: var(--_max);
+  margin: 0;
+  padding: var(--g-space-4);
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-radius-lg);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  box-shadow: var(--g-shadow-2);
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-size);
+  line-height: var(--g-text-body-line);
+  font-weight: var(--g-text-body-weight);
+  letter-spacing: var(--g-text-body-tracking);
+  text-align: start;
+  white-space: normal;
+  opacity: 0;
+}
+.g-booking-bar__slot-panel:popover-open {
+  display: grid;
+  gap: var(--g-space-3);
+  opacity: 1;
+}
+/* La salida en el panel de noches, debajo del contador */
+.g-booking-bar__slot-panel .g-booking-bar__checkout {
+  margin: 0;
+}
+.g-booking-bar__checkout {
+  margin: 0;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text-muted);
+  overflow-wrap: break-word;
+}
+.g-booking-bar__messages {
+  display: grid;
+  gap: var(--g-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.g-booking-bar__messages:empty {
+  display: none;
+}
+.g-booking-bar__messages > li {
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-danger-text);
+  overflow-wrap: break-word;
+}
+.g-booking-bar__messages .g-icon {
+  margin-inline-end: var(--g-space-1);
+  vertical-align: -0.125em;
+}
+
+/* =====================================================================================================================
+   La barra: una fila que no se parte; si no cabe, resumen + acción (el .vue mide el desborde y pone is-compact)
+   ===================================================================================================================== */
+.g-booking-bar__row {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: var(--g-space-3);
+  min-inline-size: 0;
+}
+.g-booking-bar__field {
+  flex: 1 1 calc(var(--g-space-1) * 48);
+  display: flex;
+  min-inline-size: calc(var(--g-space-1) * 40);
+}
+/* Mínimos legibles por pieza (por contenido, no por kind): el rango partido, el grupo, una lista, una fecha */
+.g-booking-bar__field:has(> .g-datepicker--split) {
+  flex: 2 1 calc(var(--g-space-1) * 100);
+  min-inline-size: calc(var(--g-space-1) * 80);
+}
+.g-booking-bar__field:has(> .g-party-field) {
+  flex: 1.2 1 calc(var(--g-space-1) * 56);
+  min-inline-size: calc(var(--g-space-1) * 48);
+}
+.g-booking-bar__field:has(> .g-select) {
+  min-inline-size: calc(var(--g-space-1) * 36);
+}
+.g-booking-bar__field > * {
+  flex: 1 1 auto;
+}
+/* La acción se alinea con las cajas: baja la línea de la etiqueta (body-sm) y su separación (space × 1) */
+.g-booking-bar__row > .g-booking-bar__submit {
+  flex: none;
+  margin-block-start: calc(var(--g-text-body-sm-line) + var(--g-space-1));
+}
+/* Compacto: el resumen es el botón que abre la hoja */
+.g-booking-bar__compact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: var(--g-space-2);
+  min-inline-size: 0;
+}
+.g-booking-bar__compact > .g-booking-bar__submit {
+  flex: 1 1 auto;
+  align-self: center;
+}
+.g-booking-bar__summary,
+.g-booking-bar__dock-summary {
+  min-inline-size: 0;
+}
+.g-booking-bar__summary {
+  flex: 999 1 calc(var(--g-space-1) * 56);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0 var(--g-space-3);
+  box-sizing: border-box;
+  min-block-size: max(44px, calc(var(--g-space-1) * 12));
+  margin: 0;
+  padding: var(--g-space-2) var(--g-space-3);
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-booking-bar__summary-title {
+  flex: 1 0 100%;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-caption-weight);
+  color: var(--g-color-text-muted);
+}
+.g-booking-bar__summary-text {
+  flex: 1 1 0;
+  min-inline-size: 0;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-title-sm-weight);
+  overflow-wrap: break-word;
+}
+.g-booking-bar__summary-change {
+  flex: none;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-action-weight);
+  text-decoration: underline;
+  text-underline-offset: calc(var(--g-border-width) * 3);
+}
+@media (hover: hover) {
+  .g-booking-bar__summary:not(:disabled):hover {
+    border-color: var(--g-color-text-muted);
+  }
+}
+.g-booking-bar__summary:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+.g-booking-bar__summary:disabled {
+  color: var(--g-color-text-subtle);
+  border-color: var(--g-color-border-strong);
+  cursor: not-allowed;
+}
+.g-booking-bar__summary:disabled .g-booking-bar__summary-title {
+  color: var(--g-color-text-subtle);
+}
+/* La hoja: los mismos campos en línea, uno debajo de otro (en un modal no se abre otro popover) */
+.g-booking-bar__sheet .g-booking-bar__field {
+  display: block;
+  min-inline-size: 0;
+}
+.g-booking-bar__sheet .g-booking-bar__field + .g-booking-bar__field {
+  margin-block-start: var(--g-space-6);
+}
+
+/* =====================================================================================================================
+   B · El muelle: banda de borde a borde con el alto de contrato, encima de las reservas de abajo (--_reserve, px)
+   ===================================================================================================================== */
+.g-booking-bar__dock {
+  /* Alto de contrato (#740, §29.6), con el borde: lo suma el scroll-padding del documento */
+  --_dock-h: max(var(--g-space-16), calc(44px + var(--g-space-1) * 4));
+  --_reserve: calc(var(--g-space-1) * 0);
+  /* El área segura solo si no hay nada debajo (un navbar ya la cubre) */
+  --_safe: max(calc(var(--g-space-1) * 0), calc(env(safe-area-inset-bottom) - var(--_reserve)));
+
+  position: fixed;
+  z-index: 3;
+  inset-inline: 0;
+  inset-block-end: var(--_reserve);
+  display: flex;
+  align-items: center;
+  gap: var(--g-space-3);
+  box-sizing: border-box;
+  block-size: calc(var(--_dock-h) + var(--_safe));
+  min-inline-size: 0;
+  margin: 0;
+  padding-block: 0 var(--_safe);
+  /* El contenido se alinea con una columna de lectura; la banda llega a los bordes */
+  padding-inline: max(var(--g-space-4), calc((100% - var(--g-space-1) * 240) / 2));
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  border-block-start: var(--g-border-width) solid var(--g-color-border-strong);
+  box-shadow: var(--g-shadow-3);
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-size);
+  line-height: var(--g-text-body-line);
+  /* Oculto o saliendo: abajo y transparente; la salida (press) es más corta que la entrada (slow, #152) */
+  translate: 0 100%;
+  opacity: 0;
+  transition:
+    translate var(--g-duration-press) var(--g-ease-out),
+    opacity var(--g-duration-press) var(--g-ease-out),
+    display var(--g-duration-press) allow-discrete;
+}
+.g-booking-bar__dock[hidden] {
+  display: none;
+}
+.g-booking-bar__dock.is-shown {
+  translate: 0 0;
+  opacity: 1;
+  transition:
+    translate var(--g-duration-slow) var(--g-ease-out),
+    opacity var(--g-duration-press) var(--g-ease-out),
+    display var(--g-duration-slow) allow-discrete;
+}
+@starting-style {
+  .g-booking-bar__dock.is-shown {
+    translate: 0 100%;
+    opacity: 0;
+  }
+}
+.g-booking-bar__dock-summary {
+  flex: 1 1 auto;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-title-sm-weight);
+}
+.g-booking-bar__dock > :is(.g-booking-bar__dock-change, .g-booking-bar__submit) {
+  flex: none;
+}
+/* Tercera salida de «Flotantes persistentes» (#664, #740): mientras se ve, el documento reserva su alto abajo (más el
+   navbar de GSidebar fijo, si lo hay). En la capa de Grana: un scroll-padding-block-end de la aplicación gana y suma */
+:root:has(.g-booking-bar__dock.is-shown:not(dialog *)) {
+  scroll-padding-block-end: calc(max(var(--g-space-16), calc(44px + var(--g-space-1) * 4)) + env(safe-area-inset-bottom));
+}
+:root:has(.g-booking-bar__dock.is-shown:not(dialog *)):has(.g-sidebar--mode-navbar:not(.g-sidebar--contained)) {
+  scroll-padding-block-end: calc(max(var(--g-space-16), calc(44px + var(--g-space-1) * 4)) + var(--g-sidebar-bar) + env(safe-area-inset-bottom));
+}
+
+/* ---------- Paneles: entrada press + ease-out desde space × 1 hacia el hueco; salida fast ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .g-booking-bar__slot-panel {
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-out),
+      overlay var(--g-duration-fast) allow-discrete,
+      display var(--g-duration-fast) allow-discrete;
+  }
+  .g-booking-bar__slot-panel:popover-open {
+    transition:
+      opacity var(--g-duration-press) var(--g-ease-out),
+      translate var(--g-duration-press) var(--g-ease-out);
+  }
+  @starting-style {
+    .g-booking-bar__slot-panel:popover-open {
+      opacity: 0;
+      translate: 0 calc(var(--g-space-1) * -1);
+    }
+    .g-booking-bar__slot-panel[data-side="top"]:popover-open {
+      translate: 0 var(--g-space-1);
+    }
+  }
+}
+
+/* ---------- Movimiento reducido (§29.3): la tinta aparece; el muelle y los paneles, solo fundido ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .g-booking-bar__slot::after,
+  .g-booking-bar__slot.is-filled::after,
+  .g-booking-bar__slot.is-invalid::after {
+    transition: none;
+  }
+  .g-booking-bar__slot > .g-icon {
+    transition: none;
+  }
+  .g-booking-bar__dock,
+  .g-booking-bar__dock.is-shown {
+    translate: 0 0;
+  }
+  .g-booking-bar__dock {
+    transition:
+      opacity var(--g-duration-fast) linear,
+      display var(--g-duration-fast) allow-discrete;
+  }
+  .g-booking-bar__dock.is-shown {
+    transition:
+      opacity var(--g-duration-fast) linear,
+      display var(--g-duration-fast) allow-discrete;
+  }
+  @starting-style {
+    .g-booking-bar__dock.is-shown {
+      translate: 0 0;
+      opacity: 0;
+    }
+  }
+  .g-booking-bar__slot-panel,
+  .g-booking-bar__slot-panel:popover-open {
+    transition:
+      opacity var(--g-duration-fast) linear,
+      overlay var(--g-duration-fast) allow-discrete,
+      display var(--g-duration-fast) allow-discrete;
+  }
+}
+
+/* ---------- Colores forzados: subrayados, paneles y muelle con bordes reales ---------- */
+@media (forced-colors: active) {
+  .g-booking-bar__slot {
+    border-block-end-color: CanvasText;
+  }
+  .g-booking-bar__slot::after {
+    border-block-end-color: CanvasText;
+  }
+  .g-booking-bar__slot.is-invalid,
+  .g-booking-bar__slot.is-invalid::after {
+    border-block-end-color: Highlight;
+  }
+  .g-booking-bar__slot.is-invalid::after {
+    border-block-end-width: calc(var(--_ink) * 2);
+  }
+  .g-booking-bar__slot:focus-visible,
+  .g-booking-bar__summary:focus-visible {
+    outline-color: Highlight;
+  }
+  .g-booking-bar__slot-panel,
+  .g-booking-bar__summary {
+    border-color: CanvasText;
+  }
+  .g-booking-bar__dock {
+    border-block-start-color: CanvasText;
+  }
+}

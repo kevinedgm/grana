@@ -278,6 +278,10 @@
   --g-text-display-tracking: -0.022em;
   --g-text-display-weight: 600;
 
+  /* Héroe (tokens.md §51, #727): tope del título fluido de GHero, display × typeScale² (61px con el tema por defecto).
+     Token de componente, no rol: deriva de display, así que sigue a fontSize y fontDisplay (typeScale, cuando el CLI lo emita) */
+  --g-hero-title-max: calc(var(--g-text-display-size) * 1.5625);
+
   /* Peso de las etiquetas de acción (botones, pestañas) */
   --g-text-action-weight: 500;
 }
