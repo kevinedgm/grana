@@ -1,0 +1,191 @@
+/*
+  GContainer · estilo del contenedor de página
+  Dueño: coco. Contrato: design/contracts/container.md (DECISIONS.md #717, #721 a #724; tokens.md §50; api.md «Contención
+  en línea»). Estructura: design/lab/container/r01/ (kiwi). Estética y medidas: design/lab/container/estilo.md.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin respaldos. Literales: los de
+  unidad de #717 (cqi: 100cqi, 2cqi, 4cqi, 6cqi; 66ch), las constantes de §50 (anchos space × 160 · 192 · 256 · 320 · 384)
+  y los valores neutros de @property (0px).
+
+  Carácter (B · Sangrado alineado con la medida de A como opción, #721): mide SU caja y no el visor; el margen respira de
+  forma continua con la caja (sin puntos de corte) y no se acumula al anidarse; una banda llega al borde de la caja y su
+  contenido se queda en la columna, porque la columna publica sus márgenes ya resueltos. Sin pintura y sin movimiento.
+
+  Marcado que espera (lo pinta bruno; container.md «Anatomía» y «Clases y datos»):
+    <as>.g-container.g-container--width-*.g-container--horizontal-*.g-container--gutter-*[.g-container--prose]
+      div.g-container__body
+        [slot] (con .g-bleed, .g-bleed-raw y .g-wide de la aplicación)
+*/
+
+/* ---------- Propiedades públicas (tokens.md §50; no son del tema) ---------- */
+/* Entrada: ancho máximo a medida; gana a width. 0px (el inicial) = sin valor. No pasa a un contenedor anidado. */
+@property --g-container-max {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+/* Publicadas (solo lectura): distancia de cada borde de la columna al de la caja, en px, para el sangrado */
+@property --g-container-inset-start {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+@property --g-container-inset-end {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+/* ---------- Propiedades registradas privadas (§29.7) ---------- */
+/* El margen resuelto (registrada: el cqi se resuelve en la columna, contra la caja) */
+@property --_container-gutter {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+/* La medida de lectura, calculada UNA vez en la columna (66ch de su fuente) y heredada: todos los bloques de prosa
+   comparten borde final aunque cambien de tamaño de letra */
+@property --_container-measure {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+/* ---------- Raíz: la CAJA que se mide ---------- */
+.g-container {
+  /* El ancho pedido (constante de §50). Se escribe como texto y se resuelve en la columna, donde cqi es la caja */
+  --_container-w: calc(var(--g-space-1) * 256);
+  /* Ancho intrínseco para la contención en línea (#562) */
+  --_container-intrinsic: calc(var(--g-space-1) * 256);
+  /* --g-container-max no hereda: la raíz lo pasa a su columna como alias (px ya resueltos) */
+  --_container-max: var(--g-container-max);
+
+  display: block;
+  box-sizing: border-box;
+  min-inline-size: 0;
+  /* Contenedor de consultas en línea: sin contención de layout ni de paint (no atrapa lo fijo ni corta el pegado, #724) */
+  container-type: inline-size;
+  /* Con --g-container-max, ese es el intrínseco (escalón por sign(): 0px = sin valor) */
+  contain-intrinsic-inline-size: calc(
+    var(--_container-intrinsic) + sign(var(--_container-max)) * (var(--_container-max) - var(--_container-intrinsic))
+  );
+}
+.g-container--width-sm {
+  --_container-w: calc(var(--g-space-1) * 160);
+  --_container-intrinsic: calc(var(--g-space-1) * 160);
+}
+.g-container--width-md {
+  --_container-w: calc(var(--g-space-1) * 192);
+  --_container-intrinsic: calc(var(--g-space-1) * 192);
+}
+.g-container--width-xl {
+  --_container-w: calc(var(--g-space-1) * 320);
+  --_container-intrinsic: calc(var(--g-space-1) * 320);
+}
+.g-container--width-2xl {
+  --_container-w: calc(var(--g-space-1) * 384);
+  --_container-intrinsic: calc(var(--g-space-1) * 384);
+}
+/* Sin máximo: la columna es la caja menos el margen (100cqi se resuelve en la columna) */
+.g-container--width-full {
+  --_container-w: 100cqi;
+}
+/* A · Medida: la columna entera es la medida de lectura de su fuente (el ancho se resuelve en la columna, abajo) */
+.g-container--width-reading {
+  --_container-intrinsic: 66ch;
+}
+
+/* ---------- La COLUMNA ---------- */
+.g-container__body {
+  /* Margen md por defecto: crece de forma continua con la caja y respeta el área segura (teléfono apaisado con muesca) */
+  --_container-gutter: max(
+    clamp(var(--g-space-4), 4cqi, var(--g-space-12)),
+    env(safe-area-inset-left),
+    env(safe-area-inset-right)
+  );
+  --_container-measure: 66ch;
+  /* Límite: --g-container-max si tiene valor (> 0), si no el de width */
+  --_container-limit: calc(
+    var(--_container-w) + sign(var(--_container-max)) * (var(--_container-max) - var(--_container-w))
+  );
+  --_container-col: min(100cqi - 2 * var(--_container-gutter), var(--_container-limit));
+  /* Centrada: lo que sobra se reparte. Publicadas ya resueltas (px) para cualquier descendiente */
+  --g-container-inset-start: calc((100cqi - var(--_container-col)) / 2);
+  --g-container-inset-end: calc((100cqi - var(--_container-col)) / 2);
+
+  box-sizing: border-box;
+  inline-size: var(--_container-col);
+  margin-inline: var(--g-container-inset-start) var(--g-container-inset-end);
+  /* Reflujo (1.4.10): una URL larga se parte antes de desbordar; break-word no reduce el mínimo intrínseco */
+  overflow-wrap: break-word;
+}
+/* width="reading": la medida se lee en la columna, con su fuente (en la raíz valdría la del contenedor de fuera) */
+.g-container--width-reading > .g-container__body {
+  --_container-w: var(--_container-measure);
+}
+/* Al inicio: el margen al inicio lógico y el sobrante al final (con full no hay sobrante) */
+.g-container--horizontal-start > .g-container__body {
+  --g-container-inset-start: var(--_container-gutter);
+  --g-container-inset-end: calc(100cqi - var(--_container-col) - var(--_container-gutter));
+}
+
+/* ---------- Margen lateral (gutter) ---------- */
+.g-container--gutter-none > .g-container__body {
+  --_container-gutter: calc(var(--g-space-1) * 0);
+}
+.g-container--gutter-sm > .g-container__body {
+  --_container-gutter: max(
+    clamp(var(--g-space-3), 2cqi, var(--g-space-6)),
+    env(safe-area-inset-left),
+    env(safe-area-inset-right)
+  );
+}
+.g-container--gutter-lg > .g-container__body {
+  --_container-gutter: max(
+    clamp(var(--g-space-6), 6cqi, var(--g-space-16)),
+    env(safe-area-inset-left),
+    env(safe-area-inset-right)
+  );
+}
+/* auto anidado = 0: dentro de otro contenedor o de una anfitriona que ya deja aire contra su borde (mapa de anfitrionas
+   de contrato, L5 #722: .g-container__body, .g-surface —incluye GCard—, .g-dialog__body). Un gutter explícito gana. */
+:where(.g-container__body, .g-surface, .g-dialog__body)
+  .g-container:not(.g-container--gutter-none, .g-container--gutter-sm, .g-container--gutter-md, .g-container--gutter-lg)
+  > .g-container__body {
+  --_container-gutter: calc(var(--g-space-1) * 0);
+}
+
+/* ---------- B · Sangrado alineado (#722) ----------
+   Un descendiente cuya caja ocupa la columna llega a los bordes de la caja del contenedor (nunca del visor: no pasa bajo la
+   barra lateral ni crea desplazamiento horizontal). g-bleed devuelve el contenido a la columna con relleno y
+   scroll-padding-inline (un desplazable arranca alineado con el texto y termina alineado con el final de la columna);
+   g-bleed-raw solo sangra (media, una línea). Especificidad baja y en la capa de Grana: el relleno propio de la aplicación
+   gana (receta: sumar el publicado). */
+.g-container__body :where(.g-bleed, .g-bleed-raw) {
+  margin-inline: calc(var(--g-container-inset-start) * -1) calc(var(--g-container-inset-end) * -1);
+}
+.g-container__body :where(.g-bleed) {
+  padding-inline: var(--g-container-inset-start) var(--g-container-inset-end);
+  scroll-padding-inline: var(--g-container-inset-start) var(--g-container-inset-end);
+}
+
+/* ---------- A · Medida, como opción (prose) ----------
+   La prosa de la columna (a cualquier profundidad) se queda en 66ch de la fuente de la columna, alineada al inicio; lo
+   demás usa la columna entera. Fuera de la medida: lo de dentro de un componente de Grana, de una tabla y de lo marcado
+   con g-wide (límites del ámbito: el propio elemento y lo de dentro). Las primitivas de página que solo envuelven la prosa
+   de la aplicación (GStack, GSection y su cuerpo, una banda g-bleed) NO cortan la medida. Especificidad 0 (@scope sin
+   :scope ni &): la aplicación siempre gana. */
+@scope (.g-container--prose > .g-container__body) to (
+  [class^="g-"]:not(.g-stack, .g-section, .g-section__body, .g-bleed, .g-bleed-raw),
+  [class*=" g-"]:not(.g-stack, .g-section, .g-section__body, .g-bleed, .g-bleed-raw),
+  table,
+  .g-wide
+) {
+  :where(p, ul, ol, dl, blockquote, h1, h2, h3, h4, h5, h6, figcaption, address) {
+    /* Con el relleno dentro de la medida: una lista con sangría termina donde termina el párrafo */
+    box-sizing: border-box;
+    max-inline-size: var(--_container-measure);
+  }
+}
+
+/* ---------- Colores forzados ----------
+   Nada que perder: el contenedor no pinta (fondo, borde ni foco). La zona de marca de una banda la pinta su elemento. */

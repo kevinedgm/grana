@@ -279,6 +279,13 @@
 .g-page-header.is-sticky .g-page-header__base {
   transition: box-shadow var(--g-duration-fast) var(--g-ease-out);
 }
+/* S5 (#715, api.md «Piezas pegadas»): lo enfocable del zócalo pegado no se «desentierra» a sí mismo. Resta la banda del
+   scroll-padding (cabecera de la aplicación + el zócalo) para que Chromium y WebKit no desplacen la página al enfocarlo.
+   Con is-sticky y no solo is-stuck: mientras el encabezado se hunde, el zócalo ya cae dentro de esa banda. */
+.g-page-header.is-sticky .g-page-header__base,
+.g-page-header.is-sticky .g-page-header__base :not(:where(.g-tooltip)) {
+  scroll-margin-block-start: calc(-1 * (var(--g-page-header-top) + var(--_base-h)));
+}
 
 /* ---------- Muelle (estrecho y pegado, #630) ----------
    Barra de borde a borde de la CAJA del encabezado (física: --_dock-left/--_dock-right las escribe el .vue y valen en

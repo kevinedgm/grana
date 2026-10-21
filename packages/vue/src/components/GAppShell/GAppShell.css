@@ -1,0 +1,322 @@
+/*
+  GAppShell · estilo del chasis de aplicación
+  Dueño: coco. Contrato: design/contracts/app-shell.md (DECISIONS.md #708 a #717; tokens.md §48; api.md «Piezas pegadas» y
+  «Cabecera fija de la aplicación»). Estructura: design/lab/app-shell/r01/ (kiwi). Estética y medidas:
+  design/lab/app-shell/estilo.md.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin respaldos. Literales: 24px y
+  44px (§7), 100svh y 100dvh (literales de unidad, #717), las constantes de §48 (× 14 de la banda, × 4 del cuarto, 9999 del
+  escalón) y los valores neutros de @property (0px, 0s).
+
+  Carácter (base + A · Cortina por defecto, B · Relevo de franja con header="relay", #708):
+  - La página no se recompone delante de quien lee: la pista del sidebar cambia en UN paso, al instante al encoger y,
+    al crecer, justo cuando la navegación ya cubre la página (--g-duration-slow, la duración del ancho de GSidebar).
+  - La cabecera y el zócalo de GPageHeader se pasan el borde SIN COSTURA: al ceder, la banda sube por su posición pegada
+    (la cifra --g-app-shell-top animada) y el zócalo sube con la misma cifra; el borde de abajo de la banda y el de arriba
+    del zócalo son la misma línea en cada cuadro. Nunca asoma la página entre las dos franjas.
+  - El enlace de salto es una pestaña que cuelga del borde del visor y baja con el foco.
+
+  Marcado que espera (lo pinta bruno; app-shell.md «Anatomía» y «Clases y datos»):
+    div.g-app-shell[.g-app-shell--header-relay][.is-yielded][.has-header][.has-footer]
+      a.g-app-shell__skip
+      header.g-app-shell__header[data-g-zone="brand"]   (solo con slot)
+      <GSidebar> (hijo DIRECTO: .g-sidebar…, o span[hidden] + dialog.g-sidebar__drawer en drawer)
+      div.g-app-shell__frame
+        main.g-app-shell__main[tabindex=-1]
+        footer.g-app-shell__footer                       (solo con slot)
+
+  Acoplamiento (L9, #709): la espera de A es var(--g-duration-slow), la MISMA que la transición de inline-size de
+  GSidebar.css («Expandir y contraer»). Si cambia una, cambia la otra en el mismo commit.
+*/
+
+/* ---------- Propiedades públicas (tokens.md §48; no son del tema) ---------- */
+/* Entrada: alto de la cabecera de la aplicación si mide MÁS que el de contrato. Se declara en :root (aviso 11). */
+@property --g-app-shell-header {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+/* Publicada (solo lectura): lo que la banda ocupa arriba mientras está pegada, en px resueltos */
+@property --g-app-shell-top {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+/* ---------- Propiedades registradas privadas (§29.7; con el nombre del componente porque @property es global) ---------- */
+/* La pista del sidebar: registrada para que A la cambie con una transición DISCRETA con retardo (nunca interpola) */
+@property --_app-shell-nav {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+/* La espera de A: --g-duration-slow si el destino es expanded sin superposición; 0s en el resto */
+@property --_app-shell-delay {
+  syntax: "<time>";
+  inherits: false;
+  initial-value: 0s;
+}
+/* La reserva del navbar al final del marco */
+@property --_app-shell-bar {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+/* El zócalo pegado contado (solo con .g-page-header.is-sticky en main, fuera de un <dialog>) */
+@property --_app-shell-base {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+/* ---------- Raíz: rejilla [pista | marco] y la cifra de la cabecera ---------- */
+.g-app-shell {
+  /* Alto de la banda: constante de CONTRATO (#713), con el borde incluido; la entrada solo puede subirlo */
+  --_app-shell-band: max(calc(var(--g-space-1) * 14), 44px, var(--g-app-shell-header));
+  /* Zócalo de GPageHeader pegado: 0 salvo con is-sticky (abajo) */
+  --_app-shell-base: calc(var(--g-space-1) * 0);
+  /* Presupuesto del cuarto (WCAG 1.4.10): lo pegado arriba ≤ 25 % de 100svh. Escalón sin JS: vale la banda si cabe y 0 si
+     no (la holgura × 9999 es enorme si es positiva y ≤ 0 si no) */
+  --_app-shell-pinned: min(
+    var(--_app-shell-band),
+    max(calc(var(--g-space-1) * 0), (100svh - 4 * (var(--_app-shell-band) + var(--_app-shell-base))) * 9999)
+  );
+  --g-app-shell-top: var(--_app-shell-pinned);
+  /* La receta de api.md «Cabecera fija», escrita UNA vez y en la capa de Grana (#713): una aplicación que ya la escribía
+     sin capa sigue ganando (aviso 10) */
+  --g-page-header-top: var(--g-app-shell-top);
+  --g-accordion-sticky-top: calc(var(--g-app-shell-top) + var(--_app-shell-base));
+  --_app-shell-bar: calc(var(--g-space-1) * 0);
+
+  display: grid;
+  /* La pista es la reserva (el sidebar es fijo y no la ocupa); el marco mide lo que queda, nunca el visor */
+  grid-template-columns: var(--_app-shell-nav) minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  /* Las áreas solo ponen la pista a un lado: el orden del DOM sigue siendo el de lectura (1.3.2) */
+  grid-template-areas:
+    "nav head"
+    "nav frame";
+  min-block-size: 100dvh;
+  min-inline-size: 0;
+  background-color: var(--g-color-bg);
+  color: var(--g-color-text);
+  font-family: var(--g-font-ui);
+}
+/* Sin cabecera: no hay banda ni cifra */
+.g-app-shell:not(:has(> .g-app-shell__header)) {
+  --g-app-shell-top: calc(var(--g-space-1) * 0);
+}
+/* El zócalo cuenta solo pegado de verdad (is-sticky, #713): un zócalo que no se pega no ocupa arriba */
+.g-app-shell:has(> .g-app-shell__frame > .g-app-shell__main .g-page-header.is-sticky:not(dialog *)) {
+  --_app-shell-base: max(var(--g-space-12), 44px);
+}
+/* B · Relevo de franja: cedida, la banda no ocupa nada (y con ella --g-page-header-top y el acordeón). Con el foco dentro
+   de la banda no cede nunca, ni en el cuadro en que el foco llega antes de que el chasis quite is-yielded (2.4.11) */
+.g-app-shell.g-app-shell--header-relay.is-yielded:not(:has(> .g-app-shell__header:focus-within)) {
+  --g-app-shell-top: calc(var(--g-space-1) * 0);
+}
+
+/* ---------- Reserva del sidebar por su forma (#712; clases públicas de GSidebar como contrato) ---------- */
+.g-app-shell:has(> .g-sidebar--mode-expanded:not(.g-sidebar--overlay)) {
+  --_app-shell-nav: var(--g-sidebar-width);
+}
+.g-app-shell:has(> .g-sidebar--mode-rail),
+.g-app-shell:has(> .g-sidebar--overlay) {
+  --_app-shell-nav: var(--g-sidebar-rail);
+}
+.g-app-shell:has(> .g-sidebar--variant-floating.g-sidebar--mode-expanded:not(.g-sidebar--overlay)) {
+  --_app-shell-nav: calc(var(--g-sidebar-width) + var(--g-space-3) * 2);
+}
+.g-app-shell:has(> .g-sidebar--variant-floating.g-sidebar--mode-rail),
+.g-app-shell:has(> .g-sidebar--variant-floating.g-sidebar--overlay) {
+  --_app-shell-nav: calc(var(--g-sidebar-rail) + var(--g-space-3) * 2);
+}
+/* Navbar: pista 0 y su alto reservado al final del marco (con el área segura que la barra también deja) */
+.g-app-shell:has(> .g-sidebar--mode-navbar) {
+  --_app-shell-bar: calc(var(--g-sidebar-bar) + env(safe-area-inset-bottom));
+}
+
+/* ---------- A · Cortina (#709): la pista cambia en un paso ----------
+   Al crecer (destino expanded sin superposición, con el sidebar ya montado: is-ready) espera --g-duration-slow, lo que
+   tarda el ancho de GSidebar: el sidebar crece SOBRE la página y la página se aparta cuando ya está cubierta. Al encoger,
+   al instante: la página se ensancha y el riel se encoge sobre ella. La rejilla nunca se interpola (transición discreta). */
+.g-app-shell:has(> .g-sidebar--mode-expanded.is-ready:not(.g-sidebar--overlay)) {
+  --_app-shell-delay: var(--g-duration-slow);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-app-shell {
+    transition: --_app-shell-nav 0s linear var(--_app-shell-delay);
+  }
+  /* B: la cifra se mueve en una banda (--g-duration-fast + --g-ease-out, sin muelle: no es una entrada de forma, #299) */
+  .g-app-shell.g-app-shell--header-relay {
+    transition:
+      --_app-shell-nav 0s linear var(--_app-shell-delay),
+      --g-app-shell-top var(--g-duration-fast) var(--g-ease-out);
+  }
+  /* El foco que entra en la banda cedida la devuelve AL INSTANTE: el anillo nunca se pinta fuera del visor y ningún
+     navegador desplaza la página para buscarlo (WebKit lo haría en el cuadro siguiente, con la banda aún arriba) */
+  .g-app-shell.g-app-shell--header-relay:has(> .g-app-shell__header:focus-within) {
+    transition: --_app-shell-nav 0s linear var(--_app-shell-delay);
+  }
+}
+
+/* ---------- Enlace de salto (2.4.1): una pestaña que cuelga del borde del visor ---------- */
+.g-app-shell__skip {
+  position: fixed;
+  z-index: 10;
+  inset-block-start: calc(var(--g-space-1) * 0);
+  inset-inline-start: var(--g-space-4);
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-block-size: max(24px, calc(var(--g-space-1) * 10));
+  padding-block: var(--g-space-2);
+  padding-inline: var(--g-space-4);
+  /* Cuelga: sin borde ni radio arriba, contra el borde del visor */
+  border: var(--g-border-width) solid var(--g-color-border-strong);
+  border-block-start-width: calc(var(--g-border-width) * 0);
+  border-end-start-radius: var(--g-radius-md);
+  border-end-end-radius: var(--g-radius-md);
+  background-color: var(--g-color-surface);
+  color: var(--g-color-text);
+  box-shadow: var(--g-shadow-2);
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-action-weight);
+  text-decoration: none;
+  /* Fuera del visor por encima (sigue en el orden de Tab: translate, no display ni visibility) */
+  translate: 0 calc(-100% - var(--g-space-4));
+}
+@media (pointer: coarse) {
+  .g-app-shell__skip {
+    min-block-size: 44px;
+  }
+}
+.g-app-shell__skip:focus {
+  translate: 0 0;
+}
+/* Anillo por dentro: la pestaña toca el borde del visor y un anillo por fuera perdería su lado de arriba */
+.g-app-shell__skip:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: calc(var(--g-focus-width) * -1 - var(--g-border-width));
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-app-shell__skip {
+    transition: translate var(--g-duration-fast) var(--g-ease-out);
+  }
+}
+
+/* ---------- Cabecera de la aplicación: banda pegada de alto de contrato ---------- */
+.g-app-shell__header {
+  grid-area: head;
+  position: sticky;
+  /* Pegada: 0. Despegada por el presupuesto o cedida (B): −banda, se va por arriba. En B la cifra se anima y la banda
+     sube por su propia posición: su borde de abajo es, en cada cuadro, el de arriba del zócalo (relevo sin costura) */
+  inset-block-start: calc(var(--g-app-shell-top) - var(--_app-shell-band));
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: var(--g-space-3);
+  box-sizing: border-box;
+  block-size: var(--_app-shell-band);
+  min-inline-size: 0;
+  padding-inline: var(--g-space-4);
+  background-color: var(--g-color-bg);
+  color: var(--g-color-text);
+  /* Borde real, no solo fondo: separa la banda de la página también en forced-colors (1.4.11) */
+  border-block-end: var(--g-border-width) solid var(--g-color-border);
+}
+/* S1 (#715): lo enfocable de la banda no se «desentierra» a sí mismo; resta la banda del scroll-padding. Con la cifra SIN
+   ceder (--_app-shell-pinned, que no se anima): en B el foco llega a la banda cedida antes de que vuelva a bajar (Chromium
+   y Firefox desplazan en ese mismo instante). El área se desplaza hacia abajo lo mismo que se resta (margen de abajo
+   positivo), así cabe aunque la banda esté aún fuera por arriba. Despegada por el presupuesto, resta solo el zócalo. */
+.g-app-shell__header,
+.g-app-shell__header :not(:where(.g-tooltip)) {
+  scroll-margin-block:
+    calc(-1 * (var(--_app-shell-pinned) + var(--_app-shell-base)))
+    calc(var(--_app-shell-pinned) + var(--_app-shell-base));
+}
+
+/* ---------- Sidebar (slot nav): FIJO al visor, no pegado (S1, S2) ----------
+   Lo fijo no está en el desplazador: enfocarlo nunca mueve la página. También el superpuesto (que GSidebar.css pone
+   absolute contra un padre de alto fijo y aquí mediría el documento, S2). El navbar y el drawer los coloca GSidebar. */
+.g-app-shell > .g-sidebar:not(.g-sidebar--mode-navbar) {
+  position: fixed;
+  z-index: 5;
+  inset-block: 0 auto;
+  inset-inline-start: 0;
+  block-size: 100dvh;
+}
+.g-app-shell > .g-sidebar--variant-floating:not(.g-sidebar--mode-navbar) {
+  block-size: calc(100dvh - var(--g-space-3) * 2);
+}
+
+/* ---------- Marco: la página y el pie ---------- */
+.g-app-shell__frame {
+  grid-area: frame;
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+  /* Sin desplazamiento horizontal de página y sin crear contenedor de desplazamiento (clip, no hidden): el pegado sigue */
+  overflow-x: clip;
+  padding-block-end: var(--_app-shell-bar);
+}
+.g-app-shell__main {
+  flex: 1 0 auto;
+  min-inline-size: 0;
+}
+/* Destino del salto (tabindex=-1): no es un control; el anillo está en el enlace y en el siguiente Tab */
+.g-app-shell__main:focus {
+  outline: none;
+}
+.g-app-shell__footer {
+  box-sizing: border-box;
+  min-inline-size: 0;
+  padding: var(--g-space-4);
+  border-block-start: var(--g-border-width) solid var(--g-color-border);
+  color: var(--g-color-text-muted);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+}
+
+/* ---------- La receta en el desplazador: <html> (#713) ----------
+   El scroll-padding vive en el desplazador del documento. Misma cifra que la raíz (banda pegada + zócalo pegado), con la
+   misma función escalón. Nada si el chasis está dentro de un <dialog> (aviso 7). */
+:root:has(.g-app-shell:not(dialog *)) {
+  --_app-shell-band: max(calc(var(--g-space-1) * 14), 44px, var(--g-app-shell-header));
+  scroll-padding-block-start: calc(
+    min(
+      var(--_app-shell-band),
+      max(calc(var(--g-space-1) * 0), (100svh - 4 * (var(--_app-shell-band) + var(--_app-shell-base))) * 9999)
+    ) + var(--_app-shell-base)
+  );
+}
+:root:has(.g-app-shell:not(dialog *) > .g-app-shell__frame > .g-app-shell__main .g-page-header.is-sticky:not(dialog *)) {
+  --_app-shell-base: max(var(--g-space-12), 44px);
+}
+/* Sin cabecera, o cedida (B): el desplazador solo cuenta el zócalo */
+:root:has(.g-app-shell:not(dialog *)):not(:has(.g-app-shell:not(dialog *) > .g-app-shell__header)),
+:root:has(.g-app-shell--header-relay.is-yielded:not(dialog *)):not(:has(.g-app-shell__header:focus-within)) {
+  scroll-padding-block-start: var(--_app-shell-base);
+}
+
+/* ---------- Movimiento reducido: sin espera ni deslizamiento (§29.3) ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .g-app-shell,
+  .g-app-shell__skip {
+    transition: none;
+  }
+}
+
+/* ---------- Colores forzados: bordes reales del sistema ---------- */
+@media (forced-colors: active) {
+  .g-app-shell__header {
+    border-block-end-color: CanvasText;
+  }
+  .g-app-shell__footer {
+    border-block-start-color: CanvasText;
+  }
+  .g-app-shell__skip {
+    border-color: CanvasText;
+  }
+}

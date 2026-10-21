@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GContainer · banco de estilo (coco)</title>
+<!-- Banco de coco: marcado EXACTO de design/contracts/container.md («Anatomía», «Clases y datos») con el CSS real de
+     GContainer.css (y GStack.css, GSection.css y GPageHeader.css de src/) cargado DENTRO de la capa grana.components, como
+     lo registrará bruno, y GSurface, GBtn y GPageHeader reales de dist/. XContainer pinta lo que pintará GContainer.vue
+     (clases por prop, sin JS). No es la implementación de bruno.
+     Requiere dist/. Desde la raíz del repo:  python3 -m http.server 4212  →  /design/lab/container/estilo-banco.html
+     Parámetros: ?s=<caso> (uno solo: widths, nested, start, bleed, prose, max, intrinsic, sticky, reflow; por defecto
+       todos)  ?dir=rtl  ?theme=<generated/*.css>  ?dark=1  ?space=5  ?w=<ancho del caso en px>
+     Verificación: GRANA_PW_PORT=4212 node design/lab/container/estilo-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<style>
+@import url("../../../packages/vue/src/components/GPageHeader/GPageHeader.css") layer(grana.components);
+@import url("../../../packages/vue/src/components/GStack/GStack.css") layer(grana.components);
+@import url("../../../packages/vue/src/components/GSection/GSection.css") layer(grana.components);
+@import url("../../../packages/vue/src/components/GContainer/GContainer.css") layer(grana.components);
+</style>
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style id="extra"></style>
+<style>
+  /* Andamio del banco (la «aplicación», no es de Grana) */
+  html, body { margin: 0; }
+  body { background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui); font-size: var(--g-text-body-size); line-height: var(--g-text-body-line); }
+  .case { border-block-end: 1px dashed var(--g-color-border-strong); padding-block: 16px; }
+  .case > h2.lab-h { margin: 0 0 8px; padding-inline: 8px; font: 600 13px/1.4 monospace; color: var(--g-color-text-muted); }
+  .probe { block-size: 8px; background: var(--g-color-accent-soft); }
+  .band { background: var(--g-color-surface-sunken); padding-block: var(--g-space-6); }
+  .band h3 { margin: 0; }
+  .scroller { overflow-x: auto; }
+  .scroller table { inline-size: calc(var(--g-space-1) * 500); border-collapse: collapse; }
+  .scroller td { border: 1px solid var(--g-color-border); padding: 4px 8px; white-space: nowrap; }
+  .media { block-size: 40px; background: var(--g-color-accent); }
+  .fit { display: inline-block; }
+  .fit-table { display: table; } .fit-table > .cell { display: table-cell; }
+  .fit-flex { display: flex; } .fit-flex > * { flex: none; }
+  .fixed-probe { position: fixed; inset-block-end: 0; inset-inline-end: 0; inline-size: 10px; block-size: 10px; background: var(--g-color-accent); }
+  .sticky-probe { position: sticky; inset-block-start: 0; background: var(--g-color-surface); }
+  .tall { block-size: 1200px; }
+  .card-like { padding: var(--g-space-4); }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="../../../node_modules/vue/dist/vue.global.prod.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../../packages/vue/dist/page-header.umd.js"></script>
+<script>
+;(function () {
+  const { createApp, h, defineComponent } = Vue
+  const Q = new URLSearchParams(location.search)
+  if (Q.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  if (Q.get('dark') === '1') document.documentElement.setAttribute('data-theme', 'dark')
+  if (Q.get('theme')) document.getElementById('gen').href = `../tema-oscuro/dark-color-presence/generated/${Q.get('theme')}.css`
+  let extra = ''
+  if (Q.get('space')) {
+    const k = Number(Q.get('space')) / 4
+    extra += `:root{${[1, 2, 3, 4, 5, 6, 8, 12, 16].map((n) => `--g-space-${n}:${4 * n * k}px`).join(';')}}`
+  }
+  if (Q.get('w')) extra += `.case{inline-size:${Number(Q.get('w'))}px}`
+  document.getElementById('extra').textContent = extra
+  const S = Q.get('s')
+  const show = (n) => !S || S === n
+
+  const XContainer = defineComponent({
+    name: 'XContainer',
+    props: { as: { type: String, default: 'div' }, width: { type: String, default: 'lg' }, horizontal: { type: String, default: 'center' }, gutter: { type: String, default: 'auto' }, prose: Boolean },
+    setup (props, { slots }) {
+      return () => h(props.as, { class: ['g-container', `g-container--width-${props.width}`, `g-container--horizontal-${props.horizontal}`, `g-container--gutter-${props.gutter}`, props.prose && 'g-container--prose'] }, [h('div', { class: 'g-container__body' }, slots.default ? slots.default() : null)])
+    }
+  })
+  const P = 'Un resultado sale sin revisión cuando todos sus analitos están dentro del intervalo de referencia, el control de calidad del lote pasó en las últimas ocho horas y no hay una nota clínica que pida revisión de un firmante del área.'
+
+  const app = createApp({
+    setup () { return { show, P, widths: ['sm', 'md', 'lg', 'xl', '2xl', 'full', 'reading'], gutters: ['none', 'sm', 'md', 'lg'] } },
+    template: `
+<div v-if="show('widths')" class="case" id="widths"><h2 class="lab-h">anchos (gutter auto)</h2>
+  <x-container v-for="w in widths" :key="w" :id="'w-' + w" :width="w"><div class="probe"></div></x-container>
+  <x-container v-for="g in gutters" :key="'g' + g" :id="'g-' + g" width="full" :gutter="g"><div class="probe"></div></x-container>
+</div>
+
+<div v-if="show('nested')" class="case" id="nested"><h2 class="lab-h">anidado y anfitrionas</h2>
+  <x-container id="outer"><div class="probe" id="outer-probe"></div>
+    <x-container id="inner" width="sm"><div class="probe" id="inner-probe"></div></x-container>
+    <x-container id="inner-sm" width="full" gutter="sm"><div class="probe" id="inner-sm-probe"></div></x-container>
+    <g-surface id="surf">
+      <x-container id="in-surf"><div class="probe" id="in-surf-probe"></div></x-container>
+    </g-surface>
+  </x-container>
+</div>
+
+<div v-if="show('start')" class="case" id="start"><h2 class="lab-h">horizontal start</h2>
+  <x-container id="st" width="sm" horizontal="start"><div class="probe" id="st-probe"></div></x-container>
+  <x-container id="st-full" width="full" horizontal="start"><div class="probe"></div></x-container>
+</div>
+
+<div v-if="show('bleed')" class="case" id="bleed"><h2 class="lab-h">B · sangrado</h2>
+  <x-container id="bl">
+    <p id="bl-p">{{ P }}</p>
+    <section class="g-bleed band" id="band"><h3 id="band-h">Banda de borde a borde con el título alineado</h3></section>
+    <div><div><section class="g-bleed band" id="deep-band"><h3 id="deep-h">Banda profunda</h3></section></div></div>
+    <section class="g-bleed band" id="zone-band" data-g-zone="brand"><h3 id="zone-h">Zona de marca de borde a borde</h3></section>
+    <div class="g-bleed scroller" id="scroller"><table><tbody><tr><td v-for="n in 30" :key="n">Columna {{ n }}</td></tr></tbody></table></div>
+    <div class="g-bleed-raw media" id="raw"></div>
+    <div class="g-bleed band" id="own-pad" style="padding-inline: calc(var(--g-container-inset-start) + 16px) calc(var(--g-container-inset-end) + 16px)"><h3 id="own-h">Relleno propio de la aplicación (receta)</h3></div>
+  </x-container>
+</div>
+
+<div v-if="show('prose')" class="case" id="prose"><h2 class="lab-h">A · prose y reading</h2>
+  <x-container id="pr" width="xl" prose>
+    <h2 id="pr-h2">Título de la página que es largo y debería cortarse en la medida de lectura de la columna, igual que el texto</h2>
+    <p id="pr-p">{{ P }} {{ P }}</p>
+    <ul id="pr-ul"><li>{{ P }}</li></ul>
+    <table id="pr-table"><tbody><tr><td><p id="pr-tp">{{ P }} {{ P }}</p></td></tr></tbody></table>
+    <div class="g-wide"><p id="pr-wide">{{ P }} {{ P }}</p></div>
+    <p class="g-wide" id="pr-wide-self">{{ P }} {{ P }}</p>
+    <div class="g-stack g-stack--gap-md" id="pr-stack"><p id="pr-sp">{{ P }} {{ P }}</p></div>
+    <section class="g-section g-section--depth-1" id="pr-sec"><div class="g-section__body"><p id="pr-secp">{{ P }} {{ P }}</p></div></section>
+    <div class="g-bleed band" id="pr-band"><p id="pr-bandp">{{ P }} {{ P }}</p></div>
+    <g-surface id="pr-surf" level="raised"><p id="pr-surfp">{{ P }} {{ P }}</p></g-surface>
+    <p id="pr-big" style="font-size: 200%">{{ P }} {{ P }}</p>
+    <div class="probe" id="pr-probe"></div>
+  </x-container>
+  <x-container id="rd" width="reading"><p id="rd-p">{{ P }} {{ P }}</p></x-container>
+</div>
+
+<div v-if="show('max')" class="case" id="max"><h2 class="lab-h">--g-container-max</h2>
+  <x-container id="mx" style="--g-container-max: calc(var(--g-space-1) * 150)"><div class="probe" id="mx-probe"></div>
+    <x-container id="mx-in" width="full"><div class="probe" id="mx-in-probe"></div></x-container>
+  </x-container>
+  <x-container id="mx-full" width="full" style="--g-container-max: calc(var(--g-space-1) * 150)"><div class="probe" id="mx-full-probe"></div></x-container>
+</div>
+
+<div v-if="show('intrinsic')" class="case" id="intrinsic"><h2 class="lab-h">ancho intrínseco en padres que se ajustan</h2>
+  <div class="fit"><x-container id="in-lg"><div class="probe"></div></x-container></div>
+  <div class="fit"><x-container id="in-sm" width="sm"><div class="probe"></div></x-container></div>
+  <div class="fit"><x-container id="in-rd" width="reading"><div class="probe"></div></x-container></div>
+  <div class="fit"><x-container id="in-full" width="full"><div class="probe"></div></x-container></div>
+  <div class="fit"><x-container id="in-mx" style="--g-container-max: calc(var(--g-space-1) * 150)"><div class="probe"></div></x-container></div>
+  <div class="fit-table"><div class="cell"><x-container id="in-cell" width="sm"><div class="probe"></div></x-container></div></div>
+  <div class="fit-flex"><x-container id="in-flex" width="md"><div class="probe"></div></x-container></div>
+</div>
+
+<div v-if="show('sticky')" class="case" id="sticky"><h2 class="lab-h">no atrapa lo fijo ni corta el pegado (#724)</h2>
+  <x-container id="sk">
+    <div class="sticky-probe" id="sk-sticky">Pegado</div>
+    <div class="fixed-probe" id="sk-fixed"></div>
+    <div class="tall"></div>
+  </x-container>
+</div>
+
+<div v-if="show('reflow')" class="case" id="reflow"><h2 class="lab-h">reflujo</h2>
+  <x-container id="rf"><p id="rf-url">https://laboratorio.example.org/resultados/2026/10/21/expediente-0001234567/analitos/hematologia/biometria-hematica-completa</p></x-container>
+</div>`
+  })
+  app.component('XContainer', XContainer)
+  app.use(Grana.default || Grana)
+  app.mount('#app')
+  window.__ct = { ready: true }
+})()
+</script>
+</body>
+</html>

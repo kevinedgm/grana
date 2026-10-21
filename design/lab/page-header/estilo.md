@@ -71,6 +71,10 @@ Sin cambios en `defaults.css` (el contrato no añade tokens). La zona de marca s
 - RTL: todo lógico salvo la caja física del muelle, que da el `.vue`. Título compacto al principio lógico (derecha), acciones al final (izquierda), enlace del muelle a la derecha.
 - `pointer: coarse` (Chromium y WebKit con `isMobile`; Firefox sin emulación de puntero): enlace del muelle ≥ 44 px; los `GBtn` traen su diana de 44 × 44.
 
+## Enmienda S5 (2026-10-21; #715, `api.md` «Piezas pegadas»)
+
+Lo enfocable del zócalo pegado lleva `scroll-margin-block-start: calc(-1 * (var(--g-page-header-top) + var(--_base-h)))` (el zócalo y sus descendientes salvo `.g-tooltip`, #383), con **`is-sticky`** y no solo `is-stuck`: mientras el encabezado se hunde, el zócalo ya cae dentro de la banda del `scroll-padding`. Medido en `design/lab/app-shell/estilo-verificar.mjs` (parte `s1`), con y sin `GAppShell`: enfocar una acción o una pestaña del zócalo con la página en 1200 deja `scrollY` igual en los tres motores (sin la regla: 1200 → 778 en Chromium, → 1158 en WebKit; Firefox no desplazaba), y también antes de pegarse (scrollY 60, 120, 180). El muelle es `fixed` y no lo necesita. La comprobación estática de `estilo-verificar.mjs` admite ahora solo esta regla (antes prohibía todo `scroll-margin`, #515); 1284/1284 en los tres motores.
+
 ## Pendientes
 
 - **lima:** la banda de zona en reposo no se separa de la página en el oscuro del tema por defecto (1,12:1). Pegada se separa por el suelo (1,86:1). Si se quiere el filo también en reposo, la excepción de §44.2 se amplía a `GPageHeader.css` (`border-block-end` de la raíz con `zone-edge` solo dentro de la zona; obliga a restarlo del alto o a dibujarlo con un `inset`, porque el zócalo es de alto fijo).

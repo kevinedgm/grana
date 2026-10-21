@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GAppShell · banco de estilo (coco)</title>
+<!-- Banco de coco: marcado EXACTO de design/contracts/app-shell.md («Anatomía», «Clases y datos») con el CSS real de
+     GAppShell.css, GContainer.css y GPageHeader.css (cargados DENTRO de la capa grana.components, como los registrará bruno)
+     y GSidebar, GPageHeader, GAccordion, GBtn y GIcon reales de dist/. XAppShell hace lo que hará GAppShell.vue y SOLO lo que
+     el estilo necesita: clases, salto con preventDefault + focus({ preventScroll }), B (manejador pasivo, umbral space × 4,
+     focusin, «nunca sin franja») y la relectura de GPageHeader tras ceder (S6, simulada con un resize). No es la
+     implementación de bruno.
+     Requiere dist/. Desde la raíz del repo:  python3 -m http.server 4212  →  /design/lab/app-shell/estilo-banco.html
+     Parámetros: ?header=relay  ?mode=auto|expanded|rail|navbar|drawer  ?overlay=1  ?variant=floating  ?mobile=navbar|drawer
+       ?dir=rtl  ?theme=<generated/*.css>  ?dark=1  ?zone=header|side  ?ph=0 (sin GPageHeader)  ?phsticky=0  ?nohead=1
+       ?hh=72 (--g-app-shell-header en :root)  ?acc=1 (GAccordion sticky)  ?space=5 (--g-space-* × 1,25)  ?appRecipe=1
+     Verificación: GRANA_PW_PORT=4212 node design/lab/app-shell/estilo-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<style>
+@import url("../../../packages/vue/src/components/GPageHeader/GPageHeader.css") layer(grana.components);
+@import url("../../../packages/vue/src/components/GContainer/GContainer.css") layer(grana.components);
+@import url("../../../packages/vue/src/components/GAppShell/GAppShell.css") layer(grana.components);
+</style>
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style id="extra"></style>
+<style>
+  /* Andamio del banco (la «aplicación», no es de Grana) */
+  html, body { margin: 0; }
+  .lab-brand { display: flex; align-items: center; gap: var(--g-space-2); font-weight: 600; margin: 0; margin-inline-end: auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-inline-size: 0; }
+  .lab-mark { flex: none; inline-size: calc(var(--g-space-1) * 7); block-size: calc(var(--g-space-1) * 7); border-radius: var(--g-radius-md); background: var(--g-color-brand); }
+  .lab-tools { display: flex; align-items: center; gap: var(--g-space-2); flex: none; }
+  .lab-p { margin: 0; }
+  .lab-row { block-size: calc(var(--g-space-1) * 3); border-radius: var(--g-radius-pill); background: var(--g-color-border); }
+  .lab-band { background: var(--g-color-surface-sunken); padding-block: var(--g-space-4); }
+  .lab-stack { display: grid; gap: var(--g-space-4); padding-block: var(--g-space-6) var(--g-space-12); }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="../lucide-icons.js"></script>
+<script src="../../../node_modules/vue/dist/vue.global.prod.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../../packages/vue/dist/page-header.umd.js"></script>
+<script>
+;(function () {
+  const { createApp, h, ref, onMounted, onBeforeUnmount, defineComponent, nextTick } = Vue
+  const Q = new URLSearchParams(location.search)
+  if (Q.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  if (Q.get('dark') === '1') document.documentElement.setAttribute('data-theme', 'dark')
+  if (Q.get('theme')) document.getElementById('gen').href = `../tema-oscuro/dark-color-presence/generated/${Q.get('theme')}.css`
+  let extra = ''
+  if (Q.get('hh')) extra += `:root{--g-app-shell-header:${Number(Q.get('hh'))}px}`
+  if (Q.get('space')) {
+    const k = Number(Q.get('space')) / 4
+    extra += `:root{${[1, 2, 3, 4, 5, 6, 8, 12, 16].map((n) => `--g-space-${n}:${4 * n * k}px`).join(';')}}`
+  }
+  // Una aplicación que ya escribía la receta de «Cabecera fija» sin capa (migración, aviso 10): gana
+  if (Q.get('appRecipe') === '1') extra += ':root{--app-header:56px;--g-page-header-top:var(--app-header);scroll-padding-block-start:calc(var(--app-header) + max(var(--g-space-12), 44px))}'
+  document.getElementById('extra').textContent = extra
+
+  const NAMES = ['house', 'inbox', 'table', 'users', 'settings', 'calendar', 'folder', 'chart-column', 'search', 'bell', 'panel-left', 'menu', 'plus', 'download']
+  const icons = Grana.createIcons(NAMES.map((n) => `<svg class="lucide lucide-${n}" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${window.LUCIDE_ICONS[n]}</svg>`))
+
+  // ---------------- XAppShell: lo que hará GAppShell.vue, solo lo que el estilo necesita ----------------
+  const XAppShell = defineComponent({
+    name: 'XAppShell',
+    props: { header: { type: String, default: 'pinned' }, headerZone: { type: String, default: 'none' }, labels: Object, id: { type: String, default: 'as' } },
+    setup (props, { slots }) {
+      const root = ref(null)
+      const yielded = ref(false)
+      let unit = 4, last = 0, acc = 0, t = 0
+      const readUnit = () => { unit = parseFloat(getComputedStyle(root.value).getPropertyValue('--g-space-1')) || 4 }
+      // S6 simulado: GPageHeader relee su distancia al redimensionar (bruno lo hará con appShellKey y el sitio final)
+      const remeasure = () => { clearTimeout(t); t = setTimeout(() => window.dispatchEvent(new Event('resize')), 160) }
+      const setYield = (v) => { if (yielded.value !== v) { yielded.value = v; remeasure() } }
+      // ¿cabe lo pegado en el cuarto? (con la banda medida; cedida, la cifra ya es 0)
+      const budgetOk = (head) => {
+        const base = parseFloat(getComputedStyle(root.value).getPropertyValue('--_app-shell-base')) || 0
+        return innerHeight - 4 * (head.offsetHeight + base) >= 0
+      }
+      const onScroll = () => {
+        if (props.header !== 'relay') return
+        const y = window.scrollY
+        const dy = y - last
+        last = y
+        acc = (Math.sign(dy) === Math.sign(acc) || acc === 0) ? acc + dy : dy
+        const head = root.value.querySelector(':scope > .g-app-shell__header')
+        if (!head) return
+        if (head.contains(document.activeElement)) { acc = 0; return setYield(false) }
+        const stuck = root.value.querySelector(':scope > .g-app-shell__frame > .g-app-shell__main .g-page-header.is-stuck')
+        if (!stuck) { acc = 0; return setYield(false) }
+        if (!budgetOk(head)) return setYield(false)
+        if (acc >= unit * 4) { acc = 0; setYield(true) } else if (acc <= -unit * 4) { acc = 0; setYield(false) }
+      }
+      const onFocusIn = (e) => { if (e.target.closest && e.target.closest('.g-app-shell__header')) setYield(false) }
+      const onResize = () => readUnit()
+      onMounted(() => {
+        readUnit()
+        last = window.scrollY
+        window.addEventListener('scroll', onScroll, { passive: true })
+        window.addEventListener('resize', onResize)
+        root.value.addEventListener('focusin', onFocusIn)
+        window.__as = { get yielded () { return yielded.value }, ready: true }
+      })
+      onBeforeUnmount(() => { window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onResize) })
+      const skip = (e) => {
+        if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return
+        e.preventDefault()
+        const m = document.getElementById(`${props.id}-main`)
+        m.focus({ preventScroll: true })
+        m.scrollIntoView({ block: 'start' })
+      }
+      return () => h('div', {
+        ref: root,
+        class: ['g-app-shell', props.header === 'relay' && 'g-app-shell--header-relay', yielded.value && 'is-yielded', slots.header && 'has-header', slots.footer && 'has-footer']
+      }, [
+        h('a', { class: 'g-app-shell__skip', href: `#${props.id}-main`, onClick: skip }, props.labels.skip),
+        slots.header ? h('header', { class: 'g-app-shell__header', 'data-g-zone': props.headerZone === 'brand' ? 'brand' : undefined }, slots.header()) : null,
+        slots.nav ? slots.nav() : null,
+        h('div', { class: 'g-app-shell__frame' }, [
+          h('main', { id: `${props.id}-main`, class: 'g-app-shell__main', tabindex: '-1' }, slots.default ? slots.default() : null),
+          slots.footer ? h('footer', { class: 'g-app-shell__footer' }, slots.footer()) : null
+        ])
+      ])
+    }
+  })
+  // XContainer: el marcado de GContainer.vue (clases por prop) para la página
+  const XContainer = defineComponent({
+    name: 'XContainer',
+    props: { as: { type: String, default: 'div' }, width: { type: String, default: 'lg' }, horizontal: { type: String, default: 'center' }, gutter: { type: String, default: 'auto' }, prose: Boolean },
+    setup (props, { slots }) {
+      return () => h(props.as, { class: ['g-container', `g-container--width-${props.width}`, `g-container--horizontal-${props.horizontal}`, `g-container--gutter-${props.gutter}`, props.prose && 'g-container--prose'] }, [h('div', { class: 'g-container__body' }, slots.default ? slots.default() : null)])
+    }
+  })
+
+  const ITEMS = [
+    { label: 'Principal', items: [{ id: 'home', label: 'Inicio', href: '#', icon: 'house' }, { id: 'inbox', label: 'Bandeja', href: '#', icon: 'inbox', badge: 12, badgeLabel: '12 sin leer' }] },
+    { label: 'Laboratorio', items: [{ id: 'res', label: 'Resultados', href: '#', icon: 'table' }, { id: 'pol', label: 'Políticas', href: '#', icon: 'settings' }, { id: 'staff', label: 'Personal', href: '#', icon: 'users' }, { id: 'cal', label: 'Agenda', href: '#', icon: 'calendar' }] },
+    { label: 'Informes', items: [{ id: 'arch', label: 'Archivo', href: '#', icon: 'folder' }, { id: 'rep', label: 'Reportes', href: '#', icon: 'chart-column' }] }
+  ]
+  const SB_LABELS = { collapse: 'Contraer la barra lateral', expand: 'Expandir la barra lateral', more: 'Más', moreActive: 'contiene la página actual', drawer: 'Navegación', close: 'Cerrar', search: 'Buscar', searchHint: '⌘K' }
+  const LOREM = [
+    'Un resultado sale sin revisión cuando todos sus analitos están dentro del intervalo de referencia, el control de calidad del lote pasó en las últimas ocho horas y no hay una nota clínica que pida revisión.',
+    'Los valores críticos nunca salen solos: se llama al médico solicitante y la llamada queda registrada con hora, persona y medio. La política se revisa cada trimestre.',
+    'Si cualquiera de las tres condiciones falla, el resultado espera a un firmante con permiso sobre el área. La espera se ve en la bandeja de cada firmante y en el tablero del área.'
+  ]
+
+  const app = createApp({
+    setup () {
+      const mode = ref(Q.get('mode') || 'auto')
+      const active = ref('pol')
+      const open = ref(false)
+      const modeLog = ref('')
+      const acc = ref(['a1'])
+      return { mode, active, open, modeLog, acc, ITEMS, SB_LABELS, LOREM, Q, ph: Q.get('ph') !== '0', nohead: Q.get('nohead') === '1' }
+    },
+    template: `
+<x-app-shell :header="Q.get('header') || 'pinned'" :labels="{ skip: 'Saltar al contenido' }" :header-zone="Q.get('zone') === 'header' ? 'brand' : 'none'">
+  <template v-if="!nohead" #header>
+    <g-btn v-if="modeLog === 'drawer'" id="menu-btn" variant="ghost" color="neutral" aria-label="Abrir la navegación" @click="open = true"><g-icon name="menu"></g-icon></g-btn>
+    <p class="lab-brand"><span class="lab-mark" aria-hidden="true"></span><span>Laboratorio central</span></p>
+    <div class="lab-tools">
+      <g-btn id="hdr-search" variant="ghost" color="neutral" aria-label="Buscar"><g-icon name="search"></g-icon></g-btn>
+      <g-btn id="hdr-bell" variant="ghost" color="neutral" aria-label="Avisos"><g-icon name="bell"></g-icon></g-btn>
+    </div>
+  </template>
+  <template #nav>
+    <g-sidebar id="sb" v-model="active" v-model:open="open" :items="ITEMS" label="Principal" :labels="SB_LABELS" :mode="mode" :mobile="Q.get('mobile') || 'navbar'"
+      :overlay="Q.get('overlay') === '1'" :variant="Q.get('variant') === 'floating' ? 'floating' : 'fixed'" :data-g-zone="Q.get('zone') === 'side' ? 'brand' : undefined"
+      @mode-change="modeLog = $event.mode" @navigate="$event.event.preventDefault(); active = $event.item.id">
+      <template #logo="{ collapsed }"><span class="lab-mark" aria-hidden="true"></span><span v-if="!collapsed">Grana</span></template>
+      <template #toggle-icon><g-icon name="panel-left"></g-icon></template>
+      <template #more-icon><g-icon name="menu"></g-icon></template>
+    </g-sidebar>
+  </template>
+
+  <x-container id="ct">
+    <g-page-header v-if="ph" id="ph" title="Políticas de validación" eyebrow="Configuración" :sticky="Q.get('phsticky') !== '0'"
+      description="Reglas que deciden cuándo un resultado sale sin revisión manual y quién firma cuando no." :labels="{ actions: 'Acciones de la página' }">
+      <template #actions="{ narrow }">
+        <g-btn id="ph-pub" color="brand">Publicar cambios</g-btn>
+        <g-btn v-if="!narrow" id="ph-hist" variant="outline" color="neutral">Ver historial</g-btn>
+      </template>
+    </g-page-header>
+    <div class="lab-stack">
+      <p class="lab-p" id="anchor">{{ LOREM[0] }}</p>
+      <p class="lab-p" id="p2">{{ LOREM[1] }}</p>
+      <section class="g-bleed lab-band" id="band"><p class="lab-p" id="band-p">Banda g-bleed de GContainer dentro del chasis: llega al borde del marco, nunca bajo el sidebar.</p></section>
+      <g-accordion v-if="Q.get('acc') === '1'" id="acc" v-model="acc" sticky>
+        <g-accordion-item id="a1" value="a1" title="Hematología" peek="Intervalo por edad y sexo.">
+          <template #actions><g-btn id="acc-act" size="sm" variant="ghost" color="neutral">Editar</g-btn></template>
+          <p v-for="n in 12" :key="n" class="lab-p">{{ LOREM[n % 3] }}</p>
+          <g-btn id="acc-in" variant="outline" color="neutral">Botón dentro</g-btn>
+          <p v-for="n in 12" :key="'b'+n" class="lab-p">{{ LOREM[n % 3] }}</p>
+        </g-accordion-item>
+        <g-accordion-item id="a2" value="a2" title="Química" peek="Control de calidad del lote."><p class="lab-p">{{ LOREM[2] }}</p></g-accordion-item>
+      </g-accordion>
+      <p class="lab-p">{{ LOREM[2] }}</p>
+      <div v-for="n in 60" :key="n" class="lab-row" :style="{ inlineSize: (100 - (n % 7) * 8) + '%' }"></div>
+      <g-btn id="far-btn" variant="outline" color="neutral">Botón lejano</g-btn>
+      <div v-for="n in 20" :key="'b' + n" class="lab-row" :style="{ inlineSize: (100 - (n % 5) * 10) + '%' }"></div>
+    </div>
+  </x-container>
+
+  <template #footer>Laboratorio central · política vigente 2026-10</template>
+</x-app-shell>`
+  })
+  app.component('XAppShell', XAppShell)
+  app.component('XContainer', XContainer)
+  app.use(Grana.default || Grana)
+  app.use(icons)
+  if (window.GranaPageHeader) app.use(GranaPageHeader.default || GranaPageHeader)
+  app.mount('#app')
+})()
+</script>
+</body>
+</html>
