@@ -57,7 +57,7 @@ import { GSection } from '@grana/vue'
 </template>
 ```
 
-**Por qué:** una receta con `GStack` y un `hN` obliga a cada pantalla a contar niveles, que es justo donde se saltan (WCAG 1.3.1, técnica H42). Con `GSection` la primera es `h2`, una anidada `h3`, otra `h4` (tope). El tamaño baja con la profundidad: `title-sm` (20/28 con la escala por defecto) › `body` (16/24) › `body-sm` (14/20, el suelo: nunca menos de 14). Úsala para las partes de una página.
+**Por qué:** una receta con `GStack` y un `hN` obliga a cada pantalla a contar niveles, que es justo donde se saltan (WCAG 1.3.1, técnica H42). Con `GSection` la primera es `h2`, una anidada `h3`, otra `h4` (tope). El tamaño baja con la profundidad: `title-sm` (20/28 con la escala por defecto) → `body` (16/24) → `body-sm` (14/20, el suelo: nunca menos de 14). Úsala para las partes de una página.
 
 ### e2 · Fijar el nivel sin cambiar el tamaño (`headingLevel`)
 
