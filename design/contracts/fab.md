@@ -339,7 +339,7 @@ Solo con `pointer: coarse`: bajo la lista, un velo (`div.g-fab__scrim`, `popover
 
 ## Bordes compartidos (`edgeReserve`, #659)
 
-**Cuarto cliente de `utils/edgeReserve.js`** (#322, #631). Cambio interno en el principal (bruno): **`EDGE_ORDER = { speech: 10, pageHeader: 15, status: 20, fab: 25 }`** (**enmendado por #699:** la isla pasa a `status: 30`, detrás del FAB, porque ahora es transitoria y lo persistente conserva el borde, #225). **Vigente (#714, #750):** `EDGE_ORDER = { appShell: 5, speech: 10, pageHeader: 15, fab: 25, status: 30 }`; el FAB de abajo queda encima del navbar que publica `GAppShell`.
+**Cuarto cliente de `utils/edgeReserve.js`** (#322, #631). Cambio interno en el principal (bruno): **`EDGE_ORDER = { speech: 10, pageHeader: 15, status: 20, fab: 25 }`** (**enmendado por #699:** la isla pasa a `status: 30`, detrás del FAB, porque ahora es transitoria y lo persistente conserva el borde, #225). **Vigente (#714, #750, #740):** `EDGE_ORDER = { appShell: 5, speech: 10, pageHeader: 15, bookingDock: 20, fab: 25, status: 30 }` (el muelle de `GBookingBar` queda debajo del FAB, que lo lee y se apila encima); el FAB de abajo queda encima del navbar que publica `GAppShell`.
 
 | Pieza | Borde | Publica | Lee | Efecto |
 | --- | --- | --- | --- | --- |

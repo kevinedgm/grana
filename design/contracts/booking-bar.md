@@ -238,6 +238,7 @@ Marcadores con `fill`; cifras con `Intl.NumberFormat(locale)`, fechas con `Intl.
 | `decrement`, `increment` | Nombres de −/+ del contador de noches |
 | `errors.{dates\|night\|nights\|date\|time\|tour}` | Mensajes (`night` con `{date}`) |
 | `missing` | Anuncio al enviar incompleto (`{count}`, `{list}`; contado) |
+| `datePicker` | **Paso directo (#761):** objeto con los `labels` de `GDatePicker` (`datepicker.md` «Textos»: `prev`, `next`, `dialog`, `today`, `rangeSingle`…), que la barra pasa tal cual a **cada** `GDatePicker` interno (frase, campos y hoja). Grana no los traduce ni los completa; el aviso 7 de `GDatePicker` (clave requerida ausente) sale con su propio prefijo. La barra no avisa por ellos |
 
 ## Avisos de desarrollo (`[Grana GBookingBar]`, una vez por instancia y motivo; guarda de #653)
 

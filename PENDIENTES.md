@@ -103,6 +103,7 @@ Recuperación tras cerrar la aplicación, contrato y kit de pruebas del audio te
 | Inventario de carga: pulsos infinitos (el de `GTable` ya se retiró en la primera entrega, 8c67b3f) `g-card-pulse`, `g-widget-pulse` y `g-calendar-pulse` (#299 §5, WCAG 2.2.2; #539; `g-dialog-pulse` ya se retiró: la barra de `is-loading` de `GDialog` queda quieta, auditoría de los niveles del 2026-10-17); `widget.md` nombraba `duration-fast`/`press` para el pulso y `GWidget.css` usa `duration-spin` (se cierra al retirar el pulso) | coco |
 | Inventario de carga: tonos del marcador incoherentes (`surface-sunken` ≈ 1,08:1 en `GWidget`, `GCalendar`; `border-strong` con alfa en `GCard`, `GSummary`) y sin regla en `forced-colors` en `GWidget`, `GCalendar` (`GTable` ya usa `--g-color-mold` y `GrayText`): pasan a `--g-color-mold` y `GrayText` (#538, #540) | coco |
 | `--g-color-mold` en el CLI: ya se emite (a9f53cf: `defaults.js` y `usage.js`); **falta el diagnóstico** ≥ 1,3:1 y < 3:1 frente a `surface` (informativo, como #228; #538). No bloqueante: el valor de `defaults.css` se calcula con el `text` y el `surface` del tema y cumple en los 26 temas medidos (coco, 1,46 a 1,71:1) | bruno |
+| `@grana/cli` no emite `--g-hero-title-max` (`fontSize × typeScale⁶` en `rem`, `tokens.md` §51, #727, #761): sin él el valor derivado de `display` en `defaults.css` sigue a `fontSize` y `fontDisplay` pero no a `typeScale`. No bloquea | bruno |
 
 ## 7. Solo en entorno real (no automatizable)
 

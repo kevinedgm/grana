@@ -432,12 +432,12 @@ Coincidencia del atajo como `GToaster`: `event.key` y modificadores **exactos**;
 ## Borde compartido (#322, enmendado por #699)
 
 - **La isla publica su reserva solo mientras se ve** (#699): desde el empiece de `drop` hasta el **final** de `rise` (los avisos no se cruzan con la cápsula que sube), con el alto del **titular** (fila + margen), **nunca** el del asomo ni el de la lista. En `empty` no publica.
-- **`EDGE_ORDER.status` pasa de 20 a 30**, detrás de `fab` (25): `EDGE_ORDER = { speech: 10, pageHeader: 15, fab: 25, status: 30 }` (**vigente**, con el chasis delante, #714 y #750: `{ appShell: 5, speech: 10, pageHeader: 15, fab: 25, status: 30 }`). La isla es ahora **transitoria** y la regla de #225 manda: **lo persistente conserva el borde y lo transitorio se apila por dentro**. Un FAB arriba ya no baja cada vez que cae la isla; la isla queda debajo de la voz, del zócalo pegado y de un FAB de arriba.
+- **`EDGE_ORDER.status` pasa de 20 a 30**, detrás de `fab` (25): `EDGE_ORDER = { speech: 10, pageHeader: 15, fab: 25, status: 30 }` (**vigente**, con el chasis delante y el muelle de reservas, #714, #740 y #750: `{ appShell: 5, speech: 10, pageHeader: 15, bookingDock: 20, fab: 25, status: 30 }`). La isla es ahora **transitoria** y la regla de #225 manda: **lo persistente conserva el borde y lo transitorio se apila por dentro**. Un FAB arriba ya no baja cada vez que cae la isla; la isla queda debajo de la voz, del zócalo pegado y de un FAB de arriba.
 - La isla lee `edgeReserve('top', { before: EDGE_ORDER.status })` y lo suma a `--_status-offset-top` = `calc(<offset.top> + <reserva>px)`. `GToaster` no cambia su llamada (suma todo): con los avisos arriba, quedan bajo la isla mientras se ve y se recolocan con su propia transición cuando se va.
 - **Por borde, sin mirar la alineación** (como hasta ahora): un FAB en `top-end` también baja la isla centrada. Se acepta (raro, y sin solape).
 - Si la voz, el zócalo o el FAB aparecen o cambian, la isla se recoloca con `--g-duration-press` (sin muelle).
 - `utils/edgeReserve.js` no cambia de firma; solo la constante (bruno: `fab.md` y `page-header.md` anotan el cambio).
-- **`GAppShell` delante de todos (#714):** `EDGE_ORDER = { appShell: 5, speech: 10, pageHeader: 15, fab: 25, status: 30 }`. El chasis publica arriba su banda de cabecera pegada (el sitio final; 0 despegada o cedida), así que **con chasis la aplicación no pasa `offset.top`** a la isla (`app-shell.md` «Bordes compartidos»).
+- **`GAppShell` delante de todos (#714):** `EDGE_ORDER = { appShell: 5, speech: 10, pageHeader: 15, bookingDock: 20, fab: 25, status: 30 }`. El chasis publica arriba su banda de cabecera pegada (el sitio final; 0 despegada o cedida), así que **con chasis la aplicación no pasa `offset.top`** a la isla (`app-shell.md` «Bordes compartidos»).
 
 ## Convivencia
 

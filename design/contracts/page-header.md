@@ -236,7 +236,7 @@ Expuesto con `defineExpose`; consta en el `meta.json` (`methods`).
 
 ## Bordes compartidos (`edgeReserve`, #631)
 
-**Un cliente más de `utils/edgeReserve.js`** (#322). Cambio interno en el principal (bruno): `EDGE_ORDER = { speech: 10, pageHeader: 15, status: 20 }` (vigente: `{ appShell: 5, speech: 10, pageHeader: 15, fab: 25, status: 30 }`, #699 y #714; el muelle, que lee `before: pageHeader`, queda también encima del navbar que publica `GAppShell`). **Corrige L9 de kiwi** (que ponía el encabezado antes que la voz): con el orden de kiwi, la voz —que no lee reservas y no se reabre (#322, decisión del usuario 3)— quedaría encima del muelle tapando sus acciones.
+**Un cliente más de `utils/edgeReserve.js`** (#322). Cambio interno en el principal (bruno): `EDGE_ORDER = { speech: 10, pageHeader: 15, status: 20 }` (vigente: `{ appShell: 5, speech: 10, pageHeader: 15, bookingDock: 20, fab: 25, status: 30 }`, #699, #714 y #740; el muelle de `GBookingBar` nunca convive con este: un sitio con `GHero` no lleva `GPageHeader`; el muelle, que lee `before: pageHeader`, queda también encima del navbar que publica `GAppShell`). **Corrige L9 de kiwi** (que ponía el encabezado antes que la voz): con el orden de kiwi, la voz —que no lee reservas y no se reabre (#322, decisión del usuario 3)— quedaría encima del muelle tapando sus acciones.
 
 | Pieza | Borde | Publica | Lee | Efecto |
 | --- | --- | --- | --- | --- |

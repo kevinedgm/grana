@@ -238,7 +238,7 @@ con la misma expresión en `<html>` para el `scroll-padding`. Constantes: **`4`*
 
 ## Bordes compartidos (`edgeReserve`; #714)
 
-**Primer cliente del registro por orden:** `EDGE_ORDER = { appShell: 5, speech: 10, pageHeader: 15, fab: 25, status: 30 }` (cambio interno en el principal, bruno; enmienda #631 y #699).
+**Primer cliente del registro por orden:** `EDGE_ORDER = { appShell: 5, speech: 10, pageHeader: 15, bookingDock: 20, fab: 25, status: 30 }` (`bookingDock`, #740, lee al chasis y queda encima de su navbar; cambio interno en el principal, bruno; enmienda #631 y #699).
 
 | Pieza | Borde | Publica | Lee |
 | --- | --- | --- | --- |
