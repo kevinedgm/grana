@@ -8,6 +8,8 @@ Encabezado de página pegado con zócalo y muelle: dónde estoy (ruta), qué es 
 
 > **Primer hijo de `main`, sin `role` ni `aria-label`.** Un `header` dentro de `main` no es `banner` (HTML-AAM). El encabezado va directamente en el contenedor que se desplaza; un envoltorio alrededor suyo limita el pegado a ese envoltorio (aviso 5).
 
+> **Con `GContainer`, hijo directo de la columna.** Así su texto queda a ras de la columna y su zócalo pegado ocupa la caja del contenedor, de borde a borde. Dentro de un envoltorio (`GStack`, por ejemplo) conserva su relleno propio y queda por dentro de la columna.
+
 ## En esta página
 
 [§ Uso](#uso) · [§ Ejemplos](#ejemplos) · [§ API](#props) · [§ Teclado y foco](#teclado-y-foco) · [§ Accesibilidad](#accesibilidad) · [§ Personalidad](#personalidad) · [§ Tema](#tema) · [§ Alcance](#alcance) · [§ Verificación](#verificación)
@@ -316,6 +318,8 @@ Propiedades que lee del tema. El color lo pone tu hoja de variables `--g-*`; el 
 ## Alcance
 
 - **En el tema oscuro por defecto, la banda de zona de marca en reposo no se separa de la página** (1,12:1 sin pegar; 1,86:1 y sombra al pegarse): límite aceptado por lima (DECISIONS #652), coherente con `tokens.md` §44.2; la propuesta para el usuario es un filo `inset` en `GPageHeader.css`. Medido en `design/lab/page-header/auditoria.md`.
+
+- **Con `GContainer`, de primer hijo de la columna** (#760): sangra hasta los bordes de la caja y deja su texto a ras de la columna (0 px medido en Chromium, Firefox y WebKit, con y sin chasis); su zócalo pegado ocupa la caja. Dentro de un `GStack` u otro envoltorio conserva su relleno propio (`space × 6`, `space × 4` en estrecho) y queda por dentro.
 
 - **Muelle dentro de `<dialog>`**: el encabezado detecta si está dentro de un diálogo y no pinta el muelle (la zona del pulgar del diálogo es de `GDialog`).
 

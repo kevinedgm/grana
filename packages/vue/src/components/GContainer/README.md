@@ -35,7 +35,7 @@ import { GContainer } from '@grana/vue'
 </GAppShell>
 ```
 
-Son las dos recetas: **con chasis, `as="div"` (el valor por defecto); sin chasis, `as="main"`**. `GContainer as="main"` dentro del chasis duplica el `main` (aviso 3 de los dos componentes). `tabindex="-1"` lo pone tu aplicación (destino de su salto), no el componente. `GPageHeader` es hijo directo de la columna: esa columna es su contenedor largo y el pegado dura toda la página.
+Son las dos recetas: **con chasis, `as="div"` (el valor por defecto); sin chasis, `as="main"`**. `GContainer as="main"` dentro del chasis duplica el `main` (aviso 3 de los dos componentes). `tabindex="-1"` lo pone tu aplicación (destino de su salto), no el componente. `GPageHeader` es hijo directo de la columna: esa columna es su contenedor largo y el pegado dura toda la página, y su texto queda a ras de la columna (sin ponerle `g-bleed`).
 
 ## Ejemplos
 
@@ -169,7 +169,7 @@ El contenedor **no pinta** y no lee ningún token de color. Lee solo la escala d
 
 - **C · Medida a la mano** (`adjustable`, `v-model:measure`; el usuario ajusta la medida de lectura): reservada (#721). `horizontal="end"` tampoco existe.
 - **No existen** `size`, `fluid`, `centered`, `padding` de bloque, `gap` ni `zone` (#722): el ritmo es de `GStack`, la superficie de `GSurface`, la zona de marca va en la raíz con `data-g-zone` o en una banda.
-- **`GPageHeader` dentro de la columna (L4, abierto, #751):** su relleno lateral propio (`space × 6`) se suma al margen, así que el `h1` y las acciones quedan **24 px por dentro** del texto de la página (medido en los tres motores, con y sin chasis). Decisión pendiente (coco propone en `GPageHeader.css`, lima la registra). Con `g-bleed` en un `GPageHeader`, el relleno del sangrado y el suyo se pelean.
+- **`GPageHeader` dentro de la columna (L4, #760):** de primer hijo de la columna sangra hasta los bordes de la caja (como `g-bleed`, sin ponerle la clase) y deja su texto a ras de la columna; su zócalo pegado ocupa la caja. Dentro de un `GStack` u otro envoltorio conserva su relleno propio (`space × 6`, `space × 4` en estrecho) y queda por dentro; para alinearlo, que sea hijo directo.
 - **`GTable` con `g-bleed` (L10):** en reposo, la leyenda y las celdas se alinean con la columna; lo que no llega al borde de la caja es el desplazable interno de la tabla cuando es más ancha que la columna.
 - **Una banda solo sangra bien si su caja ocupa la columna** (aviso 5): dentro de una superficie con relleno o de una caja más estrecha sangraría al sitio equivocado. Se mide una sola vez, al montar.
 - **El contenedor no recorta** (`overflow` visible): lo ancho de verdad necesita su propio desplazable.
@@ -182,7 +182,7 @@ El contenedor **no pinta** y no lee ningún token de color. Lee solo la escala d
 - **Pruebas de bruno:** `GContainer.test.js` (11 pruebas, nivel `prueba`) y `container.spec.mjs` en los tres motores (el lote `app-shell`, `app-shell-perf`, `container` y `stack-section` da 196 pasan y 2 omitidos por diseño).
 - **WebKit:** el desplazable `g-bleed` termina alineado con el final de la columna ±2 px (desplazamiento a píxel entero; límite del motor).
 - **No verificado:** lector de pantalla real, zoom real del navegador, `forced-colors` en Firefox y WebKit (en Chromium, nada que perder: no pinta).
-- **Pendientes abiertos:** L4 (el `h1` de `GPageHeader` dentro de la columna) y la adopción del sangrado en `GTable` (L10); los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md) §6.
+- **Pendientes abiertos:** la adopción del sangrado en `GTable` (L10); los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md) §6.
 
 ## Fuentes
 
