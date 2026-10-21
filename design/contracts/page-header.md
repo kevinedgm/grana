@@ -285,7 +285,7 @@ Expuesto con `defineExpose`; consta en el `meta.json` (`methods`).
 
 **Ningún token del tema nuevo.** Existentes: `--g-color-bg` (fondo opaco de la raíz, también pegada; alias local `--_bg` con mapa de anfitrionas de coco si va sobre otra superficie, como `--_sticky-bg` de `GAccordion`), `--g-color-surface` (muelle), `--g-color-text`, `--g-color-text-muted` (descripción, antetítulo), `--g-color-border` (borde del zócalo pegado), `--g-color-border-strong` (borde del muelle), `--g-color-focus`, `--g-focus-width`, `--g-focus-offset`, `--g-border-width`, `--g-shadow-2` (pegado), `--g-shadow-3` (muelle, si coco la elige), `--g-text-title-lg-*` (`h1`; nivel 2 y 3 de coco), `--g-text-title-sm-*` (título compacto), `--g-text-body-*` (descripción), `--g-text-body-sm-*` y `--g-text-caption-*` (antetítulo, enlace del muelle), `--g-text-action-weight`, `--g-font-title`, `--g-font-ui`, `--g-space-*`, `--g-duration-fast`, `--g-duration-press`, `--g-duration-slow`, `--g-ease-out`. Los de la zona son del contrato de la zona (§44); todos los que lee el encabezado están en su lista (§44.5).
 
-**Propiedad pública de entrada:** `--g-page-header-top` (§«Geometría pública»).
+**Propiedad pública de entrada:** `--g-page-header-top` (§«Geometría pública»). **Publicadas de otro componente que lee:** `--g-container-inset-start` y `--g-container-inset-end` de `GContainer`, solo de primer hijo de su columna (§«Clases y datos», #760).
 
 **No son tokens:** el umbral de estrecho `space × 150`; el alto del zócalo `max(space × 12, 44px)` (constante de contrato); la regla del cuarto (25 %); la tolerancia de medio píxel de `is-stuck`; el umbral 0,5 de `--_p` con movimiento reducido; `translate` del título compacto `space × 4`; `24px`/`44px` (§7). **Datos del `.vue` al CSS** (§29.5): `--_lift`, `--_p`, `--_dock-left`, `--_dock-right`, `--_dock-offset`.
 
@@ -307,6 +307,8 @@ Expuesto con `defineExpose`; consta en el `meta.json` (`methods`).
 | `g-page-header__dock`, `__dock-title`, `__dock-host` | Muelle | Con `has-actions` y sin `<dialog>` ancestro; `hidden` + `inert` cerrado |
 | `is-open` | `__dock` | Muelle abierto |
 | `--_dock-left`, `--_dock-right`, `--_dock-offset` | `__dock`, en línea | Abierto |
+
+**Dentro de `GContainer` (L4 del contenedor, #751, #760):** como **hijo directo de `.g-container__body`**, la raíz sangra hasta la caja del contenedor como un `g-bleed`: margen negativo `--g-container-inset-start/-end` y relleno por lado con esos mismos valores (alias locales `--_pad-s`/`--_pad-e`, por defecto `--_pad`). El zócalo sangra con `--_pad-s`/`--_pad-e` y pasa a `GTabs` **`--g-tabs-inset: min(--_pad, --_pad-s)`** (`--_tabs-in`), porque `--g-tabs-inset` es simétrico en `GTabs` y el sangrado entero daría al final de las pestañas el margen de la columna (~200 px en una columna centrada); el resto va en el relleno del zócalo. El muelle lleva relleno lateral `max(space × 4, --_pad-s/-e)`. Resultado medido: `h1`, pestañas, acciones, título compacto y muelle a ras de la columna (0 px en los tres motores, `design/lab/container/l4-verificar.mjs`) y fondo, línea y sombra del zócalo pegado hasta los bordes de la caja. **Fuera de un contenedor, o dentro de un envoltorio, nada cambia** (todo resuelve a `--_pad`). Los márgenes publicados son de `container.md` «B · Sangrado alineado». `is-narrow` sigue midiendo `root.clientWidth`, que sangrada es la caja y no la columna (`PENDIENTES.md`, bruno).
 
 **Selectores sobre hijos de la aplicación** (`__actions > *`, `__meta > *`, `__content > *`): con la exclusión de `.g-tooltip` de #383 (`:not(:where(.g-tooltip))`). El encabezado **no** estiliza las piezas internas de `GBtn`, `GTabs` ni `GBreadcrumbs` (la principal de solo icono es `icon` + `tooltip` de `GBtn`, que pone la aplicación con el ámbito).
 
@@ -388,6 +390,7 @@ Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production
 
 - **Acciones abajo en escritorio:** viven en el zócalo, no arriba a la derecha (lo eligió el usuario; A queda reservado si el producto lo pide).
 - **Hijo directo del contenedor largo:** un envoltorio limita el pegado (aviso 5); la zona de marca va en la raíz.
+- **Con `GContainer`, de primer hijo de la columna:** sangra hasta los bordes de la caja y deja su texto a ras de la columna; su zócalo pegado ocupa la caja. Dentro de un `GStack` u otro envoltorio conserva su relleno propio y queda por dentro (#760).
 - **Ancestros que atrapan lo fijo** (`transform`, `filter`, `contain`…; no `container-type`, #724): el muelle queda mal colocado (aviso 8).
 - **Contenido del zócalo de alto fijo:** `GTabs` en una fila y `GBtn` hasta `lg` (aviso 6).
 - **La pill de la voz arriba** puede quedar sobre el zócalo mientras se graba (cambia de borde si tapa el foco).

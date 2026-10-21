@@ -63,7 +63,7 @@ Un contenedor que **mide su sitio y no el visor**, con un margen que **respira d
 </GContainer>
 ```
 
-(`GPageHeader` es hijo directo de la columna, que es su contenedor largo. Con `g-bleed` en `GPageHeader` hay que tener en cuenta el límite L4: §«Límites».)
+(`GPageHeader` es hijo directo de la columna, que es su contenedor largo. De primer nivel **sangra solo, como un `g-bleed`** (#760): no se le pone la clase; §«B · Sangrado alineado».)
 
 ## Anatomía
 
@@ -129,6 +129,7 @@ Dos cajas y no una: la raíz mide el sitio que le dan (lo que deja la barra late
 - **El borde es el de la caja del contenedor, no el del visor:** nunca se mete bajo la barra lateral y no crea desplazamiento horizontal (el `100vw` habitual incluye la barra de desplazamiento y la lateral). Dentro de `GAppShell`, la caja es el marco, que además recorta con `overflow-x: clip`.
 - **Relleno propio de la banda:** `g-bleed` pone `padding-inline` en la capa de Grana; si la aplicación da relleno propio a la banda (sin capa), el suyo gana y debe sumar el publicado. Receta: `padding-inline: calc(var(--g-container-inset-start) + <su relleno>) calc(var(--g-container-inset-end) + <su relleno>)`.
 - **Zona de marca de borde a borde:** `data-g-zone="brand"` en el elemento con `g-bleed` (el fondo de la zona llega al borde; el contenido, alineado).
+- **`GPageHeader` de primer nivel consume los márgenes publicados como un `g-bleed`** (L4, #751, #760): como hijo directo de `.g-container__body`, su raíz lleva margen negativo `--g-container-inset-start/-end` y el mismo valor como relleno de cada lado; el `h1`, las pestañas, las acciones, el título compacto y el muelle quedan a ras de la columna, y el fondo, la línea del suelo y la sombra del zócalo pegado llegan a los bordes de la caja. Es de `GPageHeader.css` (selector `.g-container__body > .g-page-header`); la aplicación no pone `g-bleed` en el encabezado. Con margen 0 (contenedor anidado, `GSurface`, `.g-dialog__body`) no sangra. Solo de primer nivel (§«Límites conocidos»).
 - Medido por kiwi: encabezado de marca de borde a borde de la caja con el `h1` alineado; banda de auditoría; media y línea; tabla desplazable alineada en reposo y al final; margen publicado en un descendiente profundo igual al real; zócalo pegado en 56 a media página; un fijo dentro sigue pegado al visor; RTL; ningún desplazamiento horizontal.
 
 ## A · Medida, como opción (#722)
@@ -204,7 +205,7 @@ En el **principal** (`@grana/vue`), registrado en `src/index.js` y `components.c
 | L1 | Nombre | `GContainer` / `g-container`; el README distingue «el contenedor (componente)» de «contenedor de consultas» (mora-docs) |
 | L2 | API | `width`, `horizontal`, `gutter`, `as`, `prose` y `--g-container-max`; defecto `lg` (#722) |
 | L3 | Tokens | Ninguno del tema; constantes y literales (#717) |
-| L4 | `GPageHeader` | (a) su relleno lateral propio se suma al margen: **medido por coco 24 px (`space × 6`) de `h1` y de acciones, en los tres motores, con y sin chasis; sigue pendiente** (#751; dueño coco con una propuesta medida en `GPageHeader.css`, lima la registra; `PENDIENTES.md`); (b) el texto de su aviso 8: corregido (#724) |
+| L4 | `GPageHeader` | (a) **cerrado** (#751, #760; coco 13a4da3): de primer nivel en la columna, `GPageHeader` sangra como `g-bleed` (margen negativo con `--g-container-inset-*` y el mismo relleno); el `h1`, las pestañas, las acciones, el título compacto y el muelle quedan a ras de la columna y el fondo, la línea y la sombra del zócalo pegado llegan a los bordes de la caja; medido 0 px en los tres motores, con y sin chasis, LTR y RTL, `horizontal="start"`, con pestañas y en estrecho (`design/lab/container/l4-verificar.mjs`, 192/192 por motor); (b) el texto de su aviso 8: corregido (#724) |
 | L5 | Anfitrionas | `.g-container__body`, `.g-surface`, `.g-dialog__body` (#722) |
 | L6 | Contención | `api.md` «Contención en línea» (#722) |
 | L7 | Sangrado fuera de sitio | Aviso 5 y receta del relleno propio |
@@ -217,11 +218,11 @@ En el **principal** (`@grana/vue`), registrado en `src/index.js` y `components.c
 
 ## Fuera de v1 (reservado con nombre)
 
-**C · Medida a la mano** (`adjustable`, `v-model:measure`, `labels`; asa con `role="separator"` de APG *Window Splitter* después del contenido, de 45 a 90 caracteres, guías sin reflujo hasta soltar; tiene sentido como **preferencia de lectura de toda la aplicación** que se pase a todos los contenedores; necesitaría JS y estado, y entrada propia). `horizontal="end"`. Adopción del sangrado en `GTable` (L10) y decisión sobre el relleno lateral de `GPageHeader` dentro de la columna (L4a).
+**C · Medida a la mano** (`adjustable`, `v-model:measure`, `labels`; asa con `role="separator"` de APG *Window Splitter* después del contenido, de 45 a 90 caracteres, guías sin reflujo hasta soltar; tiene sentido como **preferencia de lectura de toda la aplicación** que se pase a todos los contenedores; necesitaría JS y estado, y entrada propia). `horizontal="end"`. Adopción del sangrado en `GTable` (L10). (La decisión sobre el relleno lateral de `GPageHeader` dentro de la columna, L4a, está cerrada: #760.)
 
 ## Límites conocidos (para el README)
 
-- **`GPageHeader` dentro de la columna** (L4a): su relleno lateral propio (`space × 6`) se suma al margen; con `g-bleed` el relleno del sangrado y el suyo se pelean. Hasta decidirlo, el `h1` y las acciones quedan 24 px más adentro que el texto de la página (medido por coco en los tres motores, con y sin chasis; #751).
+- **`GPageHeader` solo sangra de primer nivel** (hijo directo de la columna; #760). Dentro de un `GStack` u otro envoltorio conserva su relleno propio (`space × 6`, `space × 4` en estrecho) y queda por dentro de la columna; para alinearlo, que sea hijo directo. Sin verificar: de primer hijo de un contenedor anidado o dentro de `GSurface`/`.g-dialog__body` (margen 0: por cálculo no sangra).
 - **`GTable` con `g-bleed`:** en reposo, la leyenda y las celdas se alinean con la columna; cuando la tabla es más ancha que la columna, su desplazable interno no llega al borde de la caja (L10, #751).
 - **`prose`** selecciona elementos por etiqueta (`g-wide` para excluir); atraviesa `GStack`, `GSection` (su cuerpo, no su título ni su descripción) y las bandas `g-bleed`/`g-bleed-raw`, y no entra en otros componentes de Grana (#751).
 - **Una banda solo sangra bien** si su caja ocupa la columna (aviso 5).
