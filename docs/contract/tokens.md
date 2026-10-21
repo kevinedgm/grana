@@ -636,7 +636,7 @@ Duración y curva de la marca y de la entrada del contenido: los existentes (`--
 | Componente | Título | Subtítulo / descripción | Eyebrow | Notas |
 | --- | --- | --- | --- | --- |
 | `GDialog` | `__title` (`h2`): **title-sm 20/28, 600**, `text` (heredado) | `__description`: body-sm 14/20, 400, `muted` | — | El título más alto de la librería en un componente |
-| `GSection` (#720) | `__title` (`h{2\|3\|4}`, nivel automático por anidación): por **profundidad**, no por nivel: 1.ª **title-sm 20/28, 600** (`--g-font-title`), anidada **body 16/24, 600**, tercera y más **body-sm 14/20, 600**; `text` | `__desc`: body-sm 14/20, 400, `muted`, medida `66ch` | — | Entre el `h1` de `GPageHeader` y las tarjetas; el nivel fijado con `headingLevel` no cambia el tamaño (#196); suelo de §23.5(b) |
+| `GSection` (#720) | `__title` (`h{2\|3\|4}`, nivel automático por anidación): por **profundidad**, no por nivel: 1.ª **title-sm 20/28, 600** (`--g-font-title`), anidada **body 16/24, 600**, tercera y más **body-sm 14/20, 600**; las anidadas, **`--g-font-ui`** (#753: como `GCard` y `GFormSection`); `text` | `__desc`: body-sm 14/20, 400, `muted`, medida `66ch` | — | Entre el `h1` de `GPageHeader` y las tarjetas; el nivel fijado con `headingLevel` no cambia el tamaño (#196); suelo de §23.5(b) |
 | `GFormSection` | `__title` (`h{headingLevel}`, por defecto `h3`): **body 16/24, 600**, tracking title-sm, `text` | `__description`: body-sm 14/20, 400, `muted` | — | Sin icono ni línea: se reconoce por el aire y el título |
 | `GCard` | `__title` (`h3` por defecto): **body 16/24, 600**, tracking title-sm, `text` | `__subtitle` y `__description`: body-sm 14/20 (heredado de la raíz), 400, `muted` | `__eyebrow`: caption 12/16, **500**, `muted` | `lead` (icono o imagen, decorativo) es el hueco opcional antes del texto |
 | `GErrorSummary` | `__title`: body 16/24, 600, tracking title-sm, `text` | lista: body-sm 14/20 | — | Mismo rol que `GFormSection`: vive al lado de las secciones |
@@ -1243,12 +1243,12 @@ Son la referencia de las pruebas de bruno, no valores de `defaults.css` escritos
 
 ## 49. Pila y sección (`GStack`, `GSection`; sin tokens nuevos)
 
-**`GStack` y `GSection` no añaden tokens** (`design/contracts/stack.md` y `section.md`, DECISIONS.md #719, #720; L13 y L14 de `design/lab/app-shell/r01/`). La pila consume `--g-space-1`, `--g-color-border` y `--g-border-width` (con `divided`); la sección, los roles tipográficos de §23.1 (`--g-text-title-sm-*`, `--g-text-body-*`, `--g-text-body-sm-*`, `--g-font-title`), `--g-color-text`, `--g-color-text-muted` y `--g-space-*`.
+**`GStack` y `GSection` no añaden tokens** (`design/contracts/stack.md` y `section.md`, DECISIONS.md #719, #720; L13 y L14 de `design/lab/app-shell/r01/`). La pila consume `--g-space-1`, `--g-color-border` y `--g-border-width` (con `divided`); la sección, los roles tipográficos de §23.1 (`--g-text-title-sm-*`, `--g-text-body-*`, `--g-text-body-sm-*`, `--g-font-title` en la profundidad 1 y `--g-font-ui` en las anidadas, #753), `--g-color-text`, `--g-color-text-muted` y `--g-space-*`.
 
 **No son tokens:**
 
 - **Constantes de `GStack` (#717):** base de página **`space × 6`**, con `gap` `none` · `sm` · `md` · `lg` = factor 0 · 0,5 · 1 · 2 → **`space × 0 · 3 · 6 · 12`** (0 · 12 · 24 · 48 px con `space` 4), × densidad 1 · 0,875 · 0,75. Es **otra base** que `--g-form-gap` (de `GFormLayout` y `GAdaptiveLayout`, §21 y §33): la pila no es un formulario. ¿Token del tema? **No**: el ritmo de página sigue a `space`, como las alturas de §4; un token permitiría que un tema desacompasara la pila del resto.
-- **Constantes de `GSection`:** tope de profundidad tipográfica 3 y de nivel 4; separaciones de la cabecera de coco en múltiplos de `space`; `66ch` de la descripción (literal de unidad, §7).
+- **Constantes de `GSection`:** tope de profundidad tipográfica 3 y de nivel 4; separaciones de la cabecera de coco en múltiplos de `space`; **base flexible `space × 60` del bloque de títulos** (el punto en que las acciones bajan bajo el título, sin punto de corte de pantalla; constante de coco, #753); `66ch` de la descripción (literal de unidad, §7).
 
 ## 50. Contenedor de página (`GContainer`; sin tokens del tema nuevos)
 

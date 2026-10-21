@@ -145,7 +145,7 @@ Sin motor de prioridad de acciones en v1 (L5): qué pasa a «Más acciones» lo 
 
 ## Eventos
 
-**Ninguno.** (Con `GAppShell`, el encabezado inyecta el canal interno `appShellKey` —`top` y `notify()`— para releer su distancia cuando el chasis la cambia, S6 y #710; no es API pública.) El encabezado no emite intención propia: la ruta emite por `GBreadcrumbs` (`navigate`, #505), las pestañas por `GTabs`, las acciones por `GBtn`/`GMenu`. El estado pegado no es un evento (reservado si aparece un caso).
+**Ninguno.** (Con `GAppShell`, el encabezado inyecta el canal interno `appShellKey` —`top` y `notify()`— para releer su distancia cuando el chasis la cambia, S6 y #710; no es API pública. Mide con `max(top del canal, valor actual de --g-page-header-top)`, #747: «Pegado».) El encabezado no emite intención propia: la ruta emite por `GBreadcrumbs` (`navigate`, #505), las pestañas por `GTabs`, las acciones por `GBtn`/`GMenu`. El estado pegado no es un evento (reservado si aparece un caso).
 
 ## Métodos
 
@@ -175,7 +175,7 @@ Expuesto con `defineExpose`; consta en el `meta.json` (`methods`).
 
 **Cuándo se pega.** Solo si se cumplen todas: `sticky` es `true`; hay zócalo; el JS ha medido (`--_lift`); la regla del cuarto se cumple. Entonces la raíz lleva **`is-sticky`** y el CSS la hace `position: sticky` con `inset-block-start: calc(var(--g-page-header-top) − var(--_lift))`, donde **`--_lift`** (px, en línea) es la distancia del borde de arriba de la raíz al del zócalo. Sin `is-sticky`, la raíz es estática.
 
-**Pegado ahora.** **`is-stuck`** cuando la raíz llegó a su posición pegada (su borde de arriba ≤ `--g-page-header-top − --_lift`, con medio píxel de tolerancia). Con `is-stuck`, el zócalo gana su borde y `--g-shadow-2` (coco).
+**Pegado ahora.** **`is-stuck`** cuando la raíz llegó a su posición pegada (su borde de arriba ≤ `--g-page-header-top − --_lift`, con medio píxel de tolerancia). Con `is-stuck`, el zócalo gana su borde y `--g-shadow-2` (coco). **Con `GAppShell` (S6, #747):** la distancia con que se mide es `max(top del canal appShellKey, valor actual de --g-page-header-top)`, no solo el `top` final: al volver de B la variable aún se está animando y el zócalo sigue arriba; con el final solo, Chromium daba un `is-stuck` falso a mitad de la transición y el chasis entraba en un bucle de ceder y volver. Sin chasis, solo la variable.
 
 **Reglas comunes:**
 
@@ -197,7 +197,7 @@ Expuesto con `defineExpose`; consta en el `meta.json` (`methods`).
 
 **Alto del zócalo: `max(var(--g-space-12), 44px)`, fijo y de contrato** (L7). Es `block-size` (no un mínimo) con el borde incluido, en reposo y pegado, con cualquier puntero. Es la constante que permite escribir la receta sin JS y la que garantiza Δ0 al mudar las acciones. Cambiarla es una decisión de lima (rompe recetas de aplicaciones). Lo que va dentro tiene que caber: `GTabs` horizontal en una fila (`density` `default` o `compact`; el desbordamiento de pestañas es el de `GTabs`, `overflow`), `GBtn` hasta `size="lg"` (44 px); si el contenido mide más que el zócalo, aviso 6. coco centra el contenido en el bloque y alinea la cabecera de `GTabs` con `--g-tabs-inset` en `__base` (anfitriona, como `GDialog`).
 
-**Receta de una sola variable (#515: la cabecera de la aplicación se cuenta una vez y es de la aplicación).** El encabezado **no pone `scroll-margin` positivo** en nada: la aplicación suma el zócalo en su `scroll-padding-block-start` (para que un `#id` o el foco no queden bajo el zócalo, WCAG 2.4.11). **Enmienda (#715, S1 y S5 de `design/lab/app-shell/r01/`):** lo enfocable **del propio zócalo pegado** sí lleva un `scroll-margin-block-start` **negativo** igual a la banda (`calc(-1 * (var(--g-page-header-top) + max(var(--g-space-12), 44px)))`, con `is-stuck`), porque Chromium y WebKit desplazaban la página al enfocar una acción del zócalo (1200 → 778 y → 1158, medido por kiwi); regla común de `api.md` «Piezas pegadas». Encargo a coco en `GPageHeader.css`. **Con `GAppShell`** la aplicación no escribe esta receta: la escribe el chasis (`app-shell.md`, #713):
+**Receta de una sola variable (#515: la cabecera de la aplicación se cuenta una vez y es de la aplicación).** El encabezado **no pone `scroll-margin` positivo** en nada: la aplicación suma el zócalo en su `scroll-padding-block-start` (para que un `#id` o el foco no queden bajo el zócalo, WCAG 2.4.11). **Enmienda (#715, S1 y S5 de `design/lab/app-shell/r01/`):** lo enfocable **del propio zócalo pegado** sí lleva un `scroll-margin-block-start` **negativo** igual a la banda (`calc(-1 * (var(--g-page-header-top) + max(var(--g-space-12), 44px)))`, con **`is-sticky`**: enmienda #749, porque mientras el encabezado se hunde y aún no está `is-stuck` el zócalo ya cae en la banda del `scroll-padding`; medido por coco Δ0 antes y después de pegarse, con y sin chasis), porque Chromium y WebKit desplazaban la página al enfocar una acción del zócalo (1200 → 778 y → 1158, medido por kiwi); regla común de `api.md` «Piezas pegadas». Encargo a coco en `GPageHeader.css`. **Con `GAppShell`** la aplicación no escribe esta receta: la escribe el chasis (`app-shell.md`, #713):
 
 ```css
 :root {

@@ -134,7 +134,7 @@ Dos cajas y no una: la raíz mide el sitio que le dan (lo que deja la barra late
 ## A · Medida, como opción (#722)
 
 - **`width="reading"`:** la columna = `min(caja − 2 × margen, 66ch)` (un artículo sin nada ancho).
-- **`prose`:** con una columna ancha, los elementos de prosa (lista de la tabla de props) **se quedan en `66ch`** de la fuente de la columna, calculada **una vez** en la columna (propiedad registrada privada, así todos los bloques comparten borde final), alineados al inicio; lo demás usa la columna entera. **Excluido:** la prosa de dentro de un componente de Grana (`[class^="g-"]`, `[class*=" g-"]`), de una `table` y de lo marcado con la clase pública **`g-wide`**. **Especificidad 0** (`:where`): la aplicación siempre gana.
+- **`prose`:** con una columna ancha, los elementos de prosa (lista de la tabla de props) **se quedan en `66ch`** de la fuente de la columna, calculada **una vez** en la columna (propiedad registrada privada, así todos los bloques comparten borde final), alineados al inicio; lo demás usa la columna entera. **Excluido:** la prosa de dentro de un componente de Grana (`[class^="g-"]`, `[class*=" g-"]`), de una `table` y de lo marcado con la clase pública **`g-wide`**. **Primitivas transparentes (#751):** `.g-stack`, `.g-section`, `.g-section__body`, `.g-bleed` y `.g-bleed-raw` **no cortan la medida** (sin esta lista, la exclusión por prefijo anulaba `prose` en `GStack` > `GSection` > `p` y en las bandas); el título y la descripción de `GSection` siguen fuera (tienen su propia medida). Es lista de contrato, como el mapa de anfitrionas: una primitiva de página nueva que deba dejar pasar la prosa se añade aquí. **La prosa medida lleva `box-sizing: border-box`** (una lista con sangría termina donde el párrafo; medido por coco). **Especificidad 0** (`:where`/`@scope`): la aplicación siempre gana.
 - **La medida está en caracteres:** con el texto al 200 % la línea sigue teniendo ~66 caracteres hasta tocar la columna, y nunca la pasa (medido, sin desbordar).
 - **Límite (para el README):** `prose` selecciona elementos de la aplicación por etiqueta; un `<p>` que la aplicación quiera ancho necesita `g-wide`. Por eso es opción y no defecto.
 
@@ -155,9 +155,9 @@ La raíz tiene `container-type: inline-size`, así que declara **`contain-intrin
 Con la guarda canónica de #653, al montar y al cambiar la prop que comprueban.
 
 1. `width` fuera de lista (se usa `lg`).
-2. `horizontal` con `width="full"` (sin sobrante que repartir: no tiene efecto).
-3. `as="main"` y ya hay otro `main` visible en el documento (`<main>` o `[role="main"]` sin `hidden`), o el contenedor está dentro de otro `main` (incluye el de `GAppShell`, S10).
-4. `as` o `gutter` fuera de lista (se usa el default).
+2. `horizontal` con `width="full"` (sin sobrante que repartir: no tiene efecto). Un `horizontal` **fuera de lista** avisa bajo el aviso 4 (#754).
+3. `as="main"` y ya hay otro `main` visible en el documento (`<main>` o `[role="main"]` sin `hidden`), o el contenedor está dentro de otro `main` (incluye el de `GAppShell`, S10). **Un solo texto para los dos casos** (por peso, #754): «as="main" con otro main en el documento o alrededor».
+4. `as`, `gutter` u `horizontal` fuera de lista (se usa el default; #754).
 5. Un `g-bleed`/`g-bleed-raw` descendiente cuya caja no empieza y termina en los bordes de la columna (medido **una vez al montar**, solo los que existen entonces; L7): está dentro de una superficie con relleno o de una caja más estrecha y sangraría al sitio equivocado.
 
 ## Tokens consumidos (L3; `tokens.md` §50)
@@ -191,7 +191,7 @@ Ninguno: cambiar de ancho (plegar la barra, redimensionar) no es un suceso del u
 
 ## Peso y paquete (#723)
 
-En el **principal** (`@grana/vue`), registrado en `src/index.js` y `components.css`. **Compuerta propia: ≤ 1 KiB (1024 B) gzip** de crecimiento de `dist/grana.js`, con sus guardas de avisos (#653.5). Si la supera, pasa a la entrada reservada **`@grana/vue/layout`** junto con `GStack` y `GSection` (vuelve a lima). Compuerta de `dist`: `grep -q "g-container__body" packages/vue/dist/grana.css`.
+En el **principal** (`@grana/vue`), registrado en `src/index.js` y `components.css`. **Compuerta propia: ≤ 1 KiB (1024 B) gzip** de crecimiento de `dist/grana.js`, con sus guardas de avisos (#653.5); **medido 1015 B** (199f170; #746). Si la supera, pasa a la entrada reservada **`@grana/vue/layout`** junto con `GStack` y `GSection` (vuelve a lima). Compuerta de `dist`: `grep -q "g-container__body" packages/vue/dist/grana.css`.
 
 ## `meta.json` y tipos (#443)
 
@@ -204,13 +204,13 @@ En el **principal** (`@grana/vue`), registrado en `src/index.js` y `components.c
 | L1 | Nombre | `GContainer` / `g-container`; el README distingue «el contenedor (componente)» de «contenedor de consultas» (mora-docs) |
 | L2 | API | `width`, `horizontal`, `gutter`, `as`, `prose` y `--g-container-max`; defecto `lg` (#722) |
 | L3 | Tokens | Ninguno del tema; constantes y literales (#717) |
-| L4 | `GPageHeader` | (a) su relleno lateral propio se suma al margen: **fuera de este lote** (`PENDIENTES.md`: decisión pendiente en `GPageHeader.css`); (b) el texto de su aviso 8: corregido (#724) |
+| L4 | `GPageHeader` | (a) su relleno lateral propio se suma al margen: **medido por coco 24 px (`space × 6`) de `h1` y de acciones, en los tres motores, con y sin chasis; sigue pendiente** (#751; dueño coco con una propuesta medida en `GPageHeader.css`, lima la registra; `PENDIENTES.md`); (b) el texto de su aviso 8: corregido (#724) |
 | L5 | Anfitrionas | `.g-container__body`, `.g-surface`, `.g-dialog__body` (#722) |
 | L6 | Contención | `api.md` «Contención en línea» (#722) |
 | L7 | Sangrado fuera de sitio | Aviso 5 y receta del relleno propio |
 | L8 | Reflujo | `overflow-wrap: break-word` en la columna, confirmado (#722) |
 | L9 | `@property` | Públicas y privadas registradas; excepción en `levels.test.js` |
-| L10 | `GTable` | Fuera de este lote (`PENDIENTES.md`) |
+| L10 | `GTable` | Precisado por coco (#751): con `g-bleed`, la leyenda y las celdas se alinean con la columna en reposo; lo que no llega al borde de la caja es su desplazable interno cuando la tabla es más ancha. Adopción opcional más adelante (`PENDIENTES.md`) |
 | L11 | Peso | Principal con compuerta (#723) |
 | L12 | Complejidad | Complejo: coco y bruno en Opus (#722) |
 | L13 | Receta de página | `as="main"` sin chasis, `as="div"` con chasis (#718); README |
@@ -221,9 +221,9 @@ En el **principal** (`@grana/vue`), registrado en `src/index.js` y `components.c
 
 ## Límites conocidos (para el README)
 
-- **`GPageHeader` dentro de la columna** (L4a): su relleno lateral propio (`space × 6`) se suma al margen; con `g-bleed` el relleno del sangrado y el suyo se pelean. Hasta decidirlo, el `h1` queda 24 px más adentro que el texto de la página.
-- **`GTable` con `g-bleed`** sangra la raíz, no su desplazable interno (L10).
-- **`prose`** selecciona elementos por etiqueta (`g-wide` para excluir).
+- **`GPageHeader` dentro de la columna** (L4a): su relleno lateral propio (`space × 6`) se suma al margen; con `g-bleed` el relleno del sangrado y el suyo se pelean. Hasta decidirlo, el `h1` y las acciones quedan 24 px más adentro que el texto de la página (medido por coco en los tres motores, con y sin chasis; #751).
+- **`GTable` con `g-bleed`:** en reposo, la leyenda y las celdas se alinean con la columna; cuando la tabla es más ancha que la columna, su desplazable interno no llega al borde de la caja (L10, #751).
+- **`prose`** selecciona elementos por etiqueta (`g-wide` para excluir); atraviesa `GStack`, `GSection` (su cuerpo, no su título ni su descripción) y las bandas `g-bleed`/`g-bleed-raw`, y no entra en otros componentes de Grana (#751).
 - **Una banda solo sangra bien** si su caja ocupa la columna (aviso 5).
 - **`--g-container-max`** no pasa a contenedores anidados (`inherits: false`).
 

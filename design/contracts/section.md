@@ -74,8 +74,10 @@ section.g-section.g-section--depth-{1|2|3} [aria-labelledby="{id}-title" solo co
 | Profundidad (secciones antepasadas + 1) | Nivel automático | Rol del título (`tokens.md` §23.1) |
 | --- | --- | --- |
 | 1 | `h2` | **title-sm 20/28, 600** (como `GDialog`: entre el `h1` de `GPageHeader` y las tarjetas), `--g-font-title` |
-| 2 | `h3` | **body 16/24, 600** (como `GFormSection` y `GCard`) |
-| 3 y más | `h4` | **body-sm 14/20, 600** (suelo de §23.5(b): nunca menos de 14) |
+| 2 | `h3` | **body 16/24, 600** (como `GFormSection` y `GCard`), `--g-font-ui` |
+| 3 y más | `h4` | **body-sm 14/20, 600** (suelo de §23.5(b): nunca menos de 14), `--g-font-ui` |
+
+- **Familia (#753):** solo la profundidad 1 lleva `--g-font-title`; las anidadas, `--g-font-ui`. Con un tema de títulos serif, el `h1` de `GPageHeader` y el `h2` de la sección salen serif y `h3`/`h4` en la de interfaz (medido por coco, `design/lab/section/auditoria-familia.png`). Es el rol de los títulos de `GCard` y `GFormSection`, que suelen vivir dentro de una sección (la sección anidada y la tarjeta hermana tienen la misma voz); una familia de titular a 16 y 14 px pierde legibilidad; y el cambio de familia refuerza la jerarquía que ya marca el tamaño.
 
 - **El tamaño va por profundidad, no por nivel:** `headingLevel` fijado cambia la etiqueta y **no** el tamaño (#196). La clase `g-section--depth-{1|2|3}` la pone el `.vue` (tope 3) con la profundidad de `GSection` contada por `inject`; el CSS no depende de cadenas de descendientes.
 - **Clave interna de anidación** (`sectionKey`, módulo del principal; no es API): lleva el siguiente nivel y la profundidad. `GCard`, `GFormSection` y `GDialog` **no la leen** en esta entrega (L14: reservado, «Fuera de v1»).
@@ -114,7 +116,7 @@ Con la guarda canónica de #653, al montar y al cambiar la prop que comprueban.
 
 ## Tokens consumidos (`tokens.md` §49)
 
-**Ningún token nuevo.** `--g-text-title-sm-*`, `--g-text-body-*`, `--g-text-body-sm-*`, `--g-font-title`, `--g-font-ui`, `--g-color-text`, `--g-color-text-muted`, `--g-space-*` (separaciones de coco: cabecera `space-2 × space-4`, cabecera → cuerpo `space × 4`, título → descripción `space × 1`), las de la pila (§«Anatomía»). Dentro de la zona de marca, todos en §44.5.
+**Ningún token nuevo.** `--g-text-title-sm-*`, `--g-text-body-*`, `--g-text-body-sm-*`, `--g-font-title`, `--g-font-ui`, `--g-color-text`, `--g-color-text-muted`, `--g-space-*` (separaciones de coco: cabecera `space-2 × space-4`, cabecera → cuerpo `space × 4`, título → descripción `space × 1`; las acciones bajan bajo el título cuando el bloque del título tendría menos de `space × 60`, base flexible sin punto de corte de pantalla, constante de coco, `tokens.md` §49), las de la pila (§«Anatomía»). Dentro de la zona de marca, todos en §44.5.
 
 **No son tokens:** `66ch` (literal de unidad, #717); el tope de profundidad 3 y de nivel 4.
 
@@ -130,7 +132,7 @@ Con la guarda canónica de #653, al montar y al cambiar la prop que comprueban.
 
 ## Peso y paquete (#723)
 
-En el **principal**, con la compuerta conjunta con `GStack` (≤ 1 KiB gzip; `stack.md` «Peso»). Compuerta de `dist`: `grep -q "g-section__actions" packages/vue/dist/grana.css`.
+En el **principal**, con la compuerta conjunta con `GStack` (≤ 1,5 KiB gzip tras #746; `stack.md` «Peso»). Compuerta de `dist`: `grep -q "g-section__actions" packages/vue/dist/grana.css`.
 
 ## `meta.json` y tipos (#443)
 

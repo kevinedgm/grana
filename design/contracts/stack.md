@@ -68,8 +68,9 @@ Slot `default` (los hijos). **Ningún evento ni método.** Puro y sin JS de comp
 
 1. **Una sola fuente de aire:** los márgenes de bloque de los **hijos directos** valen 0 dentro de la pila, en la capa de Grana (una regla de la aplicación sin capa gana, #516). Medido por kiwi: el margen de un `p` hijo = 0.
 2. **Ignora el nodo hermano de `GTooltip`** en todos sus selectores de hijos (`:not(:where(.g-tooltip))`, #383).
-3. **Hijos ocultos:** un hijo con `hidden` no cuenta para `divided` (la línea va entre hijos visibles). Un hijo que la aplicación oculta con una clase propia (`display: none`) no se puede detectar en CSS sin coste: límite conocido.
-4. En horizontal, los hijos conservan su tamaño intrínseco y se parten en filas con la misma separación (medido a 320: varias filas, sin desplazamiento horizontal).
+3. **`divided` y los hijos con superficie (#752):** la línea **no** se dibuja sobre un hijo con superficie propia (`.g-surface`, incluye `GCard`): ya está delimitado, y a ese hijo lo separa el `gap` (no `2 × gap`). Con la línea encima, la tarjeta quedaba con el borde de arriba de otro color y el relleno descompensado (24 px arriba frente a 16 abajo, medido por coco). La línea va solo entre hijos sin superficie; un hijo con borde superior propio de la aplicación (sin capa) conserva el suyo (#516). Para una lista de tarjetas con línea, la línea va entre hijos sin superficie. No hay otra forma sin elemento extra: un pseudoelemento cae dentro del mismo hijo y un `box-shadow` desaparece en `forced-colors`.
+4. **Hijos ocultos:** un hijo con `hidden` no cuenta para `divided` (la línea va entre hijos visibles). Un hijo que la aplicación oculta con una clase propia (`display: none`) no se puede detectar en CSS sin coste: límite conocido.
+5. En horizontal, los hijos conservan su tamaño intrínseco y se parten en filas con la misma separación (medido a 320: varias filas, sin desplazamiento horizontal).
 
 ## Estructura accesible
 
@@ -107,7 +108,7 @@ Ninguno. La pila no anima hijos que entran o salen (eso es de quien los pone).
 
 ## Peso y paquete (#723)
 
-En el **principal** (`@grana/vue`), registrado en `src/index.js` y `components.css`. **Compuerta conjunta con `GSection`: ≤ 1 KiB (1024 B) gzip** de crecimiento de `dist/grana.js` sobre la medida anterior a añadirlos, con sus guardas de avisos (#653.5). Si la supera, las dos pasan a la entrada reservada **`@grana/vue/layout`** (vuelve a lima). Compuerta de `dist`: `grep -q "g-stack--divided" packages/vue/dist/grana.css`.
+En el **principal** (`@grana/vue`), registrado en `src/index.js` y `components.css`. **Compuerta conjunta con `GSection`: ≤ 1,5 KiB (1536 B) gzip** de crecimiento de `dist/grana.js` sobre la medida anterior a añadirlos (215 449 B), con sus guardas de avisos (#653.5). **Enmienda #746** del 1 KiB de #723: medido +1381 B (gzip `-9`, 6cb6e76) con los avisos ya recortados; no se vuelve a subir. Si la supera, las dos pasan a la entrada reservada **`@grana/vue/layout`** (vuelve a lima). Compuerta de `dist`: `grep -q "g-stack--divided" packages/vue/dist/grana.css`.
 
 ## `meta.json` y tipos (#443)
 
