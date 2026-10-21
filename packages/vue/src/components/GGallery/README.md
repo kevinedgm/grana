@@ -248,7 +248,7 @@ Marcadores con `{…}`; las cifras salen de `Intl.NumberFormat(locale)`. Los **c
 - **Miniatura:** es un `<a href="{src}" aria-haspopup="dialog">`. Abre el visor con clic primario sin modificadores o con Intro; con Ctrl, ⌘, Mayús, Alt o botón central, el navegador hace lo suyo (abrir en pestaña, guardar). Sin JS, abre la foto.
 - **Foco inicial del visor:** «Foto siguiente»; con una sola foto, sin flechas y el foco en «Cerrar».
 - **Sin vuelta:** en la última foto, «siguiente» lleva `aria-disabled="true"` y **sigue enfocable**; igual «anterior» en la primera.
-- **La tira (B):** una sola parada de Tab (la diapositiva actual); ←, →, Inicio y Fin la mueven y llevan el foco. Los botones ‹ › anuncian la foto; **el desplazamiento a mano no anuncia**.
+- **La tira (B):** una sola parada de Tab (la diapositiva actual); ←, →, Inicio y Fin la mueven y llevan el foco. Los botones anterior y siguiente anuncian la foto; **el desplazamiento a mano no anuncia**.
 - **Gesto:** deslizar en horizontal ≥ 18 % del ancho (o ≥ 40 px en < 250 ms) pasa de foto, y la foto sigue al dedo; deslizar hacia abajo ≥ 22 % del alto cierra. Doble toque o doble clic amplía en el punto. Todo gesto tiene su botón o su tecla.
 
 ## Accesibilidad

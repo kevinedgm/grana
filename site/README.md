@@ -46,7 +46,7 @@ Un bloque de código **de primer nivel** (sin sangría, fuera de listas y citas)
 - **SFC completo** (`<script setup>` + `<template>`): para estado (`v-model`), datos o una entrada propia (`import { GCombobox } from '@grana/vue/combobox'`). Es lo preferible cuando el ejemplo tiene `v-model`.
 - **Autónomo:** sin variables ni manejadores sin definir (`@click="guardar"` sin `guardar` es un aviso de Vue), sin `fetch`, sin imágenes de red, con todos los `labels` que el componente exige (Grana no trae textos por defecto). Si un bloque del README es ilustrativo y no se puede ejecutar tal cual, no se marca.
 - **Iconos:** la lista de la librería y los que registra el sitio (`site/.vitepress/theme/icons.js`, como una aplicación con `createIcons`).
-- **Disponible en el sitio sin importar:** todo `@grana/vue` y los plugins de `combobox`, `file-field`, `time-field`, `slider`, `tag`, `load-region`, `card-group`, `page-header`, `fab`, `form-fold` y `app-shell`. La voz (`speech`), la isla de estado (`status`) y `GToast` son servicios: el ejemplo crea el suyo (ver `site/demos/GSpeechHost.vue`, `GStatusIsland.vue`, `GToast.vue`).
+- **Disponible en el sitio sin importar:** todo `@grana/vue` y los plugins de `combobox`, `file-field`, `time-field`, `slider`, `tag`, `load-region`, `card-group`, `page-header`, `fab`, `form-fold`, `app-shell`, `hero`, `gallery` y `booking`. La voz (`speech`), la isla de estado (`status`) y `GToast` son servicios: el ejemplo crea el suyo (ver `site/demos/GSpeechHost.vue`, `GStatusIsland.vue`, `GToast.vue`).
 - Puede haber varios por README; cada uno se pinta donde está.
 
 Hoy lo llevan `GBtn` (iconos en los huecos), `GBadge`, `GTag` (grupo con huella) y `GDivider` (con texto).
