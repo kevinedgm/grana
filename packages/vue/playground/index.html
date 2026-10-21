@@ -2006,6 +2006,42 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
     </g-dialog>
           </div>
         </section>
+        <section class="pg-section" id="sec-stack" data-pg-section>
+          <h2>GStack</h2>
+          <p class="pg-lead">Pila de un eje con la escala de separación de Grana: <code>sm</code> «va con lo anterior», <code>md</code> «lo siguiente», <code>lg</code> «otro tema». Sin superficie; es la única fuente de aire entre sus hijos y, en línea, siempre se parte. Ritmo de página: no distribuye campos de formulario (<code>GFormLayout</code>).</p>
+          <div class="pg-panel" id="stk-demo">
+            <h3>Vertical con gap sm, md, lg y none</h3>
+            <div id="stk-gaps" style="display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr))">
+              <g-stack gap="sm" id="stk-sm"><p>sm</p><p>va con lo anterior</p><p>12 px</p></g-stack>
+              <g-stack gap="md" id="stk-md"><p>md</p><p>lo siguiente</p><p>24 px</p></g-stack>
+              <g-stack gap="lg" id="stk-lg"><p>lg</p><p>otro tema</p><p>48 px</p></g-stack>
+              <g-stack gap="none" id="stk-none"><p>none</p><p>sin aire</p><p>0 px</p></g-stack>
+            </div>
+            <h3>Densidad compacta</h3>
+            <g-stack density="compact" id="stk-compact"><p>Uno</p><p>Dos</p></g-stack>
+            <h3>Dividida (un hijo con hidden no cuenta)</h3>
+            <g-stack divided id="stk-divided"><p>Primero</p><p>Segundo</p><p hidden>Oculto</p><p>Tercero</p></g-stack>
+            <h3>Horizontal, centrada, siempre se parte</h3>
+            <g-stack orientation="horizontal" gap="sm" vertical="center" horizontal="center" id="stk-row">
+              <g-badge color="success">Validado</g-badge><g-badge color="info">Hematología</g-badge><g-badge color="warning">Pendiente</g-badge><g-btn variant="outline" size="sm">Acción</g-btn>
+            </g-stack>
+          </div>
+        </section>
+        <section class="pg-section" id="sec-section" data-pg-section>
+          <h2>GSection</h2>
+          <p class="pg-lead">Región de página con encabezado, descripción y acciones. El nivel del encabezado lo pone el documento (<code>h2</code> › <code>h3</code> › <code>h4</code> por anidación) y el tamaño la profundidad (20 › 16 › 14). Sin superficie ni plegado; región con nombre solo con <code>landmark</code>.</p>
+          <div class="pg-panel" id="sct-demo">
+            <g-section title="Firmantes" description="Quién valida el informe." :labels="{ actions: 'Acciones de firmantes' }" landmark id="sct-a">
+              <template #actions><g-btn variant="outline" color="neutral" size="sm">Añadir</g-btn></template>
+              <p>Cuerpo de la sección, separado por la pila md.</p>
+              <g-section title="Suplentes" id="sct-b">
+                <p>Una sección anidada baja a h3 sola.</p>
+                <g-section title="Excepciones" id="sct-c"><p>Y otra, a h4.</p></g-section>
+              </g-section>
+              <g-section title="Nivel fijado" :heading-level="3" id="sct-d"><p>Etiqueta h3 con el tamaño de la profundidad 2.</p></g-section>
+            </g-section>
+          </div>
+        </section>
         <section class="pg-section" id="sec-summary" data-pg-section>
           <h2>GSummary</h2>
           <p class="pg-lead">Ficha de resumen adaptable: identidad, título, línea secundaria, <b>datos con prioridad</b> y estado, que se adapta al ancho de su contenedor y al texto real. No tiene maquetas ni umbrales: tiene prioridad (A · prioridad líquida). Al estrechar, la corriente de datos se bebe por el final; antes de soltar un dato calla los rótulos que se explican solos (<code>bare</code>); «+N» dice cuántos no se ven; al ensanchar, lo que vuelve a caber entra. Nada se oculta: el lector recibe todos los datos. Entre homónimas, lo único pesa y lo compartido se apaga (<code>summaryDiff</code>). Es contenido (<code>span</code>): va dentro de una opción, un campo, una celda o una tarjeta. Banco completo y rendimiento: <a href="summary.html">summary.html</a>.</p>

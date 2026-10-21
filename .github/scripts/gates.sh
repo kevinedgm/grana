@@ -131,6 +131,11 @@ must_not_have grana.js "GFab" "GFab viajó en el paquete principal grana.js; deb
 must_exist "fab.js" "No se generó la entrada propia fab.js (revisar vite.fab.config.js y el script build de packages/vue)"
 must_not_have fab.js "is-highlight-instant" "El motor de menú (utils/menuNav.js) quedó copiado en fab.js; debe llegar por __shared sin copia"
 
+# GStack y GSection (principal, #723; peso conjunto <= 1 KiB gzip en grana.js, medido en el commit): el CSS va en grana.css
+must_have grana.css "g-stack--divided" "$CSS_MSG"
+must_have grana.css "g-section__title" "$CSS_MSG"
+must_have grana.css "g-section__actions" "$CSS_MSG"
+
 echo
 if [ "$failed" -eq 0 ]; then
   echo "Compuertas: $total/$total superadas."
