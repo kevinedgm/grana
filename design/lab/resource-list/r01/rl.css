@@ -1,0 +1,98 @@
+/* GResourceList · r01 (kiwi). Solo lo que el block añade alrededor de los componentes reales, y el andamio del laboratorio.
+   Solo var(--g-*) del tema por defecto (dist/grana.css). Es un boceto de estructura para coco, no su CSS. */
+*, *::before, *::after { box-sizing: border-box }
+body { margin: 0; background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui); font-size: var(--g-text-body-size); line-height: var(--g-text-body-line) }
+.rl-sr { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap }
+
+/* ---- Andamio: la barra de la aplicación (no es del block) ---- */
+.lab-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-space-2) var(--g-space-4); padding: var(--g-space-2) var(--g-space-4); background: var(--g-color-surface); border-block-end: var(--g-border-width) solid var(--g-color-border); font-size: var(--g-text-body-sm-size) }
+.lab-bar__brand { margin-inline-end: auto }
+.lab-bar__nav { display: flex; flex-wrap: wrap; gap: var(--g-space-1) }
+.lab-bar__nav a, .lab-bar__btn { display: inline-flex; align-items: center; min-block-size: 24px; padding: var(--g-space-1) var(--g-space-2); border-radius: var(--g-radius-sm); color: var(--g-color-text); text-decoration: none; font: inherit; background: none; border: var(--g-border-width) solid transparent; cursor: pointer }
+.lab-bar__nav a[aria-current] { background: var(--g-color-neutral-soft); border-color: var(--g-color-border-strong); font-weight: var(--g-text-action-weight) }
+.lab-bar__btn { border-color: var(--g-color-border) }
+.lab-bar a:focus-visible, .lab-bar__btn:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset) }
+.lab-main { outline: none; max-inline-size: 1320px; margin-inline: auto; padding-inline: var(--g-space-4); padding-block-end: var(--g-space-16) }
+@media (pointer: coarse) { .lab-bar__nav a, .lab-bar__btn { min-block-size: 44px } }
+
+/* ---- El block: una columna; B con la lente al lado. SIN container-type (GPageHeader, regla 7: el muelle es fixed) ---- */
+.rl { display: grid; gap: var(--g-space-4) }
+.rl-body { padding-inline: calc(var(--g-space-1) * 6); display: grid; gap: var(--g-space-6); align-items: start; grid-template-columns: minmax(0, 1fr) }
+.rl.has-lens .rl-body { grid-template-columns: minmax(0, 1fr) minmax(calc(var(--g-space-16) * 5), calc(var(--g-space-16) * 7)) }
+/* Mismo inset que GPageHeader (su --_pad privado: space × 6; en estrecho, space × 4; hallazgo L9): h1, consulta y tabla al mismo borde */
+.rl.is-narrow .rl-body { padding-inline: var(--g-space-4) }
+.rl-list { display: grid; gap: var(--g-space-3); min-inline-size: 0 }
+
+/* La consulta: la búsqueda arriba de la tabla, en su región search */
+.rl-query { display: flex; flex-wrap: wrap; align-items: end; gap: var(--g-space-3) var(--g-space-4) }
+.rl-search { inline-size: min(100%, calc(var(--g-space-16) * 6)) }
+
+/* ---- C · la frase: cada hueco es un botón de menú con el valor actual como texto visible ---- */
+.rl-phrase { flex: 1 1 calc(var(--g-space-16) * 8); margin: 0; font-size: var(--g-text-title-sm-size); line-height: var(--g-text-title-lg-line); color: var(--g-color-text-muted) }
+.rl-phrase > .g-menu { display: inline-block }
+.rl-phrase__lead { color: var(--g-color-text); font-weight: var(--g-text-title-weight) }
+.rl-slot { display: inline-flex; align-items: baseline; gap: var(--g-space-1); min-block-size: 24px; padding: 0 var(--g-space-1); border: 0; border-radius: var(--g-radius-xs); background: none; font: inherit; color: var(--g-color-text); cursor: pointer;
+  text-decoration: underline; text-decoration-style: dashed; text-decoration-color: var(--g-color-border-strong); text-underline-offset: 0.25em }
+.rl-slot.is-set { color: var(--g-color-primary-text); font-weight: var(--g-text-action-weight); text-decoration-style: solid; text-decoration-color: currentColor }
+.rl-slot:hover { background: var(--g-color-neutral-soft) }
+.rl-slot:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset) }
+.rl-slot__chev { inline-size: 0.8em; display: inline-flex; align-self: center; color: var(--g-color-text-muted) }
+.rl-slot__chev .g-icon { inline-size: 100%; block-size: auto }
+@media (pointer: coarse) { .rl-slot { min-block-size: 44px; align-items: center } }
+
+/* ---- C · facetas: cuentan sin su propio filtro; alternan con aria-pressed ---- */
+.rl-facets { display: flex; flex-wrap: wrap; gap: var(--g-space-2) }
+.rl-facet { display: inline-grid; grid-template-columns: auto; justify-items: start; gap: 0; min-inline-size: calc(var(--g-space-16) * 2); min-block-size: 44px; padding: var(--g-space-2) var(--g-space-3);
+  border: var(--g-border-width) solid var(--g-color-border-control); border-radius: var(--g-radius-md); background: var(--g-color-surface); color: var(--g-color-text); font: inherit; text-align: start; cursor: pointer;
+  transition: background-color var(--g-duration-fast) var(--g-ease-standard), border-color var(--g-duration-fast) var(--g-ease-standard) }
+.rl-facet__n { font-size: var(--g-text-title-size); line-height: var(--g-text-title-line); font-weight: var(--g-text-title-weight); font-variant-numeric: tabular-nums }
+.rl-facet__label { font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); color: var(--g-color-text-muted) }
+.rl-facet--warning .rl-facet__n { color: var(--g-color-warning-text) }
+.rl-facet:hover { border-color: var(--g-color-border-strong) }
+.rl-facet[aria-pressed="true"] { background: var(--g-color-primary-soft); border-color: var(--g-color-primary-text) }
+.rl-facet[aria-pressed="true"] .rl-facet__label { color: var(--g-color-on-primary-soft) }
+.rl-facet:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset) }
+
+/* ---- Selección (C): la barra de lo seleccionado, en flujo sobre la tabla ---- */
+.rl-bulk { display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-space-2); padding: var(--g-space-2) var(--g-space-3); border-radius: var(--g-radius-md); background: var(--g-color-primary-soft); color: var(--g-color-on-primary-soft) }
+.rl-bulk__count { font-weight: var(--g-text-action-weight); margin-inline-end: auto }
+
+/* ---- Confirmación en el sitio (B, C): la pregunta es el nombre del grupo; «Cancelar» primero y con el foco ---- */
+.rl-confirm { display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: end; gap: var(--g-space-1) }
+.rl-confirm__q { font-size: var(--g-text-body-sm-size); color: var(--g-color-text) }
+
+/* ---- A · huella: la fila dada de baja conserva su sitio y su contorno, sin tinta; «Deshacer» en la celda de acciones ---- */
+.g-table__row.rl-gone > td { color: var(--g-color-text-muted); background: transparent }
+.g-table__row.rl-gone > td:not(.g-table__actions) { text-decoration: line-through; text-decoration-color: var(--g-color-border-strong) }
+.g-table__row.rl-gone .g-table__status, .g-table__row.rl-gone .rl-estado { visibility: hidden }
+.g-table__row.rl-gone { outline: var(--g-border-width) dashed var(--g-color-border-control); outline-offset: calc(var(--g-border-width) * -1) }
+/* A · lo recién registrado se queda arriba con «Nueva» en su subtítulo (texto, no solo color: 1.4.1) */
+.g-table__row.rl-pinned > td:first-child { box-shadow: inset calc(var(--g-border-width) * 3) 0 0 var(--g-color-accent) }
+.g-table__row.rl-fresh > td { animation: rl-fresh calc(var(--g-duration-slow) * 4) var(--g-ease-out) both }
+@keyframes rl-fresh { from { background-color: var(--g-color-accent-soft) } to { background-color: transparent } }
+@media (prefers-reduced-motion: reduce) { .g-table__row.rl-fresh > td { animation: none; background-color: var(--g-color-accent-soft) } }
+/* A · el formulario dentro de la ficha de la fila */
+.rl-inline { padding: var(--g-space-4) var(--g-space-2) var(--g-space-5) }
+.rl-inline__gone { margin: 0; color: var(--g-color-text-muted) }
+.rl-form { max-inline-size: calc(var(--g-space-16) * 10) }
+
+/* ---- B · la lente: en la página, pegada bajo el zócalo del encabezado; la fila apuntada lleva aria-current ---- */
+.rl-lens { position: sticky; inset-block-start: calc(max(var(--g-space-12), 44px) + var(--g-space-4)); max-block-size: calc(100dvh - max(var(--g-space-12), 44px) - var(--g-space-8)); display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
+  border: var(--g-border-width) solid var(--g-color-border-strong); border-radius: var(--g-radius-lg); background: var(--g-color-surface); box-shadow: var(--g-shadow-1); overflow: hidden }
+.rl-lens__head { display: flex; align-items: center; gap: var(--g-space-2); padding: var(--g-space-3) var(--g-space-3) var(--g-space-2) var(--g-space-5); border-block-end: var(--g-border-width) solid var(--g-color-border) }
+.rl-lens__title { flex: 1; margin: 0; font-size: var(--g-text-title-size); line-height: var(--g-text-title-line); font-weight: var(--g-text-title-weight); outline: none }
+.rl-lens__title:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset); border-radius: var(--g-radius-xs) }
+.rl-lens__mode { font-weight: var(--g-text-body-weight); color: var(--g-color-text-muted); font-size: var(--g-text-body-size) }
+.rl-lens__body { overflow: auto; padding: var(--g-space-4) var(--g-space-5); display: grid; gap: var(--g-space-4); align-content: start }
+.rl-lens__sub { margin: 0; color: var(--g-color-text-muted); display: flex; flex-wrap: wrap; align-items: center; gap: var(--g-space-2) }
+.rl-lens__actions { display: flex; flex-wrap: wrap; gap: var(--g-space-2) }
+.rl-lens__nav { display: flex; align-items: center; justify-content: space-between; gap: var(--g-space-2); padding: var(--g-space-2) var(--g-space-3); border-block-start: var(--g-border-width) solid var(--g-color-border); background: var(--g-color-surface-sunken) }
+.rl-lens__pos { font-size: var(--g-text-body-sm-size); color: var(--g-color-text-muted); font-variant-numeric: tabular-nums }
+.rl[data-concept="B"] .g-table__row:has(.g-table__door[aria-current]) > td { background: var(--g-color-neutral-soft) }
+.rl[data-concept="B"] .g-table__row:has(.g-table__door[aria-current]) > td:first-child { box-shadow: inset calc(var(--g-border-width) * 3) 0 0 var(--g-color-primary-text) }
+
+.rl-forbidden { padding-block: var(--g-space-8) }
+
+/* Motivo de una acción no disponible dentro del menú de fila (hallazgo L5: GMenu solo tiene disabled Boolean) */
+.rl-mi { display: grid; gap: 0 }
+.rl-mi__why { font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); color: var(--g-color-text-muted); text-decoration: none }

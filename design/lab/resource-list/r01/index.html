@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GResourceList · r01 (kiwi)</title>
+<!-- Ronda r01 de GResourceList, primer block de Grana Blocks (kiwi, 2026-10-20). Prototipo con los COMPONENTES REALES de
+     packages/vue/dist (GPageHeader, GTable con su GFilterBar y su GPagination, GEmpty, GMenu, GDialog, GForm y campos,
+     GToast, GBtn, GBadge, GDataList) y el tema por defecto; el «block» es un componente de laboratorio (rl.js) que los
+     ensambla con la API que propone declaracion.md. Lo que el block añade y no existe en Grana va con clases rl-* (rl.css,
+     solo var(--g-*)). Caso real: tinas de fermentación de un palenque (PULZ).
+     Parámetros: ?c=base|A|B|C (concepto) · ?data=ok|empty|forbidden|fail|slow · ?dir=rtl · ?dark=1
+     Ver: python3 -m http.server 4211 desde la raíz del repo → /design/lab/resource-list/r01/index.html
+     Verificación: node design/lab/resource-list/r01/verificar.mjs (puerto 4211). -->
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="./rl.css">
+<script src="../../lucide-icons.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<script src="../../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../../../packages/vue/dist/page-header.umd.js"></script>
+<script src="./tinas.js"></script>
+<script src="./rl.js"></script>
+</body>
+</html>
