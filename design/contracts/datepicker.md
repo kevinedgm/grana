@@ -29,6 +29,7 @@ Selector de **una fecha o de un rango de fechas** (patrón *date picker dialog* 
 | `disabledNights` | Function | `(iso: string) => boolean` (la noche que empieza `iso`) | sin valor | propia (solo `range`; #739, §«Noches y salida») |
 | `minNights` | Number | entero ≥ 1 | sin valor | propia (solo `range`; #739) |
 | `maxNights` | Number | entero ≥ `minNights` | sin valor | propia (solo `range`; #739) |
+| `dayDescription` | Function | `(iso: string) => string` | sin valor | propia (§«Precio y otros datos del día», #778) |
 | `months` | String \| Number | `auto` `1` `2` | `auto` | propia |
 | `locale` | String | etiqueta BCP 47 | la de `<html lang>` (o `navigator.language`) | propia |
 | `firstDay` | Number | 0 (domingo) a 6 | el del `locale` (`Intl.Locale`), si no, 1 | propia |
@@ -234,7 +235,7 @@ Si la fecha con foco sale de los meses visibles, **se desplazan los meses** para
 | `error` | Mensaje de error con contenido rico | | Solo con `error`; conserva el `id` y la región viva |
 | `trigger` | **Sustituye al campo** por el botón de la aplicación (por ejemplo, un segmento de una barra de búsqueda) | `{ id, expanded, controls, toggle, open, close, value, text }` | La aplicación pone `aria-haspopup="dialog"`, `:aria-expanded="expanded"` y `:aria-controls="controls"` en su botón y llama a `toggle`; `text` es el valor formateado; con este slot no se renderizan `label`, `hint`, `error`, `name` ni `split` (los pone la aplicación) |
 | `summary` | Sustituye al resumen | `{ start, end, pending, days }` | Dentro de `g-datepicker__summary`; nunca interactivos |
-| `day` | Contenido de un día (por ejemplo, un precio bajo el número) | `{ date, day, selected, inRange, disabled, outside }` | Dentro del `<button>` del día, **después del número**; **no** cambia el nombre accesible ni el tamaño de la celda; sin interactivos |
+| `day` | Contenido de un día (por ejemplo, un precio bajo el número) | `{ date, day, selected, inRange, disabled, outside }` | Dentro del `<button>` del día, **después del número**; **no** cambia el nombre accesible (lo que deba oírse va en `dayDescription`, #778); con el slot, la raíz lleva `g-datepicker--day-content` y **todas** las celdas toman la forma de «día con contenido» de coco (ninguna salta de tamaño por tener o no contenido); sin interactivos |
 | `icon` | Icono del campo (sustituye al de calendario) | | Decorativo; envuelto en `g-datepicker__icon` (`aria-hidden`) |
 
 Con el slot `trigger`, la aplicación es responsable del **nombre accesible y del foco visible** de su botón.
@@ -377,6 +378,17 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 **Avisos nuevos** (`[Grana GDatePicker]`): `disabledNights`, `minNights` o `maxNights` en `single`; `maxNights < minNights`; `modelValue` con una noche agotada dentro; raíz dentro de un `<p>`.
 
 **Peso:** cuenta en el lote de enmiendas de marketing del principal (#742).
+
+## Precio y otros datos del día (enmienda de la ronda de moneda y precio; DECISIONS.md #778)
+
+**Origen:** P-L6 de `design/lab/price/r01/` (kiwi): el contenido del slot `day` no entra en el nombre accesible (medido en los tres motores: «miércoles, 21 de octubre de 2026, hoy», sin «1,850»), y el círculo del día no tiene sitio para una segunda línea (a 320px las cifras de días vecinos se tocan). Consumidor: el bloque Availability (B4) y la consulta de reserva.
+
+- **`dayDescription(iso) → String`** (Function, sin valor). Lo que devuelve se **añade al `aria-label` del día después de los sufijos de estado**, separado por «, »: «miércoles, 21 de octubre de 2026, hoy, 1,850 pesos mexicanos». Para un precio, la aplicación devuelve `formatPrice(money, { locale }).spoken` (`price.md`). Una cadena vacía, `null` o algo que no es cadena no añade nada (sin aviso: un día sin dato es normal). Se llama para cada día pintado del mes (también los no disponibles y, si se pintan, los de fuera del mes); la aplicación decide qué devuelve en cada caso. Sin guardas de aviso dentro del recorrido de días (#653, coste por celda).
+- **Por qué en el nombre** y no en `aria-describedby`: la regla de este componente es que «el estado va en el nombre» (§«Estructura accesible»), y una descripción por celda multiplicaría los nodos ocultos por 42; el precio del día es parte de lo que la persona compara al moverse con las flechas.
+- **Forma del día con contenido (coco):** con el slot `day` presente, la raíz lleva **`g-datepicker--day-content`** y coco da a **todas** las celdas una forma que cabe el número y una segunda línea (más alta, sin que el círculo ni el anillo de «hoy» la corten) y la mide a 320px con `GPrice size="xs" display="none" cents="never"`. Sin el slot, nada cambia. El área táctil y los mínimos de §7 no bajan. Si no cabe a 320px, vuelve a lima (reservado `notation: 'compact'` en `formatPrice`, `price.md`).
+- **La leyenda de la moneda** («Precio por noche en pesos mexicanos») la pone la aplicación fuera del calendario (o un `GPriceScope` alrededor): con `display="none"` el día solo lleva la cifra.
+- **Peso:** en el lote de enmiendas de moneda del principal (`price.md` «Paquete y peso»).
+- **Verificación (bruno):** vitest (el texto entra en el `aria-label` tras los sufijos, cadena vacía y no cadena no añaden nada; la clase solo con el slot) y Playwright (nombre del día con el precio en los tres motores; la celda no cambia de tamaño entre días con y sin precio; sin solapes a 320px).
 
 ## Contraste del día elegido (`tokens.md` §7.1; DECISIONS.md #431 y #432)
 

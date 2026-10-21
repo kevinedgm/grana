@@ -77,6 +77,7 @@ Un control para **un valor acotado donde manda la posición relativa** (el volum
 - **`marks`:** `true` dibuja una raya por punto de la rejilla si son ≤ 25, si no una por paso grande. Un arreglo dibuja rayas en esos valores y **nombra** las que traen `label`; un número suelto es `{ value }`. Valores fuera de `[min, max]` se ignoran con aviso; valores repetidos avisan (se usa el primero). Los nombres van **bajo el riel**, `aria-hidden`, **alineados con el centro de la píldora** en ese valor (el recorrido se recoge media píldora a cada lado), los extremos ajustados al borde para no salirse; **se pueden pulsar** (dan su valor exacto, aunque no esté en la rejilla: es un valor que la aplicación nombró). Cuando el valor cae en una marca con nombre, el nombre entra en `aria-valuetext` («5, Moderado») salvo con `valueText`.
 - **`snap`:** `'marks'` hace de las marcas la rejilla (10 · 25 · 50 · 100 resultados por página): flechas de marca en marca, puntero a la marca más cercana. Sin `marks` en arreglo, avisa y se usa `'step'`.
 - **`format`:** se pasa tal cual a `Intl.NumberFormat(locale, format)` (moneda, unidad, decimales mínimos y máximos). Un objeto que `Intl` rechaza avisa y se usa `{}`. **Porcentaje:** `{ style: 'unit', unit: 'percent' }` (el modelo 40 se lee «40 %»); `style: 'percent'` multiplica por 100 (espera fracciones) y, con `max > 1`, avisa (L15).
+- **Moneda en la lectura (#779; P-L8 de `design/lab/price/r01/`):** con `format.style === 'currency'` y **sin** `valueText`, la píldora lleva `format` tal cual («$800») y **`aria-valuetext` usa el mismo `format` con `currencyDisplay: 'name'`** y sin decimales en los enteros («800 pesos mexicanos»), la regla de lectura de `formatPrice` (`price.md`): el lector nunca dice «dólar» por un «$» de pesos. El nombre de una marca se sigue añadiendo («800 pesos mexicanos, Económico»); `labels.empty` no cambia. Es la única excepción a «lo que se ve es lo que se oye»: la cifra es la misma, solo cambia cómo se nombra la moneda. Con `valueText`, manda la aplicación. Se calcula con `Intl` en `utils/slider.js` (caché por idioma y opciones), sin importar `@grana/vue/price`; cuenta en el tope de esta entrada (#455).
 - **`valueText(value)`:** sustituye **a la vez** el texto de la píldora y `aria-valuetext` (lo que se ve es lo que se oye; p. ej. «3 h 20 min» para minutos). El nombre de la marca ya no se añade (la aplicación decide). Si no devuelve una cadena no vacía, avisa y se usa el texto por defecto.
 - **`labels.start` y `labels.end`:** con `range`, el nombre de cada asa se compone con la etiqueta («Precio mínimo», «Precio máximo»). **Sin ellos las dos asas se llamarían igual:** aviso. **`labels.empty`:** el texto de «sin elegir» (a la vista y en `aria-valuetext`); con un valor único `null` y sin él, aviso.
 - **`name`:** va a los ocultos y registra el campo en `GForm` (clave de `errors`). Prop (como `GNumberField` y `GSelect`, form.md C10), no atributo; **el nativo no lleva `name`**.
@@ -150,13 +151,13 @@ Rango (lo que cambia):
       <span class="g-slider__thumb" data-thumb="0" style="--_at: 0.16">
         <span class="g-slider__pill" aria-hidden="true">…$800…</span>
         <input class="g-slider__native" type="range" step="any" id="ID" min="0" max="2400"
-               aria-labelledby="ID-label ID-n0" aria-valuetext="$800" aria-describedby="…">
+               aria-labelledby="ID-label ID-n0" aria-valuetext="800 pesos mexicanos" aria-describedby="…">
         <span class="g-slider__thumb-name" id="ID-n0" hidden>mínimo</span>
       </span>
       <span class="g-slider__thumb" data-thumb="1" style="--_at: 0.48">
         <span class="g-slider__pill" aria-hidden="true">…$2,400…</span>
         <input class="g-slider__native" type="range" step="any" id="ID-end" min="800" max="5000"
-               aria-labelledby="ID-label ID-n1" aria-valuetext="$2,400" aria-describedby="…">
+               aria-labelledby="ID-label ID-n1" aria-valuetext="2,400 pesos mexicanos" aria-describedby="…">
         <span class="g-slider__thumb-name" id="ID-n1" hidden>máximo</span>
       </span>
     </div>
@@ -433,7 +434,7 @@ Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production
 8. `bigStep` que no es múltiplo positivo de `step`: se usa la décima del recorrido.
 9. `minGap` negativo o mayor que el recorrido: se usa `0`.
 10. `marks` con valores fuera de `[min, max]` (se ignoran) o repetidos; `snap="marks"` sin arreglo de marcas (se usa `step`).
-11. `locale` o `format` que `Intl` rechaza.
+11. `locale` o `format` que `Intl` rechaza (también la lectura con el nombre de la moneda, #779: si `currencyDisplay: 'name'` falla, se lee lo visible).
 12. `format.style === 'percent'` con `max > 1`: «el modelo 40 se leería 4000 %; usa `{ style: 'unit', unit: 'percent' }`».
 13. `valueText` que no devuelve una cadena no vacía.
 14. Nombres reservados en `$attrs` (`appearance`, `distribution`, `countText`, `pxPerStep`, `orientation`, `clearable`, `size`): no se aplican.
@@ -511,6 +512,7 @@ Utilidad interna **`packages/vue/src/utils/slider.js`** (no se exporta; con `sli
 ### bruno (vitest + jsdom)
 
 - **Motor** (`slider.test.js`): los casos de `engine.js` (rejilla desde `min` sin error de coma flotante, `max` fuera de la rejilla, `snap="marks"`, `move` desde fuera de la rejilla y fuera de límites, `bigStep` por defecto y con marcas, `limits` con `minGap`, `keyAction` con RTL, `format` con `es-MX`/`ar-EG` sin marcas bidi, `valueText` con marca, `pick` y empate, `latin`), y `parseTyped`, `refValues`, `merged`, `windowMove`.
+- **Moneda en la lectura (#779):** con `format: { style: 'currency', currency: 'MXN' }` en `es-MX`, la píldora dice «$800» y `aria-valuetext` «800 pesos mexicanos» (con marca, «…, Económico»; con `valueText`, lo suyo); con `en-US` + USD, «800 US dollars»; sin decimales en los enteros.
 - **Componente:** modelo `Number`/`null`/arreglo nuevo (nunca cadena, nunca el mismo arreglo); rango nulo, mal formado y desordenado (dibujo, sin emitir, avisos); `change` una vez por gesto (teclas con autorrepetición → uno al `keyup`; puntero → uno; cifra tecleada → uno; ajuste del lector → uno; sin cambio → ninguno; cambio desde la aplicación → ninguno); el `@change` del consumidor no llega al nativo y el `input`/`change` del nativo no burbujean; atributos de cada nativo (`type`, `step="any"`, límites del asa, `value`, `aria-valuetext`, `aria-labelledby` del rango, `aria-describedby`, `aria-invalid`, `aria-readonly`, `disabled`, **sin `name` ni `aria-required`**); ocultos (orden, mismo `name`, canónico, `""` sin elegir, `disabled`, presentes en `readonly`, `form`) y `FormData` de un `<form>`; `GForm`: registro por `name`, `trigger: 'change'`, `notifyChange` al acabar el gesto, `errors[name]` pinta el mensaje, el resumen enlaza al primer nativo, `is-rejected` retirado por un gesto; «sin elegir» (`is-empty`, `labels.empty` en la cabecera, primera tecla); teclear la cifra (Intro, pausa con temporizadores falsos, Esc, Retroceso, fuera de límites con tope, cifras del idioma, «-» solo con `min < 0`, modificadores e `isComposing` no interceptados); tope (`data-bump` solo sin autorrepetición, retirada por `animationend` `g-slider-bump…` y en el acto sin animación calculada); `data-g-key-focus` con la regla de modalidad (Tab, Intro y foco por programa tras una tecla marcan; `pointerdown` desmarca; una tecla con el foco dentro marca); SSR (`renderToString` con y sin `locale`, sin acceso a `window`); avisos 1 a 14; `GSlider.meta.json` y `types.test.js` (uso correcto compila; `modelValue` cadena y `valueText` que no devuelve cadena fallan).
 - **`keyFocus.js`:** la regla de modalidad nueva **sin regresión** del motor del tooltip (#396: Tab + Intro que abre un diálogo sigue sin abrir la pista) ni de los radios (sus pruebas siguen verdes).
 

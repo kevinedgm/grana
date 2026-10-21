@@ -1,7 +1,7 @@
 # Contrato · GNumberField
 
 **Dueño:** lima · **Estado:** aprobado (las tres piezas de personalidad las adoptó el usuario el 2026-10-03; el resto deriva de APG *Spinbutton*, WCAG 2.2 y los contratos vigentes; ninguna pregunta de producto abierta) · **Basado en:** `design/lab/number-field/r01/` (kiwi; `brief.md`, `declaracion.md` con los hallazgos L1 a L14 y «Qué lo hace distinto», `index.html` con `XNumberField` sobre las clases reales de `GInput`, `verificar.mjs` 233/233 en los tres motores; commit `d258dac`) · **Decisiones:** DECISIONS.md **#309 a #314** · **Convive con:** `input.md` (la caja; dos añadidos internos, «Cambio por `GNumberField`»), `form.md` (contexto, `useFormField`, `GFormRow`, receta de signos vitales, `GInputGroup`; Fase 2), `icons.md` (`minus`, `plus`), `tokens.md` §29 y §30
-**Tag:** `g-number-field` · **Categoría:** entradas · **Fase 2 del sistema de formularios, sin moneda** (#154, #168)
+**Tag:** `g-number-field` · **Categoría:** entradas · **Fase 2 del sistema de formularios** (#154, #168); **moneda por `currency`** desde la ronda de moneda y precio (enmienda §«Moneda», DECISIONS.md #777; `price.md`)
 **Componente complejo** (CLAUDE.md, «Modelos por rol»: compone `GInput`, lleva un motor numérico propio y personalidad con cifras): **coco y bruno en Opus**.
 
 Un campo para **un número que la persona escribe** (edad, peso, temperatura, porcentaje, cantidad): texto con forma de número que se escribe libre, se lee en el formato del idioma y, si se pide, se ajusta con −/+ o con las flechas. El modelo es un `Number` o `null`, nunca una cadena.
@@ -25,7 +25,8 @@ Un campo para **un número que la persona escribe** (edad, peso, temperatura, po
 | Unidad **fija** («kg», «lpm», «%») | `GNumberField suffix` | Unidad en la etiqueta o en el slot `prepend` (decorativo) |
 | Unidad **elegible** (°C/°F) | Hoy: `GNumberField` + `GSelect` «Unidad» en la misma `GFormRow` (dos preguntas) o `GInputGroup` con `GInputGroupInput inputmode` (receta, `form.md` §8). **`GInputGroupNumber` reservado** (#314) | Una prop `unit` |
 | Un identificador hecho de cifras (CP, folio, teléfono, tarjeta) | `GInput inputmode="numeric"` | `GNumberField` (no es una cantidad: ni formato, ni pasos, ni `Number`) |
-| Dinero | Ronda propia de moneda (Fase 4/5, #154) | `GNumberField prefix="$"` como sustituto del formato de moneda |
+| Dinero | `GNumberField currency="MXN"` (§«Moneda», #777); para mostrar un precio, `GPrice` (`price.md`) | `GNumberField prefix="$"` como sustituto del formato de moneda (sigue sin servir: decimales, lado del símbolo y lectura son de la moneda) |
+| Dinero con moneda elegible | Receta: `GSelect` «Moneda» + `GNumberField currency` en la misma `GFormRow` (§«Moneda») | `v-model:currency` (reservado, #777) |
 | Elegir un valor acotado arrastrando, o un rango | `GSlider` (`slider.md`; juntos con el mismo `v-model` en una `GFormRow` cuando hacen falta la proporción y la cifra) | `GNumberField` |
 
 ---
@@ -41,6 +42,7 @@ Un campo para **un número que la persona escribe** (edad, peso, temperatura, po
 | `precision` | Number | entero ≥ 0 | sin valor (decimales libres) | propia |
 | `locale` | String | etiqueta BCP 47 | sin valor (ver «Idioma») | compartida (`api.md`, fila nueva) |
 | `grouping` | Boolean | | `true` | propia |
+| `currency` | String | código ISO 4217 | sin valor | propia (§«Moneda», #777) |
 | `prefix` | String | texto libre | sin valor | propia (como `GInput`, #166) |
 | `suffix` | String | texto libre | sin valor | propia (como `GInput`, #166) |
 | `prefixLabel` | String | texto libre | sin valor | propia (como `GInput`, #166) |
@@ -291,6 +293,26 @@ Un campo con −/+ necesita más sitio que su clase de tamaño (−/+ ocupan 2 �
 
 ---
 
+## Moneda (`currency`; enmienda de la ronda de moneda y precio, DECISIONS.md #777)
+
+**Origen:** P-L7 de `design/lab/price/r01/` (kiwi montó el `GNumberField` real con props derivadas, sin motor nuevo, medido en los tres motores) y la decisión del usuario del 2026-10-21 («el campo como `GNumberField currency`»). El campo de moneda **no** es un componente nuevo.
+
+- **`currency`** (String, ISO 4217, reactiva; se normaliza a mayúsculas). Con valor, el campo deriva de la moneda y del idioma resuelto (§«Idioma»), con `utils/currency.js` (interno, compartido con `@grana/vue/price`, `price.md`):
+  1. **`precision`** = los decimales de la moneda (`resolvedOptions().maximumFractionDigits`: MXN 2, JPY 0, KWD 3). **La `precision` explícita gana** (precios enteros: `precision` 0; tarifas por unidad: 4). Con ella, `inputmode` se deriva como siempre (`decimal` con MXN, `numeric` con JPY, medido).
+  2. **Símbolo en su lado:** del `formatToParts` del idioma; **delante** (`prefix`) si la parte `currency` va antes de la cifra («$» en `es-MX`), **detrás** (`suffix`) si va después («€» en `de-DE`). Sin marcas bidi. Va pegado a la cifra por P1.
+  3. **Código si el símbolo es ambiguo:** con la tabla de símbolos compartidos de `price.md` («$ MXN» en `es-MX`; «MX$» en `en-US`, sin código).
+  4. **Lectura:** el `*Label` de ese lado es el **nombre de la moneda en plural** de `Intl` («pesos mexicanos»), así que entra en `aria-describedby` como cualquier `prefixLabel`/`suffixLabel` (#166) y el visible queda `aria-hidden`. **No** entra en `aria-valuetext` (que sigue siendo «2,500.50»: la unidad saldría dos veces).
+- **Se formatea al salir, no mientras se escribe** (la regla de siempre de `GNumberField`; kiwi P-L7 punto 15): mientras se escribe no hay miles ni símbolo («2500.5»); al salir, «2,500.50» (`de-DE`: «2.500,50»). El canónico oculto sigue siendo `2500.5` y **el modelo sigue siendo `Number | null`**: la moneda es una prop, no parte del modelo (la aplicación compone `{ amount, currency }` si la necesita, `Money` de `price.md`).
+- **El lado de la moneda es de la moneda:** con `currency`, la prop `prefix` (o `suffix`) del lado que ocupa el símbolo **se ignora con aviso**, y también su `*Label`; el otro lado queda libre para la aplicación (`suffix="/ noche"` con «$» delante).
+- **Defecto 1 de P-L7 (requisito): cambiar la precisión efectiva redondea el modelo.** Cuando cambia `currency` o `precision` y el modelo tiene más decimales que la precisión nueva, el campo **emite `update:modelValue` una vez con el valor redondeado** (sin `change`: es un cambio desde la aplicación) y reformatea el texto si no tiene el foco (con el foco, al salir, como siempre). Medido por kiwi: con 2500,5 MXN y cambio a JPY el texto decía «2,501» y el modelo seguía en 2500,5 en los tres motores; lo visible y lo enviado deben coincidir. **Un valor que llega de la aplicación** con más decimales (al montar o después) se muestra **y se envía** redondeado (el oculto lleva el canónico del redondeado), con aviso, y **no** se emite.
+- **Defecto 2 de P-L7 (requisito): pegar con símbolo se interpreta.** Con `currency`, antes de las cuatro reglas de pegado (§«Teclado», «Pegar»), el texto pegado pierde, de **esa** moneda: el símbolo del idioma, el símbolo estrecho (`narrowSymbol`), el código ISO (sin distinguir mayúsculas), el nombre de la moneda en singular y en plural en el idioma, los espacios (también U+00A0 y U+202F) y las marcas bidi. «$1,850.00 MXN» → 1850; «1.850,00 €» en `de-DE` → 1850; «MXN 95» → 95. **Una moneda distinta no se quita**: «€50» pegado en un campo MXN **no** entra (lo pegado que no es número no entra, como siempre; nunca se reinterpreta un importe en otra moneda).
+- **`min`/`max`/`step`** sin cambios (Grana no valida, #157). `steppers` sigue apagado por defecto y se permite.
+- **SSR:** **con `locale`**, el servidor escribe ya el símbolo en su lado y el texto formateado. **Sin `locale`**, servidor y primer render del cliente escriben el canónico **sin afijo de moneda** y al montar se pone el símbolo con el idioma resuelto (README: en SSR, `locale`).
+- **Envío nativo:** el oculto del importe lleva `name`; la moneda va en **su propio campo** (el `GSelect` con `name` de la receta) o, si es fija, en un oculto de la aplicación. **No hay un segundo oculto automático** (su nombre sería una convención inventada).
+- **Moneda elegible (receta, `form.md` §8 como la unidad elegible de #314):** en una `GFormRow`, `GSelect label="Moneda" name="moneda"` y `GNumberField :currency="moneda" name="precio"`. Al cambiar la moneda, el defecto 1 redondea el importe. **Reservado** `v-model:currency` con selector integrado, junto a `GInputGroupNumber` (#314).
+- **Sin cambios** en P2, P3, el mínimo publicado (el prefijo o sufijo de la moneda cuenta como cualquier afijo en las posiciones de #312) ni en `GInput`.
+- **Peso:** en el lote de enmiendas de moneda del principal (`price.md` «Paquete y peso», ≤ 1,5 KiB).
+
 ## Avisos de desarrollo (`[Grana GNumberField]`, una vez por instancia)
 
 Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production' …) … } catch {}`, `api.md` «Avisos de desarrollo»).
@@ -303,6 +325,9 @@ Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production
 6. `modelValue` `NaN` o `±Infinity`: se lee como `null`. (Una cadena ya la señala la comprobación de tipos de Vue.)
 7. `locale` que `Intl` rechaza: se usa el idioma del documento.
 8. `type` en `$attrs` (no aplica: el campo es siempre `type="text"`), o slots `append`/`action` (no se pintan).
+9. `currency` que `Intl` rechaza: el campo se comporta sin moneda (#777).
+10. `prefix`/`prefixLabel` (o `suffix`/`suffixLabel`) en el lado que ocupa la moneda: se ignoran (#777).
+11. `modelValue` de la aplicación con más decimales que la precisión efectiva: se muestra y se envía redondeado, sin emitir (#777).
 
 ## Resolución de hallazgos (kiwi r01, §12)
 
@@ -350,6 +375,7 @@ Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production
 
 - `tests/number-field.spec.mjs`: el `verificar.mjs` de kiwi adaptado al componente real (árbol con `ariaSnapshot` y CDP en Chromium, teclado, pegado con el evento real en Chromium/WebKit, −/+ sin foco y con toque, tamaños 24…52 y 44 con puntero grueso, RTL `ar-EG`/`he`, 320px sin desborde con la unidad visible, envío con `is-rejected`, fila con `GInput` y `GSelect`: Δ `top` ≤ 1px y misma altura a 1100/720/320) y el **mínimo publicado**: un campo con −/+ en una fila se parte de línea antes de que el valor de referencia deje de caber (y no reparte al desbloquear un `readonly`).
 - `tests/personalidad-number-field.spec.mjs`: P1 (distancia valor–sufijo = separación de la caja con 1, 3 y 6 caracteres; 8px en `md`), P2 (≥ 2 posiciones intermedias, termina y retira la capa; 0 capas al mantener 1s; el `<input>` y el árbol tienen el valor nuevo en el primer cuadro), P3 (≤ `space × 0.5`, vuelve a 0, valor igual; nada fuera del límite); con `reduce`, ninguna se mueve y no quedan capas ni clases.
+- **Moneda (#777)** en `tests/number-field.spec.mjs`: `inputmode` (`decimal` MXN, `numeric` JPY), símbolo delante en `es-MX` y detrás en `de-DE`, «$ MXN» con símbolo ambiguo, descripción con «pesos mexicanos», escritura sin miles, formato al salir, canónico, P1 con el símbolo; **defecto 1** (2500,5 MXN → JPY emite 2501 y el oculto lleva 2501; falla antes) y **defecto 2** (pegar «$1,850.00 MXN» da 1850; «€50» en MXN no entra; falla antes); receta de moneda elegible en una `GFormRow`. En vitest, además, SSR con y sin `locale` y los avisos 9 a 11.
 - Prueba obligatoria de distribución (`tests/form-distribution.spec.mjs`, #184): el playground de formularios usa `GNumberField` en signos vitales y sigue pasando (1 línea a 1280/960, 2 a 720, 3 a 360).
 
 ### coco (CSS y auditoría)
