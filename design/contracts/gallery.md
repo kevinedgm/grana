@@ -285,10 +285,12 @@ Las dos piezas con props, eventos (`update:index`, `update:open` / `update:model
 - **C · Se abre en su sitio** (`appearance="inline"`, labels `fullscreen`, `closeDetail`, slot de detalle).
 - `autoplay` **no existe** (G-L5): no se reserva.
 - Tono `inverse` del visor (cuando exista el ámbito, #733).
+- **Visor de alto corto** (plegar pie e hilo bajo cierto alto para devolver espacio a la foto): se contratará solo si fotos reales o un reporte lo piden; hoy ocultaría información y añadiría un estado sin necesidad demostrada (G-A2, #762).
 
 ## Límites conocidos (para el README)
 
 - Sin JS, el enlace abre la foto (no hay visor).
+- **Alto muy corto (G-A2, #762):** a 320×256 (zoom del 400 %, el caso de reflujo de WCAG 1.4.10) barra, pie, navegación e hilo dejan a la foto ≈ 96×64 (apaisada) y ≈ 43×64 (vertical). Es **un límite aceptado y documentado**, no una forma nueva: la foto se ve, se amplía ×2 y se recorre, y ningún control se solapa ni se sale. El README lo declara.
 - Lector real (región viva, `aria-roledescription`, `aria-haspopup` en un enlace), gesto táctil real, fotos reales y `forced-colors` en Firefox/WebKit: no verificados en la ronda.
 
 ## Resolución de hallazgos de kiwi (G-L1 a G-L10)

@@ -149,6 +149,7 @@ section.g-hero.g-hero--appearance-{window|views|threshold}  aria-labelledby="{id
 
 - Foto a sangre arriba **sin nada encima** salvo el crédito; una tarjeta (`div.g-hero__card`, superficie `--g-color-surface` opaca) cruza su borde inferior con un labio de `min(space × 28, 16cqi)` y nunca tapa más de la mitad de la foto (medido). Ancho de la tarjeta `min(100% − 2 × margen, space × 220)` (H-L13; constantes §29.6).
 - **Slot `consult`:** el hueco de la consulta va **después de la bajada y antes de las acciones** (la acción envía lo consultado; orden de foco). El héroe no sabe de fechas: lo que va en el slot es de la aplicación (normalmente `GBookingBar`, cuyo `headingLevel` por defecto ya queda un nivel por debajo del `h1`). Fuera de `threshold`, el slot se ignora y avisa (aviso 6).
+- **Una sola acción principal (H-A2, #762):** con `consult` en el slot, **el envío de la consulta es la acción principal de la tarjeta** («Ver disponibilidad»). El slot `actions` de esa tarjeta lleva a lo sumo **acciones secundarias** (`GBtn variant="outline"` o `ghost`); una segunda acción sólida compite con el envío y no se recomienda. Es una **receta de uso, no una regla del componente**: `GHero` no inspecciona el contenido de sus slots, no hay aviso de desarrollo ni cambio de `.vue` ni de CSS. Sin `consult`, `actions` sigue igual (la principal sólida).
 
 ## Movimiento del vídeo (base; H-L8)
 
@@ -242,6 +243,7 @@ Props con valores, defaults y obligatoriedad (`title`); eventos `update:view`, `
 
 - La mirada no existe en Firefox (sin `animation-timeline`): queda quieta.
 - B en el teléfono pone la foto primero (la acción bajo el pliegue).
+- En C con `consult`, el README recomienda acciones secundarias en `actions`; el componente no lo impone ni avisa (#762).
 - Zoom de solo texto a 200 % con el título fluido, lector real, LCP con fotos reales y vídeo real: no verificados en la ronda.
 
 ## Resolución de hallazgos de kiwi (H-L1 a H-L14)
