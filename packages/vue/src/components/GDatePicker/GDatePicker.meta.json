@@ -50,6 +50,24 @@
       "default": null
     },
     {
+      "name": "disabledNights",
+      "type": "Function",
+      "default": null,
+      "description": "Solo range (#739): (iso) => boolean, la noche que empieza iso está agotada. Un día con la noche agotada no es inicio; un fin vale si ninguna noche entre medias está agotada; salir un día agotado es válido; sin inicio pendiente, un día agotado cuya noche anterior no lo está es «solo salida» (is-checkout-only + labels.checkoutOnly)."
+    },
+    {
+      "name": "minNights",
+      "type": "Number",
+      "default": null,
+      "description": "Solo range (#739): noches mínimas (entero ≥ 1); un fin con menos no es elegible."
+    },
+    {
+      "name": "maxNights",
+      "type": "Number",
+      "default": null,
+      "description": "Solo range (#739): noches máximas (entero ≥ minNights); un fin con más no es elegible; la proximidad no la supera."
+    },
+    {
       "name": "months",
       "type": "String | Number",
       "default": "auto",
@@ -72,7 +90,8 @@
     {
       "name": "labels",
       "type": "Object",
-      "default": {}
+      "default": {},
+      "description": " checkoutOnly (#739): sufijo del nombre del día «solo salida» (recomendado con disabledNights)."
     },
     {
       "name": "proximity",
@@ -391,10 +410,14 @@
     "with-proximity",
     "trigger-slot",
     "warning",
-    "valid"
+    "valid",
+    "day-checkout-only"
   ],
   "implementation": [
-    "Panel estable al desplazar la página (utils/anchor.js, mismas reglas que GCombobox): el lado se decide al abrir y se conserva; solo cambia si el actual baja de space × 40 y el otro ofrece al menos space × 12 más. --_max se fija al abrir, al pasar de uno a dos meses, en resize y al cambiar de lado; durante el desplazamiento solo se escribe la posición, una vez por cuadro y solo si cambia. Si el ancla sale del visor o de su contenedor con desplazamiento, el selector se cierra sin devolver el foco (no en la hoja móvil)."
+    "Panel estable al desplazar la página (utils/anchor.js, mismas reglas que GCombobox): el lado se decide al abrir y se conserva; solo cambia si el actual baja de space × 40 y el otro ofrece al menos space × 12 más. --_max se fija al abrir, al pasar de uno a dos meses, en resize y al cambiar de lado; durante el desplazamiento solo se escribe la posición, una vez por cuadro y solo si cambia. Si el ancla sale del visor o de su contenedor con desplazamiento, el selector se cierra sin devolver el foco (no en la hoja móvil).",
+    "Noches y salida (#739): con disabledNights, minNights o maxNights en range, el fin va después del inicio y cada día se clasifica por canStart/canEnd: sin inicio pendiente, lo que no puede ser inicio es is-disabled salvo «solo salida» (is-checkout-only, sin aria-disabled; tocarlo no hace nada); con inicio pendiente, lo que no puede ser fin pero sí inicio es is-inactive y lo que no es ninguno, is-disabled. La vista previa solo pinta fines válidos. La proximidad recorta antes de la primera noche agotada y no pasa de maxNights. Avisos: las tres props en single; maxNights < minNights; modelValue con una noche agotada dentro (se muestra tal cual).",
+    "Slot trigger (B-L7, #739): la raíz lleva g-datepicker--trigger (coco: display: contents); aviso si al montar la raíz tiene un <p> ancestro.",
+    "B-L6 (#739): «Mes anterior» y «Mes siguiente» llevan disabled con disabled (también inline): el selector deshabilitado no navega."
   ],
   "pending": [
     "Lector de pantalla real (cuadrícula, rango, título vivo, hoja móvil)",

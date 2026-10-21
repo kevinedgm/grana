@@ -89,7 +89,7 @@ describe('edgeReserve', () => {
   it('order y before (#322): voz → isla → avisos por prioridad, no por montaje', () => {
     const speech = Symbol('speech')
     const island = Symbol('island')
-    expect(EDGE_ORDER).toEqual({ appShell: 5, speech: 10, pageHeader: 15, fab: 25, status: 30 }) // #714: el chasis, lo más cercano al borde; #631: el encabezado de página tras la voz; #699: la isla, transitoria, detrás del FAB
+    expect(EDGE_ORDER).toEqual({ appShell: 5, speech: 10, pageHeader: 15, bookingDock: 20, fab: 25, status: 30 }) // #714: el chasis, lo más cercano al borde; #631: el encabezado de página tras la voz; #699: la isla, transitoria, detrás del FAB
     // La isla publica ANTES que la voz (orden de montaje inverso): el resultado no cambia
     setEdgeReserve(island, 'top', 56, { order: EDGE_ORDER.status })
     setEdgeReserve(speech, 'top', 60, { order: EDGE_ORDER.speech })

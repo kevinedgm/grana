@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GGallery · banco del componente real (bruno)</title>
+<!-- Banco de GGallery y GGalleryViewer con los componentes REALES (dist/gallery.umd.js, global GranaGallery; dueño: bruno).
+     Lo verifica design/lab/theme-playground/tests/gallery.spec.mjs. Parámetros: ?c=grid|strip · ?flat=1 (sin espacios) ·
+     ?one=1 (una foto) · ?zone=none · ?broken=1 (la 3.ª foto no existe) · ?dir=rtl · ?dark=1 · ?solo=1 (visor suelto con botón). -->
+<link rel="stylesheet" href="../dist/fonts.css">
+<link rel="stylesheet" href="../dist/grana.css">
+<style>
+  body{margin:0;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
+  main{padding:16px;max-inline-size:1200px;margin-inline:auto}
+  .tall{block-size:120vh}
+</style>
+</head>
+<body>
+<div id="app">
+  <main>
+    <p id="before">Habitación con patio. <a href="#x">Antes</a></p>
+    <g-gallery v-if="!Q.solo" id="gal" :appearance="Q.c" title="Habitación Jardín" :photos="photos" :groups="groups" :labels="labels" :viewer-zone="Q.zone" v-model:index="index" v-model:open="open" locale="es"></g-gallery>
+    <template v-else>
+      <g-btn id="ver" ref="ver" @click="open = true">Ver 6 fotos</g-btn>
+      <g-gallery-viewer v-model="open" v-model:index="index" :photos="photos" title="Suite Jardín" :from="verEl" :labels="labels"></g-gallery-viewer>
+    </template>
+    <div class="tall"></div>
+    <button id="after" type="button">Después</button>
+  </main>
+</div>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="../dist/grana.umd.js"></script>
+<script src="../dist/gallery.umd.js"></script>
+<script src="./marketing-fotos.js"></script>
+<script>
+  const q = new URLSearchParams(location.search)
+  const Q = { c: q.get('c') || 'grid', flat: q.has('flat'), one: q.has('one'), zone: q.get('zone') || 'brand', broken: q.has('broken'), solo: q.has('solo') }
+  if (q.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  if (q.has('dark')) document.documentElement.dataset.theme = 'dark'
+  const P = (key, w, h, group, caption) => ({ ...window.fotoMedia(key, w, h), thumb: window.foto(key, Math.round(w / 4), Math.round(h / 4)), group: Q.flat ? undefined : group, caption })
+  let photos = [
+    P('habitacion', 1600, 1067, 'hab', 'La cama'), P('patio', 1600, 1067, 'hab', 'Ventana al patio'), P('mezcal', 1600, 1067, 'hab'), P('habitacion', 1067, 1600, 'hab'),
+    P('bano', 1067, 1600, 'bano', 'Lavabo de talavera'), P('terraza', 1600, 1067, 'terraza', 'De noche')
+  ]
+  if (Q.broken) photos[2] = { ...photos[2], src: '/no-existe.jpg', thumb: '/no-existe-t.jpg' }
+  if (Q.one) photos = photos.slice(0, 1)
+  const app = Vue.createApp({
+    setup() {
+      const index = Vue.ref(0)
+      const open = Vue.ref(false)
+      const ver = Vue.ref(null)
+      const verEl = Vue.computed(() => (ver.value && ver.value.$el && ver.value.$el.nextElementSibling) || document.getElementById('ver') || undefined)
+      window.galState = { index, open }
+      return {
+        Q, index, open, ver, verEl, photos,
+        groups: [{ value: 'hab', label: 'Habitación' }, { value: 'bano', label: 'Baño', id: 'fotos-bano' }, { value: 'terraza', label: 'Terraza' }],
+        labels: {
+          total: (n) => `${n} ${n === 1 ? 'foto' : 'fotos'}`, count: '{index} de {total}', groupCount: '{group} · {index} de {total}', position: '{index} de {total}',
+          announce: '{position}. {alt}.', first: 'Primera foto.', last: 'Última foto.', prev: 'Foto anterior', next: 'Foto siguiente', close: 'Cerrar', zoom: 'Ampliar',
+          viewer: '{title}, galería', groups: 'Espacios', groupLink: (n, v) => `${v.group}, ${v.count} ${n === 1 ? 'foto' : 'fotos'}`,
+          broken: 'No se pudo cargar esta foto: {alt}', carousel: 'carrusel', slide: 'foto'
+        }
+      }
+    }
+  })
+  app.use(Grana).use(GranaGallery)
+  window.galApp = app.mount('#app')
+</script>
+</body>
+</html>

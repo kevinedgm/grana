@@ -898,3 +898,130 @@ describe('GDatePicker · panel estable al desplazar la página', () => {
     w.unmount()
   })
 })
+
+describe('GDatePicker · noches y salida (#739, datepicker.md «Noches y salida»)', () => {
+  // Noches agotadas: la del 20 (20→21) y la del 23 (23→24)
+  const off = (iso) => iso === '2026-10-20' || iso === '2026-10-23'
+  const st = (w, iso) => day(w, iso).classes()
+
+  it('un día con la noche agotada no es inicio; sin inicio pendiente, el 20 es «solo salida» (sin aria-disabled, sufijo)', async () => {
+    const w = inline({ mode: 'range', disabledNights: off, labels: { ...LABELS, checkoutOnly: 'solo salida' } })
+    expect(st(w, '2026-10-20')).toContain('is-checkout-only')
+    expect(st(w, '2026-10-20')).not.toContain('is-disabled')
+    expect(day(w, '2026-10-20').attributes('aria-disabled')).toBeUndefined()
+    expect(day(w, '2026-10-20').attributes('aria-label')).toMatch(/, solo salida$/)
+    await click(w, '2026-10-20')
+    expect(w.emitted('start')).toBeUndefined()
+    expect(st(w, '2026-10-21')).not.toContain('is-checkout-only')
+  })
+
+  it('una noche agotada cuya anterior también lo está: ni inicio ni salida → is-disabled', () => {
+    const w = inline({ mode: 'range', disabledNights: (iso) => iso === '2026-10-20' || iso === '2026-10-21' })
+    expect(st(w, '2026-10-20')).toContain('is-checkout-only')
+    expect(st(w, '2026-10-21')).toContain('is-disabled')
+    expect(day(w, '2026-10-21').attributes('aria-disabled')).toBe('true')
+  })
+
+  it('salir un día agotado es válido; dormir esa noche no: tras el agotado, Inactive (reinicia) y no fin', async () => {
+    const w = inline({ mode: 'range', disabledNights: off })
+    await click(w, '2026-10-18')
+    expect(st(w, '2026-10-20')).not.toContain('is-disabled') // fin válido (18→20 duerme 18 y 19)
+    expect(st(w, '2026-10-22')).toContain('is-inactive') // contendría la noche del 20; pero puede ser inicio
+    expect(st(w, '2026-10-23')).toContain('is-disabled') // ni fin (noche del 20) ni inicio (su noche está agotada)
+    expect(st(w, '2026-10-16')).toContain('is-inactive')
+    await click(w, '2026-10-20')
+    expect(last(w, 'update:modelValue')).toEqual({ start: '2026-10-18', end: '2026-10-20' })
+  })
+
+  it('tocar un Inactive posterior reinicia el inicio; el fin va siempre después del inicio', async () => {
+    const w = inline({ mode: 'range', disabledNights: off })
+    await click(w, '2026-10-18')
+    await click(w, '2026-10-22')
+    expect(w.emitted('start').map((e) => e[0].date)).toEqual(['2026-10-18', '2026-10-22'])
+    expect(w.emitted('update:modelValue')).toBeUndefined()
+    await click(w, '2026-10-22') // mismo día: no es fin (0 noches), reinicia
+    expect(w.emitted('update:modelValue')).toBeUndefined()
+    await click(w, '2026-10-23')
+    expect(last(w, 'update:modelValue')).toEqual({ start: '2026-10-22', end: '2026-10-23' })
+  })
+
+  it('minNights y maxNights solos: el fin fuera de [min, max] no es elegible', async () => {
+    const w = inline({ mode: 'range', minNights: 2, maxNights: 3 })
+    await click(w, '2026-10-10')
+    expect(st(w, '2026-10-11')).toContain('is-inactive')
+    expect(st(w, '2026-10-12')).not.toContain('is-inactive')
+    expect(st(w, '2026-10-13')).not.toContain('is-inactive')
+    expect(st(w, '2026-10-14')).toContain('is-inactive')
+    await click(w, '2026-10-14')
+    expect(w.emitted('update:modelValue')).toBeUndefined()
+    await click(w, '2026-10-16')
+    expect(last(w, 'update:modelValue')).toEqual({ start: '2026-10-14', end: '2026-10-16' })
+  })
+
+  it('la vista previa solo pinta un fin válido', async () => {
+    const w = inline({ mode: 'range', disabledNights: off })
+    await click(w, '2026-10-18')
+    await day(w, '2026-10-22').trigger('pointerover'); await nextTick()
+    expect(w.findAll('td.is-preview')).toHaveLength(0)
+    await day(w, '2026-10-20').trigger('pointerover'); await nextTick()
+    expect(w.findAll('td.is-preview').length).toBeGreaterThan(0)
+  })
+
+  it('sin las tres reglas, el comportamiento de siempre (inicio = fin vale; disabledDates no impide contener días)', async () => {
+    const w = inline({ mode: 'range' })
+    await click(w, '2026-10-10')
+    await click(w, '2026-10-10')
+    expect(last(w, 'update:modelValue')).toEqual({ start: '2026-10-10', end: '2026-10-10' })
+  })
+
+  it('la proximidad no mete noches agotadas (recorta antes de la primera) ni pasa de maxNights', async () => {
+    const w = inline({ mode: 'range', disabledNights: off, modelValue: { start: '2026-10-21', end: '2026-10-22' }, proximity: [{ days: 3, label: '± 3' }] })
+    await w.find('.g-datepicker__chip').trigger('click')
+    expect(last(w, 'update:modelValue')).toEqual({ start: '2026-10-21', end: '2026-10-23' })
+    const m = inline({ mode: 'range', maxNights: 4, modelValue: { start: '2026-10-10', end: '2026-10-12' }, proximity: [{ days: 3, label: '± 3' }] })
+    await m.find('.g-datepicker__chip').trigger('click')
+    expect(last(m, 'update:modelValue')).toEqual({ start: '2026-10-07', end: '2026-10-11' })
+  })
+
+  it('avisos: noches en single, maxNights < minNights, modelValue con una noche agotada dentro', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    inline({ disabledNights: off })
+    inline({ mode: 'range', minNights: 3, maxNights: 2 })
+    const v = inline({ mode: 'range', disabledNights: off, modelValue: { start: '2026-10-19', end: '2026-10-22' } })
+    const msgs = warn.mock.calls.map((c) => String(c[0]))
+    expect(msgs.some((m) => m.includes('solo valen con mode="range"'))).toBe(true)
+    expect(msgs.some((m) => m.includes('maxNights (2) es menor'))).toBe(true)
+    expect(msgs.some((m) => m.includes('noche agotada del 2026-10-20'))).toBe(true)
+    // se muestra tal cual
+    expect(cellOf(v, '2026-10-20').classList.contains('is-in-range')).toBe(true)
+  })
+})
+
+describe('GDatePicker · B-L6 y raíz con trigger (#739)', () => {
+  it('inline + disabled: los botones de mes también quedan deshabilitados', async () => {
+    const w = inline({ disabled: true })
+    const prev = w.find('.g-datepicker__nav--prev')
+    const next = w.find('.g-datepicker__nav--next')
+    expect(prev.attributes('disabled')).toBeDefined()
+    expect(next.attributes('disabled')).toBeDefined()
+    const title = w.find('.g-datepicker__title').text()
+    await next.trigger('click')
+    expect(w.find('.g-datepicker__title').text()).toBe(title)
+    expect(w.emitted('navigate')).toBeUndefined()
+  })
+
+  it('con el slot trigger la raíz lleva g-datepicker--trigger; sin él, no', () => {
+    const a = mk({}, { slots: { trigger: '<button type="button">Llegada</button>' } })
+    expect(a.classes()).toContain('g-datepicker--trigger')
+    const b = mk({ label: 'Fecha' })
+    expect(b.classes()).not.toContain('g-datepicker--trigger')
+  })
+
+  it('aviso si la raíz está dentro de un <p>', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const p = document.createElement('p')
+    document.body.append(p)
+    mount(GDatePicker, { attachTo: p, props: { locale: 'es', labels: LABELS }, slots: { trigger: '<button type="button">x</button>' } })
+    expect(warn.mock.calls.some((c) => String(c[0]).includes('dentro de un <p>'))).toBe(true)
+  })
+})

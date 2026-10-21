@@ -20,6 +20,9 @@ const props = defineProps({
   min: { type: String, default: undefined },
   max: { type: String, default: undefined },
   disabledDates: { type: Function, default: undefined },
+  disabledNights: { type: Function, default: undefined },
+  minNights: { type: Number, default: undefined },
+  maxNights: { type: Number, default: undefined },
   months: { type: [String, Number], default: 'auto', validator: (v) => v === 'auto' || v === 1 || v === 2 || v === '1' || v === '2' },
   locale: { type: String, default: undefined },
   firstDay: { type: Number, default: undefined, validator: (v) => Number.isInteger(v) && v >= 0 && v <= 6 },
@@ -161,13 +164,28 @@ const fieldText = computed(() => {
 })
 
 // ---------- Disponibilidad ----------
+// Noches y salida (#739, datepicker.md «Noches y salida»; solo range): disabledNights(iso) = la noche que empieza iso está agotada
 const unavailable = (iso) => Boolean((props.min && iso < props.min) || (props.max && iso > props.max) || (props.disabledDates && props.disabledDates(iso)))
+// Noches (#739): solo en range. Con alguna de las tres reglas, un rango duerme las noches start … end − 1 y el fin va
+// después del inicio; sin ellas, el comportamiento de siempre (fin ≥ inicio, disabledDates no impide contener días)
+const nightsOn = computed(() => isRange.value && (props.disabledNights || props.minNights || props.maxNights) !== undefined)
+const nightOff = (iso) => Boolean(isRange.value && props.disabledNights && props.disabledNights(iso))
+const canStart = (iso) => !unavailable(iso) && !nightOff(iso)
+// Fin válido: sin las reglas, e ≥ s; con ellas, e > s, noches (días − 1) en [min, max] y ninguna agotada entre medias
+function canEnd(s, e) {
+  if (!s || unavailable(e)) return false
+  if (!nightsOn.value) return e >= s
+  const n = daysBetween(s, e) - 1
+  if (n < (props.minNights || 1) || n > (props.maxNights ?? n)) return false
+  for (let d = s; d < e; d = addDays(d, 1)) if (nightOff(d)) return false
+  return true
+}
 
 // ---------- Rango efectivo (con vista previa mientras se elige el final) ----------
 const eff = computed(() => {
   if (!isRange.value) return { a: null, b: null, preview: false }
   if (pending.value) {
-    if (hover.value && hover.value >= pending.value) return { a: pending.value, b: hover.value, preview: true }
+    if (hover.value && hover.value >= pending.value && (!nightsOn.value || canEnd(pending.value, hover.value))) return { a: pending.value, b: hover.value, preview: true }
     return { a: pending.value, b: pending.value, preview: false }
   }
   const { start, end } = normalized.value
@@ -229,7 +247,20 @@ function dayState(cell, today) {
   const same = Boolean(range && a && a === b && iso === a) // inicio = fin, o inicio pendiente sin fin
   const inBand = Boolean(range && a && a !== b && iso >= a && iso <= b)
   const multi = n.value > 1
-  const dis = unavailable(iso)
+  // Con noches (#739): sin inicio pendiente, lo que no puede ser inicio es Disabled salvo «solo salida»; con inicio pendiente,
+  // lo que no puede ser fin pero sí inicio es Inactive, y lo que no puede ser ni una cosa ni otra, Disabled (regla 3)
+  const p = pending.value
+  let dis = unavailable(iso)
+  let co = false
+  let inact = Boolean(p && iso < p && !dis && cell.inMonth)
+  if (nightsOn.value && !dis && iso !== p) {
+    const st = canStart(iso)
+    // Solo salida (regla 4): sin inicio pendiente, su noche agotada y la de antes no
+    if (!p) co = !st && nightOff(iso) && !nightOff(addDays(iso, -1))
+    const end = p && canEnd(p, iso)
+    dis = !st && !end && !co
+    if (p) inact = Boolean(!end && st && cell.inMonth)
+  }
   const circle = single ? selectedSingle : Boolean(a && (iso === a || (iso === b && !preview)))
   const cs = inBand && (cell.col === 0 || (multi && cell.first))
   const ce = inBand && (cell.col === 6 || (multi && cell.last))
@@ -238,7 +269,8 @@ function dayState(cell, today) {
     today: iso === today,
     disabled: dis,
     outside: !cell.inMonth,
-    inactive: Boolean(pending.value && iso < pending.value && !dis && cell.inMonth),
+    inactive: inact,
+    checkoutOnly: co,
     isStart, isEnd, same, inBand, preview: Boolean(inBand && preview),
     capStart: Boolean(cs && !isStart), capEnd: Boolean(ce && !isEnd)
   }
@@ -258,6 +290,7 @@ function dayLabel(cell, st) {
     else if (a && cell.iso === b) add(l.rangeEnd)
     else if (a && b && cell.iso > a && cell.iso < b && !pending.value) add(l.inRange)
   } else if (cell.iso === eff.value.a) add(l.rangeStart)
+  if (st.checkoutOnly) add(l.checkoutOnly)
   if (st.disabled) add(l.unavailable)
   return t
 }
@@ -284,6 +317,10 @@ const interactive = computed(() => !isDisabled.value && !isReadonly.value)
 
 function pick(iso) {
   if (!interactive.value || unavailable(iso)) return
+  // Noches (#739): con inicio pendiente, un fin válido cierra el rango y si no, un inicio válido lo reinicia; sin él, solo
+  // un inicio válido (un día «solo salida» no hace nada)
+  const restart = nightsOn.value && !(pending.value && canEnd(pending.value, iso))
+  if (restart && !canStart(iso)) return
   focusDate.value = iso
   if (!isRange.value) {
     emitValue(iso)
@@ -291,13 +328,13 @@ function pick(iso) {
     afterPick(true, iso)
     return
   }
-  if (!pending.value) {
+  if (!pending.value || restart) {
     pending.value = iso
     hover.value = null
     emit('start', { date: iso })
     say(fill(L.value.announceStart, { date: full(iso) }))
     afterPick(false, iso)
-  } else if (iso < pending.value) {
+  } else if (iso < pending.value && !nightsOn.value) {
     pending.value = iso
     emit('start', { date: iso })
     say(fill(L.value.announceStart, { date: full(iso) }))
@@ -321,10 +358,15 @@ function afterPick(complete, iso) {
 
 function widen(days) {
   if (!interactive.value || !isRange.value || pending.value || !normalized.value.start) return
-  let a = addDays(normalized.value.start, -days)
-  let b = addDays(normalized.value.end, days)
+  const { start, end } = normalized.value
+  let a = addDays(start, -days)
+  let b = addDays(end, days)
   if (props.min && a < props.min) a = props.min
   if (props.max && b > props.max) b = props.max
+  // Regla 7 (#739): ampliar no mete noches agotadas (recorta antes de la primera) ni pasa de maxNights
+  for (let d = addDays(start, -1); d >= a; d = addDays(d, -1)) if (nightOff(d)) { a = addDays(d, 1); break }
+  for (let d = end; d < b; d = addDays(d, 1)) if (nightOff(d)) { b = d; break }
+  if (nightsOn.value && daysBetween(a, b) > props.maxNights + 1) b = addDays(a, props.maxNights)
   emitValue({ start: a, end: b })
   say(fill(L.value.announceWiden, { start: full(a), end: full(b), days: daysBetween(a, b) }))
 }
@@ -610,8 +652,20 @@ watch(() => normalized.value.start, (s) => {
   }
 })
 
+// Aviso (#739): una noche agotada dentro del modelValue recibido (se muestra tal cual)
+watch(() => [normalized.value.start, normalized.value.end, props.disabledNights], () => {
+  try {
+    if (process.env.NODE_ENV !== 'production' && isRange.value && props.disabledNights) {
+      const { start, end } = normalized.value
+      if (start && end) for (let d = start; d < end; d = addDays(d, 1)) if (props.disabledNights(d)) { warnOnce('nights-value', `modelValue con la noche agotada del ${d}.`); break }
+    }
+  } catch {}
+}, { immediate: true })
+
 let ro = null
 onMounted(() => {
+  // Aviso (B-L7, #739): la raíz es un div y no va dentro de un <p> (el analizador cerraría el párrafo en SSR)
+  try { if (process.env.NODE_ENV !== 'production' && root.value && root.value.parentElement && root.value.parentElement.closest('p')) warnOnce('in-p', 'la raíz está dentro de un <p> (usa un div).') } catch {}
   if (props.inline && typeof ResizeObserver !== 'undefined' && root.value) {
     ro = new ResizeObserver(() => fit())
     ro.observe(root.value)
@@ -641,6 +695,8 @@ const classes = computed(() => [
   {
     'g-datepicker--block': ff.block.value,
     'g-datepicker--inline': props.inline,
+    // Slot trigger (B-L7, #739): la raíz sin caja (display: contents, coco)
+    'g-datepicker--trigger': hasTriggerSlot.value,
     'g-datepicker--split': splitOn.value,
     'g-datepicker--has-output': hasOutput.value,
     'is-open': isOpen.value,
@@ -740,6 +796,9 @@ try {
         warnOnce('label', 'necesita label, slot label, aria-label o aria-labelledby para tener un nombre accesible.')
       }
     }
+    // Noches y salida (#739)
+    if (!isRange.value && (props.disabledNights || props.minNights || props.maxNights)) warnOnce('nights-single', 'disabledNights, minNights y maxNights solo valen con mode="range".')
+    if (props.maxNights < props.minNights) warnOnce('nights-max', `maxNights (${props.maxNights}) es menor que minNights (${props.minNights}).`)
     if (props.inline) {
       const fieldProps = ['label', 'hint', 'error', 'placeholder', 'required', 'name', 'split', 'size', 'density', 'rounded', 'block', 'variant']
       const given = fieldProps.filter((k) => attrs[k] !== undefined)
@@ -814,6 +873,7 @@ defineExpose({
                 :aria-hidden="m.index !== 0 ? 'true' : undefined"
                 :tabindex="m.index !== 0 ? -1 : undefined"
                 :aria-label="L.prev"
+                :disabled="isDisabled || undefined"
                 @click="go(-1)"
               ><GIcon name="chevron-left" /></button>
               <h3 :id="monthId(m.index)" class="g-datepicker__title" aria-live="polite"><span>{{ m.name }}</span> <span>{{ m.year }}</span></h3>
@@ -824,6 +884,7 @@ defineExpose({
                 :aria-hidden="m.index !== grid.length - 1 ? 'true' : undefined"
                 :tabindex="m.index !== grid.length - 1 ? -1 : undefined"
                 :aria-label="L.next"
+                :disabled="isDisabled || undefined"
                 @click="go(1)"
               ><GIcon name="chevron-right" /></button>
             </div>
@@ -857,7 +918,8 @@ defineExpose({
                           'is-today': cell.st.today,
                           'is-disabled': cell.st.disabled,
                           'is-outside': cell.st.outside,
-                          'is-inactive': cell.st.inactive
+                          'is-inactive': cell.st.inactive,
+                          'is-checkout-only': cell.st.checkoutOnly
                         }"
                         type="button"
                         :data-date="cell.iso"

@@ -30,8 +30,10 @@ describe('niveles de tokens en los componentes (tokens.md §17)', () => {
   // Propiedades públicas de solo lectura que publica una primitiva para los componentes que la componen (su raíz ES esa
   // primitiva). Excepción acotada y nombrada, no un comodín: `--g-surface-padding` la declara GSurface.css (DECISIONS.md
   // #131, surface.md «Cambio aparte», tokens.md §19) y solo la lee GCard, cuya raíz es una GSurface.
-  const PUBLISHED = { 'GSurface/GSurface.css': ['--g-surface-padding'] }
-  const COMPOSES = { 'GCard/GCard.css': ['GSurface/GSurface.css'] }
+  // Las márgenes publicadas de GContainer (`--g-container-inset-start/-end`, container.md, #721 a #724) las lee GPageHeader
+  // cuando es el primer hijo de la columna y sangra como g-bleed (L4, #751, #760; page-header.md).
+  const PUBLISHED = { 'GSurface/GSurface.css': ['--g-surface-padding'], 'GContainer/GContainer.css': ['--g-container-inset-start', '--g-container-inset-end'] }
+  const COMPOSES = { 'GCard/GCard.css': ['GSurface/GSurface.css'], 'GPageHeader/GPageHeader.css': ['GContainer/GContainer.css'] }
 
   it('las propiedades publicadas existen en su primitiva y no son tokens del tema', () => {
     for (const [sheet, names] of Object.entries(PUBLISHED)) {

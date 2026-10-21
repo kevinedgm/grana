@@ -147,6 +147,23 @@ must_not_have app-shell.js "new WeakMap" "El registro de bordes (utils/edgeReser
 must_have grana.css "g-container__body" "$CSS_MSG"
 must_have grana.css "g-container--width-reading" "$CSS_MSG"
 
+# Marketing (#742): tres entradas propias con tope (hero 4 KiB, gallery 12 KiB, booking 14 KiB gzip); el CSS en grana.css
+must_have grana.css "g-hero__media" "$CSS_MSG"
+must_have grana.css "g-hero__frame" "$CSS_MSG"
+must_not_have grana.js "GHero" "GHero viajó en el paquete principal grana.js; debe ir solo en la entrada hero.js (#742)"
+must_exist "hero.js" "No se generó la entrada propia hero.js (revisar vite.hero.config.js y el script build de packages/vue)"
+must_have grana.css "g-gallery-viewer__stage" "$CSS_MSG"
+must_have grana.css "g-dialog--bare" "$CSS_MSG"
+must_not_have grana.js "GGallery" "GGallery viajó en el paquete principal grana.js; debe ir solo en la entrada gallery.js (#742)"
+must_exist "gallery.js" "No se generó la entrada propia gallery.js (revisar vite.gallery.config.js y el script build de packages/vue)"
+must_have grana.css "g-booking-bar__phrase" "$CSS_MSG"
+must_have grana.css "g-party-field__panel" "$CSS_MSG"
+must_have grana.css "is-checkout-only" "$CSS_MSG"
+must_not_have grana.js "GBookingBar" "GBookingBar viajó en el paquete principal grana.js; debe ir solo en la entrada booking.js (#742)"
+must_not_have grana.js "GPartyField" "GPartyField viajó en el paquete principal grana.js; debe ir solo en la entrada booking.js (#742)"
+must_exist "booking.js" "No se generó la entrada propia booking.js (revisar vite.booking.config.js y el script build de packages/vue)"
+must_not_have booking.js "new WeakMap" "El registro de bordes (utils/edgeReserve.js) quedó copiado en booking.js; debe llegar por __shared sin copia (EDGE_ORDER.bookingDock)"
+
 echo
 if [ "$failed" -eq 0 ]; then
   echo "Compuertas: $total/$total superadas."

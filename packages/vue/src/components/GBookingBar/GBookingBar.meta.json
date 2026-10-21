@@ -1,0 +1,249 @@
+{
+  "schemaVersion": 1,
+  "status": "draft",
+  "since": "0.1.0",
+  "entry": "@grana/vue/booking",
+  "contract": "design/contracts/booking-bar.md",
+  "decisions": "DECISIONS.md #736 a #742, #744, #745, #757, #759",
+  "prototype": "design/lab/booking-bar/r01/",
+  "name": "GBookingBar",
+  "tag": "g-booking-bar",
+  "bundle": {
+    "global": "GranaBooking",
+    "gzip": 14074,
+    "limit": 14336,
+    "umdGzip": 12571
+  },
+  "style": "packages/vue/src/components/GBookingBar/GBookingBar.css",
+  "description": "Consulta de disponibilidad (estancia, mesa o recorrido) que emite una intención y no hace la reserva: A · La frase (por defecto, la plantilla de la aplicación con huecos), la barra (una fila que, si no cabe, pasa a resumen + hoja) y B · El muelle opcional. Valida al enviar, dice lo que falta y distingue la noche agotada del día de salida.",
+  "props": [
+    {
+      "name": "kind",
+      "type": "String",
+      "default": "stay",
+      "values": [
+        "stay",
+        "table",
+        "tour"
+      ],
+      "description": "stay = llegada + salida (noches en la frase) + grupo; table = fecha + turno + grupo; tour = recorrido + fecha + grupo."
+    },
+    {
+      "name": "modelValue",
+      "type": "Object | null",
+      "default": null,
+      "description": "La consulta (v-model): stay { from, to, party }; table { date, time, party }; tour { tour, date, party }. Fechas ISO sin zona. Las noches se derivan. Forma inválida: vacío y aviso 4."
+    },
+    {
+      "name": "appearance",
+      "type": "String",
+      "default": "phrase",
+      "values": [
+        "phrase",
+        "bar"
+      ],
+      "description": "phrase (A) o bar. Sin labels.phrase o sin un marcador del kind, se pinta bar (aviso 6). guided reservado (aviso 9)."
+    },
+    {
+      "name": "dock",
+      "type": "Boolean",
+      "default": false,
+      "description": "B · El muelle: aparece cuando la consulta sale del visor por arriba (alto de contrato, EDGE_ORDER.bookingDock, cola del documento #757)."
+    },
+    {
+      "name": "title",
+      "type": "String",
+      "required": true,
+      "default": null,
+      "description": "Título (nombre del search). Obligatorio (aviso 1)."
+    },
+    {
+      "name": "headingLevel",
+      "type": "Number",
+      "default": null,
+      "values": [
+        2,
+        3,
+        4
+      ],
+      "description": "Nivel del título; sin él, el de GSection o 2."
+    },
+    {
+      "name": "partyRows",
+      "type": "Array",
+      "required": true,
+      "default": null,
+      "description": "Filas de GPartyField (aviso 2)."
+    },
+    {
+      "name": "min",
+      "type": "String",
+      "default": null,
+      "description": "Fecha mínima ISO."
+    },
+    {
+      "name": "max",
+      "type": "String",
+      "default": null,
+      "description": "Fecha máxima ISO."
+    },
+    {
+      "name": "disabledDates",
+      "type": "Function",
+      "default": null,
+      "description": "(iso, query) => boolean: día no disponible (recibe la consulta)."
+    },
+    {
+      "name": "disabledNights",
+      "type": "Function",
+      "default": null,
+      "description": "Solo stay: (iso, query) => boolean, la noche que empieza iso está agotada (#739). Una noche agotada dentro: error con la fecha; salir un día agotado es válido."
+    },
+    {
+      "name": "minNights",
+      "type": "Number",
+      "default": 1,
+      "description": "Solo stay: noches mínimas."
+    },
+    {
+      "name": "maxNights",
+      "type": "Number",
+      "default": null,
+      "description": "Solo stay: noches máximas."
+    },
+    {
+      "name": "times",
+      "type": "Array | Function",
+      "default": null,
+      "description": "table: [{ value: 'HH:mm', label?, disabled? (Boolean o motivo) }] o (date) => Array; los llenos, deshabilitados con el sufijo de texto (aviso 3 sin ellos)."
+    },
+    {
+      "name": "tours",
+      "type": "Array",
+      "default": null,
+      "description": "tour: [{ value, label, description?, disabled? }] (aviso 3 sin ellos)."
+    },
+    {
+      "name": "quickDays",
+      "type": "Number",
+      "default": 0,
+      "description": "En la frase, el hueco de fecha ofrece n días desde hoy (o min) con Intl.RelativeTimeFormat y «Otro día» (labels.otherDay) que abre el calendario."
+    },
+    {
+      "name": "names",
+      "type": "Object",
+      "default": {},
+      "description": "{ from?, to?, nights?, date?, time?, tour?, party? }: nombre de cada oculto (siempre presentes); el grupo, {party}[{key}]."
+    },
+    {
+      "name": "pending",
+      "type": "Boolean",
+      "default": false,
+      "description": "La aplicación consulta: GBtn loading con loadingText = labels.pending. No bloquea la edición."
+    },
+    {
+      "name": "disabled",
+      "type": "Boolean",
+      "default": false,
+      "description": "Todo deshabilitado (campos, huecos, acción, muelle)."
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "default": null,
+      "description": "BCP 47; sin él, el lang del ancestro."
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": {},
+      "description": "Textos sin valores por defecto (#226; aviso 7): phrase, fields.{from|to|nights|date|time|tour|party}, empty.*, nights (contado), checkout, noDates, noDate, noTime, noTour, separator, summaryTitle, change, submit, pending, close, done, otherDay, full, decrement, increment, errors.{dates|night|nights|date|time|tour}, missing (contado, {count} {list}). Pendiente de lima: datePicker (textos que se pasan tal cual a los GDatePicker internos: prev, next, dialog, close…)."
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null,
+      "description": "Base de los id; generado si no se da."
+    }
+  ],
+  "events": [
+    {
+      "name": "update:modelValue",
+      "payload": "Object",
+      "trigger": "Cambia la consulta"
+    },
+    {
+      "name": "submit",
+      "payload": "{ kind, from?, to?, nights?, date?, time?, tour?, party, event, preventDefault(), defaultPrevented }",
+      "trigger": "Envío válido (acción, Intro, muelle u hoja), síncrono en el gesto. Sin action, el envío nativo se cancela; con action, va salvo preventDefault()"
+    }
+  ],
+  "slots": [],
+  "methods": [],
+  "tokens": [
+    "--g-color-surface",
+    "--g-color-text",
+    "--g-color-text-muted",
+    "--g-color-text-subtle",
+    "--g-color-border",
+    "--g-color-border-strong",
+    "--g-color-border-control",
+    "--g-color-danger-text",
+    "--g-color-focus",
+    "--g-focus-width",
+    "--g-focus-offset",
+    "--g-border-width",
+    "--g-radius-*",
+    "--g-shadow-2",
+    "--g-shadow-3",
+    "--g-text-title-size",
+    "--g-text-title-line",
+    "--g-text-title-weight",
+    "--g-text-title-tracking",
+    "--g-text-title-sm-weight",
+    "--g-text-body-*",
+    "--g-text-body-sm-*",
+    "--g-text-caption-*",
+    "--g-text-action-weight",
+    "--g-font-ui",
+    "--g-space-*",
+    "--g-sidebar-bar",
+    "--g-duration-fast",
+    "--g-duration-press",
+    "--g-duration-slow",
+    "--g-ease-out",
+    "--g-ease-standard"
+  ],
+  "states": [
+    "empty",
+    "partial",
+    "invalid",
+    "pending",
+    "disabled",
+    "compact",
+    "docked"
+  ],
+  "classes": [
+    "form.g-booking-bar.g-booking-bar--appearance-{phrase|bar}.g-booking-bar--kind-{stay|table|tour}(.is-compact)(.is-disabled)[role=search][novalidate]",
+    "(phrase) div.g-booking-bar__phrase > texto + button.g-booking-bar__slot(.is-empty|.is-filled)(.is-invalid) > span.__slot-label + span.__slot-value + GLibIcon chevron-down; div.__slot-panel[popover=manual][role=dialog][data-side] (--_x, --_y, --_max); p.__checkout; ul.__messages > li#{id}-err-{slot}",
+    "(bar) div.__row > div.__field × n (campos con block) + GBtn.__submit | div.__compact > button.__summary > span.__summary-title + span.__summary-text + span.__summary-change, GBtn.__submit",
+    "p.__digest (descripción de la acción); GDialog.__sheet (campos en línea); div.__dock[hidden][inert] / .is-shown (mismo cuadro) con --_reserve (px) > p.__dock-summary + GBtn.__dock-change + GBtn.__submit"
+  ],
+  "warnings": [
+    "1 · sin title",
+    "2 · sin partyRows",
+    "3 · table sin times o tour sin tours",
+    "4 · modelValue con forma inválida",
+    "5 · dentro de otro <form>",
+    "6 · phrase sin labels.phrase o sin un marcador del kind; marcador desconocido",
+    "7 · falta una clave de labels",
+    "8 · disabledNights, minNights o maxNights fuera de stay",
+    "9 · appearance=\"guided\" (reservada)"
+  ],
+  "pending": [
+    "Auditoría de coco con un tema distinto (status draft hasta entonces)",
+    "README (mora-docs)",
+    "Lima: labels.datePicker (los textos de los GDatePicker internos no están en la tabla «Textos»)",
+    "Lector real con la frase en modo lectura, móvil real (teclado virtual sobre la hoja), otros idiomas en la frase"
+  ]
+}

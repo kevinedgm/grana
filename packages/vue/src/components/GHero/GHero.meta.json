@@ -1,0 +1,239 @@
+{
+  "schemaVersion": 1,
+  "name": "GHero",
+  "tag": "g-hero",
+  "status": "draft",
+  "since": "0.1.0",
+  "entry": "@grana/vue/hero",
+  "bundle": {
+    "global": "GranaHero",
+    "gzip": 4007,
+    "limit": 4096,
+    "umdGzip": 3674
+  },
+  "description": "Apertura de un sitio (hotel, restaurante, tour): título, promesa, acción y la foto que vende, con el contraste del texto garantizado por construcción (el texto nunca toca la foto o vive en una placa opaca), una sola foto prioritaria y nada que se mueva solo sin poder pararse. A · La ventana (por defecto), C · El umbral (consulta en la tarjeta) y B · Vistas a elegir.",
+  "contract": "design/contracts/hero.md",
+  "decisions": "DECISIONS.md #725 a #729, #742, #744, #745, #755, #756, #759",
+  "prototype": "design/lab/hero/r01/",
+  "style": "packages/vue/src/components/GHero/GHero.css",
+  "props": [
+    {
+      "name": "title",
+      "type": "String",
+      "required": true,
+      "default": null,
+      "description": "Título (h1 o h2). Obligatorio (aviso 1); nombra la región."
+    },
+    {
+      "name": "eyebrow",
+      "type": "String",
+      "default": null,
+      "description": "Antetítulo (dir=\"auto\"). El slot eyebrow lo sustituye."
+    },
+    {
+      "name": "lead",
+      "type": "String",
+      "default": null,
+      "description": "Bajada (dir=\"auto\"). El slot lead la sustituye."
+    },
+    {
+      "name": "aside",
+      "type": "String",
+      "default": null,
+      "description": "Dato al pie del contenido (dir=\"auto\"). El slot aside lo sustituye."
+    },
+    {
+      "name": "headingLevel",
+      "type": "Number",
+      "default": 1,
+      "values": [
+        1,
+        2
+      ],
+      "description": "Nivel del título; el tamaño no lo sigue (#196). Con 1, aviso 4 si hay otro h1 en el documento."
+    },
+    {
+      "name": "appearance",
+      "type": "String",
+      "default": "window",
+      "values": [
+        "window",
+        "views",
+        "threshold"
+      ],
+      "description": "A · La ventana (vano de arco con detalle), B · Vistas a elegir (placa de la zona de marca y 2 a 4 vistas), C · El umbral (tarjeta con el slot consult). views con menos de 2 vistas se pinta como window."
+    },
+    {
+      "name": "media",
+      "type": "Object",
+      "default": null,
+      "description": "Foto principal { src, srcset?, sizes?, width, height, alt?, decorative?, credit? }: width y height obligatorios (aviso 2); alt o decorative (aviso 3). img con loading=eager, decoding=async y fetchpriority=high con priority."
+    },
+    {
+      "name": "detail",
+      "type": "Object",
+      "default": null,
+      "description": "Solo window: segunda ventana decorativa { src, srcset?, sizes?, width, height } (alt=\"\", aria-hidden), fuera del marco, sin fetchpriority."
+    },
+    {
+      "name": "frame",
+      "type": "String",
+      "default": "arch",
+      "values": [
+        "arch",
+        "rect"
+      ],
+      "description": "Solo window: forma del vano (arco o rectángulo con el radio de tarjeta)."
+    },
+    {
+      "name": "look",
+      "type": "Boolean",
+      "default": true,
+      "description": "Solo window: la mirada (§29.8), la foto se desplaza ≤ 3 % dentro del marco con el desplazamiento; CSS sin JS, quieta sin soporte o con movimiento reducido."
+    },
+    {
+      "name": "views",
+      "type": "Array",
+      "default": [],
+      "description": "Solo views: 2 a 4 { value, label, media } (media con alt obligatorio). Cada vista es un img estable que cambia de clase; las no elegidas sin src hasta el load de la principal."
+    },
+    {
+      "name": "view",
+      "type": "String | Number",
+      "default": null,
+      "description": "Vista elegida (v-model:view); sin valor, la primera."
+    },
+    {
+      "name": "paused",
+      "type": "Boolean",
+      "default": null,
+      "description": "Solo con un <video> en el slot media (v-model:paused). Sin valor: true con movimiento reducido, si no false."
+    },
+    {
+      "name": "priority",
+      "type": "Boolean",
+      "default": null,
+      "description": "fetchpriority=high en la foto principal. Por defecto true con headingLevel 1 y false con 2. Dos héroes con priority: aviso 5."
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": {},
+      "description": "{ views, pause } sin valores por defecto (#226): views = legend de las vistas (aviso 8); pause = nombre constante del botón de pausa, en texto oculto (aviso 10). resume retirado (#756): se ignora."
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null,
+      "description": "Base de los id (título {id}-title, name de los radios); generado si no se da."
+    }
+  ],
+  "events": [
+    {
+      "name": "update:view",
+      "payload": "String | Number",
+      "trigger": "La persona elige una vista (radio de B): el value de la vista"
+    },
+    {
+      "name": "update:paused",
+      "payload": "Boolean",
+      "trigger": "La persona pulsa la pausa del vídeo: true en pausa"
+    }
+  ],
+  "slots": [
+    {
+      "name": "actions",
+      "purpose": "Acciones (GBtn size=\"lg\"); en div.g-hero__actions"
+    },
+    {
+      "name": "consult",
+      "purpose": "Solo threshold: la consulta (GBookingBar) entre la bajada y las acciones; fuera de C se ignora (aviso 6)"
+    },
+    {
+      "name": "media",
+      "purpose": "Sustituye a la foto: un <video muted playsinline loop poster width height> sin autoplay (aviso 9); el héroe llama a play()/pause() y pinta la pausa. En A va dentro del marco"
+    },
+    {
+      "name": "eyebrow",
+      "purpose": "Sustituye al texto de eyebrow (sin interactivos)"
+    },
+    {
+      "name": "lead",
+      "purpose": "Sustituye al texto de lead (sin interactivos)"
+    },
+    {
+      "name": "aside",
+      "purpose": "Sustituye al texto de aside (sin interactivos)"
+    }
+  ],
+  "methods": [],
+  "tokens": [
+    "--g-color-bg",
+    "--g-color-surface",
+    "--g-color-surface-sunken",
+    "--g-color-text",
+    "--g-color-text-muted",
+    "--g-color-border",
+    "--g-color-border-control",
+    "--g-color-focus",
+    "--g-focus-width",
+    "--g-focus-offset",
+    "--g-border-width",
+    "--g-radius-*",
+    "--g-shadow-1",
+    "--g-shadow-2",
+    "--g-text-title-lg-size",
+    "--g-hero-title-max",
+    "--g-text-title-sm-size",
+    "--g-text-title-sm-line",
+    "--g-text-display-weight",
+    "--g-text-display-tracking",
+    "--g-font-display",
+    "--g-text-body-*",
+    "--g-text-body-sm-*",
+    "--g-text-caption-*",
+    "--g-text-action-weight",
+    "--g-font-ui",
+    "--g-space-*",
+    "--g-press-scale",
+    "--g-duration-fast",
+    "--g-duration-press",
+    "--g-duration-slow",
+    "--g-ease-out",
+    "--g-ease-standard"
+  ],
+  "states": [
+    "default",
+    "loading-photo",
+    "broken-photo",
+    "video-playing",
+    "video-paused",
+    "view-current",
+    "focus-visible"
+  ],
+  "classes": [
+    "g-hero g-hero--appearance-{window|views|threshold} (raíz, section con aria-labelledby al título)",
+    "g-hero--frame-{arch|rect}, g-hero--has-detail, g-hero--look (window); g-hero--has-video e is-paused (con vídeo)",
+    "g-hero__content > g-hero__eyebrow, g-hero__title, g-hero__lead, g-hero__consult (C), g-hero__actions, g-hero__aside, g-hero__views (B)",
+    "g-hero__card (C), g-hero__plate[data-g-zone=\"brand\"] (B)",
+    "g-hero__media > g-hero__frame > g-hero__img (A, #755) | g-hero__img (B, C), g-hero__detail (A), g-hero__layer / g-hero__img.is-current (B, nodos estables), g-hero__motion > GLibIcon + g-hero__motion-label (#756), g-hero__credit",
+    "g-hero__views-legend, g-hero__view(.is-current) > g-hero__view-input[data-g-key-focus] + g-hero__view-thumb + g-hero__view-label (B)"
+  ],
+  "warnings": [
+    "1 · sin title",
+    "2 · media o vista sin width/height",
+    "3 · media sin alt ni decorative; vista sin alt",
+    "4 · otro h1 en el documento con headingLevel 1 (mensaje propio con un GPageHeader)",
+    "5 · más de un GHero con priority",
+    "6 · frame, look o detail sin window; views sin views; slot consult sin threshold",
+    "7 · views con menos de 2 o más de 4 entradas, o value repetido",
+    "8 · views sin labels.views",
+    "9 · <video autoplay> en el slot media",
+    "10 · vídeo sin labels.pause"
+  ],
+  "pending": [
+    "Auditoría de coco con un tema distinto (status draft hasta entonces)",
+    "README (mora-docs)",
+    "Zoom de solo texto al 200 %, lector real, LCP con fotos reales y vídeo real (hero.md «Límites conocidos»)"
+  ]
+}

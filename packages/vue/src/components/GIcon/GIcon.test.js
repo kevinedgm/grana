@@ -397,10 +397,10 @@ describe('Resolución (§5.4)', () => {
     expect(w.find('svg').html()).toContain('M7 11V7a5 5 0 0 1 10 0v4')
   })
 
-  it('el registro admite los iconos de ejemplo de GCard (image, play); image entró en la librería con GFileField (#377), play no', () => {
+  it('el registro admite los iconos de ejemplo de GCard (image, play); los dos están ya en la librería: image por GFileField (#377), play por GHero (#744)', () => {
     const reg = createIcons([Image, Play])
     expect(ICONS.image).toBeDefined()
-    expect(ICONS.play).toBeUndefined()
+    expect(ICONS.play).toBeDefined()
     expect(withIcons(reg, GIcon, { name: 'image' }).find('svg').exists()).toBe(true)
     expect(withIcons(reg, GIcon, { name: 'play' }).find('svg').exists()).toBe(true)
   })

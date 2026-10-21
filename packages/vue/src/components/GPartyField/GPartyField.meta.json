@@ -1,0 +1,254 @@
+{
+  "schemaVersion": 1,
+  "status": "draft",
+  "since": "0.1.0",
+  "entry": "@grana/vue/booking",
+  "contract": "design/contracts/booking-bar.md",
+  "decisions": "DECISIONS.md #736 a #742, #744, #745, #757, #759",
+  "prototype": "design/lab/booking-bar/r01/",
+  "name": "GPartyField",
+  "tag": "g-party-field",
+  "bundle": {
+    "global": "GranaBooking",
+    "gzip": 14074,
+    "limit": 14336,
+    "umdGzip": 12571
+  },
+  "style": "packages/vue/src/components/GPartyField/GPartyField.css",
+  "description": "Personas por tipo (adultos, niños, habitaciones; claves de la aplicación) con el resumen en palabras en el disparador y un panel de contadores (GNumberField steppers), o las filas a la vista (inline). Campo de Grana: etiqueta, mensajes, contexto de GForm y ocultos {name}[{key}].",
+  "props": [
+    {
+      "name": "modelValue",
+      "type": "Object",
+      "default": {},
+      "description": "{ [key]: Number }, completado con default/min de cada fila. Un valor que excede un max dependiente se corrige y se emite."
+    },
+    {
+      "name": "rows",
+      "type": "Array",
+      "required": true,
+      "default": null,
+      "description": "[{ key, label, hint?, min? (0), max? (Number o (value) => Number), default?, unit? (String con {count} o (count) => String), decrementLabel, incrementLabel }] (avisos 1 y 3)."
+    },
+    {
+      "name": "mode",
+      "type": "String",
+      "default": "popover",
+      "values": [
+        "popover",
+        "inline"
+      ],
+      "description": "popover: disparador + panel en la capa superior; inline: filas a la vista en un role=group (dentro de un modal)."
+    },
+    {
+      "name": "label",
+      "type": "String",
+      "default": null,
+      "description": "Etiqueta (obligatoria salvo aria-label/aria-labelledby o slot trigger; aviso 2)."
+    },
+    {
+      "name": "hint",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "error",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "warning",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "valid",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "name",
+      "type": "String",
+      "default": null,
+      "description": "Ocultos {name}[{key}] por fila (también con disabled) y registro en GForm."
+    },
+    {
+      "name": "disabled",
+      "type": "Boolean",
+      "default": null
+    },
+    {
+      "name": "readonly",
+      "type": "Boolean",
+      "default": null,
+      "description": "El disparador es enfocable y no abre; en inline, contadores en solo lectura."
+    },
+    {
+      "name": "size",
+      "type": "String",
+      "default": "md",
+      "values": [
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl"
+      ]
+    },
+    {
+      "name": "variant",
+      "type": "String",
+      "default": "outline",
+      "values": [
+        "outline",
+        "soft"
+      ]
+    },
+    {
+      "name": "density",
+      "type": "String",
+      "default": null,
+      "values": [
+        "default",
+        "comfortable",
+        "compact"
+      ]
+    },
+    {
+      "name": "rounded",
+      "type": "String",
+      "default": null,
+      "values": [
+        "none",
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl",
+        "pill"
+      ]
+    },
+    {
+      "name": "block",
+      "type": "Boolean",
+      "default": null
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": {},
+      "description": "{ done, separator } sin valores por defecto (aviso 3)."
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null
+    }
+  ],
+  "events": [
+    {
+      "name": "update:modelValue",
+      "payload": "Object",
+      "trigger": "Cambia un contador o se corrige un valor por un max dependiente"
+    },
+    {
+      "name": "open",
+      "payload": "",
+      "trigger": "El panel se abre"
+    },
+    {
+      "name": "close",
+      "payload": "",
+      "trigger": "El panel se cierra (Esc, Tab fuera, tocar fuera, «Listo»)"
+    }
+  ],
+  "slots": [
+    {
+      "name": "trigger",
+      "purpose": "Sustituye al disparador (la frase de GBookingBar); la raíz lleva g-party-field--trigger y no se pintan label, hint ni mensaje",
+      "scope": "{ id, expanded, controls, toggle, open, close, value, text }"
+    },
+    {
+      "name": "label",
+      "purpose": "Etiqueta del campo"
+    }
+  ],
+  "methods": [
+    {
+      "name": "open",
+      "signature": "() => void"
+    },
+    {
+      "name": "close",
+      "signature": "() => void"
+    },
+    {
+      "name": "focus",
+      "signature": "() => void"
+    }
+  ],
+  "tokens": [
+    "--g-color-surface",
+    "--g-color-surface-sunken",
+    "--g-color-text",
+    "--g-color-text-muted",
+    "--g-color-text-subtle",
+    "--g-color-neutral-soft",
+    "--g-color-border",
+    "--g-color-border-strong",
+    "--g-color-border-control",
+    "--g-color-danger-text",
+    "--g-color-warning-text",
+    "--g-color-success-text",
+    "--g-color-focus",
+    "--g-focus-width",
+    "--g-border-width",
+    "--g-radius-*",
+    "--g-shadow-2",
+    "--g-text-body-*",
+    "--g-text-body-sm-*",
+    "--g-text-caption-*",
+    "--g-text-action-weight",
+    "--g-font-ui",
+    "--g-space-*",
+    "--g-duration-fast",
+    "--g-duration-press",
+    "--g-duration-slow",
+    "--g-ease-out",
+    "--g-ease-standard"
+  ],
+  "states": [
+    "closed",
+    "open",
+    "focus-visible",
+    "invalid",
+    "warning",
+    "valid",
+    "readonly",
+    "disabled",
+    "rejected"
+  ],
+  "classes": [
+    "g-party-field g-party-field--mode-{popover|inline} --size-* --variant-* --density-* --rounded-* --block --trigger; is-open is-invalid is-warning is-valid is-readonly is-disabled is-rejected",
+    "g-party-field__label, button.g-party-field__trigger > GLibIcon users + span.g-party-field__value + GLibIcon.g-party-field__arrow (chevron-down)",
+    "div.g-party-field__panel[role=dialog][popover=manual][data-side] (--_x, --_y, --_max) > div.g-party-field__rows > GNumberField block × n + GBtn.g-party-field__done",
+    "g-party-field__support > g-party-field__hint + p.g-party-field__message (> __message-icon + __message-type); input[type=hidden] × n"
+  ],
+  "warnings": [
+    "1 · sin rows, fila sin key/label o key repetida",
+    "2 · sin nombre accesible",
+    "3 · fila sin decrementLabel/incrementLabel; falta labels.done (popover) o labels.separator",
+    "4 · mode=\"popover\" dentro de un <dialog>",
+    "5 · valor fuera de [min, max]"
+  ],
+  "pending": [
+    "Auditoría de coco con un tema distinto (status draft hasta entonces)",
+    "README (mora-docs)",
+    "childAges reservado"
+  ]
+}

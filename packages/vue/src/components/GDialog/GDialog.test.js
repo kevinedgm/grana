@@ -1110,3 +1110,97 @@ describe('GDialog · abridor por puntero (foco en <body> al abrir)', () => {
     w.unmount(); btn.remove(); other.remove()
   })
 })
+
+describe('GDialog · bare y from vivo (#732, dialog.md «Visor a pantalla completa»)', () => {
+  it('bare: sin encabezado, sin inset ni pie; el slot va directo en el cuerpo; clase g-dialog--bare', () => {
+    const w = mountOpen({ bare: true, fullscreen: true }, { slots: { default: '<button class="x">Siguiente</button>' } })
+    const d = w.find('dialog')
+    expect(d.classes()).toEqual(expect.arrayContaining(['g-dialog--bare', 'g-dialog--fullscreen']))
+    expect(d.classes()).not.toContain('g-dialog--inset')
+    expect(w.find('.g-dialog__header').exists()).toBe(false)
+    expect(w.find('.g-dialog__close').exists()).toBe(false)
+    expect(w.find('.g-dialog__inset').exists()).toBe(false)
+    expect(w.find('.g-dialog__body > .x').exists()).toBe(true)
+    w.unmount()
+  })
+
+  it('bare: title no se pinta y es el aria-label; un aria-label del consumidor gana', () => {
+    const a = mountOpen({ bare: true, title: 'Habitación Jardín, galería' })
+    expect(a.find('dialog').attributes('aria-label')).toBe('Habitación Jardín, galería')
+    expect(a.find('dialog').attributes('aria-labelledby')).toBeUndefined()
+    expect(a.text()).not.toContain('Habitación Jardín')
+    const b = mountOpen({ bare: true, title: 'T' }, { attrs: { 'aria-label': 'Visor' } })
+    expect(b.find('dialog').attributes('aria-label')).toBe('Visor')
+    // sin bare, un aria-label del consumidor sigue llegando
+    const c = mountOpen({}, { attrs: { 'aria-label': 'Otro' } })
+    expect(c.find('dialog').attributes('aria-label')).toBe('Otro')
+    a.unmount(); b.unmount(); c.unmount()
+  })
+
+  it('bare: close() del alcance emite dismiss con reason close (cancelable) y pide cerrar', async () => {
+    const w = mountOpen({ bare: true, title: 'V' }, { slots: { default: `<template #default="{ close }"><button class="c" @click="close">Cerrar</button></template>` } })
+    const reasons = []
+    await w.setProps({ onDismiss: (e) => reasons.push(e.reason) })
+    await w.find('.c').trigger('click')
+    expect(reasons).toEqual(['close'])
+    expect(w.emitted('update:modelValue').at(-1)).toEqual([false])
+    w.unmount()
+  })
+
+  it('bare: sin closeLabel no avisa del cierre; footer o tabs avisan (aviso 7) y no se pintan', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const a = mountOpen({ bare: true, closeLabel: undefined })
+    expect(warn.mock.calls.some((c) => String(c[0]).includes('closeLabel'))).toBe(false)
+    const b = mountOpen({ bare: true }, { slots: { footer: '<button class="f">F</button>' } })
+    expect(b.find('.f').exists()).toBe(false)
+    expect(warn.mock.calls.some((c) => String(c[0]).includes('`footer`'))).toBe(true)
+    a.unmount(); b.unmount()
+  })
+
+  it('bare: foco inicial con el orden de #292 (autofocus primero; sin botón de cierre propio)', async () => {
+    const w = mountOpen({ bare: true, title: 'V' }, { slots: { default: '<button class="a">Cerrar</button><button class="n" autofocus>Siguiente</button>' } })
+    await nextTick(); await nextTick()
+    expect(document.activeElement.className).toBe('n')
+    w.unmount()
+  })
+
+  it('from vivo: si from cambia con el diálogo abierto, el foco vuelve al valor vigente al cerrar', async () => {
+    const one = document.createElement('button'); one.textContent = 'uno'
+    const two = document.createElement('button'); two.textContent = 'dos'
+    document.body.append(one, two)
+    one.focus()
+    const w = mount(GDialog, { attachTo: document.body, props: { modelValue: false, title: 'T', closeLabel: 'C', from: one } })
+    await w.setProps({ modelValue: true })
+    await nextTick()
+    await w.setProps({ from: two })
+    await w.setProps({ modelValue: false })
+    await nextTick()
+    expect(document.activeElement).toBe(two)
+    w.unmount(); one.remove(); two.remove()
+  })
+
+  it('from vivo como selector: se resuelve al cerrar; si ya no existe, no se fuerza el foco', async () => {
+    const one = document.createElement('button'); one.id = 'f-uno'
+    document.body.append(one)
+    const w = mount(GDialog, { attachTo: document.body, props: { modelValue: false, title: 'T', closeLabel: 'C', from: '#f-uno' } })
+    await w.setProps({ modelValue: true })
+    await w.setProps({ from: '#no-existe' })
+    const before = document.activeElement
+    await w.setProps({ modelValue: false })
+    await nextTick()
+    expect(document.activeElement).not.toBe(one)
+    expect(before).toBeTruthy()
+    w.unmount(); one.remove()
+  })
+
+  it('Esc consumida por un descendiente (preventDefault) no cierra: el escenario del visor la usa para reducir', async () => {
+    const w = mountOpen({ bare: true, title: 'V' }, { slots: { default: '<div class="stage" tabindex="0"></div>' } })
+    const stage = w.find('.stage').element
+    stage.addEventListener('keydown', (e) => { if (e.key === 'Escape') e.preventDefault() })
+    stage.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }))
+    expect(w.emitted('dismiss')).toBeUndefined()
+    stage.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }))
+    expect(w.emitted('dismiss')).toBeUndefined()
+    w.unmount()
+  })
+})

@@ -1,0 +1,178 @@
+{
+  "schemaVersion": 1,
+  "status": "draft",
+  "since": "0.1.0",
+  "entry": "@grana/vue/gallery",
+  "contract": "design/contracts/gallery.md",
+  "decisions": "DECISIONS.md #730 a #735, #742, #744, #758, #759",
+  "prototype": "design/lab/gallery/r01/",
+  "style": "packages/vue/src/components/GGallery/GGallery.css",
+  "name": "GGalleryViewer",
+  "tag": "g-gallery-viewer",
+  "bundle": {
+    "global": "GranaGallery",
+    "gzip": 9114,
+    "limit": 12288,
+    "umdGzip": 8166
+  },
+  "description": "Visor a pantalla completa (GDialog fullscreen bare, #732) de las fotos: controles fuera de la foto, anuncio de cada foto, teclado, gesto (pasar y cerrar), zoom ×2 del tamaño contenido con recorrido nativo y Esc escalonado; devuelve el foco a `from`. Suelto (desde un botón) o dentro de GGallery.",
+  "props": [
+    {
+      "name": "modelValue",
+      "type": "Boolean",
+      "default": false,
+      "description": "Abierto (v-model). Con photos vacío no abre."
+    },
+    {
+      "name": "photos",
+      "type": "Array",
+      "default": [],
+      "description": "Fotos [{ src, thumb?, srcset?, sizes?, thumbSrcset?, thumbSizes?, width, height, alt, caption?, group?, id? }]: width/height (aviso 2) y alt (aviso 3) obligatorios; vacío: no se pinta (aviso 5)."
+    },
+    {
+      "name": "groups",
+      "type": "Array",
+      "default": null,
+      "description": "Espacios [{ value, label, id? }] (A): orden, etiqueta y ancla enlazable (sin id, {id}-g-{n}); sin ella, de photo.group en orden de aparición. Un group fuera de la lista va al final (aviso 4)."
+    },
+    {
+      "name": "index",
+      "type": "Number",
+      "default": null,
+      "description": "Foto actual (v-model:index)."
+    },
+    {
+      "name": "title",
+      "type": "String",
+      "required": true,
+      "default": null,
+      "description": "Nombre del visor (labels.viewer con {title}) y repetición visual (aria-hidden). Obligatorio (aviso 1)."
+    },
+    {
+      "name": "zoom",
+      "type": "Boolean",
+      "default": true,
+      "description": "Zoom (botón con nombre constante y aria-pressed, +/-, doble clic)."
+    },
+    {
+      "name": "zone",
+      "type": "String",
+      "default": "brand",
+      "values": [
+        "brand",
+        "none"
+      ],
+      "description": "data-g-zone=\"brand\" en el <dialog> (#733) o la página."
+    },
+    {
+      "name": "from",
+      "type": "String | HTMLElement",
+      "default": null,
+      "description": "A quién vuelve el foco al cerrar (selector o elemento); vivo: se resuelve al cerrar (#732)."
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": {},
+      "description": "Textos sin valores por defecto (#226; aviso 7 la primera vez que falta uno): total ({count}; contado: String o Function (count, vars)), count ({index} de {total}), groupCount ({group} · {index} de {total}), position (B), announce ({position}. {alt}.), first, last, prev, next, close, zoom (nombre constante), viewer ({title}, galería), groups, groupLink ({group}, {count}; contado), broken ({alt}), carousel y slide (aria-roledescription de B)."
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "default": null,
+      "description": "BCP 47 de las cifras; sin él, el lang del ancestro."
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null,
+      "description": "Base de los id; generado si no se da."
+    }
+  ],
+  "events": [
+    {
+      "name": "update:modelValue",
+      "payload": "Boolean",
+      "trigger": "Se cierra (botón cerrar, Esc, deslizar hacia abajo); dismiss cancelable de GDialog"
+    },
+    {
+      "name": "update:index",
+      "payload": "Number",
+      "trigger": "Cambia la foto (flechas, botones, gesto, hilo, Inicio/Fin, Av Pág/Re Pág)"
+    }
+  ],
+  "slots": [],
+  "methods": [
+    {
+      "name": "show",
+      "signature": "(index: number) => void",
+      "description": "Lleva el visor a una foto"
+    },
+    {
+      "name": "zoomIn",
+      "signature": "() => void"
+    },
+    {
+      "name": "zoomOut",
+      "signature": "() => void"
+    }
+  ],
+  "tokens": [
+    "--g-color-surface-sunken",
+    "--g-color-bg",
+    "--g-color-mold",
+    "--g-color-text",
+    "--g-color-text-muted",
+    "--g-color-text-subtle",
+    "--g-color-border",
+    "--g-color-border-strong",
+    "--g-color-border-control",
+    "--g-color-focus",
+    "--g-focus-width",
+    "--g-focus-offset",
+    "--g-border-width",
+    "--g-radius-md",
+    "--g-radius-shape",
+    "--g-text-body-*",
+    "--g-text-body-sm-*",
+    "--g-text-caption-*",
+    "--g-text-title-sm-*",
+    "--g-text-action-weight",
+    "--g-font-ui",
+    "--g-space-*",
+    "--g-duration-fast",
+    "--g-duration-press",
+    "--g-ease-out",
+    "--g-ease-standard"
+  ],
+  "states": [
+    "open",
+    "first",
+    "last",
+    "zoomed",
+    "dragging",
+    "arriving",
+    "broken",
+    "single"
+  ],
+  "classes": [
+    "dialog.g-dialog.g-dialog--fullscreen.g-dialog--bare.g-gallery-viewer[data-g-zone=brand][aria-label] > div.g-dialog__body",
+    "g-gallery-viewer__bar > p.__title[aria-hidden], p.__count[aria-hidden], GBtn.__zoom[aria-pressed], GBtn.__close",
+    "div.g-gallery-viewer__stage(.is-zoomed)(.is-dragging) con --_drag-x/--_drag-y (px, arrastrando) y --_zoom-w/--_zoom-h (px enteros, tamaño contenido × 2, ampliada; #758) > img.__img(.is-arriving)[data-direction=next|prev] + p.__broken",
+    "p.__caption[aria-hidden], div.__nav > GBtn.__prev, GBtn.__next[autofocus] (aria-disabled en los extremos), (A) nav.__thread[tabindex=-1] > button.__thread-item[aria-current], p.__live"
+  ],
+  "warnings": [
+    "1 · sin title",
+    "2 · foto sin width/height",
+    "3 · foto sin alt",
+    "4 · group fuera de groups; value repetido",
+    "5 · photos vacío",
+    "7 · falta una clave de labels al necesitarla",
+    "9 · index fuera de rango"
+  ],
+  "pending": [
+    "Auditoría de coco con un tema distinto (status draft hasta entonces)",
+    "README (mora-docs)",
+    "Gesto táctil real, pellizco del sistema y lector real"
+  ]
+}

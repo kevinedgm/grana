@@ -55,6 +55,12 @@
       "default": false
     },
     {
+      "name": "bare",
+      "type": "Boolean",
+      "default": false,
+      "description": "Visor a pantalla completa (#732): sin encabezado (ni título, descripción, icono ni cierre propio), sin inset ni relleno de carcasa; el slot por defecto llena la carcasa. Nombre por aria-label/aria-labelledby o, si no, title como aria-label. El cierre es del contenido (close() del alcance). footer y tabs se ignoran (aviso 7). Pensado con fullscreen."
+    },
+    {
       "name": "placement",
       "type": "String",
       "default": "center",
@@ -105,7 +111,8 @@
     {
       "name": "from",
       "type": "String|HTMLElement",
-      "default": null
+      "default": null,
+      "description": "A quién vuelve el foco al cerrar y origen de D1 (#583). Vivo (#732): si cambia con el diálogo abierto, al cerrar se resuelve otra vez y el foco va al valor vigente (si ya no es usable, el retorno nativo); el origen de D1 sigue siendo el de la apertura."
     },
     {
       "name": "steps",
@@ -237,6 +244,9 @@
       "Con is-stacked, el clic en el fondo no emite dismiss: solo el nivel 1 cierra con el fondo, si closeOnBackdrop lo permite (L4)",
       "Esc mantenida: un keydown con event.repeat se cancela y no pide el cierre; el cancel nativo (sin repeat) que siga a una repetición se ignora con una escucha de keydown en captura sobre el documento mientras haya algún GDialog abierto (L2)",
       "Corta el contexto de formulario: provide(null) de formKey, layoutKey, sectionKey, revealKey, fieldGroupKey, inputGroupKey y ownFieldKey; un GForm dentro es siempre <form> propio y GForm/GFormSection ignoran submit, reset, input, change y focusin que burbujean desde un <dialog> interior (L1)"
+    ],
+    "bare": [
+      "g-dialog--bare: raíz con bare (#732); el contenido va directo en .g-dialog__body, sin .g-dialog__header, .g-dialog__inset ni .g-dialog__footer"
     ]
   },
   "pending": [

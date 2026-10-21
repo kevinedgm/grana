@@ -35,7 +35,10 @@ export const ENTRIES = [
   { name: 'page-header', src: 'src/page-header.js' },
   { name: 'fab', src: 'src/fab.js' },
   { name: 'form-fold', src: 'src/form-fold.js' },
-  { name: 'app-shell', src: 'src/app-shell.js' }
+  { name: 'app-shell', src: 'src/app-shell.js' },
+  { name: 'hero', src: 'src/hero.js' },
+  { name: 'gallery', src: 'src/gallery.js' },
+  { name: 'booking', src: 'src/booking.js' }
 ]
 
 // ---------------------------------------------------------------------------------------------------------------------

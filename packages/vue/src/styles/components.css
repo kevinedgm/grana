@@ -117,3 +117,11 @@
 /* GFab (fab.md, entrada @grana/vue/fab, #656; su CSS sigue en grana.css): su FAB, su principal y su cola son GBtn y su
    nombre lo da GTooltip; añade su elevación y sus selectores sobre .g-btn: va después de GBtn.css y GTooltip.css */
 @import url("../components/GFab/GFab.css");
+/* Marketing (#742; entradas @grana/vue/hero, /gallery y /booking; su CSS sigue en grana.css):
+   GHero (hero.md) pinta GBtn por slot y su placa de B es zona de marca; GGallery (gallery.md) compone GDialog (bare) y GBtn
+   y reapunta su visor; GPartyField (booking-bar.md) es una caja de campo como GSelect y compone GNumberField; GBookingBar
+   compone GDatePicker, GSelect, GRadioGroup, GNumberField, GDialog, GBtn y GPartyField: van después de sus hojas */
+@import url("../components/GHero/GHero.css");
+@import url("../components/GGallery/GGallery.css");
+@import url("../components/GPartyField/GPartyField.css");
+@import url("../components/GBookingBar/GBookingBar.css");
