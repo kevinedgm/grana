@@ -1,6 +1,6 @@
 # Contrato · GBookingBar y GPartyField (consulta de reserva y campo de grupo)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #736 a #742, #744 y #745, 2026-10-21; enmienda de `datepicker.md` «Noches y salida» (#739); `tokens.md` §29.6 y §53; `api.md` «Paquete, entradas y tipos», «Convivencia de servicios» (`EDGE_ORDER`), «Paneles anclados», «Una activación por gesto» y «Flotantes persistentes») · **Basado en:** `design/lab/booking-bar/r01/` (kiwi, commit b32b79a: `brief.md`, `declaracion.md` con 14 decisiones de base, conceptos A/B/C, rúbrica y hallazgos B-L1 a B-L12, `index.html`, `booking.css`, `booking.js`, `verificar.mjs` 413/413 en Chromium, Firefox y WebKit) y el inventario `design/lab/marketing/r01/`
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #736 a #742, #744 y #745, 2026-10-21; remates #757 y #759 tras el estilo de coco; enmienda de `datepicker.md` «Noches y salida» (#739); `tokens.md` §29.6 y §53; `api.md` «Paquete, entradas y tipos», «Convivencia de servicios» (`EDGE_ORDER`), «Paneles anclados», «Una activación por gesto» y «Flotantes persistentes») · **Basado en:** `design/lab/booking-bar/r01/` (kiwi, commit b32b79a: `brief.md`, `declaracion.md` con 14 decisiones de base, conceptos A/B/C, rúbrica y hallazgos B-L1 a B-L12, `index.html`, `booking.css`, `booking.js`, `verificar.mjs` 413/413 en Chromium, Firefox y WebKit) y el inventario `design/lab/marketing/r01/`
 **Tags:** `g-booking-bar`, `g-party-field` · **Categoría:** marketing (consulta) y formularios (grupo) · **Paquete:** entrada propia **`@grana/vue/booking`** (#742)
 
 **Componente complejo** (compone `GDatePicker`, `GNumberField`, `GSelect`, `GRadioGroup`, `GDialog`, `GBtn` y `GPartyField`; popovers propios; motor de estado y forma compacta medida): **coco y bruno en Opus** (regla de `CLAUDE.md`).
@@ -192,6 +192,7 @@ Texto legible de lo que se va a pedir, unido por `labels.separator`: `stay` «13
 - **Alto de contrato:** **`max(var(--g-space-16), 44px + var(--g-space-1) * 4)`** (64 px con `space` 4; `block-size` fijo con el borde). Cambiarlo es decisión de lima (lo suma el `scroll-padding`).
 - **Bordes compartidos (B-L10):** cliente de `utils/edgeReserve.js` con **`EDGE_ORDER.bookingDock = 20`** (`api.md` «Convivencia de servicios»): publica abajo su alto mientras se ve y lee `before` (queda encima del navbar de `GAppShell`); el FAB (25) y los avisos quedan encima de él; la isla es de arriba. No se traslada a un `<dialog>`; con un modal abierto queda inerte.
 - **No tapa lo enfocado (2.4.11; tercera salida de `api.md` «Flotantes persistentes»):** mientras se ve, la capa de Grana escribe en `<html>` (`:root:has(.g-booking-bar__dock.is-shown)`) `scroll-padding-block-end` = el alto de contrato (más `--g-sidebar-bar` si hay un navbar de `GSidebar`). Si la aplicación pone su propio `scroll-padding-block-end` sin capa, gana y debe sumar el alto del muelle (receta del README). Medido por kiwi con el último botón de la página.
+- **Cola del documento (#757, B-C1 de coco):** el `scroll-padding` no desplaza más allá del final del documento, así que el **último** control de una página sin sitio al final quedaba bajo el muelle (medido por coco en los tres motores). Mientras el muelle se ve, la misma regla de la capa de Grana añade al final del documento una **cola** del alto que el muelle tapa: `:root::after` con `content: ""`, `display: block` y `block-size` = el alto de contrato **+ `env(safe-area-inset-bottom)`** sin navbar, o **solo el alto de contrato** con el navbar de `GSidebar` (el chasis o la aplicación ya reservan la barra y el área segura, `app-shell.md` #749). Se elige `::after` y no `padding-block-end` en `<html>` porque los reinicios habituales sin capa (`* { padding: 0 }`, el preflight de Tailwind) borrarían el relleno sin aviso; ninguno da alto a un `::after`. No mueve nada visible (la cola va detrás de todo y no cambia `scrollTop`); al ocultarse el muelle desaparece sin salto (el muelle se va porque la consulta vuelve a verse, lejos del final). No se pone con el muelle dentro de un `<dialog>` (como el `scroll-padding`). **Límites (README):** una aplicación que use su propio `:root::after`, o cuyo desplazamiento no sea el del documento (un `body` o un contenedor con `overflow: auto`), debe dejar ella el alto del muelle al final de lo que se desplaza.
 - **Presupuesto del cuarto** (como #713): si el muelle más las reservas de abajo que lee pasan del 25 % del alto del visor (`innerHeight`, al montar y al redimensionar), **no aparece**. Constante `4` de §29.6.
 - **Movimiento:** entra desde abajo con `translate` + opacidad, `--g-duration-slow` + `--g-ease-out`; sale con `--g-duration-press`; reducido: solo fundido (`--g-duration-fast`). **Sin `--g-ease-spring`** (el muelle de `GPageHeader` lo lleva por decisión del usuario, #635; extenderlo aquí sería un uso nuevo de §29.1).
 
@@ -331,7 +332,12 @@ div.g-party-field.g-party-field--mode-{popover|inline}[.g-party-field--size-* �
 
 ## Tokens consumidos (`tokens.md` §53; ninguno nuevo)
 
-Los de los campos que componen (no los relee) y, en lo propio: `--g-color-surface` (panel, muelle, hoja), `--g-color-text`, `--g-color-text-muted` (resumen, salida), `--g-color-border`, `--g-color-border-strong`, `--g-color-border-control` (huecos), `--g-color-danger-text` (hueco con error), `--g-color-focus`, `--g-focus-width`, `--g-focus-offset`, `--g-border-width`, `--g-radius-*`, `--g-shadow-2` (panel), `--g-shadow-3` (muelle, si coco la elige), `--g-text-title-*` (la frase, si coco la escribe en `title`; kiwi usó `title-line × 1,25`), `--g-text-body-*`, `--g-text-body-sm-*`, `--g-text-caption-*`, `--g-text-action-weight`, `--g-font-ui`, `--g-space-*`, `--g-duration-fast`, `--g-duration-press`, `--g-duration-slow`, `--g-ease-out`. Sin muelle ni rebote propios.
+Los de los campos que componen (no los relee) y, en lo propio (lista exacta de `GBookingBar.css` y `GPartyField.css` de coco, 6945cda; completada en #759):
+
+- **`GBookingBar`:** `--g-color-surface` (panel, muelle), `--g-color-text`, `--g-color-text-muted` (resumen, salida), `--g-color-text-subtle` (valor del hueco vacío deshabilitado, resumen deshabilitado), `--g-color-border`, `--g-color-border-strong` (borde del muelle), `--g-color-border-control` (huecos, resumen compacto), `--g-color-danger-text` (hueco con error), `--g-color-focus`, `--g-focus-width`, `--g-focus-offset`, `--g-border-width`, `--g-radius-*` (`xs` `md` `lg`), `--g-shadow-2` (paneles), `--g-shadow-3` (muelle), `--g-text-title-size`, `--g-text-title-line`, `--g-text-title-weight`, `--g-text-title-tracking` (la frase), `--g-text-title-sm-weight` (título y texto del resumen, resumen del muelle), `--g-text-body-*`, `--g-text-body-sm-*`, `--g-text-caption-*`, `--g-text-action-weight`, `--g-font-ui`, `--g-space-*`, `--g-sidebar-bar` (reserva del navbar en el `scroll-padding`), `--g-duration-fast`, `--g-duration-press`, `--g-duration-slow`, `--g-ease-out`, `--g-ease-standard` (cambios de color).
+- **`GPartyField`** (es una caja de campo como `GSelect` y lee lo mismo que ella): `--g-color-surface`, `--g-color-surface-sunken` (`soft` y deshabilitado), `--g-color-text`, `--g-color-text-muted`, `--g-color-text-subtle`, `--g-color-neutral-soft` (solo lectura), `--g-color-border`, `--g-color-border-strong`, `--g-color-border-control`, `--g-color-danger-text`, `--g-color-warning-text`, `--g-color-success-text` (mensajes), `--g-color-focus`, `--g-focus-width`, `--g-border-width`, `--g-radius-*`, `--g-shadow-2` (panel), `--g-text-body-*`, `--g-text-body-sm-*`, `--g-text-caption-*`, `--g-text-action-weight`, `--g-font-ui`, `--g-space-*`, `--g-duration-fast`, `--g-duration-press`, `--g-duration-slow`, `--g-ease-out`, `--g-ease-standard`.
+
+Sin muelle ni rebote propios.
 
 ## Clases y datos (contrato bruno ↔ coco)
 
@@ -340,10 +346,14 @@ Los de los campos que componen (no los relee) y, en lo propio: `--g-color-surfac
 | `g-booking-bar`, `--appearance-{phrase\|bar}`, `--kind-{stay\|table\|tour}`, `is-compact`, `is-disabled` | Raíz | Según props y medida |
 | `__title`, `__phrase`, `__slot`, `__slot-label`, `__slot-value`, `__slot-panel`, `is-empty`, `is-filled`, `is-invalid` (hueco), `__checkout`, `__messages` | A | `phrase` |
 | `__row`, `__field`, `__compact`, `__summary`, `__submit`, `__digest`, `__sheet` | Barra | `bar` |
+| `__summary-title` («Tu consulta», `labels.summaryTitle`), `__summary-text` (el resumen), `__summary-change` («Cambiar», `labels.change`): tres `span` dentro de `button.__summary` | Compacto | `bar` compacta (#759) |
 | `__dock`, `is-shown`, `__dock-summary`, `__dock-change` | B | `dock` |
-| `g-party-field`, `--mode-{popover\|inline}`, `--trigger`, `--size-*`, `--variant-*`, `--density-*`, `--rounded-*`, `--block`, `is-open`, `is-invalid`, `is-warning`, `is-valid`, `is-readonly`, `is-disabled` | Raíz del campo | Según props |
-| `__label`, `__trigger`, `__value`, `__panel`, `__rows`, `__done`, `__support`, `__message` | Campo | Según modo |
+| `--_reserve` (px, reserva leída de su borde inferior con `edgeReserve`, en `div.__dock`) | B | Mientras se ve (#759; §29.5) |
+| `g-party-field`, `--mode-{popover\|inline}`, `--trigger`, `--size-*`, `--variant-*`, `--density-*`, `--rounded-*`, `--block`, `is-open`, `is-invalid`, `is-warning`, `is-valid`, `is-readonly`, `is-disabled`, `is-rejected` (sacudida al rechazar, como `GSelect`) | Raíz del campo | Según props |
+| `__label`, `__trigger`, `__value`, `__arrow` (`GLibIcon` `chevron-down`), `__panel`, `__rows`, `__done`, `__support`, `__hint`, `__message`, `__message-icon`, `__message-type` | Campo | Según modo (el pie como `GSelect`) |
 | `--_x`, `--_y`, `--_max`, `data-side` | Paneles (hueco y grupo) | Colocación (#358; §29.5) |
+
+**Construcción (coco, estilo.md):** el hueco es `button.__slot` con **siempre** `is-empty` o `is-filled` (uno de los dos) e `is-invalid` con error, con `span.__slot-label` (oculto) y `span.__slot-value` dentro y, opcional, un chevron `GLibIcon` hijo directo. Los campos de la barra van con `block` dentro de `div.__field` y la acción es un `GBtn` del mismo `size` que los campos. El muelle pasa de `hidden` + `inert` a `is-shown` (y al revés) **en el mismo cuadro** (el CSS anima la salida con `display` discreto). El disparador de `GPartyField` lleva un icono `users` y `__arrow`; los contadores del panel, `block`.
 
 ## Peso y paquete (#742)
 
@@ -357,7 +367,7 @@ Las dos piezas con props y valores, eventos (`update:modelValue`, `submit` con s
 ## Verificación (bruno; base: `design/lab/booking-bar/r01/verificar.mjs`)
 
 - **vitest:** `role="search"` con nombre; plantilla de la frase (orden por idioma, marcador que falta → barra con aviso); nombres de los huecos = rótulo + valor; intención exacta en los tres `kind`; ocultos con `names`; envío nativo solo con `action` y sin `preventDefault`; validación (foco al primero, anuncio, noche agotada dentro = error con fecha, salida en día agotado = válida, `minNights`/`maxNights`); resumen que nombra lo que falta; compacto con histéresis y cambio fuera del observador; hoja con campos en línea; muelle (oculto e inerte, alto de contrato, reserva de borde con `bookingDock`, presupuesto del cuarto); `GPartyField` (resumen, corrección por `max` dependiente, ocultos, contexto de `GForm`, panel: foco, Esc, Tab fuera, toque fuera, fondo no cierra, una activación por gesto); avisos; SSR.
-- **Playwright (tres motores):** sin desplazamiento horizontal a 1440, 390, 320; la frase refluye a 390 y 320; panel dentro del visor a 390; muelle con y sin movimiento reducido, foco nunca tapado (último botón de la página); RTL; tema oscuro; `forced-colors` (Chromium).
+- **Playwright (tres motores):** sin desplazamiento horizontal a 1440, 390, 320; la frase refluye a 390 y 320; panel dentro del visor a 390; muelle con y sin movimiento reducido, foco nunca tapado (último botón de una página **sin sitio al final**, con la cola de #757; y sin cola tras ocultarse el muelle); RTL; tema oscuro; `forced-colors` (Chromium).
 
 ## Fuera de v1 (reservado con nombre)
 
@@ -369,6 +379,7 @@ Las dos piezas con props y valores, eventos (`update:modelValue`, `submit` con s
 
 - La frase depende de una plantilla bien escrita por idioma (los marcadores son obligatorios).
 - El muelle no aparece si con la barra inferior y el navbar ocuparía más de un cuarto del visor.
+- La cola del documento (#757) va en `:root::after`: una aplicación con su propio `:root::after` o que desplace un contenedor en lugar del documento deja ella el alto del muelle al final.
 - Lector real (frase en modo lectura), móvil real (teclado virtual sobre la hoja), zoom real y otros idiomas en la frase: no verificados en la ronda.
 
 ## Resolución de hallazgos de kiwi (B-L1 a B-L12)
@@ -387,6 +398,15 @@ Las dos piezas con props y valores, eventos (`update:modelValue`, `submit` con s
 | B-L10 | Muelle en `edgeReserve` | `EDGE_ORDER.bookingDock = 20`, alto de contrato, `scroll-padding-block-end` en la capa de Grana, cuarto (#740) |
 | B-L11 | Forma compacta | §«No se parte» (#737) |
 | B-L12 | C | Reservado con sus reglas (#745) |
+
+## Remates tras la entrega de coco (#757, #759)
+
+| # | Hallazgo de coco | Resolución |
+| --- | --- | --- |
+| B-C1 | El último control de la página queda bajo el muelle | Cola del documento `:root::after` en la capa de Grana mientras se ve (#757; `api.md` «Flotantes persistentes») |
+| B-C2 | `--_reserve` sin registrar | §29.5 y tabla de clases (#759) |
+| B-C3 | Tokens consumidos sin listar | Listas exactas en «Tokens consumidos» y §53 (#759) |
+| B-C4 | Clases del resumen compacto | `__summary-title`, `__summary-text`, `__summary-change` (#759) |
 
 ## Encargos
 

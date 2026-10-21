@@ -1,6 +1,6 @@
 # Contrato · GGallery y GGalleryViewer (galería con visor)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #730 a #735, #742, #744 y #745, 2026-10-21; enmienda de `dialog.md` «Visor a pantalla completa» (#732); `tokens.md` §29.6 y §52; `api.md` «Paquete, entradas y tipos», «Zona de marca», «Enlaces y `navigate`» y «Contenedor con desplazamiento») · **Basado en:** `design/lab/gallery/r01/` (kiwi, commit b32b79a: `brief.md`, `declaracion.md` con 20 decisiones de base, conceptos A/B/C, rúbrica y hallazgos G-L1 a G-L10, `index.html`, `gallery.css`, `gallery.js`, `verificar.mjs` 434/434 en Chromium, Firefox y WebKit) y el inventario `design/lab/marketing/r01/`
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #730 a #735, #742, #744 y #745, 2026-10-21; remates #758 y #759 tras el estilo de coco; enmienda de `dialog.md` «Visor a pantalla completa» (#732); `tokens.md` §29.6 y §52; `api.md` «Paquete, entradas y tipos», «Zona de marca», «Enlaces y `navigate`» y «Contenedor con desplazamiento») · **Basado en:** `design/lab/gallery/r01/` (kiwi, commit b32b79a: `brief.md`, `declaracion.md` con 20 decisiones de base, conceptos A/B/C, rúbrica y hallazgos G-L1 a G-L10, `index.html`, `gallery.css`, `gallery.js`, `verificar.mjs` 434/434 en Chromium, Firefox y WebKit) y el inventario `design/lab/marketing/r01/`
 **Tags:** `g-gallery`, `g-gallery-viewer` · **Categoría:** marketing · **Paquete:** entrada propia **`@grana/vue/gallery`** (#742)
 
 **Componente complejo** (compone `GDialog` y `GBtn`; teclado compuesto propio —visor, tira, hilo—; abre una capa sobre la página; gesto y estado compartido): **coco y bruno en Opus** (regla de `CLAUDE.md`).
@@ -174,7 +174,8 @@ GGalleryViewer = GDialog fullscreen bare  class="g-gallery-viewer"  aria-label=l
 
 - **Deslizar en horizontal** pasa de foto si recorre ≥ **18 %** del ancho del escenario, o ≥ **40 px** en < **250 ms**; la foto **sigue al dedo** mientras se arrastra (`--_drag-x`). **Deslizar hacia abajo** ≥ **22 %** del alto cierra (vía `close()`). Doble toque o doble clic amplía en el punto. Constantes de coreografía de **JS** (§29.6), no tokens.
 - **Todo gesto tiene equivalente** de un puntero (botones) y de teclado (2.5.1, 2.5.7). `touch-action: pan-y pinch-zoom` en el escenario: el pellizco del sistema sigue.
-- **Zoom ×2** centrado en el punto, recorrido con desplazamiento nativo (dedo, rueda, flechas). Sin zoom continuo propio. El botón tiene **nombre constante** `labels.zoom` y estado por `aria-pressed` (icono `zoom-in` → `zoom-out`), la misma corrección que `GDocumentPreview` (#646) frente al prototipo, que cambiaba el nombre.
+- **Zoom ×2** centrado en el punto, recorrido con desplazamiento nativo (dedo, rueda, flechas). Sin zoom continuo propio.
+- **×2 del tamaño contenido, sin franjas vacías (#758):** ampliar es duplicar **la foto tal como se ve contenida**, no la caja del escenario. Al ampliar, el `.vue` escribe en el escenario **`--_zoom-w` y `--_zoom-h`** (px enteros: el tamaño contenido de la foto × 2, calculado con `width`/`height` de la foto y el tamaño del escenario, sin esperar a la imagen) y los recalcula si el escenario cambia de tamaño mientras sigue ampliada (el observador de tamaño compartido); el CSS los usa como caja de la foto ampliada y la centra en el eje que no llena. Así una foto vertical en un visor ancho no deja franjas vacías recorribles a los lados, y las flechas y el dedo solo recorren foto. Sin los datos (SSR, antes de medir), el CSS cae al 200 % del escenario. **El punto del zoom** se lleva con `scrollLeft`/`scrollTop` del escenario tras ampliar: `--_zoom-x`/`--_zoom-y` dejan de ser datos al CSS (nunca se leyeron). El botón tiene **nombre constante** `labels.zoom` y estado por `aria-pressed` (icono `zoom-in` → `zoom-out`), la misma corrección que `GDocumentPreview` (#646) frente al prototipo, que cambiaba el nombre.
 
 ## A · Recorrido por espacios
 
@@ -246,7 +247,7 @@ Marcadores con `fill` (`utils/template.js`); cifras con `Intl.NumberFormat(local
 
 ## Tokens consumidos (`tokens.md` §52; ninguno nuevo)
 
-`--g-color-surface`, `--g-color-surface-sunken`, `--g-color-bg`, `--g-color-mold`, `--g-color-text`, `--g-color-text-muted`, `--g-color-border`, `--g-color-border-strong`, `--g-color-focus`, `--g-focus-width`, `--g-focus-offset`, `--g-border-width`, `--g-radius-*`, `--g-text-body-*`, `--g-text-body-sm-*`, `--g-text-caption-*`, `--g-text-title-sm-*` (título de la barra del visor, si coco lo elige), `--g-text-action-weight`, `--g-font-ui`, `--g-space-*`, `--g-duration-fast`, `--g-duration-press`, `--g-ease-out`. Dentro del visor (zona de marca), todo lo del grupo de color que lee está en `tokens.md` §44.5.
+Lista exacta del `GGallery.css` de coco (6945cda; completada en #759): `--g-color-surface-sunken` (miniatura rota, hueco del visor), `--g-color-bg` (fondo del visor), `--g-color-mold`, `--g-color-text`, `--g-color-text-muted`, `--g-color-text-subtle` (botones en un extremo, «sin vuelta»), `--g-color-border`, `--g-color-border-strong` (hover de la miniatura), `--g-color-border-control` (chips del índice, espacio actual del hilo), `--g-color-focus`, `--g-focus-width`, `--g-focus-offset`, `--g-border-width`, `--g-radius-md` (miniatura), `--g-radius-shape` (chips del índice e hilo), `--g-text-body-*`, `--g-text-body-sm-*`, `--g-text-caption-*`, `--g-text-title-sm-*` (título de la barra del visor), `--g-text-action-weight`, `--g-font-ui`, `--g-space-*`, `--g-duration-fast`, `--g-duration-press`, `--g-ease-out`, `--g-ease-standard` (cambios de color). `--g-color-surface` **no** se lee. Dentro del visor (zona de marca), todo lo del grupo de color que lee está en `tokens.md` §44.5.
 
 ## Clases y datos (contrato bruno ↔ coco)
 
@@ -259,7 +260,11 @@ Marcadores con `fill` (`utils/template.js`); cifras con `Intl.NumberFormat(local
 | `__strip`, `__slide`, `__caption`, `__live` | B | Solo `strip` |
 | `g-gallery-viewer` (en el `<dialog>`), `__bar`, `__title`, `__count`, `__zoom`, `__close`, `__stage`, `__img`, `__broken`, `__caption`, `__nav`, `__prev`, `__next`, `__thread`, `__thread-item`, `__live` | Visor | Siempre / A |
 | `is-zoomed`, `is-dragging`, `is-arriving`, `data-direction` (`next` \| `prev`) | Visor | Estado |
-| `--_drag-x`, `--_drag-y` (px), `--_zoom-x`, `--_zoom-y` (px, punto del zoom) | Visor | Datos del `.vue` al CSS (§29.5) |
+| `--_drag-x`, `--_drag-y` (px, en el escenario o en la foto) | Visor | Datos del `.vue` al CSS (§29.5) mientras se arrastra; al soltar sin pasar, 0 y fuera `is-dragging` |
+| `--_zoom-w`, `--_zoom-h` (px enteros, tamaño contenido × 2, en el escenario) | Visor | Con `is-zoomed` (#758; sustituyen a `--_zoom-x`/`--_zoom-y`, retirados) |
+| `span[aria-hidden="true"]` (cifra) dentro de `__index-link`; `GLibIcon` `image` dentro de la miniatura `is-broken` | A / miniatura | Según datos |
+
+**Llegada (coco, estilo.md):** `is-arriving` + `data-direction` se ponen en el `img.g-gallery-viewer__img` **en el mismo cuadro** que cambia la foto y `is-arriving` se quita en el cuadro siguiente (el CSS da el punto de partida sin transición y la vuelta con `press`). Los extremos llevan `aria-disabled="true"`; controles: `GBtn ghost icon` en la barra y `outline icon` en la navegación.
 
 ## Peso y paquete (#742)
 
@@ -272,7 +277,7 @@ Las dos piezas con props, eventos (`update:index`, `update:open` / `update:model
 
 ## Verificación (bruno; base: `design/lab/gallery/r01/verificar.mjs`)
 
-- **vitest:** enlaces con `href` y `aria-haspopup`; guarda de modificadores; `eager`; grupos derivados y fijados, anclas; `GDialog` con `fullscreen bare` y `aria-label`; foco inicial; anuncios con `announce`, extremos; sin vuelta; Esc escalonado (consumida por el escenario); `from` vivo hacia la miniatura de la foto actual; teclado (RTL, Inicio/Fin, Av Pág/Re Pág en A, `+`/`-`); tira con tabindex itinerante y contenedor `tabindex="-1"`; sincronía tira ↔ visor; avisos 1 a 9; SSR.
+- **vitest:** enlaces con `href` y `aria-haspopup`; guarda de modificadores; `eager`; grupos derivados y fijados, anclas; `GDialog` con `fullscreen bare` y `aria-label`; foco inicial; anuncios con `announce`, extremos; sin vuelta; Esc escalonado (consumida por el escenario); `--_zoom-w`/`--_zoom-h` = tamaño contenido × 2 para una foto vertical y una apaisada, y recalculados al cambiar el escenario (#758); `from` vivo hacia la miniatura de la foto actual; teclado (RTL, Inicio/Fin, Av Pág/Re Pág en A, `+`/`-`); tira con tabindex itinerante y contenedor `tabindex="-1"`; sincronía tira ↔ visor; avisos 1 a 9; SSR.
 - **Playwright (tres motores):** Tab atrapado; foco devuelto a la foto vista; gesto con puntero (pasar y cerrar); movimiento reducido; contraste del visor dentro de la zona; sin autoavance; sin desplazamiento horizontal a 1440, 390, 320 y 320×256; controles ≥ 44 px con `pointer: coarse`; la página no se desplaza con el visor abierto; `forced-colors` (Chromium).
 
 ## Fuera de v1 (reservado con nombre)
@@ -300,6 +305,14 @@ Las dos piezas con props, eventos (`update:index`, `update:open` / `update:model
 | G-L8 | Iconos | `chevron-left`, `chevron-right`, `x`, `zoom-in`, `zoom-out`, `image` ya en la lista; **ninguno nuevo** (`maximize-2` era de C, reservada) (#744) |
 | G-L9 | Movimiento | `press` + `ease-out`; reducido `fast` (#734) |
 | G-L10 | Umbrales del gesto | Constantes de JS en §29.6 (#734) |
+
+## Remates tras la entrega de coco (#758, #759)
+
+| # | Hallazgo de coco | Resolución |
+| --- | --- | --- |
+| G-C1 | Tokens consumidos sin listar | Lista exacta en «Tokens consumidos» y §52 (#759) |
+| G-C2 | Geometría de la tira y de los espacios | §29.6 (#759) |
+| G-C3 | Franjas vacías recorribles al ampliar | El `.vue` publica `--_zoom-w`/`--_zoom-h`; `--_zoom-x`/`-y` retirados (#758) |
 
 ## Encargos
 

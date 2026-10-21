@@ -1,6 +1,6 @@
 # Contrato · GHero (apertura de un sitio)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #725 a #729, #742, #744 y #745, 2026-10-21; `tokens.md` §29.6, §29.8 y §51, `api.md` «Paquete, entradas y tipos», «Zona de marca» y `data-g-key-focus`, `icons.md` v0.13) · **Basado en:** `design/lab/hero/r01/` (kiwi, commit b32b79a: `brief.md`, `declaracion.md` con 13 decisiones de base, conceptos A/B/C, rúbrica de movimiento y hallazgos H-L1 a H-L14, `index.html`, `hero.css`, `hero.js`, `verificar.mjs` 767/767 en Chromium, Firefox y WebKit) y el inventario `design/lab/marketing/r01/declaracion.md` (M-L1 a M-L7)
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #725 a #729, #742, #744 y #745, 2026-10-21; remates #755, #756 y #759 tras el estilo de coco; `tokens.md` §29.6, §29.8 y §51, `api.md` «Paquete, entradas y tipos», «Zona de marca» y `data-g-key-focus`, `icons.md` v0.13) · **Basado en:** `design/lab/hero/r01/` (kiwi, commit b32b79a: `brief.md`, `declaracion.md` con 13 decisiones de base, conceptos A/B/C, rúbrica de movimiento y hallazgos H-L1 a H-L14, `index.html`, `hero.css`, `hero.js`, `verificar.mjs` 767/767 en Chromium, Firefox y WebKit) y el inventario `design/lab/marketing/r01/declaracion.md` (M-L1 a M-L7)
 **Tag:** `g-hero` · **Categoría:** marketing · **Paquete:** entrada propia **`@grana/vue/hero`** (#742)
 
 **Componente complejo** (se solapa con `GPageHeader` y con `GCard media="background"`; B lleva la zona de marca y un grupo de radios propio; compone `GBtn` y, en C, `GBookingBar` por slot): **coco y bruno en Opus** (regla de `CLAUDE.md`).
@@ -79,12 +79,17 @@ section.g-hero.g-hero--appearance-{window|views|threshold}  aria-labelledby="{id
 │  ├─ p.g-hero__aside                        ← opcional
 │  └─ fieldset.g-hero__views                 ← solo B: legend + radios nativos (ver «B»)
 └─ figure.g-hero__media
-   ├─ img.g-hero__img  loading=eager fetchpriority=high decoding=async width height alt   ← o el slot media (vídeo)
-   ├─ img.g-hero__detail  alt="" aria-hidden="true"        ← solo A con detail
+   ├─ span.g-hero__frame                     ← solo A (#755): el vano; lleva el recorte; no se mueve
+   │  └─ img.g-hero__img  loading=eager fetchpriority=high decoding=async width height alt   ← o el slot media (vídeo); en A, dentro del marco; la mirada mueve esto
+   ├─ img.g-hero__img                        ← B y C: hijo directo de la media, sin marco
+   ├─ img.g-hero__detail  alt="" aria-hidden="true"        ← solo A con detail (fuera del marco)
    ├─ img.g-hero__layer × (n−1)  alt="" aria-hidden="true" ← solo B: vistas no elegidas
    ├─ button.g-hero__motion  type=button aria-pressed     ← solo con vídeo
+   │  └─ GLibIcon pause|play + span.g-hero__motion-label  ← texto oculto accesible = labels.pause (#756)
    └─ figcaption.g-hero__credit                          ← opcional (media.credit)
 ```
+
+- **`span.g-hero__frame` (#755):** en `appearance="window"` la foto principal (o el vídeo del slot `media`) va **siempre** dentro de este `span`, con `frame="arch"` y con `frame="rect"`, con `look` o sin él. El marco lleva la forma y el recorte (`overflow: clip` y el radio, de coco); la `img` de dentro es la que se desplaza con la mirada. Es la única forma de cumplir §29.8.1 («solo dentro de un marco»): un recorte en la propia `img` viaja con su `transform`. Sin el marco (un `.vue` antiguo), el CSS pinta el arco en la `img` y la mirada queda quieta: nada se rompe. El marco es presentacional (sin rol ni nombre); en B y C no existe.
 
 ## Props (#726)
 
@@ -104,7 +109,7 @@ section.g-hero.g-hero--appearance-{window|views|threshold}  aria-labelledby="{id
 | `view` | String \| Number | `value` de una vista (`v-model:view`) | el primero | propia (solo `views`) |
 | `paused` | Boolean | `v-model:paused` | sin valor (resuelto: `true` con movimiento reducido, si no `false`) | propia (solo con vídeo) |
 | `priority` | Boolean | | `true` con `headingLevel` 1; `false` con 2 | propia (H-L5) |
-| `labels` | Object | `{ views, pause, resume }` | `{}` | compartida (sin valores por defecto, #226) |
+| `labels` | Object | `{ views, pause }` (`resume` retirado, #756) | `{}` | compartida (sin valores por defecto, #226) |
 | `id` | String | | generado (SSR-seguro) | propia |
 
 ### Reglas de props
@@ -129,7 +134,7 @@ section.g-hero.g-hero--appearance-{window|views|threshold}  aria-labelledby="{id
 - **Vano:** la `img` principal recortada con forma de arco (semicírculo arriba y radio de tarjeta abajo con `frame="arch"`; rectángulo con radio de tarjeta con `frame="rect"`). Proporción de la foto **4:5**. Geometría del arco (50 % / 40 % en 4:5) y el **muro de `space × 2`** pintado con `--g-color-bg` entre vano y detalle: **constantes de geometría** (#187; §29.6), no tokens. Un tema con radios 0 deja el arco puro con esquinas rectas abajo (lo decide la forma, no el tema).
 - **Detalle (`detail`):** segunda ventana pequeña que solapa la esquina del vano; **siempre decorativa** (`alt=""`, `aria-hidden="true"`); no se difiere (primer pliegue) pero no es prioritaria (`loading="eager"`, sin `fetchpriority`).
 - **El texto nunca solapa la foto:** contenido y media se parten por su mínimo intrínseco (`flex-wrap`); en estrecho la acción principal queda sin desplazar a 390×844 (medido).
-- **La mirada (`look`, #728):** con `animation-timeline: view()` soportado y **sin** movimiento reducido, la `img` del vano se desplaza dentro del vano un **3 %** de su alto al atravesar el visor, lineal, solo `transform`; el marco y el texto quedan quietos. Sin soporte (Firefox) o con movimiento reducido: quieta. `look=false` la apaga. Primer uso de la regla común «movimiento ligado al desplazamiento» (`tokens.md` §29.8).
+- **La mirada (`look`, #728):** con `animation-timeline: view()` soportado y **sin** movimiento reducido, la `img` del vano se desplaza dentro de su marco `span.g-hero__frame` (#755) un **3 %** de su alto al atravesar el visor, lineal, solo `transform`; el marco y el texto quedan quietos. Sin soporte (Firefox) o con movimiento reducido: quieta. `look=false` la apaga. Primer uso de la regla común «movimiento ligado al desplazamiento» (`tokens.md` §29.8).
 
 ## B · Vistas a elegir
 
@@ -148,7 +153,7 @@ section.g-hero.g-hero--appearance-{window|views|threshold}  aria-labelledby="{id
 ## Movimiento del vídeo (base; H-L8)
 
 - El vídeo es de la aplicación por el slot **`media`** (`<video muted playsinline loop poster>` con `width`/`height`). **La aplicación no pone `autoplay`**: `GHero` llama a `play()` al montar si `paused` resuelto es `false` (sin movimiento reducido) y a `pause()` si es `true`. Un `<video autoplay>` en el slot avisa (aviso 9) y el héroe lo pausa igualmente con movimiento reducido.
-- **Botón de pausa** `button.g-hero__motion` (44 px, `GBtn`-like con el icono `pause`/`play` de la librería, texto visible u oculto accesible): nombre **constante** `labels.pause` y estado por `aria-pressed` (`true` = en pausa) — corrige el prototipo, que cambiaba el nombre («Pausar»/«Reanudar») y el estado a la vez (APG *Button*, la misma corrección que `GDocumentPreview`, #646). `labels.resume` se usa como **texto visible** del botón en pausa, si coco lo pinta con texto; el nombre accesible sigue siendo `labels.pause`. Sin `labels.pause`, aviso 10 y el botón se pinta igual (la salida es obligatoria, 2.2.2).
+- **Botón de pausa** `button.g-hero__motion` (44 px, `GBtn`-like con el icono `pause`/`play` de la librería): nombre **constante** `labels.pause` en un **texto oculto accesible** `span.g-hero__motion-label`, y estado por `aria-pressed` (`true` = en pausa) — corrige el prototipo, que cambiaba el nombre («Pausar»/«Reanudar») y el estado a la vez (APG *Button*, la misma corrección que `GDocumentPreview`, #646). Lo visible es solo el icono, que cambia con el estado (`pause` en marcha, `play` en pausa). **Sin `labels.resume` (#756):** un texto visible distinto del nombre rompería 2.5.3 (el control de voz dice lo que ve), y como `title` daría una descripción que contradice el nombre; una clave `resume` en `labels` se ignora sin aviso. Sin `labels.pause`, aviso 10 y el botón se pinta igual (la salida es obligatoria, 2.2.2).
 - El botón va en la esquina de la media, **fuera del texto**. Contraste del botón sobre una foto casi blanca (1.4.11): **encargo a coco** (H-L14: medirlo con `cielo`; si `border-strong` + `shadow-1` no llega a 3:1, anillo de `--g-color-text`).
 - Con la foto fija (sin vídeo) no hay botón ni `paused`.
 
@@ -194,7 +199,7 @@ Tab: título y eyebrow no son enfocables; acción principal → secundaria → (
 
 ## Tokens consumidos (`tokens.md` §51)
 
-`--g-color-bg` (página y muro de A), `--g-color-surface` (tarjeta de C), `--g-color-surface-sunken` (marco de carga), `--g-color-text`, `--g-color-text-muted` (eyebrow, bajada, dato), `--g-color-border`, `--g-color-border-strong` (pausa, vistas), `--g-color-focus`, `--g-focus-width`, `--g-focus-offset`, `--g-border-width`, `--g-radius-*` (arco y tarjeta, por `--g-radius-shape` del tema), `--g-shadow-1` (pausa), `--g-shadow-2` (tarjeta de C, si coco la elige), `--g-text-title-lg-size`, **`--g-hero-title-max`** (nuevo, componente), `--g-text-display-weight`, `--g-text-display-tracking`, `--g-font-display`, `--g-text-body-*`, `--g-text-body-sm-*`, `--g-text-caption-*` (crédito), `--g-font-ui`, `--g-space-*`, `--g-duration-fast`, `--g-duration-slow`, `--g-ease-out`. En la placa de B, todo lo del grupo de color que lee está en la lista de `tokens.md` §44.5 (no se añade ninguno). **Sin `--g-ease-spring` ni `--g-ease-bounce`.**
+Lista exacta del `GHero.css` de coco (6945cda; completada en #759): `--g-color-bg` (página y muro de A), `--g-color-surface` (tarjeta de C, relleno de la pausa), `--g-color-surface-sunken` (marco de carga), `--g-color-text` (texto; contorno de la pausa, H-L14), `--g-color-text-muted` (eyebrow, bajada, dato), `--g-color-border`, `--g-color-border-control` (borde de las vistas), `--g-color-focus`, `--g-focus-width`, `--g-focus-offset`, `--g-border-width`, `--g-radius-*` (arco, tarjeta, placa, vistas y pausa: `xs` `sm` `md` `lg` `xl` `pill`), `--g-shadow-1` (pausa), `--g-shadow-2` (tarjeta de C), `--g-text-title-lg-size`, **`--g-hero-title-max`** (nuevo, componente), `--g-text-title-sm-size`, `--g-text-title-sm-line` (la bajada: un bajo de `body` bajo un título de 61 px salta demasiado), `--g-text-display-weight`, `--g-text-display-tracking`, `--g-font-display`, `--g-text-body-*`, `--g-text-body-sm-*`, `--g-text-caption-*` (crédito), `--g-text-action-weight` (vista elegida), `--g-font-ui`, `--g-space-*`, `--g-press-scale` (pausa al apretar), `--g-duration-fast`, `--g-duration-press`, `--g-duration-slow`, `--g-ease-out`, `--g-ease-standard` (cambios de color). `--g-color-border-strong` **no** se lee (la pausa usa el contorno de `text`, H-L14). `--g-text-display-size` solo lo lee `defaults.css` para derivar `--g-hero-title-max`. En la placa de B, todo lo del grupo de color que lee está en la lista de `tokens.md` §44.5 (no se añade ninguno). **Sin `--g-ease-spring` ni `--g-ease-bounce`.**
 
 ## Clases y datos (contrato bruno ↔ coco)
 
@@ -205,11 +210,14 @@ Tab: título y eyebrow no son enfocables; acción principal → secundaria → (
 | `g-hero--has-detail`, `g-hero--has-video`, `g-hero--look` | Raíz | Con `detail`; con vídeo; `window` con `look` |
 | `is-paused` | Raíz | Vídeo en pausa (también reducido) |
 | `__content`, `__eyebrow`, `__title`, `__lead`, `__consult`, `__actions`, `__aside` | Contenido | Según props y slots |
-| `__media`, `__img`, `__detail`, `__credit`, `__motion` | Media | Según props |
-| `__plate` (`data-g-zone="brand"`), `__views`, `__view`, `__view-input`, `__view-thumb`, `__layer`, `is-current` (capa y vista elegidas) | B | Solo `views` |
+| `__media`, `__img`, `__detail`, `__credit`, `__motion`, `__motion-label` (texto oculto del nombre, #756) | Media | Según props |
+| `__frame` | A: `span` que envuelve la foto o el vídeo del vano (#755) | Siempre en `window` |
+| `__plate` (`data-g-zone="brand"`), `__views`, `__views-legend` (el `legend`), `__view`, `__view-input`, `__view-thumb`, `__view-label` (el `span` del nombre), `__layer`, `is-current` (capa y vista elegidas) | B | Solo `views` |
 | `__card` | C | Solo `threshold` |
 
 `data-g-key-focus` en los radios de B (interno, #441). Ningún dato del `.vue` al CSS más allá de clases.
+
+**B · capas estables (coco, estilo.md):** cada vista es un `img` **estable** con `key` (la elegida lleva `g-hero__img is-current` y su `alt`; las demás, `g-hero__layer`). Al elegir se **cambia la clase, no el nodo**: con un nodo nuevo no hay fundido.
 
 ## Peso y paquete (#742)
 
@@ -222,7 +230,7 @@ Props con valores, defaults y obligatoriedad (`title`); eventos `update:view`, `
 
 ## Verificación (bruno; base: `design/lab/hero/r01/verificar.mjs`)
 
-- **vitest:** región con nombre; un `h1`; orden contenido → media; `fetchpriority` solo en la principal y solo con `priority`; `alt`/`decorative`; `width`/`height`; avisos 1 a 10; B: legend, radios, `update:view`, cambio de `alt`, capas `aria-hidden` y sin `src` hasta el `load` de la principal; vídeo: `play()`/`pause()` según `paused` y movimiento reducido, `aria-pressed`, nombre constante; slot `consult` solo en C; SSR del héroe en las tres apariencias.
+- **vitest:** región con nombre; un `h1`; orden contenido → media; `fetchpriority` solo en la principal y solo con `priority`; `alt`/`decorative`; `width`/`height`; avisos 1 a 10; B: legend, radios, `update:view`, cambio de `alt`, capas `aria-hidden` y sin `src` hasta el `load` de la principal; vídeo: `play()`/`pause()` según `paused` y movimiento reducido, `aria-pressed`, nombre constante en `__motion-label` y ningún texto visible de `labels.resume` (#756); A: la foto (o el vídeo) dentro de `span.g-hero__frame`, el detalle fuera (#755); B: las capas conservan el nodo al elegir; slot `consult` solo en C; SSR del héroe en las tres apariencias.
 - **Playwright (tres motores):** sin desplazamiento horizontal a 1440, 390, 320 y 320×256; título ≥ `title-lg` a 320; acción principal sin desplazar a 390×844 en A y C; contraste del texto con `cielo`, `noche` y `papel-picado` en B y C; la mirada solo con soporte y sin reducido; foco visible en WebKit en las vistas (Tab + →); `forced-colors` (Chromium).
 
 ## Fuera de v1 (reservado con nombre)
@@ -253,7 +261,16 @@ Props con valores, defaults y obligatoriedad (`title`); eventos `update:view`, `
 | H-L11 | La mirada | `look` (por defecto `true`, como se prototipó); regla común §29.8 (#728) |
 | H-L12 | Fundido de B | `slow` + `ease-out`; reducido `fast` (#728) |
 | H-L13 | Slot `consult` | Medidas como constantes; consulta antes de la acción (#726) |
-| H-L14 | Contraste de la pausa | Encargo a coco |
+| H-L14 | Contraste de la pausa | Resuelto por coco (6945cda): relleno `surface` + contorno `text`; peor caso √(text/surface), 4,06:1 con el tema por defecto, ≥ 3:1 con «cielo», «noche» y «papel picado» en cuatro temas |
+
+## Remates tras la entrega de coco (#755 a #759)
+
+| # | Hallazgo de coco | Resolución |
+| --- | --- | --- |
+| H-C1 | La mirada no cabe en §29.8.1 sin un marco | `span.g-hero__frame` en la anatomía de A (#755) |
+| H-C2 | `labels.resume` visible rompe 2.5.3 | Retirado; nombre en texto oculto `__motion-label`, solo icono visible (#756) |
+| H-C3 | Tokens consumidos sin listar | Lista exacta en «Tokens consumidos» y §51 (#759) |
+| H-C4 | Constantes de geometría de B, C y A | §29.6 (#759) |
 
 ## Encargos
 
