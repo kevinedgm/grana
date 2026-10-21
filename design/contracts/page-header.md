@@ -145,7 +145,7 @@ Sin motor de prioridad de acciones en v1 (L5): qué pasa a «Más acciones» lo 
 
 ## Eventos
 
-**Ninguno.** El encabezado no emite intención propia: la ruta emite por `GBreadcrumbs` (`navigate`, #505), las pestañas por `GTabs`, las acciones por `GBtn`/`GMenu`. El estado pegado no es un evento (reservado si aparece un caso).
+**Ninguno.** (Con `GAppShell`, el encabezado inyecta el canal interno `appShellKey` —`top` y `notify()`— para releer su distancia cuando el chasis la cambia, S6 y #710; no es API pública.) El encabezado no emite intención propia: la ruta emite por `GBreadcrumbs` (`navigate`, #505), las pestañas por `GTabs`, las acciones por `GBtn`/`GMenu`. El estado pegado no es un evento (reservado si aparece un caso).
 
 ## Métodos
 
@@ -185,7 +185,7 @@ Expuesto con `defineExpose`; consta en el `meta.json` (`methods`).
 4. **Regla del cuarto.** Si el alto del zócalo pasa del **25 % del alto del visor** (`innerHeight`), no hay `is-sticky` (el encabezado se va con la página) y no hay muelle. Se reevalúa al redimensionar (zoom incluido). Constante de diseño (L10). Medido por kiwi con un visor de 1280 × 180: estático.
 5. **Primer pintado sin JS (SSR):** sin `--_lift` no hay pegado ni muelle; nada salta al hidratar (el pegado solo cambia algo al desplazar).
 6. **Hijo directo del contenedor largo** (kiwi 22): `position: sticky` se limita a su bloque contenedor. La raíz debe ser hija directa del contenedor que se desplaza (normalmente `main`). Un envoltorio de la aplicación (o un `GSurface` de zona) alrededor del encabezado limita el pegado a ese envoltorio: aviso 5.
-7. **El muelle es `position: fixed` dentro de la raíz:** ni la raíz ni sus ancestros pueden llevar `transform`, `translate`, `scale`, `filter`, `backdrop-filter`, `perspective`, `contain` (layout o paint), `container-type` ni `will-change` de esas propiedades (crean bloque contenedor para lo fijo y atraparían el muelle). Regla para coco en `GPageHeader.css` y límite para la aplicación (aviso 8). El encabezado mide con `ResizeObserver`, no con consultas de contenedor.
+7. **El muelle es `position: fixed` dentro de la raíz:** ni la raíz ni sus ancestros pueden llevar `transform`, `translate`, `scale`, `filter`, `backdrop-filter`, `perspective`, `contain` (layout o paint) ni `will-change` de esas propiedades (crean bloque contenedor para lo fijo y atraparían el muelle). **`container-type` no está en la lista (#724):** medido por kiwi en `design/lab/container/r01/` (L4b), `container-type: inline-size` no atrapa `position: fixed` en Chromium, Firefox ni WebKit (no aplica contención de layout ni de paint); `GContainer` puede envolver al encabezado. Regla para coco en `GPageHeader.css` y límite para la aplicación (aviso 8). El encabezado mide con `ResizeObserver`, no con consultas de contenedor.
 
 **Título compacto (B).** Aparece al principio del zócalo cuando el `hN` pasa bajo el borde: el `.vue` escribe **`--_p`** (0 a 1, en línea en la raíz) = cuánto del `hN` quedó por encima de `--g-page-header-top`, una vez por cuadro y solo si cambia; coco lo traduce a `opacity` y `translate` (y a su propio ancho, para no ocupar con `--_p` = 0). La fila del zócalo **no cambia de alto**; las pestañas pueden ceder ancho al título, ligadas al desplazamiento (no a un temporizador). Con movimiento reducido, `--_p` ∈ {0, 1} (umbral 0,5). En estrecho no se pinta.
 
@@ -197,7 +197,7 @@ Expuesto con `defineExpose`; consta en el `meta.json` (`methods`).
 
 **Alto del zócalo: `max(var(--g-space-12), 44px)`, fijo y de contrato** (L7). Es `block-size` (no un mínimo) con el borde incluido, en reposo y pegado, con cualquier puntero. Es la constante que permite escribir la receta sin JS y la que garantiza Δ0 al mudar las acciones. Cambiarla es una decisión de lima (rompe recetas de aplicaciones). Lo que va dentro tiene que caber: `GTabs` horizontal en una fila (`density` `default` o `compact`; el desbordamiento de pestañas es el de `GTabs`, `overflow`), `GBtn` hasta `size="lg"` (44 px); si el contenido mide más que el zócalo, aviso 6. coco centra el contenido en el bloque y alinea la cabecera de `GTabs` con `--g-tabs-inset` en `__base` (anfitriona, como `GDialog`).
 
-**Receta de una sola variable (#515: la cabecera de la aplicación se cuenta una vez y es de la aplicación).** El encabezado **no pone `scroll-margin`** en nada: la aplicación suma el zócalo en su `scroll-padding-block-start` (para que un `#id` o el foco no queden bajo el zócalo, WCAG 2.4.11):
+**Receta de una sola variable (#515: la cabecera de la aplicación se cuenta una vez y es de la aplicación).** El encabezado **no pone `scroll-margin` positivo** en nada: la aplicación suma el zócalo en su `scroll-padding-block-start` (para que un `#id` o el foco no queden bajo el zócalo, WCAG 2.4.11). **Enmienda (#715, S1 y S5 de `design/lab/app-shell/r01/`):** lo enfocable **del propio zócalo pegado** sí lleva un `scroll-margin-block-start` **negativo** igual a la banda (`calc(-1 * (var(--g-page-header-top) + max(var(--g-space-12), 44px)))`, con `is-stuck`), porque Chromium y WebKit desplazaban la página al enfocar una acción del zócalo (1200 → 778 y → 1158, medido por kiwi); regla común de `api.md` «Piezas pegadas». Encargo a coco en `GPageHeader.css`. **Con `GAppShell`** la aplicación no escribe esta receta: la escribe el chasis (`app-shell.md`, #713):
 
 ```css
 :root {
@@ -210,7 +210,7 @@ Expuesto con `defineExpose`; consta en el `meta.json` (`methods`).
 
 - **Contenedor propio con desplazamiento** (un `main` con `overflow: auto` bajo la barra): `--g-page-header-top: 0px` y el `scroll-padding` en ese contenedor, sin la barra.
 - **Sin `sticky`** (o sin zócalo): basta `scroll-padding-block-start: var(--app-header)`.
-- **`GStatusIsland` y `GToaster`:** su `offset.top` es la misma `--app-header` (receta vigente); el zócalo lo suman por `edgeReserve` (§«Bordes compartidos»).
+- **`GStatusIsland` y `GToaster`:** sin chasis, su `offset.top` es la misma `--app-header` (receta vigente); el zócalo lo suman por `edgeReserve` (§«Bordes compartidos»). **Con `GAppShell`, sin `offset.top`** (la banda del chasis está en el registro, `EDGE_ORDER.appShell = 5`; #714).
 - Medido por kiwi: el enlace del título lleva al `h1` y queda visible bajo la barra.
 
 ## Muelle en estrecho (#630)
@@ -236,7 +236,7 @@ Expuesto con `defineExpose`; consta en el `meta.json` (`methods`).
 
 ## Bordes compartidos (`edgeReserve`, #631)
 
-**Un cliente más de `utils/edgeReserve.js`** (#322). Cambio interno en el principal (bruno): `EDGE_ORDER = { speech: 10, pageHeader: 15, status: 20 }`. **Corrige L9 de kiwi** (que ponía el encabezado antes que la voz): con el orden de kiwi, la voz —que no lee reservas y no se reabre (#322, decisión del usuario 3)— quedaría encima del muelle tapando sus acciones.
+**Un cliente más de `utils/edgeReserve.js`** (#322). Cambio interno en el principal (bruno): `EDGE_ORDER = { speech: 10, pageHeader: 15, status: 20 }` (vigente: `{ appShell: 5, speech: 10, pageHeader: 15, fab: 25, status: 30 }`, #699 y #714; el muelle, que lee `before: pageHeader`, queda también encima del navbar que publica `GAppShell`). **Corrige L9 de kiwi** (que ponía el encabezado antes que la voz): con el orden de kiwi, la voz —que no lee reservas y no se reabre (#322, decisión del usuario 3)— quedaría encima del muelle tapando sus acciones.
 
 | Pieza | Borde | Publica | Lee | Efecto |
 | --- | --- | --- | --- | --- |
@@ -329,7 +329,7 @@ Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production
 5. Con `is-sticky`, el padre de la raíz mide lo mismo que ella en bloque (no hay contenedor largo: el pegado no hará nada; envoltorio de la aplicación o de zona).
 6. El contenido del zócalo es más alto que el zócalo (una pestaña o una acción de más de `max(space × 12, 44px)`).
 7. Más de una acción `solid` de `color="brand"` en el grupo (`tokens.md` §2: una sola principal).
-8. Al abrir el muelle, su borde inferior no coincide con el del visor (un ancestro con `transform`, `filter`, `contain`, `container-type`… lo atrapa; §«Pegado», regla 7).
+8. Al abrir el muelle, su borde inferior no coincide con el del visor (un ancestro con `transform`, `filter`, `contain`… lo atrapa; §«Pegado», regla 7; `container-type` no, #724).
 9. En el slot `tabs` hay un `GTabs` con paneles integrados (`.g-tabs__panels` presente): debe ir con `detached` (#118).
 10. `zone` fuera de lista (se usa `none`); o `zone="brand"` y `data-theme` en la raíz a la vez (`api.md` §«Zona de marca», regla 4: el tema ganaría a la zona).
 
@@ -388,7 +388,7 @@ Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production
 
 - **Acciones abajo en escritorio:** viven en el zócalo, no arriba a la derecha (lo eligió el usuario; A queda reservado si el producto lo pide).
 - **Hijo directo del contenedor largo:** un envoltorio limita el pegado (aviso 5); la zona de marca va en la raíz.
-- **Ancestros que atrapan lo fijo** (`transform`, `filter`, `contain`, `container-type`…): el muelle queda mal colocado (aviso 8).
+- **Ancestros que atrapan lo fijo** (`transform`, `filter`, `contain`…; no `container-type`, #724): el muelle queda mal colocado (aviso 8).
 - **Contenido del zócalo de alto fijo:** `GTabs` en una fila y `GBtn` hasta `lg` (aviso 6).
 - **La pill de la voz arriba** puede quedar sobre el zócalo mientras se graba (cambia de borde si tapa el foco).
 - **Lector de pantalla con cursor virtual:** al recorrer la página, el lector la desplaza y en estrecho eso puede mudar las acciones mientras se leen; la regla del foco protege el foco, no el cursor virtual (no verificado en entorno real).

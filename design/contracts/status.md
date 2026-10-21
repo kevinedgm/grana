@@ -437,6 +437,7 @@ Coincidencia del atajo como `GToaster`: `event.key` y modificadores **exactos**;
 - **Por borde, sin mirar la alineación** (como hasta ahora): un FAB en `top-end` también baja la isla centrada. Se acepta (raro, y sin solape).
 - Si la voz, el zócalo o el FAB aparecen o cambian, la isla se recoloca con `--g-duration-press` (sin muelle).
 - `utils/edgeReserve.js` no cambia de firma; solo la constante (bruno: `fab.md` y `page-header.md` anotan el cambio).
+- **`GAppShell` delante de todos (#714):** `EDGE_ORDER = { appShell: 5, speech: 10, pageHeader: 15, fab: 25, status: 30 }`. El chasis publica arriba su banda de cabecera pegada (el sitio final; 0 despegada o cedida), así que **con chasis la aplicación no pasa `offset.top`** a la isla (`app-shell.md` «Bordes compartidos»).
 
 ## Convivencia
 
