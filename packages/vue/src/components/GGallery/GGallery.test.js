@@ -272,6 +272,34 @@ describe('GGalleryViewer · sobre GDialog fullscreen bare', () => {
     cw.mockRestore(); ch.mockRestore()
   })
 
+  it('zoom ×2 conserva el relleno de reposo en la segunda medición, con la img ya sin relleno (G-A3)', async () => {
+    const cw = vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function () { return this.classList?.contains('g-gallery-viewer__stage') ? 1000 : 0 })
+    const ch = vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockImplementation(function () { return this.classList?.contains('g-gallery-viewer__stage') ? 600 : 0 })
+    let ro = null
+    globalThis.ResizeObserver = class { constructor(fn) { ro = fn } observe() {} unobserve() {} disconnect() {} }
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((fn) => setTimeout(fn, 0))
+    await openAt(0)
+    const d = dialog()
+    const img = d.querySelector('.g-gallery-viewer__img')
+    const st = d.querySelector('.g-gallery-viewer__stage')
+    img.style.padding = '10px 20px'
+    d.querySelector('.g-gallery-viewer__zoom').click(); await flush()
+    const before = [st.style.getPropertyValue('--_zoom-w'), st.style.getPropertyValue('--_zoom-h')]
+    // ampliada, GGallery.css pone padding: 0 en la img; el observador dispara una segunda medición
+    img.style.padding = '0'
+    ro([{ target: st }]); await flush()
+    expect([st.style.getPropertyValue('--_zoom-w'), st.style.getPropertyValue('--_zoom-h')]).toEqual(before)
+    const k = Math.min(960 / 1600, 580 / 1067)
+    expect(before[1]).toBe(`${Math.round(1067 * k * 2)}px`)
+    // reducir y volver a ampliar relee el relleno de reposo
+    d.querySelector('.g-gallery-viewer__zoom').click(); await flush()
+    img.style.padding = '0 10px'
+    d.querySelector('.g-gallery-viewer__zoom').click(); await flush()
+    const k2 = Math.min(980 / 1600, 600 / 1067)
+    expect(st.style.getPropertyValue('--_zoom-h')).toBe(`${Math.round(1067 * k2 * 2)}px`)
+    cw.mockRestore(); ch.mockRestore()
+  })
+
   it('zoom=false: sin botón ni +', async () => {
     await openAt(0, { zoom: false })
     const d = dialog()

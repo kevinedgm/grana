@@ -148,21 +148,22 @@ function jumpGroup(gi) {
 const zoomed = ref(false)
 const zoomBox = ref(null) // { w, h } px enteros
 let stopObs = null
+let pad = null // relleno de la img en reposo: ampliada pasa a 0 (G-A3), así que se lee una vez y se conserva
 function measureZoom() {
   const s = stageEl.value
   const p = photo.value
   if (!s || !p || !(p.width > 0 && p.height > 0)) { zoomBox.value = null; return }
   // La foto en reposo se pinta dentro del relleno de la img (G-A1): se mide la caja de contenido, no todo el escenario
-  let padX = 0
-  let padY = 0
   const im = imgEl.value
-  if (im && typeof getComputedStyle === 'function') {
+  if (!pad && im && typeof getComputedStyle === 'function') {
     const cs = getComputedStyle(im)
-    padX = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0)
-    padY = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0)
+    pad = {
+      x: (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0),
+      y: (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0),
+    }
   }
-  const sw = s.clientWidth - padX
-  const sh = s.clientHeight - padY
+  const sw = s.clientWidth - (pad ? pad.x : 0)
+  const sh = s.clientHeight - (pad ? pad.y : 0)
   if (!(sw > 0) || !(sh > 0)) { zoomBox.value = null; return }
   const k = Math.min(sw / p.width, sh / p.height)
   const next = { w: Math.round(p.width * k * ZOOM), h: Math.round(p.height * k * ZOOM) }
@@ -173,6 +174,7 @@ function setZoom(on, fx = 0.5, fy = 0.5) {
   if (on === zoomed.value) return
   zoomed.value = on
   if (stopObs) { stopObs(); stopObs = null }
+  pad = null // se vuelve a leer con la img aún en reposo (el DOM no se ha actualizado)
   if (!on) { zoomBox.value = null; return }
   measureZoom()
   if (stageEl.value) stopObs = observeSize(stageEl.value, measureZoom)

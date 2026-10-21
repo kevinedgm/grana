@@ -82,16 +82,18 @@ test('Esc escalonado (consumida por el escenario): ampliada, la primera Esc solo
 test('zoom ×2 del tamaño contenido (#758): foto vertical en visor ancho, sin franjas recorribles; recálculo al redimensionar', async ({ page }) => {
   await open(page, '', { width: 1280, height: 800 })
   await openAt(page, 4) // baño 1067×1600
+  // relleno de la img en reposo (G-A1/G-A3): la caja ×2 se mide sobre el contenido, no sobre todo el escenario
+  const pad = await page.evaluate(() => { const c = getComputedStyle(document.querySelector('.g-gallery-viewer__img')); return { x: parseFloat(c.paddingLeft) + parseFloat(c.paddingRight), y: parseFloat(c.paddingTop) + parseFloat(c.paddingBottom) } })
   await page.keyboard.press('+'); await settle(page, 120)
   const z = () => page.evaluate(() => { const s = document.querySelector('.g-gallery-viewer__stage'); return { w: parseFloat(s.style.getPropertyValue('--_zoom-w')), h: parseFloat(s.style.getPropertyValue('--_zoom-h')), sw: s.clientWidth, sh: s.clientHeight, scw: s.scrollWidth } })
   const a = await z()
-  const k = Math.min(a.sw / 1067, a.sh / 1600)
+  const k = Math.min((a.sw - pad.x) / 1067, (a.sh - pad.y) / 1600)
   expect(Math.abs(a.w - Math.round(1067 * k * 2))).toBeLessThanOrEqual(1)
   expect(Math.abs(a.h - Math.round(1600 * k * 2))).toBeLessThanOrEqual(1)
   expect(a.scw).toBeLessThanOrEqual(Math.max(a.sw, a.w) + 1)
   await page.setViewportSize({ width: 900, height: 700 }); await settle(page, 150)
   const b = await z()
-  const k2 = Math.min(b.sw / 1067, b.sh / 1600)
+  const k2 = Math.min((b.sw - pad.x) / 1067, (b.sh - pad.y) / 1600)
   expect(Math.abs(b.h - Math.round(1600 * k2 * 2))).toBeLessThanOrEqual(1)
   expect(b.h).not.toBe(a.h)
 })
