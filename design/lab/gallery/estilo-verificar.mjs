@@ -177,8 +177,14 @@ for (const eng of ENGINES) {
       // zoom
       await p.click('.g-gallery-viewer__zoom')
       await p.waitForTimeout(100)
-      const z = await p.evaluate(() => { const s = document.querySelector('.g-gallery-viewer__stage'); const i = s.querySelector('img').getBoundingClientRect(); return { w: i.width / s.clientWidth, h: i.height / s.clientHeight, sx: s.scrollWidth > s.clientWidth, sy: s.scrollHeight > s.clientHeight, cur: getComputedStyle(s).cursor } })
-      ok(Math.abs(z.w - 2) < 0.02 && Math.abs(z.h - 2) < 0.02 && z.sx && z.sy && z.cur === 'zoom-out', E(`${L}: ampliada ×2 con desplazamiento nativo`), JSON.stringify(z))
+      const z = await p.evaluate(() => {
+        const s = document.querySelector('.g-gallery-viewer__stage'); const im = s.querySelector('img'); const r = im.getBoundingClientRect(); const sr = s.getBoundingClientRect()
+        const k = Math.min(s.clientWidth / im.width, s.clientHeight / im.height)
+        return { w: r.width, h: r.height, ew: im.width * k * 2, eh: im.height * k * 2, sw: s.scrollWidth, sh: s.scrollHeight, cw: s.clientWidth, ch: s.clientHeight, cx: (r.left + r.width / 2) - (sr.left + s.clientWidth / 2), cy: (r.top + r.height / 2) - (sr.top + s.clientHeight / 2), cur: getComputedStyle(s).cursor }
+      })
+      ok(Math.abs(z.w - z.ew) < 1.5 && Math.abs(z.h - z.eh) < 1.5 && z.cur === 'zoom-out', E(`${L}: ampliada = foto contenida × 2`), JSON.stringify(z))
+      ok(z.sw <= Math.max(z.cw, z.w) + 1 && z.sh <= Math.max(z.ch, z.h) + 1, E(`${L}: sin franjas vacías recorribles (#758)`), JSON.stringify(z))
+      ok((z.w >= z.cw - 1 || Math.abs(z.cx) < 1.5) && (z.h >= z.ch - 1 || Math.abs(z.cy) < 1.5), E(`${L}: centrada en el eje que no llena`), JSON.stringify(z))
       await close(p, L)
     }
   }

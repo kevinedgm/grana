@@ -446,11 +446,18 @@
   overflow: auto;
   cursor: zoom-out;
   touch-action: pan-x pan-y pinch-zoom;
+  /* Sin los datos del .vue (SSR, antes de medir): el 200 % del escenario; el estilo en línea del .vue los sustituye */
+  --_zoom-w: 200%;
+  --_zoom-h: 200%;
+  /* Flex: el margen automático centra la foto en el eje que no llena, sin franjas recorribles */
+  display: flex;
 }
 .g-gallery-viewer__stage.is-zoomed .g-gallery-viewer__img {
   position: static;
-  inline-size: 200%;
-  block-size: 200%;
+  flex: none;
+  margin: auto;
+  inline-size: var(--_zoom-w);
+  block-size: var(--_zoom-h);
   padding: 0;
   translate: none;
   transition: none;

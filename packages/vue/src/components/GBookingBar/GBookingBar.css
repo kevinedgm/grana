@@ -464,6 +464,16 @@
 :root:has(.g-booking-bar__dock.is-shown:not(dialog *)):has(.g-sidebar--mode-navbar:not(.g-sidebar--contained)) {
   scroll-padding-block-end: calc(max(var(--g-space-16), calc(44px + var(--g-space-1) * 4)) + var(--g-sidebar-bar) + env(safe-area-inset-bottom));
 }
+/* Cola al final del documento (#757): el scroll-padding no desplaza más allá del final; sin esta cola, el último control
+   de una página sin sitio al final queda bajo el muelle. Mismo alto que la reserva (con el navbar, el área segura ya la cubre él) */
+:root:has(.g-booking-bar__dock.is-shown:not(dialog *))::after {
+  content: "";
+  display: block;
+  block-size: calc(max(var(--g-space-16), calc(44px + var(--g-space-1) * 4)) + env(safe-area-inset-bottom));
+}
+:root:has(.g-booking-bar__dock.is-shown:not(dialog *)):has(.g-sidebar--mode-navbar:not(.g-sidebar--contained))::after {
+  block-size: max(var(--g-space-16), calc(44px + var(--g-space-1) * 4));
+}
 
 /* ---------- Paneles: entrada press + ease-out desde space × 1 hacia el hueco; salida fast ---------- */
 @media (prefers-reduced-motion: no-preference) {

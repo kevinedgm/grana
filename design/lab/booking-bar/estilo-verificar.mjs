@@ -215,7 +215,7 @@ for (const eng of ENGINES) {
     ok(cover.lb <= cover.dt + 0.5, E(`${L}: un control enfocado bajo el borde queda por encima del muelle (2.4.11)`), JSON.stringify(cover))
     await p.focus('#last'); await p.waitForTimeout(300)
     const end = await p.evaluate(() => { const l = document.getElementById('last').getBoundingClientRect(); const d = document.getElementById('dock').getBoundingClientRect(); return l.bottom <= d.top + 0.5 })
-    if (!end) note(`${eng} ${L}: el ÚLTIMO control del documento queda bajo el muelle si la página no deja sitio al final (el scroll-padding no puede desplazar más allá del final): receta del README o decisión de lima (hallazgo B-C1)`)
+    ok(end, E(`${L}: el último botón de una página sin sitio al final es alcanzable (cola :root::after, #757)`))
     await close(p, L)
   }
 

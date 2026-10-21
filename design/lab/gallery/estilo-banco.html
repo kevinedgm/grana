@@ -64,6 +64,12 @@
     setup (props, { emit }) {
       const dlg = ref(null), stage = ref(null), img = ref(null)
       const zoomed = ref(false), dragging = ref(false), dx = ref(0), dy = ref(0), dir = ref(''), arriving = ref(false), live = ref('')
+      // Como el .vue (#758): tamaño contenido de la foto × 2, en px enteros, con el tamaño del escenario
+      const zoomVars = (p) => {
+        if (!zoomed.value || !stage.value) return {}
+        const cw = stage.value.clientWidth, ch = stage.value.clientHeight, k = Math.min(cw / p.width, ch / p.height)
+        return { '--_zoom-w': Math.round(p.width * k * 2) + 'px', '--_zoom-h': Math.round(p.height * k * 2) + 'px' }
+      }
       const n = PHOTOS.length
       const go = (i, d) => {
         if (i < 0 || i >= n || i === props.index) return
@@ -105,7 +111,7 @@
               h(Grana.GBtn, { class: 'g-gallery-viewer__zoom', variant: 'ghost', icon: true, 'aria-label': 'Ampliar', 'aria-pressed': String(zoomed.value), onClick: () => { zoomed.value = !zoomed.value } }, () => ic(zoomed.value ? 'zoom-out' : 'zoom-in')),
               h(Grana.GBtn, { class: 'g-gallery-viewer__close', variant: 'ghost', icon: true, 'aria-label': 'Cerrar', onClick: () => emit('close') }, () => ic('x'))
             ]),
-            h('div', { ref: stage, class: ['g-gallery-viewer__stage', zoomed.value && 'is-zoomed', dragging.value && 'is-dragging'], style: { '--_drag-x': dx.value + 'px', '--_drag-y': dy.value + 'px' }, onPointerdown: down, onPointermove: move, onPointerup: up, onPointercancel: up, onDblclick: () => { zoomed.value = !zoomed.value } }, [
+            h('div', { ref: stage, class: ['g-gallery-viewer__stage', zoomed.value && 'is-zoomed', dragging.value && 'is-dragging'], style: { '--_drag-x': dx.value + 'px', '--_drag-y': dy.value + 'px', ...zoomVars(p) }, onPointerdown: down, onPointermove: move, onPointerup: up, onPointercancel: up, onDblclick: () => { zoomed.value = !zoomed.value } }, [
               h('img', { ref: img, class: ['g-gallery-viewer__img', arriving.value && 'is-arriving'], 'data-direction': dir.value || undefined, src: broken ? 'data:image/png;base64,AAAA' : p.src, alt: p.alt, width: p.width, height: p.height, draggable: 'false' }),
               broken ? h('p', { class: 'g-gallery-viewer__broken' }, `No se pudo cargar esta foto: ${p.alt}`) : null
             ]),
