@@ -79,13 +79,13 @@ describe.each(ENTRIES)('@grana/vue/$name · entrada propia (#742)', (e) => {
     expect(cfg).toContain('this.error(')
   })
 
-  it('meta.json: entrada, global y status draft hasta la auditoría de coco', () => {
+  it('meta.json: entrada, global y status candidate tras la auditoría de coco', () => {
     for (const c of e.components) {
       const m = metaOf(c)
       expect(m, c).toBeTruthy()
       expect(m.entry).toBe(`@grana/vue/${e.name}`)
       expect(m.bundle.global).toBe(e.global)
-      expect(m.status).toBe('draft')
+      expect(m.status).toBe('candidate')
     }
   })
 

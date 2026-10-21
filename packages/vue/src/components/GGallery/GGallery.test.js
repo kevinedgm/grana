@@ -255,6 +255,23 @@ describe('GGalleryViewer · sobre GDialog fullscreen bare', () => {
     cw.mockRestore(); ch.mockRestore()
   })
 
+  it('zoom ×2 mide la caja de contenido de la img, sin su relleno (G-A1)', async () => {
+    const cw = vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function () { return this.classList?.contains('g-gallery-viewer__stage') ? 1000 : 0 })
+    const ch = vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockImplementation(function () { return this.classList?.contains('g-gallery-viewer__stage') ? 600 : 0 })
+    globalThis.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} }
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((fn) => setTimeout(fn, 0))
+    await openAt(0)
+    const d = dialog()
+    d.querySelector('.g-gallery-viewer__img').style.padding = '10px 20px'
+    d.querySelector('.g-gallery-viewer__zoom').click(); await flush()
+    // contenido 960×580; foto 1600×1067: k = min(0,6, 0,5436) → alto 580 → ×2
+    const k = Math.min(960 / 1600, 580 / 1067)
+    const st = d.querySelector('.g-gallery-viewer__stage')
+    expect(st.style.getPropertyValue('--_zoom-w')).toBe(`${Math.round(1600 * k * 2)}px`)
+    expect(st.style.getPropertyValue('--_zoom-h')).toBe(`${Math.round(1067 * k * 2)}px`)
+    cw.mockRestore(); ch.mockRestore()
+  })
+
   it('zoom=false: sin botón ni +', async () => {
     await openAt(0, { zoom: false })
     const d = dialog()

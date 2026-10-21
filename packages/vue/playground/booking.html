@@ -13,6 +13,8 @@
   body{margin:0;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
   main{padding:16px;max-inline-size:1100px;margin-inline:auto}
   .tall{block-size:180vh}
+  .after{block-size:40vh}
+  #pf{margin-block-start:24px}
 </style>
 </head>
 <body>
@@ -39,9 +41,9 @@
       locale="es-MX"
       @submit="onSubmit"></g-booking-bar>
     <g-party-field v-if="Q.party" id="pf" v-model="party" label="Huéspedes" name="guests" :rows="rowsStay" :labels="{ done: 'Listo', separator: ' · ' }" locale="es-MX"></g-party-field>
-    <div v-if="Q.tail !== '0'" class="tall"></div>
-    <div v-else class="tall"></div>
+    <div class="tall"></div>
     <button id="last" type="button">Último botón</button>
+    <div v-if="Q.tail !== '0'" class="after"></div>
   </main>
 </div>
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>

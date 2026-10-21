@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GHero",
   "tag": "g-hero",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "entry": "@grana/vue/hero",
   "bundle": {
@@ -232,7 +232,6 @@
     "10 · vídeo sin labels.pause"
   ],
   "pending": [
-    "Auditoría de coco con un tema distinto (status draft hasta entonces)",
     "README (mora-docs)",
     "Zoom de solo texto al 200 %, lector real, LCP con fotos reales y vídeo real (hero.md «Límites conocidos»)"
   ]

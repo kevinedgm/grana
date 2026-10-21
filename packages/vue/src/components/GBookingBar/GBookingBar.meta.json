@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "entry": "@grana/vue/booking",
   "contract": "design/contracts/booking-bar.md",
@@ -157,7 +157,7 @@
       "name": "labels",
       "type": "Object",
       "default": {},
-      "description": "Textos sin valores por defecto (#226; aviso 7): phrase, fields.{from|to|nights|date|time|tour|party}, empty.*, nights (contado), checkout, noDates, noDate, noTime, noTour, separator, summaryTitle, change, submit, pending, close, done, otherDay, full, decrement, increment, errors.{dates|night|nights|date|time|tour}, missing (contado, {count} {list}). Pendiente de lima: datePicker (textos que se pasan tal cual a los GDatePicker internos: prev, next, dialog, close…)."
+      "description": "Textos sin valores por defecto (#226; aviso 7): phrase, fields.{from|to|nights|date|time|tour|party}, empty.*, nights (contado), checkout, noDates, noDate, noTime, noTour, separator, summaryTitle, change, submit, pending, close, done, otherDay, full, decrement, increment, errors.{dates|night|nights|date|time|tour}, missing (contado, {count} {list})., datePicker (textos que se pasan tal cual a los GDatePicker internos: prev, next, dialog, close…; #761)."
     },
     {
       "name": "id",
@@ -241,9 +241,7 @@
     "9 · appearance=\"guided\" (reservada)"
   ],
   "pending": [
-    "Auditoría de coco con un tema distinto (status draft hasta entonces)",
     "README (mora-docs)",
-    "Lima: labels.datePicker (los textos de los GDatePicker internos no están en la tabla «Textos»)",
     "Lector real con la frase en modo lectura, móvil real (teclado virtual sobre la hoja), otros idiomas en la frase"
   ]
 }

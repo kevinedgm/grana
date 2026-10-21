@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "entry": "@grana/vue/gallery",
   "contract": "design/contracts/gallery.md",
@@ -178,7 +178,6 @@
     "9 · index fuera de rango"
   ],
   "pending": [
-    "Auditoría de coco con un tema distinto (status draft hasta entonces)",
     "README (mora-docs)",
     "Lector real, gesto táctil real, fotos reales y forced-colors en Firefox/WebKit (gallery.md «Límites conocidos»)"
   ]

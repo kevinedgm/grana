@@ -152,9 +152,18 @@ function measureZoom() {
   const s = stageEl.value
   const p = photo.value
   if (!s || !p || !(p.width > 0 && p.height > 0)) { zoomBox.value = null; return }
-  const sw = s.clientWidth
-  const sh = s.clientHeight
-  if (!sw || !sh) { zoomBox.value = null; return }
+  // La foto en reposo se pinta dentro del relleno de la img (G-A1): se mide la caja de contenido, no todo el escenario
+  let padX = 0
+  let padY = 0
+  const im = imgEl.value
+  if (im && typeof getComputedStyle === 'function') {
+    const cs = getComputedStyle(im)
+    padX = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0)
+    padY = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0)
+  }
+  const sw = s.clientWidth - padX
+  const sh = s.clientHeight - padY
+  if (!(sw > 0) || !(sh > 0)) { zoomBox.value = null; return }
   const k = Math.min(sw / p.width, sh / p.height)
   const next = { w: Math.round(p.width * k * ZOOM), h: Math.round(p.height * k * ZOOM) }
   if (!zoomBox.value || zoomBox.value.w !== next.w || zoomBox.value.h !== next.h) zoomBox.value = next

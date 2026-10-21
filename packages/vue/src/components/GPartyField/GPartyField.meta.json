@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "entry": "@grana/vue/booking",
   "contract": "design/contracts/booking-bar.md",
@@ -247,7 +247,6 @@
     "5 · valor fuera de [min, max]"
   ],
   "pending": [
-    "Auditoría de coco con un tema distinto (status draft hasta entonces)",
     "README (mora-docs)",
     "childAges reservado"
   ]
