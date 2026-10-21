@@ -13,6 +13,7 @@ import CardGroup from '@grana/vue/card-group'
 import PageHeader from '@grana/vue/page-header'
 import Fab from '@grana/vue/fab'
 import FormFold from '@grana/vue/form-fold'
+import AppShell from '@grana/vue/app-shell'
 import '@grana/vue/style.css'
 import '@grana/vue/fonts.css'
 import '../../src/.lucide.css'
@@ -29,7 +30,7 @@ export default {
     // falla al compilar: dentro de demos/G<Nombre>.vue, <g-nombre> se resuelve con la propia demo y se llama a sí misma.
     // La voz y la isla de estado son servicios: cada ejemplo crea el suyo.
     app.use(Grana).use(createIcons(siteIcons)).use(Combobox).use(FileField).use(TimeField).use(Slider).use(Tag).use(LoadRegion)
-      .use(CardGroup).use(PageHeader).use(Fab).use(FormFold)
+      .use(CardGroup).use(PageHeader).use(Fab).use(FormFold).use(AppShell)
     app.component('GranaDemo', GranaDemo)
   }
 }
