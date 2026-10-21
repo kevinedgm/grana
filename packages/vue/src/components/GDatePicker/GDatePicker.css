@@ -566,6 +566,44 @@
   color: var(--g-color-text-muted);
 }
 
+/* ---------- Día con contenido (slot `day`; datepicker.md «Precio y otros datos del día», #778) ---------- */
+/* Con el slot, TODAS las celdas pasan del círculo a una cápsula vertical: el número arriba y una segunda línea (el
+   precio del día con GPrice size="xs" display="none" cents="never") debajo. Dos filas fijas: el número no se mueve
+   entre días con y sin dato. La cápsula llena el ancho de su columna (a 320px la columna es más estrecha que --_cell
+   y el precio necesita cada píxel) y su alto sale de las dos líneas + space × 4, nunca por debajo de --_cell (44px con
+   puntero grueso). El aro de hoy, el relleno de lo elegido y la franja del rango siguen las mismas reglas; el punto
+   de hoy sube a la esquina para no pisar la segunda línea */
+.g-datepicker--day-content {
+  --_day-h: max(var(--_cell), calc(var(--g-text-body-sm-line) + var(--g-text-caption-line) + var(--g-space-1) * 4));
+}
+.g-datepicker--day-content .g-datepicker__grid td {
+  block-size: var(--_day-h);
+}
+.g-datepicker--day-content .g-datepicker__grid td::before {
+  inset-block: calc(var(--g-space-1) * 0.5);
+}
+.g-datepicker--day-content .g-datepicker__day {
+  grid-template-rows: var(--g-text-body-sm-line) var(--g-text-caption-line);
+  align-content: center;
+  inline-size: calc(100% - var(--g-space-1) * 0.5);
+  min-inline-size: 24px;
+  block-size: var(--_day-h);
+  border-radius: var(--g-radius-lg);
+}
+.g-datepicker--day-content .g-datepicker__day > :not(.g-datepicker__today-dot) {
+  grid-row: 2;
+  max-inline-size: 100%;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-caption-weight);
+  white-space: nowrap;
+}
+.g-datepicker--day-content .g-datepicker__today-dot {
+  inset-block-start: calc(var(--g-space-1) * 1.5);
+  inset-block-end: auto;
+  inset-inline-end: calc(var(--g-space-1) * 1.5);
+}
+
 /* ---------- Pie: proximidad, resumen y acciones ---------- */
 .g-datepicker__foot {
   display: flex;
