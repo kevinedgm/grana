@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GSection · banco de auditoría (coco)</title>
+<!-- Banco de la auditoría de coco (paso 5) con el GSection REAL de dist/ (y GPageHeader, GStack, GSurface, GCard, GBtn reales):
+     página con h1 de GPageHeader y secciones anidadas h2 → h3 → h4 → h4, nivel fijado, región con nombre, sección sobre
+     superficie y superficie hundida, título largo y acciones que bajan, sin descripción ni acciones.
+     Parámetros: ?dir=rtl · ?dark=1 · ?w=<px> (ancho de la página). Lo mide design/lab/section/auditoria-verificar.mjs. -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<style>
+  /* Andamio del banco (no es de Grana) */
+  body{margin:0;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  #page{box-sizing:border-box;margin-inline:auto;padding:var(--g-space-6)}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="page" :style="W ? { inlineSize: W + 'px' } : { maxInlineSize: '960px' }">
+    <g-page-header id="ph" title="Informe de validación" :sticky="false"></g-page-header>
+    <g-stack gap="lg">
+      <g-section id="s1" title="Firmantes" description="Quién valida el informe y en qué orden firma cada responsable." :labels="{ actions: 'Acciones de firmantes' }">
+        <template #actions><g-btn id="s1-add" size="sm" variant="outline" color="neutral">Añadir</g-btn><g-btn size="sm">Publicar</g-btn></template>
+        <p id="s1-p">Cuerpo de la sección, separado por la pila md.</p>
+        <g-section id="s2" title="Suplentes" description="Firman si el responsable no está.">
+          <p id="s2-p">Una sección anidada baja a h3 sola.</p>
+          <g-section id="s3" title="Excepciones">
+            <p>Y otra, a h4.</p>
+            <g-section id="s4" title="Casos raros (cuarta)"><p>La cuarta sigue en h4 y 14 px.</p></g-section>
+          </g-section>
+        </g-section>
+        <g-section id="sfix" title="Nivel fijado en 3" :heading-level="3"><p>La etiqueta es h3 y el tamaño, el de la profundidad 2.</p></g-section>
+      </g-section>
+      <g-section id="sl" title="Región con nombre" landmark><p>Con landmark: region con el nombre del título.</p></g-section>
+      <g-section id="slong" title="Un título de sección muy largo que no cabe en una línea en un teléfono y tiene que partirse sin recortarse" description="Descripción de la sección." :labels="{ actions: 'Acciones' }">
+        <template #actions><g-btn id="slong-act" size="sm" variant="outline" color="neutral">Acción</g-btn></template>
+        <p>Cuerpo.</p>
+      </g-section>
+      <g-section id="sbare" title="Sin descripción ni acciones"><p>Cuerpo.</p></g-section>
+      <g-surface id="surf"><g-section id="ssurf" title="Sobre una superficie" description="Descripción sobre surface."><p>Cuerpo.</p></g-section></g-surface>
+      <g-surface id="sunk" tone="sunken"><g-section id="ssunk" title="Sobre una superficie hundida" description="Descripción sobre sunken."><p>Cuerpo.</p></g-section></g-surface>
+      <g-card id="card" title="Una tarjeta (h3 por defecto)"><g-section id="scard" title="Sección dentro de una tarjeta" :heading-level="4" description="Descripción dentro de la tarjeta."><p>Cuerpo.</p></g-section></g-card>
+    </g-stack>
+  </div>
+</div>
+<script src="../../../node_modules/vue/dist/vue.global.prod.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../../packages/vue/dist/page-header.umd.js"></script>
+<script>
+  const P = new URLSearchParams(location.search)
+  if (P.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  if (P.get('dark') === '1') document.documentElement.dataset.theme = 'dark'
+  const app = Vue.createApp({ setup: () => ({ W: Number(P.get('w')) || 0 }) })
+  app.use(Grana).use(GranaPageHeader)
+  window.scApp = app.mount('#app')
+  window.__ready = true
+</script>
+</body>
+</html>

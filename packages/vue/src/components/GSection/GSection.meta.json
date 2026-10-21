@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GSection",
   "tag": "g-section",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Región de página con encabezado (h2 a h4), descripción y acciones: el nivel lo pone el documento por anidación y el tamaño del título la profundidad; sin superficie, plegado ni pegado. Región con nombre solo con landmark.",
   "contract": "design/contracts/section.md",

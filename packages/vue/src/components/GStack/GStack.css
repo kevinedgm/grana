@@ -34,8 +34,11 @@
 
 .g-stack > :where(:not(.g-tooltip)) { margin-block: 0; }
 
-/* divided: la línea es el borde del hijo (en forced-colors un fondo desaparecería); aire a los dos lados */
-.g-stack--divided > :where(:not(.g-tooltip, [hidden])) ~ :where(:not(.g-tooltip, [hidden])) {
+/* divided: la línea es el borde del hijo (en forced-colors un fondo desaparecería); aire a los dos lados.
+   Un hijo con superficie propia (.g-surface, también GCard) no recibe la línea: su borde superior y su relleno son de la
+   superficie (con ellos, la tarjeta quedaba con el borde de arriba de otro color y 24 px de relleno arriba frente a 16
+   abajo, medido en la auditoría); ya está delimitado y le separa el gap. */
+.g-stack--divided > :where(:not(.g-tooltip, [hidden])) ~ :where(:not(.g-tooltip, [hidden], .g-surface)) {
   border-block-start: var(--g-border-width) solid var(--g-color-border);
   padding-block-start: var(--_gap);
 }

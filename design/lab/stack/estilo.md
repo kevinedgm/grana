@@ -12,6 +12,7 @@ La separación es una **relación**, no una cifra: `sm` «va con lo anterior» (
 - En horizontal siempre `flex-wrap: wrap` (1.4.10): medido a 320 px, varias filas, sin desplazamiento, con la misma separación entre filas y columnas.
 - `horizontal`/`vertical` usan `flex-start`/`flex-end`: **lógicos**, siguen RTL sin reglas aparte (medido en LTR y RTL).
 - `divided`: la línea es el **borde del hijo** (`--g-border-width`, `--g-color-border`), nunca un fondo, para que sobreviva a `forced-colors` (medido: borde sólido visible en Chromium con colores forzados). Se selecciona con `~` y `:not(.g-tooltip, [hidden])`, así un hijo `hidden` entre dos no deja a uno sin línea. Distancia entre contenidos = `2 × gap` + grosor de la línea (medido en `default` y `compact`).
+- `divided` **no toca la caja de un hijo con superficie propia** (`.g-surface`, también `GCard`): antes la línea y el aire se escribían en su borde y relleno superiores y la tarjeta quedaba con el borde de arriba de otro color y 24 px de relleno arriba frente a 16 abajo (medido en la auditoría, `auditoria.md`); ahora la superficie conserva su caja y la separa el `gap`.
 - Todos los selectores de hijos excluyen el nodo hermano de `GTooltip` (`:where(:not(.g-tooltip))`, #383; medido con el popover abierto: la separación no cambia).
 
 ## Mediciones

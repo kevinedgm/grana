@@ -33,7 +33,7 @@
 <body>
 <main>
 <h1>GSection · banco de estilo</h1>
-<p class="cap"><b>coco</b> · Sección de página sin superficie. Título por profundidad: 20/28 › 16/24 › 14/20 (600); nivel <code>h2 › h3 › h4</code> por anidación; descripción body-sm <code>muted</code> a 66ch; acciones que bajan solas; cuerpo con la pila <code>md</code>.</p>
+<p class="cap"><b>coco</b> · Sección de página sin superficie. Título por profundidad: 20/28 → 16/24 → 14/20 (600); nivel <code>h2 → h3 → h4</code> por anidación; descripción body-sm <code>muted</code> a 66ch; acciones que bajan solas; cuerpo con la pila <code>md</code>.</p>
 <div class="tools"><button type="button" id="t-dark">Oscuro</button><button type="button" id="t-rtl">RTL</button><select id="t-theme"><option value="">Por defecto</option><option value="test">Tema de prueba</option></select></div>
 <div id="out"></div>
 </main>
@@ -56,7 +56,7 @@ const nested = (c) => section({ c: c + '1', title: 'Firmantes', description: 'Qu
   section({ c: c + '3', title: 'Orden de aviso', child: (d3, n3) => section({ c: c + '4', title: 'Cuarta anidada (h4 tope, 14 px)' }, d3, n3) }, d2, n2) }, d, n) });
 $('#out').innerHTML = [
   sec('1 · Una sección', 'Título, descripción y acciones; cuerpo con pila md.', section({ c: 'one', title: 'Pendientes de validar', description: 'Quién valida el informe y en qué orden se le avisa; puede ser más de una persona.', actions: ['Exportar', 'Añadir'] })),
-  sec('2 · Anidación (superficie)', 'h2 › h3 › h4 › h4; tamaños 20 › 16 › 14 › 14.', nested('n')),
+  sec('2 · Anidación (superficie)', 'h2 → h3 → h4 → h4; tamaños 20 → 16 → 14 → 14.', nested('n')),
   sec('3 · Sobre superficie hundida', 'Contraste del título y la descripción sobre <code>surface-sunken</code>.', nested('s'), 'sunken'),
   sec('4 · headingLevel fijado', 'Con <code>headingLevel</code> 3 en la primera: la etiqueta cambia y el tamaño no.', section({ c: 'fixed', title: 'Nivel fijado a h3', level: 3, description: 'Tamaño por profundidad (20/28), no por nivel.' })),
   sec('5 · Landmark', 'Con <code>landmark</code>: <code>aria-labelledby</code> al título (region con nombre); sin él, ninguno.', section({ c: 'lm-yes', title: 'Con landmark', landmark: true }) + '<div style="height:16px"></div>' + section({ c: 'lm-no', title: 'Sin landmark' })),

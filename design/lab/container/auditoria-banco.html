@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GContainer · banco de auditoría (coco)</title>
+<!-- Banco de la auditoría de coco (paso 5) con componentes REALES de dist/: GContainer dentro de GAppShell (con GSidebar)
+     o suelto, con la página del prototipo de kiwi (design/lab/container/r01/) reconstruida con piezas reales: GPageHeader
+     de primer hijo, prosa, un contenedor anidado, una tabla desplazable g-bleed, una banda g-bleed con zona de marca y
+     GTable con g-bleed. Escenarios extra: dentro de GSurface, dentro de .g-dialog__body (GDialog abierto) y sin chasis.
+     Parámetros: ?c=A|B (A: width xl + prose; B: width md, por defecto) · ?w=<width> · ?shell=0 (sin chasis: el contenedor es
+     el main) · ?dialog=1 (abre un GDialog con un GContainer dentro) · ?dir=rtl · ?dark=1.
+     Lo mide design/lab/container/auditoria-verificar.mjs. -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<style>
+  /* Andamio del banco (no es de Grana): el cuerpo, la banda de la aplicación y la tabla de relleno */
+  body{margin:0;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  .brand-mark{inline-size:20px;block-size:20px;border-radius:6px;background:var(--g-color-brand)}
+  .band{padding-block:var(--g-space-8);background:var(--g-color-bg)}
+  .band h2{margin-block-start:0}
+  .scroller{overflow-x:auto}
+  .scroller table{border-collapse:collapse}
+  .scroller th,.scroller td{border-block-end:var(--g-border-width) solid var(--g-color-border);padding:var(--g-space-2) var(--g-space-3);white-space:nowrap;text-align:start}
+  .fields{display:grid;gap:var(--g-space-4);grid-template-columns:1fr 1fr}
+</style>
+</head>
+<body>
+<div id="app">
+  <component :is="Q.shell ? 'g-app-shell' : 'div'" v-bind="Q.shell ? { labels: { skip: 'Saltar al contenido' } } : {}">
+    <template v-if="Q.shell" #header><span class="brand-mark" aria-hidden="true"></span><strong>Contenedor · auditoría de coco</strong></template>
+    <template v-if="Q.shell" #nav>
+      <g-sidebar id="sb" v-model="active" :items="items" label="Principal" :labels="sbLabels" :mode="Q.side">
+        <template #logo="{ collapsed }"><span class="brand-mark" aria-hidden="true"></span><span v-if="!collapsed">Grana</span></template>
+        <template #toggle-icon><g-icon name="panel-left"></g-icon></template>
+      </g-sidebar>
+    </template>
+    <g-container id="ct" :as="Q.shell ? 'div' : 'main'" :width="Q.w" :prose="Q.c === 'A'">
+      <g-page-header id="ph" title="Políticas de validación" eyebrow="Configuración · Laboratorio central" description="Reglas que deciden cuándo un resultado puede salir sin revisión manual y quién firma cuando no." :labels="{ actions: 'Acciones de la página' }">
+        <template #actions><g-btn id="ph-pub">Publicar cambios</g-btn><g-btn variant="outline" color="neutral">Ver historial</g-btn></template>
+      </g-page-header>
+      <g-stack gap="lg" style="padding-block: var(--g-space-6)">
+        <section id="s-prose" aria-labelledby="h-prose">
+          <h2 id="h-prose">Reglas de liberación automática</h2>
+          <p id="p1">Un resultado sale sin revisión cuando todos sus analitos están dentro del intervalo de referencia, el control de calidad del lote pasó en las últimas ocho horas y no hay una nota clínica que pida revisión. Si cualquiera de las tres condiciones falla, el resultado espera a un firmante.</p>
+          <p>Los valores críticos nunca salen solos: se llama al médico solicitante y la llamada queda registrada con hora, persona y medio. La política se revisa cada trimestre.</p>
+          <ul id="ul1"><li>Intervalos por edad y sexo, del catálogo de analitos.</li><li>Control de calidad del lote vigente.</li><li>Sin notas clínicas pendientes.</li></ul>
+        </section>
+        <g-section id="sec" title="Firmante de guardia" description="Quién firma cuando la liberación automática no aplica.">
+          <g-container id="nested" width="sm" horizontal="start"><div class="fields"><g-input id="f1" label="Nombre del firmante" model-value="Dra. Rebeca Solís Montaño"></g-input><g-input id="f2" label="Cédula profesional" model-value="12 345 678"></g-input></div></g-container>
+          <p id="sec-p">Prosa dentro de una sección: con prose también se queda en la medida (GSection no corta la medida).</p>
+        </g-section>
+        <section id="s-table" aria-labelledby="h-table">
+          <h2 id="h-table">Analitos con liberación automática</h2>
+          <div id="scroller" class="g-bleed scroller" role="region" aria-labelledby="h-table" tabindex="0"><table><thead><tr><th v-for="c in cols" :key="c" scope="col">{{ c }}</th></tr></thead><tbody><tr v-for="r in rows" :key="r[0]"><td v-for="(v, i) in r" :key="i">{{ v }}</td></tr></tbody></table></div>
+        </section>
+        <section id="band" class="g-bleed band" data-g-zone="brand" aria-labelledby="h-band">
+          <h2 id="h-band">Auditoría externa · noviembre</h2>
+          <p id="band-p">La auditoría revisa las políticas publicadas el último día del mes. Lo que no esté publicado entonces se audita con la versión anterior.</p>
+          <g-btn id="band-btn">Preparar paquete</g-btn>
+        </section>
+        <g-table id="gt" class="g-bleed" caption="Analitos (GTable con g-bleed)" :columns="tcols" :rows="trows"></g-table>
+        <g-surface id="surf"><g-container id="c-surf"><p id="surf-p">Contenedor dentro de una superficie: empieza en su relleno, sin margen propio.</p></g-container></g-surface>
+        <g-btn id="open-dialog" variant="outline" color="neutral" @click="dlg = true">Abrir diálogo</g-btn>
+        <div v-for="n in 30" :key="n" style="block-size: 20px; background: var(--g-color-border)"></div>
+      </g-stack>
+    </g-container>
+  </component>
+  <g-dialog id="dlg" v-model="dlg" title="Firmante de guardia" close-label="Cerrar">
+    <g-container id="c-dlg"><p id="dlg-p">Contenedor dentro de .g-dialog__body: sin margen propio.</p></g-container>
+  </g-dialog>
+</div>
+<script src="../../../node_modules/vue/dist/vue.global.prod.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../../packages/vue/dist/page-header.umd.js"></script>
+<script src="../../../packages/vue/dist/app-shell.umd.js"></script>
+<script src="../../../packages/vue/playground/lucide-icons.js"></script>
+<script>
+  const P = new URLSearchParams(location.search)
+  if (P.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  if (P.get('dark') === '1') document.documentElement.dataset.theme = 'dark'
+  const cols = ['Analito', 'Clave', 'Unidad', 'Intervalo (adulto)', 'Crítico bajo', 'Crítico alto', 'Método', 'Equipo', 'Área', 'Revisión', 'Firma']
+  const rows = [['Hemoglobina', 'HGB', 'g/dL', '12,0 – 17,5', '7,0', '20,0', 'Fotometría', 'XN-1000', 'Hematología', 'Trimestral', 'Auto'], ['Leucocitos', 'WBC', '10³/µL', '4,5 – 11,0', '2,0', '30,0', 'Impedancia', 'XN-1000', 'Hematología', 'Trimestral', 'Auto'], ['Glucosa', 'GLU', 'mg/dL', '70 – 99', '40', '450', 'Hexoquinasa', 'AU-680', 'Química', 'Mensual', 'Firma']]
+  const app = Vue.createApp({
+    setup() {
+      const c = P.get('c') === 'A' ? 'A' : 'B'
+      return {
+        Q: { c, w: P.get('w') || (c === 'A' ? 'xl' : 'md'), shell: P.get('shell') !== '0', side: P.get('side') || 'auto' },
+        dlg: Vue.ref(P.get('dialog') === '1'), active: Vue.ref('pol'), cols, rows,
+        tcols: cols.slice(0, 8).map((label, i) => ({ key: 'c' + i, label })),
+        trows: rows.map((r, j) => Object.fromEntries([['id', j], ...r.slice(0, 8).map((v, i) => ['c' + i, v])])),
+        sbLabels: { collapse: 'Contraer la barra lateral', expand: 'Expandir la barra lateral', more: 'Más', moreActive: 'contiene la página actual', drawer: 'Navegación', close: 'Cerrar' },
+        items: [{ label: 'Laboratorio', items: [{ id: 'home', label: 'Tablero', href: '#', icon: 'house' }, { id: 'res', label: 'Resultados', href: '#', icon: 'chart-column' }, { id: 'pol', label: 'Configuración', href: '#', icon: 'settings' }, { id: 'staff', label: 'Personal', href: '#', icon: 'users' }] }]
+      }
+    }
+  })
+  app.use(Grana).use(GranaPageHeader).use(GranaAppShell).use(Grana.createIcons(Object.values(window.LUCIDE_STATIC)))
+  window.ctApp = app.mount('#app')
+  window.__ready = true
+</script>
+</body>
+</html>
