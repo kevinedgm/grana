@@ -133,14 +133,16 @@ for (const eng of ENGINES) {
       return { w: r.width, h: r.height, sw: s.scrollWidth, sh: s.scrollHeight, cw: s.clientWidth, ch: s.clientHeight, sl: s.scrollLeft, st: s.scrollTop, zoomed: s.classList.contains('is-zoomed') }
     })
     const L = `zoom ${vw}×${vh} foto ${idx} ${dir || 'ltr'}`
-    // ×2 del tamaño contenido: el .vue mide el escenario entero y la foto en reposo se pinta dentro del relleno de la img
-    // (space-2 / space-4): la ampliada queda entre ×2 y ×2,2 de lo que se veía (hallazgo G-A1, para bruno; no bloquea)
+    // ×2 exacto de lo que se veía (G-A1 y G-A3 cerrados: el relleno de reposo de la img se lee una vez y se conserva)
     const k = z.w / before.w
-    ok(z.zoomed && k >= 1.99 && k <= 2.2 && Math.abs(z.w / z.h - before.w / before.h) < 0.01, E(`${L}: la foto ampliada es ×2 (≤ ×2,2) y conserva la proporción`), `${before.w.toFixed(0)}×${before.h.toFixed(0)} → ${z.w.toFixed(0)}×${z.h.toFixed(0)}`)
+    ok(z.zoomed && Math.abs(k - 2) <= 0.005 && Math.abs(z.w / z.h - before.w / before.h) < 0.01, E(`${L}: la foto ampliada es ×2,000 exacto y conserva la proporción`), `${before.w.toFixed(0)}×${before.h.toFixed(0)} → ${z.w.toFixed(0)}×${z.h.toFixed(0)}`)
     if (dir === '') note(`${eng} ${L}: ampliación real ×${k.toFixed(3)} de la foto pintada (G-A1)`)
     ok(Math.abs(z.sw - Math.max(z.w, z.cw)) <= 2 && Math.abs(z.sh - Math.max(z.h, z.ch)) <= 2, E(`${L}: recorrido = foto (sin franjas vacías recorribles)`), JSON.stringify(z))
     // Punto del zoom centrado (fx = fy = 0,5 con el botón)
-    if (z.sh > z.ch + 2) ok(Math.abs(z.st - (z.sh - z.ch) / 2) <= 2, E(`${L}: ampliada desde el centro (vertical)`), `${z.st}/${z.sh - z.ch}`)
+    if (z.sh > z.ch + 2) {
+      ok(Math.abs(z.st - (z.sh - z.ch) / 2) <= 1, E(`${L}: ampliada desde el centro (vertical): scrollTop = (scrollHeight − clientHeight)/2`), `${z.st}/${z.sh - z.ch}`)
+      if (dir === '') note(`${eng} ${L}: scrollTop ${z.st} · (scrollHeight − clientHeight)/2 = ${(z.sh - z.ch) / 2}`)
+    }
     await p.keyboard.press('Escape'); await settle(p, 100)
     const s1 = await p.evaluate(() => ({ open: document.querySelector('.g-gallery-viewer').open, zoomed: document.querySelector('.g-gallery-viewer__stage').classList.contains('is-zoomed') }))
     ok(s1.open && !s1.zoomed, E(`${L}: la primera Esc solo reduce`), JSON.stringify(s1))
