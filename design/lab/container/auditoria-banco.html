@@ -9,7 +9,7 @@
      de primer hijo, prosa, un contenedor anidado, una tabla desplazable g-bleed, una banda g-bleed con zona de marca y
      GTable con g-bleed. Escenarios extra: dentro de GSurface, dentro de .g-dialog__body (GDialog abierto) y sin chasis.
      Parámetros: ?c=A|B (A: width xl + prose; B: width md, por defecto) · ?w=<width> · ?shell=0 (sin chasis: el contenedor es
-     el main) · ?dialog=1 (abre un GDialog con un GContainer dentro) · ?dir=rtl · ?dark=1.
+     el main) · ?h=start (horizontal) · ?tabs=1 (GPageHeader con pestañas; addendum L4) · ?dialog=1 (abre un GDialog con un GContainer dentro) · ?dir=rtl · ?dark=1.
      Lo mide design/lab/container/auditoria-verificar.mjs. -->
 <link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
 <link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
@@ -35,8 +35,9 @@
         <template #toggle-icon><g-icon name="panel-left"></g-icon></template>
       </g-sidebar>
     </template>
-    <g-container id="ct" :as="Q.shell ? 'div' : 'main'" :width="Q.w" :prose="Q.c === 'A'">
+    <g-container id="ct" :as="Q.shell ? 'div' : 'main'" :width="Q.w" :horizontal="Q.h" :prose="Q.c === 'A'">
       <g-page-header id="ph" title="Políticas de validación" eyebrow="Configuración · Laboratorio central" description="Reglas que deciden cuándo un resultado puede salir sin revisión manual y quién firma cuando no." :labels="{ actions: 'Acciones de la página' }">
+        <template v-if="Q.tabs" #tabs><g-tabs id="ph-tabs" v-model="tab" :items="phTabs" detached label="Secciones de la política"></g-tabs></template>
         <template #actions><g-btn id="ph-pub">Publicar cambios</g-btn><g-btn variant="outline" color="neutral">Ver historial</g-btn></template>
       </g-page-header>
       <g-stack gap="lg" style="padding-block: var(--g-space-6)">
@@ -85,7 +86,8 @@
     setup() {
       const c = P.get('c') === 'A' ? 'A' : 'B'
       return {
-        Q: { c, w: P.get('w') || (c === 'A' ? 'xl' : 'md'), shell: P.get('shell') !== '0', side: P.get('side') || 'auto' },
+        Q: { c, w: P.get('w') || (c === 'A' ? 'xl' : 'md'), shell: P.get('shell') !== '0', side: P.get('side') || 'auto', h: P.get('h') || 'center', tabs: P.get('tabs') === '1' },
+        tab: Vue.ref('rules'), phTabs: [{ id: 'rules', label: 'Reglas' }, { id: 'signers', label: 'Firmantes' }, { id: 'history', label: 'Historial' }],
         dlg: Vue.ref(P.get('dialog') === '1'), active: Vue.ref('pol'), cols, rows,
         tcols: cols.slice(0, 8).map((label, i) => ({ key: 'c' + i, label })),
         trows: rows.map((r, j) => Object.fromEntries([['id', j], ...r.slice(0, 8).map((v, i) => ['c' + i, v])])),

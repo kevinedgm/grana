@@ -69,3 +69,67 @@ Las dos recetas (con chasis `as="div"`, sin chasis `as="main"` con `GPageHeader`
 **Correcciones.** Ninguna.
 
 **Pendientes.** L4 (decisión en `GPageHeader.css`); las notas a lima; `forced-colors` en Firefox y WebKit y zoom real del navegador, no verificables aquí.
+
+## Addendum L4 (2026-10-21, coco): `GPageHeader` de primer hijo, a ras de la columna
+
+**Hallazgo (#751):** con `GPageHeader` hijo directo de `.g-container__body`, su relleno lateral `--_pad` se sumaba al margen del contenedor. Medido antes del cambio con `node design/lab/container/l4-verificar.mjs` (Chromium, 84/192): `h1`, acciones, primera pestaña y título compacto **24 px** por dentro de la columna en ancho (1440 y 1024, con y sin chasis, LTR, RTL, `horizontal="start"`) y **16 px** en estrecho (390, `--_pad` = `space × 4`); el muelle arrancaba su título 16 px por dentro; en estrecho RTL la primera pestaña quedaba además **15 px fuera** del inicio de la columna. El zócalo pegado ocupaba la columna, no la caja: a 1440 sin chasis dejaba 336 px a cada lado por donde pasaba la página.
+
+### Opciones medidas
+
+| Opción | Qué hace | Medida | Riesgo |
+| --- | --- | --- | --- |
+| **(a) Sangrar como `g-bleed`** | Hijo directo de la columna: margen negativo `--g-container-inset-*` y relleno igual; el zócalo devuelve `--g-tabs-inset` | Texto a ras: **0 px** en todo (abajo). Fondo, línea del suelo y sombra del pegado llegan a los dos bordes de la caja | Con una columna centrada ancha el zócalo pegado es una banda de borde a borde de la caja (es lo que hace la banda del chasis; antes era una tira de 768 px con la página asomando a los lados). `--g-tabs-inset` es simétrico en `GTabs`: con el sangrado entero en él, una columna centrada daría ~200 px de relleno al final de las pestañas; por eso el zócalo solo le pasa `min(--_pad, inicio)` y el resto va en su relleno |
+| (b) Aceptar con receta | La aplicación resta: `.g-container__body > .g-page-header { margin-inline: calc(var(--g-space-6) * -1) }` | 0 px de texto en ancho, pero en estrecho hay que repetirla con `space × 4`, y si el margen de la columna es menor de 24 px (`gutter="sm"`/`none`, o 4cqi en cajas de 400 a 600 px) desborda la caja: desplazamiento horizontal | La receta depende de un relleno interno (`--_pad`), cambia con `is-narrow` y el zócalo pegado sigue sin llegar a la caja |
+| (c) Relleno 0 sin sangrar | `--_pad: 0` dentro de la columna | Texto a ras, 0 px | El zócalo pegado sigue en la columna: con bandas `g-bleed` y la tabla sangrada, la página pasa a los lados del zócalo pegado; la línea del suelo y la sombra acaban en el filo del texto |
+
+**Elegida: (a).** Es el mismo mecanismo que el contrato ya ofrece para «algo que ocupa la columna y llega al borde de la caja» (B · Sangrado alineado, #722), se apoya en los márgenes publicados (registrados, en px) y no deja nada a la aplicación. Con margen 0 (contenedor anidado, `GSurface`, `.g-dialog__body`) no sangra y el texto va a ras del de la anfitriona.
+
+### Qué cambia en `GPageHeader.css`
+
+- Relleno por lado `--_pad-s`/`--_pad-e` (por defecto `--_pad`) y `--_tabs-in: min(--_pad, --_pad-s)`.
+- `.g-container__body > .g-page-header`: `--_pad-s/-e` = `--g-container-inset-start/-end` y `margin-inline` negativo con los mismos.
+- Zócalo: `margin-inline: -pad-s -pad-e`; relleno del inicio `calc(pad-s − tabs-in × (1 − --_p))` (fuera del contenedor es `--_pad × --_p`, como antes); `--g-tabs-inset: --_tabs-in`; sin pestañas, `--_pad-s`.
+- Muelle: relleno lateral `max(space × 4, --_pad-s/-e)` (fuera del contenedor, idéntico: en estrecho `--_pad` = `space × 4`).
+- Fuera de la columna de un contenedor, todo resuelve a los valores anteriores (lo confirman 1284/1284 de `estilo-verificar.mjs` y 41/41 de los specs).
+
+### Medido después (tres motores)
+
+`l4-verificar.mjs`: 32 casos por motor (1440 y 1024, con y sin chasis, LTR y RTL, `horizontal="start"`, con y sin pestañas, y 390 estrecho con muelle), en reposo y pegado. **Chromium 192/192, Firefox 192/192, WebKit 192/192.** En todos: `h1` Δ **0 px**, acciones Δ **0 px**, primera pestaña Δ **0 px**, título compacto con `--_p = 1` Δ **0 px**, título del muelle Δ **0 px**; raíz y zócalo pegado a **0…0 px** de los bordes de la caja; muelle de borde a borde de la caja; línea del suelo y sombra presentes; sin desplazamiento horizontal; consola limpia.
+
+| | Antes (ancho / estrecho) | Después |
+| --- | --- | --- |
+| `h1` y acciones, con chasis | 24 / 16 px | 0 px |
+| `h1` y acciones, sin chasis | 24 / 16 px | 0 px |
+| Primera pestaña (RTL estrecho) | 24 / −15 px | 0 px |
+| Zócalo pegado | la columna | la caja |
+
+`auditoria-verificar.mjs`: la comprobación de L4 pasa a «a ras» y la del pegado a «llega a los bordes de la caja»: Chromium 159/159; partes `base,bleed,prose,hosts` en Firefox 109/109 y WebKit 109/109. `design/lab/page-header/estilo-verificar.mjs` 1284/1284 (se admiten los dos márgenes publicados de `GContainer` como propiedades fuera del tema). Specs `page-header` + `container` en Chromium 41/41. Compuertas 84/84.
+
+### Para lima
+
+- `container.md` L4: «(a) **cerrado** (#751, coco): de primer nivel en la columna, `GPageHeader` sangra como `g-bleed` (margen negativo con `--g-container-inset-*` y el mismo relleno); el `h1`, las pestañas, las acciones, el título compacto y el muelle quedan a ras de la columna y el fondo, la línea y la sombra del zócalo pegado llegan a los bordes de la caja; medido 0 px en los tres motores, con y sin chasis (`design/lab/container/l4-verificar.mjs`)».
+- `container.md` «Límites conocidos»: quitar la viñeta de `GPageHeader` dentro de la columna, o sustituirla por: «**`GPageHeader` solo sangra de primer nivel** (hijo directo de la columna). Dentro de un `GStack` u otro envoltorio conserva su relleno propio (`space × 6`, `space × 4` en estrecho) y queda por dentro de la columna; para alinearlo, que sea hijo directo».
+- `page-header.md`: añadir a «Clases y datos» o a la anatomía que, como hijo directo de `.g-container__body`, la raíz sangra hasta la caja del contenedor y consume `--g-container-inset-start/-end`.
+- Registrar en `DECISIONS.md` el cierre de L4 con la opción (a) y lo descartado ((b) desborda con márgenes < 24 px y cambia con `is-narrow`; (c) deja pasar la página a los lados del zócalo pegado).
+
+### Para bruno
+
+- `is-narrow` se calcula con `root.clientWidth` (`GPageHeader.vue`, «mide la raíz»): sangrada, la raíz mide la caja y no la columna, así que entre ~600 y ~650 px de caja el encabezado ya no es estrecho aunque su columna mida menos de `space × 150`. No se ve como defecto en el banco (ni desborde ni acciones fuera), pero si se quiere el umbral por el ancho útil, medir `clientWidth − padding-inline`. No bloquea.
+
+### Para mora-docs
+
+- `GContainer/README.md`, límites: quitar «el `h1` y las acciones de `GPageHeader` quedan 24 px más adentro»; poner «`GPageHeader` de primer hijo de la columna sangra hasta los bordes de la caja (como `g-bleed`) y deja su texto a ras de la columna; dentro de un envoltorio conserva su relleno».
+- `GPageHeader/README.md`: en la receta con `GContainer`, decir que va como hijo directo y que su zócalo pegado ocupa la caja del contenedor.
+
+### No verificado
+
+`GPageHeader` de primer hijo de un contenedor anidado o dentro de `GSurface`/`.g-dialog__body` (margen 0: por cálculo no sangra; sin banco); `forced-colors` de este caso en Firefox y WebKit; zoom real del navegador; lector de pantalla (no cambia nada semántico).
+
+### Cumplimientos / Correcciones / Pendientes
+
+**Cumplimientos.** Texto del encabezado a ras de la columna (0 px) y zócalo pegado al borde de la caja en los tres motores, con y sin chasis, LTR y RTL, `horizontal="start"`, pestañas, título compacto y muelle; nada cambia fuera de un contenedor; solo `var(--g-*)` y `--_*`, sin respaldos.
+
+**Correcciones.** `GPageHeader.css` (sangrado de primer nivel en la columna y relleno por lado); `auditoria-verificar.mjs` y `estilo-verificar.mjs` actualizados; banco con `?tabs=1` y `?h=start`; script nuevo `l4-verificar.mjs`.
+
+**Pendientes.** Los textos de lima y mora-docs de arriba; la nota de `is-narrow` para bruno; lo no verificado.
+

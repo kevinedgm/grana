@@ -5,7 +5,7 @@
 // GDialog). Tema por defecto, generados claro y oscuro y el de prueba (space 5).
 // Mide: columna = min(caja − 2 × margen, máximo) y márgenes publicados = reales; anidado (contenedor, GSurface, .g-dialog__body);
 // B (bandas al borde de la caja, contenido en la columna, desplazable alineado en reposo y al final, GTable con g-bleed);
-// A (prose y reading con la fuente de cada tema); L4 de GPageHeader (anotado); pegado a toda la página; RTL; 320×256;
+// A (prose y reading con la fuente de cada tema); L4 de GPageHeader (a ras de la columna, addendum L4); pegado a toda la página; RTL; 320×256;
 // contraste de la banda con zona de marca; nada pintado; consola limpia. Capturas prototipo ↔ real (B, prose, reading).
 // Requiere dist/ (npm run build). Desde la raíz:  GRANA_PW_PORT=4215 node design/lab/container/auditoria-verificar.mjs
 import { pw, serve, stop, open, close, ok, note, near, report, settle, rect, px, toY, sy, overflowX, args, ENGINES, setEngine, sideBySide } from '../app-shell/auditoria-comun.mjs'
@@ -56,13 +56,13 @@ for (const eng of ENGINES) {
           const n = await geo(p, '#nested')
           ok(near(n.boxL, g.colL) && near(n.colL, g.colL) && near(n.colW, Math.min(g.colW, s * 160), 1), E('anidado (sm, start): sin margen acumulado, empieza en la columna'), `${n.colL}/${g.colL}`)
           const h1 = await rect(p, '#ph h1'), p1 = await rect(p, '#p1'), act = await rect(p, '#ph .g-page-header__actions')
-          note(`${eng} L4 (sin arreglar, decisión pendiente en GPageHeader.css): h1 en ${Math.round(h1.left)}, texto de la página en ${Math.round(p1.left)} (Δ ${Math.round(h1.left - p1.left)} px); acciones terminan en ${Math.round(act.right)}, la columna en ${Math.round(g.colR)} (Δ ${Math.round(g.colR - act.right)} px)`)
-          ok(near(h1.left - p1.left, s * 6, 1), E('L4 medido: GPageHeader suma su relleno lateral (space × 6) al margen de la columna'), `${h1.left - p1.left}`)
+          note(`${eng} L4 (cerrado en GPageHeader.css, addendum L4; detalle en l4-verificar.mjs): h1 en ${Math.round(h1.left)}, texto de la página en ${Math.round(p1.left)} (Δ ${Math.round(h1.left - p1.left)} px); acciones terminan en ${Math.round(act.right)}, la columna en ${Math.round(g.colR)} (Δ ${Math.round(g.colR - act.right)} px)`)
+          ok(near(h1.left - p1.left, 0, 0.6) && near(g.colR - act.right, 0, 0.6), E('L4: el h1 y las acciones de GPageHeader van a ras de la columna'), `${h1.left - p1.left} / ${g.colR - act.right}`)
           // Pegado a toda la página dentro del contenedor (#724)
           await toY(p, 1400)
           const base = await rect(p, '#ph .g-page-header__base'), hd = await rect(p, '.g-app-shell__header')
           ok(await p.evaluate(() => document.getElementById('ph').classList.contains('is-stuck')) && near(base.top, hd.bottom), E('GPageHeader primer hijo: el zócalo se pega bajo la banda a toda la página'), `${base.top}/${hd.bottom}`)
-          ok(near(base.left, g.colL, 1) && near(base.right, g.colR, 1), E('GPageHeader primer hijo: el zócalo pegado ocupa la columna'), `${base.left}/${g.colL} ${base.right}/${g.colR}`)
+          ok(near(base.left, g.boxL, 1) && near(base.right, g.boxR, 1), E('GPageHeader primer hijo: el zócalo pegado llega a los bordes de la caja (sangra como g-bleed, L4)'), `${base.left}/${g.boxL} ${base.right}/${g.boxR}`)
         }
         if (vw === 320) {
           const u = await p.evaluate(() => { const e = document.getElementById('p1'); return e.scrollWidth <= e.clientWidth + 1 })

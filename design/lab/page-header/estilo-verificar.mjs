@@ -52,7 +52,8 @@ const note = (s) => notes.push(s)
   ok(vars.every((v) => v.startsWith('--g-') || v.startsWith('--_')), 'CSS: var() que no es --g-* ni --_*')
   const defaults = await readFile(join(ROOT, 'packages/vue/src/styles/defaults.css'), 'utf8')
   const defined = new Set([...defaults.matchAll(/(--g-[a-z0-9-]+)\s*:/g)].map((m) => m[1]))
-  const missing = [...new Set(vars.filter((v) => v.startsWith('--g-') && !defined.has(v) && !['--g-page-header-top', '--g-tabs-inset'].includes(v)))]
+  const missing = [...new Set(vars.filter((v) => v.startsWith('--g-') && !defined.has(v) && !['--g-page-header-top', '--g-tabs-inset', '--g-container-inset-start', '--g-container-inset-end'].includes(v)))]
+  // Fuera del tema: entrada pública propia, la de GTabs y los márgenes publicados de GContainer (tokens.md §50, L4 #751)
   ok(!missing.length, 'CSS: tokens que no existen en defaults.css ' + missing)
   ok(!defined.has('--g-page-header-top'), 'defaults.css: --g-page-header-top no es del tema (#629)')
   ok(!vars.includes('--g-color-zone-edge'), 'CSS: no lee --g-color-zone-edge (#634, §44.2)')
