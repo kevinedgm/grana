@@ -26,6 +26,9 @@ Selector de **una fecha o de un rango de fechas** (patrón *date picker dialog* 
 | `min` | String | ISO | sin valor | propia |
 | `max` | String | ISO | sin valor | propia |
 | `disabledDates` | Function | `(iso: string) => boolean` | sin valor | propia |
+| `disabledNights` | Function | `(iso: string) => boolean` (la noche que empieza `iso`) | sin valor | propia (solo `range`; #739, §«Noches y salida») |
+| `minNights` | Number | entero ≥ 1 | sin valor | propia (solo `range`; #739) |
+| `maxNights` | Number | entero ≥ `minNights` | sin valor | propia (solo `range`; #739) |
 | `months` | String \| Number | `auto` `1` `2` | `auto` | propia |
 | `locale` | String | etiqueta BCP 47 | la de `<html lang>` (o `navigator.language`) | propia |
 | `firstDay` | Number | 0 (domingo) a 6 | el del `locale` (`Intl.Locale`), si no, 1 | propia |
@@ -350,6 +353,30 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 **Clases nuevas** (contrato bruno–coco): `g-datepicker__support`, `g-datepicker__output`, `g-datepicker--has-output` (r02), `g-datepicker__optional`, `g-datepicker__message`, `__message-icon`, `__message-type`, `is-warning`, `is-valid` (`g-datepicker__error` desaparece).
 
 **Marca fuera de `GForm` (#170):** sin contexto, el asterisco con `required` se pinta como antes aunque el campo sea `readonly` o `disabled`; la regla «solo campos editables llevan marca» rige solo dentro de `GForm`.
+
+## Noches y salida (enmienda para hoteles; DECISIONS.md #739)
+
+**Origen:** B-L5, B-L6 y B-L7 de `design/lab/booking-bar/r01/` (`GBookingBar`, `booking-bar.md`). Hoy un día no disponible se deshabilita entero y no se puede elegir como **salida**, y un rango puede contener días no disponibles: la aplicación valida a mano y no puede ofrecer la salida en un día agotado. En hotelería lo agotado es **la noche**, no el día.
+
+**`disabledNights(iso)`** (solo `range`; en `single` se ignora y avisa): `true` = la noche que **empieza** el día `iso` (de `iso` a `iso + 1`) no está disponible. Un rango `{ start, end }` duerme las noches `start … end − 1`. Reglas, mientras se elige y al recibir un valor:
+
+1. **Inicio:** un día cuya noche está agotada **no puede ser inicio**.
+2. **Fin:** con un inicio pendiente `S`, un día `E > S` puede ser fin si **ninguna** noche de `S` a `E − 1` está agotada y `E − S` está dentro de `[minNights, maxNights]` (cada límite, si se da). **Salir un día cuya noche está agotada es válido** (esa noche no se duerme).
+3. Un día **después** de `S` que no puede ser fin pero sí inicio se comporta como **Inactive** (`is-inactive`: elegible, reinicia el inicio al tocarlo), igual que los anteriores a `S`. Uno que no puede ser ni fin ni inicio es **Disabled** (`is-disabled`, `aria-disabled`, en el orden de las flechas).
+4. **Solo salida:** sin inicio pendiente, un día cuya noche está agotada pero cuya noche anterior no lo está lleva **`is-checkout-only`** y el sufijo `labels.checkoutOnly` («…, solo salida»); tocarlo sin inicio pendiente **no hace nada** (no puede ser inicio). coco le da una forma distinta del tachado (no solo color).
+5. **Con `disabledNights`, el rango ya no puede contener noches agotadas** (a diferencia de `disabledDates`, que sigue sin impedirlo: compatible). Un `modelValue` recibido que las contiene se muestra tal cual y avisa una vez (aviso nuevo).
+6. `minNights`/`maxNights` sin `disabledNights` valen solos (regla 2 con solo los límites). `disabledDates` sigue mandando sobre los dos (un día no disponible no es ni inicio ni fin).
+7. `proximity` respeta las reglas: ampliar no mete noches agotadas (recorta antes de la primera).
+
+**Textos nuevos:** `labels.checkoutOnly` (sufijo del nombre del día; recomendado, sin valor por defecto). **Clase nueva:** `is-checkout-only` (botón del día).
+
+**Raíz con el slot `trigger` (B-L7).** Con el slot `trigger` la raíz lleva **`g-datepicker--trigger`** y coco la deja sin caja (`display: contents`): el botón de la aplicación queda en la línea de su texto (la frase de `GBookingBar`) y el panel sigue en la capa superior. La raíz sigue siendo un `div`, así que **no va dentro de un `<p>`** (el analizador de HTML cerraría el párrafo en SSR): aviso nuevo si al montar la raíz tiene un `<p>` ancestro. La frase de `GBookingBar` es un `div` por esto.
+
+**Defecto (B-L6, para bruno):** con `inline` y `disabled`, «Mes anterior» y «Mes siguiente» siguen activos (medido por kiwi en Chromium). El contrato ya dice que `disabled` en `inline` **la deshabilita entera** (§«Reglas de props», `readonly`/`disabled`): no es aclaración, es un defecto; los dos botones llevan `disabled`.
+
+**Avisos nuevos** (`[Grana GDatePicker]`): `disabledNights`, `minNights` o `maxNights` en `single`; `maxNights < minNights`; `modelValue` con una noche agotada dentro; raíz dentro de un `<p>`.
+
+**Peso:** cuenta en el lote de enmiendas de marketing del principal (#742).
 
 ## Contraste del día elegido (`tokens.md` §7.1; DECISIONS.md #431 y #432)
 

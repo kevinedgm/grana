@@ -25,6 +25,7 @@ Diálogo modal genérico con una **carcasa** exterior y una **superficie inset**
 | `density` | String | `default` `comfortable` `compact` | `default` | compartida |
 | `inset` | Boolean | | `true` | propia |
 | `fullscreen` | Boolean | | `false` | propia |
+| `bare` | Boolean | | `false` | propia (#732): sin encabezado, relleno ni inset; §«Visor a pantalla completa» |
 | `placement` | String | `center` `end` | `center` | propia |
 | `mobile` | String | `sheet` `full-width` `fullscreen` | `sheet` | propia |
 | `role` | String | `dialog` `alertdialog` | `dialog` | propia |
@@ -53,6 +54,8 @@ Diálogo modal genérico con una **carcasa** exterior y una **superficie inset**
 - **`loading`:** `aria-busy="true"` en la carcasa y clase `is-loading`. No bloquea nada: las acciones las controla el consumidor.
 - **`id`:** si no se da, se genera uno estable (`useId`); de él derivan los ids de título y descripción.
 - **`from`** (#583): el elemento que abrió el diálogo, como `id` o como elemento. Se resuelve **al abrir** (un `id` sin elemento cuenta como sin valor). Sin `from`, el disparador es `document.activeElement` si está fuera del diálogo y no es `body` (lo de hoy, D1). Con `from`: **el foco vuelve a él al cerrar** (en lugar del retorno nativo) si sigue conectado y es usable; si no, el retorno nativo. También es el origen de D1: con `from`, WebKit tiene `has-origin` con un clic de ratón (cierra el límite (1) de #307 para quien lo pasa; sin `from` el límite sigue).
+- **`from` vivo (#732):** si `from` cambia **con el diálogo abierto**, el foco vuelve al **valor vigente al cerrar** (se resuelve otra vez al cerrar; si ya no es usable, el retorno nativo). El origen de D1 sigue siendo el de la apertura. Compatible con lo anterior (antes un cambio en abierto no tenía efecto). Primer uso: el visor de `GGallery`, que devuelve el foco a la miniatura de la foto vista (`gallery.md`).
+- **`bare`** (#732): §«Visor a pantalla completa».
 - **`steps`** y **`labels`:** ver §«Niveles anidados» B.
 - **Resto de atributos** (`class`, `style`, `data-*`, `aria-*`, escuchas): van al `<dialog>` (raíz).
 
@@ -437,6 +440,28 @@ Lenguaje común de **«un valor que vuelve»**: al bajar con resultado (base 7),
 - **vitest:** `from` (id y elemento; retorno del foco; origen de D1 sin foco previo); `dismiss` con `depth`; modo pasos con y sin `v-model:steps`; `push`/`back`/`backTo` (historial, `update:steps`, `step` con cada `reason`, `result` que viaja); `back` con un paso = `close()`; `aria-labelledby` del `<dialog>` al paso actual; paneles no actuales `hidden` + `inert` y montados; paso que sale, desmontado; Esc en paso > 1 baja sin `dismiss`; Esc repetida ignorada; Esc consumida por un descendiente; fondo con dos pasos o un pliegue abierto, sin `dismiss`; «Volver» con `labels.back` String y Function; hilo (`aria-current="step"`, nombres con `summary`, salto con foco al `from` del paso de encima); foco por la base 3, 4 y 7; `data-g-landed` en la caja (`data-g-tooltip-box`) y retirada por `animationend` y por respaldo; `announce` en el canal de página trasladado al modal superior y nada sin `announce`; avisos 1 a 6; SSR de un `GDialog` cerrado con pasos.
 - **Playwright** (tres motores, en `design/lab/theme-playground/`): el recorrido de cinco niveles de kiwi con pasos y pliegues: un solo fondo; Esc mantenida baja uno; borrador que vuelve (montado y en el modelo) y desplazamiento restaurado; resultado con foco, llegada y anuncio en el modal superior; error al confirmar sin bajar; salto desde el hilo con teclado; **borde superior Δ 0px** entre pasos (≤ 0,5px admitidos, #307); hoja a 375px que no baja al volver y sin desborde horizontal; RTL (entrada espejada, chevron espejado); reducido (sin desplazamiento ni animación del alto); `GToaster` dentro del diálogo.
 - **No automatizable (entorno real):** lector de pantalla (cambio de nombre del `<dialog>` por paso, `role="group"` al recibir el foco, orden de la frase tras el foco, hilo), táctil, zoom 200 %, `forced-colors`.
+
+## Visor a pantalla completa (`bare`; DECISIONS.md #732)
+
+**Origen:** G-L3 de `design/lab/gallery/r01/` (el visor de `GGallery` necesita la pantalla entera para la foto, con sus propios controles). Lo que pedía kiwi y cómo queda:
+
+| Necesidad | Resolución |
+| --- | --- |
+| Pantalla completa sin relleno ni cabecera propia | **Prop nueva `bare`** (abajo) |
+| Esc escalonado (la primera Esc reduce la foto ampliada) | **Ya contratado, sin enmienda:** un descendiente que trata Esc con `preventDefault()` la consume y `GDialog` respeta `defaultPrevented` (§«Teclado»). Pendiente de siempre: comprobar en Firefox y WebKit que el `preventDefault` del `keydown` suprime el `cancel` (#108; bruno lo prueba con el visor) |
+| Foco devuelto a un elemento distinto del disparador | **`from` vivo** (§«Reglas de props») |
+| Página debajo inmóvil | **Ya lo hace** `html:has(.g-dialog[open])` (§«Límites», Navegadores) |
+
+**`bare`** (Boolean, `false`):
+
+- **Sin encabezado** (`g-dialog__header` no se renderiza: ni título, ni descripción, ni `icon`, ni botón de cierre), **sin inset** (como `inset=false`) y **sin relleno de carcasa**: el slot por defecto llena la carcasa. El slot `footer` y `tabs` se ignoran y avisan (aviso nuevo 7).
+- **Nombre accesible:** `aria-label` o `aria-labelledby` en `$attrs` (van al `<dialog>`); `title` no se pinta y, si se da, se usa como `aria-label`. Sin ninguno, el aviso del título de siempre.
+- **El cierre es del contenido:** el consumidor pinta su botón y llama a `close()` del alcance del slot (emite `dismiss` con `reason: 'close'`, cancelable). Sin `closeLabel` **no** se avisa con `bare` (no hay botón de cierre propio). Esc y `closeOnBackdrop` funcionan como siempre.
+- **Pensado con `fullscreen`** (el visor de `GGallery`): sin esquinas, todo el visor. Con `placement="center"` y un `size`, es una carcasa desnuda del ancho de `size` (sin D1 ni D2 si además es `fullscreen`, como hoy).
+- **Foco al abrir:** el orden de #292 sin cambios (no hay botón de cierre propio en el paso 3: pasa al 4).
+- **Clase:** `g-dialog--bare` (raíz). coco: sin relleno ni separación de carcasa; el fondo y el radio de la carcasa siguen siendo los de `GDialog` salvo que el consumidor los pinte (el visor pone la zona de marca en la raíz, `api.md` «Zona de marca»).
+- **Aviso nuevo 7** (`[Grana GDialog]`): slot `footer` o `tabs` con `bare`.
+- Pruebas (bruno): sin encabezado ni inset; `aria-label` desde `title`; `close()` del alcance; `from` cambiado en abierto recibe el foco al cerrar; Esc consumida por un descendiente en Chromium, Firefox y WebKit.
 
 ## Convivencia con avisos (`GToaster`, `toast.md`; DECISIONS.md #141 y #143)
 

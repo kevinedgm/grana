@@ -67,6 +67,7 @@ Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Men
 | `items` | Array | En `group`: sus elementos; en un `item`: el submenú |
 | `href` | String | Con valor, el elemento es un **enlace** `<a role="menuitem" href>` y emite `navigate` en lugar de `select` (§«Elementos-enlace», #572) |
 | `target`, `rel` | String | Atributos del `<a>`; solo con `href` (§«Elementos-enlace») |
+| `lang`, `hreflang` | String | Idioma de la etiqueta (cualquier elemento) e idioma del destino (solo con `href`); selector de idioma (§«Elementos-enlace», #743) |
 | `external` | Boolean | El destino es **otro sitio**: marca «sale de aquí» y texto para lectores; solo con `href` |
 | `current` | Boolean | Es la **página actual**: `aria-current="page"`; solo con `href`; como mucho uno por menú |
 
@@ -246,11 +247,13 @@ El resaltado **salta** (sin desplazamiento), con fundido. M4 no es movimiento: r
 | `rel` | String | Atributo del `<a>` tal cual. **Grana no añade nada** (con `_blank` los navegadores ya aplican `noopener`) |
 | `external` | Boolean | El destino es **otro sitio**. Explícito: Grana **no compara orígenes** (sin `location` en el render, sin desajuste en SSR) |
 | `current` | Boolean | Página actual: `aria-current="page"` (#576) |
+| `lang` | String | Idioma de la **etiqueta** (BCP 47): atributo `lang` en el elemento (`<a>` o `<button>`), para que el lector pronuncie «English» o «Deutsch» en su idioma (WCAG 3.1.2). Vale en **cualquier** `item`, enlace o no; con `dir="auto"` en su texto (#282). Un valor que `Intl.getCanonicalLocales` rechaza se ignora y avisa (aviso E8). #743, M-L3 del inventario de marketing |
+| `hreflang` | String | Idioma del **destino** (BCP 47): atributo `hreflang` del `<a>`. Solo con `href` (sin él, aviso E2). Selector de idioma: cada idioma es una página (`href`), con `lang` **y** `hreflang` (#743) |
 
 - **Dónde vale:** solo en `type: 'item'` **sin** `items` (no padre de submenú). En `checkbox`, `radio`, `group`, `separator` o un padre de submenú, `href` **se ignora** y avisa (aviso E1): un padre que también navega sería un botón dividido, fuera de alcance.
-- `target`, `rel`, `external` y `current` **sin `href` válido** se ignoran y avisan (aviso E2).
+- `target`, `rel`, `external`, `current` y `hreflang` **sin `href` válido** se ignoran y avisan (aviso E2). `lang` vale también sin `href` (#743).
 - `id` sigue **obligatorio** (clave, carga del evento y pruebas), como en cualquier `item`. `icon`, `shortcut`, `keyshortcuts`, `danger` y `disabled` funcionan igual que en un `<button>`; los slots `icon` e `item` pintan **dentro** del `<a>`.
-- **Reservados** (L11): `download`, `hreflang`, `referrerpolicy` (sin caso en la integración) y abrir el menú con el foco en la página actual (el foco sigue empezando en el primero, APG).
+- **Reservados** (L11): `download`, `referrerpolicy` (sin caso en la integración; `hreflang` sale de la reserva por #743, con `lang`) y abrir el menú con el foco en la página actual (el foco sigue empezando en el primero, APG).
 - **Sin slot `link` ni `RouterLink` dentro del menú** (L10): el router entra por `navigate`. Por eso **no aplica la excepción #523**; un slot `link` queda reservado y, si llega, la citará.
 
 ### Anatomía y ARIA
@@ -387,6 +390,7 @@ Una vez por menú, con la guarda canónica de #653 (`try { if (process.env.NODE_
 | E5 | Hay pie y falta `labels.destExternal` o `labels.destNewTab` necesario | Pie sin etiqueta (host y ruta siguen) |
 | E6 | Hay enlaces habilitados y falta alguno de `opened`/`openedLive` o `copied`/`copiedLive` | Ese gesto de C cae al comportamiento nativo (cierra / no copia) |
 | E7 | `navigator.clipboard.writeText` se rechaza | Sin huella ni anuncio |
+| E8 | `lang` o `hreflang` que `Intl.getCanonicalLocales` rechaza (#743) | Lo ignora (sin atributo) |
 
 ### Clases nuevas (para coco, L7)
 

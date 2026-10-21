@@ -131,6 +131,7 @@ El prop `density` multiplica localmente **la altura, el padding y la separación
 --g-press-scale
 --g-text-action-weight
 --g-calendar-{grid-color|unavailable-color|now-color}
+--g-hero-title-max   (tope del título de GHero, §51)
 --g-surface-{shell|inset|gap|radius|radius-inset|backdrop}
 --g-glass-{tint|opacity|filter|edge|sheen}
 ```
@@ -823,6 +824,9 @@ Variables dinámicas en línea (excepción justificada a «sin estilos en línea
 | Retardo `--g-duration-fast × min(i, 4) / 8` (15 ms por escalón con el tema por defecto) | Salida escalonada de las píldoras de `GFab` desde el FAB, la más cercana primero (#655; precedente de #500) |
 | `k ≤ 5`, `space × 3` (hueco con el FAB), `space × 10` (píldora; 44px con `pointer: coarse`), `space × 2` (separación), `space × 80` y `space × 20` (ancho y alto mínimo del panel), `space × 40` (sitio para el panel sobre la pila), `space × 130` (estrecho, el de `GDialog`) y `RECEIPT_MS` 4000 ms (constante de **JS**, la de `GDocumentPreview`) | Política `auto`, panel y acuse de `GFab` (`fab.md`, #663, #665; `k` se ajusta a los altos medidos, #670) |
 | Giro `45°` (iconos que se cruzan: el `+` es la `x`), escala de partida `0.96` (la de `GMenu`), márgenes del recorte en reposo `space × −6` (fila de la pila) y `space × −12` (panel de C) | `GFab.css` (`fab.md` «Tokens consumidos», #671) |
+| `7.5cqi` (preferido del título fluido) e interlineado relativo `1.08`; margen `clamp(space × 4, 4cqi, space × 12)`; arco de A (50 % / 40 % en 4:5), muro `space × 2`, foto 4:5; labio de B `min(space × 40, 12cqi)` y de C `min(space × 28, 16cqi)`, tarjeta de C `min(100% − 2 × margen, space × 220)`; ninguna placa o tarjeta tapa más de la mitad de la foto; la mirada, **3 %** del alto | `GHero` (`hero.md`, #726 a #728) |
+| Umbrales del gesto **18 %** del ancho, **40 px** en < **250 ms**, **22 %** del alto para cerrar; zoom **×2**; recorrido de llegada `space × 6` (constantes de **JS** las tres primeras) | Visor de `GGallery` (`gallery.md`, #734) |
+| Alto del muelle `max(space × 16, 44px + space × 4)` (**constante de contrato**: la suma el `scroll-padding-block-end`); presupuesto del cuarto `4` (como #713); histéresis de la forma compacta (el ancho que necesitaba la fila, medido) | `GBookingBar` (`booking-bar.md`, #737, #740) |
 
 **No son constantes:** `0.97` es `--g-press-scale`; `1.006` es un resultado **medido** (criterio de verificación de #300), no un valor escrito; `32px`, `±16px` y `4px` se escriben siempre como múltiplos de `--g-space-1` y siguen a `space`.
 
@@ -845,6 +849,16 @@ Variables `--_*` **internas** del CSS de un componente (no se leen desde fuera, 
 | `--_tooltip-ax`, `--_tooltip-ay`, `--_tooltip-aw`, `--_tooltip-ah` (si se registran: `@property`, `<length>`) | `GTooltip` (`.vue` → CSS) | **Dato** del `.vue` (px): posición y tamaño de la pestaña relativos a la etiqueta; registradas solo si coco necesita interpolarlas en el viaje (#388) |
 
 Un alias o propiedad registrada nueva de este tipo **no necesita decisión** mientras solo derive de tokens y constantes de §29.6; una **constante nueva** sí (#187).
+
+### 29.8 Movimiento ligado al desplazamiento (DECISIONS.md #728)
+
+Regla común para todo movimiento que avanza con el desplazamiento de la página y no con el tiempo (primer uso declarado como regla: **la mirada** de `GHero` A; antecedente sin regla: el título compacto de `GPageHeader`, ligado a `--_p` por cuadro, §45):
+
+1. **Solo dentro de un marco:** se mueve el contenido de un recorte (la foto dentro del vano); el marco, el texto y los controles quedan quietos (estabilidad, rúbrica C).
+2. **Pequeño y lineal:** recorrido ≤ **3 %** del lado del marco, curva lineal (lo marca el desplazamiento; ninguna curva de §29.1), solo `transform`.
+3. **CSS, sin JS:** `animation-timeline: view()` (o `scroll()`); sin soporte (Firefox hoy), quieto. Nunca un manejador de `scroll`.
+4. **Movimiento reducido:** quieto (§29.3). **Siempre apagable** por prop (`look` en `GHero`).
+5. **Un uso nuevo** de esta regla es una decisión nueva (como §29.1).
 
 ## 30. Campo numérico (`GNumberField`; sin tokens nuevos)
 
@@ -1249,3 +1263,19 @@ Son la referencia de las pruebas de bruno, no valores de `defaults.css` escritos
 - **Clases públicas de entrada** (como `g-adapt-*`, §33): `g-bleed`, `g-bleed-raw`, `g-wide`.
 - **Propiedades registradas privadas** (§29.7): `--_container-gutter` (`<length>`, `inherits: false`), `--_container-measure` (`<length>`, `inherits: true`).
 - **Movimiento:** ninguno.
+
+## 51. Héroe (`GHero`; un token de componente nuevo)
+
+**Token de componente nuevo: `--g-hero-title-max`** (`design/contracts/hero.md` «Título», DECISIONS.md #727; H-L3 de `design/lab/hero/r01/`, M-L6 del inventario). Tope del título fluido del héroe, que va de `title-lg` a este tope por `cqi`. Valor por defecto: **coco** en `defaults.css` (capa `grana.defaults`), derivado de `--g-text-display-size` (propuesta de kiwi: `display × typeScale²`, 61 px con el tema por defecto). El CLI puede emitirlo como `fontSize × typeScale⁶` en `rem` (**bruno**, no bloquea: sin él, el valor derivado de `display` ya sigue a `fontSize` y a `fontDisplay`, pero no a `typeScale`). **No es un rol tipográfico** (§5 no cambia): el interlineado del título es relativo (`1.08`, constante de §29.6) porque el tamaño es fluido; ningún otro componente lo lee. No se redeclara en el oscuro ni en la zona de marca (no es de color).
+
+Consume además: `--g-color-bg`, `--g-color-surface`, `--g-color-surface-sunken`, `--g-color-text`, `--g-color-text-muted`, `--g-color-border`, `--g-color-border-strong`, `--g-color-focus`, `--g-focus-width`, `--g-focus-offset`, `--g-border-width`, `--g-radius-*`, `--g-shadow-1`, `--g-shadow-2`, `--g-text-title-lg-size`, `--g-text-display-weight`, `--g-text-display-tracking`, `--g-font-display`, `--g-text-body-*`, `--g-text-body-sm-*`, `--g-text-caption-*`, `--g-font-ui`, `--g-space-*`, `--g-duration-fast`, `--g-duration-slow`, `--g-ease-out`. La placa de B es zona de marca (§44): todo lo del grupo de color que lee está en §44.5. **Movimiento:** la mirada de A (§29.8), el fundido de B (`slow` + `ease-out`; reducido `fast`); sin muelle ni rebote. **No son tokens:** las constantes de §29.6; `24px`/`44px` (§7); `svh` (literal de unidad, §7).
+
+## 52. Galería y visor (`GGallery`, `GGalleryViewer`; sin tokens nuevos)
+
+**No añaden tokens** (`design/contracts/gallery.md`, DECISIONS.md #731 a #734). Consumen `--g-color-surface`, `--g-color-surface-sunken`, `--g-color-bg`, `--g-color-mold` (hueco que carga, §42), `--g-color-text`, `--g-color-text-muted`, `--g-color-border`, `--g-color-border-strong`, `--g-color-focus`, `--g-focus-width`, `--g-focus-offset`, `--g-border-width`, `--g-radius-*`, `--g-text-body-*`, `--g-text-body-sm-*`, `--g-text-caption-*`, `--g-text-title-sm-*`, `--g-text-action-weight`, `--g-font-ui`, `--g-space-*`, `--g-duration-fast`, `--g-duration-press`, `--g-ease-out`. **El visor es zona de marca por defecto** (§44; #733): todo lo del grupo de color que lee está en §44.5. Un neutro oscuro propio para el visor exigiría el ámbito `inverse` (reservado en `api.md` «Zona de marca»); **no se crea ahora**. **Datos del `.vue` al CSS** (§29.5): `--_drag-x`, `--_drag-y`, `--_zoom-x`, `--_zoom-y`, `data-direction`. **No son tokens:** los umbrales y medidas de §29.6.
+
+## 53. Consulta de reserva y campo de grupo (`GBookingBar`, `GPartyField`; sin tokens nuevos)
+
+**No añaden tokens** (`design/contracts/booking-bar.md`, DECISIONS.md #737, #738, #740). Consumen los de los campos que componen (sin releerlos) y, en lo propio, `--g-color-surface`, `--g-color-text`, `--g-color-text-muted`, `--g-color-border`, `--g-color-border-strong`, `--g-color-border-control`, `--g-color-danger-text`, `--g-color-focus`, `--g-focus-width`, `--g-focus-offset`, `--g-border-width`, `--g-radius-*`, `--g-shadow-2`, `--g-shadow-3`, `--g-text-title-*` (la frase, si coco la escribe en `title`), `--g-text-body-*`, `--g-text-body-sm-*`, `--g-text-caption-*`, `--g-text-action-weight`, `--g-font-ui`, `--g-space-*`, `--g-duration-fast`, `--g-duration-press`, `--g-duration-slow`, `--g-ease-out`. **Movimiento:** el muelle entra con `slow` + `ease-out` y sale con `press`; reducido, fundido; **sin `--g-ease-spring`** (el de `GPageHeader` es decisión del usuario, #635; aquí sería un uso nuevo). **Constante de contrato:** el alto del muelle (§29.6). **Datos del `.vue` al CSS:** `--_x`, `--_y`, `--_max`, `data-side` de los paneles (#358). **No son tokens:** el cuarto, la histéresis, `24px`/`44px` (§7).
+
+**Enmienda de `GDatePicker`** (#739): el estado «solo salida» (`is-checkout-only`) no añade tokens; coco lo distingue del tachado por forma con los tokens que ya lee `GDatePicker` (`text`, `text-muted`, `text-subtle`, `border`, `border-control`; `datepicker.md` «Tokens consumidos»).
