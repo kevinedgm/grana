@@ -136,6 +136,17 @@ must_have grana.css "g-stack--divided" "$CSS_MSG"
 must_have grana.css "g-section__title" "$CSS_MSG"
 must_have grana.css "g-section__actions" "$CSS_MSG"
 
+# GAppShell (entrada propia @grana/vue/app-shell, #716; tope 4 KiB gzip): el CSS en grana.css, el código fuera del principal
+must_have grana.css "g-app-shell__skip" "$CSS_MSG"
+must_have grana.css "g-app-shell__frame" "$CSS_MSG"
+must_not_have grana.js "GAppShell" "GAppShell viajó en el paquete principal grana.js; debe ir solo en la entrada app-shell.js (#716)"
+must_exist "app-shell.js" "No se generó la entrada propia app-shell.js (revisar vite.app-shell.config.js y el script build de packages/vue)"
+must_not_have app-shell.js "new WeakMap" "El registro de bordes (utils/edgeReserve.js) quedó copiado en app-shell.js; debe llegar por __shared sin copia"
+
+# GContainer (principal, #723; <= 1 KiB gzip en grana.js, medido en el commit)
+must_have grana.css "g-container__body" "$CSS_MSG"
+must_have grana.css "g-container--width-reading" "$CSS_MSG"
+
 echo
 if [ "$failed" -eq 0 ]; then
   echo "Compuertas: $total/$total superadas."

@@ -2042,6 +2042,25 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
             </g-section>
           </div>
         </section>
+        <section class="pg-section" id="sec-container" data-pg-section>
+          <h2>GContainer</h2>
+          <p class="pg-lead">Contenedor de página: pone los límites en línea (ancho máximo, centrado, margen y elemento) midiendo <b>su sitio y no el visor</b>. El margen respira de forma continua con la caja, no se acumula al anidarse y una banda <code>g-bleed</code> llega al borde de la caja con su contenido alineado a la columna. <code>width="reading"</code> y <code>prose</code> limitan la línea a 66 caracteres. Dentro de <code>GAppShell</code> va con <code>as="div"</code> (su defecto); sin chasis, <code>as="main"</code>. Bancos: <a href="container.html">container.html</a> y, con el chasis, <a href="app-shell.html">app-shell.html</a>.</p>
+          <div class="pg-panel" id="ctn-demo">
+            <h3>Ancho <code>md</code> en una caja que puedes estrechar</h3>
+            <div id="ctn-box" style="resize:horizontal;overflow:auto;border:1px dashed var(--g-color-border);max-inline-size:100%">
+              <g-container id="ctn-md" width="md">
+                <p>La columna mide como mucho 768 px y su margen crece con la caja (de 16 a 48 px), sin puntos de corte.</p>
+                <section class="g-bleed" style="background:var(--g-color-surface);padding-block:12px" aria-label="Banda de ejemplo"><p style="margin:0">Banda <code>g-bleed</code>: el fondo llega al borde de la caja; el texto sigue en la columna.</p></section>
+                <g-container width="sm" horizontal="start"><p>Contenedor anidado <code>sm</code> al inicio: no suma margen.</p></g-container>
+              </g-container>
+            </div>
+            <h3>Medida de lectura</h3>
+            <g-container id="ctn-prose" width="xl" prose>
+              <p>Con <code>prose</code>, el párrafo se queda en 66 caracteres aunque la columna mida 1280 px; lo marcado con <code>g-wide</code>, una tabla o un componente de Grana usan la columna entera.</p>
+              <p class="g-wide">Este párrafo lleva <code>g-wide</code> y usa la columna entera.</p>
+            </g-container>
+          </div>
+        </section>
         <section class="pg-section" id="sec-summary" data-pg-section>
           <h2>GSummary</h2>
           <p class="pg-lead">Ficha de resumen adaptable: identidad, título, línea secundaria, <b>datos con prioridad</b> y estado, que se adapta al ancho de su contenedor y al texto real. No tiene maquetas ni umbrales: tiene prioridad (A · prioridad líquida). Al estrechar, la corriente de datos se bebe por el final; antes de soltar un dato calla los rótulos que se explican solos (<code>bare</code>); «+N» dice cuántos no se ven; al ensanchar, lo que vuelve a caber entra. Nada se oculta: el lector recibe todos los datos. Entre homónimas, lo único pesa y lo compartido se apaga (<code>summaryDiff</code>). Es contenido (<code>span</code>): va dentro de una opción, un campo, una celda o una tarjeta. Banco completo y rendimiento: <a href="summary.html">summary.html</a>.</p>

@@ -30,11 +30,13 @@ import PageHeader, { GPageHeader } from '@grana/vue/page-header'
 // GFab (entrada propia, #656)
 import Fab, { GFab } from '@grana/vue/fab'
 import type { FabItem, FabSelectEvent } from '@grana/vue/fab'
+// GAppShell (entrada propia, #716)
+import AppShell, { GAppShell } from '@grana/vue/app-shell'
 
 const toaster: Toaster = createToaster({ position: 'bottom-end', limit: 3 })
 const status = createStatus({ position: 'top-center', duration: 'auto' })
 const speech = createSpeech({ adapter: createSimulatedSpeechAdapter({ location: 'local' }) })
-createApp(App).use(Grana).use(Combobox).use(FileField).use(TimeField).use(Slider).use(Tag).use(LoadRegion).use(CardGroup).use(PageHeader).use(Fab).use(toaster).use(status).use(speech).use(createIcons([]))
+createApp(App).use(Grana).use(Combobox).use(FileField).use(TimeField).use(Slider).use(Tag).use(LoadRegion).use(CardGroup).use(PageHeader).use(Fab).use(AppShell).use(toaster).use(status).use(speech).use(createIcons([]))
 
 toaster.success('Guardado', { description: 'Listo' })
 toaster.show({ title: 'Hola', type: 'info', duration: 'auto' })
@@ -194,6 +196,10 @@ h(GCardGroup, { modelValue: true, label: 'Estado' })
 // @ts-expect-error GCardGroup: change lleva { value, pressed }
 h(GCardGroup, { label: 'Estado', onChange: (e: { checked: boolean }) => e.checked })
 
+// ---- GAppShell ----
+h(GAppShell, { header: 'relay', headerZone: 'none', labels: { skip: 'Saltar al contenido' }, id: 'app' })
+// @ts-expect-error GAppShell: headerZone fuera de la lista
+h(GAppShell, { headerZone: 'inverse' })
 // ---- GPageHeader ----
 h(GPageHeader, { title: 'Muestra M-0007', headingLevel: 1, eyebrow: 'Hematología', description: 'Hemograma', sticky: false, zone: 'none', labels: { actions: 'Acciones' }, id: 'muestra' })
 // @ts-expect-error GPageHeader: title es obligatoria

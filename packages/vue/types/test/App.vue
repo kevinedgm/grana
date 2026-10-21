@@ -77,6 +77,19 @@ const onClick = (e: MouseEvent) => e.clientX
   <!-- @vue-expect-error GPageHeader: zone fuera de la lista -->
   <g-page-header title="X" zone="inverse" />
 
+  <!-- GAppShell (#716) y GContainer (#723) -->
+  <g-app-shell header="relay" header-zone="brand" :labels="{ skip: 'Saltar al contenido' }">
+    <template #header>Marca</template>
+    <g-container width="reading" prose gutter="sm" horizontal="start">Página</g-container>
+    <template #footer>Pie</template>
+  </g-app-shell>
+  <!-- @vue-expect-error GAppShell: header fuera de la lista -->
+  <g-app-shell header="hidden" />
+  <!-- @vue-expect-error GContainer: width fuera de la lista -->
+  <g-container width="huge" />
+  <!-- @vue-expect-error GContainer: as fuera de la lista -->
+  <g-container as="button" />
+
   <!-- GFab (#656) -->
   <g-fab label="Crear" :items="[{ id: 'a', label: 'Nueva muestra' }]" position="bottom-center" :labels="{ more: 'Más ({count})' }">
     <template #trigger-icon="{ open }">{{ open ? 'abierto' : 'cerrado' }}</template>

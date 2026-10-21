@@ -10,10 +10,11 @@
 // se actualiza al cambiar la reserva.
 import { reactive } from 'vue'
 
-/** Orden desde el borde: menor = más cerca. Los avisos (GToaster) no publican. GPageHeader (zócalo pegado arriba, muelle
+/** Orden desde el borde: menor = más cerca. Los avisos (GToaster) no publican. El chasis (GAppShell: banda de cabecera
+ * arriba, reserva del navbar abajo) es lo más cercano al borde (#714). GPageHeader (zócalo pegado arriba, muelle
  * abajo) va después de la voz (#631); el FAB contraído (GFab, `anchor="viewport"`), después (#659); la isla de estado, que
  * es transitoria, detrás del FAB (#699: lo persistente conserva el borde y lo transitorio se apila por dentro, #225). */
-export const EDGE_ORDER = Object.freeze({ speech: 10, pageHeader: 15, fab: 25, status: 30 })
+export const EDGE_ORDER = Object.freeze({ appShell: 5, speech: 10, pageHeader: 15, fab: 25, status: 30 })
 
 const registries = new WeakMap() // document → Map(dueño → { edge, px, order })
 

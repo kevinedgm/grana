@@ -53,7 +53,7 @@ const openFab = async (page) => {
 test('un solo registro de bordes para todas las entradas, con el orden del contrato', async ({ page }) => {
   await load(page, 'n=6')
   const order = await page.evaluate(() => ({ ...Grana.__shared['utils/edgeReserve.js'].EDGE_ORDER }))
-  expect(order).toEqual({ speech: 10, pageHeader: 15, fab: 25, status: 30 })
+  expect(order).toEqual({ appShell: 5, speech: 10, pageHeader: 15, fab: 25, status: 30 }) // #714: el chasis, lo más cercano al borde
   // fab.umd.js toma edgeReserve de Grana.__shared: una reserva publicada en el registro del principal mueve al FAB (lee lo
   // que va antes que él, 10 < 25) y una de después (30) no; con una copia del módulo no se movería con ninguna
   const r = await page.evaluate(async () => {

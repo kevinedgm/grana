@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "name": "GContainer",
+  "tag": "g-container",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Contenedor de página: pone los límites en línea del contenido (ancho máximo, centrado, margen fluido y elemento) midiendo su sitio y no el visor. Un descendiente con g-bleed llega al borde de la caja con su contenido alineado a la columna; width=\"reading\" y prose limitan la línea a la medida de lectura.",
+  "contract": "design/contracts/container.md",
+  "decisions": "DECISIONS.md #717, #718, #721 a #724",
+  "prototype": "design/lab/container/r01/",
+  "style": "packages/vue/src/components/GContainer/GContainer.css",
+  "props": [
+    {
+      "name": "width",
+      "type": "String",
+      "default": "lg",
+      "values": ["sm", "md", "lg", "xl", "2xl", "full", "reading"],
+      "description": "Ancho máximo de la columna: space × 160 · 192 · 256 · 320 · 384; full sin máximo (la caja menos el margen); reading = 66ch de la fuente de la columna. --g-container-max en la raíz gana. Fuera de lista: aviso 1 y lg."
+    },
+    {
+      "name": "horizontal",
+      "type": "String",
+      "default": "center",
+      "values": ["center", "start"],
+      "description": "center reparte el sobrante; start deja el margen al inicio lógico y el sobrante al final. Con width=\"full\" no tiene efecto (aviso 2)."
+    },
+    {
+      "name": "gutter",
+      "type": "String",
+      "default": "auto",
+      "values": ["auto", "none", "sm", "md", "lg"],
+      "description": "Margen lateral fluido (clamp con cqi de la caja y el área segura). auto = md arriba y 0 anidado (dentro de otro contenedor, de GSurface o de GDialog). Uno explícito siempre gana. Fuera de lista: aviso 4 y auto."
+    },
+    {
+      "name": "as",
+      "type": "String",
+      "default": "div",
+      "values": ["div", "main", "section", "article"],
+      "description": "Elemento de la raíz; no añade roles ni nombres (los aria-* van a la raíz por $attrs). main solo sin GAppShell (aviso 3). Fuera de lista: aviso 4 y div."
+    },
+    {
+      "name": "prose",
+      "type": "Boolean",
+      "default": false,
+      "description": "A · Medida: la prosa de la columna (p, listas, blockquote, h1–h6, figcaption, address) se queda en 66ch alineada al inicio; excluye lo de dentro de un componente de Grana, de una tabla y de .g-wide."
+    }
+  ],
+  "events": [],
+  "slots": [
+    { "name": "default", "purpose": "El contenido de la página, en flujo normal dentro de la columna (.g-container__body). Bandas con g-bleed / g-bleed-raw y excepciones de prose con g-wide" }
+  ],
+  "methods": [],
+  "tokens": [
+    "--g-space-1", "--g-space-3", "--g-space-4", "--g-space-6", "--g-space-12", "--g-space-16",
+    "--g-container-max (propiedad pública de entrada, en la raíz; no del tema; inherits: false)",
+    "--g-container-inset-start, --g-container-inset-end (publicadas, solo lectura)"
+  ],
+  "states": ["default"],
+  "classes": [
+    "g-container g-container--width-{sm|md|lg|xl|2xl|full|reading} g-container--horizontal-{center|start} g-container--gutter-{auto|none|sm|md|lg} (raíz; siempre los cuatro ejes)",
+    "g-container--prose (con prose)",
+    "g-container__body (la columna)",
+    "g-bleed, g-bleed-raw, g-wide (clases públicas de entrada que pone la aplicación en descendientes)"
+  ],
+  "warnings": [
+    "1 · width fuera de lista",
+    "2 · horizontal con width=\"full\"",
+    "3 · as=\"main\" con otro main en el documento o dentro de otro main (GAppShell, S10)",
+    "4 · as, gutter u horizontal fuera de lista",
+    "5 · una banda g-bleed / g-bleed-raw que no ocupa la columna (medido al montar)"
+  ],
+  "pending": [
+    "Auditoría de coco con un tema distinto (status draft hasta entonces)",
+    "README (mora-docs)",
+    "L4: relleno lateral de GPageHeader dentro de la columna (PENDIENTES.md)"
+  ]
+}

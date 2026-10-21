@@ -49,6 +49,7 @@ export const props = {
   'GLoadRegion.keyBy': 'string | ((item: any) => string | number)',
   'GLoadRegion.labels': 'LoadRegionLabels',
   'GPageHeader.labels': '{ actions?: string }',
+  'GAppShell.labels': '{ skip?: string }',
   'GSection.labels': '{ actions?: string }',
   'GFab.items': 'FabItem[]',
   'GFab.labels': 'FabLabels',

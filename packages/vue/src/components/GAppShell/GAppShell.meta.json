@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "name": "GAppShell",
+  "tag": "g-app-shell",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Chasis de aplicación: reparte el visor entre cabecera, navegación (GSidebar), región principal y pie con sus puntos de referencia y su enlace de salto, reserva el sitio de la navegación leyendo su forma por CSS y escribe una sola vez la cifra de la cabecera para todo lo que se pega debajo. A · Cortina por defecto; B · Relevo de franja con header=\"relay\".",
+  "contract": "design/contracts/app-shell.md",
+  "decisions": "DECISIONS.md #708 a #718",
+  "prototype": "design/lab/app-shell/r01/",
+  "style": "packages/vue/src/components/GAppShell/GAppShell.css",
+  "entry": "@grana/vue/app-shell",
+  "bundle": {
+    "measured": "2026-10-21",
+    "entry": "dist/app-shell.js (GAppShell)",
+    "gzip": 3898,
+    "umdGzip": 3645,
+    "global": "GranaAppShell",
+    "note": "gzip -9. Vue y @grana/vue externos; edgeReserve (con EDGE_ORDER.appShell), appShellKey (utils/appShell.js), sizeObserver y spaceUnit/nextFrame (formContext) llegan de __shared, sin copia. El CSS va en grana.css. Tope #716: 4096 B."
+  },
+  "props": [
+    {
+      "name": "header",
+      "type": "String",
+      "default": "pinned",
+      "values": ["pinned", "relay"],
+      "description": "Comportamiento de la cabecera al desplazar. relay = B · Relevo de franja: cede el borde al zócalo pegado de GPageHeader al bajar y vuelve al subir, sin zócalo pegado o con el foco en la cabecera. Fuera de lista: aviso 9 y pinned."
+    },
+    {
+      "name": "headerZone",
+      "type": "String",
+      "default": "none",
+      "values": ["none", "brand"],
+      "description": "Zona de marca de la banda de cabecera: brand pone data-g-zone=\"brand\" en el header, nunca en la raíz. Fuera de lista o sin slot header: aviso 8 y none."
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": {},
+      "description": "{ skip }: texto del enlace «Saltar al contenido». Obligatorio (aviso 1); vacío o solo espacios cuenta como ausente. Sin valores por defecto (#226)."
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null,
+      "description": "Base de ids (en la raíz): {id}-main es el destino del salto. Sin id, uno generado SSR-seguro."
+    }
+  ],
+  "events": [],
+  "slots": [
+    { "name": "header", "purpose": "Marca, buscador, cuenta, el botón de menú del drawer. Dentro de la banda de alto fijo (más alto: aviso 6, declarar --g-app-shell-header en :root). Sin GPageHeader aquí" },
+    { "name": "nav", "purpose": "Un GSidebar, hijo directo de la raíz (un envoltorio: aviso 4; contained: aviso 5)" },
+    { "name": "default", "purpose": "La página (GContainer, GPageHeader, GStack…) dentro del main único del chasis; ningún main dentro (aviso 3)" },
+    { "name": "footer", "purpose": "Pie de la aplicación, fuera de main (contentinfo)" }
+  ],
+  "methods": [],
+  "labels": ["skip"],
+  "tokens": [
+    "--g-app-shell-header (propiedad pública de entrada, en :root; no del tema)",
+    "--g-app-shell-top (publicada, solo lectura)",
+    "--g-page-header-top y --g-accordion-sticky-top (las escribe el chasis)",
+    "--g-sidebar-width", "--g-sidebar-rail", "--g-sidebar-bar",
+    "--g-color-bg", "--g-color-surface", "--g-color-text", "--g-color-text-muted", "--g-color-border", "--g-color-border-strong", "--g-color-focus",
+    "--g-focus-width", "--g-focus-offset", "--g-border-width", "--g-radius-md", "--g-shadow-2", "--g-space-*", "--g-font-ui",
+    "--g-text-body-sm-*", "--g-text-action-weight", "--g-duration-fast", "--g-duration-slow", "--g-ease-out"
+  ],
+  "states": ["default", "header-relay", "yielded"],
+  "classes": [
+    "g-app-shell (raíz div; la caja que GSidebar mide)",
+    "g-app-shell--header-relay (header=\"relay\")",
+    "is-yielded (B: la cabecera cedió el borde; la escribe el .vue directamente en la raíz)",
+    "has-header, has-footer (slot presente)",
+    "g-app-shell__skip (a, primer enfocable)",
+    "g-app-shell__header (header, solo con slot; data-g-zone=\"brand\" con headerZone=\"brand\")",
+    "g-app-shell__frame, g-app-shell__main (main#{id}-main tabindex=\"-1\"), g-app-shell__footer (solo con slot)",
+    "Lee las clases públicas de GSidebar en sus hijos directos (#712) e is-ready, y .g-page-header.is-sticky en main"
+  ],
+  "composes": ["GSidebar (slot nav)", "GPageHeader (canal interno appShellKey, S6)"],
+  "focus": "No es enfocable ni mueve el foco salvo el salto: clic primario sin modificadores o Intro en el enlace enfoca main con preventScroll y lo coloca al inicio respetando el scroll-padding, sin tocar location.hash.",
+  "warnings": [
+    "1 · falta labels.skip",
+    "2 · más de un GAppShell en el documento",
+    "3 · un main dentro del main del chasis (incluye GContainer as=\"main\")",
+    "4 · slot nav sin GSidebar como hijo directo",
+    "5 · GSidebar con contained dentro del chasis",
+    "6 · contenido de la cabecera más alto que la banda",
+    "7 · el chasis dentro de un <dialog>",
+    "8 · headerZone fuera de lista, o brand sin slot header",
+    "9 · header fuera de lista",
+    "10 · la aplicación escribe su propia receta de cabecera",
+    "11 · --g-app-shell-header declarada fuera de :root"
+  ],
+  "pending": [
+    "Auditoría de coco con el componente real y un tema distinto (status draft hasta entonces)",
+    "README (mora-docs) tras la auditoría"
+  ]
+}

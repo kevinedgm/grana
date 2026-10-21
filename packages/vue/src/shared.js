@@ -30,6 +30,10 @@
 // El encabezado de página (`@grana/vue/page-header`, #633: vite.page-header.config.js y src/page-header.test.js) toma de
 // aquí el registro de reservas de borde (edgeReserve con EDGE_ORDER.pageHeader: un solo registro por documento, o la isla y
 // los avisos no verían el zócalo ni el muelle), sizeObserver, spaceUnit y nextFrame (formContext) y transitionMs.
+// El chasis de aplicación (`@grana/vue/app-shell`, #716: vite.app-shell.config.js y src/app-shell.test.js) toma de aquí el
+// registro de reservas de borde (edgeReserve con EDGE_ORDER.appShell: uno por documento), el canal interno con
+// GPageHeader (utils/appShell.js, appShellKey: el mismo Symbol que inyecta el encabezado, #710), el observador de tamaño y
+// spaceUnit y nextFrame (formContext).
 // El botón flotante con acciones (`@grana/vue/fab`, #656: vite.fab.config.js y src/fab.test.js) toma de aquí GBtn, GTooltip,
 // los dos GIcon, el motor de menú compartido con GMenu (utils/menuNav.js, #657), el registro de reservas de borde
 // (edgeReserve con EDGE_ORDER.fab: uno por documento), el modal superior (topModal), el canal de página (liveRegion),
@@ -74,6 +78,7 @@ import { useVisualTips } from './utils/visualTip.js'
 import { categoryOf } from './utils/categoryHash.js'
 import { otherContext } from './utils/link.js'
 import { cardGroupKey } from './utils/cardGroup.js'
+import { appShellKey } from './utils/appShell.js'
 import { transitionMs } from './utils/motion.js'
 import { createHighlight, createPointer, createTypeahead, focusItem, repeatGesture, stepTo } from './utils/menuNav.js'
 import { warnMissingCategory } from './utils/categoryToken.js'
@@ -115,6 +120,7 @@ export const shared = {
   'utils/categoryHash.js': { categoryOf },
   'utils/link.js': { otherContext },
   'utils/cardGroup.js': { cardGroupKey },
+  'utils/appShell.js': { appShellKey },
   'utils/motion.js': { transitionMs },
   'utils/menuNav.js': { createHighlight, createPointer, createTypeahead, focusItem, repeatGesture, stepTo },
   'utils/categoryToken.js': { warnMissingCategory }

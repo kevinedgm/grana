@@ -2,10 +2,11 @@
 // zócalo y del hN, offsetHeight, clientWidth) se simulan por elemento y se fuerza la medida con un evento resize.
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { enableAutoUnmount, mount } from '@vue/test-utils'
-import { createSSRApp, defineComponent, h, nextTick, onMounted, ref } from 'vue'
+import { createSSRApp, defineComponent, h, nextTick, onMounted, provide, ref, shallowRef } from 'vue'
 import { renderToString } from 'vue/server-renderer'
 import GPageHeader from './GPageHeader.vue'
 import { EDGE_ORDER, edgeReserve, setEdgeReserve, clearEdgeReserve } from '../../utils/edgeReserve.js'
+import { appShellKey } from '../../utils/appShell.js'
 
 const wait = (ms = 40) => new Promise((r) => setTimeout(r, ms))
 const warns = () => vi.spyOn(console, 'warn').mockImplementation(() => {})
@@ -465,6 +466,71 @@ describe('GPageHeader · avisos de desarrollo', () => {
     process.env.NODE_ENV = 'production'
     try { mount(GPageHeader, { props: { title: '' } }) } finally { process.env.NODE_ENV = prev }
     expect(w).not.toHaveBeenCalled()
+  })
+})
+
+describe('GPageHeader · dentro de GAppShell (S6, canal appShellKey, #710)', () => {
+  function inShell(top, notify) {
+    const Host = defineComponent({
+      setup() {
+        provide(appShellKey, { top, notify })
+        return () => h(GPageHeader, { title: 'Muestra', labels: { actions: 'A' } }, { actions: () => h('button', { type: 'button' }, 'Validar') })
+      }
+    })
+    const wr = mount(Host, { attachTo: document.body })
+    return { element: wr.element, wr }
+  }
+
+  it('mide con la cifra final del chasis (top), vuelve a medir cuando cambia y avisa (notify) al cambiar is-sticky / is-stuck', async () => {
+    const top = shallowRef(56)
+    const notify = vi.fn()
+    const pane = inShell(top, notify)
+    const g = { width: 1000, scroll: 0 }
+    geometry(pane, g)
+    await remeasure()
+    const root = pane.element
+    expect(root.classList.contains('is-sticky')).toBe(true)
+    expect(notify).toHaveBeenCalled()
+    // Borde pegado = 56 (la banda): con lift 200 se pega desde scroll 144; sin chasis haría falta 200
+    g.scroll = 150
+    await remeasure()
+    expect(root.classList.contains('is-stuck')).toBe(true)
+    const calls = notify.mock.calls.length
+    // B cede: top = 0 → se vuelve a medir solo (sin resize) y deja de estar pegado a 150
+    top.value = 0
+    await wait()
+    await nextTick()
+    await wait()
+    expect(root.classList.contains('is-stuck')).toBe(false)
+    expect(notify.mock.calls.length).toBeGreaterThan(calls)
+  })
+
+  it('sin chasis lee --g-page-header-top como siempre (a 150 no se pega con lift 200)', async () => {
+    const wr = full()
+    const g = { width: 1000, scroll: 150 }
+    geometry(wr, g)
+    await remeasure()
+    expect(wr.element.classList.contains('is-sticky')).toBe(true)
+    expect(wr.element.classList.contains('is-stuck')).toBe(false)
+  })
+
+  it('dentro de un <dialog> no usa el canal ni avisa al chasis', async () => {
+    const top = shallowRef(56)
+    const notify = vi.fn()
+    const dialog = document.createElement('dialog')
+    document.body.appendChild(dialog)
+    const Host = defineComponent({
+      setup() {
+        provide(appShellKey, { top, notify })
+        return () => h(GPageHeader, { title: 'Muestra', labels: { actions: 'A' } }, { actions: () => h('button', { type: 'button' }, 'Validar') })
+      }
+    })
+    const wr = mount(Host, { attachTo: dialog })
+    const g = { width: 1000, scroll: 150 }
+    geometry({ element: wr.element }, g)
+    await remeasure()
+    expect(wr.element.classList.contains('is-stuck')).toBe(false)
+    expect(notify).not.toHaveBeenCalled()
   })
 })
 

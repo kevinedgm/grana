@@ -96,6 +96,11 @@
       "import": "./dist/fab.js",
       "default": "./dist/fab.js"
     },
+    "./app-shell": {
+      "types": "./dist/app-shell.d.ts",
+      "import": "./dist/app-shell.js",
+      "default": "./dist/app-shell.js"
+    },
     "./testing": {
       "types": "./dist/testing.d.ts",
       "import": "./dist/testing.js",
@@ -145,6 +150,9 @@
       ],
       "fab": [
         "./dist/fab.d.ts"
+      ],
+      "app-shell": [
+        "./dist/app-shell.d.ts"
       ]
     }
   },
@@ -159,7 +167,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "build": "vite build && vite build -c vite.speech.config.js && vite build -c vite.status.config.js && vite build -c vite.combobox.config.js && vite build -c vite.file-field.config.js && vite build -c vite.time-field.config.js && vite build -c vite.slider.config.js && vite build -c vite.testing.config.js && vite build -c vite.tag.config.js && vite build -c vite.load-region.config.js && vite build -c vite.form-fold.config.js && vite build -c vite.card-group.config.js && vite build -c vite.page-header.config.js && vite build -c vite.fab.config.js && node scripts/build-fonts.mjs && node scripts/build-types.mjs",
+    "build": "vite build && vite build -c vite.speech.config.js && vite build -c vite.status.config.js && vite build -c vite.combobox.config.js && vite build -c vite.file-field.config.js && vite build -c vite.time-field.config.js && vite build -c vite.slider.config.js && vite build -c vite.testing.config.js && vite build -c vite.tag.config.js && vite build -c vite.load-region.config.js && vite build -c vite.form-fold.config.js && vite build -c vite.card-group.config.js && vite build -c vite.page-header.config.js && vite build -c vite.fab.config.js && vite build -c vite.app-shell.config.js && node scripts/build-fonts.mjs && node scripts/build-types.mjs",
     "test": "vitest run",
     "icons": "node scripts/build-icons.mjs",
     "prepack": "npm run build"
