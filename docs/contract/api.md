@@ -218,6 +218,16 @@ Con un contenedor propio que se desplaza bajo la barra: las propiedades a `0px` 
   4. Las compuertas de peso siguen midiendo el `grana.js` gzip, que conserva los textos (#653: es lo que pagan el CDN y el ESM sin empaquetar, y no depende de la versión del empaquetador de nadie). Lo que paga la aplicación en producción, medido con el banco, se registra en `CHANGELOG.md` como cifra informativa. Si cambia la medida de las compuertas, lo decide lima.
   5. **Peso de la regla (#653):** el +1 407 B gzip de `grana.js` al aplicarla (213 872 → 215 279 B) es un cargo único de la regla, fuera de #506 y de todo presupuesto de lote; **215 279 B es la base** desde la que se miden los presupuestos siguientes. Las guardas que traiga un componente o un lote nuevo cuentan dentro de su propio presupuesto, sin exención.
 
+## Grana Blocks: solo API pública (#720, #721)
+
+Reglas para todo block de `@grana/blocks` (`packages/blocks/`, #708; primer caso `GResourceList`, `design/contracts/resource-list.md`):
+
+1. **Solo API pública de `@grana/vue`:** exportaciones de las entradas publicadas (`@grana/vue`, `@grana/vue/<entrada>`), props, eventos, slots, métodos expuestos y propiedades públicas de entrada (`--g-page-header-top`…). **Nunca `__shared`**, clases internas (`.g-table__*`) ni el DOM interno de un componente, para leer ni para estilizar. Lo que falta se pide como **enmienda del componente** en su contrato, marcada como cambio de la v1 y con su peso frente a #506.
+2. **Sin región viva propia.** Lo que se anuncia es de los componentes (su región o el canal de página) o de la aplicación (`GToast`). Si un block llega a tener algo propio que anunciar, la vía será una exportación pública de `@grana/vue` (nombre reservado **`announce`**, sobre el canal de página de #533), nunca una segunda región cortés en la página.
+3. **CSS en `@layer grana.blocks`**, con la declaración de orden `@layer grana.defaults, grana.components, grana.blocks;` al principio de `blocks.css`: el block gana a los componentes que compone y el tema de la aplicación (sin capa) gana a todo. Mismas reglas que los componentes: solo `var(--g-*)` y alias `var(--_*)`, sin respaldos ni literales (salvo `24px`, `44px` y el patrón de texto oculto).
+4. **Los avisos** con la guarda canónica de #653 y el prefijo `[Grana G<Block>]`; **tipos** desde el `meta.json` (#443) con el generador del paquete; sin efectos en el nivel superior (#444).
+5. **Peso:** cada block tiene tope propio de `dist/blocks.js` gzip en su contrato (KiB, #550), medido por bruno; las entradas de `@grana/vue` que compone son *peer* y no cuentan en el block (las paga la aplicación que lo usa, y lo dice el README).
+
 ## Carga y vacío: motor común (#531 a #541)
 
 Contratos: `design/contracts/load-region.md` (`GLoadRegion`, el motor y la adopción) y `design/contracts/empty.md` (`GEmpty`). Reglas que valen para **todo componente que carga una región** (hoy `GLoadRegion`; por adopción, `GTable` en la primera entrega y `GCard`, `GWidget`, `GCalendar` en la segunda, #540):
