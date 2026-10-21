@@ -130,6 +130,7 @@
 /* Mientras llega, el marco hundido del tamaño final (sin esqueleto animado); rota, el alt del navegador encima */
 .g-hero__img,
 .g-hero__media > video,
+.g-hero__frame > video,
 .g-hero__detail,
 .g-hero__layer,
 .g-hero__frame {
@@ -138,6 +139,7 @@
 }
 .g-hero__img,
 .g-hero__media > video,
+.g-hero__frame > video,
 .g-hero__detail,
 .g-hero__layer {
   inline-size: 100%;
@@ -245,6 +247,9 @@
   inline-size: auto;
   block-size: auto;
   aspect-ratio: 4 / 5;
+  /* Sin el mínimo automático de una caja con proporción (su contenido): una foto vertical más alta que 4:5 o un vídeo con
+     su width/height intrínsecos no estiran el vano (auditoría, hallazgo H-A1) */
+  min-block-size: 0;
   overflow: clip;
   /* Arco (§29.6): semicírculo arriba (50 % del ancho = 40 % del alto en 4:5), radio de tarjeta abajo */
   border-radius: 50% 50% var(--_frame-r) var(--_frame-r) / 40% 40% var(--_frame-r) var(--_frame-r);

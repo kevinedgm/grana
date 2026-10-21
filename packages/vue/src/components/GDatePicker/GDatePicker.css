@@ -554,12 +554,16 @@
    puede ser inicio. Forma distinta del tachado (no solo color): sin tachar, con un subrayado punteado bajo la cifra, que
    dice «aquí se puede terminar». Texto en voz baja (sigue ≥ 4.5:1); el sufijo labels.checkoutOnly lo dice al lector */
 .g-datepicker__day.is-checkout-only {
-  color: var(--g-color-text-muted);
   text-decoration-line: underline;
   text-decoration-style: dotted;
   text-decoration-thickness: calc(var(--g-border-width) * 2);
   text-underline-offset: calc(var(--g-border-width) * 3);
   cursor: default;
+}
+/* Elegido (el fin de una estancia que termina en un día «solo salida») conserva on-{color} sobre el relleno: la voz baja
+   solo fuera de la selección (auditoría de GBookingBar, hallazgo B-A1: muted sobre el relleno quedaba < 4.5:1) */
+.g-datepicker__day.is-checkout-only:not(.is-selected) {
+  color: var(--g-color-text-muted);
 }
 
 /* ---------- Pie: proximidad, resumen y acciones ---------- */
