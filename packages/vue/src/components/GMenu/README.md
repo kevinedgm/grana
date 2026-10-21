@@ -71,6 +71,8 @@ createApp(App).use(Grana).use(createIcons([Pencil])).mount('#app')
 | `rel` | Atributo del `<a>`; solo con `href` |
 | `external` | Boolean. El destino es otro sitio: añade el icono `external-link` y el texto oculto de `labels.external`. Solo con `href` |
 | `current` | Boolean. Es la página actual: `aria-current="page"`. Solo con `href`; como mucho uno por menú |
+| `lang` | Idioma de la **etiqueta** (BCP 47), en cualquier elemento: se escribe como atributo `lang` en el `<a>` o el `<button>` del elemento, y el texto (`g-menu__label`) lleva `dir="auto"`. Un valor que `Intl.getCanonicalLocales` rechaza se ignora y avisa |
+| `hreflang` | Idioma del **destino** (BCP 47), solo con `href`: atributo `hreflang` del `<a>`. Sin `href` se ignora y avisa; un valor inválido se ignora y avisa |
 
 Un elemento sin `label`, sin `id` (cuando lo necesita) o de tipo desconocido se ignora y avisa en desarrollo.
 
@@ -145,6 +147,7 @@ const items = [
 - **Ctrl/⌘+C** con el foco en el enlace (requiere `labels.copied` y `labels.copiedLive`): copia la URL absoluta al portapapeles y muestra «Enlace copiado».
 - **Pie de destino:** en cada lista con al menos un enlace que sale de la aplicación, el pie muestra la URL del activo y la etiqueta `destExternal` o `destNewTab` (requiere las claves correspondientes en `labels`).
 - **Enlace deshabilitado:** `<a role="menuitem" aria-disabled="true">` sin `href`; sigue enfocable con flechas y no se abre en otra pestaña.
+- **Selector de idioma (`lang` y `hreflang`, #743):** cada idioma es una página, así que es un menú de enlaces. `lang` dice en qué idioma está **la etiqueta** («Deutsch», `lang: 'de'`) y `hreflang` en cuál está **el destino**; el lector de pantalla pronuncia cada nombre en su idioma. Ejemplo: `{ id: 'de', label: 'Deutsch', href: '/de/', lang: 'de', hreflang: 'de' }`. `lang` vale en cualquier elemento; `hreflang`, solo con `href`. Cubierto por las pruebas de `GMenu` (vitest); no se auditó visualmente.
 
 ### Textos de los elementos-enlace (`labels`)
 

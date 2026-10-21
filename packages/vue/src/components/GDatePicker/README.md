@@ -62,7 +62,7 @@ const labels = {
 </div>
 ```
 
-Con el slot `trigger` no se renderizan `label`, `hint`, `error`, `name` ni `split`: los pones tú. Eres responsable del **nombre accesible y del foco visible** de tu botón.
+Con el slot `trigger` no se renderizan `label`, `hint`, `error`, `name` ni `split`: los pones tú. La raíz lleva `g-datepicker--trigger` y se pinta sin caja propia (`display: contents`), de modo que el botón puede ir **dentro de una frase** (así lo usa [`GBookingBar`](../GBookingBar/README.md)); el panel conserva su letra propia. Como el panel es un bloque, **no pongas el selector dentro de un `<p>`**: avisa en desarrollo si al montar la raíz tiene un `<p>` ancestro (usa un `div`). Eres responsable del **nombre accesible y del foco visible** de tu botón.
 
 ## Selección
 
@@ -82,6 +82,8 @@ Con el slot `trigger` no se renderizan `label`, `hint`, `error`, `name` ni `spli
 | `open` | Boolean | (con `update:open`; solo sin `inline`) | `false` |
 | `min`, `max` | String | fecha ISO | sin valor |
 | `disabledDates` | Function | `(iso) => boolean` | sin valor |
+| `disabledNights` | Function | solo `range`: `(iso) => boolean`, la noche que empieza `iso` está agotada (ver «Noches y salida») | sin valor |
+| `minNights`, `maxNights` | Number | solo `range`: noches mínimas (entero ≥ 1) y máximas (entero ≥ `minNights`) | sin valor |
 | `months` | String \| Number | `auto` `1` `2` | `auto` |
 | `locale` | String | etiqueta BCP 47 | la de `<html lang>` |
 | `firstDay` | Number | 0 (domingo) a 6 | el del idioma (lunes si el navegador no lo sabe) |
@@ -109,6 +111,18 @@ Un valor de prop fuera de su lista avisa en desarrollo. `loading` **no aplica**.
 - **`readonly`:** el campo se enfoca pero no abre; en `inline`, navega sin elegir. **`disabled`:** sin foco ni envío.
 - **Atributos:** `class` y `style` van a la raíz; `aria-*`, `data-*` y escuchas (`onFocus`…) al **botón del campo** (al primero con `split`; en `inline`, a la raíz). Solo se declaran los eventos de la tabla.
 
+## Noches y salida (`disabledNights`, `minNights`, `maxNights`)
+
+Para un rango de **noches** (una estancia), donde lo que se agota es la noche y no el día (DECISIONS #739). Solo en `mode="range"`: en `single` las tres props se ignoran y avisan. Todas son del `meta.json`; el contrato es `datepicker.md` «Noches y salida».
+
+- **Un día cuya noche está agotada no es inicio.** Sin inicio pendiente, lo que no puede ser inicio se pinta deshabilitado.
+- **Salir un día agotado es válido:** un fin vale si ninguna noche **entre medias** está agotada y respeta `minNights` y `maxNights`. Esa noche no se duerme.
+- **«Solo salida».** Sin inicio pendiente, un día agotado cuya noche anterior no lo está se pinta como «solo salida» (`is-checkout-only`): punteado y con la voz baja (`text-muted`) si no está elegido; **sin `aria-disabled`**, y tocarlo no hace nada. Si es el fin elegido, conserva el contraste de la selección. Su nombre lleva el sufijo `labels.checkoutOnly` (recomendado con `disabledNights`).
+- **Con un inicio pendiente,** lo que no puede ser fin pero sí inicio se pinta como inactivo (`is-inactive`), y lo que no es ninguno, deshabilitado. La vista previa solo pinta fines válidos.
+- **`proximity`** recorta antes de la primera noche agotada y no pasa de `maxNights`.
+- **`disabledDates` solo no lo impide:** con `disabledDates` el rango puede contener días agotados (es compatible con lo anterior); para estancias usa `disabledNights`.
+- **Avisos en desarrollo:** las tres props en `single`; `maxNights` menor que `minNights`; un `modelValue` con una noche agotada dentro (se muestra tal cual, el componente no lo recorta).
+
 ## Textos (`labels`)
 
 `labels` es un objeto con **tus** textos; ninguno tiene valor por defecto (Grana es internacional). Los nombres de mes y de día, el orden y el formato de las fechas los da `Intl` con `locale`.
@@ -119,6 +133,7 @@ Un valor de prop fuera de su lista avisa en desarrollo. `loading` **no aplica**.
 | `dialog` | Nombre accesible del popover | **Sí**, sin `inline` |
 | `close` | Nombre del botón de cierre de la hoja móvil | **Sí**, sin `inline` |
 | `today`, `selected`, `rangeStart`, `rangeEnd`, `rangeSingle`, `inRange`, `unavailable` | Sufijo del nombre de cada día: «…, hoy», «…, inicio del rango»… | No (recomendados: sin ellos, un día se nombra solo con su fecha) |
+| `checkoutOnly` | Sufijo del nombre del día «solo salida»: «…, solo salida» | No (recomendado con `disabledNights`) |
 | `clear`, `done` | «Limpiar» y «Listo». **Cada botón solo existe si tiene texto** | No (`done` hace falta en la hoja móvil y con `proximity`) |
 | `proximityGroup` | Nombre del grupo de chips | No (recomendado con `proximity`) |
 | `announceStart`, `announceEnd`, `announceDate`, `announceWiden`, `announceClear` | Mensajes de la región viva; marcadores `{date}`, `{start}`, `{end}`, `{days}` (días **inclusivos**) | No: sin ellos, **no se anuncia** cada paso |
@@ -196,7 +211,7 @@ Con un `GForm` alrededor el campo lee su contexto: densidad, solo lectura, desha
 
 ## Clases
 
-Las emite el componente y las estiliza `GDatePicker.css`: `g-datepicker` (con `--mode-*`, `--variant-*`, `--size-*`, `--density-*`, `--color-*`, `--rounded-*`, `--block`, `--inline`, `--split`, `is-open`, `is-disabled`, `is-readonly`, `is-invalid`), `__label`, `__field`, `__value`, `__pop`, `__surface`, `__months`, `__month`, `__title`, `__nav`, `__grid`, `__day` (con `is-selected`, `is-today`, `is-disabled`, `is-outside`, `is-inactive`), las celdas de la franja (`is-in-range`, `is-range-start`, `is-range-end`, `is-preview`, `is-cap-start`, `is-cap-end`), `__chip`, `__summary`, `__action`, `__sr`.
+Las emite el componente y las estiliza `GDatePicker.css`: `g-datepicker` (con `--mode-*`, `--variant-*`, `--size-*`, `--density-*`, `--color-*`, `--rounded-*`, `--block`, `--inline`, `--split`, `is-open`, `is-disabled`, `is-readonly`, `is-invalid`), `__label`, `__field`, `__value`, `__pop`, `__surface`, `__months`, `__month`, `__title`, `__nav`, `__grid`, `__day` (con `is-selected`, `is-today`, `is-disabled`, `is-outside`, `is-inactive`), las celdas de la franja (`is-in-range`, `is-range-start`, `is-range-end`, `is-preview`, `is-cap-start`, `is-cap-end`), `__chip`, `__summary`, `__action`, `__sr`. Con rango de noches: `is-checkout-only` en el día «solo salida». Con el slot `trigger`: `g-datepicker--trigger`.
 
 ## Alcance
 
@@ -219,6 +234,8 @@ Las emite el componente y las estiliza `GDatePicker.css`: `g-datepicker` (con `-
 - **Sin verificar:** un lector de pantalla real (cuadrícula, rango, título vivo, hoja móvil), RTL con un idioma RTL real, Safari real, la hoja móvil con teclado virtual, el deslizamiento en un dispositivo táctil real y `forced-colors` real de Windows (solo emulado en Chromium). El `popover` (abrir con clic, Esc, lado y alto estables en el vaivén) está medido en Chromium, Firefox y WebKit (`tests/panel-estable.spec.mjs`); `prefers-reduced-motion` está medido con la preferencia emulada en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`, 18/18 el 2026-10-18: con `reduce` ningún elemento conserva transiciones ni animaciones de movimiento).
 
 - **Contención en línea (#563 cerrado por #686) y altura vacío (cerrados 2026-10-18, coco):** la raíz lleva `contain: inline-size` y `contain-intrinsic-inline-size: space × 60` (`× 100` con `split`; `contain: none` en `GFormRow` y en `--inline`): en un padre que se ajusta al contenido mide 240 px (400 con `split`) en vez de ~200 (`design/lab/contencion/verificar.mjs` 336/336 en los tres motores). Vacío con el texto al 200 % mide 42 px como `GInput` (antes 37; `.g-datepicker__value` con `min-block-size: var(--_lh)`; `design/lab/datepicker/altura-verificar.mjs` 186/186 en los tres motores).
+
+- **Noches y salida (#739):** `GDatePicker.test.js` **98 de 98** en verde al documentar (ejecutadas de nuevo; `prueba`). En el calendario real, el día «solo salida» que además es el fin elegido llevaba `text-muted` sobre el relleno de la selección (hallazgo B-A1 de [`design/lab/booking-bar/auditoria.md`](../../../../../design/lab/booking-bar/auditoria.md)); coco lo corrigió en `GDatePicker.css` y lo midió ≥ 4,5:1, elegido y sin elegir, con tres temas en Chromium y con el tema por defecto en los tres motores, claro y oscuro. El raíz con `trigger` (`g-datepicker--trigger`) se midió dentro de la frase de la consulta. `medido` (informe de coco, 2026-10-21).
 
 - **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
