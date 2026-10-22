@@ -61,3 +61,18 @@
 **Pendientes:** **P-A4 (bruno, bloquea `candidate`)**: rendimiento de A con 50 precios; P-A2 (bruno, banco); P-A3 (lima, límite de cinco cifras en el día a 320 px, `compact` reservado). **No verificado:** lector de pantalla real (pronunciación de «1,850 pesos mexicanos», el «-» de los negativos, la frase dentro de una tarjeta enlace); `forced-colors` real y en Firefox y WebKit (solo emulado en Chromium); zoom 200–400 % (se midió el reflujo a 320 px); teléfono real; puntero grueso en el día con precio (el área de 44 px es la de `GDatePicker`, ya auditada, no se remidió aquí); la carga con `GLoadRegion`.
 
 **Veredicto:** sin defectos bloqueantes de estilo. `GPriceScope` no tiene ningún pendiente propio. **`GPrice` no pasa aún a `candidate`**: falta que bruno cierre P-A4 (o lo mida en verde con la máquina descargada y lo documente). Cuando el spec de rendimiento pase de forma estable, bruno puede poner `"status": "candidate"` en `GPrice.meta.json` y `GPriceScope.meta.json` sin nueva auditoría de coco.
+
+## Addendum · 2026-10-22 (tras 6f9d3c6 y #812)
+
+**Verificación:** `dist/` reconstruido (`npm run build`, posterior a 6f9d3c6) y `GRANA_PW_PORT=4209 node design/lab/price/auditoria-verificar.mjs` en Chromium, Firefox y WebKit: **497/497** en dos pasadas seguidas (carga de la máquina 5,5). Los 50 totales cambiando ×3 en Chromium: tareas largas, ninguna (antes 51 a 83 ms). Contraste mínimo 4,51:1; el límite de 320 px con cinco cifras sigue siendo el de P-A3.
+
+**Estado de P-A1 a P-A5:**
+- P-A1 (separación del importe `ltr` en RTL): cerrado (coco, `GPrice.css`).
+- P-A2 (fecha local en el banco): cerrado por bruno en 6f9d3c6.
+- P-A3 (cinco cifras en el día a 320 px): límite documentado por lima (#801), `compact` reservado; el verificador lo sigue anotando como límite, no como fallo.
+- P-A4 (rendimiento con 50 precios): cerrado por bruno en 6f9d3c6 (un `requestAnimationFrame` por cuadro, tramos contiguos en una ranura); medido sin tareas largas.
+- P-A5: sin defecto pendiente de estilo.
+
+**Fallo intermitente de mora-docs en Firefox (495/497):** las dos comprobaciones fallidas («≥ 2 posiciones intermedias» con 0 y «solo ruedan los caracteres que cambian» con 0 de 9) miden ambas 0, es decir, la capa de ranuras no existía en el instante de muestreo: la muestra cayó después de que la animación terminara o antes de que el cuadro agrupado la creara. Es una carrera de temporización del verificador con la máquina saturada, no un defecto del CSS ni de la animación (con la máquina descargada pasa 497/497 de forma repetida). La regla «ranuras < caracteres» sigue valiendo con las ranuras por tramo (se exige 0 < ranuras < caracteres; un tramo contiguo cuenta como una ranura, así que el margen solo crece). Pendiente de bruno/coco, no bloqueante: si vuelve a aparecer, muestrear con reintento hasta ver la capa en lugar de a un instante fijo (verificador propio de coco).
+
+**Cumplimientos / Correcciones / Pendientes:** Cumplimientos: 497/497 en los tres motores, rúbrica de movimiento de A completa (Rendimiento ahora cumple). Correcciones: comentario de `GPrice.css` actualizado a «cada tramo contiguo de caracteres que cambian». Pendientes: los de «No verificado» del cuerpo (lector de pantalla real, `forced-colors` real, zoom, teléfono).

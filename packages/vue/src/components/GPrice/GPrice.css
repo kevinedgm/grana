@@ -255,7 +255,7 @@ s.g-price__compare > .g-price__amount--compare {
 }
 
 /* Cifras que ruedan (P2 de GNumberField, price.md «A · La cuenta»). La capa vive dentro de __visual (aria-hidden); la
-   frase oculta ya tiene el total nuevo. Cada carácter que cambia va en una ranura con recorte: el nuevo entra y el
+   frase oculta ya tiene el total nuevo. Cada tramo contiguo de caracteres que cambian va en una ranura con recorte: el nuevo entra y el
    viejo sale en vertical, el 100 % de su propio alto. Las cifras son tabulares: la capa no cambia el ancho.
    translate no se aplica a cajas en línea: ranura y caracteres son inline-block. La ranura se alinea arriba en la
    línea del propio importe (mismo tipo, mismo alto): su recorte no mueve la línea base de la cifra */
