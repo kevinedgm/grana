@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "name": "GbFaq",
+  "kind": "block-section",
+  "family": "marketing",
+  "status": "draft",
+  "since": "0.0.0",
+  "description": "Las preguntas que el viajero haría por WhatsApp, contestadas en la página: plegadas con su primera línea a la vista, todas abiertas o con un buscador, y cada respuesta con su propio enlace (#id).",
+  "contract": "design/contracts/blocks/faq.md",
+  "common": "design/contracts/blocks/_comun.md",
+  "decisions": [
+    815,
+    816,
+    817,
+    823
+  ],
+  "composes": [
+    "GSection",
+    "GAccordion",
+    "GContainer",
+    "GStack",
+    "GInput",
+    "GEmpty"
+  ],
+  "variants": [
+    {
+      "name": "GbFaq01",
+      "tag": "gb-faq-01",
+      "concept": "Acordeón",
+      "root": "GSection › GAccordion (un nivel por debajo) › GAccordionItem (id = faq.id, title = question, peek = primer párrafo de answer) › párrafos"
+    },
+    {
+      "name": "GbFaq02",
+      "tag": "gb-faq-02",
+      "concept": "Todo a la vista",
+      "root": "GSection › GContainer width=\"reading\" › GStack as=\"ul\" divided › li › GSection anidada (id = faq.id, title = question) › párrafos"
+    },
+    {
+      "name": "GbFaq03",
+      "tag": "gb-faq-03",
+      "concept": "Con buscador",
+      "root": "GSection › GInput type=\"search\" (output = la cuenta) + el GAccordion de 01 con las que coinciden; sin coincidencias, GEmpty cause=\"filtered\""
+    }
+  ],
+  "props": [
+    {
+      "name": "title",
+      "type": "String",
+      "ts": "string",
+      "required": true
+    },
+    {
+      "name": "description",
+      "type": "String",
+      "ts": "string",
+      "default": null
+    },
+    {
+      "name": "items",
+      "type": "Array",
+      "ts": "Faq[]",
+      "required": true,
+      "note": "1 a 40 (C7 por encima de 40). answer en texto plano: párrafos separados por una línea en blanco; id = ancla estable"
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "ts": "FaqLabels",
+      "default": {},
+      "variants": [
+        "GbFaq03"
+      ],
+      "note": "search (etiqueta del buscador), matches («{count} de {total} preguntas», String o función), none (título del vacío), clear («Borrar búsqueda»); requeridos en 03 (C5)"
+    }
+  ],
+  "events": [],
+  "slots": [
+    {
+      "name": "answer",
+      "scope": "{ item }",
+      "ts": "{ item: Faq }",
+      "purpose": "Contenido rico de la respuesta (enlaces, listas); en 01 y 03 el peek sigue saliendo del primer párrafo de answer"
+    },
+    {
+      "name": "description",
+      "purpose": "Sustituye a la prop description en la GSection"
+    }
+  ],
+  "types": [
+    "Faq",
+    "FaqLabels"
+  ],
+  "warnings": [
+    "C1",
+    "C2",
+    "C3",
+    "C5 (03)",
+    "C7",
+    "Q1 · una pregunta sin id",
+    "Q2 · id que no es un identificador válido de fragmento (se pinta sin ancla)"
+  ],
+  "root": "GSection con data-gb=\"faq-NN\" y $attrs",
+  "bundle": {
+    "entry": "@grana/blocks/marketing",
+    "measured": 9919,
+    "peers": [
+      "vue",
+      "@grana/vue"
+    ],
+    "note": "dist/marketing.js gzip (gzip -c) con Hero, Features, Stats, Testimonials, CTA y FAQ (18 de 27 variantes; 2026-10-22), medido en un árbol aislado (HEAD 99c1aef + esta entrega, sin las secciones de bruno C a medio hacer); 50 249 B sin comprimir. Importación parcial (esbuild, vue y @grana/vue* externos): solo GbTestimonials01 2442 B, solo GbCta01 1859 B, solo GbFaq03 1924 B, sin las otras variantes. Sin tope en el primer lote (#815): lo fija lima en el remate"
+  }
+}

@@ -4,6 +4,8 @@
 import { createApp } from 'vue'
 import { GbFeatures01, GbFeatures02, GbFeatures03, GbHero01, GbHero02, GbHero03, GbStats01, GbStats02, GbStats03, marketing } from '@grana/blocks/marketing'
 import type { Action, BlockNavigate, Feature, GbFeaturesProps, GbHeroProps, GbStatsProps, Media, Money, Stat } from '@grana/blocks/marketing'
+import { GbCta01, GbCta02, GbCta03, GbFaq01, GbFaq02, GbFaq03, GbTestimonials01, GbTestimonials02, GbTestimonials03 } from '@grana/blocks/marketing'
+import type { BlockActivate, Faq, FaqLabels, GbCtaProps, GbFaqProps, GbTestimonialsProps, Testimonial } from '@grana/blocks/marketing'
 
 createApp({}).use(marketing)
 
@@ -36,6 +38,30 @@ type Same<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false
 const sameHero: [Same<PropsOf<typeof GbHero01>, PropsOf<typeof GbHero02>>, Same<PropsOf<typeof GbHero02>, PropsOf<typeof GbHero03>>] = [true, true]
 const sameFeatures: [Same<PropsOf<typeof GbFeatures01>, PropsOf<typeof GbFeatures02>>, Same<PropsOf<typeof GbFeatures02>, PropsOf<typeof GbFeatures03>>] = [true, true]
 const sameStats: [Same<PropsOf<typeof GbStats01>, PropsOf<typeof GbStats02>>, Same<PropsOf<typeof GbStats02>, PropsOf<typeof GbStats03>>] = [true, true]
+
+// Testimonials, CTA y FAQ (parte 2 del lote)
+const testimonial: Testimonial = { quote: 'Volveríamos.', lang: 'en', author: { name: 'Rosa' }, source: { label: 'Google', href: 'https://g', external: true } }
+const testimonials: GbTestimonialsProps = { title: 'Opiniones', items: [testimonial], labels: { external: 'se abre en otra pestaña' } }
+// @ts-expect-error: Testimonial sin author.name
+const noAuthor: Testimonial = { quote: 'x', author: {} }
+// @ts-expect-error: rating está reservado (M-L2)
+const rated: Testimonial = { quote: 'x', author: { name: 'A' }, rating: 5 }
+const cta: GbCtaProps = { title: 'Reserva', actions: [action], assurance: 'Sin pago ahora', media, labels: { actions: 'Acciones', external: 'se abre en otra pestaña' } }
+// @ts-expect-error: actions es obligatorio en CTA
+const noActions: GbCtaProps = { title: 'Reserva' }
+const faq: Faq = { id: 'mascotas', question: '¿Mascotas?', answer: 'Sí.' }
+const faqLabels: FaqLabels = { search: 'Buscar', matches: ({ count, total }) => `${count} de ${total}`, none: 'Nada', clear: 'Borrar' }
+const faqs: GbFaqProps = { title: 'Preguntas', items: [faq], labels: faqLabels }
+// @ts-expect-error: Faq sin answer
+const noAnswer: Faq = { question: '¿Y?' }
+// @ts-expect-error: labels de FAQ no admite claves inventadas
+const badFaqLabels: GbFaqProps = { title: 'x', items: [faq], labels: { buscar: 'x' } }
+const sameTestimonials: [Same<PropsOf<typeof GbTestimonials01>, PropsOf<typeof GbTestimonials02>>, Same<PropsOf<typeof GbTestimonials02>, PropsOf<typeof GbTestimonials03>>] = [true, true]
+const sameCta: [Same<PropsOf<typeof GbCta01>, PropsOf<typeof GbCta02>>, Same<PropsOf<typeof GbCta02>, PropsOf<typeof GbCta03>>] = [true, true]
+const sameFaq: [Same<PropsOf<typeof GbFaq01>, PropsOf<typeof GbFaq02>>, Same<PropsOf<typeof GbFaq02>, PropsOf<typeof GbFaq03>>] = [true, true]
+const onCtaActivate = (p: BlockActivate<Action>) => p.item.label
+const onQuoteNavigate = (p: BlockNavigate<Testimonial>) => p.item.author.name
+export { testimonials, noAuthor, rated, cta, noActions, faqs, noAnswer, badFaqLabels, sameTestimonials, sameCta, sameFaq, onCtaActivate, onQuoteNavigate }
 
 const onNavigate = (p: BlockNavigate<Feature>) => { p.event.preventDefault(); return p.item.title + p.href }
 

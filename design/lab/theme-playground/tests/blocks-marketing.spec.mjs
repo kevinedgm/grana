@@ -10,7 +10,15 @@ const PAGES = [
   { name: 'hero 02', file: 'hero.html', qs: 'v=02', h1: 1 },
   { name: 'hero 03', file: 'hero.html', qs: 'v=03', h1: 1 },
   { name: 'features', file: 'features.html', qs: '', h1: 0, blocks: 3 },
-  { name: 'stats', file: 'stats.html', qs: '', h1: 0, blocks: 3 }
+  { name: 'stats', file: 'stats.html', qs: '', h1: 0, blocks: 3 },
+  { name: 'testimonials', file: 'testimonials.html', qs: '', h1: 0, blocks: 3 },
+  // CTA y FAQ, de una en una: dos CTA en la página avisan A2 (una sola por página) y tres FAQ repetirían los id de las preguntas
+  { name: 'cta 01', file: 'cta.html', qs: 'v=01', h1: 0, blocks: 1 },
+  { name: 'cta 02', file: 'cta.html', qs: 'v=02', h1: 0, blocks: 1 },
+  { name: 'cta 03', file: 'cta.html', qs: 'v=03', h1: 0, blocks: 1 },
+  { name: 'faq 01', file: 'faq.html', qs: 'v=01', h1: 0, blocks: 1 },
+  { name: 'faq 02', file: 'faq.html', qs: 'v=02', h1: 0, blocks: 1 },
+  { name: 'faq 03', file: 'faq.html', qs: 'v=03', h1: 0, blocks: 1 }
 ]
 const THEMES = ['defecto', 'rustico', 'lujo']
 
@@ -98,7 +106,9 @@ for (const pg of PAGES) {
         // GCard enlace: el anillo lo pinta la tarjeta en su ::after (.g-card:has(.g-card__primary:focus-visible)::after)
         const card = el.closest('.g-card')
         const cardRing = card ? (() => { const c = getComputedStyle(card, '::after'); return (c.outlineStyle !== 'none' && parseFloat(c.outlineWidth) > 0) || c.boxShadow !== 'none' })() : false
-        return { tag: el.tagName, ring: ring || cardRing }
+        // GInput (buscador de FAQ 03): el anillo lo pinta su caja (.g-input__row/.g-input__control:has(:focus-visible))
+        const boxRing = [el.closest('.g-input__control'), el.closest('.g-input__row')].some((box) => { if (!box) return false; const c = getComputedStyle(box); return (c.outlineStyle !== 'none' && parseFloat(c.outlineWidth) > 0) || c.boxShadow !== 'none' })
+        return { tag: el.tagName, ring: ring || cardRing || boxRing }
       })
       if (r) { checked++; expect(r.ring, `${r.tag} #${i}`).toBe(true) }
     }
@@ -127,4 +137,95 @@ test('stats 02: banda de marca a sangre (g-bleed) con las cifras legibles en la 
   expect(await zone.getAttribute('data-g-zone')).toBe('brand')
   const [zw, vw] = await page.evaluate(() => [document.querySelector('[data-gb="stats-02"]').getBoundingClientRect().width, document.documentElement.clientWidth])
   expect(Math.abs(zw - vw)).toBeLessThanOrEqual(1)
+})
+
+// ---------- Testimonials, CTA y FAQ (testimonials.md, cta.md, faq.md «Verificación propia») ----------
+
+test('testimonials 01: tarjetas iguales a 1440 y una sola columna a 320', async ({ page }) => {
+  await open(page, 'testimonials.html', 'v=01')
+  const boxes = () => page.evaluate(() => [...document.querySelectorAll('[data-gb="testimonials-01"] [role="listitem"]')].map((li) => { const r = li.getBoundingClientRect(); return { x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width) } }))
+  const wide = await boxes()
+  expect(new Set(wide.map((b) => b.w)).size, JSON.stringify(wide)).toBe(1)
+  expect(new Set(wide.map((b) => b.y)).size, 'más de una por fila a 1440').toBeLessThan(wide.length)
+  await page.setViewportSize({ width: 320, height: 640 })
+  await settle(page)
+  const narrow = await boxes()
+  expect(new Set(narrow.map((b) => b.x)).size, JSON.stringify(narrow)).toBe(1)
+})
+
+test('testimonials: la cita en inglés lleva lang="en" y la fuente externa se abre en otra pestaña sin navigate', async ({ page }) => {
+  await open(page, 'testimonials.html', 'v=02')
+  expect(await page.locator('blockquote[lang="en"]').count()).toBe(1)
+  const ext = page.locator('figcaption cite a[target="_blank"]').first()
+  expect(await ext.getAttribute('aria-label')).toBe('TripAdvisor, se abre en otra pestaña')
+  await page.locator('figcaption cite a[href="#opiniones-google"]').click()
+  expect(await page.evaluate(() => window.blockEvents)).toEqual([['navigate', '02', '#opiniones-google']])
+})
+
+// Contraste de la acción principal sobre su fondo (canvas: cualquier sintaxis de color → sRGB)
+const primaryContrast = (p, sel) => p.evaluate((sel) => {
+  const ctx = document.createElement('canvas').getContext('2d', { willReadFrequently: true })
+  const rgba = (c) => { ctx.clearRect(0, 0, 1, 1); ctx.fillStyle = '#000'; ctx.fillStyle = c; ctx.fillRect(0, 0, 1, 1); return [...ctx.getImageData(0, 0, 1, 1).data] }
+  const lum = ([r, g, b]) => { const f = (v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4 }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b) }
+  const btn = document.querySelector(sel)
+  let el = btn, bg = rgba(getComputedStyle(el).backgroundColor)
+  while (bg[3] === 0 && el.parentElement) { el = el.parentElement; bg = rgba(getComputedStyle(el).backgroundColor) }
+  const fg = rgba(getComputedStyle(btn).color)
+  const [a, b] = [lum(fg), lum(bg)].sort((x, y) => y - x)
+  return (a + 0.05) / (b + 0.05)
+}, sel)
+
+for (const tema of THEMES) {
+  test(`cta 01 · ${tema}: banda de marca a sangre; la principal invertida con contraste ≥ 4,5:1 y descrita por assurance`, async ({ page }) => {
+    await open(page, 'cta.html', `v=01&tema=${tema}`)
+    const zone = page.locator('[data-gb="cta-01"]')
+    expect(await zone.getAttribute('data-g-zone')).toBe('brand')
+    const [zw, vw] = await page.evaluate(() => [document.querySelector('[data-gb="cta-01"]').getBoundingClientRect().width, document.documentElement.clientWidth])
+    expect(Math.abs(zw - vw)).toBeLessThanOrEqual(1)
+    const ratio = await primaryContrast(page, '[data-gb="cta-01"] .g-btn--variant-solid')
+    expect(ratio, `contraste ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(4.5)
+    const id = await page.locator('[data-gb="cta-01"] .g-btn--variant-solid').getAttribute('aria-describedby')
+    expect(await page.locator(`[id="${id}"]`).textContent()).toContain('Sin pago ahora')
+  })
+}
+
+test('cta: las tres en la misma página avisan A2 (una sola llamada a la acción por página)', async ({ page }) => {
+  const warns = []
+  page.on('console', (m) => { if (m.type() === 'warning' && /\[Grana GbCta0\d\].*\(A2\)/.test(m.text())) warns.push(m.text()) })
+  await open(page, 'cta.html', '')
+  expect(await page.locator('[data-gb^="cta-"]').count()).toBe(3)
+  expect(warns.length).toBeGreaterThan(0)
+})
+
+for (const v of ['01', '03']) {
+  test(`faq ${v}: #mascotas en la URL abre esa respuesta; la búsqueda del navegador encuentra texto plegado`, async ({ page }) => {
+    await open(page, 'faq.html', `v=${v}#mascotas`)
+    await expect(page.locator('[id="mascotas"] [aria-expanded="true"]')).toHaveCount(1)
+    expect(await page.locator('[aria-expanded="true"]').count()).toBe(1)
+    // Plegada, la respuesta sigue en el documento con hidden="until-found"; un fragmento de texto la abre (beforematch)
+    expect(await page.locator('[id="llegada"] [hidden="until-found"]').count()).toBe(1)
+    await page.goto(`${BASE}faq.html?v=${v}#:~:text=te%20dejamos%20la%20llave`)
+    await page.waitForSelector('html[data-ready="1"] [data-gb]')
+    await expect(page.locator('[id="llegada"] [aria-expanded="true"]')).toHaveCount(1)
+  })
+}
+
+test('faq 02: #mascotas en la URL lleva a la sección de esa pregunta', async ({ page }) => {
+  await open(page, 'faq.html', 'v=02#mascotas')
+  const top = await page.evaluate(() => document.getElementById('mascotas').getBoundingClientRect().top)
+  expect(Math.abs(top)).toBeLessThan(80)
+})
+
+test('faq 03: buscar sin diacríticos filtra, la cuenta llega al output y el vacío devuelve el foco al campo', async ({ page }) => {
+  await open(page, 'faq.html', 'v=03')
+  const input = page.locator('[data-gb="faq-03"] input[type="search"]')
+  await input.fill('NINO')
+  await expect(page.locator('[data-gb="faq-03"] .g-accordion-item')).toHaveCount(1)
+  await expect(page.locator('[data-gb="faq-03"] output')).toHaveText('1 de 8 preguntas')
+  await input.fill('xyz')
+  await page.locator('[data-gb="faq-03"] .g-empty button').click()
+  await expect(input).toBeFocused()
+  await expect(input).toHaveValue('')
+  await expect(page.locator('[data-gb="faq-03"] .g-accordion-item')).toHaveCount(8)
+  expect(await page.locator('[data-gb="faq-03"] [aria-expanded="true"]').count()).toBe(0)
 })

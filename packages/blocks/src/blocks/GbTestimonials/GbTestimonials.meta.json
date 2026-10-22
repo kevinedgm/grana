@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "name": "GbTestimonials",
+  "kind": "block-section",
+  "family": "marketing",
+  "status": "draft",
+  "since": "0.0.0",
+  "description": "Lo que dicen quienes ya estuvieron, entero, en su idioma y con su fuente: en tarjetas, con una voz destacada o en una lista que asoma. Sin carrusel y sin recortar la cita.",
+  "contract": "design/contracts/blocks/testimonials.md",
+  "common": "design/contracts/blocks/_comun.md",
+  "decisions": [
+    815,
+    816,
+    817,
+    821
+  ],
+  "composes": [
+    "GSection",
+    "GAdaptiveLayout",
+    "GStack",
+    "GCard",
+    "GAvatar",
+    "GAccordion",
+    "GBtn"
+  ],
+  "variants": [
+    {
+      "name": "GbTestimonials01",
+      "tag": "gb-testimonials-01",
+      "concept": "Tarjetas",
+      "root": "GSection › GAdaptiveLayout role=\"list\" › div role=\"listitem\" g-adapt-wide › GCard as=\"div\" (role=\"group\", nombre del autor) con GAvatar size=\"lg\" en lead y la figure en el cuerpo"
+    },
+    {
+      "name": "GbTestimonials02",
+      "tag": "gb-testimonials-02",
+      "concept": "La voz",
+      "root": "GSection › GStack gap=\"lg\" › [GCard orientation=\"auto\" mediaPosition=\"start\" con GAvatar size=\"xl\" en media y la primera figure] + [GStack as=\"ul\" divided › li › figure de las demás]"
+    },
+    {
+      "name": "GbTestimonials03",
+      "tag": "gb-testimonials-03",
+      "concept": "Avance",
+      "root": "GSection › GAccordion (un nivel por debajo) › GAccordionItem (title = author.name, meta = source.label, peek = primer párrafo de quote) › figure"
+    }
+  ],
+  "props": [
+    {
+      "name": "title",
+      "type": "String",
+      "ts": "string",
+      "required": true
+    },
+    {
+      "name": "description",
+      "type": "String",
+      "ts": "string",
+      "default": null
+    },
+    {
+      "name": "items",
+      "type": "Array",
+      "ts": "Testimonial[]",
+      "required": true,
+      "note": "1 a 12 (C7 por encima de 12). quote se pinta entera; lang va en el blockquote"
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "ts": "{ external?: string }",
+      "default": {},
+      "note": "external («se abre en otra pestaña»), requerido con una source externa (C5)"
+    }
+  ],
+  "events": [
+    {
+      "name": "navigate",
+      "payload": "{ event, href, item }",
+      "ts": "BlockNavigate<Testimonial>",
+      "trigger": "Activación primaria del enlace de una source con href no externa; item es la opinión"
+    }
+  ],
+  "slots": [
+    {
+      "name": "quote",
+      "scope": "{ item }",
+      "ts": "{ item: Testimonial }",
+      "purpose": "Escape: contenido rico dentro del blockquote de cada opinión (en 03, el peek sigue saliendo del primer párrafo de quote)"
+    },
+    {
+      "name": "description",
+      "purpose": "Sustituye a la prop description en la GSection"
+    }
+  ],
+  "types": [
+    "Testimonial"
+  ],
+  "warnings": [
+    "C1",
+    "C2",
+    "C3",
+    "C5",
+    "C6",
+    "C7",
+    "T1 · una opinión sin source",
+    "T2 · una cita de más de 600 caracteres"
+  ],
+  "root": "GSection con data-gb=\"testimonials-NN\" y $attrs",
+  "bundle": {
+    "entry": "@grana/blocks/marketing",
+    "measured": 9919,
+    "peers": [
+      "vue",
+      "@grana/vue"
+    ],
+    "note": "dist/marketing.js gzip (gzip -c) con Hero, Features, Stats, Testimonials, CTA y FAQ (18 de 27 variantes; 2026-10-22), medido en un árbol aislado (HEAD 99c1aef + esta entrega, sin las secciones de bruno C a medio hacer); 50 249 B sin comprimir. Importación parcial (esbuild, vue y @grana/vue* externos): solo GbTestimonials01 2442 B, solo GbCta01 1859 B, solo GbFaq03 1924 B, sin las otras variantes. Sin tope en el primer lote (#815): lo fija lima en el remate"
+  }
+}

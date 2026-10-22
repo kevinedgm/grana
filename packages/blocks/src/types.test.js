@@ -59,7 +59,8 @@ describe('generador de tipos de Marketing', () => {
     const tmp = join(OUT, 'roto')
     for (const [js, msg] of [
       ["import GbHero01 from 'x'\nexport { GbHero01 }\nexport const marketing = {}", /no exporta «Gb\w+0\d»/],
-      ["export { GbHero01, GbHero02, GbHero03, GbFeatures01, GbFeatures02, GbFeatures03, GbStats01, GbStats02, GbStats03, GbOtra01 }\nexport const marketing = {}", /GbOtra01/]
+      // Todas las variantes de los meta.json y una de más (la lista sale de los meta.json: no hay que tocarla al añadir una sección)
+      [`export { ${readSectionMetas(ROOT).flatMap((m) => m.variants.map((v) => v.name)).join(', ')}, GbOtra01 }\nexport const marketing = {}`, /GbOtra01/]
     ]) {
       rmSync(tmp, { recursive: true, force: true })
       mkdirSync(join(tmp, 'src'), { recursive: true })
@@ -74,9 +75,20 @@ describe('generador de tipos de Marketing', () => {
 describe('uso con vue-tsc', () => {
   it('los bancos compilan como su Props; main.ts y App.vue compilan; cada uso erróneo marcado falla', async () => {
     // Los bancos, como literales con el tipo de su sección (comprobación de propiedades de más incluida)
-    let banks = "import type { GbHeroProps, GbFeaturesProps, GbStatsProps } from '@grana/blocks/marketing'\n"
-    for (const [name, file] of [['Hero', 'GbHero/hero.bank.js'], ['Features', 'GbFeatures/features.bank.js'], ['Stats', 'GbStats/stats.bank.js']]) {
+    let banks = ''
+    for (const [name, file] of [
+      ['Hero', 'GbHero/hero.bank.js'],
+      ['Features', 'GbFeatures/features.bank.js'],
+      ['Stats', 'GbStats/stats.bank.js'],
+      ['Testimonials', 'GbTestimonials/testimonials.bank.js'],
+      ['Cta', 'GbCta/cta.bank.js'],
+      ['Faq', 'GbFaq/faq.bank.js'],
+      ['Newsletter', 'GbNewsletter/newsletter.bank.js'],
+      ['BlogList', 'GbBlogList/blog-list.bank.js'],
+      ['Footer', 'GbFooter/footer.bank.js']
+    ]) {
       const bank = await import(/* @vite-ignore */ join(ROOT, 'src/blocks', file))
+      banks += `import type { Gb${name}Props } from '@grana/blocks/marketing'\n`
       banks += `export const ${name.toLowerCase()}: Gb${name}Props = ${JSON.stringify(bank.props)}\n`
     }
     writeFileSync(join(OUT, 'banks.ts'), banks)

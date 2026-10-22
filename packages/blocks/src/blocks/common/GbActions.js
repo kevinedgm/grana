@@ -16,6 +16,8 @@ export default /* @__PURE__ */ defineComponent({
     variants: { type: Array, default: () => ['solid', 'outline'] },
     size: { type: String, default: 'md' },
     external: { type: String, default: undefined },
+    // id del texto que describe la acción principal (`assurance` de CTA, cta.md): aria-describedby solo en la primera
+    describedby: { type: String, default: undefined },
     warn: { type: Function, required: true }
   },
   emits: ['navigate', 'activate'],
@@ -27,7 +29,7 @@ export default /* @__PURE__ */ defineComponent({
       return entries(all.slice(0, 2), ['label'], 'actions', warn).map(({ item, key, index }) => {
         const variant = props.variants[index] || props.variants[props.variants.length - 1]
         const icon = has(item.icon) ? () => h(GIcon, { name: item.icon }) : undefined
-        const common = { key, variant, size: props.size }
+        const common = { key, variant, size: props.size, 'aria-describedby': index === 0 ? props.describedby : undefined }
         if (item.href !== undefined && item.href !== null && item.href !== '') {
           const href = safeHref(item.href)
           if (!href) {

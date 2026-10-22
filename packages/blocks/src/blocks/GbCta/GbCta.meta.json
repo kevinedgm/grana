@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "name": "GbCta",
+  "kind": "block-section",
+  "family": "marketing",
+  "status": "draft",
+  "since": "0.0.0",
+  "description": "La llamada a la acción de la página, una sola además del héroe: el título, una frase, la acción y lo que quita la duda antes de pulsarla (assurance, ligada al botón principal).",
+  "contract": "design/contracts/blocks/cta.md",
+  "common": "design/contracts/blocks/_comun.md",
+  "decisions": [
+    815,
+    816,
+    817,
+    822
+  ],
+  "composes": [
+    "GSurface zone=\"brand\"",
+    "GSection",
+    "GStack",
+    "GCard",
+    "GDivider",
+    "GBtn"
+  ],
+  "variants": [
+    {
+      "name": "GbCta01",
+      "tag": "gb-cta-01",
+      "concept": "Banda de marca",
+      "root": "GSurface zone=\"brand\" padding=\"lg\" › GSection › GStack horizontal gap=\"sm\" (solid + outline) + p assurance"
+    },
+    {
+      "name": "GbCta02",
+      "tag": "gb-cta-02",
+      "concept": "Tarjeta con imagen",
+      "root": "GCard as=\"section\" orientation=\"auto\" mediaPosition=\"start\": media, title al nivel de sección, description, acciones (solid + outline) en actions, assurance en footer"
+    },
+    {
+      "name": "GbCta03",
+      "tag": "gb-cta-03",
+      "concept": "Línea sobria",
+      "root": "GStack gap=\"md\" › GDivider decorative + GSection (acciones solid + link en su slot actions con labels.actions) + p assurance"
+    }
+  ],
+  "props": [
+    {
+      "name": "title",
+      "type": "String",
+      "ts": "string",
+      "required": true
+    },
+    {
+      "name": "description",
+      "type": "String",
+      "ts": "string",
+      "default": null
+    },
+    {
+      "name": "actions",
+      "type": "Array",
+      "ts": "Action[]",
+      "required": true,
+      "note": "1 a 2: la primera es la principal (solid), la segunda la secundaria (outline en 01 y 02, link en 03); la tercera y siguientes se ignoran (C8). Vacía: aviso A1"
+    },
+    {
+      "name": "assurance",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "Lo que pasa después («Sin pago ahora · Respuesta por WhatsApp en menos de 2 h»); describe la acción principal (aria-describedby)"
+    },
+    {
+      "name": "media",
+      "type": "Object",
+      "ts": "Media",
+      "default": null,
+      "variants": [
+        "GbCta02"
+      ],
+      "note": "La foto de la tarjeta"
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "ts": "{ actions?: string; external?: string }",
+      "default": {},
+      "note": "actions: nombre del grupo de acciones del encabezado (03; sin él avisa GSection); external («se abre en otra pestaña»), requerido con una acción externa (C5)"
+    }
+  ],
+  "events": [
+    {
+      "name": "navigate",
+      "payload": "{ event, href, item }",
+      "ts": "BlockNavigate<Action>",
+      "trigger": "Activación primaria de una acción con href no externa; item es la acción"
+    },
+    {
+      "name": "activate",
+      "payload": "{ event, item }",
+      "ts": "BlockActivate<Action>",
+      "trigger": "Una acción sin href (abrir el diálogo de reserva); item es la acción"
+    }
+  ],
+  "slots": [
+    {
+      "name": "actions",
+      "purpose": "Escape: sustituye a los botones generados; la aplicación cuida entonces la jerarquía y el aria-describedby"
+    },
+    {
+      "name": "description",
+      "purpose": "Sustituye a la prop description"
+    }
+  ],
+  "types": [
+    "Action",
+    "Media"
+  ],
+  "warnings": [
+    "C2",
+    "C4 (02)",
+    "C5",
+    "C6",
+    "C8",
+    "A1 · actions vacía",
+    "A2 · más de un GbCta en el documento, o un GbCta01 junto a un GbStats02 (onMounted)"
+  ],
+  "root": "GSurface (01), GCard (02) o GStack (03) con data-gb=\"cta-NN\" y $attrs",
+  "bundle": {
+    "entry": "@grana/blocks/marketing",
+    "measured": 9919,
+    "peers": [
+      "vue",
+      "@grana/vue"
+    ],
+    "note": "dist/marketing.js gzip (gzip -c) con Hero, Features, Stats, Testimonials, CTA y FAQ (18 de 27 variantes; 2026-10-22), medido en un árbol aislado (HEAD 99c1aef + esta entrega, sin las secciones de bruno C a medio hacer); 50 249 B sin comprimir. Importación parcial (esbuild, vue y @grana/vue* externos): solo GbTestimonials01 2442 B, solo GbCta01 1859 B, solo GbFaq03 1924 B, sin las otras variantes. Sin tope en el primer lote (#815): lo fija lima en el remate"
+  }
+}

@@ -92,6 +92,18 @@ export interface Faq {
   answer: string
 }
 
+/** Textos del buscador de `GbFaq03` (faq.md, #823). Sin valores por defecto (#226). */
+export interface FaqLabels {
+  /** Etiqueta del buscador. */
+  search?: string
+  /** «{count} de {total} preguntas»: String con {count}/{total} o función (#51). */
+  matches?: string | ((p: { count: number; total: number }) => string)
+  /** Título del vacío de la búsqueda. */
+  none?: string
+  /** «Borrar búsqueda». */
+  clear?: string
+}
+
 export interface Post {
   id?: string | number
   title: string
