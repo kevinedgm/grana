@@ -31,6 +31,11 @@ Fase C del plan de v1: seis componentes nuevos, la carga común y varias reglas 
 - `@grana/cli` deriva los colores del tema oscuro contra la superficie oscura real, teñida por los neutros del tema, y no contra la de por defecto.
 - `@grana/cli` conoce las ranuras del item actual de `GSidebar` (`--g-sidebar-current*`, grupo de color): si el tema las declara, diagnostica sus pares en claro y oscuro (`sidebar-current-contrast`, informativo) y, si se heredan del claro y fallan en el oscuro, deriva el oscuro (`sidebar-current-dark`: relleno `{f}-soft`, tinta `{g}-text` o el respaldo `on-{f}-soft`) (#614).
 
+#### Clases utilitarias (`draft`)
+
+- 229 clases `g-*` de ajuste puntual (margen y relleno con la escala `--g-space-*`, `display` y flex/rejilla, texto por rol del tema, `g-hidden`, `g-sr-only`…), de una sola declaración y especificidad 0,1,0, en la capa nueva `grana.utilities`, la última de Grana. `@grana/vue/style.css` ya las incluye; `@grana/vue/utilities.css` (generado por `scripts/build-utilities.mjs`, 1 892 B gzip) las trae sueltas para quien usa los tokens sin los componentes y necesita los tokens (#804 a #811).
+- El orden de capas completo `grana.defaults, grana.components, grana.blocks, grana.utilities` se declara al principio de cada punto de entrada de CSS de Grana (`grana.css`, `utilities.css` suelto y `components.css` de `@grana/blocks`): da igual qué hoja se cargue primero y las utilidades nunca quedan como la capa más débil (#806).
+
 #### `GFab` (en construcción, `draft`)
 
 - `GFab` (entrada propia `@grana/vue/fab`, global UMD `GranaFab`; su CSS va en `grana.css`): botón flotante para crear o capturar desde cualquier sitio. A · «La pila que crece» por defecto (las que caben, hasta 5, la más usada pegada al botón; si sobran, «Más acciones (N)» abre el resto agrupado; de 6 a 15 acciones no se mueve ninguna de las cuatro primeras) y C · «Acción con cola» con `main` (la principal a un toque, con su nombre, y un panel que filtra al escribir). Confirmación en la misma fila para lo peligroso, acuse en el propio botón con el ticket de `select`, se aparta del foco (WCAG 2.4.11), velo táctil y una activación por gesto (#654 a #671). Pendiente de la auditoría de coco y del README.
@@ -81,6 +86,8 @@ Quien ya usaba `GTable` verá estos cambios al actualizar:
 - **Modo pasos de `GDialog` (#590):** medido en copia aislada del árbol actual (`vite build` del principal, gzip de `grana.js`) con y sin `GDialogStep`, `useDialogSteps`, el motor de pasos (`GDialog/steps.js`), el hilo, «Volver», el pie por paso y `utils/landing.js`: **212 489 → 217 230 B (+4 741 B, 4,63 KiB)**, dentro del tope de **4 864 B** (#684, que enmienda los 4 096 B de #590; 123 B de holgura). Se queda en el principal.
 
 - **Isla de estado transitoria (#705):** la entrada `@grana/vue/status` pasa de **16 150 a 19 580 B gzip** (`dist/status.js`, gzip de Vite; `status.umd.js` 13 910 → 17 240 B), **580 B por encima del tope de 19 000 B**: queda para la valoración de lima. Minificada para producción (esbuild, sin avisos): 11 555 → 14 812 B. En el principal solo crecen `TOAST_DURATION` y `RESUME_MIN` en `__shared` y la constante de `EDGE_ORDER` (`grana.js` 217 210 → 217 240 B); `grana.css` 90 080 → 91 320 B por el CSS nuevo de coco.
+
+- **Clases utilitarias (#810):** `dist/grana.css` **100 163 → 101 724 B gzip (+1 561 B, 1,52 KiB)**, dentro del tope de +3 072 B (medida de `gzip -9` sobre el `dist/grana.css` de antes y sobre el de después; sin el `@import` de `utilities.css` y con la declaración de orden nueva, 100 180 B: las utilidades solas suman +1 544 B y la declaración de orden +17 B). Entrada nueva de `exports`: `./utilities.css` → `dist/utilities.css` (9 953 B sin comprimir, **1 892 B gzip**). No afecta a `grana.js` ni al UMD.
 
 ## [0.1.0-beta.0] - fecha por fijar al publicar
 

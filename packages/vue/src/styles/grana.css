@@ -1,10 +1,14 @@
 /*
   Punto de entrada de estilos de Grana (dueño: bruno).
-  El orden de las capas decide quién gana: components sobre defaults.
-  El tokens.css del usuario va SIN capa, así que gana sobre ambas sin importar el orden de carga.
+  El orden de las capas decide quién gana, de más débil a más fuerte: defaults, components, blocks (@grana/blocks, vacía
+  si no se usa) y utilities (clases de ajuste puntual, #806). La declaración completa va aquí y en cada punto de entrada
+  de CSS de Grana (utilities.css suelto, components.css de @grana/blocks): el orden lo fija la primera aparición de cada
+  nombre, así que da igual qué hoja se cargue primero.
+  El tokens.css del usuario va SIN capa, así que gana sobre todas sin importar el orden de carga.
   La fuente por defecto NO se importa aquí: vive en dist/fonts.css (ver scripts/build-fonts.mjs).
 */
-@layer grana.defaults, grana.components;
+@layer grana.defaults, grana.components, grana.blocks, grana.utilities;
 
 @import url("./defaults.css") layer(grana.defaults);
 @import url("./components.css") layer(grana.components);
+@import url("./utilities.css") layer(grana.utilities);

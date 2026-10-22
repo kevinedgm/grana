@@ -1,9 +1,9 @@
 /*
   Registro de estilos de los blocks (dueño: coco; #793).
-  Orden de capas de Grana: grana.defaults < grana.components < grana.blocks. La declaración va primero: si blocks.css se
-  carga antes que grana.css, el orden ya queda fijado; si se carga después, grana.blocks se añade al final. El tema de la
+  Orden de capas de Grana: grana.defaults < grana.components < grana.blocks < grana.utilities (#806). La declaración va primero: si blocks.css se
+  carga antes que grana.css, el orden ya queda fijado; si se carga después, grana.blocks y grana.utilities se añaden al final; sin grana.utilities aquí, una hoja de blocks cargada antes dejaría las utilidades como la capa más débil. El tema de la
   aplicación va sin capa y gana a las tres. Cada block se importa aquí, dentro de la capa grana.blocks (sin @layer propio).
 */
-@layer grana.defaults, grana.components, grana.blocks;
+@layer grana.defaults, grana.components, grana.blocks, grana.utilities;
 
 @import url("./blocks/GResourceList/GResourceList.css") layer(grana.blocks);

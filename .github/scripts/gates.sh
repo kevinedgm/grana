@@ -174,6 +174,23 @@ must_not_have grana.js "supportedValuesOf" "La tabla de símbolos se calcula en 
 must_not_have price.js "supportedValuesOf" "La tabla de símbolos se calcula en el navegador; debe venir generada en el build (scripts/currency-symbols.mjs, #770)"
 must_not_have price.js "\"Rs\"" "La tabla de símbolos quedó copiada en price.js; debe llegar por __shared desde utils/currency.js (#776)"
 
+# Clases utilitarias (#804 a #811): capa grana.utilities, la última; dist/utilities.css suelto (tope +3 KiB gzip en grana.css)
+must_have grana.css "g-mx-auto" "Las utilidades no quedaron registradas en grana.css (¿falta el @import de utilities.css en grana.css?)"
+must_have grana.css "g-sr-only" "Falta g-sr-only en grana.css (última regla de utilities.css, #806)"
+must_have grana.css "grana.utilities" "La capa grana.utilities no está en grana.css (#806)"
+# La forma minificada que emite Vite: el orden completo, una sola vez, al principio del archivo (antes de cualquier capa con reglas)
+must_have grana.css "@layer grana.defaults,grana.components,grana.blocks,grana.utilities;" "grana.css no declara el orden de capas completo defaults < components < blocks < utilities (#806)"
+total=$((total + 1))
+if head -c 80 "$DIST/grana.css" | grep -q -- "^@layer grana.defaults,grana.components,grana.blocks,grana.utilities;"; then
+  pass "head grana.css empieza por la declaración de orden completa"
+else
+  fail "head grana.css empieza por la declaración de orden completa" "El orden de capas debe ser lo primero de grana.css, antes de cualquier @layer con reglas (#806)"
+fi
+must_exist "utilities.css" "No se generó dist/utilities.css (revisar scripts/build-utilities.mjs y el script build de packages/vue, #810)"
+must_have utilities.css "grana.utilities" "utilities.css suelto no declara ni envuelve la capa grana.utilities (#810)"
+must_have utilities.css "@layer grana.defaults,grana.components,grana.blocks,grana.utilities;" "utilities.css suelto no declara el orden de capas completo; cargado antes que grana.css dejaría las utilidades como la capa más débil (#806)"
+must_not_have utilities.css "!important" "utilities.css lleva !important; ninguna utilidad fuerza la importancia (#808)"
+
 echo
 if [ "$failed" -eq 0 ]; then
   echo "Compuertas: $total/$total superadas."
