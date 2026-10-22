@@ -226,8 +226,8 @@ Dos preguntas, dos etiquetas, en la misma fila (la receta completa, con el redon
 import { currencyDigits } from '@grana/vue/price'
 
 const aMoney = (centimos, currency) => ({ amount: centimos / 10 ** currencyDigits(currency), currency })
-// aMoney(185000, 'MXN') → { amount: 1850, currency: 'MXN' }
-// aMoney(2500, 'JPY')   → { amount: 2500, currency: 'JPY' }
+// aMoney(185000, 'MXN') devuelve { amount: 1850, currency: 'MXN' }
+// aMoney(2500, 'JPY')   devuelve { amount: 2500, currency: 'JPY' }
 ```
 
 ### SSR: `locale` en la región
@@ -320,7 +320,7 @@ Ninguno tiene valor por defecto (DECISIONS #226). Los de un `GPrice` se **fusion
 
 ## Idioma (`locale`)
 
-- **Resolución:** la prop › el `locale` de su `GPriceScope` › el `lang` del ancestro más cercano (se lee **al montar**) › `navigator.language`. Un `locale` que `Intl` rechaza avisa y sigue la cadena sin él.
+- **Resolución:** primero la prop; después, el `locale` de su `GPriceScope`; después, el `lang` del ancestro más cercano (se lee **al montar**); por último, `navigator.language`. Un `locale` que `Intl` rechaza avisa y sigue la cadena sin él.
 - Se muestran las **cifras del sistema del idioma** (`ar-EG`: arábigo-índicas) y el símbolo en su lado, sin marcas bidi.
 - **Idioma cambiado en caliente:** un cambio del `lang` de un ancestro después de montar no se observa; pasa `locale` reactivo.
 
