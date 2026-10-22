@@ -109,7 +109,7 @@ Con la guarda canónica de #653 (`api.md` «Avisos de desarrollo»), al montar y
 
 ## Tokens consumidos (`tokens.md` §56)
 
-**Ningún token nuevo.** `--g-font-ui`; `--g-text-body-size`, `-line`, `-tracking`; `--g-text-body-sm-size`, `-line`, `-tracking`; `--g-text-caption-size`, `-line`, `-tracking`; `--g-text-body-weight` (los tres tamaños, X-L4); `--g-color-text`, `--g-color-text-muted` (redeclarados por el oscuro y la zona de marca, §44.5); `--g-space-1` (ritmo y sangría de listas). Si coco fija el peso de `strong` (regla 7), un `--g-text-*-weight` existente, que coco añade a §56 al entregar `GText.css`. **No lee** `--g-text-caption-weight` (rótulo), `density` ni ningún color de familia.
+**Ningún token nuevo.** `--g-font-ui`; `--g-text-body-size`, `-line`, `-tracking`; `--g-text-body-sm-size`, `-line`, `-tracking`; `--g-text-caption-size`, `-line`, `-tracking`; `--g-text-body-weight` (los tres tamaños, X-L4); `--g-color-text`, `--g-color-text-muted` (redeclarados por el oscuro y la zona de marca, §44.5); `--g-space-1` (ritmo y sangría de listas); y, para el peso de `strong` y `b` (regla 7), `--g-text-title-sm-weight` (existente en `defaults.css`, 600, no nuevo). Lista comprobada contra `GText.css` (#858). **No lee** `--g-text-caption-weight` (rótulo), `density` ni ningún color de familia. **Peso:** `GText.css` 548 B gzip (medido por coco); la compuerta de 512 B es solo de JS (#853).
 
 **No son tokens (#717, X-L5):** la pausa **`space × 3 · 2,5 · 2`** por tamaño y la sangría de listas en múltiplos de `space`. Un token de ritmo dejaría que un tema desacompasara el texto de la pila. Descartado: medio interlineado del rol (`--g-text-*-line` / 2), que sacaría el ritmo de la escala de `space` y rompería la equivalencia con el `sm` de `GStack`.
 
