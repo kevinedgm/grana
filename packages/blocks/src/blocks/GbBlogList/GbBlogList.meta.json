@@ -34,7 +34,7 @@
       "name": "GbBlogList02",
       "tag": "gb-blog-list-02",
       "concept": "Lista con fecha",
-      "root": "GSection › GStack as=\"ul\" divided › GCard as=\"li\" level=\"flat\" interaction=\"link\""
+      "root": "GSection › GStack as=\"ul\" gap=\"sm\" › GCard as=\"li\" level=\"flat\" interaction=\"link\""
     },
     {
       "name": "GbBlogList03",
