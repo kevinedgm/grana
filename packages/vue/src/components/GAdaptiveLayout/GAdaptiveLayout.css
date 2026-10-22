@@ -83,6 +83,17 @@
      Con anywhere, una GTable hija partía palabras de sus celdas en lugar de usar su propio scroll. */
   overflow-wrap: break-word;
 }
+/* #847 · Llenado de lista: un hijo directo role="listitem" llena su fila (las tarjetas de una fila acaban al mismo alto) y su
+   único hijo (la GCard) lo llena a él. Acotado al rol: campos, bloques de formulario y el alineado C12 (#348) no cambian */
+.g-adaptive-layout.g-adaptive-layout > [role="listitem"] {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+}
+.g-adaptive-layout.g-adaptive-layout > [role="listitem"] > :only-child {
+  flex: 1 1 auto;
+  min-block-size: 0;
+}
 /* C12 peers share label / box / footer tracks only after useful measurement
    and when the plan has at least one pair of recognized fields on a line.
    Bruno emits `auto auto auto` per logical line and a

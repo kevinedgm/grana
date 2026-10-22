@@ -101,6 +101,10 @@
   --_t-fade: var(--g-duration-fast);
   /* Chevron: 1em del texto del cuerpo, centrado en la PRIMERA línea del título */
   --_chev: var(--g-text-body-size);
+  /* Letra del título (#848): title-sm suelto; dentro de un GSection, la del escalón anidado (abajo) */
+  --_t-font: var(--g-font-title);
+  --_t-size: var(--g-text-title-sm-size);
+  --_t-line: var(--g-text-title-sm-line);
 
   display: grid;
   /* Las acciones nunca se comen más de un tercio (salvo su botón más ancho): el título conserva el resto y ellas se apilan */
@@ -124,6 +128,13 @@
 .g-accordion-item:not(.is-standalone) {
   border-block-end: var(--g-border-width) solid var(--g-color-border);
   transition: border-color var(--g-duration-fast) var(--g-ease-standard);
+}
+/* #848 · Dentro de un GSection (cualquier profundidad) el título baja a --g-font-ui, body, semibold, como los de GCard y
+   GFormSection (#753). Solo alias: chevron, meta, acciones y --_head-size siguen la misma línea */
+:where(.g-section) .g-accordion-item {
+  --_t-font: var(--g-font-ui);
+  --_t-size: var(--g-text-body-size);
+  --_t-line: var(--g-text-body-line);
 }
 /* El suelto también se compensa a sí mismo (Δ0) */
 .g-accordion-item.is-standalone {
@@ -156,9 +167,9 @@
   border: 0;
   border-radius: var(--g-radius-xs);
   background: none;
-  font-family: var(--g-font-title);
-  font-size: var(--g-text-title-sm-size);
-  line-height: var(--g-text-title-sm-line);
+  font-family: var(--_t-font);
+  font-size: var(--_t-size);
+  line-height: var(--_t-line);
   letter-spacing: var(--g-text-title-sm-tracking);
   font-weight: var(--g-text-title-sm-weight);
   color: var(--g-color-text);
@@ -183,7 +194,7 @@
 .g-accordion-item__meta {
   /* Mínimo = su palabra más larga: el título cede antes que partir «Disponible» */
   flex: 0 1 auto;
-  margin-block-start: calc((var(--g-text-title-sm-line) - var(--g-text-body-sm-line)) / 2);
+  margin-block-start: calc((var(--_t-line) - var(--g-text-body-sm-line)) / 2);
   font-family: var(--g-font-ui);
   font-size: var(--g-text-body-sm-size);
   line-height: var(--g-text-body-sm-line);
@@ -199,7 +210,7 @@
   align-items: center;
   justify-content: center;
   inline-size: var(--_chev);
-  block-size: var(--g-text-title-sm-line);
+  block-size: var(--_t-line);
   color: var(--g-color-text-muted);
   transition: color var(--g-duration-fast) var(--g-ease-standard);
 }
@@ -228,7 +239,7 @@
   gap: var(--g-space-2);
   box-sizing: border-box;
   min-inline-size: 0;
-  min-block-size: var(--g-text-title-sm-line);
+  min-block-size: var(--_t-line);
   margin-block-start: var(--_pad-start);
   padding-inline: var(--g-space-2) var(--_inset);
 }
@@ -413,7 +424,7 @@
 }
 .g-accordion--sticky > .g-accordion-item {
   /* Estimación del alto del encabezado pegado para una línea de título; el .vue escribe la medida real en línea (#484) */
-  --_head-size: calc(var(--_pad-start) + var(--g-text-title-sm-line) + var(--_pad-end));
+  --_head-size: calc(var(--_pad-start) + var(--_t-line) + var(--_pad-end));
 }
 /* Solo en pantalla: impreso no se pega nada */
 @media screen {
