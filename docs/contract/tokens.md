@@ -228,11 +228,13 @@ Como no son tema, **no son tokens**: si fueran variables, un `tokens.css` sin ca
 ## 8. Mecanismo
 
 ```css
-@layer grana.defaults, grana.components;
+@layer grana.defaults, grana.components, grana.blocks, grana.utilities;
 ```
 
 - `grana.defaults`: tema por defecto. Sigue siendo de coco (`styles/defaults.css`); el CLI **no** lo regenera. Al revés: `packages/cli/src/defaults.js` se copia de `defaults.css` (`node packages/cli/scripts/sync-defaults.mjs`) y una prueba falla si se desfasan.
 - `grana.components`: CSS de los componentes.
+- `grana.blocks`: CSS de `@grana/blocks` (DECISIONS.md #792; `api.md` «Grana Blocks»). Se declara aunque no se use: no cuesta nada.
+- `grana.utilities`: clases utilitarias (§55, DECISIONS.md #806). La última de Grana: gana a componentes y blocks sin `!important`. Cada hoja de Grana declara el orden completo al principio, porque el orden lo fija la primera aparición de cada nombre.
 - El `tokens.css` del usuario va **sin capa**: gana siempre, sin importar el orden de carga.
 
 Modo principal: en build (`npx @grana/cli theme grana.config.json` o plugin de Vite). Modo en tiempo de ejecución: opcional, con parpadeo documentado.
@@ -1292,3 +1294,16 @@ Consume además (lista exacta de `GHero.css`, #759): `--g-color-bg`, `--g-color-
 ## 55. Lista de recursos (`GResourceList`, `@grana/blocks`; sin tokens nuevos)
 
 **`GResourceList` no añade tokens** (`design/contracts/resource-list.md`, DECISIONS.md #781 a #794; §17.6: ningún existente se queda corto). Lo propio del block: inset en línea `space × 6` / `space × 4` en estrecho (el de `GPageHeader`, de contrato por #787); hueco de la frase con subrayado de `--g-border-width` en `--g-color-border-control` (≥ 3:1), texto `--g-color-text` (con valor, `--g-text-action-weight`), fondo al pasar `--g-color-neutral-soft` con `--g-radius-sm`; foco con `--g-color-focus`, `--g-focus-width` y `--g-focus-offset`; frase en `--g-text-body-*`; total y masivas en `--g-text-body-sm-*` y `--g-color-text-muted`; fundido opcional de la palabra nueva del hueco con `--g-duration-fast` + `--g-ease-out` (quieto con movimiento reducido, §29). Facetas, menús, tabla, vacíos, hoja y encabezado consumen los suyos. **Enmiendas de la misma tanda sin tokens nuevos:** motivo y par de confirmación de `GMenu` (`--g-text-body-sm-*`, `--g-color-text-muted`, `--g-color-danger`, `--g-color-on-danger`, `--g-color-danger-text`; #790) y recuento a cero de `GTable` (patrón de texto oculto; #789).
+
+## 55. Utilidades (`utilities.css`; sin tokens nuevos)
+
+**Las clases utilitarias no añaden tokens** (`design/contracts/utilities.md`, lista canónica `design/contracts/utilities.json`; DECISIONS.md #804 a #811). Cada clase es una declaración de un token existente, con el sufijo del token (escala A, decisión del usuario del 2026-10-22). Consumen exactamente:
+
+- **Espacio (§4):** `--g-space-{1|2|3|4|5|6|8|12|16}` en márgenes, rellenos y separaciones. Se leen **por paso**, no como `--g-space-1 × n` (el sufijo es el token, #804): un tema del CLI emite los nueve; un `tokens.css` a mano que solo cambie `--g-space-1` no mueve las utilidades (límite en el contrato).
+- **Tipografía (§5):** `--g-text-{caption|body-sm|body|title-sm|title|title-lg}-{size|line|tracking|weight}`, `--g-font-ui`, `--g-font-title`. `display` reservado (#809).
+- **Color (§2):** `--g-color-text-muted`, `--g-color-text-subtle` (≥ 4.5:1 sobre `bg`, `surface` y `surface-sunken`, §15; redeclarados por el oscuro y por la zona de marca, §44.5).
+- **Radios (§3):** `--g-radius-{none|xs|sm|md|lg|xl|pill}`. `--g-radius-shape` no (es la forma de los controles; reservado, #809).
+
+**No leen** `density` (multiplicador local de componente, §4): una utilidad mide el token tal cual (#808).
+
+**No son tokens:** los valores sin medida de las reglas (`0`, `auto`, `1`, `100%` y las palabras clave de `display`, flex, alineación y texto; lista exacta en `utilities.json`, `allowedLiterals`) y el patrón de texto oculto accesible de `g-sr-only` (§7: `1px`, `-1px`, `clip-path: inset(50%)`). **Mínimo de texto (§7):** `caption` (0,75 rem = 12 px con la raíz a 16 px) es el menor rol y el mínimo; ninguna utilidad baja de ahí. **Movimiento:** ninguno.
