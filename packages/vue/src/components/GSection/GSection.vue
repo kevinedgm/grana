@@ -28,7 +28,7 @@ export default defineComponent({
       return parent ? parent.value.next : 2
     })
     const depth = computed(() => (parent ? parent.value.depth : 0) + 1)
-    provide(sectionKey, computed(() => ({ depth: depth.value, next: Math.min(level.value + 1, 4) })))
+    provide(sectionKey, computed(() => ({ depth: depth.value, level: level.value, next: Math.min(level.value + 1, 4) })))
 
     const root = ref(null)
     const warned = new Set()

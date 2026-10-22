@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "name": "GbFeatures",
+  "kind": "block-section",
+  "family": "marketing",
+  "status": "draft",
+  "since": "0.0.0",
+  "description": "Lo que ofrece el lugar en piezas cortas (tres a seis ventajas), en rejilla, alternadas con foto o en una columna de lectura, con el mismo esquema de encabezados en las tres formas. La ventaja lleva a su prueba.",
+  "contract": "design/contracts/blocks/features.md",
+  "common": "design/contracts/blocks/_comun.md",
+  "decisions": [
+    815,
+    816,
+    817,
+    819
+  ],
+  "composes": [
+    "GSection",
+    "GAdaptiveLayout",
+    "GStack",
+    "GContainer",
+    "GCard",
+    "GIcon",
+    "GBtn"
+  ],
+  "variants": [
+    {
+      "name": "GbFeatures01",
+      "tag": "gb-features-01",
+      "concept": "Rejilla",
+      "root": "GSection › GAdaptiveLayout role=\"list\" › div role=\"listitem\" g-adapt-standard › GCard"
+    },
+    {
+      "name": "GbFeatures02",
+      "tag": "gb-features-02",
+      "concept": "Alternada",
+      "root": "GSection › GStack as=\"ul\" gap=\"lg\" › GCard as=\"li\" orientation=\"auto\" (mediaPosition start/end)"
+    },
+    {
+      "name": "GbFeatures03",
+      "tag": "gb-features-03",
+      "concept": "Lectura",
+      "root": "GSection › GContainer width=\"reading\" › GStack as=\"ul\" divided › li › GSection"
+    }
+  ],
+  "props": [
+    {
+      "name": "title",
+      "type": "String",
+      "ts": "string",
+      "required": true
+    },
+    {
+      "name": "description",
+      "type": "String",
+      "ts": "string",
+      "default": null
+    },
+    {
+      "name": "items",
+      "type": "Array",
+      "ts": "Feature[]",
+      "required": true,
+      "note": "1 a 12 (C7 por encima de 12)"
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "ts": "{ external?: string }",
+      "default": {},
+      "note": "external («se abre en otra pestaña»), requerido con una action externa (C5)"
+    }
+  ],
+  "events": [
+    {
+      "name": "navigate",
+      "payload": "{ event, href, item }",
+      "ts": "BlockNavigate<Feature>",
+      "trigger": "Activación primaria de la action con href no externa de una ventaja (en 01 y 02 se reemite el de GCard); item es la ventaja"
+    },
+    {
+      "name": "activate",
+      "payload": "{ event, item }",
+      "ts": "BlockActivate<Feature>",
+      "trigger": "Una action sin href; item es la ventaja"
+    }
+  ],
+  "slots": [
+    {
+      "name": "item",
+      "scope": "{ item, index }",
+      "ts": "{ item: Feature; index: number }",
+      "purpose": "Escape: contenido de la tarjeta (01, 02) o del cuerpo de la sección anidada (03) de una ventaja"
+    },
+    {
+      "name": "description",
+      "purpose": "Sustituye a la prop description en la GSection"
+    }
+  ],
+  "types": [
+    "Feature",
+    "Media",
+    "Action"
+  ],
+  "warnings": [
+    "C1",
+    "C2",
+    "C3",
+    "C4 (02)",
+    "C5",
+    "C6",
+    "C7",
+    "F1 · 02 sin ningún elemento con media"
+  ],
+  "root": "GSection con data-gb=\"features-NN\" y $attrs",
+  "bundle": {
+    "entry": "@grana/blocks/marketing",
+    "measured": 5891,
+    "peers": [
+      "vue",
+      "@grana/vue"
+    ],
+    "note": "dist/marketing.js gzip (gzip -c) con Hero, Features y Stats (9 de 27 variantes; 2026-10-22). Importación parcial: solo GbHero01 2343 B, solo GbFeatures01 2261 B. Sin tope en el primer lote (#815): lo fija lima en el remate"
+  }
+}

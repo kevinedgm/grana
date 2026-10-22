@@ -1,0 +1,11 @@
+{
+  "brand": "#0B1F4D",
+  "accent": "#8A6A1F",
+  "radius": 18,
+  "shape": "pill",
+  "font": "Inter",
+  "fontDisplay": "Instrument Serif",
+  "fontSize": 16,
+  "typeScale": 1.333,
+  "dark": true
+}

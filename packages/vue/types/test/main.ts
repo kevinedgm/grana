@@ -3,7 +3,7 @@
 import { createApp, h, ref } from 'vue'
 import Grana, {
   GBtn, GForm, GIcon, GInput, GMenu, GSelect, GTable,
-  createIcons, createToaster, formKey, summaryDiff, useFormField, useToast
+  createIcons, createToaster, formKey, summaryDiff, useFormField, useSectionLevel, useToast
 } from '@grana/vue'
 import type { GBtnProps, SelectOption, Toaster } from '@grana/vue'
 import Combobox, { GCombobox } from '@grana/vue/combobox'
@@ -234,3 +234,9 @@ h(GFab, { items: fabItems, position: 'left' })
 h(GFab, { items: fabItems, appearance: 'arc' })
 // @ts-expect-error GFab: confirm es texto o false
 h(GFab, { items: [{ id: 'x', label: 'X', danger: true, confirm: true }] })
+
+// useSectionLevel (#817): refs de solo lectura con números
+const sectionLevel = useSectionLevel()
+const headingLevelHere: number = sectionLevel.level.value + sectionLevel.depth.value
+// @ts-expect-error: level es de solo lectura
+sectionLevel.level = sectionLevel.depth

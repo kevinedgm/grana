@@ -62,6 +62,7 @@ import GEmpty from './components/GEmpty/GEmpty.vue'
 import { summaryDiff } from './components/GSummary/diff.js'
 import { formKey, useFormField } from './components/GForm/formContext.js'
 import { useDialogSteps } from './components/GDialog/dialogContext.js'
+import { useSectionLevel } from './utils/sectionKey.js'
 import { createToaster, useToast, toasterKey } from './components/GToast/toaster.js'
 import { createIcons, iconsKey } from './components/GIcon/registry.js'
 import { shared } from './shared.js'
@@ -73,6 +74,8 @@ export { GBtn, GInput, GNumberField, GCheckbox, GCheckboxGroup, GRadioGroup, GCa
 export { useFormField, formKey }
 // Pasos de GDialog: el historial del diálogo más cercano (dialog.md §«Niveles anidados» B, #584)
 export { useDialogSteps }
+// Nivel de encabezado por anidación de GSection, para componentes de la aplicación y bloques (section.md, #817)
+export { useSectionLevel }
 // Avisos: servicio imperativo (gestor de la app + región), docs/contract/api.md «Servicios imperativos»
 export { createToaster, useToast, toasterKey }
 // Iconos de la aplicación: registro por aplicación con cadenas de lucide-static (docs/contract/icons.md §5, #200)

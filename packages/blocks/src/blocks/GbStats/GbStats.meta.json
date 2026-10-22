@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "name": "GbStats",
+  "kind": "block-section",
+  "family": "marketing",
+  "status": "draft",
+  "since": "0.0.0",
+  "description": "Dos a seis cifras que sostienen la promesa del sitio, quietas, legibles al primer pintado y con su origen a la vista. Ninguna cuenta hacia arriba.",
+  "contract": "design/contracts/blocks/stats.md",
+  "common": "design/contracts/blocks/_comun.md",
+  "decisions": [
+    815,
+    816,
+    820
+  ],
+  "composes": [
+    "GSection",
+    "GAdaptiveLayout",
+    "GMetric",
+    "GSurface zone=\"brand\"",
+    "GContainer"
+  ],
+  "variants": [
+    {
+      "name": "GbStats01",
+      "tag": "gb-stats-01",
+      "concept": "Fila",
+      "root": "GSection › GAdaptiveLayout role=\"list\" › div role=\"listitem\" g-adapt-short › GMetric size=\"lg\""
+    },
+    {
+      "name": "GbStats02",
+      "tag": "gb-stats-02",
+      "concept": "Banda",
+      "root": "GSurface zone=\"brand\" padding=\"lg\" › GSection › la lista de 01"
+    },
+    {
+      "name": "GbStats03",
+      "tag": "gb-stats-03",
+      "concept": "Junto a un párrafo",
+      "root": "GSection › GAdaptiveLayout › [g-adapt-wide › GContainer width=\"reading\" › p] + [GAdaptiveLayout role=\"list\"]; sin description, como 01"
+    }
+  ],
+  "props": [
+    {
+      "name": "title",
+      "type": "String",
+      "ts": "string",
+      "required": true,
+      "note": "Obligatorio: la lista de cifras toma el nombre de la sección"
+    },
+    {
+      "name": "description",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "En 03, el párrafo junto a las cifras (párrafos separados por una línea en blanco)"
+    },
+    {
+      "name": "items",
+      "type": "Array",
+      "ts": "Stat[]",
+      "required": true,
+      "note": "2 a 6 (C7 fuera de ese rango). value se pinta tal cual"
+    }
+  ],
+  "events": [],
+  "slots": [
+    {
+      "name": "description",
+      "purpose": "Sustituye al párrafo de 03 y a la descripción de la sección en 01 y 02"
+    }
+  ],
+  "types": [
+    "Stat"
+  ],
+  "warnings": [
+    "C1",
+    "C2",
+    "C3",
+    "C7",
+    "S1 · una cifra sin source",
+    "S2 · más de un [data-gb=\"stats-02\"] o [data-gb=\"cta-01\"] en el documento (onMounted)"
+  ],
+  "root": "GSection (01, 03) o GSurface (02) con data-gb=\"stats-NN\" y $attrs",
+  "bundle": {
+    "entry": "@grana/blocks/marketing",
+    "measured": 5891,
+    "peers": [
+      "vue",
+      "@grana/vue"
+    ],
+    "note": "dist/marketing.js gzip (gzip -c) con Hero, Features y Stats (9 de 27 variantes; 2026-10-22). Importación parcial: solo GbHero01 2343 B, solo GbFeatures01 2261 B. Sin tope en el primer lote (#815): lo fija lima en el remate"
+  }
+}

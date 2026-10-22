@@ -1,0 +1,164 @@
+{
+  "schemaVersion": 1,
+  "name": "GbHero",
+  "kind": "block-section",
+  "family": "marketing",
+  "status": "draft",
+  "since": "0.0.0",
+  "description": "Apertura de una página de sitio: un h1, la foto que vende y una sola acción principal, con las tres formas de GHero y los mismos datos en las tres. El bloque decide la jerarquía de las acciones y filtra lo que cada apariencia no usa.",
+  "contract": "design/contracts/blocks/hero.md",
+  "common": "design/contracts/blocks/_comun.md",
+  "decisions": [
+    815,
+    816,
+    817,
+    818
+  ],
+  "composes": [
+    "GHero (@grana/vue/hero)",
+    "GBtn",
+    "GIcon"
+  ],
+  "variants": [
+    {
+      "name": "GbHero01",
+      "tag": "gb-hero-01",
+      "concept": "La ventana",
+      "root": "GHero appearance=\"window\""
+    },
+    {
+      "name": "GbHero02",
+      "tag": "gb-hero-02",
+      "concept": "Vistas",
+      "root": "GHero appearance=\"views\" (con menos de dos vistas, window: aviso H1)"
+    },
+    {
+      "name": "GbHero03",
+      "tag": "gb-hero-03",
+      "concept": "El umbral",
+      "root": "GHero appearance=\"threshold\" + slot consult"
+    }
+  ],
+  "props": [
+    {
+      "name": "title",
+      "type": "String",
+      "ts": "string",
+      "required": true,
+      "note": "El h1 de la página (GHero headingLevel 1)"
+    },
+    {
+      "name": "eyebrow",
+      "type": "String",
+      "ts": "string",
+      "default": null
+    },
+    {
+      "name": "lead",
+      "type": "String",
+      "ts": "string",
+      "default": null
+    },
+    {
+      "name": "aside",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "Dato corto bajo las acciones («Desayuno incluido · Llegada desde las 15:00»)"
+    },
+    {
+      "name": "media",
+      "type": "Object",
+      "ts": "Media",
+      "required": true,
+      "note": "Foto principal: la prioritaria de la página (fetchpriority de GHero)"
+    },
+    {
+      "name": "detail",
+      "type": "Object",
+      "ts": "Media",
+      "default": null,
+      "variants": [
+        "GbHero01"
+      ],
+      "note": "Segunda ventana; solo la usa 01"
+    },
+    {
+      "name": "views",
+      "type": "Array",
+      "ts": "{ value: string | number; label: string; media: Media }[]",
+      "default": null,
+      "variants": [
+        "GbHero02"
+      ],
+      "note": "2 a 4, con media.alt; solo la usa 02"
+    },
+    {
+      "name": "actions",
+      "type": "Array",
+      "ts": "Action[]",
+      "default": [],
+      "note": "0 a 2: la primera solid y la segunda link (03 con consult: las dos outline); más de dos, aviso C8"
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "ts": "{ views?: string; pause?: string; external?: string }",
+      "default": {},
+      "note": "views (02), pause (con vídeo en el slot media), external (con una acción externa, C5). Sin valores por defecto"
+    }
+  ],
+  "events": [
+    {
+      "name": "navigate",
+      "payload": "{ event, href, item }",
+      "ts": "BlockNavigate<Action>",
+      "trigger": "Activación primaria de una acción con href no externa (#505, #574); síncrono, antes de navegar"
+    },
+    {
+      "name": "activate",
+      "payload": "{ event, item }",
+      "ts": "BlockActivate<Action>",
+      "trigger": "Una acción sin href"
+    }
+  ],
+  "slots": [
+    {
+      "name": "consult",
+      "variants": [
+        "GbHero03"
+      ],
+      "purpose": "La consulta (GBookingBar); en 01 y 02 se ignora"
+    },
+    {
+      "name": "media",
+      "purpose": "Un <video muted playsinline loop poster> de la aplicación en lugar de la foto"
+    },
+    {
+      "name": "actions",
+      "purpose": "Escape: sustituye a los botones generados desde actions (la jerarquía la cuida la aplicación)"
+    }
+  ],
+  "types": [
+    "Media",
+    "Action"
+  ],
+  "warnings": [
+    "C4 (detail en 01, views[].media en 02)",
+    "C5",
+    "C6",
+    "C8",
+    "H1 · 02 con menos de dos views (se pinta como 01)"
+  ],
+  "root": "La de GHero (section con nombre por el h1), con data-gb=\"hero-NN\" y $attrs",
+  "bundle": {
+    "entry": "@grana/blocks/marketing",
+    "measured": 5891,
+    "peers": [
+      "vue",
+      "@grana/vue",
+      "@grana/vue/hero"
+    ],
+    "note": "dist/marketing.js gzip (gzip -c) con Hero, Features y Stats (9 de 27 variantes; 2026-10-22). Importación parcial: solo GbHero01 2343 B, solo GbFeatures01 2261 B. Sin tope en el primer lote (#815): lo fija lima en el remate"
+  }
+}

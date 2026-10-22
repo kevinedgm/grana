@@ -1,0 +1,13 @@
+{
+  "brand": "#7A3B22",
+  "accent": "#2F6B4F",
+  "radius": 4,
+  "shape": "rounded",
+  "font": "Georgia",
+  "fontDisplay": "Georgia",
+  "fontSize": 17,
+  "typeScale": 1.2,
+  "neutrals": "tinted",
+  "neutralsHue": "brand",
+  "dark": true
+}

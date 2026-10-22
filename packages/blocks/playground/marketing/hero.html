@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GbHero · banco de Marketing (bruno)</title>
+<!-- Banco de GbHero con los bloques REALES (packages/blocks/dist/marketing.js) y el banco único de la sección
+     (src/blocks/GbHero/hero.bank.js). Una variante por carga (?v=01|02|03, 01 por defecto): un h1 por página. Requiere `npm run build` en packages/vue y packages/blocks.
+     Desde la raíz del repo: python3 -m http.server 4213 → /packages/blocks/playground/marketing/hero.html
+     Parámetros: ?tema=defecto|rustico|lujo (temas de @grana/cli en ./temas/) · ?dark=1 · ?v=01|02|03 · ?zoom=2 · ?anidado=1 -->
+<link rel="stylesheet" href="/packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="/packages/vue/dist/grana.css">
+<link rel="stylesheet" id="tema" href="data:text/css,">
+<style>
+  /* Andamio del banco (no es de Grana ni del bloque) */
+  body{margin:0;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
+  .pg-label{margin:var(--g-space-6) 0 var(--g-space-2);font-size:13px;color:var(--g-color-text-muted)}
+  .pg-stage{padding-block-end:var(--g-space-8)}
+</style>
+<script>
+  // Activa los avisos de desarrollo de Grana en el navegador (sin empaquetador `process` no existe, #653)
+  window.process = { env: { NODE_ENV: 'development' } }
+  if (!new URLSearchParams(location.search).get('v')) history.replaceState(null, '', location.pathname + (location.search ? location.search + '&' : '?') + 'v=01')
+</script>
+<script type="importmap">
+{ "imports": {
+  "vue": "/node_modules/vue/dist/vue.esm-browser.js",
+  "@grana/vue": "/packages/vue/dist/grana.js",
+  "@grana/vue/hero": "/packages/vue/dist/hero.js",
+  "@grana/vue/booking": "/packages/vue/dist/booking.js",
+  "@grana/vue/tag": "/packages/vue/dist/tag.js",
+  "@grana/blocks/marketing": "/packages/blocks/dist/marketing.js"
+} }
+</script>
+</head>
+<body>
+<div id="app"></div>
+<script type="module">
+  import { mountBank } from './app.js'
+  import * as bank from '/packages/blocks/src/blocks/GbHero/hero.bank.js'
+  mountBank('Hero', bank, { full: true, concepts: { '01': 'La ventana', '02': 'Vistas', '03': 'El umbral' } })
+</script>
+</body>
+</html>

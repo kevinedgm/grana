@@ -1,6 +1,6 @@
 // API de la entrada `@grana/vue` que no son componentes (dueño: bruno). Los componentes los genera
 // scripts/build-types.mjs desde los *.meta.json; este fragmento se copia a dist/types/api/grana.d.ts.
-import type { App, InjectionKey } from 'vue'
+import type { App, ComputedRef, InjectionKey } from 'vue'
 import type { DialogSteps, FormField, FormFieldOptions, IconsPlugin, SummaryDiff, SummaryDiffItem, Toaster, ToasterOptions } from '../shared.js'
 
 /** Composable para campos (los de Grana y los propios) dentro de `GForm` (form.md §2). */
@@ -10,6 +10,13 @@ export declare const formKey: InjectionKey<unknown>
 
 /** Pasos del `GDialog` más cercano (dialog.md §«Niveles anidados» B, #584); fuera del contenido de un `GDialog`, `null`. */
 export declare function useDialogSteps(): DialogSteps | null
+
+/**
+ * Nivel de un encabezado puesto en este sitio según las `GSection` antepasadas (section.md «Nivel para componentes y
+ * bloques», #817): `level` = 2 fuera de toda sección, dentro el de la sección + 1 (tope 6); `depth` = secciones antepasadas.
+ * Para usar en `setup`; fuera de él, 2 y 0.
+ */
+export declare function useSectionLevel(): { readonly level: ComputedRef<number>; readonly depth: ComputedRef<number> }
 
 /** Crea el gestor de avisos de la aplicación; es plugin (`app.use(toaster)`). */
 export declare function createToaster(options?: ToasterOptions): Toaster

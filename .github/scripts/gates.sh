@@ -191,6 +191,15 @@ must_have utilities.css "grana.utilities" "utilities.css suelto no declara ni en
 must_have utilities.css "@layer grana.defaults,grana.components,grana.blocks,grana.utilities;" "utilities.css suelto no declara el orden de capas completo; cargado antes que grana.css dejaría las utilidades como la capa más débil (#806)"
 must_not_have utilities.css "!important" "utilities.css lleva !important; ninguna utilidad fuerza la importancia (#808)"
 
+# Grana Blocks (design/contracts/blocks/_comun.md §9, #815): las compuertas del paquete viven en su script
+# (packages/blocks/scripts/gates.sh, tras `npm run build -w @grana/blocks`); aquí se suman al recuento.
+blocks_out="$(bash packages/blocks/scripts/gates.sh 2>&1)"
+echo "$blocks_out" | grep -E '^(ok|FALLA|       ->)'
+total=$((total + $(echo "$blocks_out" | grep -cE '^(ok|FALLA) ')))
+blocks_failed=$(echo "$blocks_out" | grep -c '^FALLA ')
+failed=$((failed + blocks_failed))
+if [ -n "$CI_ANNOTATE" ] && [ "$blocks_failed" -gt 0 ]; then echo "::error title=Compuerta fallida::$blocks_failed compuertas de @grana/blocks (packages/blocks/scripts/gates.sh)"; fi
+
 echo
 if [ "$failed" -eq 0 ]; then
   echo "Compuertas: $total/$total superadas."
