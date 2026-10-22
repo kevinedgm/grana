@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Utilidades · banco de estilo (coco)</title>
+<!-- Banco de las clases utilitarias (design/contracts/utilities.md, #804 a #811). Lo mide design/lab/utilities/verificar.mjs.
+     Parámetros: ?dir=rtl · ?utilfirst=1 (utilities.css se carga ANTES que grana.css) · ?dark=1.
+     MIENTRAS bruno no integre el import en grana.css: el banco declara el orden completo de capas y carga
+     packages/vue/src/styles/utilities.css con layer(grana.utilities) y parcha en memoria dist/grana.css con el cambio
+     de GStack.css (divided cuenta g-hidden y g-sr-only como [hidden]), que dist/ aún no trae.
+     CUANDO bruno integre y reconstruya dist/, bastará dist/grana.css: se quitan las líneas marcadas «TEMPORAL»
+     (se cambia en la auditoría posterior). La declaración @layer va PRIMERA del documento: fija el orden aunque
+     utilities.css llegue antes que grana.css (esa es la razón de la regla 3 del contrato). -->
+<style>@layer grana.defaults, grana.components, grana.blocks, grana.utilities;</style>
+<script>
+  // Orden de carga: normal (grana.css y después utilities) o utilities primero
+  const P = new URLSearchParams(location.search)
+  const base = '../../../packages/vue/'
+  const link = (h) => `<link rel="stylesheet" href="${h}">`
+  const imp = (h, l) => `<style>@import url("${h}") layer(${l});</style>`
+  const U = imp(base + 'src/styles/utilities.css', 'grana.utilities') // TEMPORAL: integrar en grana.css (bruno)
+  // TEMPORAL: dist/grana.css todavía no trae el cambio de GStack.css (divided cuenta g-hidden y g-sr-only como [hidden]);
+  // se parcha en memoria la misma línea que cambió. Con un dist/ reconstruido el reemplazo no encuentra nada y no hace nada.
+  const x = new XMLHttpRequest(); x.open('GET', base + 'dist/grana.css', false); x.send()
+  const css = x.responseText.replace(':where(:not(.g-tooltip,[hidden]))~:where(:not(.g-tooltip,[hidden],.g-surface))', ':where(:not(.g-tooltip,[hidden],.g-hidden,.g-sr-only))~:where(:not(.g-tooltip,[hidden],.g-hidden,.g-sr-only,.g-surface))')
+  const G = '<style>' + css + '</style>'
+  document.write(link(base + 'dist/fonts.css'))
+  document.write(P.get('utilfirst') ? U + G : G + U)
+</script>
+<style>
+  /* Andamio del banco y reglas «de la aplicación» (no son de Grana) */
+  body{margin:0;padding:var(--g-space-6);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  .lab-h{margin:var(--g-space-8) 0 var(--g-space-2);font-size:var(--g-text-body-sm-size);color:var(--g-color-text-muted)}
+  .box{box-sizing:border-box;background:var(--g-color-surface-sunken);border:1px solid var(--g-color-border-strong)}
+  .box--s{inline-size:50px;block-size:20px}
+  .box--m{inline-size:60px;block-size:30px}
+  .frame{box-sizing:border-box;inline-size:300px;block-size:100px;border:1px dashed var(--g-color-border-strong)}
+  .cols{grid-template-columns:1fr 1fr}
+  .one-col{grid-template-columns:50px}
+  .narrow{inline-size:100px}
+  /* Regla de la aplicación SIN capa: debe ganar a la utilidad */
+  .app-x{margin-block-start:3px}
+</style>
+<style>
+  /* Una regla de Grana de MAYOR especificidad en grana.components: la utilidad (capa posterior) debe ganarle */
+  @layer grana.components { #cmp .cmp-kid.cmp-kid.cmp-kid { margin-block-start: 0; padding-inline: 0; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <p class="lab-h">relleno y margen (ejes lógicos) · orden dentro de la familia</p>
+  <div class="box g-p-4" id="p4">g-p-4</div>
+  <div class="box g-p-4 g-pt-0" id="p4t0">g-p-4 g-pt-0</div>
+  <div class="box g-px-3 g-py-1 g-ps-6" id="pxy">g-px-3 g-py-1 g-ps-6</div>
+  <div class="box" id="ms-host" style="inline-size:200px"><div class="box box--s g-ms-4" id="ms4"></div></div>
+  <div class="box" id="me-host" style="inline-size:200px"><div class="box box--s g-me-4 g-ms-auto" id="me4"></div></div>
+  <div class="box" style="inline-size:200px"><div class="box box--s g-mx-auto g-ms-0" id="mxauto"></div></div>
+  <div class="box" style="inline-size:200px;block-size:100px;display:flex"><div class="box box--s g-my-auto" id="myauto"></div></div>
+  <div class="box" style="inline-size:200px"><div class="box box--s g-mb-5 g-m-0 g-mb-3" id="mix"></div></div>
+
+  <p class="lab-h">GStack: la utilidad gana a su margen en 0, suma al gap; pierde ante la aplicación; gana a una regla de Grana más específica</p>
+  <div class="g-stack" id="st"><p id="st-a">A</p><p id="st-b" class="g-mt-4">B (g-mt-4)</p><p id="st-c" class="g-mt-4 app-x">C (g-mt-4 + .app-x 3px sin capa)</p></div>
+  <div id="cmp"><div class="cmp-kid g-mt-4 g-px-5" id="cmp-k">kid</div></div>
+
+  <p class="lab-h">display y hidden</p>
+  <div class="g-flex" id="d-flex-h" hidden>flex hidden</div>
+  <div class="g-flex" id="d-flex">flex</div>
+  <div class="g-grid" id="d-grid">grid</div>
+  <div class="g-inline-flex" id="d-iflex">inline-flex</div>
+  <div class="g-block" id="d-block">block</div>
+  <span class="g-inline" id="d-inline">inline</span>
+  <span class="g-inline-block" id="d-iblock">inline-block</span>
+  <div class="g-flex g-hidden" id="d-hid">flex g-hidden</div>
+  <div class="g-hidden g-flex" id="d-hid2">g-hidden g-flex (el orden de las clases no importa)</div>
+  <div class="g-grid g-block" id="d-until" hidden="until-found">until-found</div>
+  <div class="g-inline-block" hidden id="d-iblock-h">inline-block hidden</div>
+
+  <p class="lab-h">disposición · flex (LTR/RTL)</p>
+  <div class="g-flex g-gap-6" id="fx-g"><div class="box box--s"></div><div class="box box--s"></div><div class="box box--s"></div></div>
+  <div class="g-flex g-gap-6 g-items-center g-justify-between frame" id="fx"><div class="box box--s"></div><div class="box box--m"></div><div class="box box--s"></div></div>
+  <div class="g-flex g-items-start g-justify-start frame" id="fx-ss"><div class="box box--s"></div></div>
+  <div class="g-flex g-items-end g-justify-end frame" id="fx-ee"><div class="box box--s"></div></div>
+  <div class="g-flex g-items-center g-justify-center frame" id="fx-cc"><div class="box box--s"></div></div>
+  <div class="g-flex g-items-baseline frame" id="fx-bl"><div class="box box--s"></div><div class="box box--m"></div></div>
+  <div class="g-flex g-items-stretch frame" id="fx-st"><div class="box box--s" style="block-size:auto"></div></div>
+  <div class="g-flex g-justify-around frame" id="fx-ar"><div class="box box--s"></div><div class="box box--s"></div></div>
+  <div class="g-flex g-justify-evenly frame" id="fx-ev"><div class="box box--s"></div><div class="box box--s"></div></div>
+  <div class="g-flex frame" id="fx-self"><div class="box box--s g-self-start" id="sf-s"></div><div class="box box--s g-self-center" id="sf-c"></div><div class="box box--s g-self-end" id="sf-e"></div><div class="box box--s g-self-stretch" id="sf-t" style="block-size:auto"></div></div>
+  <div class="g-flex g-flex-col g-gap-2" id="fx-col"><div class="box box--s"></div><div class="box box--s"></div></div>
+  <div class="g-flex g-flex-row" id="fx-row"><div class="box box--s"></div><div class="box box--s"></div></div>
+  <div class="g-flex g-flex-wrap g-gap-x-2 g-gap-y-4" id="fx-wrap" style="inline-size:120px"><div class="box box--s"></div><div class="box box--s"></div><div class="box box--s"></div></div>
+  <div class="g-flex frame" id="fx-grow"><div class="box box--s g-grow" id="gr"></div><div class="box box--m"></div></div>
+  <div class="g-flex frame" id="fx-shrink"><div class="box g-shrink-0" id="sh" style="inline-size:200px"></div><div class="box" id="sh2" style="inline-size:200px"></div></div>
+  <div class="g-flex narrow" id="fx-min"><div class="g-min-w-0" id="mw" style="white-space:nowrap">Un texto bastante largo que no cabe</div></div>
+  <div class="g-flex narrow" id="fx-min2"><div id="mw2" style="white-space:nowrap">Un texto bastante largo que no cabe</div></div>
+
+  <p class="lab-h">disposición · rejilla</p>
+  <div class="g-grid g-gap-x-2 g-gap-y-4" id="gr-gap" style="grid-template-columns:50px 50px;inline-size:200px"><div class="box box--s"></div><div class="box box--s"></div><div class="box box--s"></div><div class="box box--s"></div></div>
+  <div class="g-grid g-gap-3 cols" id="gr-gap3" style="inline-size:200px"><div class="box box--s"></div><div class="box box--s"></div></div>
+  <div class="g-grid g-items-start g-justify-end one-col frame" id="gr-se"><div class="box box--s"></div></div>
+  <div class="g-grid g-items-end g-justify-start one-col frame" id="gr-es"><div class="box box--s"></div></div>
+  <div class="g-grid g-justify-between cols frame" id="gr-bt" style="grid-template-columns:50px 50px"><div class="box box--s"></div><div class="box box--s"></div></div>
+  <div class="frame" id="wfull-host"><div class="box g-w-full g-h-full" id="wfull"></div></div>
+
+  <p class="lab-h">texto y forma</p>
+  <div id="texts">
+    <p class="g-text-caption" id="t-caption">caption</p>
+    <p class="g-text-body-sm" id="t-body-sm">body-sm</p>
+    <p class="g-text-body" id="t-body">body</p>
+    <p class="g-text-title-sm" id="t-title-sm">title-sm</p>
+    <p class="g-text-title" id="t-title">title</p>
+    <p class="g-text-title-lg" id="t-title-lg">title-lg</p>
+  </div>
+  <p class="g-text-muted" id="c-muted">muted</p>
+  <p class="g-text-subtle" id="c-subtle">subtle</p>
+  <p>texto sin clase</p>
+  <div data-g-zone="brand" class="g-p-4" id="zone"><p class="g-text-muted" id="z-muted">muted en la zona de marca</p><p class="g-text-subtle" id="z-subtle">subtle en la zona</p></div>
+  <p class="g-text-start" id="al-s">start</p><p class="g-text-center" id="al-c">center</p><p class="g-text-end" id="al-e">end</p>
+  <p class="g-font-ui" id="f-ui">ui</p><p class="g-font-title" id="f-title">title</p>
+  <div class="narrow"><div class="g-truncate" id="trunc">Un texto largo que no cabe en cien píxeles</div></div>
+  <div class="g-flex" style="gap:8px" id="radii">
+    <div class="box box--m g-radius-none" id="r-none"></div><div class="box box--m g-radius-xs" id="r-xs"></div><div class="box box--m g-radius-sm" id="r-sm"></div><div class="box box--m g-radius-md" id="r-md"></div><div class="box box--m g-radius-lg" id="r-lg"></div><div class="box box--m g-radius-xl" id="r-xl"></div><div class="box box--m g-radius-pill" id="r-pill"></div>
+  </div>
+
+  <p class="lab-h">g-sr-only frente a g-hidden</p>
+  <div class="g-flex g-items-center g-gap-2" id="sr-row"><button id="srbtn"><svg width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="6"/></svg><span class="g-sr-only" id="sr-span">Guardar cambios</span></button><span class="box box--s"></span></div>
+  <div class="g-flex g-items-center g-gap-2" id="sr-twin"><button id="twinbtn"><svg width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="6"/></svg></button><span class="box box--s"></span></div>
+  <button id="hidbtn"><svg width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="6"/></svg><span class="g-hidden">Borrar</span></button>
+
+  <p class="lab-h">GStack divided con g-hidden y g-sr-only</p>
+  <div class="g-stack g-stack--divided" id="dv-hid"><p id="dv-a">A</p><p class="g-hidden" id="dv-b">B oculto</p><p id="dv-c">C</p></div>
+  <div class="g-stack g-stack--divided" id="dv-first"><p class="g-hidden" id="df-x">X oculto primero</p><p id="df-a">A</p><p id="df-b">B</p></div>
+  <div class="g-stack g-stack--divided" id="dv-sr"><p class="g-sr-only" id="ds-x">X sr-only primero</p><p id="ds-a">A</p><p id="ds-b">B</p></div>
+</div>
+<script>
+  if (P.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  if (P.get('dark') === '1') document.documentElement.dataset.theme = 'dark'
+  window.__ready = true
+</script>
+</body>
+</html>

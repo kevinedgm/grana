@@ -1,0 +1,245 @@
+/*
+  Utilidades de Grana · clases de ajuste puntual de la aplicación (g-m-4, g-flex, g-text-caption, g-sr-only…)
+  Dueño: coco. Origen: design/contracts/utilities.json (lista canónica y orden de las reglas; si difieren, manda el JSON;
+  no se edita uno sin el otro). Contrato: design/contracts/utilities.md (DECISIONS.md #804 a #811). Estética: design/lab/utilities/estilo.md.
+  Este archivo no declara la capa: bruno lo importa en grana.css con layer(grana.utilities), la última de
+  grana.defaults, grana.components, grana.blocks, grana.utilities; la aplicación sin capa le gana.
+  Solo var(--g-*) y las palabras clave del JSON; nada fuerza la importancia. Especificidad 0,1,0 en todas: decide el orden
+  de la hoja (en cada familia, los cuatro lados, luego los ejes, luego cada lado; g-hidden tras las de display; g-sr-only al final).
+*/
+/* margen */
+.g-m-0 { margin: 0; }
+.g-m-1 { margin: var(--g-space-1); }
+.g-m-2 { margin: var(--g-space-2); }
+.g-m-3 { margin: var(--g-space-3); }
+.g-m-4 { margin: var(--g-space-4); }
+.g-m-5 { margin: var(--g-space-5); }
+.g-m-6 { margin: var(--g-space-6); }
+.g-m-8 { margin: var(--g-space-8); }
+.g-m-12 { margin: var(--g-space-12); }
+.g-m-16 { margin: var(--g-space-16); }
+.g-m-auto { margin: auto; }
+.g-mx-0 { margin-inline: 0; }
+.g-mx-1 { margin-inline: var(--g-space-1); }
+.g-mx-2 { margin-inline: var(--g-space-2); }
+.g-mx-3 { margin-inline: var(--g-space-3); }
+.g-mx-4 { margin-inline: var(--g-space-4); }
+.g-mx-5 { margin-inline: var(--g-space-5); }
+.g-mx-6 { margin-inline: var(--g-space-6); }
+.g-mx-8 { margin-inline: var(--g-space-8); }
+.g-mx-12 { margin-inline: var(--g-space-12); }
+.g-mx-16 { margin-inline: var(--g-space-16); }
+.g-mx-auto { margin-inline: auto; }
+.g-my-0 { margin-block: 0; }
+.g-my-1 { margin-block: var(--g-space-1); }
+.g-my-2 { margin-block: var(--g-space-2); }
+.g-my-3 { margin-block: var(--g-space-3); }
+.g-my-4 { margin-block: var(--g-space-4); }
+.g-my-5 { margin-block: var(--g-space-5); }
+.g-my-6 { margin-block: var(--g-space-6); }
+.g-my-8 { margin-block: var(--g-space-8); }
+.g-my-12 { margin-block: var(--g-space-12); }
+.g-my-16 { margin-block: var(--g-space-16); }
+.g-my-auto { margin-block: auto; }
+.g-mt-0 { margin-block-start: 0; }
+.g-mt-1 { margin-block-start: var(--g-space-1); }
+.g-mt-2 { margin-block-start: var(--g-space-2); }
+.g-mt-3 { margin-block-start: var(--g-space-3); }
+.g-mt-4 { margin-block-start: var(--g-space-4); }
+.g-mt-5 { margin-block-start: var(--g-space-5); }
+.g-mt-6 { margin-block-start: var(--g-space-6); }
+.g-mt-8 { margin-block-start: var(--g-space-8); }
+.g-mt-12 { margin-block-start: var(--g-space-12); }
+.g-mt-16 { margin-block-start: var(--g-space-16); }
+.g-mt-auto { margin-block-start: auto; }
+.g-mb-0 { margin-block-end: 0; }
+.g-mb-1 { margin-block-end: var(--g-space-1); }
+.g-mb-2 { margin-block-end: var(--g-space-2); }
+.g-mb-3 { margin-block-end: var(--g-space-3); }
+.g-mb-4 { margin-block-end: var(--g-space-4); }
+.g-mb-5 { margin-block-end: var(--g-space-5); }
+.g-mb-6 { margin-block-end: var(--g-space-6); }
+.g-mb-8 { margin-block-end: var(--g-space-8); }
+.g-mb-12 { margin-block-end: var(--g-space-12); }
+.g-mb-16 { margin-block-end: var(--g-space-16); }
+.g-mb-auto { margin-block-end: auto; }
+.g-ms-0 { margin-inline-start: 0; }
+.g-ms-1 { margin-inline-start: var(--g-space-1); }
+.g-ms-2 { margin-inline-start: var(--g-space-2); }
+.g-ms-3 { margin-inline-start: var(--g-space-3); }
+.g-ms-4 { margin-inline-start: var(--g-space-4); }
+.g-ms-5 { margin-inline-start: var(--g-space-5); }
+.g-ms-6 { margin-inline-start: var(--g-space-6); }
+.g-ms-8 { margin-inline-start: var(--g-space-8); }
+.g-ms-12 { margin-inline-start: var(--g-space-12); }
+.g-ms-16 { margin-inline-start: var(--g-space-16); }
+.g-ms-auto { margin-inline-start: auto; }
+.g-me-0 { margin-inline-end: 0; }
+.g-me-1 { margin-inline-end: var(--g-space-1); }
+.g-me-2 { margin-inline-end: var(--g-space-2); }
+.g-me-3 { margin-inline-end: var(--g-space-3); }
+.g-me-4 { margin-inline-end: var(--g-space-4); }
+.g-me-5 { margin-inline-end: var(--g-space-5); }
+.g-me-6 { margin-inline-end: var(--g-space-6); }
+.g-me-8 { margin-inline-end: var(--g-space-8); }
+.g-me-12 { margin-inline-end: var(--g-space-12); }
+.g-me-16 { margin-inline-end: var(--g-space-16); }
+.g-me-auto { margin-inline-end: auto; }
+/* relleno */
+.g-p-0 { padding: 0; }
+.g-p-1 { padding: var(--g-space-1); }
+.g-p-2 { padding: var(--g-space-2); }
+.g-p-3 { padding: var(--g-space-3); }
+.g-p-4 { padding: var(--g-space-4); }
+.g-p-5 { padding: var(--g-space-5); }
+.g-p-6 { padding: var(--g-space-6); }
+.g-p-8 { padding: var(--g-space-8); }
+.g-p-12 { padding: var(--g-space-12); }
+.g-p-16 { padding: var(--g-space-16); }
+.g-px-0 { padding-inline: 0; }
+.g-px-1 { padding-inline: var(--g-space-1); }
+.g-px-2 { padding-inline: var(--g-space-2); }
+.g-px-3 { padding-inline: var(--g-space-3); }
+.g-px-4 { padding-inline: var(--g-space-4); }
+.g-px-5 { padding-inline: var(--g-space-5); }
+.g-px-6 { padding-inline: var(--g-space-6); }
+.g-px-8 { padding-inline: var(--g-space-8); }
+.g-px-12 { padding-inline: var(--g-space-12); }
+.g-px-16 { padding-inline: var(--g-space-16); }
+.g-py-0 { padding-block: 0; }
+.g-py-1 { padding-block: var(--g-space-1); }
+.g-py-2 { padding-block: var(--g-space-2); }
+.g-py-3 { padding-block: var(--g-space-3); }
+.g-py-4 { padding-block: var(--g-space-4); }
+.g-py-5 { padding-block: var(--g-space-5); }
+.g-py-6 { padding-block: var(--g-space-6); }
+.g-py-8 { padding-block: var(--g-space-8); }
+.g-py-12 { padding-block: var(--g-space-12); }
+.g-py-16 { padding-block: var(--g-space-16); }
+.g-pt-0 { padding-block-start: 0; }
+.g-pt-1 { padding-block-start: var(--g-space-1); }
+.g-pt-2 { padding-block-start: var(--g-space-2); }
+.g-pt-3 { padding-block-start: var(--g-space-3); }
+.g-pt-4 { padding-block-start: var(--g-space-4); }
+.g-pt-5 { padding-block-start: var(--g-space-5); }
+.g-pt-6 { padding-block-start: var(--g-space-6); }
+.g-pt-8 { padding-block-start: var(--g-space-8); }
+.g-pt-12 { padding-block-start: var(--g-space-12); }
+.g-pt-16 { padding-block-start: var(--g-space-16); }
+.g-pb-0 { padding-block-end: 0; }
+.g-pb-1 { padding-block-end: var(--g-space-1); }
+.g-pb-2 { padding-block-end: var(--g-space-2); }
+.g-pb-3 { padding-block-end: var(--g-space-3); }
+.g-pb-4 { padding-block-end: var(--g-space-4); }
+.g-pb-5 { padding-block-end: var(--g-space-5); }
+.g-pb-6 { padding-block-end: var(--g-space-6); }
+.g-pb-8 { padding-block-end: var(--g-space-8); }
+.g-pb-12 { padding-block-end: var(--g-space-12); }
+.g-pb-16 { padding-block-end: var(--g-space-16); }
+.g-ps-0 { padding-inline-start: 0; }
+.g-ps-1 { padding-inline-start: var(--g-space-1); }
+.g-ps-2 { padding-inline-start: var(--g-space-2); }
+.g-ps-3 { padding-inline-start: var(--g-space-3); }
+.g-ps-4 { padding-inline-start: var(--g-space-4); }
+.g-ps-5 { padding-inline-start: var(--g-space-5); }
+.g-ps-6 { padding-inline-start: var(--g-space-6); }
+.g-ps-8 { padding-inline-start: var(--g-space-8); }
+.g-ps-12 { padding-inline-start: var(--g-space-12); }
+.g-ps-16 { padding-inline-start: var(--g-space-16); }
+.g-pe-0 { padding-inline-end: 0; }
+.g-pe-1 { padding-inline-end: var(--g-space-1); }
+.g-pe-2 { padding-inline-end: var(--g-space-2); }
+.g-pe-3 { padding-inline-end: var(--g-space-3); }
+.g-pe-4 { padding-inline-end: var(--g-space-4); }
+.g-pe-5 { padding-inline-end: var(--g-space-5); }
+.g-pe-6 { padding-inline-end: var(--g-space-6); }
+.g-pe-8 { padding-inline-end: var(--g-space-8); }
+.g-pe-12 { padding-inline-end: var(--g-space-12); }
+.g-pe-16 { padding-inline-end: var(--g-space-16); }
+/* separación */
+.g-gap-0 { gap: 0; }
+.g-gap-1 { gap: var(--g-space-1); }
+.g-gap-2 { gap: var(--g-space-2); }
+.g-gap-3 { gap: var(--g-space-3); }
+.g-gap-4 { gap: var(--g-space-4); }
+.g-gap-5 { gap: var(--g-space-5); }
+.g-gap-6 { gap: var(--g-space-6); }
+.g-gap-8 { gap: var(--g-space-8); }
+.g-gap-12 { gap: var(--g-space-12); }
+.g-gap-16 { gap: var(--g-space-16); }
+.g-gap-x-0 { column-gap: 0; }
+.g-gap-x-1 { column-gap: var(--g-space-1); }
+.g-gap-x-2 { column-gap: var(--g-space-2); }
+.g-gap-x-3 { column-gap: var(--g-space-3); }
+.g-gap-x-4 { column-gap: var(--g-space-4); }
+.g-gap-x-5 { column-gap: var(--g-space-5); }
+.g-gap-x-6 { column-gap: var(--g-space-6); }
+.g-gap-x-8 { column-gap: var(--g-space-8); }
+.g-gap-x-12 { column-gap: var(--g-space-12); }
+.g-gap-x-16 { column-gap: var(--g-space-16); }
+.g-gap-y-0 { row-gap: 0; }
+.g-gap-y-1 { row-gap: var(--g-space-1); }
+.g-gap-y-2 { row-gap: var(--g-space-2); }
+.g-gap-y-3 { row-gap: var(--g-space-3); }
+.g-gap-y-4 { row-gap: var(--g-space-4); }
+.g-gap-y-5 { row-gap: var(--g-space-5); }
+.g-gap-y-6 { row-gap: var(--g-space-6); }
+.g-gap-y-8 { row-gap: var(--g-space-8); }
+.g-gap-y-12 { row-gap: var(--g-space-12); }
+.g-gap-y-16 { row-gap: var(--g-space-16); }
+/* disposición */
+.g-block:where(:not([hidden])) { display: block; }
+.g-inline:where(:not([hidden])) { display: inline; }
+.g-inline-block:where(:not([hidden])) { display: inline-block; }
+.g-flex:where(:not([hidden])) { display: flex; }
+.g-inline-flex:where(:not([hidden])) { display: inline-flex; }
+.g-grid:where(:not([hidden])) { display: grid; }
+.g-hidden { display: none; }
+.g-flex-row { flex-direction: row; }
+.g-flex-col { flex-direction: column; }
+.g-flex-wrap { flex-wrap: wrap; }
+.g-items-start { align-items: start; }
+.g-items-center { align-items: center; }
+.g-items-end { align-items: end; }
+.g-items-stretch { align-items: stretch; }
+.g-items-baseline { align-items: baseline; }
+.g-justify-start { justify-content: start; }
+.g-justify-center { justify-content: center; }
+.g-justify-end { justify-content: end; }
+.g-justify-between { justify-content: space-between; }
+.g-justify-around { justify-content: space-around; }
+.g-justify-evenly { justify-content: space-evenly; }
+.g-self-start { align-self: start; }
+.g-self-center { align-self: center; }
+.g-self-end { align-self: end; }
+.g-self-stretch { align-self: stretch; }
+.g-grow { flex-grow: 1; }
+.g-shrink-0 { flex-shrink: 0; }
+.g-w-full { inline-size: 100%; }
+.g-h-full { block-size: 100%; }
+.g-min-w-0 { min-inline-size: 0; }
+/* texto */
+.g-text-caption { font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); letter-spacing: var(--g-text-caption-tracking); font-weight: var(--g-text-caption-weight); }
+.g-text-body-sm { font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); letter-spacing: var(--g-text-body-sm-tracking); font-weight: var(--g-text-body-sm-weight); }
+.g-text-body { font-size: var(--g-text-body-size); line-height: var(--g-text-body-line); letter-spacing: var(--g-text-body-tracking); font-weight: var(--g-text-body-weight); }
+.g-text-title-sm { font-size: var(--g-text-title-sm-size); line-height: var(--g-text-title-sm-line); letter-spacing: var(--g-text-title-sm-tracking); font-weight: var(--g-text-title-sm-weight); }
+.g-text-title { font-size: var(--g-text-title-size); line-height: var(--g-text-title-line); letter-spacing: var(--g-text-title-tracking); font-weight: var(--g-text-title-weight); }
+.g-text-title-lg { font-size: var(--g-text-title-lg-size); line-height: var(--g-text-title-lg-line); letter-spacing: var(--g-text-title-lg-tracking); font-weight: var(--g-text-title-lg-weight); }
+.g-text-muted { color: var(--g-color-text-muted); }
+.g-text-subtle { color: var(--g-color-text-subtle); }
+.g-text-start { text-align: start; }
+.g-text-center { text-align: center; }
+.g-text-end { text-align: end; }
+.g-truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.g-font-ui { font-family: var(--g-font-ui); }
+.g-font-title { font-family: var(--g-font-title); }
+/* forma */
+.g-radius-none { border-radius: var(--g-radius-none); }
+.g-radius-xs { border-radius: var(--g-radius-xs); }
+.g-radius-sm { border-radius: var(--g-radius-sm); }
+.g-radius-md { border-radius: var(--g-radius-md); }
+.g-radius-lg { border-radius: var(--g-radius-lg); }
+.g-radius-xl { border-radius: var(--g-radius-xl); }
+.g-radius-pill { border-radius: var(--g-radius-pill); }
+/* accesibilidad */
+.g-sr-only { position: absolute; inline-size: 1px; block-size: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
