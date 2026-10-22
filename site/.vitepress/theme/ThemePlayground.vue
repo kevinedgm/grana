@@ -43,7 +43,9 @@ const T = {
     borderWidth: 'Grosor de borde (--g-border-width)',
     borderHint: 'Bordes de campos, botones con contorno, tarjetas y divisores. Va en overrides: no tiene clave propia.',
     focusWidth: 'Grosor del anillo de foco (--g-focus-width)',
-    focusHint: 'Mínimo 2 px: el motor rechaza menos (WCAG 2.4.13).',
+    focusHint: 'El contrato pide al menos 2 px (WCAG 2.4.13).',
+    focusError: 'Con 1 px el motor rechaza el tema: el foco dejaría de verse. La vista previa sigue con el último tema válido.',
+    cssRejected: '/* El motor rechazó esta configuración: no se generó tokens.css. Revisa «Validación del motor». */',
     shapeLabel: 'Botones, chips e insignias',
     rounded: 'Redondeados',
     pill: 'Píldora',
@@ -168,7 +170,9 @@ const T = {
     borderWidth: 'Border width (--g-border-width)',
     borderHint: 'Field borders, outline buttons, cards and dividers. Goes in overrides: it has no key of its own.',
     focusWidth: 'Focus ring width (--g-focus-width)',
-    focusHint: 'At least 2 px: the engine rejects less (WCAG 2.4.13).',
+    focusHint: 'The contract asks for at least 2 px (WCAG 2.4.13).',
+    focusError: 'At 1 px the engine rejects the theme: focus would stop being visible. The preview keeps the last valid theme.',
+    cssRejected: '/* The engine rejected this config: no tokens.css was generated. See “Engine validation”. */',
     shapeLabel: 'Buttons, chips and badges',
     rounded: 'Rounded',
     pill: 'Pill',
@@ -271,6 +275,7 @@ const FONTS = {
   system: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
   serif: 'Georgia, "Times New Roman", serif',
   mono: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+  poppins: '"Poppins", system-ui, sans-serif',
   'instrument-serif': '"Instrument Serif", Georgia, serif'
 }
 const PRESETS = [
@@ -279,7 +284,10 @@ const PRESETS = [
   { id: 'bosque', es: 'Bosque', en: 'Forest', set: { brand: '#2F6B4F', radius: 4, font: 'serif', typeScale: 1.2 } },
   { id: 'oceano', es: 'Océano en píldora', en: 'Ocean pill', set: { brand: '#0B5CAD', radius: 10, shape: 'pill', space: 4.5 } },
   { id: 'pizarra', es: 'Pizarra compacta', en: 'Compact slate', set: { brand: '#334155', neutrals: 'pure', radius: 2, space: 3.5, fontSize: 14, font: 'system' } },
-  { id: 'ambar', es: 'Ámbar con acento', en: 'Amber with accent', set: { brand: '#F5B940', accent: '#5B3FE0', primary: '#7D1230', radius: 12, collision: true } }
+  { id: 'ambar', es: 'Ámbar con acento', en: 'Amber with accent', set: { brand: '#F5B940', accent: '#5B3FE0', primary: '#7D1230', radius: 12, collision: true } },
+  // Bitácoras de laboratorio: navy #052a76 de marca, navy-mid #0a3aa0 en foco y hover, --r-md 10px, Poppins y
+  // texto de 13-13,5px (aquí 14: el caption no baja de 12). Con el acento navy, «info» choca en oscuro: se separa.
+  { id: 'bitacoras', es: 'Bitácoras (laboratorio)', en: 'Lab logbooks', set: { brand: '#052A76', accent: '#0A3AA0', radius: 10, fontSize: 14, font: 'poppins', collision: true } }
 ]
 const COLOR_KEYS = ['brand', 'accent', 'primary']
 const BTN_COLORS = ['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info']
@@ -297,7 +305,8 @@ const fontOptions = computed(() => [
   { value: 'default', label: 'Instrument Sans' },
   { value: 'system', label: lang.value === 'en' ? 'System' : 'Del sistema' },
   { value: 'serif', label: 'Georgia (serif)' },
-  { value: 'mono', label: lang.value === 'en' ? 'Monospace' : 'Monoespaciada' }
+  { value: 'mono', label: lang.value === 'en' ? 'Monospace' : 'Monoespaciada' },
+  { value: 'poppins', label: 'Poppins' }
 ])
 const displayOptions = computed(() => [
   { value: 'default', label: L.value.sameAsFont },
@@ -338,7 +347,8 @@ const tokenStyle = computed(() => {
   return scheme.value === 'dark' && r.dark?.enabled ? r.dark.tokens : r.tokens
 })
 const configText = computed(() => JSON.stringify(config.value, null, 2) + '\n')
-const cssText = computed(() => lastOk.value.css ?? '')
+// Rechazado: no se exporta el CSS del último tema válido como si fuera el de esta configuración
+const cssText = computed(() => (result.value.ok ? result.value.css : L.value.cssRejected))
 const issues = computed(() => result.value.issues.filter((i) => i.severity === 'error' || i.severity === 'warning'))
 
 /* ---------- color */
@@ -477,7 +487,8 @@ watch(L, (l) => { notes.value = l.notes }, { immediate: true })
 </script>
 
 <template>
-  <div class="tp vp-raw">
+  <!-- grana-live: fuera de la regla de foco del sitio (grana-site.css); el foco es el de cada componente -->
+  <div class="tp grana-live vp-raw">
     <header class="tp-head">
       <p class="tp-eyebrow">{{ L.eyebrow }}</p>
       <h1 class="tp-title">{{ L.title }}</h1>
@@ -518,7 +529,8 @@ watch(L, (l) => { notes.value = l.notes }, { immediate: true })
           <h3 id="tp-g-shape" class="tp-h3">{{ L.shape }}</h3>
           <g-slider v-model="s.radius" :label="L.radius" :min="0" :max="24" :value-text="(v) => `${fmt(v)} px`" />
           <g-slider v-model="s.borderWidth" :label="L.borderWidth" :hint="L.borderHint" :min="1" :max="3" :step="0.5" :value-text="(v) => `${fmt(v, 1)} px`" />
-          <g-slider v-model="s.focusWidth" :label="L.focusWidth" :hint="L.focusHint" :min="2" :max="4" :value-text="(v) => `${fmt(v)} px`" />
+          <g-slider v-model="s.focusWidth" :label="L.focusWidth" :hint="L.focusHint" :min="1" :max="4"
+                    :error="s.focusWidth < 2 ? L.focusError : undefined" :value-text="(v) => `${fmt(v)} px`" />
           <g-radio-group v-model="s.shape" appearance="segmented" :label="L.shapeLabel"
                          :options="seg([['rounded', L.rounded], ['pill', L.pill]])" />
         </section>
@@ -654,8 +666,8 @@ watch(L, (l) => { notes.value = l.notes }, { immediate: true })
                 <p v-if="item.id === 'config' && configText === '{}\n'" class="tp-muted">{{ L.empty }}</p>
                 <pre class="tp-code__pre" tabindex="0" :aria-label="L.codeLabel(item.label)"><code>{{ item.id === 'config' ? configText : cssText }}</code></pre>
                 <div class="tp-code__actions">
-                  <g-btn size="sm" @click="copy(item.id === 'config' ? configText : cssText, L.copied)"><template #prepend><g-icon name="copy" /></template>{{ L.copy }}</g-btn>
-                  <g-btn size="sm" variant="outline" color="neutral"
+                  <g-btn size="sm" :disabled="item.id === 'css' && !result.ok" @click="copy(item.id === 'config' ? configText : cssText, L.copied)"><template #prepend><g-icon name="copy" /></template>{{ L.copy }}</g-btn>
+                  <g-btn size="sm" variant="outline" color="neutral" :disabled="item.id === 'css' && !result.ok"
                          @click="item.id === 'config' ? download('grana.config.json', configText, 'application/json') : download('tokens.css', cssText, 'text/css')">
                     <template #prepend><g-icon name="download" /></template>{{ L.download }}
                   </g-btn>

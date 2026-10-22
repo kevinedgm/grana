@@ -111,8 +111,9 @@ body {
   color: var(--g-color-text);
 }
 
-/* Foco siempre visible, con los tokens de Grana, en todo el sitio; dentro de los ejemplos manda el foco de cada componente. */
-:where(a, button, input, select, textarea, summary, [tabindex]):not(.grana-demo__stage *):focus-visible {
+/* Foco siempre visible, con los tokens de Grana, en todo el sitio; dentro de los ejemplos y del playground
+   (componentes reales) manda el foco de cada componente: esta regla va sin capa y le ganaría. */
+:where(a, button, input, select, textarea, summary, [tabindex]):not(.grana-demo__stage *, .grana-live *):focus-visible {
   outline: var(--g-focus-width) solid var(--g-color-focus);
   outline-offset: var(--g-focus-offset);
 }

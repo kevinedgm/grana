@@ -70,10 +70,10 @@ export default defineConfig({
       {},
       `;(()=>{try{var p=localStorage.getItem('vitepress-theme-appearance')||'auto';var d=p==='auto'?matchMedia('(prefers-color-scheme: dark)').matches:p==='dark';document.documentElement.setAttribute('data-theme',d?'dark':'light')}catch(e){}})()`
     ],
-    // Instrument Serif: titulares de la documentación (marca de Grana).
+    // Instrument Serif: titulares de la documentación (marca de Grana). Poppins: punto de partida «Bitácoras» del playground.
     ['link', { rel: 'preconnect', href: 'https://fonts.googleapis.com' }],
     ['link', { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }],
-    ['link', { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap' }]
+    ['link', { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Poppins:wght@400;500;600;700&display=swap' }]
   ],
   locales: {
     root: { label: LOCALES.es.label, lang: 'es', description: UI.es.description, themeConfig: themeFor('es') },
