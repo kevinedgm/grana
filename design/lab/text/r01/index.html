@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Texto suelto · r01</title>
+<!-- Prototipo de kiwi · GText r01 (nombre de trabajo). Tokens reales del tema por defecto (packages/vue/dist/grana.css);
+     la regla propuesta en ./tx.css (no es el CSS del componente). Dos vistas:
+       ?vista=bloques&b=testimonials|cta|newsletter|footer|stats|faq[&tema=rustico|lujo][&dark=1]
+         antes / después sobre los bloques REALES del banco de bruno (iframes del mismo origen; tx.js pone las clases)
+       ?vista=casos (por defecto): casos límite con el DOM real de GStack, GContainer prose, GSurface en zona de marca
+     Servir desde la raíz del repo (python3 -m http.server 4218) o con verificar.mjs (puerto 4218). -->
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="./tx.css">
+<script src="../../lucide-icons.js"></script>
+<script src="./tx.js"></script>
+<style>
+  /* Andamio del laboratorio (no es de Grana) */
+  body { margin: 0; background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui); }
+  .lab-bar { display: flex; flex-wrap: wrap; gap: var(--g-space-2); align-items: center; padding: var(--g-space-3) var(--g-space-4); border-block-end: var(--g-border-width) solid var(--g-color-border); }
+  .lab-bar strong { margin-inline-end: var(--g-space-2); font-size: var(--g-text-body-sm-size); }
+  .lab-bar a { font-size: var(--g-text-body-sm-size); color: var(--g-color-accent-text); }
+  .lab-bar a[aria-current] { font-weight: 600; color: var(--g-color-text); text-decoration: none; }
+  .lab-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: var(--g-space-4); padding: var(--g-space-4); }
+  .lab-pair h2, .lab-case h2 { margin: 0 0 var(--g-space-2); font-size: var(--g-text-body-sm-size); color: var(--g-color-text-muted); font-weight: 600; }
+  .lab-pair iframe { inline-size: 100%; block-size: 1200px; border: var(--g-border-width) solid var(--g-color-border); border-radius: var(--g-radius-md); background: var(--g-color-bg); }
+  .lab-cases { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: var(--g-space-6); padding: var(--g-space-6) var(--g-space-4); max-inline-size: 1280px; margin-inline: auto; }
+  .lab-case { min-inline-size: 0; }
+  .lab-frame { outline: 1px dashed var(--g-color-border); }
+  .lab-icon svg { inline-size: 1em; block-size: 1em; vertical-align: -0.125em; }
+</style>
+</head>
+<body>
+<nav class="lab-bar" aria-label="Laboratorio">
+  <strong><span class="lab-icon" data-icon="file-text"></span> GText r01</strong>
+  <a href="?vista=casos" data-v="casos">Casos límite</a>
+  <a href="?vista=bloques&amp;b=testimonials" data-b="testimonials">Testimonials</a>
+  <a href="?vista=bloques&amp;b=cta" data-b="cta">CTA</a>
+  <a href="?vista=bloques&amp;b=newsletter" data-b="newsletter">Newsletter</a>
+  <a href="?vista=bloques&amp;b=footer" data-b="footer">Footer</a>
+  <a href="?vista=bloques&amp;b=stats&amp;v=03" data-b="stats">Stats 03</a>
+  <a href="?vista=bloques&amp;b=faq&amp;v=01" data-b="faq">FAQ 01</a>
+</nav>
+
+<main id="main">
+  <!-- Vista «bloques»: antes / después -->
+  <div class="lab-pair" id="pair" hidden>
+    <section aria-labelledby="h-antes"><h2 id="h-antes">Antes (bloque real, texto nativo)</h2><iframe id="antes" title="Antes"></iframe></section>
+    <section aria-labelledby="h-desp"><h2 id="h-desp">Después (con GText)</h2><iframe id="despues" title="Después"></iframe></section>
+  </div>
+
+  <!-- Vista «casos»: DOM real de los componentes (clases de dist) + clases de trabajo de GText -->
+  <div class="lab-cases" id="cases" hidden>
+    <section class="lab-case" aria-labelledby="c1h"><h2 id="c1h">C1 · Anidada (figure sm › blockquote body + figcaption caption)</h2>
+      <figure class="g-text g-text--size-sm g-text--tone-default lab-frame" id="c1">
+        <blockquote class="g-text g-text--size-body g-text--tone-default" lang="es" id="c1q">
+          <p id="c1p1">Despertar con el patio lleno de luz y el café ya servido.</p>
+          <p id="c1p2">Volveríamos mañana mismo, sin pensarlo dos veces.</p>
+        </blockquote>
+        <figcaption class="g-text g-text--size-caption g-text--tone-muted" id="c1c">Lucía Hernández — <cite id="c1cite">Google, septiembre de 2026</cite></figcaption>
+      </figure>
+    </section>
+
+    <section class="lab-case" aria-labelledby="c2h"><h2 id="c2h">C2 · Un componente dentro (address sm › p + GStack ul + p)</h2>
+      <address class="g-text g-text--size-sm g-text--tone-default lab-frame" id="c2">
+        <p id="c2a">Calle Macedonio Alcalá 407<br>Centro, Oaxaca</p>
+        <ul class="g-stack g-stack--orientation-vertical g-stack--gap-sm" role="list" id="c2s">
+          <li><a href="#c2">+52 951 555 0000</a></li>
+          <li><a href="#c2">hola@casa.example</a></li>
+        </ul>
+        <p id="c2b">Recepción 24 h</p>
+      </address>
+    </section>
+
+    <section class="lab-case" aria-labelledby="c3h"><h2 id="c3h">C3 · En línea (small, em, cite, a)</h2>
+      <p class="g-text g-text--size-caption g-text--tone-muted lab-frame" id="c3">Al suscribirte aceptas el <small id="c3s">aviso de privacidad</small>; <em id="c3e">nunca</em> compartimos tu correo. Fuente: <cite id="c3c">Ley de datos</cite>. <a href="#c3" id="c3a">Leer el aviso</a>.</p>
+    </section>
+
+    <section class="lab-case" aria-labelledby="c4h"><h2 id="c4h">C4 · Dentro de GStack (sin aire doble; vacía)</h2>
+      <div class="g-stack g-stack--orientation-vertical g-stack--gap-sm lab-frame" id="c4">
+        <p class="g-text g-text--size-body g-text--tone-default" id="c4a">Primer texto de la pila.</p>
+        <p class="g-text g-text--size-body g-text--tone-default" id="c4b">Segundo texto: la pila es la única fuente de aire entre los dos.</p>
+        <p class="g-text g-text--size-body g-text--tone-default" id="c4empty"></p>
+        <p class="g-text g-text--size-body g-text--tone-default" id="c4c">Tras una GText vacía (si se pintara).</p>
+      </div>
+    </section>
+
+    <section class="lab-case" aria-labelledby="c5h"><h2 id="c5h">C5 · Lista, primer hijo oculto y RTL</h2>
+      <div class="g-text g-text--size-body g-text--tone-default lab-frame" id="c5">
+        <p hidden>Oculto (no cuenta como primero)</p>
+        <p id="c5p">Incluye:</p>
+        <ul id="c5u"><li>Desayuno de la casa</li><li>Estacionamiento a una calle</li></ul>
+        <p id="c5z">Y nada más.</p>
+      </div>
+      <div class="g-text g-text--size-body g-text--tone-default lab-frame" id="c5r" dir="rtl" lang="ar">
+        <ul id="c5ru"><li>إفطار</li><li>موقف سيارات</li></ul>
+      </div>
+    </section>
+
+    <section class="lab-case" aria-labelledby="c6h"><h2 id="c6h">C6 · Zona de marca (tone muted)</h2>
+      <div class="g-surface g-surface--level-flat g-surface--zone-brand g-surface--padding-lg" data-g-zone="brand" id="c6z">
+        <p class="g-text g-text--size-sm g-text--tone-muted" id="c6">Sin pago ahora · Respuesta por WhatsApp en menos de una hora.</p>
+      </div>
+    </section>
+
+    <section class="lab-case" aria-labelledby="c7h" style="grid-column: 1 / -1"><h2 id="c7h">C7 · Con GContainer prose (medida 66ch)</h2>
+      <div class="g-container g-container--width-xl g-container--horizontal-center g-container--gutter-none g-container--prose lab-frame" id="c7">
+        <div class="g-container__body">
+          <p id="c7plain">Párrafo de la aplicación sin GText: la medida de prose lo deja en sesenta y seis caracteres de la columna, que es lo que se lee cómodo en una pantalla ancha sin perder el renglón al volver.</p>
+          <p class="g-text g-text--size-body g-text--tone-default" id="c7gt">Párrafo con GText: hoy la clase g-* lo saca del ámbito de prose (#751) y ocupa toda la columna, aunque sea prosa de la aplicación igual que el anterior y debería medir lo mismo.</p>
+          <p class="g-mt-4" id="c7util">Párrafo con una utilidad (g-mt-4): el mismo prefijo lo saca del ámbito de prose aunque no sea un componente de Grana; ocupa toda la columna y conserva el margen inferior del navegador.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="lab-case" aria-labelledby="c8h"><h2 id="c8h">C8 · Línea sin viuda (text-wrap)</h2>
+      <div style="inline-size: 300px" class="lab-frame">
+        <p class="g-text g-text--size-body g-text--tone-default" id="c8">Las mismas habitaciones que en la página, sin pago ahora y con respuesta en una hora como mucho.</p>
+        <p style="margin:0; text-wrap: wrap; font: inherit; font-family: var(--g-font-ui); font-size: var(--g-text-body-size); line-height: var(--g-text-body-line)" id="c8ref">Las mismas habitaciones que en la página, sin pago ahora y con respuesta en una hora como mucho.</p>
+      </div>
+    </section>
+
+    <section class="lab-case lab-quoted" aria-labelledby="c9h"><h2 id="c9h">C9 · Reservada: comillas del idioma de la cita</h2>
+      <blockquote class="g-text g-text--size-body g-text--tone-default" lang="es" id="c9es"><p>Volveríamos mañana.</p></blockquote>
+      <blockquote class="g-text g-text--size-body g-text--tone-default" lang="en" id="c9en"><p>We would come back tomorrow.</p></blockquote>
+      <blockquote class="g-text g-text--size-body g-text--tone-default" lang="de" id="c9de"><p>Wir kämen morgen wieder.</p></blockquote>
+    </section>
+  </div>
+</main>
+
+<script>
+  // Iconos solo Lucide (design/lab/lucide-icons.js)
+  for (const el of document.querySelectorAll('[data-icon]')) {
+    const d = window.LUCIDE_ICONS[el.dataset.icon]
+    if (d) el.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`
+  }
+  const q = new URLSearchParams(location.search)
+  const vista = q.get('vista') || 'casos'
+  if (q.has('dark')) document.documentElement.dataset.theme = 'dark'
+  for (const a of document.querySelectorAll('.lab-bar a')) if ((vista === 'casos' && a.dataset.v) || (vista === 'bloques' && a.dataset.b === q.get('b'))) a.setAttribute('aria-current', 'page')
+  window.__lab = { ready: false }
+  if (vista === 'bloques') {
+    document.getElementById('pair').hidden = false
+    const b = ['testimonials', 'cta', 'newsletter', 'footer', 'stats', 'faq'].includes(q.get('b')) ? q.get('b') : 'testimonials'
+    const pass = new URLSearchParams()
+    for (const k of ['tema', 'dark', 'v']) if (q.has(k)) pass.set(k, q.get(k) || '1')
+    const src = `../../../../packages/blocks/playground/marketing/${b}.html${pass.toString() ? '?' + pass : ''}`
+    const wait = (f) => new Promise((r) => { const t = () => (f.contentDocument && f.contentDocument.documentElement.dataset.ready === '1' ? r() : setTimeout(t, 50)); f.addEventListener('load', t, { once: true }) })
+    const A = document.getElementById('antes'); const D = document.getElementById('despues')
+    A.src = src; D.src = src
+    Promise.all([wait(A), wait(D)]).then(() => window.GTextLab.apply(D.contentDocument)).then(() => { window.__lab.ready = true })
+  } else {
+    document.getElementById('cases').hidden = false
+    window.__lab.ready = true
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+/*
+  Prototipo de kiwi · GText r01 (nombre de trabajo). NO es el CSS del componente (ese es de coco, GText.css):
+  es la regla estructural propuesta, escrita para medirla con los tokens reales (packages/vue/dist/grana.css).
+  Va en la capa de Grana (grana.components) para reproducir la cascada real: la aplicación sin capa gana (#516).
+  Clases de trabajo: .g-text, .g-text--size-{body|sm|caption}, .g-text--tone-{default|muted}.
+
+  Reglas que mide verificar.mjs:
+  1. La raíz: margen 0, estilo normal (address, cite), rol tipográfico por size, color por tone. Peso de texto (400) en
+     los tres tamaños (X-L4: caption del tema pesa 500, que es de rótulo).
+  2. Ritmo: entre los bloques nativos de su flujo (a cualquier profundidad, sin entrar en componentes de Grana), una sola
+     separación r = space × 3 (body) · 2,5 (sm) · 2 (caption); nada antes del primero ni tras el último (contados sin [hidden] ni el nodo del tooltip); sangría del
+     navegador de figure y blockquote a 0. Los márgenes se colapsan: dos bloques vecinos = r, un bloque junto a un
+     componente (GStack…) = r por el lado del bloque. La GText anidada entra en el ámbito de la de fuera (recibe su ritmo)
+     y su propio ámbito, más cercano, gana para lo de dentro.
+  3. small dentro no encoge (12 px es el suelo, §7); cite y address sin cursiva; em e i conservan la suya.
+  4. Línea: text-wrap pretty (sin palabra viuda donde el motor lo sabe hacer) y balance en figcaption.
+*/
+@layer grana.components {
+  :where(.g-text) {
+    margin: 0;
+    font-style: normal;
+    font-family: var(--g-font-ui);
+    font-size: var(--_tx-size);
+    line-height: var(--_tx-line);
+    letter-spacing: var(--_tx-track);
+    font-weight: var(--g-text-body-weight);
+    color: var(--_tx-color);
+    text-wrap: pretty;
+  }
+  .g-text {
+    --_tx-size: var(--g-text-body-size);
+    --_tx-line: var(--g-text-body-line);
+    --_tx-track: var(--g-text-body-tracking);
+    --_tx-color: var(--g-color-text);
+  }
+  .g-text--size-sm {
+    --_tx-size: var(--g-text-body-sm-size);
+    --_tx-line: var(--g-text-body-sm-line);
+    --_tx-track: var(--g-text-body-sm-tracking);
+  }
+  .g-text--size-caption {
+    --_tx-size: var(--g-text-caption-size);
+    --_tx-line: var(--g-text-caption-line);
+    --_tx-track: var(--g-text-caption-tracking);
+  }
+  .g-text--tone-muted { --_tx-color: var(--g-color-text-muted); }
+
+  /* El flujo nativo de dentro. Límite del ámbito: cualquier componente de Grana (clase g-*) salvo otra GText, y el nodo
+     del tooltip (#383). Especificidad 0: la aplicación y los componentes ganan.
+     El ritmo va en un ámbito POR TAMAÑO con el valor escrito en la regla (no en una variable): una variable se resuelve en
+     el elemento que recibe el margen, y una GText anidada tiene la suya; con el valor en la regla, la GText de fuera da
+     su ritmo a la anidada y, dentro de la anidada, su ámbito (más cercano) gana por proximidad. Medido en C1. */
+  @scope (.g-text--size-body) to ([class^="g-"]:not(.g-text), [class*=" g-"]:not(.g-text), .g-tooltip) {
+    :where(p, div, ul, ol, dl, blockquote, figure, figcaption, address, pre):where(:not(:scope)) { margin-block: calc(var(--g-space-1) * 3); }
+  }
+  @scope (.g-text--size-sm) to ([class^="g-"]:not(.g-text), [class*=" g-"]:not(.g-text), .g-tooltip) {
+    :where(p, div, ul, ol, dl, blockquote, figure, figcaption, address, pre):where(:not(:scope)) { margin-block: calc(var(--g-space-1) * 2.5); }
+  }
+  @scope (.g-text--size-caption) to ([class^="g-"]:not(.g-text), [class*=" g-"]:not(.g-text), .g-tooltip) {
+    :where(p, div, ul, ol, dl, blockquote, figure, figcaption, address, pre):where(:not(:scope)) { margin-block: calc(var(--g-space-1) * 2); }
+  }
+  @scope (.g-text) to ([class^="g-"]:not(.g-text), [class*=" g-"]:not(.g-text), .g-tooltip) {
+    :where(p, div, ul, ol, dl, blockquote, figure, figcaption, address, pre):where(:not(:scope)) { margin-inline: 0; }
+    :where(p, div, ul, ol, dl, blockquote, figure, figcaption, address, pre):where(:not(:scope)):where(:nth-child(1 of :not([hidden], template, .g-tooltip))) { margin-block-start: 0; }
+    :where(p, div, ul, ol, dl, blockquote, figure, figcaption, address, pre):where(:not(:scope)):where(:nth-last-child(1 of :not([hidden], template, .g-tooltip))) { margin-block-end: 0; }
+    :where(ul, ol) { padding-inline-start: calc(var(--g-space-1) * 6); }
+    :where(cite, address) { font-style: normal; }
+    :where(small) { font-size: inherit; }
+    :where(figcaption) { text-wrap: balance; }
+  }
+
+  /* Propuesta reservada (no es de la v1; ver declaracion.md «Qué lo hace distinto» 4): comillas en el idioma de la cita */
+  .lab-quoted :where(blockquote.g-text) { quotes: auto; }
+  .lab-quoted :where(blockquote.g-text) > :where(p:first-child)::before { content: open-quote; }
+  .lab-quoted :where(blockquote.g-text) > :where(p:last-child)::after { content: close-quote; }
+}
