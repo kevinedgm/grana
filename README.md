@@ -123,7 +123,7 @@ El paquete es **solo ESM** (`"type": "module"`; `exports` con `types`, `import` 
 
 ### Entradas propias
 
-Doce piezas **no viajan en el paquete principal**: cada una tiene su entrada y solo la paga quien la importa. Todas dependen de `@grana/vue` (que ya tienes instalado) y comparten con él las piezas comunes sin copiarlas; **su CSS sí está en la misma `style.css`** y es inerte sin el marcado.
+Dieciséis piezas **no viajan en el paquete principal**: cada una tiene su entrada y solo la paga quien la importa. Todas dependen de `@grana/vue` (que ya tienes instalado) y comparten con él las piezas comunes sin copiarlas; **su CSS sí está en la misma `style.css`** y es inerte sin el marcado.
 
 | Entrada | Qué trae | Cuándo usarla | Global UMD | Tamaño (gzip) |
 | --- | --- | --- | --- | --- |
@@ -139,6 +139,10 @@ Doce piezas **no viajan en el paquete principal**: cada una tiene su entrada y s
 | `@grana/vue/page-header` | `GPageHeader` | El encabezado de una página con acciones y, al desplazar, un zócalo con pestañas | `GranaPageHeader` | ≈ 5,9 kB |
 | `@grana/vue/fab` | `GFab` | Un botón flotante para crear o capturar desde cualquier sitio de la pantalla | `GranaFab` | ≈ 10,2 kB |
 | `@grana/vue/form-fold` | `GFormFold` | Crear lo que falta (una categoría, un producto) en un pliegue bajo el campo que lo pide, sin salir del formulario | `GranaFormFold` | ≈ 4,6 kB |
+| `@grana/vue/app-shell` | `GAppShell` | El chasis de la aplicación: cabecera, navegación (`GSidebar`), página y pie con sus puntos de referencia, y la cifra de la cabecera escrita una vez | `GranaAppShell` | ≈ 3,9 kB |
+| `@grana/vue/hero` | `GHero` | La apertura de una página de un sitio: título, promesa, acción y la foto que vende, con el texto siempre fuera de la foto | `GranaHero` | ≈ 4,0 kB |
+| `@grana/vue/gallery` | `GGallery`, `GGalleryViewer` | Las fotos de un lugar por espacios o en tira, con visor ampliable | `GranaGallery` | ≈ 9,3 kB |
+| `@grana/vue/booking` | `GBookingBar`, `GPartyField` | La consulta de disponibilidad de un sitio (estancia, mesa o recorrido) y las personas por tipo | `GranaBooking` | ≈ 14,2 kB |
 
 **Por qué van aparte:** las primeras añadirían más de 8 kB gzip al paquete principal (criterio de [#328](DECISIONS.md)); desde que el margen del principal se agotó ([#550](DECISIONS.md)), todo componente nuevo con peso propio va en su entrada por defecto. No todas las aplicaciones las necesitan. Los tamaños de esta tabla son los del archivo de `dist/` de cada entrada, **sin minificar y comprimido con `gzip`** (medidos el 2026-10-18; kB = 1000 bytes): sirven para comparar entradas entre sí, no para predecir lo que sumará a tu aplicación. Por la misma razón, `dist/grana.js` entero pesa ≈ 179 kB gzip, mientras que importar toda la librería en una aplicación con el JavaScript minificado añade ≈ 155 KB (tabla de [Tamaño e importación parcial](#tamaño-e-importación-parcial)); ninguna de las dos cifras incluye la hoja de CSS (≈ 69 kB gzip). Para saber cuánto añade lo que usas, guíate por la tabla de importación parcial. Los servicios (`createSpeech`, `createStatus`) son además plugins de Vue: `app.use(speech)` registra sus componentes.
 
@@ -267,7 +271,12 @@ Todos están en **`candidate`**: ver [Estado](#estado-010-beta). «Propia» indi
 
 | Componente | Qué es | Entrada |
 | --- | --- | --- |
+| [`GAppShell`](packages/vue/src/components/GAppShell/README.md) | Chasis de aplicación: reparte el visor entre cabecera, navegación, página y pie con sus puntos de referencia y su enlace de salto; reserva el sitio de la navegación leyendo su forma por CSS y escribe una sola vez la cifra de la cabecera; con `header="relay"`, la cabecera cede el borde al zócalo de la página | **propia** (`app-shell`) |
+| [`GContainer`](packages/vue/src/components/GContainer/README.md) | Columna de la página: ancho máximo, centrado y margen fluido sobre su caja y no sobre el visor; `g-bleed` lleva una banda al borde con el texto alineado | principal |
+| [`GStack`](packages/vue/src/components/GStack/README.md) | Pila de un eje con la separación como relación (`sm`, `md`, `lg`): una sola fuente de aire, en línea siempre se parte | principal |
+| [`GSection`](packages/vue/src/components/GSection/README.md) | Región de página con encabezado, descripción y acciones: el nivel (`h2` a `h4`) lo pone la anidación | principal |
 | [`GPageHeader`](packages/vue/src/components/GPageHeader/README.md) | Encabezado de página pegado con zócalo: al desplazar, el encabezado se hunde hasta que asoma el zócalo con pestañas y acciones; en estrecho y pegado, las acciones bajan al muelle con `--g-ease-spring` | **propia** (`page-header`) |
+| [`GHero`](packages/vue/src/components/GHero/README.md) | Apertura de una página de un sitio: título, promesa, acción y foto con el texto siempre fuera de ella (ventana, umbral con consulta o vistas a elegir) | **propia** (`hero`) |
 
 ### Acciones y navegación
 
@@ -296,6 +305,7 @@ Todos están en **`candidate`**: ver [Estado](#estado-010-beta). «Propia» indi
 | [`GTimeField`](packages/vue/src/components/GTimeField/README.md) | Hora del reloj que se escribe como se dice | **propia** |
 | [`GSlider`](packages/vue/src/components/GSlider/README.md) | Valor acotado o rango de dos extremos donde el asa es el valor | **propia** |
 | [`GDatePicker`](packages/vue/src/components/GDatePicker/README.md) | Fecha o rango, con popover u hoja inferior en móvil | principal |
+| [`GBookingBar`](packages/vue/src/components/GBookingBar/README.md), `GPartyField` | Consulta de disponibilidad de un sitio (estancia, mesa o recorrido) que entrega una intención sin reservar, y la pieza de personas por tipo que usa y que también sirve suelta | **propia** (`booking`) |
 | [`GFileField`](packages/vue/src/components/GFileField/README.md) | Adjuntar archivos, con subida por adaptador de tu aplicación | **propia** |
 | [`GCheckbox`](packages/vue/src/components/GCheckbox/README.md), [`GCheckboxGroup`](packages/vue/src/components/GCheckboxGroup/README.md) | Casilla y grupo de casillas con casilla maestra | principal |
 | [`GRadioGroup`](packages/vue/src/components/GRadioGroup/README.md) | Una respuesta entre varias, en cinco apariencias | principal |
@@ -336,6 +346,7 @@ Todos están en **`candidate`**: ver [Estado](#estado-010-beta). «Propia» indi
 | --- | --- | --- |
 | [`GSurface`](packages/vue/src/components/GSurface/README.md) | Superficie visual genérica en cinco niveles | principal |
 | [`GCard`](packages/vue/src/components/GCard/README.md) | Tarjeta con regiones opcionales (compone `GSurface`) | principal |
+| [`GGallery`](packages/vue/src/components/GGallery/README.md), `GGalleryViewer` | Fotos de un lugar por espacios (índice que salta) o en tira, con visor ampliable, teclado y gestos | **propia** (`gallery`) |
 | [`GAccordion`](packages/vue/src/components/GAccordion/README.md), `GAccordionItem` | Secciones plegables con avance de la primera línea; el encabezado que tocas no se mueve; lo plegado se busca, se enlaza y se imprime; `sticky` opcional | principal |
 | [`GDialog`](packages/vue/src/components/GDialog/README.md) | Diálogo modal: simple, con pie, formulario, pantalla completa | principal |
 | [`GDivider`](packages/vue/src/components/GDivider/README.md) | Línea de separación, horizontal o vertical | principal |

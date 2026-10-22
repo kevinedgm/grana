@@ -1,0 +1,70 @@
+/*
+  GSection · región de página con encabezado, sin superficie
+  Dueño: coco. Contrato: design/contracts/section.md (DECISIONS.md #720, #717, #723). Estética: design/lab/section/estilo.md.
+  Solo var(--g-*) y alias --_*; sin respaldos. 66ch es unidad de medida de lectura, no tema (#717).
+  El tamaño del título lo da la profundidad (clase del .vue), no el nivel del hN ni la cadena de antepasados (#196).
+  Estilos de elemento de la aplicación sobre hN y p: límite y receta de capas de #516.
+*/
+.g-section {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--g-space-1) * 4);
+  min-inline-size: 0;
+  scroll-margin-block-start: var(--g-space-4);
+}
+.g-section__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--g-space-2) var(--g-space-4);
+}
+/* La base 60 de espacio es solo el punto en que las acciones bajan: sin punto de corte de pantalla */
+.g-section__titles {
+  flex: 1 1 calc(var(--g-space-1) * 60);
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--g-space-1);
+}
+.g-section__title {
+  margin: 0;
+  color: var(--g-color-text);
+  font-family: var(--g-font-title);
+  font-size: var(--g-text-title-sm-size);
+  line-height: var(--g-text-title-sm-line);
+  letter-spacing: var(--g-text-title-sm-tracking);
+  font-weight: var(--g-text-title-sm-weight);
+  overflow-wrap: break-word;
+}
+.g-section--depth-2 .g-section__title {
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-size);
+  line-height: var(--g-text-body-line);
+}
+.g-section--depth-3 .g-section__title {
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+}
+.g-section__desc {
+  margin: 0;
+  max-inline-size: 66ch;
+  color: var(--g-color-text-muted);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+}
+.g-section__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-2);
+}
+/* Cuerpo: la pila vertical md de GStack (misma regla; sin GStack anidado) */
+.g-section__body {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--g-space-1) * 6);
+  min-inline-size: 0;
+}
+.g-section__body > :where(:not(.g-tooltip)) { margin-block: 0; }

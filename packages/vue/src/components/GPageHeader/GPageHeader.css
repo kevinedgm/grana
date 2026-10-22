@@ -61,10 +61,15 @@
 /* ---------- Raíz ---------- */
 .g-page-header {
   /* Relleno lateral: el zócalo sangra hasta el borde de la raíz y lo devuelve a las pestañas con --g-tabs-inset.
-     Inset en línea de CONTRATO (#715 a): space × 6 y, con is-narrow (raíz < space × 150), space × 4. Quien compone el
+     Inset en línea de CONTRATO (#787 a): space × 6 y, con is-narrow (raíz < space × 150), space × 4. Quien compone el
      encabezado con otro cuerpo (GResourceList, una vista de la aplicación) alinea su contenido con el hN con estos mismos
      factores; cambiarlos es decisión de lima */
   --_pad: calc(var(--g-space-1) * 6);
+  /* Relleno de cada lado (L4, #751): el de la raíz, salvo de primer nivel en la columna de GContainer (abajo) */
+  --_pad-s: var(--_pad);
+  --_pad-e: var(--_pad);
+  /* Sangrado de las pestañas: nunca más que el relleno del inicio (con un margen de columna menor que --_pad) */
+  --_tabs-in: min(var(--_pad), var(--_pad-s));
   --_gap: var(--g-space-4);
   /* Alto del zócalo: constante de CONTRATO (#629), con el borde incluido; la aplicación la suma en su scroll-padding */
   --_base-h: max(var(--g-space-12), 44px);
@@ -78,7 +83,8 @@
   gap: var(--_gap);
   box-sizing: border-box;
   min-inline-size: 0;
-  padding: var(--g-space-6) var(--_pad);
+  padding-block: var(--g-space-6);
+  padding-inline: var(--_pad-s) var(--_pad-e);
   background-color: var(--_bg);
   color: var(--g-color-text);
   font-family: var(--g-font-ui);
@@ -92,6 +98,16 @@
 /* Zona de marca en la raíz (#634): el fondo se resuelve AQUÍ, con los tokens de la zona, no el que trae la anfitriona */
 .g-page-header[data-g-zone="brand"] {
   --_bg: var(--g-color-bg);
+}
+/* L4 (#751) · De primer nivel en la columna de GContainer: sangra como .g-bleed (container.md «B · Sangrado»). La raíz
+   llega a los bordes de la CAJA del contenedor con los márgenes publicados y los devuelve como relleno: el texto (h1,
+   pestañas, acciones, título compacto, muelle) queda a ras de la columna y el fondo, la línea del suelo y la sombra del
+   zócalo pegado llegan al borde de la caja, como una banda. Con un margen 0 (anidado, GSurface, .g-dialog__body) no
+   sangra y el texto va a ras del de su anfitriona. Los publicados son <length> registradas: llegan resueltas. */
+.g-container__body > .g-page-header {
+  --_pad-s: var(--g-container-inset-start);
+  --_pad-e: var(--g-container-inset-end);
+  margin-inline: calc(var(--g-container-inset-start) * -1) calc(var(--g-container-inset-end) * -1);
 }
 /* Con zócalo, el zócalo es el suelo: sin relleno debajo */
 .g-page-header.has-base {
@@ -199,11 +215,12 @@
   block-size: var(--_base-h);
   min-inline-size: 0;
   /* Sangra hasta los bordes de la raíz: las pestañas recuperan la alineación con el título por --g-tabs-inset */
-  margin-inline: calc(var(--_pad) * -1);
+  margin-inline: calc(var(--_pad-s) * -1) calc(var(--_pad-e) * -1);
   /* El relleno del principio crece con el título compacto (va en el zócalo, no en el título: el título lleva
-     dir="auto" y sus propiedades lógicas seguirían a su texto, no a la página) */
-  padding-inline: calc(var(--_pad) * var(--_p)) var(--_pad);
-  --g-tabs-inset: var(--_pad);
+     dir="auto" y sus propiedades lógicas seguirían a su texto, no a la página). En reposo deja --_tabs-in para que las
+     pestañas lo devuelvan y su texto caiga en el inicio del h1; con --_p = 1 el título compacto arranca ahí. */
+  padding-inline: calc(var(--_pad-s) - var(--_tabs-in) * (1 - var(--_p))) var(--_pad-e);
+  --g-tabs-inset: var(--_tabs-in);
   /* La línea del suelo: solo pegado (se funde); dibujada por dentro para no sumar alto */
   box-shadow: inset 0 calc(var(--g-border-width) * -1) 0 0 transparent;
 }
@@ -251,7 +268,7 @@
 }
 /* Sin pestañas, la primera pieza del zócalo recupera el relleno de la raíz */
 .g-page-header:not(.has-tabs) .g-page-header__base {
-  padding-inline-start: var(--_pad);
+  padding-inline-start: var(--_pad-s);
 }
 
 .g-page-header__actions-home {
@@ -261,7 +278,7 @@
   margin-inline-start: auto;
   padding-inline-start: var(--g-space-4);
 }
-/* Sin pestañas (#715 b): las acciones empiezan al principio del zócalo, bajo el hN y en su columna (Δ0 en el borde de
+/* Sin pestañas (#787 b): las acciones empiezan al principio del zócalo, bajo el hN y en su columna (Δ0 en el borde de
    inicio); no flotan al final de una fila vacía. El título compacto (B) las empuja como empuja a las pestañas: la separación
    crece con --_p (en reposo 0; en estrecho el título compacto no se pinta). Con pestañas, nada cambia */
 .g-page-header:not(.has-tabs) .g-page-header__actions-home {
@@ -292,6 +309,13 @@
 .g-page-header.is-sticky .g-page-header__base {
   transition: box-shadow var(--g-duration-fast) var(--g-ease-out);
 }
+/* S5 (#715, api.md «Piezas pegadas»): lo enfocable del zócalo pegado no se «desentierra» a sí mismo. Resta la banda del
+   scroll-padding (cabecera de la aplicación + el zócalo) para que Chromium y WebKit no desplacen la página al enfocarlo.
+   Con is-sticky y no solo is-stuck: mientras el encabezado se hunde, el zócalo ya cae dentro de esa banda. */
+.g-page-header.is-sticky .g-page-header__base,
+.g-page-header.is-sticky .g-page-header__base :not(:where(.g-tooltip)) {
+  scroll-margin-block-start: calc(-1 * (var(--g-page-header-top) + var(--_base-h)));
+}
 
 /* ---------- Muelle (estrecho y pegado, #630) ----------
    Barra de borde a borde de la CAJA del encabezado (física: --_dock-left/--_dock-right las escribe el .vue y valen en
@@ -311,7 +335,9 @@
   gap: var(--g-space-3);
   box-sizing: border-box;
   min-inline-size: 0;
-  padding: var(--g-space-2) var(--g-space-4) calc(var(--g-space-2) + env(safe-area-inset-bottom));
+  /* Lateral: el de la raíz con un mínimo de space × 4 (en la columna de GContainer, el título del muelle a ras de ella) */
+  padding: var(--g-space-2) max(var(--g-space-4), var(--_pad-e)) calc(var(--g-space-2) + env(safe-area-inset-bottom))
+    max(var(--g-space-4), var(--_pad-s));
   background-color: var(--g-color-surface);
   color: var(--g-color-text);
   border-block-start: var(--g-border-width) solid var(--g-color-border-strong);

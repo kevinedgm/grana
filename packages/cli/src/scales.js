@@ -48,6 +48,9 @@ export const typography = (fontSize, typeScale) => {
   return out
 }
 
+/** --g-hero-title-max: fontSize × typeScale⁶ en rem (tokens.md §51) */
+export const heroTitleMax = (fontSize, typeScale) => `${r4((fontSize * typeScale ** 6) / 16)}rem`
+
 export const fontStack = (value) => {
   const v = String(value).trim()
   if (v.includes(',')) return v

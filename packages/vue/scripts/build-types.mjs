@@ -34,7 +34,12 @@ export const ENTRIES = [
   { name: 'card-group', src: 'src/card-group.js' },
   { name: 'page-header', src: 'src/page-header.js' },
   { name: 'fab', src: 'src/fab.js' },
-  { name: 'form-fold', src: 'src/form-fold.js' }
+  { name: 'form-fold', src: 'src/form-fold.js' },
+  { name: 'app-shell', src: 'src/app-shell.js' },
+  { name: 'hero', src: 'src/hero.js' },
+  { name: 'gallery', src: 'src/gallery.js' },
+  { name: 'booking', src: 'src/booking.js' },
+  { name: 'price', src: 'src/price.js' }
 ]
 
 // ---------------------------------------------------------------------------------------------------------------------

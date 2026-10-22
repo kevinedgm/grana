@@ -188,6 +188,10 @@ export interface MenuItem extends GranaExtra {
   external?: boolean
   /** Página actual (`aria-current="page"`); solo con `href`; como mucho uno por menú (#576). */
   current?: boolean
+  /** Idioma de la etiqueta (BCP 47), atributo `lang` del elemento; vale en cualquier elemento (#743). Inválido: se ignora (E8). */
+  lang?: string
+  /** Idioma del destino (BCP 47), atributo `hreflang` del `<a>`; solo con `href` (#743). Inválido: se ignora (E8). */
+  hreflang?: string
 }
 /** `navigate` de `GMenu` (elemento-enlace, #573). `event.preventDefault()` deja la navegación al router y no impide el cierre. */
 export interface MenuNavigateEvent {
@@ -1115,4 +1119,197 @@ export interface LoadRegionSlotProps {
   fresh: (item: any) => boolean
   /** Atributos del elemento de cada dato (`data-g-key`, `data-g-fresh`), con `v-bind`. */
   itemAttrs: (item: any) => Record<string, string | undefined>
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Marketing (#742): GHero, GGallery/GGalleryViewer, GBookingBar/GPartyField
+// ---------------------------------------------------------------------------------------------------------------------
+
+/** Foto de `GHero` (hero.md «Reglas de props»): `width` y `height` obligatorios; `alt` o `decorative`. */
+export interface HeroMedia {
+  src: string
+  srcset?: string
+  sizes?: string
+  width: number
+  height: number
+  alt?: string
+  decorative?: boolean
+  credit?: string
+}
+/** Detalle de A (siempre decorativo). */
+export interface HeroDetail {
+  src: string
+  srcset?: string
+  sizes?: string
+  width: number
+  height: number
+}
+/** Vista de B (2 a 4; `media.alt` obligatorio). */
+export interface HeroView {
+  value: string | number
+  label: string
+  media: HeroMedia
+}
+/** Textos de `GHero` (sin valores por defecto, #226; `resume` retirado, #756). */
+export interface HeroLabels {
+  views?: string
+  pause?: string
+}
+
+/** Foto de `GGallery` y `GGalleryViewer` (gallery.md «Datos de foto»). */
+export interface GalleryPhoto {
+  src: string
+  thumb?: string
+  srcset?: string
+  sizes?: string
+  thumbSrcset?: string
+  thumbSizes?: string
+  width: number
+  height: number
+  alt: string
+  caption?: string
+  group?: string | number
+  id?: GranaKey
+}
+/** Espacio de A (orden, etiqueta y ancla enlazable). */
+export interface GalleryGroup {
+  value: string | number
+  label: string
+  id?: string
+}
+/** Texto contado: cadena con marcadores o función (plural del idioma) con (count, vars). */
+export type GranaCounted = string | ((count: number, vars: Record<string, string>) => string)
+/** Textos de la galería y su visor (gallery.md «Textos»; sin valores por defecto). */
+export interface GalleryLabels {
+  total?: GranaCounted
+  count?: string
+  groupCount?: string
+  position?: string
+  announce?: string
+  first?: string
+  last?: string
+  prev?: string
+  next?: string
+  close?: string
+  zoom?: string
+  viewer?: string
+  groups?: string
+  groupLink?: GranaCounted
+  broken?: string
+  carousel?: string
+  slide?: string
+}
+
+/** Fila de `GPartyField` (booking-bar.md «Filas»). */
+export interface PartyRow {
+  key: string
+  label: string
+  hint?: string
+  min?: number
+  max?: number | ((value: Record<string, number>) => number)
+  default?: number
+  unit?: string | ((count: number) => string)
+  decrementLabel: string
+  incrementLabel: string
+}
+/** Turno de una mesa (`kind="table"`). */
+export interface BookingTime {
+  value: string
+  label?: string
+  disabled?: boolean | string
+}
+/** Recorrido (`kind="tour"`). */
+export interface BookingTour {
+  value: string | number
+  label: string
+  description?: string
+  disabled?: boolean
+}
+/** La consulta (`v-model` de `GBookingBar`, según `kind`). */
+export interface BookingQuery {
+  from?: string | null
+  to?: string | null
+  date?: string | null
+  time?: string | null
+  tour?: string | number | null
+  party: Record<string, number>
+}
+/** `submit` de `GBookingBar`: la intención (síncrono en el gesto). */
+export interface BookingSubmitEvent extends BookingQuery {
+  kind: 'stay' | 'table' | 'tour'
+  nights?: number
+  event: SubmitEvent | Event
+  preventDefault(): void
+  readonly defaultPrevented: boolean
+}
+
+/** Importe en una moneda (`api.md` «Dinero y precio», price.md «Modelo»): unidades mayores y código ISO 4217. */
+export interface Money {
+  /** Unidades mayores (1850.5), finito. */
+  amount: number
+  /** Código ISO 4217 («MXN»); se normaliza a mayúsculas. */
+  currency: string
+  /** Lo pone la aplicación cuando el importe es una conversión suya («aprox.»). */
+  approximate?: boolean
+}
+/** A · La cuenta: el total de lo pedido, de la aplicación (Grana no multiplica). */
+export interface PriceTotal {
+  value: Money | Money[]
+  /** Unidad del total («por 2 noches»). */
+  label: string
+}
+/** Textos del precio (sin valores por defecto, #226); marcadores entre llaves. */
+export interface PriceLabels {
+  free?: string
+  onRequest?: string
+  before?: string
+  /** Plantilla con `{min}` y `{max}` («{min} a {max}»). */
+  range?: string
+  /** Plantilla con `{amount}` («Ahorras {amount}»). */
+  saving?: string
+  approx?: string
+  total?: string
+}
+/** Opciones de `formatPrice` (price.md «Opciones»). */
+export interface PriceOptions {
+  locale?: string
+  display?: 'auto' | 'symbol' | 'code' | 'none'
+  cents?: 'auto' | 'always' | 'never'
+  lead?: string
+  unit?: string
+  unitLabel?: string
+  max?: Money | Money[] | null
+  compareAt?: Money | Money[] | null
+  compareLabel?: string
+  compareStyle?: 'trace' | 'strike'
+  total?: PriceTotal | null
+  scopeCurrency?: string
+  view?: string
+  labels?: PriceLabels
+}
+/** Partes visibles de un importe. */
+export interface PriceAmountParts {
+  minus: string
+  symbolBefore: string
+  number: string
+  symbolAfter: string
+  code: string
+  currency: string
+}
+/** Resultado de `formatPrice`: lo visible (`text`), la frase (`spoken`) y las partes. */
+export interface FormattedPrice {
+  state: 'amount' | 'free' | 'onRequest' | 'invalid'
+  currency: string | null
+  text: string
+  spoken: string
+  parts: {
+    lead: string
+    approx: string
+    unit: string
+    amount: PriceAmountParts | null
+    range: { before: string; between: string; after: string; max: PriceAmountParts } | null
+    compare: { label: string; style: 'trace' | 'strike'; amount: PriceAmountParts; text: string } | null
+    saving: { text: string; amount: Money } | null
+    total: { label: string; unit: string; amount: PriceAmountParts; text: string } | null
+  }
 }

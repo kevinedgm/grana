@@ -184,7 +184,7 @@
 </div>`
   }
 
-  // La base: GPageHeader solo, con los mismos props (para comparar la distancia descripción → acción, #714)
+  // La base: GPageHeader solo, con los mismos props (para comparar la distancia descripción → acción, #786)
   const XBase = {
     props: { tabs: Boolean },
     template: /* html */ `
@@ -200,7 +200,7 @@
 </div>`
   }
 
-  // Marcado ESTÁTICO de las enmiendas de GMenu (#718 motivo y par; #725 fila de búsqueda): las clases del contrato, con el
+  // Marcado ESTÁTICO de las enmiendas de GMenu (#790 motivo y par; #797 fila de búsqueda): las clases del contrato, con el
   // CSS real de dist/grana.css. La lista se abre como popover manual en su sitio (left/top fijos)
   const MENU_HTML = (id, x, body) => `<ul id="${id}" class="g-menu__list g-menu__list--density-default" role="menu" popover="manual" style="--_x:${x}px;--_y:96px" aria-label="Acciones de T-07">${body}</ul>`
   const item = (o) => `<li role="none"><button type="button" role="menuitem" class="g-menu__item${o.danger ? ' g-menu__item--danger' : ''}" ${o.disabled ? 'aria-disabled="true"' : ''} ${o.reason ? `aria-describedby="${o.id}-r"` : ''} id="${o.id}">${o.icon ? `<span class="g-menu__icon" aria-hidden="true">${svg(o.icon)}</span>` : ''}<span class="g-menu__label">${o.danger ? svg('triangle-alert').replace('class="g-icon"', 'class="g-icon g-menu__danger-icon"') : ''}${o.label}</span>${o.reason ? `<span class="g-menu__reason" id="${o.id}-r">${o.reason}</span>` : ''}</button></li>`
@@ -235,10 +235,10 @@
       })
       return {}
     },
-    template: `<div class="lab-static"><p class="lab-note">Enmiendas de GMenu (#718, #725) con marcado estático de sus clases: motivo de no disponible · par de confirmación armado · fila de búsqueda con filtro.</p><div id="menus"></div></div>`
+    template: `<div class="lab-static"><p class="lab-note">Enmiendas de GMenu (#790, #797) con marcado estático de sus clases: motivo de no disponible · par de confirmación armado · fila de búsqueda con filtro.</p><div id="menus"></div></div>`
   }
 
-  // Pila de GFab que filtra (#725): marcado estático de la pila abierta (bottom-end), con la pista en la fila más alejada
+  // Pila de GFab que filtra (#797): marcado estático de la pila abierta (bottom-end), con la pista en la fila más alejada
   const FabStatic = {
     setup () {
       onMounted(() => {
@@ -258,7 +258,7 @@
       })
       return {}
     },
-    template: `<div class="lab-static"><p class="lab-note">Pila de GFab al filtrar (#725), marcado estático: pista en la píldora más alejada del FAB; las que no coinciden, hidden.</p><div id="fab"></div></div>`
+    template: `<div class="lab-static"><p class="lab-note">Pila de GFab al filtrar (#797), marcado estático: pista en la píldora más alejada del FAB; las que no coinciden, hidden.</p><div id="fab"></div></div>`
   }
 
   const App = {
@@ -268,7 +268,7 @@
         if (VIEW === 'block' || VIEW === 'base') {
           await nextTick()
           await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
-          // #717 SIMULADO: GTable de dist/ aún pinta «0 seleccionadas» sin is-empty; el banco solo alterna la clase con 0 (el
+          // #789 SIMULADO: GTable de dist/ aún pinta «0 seleccionadas» sin is-empty; el banco solo alterna la clase con 0 (el
           // .vue de bruno dejará además el texto vacío; con la clase, el texto ya no ocupa sitio ni se ve)
           const sim = () => document.querySelectorAll('.g-table__count').forEach((c) => c.classList.toggle('is-empty', /^0\b/.test(c.textContent.trim())))
           sim()

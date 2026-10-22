@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GHero · banco de estilo (coco)</title>
+<!-- Banco de coco: marcado EXACTO de design/contracts/hero.md («Anatomía», «Clases y datos») con el CSS real de GHero.css
+     de src/ cargado DENTRO de la capa grana.components (como lo registrará bruno) y GBtn real de dist/. XHero pinta lo que
+     pintará GHero.vue (clases por prop) y, en B, el cambio de vista (capas, is-current) y la marca de foco de teclado
+     (data-g-key-focus). No es la implementación de bruno.
+     Desde la raíz del repo:  python3 -m http.server 4241  →  /design/lab/hero/estilo-banco.html
+     Parámetros: ?a=window|views|threshold  &frame=rect  &detail=0  &wrap=0 (sin span.g-hero__frame, H-C1)  &video=1
+       &paused=1  &look=0  &photo=<clave de fotos.js>  &consult=1  &zone=1 (el héroe dentro de una zona)  &dir=rtl
+       &theme=<generated/*> | &tema=terracota|anil|palida (design/lab/hero/estilo-temas/)  &dark=1
+     Verificación: GRANA_PW_PORT=4241 node design/lab/hero/estilo-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<style>
+@import url("../../../packages/vue/src/styles/defaults.css") layer(grana.defaults);
+@import url("../../../packages/vue/src/components/GHero/GHero.css") layer(grana.components);
+</style>
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style>
+  /* Andamio del banco (la «aplicación», no es de Grana) */
+  html, body { margin: 0; }
+  body { background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui); font-size: var(--g-text-body-size); line-height: var(--g-text-body-line); }
+  .site-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--g-space-3); padding: var(--g-space-4) var(--g-space-6); border-block-end: var(--g-border-width) solid var(--g-color-border); }
+  .site-bar a { color: var(--g-color-text); }
+  .site-next { padding: var(--g-space-16) var(--g-space-6); }
+  .site-next p { color: var(--g-color-text-muted); margin: 0; }
+  .tall { block-size: 1600px; }
+  .consult-demo { font-size: var(--g-text-title-size); line-height: calc(var(--g-text-title-line) * 1.25); }
+  .consult-demo u { text-decoration-style: dashed; }
+  .zone-wrap { padding-block: var(--g-space-4); }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="../../../node_modules/vue/dist/vue.global.prod.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../lucide-icons.js"></script>
+<script src="../marketing/r01/fotos.js"></script>
+<script>
+;(function () {
+  const { createApp, h, defineComponent, ref, onMounted } = Vue
+  const Q = new URLSearchParams(location.search)
+  if (Q.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  if (Q.get('dark') === '1') document.documentElement.setAttribute('data-theme', 'dark')
+  if (Q.get('theme')) document.getElementById('gen').href = `../tema-oscuro/dark-color-presence/generated/${Q.get('theme')}.css`
+  if (Q.get('tema')) document.getElementById('gen').href = `./estilo-temas/${Q.get('tema')}.css`
+  const A = Q.get('a') || 'window'
+  const PHOTO = Q.get('photo') || 'patio'
+  const ic = (n) => h('svg', { class: 'g-icon', 'aria-hidden': 'true', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', innerHTML: window.LUCIDE_ICONS[n] })
+
+  const VIEWS = [
+    { value: 'jardin', label: 'Suite Jardín', key: 'patio' },
+    { value: 'terraza', label: 'Terraza', key: 'monte-alban' },
+    { value: 'bano', label: 'Baño de piedra', key: 'habitacion' },
+    { value: 'noche', label: 'De noche', key: 'noche' }
+  ]
+  const XHero = defineComponent({
+    name: 'XHero',
+    setup () {
+      const view = ref(0)
+      const paused = ref(Q.get('paused') === '1')
+      const id = 'h1'
+      const video = Q.get('video') === '1'
+      const detail = Q.get('detail') !== '0' && A === 'window'
+      const wrap = Q.get('wrap') !== '0'
+      const look = Q.get('look') !== '0' && A === 'window'
+      // Marca de foco de teclado (utils/keyFocus.js): flechas o Tab → data-g-key-focus en el radio enfocado
+      let keyNav = false
+      const onKey = (e) => { if (/^(Arrow|Tab)/.test(e.key)) keyNav = true }
+      const onPointer = () => { keyNav = false }
+      const onFocus = (e) => { if (keyNav) e.target.setAttribute('data-g-key-focus', '') }
+      const onBlur = (e) => e.target.removeAttribute('data-g-key-focus')
+      onMounted(() => { document.addEventListener('keydown', onKey, true); document.addEventListener('pointerdown', onPointer, true); window.__hero = { ready: true, view, paused } })
+      const media = () => {
+        const kids = []
+        const main = video
+          ? h('video', { class: 'g-hero__img', muted: true, playsinline: true, loop: true, poster: foto(PHOTO, 4, 5), width: 1600, height: 2000 })
+          : h('img', { class: 'g-hero__img' + (A === 'views' ? ' is-current' : ''), src: A === 'views' ? foto(VIEWS[view.value].key, 16, 9) : foto(PHOTO, A === 'window' ? 4 : 16, A === 'window' ? 5 : A === 'views' ? 9 : 7), width: 1600, height: A === 'window' ? 2000 : 900, alt: A === 'views' ? fotoAlt(VIEWS[view.value].key) : fotoAlt(PHOTO), loading: 'eager', fetchpriority: 'high', decoding: 'async' })
+        if (A === 'views') {
+          // Elementos estables (key): la elegida cambia de clase y de alt; así el cambio es una transición, no un nodo nuevo
+          VIEWS.forEach((v, i) => {
+            const cur = i === view.value
+            kids.push(h('img', { key: v.value, class: cur ? 'g-hero__img is-current' : 'g-hero__layer', src: foto(v.key, 16, 9), alt: cur ? fotoAlt(v.key) : '', 'aria-hidden': cur ? undefined : 'true', width: 1600, height: 900, fetchpriority: cur && !video ? 'high' : 'low' }))
+          })
+        } else if (A === 'window' && wrap) kids.push(h('span', { class: 'g-hero__frame' }, [main]))
+        else kids.push(main)
+        if (detail) kids.push(h('img', { class: 'g-hero__detail', src: foto('mezcal', 1, 1), alt: '', 'aria-hidden': 'true', width: 600, height: 600, loading: 'eager' }))
+        if (video) kids.push(h('button', { class: 'g-hero__motion', type: 'button', 'aria-pressed': String(paused.value), onClick: () => { paused.value = !paused.value } }, [ic(paused.value ? 'play' : 'pause'), h('span', { class: 'g-hero__motion-label' }, 'Pausar el vídeo')]))
+        kids.push(h('figcaption', { class: 'g-hero__credit' }, 'Foto: Casa Alcalá'))
+        return h('figure', { class: 'g-hero__media' }, kids)
+      }
+      const views = () => h('fieldset', { class: 'g-hero__views' }, [
+        h('legend', { class: 'g-hero__views-legend' }, 'Vistas de la suite'),
+        ...VIEWS.map((v, i) => h('label', { class: ['g-hero__view', i === view.value && 'is-current'] }, [
+          h('input', { class: 'g-hero__view-input', type: 'radio', name: `${id}-views`, value: String(i), checked: i === view.value, onChange: () => { view.value = i }, onFocus, onBlur }),
+          h('img', { class: 'g-hero__view-thumb', src: foto(v.key, 4, 3), alt: '', width: 120, height: 90 }),
+          h('span', { class: 'g-hero__view-label', dir: 'auto' }, v.label)
+        ]))
+      ])
+      const content = () => h('div', { class: 'g-hero__content' }, [
+        h('p', { class: 'g-hero__eyebrow', dir: 'auto' }, 'Hotel boutique · Centro histórico de Oaxaca'),
+        h('h1', { class: 'g-hero__title', id: `${id}-title`, dir: 'auto' }, Q.get('long') ? 'Casa Alcalá, doce habitaciones alrededor de un patio de cantera verde' : 'Casa Alcalá'),
+        h('p', { class: 'g-hero__lead', dir: 'auto' }, 'Doce habitaciones alrededor de un patio de cantera verde, a dos calles de Santo Domingo.'),
+        A === 'threshold' && Q.get('consult') !== '0' ? h('div', { class: 'g-hero__consult' }, [h('div', { class: 'consult-demo' }, ['Llego el ', h('u', null, '¿qué día?'), ', me quedo ', h('u', null, '2 noches'), ' y somos ', h('u', null, '2 adultos'), '.'])]) : null,
+        h('div', { class: 'g-hero__actions' }, [
+          h(Grana.GBtn, { size: 'lg', href: '#reservar', id: 'primary' }, () => 'Reservar'),
+          h(Grana.GBtn, { size: 'lg', variant: 'link', href: '#habitaciones' }, () => 'Ver habitaciones')
+        ]),
+        h('p', { class: 'g-hero__aside', dir: 'auto' }, 'Desayuno incluido · Llegada desde las 15:00'),
+        A === 'views' ? views() : null
+      ])
+      return () => {
+        const cls = ['g-hero', `g-hero--appearance-${A}`, A === 'window' && `g-hero--frame-${Q.get('frame') || 'arch'}`, detail && 'g-hero--has-detail', video && 'g-hero--has-video', look && 'g-hero--look', paused.value && video && 'is-paused']
+        const first = A === 'views' ? h('div', { class: 'g-hero__plate', 'data-g-zone': 'brand' }, [content()]) : A === 'threshold' ? h('div', { class: 'g-hero__card' }, [content()]) : content()
+        return h('section', { class: cls, id: 'hero', 'aria-labelledby': `${id}-title` }, [first, media()])
+      }
+    }
+  })
+  const app = createApp({
+    render: () => [
+      h('header', { class: 'site-bar' }, [h('a', { href: '#' }, 'Casa Alcalá'), h('nav', { 'aria-label': 'Sitio' }, [h('a', { href: '#' }, 'Habitaciones')])]),
+      h('main', null, [
+        Q.get('zone') === '1' ? h('div', { class: 'zone-wrap', 'data-g-zone': 'brand' }, [h(XHero)]) : h(XHero),
+        h('section', { class: 'site-next', 'aria-labelledby': 'next' }, [h('h2', { id: 'next' }, 'Lo que sigue'), h('p', null, 'Una sección de la plantilla.'), h('button', { type: 'button', id: 'last' }, 'Último')]),
+        h('div', { class: 'tall' })
+      ])
+    ]
+  })
+  app.use(Grana.default || Grana)
+  app.mount('#app')
+})()
+</script>
+</body>
+</html>

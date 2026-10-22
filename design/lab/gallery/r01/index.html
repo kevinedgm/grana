@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Galería · r01</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="./gallery.css">
+<script src="../../lucide-icons.js"></script>
+<script src="../../marketing/r01/fotos.js"></script>
+</head>
+<body>
+<!-- ?c=base|A|B|C (base: galería funcional con visor; A · El recorrido por espacios; B · La tira; C · Se abre en su sitio)
+     &set=hotel|restaurante &dir=rtl &broken=1 &one=1 -->
+<header class="lab-bar">
+  <strong>Galería · laboratorio de kiwi</strong>
+  <nav aria-label="Conceptos" id="lab-concepts"></nav>
+  <nav aria-label="Opciones" id="lab-opts"></nav>
+</header>
+<main class="lab-page" id="main">
+  <header>
+    <h1 id="page-title">Casa Cantera</h1>
+    <p>Hotel boutique de siete habitaciones en el centro de Oaxaca. Página de la aplicación: la galería es la sección de abajo.</p>
+  </header>
+  <section id="gal"></section>
+  <p class="lab-note">Fotos: marcadores locales generados por <code>design/lab/marketing/r01/fotos.js</code> (sin recursos externos). Los textos alternativos y los pies los aporta la aplicación.</p>
+</main>
+<script src="./gallery.js"></script>
+</body>
+</html>

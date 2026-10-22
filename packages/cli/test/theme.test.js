@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { radii, spacing, typography, fontStack } from '../src/scales.js'
+import { radii, spacing, typography, fontStack, heroTitleMax } from '../src/scales.js'
 import { generateTheme, toCss } from '../src/theme.js'
 import { readConfig } from '../src/config.js'
 import { validateTheme } from '../src/validate.js'
@@ -31,6 +31,18 @@ describe('escalas', () => {
     const t = typography(12, 1.2)
     expect(parseFloat(t['--g-text-caption-size']) * 16).toBeGreaterThanOrEqual(12)
     for (const k of Object.keys(t).filter((x) => x.endsWith('-line'))) expect((parseFloat(t[k]) * 16) % 4).toBe(0)
+  })
+
+  it('--g-hero-title-max: fontSize × typeScale⁶ en rem (§51); con los valores por defecto coincide con defaults.css', () => {
+    expect(heroTitleMax(16, 1.25)).toBe('3.8147rem')
+    expect(heroTitleMax(18, 1.2)).toBe(`${Math.round(((18 * 1.2 ** 6) / 16) * 10000) / 10000}rem`)
+    expect(parseFloat(DEFAULTS['--g-text-display-size']) * 1.5625).toBeCloseTo(parseFloat(heroTitleMax(16, 1.25)), 3)
+  })
+
+  it('generateTheme emite --g-hero-title-max solo si cambia la tipografía', () => {
+    expect(generateTheme({ brand: '#F5B940' }).generated['--g-hero-title-max']).toBeUndefined()
+    expect(generateTheme({ typeScale: 1.2 }).generated['--g-hero-title-max']).toBe(heroTitleMax(16, 1.2))
+    expect(generateTheme({ fontSize: 18 }).generated['--g-hero-title-max']).toBe(heroTitleMax(18, 1.25))
   })
 
   it('fontStack: un nombre recibe la pila del sistema; una pila completa se respeta', () => {

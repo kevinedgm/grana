@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GAppShell · banco del componente real (bruno)</title>
+<!-- Banco de GAppShell con los componentes REALES de dist/ (dueño: bruno). Una aplicación de verdad: el chasis
+     (@grana/vue/app-shell) con GSidebar en el slot nav, una cabecera con marca y acciones, GContainer con GPageHeader
+     (@grana/vue/page-header) como primer hijo, GStack, GSection, una banda g-bleed y un pie; la isla de estado
+     (@grana/vue/status) y GToaster SIN offset.top (#714: la banda ya está en el registro de bordes). Sin receta de cabecera.
+     Lo verifican design/lab/theme-playground/tests/app-shell.spec.mjs y app-shell-perf.spec.mjs.
+     Parámetros: ?header=relay (B · Relevo de franja) · ?mode=auto|expanded|rail|navbar|drawer · ?mobile=navbar|drawer ·
+     ?overlay=1 · ?variant=floating · ?dir=rtl · ?dark=1 · ?zone=header|side · ?ph=0 (sin GPageHeader) · ?phsticky=0 ·
+     ?nohead=1 (sin cabecera) · ?hh=72 (--g-app-shell-header en :root) · ?acc=1 (GAccordion sticky) · ?width=…  · ?prose=1 ·
+     ?long=N (filas de relleno). Estado en window.shell (toaster, status, la reserva de borde compartida, un registro de
+     eventos y el recuento de actualizaciones de Vue en window.__gUpdates). -->
+<link rel="stylesheet" href="../dist/fonts.css">
+<link rel="stylesheet" href="../dist/grana.css">
+<style>
+  /* Andamio del banco (no es de Grana): solo la tipografía del cuerpo y piezas de relleno; ninguna receta de cabecera */
+  body{margin:0;font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  .brand{display:flex;align-items:center;gap:8px;margin:0;font-weight:600}
+  .brand-mark{inline-size:20px;block-size:20px;border-radius:6px;background:var(--g-color-brand)}
+  .sp{flex:1}
+  .row{block-size:20px;border-radius:4px;background:var(--g-color-border)}
+  .band{background:var(--g-color-surface-sunken);padding-block:24px}
+  .scroller{overflow-x:auto}
+  .scroller table{border-collapse:collapse;min-inline-size:1400px}
+  .scroller td,.scroller th{border:1px solid var(--g-color-border);padding:6px 10px;text-align:start;white-space:nowrap}
+</style>
+</head>
+<body>
+<div id="app">
+  <g-app-shell id="shell" :header="Q.header" :header-zone="Q.zone === 'header' ? 'brand' : 'none'" :labels="{ skip: 'Saltar al contenido' }">
+    <template v-if="!Q.nohead" #header>
+      <g-btn v-if="modeNow === 'drawer'" id="menu-btn" variant="ghost" color="neutral" icon aria-label="Abrir la navegación" @click="open = true"><g-icon name="menu"></g-icon></g-btn>
+      <p class="brand"><span class="brand-mark" aria-hidden="true"></span><span>Laboratorio central</span></p>
+      <span class="sp"></span>
+      <g-btn id="hdr-search" variant="ghost" color="neutral" icon aria-label="Buscar"><g-icon name="search"></g-icon></g-btn>
+      <g-btn id="hdr-mail" variant="ghost" color="neutral" icon aria-label="Mensajes"><g-icon name="mail"></g-icon></g-btn>
+    </template>
+    <template #nav>
+      <g-sidebar id="sb" v-model="active" v-model:open="open" :items="items" label="Principal" :labels="sbLabels" :mode="Q.mode" :mobile="Q.mobile"
+        :overlay="Q.overlay" :variant="Q.floating ? 'floating' : 'fixed'" :data-g-zone="Q.zone === 'side' ? 'brand' : undefined"
+        @mode-change="modeNow = $event.mode; log('mode · ' + $event.mode)" @navigate="(e) => { e.event.preventDefault(); active = e.item.id }">
+        <template #logo="{ collapsed }"><span class="brand-mark" aria-hidden="true"></span><span v-if="!collapsed">Grana</span></template>
+        <template #toggle-icon><g-icon name="panel-left"></g-icon></template>
+        <template #more-icon><g-icon name="menu"></g-icon></template>
+      </g-sidebar>
+    </template>
+
+    <g-container id="ct" :width="Q.width" :prose="Q.prose">
+      <g-page-header v-if="Q.ph" id="ph" title="Políticas de validación" eyebrow="Configuración" :sticky="Q.phsticky" description="Reglas que deciden cuándo un resultado sale sin revisión manual y quién firma cuando no." :labels="{ actions: 'Acciones de la página' }">
+        <template #tabs><g-tabs id="ph-tabs" v-model="tab" :items="tabs" detached label="Secciones de la página" density="compact"></g-tabs></template>
+        <template #actions="{ narrow }">
+          <g-btn id="ph-pub" @click="log('publicar')">Publicar cambios</g-btn>
+          <g-btn v-if="!narrow" id="ph-hist" variant="outline" color="neutral">Ver historial</g-btn>
+        </template>
+      </g-page-header>
+      <g-stack id="page" gap="lg" style="padding-block: 24px">
+        <g-stack orientation="horizontal" gap="sm" id="bench-tools">
+          <g-btn id="toast-btn" size="sm" variant="outline" color="neutral" @click="toast">Aviso de prueba</g-btn>
+          <g-btn id="status-btn" size="sm" variant="outline" color="neutral" @click="condition">Condición</g-btn>
+        </g-stack>
+        <g-section id="s1" title="Liberación automática" description="Qué condiciones dejan salir un resultado sin firma." :labels="{ actions: 'Acciones de la sección' }">
+          <template #actions><g-btn id="s1-act" size="sm" variant="outline" color="neutral">Añadir regla</g-btn></template>
+          <p id="anchor">{{ lorem[0] }}</p>
+          <p id="p2">{{ lorem[1] }}</p>
+          <p>{{ lorem[2] }}</p>
+        </g-section>
+        <section id="band" class="g-bleed band" aria-labelledby="band-t">
+          <h2 id="band-t">Auditoría externa · noviembre</h2>
+          <p id="band-p">La auditoría revisa las políticas publicadas el último día del mes.</p>
+          <g-btn id="band-btn" variant="outline" color="neutral">Preparar paquete</g-btn>
+        </section>
+        <div id="wide" class="g-bleed scroller" role="region" aria-label="Analitos" tabindex="0">
+          <table><tr><th v-for="c in 14" :key="c">Columna {{ c }}</th></tr><tr><td v-for="c in 14" :key="c">Valor {{ c }}</td></tr></table>
+        </div>
+        <g-accordion v-if="Q.acc" id="acc" sticky v-model="accOpen" :heading-level="2">
+          <g-accordion-item v-for="a in accItems" :key="a.id" :id="'acc-' + a.id" :value="a.id" :title="a.title"><p v-for="n in 12" :key="n">{{ a.content }}</p><g-btn :id="'acc-act-' + a.id" size="sm" variant="outline" color="neutral">Acción</g-btn></g-accordion-item>
+        </g-accordion>
+        <g-section id="s3" title="Historial" description="Contenido largo para desplazar.">
+          <g-stack gap="sm">
+            <div v-for="n in Q.long" :key="n" class="row" :id="'row-' + n" :style="{ inlineSize: (100 - (n % 7) * 8) + '%' }"></div>
+            <g-btn id="far-btn" variant="outline" color="neutral">Botón lejano</g-btn>
+            <div v-for="n in 10" :key="'b' + n" class="row"></div>
+          </g-stack>
+        </g-section>
+      </g-stack>
+    </g-container>
+
+    <template #footer>Laboratorio central · política vigente 2026-10</template>
+  </g-app-shell>
+  <g-toaster></g-toaster>
+  <g-status-island></g-status-island>
+</div>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="../dist/grana.umd.js"></script>
+<script src="../dist/status.umd.js"></script>
+<script src="../dist/page-header.umd.js"></script>
+<script src="../dist/app-shell.umd.js"></script>
+<script src="./lucide-icons.js"></script>
+<script>
+  const P = new URLSearchParams(location.search)
+  if (P.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  if (P.get('dark') === '1') document.documentElement.dataset.theme = 'dark'
+  if (P.get('hh')) document.documentElement.style.setProperty('--g-app-shell-header', `${Number(P.get('hh'))}px`)
+  // Sin offset.top (#714): la banda del chasis publica su borde y la isla y los avisos se colocan debajo
+  const toaster = Grana.createToaster({ position: 'top-end', labels: { region: 'Notificaciones ({hotkey})', close: 'Cerrar notificación', types: { info: 'Información', success: 'Correcto', warning: 'Advertencia', error: 'Error', loading: 'En curso' } } })
+  const status = GranaStatus.createStatus({ labels: { region: 'Estado de la aplicación ({hotkey})', waiting: 'y {count} más en espera', listTitle: 'Pendiente ({count})', hide: 'Ocultar', types: { info: 'Información', success: 'Correcto', warning: 'Advertencia', error: 'Error' }, dismiss: 'Descartar: {title}', sheetTitle: 'Estado de la aplicación', close: 'Cerrar' } })
+  const events = []
+  window.__gUpdates = 0
+  window.shell = { toaster, status, events, edge: Grana.__shared['utils/edgeReserve.js'] }
+  const lorem = [
+    'Un resultado sale sin revisión cuando todos sus analitos están dentro del intervalo de referencia, el control de calidad del lote pasó en las últimas ocho horas y no hay una nota clínica que pida revisión.',
+    'Los valores críticos nunca salen solos: se llama al médico solicitante y la llamada queda registrada con hora, persona y medio. La política se revisa cada trimestre.',
+    'Si cualquiera de las tres condiciones falla, el resultado espera a un firmante con permiso sobre el área. La espera se ve en la bandeja de cada firmante y en el tablero del área.'
+  ]
+  const app = Vue.createApp({
+    setup() {
+      const log = (e) => { events.push(e) }
+      return {
+        Q: {
+          header: P.get('header') === 'relay' ? 'relay' : 'pinned', mode: P.get('mode') || 'auto', mobile: P.get('mobile') || 'navbar',
+          overlay: P.get('overlay') === '1', floating: P.get('variant') === 'floating', zone: P.get('zone'), ph: P.get('ph') !== '0',
+          phsticky: P.get('phsticky') !== '0', nohead: P.get('nohead') === '1', acc: P.get('acc') === '1', width: P.get('width') || 'lg',
+          prose: P.get('prose') === '1', long: Number(P.get('long')) || 60
+        },
+        active: Vue.ref('pol'), open: Vue.ref(false), modeNow: Vue.ref(''), tab: Vue.ref('reglas'), accOpen: Vue.ref([]), lorem, log,
+        tabs: [{ id: 'reglas', label: 'Reglas' }, { id: 'firmantes', label: 'Firmantes' }, { id: 'historial', label: 'Historial' }],
+        accItems: [{ id: 'a1', title: 'Condiciones por área', content: lorem[0] }, { id: 'a2', title: 'Excepciones', content: lorem[1] }],
+        sbLabels: { collapse: 'Contraer la barra lateral', expand: 'Expandir la barra lateral', more: 'Más', moreActive: 'contiene la página actual', drawer: 'Navegación', close: 'Cerrar', search: 'Buscar', searchHint: 'Ctrl K' },
+        items: [
+          { label: 'Principal', items: [{ id: 'home', label: 'Inicio', href: '#', icon: 'house' }, { id: 'inbox', label: 'Bandeja', href: '#', icon: 'inbox' }] },
+          { label: 'Laboratorio', items: [{ id: 'res', label: 'Resultados', href: '#', icon: 'chart-column' }, { id: 'pol', label: 'Políticas', href: '#', icon: 'settings' }, { id: 'staff', label: 'Personal', href: '#', icon: 'users' }, { id: 'cal', label: 'Agenda', href: '#', icon: 'calendar' }] },
+          { label: 'Archivo', items: [{ id: 'arch', label: 'Archivo', href: '#', icon: 'folder' }] }
+        ],
+        toast() { toaster.success('Resultado guardado', { duration: 8000 }) },
+        condition() { status.warning('red', 'Sin conexión con el analizador 2', { description: 'Los resultados nuevos se guardan en local.' }) }
+      }
+    }
+  })
+  // Recuento de actualizaciones de Vue (spec de rendimiento: el desplazamiento con B no vuelve a pintar el chasis)
+  window.__gUpdatesBy = {}
+  app.mixin({ updated() { window.__gUpdates++; const n = this.$options.name || 'App'; window.__gUpdatesBy[n] = (window.__gUpdatesBy[n] || 0) + 1 } })
+  app.use(Grana).use(GranaPageHeader).use(GranaAppShell).use(Grana.createIcons(Object.values(window.LUCIDE_STATIC))).use(toaster).use(status)
+  window.shellApp = app.mount('#app')
+</script>
+</body>
+</html>

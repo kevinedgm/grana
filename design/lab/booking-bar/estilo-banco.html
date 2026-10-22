@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GBookingBar · banco de estilo (coco)</title>
+<!-- Banco de coco: marcado EXACTO de design/contracts/booking-bar.md («Anatomía», «Clases y datos») con el CSS real de
+     GBookingBar.css, GPartyField.css, GDatePicker.css (g-datepicker--trigger, is-checkout-only) y GDialog.css de src/ dentro
+     de la capa grana.components, y GDatePicker, GNumberField, GDialog y GBtn reales de dist/. XBooking y XParty pintan lo
+     que pintarán GBookingBar.vue y GPartyField.vue y SOLO el comportamiento que el estilo necesita: huecos con sus estados
+     (is-empty, is-filled, is-invalid), paneles colocados (--_x, --_y, --_max, data-side), la barra que pasa a compacto, la
+     hoja y el muelle (is-shown, hidden + inert, IntersectionObserver). No es la implementación de bruno.
+     Desde la raíz del repo:  python3 -m http.server 4241  →  /design/lab/booking-bar/estilo-banco.html
+     Parámetros: ?a=phrase|bar  &dock=1  &invalid=1  &filled=1  &dir=rtl  &dark=1  &disabled=1
+       &theme=<generated/*> | &tema=terracota|anil|palida (design/lab/hero/estilo-temas/)
+     Verificación: GRANA_PW_PORT=4241 node design/lab/booking-bar/estilo-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<style>
+@import url("../../../packages/vue/src/components/GDialog/GDialog.css") layer(grana.components);
+@import url("../../../packages/vue/src/components/GDatePicker/GDatePicker.css") layer(grana.components);
+@import url("../../../packages/vue/src/components/GPartyField/GPartyField.css") layer(grana.components);
+@import url("../../../packages/vue/src/components/GBookingBar/GBookingBar.css") layer(grana.components);
+</style>
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style>
+  html, body { margin: 0; }
+  body { background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui); font-size: var(--g-text-body-size); line-height: var(--g-text-body-line); }
+  .page { max-inline-size: calc(var(--g-space-16) * 18); margin-inline: auto; padding: var(--g-space-8) var(--g-space-4); }
+  .card { padding: var(--g-space-6); border: var(--g-border-width) solid var(--g-color-border); border-radius: var(--g-radius-lg); background: var(--g-color-surface); }
+  .long { block-size: 1400px; }
+  .mock { display: flex; flex-direction: row; gap: var(--g-space-2); margin-block-start: var(--g-space-8); }
+  .mock .g-datepicker { contain: none; inline-size: auto; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="../../../node_modules/vue/dist/vue.global.prod.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../lucide-icons.js"></script>
+<script>
+;(function () {
+  const { createApp, h, defineComponent, ref, reactive, computed, nextTick, onMounted } = Vue
+  const Q = new URLSearchParams(location.search)
+  if (Q.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  if (Q.get('dark') === '1') document.documentElement.setAttribute('data-theme', 'dark')
+  if (Q.get('theme')) document.getElementById('gen').href = `../tema-oscuro/dark-color-presence/generated/${Q.get('theme')}.css`
+  if (Q.get('tema')) document.getElementById('gen').href = `../hero/estilo-temas/${Q.get('tema')}.css`
+  const APP = Q.get('a') || 'phrase'
+  const DIS = Q.get('disabled') === '1'
+  const ic = (n, cls) => h('svg', { class: ['g-icon', cls], 'aria-hidden': 'true', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', innerHTML: window.LUCIDE_ICONS[n] })
+  // Colocación de un panel por su disparador (#358, reglas 1 a 3, simplificadas): debajo si cabe, si no arriba; dentro del visor
+  const place = (panel, anchor) => {
+    const a = anchor.getBoundingClientRect(), m = 8, vw = document.documentElement.clientWidth, vh = innerHeight
+    const w = panel.offsetWidth
+    const below = vh - a.bottom - m * 2, above = a.top - m * 2
+    const side = below >= Math.min(panel.scrollHeight, 320) || below >= above ? 'bottom' : 'top'
+    const max = Math.max(120, side === 'bottom' ? below : above)
+    const ph = Math.min(panel.scrollHeight, max)
+    const rtl = getComputedStyle(anchor).direction === 'rtl'
+    let x = rtl ? a.right - w : a.left
+    x = Math.max(m, Math.min(x, vw - w - m))
+    panel.style.setProperty('--_x', x + 'px'); panel.style.setProperty('--_max', max + 'px')
+    panel.style.setProperty('--_y', (side === 'bottom' ? a.bottom + m / 2 : a.top - m / 2 - ph) + 'px')
+    panel.dataset.side = side
+  }
+  const ROWS = [
+    { key: 'adults', label: 'Adultos', min: 1, max: 8, unit: (n) => `${n} ${n === 1 ? 'adulto' : 'adultos'}`, decrementLabel: 'Un adulto menos', incrementLabel: 'Un adulto más' },
+    { key: 'children', label: 'Niños', hint: 'De 0 a 12 años', min: 0, max: 6, unit: (n) => `${n} ${n === 1 ? 'niño' : 'niños'}`, decrementLabel: 'Un niño menos', incrementLabel: 'Un niño más' },
+    { key: 'rooms', label: 'Habitaciones', min: 1, max: 4, unit: (n) => `${n} ${n === 1 ? 'habitación' : 'habitaciones'}`, decrementLabel: 'Una habitación menos', incrementLabel: 'Una habitación más' }
+  ]
+  const XParty = defineComponent({
+    name: 'XParty',
+    props: { modelValue: Object, mode: { type: String, default: 'popover' }, trigger: Boolean, label: String, block: Boolean, id: { type: String, default: 'pf' }, invalid: Boolean },
+    emits: ['update:modelValue'],
+    setup (props, { emit, slots }) {
+      const panel = ref(null), btn = ref(null), open = ref(false)
+      const text = computed(() => ROWS.filter((r, i) => i === 0 || props.modelValue[r.key] > 0).map((r) => r.unit(props.modelValue[r.key])).join(' · '))
+      const toggle = (e) => { const t = e && e.currentTarget; if (t) btn.value = t; open.value ? close() : show() }
+      const show = async () => { open.value = true; await nextTick(); panel.value.showPopover(); place(panel.value, btn.value); panel.value.querySelector('input')?.focus() }
+      const close = () => { open.value = false; try { panel.value.hidePopover() } catch {} }
+      const rows = () => h('div', { class: 'g-party-field__rows', role: props.mode === 'inline' ? 'group' : undefined }, ROWS.map((r) => h(Grana.GNumberField, { key: r.key, label: r.label, hint: r.hint, min: r.min, max: r.max, steppers: true, block: true, decrementLabel: r.decrementLabel, incrementLabel: r.incrementLabel, modelValue: props.modelValue[r.key], 'onUpdate:modelValue': (v) => emit('update:modelValue', { ...props.modelValue, [r.key]: v }) })))
+      onMounted(() => { window.__party = window.__party || {}; window.__party[props.id] = { show, close } })
+      return () => {
+        const cls = ['g-party-field', `g-party-field--mode-${props.mode}`, props.trigger && 'g-party-field--trigger', props.block && 'g-party-field--block', open.value && 'is-open', props.invalid && 'is-invalid', DIS && 'is-disabled']
+        const kids = []
+        if (!props.trigger && props.label) kids.push(h('span', { class: 'g-party-field__label', id: `${props.id}-label` }, props.label))
+        if (props.mode === 'inline') kids.push(rows())
+        else {
+          if (props.trigger) kids.push(slots.trigger({ id: props.id, expanded: open.value, controls: `${props.id}-panel`, toggle, text: text.value }))
+          else kids.push(h('button', { ref: btn, type: 'button', class: 'g-party-field__trigger', id: props.id, disabled: DIS, 'aria-haspopup': 'dialog', 'aria-expanded': String(open.value), 'aria-controls': `${props.id}-panel`, 'aria-labelledby': `${props.id}-label ${props.id}-value`, onClick: toggle }, [ic('users'), h('span', { class: 'g-party-field__value', id: `${props.id}-value`, dir: 'auto' }, text.value), ic('chevron-down', 'g-party-field__arrow')]))
+          kids.push(h('div', { ref: panel, class: 'g-party-field__panel', id: `${props.id}-panel`, role: 'dialog', 'aria-labelledby': `${props.id}-label`, popover: 'manual' }, [rows(), h(Grana.GBtn, { class: 'g-party-field__done', onClick: () => { close(); btn.value && btn.value.focus() } }, () => 'Listo')]))
+        }
+        if (!props.trigger) kids.push(h('div', { class: 'g-party-field__support' }, [h('p', { class: 'g-party-field__message', 'aria-live': 'polite' }, props.invalid ? 'Indica cuántos sois.' : '')]))
+        return h('div', { class: cls }, kids)
+      }
+    }
+  })
+
+  const XBooking = defineComponent({
+    name: 'XBooking',
+    setup () {
+      const filled = Q.get('filled') === '1'
+      const q = reactive({ from: filled ? '2026-11-09' : null, nights: 2, party: { adults: 2, children: 0, rooms: 1 } })
+      const invalid = ref(Q.get('invalid') === '1')
+      const compact = ref(false), dockShown = ref(false), sheet = ref(false)
+      const root = ref(null), row = ref(null), nightsPanel = ref(null), nightsBtn = ref(null)
+      const fmt = (iso) => iso ? new Intl.DateTimeFormat('es', { weekday: 'short', day: 'numeric', month: 'short' }).format(new Date(iso + 'T12:00')) : null
+      const checkout = computed(() => { if (!q.from) return ''; const d = new Date(q.from + 'T12:00'); d.setDate(d.getDate() + q.nights); return new Intl.DateTimeFormat('es', { weekday: 'long', day: 'numeric', month: 'long' }).format(d) })
+      const partyText = computed(() => ROWS.filter((r, i) => i === 0 || q.party[r.key] > 0).map((r) => r.unit(q.party[r.key])).join(' · '))
+      const digest = computed(() => [q.from ? fmt(q.from) : 'Sin fechas', `${q.nights} noches`, partyText.value].join(' · '))
+      let need = 0
+      const measure = () => {
+        if (APP !== 'bar' || !root.value) return
+        requestAnimationFrame(() => {
+          const w = root.value.clientWidth
+          if (!compact.value && row.value && row.value.scrollWidth > row.value.clientWidth + 1) { need = row.value.scrollWidth; compact.value = true } else if (compact.value && w >= need) compact.value = false
+        })
+      }
+      const slot = (key, label, value, extra = {}) => h('button', { type: 'button', class: ['g-booking-bar__slot', value ? 'is-filled' : 'is-empty', invalid.value && !value && 'is-invalid'], disabled: DIS, 'aria-haspopup': 'dialog', 'aria-labelledby': `bk-${key}-l bk-${key}-v`, 'aria-invalid': invalid.value && !value ? 'true' : undefined, 'data-slot': key, ...extra }, [
+        h('span', { class: 'g-booking-bar__slot-label', id: `bk-${key}-l` }, label),
+        h('span', { class: 'g-booking-bar__slot-value', id: `bk-${key}-v`, dir: 'auto' }, value || '¿qué día?')
+      ])
+      const openNights = async () => { const p = nightsPanel.value; if (p.matches(':popover-open')) { p.hidePopover(); return } p.showPopover(); place(p, nightsBtn.value) }
+      onMounted(() => {
+        measure()
+        new ResizeObserver(measure).observe(root.value)
+        if (Q.get('dock') === '1') new IntersectionObserver(([e]) => { dockShown.value = !e.isIntersecting && e.boundingClientRect.bottom < 0 }).observe(root.value)
+        window.__bk = { ready: true, q, invalid, compact, dockShown, openNights }
+      })
+      const datepicker = (inline) => h(Grana.GDatePicker, inline ? { inline: true, modelValue: q.from, 'onUpdate:modelValue': (v) => { q.from = v } } : { class: 'g-datepicker--trigger', modelValue: q.from, 'onUpdate:modelValue': (v) => { q.from = v } }, inline ? undefined : { trigger: (s) => slot('from', 'Llegada', fmt(q.from), { id: 'slot-from', 'aria-expanded': String(s.expanded), 'aria-controls': s.controls, onClick: s.toggle }) })
+      const submit = () => h(Grana.GBtn, { class: 'g-booking-bar__submit', type: 'submit', disabled: DIS, 'aria-describedby': 'bk-digest', id: 'submit' }, () => 'Ver disponibilidad')
+      const onSubmit = (e) => { e.preventDefault(); invalid.value = !q.from }
+      return () => {
+        const kids = [h('h2', { class: 'g-booking-bar__title', id: 'bk-title' }, 'Consulta disponibilidad')]
+        if (APP === 'phrase') {
+          kids.push(h('div', { class: 'g-booking-bar__phrase', dir: 'auto' }, [
+            'Llego el ', datepicker(false), ', me quedo ',
+            h('button', { ref: nightsBtn, type: 'button', class: ['g-booking-bar__slot', 'is-filled'], disabled: DIS, 'aria-haspopup': 'dialog', 'aria-controls': 'bk-nights-panel', 'aria-labelledby': 'bk-n-l bk-n-v', 'data-slot': 'nights', onClick: openNights }, [h('span', { class: 'g-booking-bar__slot-label', id: 'bk-n-l' }, 'Noches'), h('span', { class: 'g-booking-bar__slot-value', id: 'bk-n-v' }, `${q.nights} noches`)]),
+            h('div', { ref: nightsPanel, class: 'g-booking-bar__slot-panel', id: 'bk-nights-panel', role: 'dialog', 'aria-label': 'Noches', popover: 'manual' }, [
+              h(Grana.GNumberField, { label: 'Noches', steppers: true, block: true, min: 1, max: 14, decrementLabel: 'Una noche menos', incrementLabel: 'Una noche más', modelValue: q.nights, 'onUpdate:modelValue': (v) => { q.nights = v } }),
+              q.from ? h('p', { class: 'g-booking-bar__checkout' }, `Salida el ${checkout.value}`) : null,
+              h(Grana.GBtn, { variant: 'outline', onClick: () => { nightsPanel.value.hidePopover(); nightsBtn.value.focus() } }, () => 'Listo')
+            ]),
+            ' y somos ',
+            h(XParty, { trigger: true, id: 'pf-phrase', modelValue: q.party, 'onUpdate:modelValue': (v) => { q.party = v } }, { trigger: (s) => slot('party', 'Personas', s.text, { id: 'slot-party', 'aria-expanded': String(s.expanded), 'aria-controls': s.controls, onClick: s.toggle }) }),
+            '.'
+          ]))
+          if (q.from) kids.push(h('p', { class: 'g-booking-bar__checkout' }, `Salida el ${checkout.value}`))
+          kids.push(h('ul', { class: 'g-booking-bar__messages' }, invalid.value && !q.from ? [h('li', { id: 'bk-err-from' }, [ic('circle-alert'), 'Elige el día de llegada.'])] : []))
+          kids.push(submit())
+        } else if (!compact.value) {
+          kids.push(h('div', { ref: row, class: 'g-booking-bar__row' }, [
+            h('div', { class: 'g-booking-bar__field' }, [h(Grana.GDatePicker, { mode: 'range', split: true, block: true, labelStart: 'Llegada', labelEnd: 'Salida', disabled: DIS })]),
+            h('div', { class: 'g-booking-bar__field' }, [h(XParty, { label: 'Huéspedes', block: true, id: 'pf-bar', modelValue: q.party, invalid: invalid.value, 'onUpdate:modelValue': (v) => { q.party = v } })]),
+            submit()
+          ]))
+        } else {
+          kids.push(h('div', { class: 'g-booking-bar__compact' }, [
+            h('button', { type: 'button', class: 'g-booking-bar__summary', id: 'summary', disabled: DIS, 'aria-haspopup': 'dialog', 'aria-expanded': String(sheet.value), onClick: () => { sheet.value = true } }, [h('span', { class: 'g-booking-bar__summary-title' }, 'Tu consulta'), h('span', { class: 'g-booking-bar__summary-text' }, digest.value), h('span', { class: 'g-booking-bar__summary-change' }, 'Cambiar')]),
+            submit()
+          ]))
+        }
+        kids.push(h('p', { class: 'g-booking-bar__digest', id: 'bk-digest' }, digest.value))
+        kids.push(h(Grana.GDialog, { class: 'g-booking-bar__sheet', modelValue: sheet.value, 'onUpdate:modelValue': (v) => { sheet.value = v }, title: 'Consulta disponibilidad', closeLabel: 'Cerrar' }, { default: () => [h('div', { class: 'g-booking-bar__field' }, [datepicker(true)]), h('div', { class: 'g-booking-bar__field' }, [h(XParty, { mode: 'inline', label: 'Huéspedes', id: 'pf-sheet', modelValue: q.party, 'onUpdate:modelValue': (v) => { q.party = v } })])], footer: () => submit() }))
+        if (Q.get('dock') === '1') {
+          kids.push(h('div', { class: ['g-booking-bar__dock', dockShown.value && 'is-shown'], hidden: !dockShown.value, inert: !dockShown.value, id: 'dock' }, [
+            h('p', { class: 'g-booking-bar__dock-summary' }, digest.value),
+            h(Grana.GBtn, { class: 'g-booking-bar__dock-change', variant: 'outline', onClick: () => { sheet.value = true } }, () => 'Cambiar'),
+            h(Grana.GBtn, { class: 'g-booking-bar__submit', type: 'submit' }, () => 'Ver disponibilidad')
+          ]))
+        }
+        return h('form', { ref: root, class: ['g-booking-bar', `g-booking-bar--appearance-${APP}`, 'g-booking-bar--kind-stay', compact.value && 'is-compact', DIS && 'is-disabled'], role: 'search', 'aria-labelledby': 'bk-title', novalidate: true, onSubmit }, kids)
+      }
+    }
+  })
+  const app = createApp({
+    render: () => h('main', { class: 'page' }, [
+      h('div', { class: 'card' }, [h(XBooking)]),
+      // Muestra estática de los estados del día (enmienda #739): solo salida frente a no disponible
+      h('div', { class: 'mock g-datepicker' }, [
+        h('button', { type: 'button', class: 'g-datepicker__day', id: 'day-ok' }, '5'),
+        h('button', { type: 'button', class: 'g-datepicker__day is-disabled', 'aria-disabled': 'true', id: 'day-off' }, '6'),
+        h('button', { type: 'button', class: 'g-datepicker__day is-checkout-only', id: 'day-out' }, '7')
+      ]),
+      Q.get('dock') === '1' ? h('div', { class: 'long' }) : null,
+      h('p', null, [h('button', { type: 'button', id: 'last' }, 'Último botón de la página')])
+    ])
+  })
+  app.use(Grana.default || Grana)
+  app.mount('#app')
+})()
+</script>
+</body>
+</html>

@@ -176,7 +176,7 @@ a.g-menu__item:is(:visited, :hover, :active, :focus) { text-decoration: none; }
   text-decoration-color: var(--g-color-border-strong);
 }
 
-/* Motivo de no disponible (#718): segunda línea visible, último hijo del elemento, referida por aria-describedby. La
+/* Motivo de no disponible (#790): segunda línea visible, último hijo del elemento, referida por aria-describedby. La
    etiqueta sigue tachada; el motivo no se tacha y va en text-muted (≥ 4,5:1 sobre surface y sobre el resaltado
    surface-sunken), también en un elemento peligroso. Empieza en la columna de la etiqueta (tras la marca o el icono) */
 .g-menu__item:has(> .g-menu__reason) {
@@ -380,7 +380,7 @@ a.g-menu__item:is(:visited, :hover, :active, :focus) { text-decoration: none; }
 /* Callado: el texto se vuelve transparente y el alto no cambia */
 .g-menu__dest.is-empty > * { opacity: 0; }
 
-/* ---------- Buscar al escribir (#725; api.md «Buscar al escribir en todos los menús») ----------
+/* ---------- Buscar al escribir (#797; api.md «Buscar al escribir en todos los menús») ----------
    Primera fila li.g-menu__find (aria-hidden): la pista desde que se abre y, al escribir, lo escrito (como ficha) y el
    recuento. Pegada arriba mientras la lista desplaza y de alto constante (pista, búsqueda o «sin coincidencias» miden lo
    mismo: nada salta bajo el puntero). La misma forma que la cabecera del panel de GFab, en la letra de la lista */
@@ -426,7 +426,7 @@ a.g-menu__item:is(:visited, :hover, :active, :focus) { text-decoration: none; }
   display: none;
 }
 
-/* ---------- Confirmación en el sitio (#718; patrón de GFab, #662 y #677) ----------
+/* ---------- Confirmación en el sitio (#790; patrón de GFab, #662 y #677) ----------
    La fila del elemento peligroso se parte en «Cancelar» (con el foco) | la confirmación, con la geometría de la fila:
    mismo alto (--_ctl) y el ancho que tenía al armar (--_armed-w, px, lo escribe el .vue en el li armado y lo retira al
    desarmar o confirmar): ni la lista ni la tabla de debajo se mueven. Sin movimiento propio (el par aparece en su sitio) */
@@ -586,7 +586,7 @@ a.g-menu__item:is(:visited, :hover, :active, :focus) { text-decoration: none; }
   .g-menu__dest-host { color: CanvasText; }
   .g-menu__list.is-modifier .g-menu__item:not([href]),
   .g-menu__list.is-modifier .g-menu__item:not([href]) .g-menu__icon { color: GrayText; }
-  /* #718 y #725: el motivo, en el color del texto del sistema (no GrayText: se lee entero); la cabecera de búsqueda con
+  /* #790 y #797: el motivo, en el color del texto del sistema (no GrayText: se lee entero); la cabecera de búsqueda con
      su filo; el par con contornos del sistema y el foco en Highlight */
   .g-menu__reason { color: CanvasText; }
   .g-menu__list > .g-menu__find { border-block-end-color: CanvasText; }

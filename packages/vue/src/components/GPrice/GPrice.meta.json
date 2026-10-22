@@ -1,0 +1,173 @@
+{
+  "name": "GPrice",
+  "tag": "g-price",
+  "schemaVersion": 1,
+  "status": "draft",
+  "since": "0.1.0",
+  "entry": "@grana/vue/price",
+  "bundle": {
+    "global": "GranaPrice",
+    "gzip": 5819,
+    "limit": 6144,
+    "umdGzip": 5281,
+    "mainGrowth": 1314,
+    "note": "gzip -9 de dist/price.js (ESM, con avisos); el lote del principal (utils/currency.js con la tabla, GNumberField currency, GDatePicker dayDescription) +1314 B sobre 219 368 B (tope 1536 B); slider.js +110 B"
+  },
+  "contract": "design/contracts/price.md",
+  "decisions": "DECISIONS.md #768 a #779",
+  "prototype": "design/lab/price/r01/",
+  "description": "Un precio que se dice como se habla y que nunca miente sobre su moneda: lo visible es corto («$1,850 MXN / noche») y lo que oye el lector es la frase completa con el nombre de la moneda («desde 1,850 pesos mexicanos por noche»). El código ISO aparece solo si el símbolo es ambiguo; la referencia se nombra en vez de tacharse (C, por defecto); el total de lo pedido aparece con total (A) y sus cifras ruedan. Sin rol, sin foco y sin región viva.",
+  "style": "packages/vue/src/components/GPrice/GPrice.css",
+  "props": [
+    {
+      "name": "value",
+      "type": "Object | Array | null",
+      "default": null,
+      "description": "Money { amount, currency, approximate? } o Money[] (alternativas; solo dentro de un GPriceScope se elige). null = «a consultar» (labels.onRequest)."
+    },
+    {
+      "name": "max",
+      "type": "Object | Array | null",
+      "default": null,
+      "description": "Extremo superior de un rango, en la moneda del importe («$900 a $1,400 MXN»; plantilla labels.range, nunca formatRange)."
+    },
+    {
+      "name": "compareAt",
+      "type": "Object | Array | null",
+      "default": null,
+      "description": "Precio de referencia, en la moneda del importe."
+    },
+    {
+      "name": "compareLabel",
+      "type": "String",
+      "default": null,
+      "description": "Qué es la referencia («Temporada alta»). Obligatoria con trace (aviso 5; respaldo labels.before; sin los dos, la referencia no se pinta)."
+    },
+    {
+      "name": "compareStyle",
+      "type": "String",
+      "default": "trace",
+      "values": [
+        "trace",
+        "strike"
+      ],
+      "description": "trace (C): sin tachar, encima del precio, nombrada, con flecha y ahorro; strike: <s> después del precio, sin ahorro."
+    },
+    {
+      "name": "lead",
+      "type": "String",
+      "default": null,
+      "description": "Texto previo («desde»); se ve y se lee."
+    },
+    {
+      "name": "unit",
+      "type": "String",
+      "default": null,
+      "description": "Unidad visible («/ noche»)."
+    },
+    {
+      "name": "unitLabel",
+      "type": "String",
+      "default": null,
+      "description": "Unidad leída («por noche»); sin ella, unit (#166)."
+    },
+    {
+      "name": "total",
+      "type": "Object | null",
+      "default": null,
+      "description": "A · La cuenta: { value: Money | Money[], label } de la aplicación (Grana no multiplica). Arriba y en grande; al cambiar el importe, solo ruedan las cifras que cambian."
+    },
+    {
+      "name": "size",
+      "type": "String",
+      "default": "md",
+      "values": [
+        "xs",
+        "sm",
+        "md",
+        "lg",
+        "xl"
+      ],
+      "description": "Rol tipográfico de la cifra: xs (día del calendario), sm (carta), md (tarjeta), lg (total del carrito), xl (plan). El secundario nunca baja de caption (12px)."
+    },
+    {
+      "name": "display",
+      "type": "String",
+      "default": "auto",
+      "values": [
+        "auto",
+        "symbol",
+        "code",
+        "none"
+      ],
+      "description": "auto: símbolo y, si es de varias monedas y la región no la declara, el código; symbol: nunca el código; code: el código de Intl; none: solo la cifra."
+    },
+    {
+      "name": "cents",
+      "type": "String",
+      "default": "auto",
+      "values": [
+        "auto",
+        "always",
+        "never"
+      ],
+      "description": "auto: decimales de la moneda sin «,00» en los enteros; always: siempre; never: enteros (solo con size xs, aviso 3)."
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "default": null,
+      "description": "BCP 47. Si falta: el de su GPriceScope › el lang del ancestro (al montar) › navigator.language. Sin locale antes de montar (SSR), la forma canónica «1850 MXN»."
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": {},
+      "description": "PriceLabels de la aplicación (sin valores por defecto, #226), fusionados sobre los de su GPriceScope: free, onRequest, before, range, saving, approx, total."
+    }
+  ],
+  "events": [],
+  "slots": [],
+  "methods": [],
+  "tokens": [
+    "(coco cierra la lista exacta en GPrice.css; price.md «Tokens consumidos», tokens.md §54)"
+  ],
+  "states": [
+    "amount",
+    "free",
+    "on-request",
+    "approx",
+    "negative",
+    "range",
+    "compare-trace",
+    "compare-strike",
+    "total",
+    "rolling",
+    "invalid"
+  ],
+  "classes": [
+    "g-price g-price--size-{xs|sm|md|lg|xl} [data-currency] (raíz span; sin data-currency en invalid)",
+    "g-price--free, g-price--on-request (texto llano), g-price--has-compare, g-price--compare-{trace|strike}, g-price--has-total, g-price--range, g-price--approx, g-price--negative",
+    "g-price__visual (aria-hidden) > g-price__total? > g-price__compare (trace)? > g-price__now > g-price__compare (s, strike)?; g-price__spoken (texto oculto)",
+    "g-price__now > g-price__lead, g-price__approx, g-price__sep, g-price__amount[dir=ltr] (--compare, --word), g-price__unit",
+    "g-price__amount > g-price__minus, g-price__symbol, g-price__number, g-price__code",
+    "g-price__compare (trace) > g-price__compare-label, g-price__amount--compare, GLibIcon arrow-right.g-price__arrow.g-icon--flip-rtl, g-price__saving",
+    "g-price__total > g-price__total-label, g-price__total-amount[dir=ltr] (is-rolling, data-direction up|down; dentro las partes del importe y, durante la capa, g-price__number con g-price__roll-slot > g-price__roll-new + g-price__roll-old), g-price__total-unit"
+  ],
+  "warnings": [
+    "1 · Money inválido (sin currency, moneda mal formada) o amount no finito (se lee como null)",
+    "2 · max, compareAt o total sin la moneda del importe elegido: no se pintan",
+    "3 · cents=\"never\" con size distinto de xs: se usa auto",
+    "4 · compareAt ≤ value: sin ahorro",
+    "5 · trace sin compareLabel (respaldo labels.before; sin los dos no se pinta); strike sin compareLabel ni labels.before",
+    "6 · max < value: el rango se pinta tal cual",
+    "7 · falta labels.free, labels.onRequest, labels.range, labels.approx o labels.total según el caso",
+    "8 · alternativas fuera de un GPriceScope: se usa la primera",
+    "9 · locale que Intl rechaza"
+  ],
+  "pending": [
+    "Auditoría de coco (GPrice.css, rúbrica de movimiento de A) → candidate",
+    "README (mora-docs)",
+    "Lector de pantalla real, teléfono real, forced-colors real (price.md «No verificado»)"
+  ]
+}

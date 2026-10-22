@@ -1,8 +1,8 @@
 // Verificación de coco sobre el banco de GResourceList (design/lab/resource-list/estilo-banco.html): CSS real del block
-// (packages/blocks/src/components.css → layer(grana.blocks)) y de las enmiendas de la v1 en dist/grana.css (#715, #717,
-// #718, #725), con GPageHeader, GTable, GMenu, GTag, GInput, GBtn y GEmpty reales de dist/.
+// (packages/blocks/src/components.css → layer(grana.blocks)) y de las enmiendas de la v1 en dist/grana.css (#787, #789,
+// #790, #797), con GPageHeader, GTable, GMenu, GTag, GInput, GBtn y GEmpty reales de dist/.
 // Mide: análisis estático del CSS del block y del registro; geometría (alineación Δ0 del h1 con acciones, facetas, frase y
-// tabla; distancia descripción → acción igual que la base, #714; facetas en una fila en estrecho; dianas ≥ 24 / ≥ 44 con
+// tabla; distancia descripción → acción igual que la base, #786; facetas en una fila en estrecho; dianas ≥ 24 / ≥ 44 con
 // puntero grueso; barra de la tabla de alto constante en reposo, con selección y armada; recuento a cero oculto pero en el
 // árbol; sin desplazamiento horizontal a 360 y 390); foco visible; la palabra nueva (fundido solo tras elegir en el hueco,
 // nada al montar, nada con movimiento reducido); RTL; colores forzados (Chromium); contraste en el tema por defecto y los
@@ -55,7 +55,7 @@ const note = (s) => notes.push(s)
   ok(!missing.length, 'block: todos los tokens existen en defaults.css ' + missing)
   const allowed = ['--g-color-text', '--g-color-text-muted', '--g-color-border-control', '--g-color-neutral-soft', '--g-color-focus']
   const colors = [...new Set(vars.filter((v) => v.startsWith('--g-color')))]
-  ok(colors.every((v) => allowed.includes(v)), 'block: tokens de color solo los de §48: ' + colors.filter((v) => !allowed.includes(v)))
+  ok(colors.every((v) => allowed.includes(v)), 'block: tokens de color solo los de §55: ' + colors.filter((v) => !allowed.includes(v)))
   const own = new Set([...css.matchAll(/(--_[\w-]+)\s*:/g)].map((m) => m[1]))
   ok(![...new Set(vars.filter((v) => v.startsWith('--_') && !own.has(v)))].length, 'block: solo lee alias que declara')
   const px = [...css.matchAll(/(-?\d*\.?\d+)px/g)].map((m) => m[0])
@@ -71,7 +71,7 @@ const note = (s) => notes.push(s)
   const reg = (await readFile(join(ROOT, 'packages/blocks/src/components.css'), 'utf8')).replace(/\/\*[\s\S]*?\*\//g, '').trim()
   ok(/^@layer grana\.defaults, grana\.components, grana\.blocks;\s*@import url\("\.\/blocks\/GResourceList\/GResourceList\.css"\) layer\(grana\.blocks\);$/.test(reg), 'registro: declaración de capas primero e import en layer(grana.blocks)')
   // Enmiendas de la v1: el CSS nuevo no trae respaldos ni literales
-  for (const [f, re] of [['GMenu', /\/\* Motivo de no disponible[\s\S]*?(?=\/\* Peligroso)|\/\* -{10} Buscar al escribir[\s\S]*?(?=\/\* -{10} Grupo)/g], ['GTable', /\/\* Recuento a cero[\s\S]*?(?=\/\* Controles que)/g], ['GFab', /\/\* Pila que filtra[\s\S]*?(?=\/\* -{10} Peligrosas)/g], ['GPageHeader', /\/\* Sin pestañas \(#715 b\)[\s\S]*?(?=\.g-page-header__actions \{)/g]]) {
+  for (const [f, re] of [['GMenu', /\/\* Motivo de no disponible[\s\S]*?(?=\/\* Peligroso)|\/\* -{10} Buscar al escribir[\s\S]*?(?=\/\* -{10} Grupo)/g], ['GTable', /\/\* Recuento a cero[\s\S]*?(?=\/\* Controles que)/g], ['GFab', /\/\* Pila que filtra[\s\S]*?(?=\/\* -{10} Peligrosas)/g], ['GPageHeader', /\/\* Sin pestañas \(#787 b\)[\s\S]*?(?=\.g-page-header__actions \{)/g]]) {
     const src = (await readFile(join(ROOT, `packages/vue/src/components/${f}/${f}.css`), 'utf8'))
     const blocks = [...src.matchAll(re)].map((m) => m[0].replace(/\/\*[\s\S]*?\*\//g, '')).join('\n')
     ok(blocks.length > 50, `${f}: bloque de la enmienda presente`)
@@ -164,25 +164,25 @@ for (const engine of ENGINES) {
     ok(g.h1Count === 1 && g.labelled === g.h1Id, `un h1 y la tabla nombrada por él (${g.labelled} / ${g.h1Id})`, S)
     ok(!g.narrow, 'escritorio: sin is-narrow a 1280', S)
     const d = (a, b) => Math.abs(a - b)
-    ok(d(g.actions, g.h1Box) <= 0.5, `#715 b: acción principal alineada con el h1 sin pestañas (Δ ${d(g.actions, g.h1Box).toFixed(2)})`, S)
+    ok(d(g.actions, g.h1Box) <= 0.5, `#787 b: acción principal alineada con el h1 sin pestañas (Δ ${d(g.actions, g.h1Box).toFixed(2)})`, S)
     ok(d(g.facets, g.h1Box) <= 0.5 && d(g.table, g.h1Box) <= 0.5 && d(g.phrase, g.h1) <= 1, `Δ0: h1 ${g.h1Box} · facetas ${g.facets} · frase ${g.phrase?.toFixed(1)} (tinta) · tabla ${g.table}`, S)
     ok(g.solidBrand === 1, `una sola acción sólida de marca a la vista (${g.solidBrand})`, S)
     ok(g.facetRows === 1, 'escritorio: facetas en una fila', S)
     ok(g.blanks.length === 4 && g.blanks.every((b) => b.h >= 24), `huecos ≥ 24 px (${g.blanks.map((b) => b.h.toFixed(1))})`, S)
     ok(g.tags.every((t) => t.hit >= 24), 'facetas ≥ 24 px', S)
     ok(!g.overflow, 'sin desplazamiento horizontal a 1280', S)
-    ok(g.count && g.count.role === 'status' && g.count.empty && g.count.w <= 1 && /^(0\b|$)/.test(g.count.text) && g.count.display !== 'none', `#717: recuento a cero montado, vacío y oculto con el patrón (w ${g.count?.w})`, S)
+    ok(g.count && g.count.role === 'status' && g.count.empty && g.count.w <= 1 && /^(0\b|$)/.test(g.count.text) && g.count.display !== 'none', `#789: recuento a cero montado, vacío y oculto con el patrón (w ${g.count?.w})`, S)
     const rest = g
     // Base: GPageHeader solo con los mismos props
     const base = await open(browser, 'view=base'); track(base)
     const gb = await geo(base.page)
-    ok(d(gb.descToAction, g.descToAction) <= 1, `#714: descripción → acción igual que la base (block ${g.descToAction.toFixed(1)} · base ${gb.descToAction.toFixed(1)})`, S)
+    ok(d(gb.descToAction, g.descToAction) <= 1, `#786: descripción → acción igual que la base (block ${g.descToAction.toFixed(1)} · base ${gb.descToAction.toFixed(1)})`, S)
     await base.ctx.close()
     // Selección y armado: la barra no cambia de alto y la primera fila no se mueve
     for (const st of ['selected', 'armed']) {
       const o = track(await open(browser, 'state=' + st))
       const gs = await geo(o.page)
-      ok(d(gs.bar.h, rest.bar.h) <= 0.5 && d(gs.firstRowTop, rest.firstRowTop) <= 0.5, `#717: barra de alto constante en «${st}» (Δ alto ${d(gs.bar.h, rest.bar.h).toFixed(2)}, Δ fila ${d(gs.firstRowTop, rest.firstRowTop).toFixed(2)})`, S)
+      ok(d(gs.bar.h, rest.bar.h) <= 0.5 && d(gs.firstRowTop, rest.firstRowTop) <= 0.5, `#789: barra de alto constante en «${st}» (Δ alto ${d(gs.bar.h, rest.bar.h).toFixed(2)}, Δ fila ${d(gs.firstRowTop, rest.firstRowTop).toFixed(2)})`, S)
       ok(gs.count && !gs.count.empty && gs.count.text === '2 seleccionadas' && gs.count.w > 1, `«${st}»: el recuento se ve con selección`, S)
       if (args.shots && engine === 'chromium') await o.page.locator('.g-table__bar').screenshot({ path: join(SHOTS, `barra-${st}.png`) })
       await o.ctx.close()
@@ -240,7 +240,7 @@ for (const engine of ENGINES) {
     ok(!g.overflow, `${w}: sin desplazamiento horizontal`, S)
     const base = track(await open(browser, 'view=base', ...PHONE(w)))
     const gb = await geo(base.page)
-    ok(d(gb.descToAction, g.descToAction) <= 1, `${w}: #714 descripción → acción igual que la base (${g.descToAction.toFixed(1)} / ${gb.descToAction.toFixed(1)})`, S)
+    ok(d(gb.descToAction, g.descToAction) <= 1, `${w}: #786 descripción → acción igual que la base (${g.descToAction.toFixed(1)} / ${gb.descToAction.toFixed(1)})`, S)
     await base.ctx.close()
     for (const [st, q] of [['selected', 'state=selected'], ['armed', 'state=armed'], ['selected sin iconos', 'state=selected&bulkicons=0']]) {
       const s = track(await open(browser, q, ...PHONE(w)))
@@ -294,15 +294,15 @@ for (const engine of ENGINES) {
         hidden: [...document.querySelectorAll('#m-find li[hidden]')].every((li) => getComputedStyle(li).display === 'none')
       }
     })
-    ok(m.iconItem.below && m.iconItem.dx <= 0.5 && m.plainItem.below && m.plainItem.dx <= 0.5, `#718: motivo en la segunda línea, en la columna de la etiqueta (Δ ${m.iconItem.dx.toFixed(2)} / ${m.plainItem.dx.toFixed(2)})`, S)
-    ok(m.reasonDeco === 'none', '#718: el motivo no se tacha', S)
-    ok(m.reasonC.every((c) => c >= 4.5), `#718: motivo ≥ 4,5:1 sobre surface y surface-sunken (${m.reasonC.map((c) => c.toFixed(2))})`, S)
-    ok(Math.abs(m.armedW[0] - m.armedW[1]) <= 0.5, `#718: la fila armada conserva el ancho (${m.armedW.map((x) => x.toFixed(1))})`, S)
-    ok(Math.abs(m.armedH[0] - m.armedH[2]) <= 0.5 && Math.abs(m.armedH[1] - m.armedH[2]) <= 0.5, `#718: el par mide lo que la fila, en una línea (${m.armedH.map((x) => x.toFixed(1))})`, S)
-    ok(m.okC >= 4.5 && m.okEdge >= 3 && m.cancelEdge >= 3, `#718: confirmar ${m.okC.toFixed(2)}:1, contornos ${m.okEdge.toFixed(2)} / ${m.cancelEdge.toFixed(2)}:1`, S)
-    ok(Math.abs(m.find.h - m.find.item) <= 0.5 && m.find.pos === 'sticky', `#725: fila de búsqueda pegada y del alto de un elemento (${m.find.h.toFixed(1)} / ${m.find.item.toFixed(1)})`, S)
-    ok(m.find.c >= 4.5 && m.find.q >= 4.5, `#725: pista ${m.find.c.toFixed(2)}:1, lo escrito ${m.find.q.toFixed(2)}:1`, S)
-    ok(m.hidden, '#725: lo que no coincide no se pinta', S)
+    ok(m.iconItem.below && m.iconItem.dx <= 0.5 && m.plainItem.below && m.plainItem.dx <= 0.5, `#790: motivo en la segunda línea, en la columna de la etiqueta (Δ ${m.iconItem.dx.toFixed(2)} / ${m.plainItem.dx.toFixed(2)})`, S)
+    ok(m.reasonDeco === 'none', '#790: el motivo no se tacha', S)
+    ok(m.reasonC.every((c) => c >= 4.5), `#790: motivo ≥ 4,5:1 sobre surface y surface-sunken (${m.reasonC.map((c) => c.toFixed(2))})`, S)
+    ok(Math.abs(m.armedW[0] - m.armedW[1]) <= 0.5, `#790: la fila armada conserva el ancho (${m.armedW.map((x) => x.toFixed(1))})`, S)
+    ok(Math.abs(m.armedH[0] - m.armedH[2]) <= 0.5 && Math.abs(m.armedH[1] - m.armedH[2]) <= 0.5, `#790: el par mide lo que la fila, en una línea (${m.armedH.map((x) => x.toFixed(1))})`, S)
+    ok(m.okC >= 4.5 && m.okEdge >= 3 && m.cancelEdge >= 3, `#790: confirmar ${m.okC.toFixed(2)}:1, contornos ${m.okEdge.toFixed(2)} / ${m.cancelEdge.toFixed(2)}:1`, S)
+    ok(Math.abs(m.find.h - m.find.item) <= 0.5 && m.find.pos === 'sticky', `#797: fila de búsqueda pegada y del alto de un elemento (${m.find.h.toFixed(1)} / ${m.find.item.toFixed(1)})`, S)
+    ok(m.find.c >= 4.5 && m.find.q >= 4.5, `#797: pista ${m.find.c.toFixed(2)}:1, lo escrito ${m.find.q.toFixed(2)}:1`, S)
+    ok(m.hidden, '#797: lo que no coincide no se pinta', S)
     if (args.shots && engine === 'chromium') await o.page.screenshot({ path: join(SHOTS, 'menu-enmiendas.png'), clip: { x: 0, y: 70, width: 980, height: 260 } })
     await o.ctx.close()
   }
@@ -325,14 +325,14 @@ for (const engine of ENGINES) {
       const t = getComputedStyle(li)
       return { farthest: lis[0] === find, n: lis.length, c: C.pair(C.rgba(cs.color), C.tok('--g-color-surface')), edge: C.pair(C.rgba(cs.borderTopColor), C.tok('--g-color-bg')), shifted, shiftedT, dur: t.transitionDuration, delay: t.transitionDelay, prop: t.transitionProperty }
     })
-    ok(fb.farthest && fb.n === 3, `#725: la pista va en la píldora más alejada del FAB y solo quedan las que coinciden (${fb.n})`, S)
-    ok(fb.c >= 4.5 && fb.edge >= 3, `#725: pista de la pila ${fb.c.toFixed(2)}:1, contorno ${fb.edge.toFixed(2)}:1`, S)
-    ok(/-40px/.test(fb.shifted) && /^0s/.test(fb.shiftedT), `#725: is-shifted parte del sitio de antes sin transición (${fb.shifted}, ${fb.shiftedT})`, S)
-    ok(fb.prop.includes('translate') && /0\.12s/.test(fb.dur) && /^0s(, 0s)*$/.test(fb.delay), `#725: se juntan en fast + ease-out sin escalonado (${fb.prop} ${fb.dur} ${fb.delay})`, S)
+    ok(fb.farthest && fb.n === 3, `#797: la pista va en la píldora más alejada del FAB y solo quedan las que coinciden (${fb.n})`, S)
+    ok(fb.c >= 4.5 && fb.edge >= 3, `#797: pista de la pila ${fb.c.toFixed(2)}:1, contorno ${fb.edge.toFixed(2)}:1`, S)
+    ok(/-40px/.test(fb.shifted) && /^0s/.test(fb.shiftedT), `#797: is-shifted parte del sitio de antes sin transición (${fb.shifted}, ${fb.shiftedT})`, S)
+    ok(fb.prop.includes('translate') && /0\.12s/.test(fb.dur) && /^0s(, 0s)*$/.test(fb.delay), `#797: se juntan en fast + ease-out sin escalonado (${fb.prop} ${fb.dur} ${fb.delay})`, S)
     await o.ctx.close()
     const r = track(await open(browser, 'view=fab', { width: 600, height: 600 }, { reducedMotion: 'reduce' }))
     const tr = await r.page.evaluate(() => { const li = document.querySelector('#f4').parentElement; li.classList.add('is-shifted'); li.style.setProperty('--_shift', '-40px'); return getComputedStyle(li).translate })
-    ok(tr === 'none', `#725: con movimiento reducido no se desplazan (${tr})`, S)
+    ok(tr === 'none', `#797: con movimiento reducido no se desplazan (${tr})`, S)
     await r.ctx.close()
   }
 

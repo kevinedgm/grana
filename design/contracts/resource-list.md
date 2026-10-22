@@ -1,13 +1,13 @@
 # Contrato · GResourceList (Grana Blocks)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #709 a #722, 2026-10-20; respuestas del usuario #723 a #725 y hallazgos de estilo de coco #726 a #728, 2026-10-21); pendiente de coco (CSS del block y de las enmiendas) y de bruno (`.vue`, enmiendas, pruebas) · **Basado en:** `design/lab/resource-list/r01/` (kiwi, bb211db: `brief.md`, `declaracion.md` §1–§15, `rl.js`, `index.html?c=C`, `verificar.mjs` 432/432 en Chromium, Firefox y WebKit, puerto 4211)
-**Tag:** `g-resource-list` · **Categoría:** block (pantalla de gestión) · **Paquete:** **`@grana/blocks`** (`packages/blocks/`, privado, `0.0.0`; #708) · **Avisos:** `[Grana GResourceList]`
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #781 a #794, 2026-10-20; respuestas del usuario #795 a #797 y hallazgos de estilo de coco #798 a #800, 2026-10-21); pendiente de coco (CSS del block y de las enmiendas) y de bruno (`.vue`, enmiendas, pruebas) · **Basado en:** `design/lab/resource-list/r01/` (kiwi, bb211db: `brief.md`, `declaracion.md` §1–§15, `rl.js`, `index.html?c=C`, `verificar.mjs` 432/432 en Chromium, Firefox y WebKit, puerto 4211)
+**Tag:** `g-resource-list` · **Categoría:** block (pantalla de gestión) · **Paquete:** **`@grana/blocks`** (`packages/blocks/`, privado, `0.0.0`; #780) · **Avisos:** `[Grana GResourceList]`
 
 **Componente complejo** (compone `GPageHeader`, `GTable` con su `GFilterBar` y su `GPagination`, `GEmpty`, `GMenu`, `GDialog`, `GTag`, `GInput`, `GBtn`, `GIcon`; motor de consulta y de selección; una superposición): **coco y bruno en Opus** (regla de `CLAUDE.md`).
 
-La pantalla que toda aplicación de negocio repite: **ver** un conjunto de recursos, **encontrar** uno, **crearlo**, **cambiarlo** y **retirarlo**, sin perder dónde estaba la persona. El block **ensambla** componentes de `@grana/vue`; lo propio es el **orden** de la pantalla, la **frase** de la consulta, las **facetas**, el **sitio del editor**, la **selección** con sus masivas y **a dónde vuelve el foco**. No hace `fetch`, no valida, no guarda y no conoce endpoints (#708).
+La pantalla que toda aplicación de negocio repite: **ver** un conjunto de recursos, **encontrar** uno, **crearlo**, **cambiarlo** y **retirarlo**, sin perder dónde estaba la persona. El block **ensambla** componentes de `@grana/vue`; lo propio es el **orden** de la pantalla, la **frase** de la consulta, las **facetas**, el **sitio del editor**, la **selección** con sus masivas y **a dónde vuelve el foco**. No hace `fetch`, no valida, no guarda y no conoce endpoints (#780).
 
-**Forma (decisión del usuario del 2026-10-20, #709): C · «La frase».** La consulta **se lee** como una frase con huecos («Tinas **en cualquier estado** de **cualquier agave** a cargo de **cualquier maestro**, **lo que pide atención primero**»), cada hueco un `GMenu` de radios; las **facetas** cuentan sin su propio filtro; la pantalla **empieza por lo que pide atención**; las bajas se confirman **en el sitio**; el editor es una **hoja lateral**. A · «En su sitio» y B · «Lente» **no se contratan**: quedan **reservadas** como formas futuras (`removal="undo"` y `editor="lens"`, #723), sin construir, con ronda propia.
+**Forma (decisión del usuario del 2026-10-20, #781): C · «La frase».** La consulta **se lee** como una frase con huecos («Tinas **en cualquier estado** de **cualquier agave** a cargo de **cualquier maestro**, **lo que pide atención primero**»), cada hueco un `GMenu` de radios; las **facetas** cuentan sin su propio filtro; la pantalla **empieza por lo que pide atención**; las bajas se confirman **en el sitio**; el editor es una **hoja lateral**. A · «En su sitio» y B · «Lente» **no se contratan**: quedan **reservadas** como formas futuras (`removal="undo"` y `editor="lens"`, #795), sin construir, con ronda propia.
 
 ---
 
@@ -15,10 +15,10 @@ La pantalla que toda aplicación de negocio repite: **ver** un conjunto de recur
 
 1. **El block compone; no repinta** (kiwi §3.1). Carga, refresco, error, vacío, recuento, rango, tarjetas, pie y estado de fila son de `GTable`, `GEmpty` y `GPagination`. Lo que esos componentes ya hacen no se duplica.
 2. **Intención, nunca mutación.** El block no cambia `rows`, `total` ni la consulta por su cuenta: emite `update:query`, `create`, `edit`, `duplicate`, `remove` y la aplicación consulta, guarda y vuelve a pasar los datos.
-3. **Solo API pública de `@grana/vue`** (#720, `api.md` «Grana Blocks»): `@grana/blocks` es otro paquete y no lee `__shared`. Lo que el block necesita y no es público se resuelve con una **enmienda del componente** (§«Enmiendas de `@grana/vue`»), nunca tocando su DOM interno.
-4. **Una pantalla, una jerarquía:** un `h1` (el de `GPageHeader`), **una** acción principal sólida, y nada del block entre el título y su acción (#714).
-5. **La consulta se lee** (personalidad, #710): lo que se ve está dicho en una frase de la aplicación, en su idioma, sin fragmentos concatenados por el block.
-6. **Sin textos propios** (`labels`, sin valores por defecto, #226) y **sin región viva propia** (#720).
+3. **Solo API pública de `@grana/vue`** (#792, `api.md` «Grana Blocks»): `@grana/blocks` es otro paquete y no lee `__shared`. Lo que el block necesita y no es público se resuelve con una **enmienda del componente** (§«Enmiendas de `@grana/vue`»), nunca tocando su DOM interno.
+4. **Una pantalla, una jerarquía:** un `h1` (el de `GPageHeader`), **una** acción principal sólida, y nada del block entre el título y su acción (#786).
+5. **La consulta se lee** (personalidad, #782): lo que se ve está dicho en una frase de la aplicación, en su idioma, sin fragmentos concatenados por el block.
+6. **Sin textos propios** (`labels`, sin valores por defecto, #226) y **sin región viva propia** (#792).
 
 ## Uso
 
@@ -77,7 +77,7 @@ const facetas = [
   { id: 'fermentando', label: 'Fermentando', filter: { key: 'estado', op: 'in', value: ['fermentando'] }, count: 21 },
   /* … */
 ]
-// La consulta empieza por lo que pide atención (receta de C, #710)
+// La consulta empieza por lo que pide atención (receta de C, #782)
 const consulta = ref({ search: '', filters: [], sort: { key: 'atencion', direction: 'ascending' }, page: 1, pageSize: 10 })
 ```
 
@@ -91,21 +91,21 @@ main                                              ← de la aplicación; el cont
    │                                                 (sin container-type, transform, filter ni contain: page-header.md «Pegado», reglas 6 y 7)
    ├─ header.g-page-header (GPageHeader)           ← h1 #{id}-title; [trail] [meta] de la aplicación;
    │     └─ [actions] {narrow, docked}             ← las de la aplicación y, al final, «crear» (la única sólida de marca)
-   │        ⚠ nada en el slot por defecto ni en meta lo pone el block (#714)
-   └─ div.g-resource-list__body                    ← inset en línea = el de GPageHeader (#715)
+   │        ⚠ nada en el slot por defecto ni en meta lo pone el block (#786)
+   └─ div.g-resource-list__body                    ← inset en línea = el de GPageHeader (#787)
       ├─ div.g-resource-list__query role="search" aria-label={labels.query}
       │  ├─ div.g-resource-list__facets role="group" aria-label={labels.facets}   ← GTag de alternar (aria-pressed)
-      │  ├─ div.g-resource-list__phrase            ← texto de la plantilla + un GMenu de radios por hueco (div, no p: #727)
+      │  ├─ div.g-resource-list__phrase            ← texto de la plantilla + un GMenu de radios por hueco (div, no p: #799)
       │  │     └─ GMenu > [trigger] button.g-resource-list__blank[.is-set]
       │  └─ GInput type="search" .g-resource-list__search   (con searchable)
       └─ GTable aria-labelledby={id}-title         ← GFilterBar (si alguna columna declara filter) · barra · tabla/tarjetas · GEmpty · GPagination
-            ├─ [toolbar]  span.g-resource-list__total  |  div.g-resource-list__bulk role="group"   (#717)
-            └─ [row-actions] GMenu (editar · duplicar · …de la aplicación · dar de baja con confirmación en el sitio, #718)
+            ├─ [toolbar]  span.g-resource-list__total  |  div.g-resource-list__bulk role="group"   (#789)
+            └─ [row-actions] GMenu (editar · duplicar · …de la aplicación · dar de baja con confirmación en el sitio, #790)
    GDialog.g-resource-list__editor placement="end" mobile="sheet"   ← el editor (hoja lateral), hermano del cuerpo
 ```
 
 - **Orden del DOM = lectura = Tab** (1.3.2, 2.4.3): encabezado (ruta → `h1` → descripción → `meta` → acciones) → consulta (facetas → frase → búsqueda) → tabla (filtros → barra con masivas → filas → pie). Ni `order` ni `grid-area` que reordenen.
-- **Las facetas son controles de la consulta** y viven en la región `search`, no en el encabezado (#714; corrige kiwi §2, donde iban en el slot por defecto de `GPageHeader` y empujaban la acción).
+- **Las facetas son controles de la consulta** y viven en la región `search`, no en el encabezado (#786; corrige kiwi §2, donde iban en el slot por defecto de `GPageHeader` y empujaban la acción).
 - Con `forbidden`, la región de consulta y la tabla no se pintan; en su lugar, `GEmpty cause="forbidden"` (§«Estados»).
 
 ## Props
@@ -117,14 +117,14 @@ main                                              ← de la aplicación; el cont
 | `headingLevel` | Number | `1` `2` `3` | `1` | `GPageHeader` (2 o 3 si el block vive en un panel o un `GDialog`) |
 | `sticky` | Boolean | | `true` | `GPageHeader` |
 | `query` | Object | `{ search, filters, sort, page, pageSize }` | — (**obligatoria**) | propia (`v-model:query`); §«Consulta» |
-| `columns` | Array | la forma de `GTable` | `[]` | `GTable` (objetos para la estructura, slots para la celda; #711) |
+| `columns` | Array | la forma de `GTable` | `[]` | `GTable` (objetos para la estructura, slots para la celda; #783) |
 | `rows` | Array | objetos con campos | `[]` | `GTable` (la página actual que da el servidor) |
 | `rowKey` | String | nombre de campo | `id` | `GTable` |
 | `total` | Number | ≥ 0 | sin valor | `GTable` (modo servidor siempre: `sortMode`/`filterMode` `external`, kiwi §3.5) |
 | `rowStatus` | Function | `(row) => { status, text, key? } \| null` | sin valor | `GTable` (#600) |
 | `rowHref` | Function | `(row) => string \| null` | sin valor | `GTable`: puerta de la fila a la ficha de la aplicación; re-emitida como `open` |
 | `density` | String | `default` `comfortable` `compact` | `default` | `GTable` |
-| `pageSizes` | Array | enteros ≥ 1 | sin valor | `GTable` **solo fuera de estrecho** (#716) |
+| `pageSizes` | Array | enteros ≥ 1 | sin valor | `GTable` **solo fuera de estrecho** (#788) |
 | `loading` | Boolean | | `false` | `GTable` |
 | `error` | Boolean | | `false` | `GTable` (#540) |
 | `forbidden` | Boolean | | `false` | propia: `GEmpty cause="forbidden"` en lugar de consulta y tabla |
@@ -141,7 +141,7 @@ main                                              ← de la aplicación; el cont
 | `labels` | Object | §«Textos» | `{}` (**sin valores por defecto**) | propia; `labels.table`, `labels.emptyExit` y `labels.menu` pasan a sus componentes |
 | `id` | String | | generado (SSR-seguro) | base de ids (`{id}-title`, editor, frase) |
 
-**No existen** (y por qué): `appearance`; **reservados como formas futuras por decisión del usuario (#723)**, sin construir ni coste de peso y con ronda propia de kiwi cuando se retomen: `removal="undo"` (la huella con «Deshacer» de A, con L1, L2 y L11) y `editor="lens"` (la lente de B, con L6 y `GTable` C · Lente, #601); `counts` suelto (las cuentas van en cada faceta); `filters`/`sort`/`page` sueltos (todo es `query`); `fetch`, `endpoint`, `adapter` (#708; los adaptadores `@grana/data` y `@grana/forms` siguen en `PENDIENTES.md`).
+**No existen** (y por qué): `appearance`; **reservados como formas futuras por decisión del usuario (#795)**, sin construir ni coste de peso y con ronda propia de kiwi cuando se retomen: `removal="undo"` (la huella con «Deshacer» de A, con L1, L2 y L11) y `editor="lens"` (la lente de B, con L6 y `GTable` C · Lente, #601); `counts` suelto (las cuentas van en cada faceta); `filters`/`sort`/`page` sueltos (todo es `query`); `fetch`, `endpoint`, `adapter` (#780; los adaptadores `@grana/data` y `@grana/forms` siguen en `PENDIENTES.md`).
 
 ### Reglas de props
 
@@ -160,7 +160,7 @@ main                                              ← de la aplicación; el cont
 - Una clave en un hueco **y** en una columna con `filter`: aviso 4 (dos controles para lo mismo); manda el hueco.
 - **El block no ordena, no filtra, no pagina y no cuenta.** Todo eso es del servidor de la aplicación.
 
-## La frase (#712)
+## La frase (#784)
 
 La consulta se dice en **una frase de la aplicación**. El block no concatena fragmentos: la aplicación escribe la frase entera en su idioma, con el orden de palabras, el género y el número que pida, y marca dónde va cada hueco.
 
@@ -184,7 +184,7 @@ La consulta se dice en **una frase de la aplicación**. El block no concatena fr
 | `options` | Array | `{ value, label, phrase?, sort? }`. `label`: el radio del menú. `phrase`: la forma dentro de la frase. `sort` (solo en `sort`): `{ key, direction }` que aplica |
 
 - **Cada hueco es un `GMenu`** cuyo disparador es el botón del hueco (slot `trigger` con sus `attrs`; `id` propio, #308) y cuyos elementos son un `group` con el `label` del hueco y `radio` por opción (`checked` según la consulta); la opción «cualquiera» va primero. `closeOnSelect="always"`: elegir es una decisión, cierra y devuelve el foco al hueco (que ya dice el valor nuevo).
-- **Buscar al escribir (#725):** los menús de los huecos filtran al escribir con la regla común (`api.md`) si llegan sus textos por `labels.menu` (`findHint`, `matches`, `matchesOne`, `none`); útil con listas largas (agaves, maestros). Sin ellos, saltan por letra.
+- **Buscar al escribir (#797):** los menús de los huecos filtran al escribir con la regla común (`api.md`) si llegan sus textos por `labels.menu` (`findHint`, `matches`, `matchesOne`, `none`); útil con listas largas (agaves, maestros). Sin ellos, saltan por letra.
 - **Solo listas de un valor.** Rangos, fechas y varios valores **no** van en la frase: se declaran como `filter` en las columnas y los pinta la `GFilterBar` de la tabla (kiwi §6, riesgo). `multiple` en un hueco queda **reservado**.
 - **En estrecho**, las facetas no fijadas se pliegan **dentro del hueco de su clave** (§«Facetas»): cada radio lleva su cuenta en el `label` (`labels.facetOption`).
 
@@ -192,7 +192,7 @@ La consulta se dice en **una frase de la aplicación**. El block no concatena fr
 
 El hueco **se reconoce como control sin depender del color** (1.4.1, 1.4.11): subrayado de `--g-border-width` en `--g-color-border-control` (≥ 3:1) y el `chevron-down` decorativo; con valor (`is-set`), texto `--g-color-text` con `--g-text-action-weight`; sin valor, `--g-color-text` con el peso del cuerpo (los dos ≥ 4,5:1). Al pasar, fondo `--g-color-neutral-soft` con `--g-radius-sm`; foco con `--g-color-focus`, `--g-focus-width` y `--g-focus-offset` (contorno ≥ 2 px medido por kiwi). Diana ≥ 24 × 24 y ≥ 44 × 44 con `pointer: coarse` (el interlineado de la frase lo acomoda; kiwi midió 40 y 44). Texto de la frase `--g-text-body-*` (no compite con el `h1`).
 
-## Facetas (#713)
+## Facetas (#785)
 
 Las facetas dicen **cuántos hay** de cada cosa y se pulsan para quedarse con ellas. Son **`GTag` de alternar** (`pressed`, `aria-pressed`; `tag.md`: «un filtro de la vista que actúa en el acto»), sueltas dentro de `div role="group"` con `labels.facets`. **No se reconstruyen** como botones propios (regla de `auditoria-visual.md` §4).
 
@@ -212,7 +212,7 @@ Las facetas dicen **cuántos hay** de cada cosa y se pulsan para quedarse con el
 - **Sin anuncio propio:** el recuento que importa lo anuncia la tabla al llegar los datos (#569); la faceta solo cambia `aria-pressed`. Las cuentas que cambian no se anuncian (receta del `summary`).
 - **Mientras carga** las facetas siguen operables (como la barra de `GTable`) y conservan las cuentas que había.
 
-### Facetas en estrecho (#714)
+### Facetas en estrecho (#786)
 
 En estrecho (`is-narrow`, §«Responsive») las facetas **no ocupan más de una fila**:
 
@@ -220,7 +220,7 @@ En estrecho (`is-narrow`, §«Responsive») las facetas **no ocupan más de una 
 2. Las demás **se pliegan en el hueco de su `key`**: sus cuentas pasan a los radios de ese hueco (`labels.facetOption({ label, count })` → «Fermentando · 21»). Nada se pierde: la cuenta sigue a un toque y en el mismo sitio que su valor.
 3. Una faceta no fijada **sin hueco de su clave** se queda a la vista (no hay dónde plegarla). Si con ellas las facetas pasan de una fila a 360 px, aviso 7 (fijar menos o declarar el hueco).
 
-## Permisos (#711; regla 1 de «Acciones con acuse», #643)
+## Permisos (#783; regla 1 de «Acciones con acuse», #643)
 
 **Datos, no slots ni adaptador** (responde a la pregunta de Notion). `actions = { create, edit, duplicate, remove }`; cada valor:
 
@@ -232,31 +232,31 @@ En estrecho (`is-narrow`, §«Responsive») las facetas **no ocupan más de una 
 | `(row) => true \| false \| String` | Por fila (`edit`, `duplicate`, `remove`); `create` no recibe fila |
 
 - **`create`** con motivo: el `GBtn` de crear queda `aria-disabled` con el motivo como `detail` de su `GTooltip` (#643 regla 1); no emite `create`.
-- **Por fila** (`edit`, `duplicate`, `remove`): elementos del menú de la fila con `disabled` = el motivo (enmienda de `GMenu`, #718): siguen enfocables, no se activan y el motivo es su descripción visible.
+- **Por fila** (`edit`, `duplicate`, `remove`): elementos del menú de la fila con `disabled` = el motivo (enmienda de `GMenu`, #790): siguen enfocables, no se activan y el motivo es su descripción visible.
 - **Masivas:** con `remove` por fila, la barra cuenta las que **sí** se pueden dar de baja (§«Selección»).
 - Un valor de otro tipo: se trata como `false` y aviso 8.
 
-## Acciones de la fila (#718)
+## Acciones de la fila (#790)
 
 Una sola parada por fila: **`GMenu`** en el slot `row-actions` de `GTable`, disparador `GBtn icon` (`ellipsis-vertical`) con nombre `labels.rowActions({ row, title })`. Elementos, en este orden: **Editar** (`pencil`) · **Duplicar** (`copy`) · los de **`rowItems(row)`** de la aplicación · separador · **Dar de baja** (`trash`, `danger`, **`confirm`** = `labels.confirmOne({ row, title })`, `confirmLabel` = `labels.confirmRemove`). Los que tienen `false` no se pintan; sin ninguno, la celda queda vacía (sin menú).
 
 - `title` es el título de la fila según la columna principal (el mismo texto que usa `GTable` para sus nombres).
-- **La baja se confirma dentro del menú** (enmienda de `GMenu`, #718: el patrón de `GFab`, #662): la fila «Dar de baja» se parte en «Cancelar» (con el foco) | «Dar de baja», en un grupo cuya pregunta es el nombre. **Nada de la tabla se mueve** (Δ0; corrige kiwi §6, que la confirmaba en la celda y ensanchaba la columna). Confirmar emite `select` → el block emite **`remove`**.
+- **La baja se confirma dentro del menú** (enmienda de `GMenu`, #790: el patrón de `GFab`, #662): la fila «Dar de baja» se parte en «Cancelar» (con el foco) | «Dar de baja», en un grupo cuya pregunta es el nombre. **Nada de la tabla se mueve** (Δ0; corrige kiwi §6, que la confirmaba en la celda y ensanchaba la columna). Confirmar emite `select` → el block emite **`remove`**.
 - Un elemento de `rowItems` emite **`row-select`** `{ id, item, row, key, event }`.
 
-## Selección y masivas (#717)
+## Selección y masivas (#789)
 
 Con `selectable`, `GTable` pinta las casillas (`v-model:selected` pasa por el block).
 
 - **La barra de masivas vive en el `toolbar` de `GTable`** (la barra de la tabla, encima de las filas), **no** en una barra propia: un solo recuento (`labels.table.selectedCount` de `GTable`, ya con `role="status"`) y un solo sitio.
-- **Alto constante (Δ0):** el `toolbar` nunca está vacío. **En reposo** lleva el total de la consulta (`span.g-resource-list__total`, `labels.total({ count })` con `total`; texto, sin región viva: la tabla ya anuncia los resultados). **Con algo seleccionado**, en su lugar, el grupo `div.g-resource-list__bulk role="group"` con nombre `labels.selectedCount({ count })`: **el recuento visible** (`span.g-resource-list__bulk-count`, mismo texto; #728), **Dar de baja** (`GBtn size="sm" variant="outline" color="danger"`, con el recuento de las que se pueden), el slot **`bulk`** de la aplicación y **Quitar selección** (`GBtn size="sm" variant="ghost" color="neutral"`). Seleccionar la primera fila **no mueve las filas** bajo el puntero (rúbrica C). **El recuento de `GTable` va oculto a la vista** (`showSelectedCount: false`, enmienda #728): sigue montado con `role="status"` y es el que se anuncia; el visible es el del grupo (un solo recuento a la vista, uno solo que habla). Con 0, ni uno ni otro (#717).
+- **Alto constante (Δ0):** el `toolbar` nunca está vacío. **En reposo** lleva el total de la consulta (`span.g-resource-list__total`, `labels.total({ count })` con `total`; texto, sin región viva: la tabla ya anuncia los resultados). **Con algo seleccionado**, en su lugar, el grupo `div.g-resource-list__bulk role="group"` con nombre `labels.selectedCount({ count })`: **el recuento visible** (`span.g-resource-list__bulk-count`, mismo texto; #800), **Dar de baja** (`GBtn size="sm" variant="outline" color="danger"`, con el recuento de las que se pueden), el slot **`bulk`** de la aplicación y **Quitar selección** (`GBtn size="sm" variant="ghost" color="neutral"`). Seleccionar la primera fila **no mueve las filas** bajo el puntero (rúbrica C). **El recuento de `GTable` va oculto a la vista** (`showSelectedCount: false`, enmienda #800): sigue montado con `role="status"` y es el que se anuncia; el visible es el del grupo (un solo recuento a la vista, uno solo que habla). Con 0, ni uno ni otro (#789).
 - **Confirmación en el sitio** (el mismo patrón que la fila, con `GBtn`): «Dar de baja» se parte en «Cancelar» (foco) | «Dar de baja N», dentro de `div.g-resource-list__bulk-confirm role="group"` con nombre `labels.confirmMany({ count, skipped })`. Se deshace con «Cancelar», Esc o el foco que sale del par, sin temporizador (2.2.1); un doble clic nunca ejecuta (#661: el segundo clic cae en «Cancelar»). La barra no cambia de alto; lo que sigue al par en la misma línea puede correrse en línea, nunca en bloque. Sin `labels.cancel`, «Dar de baja» masivo queda `aria-disabled` (fallo seguro, como #662) y aviso 9.
 - **Con permisos por fila**, la cuenta y el evento usan solo las que se pueden; `skipped` dice cuántas no («2 no se pueden dar de baja»). Si ninguna se puede, el botón queda `aria-disabled` con `labels.noneRemovable`.
 - **Lo seleccionado es lo visible:** cambiar la consulta (salvo `page` y `pageSize`) **vacía la selección** (`update:selected([])`): una baja masiva nunca alcanza filas que la persona ya no ve en la consulta. Entre páginas la selección se conserva (comportamiento de `GTable`) y el block recuerda cada fila elegida por su clave, para el permiso y el evento.
-- **En estrecho** (tarjetas; #728, resuelve H1 de coco): el contenido del `toolbar` ocupa **su propia línea** de la barra, de alto fijo (el de un `GBtn size="sm"` con su diana), debajo de lo que `GTable` pinta en tarjetas (casilla «todo» con su texto y orden): en reposo el total, con selección el recuento y las masivas, armada «Cancelar | Dar de baja N». Como el recuento de `GTable` ya no ocupa sitio, **nada cambia de línea** entre reposo, selección y armada. «Dar de baja» y «Quitar selección» van **de solo icono** (`trash`, `x`) con nombre y `tooltip` desde el principio (a 390 con texto no caben, medido por coco); el par armado conserva su **texto** (una confirmación se lee). Criterio de hecho: Δ0 de la primera tarjeta al seleccionar y al armar, a 390 y 360 px, en los tres motores. Si con un slot `bulk` largo no cabe en una línea, el contenido del slot pasa a solo icono (receta del README) y, si aun así no, aviso 13.
+- **En estrecho** (tarjetas; #800, resuelve H1 de coco): el contenido del `toolbar` ocupa **su propia línea** de la barra, de alto fijo (el de un `GBtn size="sm"` con su diana), debajo de lo que `GTable` pinta en tarjetas (casilla «todo» con su texto y orden): en reposo el total, con selección el recuento y las masivas, armada «Cancelar | Dar de baja N». Como el recuento de `GTable` ya no ocupa sitio, **nada cambia de línea** entre reposo, selección y armada. «Dar de baja» y «Quitar selección» van **de solo icono** (`trash`, `x`) con nombre y `tooltip` desde el principio (a 390 con texto no caben, medido por coco); el par armado conserva su **texto** (una confirmación se lee). Criterio de hecho: Δ0 de la primera tarjeta al seleccionar y al armar, a 390 y 360 px, en los tres motores. Si con un slot `bulk` largo no cabe en una línea, el contenido del slot pasa a solo icono (receta del README) y, si aun así no, aviso 13.
 - `selectable` sin `remove` disponible ni slot `bulk`: aviso 10 (la selección no sirve para nada).
 
-## Editor (#711)
+## Editor (#783)
 
 **Un sitio:** `GDialog` hermano del cuerpo, `placement="end"` (hoja lateral, C) o, con `editor="dialog"`, centrado; `mobile="sheet"` en los dos; `size="md"`; `closeLabel` = `labels.close`; título `labels.editorCreate` · `labels.editorEdit({ row, title })` · `labels.editorDuplicate({ row, title })`. Responde a la pregunta de Notion: el sitio lo da la forma (C: la hoja), con una salida explícita para formularios que deban aislarse.
 
@@ -265,9 +265,9 @@ Con `selectable`, `GTable` pinta las casillas (`v-model:selected` pasa por el bl
 - **`close({ saved, key })`** cierra tras guardar; **`cancel()`** cierra sin guardar (igual que Esc y el botón de cierre). Sin slot `form`, al ir a abrir: aviso 11 y no se abre.
 - **Lo que no guarda el borrador** (descartar cambios al cerrar) es de la aplicación y de `GForm` Fase 4 (`guard`, `PENDIENTES.md` §2).
 
-## Foco (#719)
+## Foco (#791)
 
-El foco **nunca cae en `body`** y vuelve a donde la persona estaba o a lo más cercano. El block usa la vía pública de `GTable` (enmienda #719: `focusRow(key, { part })` y `focus()`), que **espera a que termine la fase de carga** (#540) antes de buscar la fila.
+El foco **nunca cae en `body`** y vuelve a donde la persona estaba o a lo más cercano. El block usa la vía pública de `GTable` (enmienda #791: `focusRow(key, { part })` y `focus()`), que **espera a que termine la fase de carga** (#540) antes de buscar la fila.
 
 | Después de | El foco va a |
 | --- | --- |
@@ -279,7 +279,7 @@ El foco **nunca cae en `body`** y vuelve a donde la persona estaba o a lo más c
 | Elegir en un hueco o pulsar una faceta | Se queda en el hueco o la faceta (el menú devuelve el foco a su disparador) |
 | «Quitar «…»» o «Quitar todos» del vacío | La tabla lo recoge (`GTable`, #534 y su `clear`) |
 
-## Anuncios (#720)
+## Anuncios (#792)
 
 **El block no tiene región viva** ni crea ninguna (dos canales corteses en una página se pisan). Lo que se oye es de los componentes o de la aplicación:
 
@@ -305,16 +305,16 @@ El foco **nunca cae en `body`** y vuelve a donde la persona estaba o a lo más c
 
 Sin `returns`, `GEmpty` solo ofrece «Quitar todos» (`empty.md` «La salida»). Causas distintas, textos distintos (Notion).
 
-## Responsive (#714, #715, #716)
+## Responsive (#786, #787, #788)
 
-- **Estrecho = ancho de la raíz del block < `space × 150`**, el mismo umbral que `GPageHeader` (constante pública por #715). El block mide su raíz con `ResizeObserver` (no consultas de contenedor: su raíz es el contenedor del encabezado, regla 7 de «Pegado») y **estima antes del primer pintado** con el ancho del visor (en el servidor, ancho), para que sus hijos no midan dos veces (kiwi §14, aviso de bucle en WebKit). Clase `is-narrow` en la raíz.
-- **Inset:** el cuerpo usa el inset en línea de `GPageHeader` (`space × 6`; `space × 4` en estrecho, #715): `h1`, facetas, frase y tabla empiezan en el mismo borde (Δ0, kiwi §8).
-- **Jerarquía en el teléfono (#714):** como nada del block va en el encabezado, la acción principal queda a la distancia que tiene `GPageHeader` solo (la del zócalo), igual en escritorio y en el teléfono. Medido por kiwi en C: 288 px en el teléfono con las facetas en el encabezado; con esta regla, **igual que en la base** (criterio de hecho: Δ ≤ 1 px frente a la base).
-- **Acción principal sin pestañas (#715, L9b):** la resuelve la enmienda de `GPageHeader`: sin `tabs`, las acciones empiezan al principio del zócalo, alineadas con el `h1`, y no flotan al final de una fila vacía.
-- **Pie en estrecho (#716):** en estrecho el block **no pasa `pageSizes`** a `GTable`: sin selector, el pie **no se acopla** (`table.md` «Pie acoplado») y la paginación va al final de la lista, en su sitio. Razones: (1) el pie acoplado de dos filas roba ≈ 100 px fijos (#595, kiwi §8); (2) **el muelle de `GPageHeader` ocupa el mismo borde inferior** en estrecho y pegado, y el pie de la tabla no es cliente de `edgeReserve`: se taparían (2.4.11); (3) lo pegado del block no puede pasar del cuarto del visor (regla del cuarto). El tamaño elegido en `query.pageSize` **se conserva** (la tabla pagina con él). Fuera de estrecho, `pageSizes` y el pie acoplado como en `GTable`.
+- **Estrecho = ancho de la raíz del block < `space × 150`**, el mismo umbral que `GPageHeader` (constante pública por #787). El block mide su raíz con `ResizeObserver` (no consultas de contenedor: su raíz es el contenedor del encabezado, regla 7 de «Pegado») y **estima antes del primer pintado** con el ancho del visor (en el servidor, ancho), para que sus hijos no midan dos veces (kiwi §14, aviso de bucle en WebKit). Clase `is-narrow` en la raíz.
+- **Inset:** el cuerpo usa el inset en línea de `GPageHeader` (`space × 6`; `space × 4` en estrecho, #787): `h1`, facetas, frase y tabla empiezan en el mismo borde (Δ0, kiwi §8).
+- **Jerarquía en el teléfono (#786):** como nada del block va en el encabezado, la acción principal queda a la distancia que tiene `GPageHeader` solo (la del zócalo), igual en escritorio y en el teléfono. Medido por kiwi en C: 288 px en el teléfono con las facetas en el encabezado; con esta regla, **igual que en la base** (criterio de hecho: Δ ≤ 1 px frente a la base).
+- **Acción principal sin pestañas (#787, L9b):** la resuelve la enmienda de `GPageHeader`: sin `tabs`, las acciones empiezan al principio del zócalo, alineadas con el `h1`, y no flotan al final de una fila vacía.
+- **Pie en estrecho (#788):** en estrecho el block **no pasa `pageSizes`** a `GTable`: sin selector, el pie **no se acopla** (`table.md` «Pie acoplado») y la paginación va al final de la lista, en su sitio. Razones: (1) el pie acoplado de dos filas roba ≈ 100 px fijos (#595, kiwi §8); (2) **el muelle de `GPageHeader` ocupa el mismo borde inferior** en estrecho y pegado, y el pie de la tabla no es cliente de `edgeReserve`: se taparían (2.4.11); (3) lo pegado del block no puede pasar del cuarto del visor (regla del cuarto). El tamaño elegido en `query.pageSize` **se conserva** (la tabla pagina con él). Fuera de estrecho, `pageSizes` y el pie acoplado como en `GTable`.
 - **Tarjetas:** `GTable` pasa a tarjetas por su propia medida. **Editor:** hoja (`mobile="sheet"`). **Crear:** solo icono con nombre y `tooltip` cuando `narrow && !docked` (receta del slot `actions` de `GPageHeader`; el mismo `GBtn`, cambiando props, nunca `v-if` entre dos). **Sin desplazamiento horizontal** a 360 y 390 px.
 
-## Personalidad (#710; regla de `CLAUDE.md`)
+## Personalidad (#782; regla de `CLAUDE.md`)
 
 **Qué lo hace distinto.** La pantalla **dice en una frase qué está viendo** y cada palabra se cambia donde está: nadie traduce chips a una pregunta. Las facetas **no mienten** (cada cuenta sin su propio filtro) y, en el teléfono, se pliegan en la palabra de su frase en vez de amontonarse. Y la pantalla **no empieza por 46 filas iguales**: empieza por las 8 que piden atención (el orden «lo que pide atención primero» es la primera opción del hueco de orden y la consulta inicial de la receta; `rowStatus` marca por qué). Retirar se confirma **donde se pidió**, sin capa y sin mover la tabla.
 
@@ -377,7 +377,7 @@ Todos en `emits` (lección de `CLAUDE.md`). Ninguno muta nada dentro del block.
 | `form` | `{ mode, item, key, close, cancel }` | El formulario del editor (§«Editor») |
 | `actions` | `{ narrow, docked }` | Acciones secundarias de la página, **antes** de crear (pasa al de `GPageHeader`) |
 | `trail` | — | `GBreadcrumbs` (pasa a `GPageHeader`) |
-| `meta` | — | Estado de la página (pasa a `GPageHeader`). **No** facetas ni métricas que empujen el zócalo (#714) |
+| `meta` | — | Estado de la página (pasa a `GPageHeader`). **No** facetas ni métricas que empujen el zócalo (#786) |
 | `cell-{key}`, `leading-{key}` | los de `GTable` | Celdas ricas (pasan a `GTable`) |
 | `bulk` | `{ rows, keys, clear }` | Masivas de la aplicación en la barra de selección (`GBtn size="sm"`, nunca `solid` de marca) |
 | `empty` | `{ cause, clear, relax }` | Sustituye los vacíos del block (recomendado `GEmpty`) |
@@ -390,7 +390,7 @@ Todos en `emits` (lección de `CLAUDE.md`). Ninguno muta nada dentro del block.
 - **Un `h1`** (el de `GPageHeader`) y la tabla nombrada por él (`aria-labelledby`); sin `caption` repetido (kiwi §3.2).
 - **Una región `search`** con `labels.query`, antes de los datos, con todo lo que cambia la consulta (facetas, frase, búsqueda). La `GFilterBar` de la tabla, si existe, sigue dentro de `GTable` (es de la tabla).
 - **Facetas:** `role="group"` con `labels.facets`; cada `GTag` con `aria-pressed`.
-- **Frase:** un `div` sin rol (#727: `GMenu` pinta su `<ul>` en su sitio y un `<p>` no admite listas; el texto se lee igual); cada hueco un `button` con `aria-haspopup="menu"`/`aria-expanded` (los de `GMenu`) y el nombre `{campo}: {valor}`; su menú, un grupo de radios con el nombre del campo.
+- **Frase:** un `div` sin rol (#799: `GMenu` pinta su `<ul>` en su sitio y un `<p>` no admite listas; el texto se lee igual); cada hueco un `button` con `aria-haspopup="menu"`/`aria-expanded` (los de `GMenu`) y el nombre `{campo}: {valor}`; su menú, un grupo de radios con el nombre del campo.
 - **Masivas:** `role="group"` con el recuento; la confirmación, `role="group"` con la pregunta.
 - **Editor:** `GDialog` modal con su título (WCAG 2.4.3; el resto inerte).
 - Sin `role="grid"`, sin `aria-selected` en filas, sin regiones vivas propias.
@@ -408,7 +408,7 @@ Todos en `emits` (lección de `CLAUDE.md`). Ninguno muta nada dentro del block.
 
 Una activación por gesto (#661) en todos los disparadores (lo da `GMenu` con su guarda; el par masivo la aplica el block).
 
-## Tokens consumidos (`tokens.md` §48; ningún token nuevo)
+## Tokens consumidos (`tokens.md` §55; ningún token nuevo)
 
 Solo existentes: `--g-space-*` (inset, separaciones), `--g-color-text`, `--g-color-text-muted`, `--g-color-border-control` (subrayado del hueco, ≥ 3:1), `--g-color-neutral-soft` (hueco al pasar), `--g-color-focus`, `--g-focus-width`, `--g-focus-offset`, `--g-border-width`, `--g-radius-sm`, `--g-text-body-*`, `--g-text-body-sm-*`, `--g-text-action-weight`, `--g-font-ui`, `--g-duration-fast`, `--g-ease-out`. El resto lo traen los componentes que compone. Alias locales de coco (`--_inset`, `--_gap`) derivados de `space`.
 
@@ -421,18 +421,18 @@ Solo existentes: `--g-space-*` (inset, separaciones), `--g-color-text`, `--g-col
 | `g-resource-list__body` | Cuerpo | Siempre |
 | `g-resource-list__query` | Región `search` | Sin `forbidden` y sin vacío inicial |
 | `g-resource-list__facets` | Grupo de facetas | Con alguna faceta a la vista |
-| `g-resource-list__phrase` | `div` (#727) | Con `phrase` |
+| `g-resource-list__phrase` | `div` (#799) | Con `phrase` |
 | `g-resource-list__blank`, `is-set` | Botón del hueco | `is-set`: tiene valor (en `sort`, siempre) |
 | `g-resource-list__blank-field` | Prefijo oculto del hueco | Siempre (patrón de texto oculto accesible) |
 | `g-resource-list__blank-text`, `g-resource-list__blank-chev` | Valor y `chevron-down` | Siempre |
-| `is-entering` | `g-resource-list__blank-text` | La palabra nació del gesto en su hueco (`select` de su `GMenu`): el `.vue` guarda `{ id, text }` y pinta la clase **mientras ese hueco siga diciendo ese texto** (no se quita en el tic siguiente: cortaría la animación). Faceta, consulta desde fuera o montaje: sin la clase (#726) |
-| `g-resource-list__bulk-count` | Dentro de `g-resource-list__bulk` | Con selección: el recuento visible (#728) |
+| `is-entering` | `g-resource-list__blank-text` | La palabra nació del gesto en su hueco (`select` de su `GMenu`): el `.vue` guarda `{ id, text }` y pinta la clase **mientras ese hueco siga diciendo ese texto** (no se quita en el tic siguiente: cortaría la animación). Faceta, consulta desde fuera o montaje: sin la clase (#798) |
+| `g-resource-list__bulk-count` | Dentro de `g-resource-list__bulk` | Con selección: el recuento visible (#800) |
 | `g-resource-list__search` | `GInput` | Con `searchable` |
 | `g-resource-list__total` | `toolbar` de `GTable` | Sin selección |
 | `g-resource-list__bulk`, `g-resource-list__bulk-confirm`, `is-armed` | `toolbar` de `GTable` | Con selección; armada |
 | `g-resource-list__editor` | `GDialog` | Siempre que haya editor |
 
-**CSS:** `packages/blocks/src/blocks/GResourceList/GResourceList.css` (coco), importado desde `packages/blocks/src/components.css`, en **`@layer grana.blocks`** con la declaración de orden `@layer grana.defaults, grana.components, grana.blocks;` al principio de `blocks.css` (#721). Solo `var(--g-*)` y alias `var(--_*)`, sin respaldos ni literales (salvo `24px`, `44px` y el patrón de texto oculto). Los selectores sobre hijos de la aplicación excluyen `.g-tooltip` (#383). El block **no** estiliza piezas internas de los componentes que compone (`.g-table__*`, `.g-menu__*`, `.g-tag__*`…): si algo no encaja, es una enmienda de ese componente.
+**CSS:** `packages/blocks/src/blocks/GResourceList/GResourceList.css` (coco), importado desde `packages/blocks/src/components.css`, en **`@layer grana.blocks`** con la declaración de orden `@layer grana.defaults, grana.components, grana.blocks;` al principio de `blocks.css` (#793). Solo `var(--g-*)` y alias `var(--_*)`, sin respaldos ni literales (salvo `24px`, `44px` y el patrón de texto oculto). Los selectores sobre hijos de la aplicación excluyen `.g-tooltip` (#383). El block **no** estiliza piezas internas de los componentes que compone (`.g-table__*`, `.g-menu__*`, `.g-tag__*`…): si algo no encaja, es una enmienda de ese componente.
 
 ## Avisos de desarrollo (`[Grana GResourceList]`, una vez por instancia y motivo)
 
@@ -450,7 +450,7 @@ Con la guarda canónica de #653 en el sitio de cada texto (`api.md` «Avisos de 
 10. `selectable` sin `remove` disponible ni slot `bulk`.
 11. El editor iba a abrirse sin slot `form` (no se abre).
 12. Falta un texto que el estado actual necesita (`create`, `rowActions`, `query`… según §«Textos»).
-13. En estrecho, el contenido del `toolbar` (masivas + slot `bulk`) no cabe en una línea (#728).
+13. En estrecho, el contenido del `toolbar` (masivas + slot `bulk`) no cabe en una línea (#800).
 
 ## Accesibilidad y mínimos (no son tema)
 
@@ -477,19 +477,19 @@ Resolución de los huecos L1–L11 de kiwi (`declaracion.md` §13). `@grana/bloc
 | --- | --- | --- | --- | --- | --- |
 | L1 | Fila retirada (huella) en `GTable` | **No** (es de A) | Reservado con A (`removal`) | — | 0 |
 | L2 | Marca pública «nueva / recién editada» | **No** (C devuelve el foco a la fila y avisa la aplicación) | Reservado (`reveal(key)`) | — | 0 |
-| L3 | Enfocar una fila por clave | **Sí** (foco tras guardar y tras la baja) | **`focusRow(key, { part })` y `focus()`** públicos (#719) | `table.md` «Métodos» | en el lote (#721) |
+| L3 | Enfocar una fila por clave | **Sí** (foco tras guardar y tras la baja) | **`focusRow(key, { part })` y `focus()`** públicos (#791) | `table.md` «Métodos» | en el lote (#793) |
 | L4 | «Lo que llegó ya está pintado» | **Sí**, fundido en L3 | `focusRow` **espera** a que acabe la fase de #540 (devuelve `Promise<boolean>`); sin evento nuevo | `table.md` «Métodos» | en L3 |
-| L5 | `GMenu`: motivo de no disponible y confirmación en el sitio | **Sí** (permisos por fila y la baja sin mover la tabla) | `disabled: Boolean \| String` con motivo visible; `danger` + `confirm`/`confirmLabel` + `labels.cancel` con el patrón de `GFab` (#662), **opcional** (sin `confirm`, como hoy) (#718) | `menu.md` «Motivo y confirmación en el sitio» | en el lote |
+| L5 | `GMenu`: motivo de no disponible y confirmación en el sitio | **Sí** (permisos por fila y la baja sin mover la tabla) | `disabled: Boolean \| String` con motivo visible; `danger` + `confirm`/`confirmLabel` + `labels.cancel` con el patrón de `GFab` (#662), **opcional** (sin `confirm`, como hoy) (#790) | `menu.md` «Motivo y confirmación en el sitio» | en el lote |
 | L6 | `GTable` C · Lente (`current`) | **No** (es de B) | Sigue reservado (#601) | — | 0 |
-| L7 | «0 seleccionadas» siempre visible | **Sí** (la barra de masivas) | Con 0, el recuento sigue montado (`role="status"`) pero **vacío y oculto** (#717); y `showSelectedCount: false` para ocultarlo a la vista también con selección (#728) | `table.md` «Recuento de selección a cero» | en el lote |
-| L8 | Anuncios desde `@grana/blocks` | **No** (C no anuncia nada propio, #720) | Nombre reservado `announce` en `@grana/vue` | `api.md` «Grana Blocks» | 0 |
-| L9 | `GPageHeader` en una lista: inset privado y acción que flota sin pestañas | **Sí** | (a) inset en línea **de contrato**; (b) sin `tabs`, acciones al principio del zócalo; (c) sin `tabs` y en estrecho, sin zócalo pegado vacío (#715) | `page-header.md` «Pantallas de lista» | CSS + ≤ 150 B en `page-header.js` |
+| L7 | «0 seleccionadas» siempre visible | **Sí** (la barra de masivas) | Con 0, el recuento sigue montado (`role="status"`) pero **vacío y oculto** (#789); y `showSelectedCount: false` para ocultarlo a la vista también con selección (#800) | `table.md` «Recuento de selección a cero» | en el lote |
+| L8 | Anuncios desde `@grana/blocks` | **No** (C no anuncia nada propio, #792) | Nombre reservado `announce` en `@grana/vue` | `api.md` «Grana Blocks» | 0 |
+| L9 | `GPageHeader` en una lista: inset privado y acción que flota sin pestañas | **Sí** | (a) inset en línea **de contrato**; (b) sin `tabs`, acciones al principio del zócalo; (c) sin `tabs` y en estrecho, sin zócalo pegado vacío (#787) | `page-header.md` «Pantallas de lista» | CSS + ≤ 150 B en `page-header.js` |
 | L10 | Salida de `GEmpty` con cuentas | **Sí**, sin enmienda | Prop `returns` del block | este contrato | 0 |
 | L11 | Fila borrador para crear en su sitio | **No** (es de A) | Reservado con A | — | 0 |
 
-**Peso de las enmiendas (#721; `api.md` «Paquete, entradas y tipos», #506 y #550):** son ampliaciones de componentes que **ya están** en el principal (`GTable`, `GMenu`), no componentes nuevos: no abren entrada propia y llevan **presupuesto de lote: ≤ +1,5 KiB (1 536 B) gzip** de `dist/grana.js` sobre el `main` previo (estimación de lima: `focusRow`/`focus` ≈ 350 B, recuento a cero ≈ 50 B, `showSelectedCount` ≈ 30 B (#728), motivo de `GMenu` ≈ 150 B, confirmación de `GMenu` ≈ 900 B). La enmienda de `GPageHeader` es CSS en `grana.css` y ≤ 150 B en `dist/page-header.js`. Las guardas de los avisos nuevos cuentan dentro (#653 punto 5). bruno mide antes y después y lo registra en `CHANGELOG.md`; **con más, vuelve a lima y no se sube el tope**: la salida es decisión del usuario (p. ej. la confirmación de `GMenu` como carga diferida).
+**Peso de las enmiendas (#793; `api.md` «Paquete, entradas y tipos», #506 y #550):** son ampliaciones de componentes que **ya están** en el principal (`GTable`, `GMenu`), no componentes nuevos: no abren entrada propia y llevan **presupuesto de lote: ≤ +1,5 KiB (1 536 B) gzip** de `dist/grana.js` sobre el `main` previo (estimación de lima: `focusRow`/`focus` ≈ 350 B, recuento a cero ≈ 50 B, `showSelectedCount` ≈ 30 B (#800), motivo de `GMenu` ≈ 150 B, confirmación de `GMenu` ≈ 900 B). La enmienda de `GPageHeader` es CSS en `grana.css` y ≤ 150 B en `dist/page-header.js`. Las guardas de los avisos nuevos cuentan dentro (#653 punto 5). bruno mide antes y después y lo registra en `CHANGELOG.md`; **con más, vuelve a lima y no se sube el tope**: la salida es decisión del usuario (p. ej. la confirmación de `GMenu` como carga diferida).
 
-## Paquete y peso del block (#721)
+## Paquete y peso del block (#793)
 
 - **`@grana/blocks`** exporta `GResourceList` desde `src/index.js` (sin efectos en el nivel superior, #444) y un plugin opcional que lo registra. Importa **solo** las entradas públicas: `@grana/vue` (`GTable`, `GMenu`, `GDialog`, `GEmpty`, `GInput`, `GBtn`, `GIcon`), `@grana/vue/page-header` (`GPageHeader`) y `@grana/vue/tag` (`GTag`). Todas son *peer*: la aplicación que usa el block carga esas entradas (lo dice el README).
 - **Archivos:** `packages/blocks/src/blocks/GResourceList/` con `GResourceList.vue`, `.test.js`, `.meta.json` (bruno), `.css` (coco) y `README.md` (mora-docs).
@@ -510,7 +510,7 @@ Resolución de los huecos L1–L11 de kiwi (`declaracion.md` §13). `@grana/bloc
 
 ### coco (Opus) · CSS y auditoría
 
-`GResourceList.css` en `@layer grana.blocks`; los cambios de `GPageHeader.css` (#715), `GTable.css` (#717) y `GMenu.css` (#718); **auditoría posterior obligatoria** (`auditoria-visual.md` §3) del block construido con los **nueve aspectos** medidos —estructura, jerarquía (una principal, distancia a la descripción), contraste y delimitación (huecos ≥ 3:1, facetas, barra), espaciado e inset, controles (frase, facetas, búsqueda, menú, masivas), tablas y listas, formularios en la hoja, estados (los siete de §«Estados» más hover, foco y no disponible), consistencia (solo tokens y componentes existentes)— más la **rúbrica de movimiento** completa (A a H con estado, evidencia, riesgo y recomendación; «No verificable» en vez de suponer), tema oscuro y los temas del banco, `forced-colors`, RTL, zoom 200–400 %; verificación propia en `design/lab/resource-list/`. Cierra con «Cumplimientos / Correcciones / Pendientes».
+`GResourceList.css` en `@layer grana.blocks`; los cambios de `GPageHeader.css` (#787), `GTable.css` (#789) y `GMenu.css` (#790); **auditoría posterior obligatoria** (`auditoria-visual.md` §3) del block construido con los **nueve aspectos** medidos —estructura, jerarquía (una principal, distancia a la descripción), contraste y delimitación (huecos ≥ 3:1, facetas, barra), espaciado e inset, controles (frase, facetas, búsqueda, menú, masivas), tablas y listas, formularios en la hoja, estados (los siete de §«Estados» más hover, foco y no disponible), consistencia (solo tokens y componentes existentes)— más la **rúbrica de movimiento** completa (A a H con estado, evidencia, riesgo y recomendación; «No verificable» en vez de suponer), tema oscuro y los temas del banco, `forced-colors`, RTL, zoom 200–400 %; verificación propia en `design/lab/resource-list/`. Cierra con «Cumplimientos / Correcciones / Pendientes».
 
 ### No verificado (entorno real)
 
@@ -518,12 +518,12 @@ Lector de pantalla real (VoiceOver, NVDA) con la frase en modo exploración y lo
 
 ## Encargos
 
-- **coco (Opus):** `GResourceList.css` (inset, región de consulta, facetas en una fila en estrecho, frase y huecos, total y barra de masivas de alto constante, confirmación masiva, editor si algo le toca), `components.css` del paquete con la declaración de capas; `GPageHeader.css` (#715 b: `:not(.has-tabs)` sin `margin-inline-start: auto`, alineado con el `hN`), `GTable.css` (#717: recuento vacío oculto con el patrón de texto oculto), `GMenu.css` (#718: motivo y par de confirmación con la geometría de `GFab`); banco y `design/lab/resource-list/estilo.md`; después, la auditoría.
-- **bruno (Opus):** `GResourceList.vue`, `.test.js`, `.meta.json`, exportación en `packages/blocks/src/index.js`, tipos del paquete, compuertas; `GTable` (`focusRow`, `focus`, recuento a cero, `showSelectedCount`, #728) y `GMenu` (`disabled` String, `confirm`, `confirmLabel`, `labels.cancel`) con sus `meta.json` y pruebas; `GPageHeader` (#715 c); specs y una página del playground; medidas de peso (#721). Tras el estilo de coco (7868716, `design/lab/resource-list/estilo.md` «Encargos para bruno»): la frase en `div` (#727), `is-entering` con `{ id, text }` (#726), el recuento visible en el grupo de masivas con `showSelectedCount: false` en `GTable` y el `toolbar` en su propia línea en estrecho con masivas de solo icono (#728); en `GFab`, `is-gathering`, `is-shifted` y `--_shift` (#726).
+- **coco (Opus):** `GResourceList.css` (inset, región de consulta, facetas en una fila en estrecho, frase y huecos, total y barra de masivas de alto constante, confirmación masiva, editor si algo le toca), `components.css` del paquete con la declaración de capas; `GPageHeader.css` (#787 b: `:not(.has-tabs)` sin `margin-inline-start: auto`, alineado con el `hN`), `GTable.css` (#789: recuento vacío oculto con el patrón de texto oculto), `GMenu.css` (#790: motivo y par de confirmación con la geometría de `GFab`); banco y `design/lab/resource-list/estilo.md`; después, la auditoría.
+- **bruno (Opus):** `GResourceList.vue`, `.test.js`, `.meta.json`, exportación en `packages/blocks/src/index.js`, tipos del paquete, compuertas; `GTable` (`focusRow`, `focus`, recuento a cero, `showSelectedCount`, #800) y `GMenu` (`disabled` String, `confirm`, `confirmLabel`, `labels.cancel`) con sus `meta.json` y pruebas; `GPageHeader` (#787 c); specs y una página del playground; medidas de peso (#793). Tras el estilo de coco (7868716, `design/lab/resource-list/estilo.md` «Encargos para bruno»): la frase en `div` (#799), `is-entering` con `{ id, text }` (#798), el recuento visible en el grupo de masivas con `showSelectedCount: false` en `GTable` y el `toolbar` en su propia línea en estrecho con masivas de solo icono (#800); en `GFab`, `is-gathering`, `is-shifted` y `--_shift` (#798).
 - **mora-docs (Sonnet):** `GResourceList/README.md` tras la auditoría (la frase en varios idiomas con la función de plantilla, la receta de la consulta inicial por atención, las cuentas sin su propio filtro, `returns`, permisos, el editor y `close`, las entradas *peer* que carga la aplicación); y las secciones nuevas de los README de `GTable`, `GMenu` y `GPageHeader`.
 
 ## Dudas para el usuario (resueltas el 2026-10-21)
 
-1. ~~**¿A y B quedan reservados como formas de `GResourceList`** (p. ej. `editor="lens"` para la lente de B y `removal="undo"` para la huella de A, con L1, L2, L6 y L11), **o se descartan?** Hoy no se contratan; sus nombres no se usan para otra cosa.~~ **Reservados (#723):** `removal="undo"` y `editor="lens"`, con ronda propia.
-2. ~~**Selector de filas por página en el teléfono** (#716): el block lo quita en estrecho (el pie acoplado chocaba con el muelle y robaba ≈ 100 px). Si el producto lo quiere en el teléfono, la salida es otra forma del pie (ronda de kiwi sobre `GPagination`), no volver a acoplarlo.~~ **Cerrada (#724):** en el teléfono, sin selector, como dice #716.
-3. ~~**Buscar al escribir en los menús de los huecos**~~ **Sí (#725)**, en todos los menús de Grana (§«Huecos»).
+1. ~~**¿A y B quedan reservados como formas de `GResourceList`** (p. ej. `editor="lens"` para la lente de B y `removal="undo"` para la huella de A, con L1, L2, L6 y L11), **o se descartan?** Hoy no se contratan; sus nombres no se usan para otra cosa.~~ **Reservados (#795):** `removal="undo"` y `editor="lens"`, con ronda propia.
+2. ~~**Selector de filas por página en el teléfono** (#788): el block lo quita en estrecho (el pie acoplado chocaba con el muelle y robaba ≈ 100 px). Si el producto lo quiere en el teléfono, la salida es otra forma del pie (ronda de kiwi sobre `GPagination`), no volver a acoplarlo.~~ **Cerrada (#796):** en el teléfono, sin selector, como dice #788.
+3. ~~**Buscar al escribir en los menús de los huecos**~~ **Sí (#797)**, en todos los menús de Grana (§«Huecos»).

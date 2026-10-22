@@ -59,7 +59,7 @@
   background: var(--g-color-surface);
 }
 .g-table__count { margin-inline-start: auto; }
-/* Recuento a cero (#717): la región (role="status") sigue montada y en el árbol, pero sin texto ni sitio: patrón de texto
+/* Recuento a cero (#789): la región (role="status") sigue montada y en el árbol, pero sin texto ni sitio: patrón de texto
    oculto accesible (nunca display: none, que la sacaría del árbol y el primer anuncio se perdería) */
 .g-table__count.is-empty {
   position: absolute;

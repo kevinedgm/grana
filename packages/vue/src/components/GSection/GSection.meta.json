@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "name": "GSection",
+  "tag": "g-section",
+  "status": "candidate",
+  "since": "0.1.0",
+  "description": "Región de página con encabezado (h2 a h4), descripción y acciones: el nivel lo pone el documento por anidación y el tamaño del título la profundidad; sin superficie, plegado ni pegado. Región con nombre solo con landmark.",
+  "contract": "design/contracts/section.md",
+  "prototype": "design/lab/app-shell/r01/",
+  "style": "packages/vue/src/components/GSection/GSection.css",
+  "props": [
+    {
+      "name": "title",
+      "type": "String",
+      "default": null,
+      "description": "Texto del encabezado; obligatoria salvo con el slot title (sin ninguno, aviso 1)."
+    },
+    {
+      "name": "description",
+      "type": "String",
+      "default": null
+    },
+    {
+      "name": "headingLevel",
+      "type": "Number",
+      "default": null,
+      "values": [
+        2,
+        3,
+        4
+      ],
+      "description": "Automático por defecto: 2 en la primera, +1 por cada GSection antepasada, tope 4. Fijado, gana y las de dentro cuentan desde él. Cambia la etiqueta, no el tamaño. Fuera de lista: aviso 3 y automático."
+    },
+    {
+      "name": "landmark",
+      "type": "Boolean",
+      "default": false,
+      "description": "aria-labelledby al título: la section pasa a ser region con nombre."
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": "{}",
+      "description": "{ actions }: nombre del grupo de acciones. Sin valores por defecto (#226); obligatorio si hay slot actions (aviso 2)."
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null,
+      "description": "Base de ids ({id}-title) e id de la raíz; generado (SSR-seguro) si falta."
+    }
+  ],
+  "events": [],
+  "slots": [
+    {
+      "name": "title",
+      "purpose": "Contenido en línea del hN; nunca elementos interactivos"
+    },
+    {
+      "name": "description",
+      "purpose": "Texto; sustituye a la prop"
+    },
+    {
+      "name": "actions",
+      "purpose": "GBtn y GMenu, al final de la fila del título; bajan solas con poco ancho"
+    },
+    {
+      "name": "default",
+      "purpose": "Contenido de la sección (el cuerpo, pila md)"
+    }
+  ],
+  "methods": [],
+  "labels": [
+    "actions"
+  ],
+  "classes": {
+    "root": "g-section g-section--depth-{1|2|3} g-section__head g-section__titles g-section__title g-section__body",
+    "state": [
+      "g-section__desc (con description o slot)",
+      "g-section__actions (con slot actions)"
+    ],
+    "attributes": [
+      "aria-labelledby (solo con landmark)",
+      "role=\"group\" y aria-label en las acciones",
+      "dir=\"auto\" en el título"
+    ]
+  },
+  "tokens": [
+    "--g-text-title-sm-*",
+    "--g-text-body-*",
+    "--g-text-body-sm-*",
+    "--g-font-title",
+    "--g-font-ui",
+    "--g-color-text",
+    "--g-color-text-muted",
+    "--g-space-*"
+  ],
+  "states": [
+    "default"
+  ],
+  "pending": [
+    "Auditoría de coco con un tema distinto (status draft hasta entonces)",
+    "Lector de pantalla real: esquema de encabezados y regiones",
+    "Lectura de sectionKey por GCard, GFormSection y GDialog: fuera de v1 (L14)"
+  ]
+}

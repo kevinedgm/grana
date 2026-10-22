@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 1,
+  "status": "candidate",
+  "since": "0.1.0",
+  "entry": "@grana/vue/gallery",
+  "contract": "design/contracts/gallery.md",
+  "decisions": "DECISIONS.md #730 a #735, #742, #744, #758, #759",
+  "prototype": "design/lab/gallery/r01/",
+  "style": "packages/vue/src/components/GGallery/GGallery.css",
+  "name": "GGallery",
+  "tag": "g-gallery",
+  "bundle": {
+    "global": "GranaGallery",
+    "gzip": 9114,
+    "limit": 12288,
+    "umdGzip": 8166
+  },
+  "description": "Las fotos de un lugar ordenadas por lo que se vende, con miniaturas-enlace (mejora progresiva) que abren un visor a pantalla completa que devuelve a la foto vista. A · Recorrido por espacios (con group: índice, espacios con portada, contador e hilo en el visor) y B · La tira (appearance=\"strip\": alturas iguales con la proporción real, un estado con dos profundidades). Sin autoavance.",
+  "props": [
+    {
+      "name": "photos",
+      "type": "Array",
+      "default": [],
+      "description": "Fotos [{ src, thumb?, srcset?, sizes?, thumbSrcset?, thumbSizes?, width, height, alt, caption?, group?, id? }]: width/height (aviso 2) y alt (aviso 3) obligatorios; vacío: no se pinta (aviso 5)."
+    },
+    {
+      "name": "groups",
+      "type": "Array",
+      "default": null,
+      "description": "Espacios [{ value, label, id? }] (A): orden, etiqueta y ancla enlazable (sin id, {id}-g-{n}); sin ella, de photo.group en orden de aparición. Un group fuera de la lista va al final (aviso 4)."
+    },
+    {
+      "name": "title",
+      "type": "String",
+      "required": true,
+      "default": null,
+      "description": "Título (nombre de la región y del visor). Obligatorio (aviso 1)."
+    },
+    {
+      "name": "headingLevel",
+      "type": "Number",
+      "default": null,
+      "values": [
+        2,
+        3,
+        4
+      ],
+      "description": "Nivel del título; sin él, el de GSection (sectionKey) o 2. Los espacios, un nivel por debajo (tope h6)."
+    },
+    {
+      "name": "appearance",
+      "type": "String",
+      "default": "grid",
+      "values": [
+        "grid",
+        "strip"
+      ],
+      "description": "grid (base; A con grupos) o strip (B). inline reservado: aviso 8 y grid."
+    },
+    {
+      "name": "eager",
+      "type": "Number",
+      "default": 4,
+      "description": "Miniaturas (en orden del DOM) sin loading=lazy; en B la actual y la siguiente nunca difieren."
+    },
+    {
+      "name": "zoom",
+      "type": "Boolean",
+      "default": true,
+      "description": "Zoom del visor (botón, +/-, doble clic); el pellizco del sistema sigue."
+    },
+    {
+      "name": "index",
+      "type": "Number",
+      "default": null,
+      "description": "Foto actual (v-model:index), también la de la tira; fuera de rango, la más cercana (aviso 9)."
+    },
+    {
+      "name": "open",
+      "type": "Boolean",
+      "default": null,
+      "description": "Visor abierto (v-model:open)."
+    },
+    {
+      "name": "viewerZone",
+      "type": "String",
+      "default": "brand",
+      "values": [
+        "brand",
+        "none"
+      ],
+      "description": "Tono del visor (#733): zona de marca o la página; inverse reservado."
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": {},
+      "description": "Textos sin valores por defecto (#226; aviso 7 la primera vez que falta uno): total ({count}; contado: String o Function (count, vars)), count ({index} de {total}), groupCount ({group} · {index} de {total}), position (B), announce ({position}. {alt}.), first, last, prev, next, close, zoom (nombre constante), viewer ({title}, galería), groups, groupLink ({group}, {count}; contado), broken ({alt}), carousel y slide (aria-roledescription de B)."
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "default": null,
+      "description": "BCP 47 de las cifras; sin él, el lang del ancestro."
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null,
+      "description": "Base de los id; generado si no se da."
+    }
+  ],
+  "events": [
+    {
+      "name": "update:index",
+      "payload": "Number",
+      "trigger": "Cambia la foto actual (tira, visor o miniatura)"
+    },
+    {
+      "name": "update:open",
+      "payload": "Boolean",
+      "trigger": "Se abre o se cierra el visor"
+    }
+  ],
+  "slots": [],
+  "methods": [],
+  "tokens": [
+    "--g-color-surface-sunken",
+    "--g-color-bg",
+    "--g-color-mold",
+    "--g-color-text",
+    "--g-color-text-muted",
+    "--g-color-text-subtle",
+    "--g-color-border",
+    "--g-color-border-strong",
+    "--g-color-border-control",
+    "--g-color-focus",
+    "--g-focus-width",
+    "--g-focus-offset",
+    "--g-border-width",
+    "--g-radius-md",
+    "--g-radius-shape",
+    "--g-text-body-*",
+    "--g-text-body-sm-*",
+    "--g-text-caption-*",
+    "--g-text-title-sm-*",
+    "--g-text-action-weight",
+    "--g-font-ui",
+    "--g-space-*",
+    "--g-duration-fast",
+    "--g-duration-press",
+    "--g-ease-out",
+    "--g-ease-standard"
+  ],
+  "states": [
+    "loading",
+    "focus-visible",
+    "current",
+    "broken",
+    "empty"
+  ],
+  "classes": [
+    "g-gallery g-gallery--appearance-{grid|strip} g-gallery--grouped (raíz, section con aria-labelledby)",
+    "g-gallery__head > g-gallery__title, g-gallery__total, (B) g-gallery__strip-nav > GBtn.g-gallery__prev, p.g-gallery__strip-count[aria-hidden], GBtn.g-gallery__next",
+    "(A) nav.g-gallery__index > a.g-gallery__index-link[href=#espacio] > span[aria-hidden] (cifra); div.g-gallery__group[role=group] > g-gallery__group-title + ul.g-gallery__grid",
+    "ul.g-gallery__grid > li.g-gallery__item > a.g-gallery__thumb[aria-haspopup=dialog](.is-current)(.is-broken) > img.g-gallery__img (+ GLibIcon image rota)",
+    "(B) div.g-gallery__strip[tabindex=-1] > div.g-gallery__slide[role=group](.is-current) > a.g-gallery__thumb (tabindex itinerante) + p.g-gallery__caption; p.g-gallery__live"
+  ],
+  "warnings": [
+    "1 · sin title",
+    "2 · foto sin width/height",
+    "3 · foto sin alt",
+    "4 · group fuera de groups; value repetido",
+    "5 · photos vacío",
+    "6 · strip sin labels.carousel o labels.slide",
+    "7 · falta una clave de labels al necesitarla",
+    "8 · appearance=\"inline\" (reservada)",
+    "9 · index fuera de rango"
+  ],
+  "pending": [
+    "README (mora-docs)",
+    "Lector real, gesto táctil real, fotos reales y forced-colors en Firefox/WebKit (gallery.md «Límites conocidos»)"
+  ]
+}

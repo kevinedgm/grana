@@ -59,6 +59,9 @@ function pageFile(locale, id) {
 
 /* ------------------------------------------------------------------ descubrimiento */
 
+/** Carpetas sin README cuya página es la de otro componente sin prefijo común. */
+const HOSTED_IN = { GPartyField: 'GBookingBar' }
+
 /** Componentes con README: [{ dir, name, slug, readme, metas: [meta] }]. */
 export function discoverComponents(root) {
   const base = path.join(root, COMPONENTS_DIR)
@@ -87,8 +90,9 @@ export function discoverComponents(root) {
   for (const dir of dirs.filter((d) => !withReadme.includes(d))) {
     const metas = metasOf(dir)
     if (!metas.length) continue
+    // Piezas documentadas en la página de otro componente que no comparten prefijo (GPartyField en GBookingBar).
     const host = components
-      .filter((c) => dir.startsWith(c.dir))
+      .filter((c) => dir.startsWith(c.dir) || HOSTED_IN[dir] === c.dir)
       .sort((a, b) => b.dir.length - a.dir.length)[0]
     if (host) host.metas.push(...metas)
     else orphans.push(dir)

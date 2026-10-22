@@ -1,0 +1,103 @@
+/* Prototipo de kiwi (r01) de moneda y precio. Solo tokens del tema (--g-*) y alias locales (--_*); sin valores de respaldo.
+   Literales permitidos: el patrón de texto oculto accesible. Es un banco para decidir forma, no el CSS de coco. */
+
+body { margin: 0; background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui); font-size: var(--g-text-body-size); line-height: var(--g-text-body-line); }
+.pr-top { padding: var(--g-space-6) var(--g-space-4) var(--g-space-4); border-block-end: var(--g-border-width) solid var(--g-color-border); background: var(--g-color-surface); }
+.pr-top h1 { margin: 0 0 var(--g-space-3); font-family: var(--g-font-title); font-size: var(--g-text-title-lg-size); line-height: var(--g-text-title-lg-line); font-weight: var(--g-text-title-lg-weight); }
+.pr-nav { display: flex; flex-wrap: wrap; gap: var(--g-space-2); align-items: center; }
+.pr-nav a { display: inline-flex; align-items: center; min-block-size: 44px; padding-inline: var(--g-space-4); border-radius: var(--g-radius-pill); border: var(--g-border-width) solid var(--g-color-border-control); color: var(--g-color-text); text-decoration: none; font-weight: var(--g-text-action-weight); }
+.pr-nav a[aria-current="page"] { background: var(--g-color-brand); color: var(--g-color-on-brand); border-color: var(--g-color-brand); }
+.pr-nav a:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset); }
+.pr-nav__sep { inline-size: var(--g-border-width); align-self: stretch; background: var(--g-color-border); margin-inline: var(--g-space-2); }
+.pr-intro { margin: var(--g-space-3) 0 0; color: var(--g-color-text-muted); max-inline-size: 72ch; }
+.pr-stage { padding: var(--g-space-6) var(--g-space-4); display: grid; gap: var(--g-space-12); max-inline-size: calc(var(--g-space-16) * 18); margin-inline: auto; box-sizing: border-box; }
+.pr-stage > * { min-inline-size: 0; }
+.pr-sec h2 { margin: 0 0 var(--g-space-4); font-family: var(--g-font-title); font-size: var(--g-text-title-size); line-height: var(--g-text-title-line); font-weight: var(--g-text-title-weight); }
+.pr-sec code { font-size: var(--g-text-body-sm-size); }
+.pr-controls { margin-block-end: var(--g-space-4); max-inline-size: calc(var(--g-space-16) * 4); }
+.pr-note { color: var(--g-color-text-muted); font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); margin: 0 0 var(--g-space-3); }
+.pr-cards { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--g-space-4); grid-template-columns: repeat(auto-fill, minmax(min(100%, calc(var(--g-space-16) * 4.5)), 1fr)); }
+.pr-card-price { margin-block-start: var(--g-space-2); }
+.pr-live { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* Carta: el nombre y el precio en la misma línea; cifras tabulares alineadas al final */
+.pr-menu { margin: 0; display: grid; }
+.pr-menu__row { display: grid; grid-template-columns: 1fr auto; column-gap: var(--g-space-4); padding-block: var(--g-space-3); border-block-end: var(--g-border-width) solid var(--g-color-border); }
+.pr-menu__name { font-weight: var(--g-text-title-sm-weight); grid-column: 1; }
+.pr-menu__desc { margin: 0; grid-column: 1; color: var(--g-color-text-muted); font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); }
+.pr-menu__price { margin: 0; grid-column: 2; grid-row: 1 / span 2; align-self: start; text-align: end; }
+
+/* Pie de carrito */
+.pr-cart { margin: 0; display: grid; max-inline-size: calc(var(--g-space-16) * 8); }
+.pr-cart__row { display: flex; justify-content: space-between; gap: var(--g-space-4); padding-block: var(--g-space-2); align-items: baseline; }
+.pr-cart__row dt { color: var(--g-color-text-muted); }
+.pr-cart__row dd { margin: 0; text-align: end; }
+.pr-cart__row--total { border-block-start: var(--g-border-width) solid var(--g-color-border-strong); padding-block-start: var(--g-space-3); }
+.pr-cart__row--total dt { color: var(--g-color-text); font-weight: var(--g-text-title-weight); }
+.pr-cart__row--total + .pr-cart__row--total { border-block-start: 0; padding-block-start: 0; }
+.pr-cal { max-inline-size: calc(var(--g-space-16) * 6); }
+.pr-edge { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--g-space-2); }
+.pr-edge li { display: flex; flex-wrap: wrap; gap: var(--g-space-3); align-items: baseline; padding-block: var(--g-space-2); border-block-end: var(--g-border-width) solid var(--g-color-border); }
+.pr-edge__k { min-inline-size: calc(var(--g-space-16) * 3); color: var(--g-color-text-muted); font-size: var(--g-text-body-sm-size); }
+
+/* ===================================================================================================================
+   XPrice · base
+   =================================================================================================================== */
+.xp { --_size: var(--g-text-body-size); --_line: var(--g-text-body-line); --_small: var(--g-text-body-sm-size); display: inline-block; font-variant-numeric: tabular-nums lining-nums; font-size: var(--_size); line-height: var(--_line); }
+.xp--xs { --_size: var(--g-text-caption-size); --_line: var(--g-text-caption-line); --_small: var(--g-text-caption-size); }
+.xp--sm { --_size: var(--g-text-body-sm-size); --_line: var(--g-text-body-sm-line); --_small: var(--g-text-caption-size); }
+.xp--md { --_size: var(--g-text-title-sm-size); --_line: var(--g-text-title-sm-line); --_small: var(--g-text-body-sm-size); }
+.xp--lg { --_size: var(--g-text-title-size); --_line: var(--g-text-title-line); --_small: var(--g-text-body-sm-size); }
+.xp--xl { --_size: var(--g-text-display-size); --_line: var(--g-text-display-line); --_small: var(--g-text-body-size); }
+.xp__visual { display: inline-flex; flex-wrap: wrap; align-items: baseline; column-gap: var(--g-space-2); }
+.xp__now { display: inline; white-space: nowrap; }
+.xp__amount { font-weight: var(--g-text-title-weight); color: var(--g-color-text); white-space: nowrap; unicode-bidi: isolate; }
+.xp__lead, .xp__unit, .xp__code, .xp__approx, .xp__sep { font-size: var(--_small); color: var(--g-color-text-muted); font-weight: var(--g-text-body-weight); }
+.xp__code { letter-spacing: var(--g-text-caption-tracking); }
+.xp__compare { font-size: var(--_small); color: var(--g-color-text-muted); text-decoration-thickness: var(--g-border-width); }
+.xp__compare .xp__amount { font-weight: var(--g-text-body-weight); color: inherit; }
+.xp--free, .xp--on-request, .xp__amount--word { font-weight: var(--g-text-title-weight); }
+.xp--on-request { color: var(--g-color-text-muted); font-weight: var(--g-text-body-weight); font-size: var(--_small); }
+.xp__spoken { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.xp--xs .xp__amount { font-weight: var(--g-text-body-weight); color: inherit; }
+
+/* A · La cuenta: el total arriba, la tarifa como contexto */
+.xp--has-total .xp__visual { flex-direction: column; align-items: flex-start; row-gap: 0; }
+.xp__total { white-space: nowrap; }
+.xp__total-label, .xp__total-unit { font-size: var(--_small); color: var(--g-color-text-muted); }
+.xp__total .xp__amount { font-size: var(--_size); }
+.xp--A.xp--has-total .xp__now--unit { font-size: var(--_small); }
+.xp--A.xp--has-total .xp__now--unit .xp__amount { font-weight: var(--g-text-body-weight); color: var(--g-color-text-muted); }
+.xp__roll { display: inline-flex; }
+.xp__roll-slot { display: inline-block; position: relative; overflow: clip; }
+.xp__roll-new, .xp__roll-old { display: inline-block; }
+.xp__roll-old { position: absolute; inset-inline-start: 0; inset-block-start: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .xp__roll[data-direction="up"] .xp__roll-new { animation: xp-roll-in-up var(--g-duration-press) var(--g-ease-out); }
+  .xp__roll[data-direction="up"] .xp__roll-old { animation: xp-roll-out-up var(--g-duration-press) var(--g-ease-out) forwards; }
+  .xp__roll[data-direction="down"] .xp__roll-new { animation: xp-roll-in-down var(--g-duration-press) var(--g-ease-out); }
+  .xp__roll[data-direction="down"] .xp__roll-old { animation: xp-roll-out-down var(--g-duration-press) var(--g-ease-out) forwards; }
+}
+@keyframes xp-roll-in-up { from { translate: 0 100%; } to { translate: 0 0; } }
+@keyframes xp-roll-out-up { from { translate: 0 0; } to { translate: 0 -100%; } }
+@keyframes xp-roll-in-down { from { translate: 0 -100%; } to { translate: 0 0; } }
+@keyframes xp-roll-out-down { from { translate: 0 0; } to { translate: 0 100%; } }
+
+/* B · La moneda se dice una vez: la región lleva su sello; dentro, el símbolo basta */
+.xps { display: grid; gap: var(--g-space-3); }
+.xps__legend { margin: 0; display: inline-flex; align-items: center; gap: var(--g-space-2); font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); color: var(--g-color-text-muted); }
+.xps__seal { display: inline-flex; align-items: center; justify-content: center; min-block-size: 24px; padding-inline: var(--g-space-2); border-radius: var(--g-radius-sm); border: var(--g-border-width) solid var(--g-color-border-strong); color: var(--g-color-text); font-weight: var(--g-text-action-weight); font-size: var(--g-text-caption-size); letter-spacing: var(--g-text-caption-tracking); font-variant-numeric: tabular-nums; }
+
+/* C · El antes y el ahora: sin tachado; la referencia dice qué es, una flecha la lleva al precio y el ahorro va en texto */
+.xp--C .xp__visual { flex-direction: column; align-items: flex-start; row-gap: var(--g-space-1); }
+.xp__trace { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--g-space-2); font-size: var(--_small); color: var(--g-color-text-muted); }
+.xp__was { white-space: nowrap; }
+.xp__amount--was { font-weight: var(--g-text-body-weight); color: inherit; }
+.xp__arrow { display: inline-flex; inline-size: 1em; block-size: 1em; color: var(--g-color-text-subtle); }
+.xp__arrow svg { inline-size: 100%; block-size: 100%; }
+:root[dir="rtl"] .xp__arrow svg, [dir="rtl"] .xp__arrow svg { scale: -1 1; }
+.xp__saving { padding-inline: var(--g-space-2); border-radius: var(--g-radius-pill); background: var(--g-color-success-soft); color: var(--g-color-on-success-soft); font-weight: var(--g-text-action-weight); white-space: nowrap; }
+
+@media (forced-colors: active) {
+  .xps__seal, .xp__saving { border: var(--g-border-width) solid CanvasText; }
+}

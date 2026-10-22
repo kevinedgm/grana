@@ -1,0 +1,564 @@
+/*
+  GHero · la apertura de un sitio
+  Dueño: coco. Contrato: design/contracts/hero.md (DECISIONS.md #725 a #729, #742, #744, #745; tokens.md §29.6, §29.8 y
+  §51). Estructura: design/lab/hero/r01/ (kiwi). Estética, medidas y encargos: design/lab/hero/estilo.md.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin respaldos. Literales: 24px y
+  44px (área táctil); las constantes de §29.6 (7.5cqi, 1.08, 4cqi, 12cqi, 16cqi, la geometría del arco 50 % / 40 % y la
+  foto 4:5, la mirada 3 %); las proporciones y topes de la foto de B y C (16:9 / 16:7, 64svh / 68svh, mínimos
+  space × 56 / × 60; nota a lima en estilo.md: entran en §29.6) y el tope del vano de A (64svh, el alto ≤ 80svh).
+
+  Carácter (#729): una forma de lugar, no un rectángulo con texto encima.
+  - A · La ventana: la foto se ve por el vano de arco de un portal, con el detalle en una segunda ventana que muerde la
+    esquina del vano; entre las dos, el muro (el color de la página). Al pasar por delante, lo de dentro del vano se
+    mueve un 3 % (la mirada, §29.8): el marco y el texto no se mueven.
+  - B · Vistas a elegir: la foto a sangre y una placa de la zona de marca que la muerde por abajo; la vista elegida se
+    revela ENCIMA de la anterior (la de debajo se queda hasta que la nueva la cubre): el cambio nunca pasa por el vacío.
+  - C · El umbral: la foto a sangre y una tarjeta que cruza su borde con el título y la consulta antes de la acción.
+  El texto nunca toca la foto (o vive en una placa opaca con su par garantizado): el contraste es por construcción.
+
+  Marcado que espera (lo pinta bruno; hero.md «Anatomía» y «Clases y datos»):
+    section.g-hero.g-hero--appearance-{window|views|threshold}[.g-hero--frame-{arch|rect}][.g-hero--has-detail]
+           [.g-hero--has-video][.g-hero--look][.is-paused]
+      (A, C) div.g-hero__content | (C) div.g-hero__card > div.g-hero__content | (B) div.g-hero__plate[data-g-zone] > …
+        p.g-hero__eyebrow · h1.g-hero__title · p.g-hero__lead · div.g-hero__consult (C) · div.g-hero__actions ·
+        p.g-hero__aside · (B) fieldset.g-hero__views > legend.g-hero__views-legend + label.g-hero__view(.is-current) ×n
+                             > input.g-hero__view-input + img.g-hero__view-thumb + span.g-hero__view-label
+      figure.g-hero__media
+        img.g-hero__img (o <video> del slot media) · (A) img.g-hero__detail · (B) img.g-hero__layer(.is-current) ×(n−1)
+        button.g-hero__motion · figcaption.g-hero__credit
+    Encargo H-C1 (lima y bruno, estilo.md): en A, la foto del vano dentro de span.g-hero__frame. Sin ese marco, la mirada
+    no puede moverse SOLO por dentro del vano (el recorte viajaría con la foto) y queda quieta; con él, se mueve.
+*/
+
+/* ---------- Raíz: mide su caja (container-type), alto por contenido ---------- */
+.g-hero {
+  /* Margen fluido (§29.6): se sustituye en los hijos, así que 4cqi se resuelve contra la caja del héroe, no del visor */
+  --_gutter: clamp(var(--g-space-4), 4cqi, var(--g-space-12));
+  /* Radios del vano (siguen a --g-radius-* del tema; un tema con radios 0 deja el arco puro con la base recta) */
+  --_frame-r: var(--g-radius-lg);
+  --_detail-r: var(--g-radius-md);
+  /* Lo que el detalle de A asoma fuera del vano, por el inicio y por abajo */
+  --_bite: var(--g-space-12);
+  /* Anillo de foco completo (offset + grosor): el halo de la pausa sobre la foto lo cubre */
+  --_ring: calc(var(--g-focus-offset) + var(--g-focus-width));
+
+  container-type: inline-size;
+  /* #562: con contención en línea, su ancho intrínseco es el de una apertura de escritorio */
+  contain-intrinsic-inline-size: calc(var(--g-space-1) * 320);
+  position: relative;
+  box-sizing: border-box;
+  min-inline-size: 0;
+  color: var(--g-color-text);
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-size);
+  line-height: var(--g-text-body-line);
+}
+.g-hero__content,
+.g-hero__media,
+.g-hero__plate,
+.g-hero__card,
+.g-hero__frame,
+.g-hero__img,
+.g-hero__detail,
+.g-hero__layer,
+.g-hero__view {
+  box-sizing: border-box;
+}
+
+/* ---------- Contenido (siempre primero en el DOM) ---------- */
+.g-hero__content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--g-space-4);
+  min-inline-size: 0;
+}
+.g-hero__eyebrow {
+  margin: 0;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-caption-weight);
+  letter-spacing: var(--g-text-caption-tracking);
+  color: var(--g-color-text-muted);
+}
+/* Título fluido (#727): de title-lg al tope del tema por la caja; nunca por debajo de title-lg. El tamaño no sigue al
+   nivel (#196). Interlineado relativo 1.08 (§29.6): un tamaño fluido no puede respetar un interlineado en px */
+.g-hero__title {
+  margin: 0;
+  font-family: var(--g-font-display);
+  font-weight: var(--g-text-display-weight);
+  letter-spacing: var(--g-text-display-tracking);
+  font-size: clamp(var(--g-text-title-lg-size), 7.5cqi, var(--g-hero-title-max));
+  line-height: 1.08;
+  text-wrap: balance;
+  overflow-wrap: break-word;
+}
+.g-hero__lead {
+  margin: 0;
+  max-inline-size: calc(var(--g-space-1) * 150);
+  font-size: var(--g-text-title-sm-size);
+  line-height: var(--g-text-title-sm-line);
+  color: var(--g-color-text-muted);
+  text-wrap: pretty;
+  overflow-wrap: break-word;
+}
+.g-hero__consult {
+  align-self: stretch;
+  min-inline-size: 0;
+}
+.g-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-3);
+  margin-block-start: var(--g-space-2);
+}
+.g-hero__aside {
+  margin: 0;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text-muted);
+  overflow-wrap: break-word;
+}
+
+/* ---------- Media: la foto prioritaria con su hueco reservado ---------- */
+.g-hero__media {
+  position: relative;
+  min-inline-size: 0;
+  margin: 0;
+}
+/* Mientras llega, el marco hundido del tamaño final (sin esqueleto animado); rota, el alt del navegador encima */
+.g-hero__img,
+.g-hero__media > video,
+.g-hero__frame > video,
+.g-hero__detail,
+.g-hero__layer,
+.g-hero__frame {
+  display: block;
+  background: var(--g-color-surface-sunken);
+}
+.g-hero__img,
+.g-hero__media > video,
+.g-hero__frame > video,
+.g-hero__detail,
+.g-hero__layer {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  color: var(--g-color-text-muted);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+}
+.g-hero__credit {
+  margin: 0;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+  overflow-wrap: break-word;
+}
+
+/* ---------- Pausa del vídeo (H-L8, H-L14) ----------
+   Botón redondo de 44px con el icono pause/play y el nombre constante como texto oculto (no se pinta labels.resume:
+   un texto visible distinto del nombre rompería 2.5.3). Sobre una foto cualquiera (H-L14): el relleno es surface y el
+   contorno es la TINTA (--g-color-text), así que, sea cual sea el color de la foto, uno de los dos contrasta con ella:
+   el peor caso es √(contraste text/surface) (4,06:1 con el tema por defecto, medido con «cielo» y «noche»). El foco
+   lleva un halo de surface bajo el anillo: el anillo nunca depende de la foto */
+.g-hero__motion {
+  position: absolute;
+  z-index: 2;
+  display: inline-grid;
+  place-items: center;
+  inline-size: 44px;
+  block-size: 44px;
+  margin: 0;
+  padding: 0;
+  border: var(--g-border-width) solid var(--g-color-text);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  box-shadow: var(--g-shadow-1);
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    scale var(--g-duration-press) var(--g-ease-out);
+}
+.g-hero__motion > .g-icon {
+  inline-size: var(--g-text-body-size);
+  block-size: var(--g-text-body-size);
+}
+@media (hover: hover) {
+  .g-hero__motion:hover {
+    background: var(--g-color-surface-sunken);
+  }
+}
+.g-hero__motion:active {
+  scale: var(--g-press-scale);
+}
+.g-hero__motion:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+  box-shadow: var(--g-shadow-1), 0 0 0 calc(var(--_ring) + var(--g-focus-width)) var(--g-color-surface);
+}
+/* Texto oculto accesible del nombre (patrón estándar) */
+.g-hero__motion-label {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* =====================================================================================================================
+   A · La ventana (por defecto)
+   ===================================================================================================================== */
+.g-hero--appearance-window {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  row-gap: calc(var(--g-space-1) * 10);
+  padding-block: var(--g-space-12) var(--g-space-16);
+}
+/* Texto y vano se parten por su mínimo intrínseco, sin puntos de corte; el margen va en cada hijo (cqi de la caja) */
+.g-hero--appearance-window > .g-hero__content {
+  flex: 1 1 calc(var(--g-space-1) * 88 + var(--_gutter) * 2);
+  padding-inline: var(--_gutter);
+}
+/* La columna del vano mide como mucho 64svh (con 4:5, el alto ≤ 80svh: el arco no se aplana ni se sale del visor) */
+.g-hero--appearance-window > .g-hero__media {
+  flex: 1 1 calc(var(--g-space-1) * 80 + var(--_gutter) * 2);
+  max-inline-size: calc(var(--g-space-1) * 130 + var(--_gutter) * 2);
+  padding-inline: var(--_gutter);
+  display: grid;
+  grid-template-columns: minmax(0, 64svh);
+}
+.g-hero--appearance-window.g-hero--has-detail > .g-hero__media {
+  grid-template-columns: minmax(0, calc(64svh + var(--_bite)));
+}
+/* El vano: la foto (o su marco, H-C1) con proporción 4:5 */
+.g-hero--appearance-window > .g-hero__media > :is(.g-hero__frame, .g-hero__img, video) {
+  grid-area: 1 / 1;
+  align-self: start;
+  inline-size: auto;
+  block-size: auto;
+  aspect-ratio: 4 / 5;
+  /* Sin el mínimo automático de una caja con proporción (su contenido): una foto vertical más alta que 4:5 o un vídeo con
+     su width/height intrínsecos no estiran el vano (auditoría, hallazgo H-A1) */
+  min-block-size: 0;
+  overflow: clip;
+  /* Arco (§29.6): semicírculo arriba (50 % del ancho = 40 % del alto en 4:5), radio de tarjeta abajo */
+  border-radius: 50% 50% var(--_frame-r) var(--_frame-r) / 40% 40% var(--_frame-r) var(--_frame-r);
+}
+.g-hero--appearance-window > .g-hero__media > .g-hero__frame > :is(.g-hero__img, video) {
+  border-radius: 0;
+}
+.g-hero--appearance-window.g-hero--frame-rect > .g-hero__media > :is(.g-hero__frame, .g-hero__img, video) {
+  border-radius: var(--_frame-r);
+}
+/* Con detalle, el vano deja sitio por el inicio y por abajo; el detalle se apoya en esa esquina y muerde el vano */
+.g-hero--appearance-window.g-hero--has-detail > .g-hero__media > :is(.g-hero__frame, .g-hero__img, video) {
+  margin-inline-start: var(--_bite);
+  margin-block-end: var(--_bite);
+}
+.g-hero__detail {
+  grid-area: 1 / 1;
+  z-index: 1;
+  align-self: end;
+  justify-self: start;
+  /* 40 % del ancho del vano (la columna menos lo que asoma) */
+  inline-size: calc((100% - var(--_bite)) * 0.4);
+  block-size: auto;
+  aspect-ratio: 1;
+  border-radius: 50% 50% var(--_detail-r) var(--_detail-r) / 50% 50% var(--_detail-r) var(--_detail-r);
+  /* El muro (§29.6, space × 2): el color de la página separa las dos ventanas; sigue al radio */
+  outline: calc(var(--g-space-1) * 2) solid var(--g-color-bg);
+}
+.g-hero--frame-rect .g-hero__detail {
+  border-radius: var(--_detail-r);
+}
+.g-hero--appearance-window .g-hero__credit {
+  grid-row: 2;
+  grid-column: 1;
+  justify-self: start;
+  margin-block-start: var(--g-space-2);
+}
+.g-hero--appearance-window.g-hero--has-detail .g-hero__credit {
+  margin-inline-start: var(--_bite);
+}
+/* La pausa, abajo al final del vano (arriba, el arco deja la esquina fuera de la foto) */
+.g-hero--appearance-window .g-hero__motion {
+  position: relative;
+  grid-area: 1 / 1;
+  align-self: end;
+  justify-self: end;
+  margin: var(--g-space-3);
+}
+.g-hero--appearance-window.g-hero--has-detail .g-hero__motion {
+  margin-block-end: calc(var(--_bite) + var(--g-space-3));
+}
+
+/* La mirada (#728, §29.8): solo dentro del marco (H-C1), ≤ 3 % del alto, lineal, solo transform, sin JS; quieta sin
+   soporte (Firefox), con movimiento reducido, con look=false y con vídeo. La escala 1 + 2 × 3 % cubre el recorrido */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .g-hero--appearance-window.g-hero--look:not(.g-hero--has-video) .g-hero__frame > .g-hero__img {
+      animation: g-hero-look linear both;
+      animation-timeline: view();
+      animation-range: cover;
+    }
+  }
+}
+@keyframes g-hero-look {
+  from { transform: translateY(-3%) scale(calc(1 + 0.03 * 2)); }
+  to { transform: translateY(3%) scale(calc(1 + 0.03 * 2)); }
+}
+
+/* =====================================================================================================================
+   B · Vistas a elegir: foto a sangre arriba, placa de la zona de marca que la muerde
+   ===================================================================================================================== */
+.g-hero--appearance-views {
+  /* Labio (§29.6): nunca tapa la mitad (la foto mide ≥ 56,25cqi; el labio ≤ 12cqi) */
+  --_lip: min(calc(var(--g-space-1) * 40), 12cqi);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  padding-block-end: var(--g-space-12);
+}
+.g-hero--appearance-views > .g-hero__media,
+.g-hero--appearance-threshold > .g-hero__media {
+  grid-row: 1;
+  grid-column: 1;
+  inline-size: 100%;
+  overflow: clip;
+  /* Sus capas (z 1 y 2) se apilan dentro: la placa y la tarjeta (z 1, antes en el DOM) quedan siempre encima */
+  isolation: isolate;
+  background: var(--g-color-surface-sunken);
+}
+.g-hero--appearance-views > .g-hero__media {
+  aspect-ratio: 16 / 9;
+  min-block-size: calc(var(--g-space-1) * 56);
+  max-block-size: 64svh;
+}
+.g-hero--appearance-views > .g-hero__media > :is(.g-hero__img, .g-hero__layer, video) {
+  position: absolute;
+  inset: 0;
+}
+/* El cambio de vista (H-L12): la elegida llega encima (z 1) con un fundido slow + ease-out; la de antes se queda debajo,
+   entera, hasta que la nueva la cubre, y entonces se va (salto con retardo slow): nunca se ve el vacío a mitad.
+   Interrumpible: cada elección parte del estado actual */
+.g-hero--appearance-views > .g-hero__media > .g-hero__layer {
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0s linear var(--g-duration-slow);
+}
+.g-hero--appearance-views > .g-hero__media > :is(.g-hero__img, .g-hero__layer.is-current) {
+  z-index: 1;
+  opacity: 1;
+  transition: opacity var(--g-duration-slow) var(--g-ease-out);
+}
+.g-hero--appearance-views > .g-hero__plate {
+  grid-row: 2;
+  grid-column: 1;
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: var(--g-space-6);
+  inline-size: min(100% - var(--_gutter) * 2, calc(var(--g-space-1) * 150));
+  margin-block-start: calc(var(--_lip) * -1);
+  margin-inline-start: var(--_gutter);
+  padding: clamp(var(--g-space-5), 4cqi, calc(var(--g-space-1) * 10));
+  /* Opaca (alfa 1): dentro de la zona, bg es la marca y el texto la tinta (tokens.md §44.1). Borde transparente que en
+     colores forzados se vuelve real */
+  background: var(--g-color-bg);
+  color: var(--g-color-text);
+  border: var(--g-border-width) solid transparent;
+  border-radius: var(--g-radius-xl);
+}
+.g-hero__plate > .g-hero__content {
+  gap: var(--g-space-3);
+}
+/* Las vistas se separan de la acción: son otra pregunta (¿qué quieres ver?), no parte de la promesa */
+.g-hero__content > .g-hero__views {
+  margin-block-start: var(--g-space-3);
+}
+/* Las vistas (H-L7): radios nativos, una parada de Tab, flechas nativas */
+.g-hero__views {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--g-space-2);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.g-hero__views-legend {
+  float: inline-start;
+  inline-size: 100%;
+  margin-block-end: var(--g-space-1);
+  padding: 0;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-caption-weight);
+  letter-spacing: var(--g-text-caption-tracking);
+  color: var(--g-color-text-muted);
+}
+.g-hero__view {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--g-space-2);
+  min-block-size: 44px;
+  max-inline-size: 100%;
+  padding-block: var(--g-space-1);
+  padding-inline: var(--g-space-1) var(--g-space-3);
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-md);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    border-color var(--g-duration-fast) var(--g-ease-standard),
+    box-shadow var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-hero__view-input {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.g-hero__view-thumb {
+  flex: none;
+  inline-size: calc(var(--g-space-1) * 12);
+  aspect-ratio: 4 / 3;
+  block-size: auto;
+  object-fit: cover;
+  border-radius: var(--g-radius-sm);
+  background: var(--g-color-surface-sunken);
+}
+.g-hero__view-label {
+  min-inline-size: 0;
+  overflow-wrap: break-word;
+}
+@media (hover: hover) {
+  .g-hero__view:hover {
+    border-color: var(--g-color-text-muted);
+  }
+}
+/* Elegida: borde doble en la tinta y peso de acción (forma, no solo color) */
+.g-hero__view:has(> .g-hero__view-input:checked) {
+  border-color: var(--g-color-text);
+  box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-text);
+  font-weight: var(--g-text-action-weight);
+}
+/* Foco de teclado (en la placa, el foco de la zona): :focus-visible y la marca de WebKit (#441, #450) */
+.g-hero__view:has(> .g-hero__view-input:is(:focus-visible, :where([data-g-key-focus]):focus)) {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+.g-hero--appearance-views .g-hero__credit,
+.g-hero--appearance-threshold .g-hero__credit {
+  position: absolute;
+  z-index: 2;
+  inset-block-start: var(--g-space-2);
+  inset-inline-start: var(--g-space-3);
+  max-inline-size: calc(100% - var(--g-space-3) * 2);
+  padding-inline: var(--g-space-2);
+  border-radius: var(--g-radius-xs);
+  background: var(--g-color-surface);
+}
+.g-hero--appearance-views .g-hero__motion {
+  inset-block-start: var(--g-space-3);
+  inset-inline-end: var(--g-space-3);
+}
+
+/* =====================================================================================================================
+   C · El umbral: la foto arriba, la tarjeta con la consulta cruza su borde
+   ===================================================================================================================== */
+.g-hero--appearance-threshold {
+  /* Labio (§29.6): la foto mide ≥ 43,75cqi; el labio ≤ 16cqi */
+  --_lip: min(calc(var(--g-space-1) * 28), 16cqi);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  padding-block-end: var(--g-space-12);
+}
+.g-hero--appearance-threshold > .g-hero__media {
+  aspect-ratio: 16 / 7;
+  min-block-size: calc(var(--g-space-1) * 60);
+  max-block-size: 68svh;
+}
+.g-hero--appearance-threshold > .g-hero__media > :is(.g-hero__img, video) {
+  position: absolute;
+  inset: 0;
+}
+.g-hero__card {
+  grid-row: 2;
+  grid-column: 1;
+  position: relative;
+  z-index: 1;
+  justify-self: center;
+  inline-size: min(100% - var(--_gutter) * 2, calc(var(--g-space-1) * 220));
+  margin-block-start: calc(var(--_lip) * -1);
+  padding: clamp(var(--g-space-5), 4cqi, var(--g-space-12));
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-radius-xl);
+  box-shadow: var(--g-shadow-2);
+}
+.g-hero--appearance-threshold .g-hero__motion {
+  inset-block-end: calc(var(--_lip) + var(--g-space-3));
+  inset-inline-end: var(--g-space-3);
+}
+
+/* ---------- Movimiento reducido (§29.3): quieto; el cambio de vista, un fundido corto ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .g-hero--appearance-views > .g-hero__media > .g-hero__layer {
+    transition: opacity 0s linear var(--g-duration-fast);
+  }
+  .g-hero--appearance-views > .g-hero__media > :is(.g-hero__img, .g-hero__layer.is-current) {
+    transition: opacity var(--g-duration-fast) linear;
+  }
+  .g-hero__motion {
+    transition: background-color var(--g-duration-fast) var(--g-ease-standard);
+  }
+  .g-hero__motion:active {
+    scale: none;
+  }
+}
+
+/* ---------- Colores forzados: la placa y la tarjeta conservan su borde; la vista elegida en Highlight ---------- */
+@media (forced-colors: active) {
+  .g-hero__plate,
+  .g-hero__card {
+    border-color: CanvasText;
+  }
+  .g-hero__detail {
+    outline-color: Canvas;
+  }
+  .g-hero__view {
+    border-color: ButtonText;
+  }
+  .g-hero__view:has(> .g-hero__view-input:checked) {
+    border-color: Highlight;
+    box-shadow: inset 0 0 0 var(--g-border-width) Highlight;
+  }
+  .g-hero__motion {
+    border-color: ButtonText;
+  }
+  .g-hero__motion:focus-visible,
+  .g-hero__view:has(> .g-hero__view-input:is(:focus-visible, :where([data-g-key-focus]):focus)) {
+    outline-color: Highlight;
+  }
+  .g-hero__credit {
+    border: var(--g-border-width) solid CanvasText;
+  }
+}

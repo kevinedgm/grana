@@ -1,0 +1,309 @@
+/*
+  GPrice · estilo
+  Dueño: coco. Contrato: design/contracts/price.md (#768 a #779). Estructura: design/lab/price/r01/ (kiwi).
+  Banco y medidas: design/lab/price/estilo.md, estilo-banco.html y estilo-verificar.mjs.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin valores de respaldo.
+  Literales: el patrón de texto oculto accesible (1px) y el 100 % de la celda de la cifra que rueda (geometría, como la
+  P2 de GNumberField). Keyframes: g-price-roll-* (nunca g-reject-*).
+
+  Forma: la raíz es un span de bloque en línea (contenido de frase: cabe en <p>, <dd>, <td> y en el <button> de un día).
+  Dentro, cada «línea» (total de A, referencia de C, precio actual) es un bloque y sus partes son cajas en línea
+  atómicas: así el texto sigue el text-align del contexto (una carta alineada al final deja todas las cifras contra el
+  mismo borde) y lead, unidad y referencia pueden pasar a la línea siguiente sin partir el importe. Los espacios entre
+  partes los pone este archivo (margin-inline-end), nunca un carácter.
+*/
+
+/* ---------- Raíz y roles por tamaño ---------- */
+/* --_fs/--_lh/--_fw/--_tr: la cifra; --_sfs/--_slh/--_sfw: lo secundario (lead, aprox., unidad, código, referencia,
+   ahorro, rótulos del total), nunca por debajo de caption (12px, tokens.md §7); --_gap: separación entre partes */
+.g-price {
+  --_fs: var(--g-text-title-sm-size);
+  --_lh: var(--g-text-title-sm-line);
+  --_fw: var(--g-text-title-sm-weight);
+  --_tr: var(--g-text-title-sm-tracking);
+  --_ff: var(--g-font-ui);
+  --_sfs: var(--g-text-body-sm-size);
+  --_slh: var(--g-text-body-sm-line);
+  --_sfw: var(--g-text-body-sm-weight);
+  --_gap: calc(var(--g-space-1) * 2);
+
+  position: relative;
+  display: inline-block;
+  vertical-align: baseline;
+  max-inline-size: 100%;
+  font-family: var(--g-font-ui);
+  font-size: var(--_sfs);
+  line-height: var(--_slh);
+  font-weight: var(--_sfw);
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--g-color-text);
+}
+/* xs · día del calendario: todo en caption; la cifra con el peso de caption (no compite con el número del día) */
+.g-price--size-xs {
+  --_fs: var(--g-text-caption-size);
+  --_lh: var(--g-text-caption-line);
+  --_fw: var(--g-text-caption-weight);
+  --_tr: var(--g-text-caption-tracking);
+  --_sfs: var(--g-text-caption-size);
+  --_slh: var(--g-text-caption-line);
+  --_sfw: var(--g-text-caption-weight);
+  --_gap: var(--g-space-1);
+  color: inherit;
+}
+/* sm · carta, líneas del carrito: cifra body-sm con peso de título (la cifra manda sobre el nombre del plato) */
+.g-price--size-sm {
+  --_fs: var(--g-text-body-sm-size);
+  --_lh: var(--g-text-body-sm-line);
+  --_fw: var(--g-text-title-sm-weight);
+  --_tr: var(--g-text-body-sm-tracking);
+  --_sfs: var(--g-text-caption-size);
+  --_slh: var(--g-text-caption-line);
+  --_sfw: var(--g-text-caption-weight);
+  --_gap: var(--g-space-1);
+}
+/* md · tarjeta de oferta (los valores de la raíz) */
+/* lg · total del carrito */
+.g-price--size-lg {
+  --_fs: var(--g-text-title-size);
+  --_lh: var(--g-text-title-line);
+  --_fw: var(--g-text-title-weight);
+  --_tr: var(--g-text-title-tracking);
+  --_sfs: var(--g-text-body-size);
+  --_slh: var(--g-text-body-line);
+  --_sfw: var(--g-text-body-weight);
+}
+/* xl · plan de precios: display con la familia de display */
+.g-price--size-xl {
+  --_fs: var(--g-text-display-size);
+  --_lh: var(--g-text-display-line);
+  --_fw: var(--g-text-display-weight);
+  --_tr: var(--g-text-display-tracking);
+  --_ff: var(--g-font-display);
+  --_sfs: var(--g-text-body-size);
+  --_slh: var(--g-text-body-line);
+  --_sfw: var(--g-text-body-weight);
+  --_gap: calc(var(--g-space-1) * 3);
+}
+
+/* ---------- Lectura ---------- */
+/* La frase completa, en el patrón de texto oculto accesible; lo visible va aria-hidden en __visual */
+.g-price__spoken {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Líneas ---------- */
+.g-price__visual {
+  display: block;
+}
+.g-price__total,
+.g-price__now,
+.g-price__visual > .g-price__compare {
+  display: block;
+}
+/* Partes: cajas en línea atómicas (dan ocasión de salto entre ellas y no dentro) separadas por --_gap */
+.g-price__now > *,
+.g-price__compare > *,
+.g-price__total > * {
+  display: inline-block;
+  vertical-align: baseline;
+}
+.g-price__now > :not(:last-child),
+.g-price__compare > :not(:last-child),
+.g-price__total > :not(:last-child) {
+  margin-inline-end: var(--_gap);
+}
+
+/* ---------- La cifra ---------- */
+/* dir="ltr" lo pone el .vue (signo, símbolo y cifras no se reordenan); isolate para que no arrastre lo de alrededor */
+.g-price__amount,
+.g-price__total-amount {
+  unicode-bidi: isolate;
+  white-space: nowrap;
+  font-family: var(--_ff);
+  font-size: var(--_fs);
+  line-height: var(--_lh);
+  font-weight: var(--_fw);
+  letter-spacing: var(--_tr);
+  color: var(--g-color-text);
+}
+/* El código, solo cuando el símbolo es ambiguo: pegado a la cifra, en voz baja y con el tamaño secundario */
+.g-price__code {
+  margin-inline-start: var(--g-space-1);
+  font-family: var(--g-font-ui);
+  font-size: var(--_sfs);
+  font-weight: var(--_sfw);
+  letter-spacing: var(--g-text-caption-tracking);
+  color: var(--g-color-text-muted);
+}
+/* Lo secundario de la línea del precio actual */
+.g-price__lead,
+.g-price__approx,
+.g-price__unit,
+.g-price__sep {
+  color: var(--g-color-text-muted);
+}
+/* xs: la cifra sigue el color de su sitio (el día elegido lleva on-{color}; la franja, on-{color}-soft) */
+.g-price--size-xs .g-price__amount,
+.g-price--size-xs .g-price__code,
+.g-price--size-xs .g-price__now > * {
+  color: inherit;
+}
+
+/* ---------- Estados de texto llano ---------- */
+/* «Gratis» es el precio: con la cifra. «Precio a consultar» es una nota: secundario y en voz baja */
+.g-price--free {
+  font-family: var(--_ff);
+  font-size: var(--_fs);
+  line-height: var(--_lh);
+  font-weight: var(--_fw);
+  letter-spacing: var(--_tr);
+}
+.g-price__amount--word {
+  font-family: var(--g-font-ui);
+  letter-spacing: var(--g-text-caption-tracking);
+}
+.g-price--on-request {
+  color: var(--g-color-text-muted);
+}
+
+/* ---------- C · El antes y el ahora (compareStyle="trace") ---------- */
+/* La referencia va encima, sin tachar: su nombre, el importe en voz baja, una flecha hacia el precio y el ahorro en
+   texto sobre el par success-soft. Nada depende del color: el ahorro dice «Ahorras $450» */
+.g-price__visual > .g-price__compare {
+  margin-block-end: var(--g-space-1);
+  color: var(--g-color-text-muted);
+}
+.g-price__compare-label {
+  color: var(--g-color-text-muted);
+}
+.g-price__amount--compare {
+  font-family: var(--g-font-ui);
+  font-size: var(--_sfs);
+  line-height: var(--_slh);
+  font-weight: var(--_sfw);
+  letter-spacing: var(--g-text-caption-tracking);
+  color: var(--g-color-text-muted);
+}
+.g-price__compare > .g-price__arrow {
+  vertical-align: middle;
+  color: var(--g-color-text-muted);
+}
+.g-price__saving {
+  padding-inline: calc(var(--g-space-1) * 2);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-success-soft);
+  color: var(--g-color-on-success-soft);
+  font-weight: var(--g-text-action-weight);
+  white-space: nowrap;
+}
+
+/* ---------- Tachado (compareStyle="strike") ---------- */
+/* El clásico: <s> después del precio actual, en la misma línea, en voz baja (text-muted ≥ 4.5:1) */
+.g-price--compare-strike .g-price__now {
+  display: inline;
+}
+.g-price--compare-strike .g-price__now > :last-child {
+  margin-inline-end: var(--_gap);
+}
+.g-price__visual > s.g-price__compare {
+  display: inline-block;
+  margin-block-end: 0;
+  white-space: nowrap;
+}
+/* La decoración no entra en las cajas en línea atómicas: el tachado va en el propio importe */
+s.g-price__compare > .g-price__amount--compare {
+  text-decoration-line: line-through;
+  text-decoration-thickness: var(--g-border-width);
+}
+
+/* ---------- A · La cuenta (total) ---------- */
+/* Arriba y con la cifra, el total de lo pedido; debajo, la tarifa como contexto en el tamaño secundario */
+.g-price__total-label,
+.g-price__total-unit {
+  color: var(--g-color-text-muted);
+}
+.g-price--has-total .g-price__now .g-price__amount {
+  font-family: var(--g-font-ui);
+  font-size: var(--_sfs);
+  line-height: var(--_slh);
+  font-weight: var(--_sfw);
+  letter-spacing: var(--g-text-caption-tracking);
+  color: var(--g-color-text-muted);
+}
+.g-price--has-total .g-price__now .g-price__code {
+  margin-inline-start: var(--g-space-1);
+}
+
+/* Cifras que ruedan (P2 de GNumberField, price.md «A · La cuenta»). La capa vive dentro de __visual (aria-hidden); la
+   frase oculta ya tiene el total nuevo. Cada carácter que cambia va en una ranura con recorte: el nuevo entra y el
+   viejo sale en vertical, el 100 % de su propio alto. Las cifras son tabulares: la capa no cambia el ancho.
+   translate no se aplica a cajas en línea: ranura y caracteres son inline-block. La ranura se alinea arriba en la
+   línea del propio importe (mismo tipo, mismo alto): su recorte no mueve la línea base de la cifra */
+.g-price__roll-slot {
+  position: relative;
+  display: inline-block;
+  vertical-align: top;
+  overflow: clip;
+}
+.g-price__roll-new,
+.g-price__roll-old {
+  display: inline-block;
+}
+.g-price__roll-old {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+}
+
+/* Arriba cuando el importe sube (el nuevo entra desde abajo y el viejo sale por arriba), abajo cuando baja */
+@keyframes g-price-roll-up-new {
+  from { translate: 0 100%; }
+  to { translate: 0 0; }
+}
+@keyframes g-price-roll-up-old {
+  from { translate: 0 0; }
+  to { translate: 0 -100%; }
+}
+@keyframes g-price-roll-down-new {
+  from { translate: 0 -100%; }
+  to { translate: 0 0; }
+}
+@keyframes g-price-roll-down-old {
+  from { translate: 0 0; }
+  to { translate: 0 100%; }
+}
+/* Solo sin preferencia de movimiento reducido (#299 (3)). Con reduce no hay animación calculada y el .vue retira la
+   capa en el acto: el total nuevo aparece en su sitio */
+@media (prefers-reduced-motion: no-preference) {
+  .g-price__total-amount.is-rolling[data-direction="up"] .g-price__roll-new {
+    animation: g-price-roll-up-new var(--g-duration-press) var(--g-ease-out) both;
+  }
+  .g-price__total-amount.is-rolling[data-direction="up"] .g-price__roll-old {
+    animation: g-price-roll-up-old var(--g-duration-press) var(--g-ease-out) both;
+  }
+  .g-price__total-amount.is-rolling[data-direction="down"] .g-price__roll-new {
+    animation: g-price-roll-down-new var(--g-duration-press) var(--g-ease-out) both;
+  }
+  .g-price__total-amount.is-rolling[data-direction="down"] .g-price__roll-old {
+    animation: g-price-roll-down-old var(--g-duration-press) var(--g-ease-out) both;
+  }
+}
+
+/* ---------- Colores forzados ---------- */
+/* El ahorro pierde su fondo: gana un borde del sistema. La flecha y el texto siguen a CanvasText */
+@media (forced-colors: active) {
+  .g-price__saving {
+    border: var(--g-border-width) solid CanvasText;
+  }
+  .g-price__compare > .g-price__arrow {
+    color: CanvasText;
+  }
+}

@@ -13,13 +13,16 @@
 //    mudanza espera si el foco está dentro de las acciones o si hay un aria-expanded="true" (panel abierto);
 //  - publica dos reservas de borde (zócalo pegado arriba, muelle abierto abajo) con EDGE_ORDER.pageHeader;
 //  - al cambiar la pestaña del zócalo estando pegado, coloca la página al instante (MutationObserver de aria-selected);
-//  - expone focus() al hN.
+//  - expone focus() al hN;
+//  - dentro de GAppShell (S6, #710): mide con la cifra final del chasis (canal interno appShellKey: `top`), vuelve a medir
+//    cuando cambia y le avisa (`notify()`) cuando cambia su is-sticky o su is-stuck. Sin chasis, nada cambia.
 // Sin window/document al importar ni en el servidor: todo empieza al montar.
-import { computed, onBeforeMount, onBeforeUnmount, onMounted, onUpdated, ref, shallowRef, useAttrs, useId, useSlots, watch } from 'vue'
+import { computed, inject, onBeforeMount, onBeforeUnmount, onMounted, onUpdated, ref, shallowRef, useAttrs, useId, useSlots, watch } from 'vue'
 import { nextFrame, spaceUnit } from '../GForm/formContext.js'
 import { observeSize } from '../../utils/sizeObserver.js'
 import { EDGE_ORDER, clearEdgeReserve, edgeReserve, setEdgeReserve } from '../../utils/edgeReserve.js'
 import { transitionMs } from '../../utils/motion.js'
+import { appShellKey } from '../../utils/appShell.js'
 
 defineOptions({ name: 'GPageHeader' })
 
@@ -36,6 +39,8 @@ const props = defineProps({
 
 const slots = useSlots()
 const attrs = useAttrs()
+// Canal del chasis (S6): `top` es el sitio final de la banda; dentro de un <dialog> no se usa (#517)
+const shell = inject(appShellKey, null)
 
 // Constantes de diseño (page-header.md «No son tokens»)
 const NARROW_SPACES = 150 // estrecho por debajo de space × 150
@@ -159,7 +164,9 @@ function measure() {
   M.scroller = scrollerOf(root)
   const space = spaceUnit(root)
   narrow.value = root.clientWidth > 0 && root.clientWidth < space * NARROW_SPACES
-  M.top = readTop()
+  // Con chasis, la cifra final (S6); mientras la variable aún se anima hacia ella (B), cuenta la mayor de las dos: el
+  // zócalo sigue pegado durante la transición en vez de soltarse un cuadro y volver
+  M.top = shell && !inDialog.value ? Math.max(shell.top.value, readTop()) : readTop()
   // `position: sticky` se mide desde el borde del relleno del contenedor MENOS su padding (los tres motores): un cuerpo de
   // GDialog con relleno dejaría el zócalo ese relleno más abajo. El relleno se suma al top negativo (--_lift).
   M.pad = M.scroller ? Math.max(0, parseFloat(getComputedStyle(M.scroller).paddingTop) || 0) : 0
@@ -481,6 +488,11 @@ watch(baseEl, () => { if (rootEl.value) { observeBase(); measure() } })
 watch(tabsEl, () => { if (rootEl.value) observeTabs() })
 watch(actionsEl, () => { if (rootEl.value) observeExpanded() })
 watch(() => props.sticky, () => schedule())
+// S6: la cifra del chasis cambió (cede, vuelve, presupuesto): se vuelve a medir; y el chasis sabe cuándo el zócalo se pega
+if (shell) {
+  watch(shell.top, () => { if (rootEl.value && !inDialog.value) measure() })
+  watch([isSticky, stuck], () => { if (rootEl.value && !inDialog.value) shell.notify() }, { flush: 'post' })
+}
 
 // Un parche de Vue sobre `style` (atributo de la aplicación) podría borrar las variables en línea: se reescriben
 onUpdated(() => {

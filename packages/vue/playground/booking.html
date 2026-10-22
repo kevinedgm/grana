@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GBookingBar · banco del componente real (bruno)</title>
+<!-- Banco de GBookingBar y GPartyField con los componentes REALES (dist/booking.umd.js, global GranaBooking; dueño: bruno).
+     Lo verifica design/lab/theme-playground/tests/booking.spec.mjs. Parámetros: ?a=phrase|bar · ?kind=stay|table|tour · ?dock=1 ·
+     ?tail=0 (la página termina justo en el último botón) · ?dir=rtl · ?dark=1 · ?disabled=1 · ?quick=7 · ?party=1 (GPartyField suelto). -->
+<link rel="stylesheet" href="../dist/fonts.css">
+<link rel="stylesheet" href="../dist/grana.css">
+<style>
+  body{margin:0;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
+  main{padding:16px;max-inline-size:1100px;margin-inline:auto}
+  .tall{block-size:180vh}
+  .after{block-size:40vh}
+  #pf{margin-block-start:24px}
+</style>
+</head>
+<body>
+<div id="app">
+  <main>
+    <g-booking-bar
+      id="bb"
+      :kind="Q.kind"
+      :appearance="Q.a"
+      :dock="Q.dock"
+      title="Consulta disponibilidad"
+      v-model="query"
+      :party-rows="Q.kind === 'stay' ? rowsStay : rowsTable"
+      :disabled-nights="Q.kind === 'stay' ? soldOut : undefined"
+      :min-nights="1"
+      :max-nights="Q.kind === 'stay' ? 14 : undefined"
+      :times="times"
+      :tours="tours"
+      :quick-days="Q.quick"
+      :names="{ from: 'checkin', to: 'checkout', party: 'guests' }"
+      :labels="labels"
+      :pending="pending"
+      :disabled="Q.disabled"
+      locale="es-MX"
+      @submit="onSubmit"></g-booking-bar>
+    <g-party-field v-if="Q.party" id="pf" v-model="party" label="Huéspedes" name="guests" :rows="rowsStay" :labels="{ done: 'Listo', separator: ' · ' }" locale="es-MX"></g-party-field>
+    <div class="tall"></div>
+    <button id="last" type="button">Último botón</button>
+    <div v-if="Q.tail !== '0'" class="after"></div>
+  </main>
+</div>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="../dist/grana.umd.js"></script>
+<script src="../dist/booking.umd.js"></script>
+<script>
+  const q = new URLSearchParams(location.search)
+  const Q = { a: q.get('a') || 'phrase', kind: q.get('kind') || 'stay', dock: q.has('dock'), tail: q.get('tail'), disabled: q.has('disabled'), quick: Number(q.get('quick') || 0), party: q.has('party') }
+  if (q.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  if (q.has('dark')) document.documentElement.dataset.theme = 'dark'
+  const iso = (d) => d.toISOString().slice(0, 10)
+  const t0 = new Date(); t0.setUTCHours(12)
+  const plus = (n) => { const d = new Date(t0); d.setUTCDate(d.getUTCDate() + n); return iso(d) }
+  const SOLD = new Set([plus(4), plus(5), plus(11)])
+  const phrases = { stay: 'Llego el {from}, me quedo {nights} y somos {party}.', table: 'Mesa para {party} el {date} a las {time}.', tour: 'Quiero hacer {tour} el {date} y somos {party}.' }
+  const app = Vue.createApp({
+    setup() {
+      const query = Vue.ref(null)
+      const party = Vue.ref({})
+      const pending = Vue.ref(false)
+      const intents = []
+      window.bookingState = { query, party, intents, pending, SOLD: [...SOLD], plus }
+      return {
+        Q, query, party, pending,
+        soldOut: (d) => SOLD.has(d),
+        rowsStay: [
+          { key: 'adults', label: 'Adultos', min: 1, default: 2, unit: (n) => `${n} ${n === 1 ? 'adulto' : 'adultos'}`, decrementLabel: 'Quitar adulto', incrementLabel: 'Añadir adulto' },
+          { key: 'children', label: 'Niños', hint: 'De 0 a 12 años', unit: (n) => `${n} ${n === 1 ? 'niño' : 'niños'}`, decrementLabel: 'Quitar niño', incrementLabel: 'Añadir niño' },
+          { key: 'rooms', label: 'Habitaciones', min: 1, max: (v) => v.adults, unit: (n) => `${n} ${n === 1 ? 'habitación' : 'habitaciones'}`, decrementLabel: 'Quitar habitación', incrementLabel: 'Añadir habitación' }
+        ],
+        rowsTable: [{ key: 'people', label: 'Personas', min: 1, default: 2, unit: (n) => `${n} ${n === 1 ? 'persona' : 'personas'}`, decrementLabel: 'Una persona menos', incrementLabel: 'Una persona más' }],
+        times: ['13:30', '14:00', '14:30', '19:00', '20:00', '20:30', '21:00'].map((v) => ({ value: v, disabled: v === '14:00' || v === '20:30' })),
+        tours: [{ value: 'hierve', label: 'Hierve el Agua y Mitla', description: 'Día completo' }, { value: 'monte-alban', label: 'Monte Albán al amanecer', description: 'Medio día' }],
+        labels: {
+          phrase: phrases[Q.kind],
+          fields: { from: 'Llegada', to: 'Salida', nights: 'Noches', date: 'Día', time: 'Hora', tour: 'Recorrido', party: Q.kind === 'stay' ? 'Huéspedes' : 'Personas' },
+          empty: { from: '¿qué día?', nights: '¿cuántas noches?', date: '¿qué día?', time: '¿a qué hora?', tour: '¿cuál?' },
+          nights: (n) => `${n} ${n === 1 ? 'noche' : 'noches'}`, checkout: 'Salida el {date}', noDates: 'Sin fechas', noDate: 'Sin fecha', noTime: 'Sin hora', noTour: 'Sin recorrido',
+          separator: ' · ', summaryTitle: 'Tu consulta', change: 'Cambiar', submit: 'Ver disponibilidad', pending: 'Consultando…', close: 'Cerrar', done: 'Listo', otherDay: 'Otro día', full: 'lleno',
+          decrement: 'Una noche menos', increment: 'Una noche más',
+          errors: { dates: 'Elige la llegada y las noches.', night: 'No quedan habitaciones la noche del {date}.', nights: 'Elige entre 1 y 14 noches.', date: 'Elige el día.', time: 'Elige la hora.', tour: 'Elige el recorrido.' },
+          missing: (n, v) => (n === 1 ? `Falta un dato: ${v.list}` : `Faltan ${v.count} datos: ${v.list}`),
+          datePicker: { prev: 'Mes anterior', next: 'Mes siguiente', dialog: 'Elegir fecha', close: 'Cerrar', today: 'hoy', selected: 'elegida', unavailable: 'sin disponibilidad', checkoutOnly: 'solo salida', rangeStart: 'llegada', rangeEnd: 'salida', rangeSingle: 'llegada y salida', inRange: 'en tu estancia', done: 'Listo', announceStart: 'Llegada {date}. Elige la salida.', announceEnd: 'Del {start} al {end}.', announceDate: '{date}.' }
+        },
+        onSubmit(p) { intents.push({ ...p, event: undefined }) }
+      }
+    }
+  })
+  app.use(Grana).use(GranaBooking)
+  window.bookingApp = app.mount('#app')
+</script>
+</body>
+</html>

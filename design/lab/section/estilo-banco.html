@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GSection · banco de estilo (coco)</title>
+<!-- Banco de coco: marcado de design/contracts/section.md con el CSS real (GSection.css) en las capas del registro, más GBtn real
+     en las acciones. La fábrica section() hace lo que hará bruno: nivel por anidación (2 → 3 → 4, tope 4), profundidad con tope 3
+     (clase), headingLevel fijado gana en la etiqueta y no en el tamaño, aria-labelledby solo con landmark, sin p ni grupo vacíos.
+     Parámetros: ?dark=1 ?rtl=1 ?test=1 ?theme=<generated/*.css>.  Verificación: node design/lab/section/estilo-verificar.mjs -->
+<style>
+@layer grana.defaults, grana.components;
+@import url("../../../packages/vue/src/styles/defaults.css") layer(grana.defaults);
+@import url("../../../packages/vue/src/components/GBtn/GBtn.css") layer(grana.components);
+@import url("../../../packages/vue/src/components/GSection/GSection.css") layer(grana.components);
+</style>
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style id="theme"></style>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:900px;margin:0 auto}
+  h1{font-size:18px;margin:0 0 8px}
+  h2.b{font-size:15px;margin:32px 0 6px;padding-top:12px;border-top:1px dashed var(--g-color-border-strong)}
+  .cap{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 10px;max-width:96ch}
+  .tools{display:flex;gap:6px 16px;flex-wrap:wrap;padding:8px 0;font-size:13px}
+  .tools button,.tools select{font:inherit;font-size:13px;min-block-size:28px;padding:2px 8px;border:1px solid var(--g-color-border-control);border-radius:6px;background:var(--g-color-surface);color:var(--g-color-text)}
+  .host{background:var(--g-color-surface);border:1px solid var(--g-color-border);border-radius:var(--g-radius-xl);padding:var(--g-space-4);min-inline-size:0}
+  .host.sunken{background:var(--g-color-surface-sunken)}
+  .blk{block-size:40px;background:var(--g-color-brand-soft);border-radius:var(--g-radius-md)}
+</style>
+</head>
+<body>
+<main>
+<h1>GSection · banco de estilo</h1>
+<p class="cap"><b>coco</b> · Sección de página sin superficie. Título por profundidad: 20/28 → 16/24 → 14/20 (600); nivel <code>h2 → h3 → h4</code> por anidación; descripción body-sm <code>muted</code> a 66ch; acciones que bajan solas; cuerpo con la pila <code>md</code>.</p>
+<div class="tools"><button type="button" id="t-dark">Oscuro</button><button type="button" id="t-rtl">RTL</button><select id="t-theme"><option value="">Por defecto</option><option value="test">Tema de prueba</option></select></div>
+<div id="out"></div>
+</main>
+<script>
+const $ = (s) => document.querySelector(s);
+let uid = 0;
+const btn = (t) => `<button type="button" class="g-btn g-btn--variant-outline g-btn--color-neutral g-btn--size-md"><span class="g-btn__label">${t}</span></button>`;
+/* section({title, description, actions, landmark, level, children}, depth) */
+function section(o, depth = 1, auto = 2) {
+  const id = 'sec' + ++uid; const lvl = o.level ?? Math.min(auto, 4); const d = Math.min(depth, 3);
+  const next = Math.min(lvl + 1, 4);
+  return `<section class="g-section g-section--depth-${d}" data-case="${o.c || ''}" data-depth="${depth}" ${o.landmark ? `aria-labelledby="${id}-title"` : ''}>
+  <div class="g-section__head"><div class="g-section__titles"><h${lvl} class="g-section__title" id="${id}-title" dir="auto">${o.title}</h${lvl}>${o.description ? `<p class="g-section__desc">${o.description}</p>` : ''}</div>
+  ${o.actions ? `<div class="g-section__actions" role="group" aria-label="Acciones de ${o.title}">${o.actions.map(btn).join('')}</div>` : ''}</div>
+  <div class="g-section__body">${o.body ?? '<div class="blk"></div><p>Contenido de la sección con un párrafo de agente (margen 0 dentro del cuerpo).</p>'}${o.child ? o.child(depth + 1, next) : ''}</div></section>`;
+}
+const sec = (t, cap, html, cls = '') => `<h2 class="b">${t}</h2><p class="cap">${cap}</p><div class="host ${cls}">${html}</div>`;
+const nested = (c) => section({ c: c + '1', title: 'Firmantes', description: 'Quién valida el informe antes de enviarlo.', actions: ['Añadir'], child: (d, n) =>
+  section({ c: c + '2', title: 'Suplentes', description: 'Se avisa a quien sigue en la lista.', child: (d2, n2) =>
+  section({ c: c + '3', title: 'Orden de aviso', child: (d3, n3) => section({ c: c + '4', title: 'Cuarta anidada (h4 tope, 14 px)' }, d3, n3) }, d2, n2) }, d, n) });
+$('#out').innerHTML = [
+  sec('1 · Una sección', 'Título, descripción y acciones; cuerpo con pila md.', section({ c: 'one', title: 'Pendientes de validar', description: 'Quién valida el informe y en qué orden se le avisa; puede ser más de una persona.', actions: ['Exportar', 'Añadir'] })),
+  sec('2 · Anidación (superficie)', 'h2 → h3 → h4 → h4; tamaños 20 → 16 → 14 → 14.', nested('n')),
+  sec('3 · Sobre superficie hundida', 'Contraste del título y la descripción sobre <code>surface-sunken</code>.', nested('s'), 'sunken'),
+  sec('4 · headingLevel fijado', 'Con <code>headingLevel</code> 3 en la primera: la etiqueta cambia y el tamaño no.', section({ c: 'fixed', title: 'Nivel fijado a h3', level: 3, description: 'Tamaño por profundidad (20/28), no por nivel.' })),
+  sec('5 · Landmark', 'Con <code>landmark</code>: <code>aria-labelledby</code> al título (region con nombre); sin él, ninguno.', section({ c: 'lm-yes', title: 'Con landmark', landmark: true }) + '<div style="height:16px"></div>' + section({ c: 'lm-no', title: 'Sin landmark' })),
+  sec('6 · Sin descripción ni acciones', 'No se pinta el <code>p</code> ni el grupo.', section({ c: 'bare', title: 'Solo título' })),
+  sec('7 · Título largo y acciones que bajan', 'Título largo con palabra sin cortes; en poco ancho las acciones bajan bajo el título sin punto de corte.', `<div style="inline-size:var(--w,100%)" id="narrow">${section({ c: 'long', title: 'Resumen_ejecutivo_de_validaciones_pendientes_del_trimestre_con_identificador_larguísimo', description: 'Texto de apoyo.', actions: ['Exportar', 'Añadir firmante'] })}</div>`),
+  sec('8 · Árabe y hebreo (dir=auto del título)', 'El título lleva <code>dir="auto"</code>: un título RTL en página LTR se alinea a su idioma.', section({ c: 'auto-dir', title: 'مراجعة التقارير الفصلية', description: 'Description in the page language.', actions: ['Añadir'] })),
+].join('');
+const TEST = ':root{--g-font-ui:Georgia,serif;--g-border-width:2px;--g-radius-md:3px;--g-color-primary:#7A1E3A;--g-color-surface:#fffaf2;--g-color-surface-sunken:#f1e7d8;--g-color-bg:#f4ecdf;--g-color-text:#2b1d0e;--g-color-text-muted:#6b5238;--g-space-1:5px;--g-text-title-sm-size:1.5rem;--g-text-title-sm-line:2rem;--g-text-body-size:1.0625rem;--g-text-body-line:1.625rem}';
+const GEN = ['amazon', 'apple', 'caracol-purpura', 'github', 'grana', 'linear', 'lustre', 'medium', 'notion', 'spotify'];
+GEN.forEach((n) => $('#t-theme').insertAdjacentHTML('beforeend', '<option value="' + n + '">' + n + '</option>'));
+function setTheme(v) { $('#theme').textContent = v === 'test' ? TEST : ''; $('#gen').href = v && v !== 'test' ? '../tema-oscuro/dark-color-presence/generated/' + v + '.css' : 'data:text/css,'; }
+$('#t-theme').onchange = (e) => setTheme(e.target.value);
+$('#t-dark').onclick = () => { document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; };
+$('#t-rtl').onclick = () => { document.documentElement.dir = document.documentElement.dir === 'rtl' ? 'ltr' : 'rtl'; };
+const q = new URLSearchParams(location.search);
+const th = q.get('test') ? 'test' : (q.get('theme') || '');
+if (th) { $('#t-theme').value = th; setTheme(th); }
+if (q.get('dark')) document.documentElement.dataset.theme = 'dark'; else if (q.get('theme')) document.documentElement.dataset.theme = 'light';
+if (q.get('rtl')) document.documentElement.dir = 'rtl';
+</script>
+</body>
+</html>

@@ -52,7 +52,8 @@ const note = (s) => notes.push(s)
   ok(vars.every((v) => v.startsWith('--g-') || v.startsWith('--_')), 'CSS: var() que no es --g-* ni --_*')
   const defaults = await readFile(join(ROOT, 'packages/vue/src/styles/defaults.css'), 'utf8')
   const defined = new Set([...defaults.matchAll(/(--g-[a-z0-9-]+)\s*:/g)].map((m) => m[1]))
-  const missing = [...new Set(vars.filter((v) => v.startsWith('--g-') && !defined.has(v) && !['--g-page-header-top', '--g-tabs-inset'].includes(v)))]
+  const missing = [...new Set(vars.filter((v) => v.startsWith('--g-') && !defined.has(v) && !['--g-page-header-top', '--g-tabs-inset', '--g-container-inset-start', '--g-container-inset-end'].includes(v)))]
+  // Fuera del tema: entrada pública propia, la de GTabs y los márgenes publicados de GContainer (tokens.md §50, L4 #751)
   ok(!missing.length, 'CSS: tokens que no existen en defaults.css ' + missing)
   ok(!defined.has('--g-page-header-top'), 'defaults.css: --g-page-header-top no es del tema (#629)')
   ok(!vars.includes('--g-color-zone-edge'), 'CSS: no lee --g-color-zone-edge (#634, §44.2)')
@@ -81,7 +82,9 @@ const note = (s) => notes.push(s)
   ok(!structural.length, 'CSS: selector de hijos por estructura sin excluir .g-tooltip (#383): ' + structural)
   ok(/@media \(prefers-reduced-motion: reduce\)/.test(css) && /@media \(forced-colors: active\)/.test(css) && /@media \(pointer: coarse\)/.test(css), 'CSS: reducido, forzados y táctil presentes')
   ok(/max\(var\(--g-space-12\), 44px\)/.test(css) && /block-size: var\(--_base-h\)/.test(css), 'CSS: alto del zócalo max(space-12, 44px) como block-size')
-  ok(!/scroll-margin/.test(css), 'CSS: el encabezado no pone scroll-margin (receta #515)')
+  // #515 + enmienda #715 (S5): ningún scroll-margin positivo; solo el negativo del zócalo pegado (lo enfocable de dentro)
+  const sm = [...css.matchAll(/([^{}]+)\{[^}]*scroll-margin[^}]*\}/g)].map((m) => m[0].replace(/\s+/g, ' ').trim())
+  ok(sm.length === 1 && /^\.g-page-header\.is-sticky \.g-page-header__base, \.g-page-header\.is-sticky \.g-page-header__base :not\(:where\(\.g-tooltip\)\) \{ scroll-margin-block-start: calc\(-1 \* \(var\(--g-page-header-top\) \+ var\(--_base-h\)\)\); \}$/.test(sm[0]), 'CSS: solo el scroll-margin negativo del zócalo pegado (#515, S5 #715)', sm.join(' | '))
 }
 
 /* ---------- Utilidades del navegador ---------- */

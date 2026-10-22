@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "name": "GStack",
+  "tag": "g-stack",
+  "status": "candidate",
+  "since": "0.1.0",
+  "description": "Pila de un eje con la escala de separación de Grana (sm, md, lg como relación sobre la base de página), sin superficie y sin poder romper el reflujo: en línea siempre se parte y es la única fuente de aire entre sus hijos.",
+  "contract": "design/contracts/stack.md",
+  "prototype": "design/lab/app-shell/r01/",
+  "style": "packages/vue/src/components/GStack/GStack.css",
+  "props": [
+    {
+      "name": "as",
+      "type": "String",
+      "default": "div",
+      "description": "Etiqueta HTML no interactiva (div, section, article, aside, nav, header, footer, ul, ol, form, fieldset…). Con a, button, input, select, textarea, summary, label o main, aviso 1 (se pinta igual)."
+    },
+    {
+      "name": "orientation",
+      "type": "String",
+      "default": "vertical",
+      "values": [
+        "vertical",
+        "horizontal"
+      ]
+    },
+    {
+      "name": "gap",
+      "type": "String",
+      "default": "md",
+      "values": [
+        "none",
+        "sm",
+        "md",
+        "lg"
+      ],
+      "description": "Factor 0 · 0,5 · 1 · 2 sobre la base de página space × 6; la misma separación en los dos ejes."
+    },
+    {
+      "name": "density",
+      "type": "String",
+      "default": "default",
+      "values": [
+        "default",
+        "comfortable",
+        "compact"
+      ]
+    },
+    {
+      "name": "horizontal",
+      "type": "String",
+      "default": null,
+      "values": [
+        "start",
+        "center",
+        "end"
+      ],
+      "description": "Eje en línea, lógico. En vertical, el ancho de los hijos (sin valor, estirar); en horizontal, dónde va la fila."
+    },
+    {
+      "name": "vertical",
+      "type": "String",
+      "default": null,
+      "values": [
+        "top",
+        "center",
+        "bottom"
+      ],
+      "description": "Eje de bloque; solo en horizontal. En vertical no actúa (aviso 3)."
+    },
+    {
+      "name": "divided",
+      "type": "Boolean",
+      "default": false,
+      "description": "Línea entre hijos visibles; solo en vertical (en horizontal, aviso 3 y no se pinta)."
+    }
+  ],
+  "events": [],
+  "slots": [
+    {
+      "name": "default",
+      "purpose": "Los hijos, en el orden del DOM; sin envoltorio por hijo"
+    }
+  ],
+  "methods": [],
+  "classes": {
+    "root": "g-stack g-stack--orientation-{vertical|horizontal} g-stack--gap-{none|sm|md|lg} g-stack--density-{default|comfortable|compact}",
+    "state": [
+      "g-stack--h-{start|center|end} (con horizontal)",
+      "g-stack--v-{top|center|bottom} (con vertical y orientation=\"horizontal\")",
+      "g-stack--divided (con divided y orientation=\"vertical\")"
+    ]
+  },
+  "tokens": [
+    "--g-space-1",
+    "--g-color-border",
+    "--g-border-width"
+  ],
+  "states": [
+    "default"
+  ],
+  "pending": [
+    "Auditoría de coco con un tema distinto (status draft hasta entonces)",
+    "Un hijo oculto con una clase de la aplicación (display: none) sigue contando para divided: límite conocido, no detectable en CSS"
+  ]
+}

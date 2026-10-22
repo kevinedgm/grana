@@ -18,7 +18,7 @@
       "name": "items",
       "type": "Array",
       "default": [],
-      "note": "Un elemento con icon cadena (nombre de Lucide) y sin slot icon dibuja GIcon en g-menu__icon (registro de la aplicación → librería; #202); con slot icon, manda el slot; otro valor de icon es dato opaco para el slot"
+      "note": "Un elemento con icon cadena (nombre de Lucide) y sin slot icon dibuja GIcon en g-menu__icon (registro de la aplicación → librería; #202); con slot icon, manda el slot; otro valor de icon es dato opaco para el slot. Campos lang (idioma de la etiqueta, en cualquier elemento, con dir=\"auto\" en el texto) y hreflang (idioma del destino, solo con href; sin él, E2), #743: un valor que Intl.getCanonicalLocales rechaza se ignora y avisa (E8)"
     },
     {
       "name": "label",
@@ -144,7 +144,8 @@
     "list-highlight-instant"
   ],
   "implementation": [
-    "Panel estable al desplazar la página (utils/anchor.js, mismas reglas que GCombobox): el lado de la lista principal se decide al abrir y se conserva; con side auto solo cambia si el actual baja de space × 40 y el otro ofrece al menos space × 12 más. --_max se fija al abrir la lista o un submenú, al cambiar items, en resize y al cambiar de lado; durante el desplazamiento solo se mueve la posición (desfase respecto del ancla medido al colocar), una vez por cuadro y solo si cambia. Si el disparador sale del visor o de su contenedor con desplazamiento, el menú se cierra sin devolver el foco."
+    "Panel estable al desplazar la página (utils/anchor.js, mismas reglas que GCombobox): el lado de la lista principal se decide al abrir y se conserva; con side auto solo cambia si el actual baja de space × 40 y el otro ofrece al menos space × 12 más. --_max se fija al abrir la lista o un submenú, al cambiar items, en resize y al cambiar de lado; durante el desplazamiento solo se mueve la posición (desfase respecto del ancla medido al colocar), una vez por cuadro y solo si cambia. Si el disparador sale del visor o de su contenedor con desplazamiento, el menú se cierra sin devolver el foco.",
+    "lang y hreflang (#743): atributo lang en el <a> o <button> del elemento y dir=\"auto\" en g-menu__label; hreflang solo en el <a> con href (y sin él con disabled, como target y rel). Validación con Intl.getCanonicalLocales también en producción; el aviso E8 con la guarda de #653."
   ],
   "pending": [
     "Lector de pantalla real (submenús, grupos, opciones)",

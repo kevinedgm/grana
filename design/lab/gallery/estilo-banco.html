@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GGallery · banco de estilo (coco)</title>
+<!-- Banco de coco: marcado EXACTO de design/contracts/gallery.md («Anatomía», «Clases y datos») con el CSS real de
+     GGallery.css y GDialog.css (con g-dialog--bare, #732) de src/ dentro de la capa grana.components y GBtn real de dist/.
+     XGallery y XViewer pintan lo que pintarán GGallery.vue y GGalleryViewer.vue (el visor es el <dialog> que pintará
+     GDialog fullscreen bare, con la zona en su raíz) y SOLO el comportamiento que el estilo necesita: abrir, pasar con
+     llegada (is-arriving + data-direction), arrastrar (--_drag-x/-y, is-dragging), ampliar (is-zoomed), foto rota, el hilo,
+     la tira con su actual. No es la implementación de bruno.
+     Desde la raíz del repo:  python3 -m http.server 4241  →  /design/lab/gallery/estilo-banco.html
+     Parámetros: ?a=grid|strip  &grouped=0  &zone=none  &open=<índice>  &broken=<índice>  &dir=rtl  &dark=1
+       &theme=<generated/*> | &tema=terracota|anil|palida (design/lab/hero/estilo-temas/)
+     Verificación: GRANA_PW_PORT=4241 node design/lab/gallery/estilo-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<style>
+@import url("../../../packages/vue/src/components/GDialog/GDialog.css") layer(grana.components);
+@import url("../../../packages/vue/src/components/GGallery/GGallery.css") layer(grana.components);
+</style>
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style>
+  html, body { margin: 0; }
+  body { background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui); font-size: var(--g-text-body-size); line-height: var(--g-text-body-line); }
+  .page { max-inline-size: calc(var(--g-space-16) * 18); margin-inline: auto; padding: var(--g-space-8) var(--g-space-4) var(--g-space-16); }
+  .tall { block-size: 1200px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="../../../node_modules/vue/dist/vue.global.prod.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../lucide-icons.js"></script>
+<script src="../marketing/r01/fotos.js"></script>
+<script>
+;(function () {
+  const { createApp, h, defineComponent, ref, computed, nextTick, onMounted } = Vue
+  const Q = new URLSearchParams(location.search)
+  if (Q.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  if (Q.get('dark') === '1') document.documentElement.setAttribute('data-theme', 'dark')
+  if (Q.get('theme')) document.getElementById('gen').href = `../tema-oscuro/dark-color-presence/generated/${Q.get('theme')}.css`
+  if (Q.get('tema')) document.getElementById('gen').href = `../hero/estilo-temas/${Q.get('tema')}.css`
+  const A = Q.get('a') || 'grid'
+  const GROUPED = Q.get('grouped') !== '0'
+  const ZONE = Q.get('zone') || 'brand'
+  const BROKEN = Q.has('broken') ? +Q.get('broken') : -1
+  const ic = (n, flip) => h('svg', { class: ['g-icon', flip && 'g-icon--flip-rtl'], 'aria-hidden': 'true', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', innerHTML: window.LUCIDE_ICONS[n] })
+  const RAW = [
+    ['patio', 4, 3, 'hab', 'Cama de lino frente al patio'], ['habitacion', 3, 2, 'hab', ''], ['mercado', 1, 1, 'hab', ''], ['hierve', 4, 3, 'hab', ''],
+    ['cielo', 2, 3, 'bano', 'Baño de piedra con luz cenital'], ['mole', 3, 4, 'bano', ''],
+    ['monte-alban', 16, 9, 'terraza', 'Terraza con vista al valle'],
+    ['noche', 4, 3, 'noche', ''], ['mezcal', 1, 1, 'noche', ''], ['papel-picado', 3, 2, 'noche', '']
+  ]
+  const PHOTOS = RAW.map(([k, w, hh, g, cap], i) => ({ id: i, src: foto(k, w, hh), width: w * 400, height: hh * 400, alt: fotoAlt(k), caption: cap, group: GROUPED ? g : undefined }))
+  const GROUPS = [{ value: 'hab', label: 'Habitación' }, { value: 'bano', label: 'Baño', id: 'fotos-bano' }, { value: 'terraza', label: 'Terraza' }, { value: 'noche', label: 'De noche' }]
+  const gOf = (i) => PHOTOS[i].group, inG = (g) => PHOTOS.map((p, i) => i).filter((i) => gOf(i) === g)
+
+  const XViewer = defineComponent({
+    name: 'XViewer',
+    props: { index: Number, open: Boolean },
+    emits: ['update:index', 'close'],
+    setup (props, { emit }) {
+      const dlg = ref(null), stage = ref(null), img = ref(null)
+      const zoomed = ref(false), dragging = ref(false), dx = ref(0), dy = ref(0), dir = ref(''), arriving = ref(false), live = ref('')
+      // Como el .vue (#758): tamaño contenido de la foto × 2, en px enteros, con el tamaño del escenario
+      const zoomVars = (p) => {
+        if (!zoomed.value || !stage.value) return {}
+        const cw = stage.value.clientWidth, ch = stage.value.clientHeight, k = Math.min(cw / p.width, ch / p.height)
+        return { '--_zoom-w': Math.round(p.width * k * 2) + 'px', '--_zoom-h': Math.round(p.height * k * 2) + 'px' }
+      }
+      const n = PHOTOS.length
+      const go = (i, d) => {
+        if (i < 0 || i >= n || i === props.index) return
+        zoomed.value = false
+        dir.value = d; arriving.value = true
+        emit('update:index', i)
+        requestAnimationFrame(() => requestAnimationFrame(() => { arriving.value = false }))
+        const p = PHOTOS[i]
+        live.value = `${pos(i)}. ${p.alt}.`
+      }
+      const pos = (i) => GROUPED ? `${GROUPS.find((g) => g.value === gOf(i)).label} · ${inG(gOf(i)).indexOf(i) + 1} de ${inG(gOf(i)).length}` : `${i + 1} de ${n}`
+      const onKey = (e) => {
+        const rtl = getComputedStyle(dlg.value).direction === 'rtl'
+        if (e.key === 'Escape' && zoomed.value) { e.preventDefault(); zoomed.value = false; return }
+        if (e.key === 'Escape') { e.preventDefault(); emit('close'); return }
+        if (zoomed.value) return
+        if (e.key === (rtl ? 'ArrowLeft' : 'ArrowRight')) go(props.index + 1, 'next')
+        if (e.key === (rtl ? 'ArrowRight' : 'ArrowLeft')) go(props.index - 1, 'prev')
+      }
+      let sx = 0, sy = 0
+      const down = (e) => { if (zoomed.value) return; sx = e.clientX; sy = e.clientY; dragging.value = true; stage.value.setPointerCapture(e.pointerId) }
+      const move = (e) => { if (!dragging.value) return; dx.value = e.clientX - sx; dy.value = Math.max(0, e.clientY - sy) }
+      const up = () => {
+        if (!dragging.value) return
+        const w = stage.value.clientWidth
+        dragging.value = false
+        const x = dx.value; dx.value = 0; dy.value = 0
+        if (Math.abs(x) >= w * 0.18) go(props.index + (x < 0 ? 1 : -1), x < 0 ? 'next' : 'prev')
+      }
+      onMounted(() => { window.__viewer = { zoomed, dragging, dx, dy } })
+      return () => {
+        const p = PHOTOS[props.index] || PHOTOS[0]
+        const broken = props.index === BROKEN
+        return h('dialog', { ref: dlg, id: 'viewer', class: ['g-dialog', 'g-dialog--fullscreen', 'g-dialog--bare', 'g-dialog--placement-center', 'g-gallery-viewer'], 'aria-label': 'Habitación Jardín, galería', 'data-g-zone': ZONE === 'brand' ? 'brand' : undefined, onKeydown: onKey, onCancel: (e) => e.preventDefault() }, [
+          h('div', { class: 'g-dialog__body' }, [
+            h('div', { class: 'g-gallery-viewer__bar' }, [
+              h('p', { class: 'g-gallery-viewer__title', 'aria-hidden': 'true' }, 'Habitación Jardín'),
+              h('p', { class: 'g-gallery-viewer__count', 'aria-hidden': 'true' }, pos(props.index)),
+              h(Grana.GBtn, { class: 'g-gallery-viewer__zoom', variant: 'ghost', icon: true, 'aria-label': 'Ampliar', 'aria-pressed': String(zoomed.value), onClick: () => { zoomed.value = !zoomed.value } }, () => ic(zoomed.value ? 'zoom-out' : 'zoom-in')),
+              h(Grana.GBtn, { class: 'g-gallery-viewer__close', variant: 'ghost', icon: true, 'aria-label': 'Cerrar', onClick: () => emit('close') }, () => ic('x'))
+            ]),
+            h('div', { ref: stage, class: ['g-gallery-viewer__stage', zoomed.value && 'is-zoomed', dragging.value && 'is-dragging'], style: { '--_drag-x': dx.value + 'px', '--_drag-y': dy.value + 'px', ...zoomVars(p) }, onPointerdown: down, onPointermove: move, onPointerup: up, onPointercancel: up, onDblclick: () => { zoomed.value = !zoomed.value } }, [
+              h('img', { ref: img, class: ['g-gallery-viewer__img', arriving.value && 'is-arriving'], 'data-direction': dir.value || undefined, src: broken ? 'data:image/png;base64,AAAA' : p.src, alt: p.alt, width: p.width, height: p.height, draggable: 'false' }),
+              broken ? h('p', { class: 'g-gallery-viewer__broken' }, `No se pudo cargar esta foto: ${p.alt}`) : null
+            ]),
+            h('p', { class: 'g-gallery-viewer__caption', 'aria-hidden': 'true' }, p.caption),
+            h('div', { class: 'g-gallery-viewer__nav' }, [
+              h(Grana.GBtn, { class: 'g-gallery-viewer__prev', variant: 'outline', icon: true, 'aria-label': 'Foto anterior', 'aria-disabled': props.index === 0 ? 'true' : undefined, onClick: () => go(props.index - 1, 'prev') }, () => ic('chevron-left', true)),
+              h(Grana.GBtn, { class: 'g-gallery-viewer__next', variant: 'outline', icon: true, autofocus: true, 'aria-label': 'Foto siguiente', 'aria-disabled': props.index === n - 1 ? 'true' : undefined, onClick: () => go(props.index + 1, 'next') }, () => ic('chevron-right', true))
+            ]),
+            GROUPED ? h('nav', { class: 'g-gallery-viewer__thread', 'aria-label': 'Espacios', tabindex: '-1' }, GROUPS.map((g) => h('button', { type: 'button', class: 'g-gallery-viewer__thread-item', 'aria-current': gOf(props.index) === g.value ? 'true' : undefined, onClick: () => go(inG(g.value)[0], inG(g.value)[0] > props.index ? 'next' : 'prev') }, g.label))) : null,
+            h('p', { class: 'g-gallery-viewer__live', 'aria-live': 'polite', 'aria-atomic': 'true' }, live.value)
+          ])
+        ])
+      }
+    }
+  })
+
+  const XGallery = defineComponent({
+    name: 'XGallery',
+    setup () {
+      const index = ref(Q.has('open') ? +Q.get('open') : 0)
+      const open = ref(false)
+      const vref = ref(null)
+      const show = async (i) => { index.value = i; open.value = true; await nextTick(); const d = document.getElementById('viewer'); if (!d.open) d.showModal(); d.querySelector('.g-gallery-viewer__next').focus() }
+      const close = () => { const d = document.getElementById('viewer'); d.close(); open.value = false; const t = document.querySelector(`[data-photo="${index.value}"]`); t && t.focus(); if (A === 'strip') scrollStrip(index.value) }
+      const scrollStrip = (i) => { const s = document.querySelector(`.g-gallery__slide[data-i="${i}"]`); s && s.scrollIntoView({ block: 'nearest', inline: 'start' }) }
+      onMounted(() => { window.__gal = { ready: true, show, close, index }; if (Q.has('open')) show(+Q.get('open')) })
+      const thumb = (p, i, attrs = {}) => h('a', { class: ['g-gallery__thumb', i === index.value && 'is-current', i === BROKEN && 'is-broken'], href: p.src, 'aria-haspopup': 'dialog', 'data-photo': i, onClick: (e) => { e.preventDefault(); show(i) }, ...attrs }, [
+        h('img', { class: 'g-gallery__img', src: i === BROKEN ? 'data:image/png;base64,AAAA' : p.src, alt: p.alt, width: p.width, height: p.height, loading: i < 4 ? 'eager' : 'lazy', decoding: 'async' }),
+        i === BROKEN ? ic('image') : null
+      ])
+      const grid = (list) => h('ul', { class: 'g-gallery__grid', role: 'list' }, list.map((i) => h('li', { class: 'g-gallery__item', key: i }, [thumb(PHOTOS[i], i)])))
+      const onStripKey = (e) => {
+        const rtl = getComputedStyle(e.currentTarget).direction === 'rtl'
+        let i = index.value
+        if (e.key === (rtl ? 'ArrowLeft' : 'ArrowRight')) i++
+        else if (e.key === (rtl ? 'ArrowRight' : 'ArrowLeft')) i--
+        else return
+        e.preventDefault(); i = Math.max(0, Math.min(PHOTOS.length - 1, i)); index.value = i
+        nextTick(() => { document.querySelector(`[data-photo="${i}"]`).focus(); scrollStrip(i) })
+      }
+      return () => {
+        const kids = []
+        kids.push(h('div', { class: 'g-gallery__head' }, [
+          h('h2', { class: 'g-gallery__title', id: 'g1-title' }, 'Habitación Jardín'),
+          h('p', { class: 'g-gallery__total' }, `${PHOTOS.length} fotos`),
+          A === 'strip' ? h('div', { class: 'g-gallery__strip-nav' }, [
+            h(Grana.GBtn, { variant: 'ghost', icon: true, size: 'sm', 'aria-label': 'Foto anterior', onClick: () => { index.value = Math.max(0, index.value - 1); scrollStrip(index.value) } }, () => ic('chevron-left', true)),
+            h('p', { class: 'g-gallery__strip-count', 'aria-hidden': 'true' }, `${index.value + 1} / ${PHOTOS.length}`),
+            h(Grana.GBtn, { variant: 'ghost', icon: true, size: 'sm', 'aria-label': 'Foto siguiente', onClick: () => { index.value = Math.min(PHOTOS.length - 1, index.value + 1); scrollStrip(index.value) } }, () => ic('chevron-right', true))
+          ]) : null
+        ]))
+        if (A === 'strip') {
+          kids.push(h('div', { class: 'g-gallery__strip', 'aria-roledescription': 'carrusel', 'aria-labelledby': 'g1-title', tabindex: '-1', onKeydown: onStripKey },
+            PHOTOS.map((p, i) => h('div', { class: ['g-gallery__slide', i === index.value && 'is-current'], 'data-i': i, role: 'group', 'aria-roledescription': 'foto', 'aria-label': `${i + 1} de ${PHOTOS.length}` }, [
+              thumb(p, i, { tabindex: i === index.value ? '0' : '-1' }),
+              h('p', { class: 'g-gallery__caption', dir: 'auto' }, p.caption || p.alt)
+            ]))))
+        } else if (GROUPED) {
+          kids.push(h('nav', { class: 'g-gallery__index', 'aria-label': 'Espacios' }, GROUPS.map((g, k) => h('a', { class: 'g-gallery__index-link', href: `#${g.id || 'g1-g-' + k}`, 'aria-label': `${g.label}, ${inG(g.value).length} fotos` }, [g.label, h('span', { 'aria-hidden': 'true' }, String(inG(g.value).length))]))))
+          GROUPS.forEach((g, k) => kids.push(h('div', { class: 'g-gallery__group', id: g.id || `g1-g-${k}`, role: 'group', 'aria-labelledby': `g1-gt-${k}` }, [h('h3', { class: 'g-gallery__group-title', id: `g1-gt-${k}` }, g.label), grid(inG(g.value))])))
+        } else kids.push(grid(PHOTOS.map((p, i) => i)))
+        kids.push(h('p', { class: 'g-gallery__live', 'aria-live': 'polite', 'aria-atomic': 'true' }))
+        kids.push(h(XViewer, { index: index.value, open: open.value, 'onUpdate:index': (i) => { index.value = i }, onClose: close }))
+        return h('section', { class: ['g-gallery', `g-gallery--appearance-${A}`, GROUPED && A === 'grid' && 'g-gallery--grouped'], 'aria-labelledby': 'g1-title' }, kids)
+      }
+    }
+  })
+  const app = createApp({ render: () => h('main', { class: 'page' }, [h(XGallery), h('p', null, [h('button', { type: 'button', id: 'last' }, 'Último')]), h('div', { class: 'tall' })]) })
+  app.use(Grana.default || Grana)
+  app.mount('#app')
+})()
+</script>
+</body>
+</html>

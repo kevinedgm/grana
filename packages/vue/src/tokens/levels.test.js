@@ -30,8 +30,10 @@ describe('niveles de tokens en los componentes (tokens.md §17)', () => {
   // Propiedades públicas de solo lectura que publica una primitiva para los componentes que la componen (su raíz ES esa
   // primitiva). Excepción acotada y nombrada, no un comodín: `--g-surface-padding` la declara GSurface.css (DECISIONS.md
   // #131, surface.md «Cambio aparte», tokens.md §19) y solo la lee GCard, cuya raíz es una GSurface.
-  const PUBLISHED = { 'GSurface/GSurface.css': ['--g-surface-padding'] }
-  const COMPOSES = { 'GCard/GCard.css': ['GSurface/GSurface.css'] }
+  // Las márgenes publicadas de GContainer (`--g-container-inset-start/-end`, container.md, #721 a #724) las lee GPageHeader
+  // cuando es el primer hijo de la columna y sangra como g-bleed (L4, #751, #760; page-header.md).
+  const PUBLISHED = { 'GSurface/GSurface.css': ['--g-surface-padding'], 'GContainer/GContainer.css': ['--g-container-inset-start', '--g-container-inset-end'] }
+  const COMPOSES = { 'GCard/GCard.css': ['GSurface/GSurface.css'], 'GPageHeader/GPageHeader.css': ['GContainer/GContainer.css'] }
 
   it('las propiedades publicadas existen en su primitiva y no son tokens del tema', () => {
     for (const [sheet, names] of Object.entries(PUBLISHED)) {
@@ -67,6 +69,32 @@ describe('niveles de tokens en los componentes (tokens.md §17)', () => {
     }
   })
 
+  // Propiedades públicas registradas de las primitivas de estructura (tokens.md §48 y §50; app-shell.md y container.md,
+  // DECISIONS.md #713, #717, #722): entradas que pone la aplicación (`--g-app-shell-header` en :root, `--g-container-max` en la
+  // raíz del contenedor) y publicadas de solo lectura (`--g-app-shell-top`, `--g-container-inset-start/-end`). No son del tema:
+  // no están en defaults.css; las registra su hoja con @property <length> y `inherits` de contrato. A diferencia de las de
+  // PUBLIC_INPUTS, no se ponen a 0 en .g-dialog__body (el chasis no va en un <dialog>, aviso 7; el contenedor no lee cabecera).
+  // Excepción acotada y nombrada, no un comodín.
+  const REGISTERED_PUBLIC = {
+    'GAppShell/GAppShell.css': { '--g-app-shell-header': true, '--g-app-shell-top': true },
+    'GContainer/GContainer.css': { '--g-container-max': false, '--g-container-inset-start': true, '--g-container-inset-end': true }
+  }
+
+  it('las propiedades públicas de las primitivas de estructura las registra su hoja con @property y no son tokens del tema', () => {
+    for (const [sheet, names] of Object.entries(REGISTERED_PUBLIC)) {
+      const s = sheets.find((x) => x.name === sheet)
+      expect(s, sheet).toBeTruthy()
+      for (const [n, inherits] of Object.entries(names)) {
+        expect(defined.has(n), `${n} no es un token de defaults.css`).toBe(false)
+        const reg = s.css.match(new RegExp(`@property\\s+${n}\\s*\\{([^}]*)\\}`))
+        expect(reg, `${sheet} registra ${n} con @property`).toBeTruthy()
+        expect(reg[1]).toMatch(/syntax:\s*["']<length>["']/)
+        expect(reg[1]).toMatch(new RegExp(`inherits:\\s*${inherits}`))
+        expect(reg[1]).toMatch(/initial-value:\s*0px/)
+      }
+    }
+  })
+
   // Familia condicional de categorías (tokens.md §16.3 y §24; speech.md §23.6 y §28.1; DECISIONS.md #247): `--g-color-cat-K`,
   // `-strong`, `-soft`, `-text`, `--g-color-on-cat-K` y `--g-color-on-cat-K-soft` (K = 1 a 12) solo los emite el tema cuando su
   // configuración trae `categories: N`; defaults.css NO los define (por defecto `categories: 0`) y no debe definirlos. Por eso
@@ -89,6 +117,7 @@ describe('niveles de tokens en los componentes (tokens.md §17)', () => {
     for (const s of sheets) {
       const declared = new Set([...s.css.matchAll(/(--g-[a-z0-9-]+)\s*:/g)].map((m) => m[1]))
       for (const p of COMPOSES[s.name] ?? []) for (const n of PUBLISHED[p] ?? []) declared.add(n)
+      for (const n of Object.keys(REGISTERED_PUBLIC[s.name] ?? {})) declared.add(n)
       for (const m of s.css.matchAll(/var\((--g-[a-z0-9-]+)/g)) {
         if (s.name in CAT_FAMILY_READERS && CAT_OK.test(m[1])) continue
         if (!defined.has(m[1]) && !declared.has(m[1])) (bad[s.name] ??= new Set()).add(m[1])

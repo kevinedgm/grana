@@ -2,7 +2,7 @@
 import { deriveColor, deriveDarkColor } from './derive.js'
 import { DEFAULTS, DARK } from './defaults.js'
 import { isColorGroup, splitColorGroup } from './scheme.js'
-import { fontStack, radii, spacing, typography } from './scales.js'
+import { fontStack, radii, spacing, typography, heroTitleMax } from './scales.js'
 import { categoryBases, semanticAdjustments, tintedNeutralBase, tintedNeutrals } from './palette.js'
 import { applyZone } from './zone.js'
 import { sidebarCurrentDark } from './sidebarCurrent.js'
@@ -130,6 +130,8 @@ export const generateTheme = (config = {}) => {
   if (config.fontDisplay !== undefined) generated['--g-font-display'] = fontStack(config.fontDisplay)
   if (config.fontSize !== undefined || config.typeScale !== undefined) {
     Object.assign(generated, typography(config.fontSize ?? 16, config.typeScale ?? 1.25))
+    // Tope del título de GHero (tokens.md §51, #727): fontSize × typeScale⁶ en rem
+    generated['--g-hero-title-max'] = heroTitleMax(config.fontSize ?? 16, config.typeScale ?? 1.25)
   }
   Object.assign(generated, overrides)
   // Zona de marca (tokens.md §44): las fuentes se derivan del claro ya resuelto y valen lo mismo en los dos esquemas

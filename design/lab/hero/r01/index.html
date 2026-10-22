@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Héroe · r01</title>
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="./hero.css">
+<script src="../../lucide-icons.js"></script>
+<script src="../../marketing/r01/fotos.js"></script>
+</head>
+<body>
+<!-- ?c=base|A|B|C  &tpl=hotel|restaurante|tour  &theme=minimal|rustico|lujo  &motion=1  &photo=<clave>  &dir=rtl
+     base: estructura funcional · A · La ventana · B · Vistas a elegir · C · El umbral
+     La barra de laboratorio y la cabecera del sitio son de la APLICACIÓN, no del componente. -->
+<nav class="lab-bar" aria-label="Laboratorio">
+  <span class="lab-bar__group" id="lab-concepts"></span>
+  <span class="lab-bar__group" id="lab-tpl"></span>
+  <span class="lab-bar__group" id="lab-theme"></span>
+  <span class="lab-bar__group" id="lab-extra"></span>
+</nav>
+<a class="lab-skip" href="#main">Saltar al contenido</a>
+<header class="site-bar">
+  <a class="site-bar__brand" href="#main" id="site-brand">Casa Cantera</a>
+  <nav class="site-bar__nav" aria-label="Sitio">
+    <a href="#main">Habitaciones</a><a href="#main">Experiencias</a><a href="#main">Contacto</a>
+  </nav>
+</header>
+<main id="main" tabindex="-1">
+  <div id="hero-slot"></div>
+  <section class="site-next" aria-labelledby="next-title">
+    <h2 id="next-title">Lo que sigue en la página</h2>
+    <p>Una sección cualquiera de la plantilla, para ver la relación del héroe con lo que viene después y que nada flota.</p>
+  </section>
+</main>
+<script src="./hero.js"></script>
+</body>
+</html>

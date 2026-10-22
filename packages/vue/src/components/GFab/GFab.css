@@ -573,7 +573,7 @@
 }
 .g-fab__find-count { color: var(--g-color-text-muted); }
 
-/* Pila que filtra (#725): la pista va en la fila más alejada del FAB (el .vue la pone primera o última en el DOM según el
+/* Pila que filtra (#797): la pista va en la fila más alejada del FAB (el .vue la pone primera o última en el DOM según el
    lado) como una píldora sin acción: misma familia que las demás, sin sombra ni semilla (no se pulsa), con la letra de la
    cabecera del panel. Alto constante entre pista, búsqueda y «sin coincidencias» */
 .g-fab__list--stack > .g-fab__find {

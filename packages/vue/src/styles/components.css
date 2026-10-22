@@ -65,6 +65,12 @@
 @import url("../components/GErrorSummary/GErrorSummary.css");
 @import url("../components/GIcon/GIcon.css");
 @import url("../components/GDivider/GDivider.css");
+/* GStack y GSection (stack.md, section.md, #723): primitivas puras de distribución, sin reasignar hojas de otros */
+@import url("../components/GStack/GStack.css");
+@import url("../components/GSection/GSection.css");
+/* GContainer (container.md, #723): contenedor de página; lee .g-surface y .g-dialog__body como anfitrionas, sin reasignar
+   sus hojas */
+@import url("../components/GContainer/GContainer.css");
 /* Isla de estado (status.md, entrada @grana/vue/status, #328): reasigna alias de GBtn y su hoja es un GDialog: va después
    de GBtn.css y GDialog.css */
 @import url("../components/GStatusIsland/GStatusIsland.css");
@@ -104,6 +110,22 @@
 /* GPageHeader (page-header.md, entrada @grana/vue/page-header, #633; su CSS sigue en grana.css): reapunta su fondo en
    GSurface y GDialog y es anfitriona de --g-tabs-inset en el zócalo; va después de sus hojas (GSurface, GDialog, GTabs) */
 @import url("../components/GPageHeader/GPageHeader.css");
+/* GAppShell (app-shell.md, entrada @grana/vue/app-shell, #716; su CSS sigue en grana.css): coloca GSidebar fijo y escribe
+   la receta de cabecera (--g-page-header-top, --g-accordion-sticky-top) en la capa de Grana: va después de GSidebar.css,
+   GAccordion.css y GPageHeader.css */
+@import url("../components/GAppShell/GAppShell.css");
 /* GFab (fab.md, entrada @grana/vue/fab, #656; su CSS sigue en grana.css): su FAB, su principal y su cola son GBtn y su
    nombre lo da GTooltip; añade su elevación y sus selectores sobre .g-btn: va después de GBtn.css y GTooltip.css */
 @import url("../components/GFab/GFab.css");
+/* Marketing (#742; entradas @grana/vue/hero, /gallery y /booking; su CSS sigue en grana.css):
+   GHero (hero.md) pinta GBtn por slot y su placa de B es zona de marca; GGallery (gallery.md) compone GDialog (bare) y GBtn
+   y reapunta su visor; GPartyField (booking-bar.md) es una caja de campo como GSelect y compone GNumberField; GBookingBar
+   compone GDatePicker, GSelect, GRadioGroup, GNumberField, GDialog, GBtn y GPartyField: van después de sus hojas */
+@import url("../components/GHero/GHero.css");
+@import url("../components/GGallery/GGallery.css");
+@import url("../components/GPartyField/GPartyField.css");
+@import url("../components/GBookingBar/GBookingBar.css");
+/* Moneda y precio (price.md, entrada @grana/vue/price, #776; su CSS sigue en grana.css): GPrice compone GIcon y entra en el
+   día de GDatePicker (size xs) y en GCard; GPriceScope envuelve precios: van después de sus hojas */
+@import url("../components/GPrice/GPrice.css");
+@import url("../components/GPriceScope/GPriceScope.css");

@@ -77,7 +77,7 @@ export default defineComponent({
       const href = typeof raw.href === 'string' && raw.href.trim() && raw.href
       try { if (process.env.NODE_ENV !== 'production' && href && !isLinkable) warnOnce('e1', 'ignora `href` en casilla, opción, grupo, separador o padre de submenú (E1).') } catch {}
       if (!href || !isLinkable) {
-        try { if (process.env.NODE_ENV !== 'production' && ['target', 'rel', 'external', 'current'].some((k) => raw[k])) warnOnce('e2', 'ignora target, rel, external y current sin href (E2).') } catch {}
+        try { if (process.env.NODE_ENV !== 'production' && ['target', 'rel', 'external', 'current', 'hreflang'].some((k) => raw[k])) warnOnce('e2', 'ignora target, rel, external, current y hreflang sin href (E2).') } catch {}
         return null
       }
       let current = Boolean(raw.current)
@@ -89,7 +89,19 @@ export default defineComponent({
       scan.tab ||= tab
       scan.solo ||= ext && !tab // otro sitio en la misma pestaña: su pie dice labels.destExternal
       scan.live ||= !raw.disabled
-      return { href, target: raw.target || undefined, rel: raw.rel || undefined, current, ext, tab, leaves: ext || tab }
+      return { href, target: raw.target || undefined, rel: raw.rel || undefined, hreflang: langOf(raw.hreflang, 'hreflang'), current, ext, tab, leaves: ext || tab }
+    }
+    // lang (idioma de la etiqueta, cualquier elemento) y hreflang (idioma del destino, solo enlaces), #743: un valor que
+    // Intl.getCanonicalLocales rechaza se ignora (también en producción) y avisa (E8)
+    const langOf = (v, name) => {
+      if (typeof v !== 'string' || !v.trim()) return undefined
+      try {
+        Intl.getCanonicalLocales(v)
+        return v
+      } catch {
+        try { if (process.env.NODE_ENV !== 'production') warnOnce(`e8-${v}`, `ignora ${name}="${v}" (E8).`) } catch {}
+        return undefined
+      }
     }
     const normalize = (list, path, group, prefix) => {
       const out = []
@@ -597,6 +609,7 @@ export default defineComponent({
       }
       const it = node.raw
       const lk = node.link
+      const lang = langOf(it.lang, 'lang')
       const expanded = path.value.includes(node.key)
       // Texto oculto dentro del nombre (L8): labels.external y labels.newTab tal cual, sin puntuación añadida
       const sr = lk && [lk.ext && props.labels.external, lk.tab && props.labels.newTab].filter((t) => typeof t === 'string').join('')
@@ -614,7 +627,7 @@ export default defineComponent({
                 ? (it.icon !== undefined ? h('span', { class: 'g-menu__icon', 'aria-hidden': 'true' }, slots.icon({ item: it })) : null)
                 // «Dato → nombre» (#202): `icon` cadena sin slot dibuja GIcon con ese nombre (resolución de la aplicación)
                 : (typeof it.icon === 'string' && it.icon !== '' ? h('span', { class: 'g-menu__icon', 'aria-hidden': 'true' }, [h(GAppIcon, { name: it.icon })]) : null),
-            h('span', { class: 'g-menu__label' }, [it.danger ? h(GIcon, { class: 'g-menu__danger-icon', name: 'triangle-alert' }) : null, it.label]),
+            h('span', { class: 'g-menu__label', dir: lang ? 'auto' : undefined }, [it.danger ? h(GIcon, { class: 'g-menu__danger-icon', name: 'triangle-alert' }) : null, it.label]),
             srEl,
             it.shortcut ? h('span', { class: 'g-menu__shortcut', 'aria-hidden': 'true' }, it.shortcut) : null
           ]
@@ -622,9 +635,10 @@ export default defineComponent({
       const on = !it.disabled
       const button = h(lk ? 'a' : 'button', {
         ...(lk
-          ? { href: on ? lk.href : undefined, target: on ? lk.target : undefined, rel: on ? lk.rel : undefined, 'aria-current': lk.current ? 'page' : undefined, onAuxclick: (e) => e.button === 1 && onLink(node, e) }
+          ? { href: on ? lk.href : undefined, target: on ? lk.target : undefined, rel: on ? lk.rel : undefined, hreflang: on ? lk.hreflang : undefined, 'aria-current': lk.current ? 'page' : undefined, onAuxclick: (e) => e.button === 1 && onLink(node, e) }
           : { type: 'button' }),
         id: `${rootId}-i-${node.key}`,
+        lang,
         class: cls('g-menu__item', it.danger && 'g-menu__item--danger', expanded && 'is-expanded', node.children && scan.branch.has(node.key) && 'is-branch'),
         role,
         tabindex: -1,

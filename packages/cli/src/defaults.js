@@ -175,6 +175,7 @@ export const DEFAULTS = {
   "--g-text-display-line": "3rem",
   "--g-text-display-tracking": "-0.022em",
   "--g-text-display-weight": "600",
+  "--g-hero-title-max": "calc(var(--g-text-display-size) * 1.5625)",
   "--g-text-action-weight": "500"
 }
 

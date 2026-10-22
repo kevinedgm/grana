@@ -1,6 +1,6 @@
 # Brief — `GResourceList` (Grana Blocks), r01: base funcional y tres conceptos de pantalla
 
-> kiwi, 2026-10-20. Origen: página de Notion «Grana Blocks» (2026-10-05) y DECISIONS #708 (paquete aparte `@grana/blocks`, `packages/blocks/`, `private`, `0.0.0`). Primer block. Base funcional (HTML, WAI-ARIA APG, WCAG 2.2) **y** tres conceptos divergentes de la **pantalla completa** (A/B/C) prototipados con los **componentes reales de `packages/vue/dist`** y el tema por defecto.
+> kiwi, 2026-10-20. Origen: página de Notion «Grana Blocks» (2026-10-05) y DECISIONS #780 (paquete aparte `@grana/blocks`, `packages/blocks/`, `private`, `0.0.0`). Primer block. Base funcional (HTML, WAI-ARIA APG, WCAG 2.2) **y** tres conceptos divergentes de la **pantalla completa** (A/B/C) prototipados con los **componentes reales de `packages/vue/dist`** y el tema por defecto.
 
 ## Para qué
 
@@ -16,7 +16,7 @@ Todos los frameworks traen la misma caja: **cabecera + barra de filtros + tabla 
 
 Cada concepto ataca una premisa distinta: **A · En su sitio** (no hay capas: la fila se abre en su formulario y quitar deja una huella con «Deshacer»), **B · Lente** (la lista es el navegador y la ficha vive al lado, en la página, no encima) y **C · La frase** (la consulta se lee como una frase y la pantalla empieza por lo que pide atención).
 
-## Qué NO es (de Notion y #708)
+## Qué NO es (de Notion y #780)
 
 Sin `fetch`, sin endpoints, sin Pinia ni Supabase; no valida ni guarda (lo hace la aplicación y el block lo refleja); no es un generador; no sustituye a los atómicos. **Transparente:** props, eventos de intención y slots.
 

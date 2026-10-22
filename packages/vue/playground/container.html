@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GContainer · banco del componente real (bruno)</title>
+<!-- Banco de GContainer con el componente REAL de dist/ (paquete principal; dueño: bruno), sin chasis: el contenedor es el
+     main de la página (receta de container.md «Uso», as="main"). Lleva una banda g-bleed, una g-bleed-raw, una banda
+     profunda, un desplazable ancho, un contenedor anidado, uno dentro de GSurface, prosa con tabla y g-wide, un contenedor en
+     un padre que se ajusta (intrínseco) y, con ?ph=1, un GPageHeader real (@grana/vue/page-header) pegado a toda la página.
+     Lo verifica design/lab/theme-playground/tests/container.spec.mjs (dentro de GAppShell: app-shell.spec.mjs).
+     Parámetros: ?width=sm|md|lg|xl|2xl|full|reading · ?gutter=auto|none|sm|md|lg · ?horizontal=center|start · ?prose=1 ·
+     ?max=<px> (--g-container-max en la raíz) · ?box=<px> (ancho del sitio que se le da) · ?dir=rtl · ?ph=1 · ?dark=1. -->
+<link rel="stylesheet" href="../dist/fonts.css">
+<link rel="stylesheet" href="../dist/grana.css">
+<style>
+  /* Andamio del banco (no es de Grana) */
+  body{margin:0;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  #box{margin-inline:auto}
+  .band{background:var(--g-color-surface);padding-block:16px}
+  .raw{block-size:24px;background:var(--g-color-border)}
+  .scroller{overflow-x:auto}
+  .scroller table{border-collapse:collapse}
+  .scroller td{border:1px solid var(--g-color-border);padding:6px 10px;white-space:nowrap;min-inline-size:120px}
+  .row{block-size:20px;margin-block:8px;background:var(--g-color-border)}
+  .fixed-probe{position:fixed;inset-block-end:0;inset-inline-start:0;inline-size:8px;block-size:8px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="box" :style="Q.box ? { inlineSize: Q.box + 'px' } : null">
+    <g-container id="c-main" as="main" tabindex="-1" :width="Q.width" :gutter="Q.gutter" :horizontal="Q.horizontal" :prose="Q.prose" :style="Q.max ? { '--g-container-max': Q.max + 'px' } : null">
+      <g-page-header v-if="Q.ph" id="ph" title="Políticas de validación" :labels="{ actions: 'Acciones de la página' }">
+        <template #actions><g-btn id="ph-pub">Publicar</g-btn></template>
+      </g-page-header>
+      <h2 id="h2">Reglas de liberación automática</h2>
+      <p id="p1">Un resultado sale sin revisión cuando todos sus analitos están dentro del intervalo de referencia, el control de calidad del lote pasó en las últimas ocho horas y no hay una nota clínica que pida revisión. Si cualquiera de las tres condiciones falla, el resultado espera a un firmante.</p>
+      <ul id="ul1"><li>Intervalos por edad y sexo, del catálogo de analitos, revisados cada trimestre por el área.</li><li>Control de calidad del lote vigente.</li></ul>
+      <p id="url">La versión vigente está en https://intranet.laboratorio-central.example/politicas/validacion/automatica/version-2026-10-trimestre-cuatro-borrador-final.pdf y la anterior en el archivo.</p>
+      <section id="band" class="g-bleed band" aria-labelledby="band-t"><h2 id="band-t">Auditoría externa</h2><p id="band-p">La auditoría revisa las políticas publicadas el último día del mes.</p></section>
+      <div id="raw" class="g-bleed-raw raw"></div>
+      <div id="deep-a"><div id="deep-b"><section id="deep" class="g-bleed band"><p id="deep-p">Banda profunda</p></section></div></div>
+      <div id="scroller" class="g-bleed scroller" role="region" aria-label="Analitos" tabindex="0"><table><tr><td v-for="c in 16" :key="c" :id="'cell-' + c">Valor de la columna {{ c }}</td></tr></table></div>
+      <table id="tbl"><tr><td><p id="tbl-p">Prosa dentro de una tabla: no se limita a la medida aunque la columna lleve prose, porque la tabla manda sobre su ancho.</p></td></tr></table>
+      <div class="g-wide"><p id="wide-p">Prosa marcada con g-wide: usa la columna entera aunque el contenedor lleve prose, porque la aplicación lo pidió así.</p></div>
+      <g-container id="c-nested" width="sm" horizontal="start"><p id="nested-p">Contenedor anidado: sin margen propio (auto anidado = 0).</p></g-container>
+      <g-surface id="surf"><g-container id="c-surf"><p id="surf-p">Contenedor dentro de una superficie: empieza en su relleno.</p></g-container></g-surface>
+      <div v-for="n in 40" :key="n" class="row"></div>
+      <span id="fixed" class="fixed-probe" aria-hidden="true"></span>
+    </g-container>
+  </div>
+  <!-- Padres que se ajustan al contenido (#562), recortados para no desbordar la página en un visor estrecho -->
+  <div style="overflow:clip">
+    <div id="intr-host" style="display:inline-block"><g-container id="c-intr" width="sm"><p>Intrínseco</p></g-container></div>
+    <div id="intr-host-reading" style="display:inline-block"><g-container id="c-intr-reading" width="reading"><p>Intrínseco</p></g-container></div>
+  </div>
+</div>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="../dist/grana.umd.js"></script>
+<script src="../dist/page-header.umd.js"></script>
+<script>
+  const P = new URLSearchParams(location.search)
+  if (P.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  if (P.get('dark') === '1') document.documentElement.dataset.theme = 'dark'
+  const app = Vue.createApp({
+    setup() {
+      return {
+        Q: {
+          width: P.get('width') || 'lg', gutter: P.get('gutter') || 'auto', horizontal: P.get('horizontal') || 'center', prose: P.get('prose') === '1',
+          max: Number(P.get('max')) || 0, box: Number(P.get('box')) || 0, ph: P.get('ph') === '1'
+        }
+      }
+    }
+  })
+  app.use(Grana).use(GranaPageHeader)
+  window.ctApp = app.mount('#app')
+</script>
+</body>
+</html>

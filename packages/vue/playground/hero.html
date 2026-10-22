@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GHero · banco del componente real (bruno)</title>
+<!-- Banco de GHero con el componente REAL (dist/hero.umd.js, global GranaHero; dueño: bruno). Lo verifica
+     design/lab/theme-playground/tests/hero.spec.mjs. Parámetros: ?c=window|views|threshold · ?video=1 · ?rect=1 · ?nolook=1 ·
+     ?detail=0 · ?photo=<clave> (cielo, noche, papel-picado) · ?h2=1 · ?dir=rtl · ?dark=1 · ?tall=1 (página con desplazamiento). -->
+<link rel="stylesheet" href="../dist/fonts.css">
+<link rel="stylesheet" href="../dist/grana.css">
+<style>
+  body{margin:0;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
+  .after{min-block-size:150vh;padding:24px}
+</style>
+</head>
+<body>
+<div id="app">
+  <g-hero
+    id="hero"
+    :appearance="Q.c"
+    :title="T.title"
+    eyebrow="Hotel boutique · Centro histórico de Oaxaca"
+    lead="Doce habitaciones alrededor de un patio de cantera verde, a dos calles de Santo Domingo."
+    aside="Desayuno incluido · Llegada desde las 15:00"
+    :heading-level="Q.h2 ? 2 : 1"
+    :media="media"
+    :detail="Q.detail === '0' ? undefined : detail"
+    :frame="Q.rect ? 'rect' : 'arch'"
+    :look="!Q.nolook"
+    :views="views"
+    v-model:view="view"
+    v-model:paused="paused"
+    :labels="{ views: 'Vistas', pause: 'Pausar el movimiento' }"
+  >
+    <template #actions>
+      <g-btn id="cta" size="lg" href="#reservar">Reservar</g-btn>
+      <g-btn id="sec" size="lg" variant="link" href="#habitaciones">Ver habitaciones</g-btn>
+    </template>
+    <template v-if="Q.c === 'threshold'" #consult>
+      <g-booking-bar id="consult" kind="stay" title="Consulta disponibilidad" :party-rows="rows" :labels="bookingLabels"></g-booking-bar>
+    </template>
+    <template v-if="Q.video" #media>
+      <video id="video" muted playsinline loop :poster="media.src" width="1600" height="2000"></video>
+    </template>
+  </g-hero>
+  <div v-if="Q.tall" class="after"><p id="after">Habitaciones, carta y cómo llegar.</p><button id="last" type="button">Último</button></div>
+</div>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="../dist/grana.umd.js"></script>
+<script src="../dist/hero.umd.js"></script>
+<script src="../dist/booking.umd.js"></script>
+<script src="./marketing-fotos.js"></script>
+<script>
+  const q = new URLSearchParams(location.search)
+  const Q = { c: q.get('c') || 'window', video: q.has('video'), rect: q.has('rect'), nolook: q.has('nolook'), detail: q.get('detail'), photo: q.get('photo') || 'patio', h2: q.has('h2'), tall: q.has('tall') }
+  if (q.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  if (q.has('dark')) document.documentElement.dataset.theme = 'dark'
+  const ratio = { window: [1600, 2000], views: [1600, 900], threshold: [1600, 700] }[Q.c] || [1600, 2000]
+  const app = Vue.createApp({
+    setup() {
+      const view = Vue.ref('patio')
+      const paused = Vue.ref(undefined)
+      window.heroState = { view, paused }
+      const keys = [Q.photo, 'habitacion', 'terraza']
+      return {
+        Q,
+        T: { title: 'Casa Alcalá' },
+        view, paused,
+        media: window.fotoMedia(Q.photo, ratio[0], ratio[1], { credit: 'Foto: archivo de la casa' }),
+        detail: { src: window.foto('mezcal', 600, 600), width: 600, height: 600 },
+        views: keys.map((k, i) => ({ value: i === 0 ? 'patio' : k, label: ['Patio', 'Habitación', 'Terraza'][i], media: window.fotoMedia(k, 1600, 900) })),
+        rows: [
+          { key: 'adults', label: 'Adultos', min: 1, default: 2, unit: (n) => `${n} ${n === 1 ? 'adulto' : 'adultos'}`, decrementLabel: 'Quitar adulto', incrementLabel: 'Añadir adulto' },
+          { key: 'rooms', label: 'Habitaciones', min: 1, max: (v) => v.adults, unit: (n) => `${n} ${n === 1 ? 'habitación' : 'habitaciones'}`, decrementLabel: 'Quitar habitación', incrementLabel: 'Añadir habitación' }
+        ],
+        bookingLabels: window.BOOKING_LABELS
+      }
+    }
+  })
+  window.BOOKING_LABELS = {
+    phrase: 'Llego el {from}, me quedo {nights} y somos {party}.',
+    fields: { from: 'Llegada', to: 'Salida', nights: 'Noches', date: 'Día', time: 'Hora', tour: 'Recorrido', party: 'Huéspedes' },
+    empty: { from: '¿qué día?', nights: '¿cuántas noches?', date: '¿qué día?', time: '¿a qué hora?', tour: '¿cuál?' },
+    nights: (n) => `${n} ${n === 1 ? 'noche' : 'noches'}`, checkout: 'Salida el {date}', noDates: 'Sin fechas', noDate: 'Sin fecha', noTime: 'Sin hora', noTour: 'Sin recorrido',
+    separator: ' · ', summaryTitle: 'Tu consulta', change: 'Cambiar', submit: 'Ver disponibilidad', pending: 'Consultando…', close: 'Cerrar', done: 'Listo', otherDay: 'Otro día', full: 'lleno',
+    decrement: 'Una noche menos', increment: 'Una noche más',
+    errors: { dates: 'Elige la llegada y las noches.', night: 'No quedan habitaciones la noche del {date}.', nights: 'Elige entre 1 y 14 noches.', date: 'Elige el día.', time: 'Elige la hora.', tour: 'Elige el recorrido.' },
+    missing: (n, v) => (n === 1 ? `Falta un dato: ${v.list}` : `Faltan ${v.count} datos: ${v.list}`),
+    datePicker: { prev: 'Mes anterior', next: 'Mes siguiente', dialog: 'Elegir fecha', close: 'Cerrar', today: 'hoy', selected: 'elegida', unavailable: 'sin disponibilidad', checkoutOnly: 'solo salida', rangeStart: 'llegada', rangeEnd: 'salida', rangeSingle: 'llegada y salida', inRange: 'en tu estancia', done: 'Listo', announceStart: 'Llegada {date}. Elige la salida.', announceEnd: 'Del {start} al {end}.', announceDate: '{date}.' }
+  }
+  app.use(Grana).use(GranaHero).use(GranaBooking)
+  window.heroApp = app.mount('#app')
+</script>
+</body>
+</html>

@@ -25,11 +25,16 @@ import * as formFoldEntry from './form-fold.js'
 import * as cardGroupEntry from './card-group.js'
 import * as pageHeaderEntry from './page-header.js'
 import * as fabEntry from './fab.js'
+import * as appShellEntry from './app-shell.js'
+import * as heroEntry from './hero.js'
+import * as galleryEntry from './gallery.js'
+import * as bookingEntry from './booking.js'
+import * as priceEntry from './price.js'
 import { ENTRIES, buildTypes, metaProps, readMetas } from '../scripts/build-types.mjs'
 
 const ROOT = resolve(process.cwd())
 const OUT = join(ROOT, 'node_modules/.cache/grana-types-test')
-const RUNTIME = { grana: mainEntry, speech: speechEntry, status: statusEntry, combobox: comboboxEntry, 'file-field': fileFieldEntry, 'time-field': timeFieldEntry, slider: sliderEntry, testing: testingEntry, tag: tagEntry, 'load-region': loadRegionEntry, 'card-group': cardGroupEntry, 'page-header': pageHeaderEntry, fab: fabEntry, 'form-fold': formFoldEntry }
+const RUNTIME = { grana: mainEntry, speech: speechEntry, status: statusEntry, combobox: comboboxEntry, 'file-field': fileFieldEntry, 'time-field': timeFieldEntry, slider: sliderEntry, testing: testingEntry, tag: tagEntry, 'load-region': loadRegionEntry, 'card-group': cardGroupEntry, 'page-header': pageHeaderEntry, fab: fabEntry, 'form-fold': formFoldEntry, 'app-shell': appShellEntry, hero: heroEntry, gallery: galleryEntry, booking: bookingEntry, price: priceEntry }
 const metas = readMetas(ROOT)
 const isComponent = (c) => Boolean(c && typeof c === 'object' && ('setup' in c || 'render' in c || 'props' in c))
 

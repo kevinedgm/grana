@@ -1328,3 +1328,44 @@ describe('GMenu · una activación por gesto (#661, defecto L8)', () => {
     expect(w.vm.isOpen).toBe(true)
   })
 })
+
+describe('GMenu · lang y hreflang (#743, selector de idioma)', () => {
+  beforeEach(() => document.addEventListener('click', stopNav))
+  afterEach(() => document.removeEventListener('click', stopNav))
+
+  it('lang en cualquier elemento (enlace o no) con dir="auto" en la etiqueta; hreflang solo en el <a>', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const w = await openLinks({ items: [
+      { id: 'en', label: 'English', href: '/en/', lang: 'en', hreflang: 'en' },
+      { id: 'de', label: 'Deutsch', lang: 'de-DE' }
+    ] })
+    const en = lk(w, 'English')
+    expect(en.attributes('lang')).toBe('en')
+    expect(en.attributes('hreflang')).toBe('en')
+    expect(en.find('.g-menu__label').attributes('dir')).toBe('auto')
+    const de = lk(w, 'Deutsch')
+    expect(de.element.tagName).toBe('BUTTON')
+    expect(de.attributes('lang')).toBe('de-DE')
+    expect(de.attributes('hreflang')).toBeUndefined()
+    // sin lang, ni atributo ni dir
+    const x = await openLinks({ items: [{ id: 'a', label: 'Alfa' }] })
+    expect(lk(x, 'Alfa').attributes('lang')).toBeUndefined()
+    expect(lk(x, 'Alfa').find('.g-menu__label').attributes('dir')).toBeUndefined()
+  })
+
+  it('hreflang sin href se ignora y avisa (E2)', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const w = await openLinks({ items: [{ id: 'a', label: 'A', hreflang: 'en' }] })
+    expect(lk(w, 'A').attributes('hreflang')).toBeUndefined()
+    expect(warnsOf(warn).filter((m) => m.includes('(E2)'))).toHaveLength(1)
+  })
+
+  it('lang o hreflang que Intl.getCanonicalLocales rechaza: sin atributo y aviso E8', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const w = await openLinks({ items: [{ id: 'a', label: 'Mal', href: '/x/', lang: 'en_US!', hreflang: '12' }] })
+    const a = lk(w, 'Mal')
+    expect(a.attributes('lang')).toBeUndefined()
+    expect(a.attributes('hreflang')).toBeUndefined()
+    expect(warnsOf(warn).filter((m) => m.includes('(E8)')).length).toBeGreaterThanOrEqual(2)
+  })
+})

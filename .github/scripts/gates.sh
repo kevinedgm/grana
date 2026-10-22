@@ -131,6 +131,49 @@ must_not_have grana.js "GFab" "GFab viajó en el paquete principal grana.js; deb
 must_exist "fab.js" "No se generó la entrada propia fab.js (revisar vite.fab.config.js y el script build de packages/vue)"
 must_not_have fab.js "is-highlight-instant" "El motor de menú (utils/menuNav.js) quedó copiado en fab.js; debe llegar por __shared sin copia"
 
+# GStack y GSection (principal, #723; peso conjunto <= 1,5 KiB (1536 B) gzip en grana.js, #746 (medido +1381 B); la compuerta no mide peso, solo presencia): el CSS va en grana.css
+must_have grana.css "g-stack--divided" "$CSS_MSG"
+must_have grana.css "g-section__title" "$CSS_MSG"
+must_have grana.css "g-section__actions" "$CSS_MSG"
+
+# GAppShell (entrada propia @grana/vue/app-shell, #716; tope 4 KiB gzip): el CSS en grana.css, el código fuera del principal
+must_have grana.css "g-app-shell__skip" "$CSS_MSG"
+must_have grana.css "g-app-shell__frame" "$CSS_MSG"
+must_not_have grana.js "GAppShell" "GAppShell viajó en el paquete principal grana.js; debe ir solo en la entrada app-shell.js (#716)"
+must_exist "app-shell.js" "No se generó la entrada propia app-shell.js (revisar vite.app-shell.config.js y el script build de packages/vue)"
+must_not_have app-shell.js "new WeakMap" "El registro de bordes (utils/edgeReserve.js) quedó copiado en app-shell.js; debe llegar por __shared sin copia"
+
+# GContainer (principal, #723; <= 1 KiB gzip en grana.js, medido en el commit)
+must_have grana.css "g-container__body" "$CSS_MSG"
+must_have grana.css "g-container--width-reading" "$CSS_MSG"
+
+# Marketing (#742): tres entradas propias con tope (hero 4 KiB, gallery 12 KiB, booking 14 KiB gzip); el CSS en grana.css
+must_have grana.css "g-hero__media" "$CSS_MSG"
+must_have grana.css "g-hero__frame" "$CSS_MSG"
+must_not_have grana.js "GHero" "GHero viajó en el paquete principal grana.js; debe ir solo en la entrada hero.js (#742)"
+must_exist "hero.js" "No se generó la entrada propia hero.js (revisar vite.hero.config.js y el script build de packages/vue)"
+must_have grana.css "g-gallery-viewer__stage" "$CSS_MSG"
+must_have grana.css "g-dialog--bare" "$CSS_MSG"
+must_not_have grana.js "GGallery" "GGallery viajó en el paquete principal grana.js; debe ir solo en la entrada gallery.js (#742)"
+must_exist "gallery.js" "No se generó la entrada propia gallery.js (revisar vite.gallery.config.js y el script build de packages/vue)"
+must_have grana.css "g-booking-bar__phrase" "$CSS_MSG"
+must_have grana.css "g-party-field__panel" "$CSS_MSG"
+must_have grana.css "is-checkout-only" "$CSS_MSG"
+must_not_have grana.js "GBookingBar" "GBookingBar viajó en el paquete principal grana.js; debe ir solo en la entrada booking.js (#742)"
+must_not_have grana.js "GPartyField" "GPartyField viajó en el paquete principal grana.js; debe ir solo en la entrada booking.js (#742)"
+must_exist "booking.js" "No se generó la entrada propia booking.js (revisar vite.booking.config.js y el script build de packages/vue)"
+must_not_have booking.js "new WeakMap" "El registro de bordes (utils/edgeReserve.js) quedó copiado en booking.js; debe llegar por __shared sin copia (EDGE_ORDER.bookingDock)"
+# Moneda y precio (#776): entrada propia price.js (tope 6 KiB gzip); utils/currency.js y la tabla de símbolos en el principal
+must_have grana.css "g-price__spoken" "$CSS_MSG"
+must_have grana.css "g-price-scope__legend" "$CSS_MSG"
+must_have grana.css "g-datepicker--day-content" "$CSS_MSG"
+must_not_have grana.js "GPriceScope" "GPriceScope viajó en el paquete principal grana.js; debe ir solo en la entrada price.js (#776)"
+must_not_have grana.js "formatPrice" "formatPrice viajó en el paquete principal grana.js; se exporta solo desde @grana/vue/price (#776)"
+must_exist "price.js" "No se generó la entrada propia price.js (revisar vite.price.config.js y el script build de packages/vue)"
+must_not_have grana.js "supportedValuesOf" "La tabla de símbolos se calcula en el navegador; debe venir generada en el build (scripts/currency-symbols.mjs, #770)"
+must_not_have price.js "supportedValuesOf" "La tabla de símbolos se calcula en el navegador; debe venir generada en el build (scripts/currency-symbols.mjs, #770)"
+must_not_have price.js "\"Rs\"" "La tabla de símbolos quedó copiada en price.js; debe llegar por __shared desde utils/currency.js (#776)"
+
 echo
 if [ "$failed" -eq 0 ]; then
   echo "Compuertas: $total/$total superadas."

@@ -1,0 +1,131 @@
+/* Generado por @grana/cli a partir de terracota.json. No editar a mano: vuelve a ejecutar «grana theme». */
+/* Sin @layer: el tema del usuario gana siempre sobre grana.defaults (DECISIONS.md #4). */
+:root {
+  --g-radius-xs: 5px;
+  --g-radius-sm: 7px;
+  --g-radius-md: 10px;
+  --g-radius-lg: 14px;
+  --g-radius-xl: 20px;
+  --g-radius-shape: var(--g-radius-pill);
+  --g-font-display: Georgia, 'Times New Roman', serif;
+}
+:root,
+[data-theme="light"] {
+  --g-color-brand: #8C3A1E;
+  --g-color-brand-strong: #722202;
+  --g-color-brand-soft: #FFEBE5;
+  --g-color-brand-text: #8C3A1E;
+  --g-color-on-brand: #FFFFFF;
+  --g-color-on-brand-soft: #8C3A1E;
+  --g-color-accent: #B5562F;
+  --g-color-accent-strong: #9A3E13;
+  --g-color-accent-soft: #FFEBE4;
+  --g-color-accent-text: #B5562F;
+  --g-color-on-accent: #FFFFFF;
+  --g-color-on-accent-soft: #AE5029;
+  --g-color-surface-sunken: #FBF4F2;
+  --g-color-text: #1E1917;
+  --g-color-text-muted: #5A5351;
+  --g-color-text-subtle: #736C6A;
+  --g-color-border-control: #908886;
+  --g-color-border: rgb(30 25 23 / 0.08);
+  --g-color-border-strong: rgb(30 25 23 / 0.16);
+  --g-color-neutral: #706967;
+  --g-color-neutral-strong: #595351;
+  --g-color-neutral-soft: #F2EFEF;
+  --g-color-neutral-text: #706967;
+  --g-color-on-neutral: #FFFFFF;
+  --g-color-on-neutral-soft: #706967;
+  --g-color-brand-zone: #8C3A1E;
+  --g-color-on-brand-zone: #FFFFFF;
+  --g-color-on-brand-muted: #ECDAD4;
+  --g-color-on-brand-accent: #FFD0BE;
+  --g-color-on-brand-success: #FFFFFF;
+  --g-color-on-brand-warning: #FFFFFF;
+  --g-color-on-brand-danger: #FFFFFF;
+  --g-color-on-brand-info: #FFFFFF;
+  --g-color-on-brand-veil: #A5614B;
+  --g-color-on-brand-accent-veil: #A3583E;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --g-color-brand: #C46C4F;
+    --g-color-brand-strong: #D87E61;
+    --g-color-brand-soft: #351D15;
+    --g-color-brand-text: #C46C4F;
+    --g-color-on-brand: #17151A;
+    --g-color-on-brand-soft: #CA7255;
+    --g-color-accent: #CD6B45;
+    --g-color-accent-strong: #E17E57;
+    --g-color-accent-soft: #371C11;
+    --g-color-accent-text: #CD6B45;
+    --g-color-on-accent: #17151A;
+    --g-color-on-accent-soft: #D3714B;
+    --g-color-surface-sunken: #140F0D;
+    --g-color-text: #F7F0EE;
+    --g-color-text-muted: #BEB6B4;
+    --g-color-text-subtle: #A29A98;
+    --g-color-border-control: #867E7C;
+    --g-color-border: rgb(247 240 238 / 0.10);
+    --g-color-border-strong: rgb(247 240 238 / 0.20);
+    --g-color-neutral: #8B8381;
+    --g-color-neutral-strong: #9D9593;
+    --g-color-neutral-soft: #262323;
+    --g-color-neutral-text: #8B8381;
+    --g-color-on-neutral: #17151A;
+    --g-color-on-neutral-soft: #918987;
+    --g-color-bg: #181311;
+    --g-color-surface: #201B19;
+    --g-color-brand-zone: #8C3A1E;
+    --g-color-on-brand-zone: #FFFFFF;
+    --g-color-on-brand-muted: #ECDAD4;
+    --g-color-on-brand-accent: #FFD0BE;
+    --g-color-on-brand-success: #FFFFFF;
+    --g-color-on-brand-warning: #FFFFFF;
+    --g-color-on-brand-danger: #FFFFFF;
+    --g-color-on-brand-info: #FFFFFF;
+    --g-color-on-brand-veil: #A5614B;
+    --g-color-on-brand-accent-veil: #A3583E;
+  }
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+  --g-color-brand: #C46C4F;
+  --g-color-brand-strong: #D87E61;
+  --g-color-brand-soft: #351D15;
+  --g-color-brand-text: #C46C4F;
+  --g-color-on-brand: #17151A;
+  --g-color-on-brand-soft: #CA7255;
+  --g-color-accent: #CD6B45;
+  --g-color-accent-strong: #E17E57;
+  --g-color-accent-soft: #371C11;
+  --g-color-accent-text: #CD6B45;
+  --g-color-on-accent: #17151A;
+  --g-color-on-accent-soft: #D3714B;
+  --g-color-surface-sunken: #140F0D;
+  --g-color-text: #F7F0EE;
+  --g-color-text-muted: #BEB6B4;
+  --g-color-text-subtle: #A29A98;
+  --g-color-border-control: #867E7C;
+  --g-color-border: rgb(247 240 238 / 0.10);
+  --g-color-border-strong: rgb(247 240 238 / 0.20);
+  --g-color-neutral: #8B8381;
+  --g-color-neutral-strong: #9D9593;
+  --g-color-neutral-soft: #262323;
+  --g-color-neutral-text: #8B8381;
+  --g-color-on-neutral: #17151A;
+  --g-color-on-neutral-soft: #918987;
+  --g-color-bg: #181311;
+  --g-color-surface: #201B19;
+  --g-color-brand-zone: #8C3A1E;
+  --g-color-on-brand-zone: #FFFFFF;
+  --g-color-on-brand-muted: #ECDAD4;
+  --g-color-on-brand-accent: #FFD0BE;
+  --g-color-on-brand-success: #FFFFFF;
+  --g-color-on-brand-warning: #FFFFFF;
+  --g-color-on-brand-danger: #FFFFFF;
+  --g-color-on-brand-info: #FFFFFF;
+  --g-color-on-brand-veil: #A5614B;
+  --g-color-on-brand-accent-veil: #A3583E;
+}

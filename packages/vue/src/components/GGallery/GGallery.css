@@ -1,0 +1,614 @@
+/*
+  GGallery y GGalleryViewer · las fotos de un lugar y su visor
+  Dueño: coco. Contrato: design/contracts/gallery.md (DECISIONS.md #730 a #735, #742, #744; dialog.md «Visor a pantalla
+  completa», #732; tokens.md §29.6 y §52). Estructura: design/lab/gallery/r01/ (kiwi). Estética, medidas y encargos:
+  design/lab/gallery/estilo.md.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin respaldos. Literales: 24px y
+  44px (área táctil), el patrón de texto oculto y 0s de los retardos; constantes de §29.6 (la llegada space × 6); la
+  tira con alto min(space × 112, 62svh) y la diapositiva ≤ 88cqi (nota a lima: entran en §29.6).
+
+  Carácter (#735): se ordena por lo que se vende y el contador dice dónde estás.
+  - La portada del espacio manda (dos columnas; con cuatro fotos o más, también dos filas); un espacio de una sola foto
+    es una banda ancha. El índice de espacios son enlaces con su recuento en cifras tabulares.
+  - La tira tiene alturas iguales y la proporción real de cada foto (la vertical del baño se ve vertical); la siguiente
+    asoma. La diapositiva actual habla más alto (su pie en tinta plena).
+  - El visor es un cuarto oscuro (la zona de marca por defecto) sin un solo control encima de la foto: barra arriba,
+    navegación abajo. La foto llega desde el lado del gesto, sigue al dedo y, ampliada, se recorre con el desplazamiento
+    nativo.
+
+  Marcado que espera (lo pinta bruno; gallery.md «Anatomía» y «Clases y datos»):
+    section.g-gallery.g-gallery--appearance-{grid|strip}[.g-gallery--grouped]
+      div.g-gallery__head > h.g-gallery__title · p.g-gallery__total · (B) div.g-gallery__strip-nav > GBtn ×2 + p.__strip-count
+      (A) nav.g-gallery__index > a.g-gallery__index-link (> span[aria-hidden] con la cifra)
+      (base) ul.g-gallery__grid > li.g-gallery__item > a.g-gallery__thumb(.is-current)(.is-broken) > img.g-gallery__img
+      (A) div.g-gallery__group > h.g-gallery__group-title + ul.g-gallery__grid
+      (B) div.g-gallery__strip > div.g-gallery__slide(.is-current) > a.g-gallery__thumb + p.g-gallery__caption
+      p.g-gallery__live
+    dialog.g-dialog.g-dialog--fullscreen.g-dialog--bare.g-gallery-viewer[data-g-zone="brand"] > div.g-dialog__body >
+      div.__bar (p.__title, p.__count, GBtn.__zoom, GBtn.__close) · div.__stage(.is-zoomed)(.is-dragging) > img.__img
+      (.is-arriving)[data-direction] + p.__broken · p.__caption · div.__nav > GBtn.__prev, GBtn.__next ·
+      (A) nav.__thread > button.__thread-item[aria-current] · p.__live
+    Datos del .vue (§29.5): --_drag-x, --_drag-y (px) en el escenario o la foto; --_zoom-x, --_zoom-y (px) sin uso en el CSS.
+*/
+
+/* =====================================================================================================================
+   Galería
+   ===================================================================================================================== */
+.g-gallery {
+  display: grid;
+  gap: var(--g-space-4);
+  min-inline-size: 0;
+  color: var(--g-color-text);
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-size);
+  line-height: var(--g-text-body-line);
+}
+.g-gallery__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--g-space-1) var(--g-space-3);
+  min-inline-size: 0;
+}
+.g-gallery__title {
+  margin: 0;
+  min-inline-size: 0;
+  font-size: var(--g-text-title-sm-size);
+  line-height: var(--g-text-title-sm-line);
+  letter-spacing: var(--g-text-title-sm-tracking);
+  font-weight: var(--g-text-title-sm-weight);
+  overflow-wrap: break-word;
+}
+.g-gallery__total {
+  margin: 0;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Cuadrícula y miniatura (enlace a la foto grande, G-L2) ---------- */
+.g-gallery__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, calc(var(--g-space-1) * 36)), 1fr));
+  gap: var(--g-space-2);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.g-gallery__item {
+  min-inline-size: 0;
+}
+.g-gallery__thumb {
+  position: relative;
+  display: block;
+  inline-size: 100%;
+  border-radius: var(--g-radius-md);
+  overflow: clip;
+  /* El hueco reservado mientras llega (#538): molde, sin animación */
+  background: var(--g-color-mold);
+  color: var(--g-color-text-muted);
+  text-decoration: none;
+  cursor: zoom-in;
+  -webkit-tap-highlight-color: transparent;
+}
+.g-gallery__img {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  object-fit: cover;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+}
+/* En la cuadrícula, cuadrada; en la tira manda la proporción de width/height de la foto (sin aspect-ratio propio: el del
+   atributo reserva el hueco antes de cargar) */
+.g-gallery__grid .g-gallery__img {
+  aspect-ratio: 1;
+}
+/* Borde en ::after: no ocupa sitio, no recorta la foto y en hover se dobla (sin transform) */
+.g-gallery__thumb::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-border);
+  pointer-events: none;
+  transition: box-shadow var(--g-duration-fast) var(--g-ease-standard);
+}
+@media (hover: hover) {
+  .g-gallery__thumb:hover::after {
+    box-shadow: inset 0 0 0 calc(var(--g-border-width) * 2) var(--g-color-border-strong);
+  }
+}
+.g-gallery__thumb:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+/* Rota: la foto se oculta y queda el hueco hundido con el icono image (si bruno lo pinta) centrado */
+.g-gallery__thumb.is-broken {
+  background: var(--g-color-surface-sunken);
+}
+.g-gallery__thumb.is-broken > .g-gallery__img {
+  visibility: hidden;
+}
+.g-gallery__thumb > .g-icon {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  inline-size: var(--g-space-6);
+  block-size: var(--g-space-6);
+}
+
+/* ---------- A · Recorrido por espacios ---------- */
+.g-gallery__index {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--g-space-2);
+  min-inline-size: 0;
+}
+.g-gallery__index-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--g-space-2);
+  box-sizing: border-box;
+  min-block-size: max(24px, calc(var(--g-space-1) * 9));
+  max-inline-size: 100%;
+  padding-inline: var(--g-space-3);
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-shape);
+  color: var(--g-color-text);
+  text-decoration: none;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-action-weight);
+  overflow-wrap: anywhere;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    border-color var(--g-duration-fast) var(--g-ease-standard);
+}
+/* La cifra visible (aria-hidden): en voz baja y tabular, para que los recuentos se alineen al mirar el índice */
+.g-gallery__index-link > [aria-hidden="true"] {
+  color: var(--g-color-text-muted);
+  font-weight: var(--g-text-body-sm-weight);
+  font-variant-numeric: tabular-nums;
+}
+@media (hover: hover) {
+  .g-gallery__index-link:hover {
+    background: var(--g-color-surface-sunken);
+    border-color: var(--g-color-text-muted);
+  }
+}
+.g-gallery__index-link:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+@media (pointer: coarse) {
+  .g-gallery__index-link {
+    min-block-size: 44px;
+  }
+}
+.g-gallery__group {
+  display: grid;
+  gap: var(--g-space-3);
+  min-inline-size: 0;
+  /* El salto desde el índice deja aire arriba; una cabecera fija de la aplicación suma su scroll-padding */
+  scroll-margin-block-start: var(--g-space-4);
+}
+.g-gallery__group + .g-gallery__group {
+  margin-block-start: var(--g-space-4);
+}
+.g-gallery__group-title {
+  margin: 0;
+  font-size: var(--g-text-body-size);
+  line-height: var(--g-text-body-line);
+  font-weight: var(--g-text-title-sm-weight);
+  overflow-wrap: break-word;
+}
+/* La portada que manda: siempre caben dos columnas (la portada de dos nunca crea una pista implícita) y nunca más de
+   cuatro (con cuatro fotos, la portada de 2 × 2 y las otras tres llenan las dos filas a su lado y debajo) */
+.g-gallery__group > .g-gallery__grid {
+  grid-template-columns: repeat(auto-fill, minmax(max(min(calc(50% - var(--g-space-1)), calc(var(--g-space-1) * 40)), calc(25% - var(--g-space-2) * 0.75)), 1fr));
+  grid-auto-flow: dense;
+}
+.g-gallery__group > .g-gallery__grid > .g-gallery__item:first-child {
+  grid-column: span 2;
+}
+.g-gallery__group > .g-gallery__grid > .g-gallery__item:first-child .g-gallery__img {
+  aspect-ratio: 2 / 1;
+}
+.g-gallery__group > .g-gallery__grid > .g-gallery__item:first-child:nth-last-child(n + 4) {
+  grid-row: span 2;
+}
+/* Con cuatro o más, cuadrada de 2 × 2: su lado es 2 columnas + el hueco = 2 filas + el hueco (y con dos columnas, la
+   portada aporta su alto por sí misma) */
+.g-gallery__group > .g-gallery__grid > .g-gallery__item:first-child:nth-last-child(n + 4) .g-gallery__img {
+  aspect-ratio: 1;
+}
+.g-gallery__group > .g-gallery__grid > .g-gallery__item:only-child {
+  grid-column: 1 / -1;
+}
+.g-gallery__group > .g-gallery__grid > .g-gallery__item:only-child .g-gallery__img {
+  aspect-ratio: 16 / 9;
+  max-block-size: 50svh;
+}
+
+/* ---------- B · La tira ---------- */
+.g-gallery__strip-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--g-space-1);
+  margin-inline-start: auto;
+}
+.g-gallery__strip-count {
+  margin: 0;
+  min-inline-size: calc(var(--g-space-1) * 12);
+  text-align: center;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.g-gallery__strip {
+  /* Alto común de las fotos; cada una conserva su proporción (width/height de la foto) */
+  --_strip-h: min(calc(var(--g-space-1) * 112), 62svh);
+  /* Relleno del anillo: el desplazable no recorta el foco de la diapositiva del borde */
+  --_ring: calc(var(--g-focus-offset) + var(--g-focus-width));
+  container-type: inline-size;
+  contain-intrinsic-inline-size: calc(var(--g-space-1) * 160);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--g-space-3);
+  min-inline-size: 0;
+  padding: var(--_ring);
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: inline mandatory;
+  scroll-padding-inline: var(--_ring);
+  scrollbar-width: none;
+}
+.g-gallery__strip::-webkit-scrollbar {
+  display: none;
+}
+.g-gallery__strip:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: calc(var(--g-focus-width) * -1);
+}
+.g-gallery__slide {
+  flex: none;
+  display: grid;
+  gap: var(--g-space-2);
+  max-inline-size: 88cqi;
+  scroll-snap-align: start;
+}
+.g-gallery__slide .g-gallery__img {
+  inline-size: auto;
+  max-inline-size: 100%;
+  block-size: var(--_strip-h);
+}
+.g-gallery__slide .g-gallery__thumb {
+  inline-size: auto;
+  max-inline-size: 88cqi;
+}
+.g-gallery__caption {
+  margin: 0;
+  max-inline-size: 100%;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text-muted);
+  overflow-wrap: break-word;
+  transition: color var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-gallery__slide.is-current .g-gallery__caption {
+  color: var(--g-color-text);
+}
+
+/* Regiones vivas (vacías desde el montaje): texto oculto accesible */
+.g-gallery__live,
+.g-gallery-viewer__live {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* =====================================================================================================================
+   Visor (GDialog fullscreen bare, #732). La raíz es el <dialog>: el fondo es el de la zona (la marca por defecto, #733)
+   ===================================================================================================================== */
+.g-gallery-viewer.g-dialog {
+  /* El vector del gesto (px, del .vue); en reposo, cero */
+  --_drag-x: calc(var(--g-space-1) * 0);
+  --_drag-y: calc(var(--g-space-1) * 0);
+  /* Llegada (§29.6): space × 6 desde el lado del gesto; --_flow espeja el sentido en RTL */
+  --_arrive: calc(var(--g-space-1) * 6);
+  --_flow: 1;
+  --_ctl: max(24px, calc(var(--g-space-1) * 9));
+  background: var(--g-color-bg);
+  color: var(--g-color-text);
+}
+.g-gallery-viewer.g-dialog:dir(rtl) {
+  --_flow: -1;
+}
+@media (pointer: coarse) {
+  .g-gallery-viewer.g-dialog {
+    --_ctl: 44px;
+  }
+}
+.g-gallery-viewer__bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--g-space-2);
+  min-inline-size: 0;
+  padding:
+    max(var(--g-space-2), env(safe-area-inset-top))
+    max(var(--g-space-3), env(safe-area-inset-right))
+    var(--g-space-2)
+    max(var(--g-space-3), env(safe-area-inset-left));
+}
+.g-gallery-viewer__title {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--g-text-body-size);
+  line-height: var(--g-text-body-line);
+  font-weight: var(--g-text-title-sm-weight);
+}
+.g-gallery-viewer__count {
+  flex: none;
+  margin: 0;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+/* Controles: GBtn md (36px) y 44px con puntero grueso; nunca < 24px */
+.g-gallery-viewer :is(.g-gallery-viewer__zoom, .g-gallery-viewer__close, .g-gallery-viewer__prev, .g-gallery-viewer__next) {
+  flex: none;
+  min-inline-size: var(--_ctl);
+  min-block-size: var(--_ctl);
+}
+/* Sin vuelta: en los extremos, aria-disabled y enfocable (no disabled); se ve apagado y no responde al puntero */
+.g-gallery-viewer :is(.g-gallery-viewer__prev, .g-gallery-viewer__next)[aria-disabled="true"] {
+  color: var(--g-color-text-subtle);
+  cursor: default;
+}
+@media (hover: hover) {
+  .g-gallery-viewer :is(.g-gallery-viewer__prev, .g-gallery-viewer__next)[aria-disabled="true"]:hover {
+    background: transparent;
+    border-color: transparent;
+  }
+}
+
+/* ---------- Escenario: la foto, sin controles encima ---------- */
+.g-gallery-viewer__stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-block-size: 0;
+  overflow: hidden;
+  overscroll-behavior: contain;
+  /* El pellizco del sistema sigue; el deslizamiento horizontal es del visor */
+  touch-action: pan-y pinch-zoom;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.g-gallery-viewer:has(.g-gallery-viewer__zoom) :where(.g-gallery-viewer__stage) {
+  cursor: zoom-in;
+}
+/* La foto llena el escenario con contain (×2 exacto al ampliar: la caja crece, la foto sigue contenida) */
+.g-gallery-viewer__img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  padding: var(--g-space-2) var(--g-space-4);
+  box-sizing: border-box;
+  object-fit: contain;
+  color: var(--g-color-text-muted);
+  translate: calc(var(--_drag-x) + var(--_shift)) var(--_drag-y);
+  opacity: 1;
+  -webkit-user-drag: none;
+  --_shift: calc(var(--g-space-1) * 0);
+  transition:
+    translate var(--g-duration-press) var(--g-ease-out),
+    opacity var(--g-duration-press) var(--g-ease-out);
+}
+/* Arrastrando: sigue al dedo sin transición */
+.g-gallery-viewer__stage.is-dragging .g-gallery-viewer__img {
+  transition: none;
+}
+/* Llegada (#734): el .vue pone is-arriving + data-direction (estado de partida, sin transición) y la quita en el cuadro
+   siguiente; la foto viaja desde el lado del gesto con press + ease-out. Una ráfaga reinicia desde donde está */
+.g-gallery-viewer__img.is-arriving {
+  opacity: 0;
+  transition: none;
+}
+.g-gallery-viewer__img.is-arriving[data-direction="next"] {
+  --_shift: calc(var(--_arrive) * var(--_flow));
+}
+.g-gallery-viewer__img.is-arriving[data-direction="prev"] {
+  --_shift: calc(var(--_arrive) * var(--_flow) * -1);
+}
+/* Ampliada: ×2 en los dos ejes y recorrido con el desplazamiento nativo (dedo, rueda, flechas) */
+.g-gallery-viewer__stage.is-zoomed {
+  overflow: auto;
+  cursor: zoom-out;
+  touch-action: pan-x pan-y pinch-zoom;
+  /* Sin los datos del .vue (SSR, antes de medir): el 200 % del escenario; el estilo en línea del .vue los sustituye */
+  --_zoom-w: 200%;
+  --_zoom-h: 200%;
+  /* Flex: el margen automático centra la foto en el eje que no llena, sin franjas recorribles */
+  display: flex;
+}
+.g-gallery-viewer__stage.is-zoomed .g-gallery-viewer__img {
+  position: static;
+  flex: none;
+  margin: auto;
+  inline-size: var(--_zoom-w);
+  block-size: var(--_zoom-h);
+  padding: 0;
+  translate: none;
+  transition: none;
+}
+.g-gallery-viewer__stage:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: calc(var(--g-focus-width) * -1);
+}
+/* Rota: un aviso con el alt en lugar de un hueco mudo */
+.g-gallery-viewer__broken {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: var(--g-space-2);
+  margin: 0;
+  padding: var(--g-space-6);
+  text-align: center;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text-muted);
+  overflow-wrap: break-word;
+}
+.g-gallery-viewer__stage:has(> .g-gallery-viewer__broken) > .g-gallery-viewer__img {
+  visibility: hidden;
+}
+.g-gallery-viewer__caption {
+  flex: none;
+  min-block-size: var(--g-text-body-sm-line);
+  margin: 0;
+  padding: var(--g-space-2) var(--g-space-4) 0;
+  text-align: center;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  overflow-wrap: break-word;
+}
+.g-gallery-viewer__nav {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--g-space-3);
+  min-inline-size: 0;
+  padding: var(--g-space-2) var(--g-space-3) max(var(--g-space-3), env(safe-area-inset-bottom));
+}
+/* Con hilo, el pie de seguridad lo pone el hilo */
+.g-gallery-viewer__nav:has(+ .g-gallery-viewer__thread) {
+  padding-block-end: var(--g-space-1);
+}
+/* ---------- A · El hilo de espacios: una línea que se desplaza dentro; el actual, trazo y peso ---------- */
+.g-gallery-viewer__thread {
+  --_ring: calc(var(--g-focus-offset) + var(--g-focus-width));
+  flex: none;
+  display: flex;
+  justify-content: safe center;
+  gap: var(--g-space-1);
+  min-inline-size: 0;
+  padding: var(--_ring) max(var(--g-space-3), var(--_ring)) max(var(--g-space-3), env(safe-area-inset-bottom));
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-padding-inline: var(--g-space-3);
+  scrollbar-width: none;
+}
+.g-gallery-viewer__thread::-webkit-scrollbar {
+  display: none;
+}
+.g-gallery-viewer__thread:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: calc(var(--g-focus-width) * -1);
+}
+.g-gallery-viewer__thread-item {
+  flex: none;
+  box-sizing: border-box;
+  min-block-size: max(24px, calc(var(--g-space-1) * 8));
+  margin: 0;
+  padding-inline: var(--g-space-3);
+  border: var(--g-border-width) solid transparent;
+  border-radius: var(--g-radius-shape);
+  background: transparent;
+  color: var(--g-color-text-muted);
+  font: inherit;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    color var(--g-duration-fast) var(--g-ease-standard),
+    border-color var(--g-duration-fast) var(--g-ease-standard);
+}
+@media (hover: hover) {
+  .g-gallery-viewer__thread-item:hover {
+    color: var(--g-color-text);
+  }
+}
+.g-gallery-viewer__thread-item[aria-current="true"] {
+  color: var(--g-color-text);
+  border-color: var(--g-color-border-control);
+  font-weight: var(--g-text-action-weight);
+}
+.g-gallery-viewer__thread-item:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+@media (pointer: coarse) {
+  .g-gallery-viewer__thread-item {
+    min-block-size: 44px;
+  }
+}
+
+/* ---------- Movimiento reducido (§29.3): la foto no se desplaza ni sigue al dedo; fundido fast ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .g-gallery-viewer__img,
+  .g-gallery-viewer__img.is-arriving {
+    translate: none;
+  }
+  .g-gallery-viewer__img {
+    transition: opacity var(--g-duration-fast) linear;
+  }
+  .g-gallery__thumb::after,
+  .g-gallery__caption {
+    transition-duration: var(--g-duration-fast);
+  }
+}
+
+/* ---------- Colores forzados: los límites se dicen con bordes reales ---------- */
+@media (forced-colors: active) {
+  .g-gallery__thumb::after {
+    box-shadow: none;
+    border: var(--g-border-width) solid CanvasText;
+  }
+  .g-gallery__thumb:focus-visible,
+  .g-gallery__index-link:focus-visible,
+  .g-gallery-viewer__thread-item:focus-visible,
+  .g-gallery-viewer__stage:focus-visible,
+  .g-gallery__strip:focus-visible,
+  .g-gallery-viewer__thread:focus-visible {
+    outline-color: Highlight;
+  }
+  .g-gallery__index-link {
+    border-color: ButtonText;
+  }
+  .g-gallery-viewer.g-dialog {
+    outline: var(--g-border-width) solid CanvasText;
+    outline-offset: calc(var(--g-border-width) * -1);
+  }
+  .g-gallery-viewer__thread-item[aria-current="true"] {
+    border-color: Highlight;
+    color: Highlight;
+  }
+  .g-gallery-viewer :is(.g-gallery-viewer__prev, .g-gallery-viewer__next)[aria-disabled="true"] {
+    color: GrayText;
+  }
+}

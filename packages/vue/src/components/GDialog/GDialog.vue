@@ -24,6 +24,7 @@ const props = defineProps({
   density: { type: String, default: 'default', validator: oneOf(['default', 'comfortable', 'compact']) },
   inset: { type: Boolean, default: true },
   fullscreen: Boolean,
+  bare: Boolean,
   placement: { type: String, default: 'center', validator: oneOf(['center', 'end']) },
   mobile: { type: String, default: 'sheet', validator: oneOf(['sheet', 'full-width', 'fullscreen']) },
   role: { type: String, default: 'dialog', validator: oneOf(['dialog', 'alertdialog']) },
@@ -50,9 +51,11 @@ const isAlert = computed(() => props.role === 'alertdialog')
 const hasTitle = computed(() => Boolean(props.title || slots.title))
 const hasDescription = computed(() => Boolean(props.description || slots.description))
 const hasHeaderSlot = computed(() => Boolean(slots.header))
-const hasFooter = computed(() => (stepsOn.value ? Boolean(stepFooter.value) : Boolean(slots.footer)))
+const hasFooter = computed(() => !props.bare && (stepsOn.value ? Boolean(stepFooter.value) : Boolean(slots.footer)))
+// bare (#732): sin inset aunque `inset` siga en su valor por defecto
+const insetOn = computed(() => props.inset && !props.bare)
 const hasIcon = computed(() => Boolean(slots.icon))
-const hasTabs = computed(() => Boolean(slots.tabs))
+const hasTabs = computed(() => !props.bare && Boolean(slots.tabs))
 // Un diálogo abierto desde un panel de GTabs puede llevar sus propias pestañas: no cuenta como anidamiento
 provide(TABS_NEST, false)
 // L1 (design/lab/dialog/r02): un diálogo es su propio contexto de formulario. Sin este corte, un GForm dentro de un diálogo
@@ -67,7 +70,7 @@ provide(revealKey, null)
 provide(fieldGroupKey, null)
 provide(inputGroupKey, null)
 provide(ownFieldKey, null)
-const showClose = computed(() => Boolean(props.closeLabel) && !isAlert.value)
+const showClose = computed(() => Boolean(props.closeLabel) && !isAlert.value && !props.bare)
 
 const dialog = ref(null)
 const body = ref(null)
@@ -310,7 +313,9 @@ function onNativeClose() {
   if (pinFrame) { cancelAnimationFrame(pinFrame); pinFrame = 0 }
   // Sale de la pila ya (los de encima se recalculan); su propio is-stacked se conserva durante la salida
   removeDialog(stackEntry)
-  // `from`: el foco vuelve a él si sigue usable (el navegador ya lo devolvió al elemento que lo tenía al abrir)
+  // `from` vivo (#732): se resuelve otra vez al cerrar (el valor vigente, aunque cambiara con el diálogo abierto); el origen
+  // de D1 sigue siendo el de la apertura. Si ya no es usable, el retorno nativo (el navegador ya devolvió el foco)
+  if (props.from !== undefined && props.from !== null && props.from !== '') fromEl = resolveTarget(props.from)
   if (fromEl && usable(fromEl)) fromEl.focus({ preventScroll: true })
   // WebKit: tras un clic en un botón del diálogo el foco queda en el propio <dialog> ya cerrado
   else if (pressEl && usable(pressEl) && (focusNowhere() || dialog.value?.contains(document.activeElement))) pressEl.focus({ preventScroll: true })
@@ -437,11 +442,12 @@ const classes = computed(() => [
   `g-dialog--placement-${props.placement}`,
   `g-dialog--mobile-${props.mobile}`,
   {
-    'g-dialog--inset': props.inset,
+    'g-dialog--inset': insetOn.value,
     'g-dialog--fullscreen': props.fullscreen,
+    'g-dialog--bare': props.bare,
     'g-dialog--alert': isAlert.value,
     'is-loading': props.loading,
-    'is-scrolled': !props.inset && scrolled.value,
+    'is-scrolled': !insetOn.value && scrolled.value,
     'has-origin': Boolean(origin.value),
     'is-pinned': pinTop.value !== null,
     'is-stacked': stacked.value,
@@ -466,11 +472,14 @@ const bodyClasses = computed(() => ['g-dialog__body', { 'is-scrollable': scrolla
 
 const labelledBy = computed(() => {
   if (attrs['aria-label'] || attrs['aria-labelledby']) return attrs['aria-labelledby']
+  if (props.bare) return undefined
   if (stepsOn.value) return stepTitle.value ? stepTitleId(current.value) : undefined
   return hasTitle.value || hasHeaderSlot.value ? titleId.value : undefined
 })
+// bare: `title` no se pinta y, si se da (sin aria-label ni aria-labelledby), es el nombre por aria-label (#732)
+const bareLabel = computed(() => (props.bare && !attrs['aria-labelledby'] ? attrs['aria-label'] || props.title : attrs['aria-label']))
 const describedBy = computed(() => {
-  const own = stepsOn.value ? stepDescription.value && stepDescId(current.value) : hasDescription.value && descId.value
+  const own = stepsOn.value ? stepDescription.value && stepDescId(current.value) : !props.bare && hasDescription.value && descId.value
   const ids = [attrs['aria-describedby'], own].filter(Boolean)
   return ids.length ? ids.join(' ') : undefined
 })
@@ -482,7 +491,7 @@ const roleAttr = computed(() => (isAlert.value ? 'alertdialog' : undefined))
 const bodyAttrs = computed(() => {
   if (!scrollable.value || hasTabs.value) return {}
   if (stepsOn.value) return { tabindex: 0, ...(stepTitle.value ? { role: 'region', 'aria-labelledby': stepTitleId(current.value) } : {}) }
-  const named = hasTitle.value || hasHeaderSlot.value
+  const named = !props.bare && (hasTitle.value || hasHeaderSlot.value)
   return { tabindex: 0, ...(named ? { role: 'region', 'aria-labelledby': titleId.value } : {}) }
 })
 
@@ -515,7 +524,10 @@ try {
     if (!hasTitle.value && !hasHeaderSlot.value && !attrs['aria-label'] && !attrs['aria-labelledby'] && !hasSteps()) {
       console.warn('[Grana] <GDialog> necesita title, slot title o header, aria-label o aria-labelledby para tener un nombre accesible.')
     }
-    if (!props.closeLabel && !isAlert.value) {
+    // Aviso 7 (#732): slot footer o tabs con bare (se ignoran)
+    if (props.bare && (slots.footer || slots.tabs)) warnOnce('bare-slots', 'con `bare` se ignoran los slots `footer` y `tabs`.')
+    // Con bare no hay botón de cierre propio: sin closeLabel no se avisa (#732)
+    if (!props.closeLabel && !isAlert.value && !props.bare) {
       console.warn('[Grana] <GDialog> necesita `closeLabel` para mostrar el botón de cierre (sin valor por defecto: los textos los pone la aplicación).')
     }
   }
@@ -531,6 +543,7 @@ defineExpose({ push, back, backTo })
     :class="classes"
     :style="dynStyle"
     :role="roleAttr"
+    :aria-label="bareLabel"
     :aria-labelledby="labelledBy"
     :aria-describedby="describedBy"
     :aria-busy="loading ? 'true' : undefined"
@@ -543,7 +556,7 @@ defineExpose({ push, back, backTo })
     @animationcancel="onAnimationEnd"
   >
     <template v-if="rendered">
-      <div class="g-dialog__header">
+      <div v-if="!bare" class="g-dialog__header">
         <button v-if="stepsOn && depth > 1 && backLabel" class="g-dialog__back" type="button" :aria-label="backLabel" @click="back()"><GIcon name="chevron-left" class="g-icon--flip-rtl" /></button>
         <span v-if="hasIcon" class="g-dialog__icon" aria-hidden="true"><slot name="icon" /></span>
         <div class="g-dialog__titles">
@@ -571,7 +584,7 @@ defineExpose({ push, back, backTo })
         </ol>
       </nav>
       <div v-if="hasTabs" class="g-dialog__tabs"><slot name="tabs" /></div>
-      <div v-if="inset" :class="insetClasses">
+      <div v-if="insetOn" :class="insetClasses">
         <div ref="body" :class="bodyClasses" v-bind="bodyAttrs" @scroll.passive="measure"><slot :close="close" :push="push" :back="back" :back-to="backTo" :steps="history" /></div>
         <div v-if="hasFooter" class="g-dialog__footer"><StepSlot v-if="stepsOn" :key="current" :render="stepFooter" :scope="stepScope" /><slot v-else name="footer" :close="close" :push="push" :back="back" :back-to="backTo" :steps="history" /></div>
       </div>

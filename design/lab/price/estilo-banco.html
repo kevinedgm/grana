@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GPrice · banco de estilo (coco)</title>
+<!-- Banco de coco: marcado EXACTO de design/contracts/price.md («Anatomía», «Clases y datos») con el CSS real de
+     GPrice.css, GPriceScope.css y GDatePicker.css de src/ en la capa grana.components, y GDatePicker real de dist/ con el
+     slot `day` (la clase g-datepicker--day-content la pone aquí el banco hasta que la ponga el .vue de bruno).
+     XPrice pinta lo que pintará GPrice.vue con un formateador mínimo de Intl (no es formatPrice: solo lo que el estilo
+     necesita) y la capa de A (is-rolling, data-direction, __roll-slot/__roll-new/__roll-old) con la retirada de la P2:
+     animationend/animationcancel g-price-roll… o en el acto si no hay animación calculada.
+     Desde la raíz del repo:  python3 -m http.server 4209  →  /design/lab/price/estilo-banco.html
+     Parámetros: &dark=1  &dir=rtl  &lang=es-MX|en-US|ar-EG  &theme=<generated/*.css sin extensión>  &w=<px>
+     Verificación: GRANA_PW_PORT=4209 node design/lab/price/estilo-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<style>
+@import url("../../../packages/vue/src/components/GDatePicker/GDatePicker.css") layer(grana.components);
+@import url("../../../packages/vue/src/components/GPrice/GPrice.css") layer(grana.components);
+@import url("../../../packages/vue/src/components/GPriceScope/GPriceScope.css") layer(grana.components);
+</style>
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style>
+  html, body { margin: 0; }
+  body { background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui); font-size: var(--g-text-body-size); line-height: var(--g-text-body-line); }
+  .page { max-inline-size: calc(var(--g-space-16) * 16); margin-inline: auto; padding: var(--g-space-8) var(--g-space-4) var(--g-space-16); box-sizing: border-box; display: grid; gap: var(--g-space-12); }
+  .page > * { min-inline-size: 0; }
+  h1 { margin: 0; font-size: var(--g-text-title-lg-size); line-height: var(--g-text-title-lg-line); }
+  h2 { margin: 0 0 var(--g-space-4); font-size: var(--g-text-title-size); line-height: var(--g-text-title-line); }
+  .note { margin: 0 0 var(--g-space-3); color: var(--g-color-text-muted); font-size: var(--g-text-body-sm-size); }
+  .sizes { display: grid; gap: var(--g-space-4); }
+  .sizes > div { display: flex; flex-wrap: wrap; gap: var(--g-space-4); align-items: baseline; }
+  .sizes code { min-inline-size: calc(var(--g-space-1) * 8); color: var(--g-color-text-muted); font-size: var(--g-text-caption-size); }
+  .menu { margin: 0; display: grid; }
+  .menu__row { display: grid; grid-template-columns: 1fr auto; column-gap: var(--g-space-4); padding-block: var(--g-space-3); border-block-end: var(--g-border-width) solid var(--g-color-border); }
+  .menu__name { font-weight: var(--g-text-title-sm-weight); }
+  .menu__desc { margin: 0; color: var(--g-color-text-muted); font-size: var(--g-text-body-sm-size); grid-column: 1; }
+  .menu__price { margin: 0; grid-column: 2; grid-row: 1 / span 2; text-align: end; }
+  .cards { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--g-space-4); grid-template-columns: repeat(auto-fill, minmax(min(100%, calc(var(--g-space-16) * 4.5)), 1fr)); }
+  .card { padding: var(--g-space-4); border: var(--g-border-width) solid var(--g-color-border); border-radius: var(--g-radius-lg); background: var(--g-color-surface); }
+  .card h3 { margin: 0 0 var(--g-space-2); font-size: var(--g-text-body-size); }
+  .cart { margin: 0; display: grid; max-inline-size: calc(var(--g-space-16) * 8); }
+  .cart > div { display: flex; justify-content: space-between; gap: var(--g-space-4); padding-block: var(--g-space-2); align-items: baseline; }
+  .cart dt { color: var(--g-color-text-muted); }
+  .cart dd { margin: 0; text-align: end; }
+  .controls { display: flex; gap: var(--g-space-2); margin-block-end: var(--g-space-3); }
+  .controls button { min-block-size: 44px; padding-inline: var(--g-space-4); font: inherit; border-radius: var(--g-radius-pill); border: var(--g-border-width) solid var(--g-color-border-control); background: var(--g-color-surface); color: var(--g-color-text); }
+  .cal { max-inline-size: calc(var(--g-space-16) * 6); }
+</style>
+</head>
+<body>
+<main class="page" id="page"></main>
+<script src="../../../node_modules/vue/dist/vue.global.prod.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script>
+;(function () {
+  const Q = new URLSearchParams(location.search)
+  const LANG = Q.get('lang') || 'es-MX'
+  document.documentElement.lang = LANG
+  if (Q.get('dark')) document.documentElement.dataset.theme = 'dark'
+  if (Q.get('dir') === 'rtl' || LANG.startsWith('ar')) document.documentElement.dir = 'rtl'
+  if (Q.get('theme')) document.getElementById('gen').href = '../tema-oscuro/dark-color-presence/generated/' + Q.get('theme') + '.css'
+  if (Q.get('w')) document.getElementById('page').style.maxInlineSize = Q.get('w') + 'px'
+
+  const SHARED = new Set(['$', '¥', 'kr', '£', '₩', 'Rs', 'Bs'])
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
+  const strip = (s) => s.replace(/[‎‏؜]/g, '')
+  const digits = (cur) => new Intl.NumberFormat(LANG, { style: 'currency', currency: cur }).resolvedOptions().maximumFractionDigits
+  // Partes visibles de un importe (mínimo para el estilo; formatPrice es de bruno)
+  function amountParts (m, { display = 'auto', cents = 'auto', scope = null } = {}) {
+    const d = digits(m.currency)
+    const int = Math.round(m.amount * 10 ** d) % 10 ** d === 0
+    const o = { style: 'currency', currency: m.currency, currencyDisplay: display === 'code' ? 'code' : 'symbol' }
+    if (cents === 'never' || (cents === 'auto' && int)) { o.minimumFractionDigits = 0; if (cents === 'never') o.maximumFractionDigits = 0 }
+    const parts = new Intl.NumberFormat(LANG, o).formatToParts(m.amount)
+    const ci = parts.findIndex((p) => p.type === 'currency'), ni = parts.findIndex((p) => p.type === 'integer')
+    let minus = '', before = '', number = '', after = '', sym = ci >= 0 ? parts[ci].value : ''
+    parts.forEach((p, i) => {
+      if (p.type === 'minusSign') { minus = '−'; return }
+      if (p.type === 'currency') { if (display === 'none') return; if (i < ni) before += p.value; else after += p.value; return }
+      if (p.type === 'literal' && (parts[i - 1]?.type === 'currency' || parts[i + 1]?.type === 'currency')) { if (display === 'none') return; if (i < ni) before += p.value; else after = p.value + after; return }
+      number += p.value
+    })
+    const code = display === 'auto' && SHARED.has(sym) && scope !== m.currency ? m.currency : ''
+    return { minus, before: strip(before), number: strip(number), after: strip(after), code }
+  }
+  const amountHtml = (p, extra = '') => `<span class="g-price__amount${extra}" dir="ltr">${p.minus ? `<span class="g-price__minus">${p.minus}</span>` : ''}${p.before ? `<span class="g-price__symbol">${esc(p.before)}</span>` : ''}<span class="g-price__number">${esc(p.number)}</span>${p.after ? `<span class="g-price__symbol">${esc(p.after)}</span>` : ''}${p.code ? `<span class="g-price__code">${p.code}</span>` : ''}</span>`
+  const totalText = (p) => p.minus + p.before + p.number + p.after
+  const ARROW = '<svg class="g-icon g-icon--flip-rtl g-price__arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>'
+  const name = (m) => strip(new Intl.NumberFormat(LANG, { style: 'currency', currency: m.currency, currencyDisplay: 'name', minimumFractionDigits: 0 }).format(m.amount))
+
+  // XPrice: el marcado de GPrice (price.md «Anatomía»). Devuelve HTML
+  function price (o) {
+    const size = o.size || 'md'
+    const cls = ['g-price', 'g-price--size-' + size]
+    if (o.value === null) return `<span class="${cls.join(' ')} g-price--on-request">Precio a consultar</span>`
+    if (o.value.amount === 0 && !o.compareAt) return `<span class="${cls.join(' ')} g-price--free">Gratis</span>`
+    const p = amountParts(o.value, o)
+    const style = o.compareStyle || 'trace'
+    if (o.compareAt) cls.push('g-price--has-compare', 'g-price--compare-' + style)
+    if (o.total) cls.push('g-price--has-total')
+    if (o.max) cls.push('g-price--range')
+    if (o.value.approximate) cls.push('g-price--approx')
+    if (o.value.amount < 0) cls.push('g-price--negative')
+    let vis = ''
+    if (o.total) {
+      const tp = amountParts(o.total.value, o)
+      vis += `<span class="g-price__total"><span class="g-price__total-label">Total</span><span class="g-price__total-amount" dir="ltr" data-total>${esc(totalText(tp))}</span><span class="g-price__total-unit">${esc(o.total.label)}</span></span>`
+    }
+    const cmp = o.compareAt ? amountParts(o.compareAt, { ...o, display: 'symbol' }) : null
+    if (cmp && style === 'trace') {
+      const save = o.compareAt.amount - o.value.amount
+      vis += `<span class="g-price__compare"><span class="g-price__compare-label">${esc(o.compareLabel || 'Antes')}</span>${amountHtml(cmp, ' g-price__amount--compare')}${ARROW}${save > 0 ? `<span class="g-price__saving">Ahorras ${esc(totalText(amountParts({ amount: save, currency: o.value.currency }, { ...o, display: 'symbol' })))}</span>` : ''}</span>`
+    }
+    let now = '<span class="g-price__now">'
+    if (o.lead) now += `<span class="g-price__lead">${esc(o.lead)}</span>`
+    if (o.value.approximate) now += '<span class="g-price__approx">aprox.</span>'
+    if (o.value.amount === 0) now += '<span class="g-price__amount g-price__amount--word">Gratis</span>'
+    else if (o.max) {
+      const pmin = amountParts(o.value, { ...o, display: 'symbol' })
+      now += amountHtml(pmin) + '<span class="g-price__sep">a</span>' + amountHtml(amountParts(o.max, o))
+    } else now += amountHtml(p)
+    if (o.unit) now += `<span class="g-price__unit">${esc(o.unit)}</span>`
+    now += '</span>'
+    vis += now
+    if (cmp && style === 'strike') vis += `<s class="g-price__compare">${amountHtml(cmp, ' g-price__amount--compare')}</s>`
+    const spoken = (o.total ? `Total ${o.total.label}: ${name(o.total.value)}. ` : '') + [o.lead, name(o.value), o.unit].filter(Boolean).join(' ') + (o.compareAt ? `. ${o.compareLabel || 'Antes'}: ${name(o.compareAt)}` : '')
+    return `<span class="${cls.join(' ')}" data-currency="${o.value.currency}"${o.id ? ` id="${o.id}"` : ''}><span class="g-price__visual" aria-hidden="true">${vis}</span><span class="g-price__spoken">${esc(spoken)}</span></span>`
+  }
+  const scope = (cur, inner, taxes) => `<div class="g-price-scope" data-currency="${cur}"><p class="g-price-scope__legend"><span class="g-price-scope__seal" aria-hidden="true">${cur}</span><span class="g-price-scope__legend-text">Precios en ${esc(new Intl.DisplayNames([LANG], { type: 'currency' }).of(cur))} (${cur})</span>${taxes ? `<span class="g-price-scope__taxes">${esc(taxes)}</span>` : ''}</p>${inner}</div>`
+
+  const MXN = (amount, x) => ({ amount, currency: 'MXN', ...x })
+  const page = document.getElementById('page')
+  page.innerHTML = `
+  <h1>GPrice · banco de estilo</h1>
+  <section id="sizes"><h2>Tamaños</h2><p class="note">Cifra y secundario por size (price.md «Tamaños»).</p><div class="sizes">
+    ${['xs', 'sm', 'md', 'lg', 'xl'].map((s) => `<div data-size="${s}"><code>${s}</code>${price({ size: s, value: MXN(1850), lead: 'desde', unit: '/ noche', id: 'size-' + s })}</div>`).join('')}
+  </div></section>
+  <section id="menu"><h2>B · Carta (sm, en una región)</h2>${scope('MXN', `<dl class="menu">
+    ${[['Tacos al pastor', 'Tres piezas', 95], ['Mole poblano', 'Con arroz', 1850.5], ['Agua fresca', 'Litro', 45], ['Vino importado', 'Copa', 12.5, 'USD'], ['Postre', 'Del día', 0]].map(([n, d, a, c], i) => `<div class="menu__row"><dt class="menu__name">${n}</dt><dd class="menu__desc">${d}</dd><dd class="menu__price">${price({ size: 'sm', value: { amount: a, currency: c || 'MXN' }, scope: 'MXN', id: 'menu-' + i })}</dd></div>`).join('')}
+  </dl>`, 'IVA incluido')}</section>
+  <section id="cards"><h2>C · El antes y el ahora (md)</h2><ul class="cards">
+    <li class="card"><h3>Suite jardín</h3>${price({ value: MXN(1850), compareAt: MXN(2300), compareLabel: 'Temporada alta', lead: 'desde', unit: '/ noche', id: 'c-trace' })}</li>
+    <li class="card"><h3>Tachado</h3>${price({ value: MXN(1850), compareAt: MXN(2300), compareStyle: 'strike', unit: '/ noche', id: 'c-strike' })}</li>
+    <li class="card"><h3>Aproximado</h3>${price({ value: { amount: 105.25, currency: 'USD', approximate: true }, unit: '/ noche', id: 'c-approx' })}</li>
+    <li class="card"><h3>Rango</h3>${price({ value: MXN(900), max: MXN(1400), unit: '/ noche', id: 'c-range' })}</li>
+    <li class="card"><h3>Gratis con referencia</h3>${price({ value: MXN(0), compareAt: MXN(350), compareLabel: 'Precio de lista', id: 'c-free-ref' })}</li>
+    <li class="card"><h3>Estados</h3><p>${price({ size: 'sm', value: MXN(0), id: 'c-free' })} · ${price({ size: 'sm', value: null, id: 'c-req' })} · ${price({ size: 'sm', value: MXN(-200), cents: 'always', id: 'c-neg' })}</p></li>
+    <li class="card"><h3>Euro</h3>${price({ value: { amount: 1850, currency: 'EUR' }, compareAt: { amount: 2100, currency: 'EUR' }, compareLabel: 'Precio de lista', id: 'c-eur' })}</li>
+  </ul></section>
+  <section id="total"><h2>A · La cuenta (lg)</h2><div class="controls"><button type="button" id="less">− noche</button><button type="button" id="more">+ noche</button></div><div id="total-host"></div></section>
+  <section id="plan"><h2>Plan (xl)</h2>${price({ size: 'xl', value: { amount: 249, currency: 'USD' }, unit: '/ mes', id: 'plan' })}</section>
+  <section id="cart"><h2>Carrito (lg en el total)</h2>${scope('MXN', `<dl class="cart"><div><dt>Subtotal</dt><dd>${price({ size: 'sm', value: MXN(5950), cents: 'always', scope: 'MXN' })}</dd></div><div><dt>Descuento</dt><dd>${price({ size: 'sm', value: MXN(-450), cents: 'always', scope: 'MXN' })}</dd></div><div><dt>Total</dt><dd>${price({ size: 'lg', value: MXN(5500), cents: 'always', scope: 'MXN', id: 'cart-total' })}</dd></div></dl>`, 'IVA incluido')}</section>
+  <section id="cal"><h2>Día con precio (GDatePicker real)</h2><p class="note">Precio por noche en pesos mexicanos.</p><div class="cal" id="cal-host"></div></section>`
+
+  // ---------- A · cifras que ruedan (la capa de la P2, con la retirada del contrato) ----------
+  const NIGHT = [1850, 1850, 2300, 2300, 1850, 1850, 1850]
+  let nights = 2
+  const totalOf = (n) => NIGHT.slice(0, n).reduce((a, b) => a + b, 0)
+  const host = document.getElementById('total-host')
+  const render = () => { host.innerHTML = price({ size: 'lg', value: MXN(1850), lead: 'desde', unit: '/ noche', total: { value: MXN(totalOf(nights)), label: `por ${nights} noches` }, compareAt: MXN(2300), compareLabel: 'Temporada alta', id: 'a-price' }) }
+  render()
+  const roll = { count: 0, last: null }
+  function setNights (n) {
+    const el = host.querySelector('[data-total]')
+    const old = el.textContent
+    const prevRolling = el.classList.contains('is-rolling')
+    nights = Math.max(1, Math.min(7, n))
+    const next = totalText(amountParts(MXN(totalOf(nights))))
+    host.querySelector('.g-price__total-unit').textContent = `por ${nights} noches`
+    if (prevRolling) { el.classList.remove('is-rolling'); el.removeAttribute('data-direction'); el.textContent = next; return }
+    if (next === old) return
+    const dir = totalOf(nights) > Number(old.replace(/[^\d.]/g, '')) ? 'up' : 'down'
+    const len = Math.max(old.length, next.length)
+    const a = old.padStart(len, ' '), b = next.padStart(len, ' ')
+    let html = ''
+    for (let i = 0; i < len; i++) {
+      if (a[i] === b[i]) { html += esc(b[i]); continue }
+      if (b[i] === ' ') continue
+      html += `<span class="g-price__roll-slot"><span class="g-price__roll-new">${esc(b[i])}</span>${a[i] !== ' ' ? `<span class="g-price__roll-old">${esc(a[i])}</span>` : ''}</span>`
+    }
+    el.innerHTML = html
+    el.classList.add('is-rolling'); el.dataset.direction = dir
+    roll.count++; roll.last = { dir, slots: el.querySelectorAll('.g-price__roll-slot').length }
+    const done = () => { if (!el.classList.contains('is-rolling')) return; el.classList.remove('is-rolling'); el.removeAttribute('data-direction'); el.textContent = next }
+    requestAnimationFrame(() => {
+      const anims = [...el.querySelectorAll('*')].filter((x) => getComputedStyle(x).animationName.split(',').some((s) => s.trim().startsWith('g-price-roll'))).length
+      if (!anims) return done()
+      let left = anims
+      const end = (e) => { if (!String(e.animationName).startsWith('g-price-roll')) return; if (--left <= 0) { el.removeEventListener('animationend', end); el.removeEventListener('animationcancel', end); done() } }
+      el.addEventListener('animationend', end); el.addEventListener('animationcancel', end)
+    })
+  }
+  document.getElementById('more').onclick = () => setNights(nights + 1)
+  document.getElementById('less').onclick = () => setNights(nights - 1)
+
+  // ---------- Calendario real con el slot day ----------
+  const { createApp, h, ref } = Vue
+  const DAYPRICE = (iso) => { const d = new Date(iso + 'T12:00:00'); const wd = d.getDay(); return wd === 5 || wd === 6 ? 2300 : 1850 }
+  const big = Q.get('big') === '1'
+  const app = createApp({
+    setup () {
+      const v = ref('2026-10-21')
+      return () => h(Grana.GDatePicker, { inline: true, modelValue: v.value, 'onUpdate:modelValue': (x) => { v.value = x }, label: 'Llegada', locale: LANG }, {
+        day: ({ date }) => h('span', { class: 'g-price g-price--size-xs', 'data-currency': 'MXN', 'data-day-price': '', innerHTML: `<span class="g-price__visual" aria-hidden="true"><span class="g-price__now">${amountHtml(amountParts(MXN(big ? 12400 : DAYPRICE(date)), { display: 'none', cents: 'never' }))}</span></span><span class="g-price__spoken">${esc(name(MXN(DAYPRICE(date))))}</span>` })
+      })
+    }
+  })
+  app.mount('#cal-host')
+  requestAnimationFrame(() => { document.querySelector('#cal-host .g-datepicker')?.classList.add('g-datepicker--day-content'); window.__bench.ready = true })
+  window.__bench = { ready: false, setNights, roll, get nights () { return nights } }
+})()
+</script>
+</body>
+</html>

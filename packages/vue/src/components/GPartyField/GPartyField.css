@@ -1,0 +1,406 @@
+/*
+  GPartyField · personas por tipo
+  Dueño: coco. Contrato: design/contracts/booking-bar.md «GPartyField» (DECISIONS.md #738; tokens.md §53). Estructura:
+  design/lab/booking-bar/r01/ (kiwi). Estética, medidas y encargos: design/lab/booking-bar/estilo.md.
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin respaldos. Literales: 24px y
+  44px (área táctil), 0px en max() y el patrón de texto oculto.
+
+  Carácter: un campo de Grana, no un contador de agencia. El disparador es la caja de GSelect (mismas medidas, foco,
+  variantes y estados, para que comparta fila con ellos) y dice el grupo en palabras («2 adultos · 1 niño · 1
+  habitación»); el panel no es una hoja: una tarjeta pequeña con un GNumberField por fila, cuyas cifras ya ruedan (P2 de
+  GNumberField). En la frase de GBookingBar la raíz desaparece (display: contents) y el hueco de la frase es el disparador.
+
+  Marcado que espera (lo pinta bruno; booking-bar.md «GPartyField» y «Clases y datos»):
+    div.g-party-field.g-party-field--mode-{popover|inline}[.g-party-field--trigger][.g-party-field--size-*]
+       [.g-party-field--variant-*][.g-party-field--density-*][.g-party-field--rounded-*][.g-party-field--block]
+       [.is-open][.is-invalid][.is-warning][.is-valid][.is-readonly][.is-disabled][.is-rejected]
+      span.g-party-field__label
+      button.g-party-field__trigger > [GIcon users] + span.g-party-field__value + GIcon chevron-down (.g-party-field__arrow)
+      div.g-party-field__panel[popover][data-side] (--_x, --_y, --_max) > div.g-party-field__rows > GNumberField block ×n
+                                                                         + GBtn.g-party-field__done
+      (inline) div.g-party-field__rows[role=group]
+      div.g-party-field__support > div.g-party-field__hint + p.g-party-field__message (> GIcon.__message-icon + span.__message-type)
+      input[type=hidden] ×n
+*/
+
+/* ---------- Esqueleto (como GSelect) ---------- */
+.g-party-field {
+  --_focus: var(--g-color-focus);
+  --_bg: var(--g-color-surface);
+  --_border: var(--g-color-border-control);
+  --_border-end: var(--_border);
+  --_units: 9;
+  --_density: 1;
+  --_px: var(--g-space-3);
+  --_gap: var(--g-space-2);
+  --_fs: var(--g-text-body-sm-size);
+  --_lh: var(--g-text-body-sm-line);
+  --_h: max(24px, calc(var(--g-space-1) * var(--_units) * var(--_density)));
+  --_radius: var(--g-radius-sm);
+
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  vertical-align: top;
+  box-sizing: border-box;
+  /* Contención en línea (#562): su tamaño intrínseco es su ancho por defecto, como GSelect */
+  contain: inline-size;
+  contain-intrinsic-inline-size: calc(var(--g-space-1) * 60);
+  inline-size: min(100%, calc(var(--g-space-1) * 60));
+  min-inline-size: 0;
+  font-family: var(--g-font-ui);
+  color: var(--g-color-text);
+}
+@supports (inline-size: round(1px, 1px)) {
+  .g-party-field {
+    --_snap: 0.5px;
+    --_h: max(24px, round(calc(var(--g-space-1) * var(--_units) * var(--_density)), var(--_snap)));
+  }
+}
+/* En la frase (slot trigger, B-L7): sin caja; el hueco de la aplicación queda en su línea y el panel en la capa superior */
+.g-party-field--trigger {
+  display: contents;
+}
+/* En línea (hoja, formulario completo): las filas a la vista, a todo el ancho de su sitio */
+.g-party-field--mode-inline {
+  contain: none;
+  display: flex;
+  inline-size: 100%;
+}
+.g-party-field--block {
+  display: flex;
+  inline-size: 100%;
+}
+
+/* ---------- Etiqueta ---------- */
+.g-party-field__label {
+  display: block;
+  margin-block-end: var(--g-space-1);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-text);
+  overflow-wrap: anywhere;
+}
+.g-party-field--mode-inline > .g-party-field__label {
+  margin-block-end: var(--g-space-3);
+}
+
+/* ---------- Disparador: la caja ---------- */
+.g-party-field__trigger {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--_gap) * var(--_density));
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: var(--_h);
+  margin: 0;
+  padding-block: 0;
+  padding-inline: calc(var(--_px) * var(--_density));
+  background: var(--_bg);
+  border: var(--g-border-width) solid var(--_border);
+  border-block-end-color: var(--_border-end);
+  border-radius: var(--_radius);
+  color: inherit;
+  font: inherit;
+  font-size: var(--_fs);
+  line-height: var(--_lh);
+  text-align: start;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    border-color var(--g-duration-fast) var(--g-ease-standard);
+}
+@media (forced-colors: none) {
+  .g-party-field__trigger {
+    outline: var(--g-focus-width) solid transparent;
+    outline-offset: calc(var(--g-border-width) * -1);
+    transition:
+      background-color var(--g-duration-fast) var(--g-ease-standard),
+      border-color var(--g-duration-fast) var(--g-ease-standard),
+      outline-color var(--g-duration-fast) var(--g-ease-standard);
+  }
+}
+@media (pointer: coarse) {
+  .g-party-field__trigger {
+    min-block-size: max(44px, var(--_h));
+  }
+}
+.g-party-field__value {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  min-block-size: var(--_lh);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.g-party-field__trigger > .g-icon {
+  flex: none;
+  inline-size: 1.25em;
+  block-size: 1.25em;
+  color: var(--g-color-text-muted);
+}
+.g-party-field__trigger > .g-party-field__arrow {
+  inline-size: var(--_fs);
+  block-size: var(--_fs);
+  transition: rotate var(--g-duration-press) var(--g-ease-out);
+}
+.g-party-field.is-open .g-party-field__arrow {
+  rotate: 180deg;
+}
+
+/* ---------- Panel (capa superior; bruno lo coloca, #358) ---------- */
+.g-party-field__panel {
+  position: fixed;
+  inset: auto;
+  left: var(--_x);
+  top: var(--_y);
+  box-sizing: border-box;
+  inline-size: max-content;
+  min-inline-size: calc(var(--g-space-1) * 72);
+  max-inline-size: min(calc(var(--g-space-1) * 90), calc(100vw - var(--g-space-1) * 4));
+  max-block-size: var(--_max);
+  margin: 0;
+  padding: var(--g-space-4);
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-radius-lg);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  box-shadow: var(--g-shadow-2);
+  /* Fija su letra: en la frase de GBookingBar heredaría la de title */
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-size);
+  line-height: var(--g-text-body-line);
+  font-weight: var(--g-text-body-weight);
+  letter-spacing: var(--g-text-body-tracking);
+  text-align: start;
+  white-space: normal;
+  opacity: 0;
+}
+.g-party-field__panel:popover-open {
+  display: grid;
+  gap: var(--g-space-4);
+  opacity: 1;
+}
+.g-party-field__rows {
+  display: grid;
+  gap: var(--g-space-4);
+  min-inline-size: 0;
+}
+/* Cada contador ocupa la fila (bruno pasa block; esto lo garantiza) */
+.g-party-field__rows > * {
+  inline-size: 100%;
+}
+.g-party-field__done {
+  justify-self: end;
+}
+
+/* ---------- Pie: ayuda y mensaje (como GSelect) ---------- */
+.g-party-field__support {
+  min-inline-size: 0;
+}
+.g-party-field__hint {
+  margin-block-start: var(--g-space-1);
+  overflow-wrap: anywhere;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+}
+.g-party-field__message {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-danger-text);
+}
+.g-party-field__message:not(:empty) {
+  margin-block-start: var(--g-space-1);
+}
+.g-party-field.is-warning .g-party-field__message { color: var(--g-color-warning-text); }
+.g-party-field.is-valid .g-party-field__message {
+  font-weight: var(--g-text-body-sm-weight);
+  color: var(--g-color-success-text);
+}
+.g-party-field__message-icon {
+  margin-inline-end: var(--g-space-1);
+  vertical-align: -0.125em;
+}
+.g-party-field__message-type {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Tamaño, densidad, forma, variante (los de GSelect) ---------- */
+.g-party-field--size-xs { --_units: 6;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs: var(--g-text-caption-size); --_lh: var(--g-text-caption-line); }
+.g-party-field--size-sm { --_units: 7;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
+.g-party-field--size-md { --_units: 9;  --_px: var(--g-space-3); --_gap: var(--g-space-2); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
+.g-party-field--size-lg { --_units: 11; --_px: var(--g-space-4); --_gap: var(--g-space-2); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
+.g-party-field--size-xl { --_units: 13; --_px: var(--g-space-5); --_gap: var(--g-space-3); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
+.g-party-field--density-default { --_density: 1; }
+.g-party-field--density-comfortable { --_density: 0.875; }
+.g-party-field--density-compact { --_density: 0.75; }
+.g-party-field--rounded-none { --_radius: var(--g-radius-none); }
+.g-party-field--rounded-xs { --_radius: var(--g-radius-xs); }
+.g-party-field--rounded-sm { --_radius: var(--g-radius-sm); }
+.g-party-field--rounded-md { --_radius: var(--g-radius-md); }
+.g-party-field--rounded-lg { --_radius: var(--g-radius-lg); }
+.g-party-field--rounded-xl { --_radius: var(--g-radius-xl); }
+.g-party-field--rounded-pill { --_radius: var(--g-radius-pill); }
+/* soft: caja rellena con la línea inferior de control (el relleno solo no llega a 3:1, WCAG 1.4.11) */
+.g-party-field--variant-soft {
+  --_bg: var(--g-color-surface-sunken);
+  --_border: transparent;
+  --_border-end: var(--g-color-border-control);
+}
+
+/* ---------- Estados (los de GSelect) ---------- */
+@media (hover: hover) {
+  .g-party-field:not(.is-disabled):not(.is-readonly):not(.is-invalid):not(.is-warning):not(.is-valid) .g-party-field__trigger:hover {
+    --_border: var(--g-color-text-muted);
+    --_border-end: var(--g-color-text-muted);
+  }
+}
+.g-party-field__trigger:focus-visible,
+.g-party-field.is-open .g-party-field__trigger {
+  --_border: var(--_focus);
+  --_border-end: var(--_focus);
+}
+.g-party-field__trigger:focus-visible {
+  outline: var(--g-focus-width) solid var(--_focus);
+  outline-offset: calc(var(--g-border-width) * -1);
+}
+.g-party-field.is-invalid .g-party-field__trigger {
+  --_border: var(--g-color-danger-text);
+  --_border-end: var(--g-color-danger-text);
+  box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-danger-text);
+}
+.g-party-field.is-warning .g-party-field__trigger {
+  --_border: var(--g-color-warning-text);
+  --_border-end: var(--g-color-warning-text);
+  border-style: dashed;
+  border-width: calc(var(--g-border-width) * 2);
+  padding-inline-start: calc(var(--_px) * var(--_density) - var(--g-border-width));
+}
+.g-party-field.is-valid .g-party-field__trigger {
+  --_border: var(--g-color-success-text);
+  --_border-end: var(--g-color-success-text);
+}
+/* Solo lectura (#165): enfocable, no abre; relleno neutro suave y borde discontinuo */
+.g-party-field.is-readonly .g-party-field__trigger {
+  --_bg: var(--g-color-neutral-soft);
+  border-style: dashed;
+  cursor: default;
+}
+.g-party-field.is-disabled {
+  color: var(--g-color-text-subtle);
+  cursor: not-allowed;
+}
+.g-party-field.is-disabled .g-party-field__label {
+  color: var(--g-color-text-subtle);
+}
+.g-party-field.is-disabled .g-party-field__trigger {
+  --_bg: var(--g-color-surface-sunken);
+  --_border: var(--g-color-border-strong);
+  --_border-end: var(--g-color-border-strong);
+  color: var(--g-color-text-subtle);
+  cursor: not-allowed;
+}
+.g-party-field.is-disabled .g-party-field__trigger > .g-icon {
+  color: var(--g-color-text-subtle);
+}
+
+/* ---------- Dentro de una GFormRow (form.md §4): las tres pistas de la línea, como GSelect ---------- */
+.g-form-row > .g-party-field {
+  contain: none;
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-template-columns: minmax(0, 1fr);
+  inline-size: auto;
+}
+.g-form-row > .g-party-field > * { grid-column: 1; }
+.g-form-row > .g-party-field > .g-party-field__label { grid-row: 1; align-self: end; }
+.g-form-row > .g-party-field > .g-party-field__trigger { grid-row: 2; align-self: start; }
+.g-form-row > .g-party-field > .g-party-field__support { grid-row: 3; }
+
+/* ---------- Rechazo al enviar (#304): se mueve la caja, una vez, decreciente; nada con movimiento reducido ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .g-party-field.is-rejected .g-party-field__trigger {
+    animation: g-reject-shake-party var(--g-duration-slow) linear;
+  }
+}
+@keyframes g-reject-shake-party {
+  0%, 100% { translate: 0 0; }
+  16% { translate: calc(var(--g-space-1) * -1) 0; }
+  36% { translate: calc(var(--g-space-1) * 0.75) 0; }
+  56% { translate: calc(var(--g-space-1) * -0.5) 0; }
+  76% { translate: calc(var(--g-space-1) * 0.25) 0; }
+}
+
+/* ---------- Panel: entrada press + ease-out desde space × 1 hacia el disparador; salida fast ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .g-party-field__panel {
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-out),
+      overlay var(--g-duration-fast) allow-discrete,
+      display var(--g-duration-fast) allow-discrete;
+  }
+  .g-party-field__panel:popover-open {
+    transition:
+      opacity var(--g-duration-press) var(--g-ease-out),
+      translate var(--g-duration-press) var(--g-ease-out);
+  }
+  @starting-style {
+    .g-party-field__panel:popover-open {
+      opacity: 0;
+      translate: 0 calc(var(--g-space-1) * -1);
+    }
+    .g-party-field__panel[data-side="top"]:popover-open {
+      translate: 0 var(--g-space-1);
+    }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .g-party-field__panel,
+  .g-party-field__panel:popover-open {
+    transition:
+      opacity var(--g-duration-fast) linear,
+      overlay var(--g-duration-fast) allow-discrete,
+      display var(--g-duration-fast) allow-discrete;
+  }
+  .g-party-field__trigger > .g-party-field__arrow {
+    transition: none;
+  }
+}
+
+/* ---------- Colores forzados ---------- */
+@media (forced-colors: active) {
+  .g-party-field__trigger {
+    border-color: ButtonText;
+  }
+  .g-party-field__trigger:focus-visible {
+    outline-color: Highlight;
+  }
+  .g-party-field__panel {
+    border-color: CanvasText;
+  }
+  .g-party-field.is-disabled .g-party-field__trigger {
+    border-color: GrayText;
+    color: GrayText;
+  }
+  .g-party-field.is-invalid .g-party-field__trigger {
+    border-width: calc(var(--g-border-width) * 2);
+  }
+}

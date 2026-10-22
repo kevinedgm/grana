@@ -1,0 +1,264 @@
+/* Prototipo de GAppShell, GStack y GSection (kiwi r01). NO es el CSS de los componentes (es de coco): solo tokens del tema,
+   sin valores de respaldo. Literales: 24px/44px (área táctil), el patrón de texto oculto y constantes de diseño propuestas
+   que lima debe registrar (L3): alto de la cabecera de contrato (space × 14), presupuesto del cuarto (× 4) y el factor de
+   la función escalón (9999). 100svh/100dvh, 100% y 1px son literales de unidad.
+   Nombres del prototipo → propuesta: .as = .g-app-shell, .st = .g-stack, .sec = .g-section. */
+
+/* ======================================================================
+   GAppShell (prototipo)
+   ====================================================================== */
+
+/* Entrada pública: alto de la cabecera de la aplicación si mide MÁS que el de contrato (por defecto 0 = el de contrato) */
+@property --g-app-shell-header { syntax: '<length>'; inherits: true; initial-value: 0px; }
+/* Publicadas (solo lectura, px resueltos): lo que la cabecera ocupa arriba mientras está pegada */
+@property --g-app-shell-top { syntax: '<length>'; inherits: true; initial-value: 0px; }
+@property --_as-nav { syntax: '<length>'; inherits: false; initial-value: 0px; }
+@property --_as-delay { syntax: '<time>'; inherits: false; initial-value: 0s; }
+@property --_as-bar { syntax: '<length>'; inherits: true; initial-value: 0px; }
+@property --_as-ph { syntax: '<length>'; inherits: true; initial-value: 0px; }
+
+.as {
+  /* Alto de la cabecera: constante de contrato (como el zócalo de GPageHeader, #629), o la entrada si es mayor */
+  --_as-head: max(calc(var(--g-space-1) * 14), 44px, var(--g-app-shell-header));
+  /* Zócalo de GPageHeader (constante de contrato #629) si hay un encabezado de página en la región principal */
+  --_as-ph: calc(var(--g-space-1) * 0);
+  /* Presupuesto del cuarto: lo pegado arriba (cabecera + zócalo) ≤ 25 % del visor pequeño. Si no cabe, la cabecera se
+     despega: escalón sin JS (min de la cifra y un número enorme que es 0 o negativo cuando no cabe) */
+  --g-app-shell-top: min(var(--_as-head), max(0px, (100svh - 4 * (var(--_as-head) + var(--_as-ph))) * 9999));
+  /* La receta de api.md «Cabecera fija», escrita UNA vez por el chasis (la aplicación ya no la escribe) */
+  --g-page-header-top: var(--g-app-shell-top);
+  --g-accordion-sticky-top: calc(var(--g-app-shell-top) + var(--_as-ph));
+  --_as-bar: calc(var(--g-space-1) * 0);
+
+  display: grid;
+  /* La pista del sidebar sale de los tokens de estructura de GSidebar según su formato (abajo, con :has()): el sidebar es
+     fijo al visor y no ocupa su pista (así el foco en él nunca desplaza la página, S1) */
+  grid-template-columns: var(--_as-nav) minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  grid-template-areas: "nav head" "nav frame";
+  min-block-size: 100dvh;
+  background: var(--g-color-bg);
+  color: var(--g-color-text);
+  font-family: var(--g-font-ui);
+}
+.as:has(.g-page-header.has-base) { --_as-ph: max(var(--g-space-12), 44px); }
+.as:has(> .g-sidebar--mode-navbar) { --_as-bar: var(--g-sidebar-bar); }
+/* Reserva por CSS, sin escuchar mode-change: expandida = width; riel o superpuesto = rail; flotante + su margen; navbar y
+   drawer = 0 (el navbar reserva abajo, --_as-bar) */
+.as:has(> .g-sidebar--mode-expanded:not(.g-sidebar--overlay)) { --_as-nav: var(--g-sidebar-width); }
+.as:has(> .g-sidebar--mode-rail), .as:has(> .g-sidebar--overlay) { --_as-nav: var(--g-sidebar-rail); }
+.as:has(> .g-sidebar--variant-floating.g-sidebar--mode-expanded:not(.g-sidebar--overlay)) { --_as-nav: calc(var(--g-sidebar-width) + var(--g-space-3) * 2); }
+.as:has(> .g-sidebar--variant-floating.g-sidebar--mode-rail), .as:has(> .g-sidebar--variant-floating.g-sidebar--overlay) { --_as-nav: calc(var(--g-sidebar-rail) + var(--g-space-3) * 2); }
+
+/* Enlace de salto (2.4.1): primer enfocable del documento; visible solo con foco */
+.as__skip {
+  position: fixed;
+  inset-block-start: var(--g-space-2);
+  inset-inline-start: var(--g-space-2);
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  padding-inline: var(--g-space-4);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  border: var(--g-border-width) solid var(--g-color-border-strong);
+  box-shadow: var(--g-shadow-2);
+  font-weight: var(--g-text-action-weight);
+  text-decoration: none;
+  translate: 0 calc(-100% - var(--g-space-4));
+}
+.as__skip:focus-visible { translate: 0 0; outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset); }
+
+/* Cabecera de la aplicación: banda pegada de alto de contrato */
+.as__header {
+  grid-area: head;
+  position: sticky;
+  /* Pegada: 0. Fuera de presupuesto: −alto (se va con la página) */
+  inset-block-start: calc(var(--g-app-shell-top) - var(--_as-head));
+  z-index: 4;
+  box-sizing: border-box;
+  block-size: var(--_as-head);
+  display: flex;
+  align-items: center;
+  gap: var(--g-space-3);
+  padding-inline: var(--g-space-4);
+  background: var(--g-color-bg);
+  /* Borde real (no solo fondo): sigue visible con forced-colors */
+  border-block-end: var(--g-border-width) solid var(--g-color-border);
+  min-inline-size: 0;
+}
+/* Lo pegado no se «desentierra» a sí mismo: sus enfocables restan la banda del scroll-padding (S1) */
+.as__header, .as__header * { scroll-margin-block-start: calc(-1 * (var(--g-app-shell-top) + var(--_as-ph))); }
+
+/* Sidebar (slot nav): hijo DIRECTO de la raíz, así su `auto` mide el chasis (parentElement). FIJO al visor, no pegado:
+   un enfocable dentro de algo pegado que cae en la banda del scroll-padding hace que Chromium y WebKit desplacen la página
+   al enfocarlo (medido: Tab al botón de contraer lleva la página de 1200 a 730, S1); lo fijo no está en el desplazador. */
+.as > .g-sidebar:not(.g-sidebar--mode-navbar) {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  z-index: 5;
+}
+/* Superpuesto: GSidebar lo pone absolute contra un padre de alto fijo; en una página que desplaza mediría el documento (S2).
+   En el chasis es fijo como el resto: la pista se queda en el riel y la expansión queda encima. */
+.as > .g-sidebar--overlay.g-sidebar--mode-expanded { position: fixed; inset-block: 0 auto; }
+
+/* Marco: la región principal y el pie (el pie queda fuera de main: contentinfo) */
+.as__frame {
+  grid-area: frame;
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+  /* Sin desplazamiento horizontal de página y SIN crear contenedor de desplazamiento (clip, no hidden): el pegado sigue */
+  overflow-x: clip;
+  /* Navbar inferior: su alto reservado al final (sidebar.md «Espacio en el diseño») */
+  padding-block-end: var(--_as-bar);
+}
+.as__main { flex: 1 0 auto; min-inline-size: 0; }
+.as__main:focus { outline: none; } /* destino del salto (tabindex=-1): el foco no se pinta en una región entera */
+.as__footer {
+  min-inline-size: 0;
+  padding: var(--g-space-4);
+  border-block-start: var(--g-border-width) solid var(--g-color-border);
+  color: var(--g-color-text-muted);
+  font-size: var(--g-text-body-sm-size);
+}
+
+/* La receta del scroll-padding vive en el desplazador, que con desplazamiento de página es <html> */
+@property --_as-root-head { syntax: '<length>'; inherits: true; initial-value: 0px; }
+:root:has(.as:not([data-c="C"])) {
+  --_as-root-head: max(calc(var(--g-space-1) * 14), 44px, var(--g-app-shell-header));
+  --_as-root-ph: calc(var(--g-space-1) * 0);
+  scroll-padding-block-start: calc(min(var(--_as-root-head), max(0px, (100svh - 4 * (var(--_as-root-head) + var(--_as-root-ph))) * 9999)) + var(--_as-root-ph));
+}
+:root:has(.as:not([data-c="C"]) .g-page-header.has-base) { --_as-root-ph: max(var(--g-space-12), 44px); }
+/* B: mientras la cabecera cede, el desplazador solo cuenta el zócalo */
+:root:has(.as[data-c="B"][data-yield]) { scroll-padding-block-start: var(--_as-root-ph); }
+
+/* Simula el arreglo que corresponde a GPageHeader.css (coco, S5): el zócalo pegado está en la banda del scroll-padding y
+   enfocar una de sus acciones desplaza la página en Chromium y WebKit (medido: 1200 → 778) */
+.g-page-header.is-stuck .g-page-header__base * { scroll-margin-block-start: calc(-1 * (var(--g-page-header-top) + max(var(--g-space-12), 44px))); }
+
+/* ---------- A · Cortina: la página cambia de ancho UNA vez, cuando el sidebar la cubre ---------- */
+/* Base: la pista cambia al instante (la página salta al empezar, en los dos sentidos). A: al expandir, la pista espera a que
+   el sidebar termine de crecer (lo cubre mientras crece); al contraer, al instante (el riel se encoge sobre ella). */
+.as[data-c="A"] { transition: --_as-nav 0s linear var(--_as-delay); }
+.as[data-c="A"]:has(> .g-sidebar--mode-expanded:not(.g-sidebar--overlay)) { --_as-delay: var(--g-duration-slow); }
+@media (prefers-reduced-motion: reduce) {
+  .as[data-c="A"] { transition: none; }
+}
+
+/* ---------- B · Relevo de franja: al bajar, la cabecera cede el borde al zócalo; al subir vuelve ---------- */
+.as[data-c="B"] { transition: --g-app-shell-top var(--g-duration-fast) var(--g-ease-out); }
+.as[data-c="B"] .as__header { transition: translate var(--g-duration-fast) var(--g-ease-out); }
+.as[data-c="B"][data-yield] { --g-app-shell-top: calc(var(--g-space-1) * 0); }
+.as[data-c="B"][data-yield] .as__header { translate: 0 -100%; }
+@media (prefers-reduced-motion: reduce) {
+  .as[data-c="B"], .as[data-c="B"] .as__header { transition: none; }
+}
+
+/* ---------- C · Escenario: la página es una hoja sobre la superficie del chasis ---------- */
+.as[data-c="C"] { background: var(--g-surface-shell); }
+.as[data-c="C"] .as__header { background: transparent; border-block-end-color: transparent; }
+/* Con navegación lateral (expandida o riel): la hoja se separa del marco y desplaza ella; el marco no se mueve */
+.as[data-c="C"]:has(> .g-sidebar--mode-expanded, > .g-sidebar--mode-rail) {
+  block-size: 100dvh;
+  min-block-size: 0;
+  overflow: hidden;
+  --g-app-shell-top: calc(var(--g-space-1) * 0); /* nada pegado encima DENTRO de la hoja */
+  --g-accordion-sticky-top: var(--_as-ph);
+}
+.as[data-c="C"]:has(> .g-sidebar--mode-expanded, > .g-sidebar--mode-rail) > .g-sidebar { background: transparent; border-inline-end-color: transparent; }
+.as[data-c="C"]:has(> .g-sidebar--mode-expanded, > .g-sidebar--mode-rail) .as__header { position: static; }
+.as[data-c="C"]:has(> .g-sidebar--mode-expanded, > .g-sidebar--mode-rail) .as__frame {
+  overflow-x: clip;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin-block: 0 var(--g-space-2);
+  margin-inline: 0 var(--g-space-2);
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-surface-radius);
+  background: var(--g-color-bg);
+  box-shadow: var(--g-shadow-1);
+  scroll-padding-block-start: var(--_as-ph);
+}
+/* Navbar o drawer (teléfono): la hoja se funde con la página y desplaza el documento (barra del navegador, tocar arriba) */
+.as[data-c="C"]:has(> .g-sidebar--mode-navbar, > .g-sidebar--mode-drawer, > span[hidden]) { background: var(--g-color-bg); }
+
+/* ======================================================================
+   GStack (prototipo): un eje, una escala, ninguna superficie
+   ====================================================================== */
+.st {
+  --_st-d: 1;
+  --_st-gap: calc(var(--g-space-1) * 6 * var(--_st-d)); /* md: space × 6 */
+  display: flex;
+  flex-direction: column;
+  gap: var(--_st-gap);
+  min-inline-size: 0;
+}
+.st--gap-none { --_st-gap: calc(var(--g-space-1) * 0); }
+.st--gap-sm { --_st-gap: calc(var(--g-space-1) * 3 * var(--_st-d)); }  /* × 0,5 */
+.st--gap-lg { --_st-gap: calc(var(--g-space-1) * 12 * var(--_st-d)); } /* × 2 */
+.st--density-comfortable { --_st-d: 0.875; }
+.st--density-compact { --_st-d: 0.75; }
+/* En línea: siempre se parte (1.4.10); la misma separación en los dos ejes */
+.st--horizontal { flex-direction: row; flex-wrap: wrap; align-items: center; }
+.st--h-start { align-items: flex-start; }
+.st--h-center { align-items: center; }
+.st--h-end { align-items: flex-end; }
+.st--horizontal.st--h-start { justify-content: flex-start; align-items: center; }
+.st--horizontal.st--h-center { justify-content: center; }
+.st--horizontal.st--h-end { justify-content: flex-end; }
+/* Una sola fuente de aire: los márgenes de bloque de los hijos no se suman a la separación (capa de Grana: la aplicación
+   sin capa sigue ganando, #516). Ignora el nodo hermano de GTooltip (#383). */
+.st > :where(:not(.g-tooltip)) { margin-block: 0; }
+/* Divisores: una línea entre hijos visibles, nunca antes del primero ni tras el último */
+.st--divided > :where(:not(.g-tooltip)) + :where(:not(.g-tooltip)) {
+  border-block-start: var(--g-border-width) solid var(--g-color-border);
+  padding-block-start: var(--_st-gap);
+}
+
+/* ======================================================================
+   GSection (prototipo): título que decide el contenedor, nivel que decide el documento
+   ====================================================================== */
+.sec { display: flex; flex-direction: column; gap: calc(var(--g-space-1) * 4); min-inline-size: 0; }
+.sec__head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--g-space-2) var(--g-space-4); }
+.sec__titles { flex: 1 1 calc(var(--g-space-1) * 60); min-inline-size: 0; display: flex; flex-direction: column; gap: var(--g-space-1); }
+.sec__title {
+  margin: 0;
+  font-family: var(--g-font-title);
+  font-size: var(--g-text-title-sm-size);
+  line-height: var(--g-text-title-sm-line);
+  font-weight: var(--g-text-title-sm-weight);
+  overflow-wrap: break-word;
+}
+/* Anidada: un rol menos (body 16/600), nunca por debajo de body-sm (§23.4) */
+.sec .sec .sec__title { font-size: var(--g-text-body-size); line-height: var(--g-text-body-line); }
+.sec .sec .sec .sec__title { font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); }
+.sec__desc { margin: 0; color: var(--g-color-text-muted); font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); max-inline-size: 66ch; }
+.sec__actions { display: flex; flex-wrap: wrap; gap: var(--g-space-2); align-items: center; }
+.sec__body { display: flex; flex-direction: column; gap: calc(var(--g-space-1) * 4); min-inline-size: 0; }
+.sec__body > :where(:not(.g-tooltip)) { margin-block: 0; }
+.sec { scroll-margin-block-start: var(--g-space-4); }
+
+/* ======================================================================
+   Laboratorio (no es del componente)
+   ====================================================================== */
+html, body { margin: 0; }
+.lab-brand { display: flex; align-items: center; gap: var(--g-space-2); font-weight: 600; margin: 0; margin-inline-end: auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-inline-size: 0; }
+.lab-mark { flex: none; inline-size: calc(var(--g-space-1) * 7); block-size: calc(var(--g-space-1) * 7); border-radius: var(--g-radius-md); background: var(--g-color-brand); }
+.lab-tools { display: flex; align-items: center; gap: var(--g-space-2); flex: none; }
+.lab-col { box-sizing: border-box; max-inline-size: calc(var(--g-space-1) * 256); margin-inline: auto; padding-inline: clamp(var(--g-space-4), 4vw, var(--g-space-12)); }
+.lab-page { padding-block: 0 var(--g-space-12); }
+.lab-p { margin: 0; max-inline-size: 66ch; }
+.lab-card { padding: var(--g-space-4); border: var(--g-border-width) solid var(--g-color-border-strong); border-radius: var(--g-radius-lg); background: var(--g-color-surface); }
+.lab-row { block-size: calc(var(--g-space-1) * 3); border-radius: var(--g-radius-pill); background: var(--g-color-border); }
+.lab-readout { position: fixed; inset-block-end: var(--g-space-2); inset-inline-end: var(--g-space-2); z-index: 9; max-inline-size: calc(100vw - var(--g-space-4)); padding: var(--g-space-1) var(--g-space-2); border-radius: var(--g-radius-sm); background: var(--g-color-surface); border: var(--g-border-width) solid var(--g-color-border-strong); font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); font-family: monospace; color: var(--g-color-text-muted); pointer-events: none; }
+.lab-switch { display: flex; flex-wrap: wrap; gap: var(--g-space-1) var(--g-space-3); font-size: var(--g-text-body-sm-size); }
+.lab-switch a { color: var(--g-color-text); min-block-size: 24px; display: inline-flex; align-items: center; }
+.lab-switch a[aria-current] { font-weight: 600; color: var(--g-color-accent-text); }
+.lab-bench { display: grid; gap: var(--g-space-4); }
+.lab-probe { outline: 1px dashed var(--g-color-border-strong); }
+.lab-chip { padding: var(--g-space-1) var(--g-space-3); border-radius: var(--g-radius-pill); background: var(--g-color-surface-sunken); font-size: var(--g-text-body-sm-size); }

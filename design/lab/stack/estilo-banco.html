@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GStack · banco de estilo (coco)</title>
+<!-- Banco de coco: marcado de design/contracts/stack.md con el CSS real (GStack.css) cargado en las capas del registro
+     (grana.defaults, grana.components) para medir la regla de #516. La fábrica stack() hace lo que hará bruno: etiqueta y clases.
+     Parámetros: ?dark=1 ?rtl=1 ?test=1 ?theme=<generated/*.css>.  Verificación: node design/lab/stack/estilo-verificar.mjs -->
+<style>
+@layer grana.defaults, grana.components;
+@import url("../../../packages/vue/src/styles/defaults.css") layer(grana.defaults);
+@import url("../../../packages/vue/src/components/GStack/GStack.css") layer(grana.components);
+</style>
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style id="theme"></style>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;padding:clamp(12px,3vw,32px);background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{max-inline-size:900px;margin:0 auto}
+  h1{font-size:18px;margin:0 0 8px}
+  h2.b{font-size:15px;margin:32px 0 6px;padding-top:12px;border-top:1px dashed var(--g-color-border-strong)}
+  .cap{font-size:13px;line-height:1.45;color:var(--g-color-text-muted);margin:0 0 10px;max-width:96ch}
+  .tools{display:flex;gap:6px 16px;flex-wrap:wrap;padding:8px 0;font-size:13px}
+  .tools button,.tools select{font:inherit;font-size:13px;min-block-size:28px;padding:2px 8px;border:1px solid var(--g-color-border-control);border-radius:6px;background:var(--g-color-surface);color:var(--g-color-text)}
+  .host{background:var(--g-color-surface);border:1px solid var(--g-color-border);border-radius:var(--g-radius-xl);padding:var(--g-space-4);min-inline-size:0}
+  .blk{block-size:40px;background:var(--g-color-brand-soft);border-radius:var(--g-radius-md);min-inline-size:0}
+  .txt{min-inline-size:0}.in{display:block;block-size:30px;background:var(--g-color-brand-soft);border-radius:var(--g-radius-md)}
+  .chip{padding:var(--g-space-1) var(--g-space-3);background:var(--g-color-neutral-soft);border-radius:var(--g-radius-md);font-size:var(--g-text-body-sm-size)}
+  .narrow{inline-size:100%}
+  /* Regla de la aplicación SIN capa: debe ganar a la de Grana (#516) */
+  .app-margin{margin-block:10px}
+</style>
+</head>
+<body>
+<main>
+<h1>GStack · banco de estilo</h1>
+<p class="cap"><b>coco</b> · Pila de <code>space × 6</code> (md), con <code>sm</code> (× 3), <code>lg</code> (× 12), <code>none</code> y la densidad (0,875 · 0,75). Sin superficie ni movimiento.</p>
+<div class="tools"><button type="button" id="t-dark">Oscuro</button><button type="button" id="t-rtl">RTL</button><select id="t-theme"><option value="">Por defecto</option><option value="test">Tema de prueba</option></select></div>
+<div id="out"></div>
+</main>
+<script>
+const $ = (s) => document.querySelector(s);
+const cls = (o) => ['g-stack', 'g-stack--orientation-' + (o.orientation || 'vertical'), 'g-stack--gap-' + (o.gap || 'md'), 'g-stack--density-' + (o.density || 'default'),
+  o.horizontal && 'g-stack--h-' + o.horizontal, o.vertical && (o.orientation === 'horizontal') && 'g-stack--v-' + o.vertical, o.divided && o.orientation !== 'horizontal' && 'g-stack--divided'].filter(Boolean).join(' ');
+const blocks = (n = 3, w) => Array.from({ length: n }, (_, i) => `<div class="blk" ${w ? `style="inline-size:${w[i % w.length]}px"` : ''}></div>`).join('');
+const txts = (n = 3) => Array.from({ length: n }, () => '<div class="txt"><i class="in"></i></div>').join('');
+const chips = (n) => Array.from({ length: n }, (_, i) => `<span class="chip">Etiqueta ${i + 1}</span>`).join('');
+const stack = (c, o, inner, tag = 'div') => `<${tag} class="${cls(o)}" data-case="${c}">${inner}</${tag}>`;
+const sec = (t, cap, html) => `<h2 class="b">${t}</h2><p class="cap">${cap}</p><div class="host">${html}</div>`;
+$('#out').innerHTML = [
+  sec('1 · Separaciones', '<code>none</code>, <code>sm</code>, <code>md</code>, <code>lg</code>; media: 0 · 12 · 24 · 48 px con space 4.',
+    ['none', 'sm', 'md', 'lg'].map((g) => stack('gap-' + g, { gap: g }, blocks()) + '<hr style="border:0;margin:16px 0">').join('')),
+  sec('2 · Densidad', 'Multiplica la separación: 1 · 0,875 · 0,75 (md = 24 · 21 · 18 px; sm y lg también).',
+    ['default', 'comfortable', 'compact'].map((d) => stack('den-' + d, { density: d }, blocks()) + stack('den-sm-' + d, { density: d, gap: 'sm' }, blocks()) + stack('den-lg-' + d, { density: d, gap: 'lg' }, blocks()) + '<hr style="border:0;margin:16px 0">').join('')),
+  sec('3 · Hijos con margen propio', 'Una sola fuente de aire: <code>p</code> con su margen de agente = 0 dentro de la pila; la regla sin capa de la aplicación gana (#516); el <code>GTooltip</code> hermano no cuenta.',
+    stack('margins', {}, '<p>Párrafo uno con margen de agente.</p><h3>Encabezado con margen de agente</h3><p>Párrafo tres.</p>') +
+    '<div style="height:16px"></div>' + stack('app-margin', {}, '<p>Uno.</p><p class="app-margin" data-app>Con regla de la aplicación sin capa.</p><p>Tres.</p>') +
+    '<div style="height:16px"></div>' + stack('tooltip', {}, '<div class="blk"></div><div class="g-tooltip" role="tooltip" popover="manual" style="margin-block:30px">pista</div><div class="blk"></div>')),
+  sec('4 · Divided', 'Línea <code>--g-color-border</code> entre hijos visibles; aire a los dos lados (distancia = 2 × gap); ni antes del primero ni tras el último; un hijo <code>hidden</code> no cuenta.',
+    stack('divided', { divided: true }, txts()) + '<div style="height:20px"></div>' +
+    stack('divided-hidden', { divided: true }, '<div class="txt" hidden><i class="in"></i></div><div class="txt"><i class="in"></i></div><div class="txt" hidden><i class="in"></i></div><div class="txt"><i class="in"></i></div><div class="txt"><i class="in"></i></div>') + '<div style="height:20px"></div>' +
+    stack('divided-compact', { divided: true, density: 'compact', gap: 'sm' }, txts())),
+  sec('5 · Alineación en vertical', 'Sin valor: los hijos se estiran. <code>horizontal</code> <code>start</code>/<code>center</code>/<code>end</code> es lógico (en RTL, start va a la derecha).',
+    ['', 'start', 'center', 'end'].map((h) => stack('v-h-' + (h || 'none'), h ? { horizontal: h } : {}, blocks(2, h ? [120, 180] : undefined) ) + '<div style="height:12px"></div>').join('')),
+  sec('6 · Horizontal', 'Los hijos conservan su tamaño y se parten en filas con la misma separación; <code>vertical</code> (top/center/bottom) y <code>horizontal</code> (start/center/end) colocan la fila.',
+    stack('h-default', { orientation: 'horizontal' }, chips(5)) + '<div style="height:12px"></div>' +
+    stack('h-center', { orientation: 'horizontal', horizontal: 'center' }, chips(3)) + '<div style="height:12px"></div>' +
+    stack('h-end', { orientation: 'horizontal', horizontal: 'end' }, chips(3)) + '<div style="height:12px"></div>' +
+    ['top', 'center', 'bottom'].map((v) => stack('h-v-' + v, { orientation: 'horizontal', vertical: v, gap: 'sm' }, '<div class="blk" style="inline-size:60px;block-size:60px"></div><span class="chip">A</span><div class="blk" style="inline-size:60px;block-size:30px"></div>') + '<div style="height:8px"></div>').join('') +
+    stack('h-wrap', { orientation: 'horizontal' }, chips(14)) + '<div style="height:12px"></div>' +
+    stack('h-divided-ignored', { orientation: 'horizontal', divided: true }, chips(3))),
+  sec('7 · Con etiqueta de lista', '<code>as="ul"</code>: la pila no añade roles ni rellenos; la aplicación pone los <code>li</code>.',
+    stack('ul', {}, '<li>Uno</li><li>Dos</li><li>Tres</li>', 'ul')),
+].join('');
+document.querySelector('.g-tooltip').showPopover();
+const TEST = ':root{--g-font-ui:Georgia,serif;--g-border-width:2px;--g-radius-md:3px;--g-color-primary:#7A1E3A;--g-color-surface:#fffaf2;--g-color-bg:#f4ecdf;--g-color-text:#2b1d0e;--g-color-text-muted:#6b5238;--g-space-1:5px}';
+const GEN = ['amazon', 'apple', 'caracol-purpura', 'github', 'grana', 'linear', 'lustre', 'medium', 'notion', 'spotify'];
+GEN.forEach((n) => $('#t-theme').insertAdjacentHTML('beforeend', '<option value="' + n + '">' + n + '</option>'));
+function setTheme(v) { $('#theme').textContent = v === 'test' ? TEST : ''; $('#gen').href = v && v !== 'test' ? '../tema-oscuro/dark-color-presence/generated/' + v + '.css' : 'data:text/css,'; }
+$('#t-theme').onchange = (e) => setTheme(e.target.value);
+$('#t-dark').onclick = () => { document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; };
+$('#t-rtl').onclick = () => { document.documentElement.dir = document.documentElement.dir === 'rtl' ? 'ltr' : 'rtl'; };
+const q = new URLSearchParams(location.search);
+const th = q.get('test') ? 'test' : (q.get('theme') || '');
+if (th) { $('#t-theme').value = th; setTheme(th); }
+if (q.get('dark')) document.documentElement.dataset.theme = 'dark'; else if (q.get('theme')) document.documentElement.dataset.theme = 'light';
+if (q.get('rtl')) document.documentElement.dir = 'rtl';
+</script>
+</body>
+</html>

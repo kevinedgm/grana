@@ -2006,6 +2006,69 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
     </g-dialog>
           </div>
         </section>
+        <section class="pg-section" id="sec-stack" data-pg-section>
+          <h2>GStack</h2>
+          <p class="pg-lead">Pila de un eje con la escala de separación de Grana: <code>sm</code> «va con lo anterior», <code>md</code> «lo siguiente», <code>lg</code> «otro tema». Sin superficie; es la única fuente de aire entre sus hijos y, en línea, siempre se parte. Ritmo de página: no distribuye campos de formulario (<code>GFormLayout</code>).</p>
+          <div class="pg-panel" id="stk-demo">
+            <h3>Vertical con gap sm, md, lg y none</h3>
+            <div id="stk-gaps" style="display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr))">
+              <g-stack gap="sm" id="stk-sm"><p>sm</p><p>va con lo anterior</p><p>12 px</p></g-stack>
+              <g-stack gap="md" id="stk-md"><p>md</p><p>lo siguiente</p><p>24 px</p></g-stack>
+              <g-stack gap="lg" id="stk-lg"><p>lg</p><p>otro tema</p><p>48 px</p></g-stack>
+              <g-stack gap="none" id="stk-none"><p>none</p><p>sin aire</p><p>0 px</p></g-stack>
+            </div>
+            <h3>Densidad compacta</h3>
+            <g-stack density="compact" id="stk-compact"><p>Uno</p><p>Dos</p></g-stack>
+            <h3>Dividida (un hijo con hidden no cuenta)</h3>
+            <g-stack divided id="stk-divided"><p>Primero</p><p>Segundo</p><p hidden>Oculto</p><p>Tercero</p></g-stack>
+            <h3>Horizontal, centrada, siempre se parte</h3>
+            <g-stack orientation="horizontal" gap="sm" vertical="center" horizontal="center" id="stk-row">
+              <g-badge color="success">Validado</g-badge><g-badge color="info">Hematología</g-badge><g-badge color="warning">Pendiente</g-badge><g-btn variant="outline" size="sm">Acción</g-btn>
+            </g-stack>
+          </div>
+        </section>
+        <section class="pg-section" id="sec-section" data-pg-section>
+          <h2>GSection</h2>
+          <p class="pg-lead">Región de página con encabezado, descripción y acciones. El nivel del encabezado lo pone el documento (<code>h2</code> › <code>h3</code> › <code>h4</code> por anidación) y el tamaño la profundidad (20 › 16 › 14). Sin superficie ni plegado; región con nombre solo con <code>landmark</code>.</p>
+          <div class="pg-panel" id="sct-demo">
+            <g-section title="Firmantes" description="Quién valida el informe." :labels="{ actions: 'Acciones de firmantes' }" landmark id="sct-a">
+              <template #actions><g-btn variant="outline" color="neutral" size="sm">Añadir</g-btn></template>
+              <p>Cuerpo de la sección, separado por la pila md.</p>
+              <g-section title="Suplentes" id="sct-b">
+                <p>Una sección anidada baja a h3 sola.</p>
+                <g-section title="Excepciones" id="sct-c"><p>Y otra, a h4.</p></g-section>
+              </g-section>
+              <g-section title="Nivel fijado" :heading-level="3" id="sct-d"><p>Etiqueta h3 con el tamaño de la profundidad 2.</p></g-section>
+            </g-section>
+          </div>
+        </section>
+        <section class="pg-section" id="sec-marketing" data-pg-section>
+          <h2>Marketing: GHero, GGallery y GBookingBar</h2>
+          <p class="pg-lead">Las primitivas de un sitio (hotel, restaurante, tour) van en entradas propias (<code>@grana/vue/hero</code>, <code>@grana/vue/gallery</code> y <code>@grana/vue/booking</code>; aquí <code>dist/hero.umd.js</code>, <code>dist/gallery.umd.js</code> y <code>dist/booking.umd.js</code>, globales <code>GranaHero</code>, <code>GranaGallery</code> y <code>GranaBooking</code>). Cada una tiene su banco con el componente real: <a href="hero.html">hero.html</a> (A · La ventana, <a href="hero.html?c=views">B · Vistas a elegir</a>, <a href="hero.html?c=threshold">C · El umbral</a> con la consulta, <a href="hero.html?video=1">con vídeo</a>), <a href="gallery.html">gallery.html</a> (A · Recorrido por espacios, <a href="gallery.html?c=strip">B · La tira</a>, <a href="gallery.html?solo=1">visor suelto</a>) y <a href="booking.html">booking.html</a> (A · La frase, <a href="booking.html?a=bar">la barra</a>, <a href="booking.html?dock=1">B · El muelle</a>, <a href="booking.html?kind=table&amp;quick=7">mesa con días rápidos</a>, <a href="booking.html?kind=tour">recorrido</a>, <a href="booking.html?party=1">GPartyField suelto</a>).</p>
+        </section>
+        <section class="pg-section" id="sec-price" data-pg-section>
+          <h2>Moneda y precio: GPrice, GPriceScope y GNumberField currency</h2>
+          <p class="pg-lead">Un precio que se dice como se habla: lo visible es corto («$1,850 MXN / noche») y el lector oye la frase con el nombre de la moneda («desde 1,850 pesos mexicanos por noche»); el código solo aparece si el símbolo es de varias monedas. C · <b>«El antes y el ahora»</b> (por defecto): la referencia no se tacha, se nombra y dice cuánto ahorras; B · <b>«La moneda se dice una vez»</b>: <code>GPriceScope</code> declara la moneda de una región y, con <code>view</code>, cambia todos sus precios a la vez; A · <b>«La cuenta»</b> (<code>total</code>): el total de lo pedido y sus cifras que ruedan. El campo es <code>GNumberField currency</code>; el día del calendario lleva el precio en su nombre con <code>dayDescription</code>; <code>GSlider</code> lee la moneda por su nombre. Va en su propia entrada, <code>@grana/vue/price</code> (aquí <code>dist/price.umd.js</code>, global <code>GranaPrice</code>). Banco con los componentes reales: <a href="price.html">price.html</a> (<a href="price.html?c=base">base</a>, <a href="price.html?c=A">A · La cuenta</a>, <a href="price.html?c=B">B · La moneda se dice una vez</a>, <a href="price.html?c=C">C · El antes y el ahora</a>, <a href="price.html?c=B&amp;lang=en-US">en inglés</a>, <a href="price.html?c=C&amp;dark=1">oscuro</a>, <a href="price.html?c=A&amp;many=50">50 totales</a>): tarjetas, carta, carrito con monedas mezcladas, calendario, casos límite y el campo de moneda.</p>
+        </section>
+        <section class="pg-section" id="sec-container" data-pg-section>
+          <h2>GContainer</h2>
+          <p class="pg-lead">Contenedor de página: pone los límites en línea (ancho máximo, centrado, margen y elemento) midiendo <b>su sitio y no el visor</b>. El margen respira de forma continua con la caja, no se acumula al anidarse y una banda <code>g-bleed</code> llega al borde de la caja con su contenido alineado a la columna. <code>width="reading"</code> y <code>prose</code> limitan la línea a 66 caracteres. Dentro de <code>GAppShell</code> va con <code>as="div"</code> (su defecto); sin chasis, <code>as="main"</code>. Bancos: <a href="container.html">container.html</a> y, con el chasis, <a href="app-shell.html">app-shell.html</a>.</p>
+          <div class="pg-panel" id="ctn-demo">
+            <h3>Ancho <code>md</code> en una caja que puedes estrechar</h3>
+            <div id="ctn-box" style="resize:horizontal;overflow:auto;border:1px dashed var(--g-color-border);max-inline-size:100%">
+              <g-container id="ctn-md" width="md">
+                <p>La columna mide como mucho 768 px y su margen crece con la caja (de 16 a 48 px), sin puntos de corte.</p>
+                <section class="g-bleed" style="background:var(--g-color-surface);padding-block:12px" aria-label="Banda de ejemplo"><p style="margin:0">Banda <code>g-bleed</code>: el fondo llega al borde de la caja; el texto sigue en la columna.</p></section>
+                <g-container width="sm" horizontal="start"><p>Contenedor anidado <code>sm</code> al inicio: no suma margen.</p></g-container>
+              </g-container>
+            </div>
+            <h3>Medida de lectura</h3>
+            <g-container id="ctn-prose" width="xl" prose>
+              <p>Con <code>prose</code>, el párrafo se queda en 66 caracteres aunque la columna mida 1280 px; lo marcado con <code>g-wide</code>, una tabla o un componente de Grana usan la columna entera.</p>
+              <p class="g-wide">Este párrafo lleva <code>g-wide</code> y usa la columna entera.</p>
+            </g-container>
+          </div>
+        </section>
         <section class="pg-section" id="sec-summary" data-pg-section>
           <h2>GSummary</h2>
           <p class="pg-lead">Ficha de resumen adaptable: identidad, título, línea secundaria, <b>datos con prioridad</b> y estado, que se adapta al ancho de su contenedor y al texto real. No tiene maquetas ni umbrales: tiene prioridad (A · prioridad líquida). Al estrechar, la corriente de datos se bebe por el final; antes de soltar un dato calla los rótulos que se explican solos (<code>bare</code>); «+N» dice cuántos no se ven; al ensanchar, lo que vuelve a caber entra. Nada se oculta: el lector recibe todos los datos. Entre homónimas, lo único pesa y lo compartido se apaga (<code>summaryDiff</code>). Es contenido (<code>span</code>): va dentro de una opción, un campo, una celda o una tarjeta. Banco completo y rendimiento: <a href="summary.html">summary.html</a>.</p>

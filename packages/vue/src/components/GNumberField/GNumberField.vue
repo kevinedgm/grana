@@ -11,6 +11,7 @@ import {
   stepValue, textMatches
 } from '../../utils/numberInput.js'
 import { observeSize } from '../../utils/sizeObserver.js'
+import { currencyAffix, currencyCode, currencyDigits, stripCurrency } from '../../utils/currency.js'
 import GInput from '../GInput/GInput.vue'
 import GIcon from '../GIcon/GLibIcon.js'
 import { formKey, layoutKey, nextFrame } from '../GForm/formContext.js'
@@ -23,6 +24,7 @@ const props = defineProps({
   max: { type: Number, default: undefined },
   step: { type: Number, default: 1, validator: (v) => Number.isFinite(v) && v > 0 },
   precision: { type: Number, default: undefined, validator: (v) => Number.isInteger(v) && v >= 0 },
+  currency: { type: String, default: undefined },
   locale: { type: String, default: undefined },
   grouping: { type: Boolean, default: true },
   prefix: { type: String, default: undefined },
@@ -95,7 +97,9 @@ const limits = computed(() => {
   return { min: okMin, max: okMax, crossed: false }
 })
 const stepSize = computed(() => (Number.isFinite(props.step) && props.step > 0 ? props.step : 1))
-const precision = computed(() => (Number.isInteger(props.precision) && props.precision >= 0 ? props.precision : undefined))
+// Moneda (#777): código ISO en mayúsculas si Intl lo acepta; deriva la precisión (la explícita gana), el símbolo y su nombre
+const cur = computed(() => currencyCode(props.currency))
+const precision = computed(() => (Number.isInteger(props.precision) && props.precision >= 0 ? props.precision : cur.value ? currencyDigits(cur.value) : undefined))
 const allowDecimals = computed(() => precision.value !== 0)
 const allowNegative = computed(() => limits.value.min === undefined || limits.value.min < 0)
 const inputmode = computed(() => (allowDecimals.value ? 'decimal' : 'numeric'))
@@ -132,6 +136,29 @@ watch(() => props.locale, (l) => {
 // Para escribir antes de conocer el idioma (no debería pasar: solo se escribe montado) se usa el formato canónico
 const writeInfo = () => info.value || localeInfo('en-US')
 
+// Símbolo en su lado (con el código si es ambiguo) y su nombre en la descripción; sin idioma resuelto (SSR sin locale),
+// sin afijo de moneda. El lado de la moneda es de la moneda: prefix/suffix de ese lado se ignoran (aviso 10).
+const money = computed(() => (cur.value && info.value ? currencyAffix(cur.value, info.value.locale) : null))
+const affix = computed(() => {
+  const a = { prefix: props.prefix, prefixLabel: props.prefixLabel, suffix: props.suffix, suffixLabel: props.suffixLabel }
+  const m = money.value
+  if (m) {
+    a[m.side] = m.visible
+    a[`${m.side}Label`] = m.name
+  }
+  return a
+})
+watch(money, (m) => {
+  if (m && (props[m.side] || props[`${m.side}Label`])) {
+    try { if (process.env.NODE_ENV !== 'production') warnOnce('side', `${m.side} y ${m.side}Label no aplican en el lado que ocupa la moneda (${cur.value}): se ignoran.`) } catch {}
+  }
+}, { immediate: true })
+watch(() => props.currency, (c) => {
+  if (c && !cur.value) {
+    try { if (process.env.NODE_ENV !== 'production') warnOnce('currency', `currency «${c}» que Intl rechaza: el campo se comporta sin moneda.`) } catch {}
+  }
+}, { immediate: true })
+
 const display = (v) => (v == null ? '' : info.value ? formatNumber(v, info.value, { grouping: props.grouping, precision: precision.value }) : canonical(v))
 const raw = (v) => (v == null ? '' : info.value ? formatRaw(v, info.value, { precision: precision.value }) : canonical(v))
 
@@ -162,11 +189,30 @@ watch(() => [props.grouping, precision.value], () => { if (!focused.value) syncT
 watch(() => props.modelValue, (v) => {
   const n = normalize(v)
   if (n === current.value) return
+  warnExtra(n)
   current.value = n
   lastConfirmed = n
   clearRoll()
   // «1,» a medio escribir y el modelo 1: no se toca; si no coincide, se reescribe
   if (!textMatches(text.value, n, writeInfo(), precision.value)) syncText()
+})
+
+// Aviso 11: un valor de la aplicación con más decimales que la precisión efectiva se muestra y se envía redondeado, sin emitir
+function warnExtra(n) {
+  if (cur.value && n != null && precision.value !== undefined && roundTo(n, precision.value) !== n) {
+    try { if (process.env.NODE_ENV !== 'production') warnOnce('extra', `modelValue ${n} tiene más decimales que la precisión de ${cur.value} (${precision.value}): se muestra y se envía redondeado.`) } catch {}
+  }
+}
+warnExtra(current.value)
+// Defecto 1 de P-L7: cambiar la precisión efectiva (moneda o precision) redondea el modelo y lo emite una vez, sin `change`
+watch(precision, (p) => {
+  if (!cur.value || p === undefined || current.value == null) return
+  const r = roundTo(current.value, p)
+  if (r === current.value) return
+  current.value = r
+  lastConfirmed = r
+  emit('update:modelValue', r)
+  if (!focused.value) syncText()
 })
 
 function setModel(v) {
@@ -224,7 +270,9 @@ function onPaste(e) {
   const data = e.clipboardData
   if (!data || !editable.value) return
   e.preventDefault()
-  const n = parsePasted(data.getData('text/plain') || data.getData('text'), writeInfo())
+  const pasted = data.getData('text/plain') || data.getData('text')
+  // Defecto 2 de P-L7: de ESA moneda se quitan símbolo, código y nombre; una moneda distinta no entra
+  const n = parsePasted(cur.value ? stripCurrency(pasted, cur.value, writeInfo().locale) : pasted, writeInfo())
   if (n == null || (!allowNegative.value && n < 0)) return
   const rounded = roundTo(n, precision.value)
   const ins = raw(rounded)
@@ -562,7 +610,7 @@ function scheduleMeasure() {
   }))
 }
 watch(
-  () => [canPublish.value, referenceTexts.value.join('|'), props.prefix, props.suffix, props.prefixLabel, props.suffixLabel, props.output, props.size, props.density, unref(layout?.density), unref(form?.density), isReadonly.value, showSteppers.value],
+  () => [canPublish.value, referenceTexts.value.join('|'), affix.value.prefix, affix.value.suffix, affix.value.prefixLabel, affix.value.suffixLabel, props.output, props.size, props.density, unref(layout?.density), unref(form?.density), isReadonly.value, showSteppers.value],
   () => scheduleMeasure()
 )
 let offMeasure = null
@@ -657,7 +705,8 @@ function fieldProps(f) {
   )
 }
 
-const canonicalValue = computed(() => canonical(current.value))
+// Con moneda, lo enviado coincide con lo visible: el canónico del valor redondeado a la precisión efectiva (#777)
+const canonicalValue = computed(() => canonical(cur.value ? roundTo(current.value, precision.value) : current.value))
 const mirrorText = computed(() => text.value || (attrs.placeholder != null ? String(attrs.placeholder) : ''))
 
 const rootClasses = computed(() => ['g-number-field', { 'g-number-field--has-steppers': showSteppers.value }, attrs.class])
@@ -701,10 +750,10 @@ try {
     :color="color"
     :rounded="rounded"
     :block="block"
-    :prefix="prefix"
-    :suffix="suffix"
-    :prefix-label="prefixLabel"
-    :suffix-label="suffixLabel"
+    :prefix="affix.prefix"
+    :suffix="affix.suffix"
+    :prefix-label="affix.prefixLabel"
+    :suffix-label="affix.suffixLabel"
   >
     <template v-if="slots.label" #label><slot name="label" /></template>
     <template v-if="slots.hint" #hint><slot name="hint" /></template>
