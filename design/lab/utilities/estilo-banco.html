@@ -5,28 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Utilidades · banco de estilo (coco)</title>
 <!-- Banco de las clases utilitarias (design/contracts/utilities.md, #804 a #811). Lo mide design/lab/utilities/verificar.mjs.
-     Parámetros: ?dir=rtl · ?utilfirst=1 (utilities.css se carga ANTES que grana.css) · ?dark=1.
-     MIENTRAS bruno no integre el import en grana.css: el banco declara el orden completo de capas y carga
-     packages/vue/src/styles/utilities.css con layer(grana.utilities) y parcha en memoria dist/grana.css con el cambio
-     de GStack.css (divided cuenta g-hidden y g-sr-only como [hidden]), que dist/ aún no trae.
-     CUANDO bruno integre y reconstruya dist/, bastará dist/grana.css: se quitan las líneas marcadas «TEMPORAL»
-     (se cambia en la auditoría posterior). La declaración @layer va PRIMERA del documento: fija el orden aunque
-     utilities.css llegue antes que grana.css (esa es la razón de la regla 3 del contrato). -->
-<style>@layer grana.defaults, grana.components, grana.blocks, grana.utilities;</style>
+     Carga SOLO hojas del dist/ real (npm run build). El banco no declara el orden de las capas: lo declara cada hoja de Grana
+     en su primera línea (regla 3 del contrato), y eso es lo que se comprueba.
+     Parámetros: ?dir=rtl · ?dark=1 · ?utilfirst=1 (dist/utilities.css se carga ANTES que dist/grana.css, #806)
+                 · ?only=1 (solo dist/utilities.css: sin grana.css ni tokens; mide la hoja suelta). -->
 <script>
-  // Orden de carga: normal (grana.css y después utilities) o utilities primero
   const P = new URLSearchParams(location.search)
-  const base = '../../../packages/vue/'
-  const link = (h) => `<link rel="stylesheet" href="${h}">`
-  const imp = (h, l) => `<style>@import url("${h}") layer(${l});</style>`
-  const U = imp(base + 'src/styles/utilities.css', 'grana.utilities') // TEMPORAL: integrar en grana.css (bruno)
-  // TEMPORAL: dist/grana.css todavía no trae el cambio de GStack.css (divided cuenta g-hidden y g-sr-only como [hidden]);
-  // se parcha en memoria la misma línea que cambió. Con un dist/ reconstruido el reemplazo no encuentra nada y no hace nada.
-  const x = new XMLHttpRequest(); x.open('GET', base + 'dist/grana.css', false); x.send()
-  const css = x.responseText.replace(':where(:not(.g-tooltip,[hidden]))~:where(:not(.g-tooltip,[hidden],.g-surface))', ':where(:not(.g-tooltip,[hidden],.g-hidden,.g-sr-only))~:where(:not(.g-tooltip,[hidden],.g-hidden,.g-sr-only,.g-surface))')
-  const G = '<style>' + css + '</style>'
-  document.write(link(base + 'dist/fonts.css'))
-  document.write(P.get('utilfirst') ? U + G : G + U)
+  const base = '../../../packages/vue/dist/'
+  const link = (h) => `<link rel="stylesheet" href="${base}${h}">`
+  document.write(link('fonts.css'))
+  document.write(P.get('only') ? link('utilities.css') : P.get('utilfirst') ? link('utilities.css') + link('grana.css') : link('grana.css'))
 </script>
 <style>
   /* Andamio del banco y reglas «de la aplicación» (no son de Grana) */

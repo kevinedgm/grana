@@ -5,7 +5,9 @@
 // por capa) y contra la aplicación sin capa (pierde), display + hidden, alineación flex/rejilla (start/end/between/around/
 // evenly, self-*), gap, texto (rol del tema, mínimo 12 px, color muted/subtle con el esquema y la zona de marca), truncate,
 // radios, g-sr-only frente a g-hidden y la cobertura de las 229 clases de utilities.json (regla en la hoja y declaración
-// idéntica a la del JSON). Con ?utilfirst=1 repite lo esencial con utilities.css cargado antes que grana.css.
+// idéntica a la del JSON). Con ?utilfirst=1 repite la suite entera con dist/utilities.css cargado ANTES que dist/grana.css (el banco
+// ya no declara el orden de capas: lo declara cada hoja, regla 3 #806). Con ?only=1 carga SOLO dist/utilities.css (sin grana.css) y
+// comprueba las 229 reglas, que la hoja empiece por el orden de capas completo, sin !important/@import, y que gane por capa.
 // Requiere dist/ (npm run build). Desde la raíz:  GRANA_PW_PORT=4209 node design/lab/utilities/verificar.mjs
 import { readFileSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -197,8 +199,37 @@ async function suite (p, E, { rtl, dark, theme, quick }) {
   ok(await bt0('ds-a') === 0 && await bt0('ds-b') > 0, E('GStack divided: con g-sr-only primero, el primer visible no lleva línea y el segundo sí'), `${await bt0('ds-a')}/${await bt0('ds-b')}`)
 }
 
+// Contraste de g-text-muted y g-text-subtle sobre las tres superficies del tema (contrato regla 7, §15) y forced-colors
+async function extra (p, E, { dark, theme }) {
+  for (const bgTok of ['bg', 'surface', 'surface-sunken']) {
+    for (const k of ['muted', 'subtle']) {
+      const r = await p.evaluate(([bgTok, k]) => {
+        const e = document.createElement('p'); e.className = 'g-text-' + k; e.textContent = 'x'
+        const w = document.createElement('div'); w.style.background = `var(--g-color-${bgTok})`; w.appendChild(e); document.body.appendChild(w)
+        const v = window.__textRatio(e); w.remove(); return v
+      }, [bgTok, k])
+      ok(r >= 4.5, E(`g-text-${k} sobre ${bgTok} ≥ 4.5:1 (${dark ? 'oscuro' : 'claro'}${theme ? ', ' + theme : ''})`), r.toFixed(2))
+      note(`${E('')}contraste g-text-${k} sobre ${bgTok} (${dark ? 'oscuro' : 'claro'}${theme ? ', ' + theme : ''}): ${r.toFixed(2)}:1`)
+    }
+  }
+}
+
+// forced-colors: lo que las utilidades de ocultar y recortar deben seguir haciendo
+async function forzado (p, E) {
+  const fc = await p.evaluate(() => matchMedia('(forced-colors: active)').matches)
+  if (!fc) { note(`${E('')}forced-colors no se pudo emular en este motor: sin verificar`); return }
+  const sr = await R(p, 'sr-span'), srcs = await CS(p, 'sr-span', 'position', 'clip-path')
+  ok(near(sr.w, 1, 0.01) && near(sr.h, 1, 0.01) && srcs.position === 'absolute', E('forced-colors: g-sr-only sigue en 1×1 y absoluto'), `${sr.w}×${sr.h}`)
+  ok(await p.getByRole('button', { name: 'Guardar cambios' }).count() === 1, E('forced-colors: g-sr-only conserva el nombre accesible'))
+  ok((await CS(p, 'hidbtn', 'display')).display !== 'none' && (await p.evaluate(() => getComputedStyle(document.querySelector('#hidbtn .g-hidden')).display)) === 'none', E('forced-colors: g-hidden sigue en display none'))
+  const tr = await CS(p, 'trunc', 'overflow-x', 'text-overflow', 'white-space')
+  ok(tr['overflow-x'] === 'hidden' && tr['text-overflow'] === 'ellipsis' && tr['white-space'] === 'nowrap', E('forced-colors: g-truncate sigue recortando con elipsis'), JSON.stringify(tr))
+  const m = await CS(p, 'p4', 'padding-top')
+  ok(near(parseFloat(m['padding-top']), await tok(p, '--g-space-4'), 0.01), E('forced-colors: g-p-4 sigue leyendo el token'))
+}
+
 // Cobertura: las 229 clases de utilities.json, regla en la hoja y declaración idéntica a la del JSON
-async function coverage (p, E) {
+async function coverage (p, E, quiet) {
   const res = await p.evaluate((classes) => {
     const sel = new Set()
     const walk = (rules) => { for (const r of rules) { if (r.selectorText) for (const m of r.selectorText.matchAll(/\.(g-[\w-]+)/g)) sel.add(m[1]); if (r.styleSheet) { try { walk(r.styleSheet.cssRules) } catch {} } if (r.cssRules) walk(r.cssRules) } }
@@ -225,7 +256,46 @@ async function coverage (p, E) {
   ok(JSONC.classes.length === JSONC.count, E(`utilities.json trae ${JSONC.count} clases`), `${JSONC.classes.length}`)
   ok(res.missing.length === 0, E(`las ${JSONC.classes.length} clases tienen regla en la hoja cargada`), res.missing.slice(0, 8).join(' '))
   ok(res.diff.length === 0, E(`las ${JSONC.classes.length} clases dan, aplicadas, los mismos estilos computados que su declaración del JSON en línea`), res.diff.slice(0, 5).join(' | '))
-  note(`${E('')}${JSONC.classes.length - res.same.length} de ${JSONC.classes.length} clases se distinguen de un nodo sin clase por estilo computado; el resto coincide con el valor inicial del div (${res.same.join(' ')}) y se cubre por la regla en la hoja`)
+  if (!quiet) note(`${E('')}${JSONC.classes.length - res.same.length} de ${JSONC.classes.length} clases se distinguen de un nodo sin clase por estilo computado; el resto coincide con el valor inicial del div (${res.same.join(' ')}) y se cubre por la regla en la hoja`)
+}
+
+// Hoja suelta: solo dist/utilities.css (sin grana.css ni tokens propios; los tokens los pone el tema de la aplicación)
+async function solo (p, E, txt) {
+  ok(txt.trimStart().replace(/^\/\*[\s\S]*?\*\/\s*/, '').startsWith('@layer grana.defaults,grana.components,grana.blocks,grana.utilities;'), E('dist/utilities.css empieza (tras el comentario) por el orden de capas completo'), txt.slice(0, 160).replace(/\n/g, ' '))
+  ok(!/!important/.test(txt) && !/@import/.test(txt), E('sin !important ni @import'))
+  ok(!/@layer grana\.(components|defaults|blocks)\s*\{/.test(txt), E('no define reglas en otras capas (solo grana.utilities)'))
+  const r = await p.evaluate(() => {
+    const out = { stylesheets: 0, names: null }
+    for (const sh of document.styleSheets) {
+      if (!/utilities\.css/.test(sh.href || '')) continue
+      out.stylesheets++
+      for (const rule of sh.cssRules) if (rule.constructor.name === 'CSSLayerStatementRule') out.names ||= [...rule.nameList]
+    }
+    return out
+  })
+  ok(r.stylesheets === 1, E('se cargó una sola hoja, dist/utilities.css'), `${r.stylesheets}`)
+  ok(JSON.stringify(r.names) === JSON.stringify(['grana.defaults', 'grana.components', 'grana.blocks', 'grana.utilities']), E('el navegador lee el orden de capas completo de la primera regla'), JSON.stringify(r.names))
+  ok(!(await p.evaluate(() => [...document.styleSheets].some((sh) => /grana\.css/.test(sh.href || '')))), E('grana.css no está cargado en esta configuración'))
+  // Los tokens los pone el tema de la aplicación: aquí, solo el bloque de valores por defecto de grana.css como estilo en línea
+  // (no es la hoja grana.css: sin sus componentes ni sus capas), para que var(--g-*) se resuelva y la comparación sea real
+  const g = readFileSync(join(ROOT, 'packages/vue/dist/grana.css'), 'utf8'), i0 = g.indexOf('@layer grana.defaults{') + '@layer grana.defaults{'.length
+  let dpt = 1, i1 = i0; while (dpt > 0) { const c = g[i1++]; if (c === '{') dpt++; else if (c === '}') dpt-- }
+  await p.addStyleTag({ content: g.slice(i0, i1 - 1) }); await settle(p, 60)
+  await coverage(p, E, true)
+  // Comportamiento: el orden de las capas viene de esta hoja; con un token definido por la aplicación, una regla de
+  // grana.components más específica NO gana a la utilidad, y una regla de la aplicación sin capa sí
+  const v = await p.evaluate(() => {
+    const st = document.createElement('style')
+    st.textContent = ':root{--g-space-4:16px}@layer grana.components{#cmp-only .k.k.k{margin-block-start:0;padding-inline:0}}#cmp-only .app{margin-block-start:3px}'
+    document.head.appendChild(st)
+    const host = document.createElement('div'); host.id = 'cmp-only'
+    host.innerHTML = '<div class="k g-mt-4 g-px-4" id="o1"></div><div class="k app g-mt-4" id="o2"></div>'
+    document.body.appendChild(host)
+    const a = getComputedStyle(document.getElementById('o1')), b = getComputedStyle(document.getElementById('o2'))
+    return [a.marginTop, a.paddingLeft, b.marginTop]
+  })
+  ok(v[0] === '16px' && v[1] === '16px', E('la utilidad gana a una regla más específica de grana.components'), JSON.stringify(v))
+  ok(v[2] === '3px', E('una regla de la aplicación sin capa gana a la utilidad'), JSON.stringify(v))
 }
 
 for (const eng of ENGINES) {
@@ -244,8 +314,20 @@ for (const eng of ENGINES) {
     const p = await open(b, url, { ready: READY, dark: o.dark, theme: o.theme === 'prueba' ? 'prueba' : '' }); p.__eng = eng
     if (o.css) { await p.addStyleTag({ path: o.css }); await settle(p, 150); await p.evaluate(() => window.__ratio || 0) }
     await suite(p, (m) => E(`${lab}: ${m}`), flags)
+    if (['defecto claro', 'defecto oscuro', 'tema del CLI (space 5, fontSize 14)'].includes(lab)) await extra(p, (m) => E(`${lab}: ${m}`), flags)
     if (lab === 'defecto claro') await coverage(p, (m) => E(m ? `${m}` : ''))
     await close(p, lab)
+  }
+  {
+    const txt = readFileSync(join(ROOT, 'packages/vue/dist/utilities.css'), 'utf8')
+    const p = await open(b, URL0 + '?only=1', { ready: READY }); p.__eng = eng
+    await solo(p, (m) => E(`solo utilities.css: ${m}`), txt)
+    await close(p, 'solo utilities.css')
+  }
+  {
+    const p = await open(b, URL0, { ready: READY, forcedColors: 'active' }); p.__eng = eng
+    await forzado(p, (m) => E(m))
+    await close(p, 'forced-colors')
   }
   // El esquema cambia el color: g-text-muted claro ≠ oscuro
   const pl = await open(b, URL0, { ready: READY }); const pd = await open(b, URL0, { ready: READY, dark: true })
