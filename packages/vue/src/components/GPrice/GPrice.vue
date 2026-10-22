@@ -5,7 +5,7 @@
 // va en `__visual` aria-hidden y la frase en `__spoken` (texto oculto accesible); sin rol, sin foco, sin región viva (#770).
 // La regla es formatPrice (utils/price.js); los datos de la moneda, utils/currency.js (llega del principal por __shared).
 // Función de render (no plantilla): el tope de la entrada es 6 KiB gzip (#776) y la plantilla compilada pesa más.
-import { computed, defineComponent, h, inject, nextTick, onBeforeUnmount, ref, unref, watch } from 'vue'
+import { computed, defineComponent, h, inject, onBeforeUnmount, ref, unref, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import { formatPrice } from '../../utils/price.js'
 import { nextFrame } from '../GForm/formContext.js'
@@ -13,6 +13,25 @@ import GIcon from '../GIcon/GLibIcon.js'
 import { okLocale, onceWarner, priceScopeKey, useLocale } from './priceScope.js'
 
 const ROLL = 'g-price-roll'
+// ¿Tiene el elemento una animación g-price-roll… con duración? (estilo calculado; no consulta matchMedia ni duraciones)
+const animated = (x) => {
+  const cs = getComputedStyle(x)
+  const durs = String(cs.animationDuration).split(',')
+  return String(cs.animationName).split(',').some((name, i) => name.trim().startsWith(ROLL) && parseFloat(durs[i % durs.length]) > 0)
+}
+// Lote por cuadro de todos los GPrice (P-A4): una sola rAF para todos. Dentro solo se lee el DOM; una retirada cambia
+// estado de Vue, que repinta al acabar el lote (microtarea), así que las lecturas no se intercalan con escrituras y la
+// maquetación se calcula una vez por cuadro, no una por precio
+let queue = null
+const batch = (job) => {
+  if (queue) return queue.push(job)
+  queue = [job]
+  nextFrame(() => {
+    const jobs = queue
+    queue = null
+    jobs.forEach((j) => j())
+  })
+}
 const span = (cls, kids) => h('span', { class: `g-price__${cls}` }, kids)
 const opt = (cls, text) => (text ? span(cls, text) : null)
 
@@ -89,30 +108,42 @@ export default defineComponent({
       return { key: [locale.value, t.currency, t.minus, t.symbolBefore, t.symbolAfter, t.code].join('|'), number: t.number, amount: m.amount }
     })
     watch(sig, (n, o) => {
+      // Un repintado del padre con el mismo total (objetos nuevos, mismos datos) no toca la capa en curso
+      if (n && o && n.key === o.key && n.number === o.number && n.amount === o.amount) return
       const had = roll.value
       clear()
       if (!mounted.value || !n || !o || had || n.key !== o.key || n.number === o.number) return
-      // Comparación alineada a la derecha del texto viejo y el nuevo (incluidos separadores)
+      // Comparación alineada a la derecha del texto viejo y el nuevo (incluidos separadores). Los caracteres cambiados
+      // contiguos comparten ranura (P-A4): todas ruedan igual, así que se ve lo mismo con un tercio de los nodos y de las
+      // capas animadas; los que no tenían viejo (el total creció) van en su propia ranura, sin __roll-old
       const a = [...o.number]
       const b = [...n.number]
-      roll.value = { dir: n.amount >= o.amount ? 'up' : 'down', chars: b.map((ch, i) => ({ ch, old: a[a.length - b.length + i] ?? '' })) }
+      const chars = []
+      b.forEach((ch, i) => {
+        const old = a[a.length - b.length + i] ?? ''
+        const last = chars.at(-1)
+        if (last && ch !== old && last.ch !== last.old && !last.old === !old) {
+          last.ch += ch
+          last.old += old
+        } else chars.push({ ch, old })
+      })
+      roll.value = { dir: n.amount >= o.amount ? 'up' : 'down', chars }
       const t = token
-      // En el cuadro siguiente (antes de pintarlo), sin escribir en el DOM entre lecturas: si el total desborda su caja o
-      // ningún slot tiene animación calculada (reducido, sin CSS, jsdom), la capa se retira en el acto
-      nextTick(() => nextFrame(() => {
+      // En el cuadro siguiente, en el lote común de todos los GPrice (una lectura de maquetación por cuadro, sin escribir
+      // entre lecturas): si el total desborda su caja o ningún slot tiene animación calculada (reducido, sin CSS, jsdom),
+      // la capa se retira en el acto
+      batch(() => {
         const el = totalEl.value
         if (t !== token || !el) return
         if (el.clientWidth && el.scrollWidth > el.clientWidth + 1) return clear()
         pending = 0
-        for (const x of el.querySelectorAll('.g-price__roll-slot *')) {
-          const cs = getComputedStyle(x)
-          const durs = String(cs.animationDuration).split(',')
-          String(cs.animationName).split(',').forEach((name, i) => {
-            if (name.trim().startsWith(ROLL) && parseFloat(durs[i % durs.length]) > 0) pending++
-          })
+        // Una consulta por clase de capa (la nueva y la vieja llevan la misma regla en todos los slots)
+        for (const cls of ['new', 'old']) {
+          const list = el.querySelectorAll(`.g-price__roll-${cls}`)
+          if (list.length && animated(list[0])) pending += list.length
         }
         if (!pending) clear()
-      }))
+      })
     })
     const onRollEnd = (e) => {
       if (roll.value && String(e.animationName).startsWith(ROLL) && --pending <= 0) clear()

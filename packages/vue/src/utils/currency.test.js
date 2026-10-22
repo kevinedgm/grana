@@ -194,6 +194,8 @@ describe('formatPrice · casos de kiwi', () => {
   it('inválido sin lanzar; amount no finito se lee como null', () => {
     expect(fp({ amount: 1, currency: 'pesos' })).toMatchObject({ state: 'invalid', text: '', spoken: '', currency: null })
     expect(fp({ amount: 1 }).state).toBe('invalid')
+    // #802: Intl acepta cualquier código bien formado; «XXZ» se pinta con su código (validarlo es de la aplicación)
+    expect(fp({ amount: 1, currency: 'xxz' })).toMatchObject({ state: 'amount', currency: 'XXZ' })
     expect(fp({ amount: NaN, currency: 'MXN' }).state).toBe('onRequest')
     expect(fp({ amount: Infinity, currency: 'MXN' }).state).toBe('onRequest')
     expect(() => formatPrice(undefined, { labels: L })).not.toThrow()

@@ -2,7 +2,7 @@
   "name": "GPrice",
   "tag": "g-price",
   "schemaVersion": 1,
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "entry": "@grana/vue/price",
   "bundle": {
