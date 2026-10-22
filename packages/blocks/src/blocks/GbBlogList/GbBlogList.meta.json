@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "name": "GbBlogList",
+  "kind": "block-section",
+  "family": "marketing",
+  "status": "draft",
+  "since": "0.0.0",
+  "description": "Las notas del sitio (guías, novedades, cómo llegar) como una lista de enlaces con fecha legible y honesta: si una nota se actualizó, se ve «Actualizado {fecha}» en <time datetime>, por encima del título. En rejilla con foto, en lista con fecha o con una destacada.",
+  "contract": "design/contracts/blocks/blog-list.md",
+  "common": "design/contracts/blocks/_comun.md",
+  "decisions": [
+    815,
+    816,
+    817,
+    825
+  ],
+  "composes": [
+    "GSection",
+    "GAdaptiveLayout",
+    "GStack",
+    "GCard",
+    "GIcon",
+    "GTag"
+  ],
+  "variants": [
+    {
+      "name": "GbBlogList01",
+      "tag": "gb-blog-list-01",
+      "concept": "Rejilla",
+      "root": "GSection › GAdaptiveLayout role=\"list\" › div role=\"listitem\" g-adapt-wide › GCard as=\"article\" interaction=\"link\""
+    },
+    {
+      "name": "GbBlogList02",
+      "tag": "gb-blog-list-02",
+      "concept": "Lista con fecha",
+      "root": "GSection › GStack as=\"ul\" divided › GCard as=\"li\" level=\"flat\" interaction=\"link\""
+    },
+    {
+      "name": "GbBlogList03",
+      "tag": "gb-blog-list-03",
+      "concept": "Destacada + lista",
+      "root": "GSection › GStack as=\"ul\" gap=\"md\" › GCard as=\"li\" orientation=\"auto\" mediaPosition=\"start\" (la primera) + las demás como 02"
+    }
+  ],
+  "props": [
+    {
+      "name": "title",
+      "type": "String",
+      "ts": "string",
+      "required": true
+    },
+    {
+      "name": "description",
+      "type": "String",
+      "ts": "string",
+      "default": null
+    },
+    {
+      "name": "posts",
+      "type": "Array",
+      "ts": "Post[]",
+      "required": true,
+      "note": "1 a 24 (C7 por encima de 24); el orden es el de la aplicación"
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "BCP 47 para las fechas; sin valor, el del entorno (Intl). En SSR conviene darlo"
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "ts": "{ updated?: DateLabel; external?: string }",
+      "default": {},
+      "note": "updated («Actualizado {date}» o función), requerido si algún post tiene updated (C5); external, requerido con un post externo (C5)"
+    }
+  ],
+  "events": [
+    {
+      "name": "navigate",
+      "payload": "{ event, href, item }",
+      "ts": "BlockNavigate<Post>",
+      "trigger": "Activación primaria de una tarjeta-enlace no externa (se reemite el navigate de GCard, guarda #505); item es la nota"
+    }
+  ],
+  "slots": [
+    {
+      "name": "post",
+      "scope": "{ item, index }",
+      "ts": "{ item: Post; index: number }",
+      "purpose": "Escape: el contenido de la tarjeta de una nota"
+    },
+    {
+      "name": "description",
+      "purpose": "Sustituye a la prop description en la GSection"
+    }
+  ],
+  "types": [
+    "Post",
+    "Media",
+    "DateLabel"
+  ],
+  "warnings": [
+    "C1",
+    "C2",
+    "C3",
+    "C4 (01 y la destacada de 03)",
+    "C5",
+    "C6",
+    "C7",
+    "P1 · date o updated que Date no lee (se pinta tal cual)",
+    "P2 · updated anterior a date"
+  ],
+  "root": "GSection con data-gb=\"blog-list-NN\" y $attrs",
+  "bundle": {
+    "entry": "@grana/blocks/marketing",
+    "measured": 16934,
+    "peers": [
+      "vue",
+      "@grana/vue",
+      "@grana/vue/tag"
+    ],
+    "note": "dist/marketing.js gzip (gzip -c) con las nueve secciones (27 de 27 variantes; 2026-10-22). Importación parcial (esbuild, vue y @grana/vue* externos): solo GbBlogList01 2390 B. Sin tope en el primer lote (#815): lo fija lima en el remate"
+  }
+}

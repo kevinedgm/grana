@@ -15,8 +15,10 @@ import { UTILITY, mountBlock, ownAnchor, ssr } from './harness.js'
  * @param {object} o.section   el módulo props.js de la sección ({ props, emits })
  * @param {string} o.dir       carpeta de la sección relativa a packages/blocks ('src/blocks/GbHero')
  * @param {number} [o.h1=0]    h1 que pinta cada variante (1 solo en Hero)
+ * @param {string[]} [o.headless=[]] variantes que con el banco no pintan ningún encabezado (GbFooter02: una línea)
+ * @param {object} [o.inner={}] bloques que el banco mete en un slot de la variante ({ GbFooter03: 1 }: la suscripción)
  */
-export function sectionSuite({ meta, bank, variants, section, dir, h1 = 0 }) {
+export function sectionSuite({ meta, bank, variants, section, dir, h1 = 0, headless = [], inner = {} }) {
   const names = meta.variants.map((v) => v.name)
   const icons = bank.appIcons || []
   const run = (name, extra = {}) => mountBlock(variants[name], { props: bank.props, slots: bank.slots, icons, ...extra })
@@ -62,7 +64,7 @@ export function sectionSuite({ meta, bank, variants, section, dir, h1 = 0 }) {
         expect(root.classList.contains('g-bleed')).toBe(true)
         expect(root.getAttribute('data-x')).toBe('1')
         expect(root.getAttribute('aria-describedby')).toBe('nota')
-        expect(w.findAll('[data-gb]').length).toBe(1)
+        expect(w.findAll('[data-gb]').length).toBe(1 + (inner[n] || 0))
       })
       it(`${n}: ${h1 ? 'exactamente un h1' : 'ningún h1'}`, () => {
         const { w } = run(n)
@@ -104,7 +106,14 @@ export function sectionSuite({ meta, bank, variants, section, dir, h1 = 0 }) {
 
   if (!h1) {
     describe(`${meta.name} · encabezados por anidación (#720, #817)`, () => {
-      for (const n of names) {
+      for (const n of names.filter((x) => headless.includes(x))) {
+        it(`${n}: sin encabezados (forma sin título), también dentro de una GSection de la aplicación`, () => {
+          expect(run(n).w.findAll('h1, h2, h3, h4, h5, h6')).toHaveLength(0)
+          const nested = run(n, { wrap: (render) => h(GSection, { title: 'Página' }, render) })
+          expect(nested.w.element.querySelector('[data-gb]').querySelectorAll('h1, h2, h3, h4, h5, h6')).toHaveLength(0)
+        })
+      }
+      for (const n of names.filter((x) => !headless.includes(x))) {
         it(`${n}: título de la sección h2 en la raíz y h3 dentro de una GSection de la aplicación`, () => {
           const top = run(n)
           expect(top.w.element.querySelector('h2, h3, h4, h5, h6').tagName).toBe('H2')

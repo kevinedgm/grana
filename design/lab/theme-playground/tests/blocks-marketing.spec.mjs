@@ -18,7 +18,11 @@ const PAGES = [
   { name: 'cta 03', file: 'cta.html', qs: 'v=03', h1: 0, blocks: 1 },
   { name: 'faq 01', file: 'faq.html', qs: 'v=01', h1: 0, blocks: 1 },
   { name: 'faq 02', file: 'faq.html', qs: 'v=02', h1: 0, blocks: 1 },
-  { name: 'faq 03', file: 'faq.html', qs: 'v=03', h1: 0, blocks: 1 }
+  { name: 'faq 03', file: 'faq.html', qs: 'v=03', h1: 0, blocks: 1 },
+  { name: 'newsletter', file: 'newsletter.html', qs: '', h1: 0, blocks: 3 },
+  { name: 'blog-list', file: 'blog-list.html', qs: '', h1: 0, blocks: 3 },
+  // Footer: 4 bloques porque 03 lleva GbNewsletter01 en su slot `subscribe`; 02 (una línea) no tiene encabezados
+  { name: 'footer', file: 'footer.html', qs: '', h1: 0, blocks: 4 }
 ]
 const THEMES = ['defecto', 'rustico', 'lujo']
 
@@ -76,7 +80,7 @@ for (const pg of PAGES) {
     for (let i = 1; i < levels.length; i++) expect(levels[i], `${levels.join(',')}`).toBeLessThanOrEqual(levels[i - 1] + 1)
     if (!pg.h1) {
       await open(page, pg.file, `${pg.qs}&anidado=1`)
-      const nested = await page.evaluate(() => [...document.querySelectorAll('[data-gb]')].map((b) => Number(b.querySelector('h2, h3, h4, h5, h6').tagName[1])))
+      const nested = await page.evaluate(() => [...document.querySelectorAll('[data-gb]')].map((b) => b.querySelector('h2, h3, h4, h5, h6')).filter(Boolean).map((x) => Number(x.tagName[1]))) // (un bloque sin título, GbFooter02, no cuenta)
       expect(nested.every((l) => l === 3)).toBe(true)
     }
   })
@@ -228,4 +232,59 @@ test('faq 03: buscar sin diacríticos filtra, la cuenta llega al output y el vac
   await expect(input).toHaveValue('')
   await expect(page.locator('[data-gb="faq-03"] .g-accordion-item')).toHaveCount(8)
   expect(await page.locator('[data-gb="faq-03"] [aria-expanded="true"]').count()).toBe(0)
+})
+
+// Newsletter, Blog list y Footer (bruno C; newsletter.md, blog-list.md, footer.md «Verificación propia»)
+test('newsletter: campo y botón en una línea a 390; a 320 el botón no se sale de la caja', async ({ page }) => {
+  for (const [w, h] of [[390, 844], [320, 640]]) {
+    await open(page, 'newsletter.html', '', { width: w, height: h })
+    for (const n of ['01', '02', '03']) {
+      const root = page.locator(`[data-gb="newsletter-${n}"]`)
+      const box = await root.locator('.g-input__box, .g-input__control').first().boundingBox()
+      const btn = await root.locator('button[type="submit"]').boundingBox()
+      const row = await root.locator('.g-input__row').boundingBox()
+      if (w === 390) expect(Math.abs((btn.y + btn.height / 2) - (box.y + box.height / 2)), `${n} misma línea`).toBeLessThanOrEqual(2)
+      expect(btn.x + btn.width, `${n} ${w}px`).toBeLessThanOrEqual(row.x + row.width + 1)
+    }
+    expect(await overflow(page)).toBe(false)
+  }
+})
+
+test('newsletter: vacío o mal formado no envía y enseña el error en el campo; válido emite submit con el correo', async ({ page }) => {
+  await open(page, 'newsletter.html', 'v=01')
+  const root = page.locator('[data-gb="newsletter-01"]')
+  await root.locator('button[type="submit"]').click()
+  await expect(root.locator('input')).toHaveAttribute('aria-invalid', 'true')
+  await expect(root.locator('input')).toBeFocused()
+  await root.locator('input').fill('  ana@correo.mx ')
+  await root.locator('button[type="submit"]').click()
+  await expect.poll(() => page.evaluate(() => window.blockEvents)).toEqual([['submit', '01', 'ana@correo.mx']])
+})
+
+test('blog-list: la fecha es un <time datetime> en es-MX con «Actualizado …» para la nota revisada', async ({ page }) => {
+  await open(page, 'blog-list.html', '')
+  const times = await page.locator('[data-gb="blog-list-02"] time').evaluateAll((ts) => ts.map((t) => [t.getAttribute('datetime'), t.textContent]))
+  expect(times[1]).toEqual(['2026-10-03', 'Actualizado 3 de octubre de 2026'])
+  expect(times[0][1]).toMatch(/12 de junio de 2026/)
+})
+
+test('footer: dentro de GAppShell (as="div"), un solo contentinfo y ningún footer anidado; sin desbordamiento a 320', async ({ page }) => {
+  const errs = watchConsole(page)
+  await open(page, 'footer.html', 'shell=1', { width: 320, height: 640 })
+  const snap = await page.locator('body').ariaSnapshot()
+  expect(snap.match(/contentinfo/g) || []).toHaveLength(1)
+  expect(await page.locator('footer footer').count()).toBe(0)
+  expect(await page.locator('[data-gb="footer-01"]').evaluate((el) => el.tagName)).toBe('DIV')
+  expect(await overflow(page)).toBe(false)
+  const logo = await page.locator('[data-gb="footer-01"] img').boundingBox()
+  expect(logo.x + logo.width).toBeLessThanOrEqual(320)
+  expect(errs).toEqual([])
+})
+
+test('footer: el contacto (address) va antes que la navegación; tel:, mailto: y externos no emiten navigate', async ({ page }) => {
+  await open(page, 'footer.html', 'v=01')
+  const order = await page.locator('[data-gb="footer-01"]').evaluate((r) => r.querySelector('address').compareDocumentPosition(r.querySelector('nav')) & Node.DOCUMENT_POSITION_FOLLOWING)
+  expect(order).toBeTruthy()
+  await page.locator('[data-gb="footer-01"] a[href="/terminos"]').click()
+  expect(await page.evaluate(() => window.blockEvents)).toEqual([['navigate', '01', '/terminos']])
 })

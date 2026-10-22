@@ -1,0 +1,163 @@
+{
+  "schemaVersion": 1,
+  "name": "GbFooter",
+  "kind": "block-section",
+  "family": "marketing",
+  "status": "draft",
+  "since": "0.0.0",
+  "description": "El pie del sitio: cómo llegar y cómo escribir primero (un address real con los canales que el teléfono abre), luego los enlaces del sitio en un solo nav, los legales y las redes; en columnas, en una línea o con la suscripción. Suelto es un footer; dentro del slot footer de GAppShell, as=\"div\".",
+  "contract": "design/contracts/blocks/footer.md",
+  "common": "design/contracts/blocks/_comun.md",
+  "decisions": [
+    815,
+    816,
+    817,
+    826
+  ],
+  "composes": [
+    "GStack",
+    "GAdaptiveLayout",
+    "GSection",
+    "GDivider",
+    "GBtn",
+    "GIcon"
+  ],
+  "variants": [
+    {
+      "name": "GbFooter01",
+      "tag": "gb-footer-01",
+      "concept": "Columnas",
+      "root": "GStack :as gap=\"lg\" › [GAdaptiveLayout › marca y contacto (g-adapt-wide) + nav › GAdaptiveLayout de GSection (g-adapt-standard)] + GDivider + fila final"
+    },
+    {
+      "name": "GbFooter02",
+      "tag": "gb-footer-02",
+      "concept": "Una línea",
+      "root": "GStack :as orientation=\"horizontal\" gap=\"md\" › marca, canales, legales, redes, nota"
+    },
+    {
+      "name": "GbFooter03",
+      "tag": "gb-footer-03",
+      "concept": "Con suscripción",
+      "root": "GStack :as gap=\"lg\" › slot subscribe + GDivider + lo de 01"
+    }
+  ],
+  "props": [
+    {
+      "name": "brand",
+      "type": "Object",
+      "ts": "Brand",
+      "required": true,
+      "note": "Nombre (y logo) del sitio; con href, enlace a inicio. Logo con width/height (C4), alt = brand.name"
+    },
+    {
+      "name": "contact",
+      "type": "Object",
+      "ts": "{ address?: string[]; channels?: NavLink[]; hours?: string }",
+      "default": null,
+      "note": "Primero en el orden de lectura (#826). Canales: tel:, mailto:, https://wa.me/… (sin navigate). 02 solo pinta los canales"
+    },
+    {
+      "name": "groups",
+      "type": "Array",
+      "ts": "LinkGroup[]",
+      "default": null,
+      "note": "0 a 5 columnas (C7 por encima de 5)",
+      "variants": [
+        "GbFooter01",
+        "GbFooter03"
+      ]
+    },
+    {
+      "name": "legal",
+      "type": "Array",
+      "ts": "NavLink[]",
+      "default": null
+    },
+    {
+      "name": "social",
+      "type": "Array",
+      "ts": "NavLink[]",
+      "default": null,
+      "note": "Con texto: Lucide no tiene iconos de marcas"
+    },
+    {
+      "name": "note",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "«© 2026 Casa Alcalá»"
+    },
+    {
+      "name": "as",
+      "type": "String",
+      "ts": "FooterAs",
+      "default": "footer",
+      "values": [
+        "footer",
+        "div"
+      ],
+      "note": "footer suelto; div dentro del slot footer de GAppShell (O1)"
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "ts": "{ nav?: string; legal?: string; social?: string; external?: string }",
+      "default": {},
+      "note": "nav con groups (01, 03), legal con legal, social con social, external con un enlace externo (C5)"
+    }
+  ],
+  "events": [
+    {
+      "name": "navigate",
+      "payload": "{ event, href, item }",
+      "ts": "BlockNavigate<NavLink | Brand>",
+      "trigger": "Activación primaria de un enlace interno (marca, columnas, legales, redes, canales no externos); nunca tel:, mailto: ni externos. item es el NavLink (o brand en la marca)"
+    }
+  ],
+  "slots": [
+    {
+      "name": "subscribe",
+      "purpose": "La franja de suscripción (p. ej. GbNewsletter01) encima del pie; sin él, 03 se pinta como 01 (O2)",
+      "variants": [
+        "GbFooter03"
+      ]
+    },
+    {
+      "name": "brand",
+      "purpose": "Escape: la marca"
+    },
+    {
+      "name": "note",
+      "purpose": "Escape: contenido rico de la nota"
+    }
+  ],
+  "types": [
+    "Brand",
+    "NavLink",
+    "LinkGroup",
+    "Media",
+    "FooterAs"
+  ],
+  "warnings": [
+    "C2",
+    "C3",
+    "C4 (brand.logo sin width/height)",
+    "C5",
+    "C6",
+    "C7",
+    "O1 · as=\"footer\" dentro de otro footer o contentinfo",
+    "O2 · 03 sin slot subscribe",
+    "O3 · canal tel: con letras o espacios"
+  ],
+  "root": "GStack (as footer o div) con data-gb=\"footer-NN\" y $attrs",
+  "bundle": {
+    "entry": "@grana/blocks/marketing",
+    "measured": 16934,
+    "peers": [
+      "vue",
+      "@grana/vue"
+    ],
+    "note": "dist/marketing.js gzip (gzip -c) con las nueve secciones (27 de 27 variantes; 2026-10-22). Importación parcial (esbuild, vue y @grana/vue* externos): solo GbFooter01 3218 B. Sin tope en el primer lote (#815): lo fija lima en el remate"
+  }
+}

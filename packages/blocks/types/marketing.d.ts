@@ -153,3 +153,12 @@ export type BlockComponent<
   {},
   SlotsType<S>
 >
+
+/** Carga de `submit` de GbNewsletter (newsletter.md, #824): envío válido; `email` sin espacios a los lados. */
+export interface BlockSubmit { event: Event; email: string }
+
+/** «Actualizado {date}» de GbBlogList (blog-list.md, #825): cadena con {date} o función. Sin valor por defecto (#226). */
+export type DateLabel = string | ((p: { date: string }) => string)
+
+/** Raíz de GbFooter (footer.md): `footer` suelto; `div` dentro del slot footer de GAppShell (que ya da el contentinfo). */
+export type FooterAs = 'footer' | 'div'

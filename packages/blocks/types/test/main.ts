@@ -66,3 +66,38 @@ export { testimonials, noAuthor, rated, cta, noActions, faqs, noAnswer, badFaqLa
 const onNavigate = (p: BlockNavigate<Feature>) => { p.event.preventDefault(); return p.item.title + p.href }
 
 export { hero, features, stats, money, typo, noWidth, noLabel, noActionLabel, noItems, badLabels, sameHero, sameFeatures, sameStats, onNavigate }
+
+// Newsletter, Blog list y Footer (bruno C; newsletter.md, blog-list.md, footer.md)
+import { GbBlogList01, GbBlogList02, GbBlogList03, GbFooter01, GbFooter02, GbFooter03, GbNewsletter01, GbNewsletter02, GbNewsletter03 } from '@grana/blocks/marketing'
+import type { BlockSubmit, Brand, DateLabel, FooterAs, GbBlogListProps, GbFooterProps, GbNewsletterProps, LinkGroup, NavLink, Post } from '@grana/blocks/marketing'
+
+const newsletter: GbNewsletterProps = { title: 'Fechas libres', field: { label: 'Tu correo', hint: 'Un correo al mes' }, action: { label: 'Suscribirme', icon: 'mail' }, legal: { text: 'Baja cuando quieras.', link: { label: 'Privacidad', href: '/privacidad' } }, labels: { busy: 'Suscribiendo…' } }
+// @ts-expect-error: field.hint (la promesa) es obligatoria
+const noHint: GbNewsletterProps = { title: 'x', field: { label: 'Correo' }, action: { label: 'Ir' } }
+// @ts-expect-error: action solo admite label e icon (Pick<Action, 'label' | 'icon'>)
+const actionHref: GbNewsletterProps = { title: 'x', field: { label: 'Correo', hint: 'h' }, action: { label: 'Ir', href: '#' } }
+const onSubscribe = (p: BlockSubmit) => p.email.trim()
+
+const post: Post = { title: 'Cómo llegar', href: '/notas/como-llegar', date: '2025-11-20', updated: '2026-10-03', tags: ['Guía'] }
+const updated: DateLabel = ({ date }) => `Actualizado ${date}`
+const blog: GbBlogListProps = { title: 'Notas', posts: [post], locale: 'es-MX', labels: { updated, external: 'se abre en otra pestaña' } }
+// @ts-expect-error: Post sin date
+const noDate: Post = { title: 'x', href: '/x' }
+// @ts-expect-error: labels.updated no admite números
+const badUpdated: GbBlogListProps = { title: 'x', posts: [post], labels: { updated: 3 } }
+
+const link: NavLink = { label: 'English', href: '/en', lang: 'en', hreflang: 'en', current: true }
+const group: LinkGroup = { title: 'Ayuda', links: [link] }
+const brand: Brand = { name: 'Casa Alcalá', href: '/' }
+const inShell: FooterAs = 'div'
+const footer: GbFooterProps = { brand, contact: { address: ['Calle 1'], channels: [{ label: 'Llamar', href: 'tel:+529515550000' }], hours: '24 h' }, groups: [group], legal: [link], social: [link], note: '© 2026', as: inShell, labels: { nav: 'Mapa', legal: 'Legal', social: 'Redes', external: 'otra pestaña' } }
+// @ts-expect-error: as solo admite footer o div
+const badAs: GbFooterProps = { brand, as: 'section' }
+// @ts-expect-error: brand es obligatoria
+const noBrand: GbFooterProps = { note: 'x' }
+
+const sameNewsletter: [Same<PropsOf<typeof GbNewsletter01>, PropsOf<typeof GbNewsletter02>>, Same<PropsOf<typeof GbNewsletter02>, PropsOf<typeof GbNewsletter03>>] = [true, true]
+const sameBlog: [Same<PropsOf<typeof GbBlogList01>, PropsOf<typeof GbBlogList02>>, Same<PropsOf<typeof GbBlogList02>, PropsOf<typeof GbBlogList03>>] = [true, true]
+const sameFooter: [Same<PropsOf<typeof GbFooter01>, PropsOf<typeof GbFooter02>>, Same<PropsOf<typeof GbFooter02>, PropsOf<typeof GbFooter03>>] = [true, true]
+
+export { newsletter, noHint, actionHref, onSubscribe, blog, noDate, badUpdated, footer, badAs, noBrand, sameNewsletter, sameBlog, sameFooter }

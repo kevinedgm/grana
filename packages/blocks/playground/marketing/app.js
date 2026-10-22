@@ -35,7 +35,8 @@ export async function mountBank(section, bank, { full = false, concepts = {}, bl
       id: `gb-${n}`,
       class: bleed.includes(n) ? 'g-bleed' : undefined,
       onNavigate: (p) => { p.event.preventDefault(); events.push(['navigate', n, p.href]) },
-      onActivate: () => events.push(['activate', n])
+      onActivate: () => events.push(['activate', n]),
+      onSubmit: (p) => events.push(['submit', n, p.email])
     }, bank.slots)
     // Rótulo del banco (no es un encabezado: no cuenta en el esquema de la página)
     const label = h('p', { class: 'pg-label' }, `Gb${section}${n}${concepts[n] ? ` · ${concepts[n]}` : ''}`)

@@ -1,0 +1,155 @@
+{
+  "schemaVersion": 1,
+  "name": "GbNewsletter",
+  "kind": "block-section",
+  "family": "marketing",
+  "status": "draft",
+  "since": "0.0.0",
+  "description": "Suscripción con un solo campo, el correo, con el botón acoplado y lo que va a recibir la persona dicho antes de pedírselo (la promesa es la descripción del campo). El bloque valida con el navegador, lo enseña con GForm y emite el correo; la aplicación suscribe.",
+  "contract": "design/contracts/blocks/newsletter.md",
+  "common": "design/contracts/blocks/_comun.md",
+  "decisions": [
+    815,
+    816,
+    817,
+    824
+  ],
+  "composes": [
+    "GSection",
+    "GForm",
+    "GInput",
+    "GBtn",
+    "GIcon",
+    "GCard",
+    "GSurface"
+  ],
+  "variants": [
+    {
+      "name": "GbNewsletter01",
+      "tag": "gb-newsletter-01",
+      "concept": "En línea",
+      "root": "GSection › GForm › GInput type=\"email\" (slot action = GBtn type=\"submit\") + p con legal"
+    },
+    {
+      "name": "GbNewsletter02",
+      "tag": "gb-newsletter-02",
+      "concept": "Tarjeta",
+      "root": "GCard as=\"section\" (título al nivel de useSectionLevel()) › el formulario de 01 + legal"
+    },
+    {
+      "name": "GbNewsletter03",
+      "tag": "gb-newsletter-03",
+      "concept": "Banda de marca",
+      "root": "GSurface zone=\"brand\" padding=\"lg\" › GSection › el formulario de 01"
+    }
+  ],
+  "props": [
+    {
+      "name": "title",
+      "type": "String",
+      "ts": "string",
+      "required": true
+    },
+    {
+      "name": "description",
+      "type": "String",
+      "ts": "string",
+      "default": null
+    },
+    {
+      "name": "field",
+      "type": "Object",
+      "ts": "{ label: string; hint: string; placeholder?: string; name?: string }",
+      "required": true,
+      "note": "hint es la promesa (qué llega y cada cuánto), descripción del campo antes de escribir (N1 sin ella); name, sin valor, \"email\""
+    },
+    {
+      "name": "action",
+      "type": "Object",
+      "ts": "{ label: string; icon?: string }",
+      "required": true,
+      "note": "El botón de envío (Pick<Action, 'label' | 'icon'>; href se ignora)"
+    },
+    {
+      "name": "legal",
+      "type": "Object",
+      "ts": "{ text: string; link?: NavLink }",
+      "default": null,
+      "note": "«Puedes darte de baja cuando quieras.» + enlace al aviso de privacidad"
+    },
+    {
+      "name": "busy",
+      "type": "Boolean",
+      "ts": "boolean",
+      "default": false,
+      "note": "Enviando: GBtn loading con loadingText = labels.busy"
+    },
+    {
+      "name": "error",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "Error de la aplicación (servidor), en el campo por errors de GForm y revelado en el acto (showErrors); gana a done (N2)"
+    },
+    {
+      "name": "done",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "Confirmación de la aplicación, mensaje valid del campo"
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "ts": "{ busy?: string; external?: string }",
+      "default": {},
+      "note": "busy, requerido con busy (C5); external, requerido con legal.link externo (C5)"
+    }
+  ],
+  "events": [
+    {
+      "name": "submit",
+      "payload": "{ event, email }",
+      "ts": "BlockSubmit",
+      "trigger": "Envío válido (submit de GForm y validez del campo en el navegador); email sin espacios a los lados"
+    },
+    {
+      "name": "navigate",
+      "payload": "{ event, href, item }",
+      "ts": "BlockNavigate<NavLink>",
+      "trigger": "Activación primaria del enlace interno de legal; item es legal.link"
+    }
+  ],
+  "slots": [
+    {
+      "name": "legal",
+      "purpose": "Escape: contenido rico del texto legal (sustituye a legal.text y su enlace dentro del p)"
+    },
+    {
+      "name": "description",
+      "purpose": "Sustituye a la prop description (en la GSection o en la GCard)"
+    }
+  ],
+  "types": [
+    "NavLink",
+    "Action",
+    "BlockSubmit"
+  ],
+  "warnings": [
+    "C5 (labels.busy con busy; labels.external con legal.link externo)",
+    "C6",
+    "N1 · falta field.hint",
+    "N2 · error y done a la vez (gana error)",
+    "N3 · sin escucha de submit"
+  ],
+  "root": "GSection (01), GCard as=\"section\" (02) o GSurface zone=\"brand\" (03) con data-gb=\"newsletter-NN\" y $attrs",
+  "bundle": {
+    "entry": "@grana/blocks/marketing",
+    "measured": 16934,
+    "peers": [
+      "vue",
+      "@grana/vue"
+    ],
+    "note": "dist/marketing.js gzip (gzip -c) con las nueve secciones (27 de 27 variantes; 2026-10-22). Importación parcial (esbuild, vue y @grana/vue* externos): solo GbNewsletter01 2432 B. Sin tope en el primer lote (#815): lo fija lima en el remate"
+  }
+}

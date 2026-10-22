@@ -22,6 +22,15 @@ import GbCta03 from './blocks/GbCta/GbCta03.vue'
 import GbFaq01 from './blocks/GbFaq/GbFaq01.vue'
 import GbFaq02 from './blocks/GbFaq/GbFaq02.vue'
 import GbFaq03 from './blocks/GbFaq/GbFaq03.vue'
+import GbNewsletter01 from './blocks/GbNewsletter/GbNewsletter01.vue'
+import GbNewsletter02 from './blocks/GbNewsletter/GbNewsletter02.vue'
+import GbNewsletter03 from './blocks/GbNewsletter/GbNewsletter03.vue'
+import GbBlogList01 from './blocks/GbBlogList/GbBlogList01.vue'
+import GbBlogList02 from './blocks/GbBlogList/GbBlogList02.vue'
+import GbBlogList03 from './blocks/GbBlogList/GbBlogList03.vue'
+import GbFooter01 from './blocks/GbFooter/GbFooter01.vue'
+import GbFooter02 from './blocks/GbFooter/GbFooter02.vue'
+import GbFooter03 from './blocks/GbFooter/GbFooter03.vue'
 
 export {
   GbHero01, GbHero02, GbHero03,
@@ -29,7 +38,10 @@ export {
   GbStats01, GbStats02, GbStats03,
   GbTestimonials01, GbTestimonials02, GbTestimonials03,
   GbCta01, GbCta02, GbCta03,
-  GbFaq01, GbFaq02, GbFaq03
+  GbFaq01, GbFaq02, GbFaq03,
+  GbNewsletter01, GbNewsletter02, GbNewsletter03,
+  GbBlogList01, GbBlogList02, GbBlogList03,
+  GbFooter01, GbFooter02, GbFooter03
 }
 
 /** Plugin: `app.use(marketing)` registra todas las variantes (`<gb-hero-01>`, `<GbHero01>`…). */
@@ -41,7 +53,10 @@ export const marketing = {
       GbStats01, GbStats02, GbStats03,
       GbTestimonials01, GbTestimonials02, GbTestimonials03,
       GbCta01, GbCta02, GbCta03,
-      GbFaq01, GbFaq02, GbFaq03
+      GbFaq01, GbFaq02, GbFaq03,
+      GbNewsletter01, GbNewsletter02, GbNewsletter03,
+      GbBlogList01, GbBlogList02, GbBlogList03,
+      GbFooter01, GbFooter02, GbFooter03
     }
     for (const [name, component] of Object.entries(variants)) app.component(name, component)
   }
