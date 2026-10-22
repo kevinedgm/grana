@@ -28,7 +28,7 @@ Las tres reciben la misma `interface Props` (`GbFooterProps`, el mismo objeto `p
 
 ```text
 {footer|div}
-├─ marca y contacto                  ← PRIMERO en el DOM
+├─ marca y contacto                  (PRIMERO en el DOM)
 │  ├─ GBtn variant="link" > logo o nombre
 │  └─ GText as="address"
 │     ├─ líneas de `address`
