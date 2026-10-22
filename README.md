@@ -277,6 +277,7 @@ Todos están en **`candidate`**: ver [Estado](#estado-010-beta). «Propia» indi
 | [`GContainer`](packages/vue/src/components/GContainer/README.md) | Columna de la página: ancho máximo, centrado y margen fluido sobre su caja y no sobre el visor; `g-bleed` lleva una banda al borde con el texto alineado | principal |
 | [`GStack`](packages/vue/src/components/GStack/README.md) | Pila de un eje con la separación como relación (`sm`, `md`, `lg`): una sola fuente de aire, en línea siempre se parte | principal |
 | [`GSection`](packages/vue/src/components/GSection/README.md) | Región de página con encabezado, descripción y acciones: el nivel (`h2` a `h4`) lo pone la anidación | principal |
+| [`GText`](packages/vue/src/components/GText/README.md) | Texto suelto con la tipografía del tema (`body`, `body-sm`, `caption`; `default` o `muted`) y una pausa por tamaño entre sus bloques, sin aire hacia fuera: la cita y su pie, la garantía bajo una acción, el legal de un boletín; vacío no pinta | principal |
 | [`GPageHeader`](packages/vue/src/components/GPageHeader/README.md) | Encabezado de página pegado con zócalo: al desplazar, el encabezado se hunde hasta que asoma el zócalo con pestañas y acciones; en estrecho y pegado, las acciones bajan al muelle con `--g-ease-spring` | **propia** (`page-header`) |
 | [`GHero`](packages/vue/src/components/GHero/README.md) | Apertura de una página de un sitio: título, promesa, acción y foto con el texto siempre fuera de ella (ventana, umbral con consulta o vistas a elegir) | **propia** (`hero`) |
 

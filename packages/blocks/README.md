@@ -6,7 +6,7 @@ Capa de composición sobre `@grana/vue`: secciones y pantallas armadas con los c
 
 | Entrada | Qué trae | Estado |
 | --- | --- | --- |
-| `@grana/blocks/marketing` | **Marketing P0**: 9 secciones, cada una con 3 variantes (27 componentes) | 3 secciones `candidate`, 6 en `draft` (tabla abajo) |
+| `@grana/blocks/marketing` | **Marketing P0**: 9 secciones, cada una con 3 variantes (27 componentes) | Las 9 secciones `candidate` (tabla abajo) |
 | `@grana/blocks` | Gestión (CRUD, editor, detalle, dashboard). **Sin componentes todavía**: `dist/blocks.js` no exporta ninguno | `GResourceList` tiene contrato y CSS (`GResourceList.css`, de coco), pero aún no tiene `.vue` ni `meta.json` ni README |
 
 Booking y Ecommerce están planeados (DECISIONS #763, #815) y **no existen**.
@@ -20,14 +20,14 @@ Entrada `@grana/blocks/marketing`. Los bloques son **estructurales** (DECISIONS 
 | `GbHero` | `GbHero01` La ventana, `02` Vistas, `03` El umbral | `candidate` | [`GbHero/README.md`](./src/blocks/GbHero/README.md) |
 | `GbFeatures` | `GbFeatures01` Rejilla, `02` Alternada, `03` Lectura | `candidate` | [`GbFeatures/README.md`](./src/blocks/GbFeatures/README.md) |
 | `GbBlogList` | `GbBlogList01` Rejilla, `02` Lista con fecha, `03` Destacada y lista | `candidate` | [`GbBlogList/README.md`](./src/blocks/GbBlogList/README.md) |
-| `GbStats` | `01` a `03` | `draft` | — |
-| `GbTestimonials` | `01` a `03` | `draft` | — |
-| `GbCta` | `01` a `03` | `draft` | — |
-| `GbFaq` | `01` a `03` | `draft` | — |
-| `GbNewsletter` | `01` a `03` | `draft` | — |
-| `GbFooter` | `01` a `03` | `draft` | — |
+| `GbStats` | `GbStats01` Fila, `02` Banda, `03` Junto a un párrafo | `candidate` | [`GbStats/README.md`](./src/blocks/GbStats/README.md) |
+| `GbTestimonials` | `GbTestimonials01` Tarjetas, `02` La voz, `03` Avance | `candidate` | [`GbTestimonials/README.md`](./src/blocks/GbTestimonials/README.md) |
+| `GbCta` | `GbCta01` Banda de marca, `02` Tarjeta con imagen, `03` Línea sobria | `candidate` | [`GbCta/README.md`](./src/blocks/GbCta/README.md) |
+| `GbFaq` | `GbFaq01` Acordeón, `02` Todo a la vista, `03` Con buscador | `candidate` | [`GbFaq/README.md`](./src/blocks/GbFaq/README.md) |
+| `GbNewsletter` | `GbNewsletter01` En línea, `02` Tarjeta, `03` Banda de marca | `candidate` | [`GbNewsletter/README.md`](./src/blocks/GbNewsletter/README.md) |
+| `GbFooter` | `GbFooter01` Columnas, `02` Una línea, `03` Con suscripción | `candidate` | [`GbFooter/README.md`](./src/blocks/GbFooter/README.md) |
 
-Las seis secciones en `draft` están exportadas y tienen contrato, pero **no se recomiendan en producción**: la auditoría de coco ([`design/lab/blocks/marketing/auditoria.md`](../../design/lab/blocks/marketing/auditoria.md)) encontró en ellas texto suelto con el estilo del navegador (hallazgo MK-L1, a la espera de la primitiva de texto `GText`, DECISIONS #841, decisión del usuario pendiente); además Newsletter tenía abierto MK-B1 (el `error` presente al montar no se ve) y bruno informa de su remate en el commit bc843a6. Se documentarán cuando pasen a `candidate`.
+Las nueve secciones están en `candidate` tras la auditoría de coco ([`design/lab/blocks/marketing/auditoria.md`](../../design/lab/blocks/marketing/auditoria.md)): 4327/4327 comprobaciones en Chromium, Firefox y WebKit, con el tema por defecto, rústico y lujo, claro y oscuro (`medido`, tras baea37f). Las seis últimas (Stats, Testimonials, CTA, FAQ, Newsletter y Footer) esperaron a `GText` (DECISIONS #841, #851 a #856), la primitiva de texto suelto de `@grana/vue` ([`GText/README.md`](../vue/src/components/GText/README.md)), que sustituye al `p` desnudo con márgenes y cursivas del navegador.
 
 ### Instalación
 
@@ -96,7 +96,7 @@ Parámetros: `?tema=defecto|rustico|lujo` (los dos últimos son temas generados 
 ## Comandos
 
 ```bash
-npm test -w @grana/blocks         # vitest: 422 pruebas en 12 archivos
+npm test -w @grana/blocks         # vitest: 435 pruebas en 12 archivos
 npm run build -w @grana/blocks    # vite build + tipos (scripts/build-types.mjs)
 bash packages/blocks/scripts/gates.sh   # compuertas del paquete (tras el build); también las corre .github/scripts/gates.sh
 ```
@@ -105,8 +105,8 @@ Las compuertas vigilan que ningún bloque estructural lleve CSS, `<style>` ni ut
 
 ## Peso
 
-Medido con `gzip -c` (2026-10-22, según los `meta.json` y la compuerta): `dist/marketing.js` **17 187 B** con tope de **18 432 B** (DECISIONS #844); una variante importada sola, de 1659 B (`GbFeatures01`) a 2431 B (`GbBlogList03`) entre las tres secciones `candidate` (tope **4096 B**), medida con `scripts/measure-partial.mjs`. `dist/blocks.js` tiene su propio tope de 8 KiB (#793).
+Medido con `gzip -c` (2026-10-22, según los `meta.json` y la compuerta): `dist/marketing.js` **17 446 B** con tope de **18 432 B** (DECISIONS #844); una variante importada sola, de 1229 B (`GbStats01`) a 3242 B (`GbFooter03`) entre las nueve secciones (tope **4096 B**), medida con `scripts/measure-partial.mjs`. `dist/blocks.js` tiene su propio tope de 8 KiB (#793).
 
 ## Qué no hay todavía
 
-Reservado (`design/contracts/blocks/_comun.md` §11): la primitiva de texto `GText` (B-L5, #841), el nivel de encabezado propio de un acordeón en una sección (B-L4), la línea entre tarjetas planas (B-L6) y las secciones fuera del lote 2 (por ejemplo, `Member` para un bloque de equipo). Nada de eso se documenta como disponible.
+Reservado (`design/contracts/blocks/_comun.md` §11): el nivel de encabezado propio de un acordeón en una sección (B-L4), la línea entre tarjetas planas (B-L6) y las secciones fuera del lote 2 (por ejemplo, `Member` para un bloque de equipo). Nada de eso se documenta como disponible.

@@ -171,14 +171,14 @@ Prefijo `[Grana GbFeatures<NN>]`, una vez por instancia y motivo, solo en desarr
 
 ## Peso
 
-`dist/marketing.js` pesa **17 187 B gzip** (`medido`, 2026-10-22, según `GbFeatures.meta.json`; tope conjunto de la entrada **18 432 B**, DECISIONS #844). Una variante importada sola (esbuild minificado, `vue` y `@grana/vue*` externos): `GbFeatures01` 1659 B, `GbFeatures02` 1905 B, `GbFeatures03` 2007 B; tope por variante 4096 B. `@grana/vue` es *peer*: lo paga la aplicación.
+`dist/marketing.js` pesa **17 446 B gzip** (`medido`, 2026-10-22, según `GbFeatures.meta.json`; tope conjunto de la entrada **18 432 B**, DECISIONS #844). Una variante importada sola (esbuild minificado, `vue` y `@grana/vue*` externos): `GbFeatures01` 1659 B, `GbFeatures02` 1905 B, `GbFeatures03` 2007 B; tope por variante 4096 B. `@grana/vue` es *peer*: lo paga la aplicación.
 
 ## Alcance
 
 - **MK-N1, anotado:** en 01 a 1440 px, con seis ventajas, la primera fila lleva cuatro tarjetas y la segunda dos del doble de ancho. Si molesta, la salida (`--g-adapt-chars` como tope) es un hallazgo para el contrato, no CSS del bloque.
 - **La columna de lectura de 03 va al inicio** (`horizontal="start"`, DECISIONS #845): centrada flotaría a la derecha del título de la sección.
 - **Sin CSS ni utilidades** (#763, #807). Si quieres la banda a sangre dentro de un `GContainer`, `class="g-bleed"` va en la raíz y llega por `$attrs`.
-- **Texto suelto con primitiva propia** (`GText`, #841) sigue sin existir; Features no la necesita porque su texto va en `title` y `description` de `GCard` y `GSection`.
+- **Texto suelto con `GText`** (#841, #851 a #856): Features no la necesita, porque su texto va en `title` y `description` de `GCard` y `GSection`.
 - **Sin `fetch`, sin estado de negocio, sin región viva propia** (#780, #792).
 
 ## Verificación

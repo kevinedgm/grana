@@ -171,7 +171,7 @@ Prefijo `[Grana GbBlogList<NN>]`, una vez por instancia y motivo, solo en desarr
 
 ## Peso
 
-`dist/marketing.js` pesa **17 187 B gzip** (`medido`, 2026-10-22, según `GbBlogList.meta.json`; tope conjunto de la entrada **18 432 B**, DECISIONS #844). Una variante importada sola (esbuild minificado, `vue` y `@grana/vue*` externos): `GbBlogList01` 2369 B, `GbBlogList02` 2128 B, `GbBlogList03` 2431 B; tope por variante 4096 B. `@grana/vue` y `@grana/vue/tag` son *peer*: los paga la aplicación.
+`dist/marketing.js` pesa **17 446 B gzip** (`medido`, 2026-10-22, según `GbBlogList.meta.json`; tope conjunto de la entrada **18 432 B**, DECISIONS #844). Una variante importada sola (esbuild minificado, `vue` y `@grana/vue*` externos): `GbBlogList01` 2369 B, `GbBlogList02` 2128 B, `GbBlogList03` 2431 B; tope por variante 4096 B. `@grana/vue` y `@grana/vue/tag` son *peer*: los paga la aplicación.
 
 ## Alcance
 

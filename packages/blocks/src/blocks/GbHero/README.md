@@ -181,7 +181,7 @@ Prefijo `[Grana GbHero<NN>]`, una vez por instancia y motivo, solo en desarrollo
 
 ## Peso
 
-`dist/marketing.js` pesa **17 187 B gzip** (`gzip -c`, `medido`, 2026-10-22, según `GbHero.meta.json`; tope conjunto de la entrada **18 432 B**, DECISIONS #844). Una variante importada sola (esbuild minificado, `vue` y `@grana/vue*` externos): `GbHero01` 1821 B, `GbHero02` 1883 B, `GbHero03` 1849 B; tope por variante 4096 B. Los componentes que compone (`@grana/vue/hero`, `@grana/vue`) son *peer* y no cuentan: los paga la aplicación.
+`dist/marketing.js` pesa **17 446 B gzip** (`gzip -c`, `medido`, 2026-10-22, según `GbHero.meta.json`; tope conjunto de la entrada **18 432 B**, DECISIONS #844). Una variante importada sola (esbuild minificado, `vue` y `@grana/vue*` externos): `GbHero01` 1821 B, `GbHero02` 1883 B, `GbHero03` 1849 B; tope por variante 4096 B. Los componentes que compone (`@grana/vue/hero`, `@grana/vue`) son *peer* y no cuentan: los paga la aplicación.
 
 ## Alcance
 
