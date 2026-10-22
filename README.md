@@ -112,7 +112,8 @@ Antes de marcar los componentes como puros, importar solo `GBtn` pesaba 66,4 KB 
 
 | Archivo (`exports`) | En `dist/` | Qué es |
 | --- | --- | --- |
-| `@grana/vue/style.css` | `grana.css` | CSS de todos los componentes y el tema por defecto, en capas (`grana.defaults`, `grana.components`). **Obligatorio.** |
+| `@grana/vue/style.css` | `grana.css` | CSS de todos los componentes, el tema por defecto y las clases utilitarias, en capas (`grana.defaults`, `grana.components`, `grana.blocks`, `grana.utilities`). **Obligatorio.** |
+| `@grana/vue/utilities.css` | `utilities.css` | Solo las **clases utilitarias** (`g-p-4`, `g-mt-2`, `g-gap-6`, `g-flex`, `g-items-center`, `g-text-muted`, `g-sr-only`…: 229 clases que leen la escala del tema, con ejes lógicos y sin breakpoints; [guía de utilidades](packages/vue/src/styles/README-utilities.md); `candidate`). **Opcional**: ya van dentro de `style.css`; esta hoja es para quien quiere únicamente las utilidades, y declara ella misma el orden de capas. ≈ 1,9 kB gzip. |
 | `@grana/vue/fonts.css` | `fonts.css` + `fonts/*.woff2` | Instrument Sans variable (licencia SIL OFL), en dos subconjuntos (`latin` y `latin-ext`). **Opcional**: si tu tema define otra fuente, omítelo. La fuente **no** va incrustada en `grana.css`: el empaquetador la copia como archivo. |
 
 **¿Ya tienes CSS propio (Bootstrap, hojas globales) o montas varias apps de Vue en la misma página, o no usas empaquetador?** Lee la [guía de integración](docs/integracion.md): la receta de capas (`@layer legado, grana, app;`), los globales UMD, `app.config.idPrefix` y un gestor compartido.
