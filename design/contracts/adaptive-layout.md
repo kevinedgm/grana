@@ -200,6 +200,7 @@ Sin forma visible propia, la regla de kiwi «conceptos antes que caja» no aplic
 ## DOM, CSS y estados observables (#343)
 
 - **Sin envoltorios de línea** al cambiar de ancho, sin `appendChild`, sin mover, reordenar, desmontar ni remontar nodos. CSS Grid (o Flexbox) con la colocación calculada de las raíces existentes.
+- **Rejilla de lista: el elemento llena su fila (#847, MK-L2).** Un hijo directo con `role="listitem"` (el patrón de lista de `blocks/_comun.md` §1.5, #343) llena el alto de su fila, y su hijo único (una `GCard`) lo llena a él: las tarjetas de una misma fila acaban a la misma altura. Solo `[role="listitem"]` y su `:only-child`; los campos, bloques de formulario y demás hijos no cambian (no se toca el alineado C12 de #348). Es CSS (coco), sin prop ni cambio de planificación. B-L2 (`as="ul"`) sigue reservado.
 - **Alias locales `--_adaptive-*`** para plantilla, pista, línea, ancho y desplazamiento; nunca se sobrescriben propiedades públicas ni estilos de la aplicación. El motor guarda los valores previos de los alias y atributos que escribe y limpia los suyos al cambiar los hijos y al desmontar.
 - **Desplazamiento lógico** (#359): `--_adaptive-start` (px) = distancia desde el **inicio en línea** del contenido del contenedor; el CSS lo aplica con propiedades lógicas (`margin-inline-start`, `justify-self: start`). Sustituye a `--_adaptive-x`, que era físico desde la izquierda.
 

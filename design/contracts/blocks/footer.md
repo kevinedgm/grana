@@ -51,7 +51,7 @@ interface GbFooterProps {
 
 | Variante | Concepto | Compone | Ignora |
 | --- | --- | --- | --- |
-| **01 · Columnas** | Marca y contacto, columnas de enlaces y fila final | Raíz › `GStack gap="lg"` › [`GAdaptiveLayout gap="lg"` › marca y contacto (`g-adapt-wide`) + `nav` con un `GAdaptiveLayout` anidado de grupos (`g-adapt-standard`)] + `GDivider` + fila final | — |
+| **01 · Columnas** | Marca y contacto, columnas de enlaces y fila final | Raíz › `GStack gap="lg"` › [`GAdaptiveLayout gap="lg"` › marca y contacto (`g-adapt-wide`) + `nav` con la pista **`g-adapt-wide`** y dentro un `GAdaptiveLayout` anidado de grupos (`g-adapt-standard`; #846)] + `GDivider` + fila final | — |
 | **02 · Una línea** | Todo en una sola fila que se parte: marca, canales, legales, redes, nota | Raíz › `GStack orientation="horizontal" gap="md"` | `groups`, `contact.address`, `contact.hours` (los **canales** se quedan) |
 | **03 · Con suscripción** | Una franja de suscripción arriba y debajo el pie de 01 | Raíz › `GStack gap="lg"` › slot `subscribe` (p. ej. `GbNewsletter01`) + `GDivider` + lo de 01 | — (sin slot `subscribe`, se pinta como 01 con aviso O2) |
 

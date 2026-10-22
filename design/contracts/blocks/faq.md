@@ -29,7 +29,7 @@ interface GbFaqProps {
 | Variante | Concepto | Compone | Notas |
 | --- | --- | --- | --- |
 | **01 · Acordeón** | Plegadas, cada una con su primera línea a la vista | `GSection` › `GAccordion` (`headingLevel` un nivel por debajo) › `GAccordionItem` (`id` = `faq.id`, `title` = `question`, `peek` = primer párrafo de `answer`) › párrafos | El corte del avance a una línea es de `GAccordion` (A «Avance», #483) |
-| **02 · Todo a la vista** | Todas abiertas, una tras otra, a medida de lectura | `GSection` › `GContainer width="reading"` › `GStack as="ul" divided` › `li` › `GSection` anidada (`id` = `faq.id`, `title` = `question`) › párrafos | Corrige «dos columnas» del plan (`_comun.md` §10) |
+| **02 · Todo a la vista** | Todas abiertas, una tras otra, a medida de lectura | `GSection` › `GContainer width="reading" horizontal="start"` › `GStack as="ul" divided` › `li` › `GSection` anidada (`id` = `faq.id`, `title` = `question`) › párrafos | Corrige «dos columnas» del plan (`_comun.md` §10) |
 | **03 · Con buscador** | El acordeón de 01 con un campo que filtra mientras se escribe | `GSection` › `GInput type="search"` (`label` = `labels.search`, `output` = la cuenta) + el `GAccordion` de 01 con las que coinciden; sin coincidencias, `GEmpty cause="filtered"` | Ver «Buscador» |
 
 ### Buscador (03)

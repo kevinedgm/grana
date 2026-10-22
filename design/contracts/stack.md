@@ -109,7 +109,7 @@ Ninguno. La pila no anima hijos que entran o salen (eso es de quien los pone).
 
 ## Peso y paquete (#723)
 
-En el **principal** (`@grana/vue`), registrado en `src/index.js` y `components.css`. **Compuerta conjunta con `GSection`: ≤ 1,5 KiB (1536 B) gzip** de crecimiento de `dist/grana.js` sobre la medida anterior a añadirlos (215 449 B), con sus guardas de avisos (#653.5). **Enmienda #746** del 1 KiB de #723: medido +1381 B (gzip `-9`, 6cb6e76) con los avisos ya recortados; no se vuelve a subir. Si la supera, las dos pasan a la entrada reservada **`@grana/vue/layout`** (vuelve a lima). Compuerta de `dist`: `grep -q "g-stack--divided" packages/vue/dist/grana.css`.
+En el **principal** (`@grana/vue`), registrado en `src/index.js` y `components.css`. **Compuerta conjunta con `GSection`: ≤ 1,5 KiB (1536 B) gzip** de crecimiento de `dist/grana.js` sobre la medida anterior a añadirlos (215 449 B), con sus guardas de avisos (#653.5). **Enmienda #746** del 1 KiB de #723: medido +1381 B (gzip `-9`, 6cb6e76) con los avisos ya recortados; no se vuelve a subir. `role="list"` en `ul`/`ol` (#827) añade **+40 B** (bruno): pila y sección ≈ **1421 B de 1536** (#850), margen ≈ 115 B. Si la supera, las dos pasan a la entrada reservada **`@grana/vue/layout`** (vuelve a lima). Compuerta de `dist`: `grep -q "g-stack--divided" packages/vue/dist/grana.css`.
 
 ## `meta.json` y tipos (#443)
 
