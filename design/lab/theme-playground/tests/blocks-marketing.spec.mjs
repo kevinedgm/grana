@@ -91,12 +91,13 @@ for (const pg of PAGES) {
     expect(errs).toEqual([])
   })
 
-  test(`${pg.name}: el foco es visible al recorrer el bloque con Tab`, async ({ page }) => {
+  test(`${pg.name}: el foco es visible al recorrer el bloque con Tab`, async ({ page, browserName }) => {
     await open(page, pg.file, pg.qs)
+    const tab = browserName === 'webkit' ? 'Alt+Tab' : 'Tab' // WebKit no lleva el Tab a los enlaces con la preferencia por defecto (como accordion, breadcrumbs y file-field)
     const n = await page.evaluate(() => document.querySelectorAll('[data-gb] a[href], [data-gb] button:not([disabled]), [data-gb] input, [data-gb] [tabindex="0"]').length)
     let checked = 0
     for (let i = 0; i < Math.min(n + 2, 14); i++) {
-      await page.keyboard.press('Tab')
+      await page.keyboard.press(tab)
       const r = await page.evaluate(() => {
         const el = document.activeElement
         if (!el || !el.closest('[data-gb]')) return null
