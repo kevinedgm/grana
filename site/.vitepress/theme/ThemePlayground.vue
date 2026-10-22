@@ -285,6 +285,9 @@ const PRESETS = [
   { id: 'oceano', es: 'Océano en píldora', en: 'Ocean pill', set: { brand: '#0B5CAD', radius: 10, shape: 'pill', space: 4.5 } },
   { id: 'pizarra', es: 'Pizarra compacta', en: 'Compact slate', set: { brand: '#334155', neutrals: 'pure', radius: 2, space: 3.5, fontSize: 14, font: 'system' } },
   { id: 'ambar', es: 'Ámbar con acento', en: 'Amber with accent', set: { brand: '#F5B940', accent: '#5B3FE0', primary: '#7D1230', radius: 12, collision: true } },
+  // Nisa Nabani (guía de marca): Royal Blue #052a76 de marca, Pear #c2d225 de acento (el motor lo oscurece para texto y
+  // foco en claro), Poppins y las bandas en píldora del membrete. Sin la fuente ancha de display: no viene en los archivos.
+  { id: 'nisa', es: 'Nisa Nabani', en: 'Nisa Nabani', set: { brand: '#052A76', accent: '#C2D225', radius: 8, shape: 'pill', font: 'poppins', collision: true } },
   // Bitácoras de laboratorio: navy #052a76 de marca, navy-mid #0a3aa0 en foco y hover, --r-md 10px, Poppins y
   // texto de 13-13,5px (aquí 14: el caption no baja de 12). Con el acento navy, «info» choca en oscuro: se separa.
   { id: 'bitacoras', es: 'Bitácoras (laboratorio)', en: 'Lab logbooks', set: { brand: '#052A76', accent: '#0A3AA0', radius: 10, fontSize: 14, font: 'poppins', collision: true } }
