@@ -80,6 +80,7 @@
   font-weight: var(--g-text-caption-weight);
   letter-spacing: var(--g-text-caption-tracking);
   color: var(--g-color-text-muted);
+  overflow-wrap: anywhere;
 }
 /* Título fluido (#727): de title-lg al tope del tema por la caja; nunca por debajo de title-lg. El tamaño no sigue al
    nivel (#196). Interlineado relativo 1.08 (§29.6): un tamaño fluido no puede respetar un interlineado en px */
@@ -91,7 +92,7 @@
   font-size: clamp(var(--g-text-title-lg-size), 7.5cqi, var(--g-hero-title-max));
   line-height: 1.08;
   text-wrap: balance;
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
 }
 .g-hero__lead {
   margin: 0;
@@ -100,7 +101,8 @@
   line-height: var(--g-text-title-sm-line);
   color: var(--g-color-text-muted);
   text-wrap: pretty;
-  overflow-wrap: break-word;
+  /* anywhere (no break-word): en la columna flex con align-items: flex-start, solo anywhere baja el mínimo intrínseco */
+  overflow-wrap: anywhere;
 }
 .g-hero__consult {
   align-self: stretch;
@@ -118,7 +120,7 @@
   font-size: var(--g-text-body-sm-size);
   line-height: var(--g-text-body-sm-line);
   color: var(--g-color-text-muted);
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
 }
 
 /* ---------- Media: la foto prioritaria con su hueco reservado ---------- */

@@ -44,7 +44,6 @@ for (const pg of PAGES) {
   for (const tema of THEMES) {
     const qs = [pg.qs, `tema=${tema}`].filter(Boolean).join('&')
     test(`${pg.name} · ${tema}: sin desplazamiento horizontal a 1440, 390 y 320 (y 320 con texto al 200 %)`, async ({ page }) => {
-      test.fail(pg.file === 'hero.html', HERO_LEAD_OVERFLOW)
       await open(page, pg.file, qs)
       if (pg.blocks) expect(await page.locator('[data-gb]').count()).toBe(pg.blocks)
       for (const [w, h] of [[1440, 900], [390, 844], [320, 640]]) {

@@ -33,6 +33,8 @@
 .g-stack--orientation-horizontal.g-stack--h-end { justify-content: flex-end; }
 
 .g-stack > :where(:not(.g-tooltip)) { margin-block: 0; }
+/* as="ul"/"ol": sin viñetas ni sangría del navegador (la pila es la única fuente de aire). Safari/VoiceOver pierde la semántica de lista con list-style: none: la aplicación repone role="list" si la necesita */
+ul.g-stack, ol.g-stack { list-style: none; padding-inline-start: 0; margin-block: 0; }
 
 /* divided: la línea es el borde del hijo (en forced-colors un fondo desaparecería); aire a los dos lados.
    Un hijo con superficie propia (.g-surface, también GCard) no recibe la línea: su borde superior y su relleno son de la

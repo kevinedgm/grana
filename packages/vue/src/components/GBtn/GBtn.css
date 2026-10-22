@@ -235,6 +235,8 @@
   min-block-size: 0;
   padding-inline: 0;
   padding-block: 0;
+  /* en una columna flex (GSection, GStack) un enlace no se estira a todo el ancho con el texto centrado */
+  inline-size: fit-content;
   text-decoration: underline;
   text-decoration-thickness: var(--g-border-width);
   text-underline-offset: var(--g-focus-offset);

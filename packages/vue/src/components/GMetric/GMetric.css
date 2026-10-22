@@ -36,6 +36,13 @@
   font-weight: var(--g-text-body-weight);
   letter-spacing: 0;
   color: var(--g-color-text-muted);
+  /* La cifra pega con la unidad y su overflow-wrap: anywhere la partía por dentro («habita/ciones»). Caja en línea
+     atómica: entre la cifra y la unidad hay una oportunidad de salto, así que la unidad baja de línea entera; solo se
+     parte (break-word) si ella sola no cabe en la caja */
+  display: inline-block;
+  max-inline-size: 100%;
+  vertical-align: baseline;
+  overflow-wrap: break-word;
 }
 .g-metric__trend {
   display: inline-flex;
