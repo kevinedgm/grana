@@ -1025,3 +1025,29 @@ describe('GDatePicker · B-L6 y raíz con trigger (#739)', () => {
     expect(warn.mock.calls.some((c) => String(c[0]).includes('dentro de un <p>'))).toBe(true)
   })
 })
+
+describe('GDatePicker · dayDescription y forma del día con contenido (#778)', () => {
+  it('lo que devuelve se añade al nombre del día tras los sufijos de estado; vacío o no texto no añade nada', () => {
+    const calls = []
+    const w = inline({
+      modelValue: '2026-10-15',
+      dayDescription: (iso) => { calls.push(iso); return iso === '2026-10-15' ? '1,850 pesos mexicanos' : iso === '2026-10-16' ? '' : iso === '2026-10-17' ? 42 : null }
+    })
+    expect(day(w, '2026-10-15').attributes('aria-label')).toBe('jueves, 15 de octubre de 2026, hoy, seleccionada, 1,850 pesos mexicanos')
+    expect(day(w, '2026-10-16').attributes('aria-label')).toBe('viernes, 16 de octubre de 2026')
+    expect(day(w, '2026-10-17').attributes('aria-label')).toBe('sábado, 17 de octubre de 2026')
+    expect(calls).toContain('2026-10-01')
+    expect(calls).toContain('2026-10-31')
+  })
+  it('también en los días no disponibles, después de «no disponible»', () => {
+    const w = inline({ disabledDates: (iso) => iso === '2026-10-20', dayDescription: () => '900 pesos mexicanos' })
+    expect(day(w, '2026-10-20').attributes('aria-label')).toBe('martes, 20 de octubre de 2026, no disponible, 900 pesos mexicanos')
+  })
+  it('con el slot day la raíz lleva g-datepicker--day-content (todas las celdas); sin él, no', () => {
+    expect(inline().classes()).not.toContain('g-datepicker--day-content')
+    const w = inline({}, { slots: { day: ({ day: d }) => (d === 3 ? h('span', { class: 'x' }, '$9') : null) } })
+    expect(w.classes()).toContain('g-datepicker--day-content')
+    expect(day(w, '2026-10-03').find('.x').exists()).toBe(true)
+    expect(day(w, '2026-10-03').attributes('aria-label')).toBe('sábado, 3 de octubre de 2026')
+  })
+})

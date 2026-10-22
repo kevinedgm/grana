@@ -1,0 +1,99 @@
+{
+  "name": "GPriceScope",
+  "tag": "g-price-scope",
+  "schemaVersion": 1,
+  "status": "draft",
+  "since": "0.1.0",
+  "entry": "@grana/vue/price",
+  "bundle": {
+    "global": "GranaPrice",
+    "gzip": 5819,
+    "limit": 6144,
+    "umdGzip": 5281,
+    "mainGrowth": 1314,
+    "note": "gzip -9 de dist/price.js (ESM, con avisos); el lote del principal (utils/currency.js con la tabla, GNumberField currency, GDatePicker dayDescription) +1314 B sobre 219 368 B (tope 1536 B); slider.js +110 B"
+  },
+  "contract": "design/contracts/price.md",
+  "decisions": "DECISIONS.md #768 a #779",
+  "prototype": "design/lab/price/r01/",
+  "description": "B · La moneda se dice una vez: una región que declara su moneda con una leyenda con sello; dentro, un precio de esa moneda no lleva código y solo lo extranjero lo conserva. Con view, la aplicación cambia todos los precios de la región a la vez (sus alternativas, marcadas «aprox.»). Hereda locale y labels a sus GPrice. Sin rol, sin nombre, sin región viva.",
+  "style": "packages/vue/src/components/GPriceScope/GPriceScope.css",
+  "props": [
+    {
+      "name": "currency",
+      "type": "String",
+      "default": null,
+      "required": true,
+      "description": "Moneda de la región (ISO 4217). Obligatoria (aviso 10)."
+    },
+    {
+      "name": "view",
+      "type": "String",
+      "default": null,
+      "description": "Moneda de la vista (la elige la aplicación con su control, fuera de las tarjetas); sin valor, currency."
+    },
+    {
+      "name": "legend",
+      "type": "Boolean",
+      "default": true,
+      "description": "Pinta la leyenda con labels.legend. false: la aplicación promete que la moneda está dicha en otro sitio visible (los códigos se omiten igual)."
+    },
+    {
+      "name": "taxes",
+      "type": "String",
+      "default": null,
+      "description": "Texto de impuestos de la aplicación («IVA incluido»), tras la leyenda."
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "default": null,
+      "description": "BCP 47; lo heredan los precios de dentro (útil en SSR)."
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": {},
+      "description": "PriceLabels + legend («Precios en {name} ({code})»); los demás los heredan los GPrice de dentro."
+    },
+    {
+      "name": "as",
+      "type": "String",
+      "default": "div",
+      "values": [
+        "div",
+        "section",
+        "aside"
+      ],
+      "description": "Elemento de la región."
+    }
+  ],
+  "events": [],
+  "slots": [
+    {
+      "name": "default",
+      "purpose": "Contenido de la aplicación (carta, lista, carrito) con sus GPrice"
+    }
+  ],
+  "methods": [],
+  "tokens": [
+    "(coco cierra la lista exacta en GPriceScope.css; price.md «Tokens consumidos»)"
+  ],
+  "states": [
+    "legend",
+    "no-legend",
+    "view"
+  ],
+  "classes": [
+    "g-price-scope [data-currency=moneda de la vista] (raíz div|section|aside)",
+    "g-price-scope__legend (p, primer hijo) > g-price-scope__seal (aria-hidden), g-price-scope__legend-text, g-price-scope__taxes"
+  ],
+  "warnings": [
+    "10 · currency ausente o rechazada; view rechazada; legend sin labels.legend (los precios conservan su código)",
+    "9 · locale que Intl rechaza"
+  ],
+  "pending": [
+    "Auditoría de coco → candidate",
+    "README (mora-docs, dentro del de GPrice)"
+  ]
+}

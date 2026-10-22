@@ -38,7 +38,8 @@ export const ENTRIES = [
   { name: 'app-shell', src: 'src/app-shell.js' },
   { name: 'hero', src: 'src/hero.js' },
   { name: 'gallery', src: 'src/gallery.js' },
-  { name: 'booking', src: 'src/booking.js' }
+  { name: 'booking', src: 'src/booking.js' },
+  { name: 'price', src: 'src/price.js' }
 ]
 
 // ---------------------------------------------------------------------------------------------------------------------

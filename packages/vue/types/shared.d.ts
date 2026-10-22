@@ -1242,3 +1242,74 @@ export interface BookingSubmitEvent extends BookingQuery {
   preventDefault(): void
   readonly defaultPrevented: boolean
 }
+
+/** Importe en una moneda (`api.md` «Dinero y precio», price.md «Modelo»): unidades mayores y código ISO 4217. */
+export interface Money {
+  /** Unidades mayores (1850.5), finito. */
+  amount: number
+  /** Código ISO 4217 («MXN»); se normaliza a mayúsculas. */
+  currency: string
+  /** Lo pone la aplicación cuando el importe es una conversión suya («aprox.»). */
+  approximate?: boolean
+}
+/** A · La cuenta: el total de lo pedido, de la aplicación (Grana no multiplica). */
+export interface PriceTotal {
+  value: Money | Money[]
+  /** Unidad del total («por 2 noches»). */
+  label: string
+}
+/** Textos del precio (sin valores por defecto, #226); marcadores entre llaves. */
+export interface PriceLabels {
+  free?: string
+  onRequest?: string
+  before?: string
+  /** Plantilla con `{min}` y `{max}` («{min} a {max}»). */
+  range?: string
+  /** Plantilla con `{amount}` («Ahorras {amount}»). */
+  saving?: string
+  approx?: string
+  total?: string
+}
+/** Opciones de `formatPrice` (price.md «Opciones»). */
+export interface PriceOptions {
+  locale?: string
+  display?: 'auto' | 'symbol' | 'code' | 'none'
+  cents?: 'auto' | 'always' | 'never'
+  lead?: string
+  unit?: string
+  unitLabel?: string
+  max?: Money | Money[] | null
+  compareAt?: Money | Money[] | null
+  compareLabel?: string
+  compareStyle?: 'trace' | 'strike'
+  total?: PriceTotal | null
+  scopeCurrency?: string
+  view?: string
+  labels?: PriceLabels
+}
+/** Partes visibles de un importe. */
+export interface PriceAmountParts {
+  minus: string
+  symbolBefore: string
+  number: string
+  symbolAfter: string
+  code: string
+  currency: string
+}
+/** Resultado de `formatPrice`: lo visible (`text`), la frase (`spoken`) y las partes. */
+export interface FormattedPrice {
+  state: 'amount' | 'free' | 'onRequest' | 'invalid'
+  currency: string | null
+  text: string
+  spoken: string
+  parts: {
+    lead: string
+    approx: string
+    unit: string
+    amount: PriceAmountParts | null
+    range: { before: string; between: string; after: string; max: PriceAmountParts } | null
+    compare: { label: string; style: 'trace' | 'strike'; amount: PriceAmountParts; text: string } | null
+    saving: { text: string; amount: Money } | null
+    total: { label: string; unit: string; amount: PriceAmountParts; text: string } | null
+  }
+}

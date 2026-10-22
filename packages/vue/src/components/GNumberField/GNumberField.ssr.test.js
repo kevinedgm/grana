@@ -33,3 +33,17 @@ describe('SSR · GNumberField', () => {
     expect(html).toMatch(/<input type="hidden" name="peso" value="12345.5"/)
   })
 })
+
+describe('SSR · GNumberField currency (#777)', () => {
+  it('con locale: el símbolo en su lado y el texto formateado', async () => {
+    const html = await render({ modelValue: 1850, locale: 'es-MX', currency: 'MXN' })
+    expect(html).toContain('<span class="g-input__prefix" aria-hidden="true">$ MXN</span>')
+    expect(html).toContain('pesos mexicanos')
+    expect(html).toMatch(/value="1,850.00"/)
+  })
+  it('sin locale: el canónico sin afijo de moneda (se pone al montar)', async () => {
+    const html = await render({ modelValue: 1850, currency: 'MXN' })
+    expect(html).not.toContain('g-input__prefix')
+    expect(html).toMatch(/<input type="hidden" name="peso" value="1850"/)
+  })
+})

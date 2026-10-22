@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GPrice · banco del componente real (bruno)</title>
+<!-- Banco de GPrice, GPriceScope, GNumberField currency, GDatePicker dayDescription y GSlider con moneda, con los componentes
+     REALES (dist/grana.umd.js + dist/price.umd.js, global GranaPrice; dueño: bruno). Lo verifican
+     design/lab/theme-playground/tests/price.spec.mjs y personalidad-price.spec.mjs. Mismas escenas que kiwi r01
+     (design/lab/price/r01/). Parámetros: ?c=base|A|B|C · ?lang=en-US · ?dark=1 · ?dir=rtl · ?w=<px> · ?many=50 (rendimiento de A). -->
+<link rel="stylesheet" href="../dist/fonts.css">
+<link rel="stylesheet" href="../dist/grana.css">
+<style>
+  body{margin:0;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
+  main{padding:16px;max-inline-size:1100px;margin-inline:auto;box-sizing:border-box}
+  h1{font-size:24px;margin:0 0 8px}
+  h2{font-size:18px;margin:32px 0 12px}
+  .pr-nav{display:flex;gap:12px;flex-wrap:wrap;margin-block-end:8px}
+  .pr-cards{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+  .pr-controls{margin-block-end:16px;max-inline-size:320px}
+  .pr-menu{margin:0}
+  .pr-menu__row{display:grid;grid-template-columns:1fr auto;gap:4px 16px;padding-block:8px;border-block-end:1px solid var(--g-color-border)}
+  .pr-menu__name{font-weight:600}
+  .pr-menu__desc{margin:0;color:var(--g-color-text-muted);grid-column:1}
+  .pr-menu__price{margin:0;grid-column:2;grid-row:1 / span 2;text-align:end;align-self:center}
+  .pr-cart{margin:0;max-inline-size:520px}
+  .pr-cart__row{display:flex;justify-content:space-between;gap:16px;padding-block:6px}
+  .pr-cart__row dd{margin:0;text-align:end}
+  .pr-edge{list-style:none;padding:0;display:grid;gap:12px}
+  .pr-edge__k{display:inline-block;min-inline-size:180px;color:var(--g-color-text-muted)}
+  .pr-many{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+</style>
+</head>
+<body>
+<div id="app">
+  <main :style="Q.w ? { maxInlineSize: Q.w + 'px' } : null">
+    <h1>GPrice · banco</h1>
+    <nav class="pr-nav" aria-label="Conceptos">
+      <a v-for="k in ['base','A','B','C']" :key="k" :href="'?c=' + k + (LANG !== 'es-MX' ? '&lang=' + LANG : '')" :aria-current="Q.c === k ? 'page' : undefined">{{ k === 'base' ? 'Base' : k }}</a>
+    </nav>
+
+    <section v-if="Q.many" aria-labelledby="h-many">
+      <h2 id="h-many">50 precios con total</h2>
+      <div class="pr-controls"><g-number-field label="Noches" v-model="nights" :min="1" :max="7" steppers decrement-label="Una noche menos" increment-label="Una noche más" size="sm" id="many-nights"></g-number-field></div>
+      <div class="pr-many">
+        <g-price v-for="i in Q.many" :key="i" :value="mxn(1850 + i)" :total="{ value: mxn((1850 + i) * nights + (nights > 2 ? 400 : 0)), label: L.nights(nights) }" :labels="labels" size="md" />
+      </div>
+    </section>
+
+    <template v-else>
+    <section aria-labelledby="h-cards">
+      <h2 id="h-cards">Tarjetas de oferta</h2>
+      <div class="pr-controls" v-if="Q.c === 'A'" data-nights>
+        <g-number-field label="Noches" v-model="nights" :min="1" :max="7" steppers decrement-label="Una noche menos" increment-label="Una noche más" size="sm"></g-number-field>
+      </div>
+      <div class="pr-controls" v-if="Q.c === 'B'" data-view>
+        <g-radio-group :label="L.view" appearance="segmented" v-model="view" :options="viewOptions" size="sm"></g-radio-group>
+      </div>
+      <component :is="Q.c === 'B' ? 'g-price-scope' : 'div'" v-bind="Q.c === 'B' ? { currency: 'MXN', view, taxes: L.taxes, labels } : {}" data-scope="cards">
+        <ul class="pr-cards">
+          <li v-for="r in ROOMS" :key="r.id">
+            <g-card as="article" level="outlined" :eyebrow="r.eyebrow" :title="r.title" :description="r.meta" interaction="link" :href="'#' + r.id" :data-room="r.id" @navigate="(e) => e.event && e.event.preventDefault()">
+              <g-price v-if="r.usdOnly" :value="usd(r.usdOnly)" :unit="L.perPersonShort" :unit-label="L.perPerson" :labels="labels"></g-price>
+              <g-price v-else :value="Q.c === 'B' ? alt(r.from) : mxn(r.from)" :lead="L.from" :unit="L.perNightShort" :unit-label="L.perNight"
+                :compare-at="r.compare ? (Q.c === 'B' ? alt(r.compare) : mxn(r.compare)) : null" :compare-label="r.compare ? L.compareSeason : undefined"
+                :compare-style="Q.c === 'base' ? 'strike' : 'trace'"
+                :total="Q.c === 'A' ? totalFor(r) : null" :labels="labels"></g-price>
+            </g-card>
+          </li>
+        </ul>
+      </component>
+    </section>
+
+    <section aria-labelledby="h-menu">
+      <h2 id="h-menu">Carta del restaurante</h2>
+      <g-price-scope currency="MXN" :taxes="L.taxes" :labels="labels" data-scope="menu">
+        <dl class="pr-menu">
+          <div class="pr-menu__row" v-for="d in MENU" :key="d.name" :data-dish="d.key">
+            <dt class="pr-menu__name">{{ d.name }}</dt>
+            <dd class="pr-menu__desc">{{ d.desc }}</dd>
+            <dd class="pr-menu__price"><g-price :value="d.price === null ? null : mxn(d.price)" size="sm"></g-price></dd>
+          </div>
+        </dl>
+      </g-price-scope>
+    </section>
+
+    <section aria-labelledby="h-cart">
+      <h2 id="h-cart">Pie de carrito (monedas mezcladas)</h2>
+      <g-price-scope currency="MXN" :labels="labels" data-scope="cart">
+        <dl class="pr-cart">
+          <div class="pr-cart__row" v-for="l in CART" :key="l.k"><dt>{{ l.k }}</dt><dd><g-price :value="l.v" size="sm" cents="always"></g-price></dd></div>
+          <div class="pr-cart__row"><dt>Total en pesos</dt><dd><g-price :value="mxn(3500)" size="lg" cents="always"></g-price></dd></div>
+          <div class="pr-cart__row"><dt>Total en dólares</dt><dd><g-price :value="usd(190)" size="lg" cents="always"></g-price></dd></div>
+        </dl>
+      </g-price-scope>
+    </section>
+
+    <section aria-labelledby="h-cal">
+      <h2 id="h-cal">Precio por noche en el calendario</h2>
+      <p id="cal-legend">{{ L.calendarLegend }}</p>
+      <div data-cal>
+        <g-date-picker inline mode="range" v-model="dayRange" :min="TODAY" months="1" :labels="calLabels" :day-description="dayDescription">
+          <template #day="{ date, disabled, outside }">
+            <g-price v-if="!disabled && !outside" :value="mxn(dayPrice(date))" size="xs" display="none" cents="never" :labels="labels"></g-price>
+          </template>
+        </g-date-picker>
+      </div>
+    </section>
+
+    <section aria-labelledby="h-edge">
+      <h2 id="h-edge">Casos límite</h2>
+      <ul class="pr-edge">
+        <li data-case="range"><span class="pr-edge__k">Rango</span> <g-price :value="mxn(900)" :max="mxn(1400)" :unit="L.perPersonShort" :unit-label="L.perPerson" :labels="labels"></g-price></li>
+        <li data-case="free"><span class="pr-edge__k">Gratis</span> <g-price :value="mxn(0)" :labels="labels"></g-price></li>
+        <li data-case="free-compare"><span class="pr-edge__k">Gratis con referencia</span> <g-price :value="mxn(0)" :compare-at="mxn(150)" :compare-label="L.listPrice" :labels="labels"></g-price></li>
+        <li data-case="on-request"><span class="pr-edge__k">A consultar</span> <g-price :value="null" :labels="labels"></g-price></li>
+        <li data-case="negative"><span class="pr-edge__k">Descuento</span> <g-price :value="mxn(-200)" cents="always" :labels="labels"></g-price></li>
+        <li data-case="jpy"><span class="pr-edge__k">JPY</span> <g-price :value="{ amount: 12800, currency: 'JPY' }" :labels="labels"></g-price></li>
+        <li data-case="kwd"><span class="pr-edge__k">KWD</span> <g-price :value="{ amount: 12.125, currency: 'KWD' }" :labels="labels"></g-price></li>
+        <li data-case="en-mxn" lang="en-US"><span class="pr-edge__k">MXN en inglés</span> <g-price :value="mxn(1850)" :labels="labels"></g-price></li>
+        <li data-case="eur-de" lang="de-DE"><span class="pr-edge__k">EUR en alemán</span> <g-price :value="{ amount: 1850, currency: 'EUR' }" :labels="labels"></g-price></li>
+        <li data-case="ar" lang="ar-EG" dir="rtl"><span class="pr-edge__k">جنيه مصري</span> <g-price :value="{ amount: 1850, currency: 'EGP' }" :compare-at="{ amount: 2300, currency: 'EGP' }" compare-label="سعر القائمة" :labels="labels"></g-price></li>
+        <li data-case="approx"><span class="pr-edge__k">Aproximado</span> <g-price :value="usd(105, { approximate: true })" :labels="labels"></g-price></li>
+        <li data-case="xl"><span class="pr-edge__k">Plan</span> <g-price :value="mxn(499)" :unit="L.perMonthShort" :unit-label="L.perMonth" size="xl" :labels="labels"></g-price></li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="h-field">
+      <h2 id="h-field">Campo de moneda (GNumberField currency) y deslizador con moneda</h2>
+      <g-form-layout>
+        <g-form-row>
+          <g-select label="Moneda" v-model="fieldCurrency" :options="currencies" name="moneda" data-field-currency></g-select>
+          <g-number-field label="Precio por noche" hint="Sin impuestos" v-model="fieldAmount" :currency="fieldCurrency" name="precio" :min="0" data-field="main"></g-number-field>
+        </g-form-row>
+        <g-form-row>
+          <g-number-field label="Precio en yenes" v-model="fieldJpy" currency="JPY" name="precio_jpy" data-field="jpy"></g-number-field>
+          <g-number-field label="Preis pro Nacht" v-model="fieldDe" currency="EUR" locale="de-DE" lang="de-DE" name="preis" data-field="de"></g-number-field>
+        </g-form-row>
+        <g-form-row>
+          <g-slider label="Precio máximo" v-model="sliderMax" :min="0" :max="5000" :step="50" :format="{ style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }" name="tope" data-field="slider" :labels="{}"></g-slider>
+        </g-form-row>
+      </g-form-layout>
+      <p>Modelo: <output data-model>{{ JSON.stringify({ amount: fieldAmount, currency: fieldCurrency }) }}</output></p>
+    </section>
+    </template>
+  </main>
+</div>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="../dist/grana.umd.js"></script>
+<script src="../dist/slider.umd.js"></script>
+<script src="../dist/price.umd.js"></script>
+<script>
+  const q = new URLSearchParams(location.search)
+  const LANG = q.get('lang') === 'en-US' ? 'en-US' : 'es-MX'
+  const Q = { c: ['base', 'A', 'B', 'C'].includes(q.get('c')) ? q.get('c') : 'C', w: Number(q.get('w')) || 0, many: Number(q.get('many')) || 0 }
+  document.documentElement.lang = LANG
+  if (q.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  if (q.has('dark')) document.documentElement.dataset.theme = 'dark'
+  // Textos de la aplicación (Grana no trae textos por defecto, #226)
+  const L = {
+    'es-MX': { view: 'Ver precios en', taxes: 'IVA incluido', perNight: 'por noche', perNightShort: '/ noche', perPerson: 'por persona', perPersonShort: '/ persona', perMonth: 'al mes', perMonthShort: '/ mes', from: 'desde', compareSeason: 'Temporada alta', listPrice: 'Precio de lista', nights: (n) => `por ${n} ${n === 1 ? 'noche' : 'noches'}`, calendarLegend: 'Precio por noche en pesos mexicanos' },
+    'en-US': { view: 'Show prices in', taxes: 'VAT included', perNight: 'per night', perNightShort: '/ night', perPerson: 'per person', perPersonShort: '/ person', perMonth: 'per month', perMonthShort: '/ mo', from: 'from', compareSeason: 'High season', listPrice: 'List price', nights: (n) => `for ${n} ${n === 1 ? 'night' : 'nights'}`, calendarLegend: 'Nightly price in Mexican pesos' }
+  }[LANG]
+  const labels = {
+    'es-MX': { free: 'Gratis', onRequest: 'Precio a consultar', before: 'Antes', range: '{min} a {max}', saving: 'Ahorras {amount}', approx: 'aprox.', total: 'Total', legend: 'Precios en {name} ({code})' },
+    'en-US': { free: 'Free', onRequest: 'Price on request', before: 'Was', range: '{min} to {max}', saving: 'You save {amount}', approx: 'approx.', total: 'Total', legend: 'Prices in {name} ({code})' }
+  }[LANG]
+  const mxn = (amount, x) => ({ amount, currency: 'MXN', ...x })
+  const usd = (amount, x) => ({ amount, currency: 'USD', ...x })
+  const RATE = 17.6 // solo para fabricar alternativas «aprox.»: la conversión es de la aplicación, nunca de Grana
+  const alt = (amount) => [mxn(amount), usd(Math.round((amount / RATE) * 100) / 100, { approximate: true })]
+  const NIGHTLY = [1850, 1850, 2250, 2250, 1850, 1850, 1850]
+  const ROOMS = [
+    { id: 'patio', eyebrow: 'Habitación', title: 'Patio de los naranjos', meta: '2 personas · cama queen · 24 m²', from: 1850, nightly: NIGHTLY, compare: 2300 },
+    { id: 'terraza', eyebrow: 'Suite', title: 'Terraza con vista a Santo Domingo', meta: '3 personas · cama king · 38 m²', from: 2900, nightly: NIGHTLY.map((n) => n + 1050) },
+    { id: 'tour', eyebrow: 'Recorrido', title: 'Hierve el Agua y Mitla', meta: 'Día completo · salida 8:00', usdOnly: 95 }
+  ]
+  const MENU = [
+    { key: 'tlayuda', name: 'Tlayuda de tasajo', desc: 'Asiento, quesillo, frijol y tasajo', price: 185 },
+    { key: 'mole', name: 'Mole negro con pollo', desc: 'Receta de la casa', price: 240 },
+    { key: 'agua', name: 'Agua de chilacayota', desc: 'Jarra para la mesa', price: 0 },
+    { key: 'mezcal', name: 'Mezcal espadín (copa)', desc: 'Selección de la semana', price: 95.5 },
+    { key: 'temporada', name: 'Menú de temporada', desc: 'Cambia cada semana', price: null }
+  ]
+  const TODAY = new Date().toISOString().slice(0, 10)
+  const dayPrice = (iso) => { const d = new Date(iso + 'T00:00:00Z').getUTCDay(); return d === 5 || d === 6 ? 2250 : 1850 }
+  const app = Vue.createApp({
+    setup() {
+      const nights = Vue.ref(2)
+      const view = Vue.ref('MXN')
+      const fieldAmount = Vue.ref(1850)
+      const fieldCurrency = Vue.ref('MXN')
+      const fieldJpy = Vue.ref(null)
+      const fieldDe = Vue.ref(1850)
+      const sliderMax = Vue.ref(800)
+      const dayRange = Vue.ref(null)
+      const totalFor = (r) => ({ value: mxn(r.nightly.slice(0, nights.value).reduce((a, b) => a + b, 0)), label: L.nights(nights.value) })
+      Vue.onMounted(() => Vue.nextTick(() => { window.__price.ready = true }))
+      window.__price = { ready: false, Q, LANG, nights, view, fieldAmount, fieldCurrency, fieldJpy, fieldDe, sliderMax, formatPrice: GranaPrice.formatPrice }
+      return {
+        Q, L, LANG, labels, ROOMS, MENU, TODAY, mxn, usd, alt, totalFor, dayPrice, nights, view, fieldAmount, fieldCurrency, fieldJpy, fieldDe, sliderMax, dayRange,
+        viewOptions: [{ value: 'MXN', label: 'MXN' }, { value: 'USD', label: 'USD (aprox.)' }],
+        currencies: [{ value: 'MXN', label: 'MXN · peso mexicano' }, { value: 'USD', label: 'USD · dólar estadounidense' }, { value: 'JPY', label: 'JPY · yen japonés' }, { value: 'EUR', label: 'EUR · euro' }],
+        CART: [{ k: 'Patio de los naranjos · 2 noches', v: mxn(3700) }, { k: 'Recorrido Hierve el Agua · 2 personas', v: usd(190) }, { k: 'Desayuno oaxaqueño · 2', v: mxn(0) }, { k: 'Descuento de temporada', v: mxn(-200) }],
+        calLabels: { prev: 'Mes anterior', next: 'Mes siguiente', dialog: 'Elegir fechas', today: 'hoy', rangeStart: 'llegada', rangeEnd: 'salida', inRange: 'en tu estancia', selected: 'elegida', unavailable: 'sin disponibilidad', rangeSingle: 'llegada y salida' },
+        dayDescription: (iso) => (iso >= TODAY ? GranaPrice.formatPrice(mxn(dayPrice(iso)), { locale: LANG }).spoken : '')
+      }
+    }
+  })
+  app.use(Grana.default || Grana)
+  app.use(GranaSlider.default || GranaSlider)
+  app.use(GranaPrice.default || GranaPrice)
+  app.mount('#app')
+</script>
+</body>
+</html>

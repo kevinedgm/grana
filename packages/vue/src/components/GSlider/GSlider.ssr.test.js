@@ -32,7 +32,7 @@ describe('SSR · GSlider', () => {
   it('con locale: el texto ya formateado (idéntico al primer render del cliente)', async () => {
     const html = await render({ modelValue: 2400, max: 5000, locale: 'es-MX', format: { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 } })
     expect(html).toContain('>$2,400</span>')
-    expect(html).toContain('aria-valuetext="$2,400"')
+    expect(html).toContain('aria-valuetext="2,400 pesos mexicanos"')
     expect(html).toMatch(/<input type="hidden" name="p" value="2400">/)
   })
 })

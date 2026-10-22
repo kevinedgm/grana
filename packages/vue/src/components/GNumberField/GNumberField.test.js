@@ -892,3 +892,143 @@ describe('GNumberField · avisos de desarrollo', () => {
     expect(get().filter((t) => /no es un número finito/.test(t)).length).toBe(1)
   })
 })
+
+// ---------- Moneda (number-field.md «Moneda», #777; defectos 1 y 2 de P-L7) ----------
+describe('GNumberField · currency (#777)', () => {
+  const paste = async (w, t) => {
+    const el = field(w).element
+    el.focus()
+    el.setSelectionRange(el.value.length, el.value.length)
+    const e = new Event('paste', { bubbles: true, cancelable: true })
+    e.clipboardData = { getData: () => t }
+    el.dispatchEvent(e)
+    await nextTick()
+    return e
+  }
+  const clear = async (w) => {
+    const el = field(w).element
+    el.value = ''
+    await field(w).trigger('input')
+  }
+
+  it('precisión e inputmode derivados de la moneda; la precision explícita gana', async () => {
+    expect(field(mk({ currency: 'MXN', locale: 'es-MX', modelValue: 1 })).attributes('inputmode')).toBe('decimal')
+    expect(field(mk({ currency: 'jpy', locale: 'es-MX', modelValue: 1 })).attributes('inputmode')).toBe('numeric')
+    const w = mk({ currency: 'MXN', locale: 'es-MX', modelValue: 2500.5 })
+    await nextTick()
+    expect(field(w).element.value).toBe('2,500.50')
+    const p = mk({ currency: 'MXN', locale: 'es-MX', precision: 0, modelValue: 12 })
+    expect(field(p).attributes('inputmode')).toBe('numeric')
+  })
+
+  it('símbolo en su lado: delante en es-MX (con el código, ambiguo), detrás en de-DE; MX$ sin código en en-US', async () => {
+    const mx = mk({ currency: 'MXN', locale: 'es-MX', modelValue: 1850 })
+    expect(mx.find('.g-input__prefix').text()).toBe('$ MXN')
+    expect(mx.find('.g-input__suffix').exists()).toBe(false)
+    const de = mk({ currency: 'EUR', locale: 'de-DE', modelValue: 1850 })
+    expect(de.find('.g-input__suffix').text()).toBe('€')
+    expect(de.find('.g-input__prefix').exists()).toBe(false)
+    const en = mk({ currency: 'MXN', locale: 'en-US', modelValue: 1850 })
+    expect(en.find('.g-input__prefix').text()).toBe('MX$')
+  })
+
+  it('el nombre de la moneda entra en la descripción (prefixLabel) y no en aria-valuetext; el símbolo es aria-hidden', async () => {
+    const w = mk({ currency: 'MXN', locale: 'es-MX', modelValue: 2500.5 })
+    await nextTick()
+    expect(w.find('.g-input__prefix').attributes('aria-hidden')).toBe('true')
+    const label = w.find('.g-input__prefix-label')
+    expect(label.text()).toBe('pesos mexicanos')
+    expect(field(w).attributes('aria-describedby')).toContain(label.attributes('id'))
+    expect(field(w).attributes('aria-valuetext')).toBe('2,500.50')
+  })
+
+  it('el lado de la moneda es de la moneda: prefix se ignora con aviso; el otro lado queda libre', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const w = mk({ currency: 'MXN', locale: 'es-MX', prefix: '€', prefixLabel: 'euros', suffix: '/ noche', modelValue: 1 })
+    await nextTick()
+    expect(w.find('.g-input__prefix').text()).toBe('$ MXN')
+    expect(w.find('.g-input__suffix').text()).toBe('/ noche')
+    expect(warn.mock.calls.some((c) => /lado que ocupa la moneda/.test(c[0]))).toBe(true)
+  })
+
+  it('se formatea al salir, no mientras se escribe; el canónico oculto y el modelo Number', async () => {
+    const w = mk({ currency: 'MXN', locale: 'es-MX', name: 'precio', modelValue: null })
+    field(w).element.focus()
+    await field(w).trigger('focus')
+    await typeText(w, '2500.5')
+    expect(field(w).element.value).toBe('2500.5')
+    expect(models(w).at(-1)).toBe(2500.5)
+    await field(w).trigger('blur')
+    expect(field(w).element.value).toBe('2,500.50')
+    expect(hidden(w).attributes('value')).toBe('2500.5')
+  })
+
+  it('defecto 1: cambiar a una moneda con menos decimales emite una vez el valor redondeado, sin change, y el oculto coincide', async () => {
+    const w = mk({ currency: 'MXN', locale: 'es-MX', name: 'precio', modelValue: 2500.5 })
+    await w.setProps({ currency: 'JPY' })
+    await nextTick()
+    expect(models(w)).toEqual([2501])
+    expect(changes(w)).toEqual([])
+    expect(field(w).element.value).toBe('2,501')
+    expect(hidden(w).attributes('value')).toBe('2501')
+    // Salir después no emite change (fue un cambio desde la aplicación)
+    await field(w).trigger('focus')
+    await field(w).trigger('blur')
+    expect(changes(w)).toEqual([])
+    // Cambiar la precision explícita también
+    const p = mk({ currency: 'MXN', locale: 'es-MX', modelValue: 10.25 })
+    await p.setProps({ precision: 1 })
+    expect(models(p)).toEqual([10.3])
+  })
+
+  it('aviso 11: un valor de la aplicación con más decimales se muestra y se envía redondeado, sin emitir', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const w = mk({ currency: 'MXN', locale: 'es-MX', name: 'precio', modelValue: 10.555 })
+    await nextTick()
+    expect(field(w).element.value).toBe('10.56')
+    expect(hidden(w).attributes('value')).toBe('10.56')
+    expect(models(w)).toEqual([])
+    expect(warn.mock.calls.some((c) => /más decimales que la precisión de MXN/.test(c[0]))).toBe(true)
+  })
+
+  it('defecto 2: pegar con símbolo, código o nombre de esa moneda se interpreta; otra moneda no entra', async () => {
+    const w = mk({ currency: 'MXN', locale: 'es-MX', modelValue: null })
+    await paste(w, '$1,850.00 MXN')
+    expect(models(w).at(-1)).toBe(1850)
+    await clear(w)
+    await paste(w, 'MXN 95')
+    expect(models(w).at(-1)).toBe(95)
+    await clear(w)
+    await paste(w, '1,850 pesos mexicanos')
+    expect(models(w).at(-1)).toBe(1850)
+    await clear(w)
+    const before = models(w).length
+    await paste(w, '€50')
+    expect(models(w).length).toBe(before)
+    const de = mk({ currency: 'EUR', locale: 'de-DE', modelValue: null })
+    await paste(de, '1.850,00 €')
+    expect(models(de).at(-1)).toBe(1850)
+    // Sin currency, el pegado de siempre: «$1,850» no es un número
+    const plain = mk({ locale: 'es-MX', modelValue: null })
+    await paste(plain, '$1,850')
+    expect(models(plain)).toEqual([])
+  })
+
+  it('aviso 9: una moneda mal formada deja el campo sin moneda', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const w = mk({ currency: 'pesos', locale: 'es-MX', modelValue: 1.25 })
+    expect(w.find('.g-input__prefix').exists()).toBe(false)
+    expect(warn.mock.calls.some((c) => /currency «pesos»/.test(c[0]))).toBe(true)
+  })
+
+  it('moneda elegible: GSelect «Moneda» + GNumberField currency en una GFormRow redondea al cambiar', async () => {
+    const amount = ref(2500.5)
+    const cur = ref('MXN')
+    const w = host('<g-form-row><g-number-field label="Precio" locale="es-MX" name="precio" v-model="amount" :currency="cur" /></g-form-row>', () => ({ amount, cur }))
+    cur.value = 'JPY'
+    await nextTick()
+    await nextTick()
+    expect(amount.value).toBe(2501)
+    expect(w.find('input[type="hidden"]').attributes('value')).toBe('2501')
+  })
+})

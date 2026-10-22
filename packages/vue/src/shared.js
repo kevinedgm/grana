@@ -45,6 +45,10 @@
 // GRadioGroup, GDialog, GBtn, GLibIcon, useFormField con las claves de contexto, el registro de reservas de borde
 // (edgeReserve con EDGE_ORDER.bookingDock), anchor, liveRegion, template, dates, sizeObserver y oneOf.
 //
+// El precio (`@grana/vue/price`, #776: vite.price.config.js y src/price.test.js) toma de aquí los datos de la moneda
+// (utils/currency.js con la tabla de símbolos compartidos, la misma que usa GNumberField currency), template, oneOf, nextFrame
+// (formContext) y GLibIcon; su regla (utils/price.js, formatPrice) vive en la entrada.
+//
 // vite.speech.config.js redirige cada importación relativa de la entrada speech que sale de sus carpetas
 // (GSpeechHost, GSpeechPill, GSpeechTrigger, GTranscript) a la clave correspondiente de este mapa (ruta relativa a src/). Si la
 // captura empieza a importar un módulo nuevo del principal, hay que añadirlo aquí: el build se detiene si falta la
@@ -93,6 +97,7 @@ import { sectionKey as gSectionKey } from './utils/sectionKey.js'
 import { transitionMs } from './utils/motion.js'
 import { createHighlight, createPointer, createTypeahead, focusItem, repeatGesture, stepTo } from './utils/menuNav.js'
 import { warnMissingCategory } from './utils/categoryToken.js'
+import { BIDI, currencyCode, currencyDigits, currencyName, isShared, nf } from './utils/currency.js'
 
 // Literal de objetos sin llamadas: quien importa @grana/vue sin usar la captura lo poda entero.
 export const shared = {
@@ -139,5 +144,6 @@ export const shared = {
   'utils/sectionKey.js': { sectionKey: gSectionKey },
   'utils/motion.js': { transitionMs },
   'utils/menuNav.js': { createHighlight, createPointer, createTypeahead, focusItem, repeatGesture, stepTo },
-  'utils/categoryToken.js': { warnMissingCategory }
+  'utils/categoryToken.js': { warnMissingCategory },
+  'utils/currency.js': { BIDI, currencyCode, currencyDigits, currencyName, isShared, nf }
 }

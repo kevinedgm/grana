@@ -20,6 +20,7 @@ const props = defineProps({
   min: { type: String, default: undefined },
   max: { type: String, default: undefined },
   disabledDates: { type: Function, default: undefined },
+  dayDescription: { type: Function, default: undefined },
   disabledNights: { type: Function, default: undefined },
   minNights: { type: Number, default: undefined },
   maxNights: { type: Number, default: undefined },
@@ -292,6 +293,11 @@ function dayLabel(cell, st) {
   } else if (cell.iso === eff.value.a) add(l.rangeStart)
   if (st.checkoutOnly) add(l.checkoutOnly)
   if (st.disabled) add(l.unavailable)
+  // Dato del día de la aplicación (#778; p. ej. formatPrice(...).spoken): al final del nombre, sin aviso si no es texto
+  if (props.dayDescription) {
+    const d = props.dayDescription(cell.iso)
+    if (typeof d === 'string') add(d)
+  }
   return t
 }
 const cellSelected = (cell) => {
@@ -698,6 +704,8 @@ const classes = computed(() => [
     // Slot trigger (B-L7, #739): la raíz sin caja (display: contents, coco)
     'g-datepicker--trigger': hasTriggerSlot.value,
     'g-datepicker--split': splitOn.value,
+    // Slot day (#778): todas las celdas toman la forma de «día con contenido» de coco
+    'g-datepicker--day-content': Boolean(slots.day),
     'g-datepicker--has-output': hasOutput.value,
     'is-open': isOpen.value,
     'is-disabled': isDisabled.value,

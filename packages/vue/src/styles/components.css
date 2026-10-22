@@ -125,3 +125,7 @@
 @import url("../components/GGallery/GGallery.css");
 @import url("../components/GPartyField/GPartyField.css");
 @import url("../components/GBookingBar/GBookingBar.css");
+/* Moneda y precio (price.md, entrada @grana/vue/price, #776; su CSS sigue en grana.css): GPrice compone GIcon y entra en el
+   día de GDatePicker (size xs) y en GCard; GPriceScope envuelve precios: van después de sus hojas */
+@import url("../components/GPrice/GPrice.css");
+@import url("../components/GPriceScope/GPriceScope.css");

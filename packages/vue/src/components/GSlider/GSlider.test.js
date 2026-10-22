@@ -815,3 +815,24 @@ describe('GSlider · rendimiento', () => {
     expect(one.mock.calls.filter(([s]) => s === '.g-slider__pill'), 'sin volver a observar').toEqual([])
   })
 })
+
+describe('GSlider · moneda en la lectura (#779)', () => {
+  it('format currency sin valueText: la píldora con el símbolo y aria-valuetext con el nombre de la moneda', async () => {
+    const w = mk({ modelValue: 800, max: 2000, locale: 'es-MX', format: { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 } })
+    await nextTick()
+    expect(w.find('.g-slider__pill-text').text()).toBe('$800')
+    expect(nat(w).attributes('aria-valuetext')).toBe('800 pesos mexicanos')
+    const en = mk({ modelValue: 800, max: 2000, locale: 'en-US', format: { style: 'currency', currency: 'USD' } })
+    await nextTick()
+    expect(nat(en).attributes('aria-valuetext')).toBe('800 US dollars')
+  })
+  it('con marca, el nombre de la marca detrás; con valueText, manda la aplicación', async () => {
+    const f = { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }
+    const w = mk({ modelValue: 800, max: 2000, locale: 'es-MX', format: f, marks: [{ value: 800, label: 'Económico' }] })
+    await nextTick()
+    expect(nat(w).attributes('aria-valuetext')).toBe('800 pesos mexicanos, Económico')
+    const t = mk({ modelValue: 800, max: 2000, locale: 'es-MX', format: f, valueText: () => 'ochocientos' })
+    await nextTick()
+    expect(nat(t).attributes('aria-valuetext')).toBe('ochocientos')
+  })
+})

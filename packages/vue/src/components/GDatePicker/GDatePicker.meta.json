@@ -50,6 +50,12 @@
       "default": null
     },
     {
+      "name": "dayDescription",
+      "type": "Function",
+      "default": null,
+      "note": "(iso) => String (#778): se añade al aria-label del día tras los sufijos de estado (p. ej. formatPrice(...).spoken); vacío o no texto no añade nada. Con el slot day, la raíz lleva g-datepicker--day-content"
+    },
+    {
       "name": "disabledNights",
       "type": "Function",
       "default": null,

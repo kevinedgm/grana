@@ -52,6 +52,12 @@
       "note": "Entero ≥ 0: redondea el modelo en el acto y el texto al salir; 0 = entero (inputmode numeric)"
     },
     {
+      "name": "currency",
+      "type": "String",
+      "default": null,
+      "note": "Código ISO 4217 (#777): deriva precision (la explícita gana), el símbolo en su lado (con el código si es ambiguo) y su nombre en la descripción; cambiar la precisión efectiva emite el modelo redondeado sin change; pegar con símbolo, código o nombre de esa moneda se interpreta. Sin locale en SSR, sin afijo hasta montar"
+    },
+    {
       "name": "locale",
       "type": "String",
       "default": null,
@@ -307,7 +313,10 @@
     "precision menor que los decimales de step o min",
     "modelValue NaN/±Infinity",
     "locale que Intl rechaza",
-    "type en $attrs o slots append/action"
+    "type en $attrs o slots append/action",
+    "9 · currency que Intl rechaza: el campo se comporta sin moneda",
+    "10 · prefix/prefixLabel (o suffix/suffixLabel) en el lado que ocupa la moneda: se ignoran",
+    "11 · modelValue con más decimales que la precisión efectiva de la moneda: se muestra y se envía redondeado, sin emitir"
   ],
   "tokens": [
     "(los de GInput)",

@@ -170,6 +170,17 @@ export function format(v, o) {
   return formatter(o.locale, o.format).format(v).replace(BIDI, '')
 }
 
+/**
+ * Lectura del formato (#779): con `style: 'currency'`, el nombre de la moneda y sin decimales en los enteros («800 pesos
+ * mexicanos»; la regla de lectura de formatPrice, price.md): el lector nunca dice «dólar» por un «$» de pesos.
+ */
+function spokenFormat(v, o) {
+  if (o.locale === null || o.format?.style !== 'currency') return format(v, o)
+  const f = { ...o.format, currencyDisplay: 'name' }
+  if (Number.isInteger(v)) f.minimumFractionDigits = 0
+  return format(v, { ...o, format: f })
+}
+
 /** Texto de la píldora: `valueText(v)` de la aplicación o el formato (sin el nombre de la marca) */
 export function pillText(v, o) {
   if (v === null || v === undefined) return ''
@@ -181,7 +192,7 @@ export function pillText(v, o) {
 export function valueText(v, o) {
   if (v === null || v === undefined) return o.emptyText || ''
   if (typeof o.valueText === 'function') return o.valueText(v)
-  const t = format(v, o)
+  const t = spokenFormat(v, o)
   const m = (o.marks || []).find((x) => x.label && Math.abs(x.value - v) < 1e-9)
   return m && m.label !== t ? `${t}, ${m.label}` : t
 }

@@ -108,7 +108,7 @@
       "name": "format",
       "type": "Object",
       "default": null,
-      "note": "Opciones de Intl.NumberFormat (moneda, unidad, decimales); un porcentaje es { style: 'unit', unit: 'percent' }; style 'percent' con max > 1 avisa; lo que Intl rechaza avisa y se usa {}"
+      "note": "Opciones de Intl.NumberFormat (moneda, unidad, decimales); un porcentaje es { style: 'unit', unit: 'percent' }; style 'percent' con max > 1 avisa; lo que Intl rechaza avisa y se usa {}; con style 'currency' y sin valueText, aria-valuetext dice el nombre de la moneda y sin decimales en los enteros («800 pesos mexicanos», #779)"
     },
     {
       "name": "valueText",

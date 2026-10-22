@@ -163,6 +163,16 @@ must_not_have grana.js "GBookingBar" "GBookingBar viajó en el paquete principal
 must_not_have grana.js "GPartyField" "GPartyField viajó en el paquete principal grana.js; debe ir solo en la entrada booking.js (#742)"
 must_exist "booking.js" "No se generó la entrada propia booking.js (revisar vite.booking.config.js y el script build de packages/vue)"
 must_not_have booking.js "new WeakMap" "El registro de bordes (utils/edgeReserve.js) quedó copiado en booking.js; debe llegar por __shared sin copia (EDGE_ORDER.bookingDock)"
+# Moneda y precio (#776): entrada propia price.js (tope 6 KiB gzip); utils/currency.js y la tabla de símbolos en el principal
+must_have grana.css "g-price__spoken" "$CSS_MSG"
+must_have grana.css "g-price-scope__legend" "$CSS_MSG"
+must_have grana.css "g-datepicker--day-content" "$CSS_MSG"
+must_not_have grana.js "GPriceScope" "GPriceScope viajó en el paquete principal grana.js; debe ir solo en la entrada price.js (#776)"
+must_not_have grana.js "formatPrice" "formatPrice viajó en el paquete principal grana.js; se exporta solo desde @grana/vue/price (#776)"
+must_exist "price.js" "No se generó la entrada propia price.js (revisar vite.price.config.js y el script build de packages/vue)"
+must_not_have grana.js "supportedValuesOf" "La tabla de símbolos se calcula en el navegador; debe venir generada en el build (scripts/currency-symbols.mjs, #770)"
+must_not_have price.js "supportedValuesOf" "La tabla de símbolos se calcula en el navegador; debe venir generada en el build (scripts/currency-symbols.mjs, #770)"
+must_not_have price.js "\"Rs\"" "La tabla de símbolos quedó copiada en price.js; debe llegar por __shared desde utils/currency.js (#776)"
 
 echo
 if [ "$failed" -eq 0 ]; then
