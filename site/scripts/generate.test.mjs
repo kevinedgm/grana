@@ -86,6 +86,18 @@ test('los ejemplos marcados en un README se extraen como SFC', () => {
   assert.ok([...result.demoFiles.keys()].some((k) => k.startsWith('btn-')), 'falta el SFC del ejemplo de GBtn')
 })
 
+test('utilidades: página de guía en los dos idiomas, con ejemplos vivos y en la navegación lateral', () => {
+  for (const [file, locale] of [['utilities.md', 'es'], ['en/utilities.md', 'en']]) {
+    assert.ok(result.files.has(file), `falta ${file}`)
+    const page = result.files.get(file)
+    assert.match(page, /GranaExample1/, `${file}: sin ejemplo vivo (bloque \`vue demo\` del README)`)
+    const guide = result.locales[locale].sidebar[0].items
+    assert.ok(guide.some((i) => i.link === (locale === 'es' ? '/utilities' : '/en/utilities')), `${locale}: «Utilidades» no está en el grupo Guía`)
+  }
+  assert.ok([...result.demoFiles.keys()].some((k) => k.startsWith('utilities-')), 'falta el SFC del ejemplo de las utilidades')
+  assert.match(result.files.get('en/utilities.md'), /::: warning Translation pending/)
+})
+
 test('fixture: un componente nuevo con README genera página aunque no tenga meta.json', () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'grana-site-'))
   const w = (rel, text) => {
@@ -96,6 +108,7 @@ test('fixture: un componente nuevo con README genera página aunque no tenga met
   w('README.md', `# Grana\n\nIntro.\n\n- **Uno.** Dos.\n\n${sections.join('\n')}\n### Acciones\n\n[\`GNuevo\`](packages/vue/src/components/GNuevo/README.md)\n`)
   w('CHANGELOG.md', '# Changelog\n\n## [Sin publicar]\n')
   w('packages/cli/README.md', '# @grana/cli\n\nTexto.\n')
+  w('packages/vue/src/styles/README-utilities.md', '# Clases utilitarias\n\nTexto.\n')
   w(`${COMPONENTS_DIR}/GNuevo/README.md`, '# GNuevo\n\nUn componente.\n\n```vue demo\n<g-btn>Hola</g-btn>\n```\n\nVer [GBtn](../GBtn/README.md).\n')
   w(`${COMPONENTS_DIR}/GBtn/README.md`, '# GBtn\n\nBotón.\n\n## Uso\n\nTexto.\n')
   const r = generate({ root: tmp, write: false })

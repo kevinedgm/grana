@@ -20,7 +20,7 @@ function themeFor(locale) {
   const p = '/' + LOCALES[locale].prefix
   return {
     nav: [
-      { text: U.nav.guide, link: p + 'getting-started', activeMatch: `^${p}(getting-started|theming|cli|accessibility|personality|project)` },
+      { text: U.nav.guide, link: p + 'getting-started', activeMatch: `^${p}(getting-started|theming|cli|utilities|accessibility|personality|project)` },
       { text: U.nav.components, link: p + 'components/', activeMatch: `^${p}components/` },
       { text: U.nav.playground, link: p + 'playground', activeMatch: `^${p}playground` },
       { text: U.nav.changelog, link: p + 'changelog' },

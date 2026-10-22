@@ -5,6 +5,7 @@
 //   - packages/vue/src/components/<G…>/README.md + *.meta.json → una página por componente
 // Español es la fuente. Para inglés se usa `<archivo>.en.md` si existe; si no, la página en
 // inglés muestra el español con el aviso «Translation pending».
+// Páginas de guía con `demos: true` en GUIDE (hoy «Utilidades»): igual, desde su propio README.
 // Ejemplos vivos: bloques ```vue demo de los README (convención en site/README.md) o, si el
 // README no tiene ninguno, la demo de respaldo site/demos/<Componente>.vue.
 
@@ -27,6 +28,8 @@ export const GUIDE = [
   { id: 'getting-started', file: 'README.md', sections: ['Estado', 'Instalación'] },
   { id: 'theming', file: 'README.md', sections: ['Tematización'] },
   { id: 'cli', file: 'packages/cli/README.md', whole: true },
+  // Utilidades (clases `g-*`): sin componente ni meta.json; la página sale de su README y admite ejemplos vivos.
+  { id: 'utilities', file: 'packages/vue/src/styles/README-utilities.md', whole: true, demos: true },
   { id: 'accessibility', file: 'README.md', sections: ['Accesibilidad', 'Navegadores y SSR'] },
   { id: 'personality', file: 'README.md', sections: ['Personalidad'] },
   { id: 'components/', file: 'README.md', sections: ['Componentes'], index: true },
@@ -147,7 +150,14 @@ function buildPlan(root, locale) {
       const { title, body } = lib.stripH1(src.text)
       page.title = g.id === 'cli' ? title : t(locale, `pages.${g.id}`)
       page.parts.push({ kind: 'gen', text: `# ${page.title}\n` })
-      page.parts.push({ kind: 'src', doc: logical(src.rel), rel: src.rel, text: body, headingOffset: 1 })
+      if (g.demos) {
+        // Páginas de guía con ejemplos vivos: bloques `vue demo` del README, como en un componente.
+        page.demoSlug = g.id
+        for (const seg of lib.extractDemos(body)) {
+          if (seg.type === 'md') page.parts.push({ kind: 'src', doc: logical(src.rel), rel: src.rel, text: seg.text, headingOffset: 1 })
+          else page.parts.push({ kind: 'demo', code: seg.code })
+        }
+      } else page.parts.push({ kind: 'src', doc: logical(src.rel), rel: src.rel, text: body, headingOffset: 1 })
     } else {
       const split = src.rel === 'README.md' ? esSplit : lib.splitSections(src.text, 2)
       const idx = g.sections.map((name) => {
@@ -259,7 +269,7 @@ function buildPlan(root, locale) {
   }
   // las partes `src` de un README de componente: el desplazamiento de encabezados es 1 (H1 fuera)
   // más los encabezados de los segmentos anteriores (los bloques de ejemplo no tienen).
-  for (const p of pages.filter((p) => p.component)) {
+  for (const p of pages.filter((p) => p.component || p.demoSlug)) {
     let offset = 1
     for (const part of p.parts) {
       if (part.kind !== 'src') continue
@@ -398,7 +408,7 @@ function renderPage(page, ctx) {
       let spec
       if (part.fallback) spec = `@site-demos/${path.basename(part.file)}`
       else {
-        const file = `${page.component.slug}-${demoN}.vue`
+        const file = `${page.component?.slug ?? page.demoSlug}-${demoN}.vue`
         ctx.demoFiles.set(file, lib.demoToSfc(part.code))
         spec = `@gen-demos/${file}`
       }

@@ -163,10 +163,12 @@ La cabecera fija de tu aplicación es **de tu aplicación**: Tab, un `#id`, `scr
 El CSS de Grana va en la capa `grana.components`; el tuyo, sin capa, **gana siempre**. Eso incluye un estilo de **elemento** tuyo: con `h3 { margin: 28px 0 }` sin capa, el encabezado del acordeón (que es un `<h3>`) **baja 28 px dentro de su elemento y se pega 28 px más abajo** (medido en los tres motores). Grana no lo arregla con `!important` ni con `display: contents` (rompería `sticky` y la semántica del encabezado). Declara los estilos de elemento, también un reinicio de terceros, **en una capa anterior a las de Grana**:
 
 ```css
-@layer base, grana.defaults, grana.components;
+@layer base, grana.defaults, grana.components, grana.blocks, grana.utilities;
 @layer base { h1, h2, h3, h4, h5, h6 { margin-block: 1.5em 0.5em; } }
 /* un reinicio de terceros: @import url("reset.css") layer(base); */
 ```
+
+El orden completo de Grana es `grana.defaults`, `grana.components`, `grana.blocks` (`@grana/blocks`) y `grana.utilities` (las [clases utilitarias](../../styles/README-utilities.md), #806). La declaración anterior, `@layer base, grana.defaults, grana.components;`, **sigue siendo correcta**: `grana.css` declara el orden completo y añade las dos capas que faltan detrás.
 
 Así tu estilo de elemento pierde frente a `grana.components` y el encabezado conserva su `margin: 0`; tus reglas con clase siguen sin capa y ganando. Alternativa sin capas: `h3:not([class*="g-"])`. Es la regla general de todo componente con su propio `hN` (`GCard`, `GDialog`, `GFormSection`, `GWidget`); [`docs/contract/api.md`](../../../../../docs/contract/api.md) la recoge. **No es un defecto** de un componente.
 
