@@ -7,7 +7,7 @@
   "entry": "@grana/vue/price",
   "bundle": {
     "global": "GranaPrice",
-    "gzip": 5819,
+    "gzip": 5963,
     "limit": 6144,
     "umdGzip": 5281,
     "mainGrowth": 1314,
