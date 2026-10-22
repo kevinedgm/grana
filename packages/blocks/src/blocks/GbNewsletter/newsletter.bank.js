@@ -21,7 +21,13 @@ export const props = {
     text: 'Puedes darte de baja cuando quieras.',
     link: { label: 'Aviso de privacidad', href: '/privacidad' }
   },
-  labels: { busy: 'Suscribiendo…', external: 'se abre en otra pestaña' },
+  labels: {
+    busy: 'Suscribiendo…',
+    external: 'se abre en otra pestaña',
+    required: 'Escribe tu correo.',
+    invalid: 'Revisa el correo: falta algo como nombre@dominio.com.',
+    form: { error: 'Error: ', valid: 'Listo: ' }
+  },
   onSubmit: () => {}
 }
 

@@ -32,6 +32,13 @@ check "sin .css en dist/marketing.js" "La entrada de Marketing importa una hoja 
 # Gestión no paga Marketing y no crece (#793)
 check "! grep -q GbHero01 dist/blocks.js" "Gestión arrastra Marketing (#815)" none grep -q "GbHero01" dist/blocks.js
 check "dist/blocks.js ≤ 8 KiB gzip" "blocks.js supera el tope de #793 (8192 B gzip)" bash -c "[ \$(gzip -c dist/blocks.js | wc -c) -le 8192 ]"
+# Peso de Marketing (#844): el conjunto y cada variante importada sola
+check "dist/marketing.js ≤ 18 432 B gzip" "marketing.js supera el tope de #844 (18432 B gzip -c); con más, vuelve a lima" \
+  bash -c "[ \$(gzip -c dist/marketing.js | wc -c) -le 18432 ]"
+check "cada variante de Marketing importada sola ≤ 4 096 B gzip" "Una variante arrastra a las demás o supera el tope de #844 (scripts/measure-partial.mjs lista cuál)" \
+  node scripts/measure-partial.mjs 4096
+check "bundle.cap: 18432 en los nueve meta.json" "Falta bundle.cap o difiere del tope de #844" \
+  none bash -c "for f in src/blocks/Gb*/Gb*.meta.json; do grep -q '\"cap\": 18432' \$f || echo \$f; done | grep -q ."
 
 echo
 if [ "$failed" -eq 0 ]; then echo "Compuertas de blocks: $total/$total superadas."; exit 0; fi

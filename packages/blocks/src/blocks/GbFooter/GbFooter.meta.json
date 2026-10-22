@@ -153,11 +153,12 @@
   "root": "GStack (as footer o div) con data-gb=\"footer-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/marketing",
-    "measured": 16934,
+    "measured": 17174,
+    "cap": 18432,
     "peers": [
       "vue",
       "@grana/vue"
     ],
-    "note": "dist/marketing.js gzip (gzip -c) con las nueve secciones (27 de 27 variantes; 2026-10-22). Importación parcial (esbuild, vue y @grana/vue* externos): solo GbFooter01 3218 B. Sin tope en el primer lote (#815): lo fija lima en el remate"
+    "note": "dist/marketing.js gzip (gzip -c) con las nueve secciones (27 de 27 variantes; 2026-10-22). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbFooter01 3206 B, GbFooter02 2908 B, GbFooter03 3237 B. Tope conjunto 18 432 B (#844); una variante sola, 4 096 B."
   }
 }

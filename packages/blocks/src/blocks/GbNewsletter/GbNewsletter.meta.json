@@ -12,7 +12,10 @@
     815,
     816,
     817,
-    824
+    824,
+    830,
+    839,
+    840
   ],
   "composes": [
     "GSection",
@@ -101,9 +104,9 @@
     {
       "name": "labels",
       "type": "Object",
-      "ts": "{ busy?: string; external?: string }",
+      "ts": "{ busy?: string; external?: string; required?: string; invalid?: string; form?: { error?: string; valid?: string } }",
       "default": {},
-      "note": "busy, requerido con busy (C5); external, requerido con legal.link externo (C5)"
+      "note": "busy, requerido con busy (C5); external, requerido con legal.link externo (C5); required (correo vacío) e invalid (mal formado), requeridos al validar (C5, #839); form: prefijos de mensaje, tal cual a labels de GForm (#840)"
     }
   ],
   "events": [
@@ -136,7 +139,7 @@
     "BlockSubmit"
   ],
   "warnings": [
-    "C5 (labels.busy con busy; labels.external con legal.link externo)",
+    "C5 (labels.busy con busy; labels.external con legal.link externo; labels.required e invalid al validar)",
     "C6",
     "N1 · falta field.hint",
     "N2 · error y done a la vez (gana error)",
@@ -145,11 +148,12 @@
   "root": "GSection (01), GCard as=\"section\" (02) o GSurface zone=\"brand\" (03) con data-gb=\"newsletter-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/marketing",
-    "measured": 16934,
+    "measured": 17174,
+    "cap": 18432,
     "peers": [
       "vue",
       "@grana/vue"
     ],
-    "note": "dist/marketing.js gzip (gzip -c) con las nueve secciones (27 de 27 variantes; 2026-10-22). Importación parcial (esbuild, vue y @grana/vue* externos): solo GbNewsletter01 2432 B. Sin tope en el primer lote (#815): lo fija lima en el remate"
+    "note": "dist/marketing.js gzip (gzip -c) con las nueve secciones (27 de 27 variantes; 2026-10-22). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbNewsletter01 2510 B, GbNewsletter02 2552 B, GbNewsletter03 2542 B. Tope conjunto 18 432 B (#844); una variante sola, 4 096 B."
   }
 }

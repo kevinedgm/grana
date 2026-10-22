@@ -1,0 +1,29 @@
+// Peso de cada variante de Marketing importada sola (dueño: bruno; #844): esbuild sobre dist/marketing.js con `vue` y
+// `@grana/vue*` externos (lo que paga una aplicación que usa una o dos secciones), `gzip -c` equivalente (zlib nivel 6).
+// Uso: node scripts/measure-partial.mjs [tope=4096]  → imprime «Variante bytes» y sale con 1 si alguna lo supera.
+import { build } from 'esbuild'
+import { readFileSync } from 'node:fs'
+import { gzipSync } from 'node:zlib'
+import { fileURLToPath } from 'node:url'
+import { dirname, resolve } from 'node:path'
+
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const cap = Number(process.argv[2] || 4096)
+const entry = resolve(root, 'dist/marketing.js')
+const names = [...readFileSync(entry, 'utf8').matchAll(/\bas (Gb[A-Za-z]+\d\d)\b/g)].map((m) => m[1])
+const variants = [...new Set(names.length ? names : [...readFileSync(resolve(root, 'src/marketing.js'), 'utf8').matchAll(/\bGb[A-Za-z]+\d\d\b/g)].map((m) => m[0]))].sort()
+let worst = { name: '', size: 0 }
+let failed = 0
+for (const name of variants) {
+  const out = await build({
+    stdin: { contents: `export { ${name} } from ${JSON.stringify(entry)}`, resolveDir: root, loader: 'js' },
+    bundle: true, format: 'esm', write: false, treeShaking: true, minify: true,
+    external: ['vue', '@grana/vue', '@grana/vue/*']
+  })
+  const size = gzipSync(out.outputFiles[0].contents).length
+  if (size > worst.size) worst = { name, size }
+  if (size > cap) { failed++; console.log(`${name} ${size} > ${cap}`) }
+  else if (process.env.VERBOSE) console.log(`${name} ${size}`)
+}
+console.log(`${variants.length} variantes; la mayor: ${worst.name} ${worst.size} B gzip (tope ${cap})`)
+process.exit(failed ? 1 : 0)

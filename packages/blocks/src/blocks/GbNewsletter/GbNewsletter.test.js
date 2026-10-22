@@ -69,6 +69,45 @@ describe('GbNewsletter · el formulario (igual en las tres)', () => {
       w.unmount()
     }
   })
+  it('vacío → labels.required y mal formado → labels.invalid, no el validationMessage del navegador (#839)', async () => {
+    for (const [, C] of ALL) {
+      const { w, warnings } = run(C, {}, { attachTo: document.body })
+      await send(w)
+      expect(w.findComponent(GForm).props('errors')).toEqual({ email: bank.props.labels.required })
+      expect(w.find('.g-input__message').text()).toContain(bank.props.labels.required)
+      await send(w, 'no-es-un-correo')
+      expect(w.findComponent(GForm).props('errors')).toEqual({ email: bank.props.labels.invalid })
+      expect(warnings.filter((t) => t.includes('(C5)'))).toHaveLength(0)
+      w.unmount()
+    }
+  })
+  it('sin labels.required ni labels.invalid: C5 una vez por estado y, de último recurso, el validationMessage (#839)', async () => {
+    for (const [n, C] of ALL) {
+      const { w, warnings } = run(C, { labels: { busy: 'x' } }, { attachTo: document.body })
+      await send(w)
+      await send(w)
+      const empty = w.findComponent(GForm).props('errors').email
+      expect(empty).toBeTruthy()
+      expect(empty).not.toBe(bank.props.labels.required)
+      await send(w, 'mal')
+      expect(w.findComponent(GForm).props('errors').email).toBeTruthy()
+      const c5 = own(warnings, n, 'C5')
+      expect(c5.filter((t) => t.includes('labels.required'))).toHaveLength(1)
+      expect(c5.filter((t) => t.includes('labels.invalid'))).toHaveLength(1)
+      w.unmount()
+    }
+  })
+  it('labels.form va tal cual a labels de GForm, sin avisos de GForm (#840)', () => {
+    for (const [, C] of ALL) {
+      const { w, warnings } = run(C, bank.states.done)
+      expect(w.findComponent(GForm).props('labels')).toEqual(bank.props.labels.form)
+      expect(warnings.filter((t) => t.includes('GForm'))).toHaveLength(0)
+    }
+    expect(run(GbNewsletter01, { labels: {} }).w.findComponent(GForm).props('labels')).toEqual({})
+  })
+  it('03: la banda de marca es g-surface--level-flat (#830)', () => {
+    expect(run(GbNewsletter03).w.classes()).toContain('g-surface--level-flat')
+  })
   it('válido → submit { event, email } con el correo sin espacios a los lados; el error se va al corregir', async () => {
     for (const [, C] of ALL) {
       const onSubmit = vi.fn()

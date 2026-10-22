@@ -31,7 +31,7 @@ const media = computed(() => {
     <template v-if="media" #media><img v-bind="imgAttrs(media)" :role="media.decorative ? undefined : 'img'"></template>
     <template v-if="$slots.description" #description><slot name="description" /></template>
     <template v-if="actions.length || $slots.actions" #actions>
-      <slot name="actions">
+      <slot name="actions" :describedby="assuranceId">
         <GbActions :actions="actions" :variants="['solid', 'outline']" :external="labels.external" :describedby="assuranceId" :warn="warn" @navigate="emit('navigate', $event)" @activate="emit('activate', $event)" />
       </slot>
     </template>

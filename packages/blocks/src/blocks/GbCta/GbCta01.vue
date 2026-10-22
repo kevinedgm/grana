@@ -17,11 +17,11 @@ const { actions, assuranceId } = useCta(props, warn)
 </script>
 
 <template>
-  <GSurface zone="brand" padding="lg" data-gb="cta-01">
+  <GSurface zone="brand" level="flat" padding="lg" data-gb="cta-01">
     <GSection :title="title" :description="description">
       <template v-if="$slots.description" #description><slot name="description" /></template>
       <GStack orientation="horizontal" gap="sm">
-        <slot name="actions">
+        <slot name="actions" :describedby="assuranceId">
           <GbActions :actions="actions" :variants="['solid', 'outline']" :external="labels.external" :describedby="assuranceId" :warn="warn" @navigate="emit('navigate', $event)" @activate="emit('activate', $event)" />
         </slot>
       </GStack>

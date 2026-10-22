@@ -22,7 +22,7 @@ const { actions, assuranceId } = useCta(props, warn)
     <GSection :title="title" :description="description" :labels="{ actions: labels.actions }">
       <template v-if="$slots.description" #description><slot name="description" /></template>
       <template v-if="actions.length || $slots.actions" #actions>
-        <slot name="actions">
+        <slot name="actions" :describedby="assuranceId">
           <GbActions :actions="actions" :variants="['solid', 'link']" :external="labels.external" :describedby="assuranceId" :warn="warn" @navigate="emit('navigate', $event)" @activate="emit('activate', $event)" />
         </slot>
       </template>

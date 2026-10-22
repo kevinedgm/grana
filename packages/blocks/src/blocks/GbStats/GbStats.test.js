@@ -37,6 +37,7 @@ describe('GbStats · cifras quietas y con su origen (#820)', () => {
     const { w } = run(GbStats02)
     expect(w.element.getAttribute('data-g-zone')).toBe('brand')
     expect(w.element.getAttribute('data-gb')).toBe('stats-02')
+    expect(w.classes()).toContain('g-surface--level-flat') // banda de marca = plano (#830)
   })
   it('03: el párrafo junto a las cifras (dos párrafos de description), dentro de g-adapt-wide; la sección sin descripción', () => {
     const { w } = run(GbStats03)

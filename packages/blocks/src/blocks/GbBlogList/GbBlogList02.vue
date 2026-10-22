@@ -1,6 +1,6 @@
 <script setup>
 // GbBlogList02 · Lista con fecha (dueño: bruno). Contrato: design/contracts/blocks/blog-list.md · Común: _comun.md · Sin
-// CSS. GSection › GStack as="ul" divided › GCard as="li" level="flat" interaction="link": fecha en `eyebrow`, título y
+// CSS. GSection › GStack as="ul" gap="sm" › GCard as="li" level="flat" interaction="link": fecha en `eyebrow`, título y
 // `excerpt` (2 líneas). Ignora `media` y `tags`.
 import { computed } from 'vue'
 import { GCard, GIcon, GSection, GStack, useSectionLevel } from '@grana/vue'
@@ -20,7 +20,7 @@ const rows = usePosts(props, warn)
 <template>
   <GSection v-if="rows.length" :title="title" :description="description" data-gb="blog-list-02">
     <template v-if="$slots.description" #description><slot name="description" /></template>
-    <GStack as="ul" divided>
+    <GStack as="ul" gap="sm">
       <GCard
         v-for="r in rows"
         :key="r.key"

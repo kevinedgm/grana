@@ -14,7 +14,7 @@ const rows = useStats(props, useWarn('GbStats02'))
 </script>
 
 <template>
-  <GSurface v-if="rows.length" zone="brand" padding="lg" data-gb="stats-02">
+  <GSurface v-if="rows.length" zone="brand" level="flat" padding="lg" data-gb="stats-02">
     <GSection :title="title" :description="description">
       <template v-if="$slots.description" #description><slot name="description" /></template>
       <GAdaptiveLayout role="list">

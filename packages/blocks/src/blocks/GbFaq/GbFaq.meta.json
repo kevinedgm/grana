@@ -102,11 +102,12 @@
   "root": "GSection con data-gb=\"faq-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/marketing",
-    "measured": 9919,
+    "measured": 17174,
+    "cap": 18432,
     "peers": [
       "vue",
       "@grana/vue"
     ],
-    "note": "dist/marketing.js gzip (gzip -c) con Hero, Features, Stats, Testimonials, CTA y FAQ (18 de 27 variantes; 2026-10-22), medido en un árbol aislado (HEAD 99c1aef + esta entrega, sin las secciones de bruno C a medio hacer); 50 249 B sin comprimir. Importación parcial (esbuild, vue y @grana/vue* externos): solo GbTestimonials01 2442 B, solo GbCta01 1859 B, solo GbFaq03 1924 B, sin las otras variantes. Sin tope en el primer lote (#815): lo fija lima en el remate"
+    "note": "dist/marketing.js gzip (gzip -c) con las nueve secciones (27 de 27 variantes; 2026-10-22). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbFaq01 1478 B, GbFaq02 1434 B, GbFaq03 1946 B. Tope conjunto 18 432 B (#844); una variante sola, 4 096 B."
   }
 }

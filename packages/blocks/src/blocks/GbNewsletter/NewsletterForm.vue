@@ -4,9 +4,11 @@
 // GForm › GInput type="email" autocomplete="email" required (label, hint = la promesa, placeholder, name) con el slot
 // `action` = GBtn type="submit" (loading = busy, loadingText = labels.busy) + p con `legal`.
 // Validación: GForm no valida (form.md: «presenta y emite intención»); el bloque toma la del navegador sobre el propio
-// campo (`required` + `type="email"`, su `validationMessage`) y la entrega a GForm por `errors`: al escribir, desde el
+// campo (`required` + `type="email"`): `valueMissing` → labels.required, `typeMismatch` → labels.invalid (#839; sin el
+// texto, aviso C5 y, de último recurso, `validationMessage`). Lo entrega a GForm por `errors`: al escribir, desde el
 // `input` del campo; al enviar, desde el control del formulario que envía, y entonces `showErrors()` (revela, sacude y
 // enfoca) y NO emite `submit`. `error` (servidor) entra por la misma vía y gana; `done` es el mensaje `valid` del campo.
+// `labels.form` ({ error, valid }) va tal cual a `labels` de GForm (#840).
 import { computed, nextTick, ref, watch } from 'vue'
 import { GBtn, GForm, GIcon, GInput } from '@grana/vue'
 import GbLink from '../common/link.js'
@@ -59,9 +61,22 @@ watch(serverError, async (e) => {
   form.value.showErrors()
 })
 
+const formLabels = computed(() => {
+  const f = props.labels && props.labels.form
+  return f && typeof f === 'object' ? f : {}
+})
+function nativeMessage(control) {
+  const v = control.validity
+  const key = v.valueMissing ? 'required' : v.typeMismatch ? 'invalid' : null
+  const text = key && props.labels ? props.labels[key] : undefined
+  if (has(text)) return text
+  try { if (process.env.NODE_ENV !== 'production' && key) warn(`C5:${key}`, `falta labels.${key}: el mensaje sale con el texto del navegador, en su idioma y no en el de la página (C5).`) } catch {}
+  return control.validationMessage || ''
+}
 function check(control) {
-  native.value = control && control.validity && !control.validity.valid ? control.validationMessage || '' : ''
-  return !(control && control.validity && !control.validity.valid)
+  const bad = !!(control && control.validity && !control.validity.valid)
+  native.value = bad ? nativeMessage(control) : ''
+  return !bad
 }
 function onInput(event) {
   check(event && event.target)
@@ -79,7 +94,7 @@ async function onSubmit({ event }) {
 </script>
 
 <template>
-  <GForm ref="form" :errors="errors" @submit="onSubmit">
+  <GForm ref="form" :errors="errors" :labels="formLabels" @submit="onSubmit">
     <GInput
       v-model="email"
       type="email"

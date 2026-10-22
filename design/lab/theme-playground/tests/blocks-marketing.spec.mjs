@@ -47,11 +47,6 @@ async function open(page, file, qs, { width = 1440, height = 900 } = {}) {
 const overflow = (p) => p.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1)
 const headings = (p) => p.evaluate(() => [...document.querySelectorAll('h1, h2, h3, h4, h5, h6')].map((h) => Number(h.tagName[1])))
 
-// Hallazgo B-H1 (para coco, GHero.css): `.g-hero__lead` no parte una palabra larga sin espacios (sin overflow-wrap) y
-// desborda a 390 y 320 px con el banco (§7 exige esa palabra). Mientras, el reflujo del héroe se marca como fallo esperado:
-// cuando GHero.css lo corrija, la prueba «pasará sin esperarlo» y habrá que quitar la marca.
-const HERO_LEAD_OVERFLOW = 'B-H1: .g-hero__lead sin overflow-wrap desborda con la palabra larga del banco (GHero.css, coco)'
-
 for (const pg of PAGES) {
   for (const tema of THEMES) {
     const qs = [pg.qs, `tema=${tema}`].filter(Boolean).join('&')

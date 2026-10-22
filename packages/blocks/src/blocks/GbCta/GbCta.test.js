@@ -95,6 +95,24 @@ describe('GbCta · dice qué pasa después, y es una sola (#822)', () => {
       expect(w.findComponent(C).emitted('activate')[0][0].item).toBe(actions[0])
     }
   })
+  it('01: la banda de marca es g-surface--level-flat (#830)', () => {
+    expect(run(GbCta01).w.classes()).toContain('g-surface--level-flat')
+  })
+  it('slot actions recibe { describedby } con el id de assurance (#838); sin assurance, undefined', () => {
+    for (const C of Object.values(ALL)) {
+      const seen = []
+      const slots = { actions: (scope) => { seen.push(scope.describedby); return h(GBtn, { 'aria-describedby': scope.describedby }, () => 'PROPIO') } }
+      const { w } = mountBlock(C, { props: bank.props, slots, attachTo: document.body })
+      const id = seen[seen.length - 1]
+      expect(typeof id).toBe('string')
+      expect(w.element.querySelector(`[id="${id}"]`).textContent).toBe(bank.props.assurance)
+      expect(w.find('button').attributes('aria-describedby')).toBe(id)
+      w.unmount()
+      const bare = []
+      mountBlock(C, { props: { ...bank.props, assurance: undefined }, slots: { actions: (scope) => { bare.push(scope.describedby); return h(GBtn, null, () => 'x') } } })
+      expect(bare[bare.length - 1]).toBeUndefined()
+    }
+  })
   it('slot actions sustituye a los botones generados', () => {
     for (const C of Object.values(ALL)) {
       const { w } = mountBlock(C, { props: bank.props, slots: { actions: () => h(GBtn, null, () => 'PROPIO') } })

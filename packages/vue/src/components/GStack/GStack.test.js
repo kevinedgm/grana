@@ -15,10 +15,13 @@ describe('GStack · render y clases', () => {
     expect(w.findAll('p')).toHaveLength(2)
   })
 
-  it('as cambia la etiqueta sin añadir rol', () => {
-    const w = mount(GStack, { props: { as: 'ul' } })
-    expect(w.element.tagName).toBe('UL')
-    expect(w.attributes('role')).toBeUndefined()
+  it('as cambia la etiqueta; ul y ol llevan role="list" (#827) y un role de la aplicación gana', () => {
+    const div = mount(GStack, { props: { as: 'section' } })
+    expect(div.element.tagName).toBe('SECTION')
+    expect(div.attributes('role')).toBeUndefined()
+    expect(mount(GStack, { props: { as: 'ul' } }).attributes('role')).toBe('list')
+    expect(mount(GStack, { props: { as: 'ol' } }).attributes('role')).toBe('list')
+    expect(mount(GStack, { props: { as: 'ul' }, attrs: { role: 'menu' } }).attributes('role')).toBe('menu')
   })
 
   it('gap y density siguen a las props', () => {

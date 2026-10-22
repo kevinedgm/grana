@@ -57,7 +57,11 @@ export default defineComponent({
       if (H.includes(props.horizontal)) cls.push(`g-stack--h-${props.horizontal}`)
       if (row && V.includes(props.vertical)) cls.push(`g-stack--v-${props.vertical}`)
       if (!row && props.divided) cls.push('g-stack--divided')
-      return h(props.as, { class: cls }, slots.default ? slots.default() : undefined)
+      // ul/ol sin marcas pierden su rol de lista en Safari con VoiceOver (1.3.1, #827); un `role` de la aplicación gana
+      const tag = String(props.as).toLowerCase()
+      const attrs = { class: cls }
+      if (tag === 'ul' || tag === 'ol') attrs.role = 'list'
+      return h(props.as, attrs, slots.default ? slots.default() : undefined)
     }
   }
 })

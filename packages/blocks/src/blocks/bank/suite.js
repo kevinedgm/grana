@@ -77,7 +77,8 @@ export function sectionSuite({ meta, bank, variants, section, dir, h1 = 0, headl
       })
       it(`${n}: listas reales (role="list" con listitem hijos directos y la misma pista, o ul/ol › li)`, () => {
         const { w } = run(n)
-        for (const list of w.element.querySelectorAll('[role="list"]')) {
+        // ul/ol de GStack llevan role="list" por la primitiva (#827): sus hijos son li, se comprueba abajo
+        for (const list of w.element.querySelectorAll('[role="list"]:not(ul, ol)')) {
           const kids = [...list.children]
           expect(kids.length).toBeGreaterThan(0)
           for (const k of kids) expect(k.getAttribute('role')).toBe('listitem')
@@ -86,6 +87,7 @@ export function sectionSuite({ meta, bank, variants, section, dir, h1 = 0, headl
           expect([...hints][0]).toMatch(/^g-adapt-/)
         }
         for (const list of w.element.querySelectorAll('ul, ol')) for (const k of list.children) expect(k.tagName).toBe('LI')
+        for (const list of w.element.querySelectorAll('ul.g-stack, ol.g-stack')) expect(list.getAttribute('role'), 'GStack ul/ol lleva role="list" (#827)').toBe('list')
       })
       it(`${n}: el código no lleva <style>, style=, hN sueltos, <a> desnudos ni utilidades`, () => {
         const code = readFileSync(resolve(process.cwd(), dir, `${n}.vue`), 'utf8')

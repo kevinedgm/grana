@@ -16,7 +16,7 @@ checkSubmitListener(warn)
 </script>
 
 <template>
-  <GSurface zone="brand" padding="lg" data-gb="newsletter-03">
+  <GSurface zone="brand" level="flat" padding="lg" data-gb="newsletter-03">
     <GSection :title="title" :description="description">
       <template v-if="$slots.description" #description><slot name="description" /></template>
       <NewsletterForm

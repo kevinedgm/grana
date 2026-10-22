@@ -1,6 +1,6 @@
 // GbBlogList (dueño: bruno): blog-list.md «Verificación propia» + la batería común de _comun.md §8.
 import { describe, it, expect, afterEach, vi } from 'vitest'
-import { GCard } from '@grana/vue'
+import { GCard, GStack } from '@grana/vue'
 import { GTag } from '@grana/vue/tag'
 import meta from './GbBlogList.meta.json'
 import * as bank from './blog-list.bank.js'
@@ -80,8 +80,13 @@ describe('GbBlogList · cada forma', () => {
       expect(img.attributes('width')).toBe('1200')
     }
   })
-  it('02: ul divided › GCard as="li" level="flat", sin imágenes ni etiquetas', () => {
+  it('02: ul gap="sm" sin divided (#843) › GCard as="li" level="flat", sin imágenes ni etiquetas', () => {
     const { w } = run(GbBlogList02)
+    const stack = w.findComponent(GStack)
+    expect(stack.element.tagName).toBe('UL')
+    expect(stack.props('gap')).toBe('sm')
+    expect(stack.props('divided')).toBe(false)
+    expect(stack.classes()).not.toContain('g-stack--divided')
     const cards = w.findAllComponents(GCard)
     expect(cards).toHaveLength(N)
     expect(cards.every((c) => c.element.tagName === 'LI' && c.props('level') === 'flat')).toBe(true)
