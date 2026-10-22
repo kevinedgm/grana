@@ -3,7 +3,7 @@
   "name": "GbBlogList",
   "kind": "block-section",
   "family": "marketing",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.0.0",
   "description": "Las notas del sitio (guías, novedades, cómo llegar) como una lista de enlaces con fecha legible y honesta: si una nota se actualizó, se ve «Actualizado {fecha}» en <time datetime>, por encima del título. En rejilla con foto, en lista con fecha o con una destacada.",
   "contract": "design/contracts/blocks/blog-list.md",
@@ -117,7 +117,7 @@
   "root": "GSection con data-gb=\"blog-list-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/marketing",
-    "measured": 17174,
+    "measured": 17187,
     "cap": 18432,
     "peers": [
       "vue",

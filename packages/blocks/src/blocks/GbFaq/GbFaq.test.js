@@ -45,6 +45,10 @@ describe('GbFaq · cada respuesta tiene su enlace, y asoma cerrada (#823)', () =
       expect(nested.w.find('[data-gb]').findAll('h4')).toHaveLength(N)
     }
   })
+  it('02: GContainer reading alineado al inicio, no centrado (MK-B2)', () => {
+    const { w } = run(GbFaq02)
+    expect(w.find('.g-container--width-reading').classes()).toContain('g-container--horizontal-start')
+  })
   it('02: GContainer reading › ul divided › li › GSection anidada con id = faq.id y su h3', () => {
     const { w } = run(GbFaq02)
     const lis = w.findAll('ul > li')

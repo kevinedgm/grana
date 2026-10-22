@@ -57,6 +57,10 @@ describe('GbFeatures · estructura de cada forma', () => {
     expect(w.findAll('ul > li > section h3')).toHaveLength(N)
     expect(w.findAll('img')).toHaveLength(0) // 03 ignora media
   })
+  it('03: GContainer reading alineado al inicio, no centrado (MK-B2)', () => {
+    const { w } = run(GbFeatures03)
+    expect(w.find('.g-container--width-reading').classes()).toContain('g-container--horizontal-start')
+  })
   it('títulos de dentro un nivel por debajo: h3 en la raíz, h4 dentro de una GSection de la aplicación (useSectionLevel)', () => {
     for (const C of Object.values(variants)) {
       expect(run(C).w.findAll('h3')).toHaveLength(N)

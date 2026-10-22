@@ -102,12 +102,12 @@
   "root": "GSection con data-gb=\"faq-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/marketing",
-    "measured": 17174,
+    "measured": 17187,
     "cap": 18432,
     "peers": [
       "vue",
       "@grana/vue"
     ],
-    "note": "dist/marketing.js gzip (gzip -c) con las nueve secciones (27 de 27 variantes; 2026-10-22). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbFaq01 1478 B, GbFaq02 1434 B, GbFaq03 1946 B. Tope conjunto 18 432 B (#844); una variante sola, 4 096 B."
+    "note": "dist/marketing.js gzip (gzip -c) con las nueve secciones (27 de 27 variantes; 2026-10-22). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbFaq01 1478 B, GbFaq02 1445 B, GbFaq03 1946 B. Tope conjunto 18 432 B (#844); una variante sola, 4 096 B."
   }
 }

@@ -3,7 +3,7 @@
   "name": "GbFeatures",
   "kind": "block-section",
   "family": "marketing",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.0.0",
   "description": "Lo que ofrece el lugar en piezas cortas (tres a seis ventajas), en rejilla, alternadas con foto o en una columna de lectura, con el mismo esquema de encabezados en las tres formas. La ventaja lleva a su prueba.",
   "contract": "design/contracts/blocks/features.md",
@@ -115,12 +115,12 @@
   "root": "GSection con data-gb=\"features-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/marketing",
-    "measured": 17174,
+    "measured": 17187,
     "cap": 18432,
     "peers": [
       "vue",
       "@grana/vue"
     ],
-    "note": "dist/marketing.js gzip (gzip -c) con las nueve secciones (27 de 27 variantes; 2026-10-22). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbFeatures01 1659 B, GbFeatures02 1905 B, GbFeatures03 1995 B. Tope conjunto 18 432 B (#844); una variante sola, 4 096 B."
+    "note": "dist/marketing.js gzip (gzip -c) con las nueve secciones (27 de 27 variantes; 2026-10-22). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbFeatures01 1659 B, GbFeatures02 1905 B, GbFeatures03 2007 B. Tope conjunto 18 432 B (#844); una variante sola, 4 096 B."
   }
 }

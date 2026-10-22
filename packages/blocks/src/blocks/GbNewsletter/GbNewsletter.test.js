@@ -144,6 +144,16 @@ describe('GbNewsletter · el formulario (igual en las tres)', () => {
       both.w.unmount()
     }
   })
+  it('error presente al montar se ve en el campo (MK-B1)', async () => {
+    for (const [, C] of ALL) {
+      const { w } = run(C, bank.states.error, { attachTo: document.body })
+      await flushPromises()
+      await nextTick()
+      expect(w.find('input').attributes('aria-invalid')).toBe('true')
+      expect(w.find('.g-input__message').text()).toContain('No pudimos suscribirte')
+      w.unmount()
+    }
+  })
   it('error que llega después (respuesta del servidor) se ve sin esperar al blur', async () => {
     const { w } = run(GbNewsletter01, {}, { attachTo: document.body })
     await w.setProps({ error: 'No pudimos suscribirte; inténtalo de nuevo.' })

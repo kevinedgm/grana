@@ -85,7 +85,7 @@
   "root": "GSection (01, 03) o GSurface (02) con data-gb=\"stats-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/marketing",
-    "measured": 17174,
+    "measured": 17187,
     "cap": 18432,
     "peers": [
       "vue",

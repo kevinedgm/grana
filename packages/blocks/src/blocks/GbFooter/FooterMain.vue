@@ -25,7 +25,7 @@ const fwd = (e) => emit('navigate', e)
       <slot name="brand"><FooterBrand :data="f.brand.value" :warn="warn" @navigate="fwd" /></slot>
       <FooterContact :data="f.contact.value" :external="f.external.value" :warn="warn" @navigate="fwd" />
     </div>
-    <nav v-if="f.groups.value.length" :aria-label="f.navLabel.value">
+    <nav v-if="f.groups.value.length" class="g-adapt-wide" :aria-label="f.navLabel.value">
       <GAdaptiveLayout gap="lg">
         <div v-for="g in f.groups.value" :key="g.key" class="g-adapt-standard">
           <GSection :title="g.item.title">

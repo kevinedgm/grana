@@ -22,7 +22,7 @@ const one = (action) => (action && typeof action === 'object' ? [action] : [])
 <template>
   <GSection v-if="list.length" :title="title" :description="description" data-gb="features-03">
     <template v-if="$slots.description" #description><slot name="description" /></template>
-    <GContainer width="reading">
+    <GContainer width="reading" horizontal="start">
       <GStack as="ul" divided>
         <li v-for="e in list" :key="e.key">
           <GSection :title="e.item.title" :description="e.item.description">

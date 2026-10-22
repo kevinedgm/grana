@@ -77,6 +77,12 @@ describe('GbFooter · navegación', () => {
       expect(en.getAttribute('hreflang')).toBe('en')
     }
   })
+  it('01 y 03: el nav de grupos lleva la pista g-adapt-wide (MK-B3)', () => {
+    for (const C of COLS) {
+      const { w } = run(C)
+      expect(w.find('nav[aria-label="Mapa del sitio"]').classes()).toContain('g-adapt-wide')
+    }
+  })
   it('02 ignora groups: solo el nav de legales', () => {
     const { w } = run(GbFooter02)
     expect(w.findAll('nav').map((n) => n.attributes('aria-label'))).toEqual(['Legal'])

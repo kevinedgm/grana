@@ -56,10 +56,10 @@ watch(() => [serverError.value, has(props.done)], ([e, d]) => {
 
 // Error del servidor: se revela en el acto (form.md «Envío» paso 6)
 watch(serverError, async (e) => {
-  if (!e || !form.value) return
+  if (!e) return
   await nextTick()
-  form.value.showErrors()
-})
+  if (form.value) form.value.showErrors()
+}, { immediate: true })
 
 const formLabels = computed(() => {
   const f = props.labels && props.labels.form

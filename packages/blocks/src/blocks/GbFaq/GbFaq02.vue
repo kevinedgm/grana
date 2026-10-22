@@ -16,7 +16,7 @@ const rows = useFaq(props, useWarn('GbFaq02'))
 <template>
   <GSection v-if="rows.length" :title="title" :description="description" data-gb="faq-02">
     <template v-if="$slots.description" #description><slot name="description" /></template>
-    <GContainer width="reading">
+    <GContainer width="reading" horizontal="start">
       <GStack as="ul" divided>
         <li v-for="r in rows" :key="r.key">
           <GSection :id="r.anchor" :title="r.item.question">
