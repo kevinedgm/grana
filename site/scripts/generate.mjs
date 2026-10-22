@@ -34,6 +34,12 @@ export const GUIDE = [
   { id: 'changelog', file: 'CHANGELOG.md', whole: true }
 ]
 
+/**
+ * Páginas de herramienta: no salen de un README, son un componente del tema del sitio
+ * (site/.vitepress/theme/) registrado de forma global. Ancho completo (`layout: page`).
+ */
+export const TOOLS = [{ id: 'playground', component: 'GranaThemePlayground' }]
+
 const read = (root, rel) => fs.readFileSync(path.join(root, rel), 'utf8')
 const exists = (root, rel) => fs.existsSync(path.join(root, rel))
 const enFile = (rel) => rel.replace(/\.md$/, '.en.md')
@@ -173,6 +179,14 @@ function buildPlan(root, locale) {
       }
     }
     pages.push(page)
+  }
+
+  // --- herramientas (componente del tema del sitio, sin README)
+  for (const tool of TOOLS) {
+    pages.push({
+      id: tool.id, locale, url: pageUrl(locale, tool.id), file: pageFile(locale, tool.id), translated: true, parts: [],
+      title: t(locale, `pages.${tool.id}`), description: t(locale, `tools.${tool.id}`), tool: tool.component
+    })
   }
 
   // --- componentes
@@ -395,6 +409,10 @@ function renderPage(page, ctx) {
   }
   const fm = ['---', `title: ${yaml(page.title)}`]
   if (page.description) fm.push(`description: ${yaml(page.description)}`)
+  if (page.tool) {
+    fm.push('layout: page', '---', '')
+    return `${fm.join('\n')}\n<${page.tool} />\n`
+  }
   if (page.home) {
     const H = UI[locale].hero
     fm.push('layout: home', 'hero:', `  name: ${yaml('Grana')}`, `  text: ${yaml(H.text)}`, `  tagline: ${yaml(H.tagline)}`, '  actions:')
@@ -425,7 +443,7 @@ function sidebarFor(locale, plan, index) {
       items: GUIDE.filter((g) => !g.home && !g.index).map((g) => ({
         text: g.id === 'cli' ? '@grana/cli' : t(locale, `pages.${g.id}`),
         link: pageUrl(locale, g.id)
-      }))
+      })).concat(TOOLS.map((tool) => ({ text: t(locale, `pages.${tool.id}`), link: pageUrl(locale, tool.id) })))
     }
   ]
   const comps = plan.pages.filter((p) => p.component)

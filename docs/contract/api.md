@@ -249,6 +249,16 @@ Regla común para todo componente o receta que **muestra o captura dinero**:
 4. **Decimales de la moneda**, no «dos» (`currencyDigits`).
 5. **Un precio no es un control ni una región viva:** sin foco, sin rol y sin anuncios propios; lo anuncia el control que provocó el cambio.
 
+## Grana Blocks: solo API pública (#792, #793)
+
+Reglas para todo block de `@grana/blocks` (`packages/blocks/`, #780; primer caso `GResourceList`, `design/contracts/resource-list.md`):
+
+1. **Solo API pública de `@grana/vue`:** exportaciones de las entradas publicadas (`@grana/vue`, `@grana/vue/<entrada>`), props, eventos, slots, métodos expuestos y propiedades públicas de entrada (`--g-page-header-top`…). **Nunca `__shared`**, clases internas (`.g-table__*`) ni el DOM interno de un componente, para leer ni para estilizar. Lo que falta se pide como **enmienda del componente** en su contrato, marcada como cambio de la v1 y con su peso frente a #506.
+2. **Sin región viva propia.** Lo que se anuncia es de los componentes (su región o el canal de página) o de la aplicación (`GToast`). Si un block llega a tener algo propio que anunciar, la vía será una exportación pública de `@grana/vue` (nombre reservado **`announce`**, sobre el canal de página de #533), nunca una segunda región cortés en la página.
+3. **CSS en `@layer grana.blocks`**, con la declaración de orden `@layer grana.defaults, grana.components, grana.blocks;` al principio de `blocks.css`: el block gana a los componentes que compone y el tema de la aplicación (sin capa) gana a todo. Mismas reglas que los componentes: solo `var(--g-*)` y alias `var(--_*)`, sin respaldos ni literales (salvo `24px`, `44px` y el patrón de texto oculto).
+4. **Los avisos** con la guarda canónica de #653 y el prefijo `[Grana G<Block>]`; **tipos** desde el `meta.json` (#443) con el generador del paquete; sin efectos en el nivel superior (#444).
+5. **Peso:** cada block tiene tope propio de `dist/blocks.js` gzip en su contrato (KiB, #550), medido por bruno; las entradas de `@grana/vue` que compone son *peer* y no cuentan en el block (las paga la aplicación que lo usa, y lo dice el README).
+
 ## Carga y vacío: motor común (#531 a #541)
 
 Contratos: `design/contracts/load-region.md` (`GLoadRegion`, el motor y la adopción) y `design/contracts/empty.md` (`GEmpty`). Reglas que valen para **todo componente que carga una región** (hoy `GLoadRegion`; por adopción, `GTable` en la primera entrega y `GCard`, `GWidget`, `GCalendar` en la segunda, #540):
@@ -286,7 +296,23 @@ En una lista con `role="menu"` **la letra salta** al siguiente elemento cuya eti
 5. El recuento va por el canal cortés de página (`announcePage`, #533).
 6. La semántica sigue siendo `menu`: ningún `textbox` dentro.
 
-Comparación sin mayúsculas ni diacríticos y por «contiene» sobre la etiqueta y la descripción. **Hoy filtra solo el panel de C de `GFab`** (`fab.md` «C · Buscar al escribir»); `GMenu`, la pila y el panel de A de `GFab` saltan. Extenderlo es decisión del usuario (pregunta abierta en `fab.md` «Dudas»).
+Comparación sin mayúsculas ni diacríticos y por «contiene» sobre la etiqueta y la descripción.
+
+### Buscar al escribir en todos los menús (#797; decisión del usuario del 2026-10-21, cambia la v1)
+
+**Una sola regla para toda lista `role="menu"` de Grana:** `GMenu` (también los menús de los huecos de `GResourceList`), y en `GFab` la pila, el panel de A y el panel de C. Sustituye a «hoy filtra solo el panel de C». El motor vive en **`utils/menuNav.js`** (se saca de `GFab.vue` el filtro de C y pasa a ser un modo del motor compartido; `GFab` lo recibe por `__shared`). Cumple las seis condiciones de arriba y fija lo que el patrón de APG (*typeahead*) deja abierto:
+
+1. **Se activa con los textos.** La lista filtra si la aplicación da sus cuatro textos (`labels.findHint`, `matches` con `{count}`, `matchesOne`, `none`; los nombres de `GFab`). Sin ellos, **salta por letra como hoy** (búfer de 500 ms, APG) y nada cambia para quien no los da (#226: sin textos por defecto). En el panel de C de `GFab` sigue el aviso 11; en `GMenu` y en la pila y el panel de A, **sin aviso** (es opcional).
+2. **Acumulación sin plazo mientras filtra:** lo escrito se queda (está a la vista en la fila de la pista) hasta Retroceso, Esc o cerrar. El plazo de 500 ms solo existe en el salto por letra.
+3. **Salto:** el foco cae en el primer visible cuya etiqueta **empieza** por lo escrito (si ninguno, el primer visible); **nunca activa** nada (Intro y Espacio activan, como siempre; Espacio no se escribe).
+4. **Cíclico (APG):** si la tecla no tiene coincidencias (condición 3: no se amplía) y lo escrito es esa misma letra repetida, el foco pasa al **siguiente** visible que empieza por ella, con vuelta al principio. Así «f», «f», «f» recorre «Fermentando», «Filtrar», «Fijar» como en un menú nativo.
+5. **Deshabilitados incluidos:** un elemento con `disabled` (Boolean o motivo, #790) se filtra y se puede enfocar como hoy (`aria-disabled`, enfocable); el motivo cuenta como su descripción para buscar. Lo que no se puede usar se puede **encontrar y leer** (#643 regla 1).
+6. **Submenús:** cada nivel filtra **sus** elementos con su propio texto; abrir un submenú empieza vacío; un padre coincide por su etiqueta. Grupos sin visibles se ocultan; separadores entre ocultos también.
+7. **Casillas y opciones:** se filtran igual; Espacio las marca y el filtro se mantiene (`closeOnSelect` decide si se cierra).
+8. **Sin `aria-keyshortcuts`:** escribir para buscar no es un atajo de un elemento; la pista visible (`aria-hidden`) y el anuncio cortés lo dicen.
+9. **La pila de `GFab`:** las píldoras que no coinciden se ocultan y las demás se juntan hacia el FAB (`--g-duration-fast` + `--g-ease-out`; quietas con movimiento reducido); la pista va en la fila más alejada del FAB. El panel de A, como el de C.
+
+**Peso (#797):** el motor pasa de `fab.js` al principal; `GMenu` gana la fila de la pista, el recuento y el texto sin coincidencias. **Presupuesto de lote propio: ≤ +1 KiB (1 024 B) gzip de `dist/grana.js`** (estimación de lima ≈ 0,9 KiB: el filtro de C midió ≈ 489 B en `fab.js`, más ≈ 400 B de `GMenu`); **no cabe en el lote de #793** (≈ 1,45 de 1,5 KiB ya estimados). `dist/fab.js` **baja** al recibir el motor por `__shared` y la pila y el panel de A lo usan sin código propio; sigue con su tope de #676 (10 496 B). Con más de lo previsto en cualquiera de los dos, vuelve a lima y no se sube.
 
 ## Flotantes persistentes y el foco (#664; WCAG 2.4.11)
 

@@ -1,6 +1,6 @@
 # Contrato · GTable
 
-**Dueño:** lima · **Estado:** aprobado; carga, vacío y error con el motor común contratados por #540 (2026-10-08, pendiente de bruno y coco); filas por página, la fila ancla, la puerta de fila, el despliegue y el estado de fila contratados el 2026-10-13 (#592 a #602, pendiente de coco y bruno) · **Basado en:** `design/lab/table/r01/`, `r02/` y `r03/`, y `design/lab/pagination/r02/` (kiwi)
+**Dueño:** lima · **Estado:** aprobado; carga, vacío y error con el motor común contratados por #540 (2026-10-08, pendiente de bruno y coco); filas por página, la fila ancla, la puerta de fila, el despliegue y el estado de fila contratados el 2026-10-13 (#592 a #602, pendiente de coco y bruno); `focusRow`/`focus` y el recuento a cero, enmiendas para `GResourceList` del 2026-10-20 (#789, #791, pendiente de coco y bruno) · **Basado en:** `design/lab/table/r01/`, `r02/` y `r03/`, y `design/lab/pagination/r02/` (kiwi)
 **Tag:** `g-table` · **Categoría:** presentación de datos
 
 Tabla de datos con **personalidad** (celdas ricas, filas como superficie, densidad), **columnas compuestas** (varios campos en una columna), orden, selección, filtros por columna con reglas, paginación y acciones por fila, que en contenedores estrechos **se convierte en tarjetas** sin cambiar de DOM. Alcance decidido por el usuario (DECISIONS.md #109 a #111).
@@ -46,6 +46,7 @@ Tabla de datos con **personalidad** (celdas ricas, filas como superficie, densid
 | `lastOpened` | String \| Number \| null | clave (`rowKey`) | `null` | propia (`v-model:lastOpened`, #598; sin `v-model`, estado propio): la última fila abierta |
 | `expanded` | Array | claves (`rowKey`) | `[]` (función) | propia (`v-model:expanded`, #599; solo con el slot `detail`) |
 | `rowStatus` | Function | `(row) => { status, text, key? } \| null` | sin valor | propia (#600); **sin `rowClass`** |
+| `showSelectedCount` | Boolean | | `true` | propia (#800): con `false`, el recuento de selección sigue montado con `role="status"` y su texto, pero **oculto a la vista** (patrón de texto oculto); para quien pinta su propio recuento visible en el `toolbar` |
 | `labels` | Object | ver «Textos» | `{}` (función) | propia |
 
 ### Columnas
@@ -432,6 +433,28 @@ Todo esto amplía **componentes que ya están en el principal** (`GTable`, `GPag
 | r03 L6–L8 | C, rastro y textos | `lastOpened` para el rastro de A; `current` y `labels.current` reservados; `labels.detail` | #598, #601 |
 | r03 L7 | `summary` | Receta del README | #601 |
 | r03 L9 | Personalidad | «La puerta, no la fila» | #597 |
+
+## Enmiendas para `GResourceList` (#789, #791; cambian la v1)
+
+Las pide el primer block de `@grana/blocks` (`design/contracts/resource-list.md`, L3, L4 y L7 de `design/lab/resource-list/r01/declaracion.md` §13). `@grana/blocks` es otro paquete y **solo puede usar API pública** (`api.md` «Grana Blocks»): hasta ahora el prototipo marcaba cada `<tr>` y buscaba `.g-table__door` por el DOM, y sondeaba la fase de carga. Peso: dentro del lote de #793 (`resource-list.md` «Enmiendas»: ≤ +1,5 KiB gzip de `grana.js` junto con la de `GMenu`).
+
+### Métodos (#791; L3 y L4)
+
+| Método | Firma | Qué hace |
+| --- | --- | --- |
+| `focusRow` | `focusRow(key, { part = 'door' } = {}): Promise<boolean>` | Enfoca una parte de la fila con esa clave (`rowKey`). **Espera** a que termine la fase de carga en curso (#540: retraso, mínimo y llegada de las filas pintadas; si no hay carga, al siguiente cuadro). Busca la fila **entre las pintadas** (tabla o tarjetas, mismo DOM). `part`: `door` → la puerta (`g-table__door`) si la hay, si no el primer enfocable de la fila; `actions` → el primer enfocable de la celda de acciones, si no la puerta o el primero; `select` → la casilla. Encontrada: `focus()` nativo (el `scroll-margin` del pie acoplado, #595, la deja a la vista) y resuelve `true`. **No encontrada** (no está en la página, o la tabla se desmonta): **no mueve el foco** y resuelve `false`; quien llama decide |
+| `focus` | `focus(options?: FocusOptions): void` | Enfoca el `<table>` (ya tiene `tabindex="-1"` y su nombre, #534). Es el destino seguro cuando la fila ya no existe |
+
+- Expuestos con `defineExpose`; constan en `GTable.meta.json` (`methods`) y en los tipos (#443).
+- Una llamada nueva a `focusRow` **sustituye** a la que aún esperaba (la anterior resuelve `false`): el último gesto manda.
+- Con el foco en el `<tbody>` al empezar una carga, #534 sigue igual (vuelve por `rowKey` e índice); `focusRow` no lo cambia: es la vía para quien tiene el foco **fuera** de la tabla (un diálogo que se cierra, una fila que se fue).
+- **No sustituye** `rowAttrs` (sigue reservado, #601) ni añade marca visual: la marca «nueva / recién editada» (L2, `reveal(key)`) queda reservada.
+
+### Recuento de selección a cero (#789; L7)
+
+Con `selectable` y `labels.selectedCount`, el recuento `g-table__count` (`role="status"`) **sigue montado siempre** (una región viva tiene que existir antes de cambiar), pero **con 0 seleccionadas su texto queda vacío** y la parte lleva `is-empty`: coco la oculta con el patrón de texto oculto accesible (nunca `display: none`, que la sacaría del árbol). Con ≥ 1, el texto de hoy. Así no se pinta «0 seleccionadas» en reposo (hallazgo de kiwi) y la barra no gana ni pierde nada que el lector necesite. **Sin cambio de orden** de la barra (`toolbar` sigue antes del recuento) ni de API. Si la barra se queda sin nada visible (sin `toolbar`, sin controles de tarjetas y con 0), lleva `is-quiet` y coco la deja sin alto (sin `gap` ni relleno); la región sigue dentro. Prueba: `GTable.test.js` (texto vacío con 0, el mismo nodo antes y después, `is-empty`, `is-quiet`).
+
+**`showSelectedCount` (#800; H1 de la auditoría de estilo de `GResourceList`).** Con `false`, `g-table__count` lleva además `is-sr` (coco: patrón de texto oculto accesible, nunca `display: none`) con cualquier recuento: sigue siendo la región que anuncia «N seleccionadas», pero no ocupa sitio en la barra. Lo usa quien pinta su propio recuento visible en el `toolbar` (el grupo de masivas de `GResourceList`), para que la barra no cambie de líneas al seleccionar en tarjetas (Δ0). Sin `labels.selectedCount` no hay recuento, como hoy. Peso dentro del lote de #793 (≈ 30 B). Prueba: `GTable.test.js` (`is-sr` con `false`, mismo nodo y texto, sin cambio con `true`).
 
 ## Límites conocidos
 

@@ -573,6 +573,37 @@
 }
 .g-fab__find-count { color: var(--g-color-text-muted); }
 
+/* Pila que filtra (#797): la pista va en la fila más alejada del FAB (el .vue la pone primera o última en el DOM según el
+   lado) como una píldora sin acción: misma familia que las demás, sin sombra ni semilla (no se pulsa), con la letra de la
+   cabecera del panel. Alto constante entre pista, búsqueda y «sin coincidencias» */
+.g-fab__list--stack > .g-fab__find {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-1) var(--g-space-2);
+  box-sizing: border-box;
+  max-inline-size: 100%;
+  min-block-size: max(24px, calc(var(--g-space-1) * 7));
+  padding-block: var(--g-space-1);
+  padding-inline: var(--g-space-3);
+  border: var(--g-border-width) dashed var(--g-color-border-control);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-surface);
+  color: var(--g-color-text-subtle);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  pointer-events: none;
+}
+/* Las que quedan se juntan hacia el FAB (FLIP del .vue): al filtrar, la lista lleva is-gathering y cada píldora visible que
+   cambió de sitio, en el primer cuadro, is-shifted con --_shift (px, de su sitio nuevo al de antes; vertical). Al quitar
+   is-shifted viaja a su sitio en fast + ease-out, sin escalonado. Interrumpible: un filtro nuevo parte de donde esté */
+.g-fab__list--stack > li {
+  --_shift: var(--_zero);
+}
+.g-fab__list--stack[data-state="open"] > li.is-shifted {
+  translate: 0 var(--_shift);
+}
+
 /* ---------- Peligrosas: la fila se parte en dos sin mover nada (#662) ----------
    El par es más estrecho que la píldora: la fila armada conserva su ancho con --_armed-w, que el .vue escribe en su li al
    armar (px, ancho de la píldora en ese momento) y retira al deshacer o confirmar (#677). Sin el dato, auto */
@@ -768,6 +799,12 @@
     transition-duration: var(--g-duration-fast);
     transition-delay: calc(var(--g-duration-fast) * 0);
   }
+  .g-fab__list--stack.is-gathering[data-state="open"] > li {
+    transition:
+      translate var(--g-duration-fast) var(--g-ease-out),
+      opacity var(--g-duration-fast) var(--g-ease-out);
+  }
+  .g-fab__list--stack.is-gathering[data-state="open"] > li.is-shifted { transition: none; }
   .g-fab__list--panel {
     transition:
       opacity var(--g-duration-press) var(--g-ease-out),
@@ -818,7 +855,8 @@
   }
   .g-fab[data-ack="busy"] .g-fab__badge > svg { animation: none; }
   .g-fab__list--stack > li,
-  .g-fab__list--stack:is([data-state="opening"], [data-state="closing"]) > li {
+  .g-fab__list--stack:is([data-state="opening"], [data-state="closing"]) > li,
+  .g-fab__list--stack[data-state="open"] > li.is-shifted {
     translate: none;
     clip-path: none;
     transition: opacity var(--g-duration-fast) linear;
@@ -886,6 +924,7 @@
   .g-fab__item--danger,
   .g-fab__mark { color: LinkText; }
   .g-fab__list > .g-fab__find { border-block-end-color: CanvasText; }
+  .g-fab__list--stack > .g-fab__find { border-color: CanvasText; color: CanvasText; }
   .g-fab__scrim { opacity: 0; }
 }
 

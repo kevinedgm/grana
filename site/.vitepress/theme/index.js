@@ -23,6 +23,7 @@ import '../../src/.lucide.css'
 import './grana-site.css'
 import Layout from './Layout.vue'
 import GranaDemo from './GranaDemo.vue'
+import GranaThemePlayground from './ThemePlayground.vue'
 import { siteIcons } from './icons.js'
 
 export default {
@@ -36,5 +37,6 @@ export default {
       .use(CardGroup).use(PageHeader).use(Fab).use(FormFold).use(AppShell)
       .use(Hero).use(Gallery).use(Booking)
     app.component('GranaDemo', GranaDemo)
+    app.component('GranaThemePlayground', GranaThemePlayground)
   }
 }

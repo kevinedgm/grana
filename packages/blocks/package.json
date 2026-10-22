@@ -1,0 +1,54 @@
+{
+  "name": "@grana/blocks",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Grana Blocks: capa de composición sobre @grana/vue para pantallas de negocio (CRUD, editor, detalle, dashboard).",
+  "homepage": "https://github.com/kevinedgm/grana/tree/main/packages/blocks#readme",
+  "bugs": {
+    "url": "https://github.com/kevinedgm/grana/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kevinedgm/grana.git",
+    "directory": "packages/blocks"
+  },
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/blocks.js",
+  "module": "./dist/blocks.js",
+  "types": "./dist/blocks.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/blocks.d.ts",
+      "import": "./dist/blocks.js",
+      "default": "./dist/blocks.js"
+    },
+    "./style.css": "./dist/blocks.css",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "vite build && node scripts/build-types.mjs",
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "@grana/vue": ">=0.1.0-beta.0 <1.0.0",
+    "vue": "^3.5.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.0",
+    "@vue/test-utils": "^2.4.0",
+    "jsdom": "^25.0.0",
+    "vite": "^6.0.0",
+    "vitest": "^4.1.11",
+    "vue": "^3.5.0"
+  }
+}

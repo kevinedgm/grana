@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GResourceList · banco de estilo (coco)</title>
+<!-- Banco de coco para GResourceList (forma C · «La frase», #781 a #797). El .vue aún no existe: XResourceList (estilo-banco.js)
+     pinta el marcado EXACTO de design/contracts/resource-list.md («Anatomía» y «Clases y datos») con los componentes REALES
+     de packages/vue/dist (GPageHeader, GTable, GMenu, GTag, GInput, GBtn, GIcon, GEmpty) y el CSS real del block
+     (packages/blocks/src/components.css → layer(grana.blocks)). Solo hace lo que el estilo necesita: is-narrow
+     (< space × 150, medido en su raíz), facetas plegadas en estrecho, frase con un GMenu de radios por hueco, la palabra
+     nueva re-creada por su texto, total / masivas / par armado en el toolbar. No es la implementación de bruno.
+     Las enmiendas de la v1 que aún no tienen JS (#789 recuento a cero, #790 motivo y par de GMenu, #797 fila de búsqueda
+     de GMenu y pista de la pila de GFab) se pintan con marcado ESTÁTICO de sus clases (?view=menu, ?view=fab) o se
+     simulan sobre el DOM real (is-empty en g-table__count); está dicho en cada caso.
+     Requiere dist/ (npm run build). Desde la raíz: python3 -m http.server 4209 → /design/lab/resource-list/estilo-banco.html
+     Parámetros: ?view=block|base|menu|fab  ?state=rest|selected|armed|empty|filtered|forbidden  ?tabs=1  ?dark=1
+       ?theme=<generated/*.css>  ?rtl=1  ?coarse=1 (solo marca; el táctil real lo da el contexto de Playwright)
+     Verificación: GRANA_PW_PORT=4209 node design/lab/resource-list/estilo-verificar.mjs -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="../../../packages/blocks/src/components.css">
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style>
+  /* Andamio del banco (la «aplicación»; no es de Grana) */
+  *, *::before, *::after { box-sizing: border-box }
+  body { margin: 0; background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui); font-size: var(--g-text-body-size); line-height: var(--g-text-body-line) }
+  main { outline: none; max-inline-size: 1240px; margin-inline: auto; min-inline-size: 0 }
+  .lab-note { margin: 0; padding: 8px 16px; font-size: 13px; color: var(--g-color-text-muted); border-block-end: 1px dashed var(--g-color-border-strong) }
+  .lab-static { padding: 24px; display: grid; gap: 24px; min-block-size: 640px }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../../packages/vue/dist/page-header.umd.js"></script>
+<script src="../../../packages/vue/dist/tag.umd.js"></script>
+<script src="../lucide-icons.js"></script>
+<script src="./estilo-banco.js"></script>
+</body>
+</html>

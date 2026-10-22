@@ -1,6 +1,6 @@
 # Contrato · GMenu
 
-**Dueño:** lima · **Estado:** aprobado · **Basado en:** `design/lab/menu/r01/` y `design/lab/menu/r02/` (elementos-enlace, §«Elementos-enlace») (kiwi) · **Complementa:** `design/contracts/widget.md`
+**Dueño:** lima · **Estado:** aprobado; motivo de no disponible y confirmación en el sitio contratados el 2026-10-20 para `GResourceList` (#790) y buscar al escribir el 2026-10-21 (#797), pendientes de coco y bruno · **Basado en:** `design/lab/menu/r01/` y `design/lab/menu/r02/` (elementos-enlace, §«Elementos-enlace») (kiwi) · **Complementa:** `design/contracts/widget.md`
 **Tag:** `g-menu` · **Categoría:** superposiciones
 
 Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Menu* de APG): acciones, separadores, grupos con título, casillas, opciones, submenús y elementos peligrosos. Alcance decidido por el usuario (DECISIONS.md #82 a #84): botón de menú (sin menú contextual ni anclaje libre), contenido por arreglo de `items` con slots, y `GWidget` pasa a usarlo.
@@ -24,7 +24,7 @@ Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Men
 | `side` | String | `auto` `bottom` `top` | `auto` | propia |
 | `closeOnSelect` | String | `auto` `always` `never` | `auto` | propia |
 | `density` | String | `default` `comfortable` `compact` | `default` | compartida |
-| `labels` | Object | textos de los elementos-enlace (§«Elementos-enlace», «Textos») | `{}` | compartida (sin valores por defecto, #226) |
+| `labels` | Object | textos de los elementos-enlace (§«Elementos-enlace», «Textos»), `cancel` de la confirmación en el sitio (#790) y `findHint`, `matches`, `matchesOne`, `none` de buscar al escribir (#797) | `{}` | compartida (sin valores por defecto, #226) |
 | `id` | String | | generado | propia |
 
 ### Reglas de props
@@ -61,8 +61,10 @@ Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Men
 | `icon` | String (nombre de Lucide) \| cualquier valor | De la aplicación; decorativo. **Cadena y sin slot `icon`:** el elemento dibuja `GIcon` con ese nombre en `g-menu__icon` (`icons.md` §5, `api.md` «Iconos en los componentes», #202). **Con slot `icon`, manda el slot.** Otro valor: dato opaco que solo recibe el slot |
 | `shortcut` | String | Texto visible al final («Ctrl+D»), `aria-hidden` |
 | `keyshortcuts` | String | Valor de `aria-keyshortcuts` (sintaxis de ARIA, «Control+D»); sin valor, no se pone |
-| `disabled` | Boolean | `aria-disabled="true"`, **sigue enfocable**, atenuado y tachado; no se activa ni abre submenú |
+| `disabled` | Boolean \| String | `aria-disabled="true"`, **sigue enfocable**, atenuado y tachado; no se activa ni abre submenú. **Con String** (#790), ese **motivo** es su descripción visible (§«Motivo y confirmación en el sitio») |
 | `danger` | Boolean | Marca de forma (▲) y negrita, además del color |
+| `confirm` | String | Solo con `danger` (#790): la **pregunta** de la confirmación en el sitio. Sin `confirm`, el elemento peligroso se activa **como hoy** (sin confirmar ni aviso) |
+| `confirmLabel` | String | Solo con `danger` y `confirm`: texto del botón que confirma; sin él, la `label` |
 | `checked` | Boolean | Estado de `checkbox` y `radio` (`aria-checked`) |
 | `items` | Array | En `group`: sus elementos; en un `item`: el submenú |
 | `href` | String | Con valor, el elemento es un **enlace** `<a role="menuitem" href>` y emite `navigate` en lugar de `select` (§«Elementos-enlace», #572) |
@@ -459,6 +461,39 @@ Lectores reales (cómo leen VoiceOver y NVDA un `<a role="menuitem">` con `aria-
 | L10 | Sin slot `link` | Reservado; #523 no aplica | #572 |
 | L11 | Reservados | `download`, `hreflang`, `referrerpolicy`; foco inicial en la página actual | #572 |
 | L12 | Peso | Sigue en el principal; compuerta de 2,5 KiB gzip para toda la extensión (era 2 KiB); avisos con la guarda en línea | #579, #636 |
+
+## Buscar al escribir (#797; decisión del usuario del 2026-10-21, cambia la v1)
+
+`GMenu` adopta la regla común de `api.md` «Letras en listas de comandos» → «Buscar al escribir en todos los menús»: con los cuatro textos **`labels.findHint`**, **`labels.matches`** (`{count}`), **`labels.matchesOne`** y **`labels.none`**, escribir **filtra** la lista (sin campo, la semántica sigue siendo `menu`); sin ellos, **salta por letra como hoy** (500 ms) y sin aviso. Primera fila `li.g-menu__find` (`aria-hidden`) con la pista y, al escribir, lo escrito y el recuento; anuncio por el canal cortés de página (#533). Foco al primer visible que empieza por lo escrito, cíclico con la misma letra, deshabilitados incluidos (con su motivo como descripción buscable), cada submenú con su propio texto, Esc limpia y la siguiente cierra. Elementos-enlace: se filtran igual (su `label`). El motor es `utils/menuNav.js`, el mismo que `GFab`. Clases nuevas: `g-menu__find` (+ `is-empty-result` sin coincidencias), `g-menu__find-query` (lo escrito) y `g-menu__find-count` (el recuento o `labels.none`), los nombres de `GFab` (#798); `is-filtering` (lista) y `hidden` en los que no coinciden. Tokens: los existentes (`--g-text-body-sm-*`, `--g-color-text-muted`). Peso en el lote propio de #797 (≤ +1 KiB gzip de `grana.js`). Pruebas: `GMenu.test.js` (sin textos, el salto de hoy sin cambios en sus aserciones; con textos, las seis condiciones, el ciclo, deshabilitados y submenús) y `tests/menu.spec.mjs` en los tres motores.
+
+## Motivo y confirmación en el sitio (#790; enmienda para `GResourceList`, cambia la v1)
+
+La pide el primer block de `@grana/blocks` (`design/contracts/resource-list.md` «Permisos» y «Acciones de la fila»; L5 de `design/lab/resource-list/r01/declaracion.md` §13): permisos por fila con motivo legible (regla 1 de «Acciones con acuse», #643) y la baja de una fila confirmada **sin mover la tabla**. Trae a `GMenu` lo que `GFab` ya tiene (#662, #663), con una diferencia deliberada: aquí la confirmación es **opcional** (opt-in con `confirm`), para no cambiar el comportamiento de los menús que ya existen.
+
+### Motivo de no disponible
+
+- `disabled: String` → `aria-disabled="true"` (sigue enfocable, como hoy) y una **segunda línea visible** `g-menu__reason` con el motivo, **último hijo del elemento** (la fila se parte con `flex-wrap`, #798), referida por `aria-describedby` del elemento (ids únicos). `disabled: true` sigue como hoy (sin línea). Cadena vacía o solo espacios = `true`.
+- Vale en `item`, `checkbox`, `radio` y en un padre de submenú (no abre). No cambia el nombre accesible (la `label`).
+- Texto `--g-text-body-sm-*` en `--g-color-text-muted` (≥ 4,5:1 sobre `surface` y sobre el elemento activo `surface-sunken`); la etiqueta conserva su tachado de deshabilitado, el motivo **no** se tacha.
+
+### Confirmación en el sitio (patrón de `GFab`, `fab.md` «Peligrosas», #662)
+
+1. Activar un elemento `danger` con `confirm` **no emite `select`**: **arma** su fila, que se parte en «Cancelar» (`labels.cancel`) **con el foco y bajo el punto de la pulsación** (con teclado, al inicio lógico) y la confirmación (`confirmLabel` o la `label`, relleno `--g-color-danger` + `--g-color-on-danger`, borde `--g-color-danger-text` por §7.1) al lado, dentro de un `div role="group"` cuyo **nombre es la pregunta** (`confirm`). Los dos son `menuitem` del foco itinerante (↑ ↓ y ← → los recorren; el `li` de la fila lleva `is-armed`).
+2. **Se deshace sin temporizador** (2.2.1): «Cancelar», Esc (desarma; **no** cierra el menú: un nivel por gesto, #565), o el foco que sale del par (flechas, puntero, Tab). La fila vuelve con el foco en ella.
+3. **Un doble clic nunca ejecuta** (#661): el segundo clic de la ráfaga se ignora y, si cae, cae en «Cancelar». Con teclado: Intro en el elemento, → (o ↓) a la confirmación, Intro: se ejecuta **una vez**.
+4. **Confirmar emite `select`** del elemento (misma carga de siempre; `item` es el elemento peligroso) y sigue `closeOnSelect` (una acción cierra y devuelve el foco al disparador).
+5. **Nada se mueve:** el ancho de la lista no cambia al armar (el `.vue` escribe en el `li` armado **`--_armed-w`**, px, el ancho de la fila al armar, y lo retira al desarmar o confirmar; el CSS lo aplica como `min-inline-size`; como `GFab`, #677). La lista **no** cambia de alto: el par ocupa la fila.
+6. **Sin `labels.cancel`** con algún elemento que confirma, esos elementos quedan `aria-disabled` (fallo seguro: nada destructivo sin poder cancelar) y aviso **E8** (`[Grana] <GMenu>`, una vez). `confirm` sin `danger`: se ignora y aviso **E9**.
+7. **Sin ticket** en `select` (el acuse de #663 es del FAB; en un menú de fila lo da la aplicación con `GToast`). Reservado: `select` con ticket en `GMenu`, si un caso lo pide.
+8. **Movimiento:** ninguno propio (el par aparece en el sitio); con movimiento reducido, igual. Reutiliza el motor de menú compartido (`utils/menuNav.js`, #657) para el foco del par; la lógica de armado puede compartirse con `GFab` por `utils/` si bruno lo ve (sin cambiar `GFab`).
+
+### Clases nuevas (para coco)
+
+`g-menu__reason` (motivo); `is-armed` (el `li` armado); `g-menu__confirm` (`role="group"`), `g-menu__confirm-cancel` y `g-menu__confirm-ok` (los dos `menuitem`). Tokens: los de §«Tokens consumidos» más `--g-color-danger`, `--g-color-on-danger` y `--g-text-body-sm-*`. **Sin tokens nuevos.**
+
+### Peso y pruebas
+
+Sigue en el principal (ampliación de un componente existente, #550). Cuenta en el **lote de #793** junto con las enmiendas de `GTable` (≤ +1,5 KiB gzip de `grana.js`; `resource-list.md` «Enmiendas»). `GMenu.test.js`: motivo (`aria-describedby`, enfocable, no se activa), armado y desarmado (Cancelar, Esc sin cerrar, foco que sale), confirmación con teclado y puntero, doble clic, `--_armed-w`, E8 y E9, y que un `danger` sin `confirm` sigue emitiendo `select` al activarse. Playwright en los tres motores dentro de `tests/resource-list.spec.mjs` (la tabla quieta, Δ0) y un caso suelto en `tests/menu.spec.mjs`.
 
 ## Límites conocidos
 

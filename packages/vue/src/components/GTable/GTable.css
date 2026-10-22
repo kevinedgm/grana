@@ -59,6 +59,24 @@
   background: var(--g-color-surface);
 }
 .g-table__count { margin-inline-start: auto; }
+/* Recuento a cero (#789): la región (role="status") sigue montada y en el árbol, pero sin texto ni sitio: patrón de texto
+   oculto accesible (nunca display: none, que la sacaría del árbol y el primer anuncio se perdería) */
+.g-table__count.is-empty {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+/* Barra sin nada visible (sin toolbar, sin controles de tarjetas y con 0): sin alto, sin hueco y sin margen; la región
+   sigue dentro */
+.g-table__bar.is-quiet {
+  min-block-size: 0;
+  margin-block-end: 0;
+  gap: 0;
+}
 /* Controles que solo existen en tarjetas (la cabecera no se ve) */
 .g-table__bar .g-table__bar-cards { display: none; }
 

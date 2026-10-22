@@ -258,7 +258,7 @@ div.g-fab  data-position data-anchor data-appearance data-state data-ack? is-tuc
 
 ## C · Buscar al escribir (#658)
 
-Solo en el **panel de C** (con `main`) y solo con sus cuatro textos (`labels.findHint`, `matches`, `matchesOne`, `none`; sin alguno, el panel salta por letra como el de A y avisa, aviso 11). Cumple la regla común de `api.md` «Letras en listas de comandos»:
+**Enmienda #797 (decisión del usuario del 2026-10-21):** buscar al escribir vale ya en **todas** las listas de `GFab` —la pila, el panel de A y el de C— y en `GMenu`, con la regla común de `api.md` «Buscar al escribir en todos los menús» y el motor en `utils/menuNav.js` (sale de `GFab.vue`; llega por `__shared`). En el panel de C, sin alguno de los cuatro textos (`labels.findHint`, `matches`, `matchesOne`, `none`) salta por letra y avisa (aviso 11); en la pila y en el panel de A, sin ellos salta por letra **sin aviso**. Pila: las que no coinciden se ocultan, las demás se juntan hacia el FAB y la pista va en la fila más alejada. Lo que sigue describe el comportamiento, igual en las tres listas: Cumple la regla común de `api.md` «Letras en listas de comandos»:
 
 1. **Se anuncia a la vista desde que se abre:** la primera fila del panel (`li.g-fab__find`, `aria-hidden`) dice `labels.findHint` («Escribe para buscar»). Con algo escrito, dice lo escrito y el recuento (««exp» · 1 acción»). La semántica sigue siendo `menu`: **no hay `textbox`** dentro.
 2. **Qué cuenta como escribir:** una tecla de un carácter imprimible **distinto de Espacio**, sin Ctrl, ⌘ ni Alt, fuera de una composición de IME (`isComposing`). Retroceso borra el último carácter. Lo escrito se compara **sin mayúsculas ni diacríticos** (`toLocaleLowerCase` + NFD sin marcas) y **contiene** (no «empieza por») sobre `label` y `description`.
@@ -447,7 +447,9 @@ Corregido en #671 con el CSS real de coco: el FAB no lee `brand` (lo impide `rol
 | `g-fab__icon`, `__label`, `__desc`, `__reason`, `__mark` | Partes del elemento | Según el elemento |
 | `g-fab__group-title` | Título de grupo | Panel con `group` |
 | `g-fab__find` (+ `is-empty-result`) | Cabecera de C | Panel de C con sus textos |
-| `g-fab__find-query`, `g-fab__find-count` | Dentro de `g-fab__find` | Con algo escrito: lo escrito y el recuento (o `labels.none` + lo intentado) (#671) |
+| `g-fab__find-query`, `g-fab__find-count` | Dentro de `g-fab__find` | Con algo escrito: lo escrito y el recuento (o `labels.none` + lo intentado) (#671); desde #797 también en la pila y el panel de A |
+| `is-gathering` | Lista de la pila | Mientras las píldoras que quedan se juntan hacia el FAB tras filtrar (#797, #798) |
+| `is-shifted`, `--_shift` | Cada `li` de la pila que se desplaza; `--_shift` en línea (px, la distancia que recorre) | Solo el primer cuadro del juntarse (técnica FLIP: el `.vue` escribe el desplazamiento y lo retira para que el CSS lo anime con `--g-duration-fast` + `--g-ease-out`; sin ellos con movimiento reducido) (#798) |
 | `g-fab__confirm`, `__cancel`, `__confirm-action` | Par de confirmación | Armada (estructura en §«Anatomía») |
 | `has-highlight`, `is-highlight-instant`, `--_active-y`, `--_active-h` | Panel | M1 (motor compartido) |
 | `g-fab__scrim`, `g-fab__scrim-part` | Velo y su cuarta pieza | `pointer: coarse` y abierto (#668) |
@@ -486,7 +488,7 @@ Ninguno en v1 (abrir y cerrar van por `modelValue`).
 | `more` | Nombre de la cola de A («Más acciones ({count})»; `{count}` = acciones en el panel) | Hay cola | **Panel directo** (sin cola), aviso 11 |
 | `moreShort` | Nombre de la cola de C («Más acciones») | Con `main` y resto no vacío | `main` se ignora (forma A), aviso 11 |
 | `cancel` | «Cancelar» del par de confirmación | Alguna peligrosa que confirma | Esas acciones `aria-disabled` (fallo seguro), aviso 11 |
-| `findHint` | Pista visible del panel de C | C | Sin filtro (salta por letra), aviso 11 |
+| `findHint` | Pista visible de la lista que filtra (#797: pila, panel de A y panel de C) | Opcional; en C, necesaria | Sin filtro (salta por letra); aviso 11 solo en C |
 | `matches` (`{count}`), `matchesOne` | Recuento del filtro (cabecera y anuncio) | C | Igual que `findHint` (van juntas) |
 | `none` | Sin coincidencias («Ninguna acción con») | C | Igual |
 | `busy`, `done`, `failed` | Texto del acuse cuando el ticket no lo trae | Opcional | Insignia sin texto ni anuncio, aviso 11 |
@@ -549,7 +551,7 @@ Un icono que no existe lo avisa `GIcon` (no es un aviso de `GFab`). Medido por k
 
 - **`GFab` no envuelve al componente `GMenu`** (su lista es una pila con geometría propia, su panel nace de otro sitio y su disparador es fijo), pero **comparte su motor**, extraído a **`utils/menuNav.js`** (interno, sin promesa de estabilidad; como `utils/collapse.js` salió de `GFormSection` para `GAccordion`). Contenido mínimo (bruno decide la forma): recorrido de los enfocables de un nivel (incluidos los `aria-disabled`, sin los `hidden`); ↑ ↓ cíclicas, Inicio y Fin; **la letra** con su búfer de 500 ms sobre la etiqueta; **M1** (el puntero mueve el foco, el puntero quieto no desplaza) y los datos del resaltado (`--_active-y/h`, `has-highlight`, `is-highlight-instant`); y la guarda de **una activación por gesto** (#661).
 - **`GMenu` no cambia ni de API ni de comportamiento** con la extracción: su `GMenu.test.js`, `GMenu.ssr.test.js` y sus specs de Playwright pasan **sin tocar sus aserciones**. Lo que solo es de `GMenu` (submenús con M4, casillas y opciones, elementos-enlace, pie de destino, huellas de C) se queda en `GMenu.vue`.
-- **El filtro de C no entra en `GMenu`** (#658). `menuNav.js` lo ofrece como un modo del motor que solo activa `GFab`.
+- ~~**El filtro de C no entra en `GMenu`** (#658)~~ **Enmienda #797:** el filtro es un modo de `menuNav.js` que usan `GMenu` y las tres listas de `GFab`.
 - **El defecto del doble clic de `GMenu` (L8)** no se arregla en esta entrega: queda en `PENDIENTES.md` §6 para bruno, con la regla de `api.md` «Una activación por gesto».
 - **Nombres compartidos:** `items`, `id`, `label`, `icon`, `disabled`, `danger`, `closeOnSelect`, `select`, `open`, `closed`, `modelValue`. **Diferencias registradas:** `disabled` admite un String (motivo, #643); `group` es un String plano (no un elemento `type: 'group'`); `description` existe en `GFab` y **queda reservado con el mismo nombre y significado en `GMenu`** (si un día lo adopta, sin otra ronda de nombre); el orden de la pila nace del FAB (#660).
 
@@ -656,4 +658,4 @@ Lector de pantalla real (VoiceOver, NVDA, TalkBack) sobre el orden invertido de 
 
 ## Dudas para el usuario (no bloquean)
 
-1. **Buscar al escribir más allá de C** (L5, #658). Contratado solo en el panel de C, como lo eligió. ¿Lo extendemos a **todo panel de `GFab`** (el de «Más acciones» de A y `appearance="panel"`) con la regla «lista corta salta, panel filtra»? ¿Y a **`GMenu`** cuando sus listas son largas? Cualquiera de las dos cambia un comportamiento existente o elegido, por eso no se decide aquí. Si dices que sí, es una opción del motor compartido (sin cambios de API).
+1. ~~**Buscar al escribir más allá de C** (L5, #658).~~ **Resuelta (#797):** sí, en la pila, el panel de A y `GMenu`, con una sola regla en el motor compartido (`api.md`). Contratado solo en el panel de C, como lo eligió. ¿Lo extendemos a **todo panel de `GFab`** (el de «Más acciones» de A y `appearance="panel"`) con la regla «lista corta salta, panel filtra»? ¿Y a **`GMenu`** cuando sus listas son largas? Cualquiera de las dos cambia un comportamiento existente o elegido, por eso no se decide aquí. Si dices que sí, es una opción del motor compartido (sin cambios de API).

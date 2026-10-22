@@ -25,9 +25,13 @@ export const UI = {
       personality: 'Personalidad',
       'components/': 'Componentes',
       project: 'Proyecto',
-      changelog: 'Cambios'
+      changelog: 'Cambios',
+      playground: 'Playground de tema'
     },
-    nav: { guide: 'Guía', components: 'Componentes', changelog: 'Cambios', github: 'GitHub' },
+    tools: {
+      playground: 'Elige color, forma, espaciado y tipografía y mira en vivo cómo cambian los componentes de Grana. El tema se deriva con el motor de @grana/cli y se exporta como configuración o como tokens.'
+    },
+    nav: { guide: 'Guía', components: 'Componentes', playground: 'Playground', changelog: 'Cambios', github: 'GitHub' },
     groups: { guide: 'Guía', other: 'Otros' },
     categories: {},
     component: {
@@ -112,9 +116,13 @@ export const UI = {
       personality: 'Personality',
       'components/': 'Components',
       project: 'Project',
-      changelog: 'Changelog'
+      changelog: 'Changelog',
+      playground: 'Theme playground'
     },
-    nav: { guide: 'Guide', components: 'Components', changelog: 'Changelog', github: 'GitHub' },
+    tools: {
+      playground: 'Pick color, shape, spacing and type and watch Grana components change live. The theme is derived with the @grana/cli engine and exports as a config or as tokens.'
+    },
+    nav: { guide: 'Guide', components: 'Components', playground: 'Playground', changelog: 'Changelog', github: 'GitHub' },
     groups: { guide: 'Guide', other: 'Other' },
     // Las categorías del índice de componentes salen de los `###` de «Componentes» del README.
     categories: {
