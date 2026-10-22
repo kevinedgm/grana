@@ -1,6 +1,6 @@
 # Plan · `@grana/blocks` — bloques de página para Marketing, Ecommerce y Booking
 
-> 2026-10-21. Elaborado a partir de la página de Notion «🧱 Grana Blocks» (estado: prototipo documentado, P0), del inventario de marketing de kiwi (`design/lab/marketing/r01/`), de los contratos vigentes de las primitivas (`stack.md`, `container.md`, `section.md`, `adaptive-layout.md`, `card-group.md`) y de los componentes de marketing ya `candidate` (`GHero`, `GGallery`/`GGalleryViewer`, `GBookingBar`/`GPartyField`). **Estado: propuesta para decisión del usuario.** No toca código.
+> 2026-10-21. Elaborado a partir de la página de Notion «🧱 Grana Blocks» (estado: prototipo documentado, P0), del inventario de marketing de kiwi (`design/lab/marketing/r01/`), de los contratos vigentes de las primitivas (`stack.md`, `container.md`, `section.md`, `adaptive-layout.md`, `card-group.md`) y de los componentes de marketing ya `candidate` (`GHero`, `GGallery`/`GGalleryViewer`, `GBookingBar`/`GPartyField`). **Estado:** decisiones D1 a D4 tomadas (#764 a #767; D2 enmendada por #814); lote 2 contratado (#815 a #826). No toca código.
 
 ## 1. Qué cambia respecto a la página de Notion
 
@@ -10,7 +10,7 @@ Las decisiones de Notion que se mantienen tal cual:
 
 | Decisión de Notion | Cómo aplica a estas tres familias |
 | --- | --- |
-| Empezar dentro de `@grana/vue` (`packages/vue/src/blocks/`) | Igual. Se extrae a `@grana/blocks` cuando haya 4 a 6 bloques usados en proyectos distintos (hoy: NisaNabani, los sitios de Oaxaca) |
+| Empezar dentro de `@grana/vue` (`packages/vue/src/blocks/`) | **Sustituida por #780 y #814:** los bloques nacen en `@grana/blocks` (`packages/blocks/`), con `@grana/vue` como *peer* |
 | Bloques transparentes: props, eventos y slots; sin lógica de negocio | Igual. Un bloque **emite intención** (`select`, `add`, `submit`, `navigate`) y nunca navega ni muta |
 | Datos externos al núcleo, sin `fetch` | Igual. Precios, fotos, disponibilidad y opiniones llegan por props |
 | Responsive como responsabilidad del bloque | Se cumple **por construcción**: el bloque solo usa `GContainer`, `GStack`, `GSection`, `GAdaptiveLayout`, `GCardGroup`, `GFormLayout`+`GFormRow`; ninguna media query |
@@ -24,7 +24,9 @@ Las cuatro reglas del prompt, con lo que **existe de verdad** en Grana:
 3. **Accesibilidad y ritmo.** HTML semántico (`section` con nombre vía `GSection`, listas reales, `figure`/`blockquote`/`cite` en opiniones, `address` en ubicación, `dl` en cartas y especificaciones); un solo `h1` por página (el de `GHero`); nada se mueve solo (2.2.2). El aire sale de `gap` de `GStack`/`GAdaptiveLayout` (`sm` «va con lo anterior», `md`, `lg` «otro tema») y de `GSection`, nunca de un número.
 4. **Componentes base.** Grana **no tiene componentes de tipografía**: el título lo pone `GSection`/`GCard`/`GHero`, el cuerpo es prosa (`p`, `ul`, `dl`) dentro de `GContainer prose` o del cuerpo de `GSection`. Botones `GBtn` (`variant` `solid|soft|outline|link`), tarjetas `GCard` (`mediaPosition`, `meta`, `badge`, `interaction="link"`), fotos `GGallery`/`GGalleryViewer`, iconos `GIcon` (solo Lucide), etiquetas `GTag`/`GBadge`, avatar `GAvatar`.
 
-**Nombre y prefijo (decisión pendiente del usuario, D1):** propuesta `Gb` + sección + número: `GbFeatures01`, `GbPricing02`, `GbProductGrid01`, `GbRoomList01`. Tag `gb-features-01`. Sin clases `gb-*` (no hay CSS). Alternativa: `GBlockFeatures01`.
+**Nombre y prefijo (D1, decidido, #764):** `Gb` + sección + número: `GbFeatures01`, `GbPricing02`, `GbProductGrid01`, `GbRoomList01`. Tag `gb-features-01`. Sin clases `gb-*` (no hay CSS).
+
+**Ubicación (D2, enmendada por #814 tras #780):** los bloques viven en el paquete aparte **`@grana/blocks`**, en `packages/blocks/src/blocks/`, con `@grana/vue` y `vue` como *peer* y una entrada por familia (`@grana/blocks/marketing`, luego `/booking` y `/ecommerce`; #815). Los bloques estructurales de estas tres familias no llevan CSS; los de Gestión con forma propia (`GResourceList`) sí, en `@layer grana.blocks` (`api.md` «Grana Blocks» regla 3). Contratos del lote 2 en `design/contracts/blocks/` (`_comun.md` y uno por sección).
 
 ## 3. Lo que ya está y lo que bloquea
 
@@ -46,6 +48,8 @@ Las cuatro reglas del prompt, con lo que **existe de verdad** en Grana:
 Por familia: sección, variantes (concepto de layout), `Props` compartida, componentes que compone, dependencias y prioridad. **P0** = componible hoy; **P1** = tras la ronda de moneda; **P2** = necesita un componente o ronda nueva.
 
 ### 4.1 Marketing (14 secciones)
+
+> Las nueve secciones P0 tienen contrato en `design/contracts/blocks/` (#815 a #826). Donde difieren de esta tabla manda el contrato (correcciones en `_comun.md` §10: `GCardGroup` no es una rejilla, Newsletter con `GInput` y su slot `action`, sin `eyebrow` en `GSection`, `rating` reservado, FAQ 02 «todo a la vista»).
 
 | # | Sección | Variantes | Props compartida (resumen) | Compone | Dep. | Pri. |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -104,13 +108,13 @@ Por familia: sección, variantes (concepto de layout), `Props` compartida, compo
 
 | Lote | Qué | Por qué en este orden |
 | --- | --- | --- |
-| **0 · Decisiones** | D1 nombre (`Gb…`), D2 ubicación (`packages/vue/src/blocks/` según Notion, o `packages/blocks/` desde el inicio), D3 flujo reducido (§6), D4 adelantar la ronda de moneda | Sin D4, más de un tercio de la lista queda en P1 |
+| **0 · Decisiones** | Hechas: D1 `Gb…` (#764), D2 `packages/blocks/` (#765 enmendada por #814), D3 flujo reducido (#766), D4 moneda primero (#767) | — |
 | **1 · Moneda y precio** (#154, M-L1) | `GPrice` o `formatPrice` + `Money` | Desbloquea Pricing, Product, Cart, Checkout, Offer, Menu, Availability |
-| **2 · Marketing P0** (9 secciones, 2 a 3 variantes cada una) | M2 Hero, M3 Features, M7 CTA, M8 FAQ, M5 Testimonials, M4 Stats, M11 Newsletter, M13 Blog, M14 Footer | Todo compone componentes `candidate`; es el **primer sitio real** (hotel de Oaxaca) y prueba la regla «cero CSS» |
+| **2 · Marketing P0** (9 secciones, 3 variantes cada una; **contratado**, `design/contracts/blocks/`, #815 a #826) | M2 Hero, M3 Features, M7 CTA, M8 FAQ, M5 Testimonials, M4 Stats, M11 Newsletter, M13 Blog, M14 Footer | Todo compone componentes `candidate`; es el **primer sitio real** (hotel de Oaxaca) y prueba la regla «cero CSS» |
 | **3 · Booking P0 + P1** | B1 Search, B2 Offer list, B6 Guest form, B7 Confirmation, B8 Itinerary, B10 Location, B11 Policies, luego B3, B5, B9, B4 | Con el lote 1 hecho, cierra las tres plantillas de Oaxaca (hotel, restaurante, tour) |
 | **4 · Ecommerce** | E1 Product card, E2 Grid, E3 Categories, E4 Overview, E7 Cart, E9 Summary, E8 Checkout, E10 History, E11 Promo, E12 Trust, E5 Quick view | Depende de lote 1 y de la utilidad `cartTotals` |
 | **5 · Lo que necesita componente nuevo** | Calificación (`star`, M-L2) → E6 Reviews y `rating`; `GEmbed` → mapa vivo en M12/B10; `lang`/`hreflang` → idiomas en M1; Header 02 transparente (H-L6) | Cada uno con su ronda de kiwi |
-| **6 · Extracción** | `@grana/blocks` con `@grana/vue` como peer; `grana add block <seccion>` en el CLI | Cuando 4 a 6 bloques estén en uso en proyectos distintos (criterio de Notion) |
+| **6 · CLI** | `grana add block <seccion>` en el CLI | La extracción a `@grana/blocks` (`packages/blocks/`, *peer* `@grana/vue`) ya no espera: los bloques nacen ahí (#780, #814) |
 
 ## 6. Flujo por bloque (más corto que el de un componente)
 
@@ -121,12 +125,12 @@ Un bloque no tiene forma propia ni CSS, así que **no aplica «conceptos antes q
 3. **coco (auditoría, sin CSS que escribir):** auditoría previa y posterior de `auditoria-visual.md` sobre el bloque real con dos temas del CLI (rústico y lujo) y rúbrica de movimiento donde haya; cualquier necesidad de CSS se devuelve como hallazgo a lima (prop o primitiva nueva), nunca como CSS del bloque.
 4. **mora-docs:** `README.md` por sección con las variantes lado a lado y la `Props`.
 
-Compuertas nuevas en `gates.sh`: `! test -f packages/vue/src/blocks/**/*.css` (ningún bloque trae CSS), y un spec que recorre todas las variantes de una sección con la misma `Props` y comprueba que ninguna emite aviso de prop desconocida.
+Compuertas nuevas en `gates.sh` (#814, `design/contracts/blocks/_comun.md` §9): ningún `.css` bajo `packages/blocks/src/blocks/Gb*` (ningún bloque estructural trae CSS), y un spec que recorre todas las variantes de una sección con la misma `Props` y comprueba que ninguna emite aviso de prop desconocida.
 
 ## 7. Preguntas para el usuario
 
 1. **D1 · Nombre:** `GbFeatures01` (recomendado) o `GBlockFeatures01`.
-2. **D2 · Ubicación:** `packages/vue/src/blocks/` como dice Notion (recomendado: valida sin publicar otro paquete) o `packages/blocks/` desde ya.
+2. ~~**D2 · Ubicación:** `packages/vue/src/blocks/` como dice Notion o `packages/blocks/` desde ya.~~ **`packages/blocks/`** (`@grana/blocks`): decisión del usuario del 2026-10-22 («Vale #780»), #814 enmienda #765.
 3. **D3 · Flujo reducido** de §6 (recomendado) o el flujo completo kiwi → lima → coco → bruno → coco → mora-docs por sección.
 4. **D4 · Adelantar la ronda de moneda y precio** (#154) como lote 1 (recomendado: sí; sin ella, Pricing, Product, Cart, Checkout, Offer, Menu y Availability no se pueden cerrar).
 5. **Alcance de la primera entrega:** recomendado el lote 2 (Marketing P0) completo, con el sitio del hotel como banco real.

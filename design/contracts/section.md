@@ -1,6 +1,6 @@
 # Contrato · GSection (sección de página)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #720, #717 y #723, 2026-10-21; `tokens.md` §23.1 y §49) · **Basado en:** `design/lab/app-shell/r01/` (kiwi, commit 0c202e3; `declaracion.md` Parte 3, hallazgo L14; prototipo `.sec` en `shell.css`; medido en `verificar.mjs`)
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #720, #717 y #723, 2026-10-21; enmienda `useSectionLevel` #817, 2026-10-22; `tokens.md` §23.1 y §49) · **Basado en:** `design/lab/app-shell/r01/` (kiwi, commit 0c202e3; `declaracion.md` Parte 3, hallazgo L14; prototipo `.sec` en `shell.css`; medido en `verificar.mjs`)
 **Tag:** `g-section` · **Categoría:** estructura de página · **Paquete:** `@grana/vue` (principal, con compuerta de peso conjunta con `GStack`; #723)
 
 **Sin forma visible propia** (sin superficie): no aplica «conceptos antes que caja» (#362); sí «Qué lo hace distinto». **No es complejo:** coco y bruno en Sonnet.
@@ -84,6 +84,15 @@ section.g-section.g-section--depth-{1|2|3} [aria-labelledby="{id}-title" solo co
 - **Descripción:** body-sm 14/20, 400, `muted` (`--g-color-text-muted`), con medida de lectura `66ch` (literal de unidad, #717).
 - Medido por kiwi: 20 › 16 › 14.
 
+## Nivel para componentes y bloques: `useSectionLevel()` (#817; enmienda, cambia la v1)
+
+**Exportación pública nueva de `@grana/vue` (principal):** `useSectionLevel(): { level: ComputedRef<number>, depth: ComputedRef<number> }`, solo lectura, para usar en el `setup` de un componente de la aplicación o de un bloque de `@grana/blocks` (que no puede leer `sectionKey`, #792).
+
+- **`level`**: el nivel que debe llevar **un encabezado puesto en ese sitio**: `2` fuera de toda `GSection`; dentro de una, su nivel + 1, con tope `6`. **`depth`**: las `GSection` antepasadas (`0` fuera). Lee la misma clave interna que `GSection`, sin exponerla; como hoy la clave solo lleva `next` con tope 4 y `depth`, **bruno le añade el nivel propio de la sección** (`level`, interno) para que dentro de un `h4` el siguiente sea `5` y no `4`. `GSection` sigue usando `next` (tope 4) y no cambia. Fuera de un `setup` (sin instancia) devuelve `2` y `0` sin avisar.
+- **Uso en un bloque** (`api.md` «Grana Blocks», regla 8): el bloque lee `level` **antes** de su propia `GSection` (en su `setup`, que solo ve antepasados); su sección tomará `min(level, 4)` sola, y los títulos de dentro (`GCard`, `GAccordion`) van a `min(min(level, 4) + 1, 6)`.
+- **No cambia** el nivel por defecto de `GCard`, `GFormSection`, `GDialog` ni `GAccordion` (sigue reservado como L14, «Fuera de v1»): quien lo necesita lo lee y lo pasa por `headingLevel`.
+- **Peso:** ampliación del principal (#550), **≤ 128 B gzip** de `dist/grana.js`; con más, vuelve a lima. **Tipos:** en `packages/vue/types/api/grana.d.ts` (función, no componente; #443). **Pruebas (bruno):** `2`/`0` fuera; `3`/`1` dentro de una sección; `4`/`2` dentro de dos; un `headingLevel` fijado en la sección de fuera se respeta (+1); tope `6`; SSR.
+
 ## Slots
 
 | Slot | Qué va | Regla |
@@ -152,4 +161,5 @@ Encabezado de sección pegado; lectura de `sectionKey` por `GCard`, `GFormSectio
 
 - **coco (Sonnet):** `GSection.css` (la pila del cuerpo con la regla de `GStack.css` o compartiendo su selector).
 - **bruno (Sonnet):** `GSection.vue` con `sectionKey`, pruebas, `meta.json`, registro, compuerta, ejemplo en el playground.
+- **bruno (Sonnet), enmienda #817:** `useSectionLevel()` exportado desde `@grana/vue` (`src/index.js`), sus tipos en `types/api/grana.d.ts`, sus pruebas y la medida de peso (≤ 128 B).
 - **mora-docs (Sonnet):** `GSection/README.md` con la frontera y la regla del nivel.
