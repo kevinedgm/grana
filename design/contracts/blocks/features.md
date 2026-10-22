@@ -1,6 +1,6 @@
 # Contrato · Features (`GbFeatures01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #815 a #817 y #819, 2026-10-22) · **Plan:** M3 (§4.1) · **Entrada:** `@grana/blocks/marketing` · **Común:** `_comun.md` · **Compone:** `GSection`, `GAdaptiveLayout`, `GStack`, `GContainer`, `GCard`, `GIcon`, `GBtn`
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #815 a #817 y #819, 2026-10-22; remates #833, #834) · **Plan:** M3 (§4.1) · **Entrada:** `@grana/blocks/marketing` · **Común:** `_comun.md` · **Compone:** `GSection`, `GAdaptiveLayout`, `GStack`, `GContainer`, `GCard`, `GIcon`, `GBtn`
 
 ## Promesa
 
@@ -31,7 +31,7 @@ interface GbFeaturesProps {
 
 ## Eventos y slots
 
-Eventos `navigate` (reemite el de la tarjeta en 01 y 02) y `activate`. Slots: `item` `{ item, index }` (escape: sustituye el contenido de la tarjeta o de la sección anidada de un elemento), `description` (sustituye a la prop en la `GSection`).
+Eventos `navigate` (reemite el de la tarjeta en 01 y 02) y `activate`; en las tres variantes **`item` es la `Feature`**, no su `action` (`item.action` lleva el destino; #833). Con un `href` `javascript:` (C6) la tarjeta queda sin interacción y en 03 el enlace es un `GBtn` deshabilitado (#834). Slots: `item` `{ item, index }` (escape: sustituye **el cuerpo** del elemento —slot por defecto de la `GCard` en 01 y 02, cuerpo de la `GSection` anidada en 03—; título, descripción, icono, nivel, acción y tarjeta-enlace siguen saliendo de los datos, #833), `description` (sustituye a la prop en la `GSection`).
 
 ## Qué lo hace distinto (#819)
 

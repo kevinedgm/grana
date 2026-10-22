@@ -24,6 +24,7 @@
 ### Reglas de props propias
 
 - **`type`:** se ignora cuando hay `href`.
+- **`variant="link"` (#828):** mide su contenido (`inline-size: fit-content`): en una columna flex que estira (`GSection`, `GStack`) el enlace no ocupa toda la fila con el texto centrado. **`block` gana** (a todo el ancho).
 - **`href`:** renderiza `<a>`. Con `disabled` (o `loading`), el `<a>` se renderiza **sin** `href`, con `aria-disabled="true"`, `tabindex="-1"` y `role="link"` (un `<a>` sin `href` pierde su rol de enlace; WCAG 4.1.2).
 - **`icon`:** botón cuadrado (ancho = altura). Exige un nombre: `aria-label`, `aria-labelledby` o **`tooltip`** (#390); en desarrollo, si falta, se emite `console.warn`. En producción no hay advertencia.
 - **`aria-disabled` del consumidor** (#236): sin `loading`, `GBtn` **respeta** el `aria-disabled` que le pase el consumidor (control enfocable que no actúa; p. ej. el disparador de voz con otra sesión activa, `speech.md` §8.2). En ese caso `GBtn` **sigue emitiendo `click`** (el consumidor decide qué hacer: explicar, mover el foco) y **no** añade `is-disabled` (el aspecto lo da `[aria-disabled="true"]` en el CSS del componente que lo usa). Con `loading`, `aria-disabled="true"` lo fija `GBtn` y gana. En `<a>` (con `href`) no cambia la regla de arriba.

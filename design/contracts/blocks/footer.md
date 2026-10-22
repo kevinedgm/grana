@@ -1,6 +1,6 @@
 # Contrato · Footer (`GbFooter01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #815 a #817 y #826, 2026-10-22) · **Plan:** M14 (§4.1) · **Entrada:** `@grana/blocks/marketing` · **Común:** `_comun.md` · **Compone:** `GStack`, `GAdaptiveLayout`, `GSection`, `GDivider`, `GBtn`, `GIcon`; va **dentro** del slot `footer` de `GAppShell` o suelto
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #815 a #817 y #826, 2026-10-22; remates #834, #841) · **Plan:** M14 (§4.1) · **Entrada:** `@grana/blocks/marketing` · **Común:** `_comun.md` · **Compone:** `GStack`, `GAdaptiveLayout`, `GSection`, `GDivider`, `GBtn`, `GIcon`; va **dentro** del slot `footer` de `GAppShell` o suelto
 
 ## Promesa
 
@@ -26,6 +26,7 @@ interface GbFooterProps {
 ```
 
 - **`as`:** `GAppShell` ya pinta el `footer` (`contentinfo`, `app-shell.md`); un `footer` dentro de otro es HTML inválido. Dentro del chasis, `as="div"`. Con `as="footer"` y un `footer` o `[role="contentinfo"]` antepasado, aviso O1 (en `onMounted`).
+- **Tipografía (#841):** `address` (en cursiva por el navegador), sus líneas, el horario, `note` y la marca sin enlace son texto suelto: irán en la primitiva de texto (`_comun.md` §11 B-L5: `as="address" size="sm"`; nota y legales `size="caption" tone="muted"`). Hasta entonces la sección queda en `draft` si la auditoría de coco lo confirma (F-L1).
 - **Logo:** `Brand.logo` es la única imagen suelta de los bloques (hallazgo B-L3): `width`/`height` obligatorios (C4), `alt = brand.name` y sin texto repetido junto a él.
 
 ## Anatomía común

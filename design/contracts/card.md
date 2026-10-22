@@ -326,7 +326,7 @@ Jerarquía visual (brief): 1 información principal (título, valor de la métri
 
 | Slot | Propósito | Alcance | Anatomía que debe conservar |
 | --- | --- | --- | --- |
-| `media` | Imagen, ilustración, vídeo, mapa, gráfico | `{ size, layout }` | Dentro de `g-card__media`; decorativa (`aria-hidden`) o informativa (`role="img"`); **sin interactivos** salvo controles propios por encima |
+| `media` | Imagen, ilustración, vídeo, mapa, gráfico; o un avatar | `{ size, layout }` | Dentro de `g-card__media`; decorativa (`aria-hidden`) o informativa (`role="img"`); **sin interactivos** salvo controles propios por encima. **Con un hijo directo `.g-avatar` (#842; cambia la v1)**, el hueco adopta la caja del avatar como `lead`: sin fondo, proporción ni recorte de media, no estira al avatar y mide lo que él, alineado al inicio del bloque y con el relleno de la tarjeta para alinear con el cuerpo; en columna, al inicio en línea; el esqueleto de carga no cambia |
 | `lead` | **Icono o avatar** (iniciales, imagen, icono) del consumidor (#123); para un avatar, `GAvatar size="lg"` sin `label` (#295) | `{ size, layout }` | Dentro de `g-card__lead` (`aria-hidden`); la caja mide `space × 10` y el contenido la llena (`inline-size: 100%`). **Con un hijo directo `.g-avatar`, el `lead` pierde su marco** (sin borde, relleno ni radio propios) y **no estira** al avatar: se ve una sola forma, la del avatar (`lg` = `space × 10`); el esqueleto de carga no cambia (#295, `avatar.md`) |
 | `eyebrow`, `subtitle` | Texto con contenido rico | | Dentro de su `g-card__*`; sin interactivos |
 | `title` | Título con contenido rico (sustituye a `title`) | | Dentro del encabezado; **conserva el texto** para el nombre; el control principal lo envuelve la tarjeta |
@@ -341,7 +341,7 @@ Jerarquía visual (brief): 1 información principal (título, valor de la métri
 | `footer` | Metadata, marcas de tiempo, estado, navegación secundaria | `{ size }` | Dentro de `g-card__footer`; línea fina de separación |
 | `loading` | Esqueleto propio | `{ size, layout }` | Decorativo; **conserva el tamaño** |
 
-**Avatar:** sin slot propio (decisión del usuario, #123): va en `lead` (o `media`). Desde #293 existe **`GAvatar`** (`avatar.md`): en `lead`, `<GAvatar size="lg" … />` decorativo (el nombre ya es el título). `GCard` **no depende de él**: solo su CSS reconoce la clase `.g-avatar` para quitar el marco del `lead` (#295).
+**Avatar:** sin slot propio (decisión del usuario, #123): va en `lead` (o `media`). Desde #293 existe **`GAvatar`** (`avatar.md`): en `lead`, `<GAvatar size="lg" … />` decorativo (el nombre ya es el título). `GCard` **no depende de él**: solo su CSS reconoce la clase `.g-avatar` para quitar el marco del `lead` (#295) y el fondo y la proporción de `media` (#842; un retrato destacado, `GAvatar size="xl"`, como la voz de Testimonials 02).
 
 ## Textos (`labels`, sin valores por defecto)
 

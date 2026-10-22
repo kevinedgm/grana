@@ -1,6 +1,6 @@
 # Contrato · GStack (pila)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #719, #717 y #723, 2026-10-21; `tokens.md` §49) · **Basado en:** `design/lab/app-shell/r01/` (kiwi, commit 0c202e3; `declaracion.md` Parte 2, hallazgo L13; prototipo `.st` en `shell.css`; medido en `verificar.mjs`, 14/14 de pila y sección por motor)
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #719, #717 y #723, 2026-10-21; `tokens.md` §49; enmienda #827, 2026-10-22) · **Basado en:** `design/lab/app-shell/r01/` (kiwi, commit 0c202e3; `declaracion.md` Parte 2, hallazgo L13; prototipo `.st` en `shell.css`; medido en `verificar.mjs`, 14/14 de pila y sección por motor)
 **Tag:** `g-stack` · **Categoría:** distribución · **Paquete:** `@grana/vue` (principal, con compuerta de peso conjunta con `GSection`; #723)
 
 **Sin forma visible propia:** no aplica «conceptos antes que caja» (#362); sí «Qué lo hace distinto». **No es complejo:** coco y bruno en Sonnet.
@@ -48,7 +48,7 @@ La separación **es una relación, no una cifra**: `sm` «va con lo anterior», 
 
 | Prop | Tipo | Valores | Default | Origen / nota |
 | --- | --- | --- | --- | --- |
-| `as` | String | etiqueta HTML no interactiva | `div` | Como `GSurface` (`surface.md`): `div`, `section`, `article`, `aside`, `nav`, `header`, `footer`, `ul`, `ol`, `form`, `fieldset`… La pila no añade roles; con `ul`/`ol` la aplicación pone los `li`. Con una etiqueta interactiva (`a`, `button`, `input`, `select`, `textarea`, `summary`, `label`) o `main`, aviso 1 (se pinta igual) |
+| `as` | String | etiqueta HTML no interactiva | `div` | Como `GSurface` (`surface.md`): `div`, `section`, `article`, `aside`, `nav`, `header`, `footer`, `ul`, `ol`, `form`, `fieldset`… La pila no añade roles **salvo** con `ul`/`ol`: ahí quita las marcas del navegador y repone `role="list"` (regla 6, #827); la aplicación pone los `li`. Con una etiqueta interactiva (`a`, `button`, `input`, `select`, `textarea`, `summary`, `label`) o `main`, aviso 1 (se pinta igual) |
 | `orientation` | String | `vertical` `horizontal` | `vertical` | Nombre compartido (`GDivider`, `GTabs`) |
 | `gap` | String | `none` `sm` `md` `lg` | `md` | Factor 0 · 0,5 · 1 · 2 (como #360) sobre la **base de página `space × 6`**: 0 · 12 · 24 · 48 px con `space` 4. Misma separación en los dos ejes (en línea, también entre filas) |
 | `density` | String | `default` `comfortable` `compact` | `default` | Compartida (`api.md`): multiplica la separación 1 · 0,875 · 0,75. Medido: `compact` = 18 px |
@@ -71,10 +71,11 @@ Slot `default` (los hijos). **Ningún evento ni método.** Puro y sin JS de comp
 3. **`divided` y los hijos con superficie (#752):** la línea **no** se dibuja sobre un hijo con superficie propia (`.g-surface`, incluye `GCard`): ya está delimitado, y a ese hijo lo separa el `gap` (no `2 × gap`). Con la línea encima, la tarjeta quedaba con el borde de arriba de otro color y el relleno descompensado (24 px arriba frente a 16 abajo, medido por coco). La línea va solo entre hijos sin superficie; un hijo con borde superior propio de la aplicación (sin capa) conserva el suyo (#516). Para una lista de tarjetas con línea, la línea va entre hijos sin superficie. No hay otra forma sin elemento extra: un pseudoelemento cae dentro del mismo hijo y un `box-shadow` desaparece en `forced-colors`.
 4. **Hijos ocultos:** un hijo con `hidden` no cuenta para `divided` (la línea va entre hijos visibles). También cuentan como ocultos `g-hidden` y `g-sr-only` (clases de Grana, #807/#808; #813). Un hijo que la aplicación oculta con una clase **propia** (`display: none`) no se puede detectar en CSS sin coste: límite conocido.
 5. En horizontal, los hijos conservan su tamaño intrínseco y se parten en filas con la misma separación (medido a 320: varias filas, sin desplazamiento horizontal).
+6. **`as="ul"`/`"ol"` (#827; cambia la v1):** la lista no lleva viñetas, sangría ni margen del navegador (`list-style: none`, `padding-inline-start: 0`, `margin-block: 0` en `ul.g-stack`/`ol.g-stack`, `GStack.css`, coco 04fd906): la pila es la única fuente de aire. Como Safari con VoiceOver deja de anunciar como lista un `ul` sin marcas, **`GStack.vue` pone `role="list"`** en la raíz con esas dos etiquetas; un `role` de la aplicación en `$attrs` gana. En `div` y las demás etiquetas, ningún rol.
 
 ## Estructura accesible
 
-Ninguna propia: la semántica es la de `as` y la de los hijos. Orden del DOM = orden visual = orden de Tab. Sin `role`, `aria-*` ni foco.
+Ninguna propia: la semántica es la de `as` y la de los hijos. Orden del DOM = orden visual = orden de Tab. Sin `aria-*` ni foco; `role="list"` solo con `as` `ul`/`ol` (regla 6, #827).
 
 ## Avisos de desarrollo (`[Grana GStack]`, una vez por instancia y motivo)
 
@@ -116,7 +117,7 @@ En el **principal** (`@grana/vue`), registrado en `src/index.js` y `components.c
 
 ## Verificación
 
-- **bruno (vitest):** etiqueta por `as` y aviso 1; clases por prop; avisos 2 y 3; sin efectos al importar; renderizado en SSR.
+- **bruno (vitest):** etiqueta por `as` y aviso 1; `role="list"` con `ul` y `ol`, ninguno con `div`, y el `role` de la aplicación gana (#827); clases por prop; avisos 2 y 3; sin efectos al importar; renderizado en SSR.
 - **Playwright** (`tests/stack-section.spec.mjs`, puerto propio, tres motores): separación 24 / 12 / 48 / 0 y `compact` 18; márgenes de hijos a 0 (y una regla sin capa de la aplicación que gana); `divided` (línea en el segundo, ninguna en el primero, hijo `hidden` ignorado, `2 × gap`); horizontal a 320 sin desbordamiento; alineaciones en RTL; un `GTooltip` hijo no altera la separación.
 - **coco:** `GStack.css` sin literales ni respaldos; auditoría con un tema distinto (cambiar `space` cambia el ritmo); `forced-colors` (la línea de `divided` sigue visible).
 

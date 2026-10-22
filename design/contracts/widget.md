@@ -167,6 +167,8 @@ Ninguno tiene valor por defecto. Los requeridos avisan una vez en desarrollo.
 | `context` | String | texto libre («vs. mes anterior») | sin valor |
 | `size` | String | `sm` `md` `lg` | `md` |
 
+**Unidad (#829):** `g-metric__unit` es una caja en línea atómica (`inline-block`, `max-inline-size: 100%`, `overflow-wrap: break-word`): si no cabe junto a la cifra baja **entera** de línea y solo se parte por dentro si ella sola no cabe en la caja (a 320 px, «habitaciones» ya no sale «habita/ciones»).
+
 `<div class="g-metric">` con `g-metric__label`, `g-metric__value` (y `g-metric__unit`) y, con `trend`, `<span class="g-metric__trend" data-direction>` con **un símbolo dibujado (▲ ▼ ■) y el texto**; la tendencia **nunca depende solo del color**; `context` en `<small>`. El valor no se anuncia como región viva. Sin `label`, avisa (nombre accesible del valor).
 
 ### GProgress

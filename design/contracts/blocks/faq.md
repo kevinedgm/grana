@@ -1,6 +1,6 @@
 # Contrato · FAQ (`GbFaq01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #815 a #817 y #823, 2026-10-22) · **Plan:** M8 (§4.1) · **Entrada:** `@grana/blocks/marketing` · **Común:** `_comun.md` · **Compone:** `GSection`, `GAccordion` + `GAccordionItem`, `GContainer`, `GStack`, `GInput`, `GEmpty`
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #815 a #817 y #823, 2026-10-22; remates #841) · **Plan:** M8 (§4.1) · **Entrada:** `@grana/blocks/marketing` · **Común:** `_comun.md` · **Compone:** `GSection`, `GAccordion` + `GAccordionItem`, `GContainer`, `GStack`, `GInput`, `GEmpty`
 
 ## Promesa
 
@@ -22,7 +22,7 @@ interface GbFaqProps {
 }
 ```
 
-`answer` es texto plano: cada bloque separado por una línea en blanco es un `p`. Para enlaces o listas en una respuesta, slot `answer`.
+`answer` es texto plano: cada bloque separado por una línea en blanco es un `p`. Para enlaces o listas en una respuesta, slot `answer`. Los párrafos son texto suelto: irán en la primitiva de texto (`as="div"`, #841) cuando exista.
 
 ## Variantes
 

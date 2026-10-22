@@ -1,6 +1,6 @@
 # Contrato · Testimonials (`GbTestimonials01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #815 a #817 y #821, 2026-10-22) · **Plan:** M5 (§4.1); receta R7 de `design/lab/marketing/r01/` · **Entrada:** `@grana/blocks/marketing` · **Común:** `_comun.md` · **Compone:** `GSection`, `GAdaptiveLayout`, `GStack`, `GCard`, `GAvatar`, `GAccordion`, `GBtn`
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #815 a #817 y #821, 2026-10-22; remates #837, #841, #842) · **Plan:** M5 (§4.1); receta R7 de `design/lab/marketing/r01/` · **Entrada:** `@grana/blocks/marketing` · **Común:** `_comun.md` · **Compone:** `GSection`, `GAdaptiveLayout`, `GStack`, `GCard`, `GAvatar`, `GAccordion`, `GBtn`
 
 ## Promesa
 
@@ -30,7 +30,11 @@ figure
    └─ cite › source.label  — GBtn variant="link" si hay `source.href` (externo: marca y labels.external)
 ```
 
-`GAvatar` (`name`, `src = author.avatar`, decorativo: el nombre ya está en `figcaption`) va fuera de la `figure`, en el slot `lead` de la tarjeta. **La cita no se recorta** (sin `descriptionLines` ni «Leer más»).
+`GAvatar` (`name`, `src = author.avatar`, decorativo: el nombre ya está en `figcaption`) va fuera de la `figure`, en el slot `lead` de la tarjeta (en 02, la primera, en `media`: el hueco adopta la caja del avatar, #842). **La cita no se recorta** (sin `descriptionLines` ni «Leer más»).
+
+**Nombre de la tarjeta (01 y 02, #837):** sin título visible, `GCard as="div" role="group"` con `aria-labelledby` al `span` de `author.name` del `figcaption` (el `role` hace falta: un `div` sin rol no admite nombre; `GCard` no avisa con `aria-labelledby` en `$attrs`).
+
+**Tipografía (#841):** `figure`, `blockquote` y `figcaption` son texto suelto: irán en la primitiva de texto (`_comun.md` §11 B-L5; `figcaption` en `size="sm" tone="muted"`). Hasta entonces la sección queda en `draft` si la auditoría de coco confirma los márgenes del navegador (F-L1).
 
 ## Variantes
 

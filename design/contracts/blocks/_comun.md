@@ -1,6 +1,6 @@
 # Contrato común · Bloques de Marketing P0 (`@grana/blocks/marketing`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #814 a #826, 2026-10-22; decisión del usuario del 2026-10-22: «Vale #780: los bloques van en `packages/blocks/` como paquete `@grana/blocks` aparte. Que lima enmiende #765 y arranca el lote 2 (Marketing P0) ahí») · **Plan:** `design/lab/blocks/plan.md` §2, §4.1, §5 (lote 2), §6 · **Flujo:** reducido (#766): lima → bruno → coco (solo auditoría) → mora-docs
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #814 a #826, 2026-10-22; remates tras la construcción #827 a #844, §13; decisión del usuario del 2026-10-22: «Vale #780: los bloques van en `packages/blocks/` como paquete `@grana/blocks` aparte. Que lima enmiende #765 y arranca el lote 2 (Marketing P0) ahí») · **Plan:** `design/lab/blocks/plan.md` §2, §4.1, §5 (lote 2), §6 · **Flujo:** reducido (#766): lima → bruno → coco (solo auditoría) → mora-docs
 **Paquete:** `@grana/blocks`, entrada **`@grana/blocks/marketing`** (`dist/marketing.js`, #815) · **Avisos:** `[Grana Gb<Sección><NN>]` · **Usuario final de referencia:** el viajero en el teléfono del inventario `design/lab/marketing/r01/brief.md` (hotel boutique, restaurante, tour; inglés además de español, conexión lenta, sol de frente)
 
 Este archivo fija lo que comparten las nueve secciones del lote 2. Cada sección tiene su contrato corto con el mismo esqueleto:
@@ -29,10 +29,10 @@ Tags: `gb-hero-01`, `gb-features-02`, `gb-blog-list-03`… (#764). Sin clases `g
 4. **Distribución solo con primitivas:** `GSection` (encabezado y cuerpo), `GStack` (un eje), `GContainer` (medida de lectura, anidado sin margen), `GAdaptiveLayout` (reparto por tamaño), `GSurface zone="brand"` (banda de marca). **`GCardGroup` no es una rejilla** (#603: es una barra de tarjetas que filtran, `role="toolbar"`): ninguna sección de Marketing lo usa (corrige el plan §4.1).
 5. **Listas reales** (1.3.1):
    - **Rejilla** (elementos lado a lado): `GAdaptiveLayout` con `role="list"` en su raíz (llega por `$attrs`; no tiene prop de etiqueta, #343) y cada elemento envuelto en un `div role="listitem"` hijo directo, con la **misma pista de familia** en todos (`g-adapt-standard` o `g-adapt-wide`, según la sección) para que se repartan igual. El contenido (una `GCard`, un `GMetric`) va dentro del envoltorio.
-   - **Lista en columna:** `GStack as="ul"` (o `ol`) con `GCard as="li"` o un `li` por elemento.
+   - **Lista en columna:** `GStack as="ul"` (o `ol`) con `GCard as="li"` o un `li` por elemento. `GStack` quita las marcas del navegador y pone `role="list"` (#827): el bloque no lo repite.
    - Una lista de un solo elemento sigue siendo lista.
 6. **Encabezados por anidación** (#720, #817; `api.md` «Grana Blocks» regla 8): el título de una sección lo pone su `GSection` (nivel automático). Lo que el bloque titula **dentro** (títulos de `GCard`, de `GAccordion`) va un nivel por debajo, leído en el `setup` con `useSectionLevel()` de `@grana/vue`: `sección = min(level, 4)`, `dentro = min(sección + 1, 6)`. Cuando el título de la sección es el de una `GCard` (CTA 02, Newsletter 02), la tarjeta lleva `min(level, 6)`. **Nunca un `hN` suelto** (sin estilo, sin nivel). **Un solo `h1` por página: el de `GHero`**; ningún otro bloque pinta `h1`.
-7. **Texto solo donde un componente lo tipografía:** props y slots de `GSection` (`title`, `description`), `GCard` (`eyebrow`, `title`, `description`, cuerpo), `GHero`, `GMetric`, `GAccordionItem`, `GInput` (`label`, `hint`, mensajes), `GEmpty`. Los elementos semánticos sin componente (`p`, `blockquote`, `figure`, `figcaption`, `cite`, `time`, `address`, `ul`/`li`) se permiten **dentro** de esas regiones y heredan su texto. Si la auditoría de coco encuentra texto sin estilo, es un **hallazgo para lima** (prop o primitiva), nunca CSS del bloque.
+7. **Texto solo donde un componente lo tipografía:** props y slots de `GSection` (`title`, `description`), `GCard` (`eyebrow`, `title`, `description`, cuerpo), `GHero`, `GMetric`, `GAccordionItem`, `GInput` (`label`, `hint`, mensajes), `GEmpty`. Los elementos semánticos sin componente (`p`, `blockquote`, `figure`, `figcaption`, `cite`, `time`, `address`, `ul`/`li`) se permiten **dentro** de esas regiones y heredan su texto. Si la auditoría de coco encuentra texto sin estilo, es un **hallazgo para lima** (prop o primitiva), nunca CSS del bloque. **Texto suelto (#841):** el que no va en una prop de componente (la cita y su pie, `assurance`, `legal`, `address`, horario, nota, párrafos de una respuesta o de la descripción de Stats 03) irá en la primitiva de texto propuesta en §11 B-L5 (`GText`) cuando exista; hasta entonces, una sección con hallazgo de texto sin estilo sigue en `draft`.
 8. **Enlaces y botones = `GBtn`** (o el enlace propio de `GCard interaction="link"` y de `GTag href`). Ningún `<a>` desnudo: sin CSS quedaría con el estilo del navegador y sin área táctil garantizada. Un enlace suelto es `GBtn variant="link"`; una acción, `GBtn` con la jerarquía de §3.
 9. **Imágenes:** las del bloque (`Media`, §2) son `<img>` con `width`, `height`, `alt` (o `alt=""` con `decorative`), `loading="lazy"` y `decoding="async"`, dentro del slot `media` de `GCard` o de `lead`. **Nunca `fetchpriority="high"`**: la foto prioritaria de la página es la de `GHero` (#726, H-L5).
 10. **Nada se mueve solo** (2.2.2): ni carrusel, ni autoavance, ni cifras que cuentan, ni aparición al desplazar. El único movimiento de un bloque es el de los componentes que compone (la mirada y el fundido de `GHero`, el plegado de `GAccordion`), con su movimiento reducido. No hay rúbrica de movimiento propia del bloque; coco la aplica a lo compuesto en su auditoría (#766).
@@ -135,7 +135,7 @@ type Money = import('@grana/vue/price').Money
 
 ## 3. Acciones: jerarquía por posición
 
-Una sección con `actions: Action[]` pinta **como mucho dos** (la tercera y siguientes se ignoran con aviso C8): **la primera es la principal** (`GBtn variant="solid"`), **la segunda, secundaria** (`variant` según la sección: `link` en el héroe, `outline` en el resto). Así una página construida con bloques tiene una sola principal sólida por región sin que la aplicación lo cuide (`form.md` §6, #762). `Action.icon` va en el slot `prepend` del `GBtn` con `GIcon` decorativo. Con `external`, el `GBtn` lleva `target="_blank"`, `rel="noopener"` y, en `append`, `GIcon name="external-link"` con `label = labels.external` (nombre accesible «Instagram, se abre en otra pestaña»); sin `labels.external`, aviso C5 y el icono queda decorativo.
+Una sección con `actions: Action[]` pinta **como mucho dos** (la tercera y siguientes se ignoran con aviso C8): **la primera es la principal** (`GBtn variant="solid"`), **la segunda, secundaria** (`variant` según la sección: `link` en el héroe, `outline` en el resto). Así una página construida con bloques tiene una sola principal sólida por región sin que la aplicación lo cuide (`form.md` §6, #762). `Action.icon` va en el slot `prepend` del `GBtn` con `GIcon` decorativo. Con `external`, el `GBtn` lleva `target="_blank"`, `rel="noopener"`, en `append` `GIcon name="external-link"` **decorativo** (el hueco `append` de `GBtn` es `aria-hidden`) y el nombre en el control: **`aria-label="{label}, {labels.external}"`** («Instagram, se abre en otra pestaña»; empieza por el texto visible, 2.5.3). Sin `labels.external`, aviso C5 y sin `aria-label` (#832, corrige la versión anterior de este párrafo, que ponía el nombre en el icono). Vale igual para `NavLink` y la fuente de una opinión; en una tarjeta-enlace (`GCard interaction="link"`) la marca con `label` va dentro del título.
 
 ## 4. Eventos de intención (comunes)
 
@@ -146,6 +146,8 @@ Declarados en `emits` de `props.js` (si no, la escucha llega al nodo nativo por 
 | `navigate` | `{ event, href, item }` | Activación de un enlace del bloque (`Action`, `NavLink`, `Post`, `Feature.action`) **solo** con clic primario sin modificadores ni `defaultPrevented`, o Intro (#505); **nunca** con `external` (#574). Síncrono, antes de la navegación: `event.preventDefault()` deja la navegación al router de la aplicación. En `GCard interaction="link"` se reemite el `navigate` de la tarjeta (ya trae la guarda) |
 | `activate` | `{ event, item }` | Una `Action` **sin** `href` (abrir el diálogo de reserva, desplegar la consulta) |
 | `submit` | `{ event, email }` | Solo Newsletter (`newsletter.md`), tras la validación de `GForm` |
+
+**`item`** es el elemento de datos que lleva el enlace (#833): la `Feature`, el `Post`, la `Testimonial`, el `NavLink` o la `Brand`, y la `Action` cuando es una acción de la sección (`actions`). Los enlaces `tel:`, `mailto:` y `sms:` **no** emiten `navigate`: los abre el sistema (#834).
 
 `select` queda **reservado** para las secciones con elección (Pricing, ofertas; P1). Ninguna sección del lote 2 tiene estado propio que la aplicación deba sincronizar (sin `v-model`).
 
@@ -160,7 +162,7 @@ Guarda canónica de #653 en el sitio de cada texto (`try { if (process.env.NODE_
 | C3 | `id` repetido en una lista | Se usa el índice |
 | C4 | `Media` sin `width`/`height`, o sin `alt` ni `decorative` | Se pinta con `alt=""` y sin reservar hueco |
 | C5 | Falta un texto de `labels` que el estado actual necesita | Se pinta sin ese texto |
-| C6 | `href` con esquema `javascript:` | Se ignora el enlace (texto sin enlace) |
+| C6 | `href` con esquema `javascript:` | Se ignora el enlace: en una acción o un `NavLink`, `GBtn` deshabilitado con su texto; en una tarjeta, la tarjeta sin interacción (#834) |
 | C7 | Más elementos de los recomendados por la sección (tope en su contrato) | Se pintan todos |
 | C8 | Más de dos `actions` | Se pintan las dos primeras |
 
@@ -183,11 +185,11 @@ packages/blocks/types/marketing.d.ts ← tipos de §2, a mano
 
 **`Gb<Sección>.meta.json`** (forma de los `meta.json` de `@grana/vue`, con dos campos más): `name` (`"GbFeatures"`), `kind: "block-section"`, `family: "marketing"`, **`variants`** (`[{ "name": "GbFeatures01", "tag": "gb-features-01", "concept": "Rejilla" }, …]`), `props`, `events`, `slots` (con `variants` en el slot que solo usa alguna), `types` (nombres de §2 que cita), `status: "draft"` hasta la auditoría de coco, `bundle: { entry: "@grana/blocks/marketing", measured: <B gzip> }`.
 
-**`packages/blocks/scripts/build-types.mjs`** (hoy escribe `export {}`) pasa a: (1) leer cada `src/blocks/Gb*/Gb*.meta.json` con `kind: "block-section"`; (2) escribir en `dist/marketing.d.ts` **un** `export interface Gb<Sección>Props` por sección y, por cada variante, `export declare const Gb<Sección><NN>: DefineComponent<Gb<Sección>Props, …emits>` **con ese mismo tipo**; (3) reexportar los tipos de `types/marketing.d.ts`; (4) ampliar `GlobalComponents` de Vue con las 27 variantes; (5) **detenerse** si una variante del `meta.json` no se exporta en `src/marketing.js`, si una exportación no consta en ningún `meta.json` o si un tipo no se sabe leer (como #443). La entrada de Gestión (`dist/blocks.d.ts`, `GResourceList`) sigue su propio camino. Una prueba de tipos del paquete (`src/types.test.js` con `vue-tsc`) comprueba que el banco de cada sección compila con las tres variantes y que un campo de §2 mal escrito falla (límite (a) de #443: una prop obligatoria ausente en plantilla no se detecta sin `strictTemplates`).
+**`packages/blocks/scripts/build-types.mjs`** (hoy escribe `export {}`) pasa a: (1) leer cada `src/blocks/Gb*/Gb*.meta.json` con `kind: "block-section"`; (2) escribir en `dist/marketing.d.ts` **un** `export interface Gb<Sección>Props` por sección y, por cada variante, `export declare const Gb<Sección><NN>: DefineComponent<Gb<Sección>Props, …emits>` **con ese mismo tipo**; (3) reexportar los tipos de `types/marketing.d.ts`; (4) ampliar `GlobalComponents` de Vue con las 27 variantes; (5) **detenerse** si una variante del `meta.json` no se exporta en `src/marketing.js`, si una exportación no consta en ningún `meta.json` o si un tipo no se sabe leer (como #443). La entrada de Gestión (`dist/blocks.d.ts`, `GResourceList`) sigue su propio camino. Una prueba de tipos del paquete (`src/types.test.js` con `vue-tsc`, que recorre las secciones desde los `meta.json` con `kind: "block-section"`, sin lista a mano, #836) comprueba que el banco de cada sección compila con las tres variantes y que un campo de §2 mal escrito falla (límite (a) de #443: una prop obligatoria ausente en plantilla no se detecta sin `strictTemplates`).
 
 **Paquete:** `exports` gana `"./marketing": { "types": "./dist/marketing.d.ts", "import": "./dist/marketing.js", "default": "./dist/marketing.js" }`; `vite.config.js`, entrada `marketing` además de la principal; `@grana/vue`, `@grana/vue/hero`, `@grana/vue/tag` y `vue`, externos. Cada variante se exporta con `/* @__PURE__ */` y el índice no tiene efectos (sin `import './components.css'` en la entrada de Marketing: no hay CSS).
 
-**Peso (#793, `api.md` «Grana Blocks» reglas 5 y 6):** primer lote, **sin tope**: bruno mide `dist/marketing.js` gzip y lo anota en cada `meta.json` (`bundle.measured`) y en `CHANGELOG.md`; mide además una importación parcial (una aplicación de prueba que importa solo `GbFeatures01` no arrastra las otras 26). Con la medida, lima fija el tope en el remate del lote. `dist/blocks.js` (Gestión, tope de 8 KiB de #793) **no crece**.
+**Peso (#793, #844; `api.md` «Grana Blocks» reglas 5 y 6):** **`dist/marketing.js` ≤ 18 KiB (18 432 B) gzip** y **una variante importada sola ≤ 4 KiB (4 096 B) gzip** (esbuild, `vue` y `@grana/vue*` externos), medidos con `gzip -c` como la primera medida (16 934 B con las 27 variantes; parciales de 1 859 a 3 218 B, cfd4573). bruno anota la medida en cada `meta.json` (`bundle.measured` y `bundle.cap: 18432`) y en `CHANGELOG.md`; con más, vuelve a lima. `dist/blocks.js` (Gestión, tope de 8 KiB de #793) **no crece**.
 
 ## 7. Banco de datos falsos (uno por sección)
 
@@ -204,7 +206,7 @@ packages/blocks/types/marketing.d.ts ← tipos de §2, a mano
 6. Cada aviso de §5 y los propios de la sección, una vez por instancia.
 7. SSR (`renderToString`) de las tres variantes sin errores ni acceso a `window` al importar.
 
-**Playwright, Chromium (`design/lab/theme-playground/`, puerto propio 4213):** página `packages/blocks/playground/marketing/<seccion>.html` con las tres variantes del banco, una debajo de otra, y selector de tema: el tema por defecto y **dos temas generados con `@grana/cli`** con `typeScale`, radios y fuente de títulos distintos (los de M-L5, rústico y lujo, cuando existan; mientras, dos de los del banco del playground). Comprobar: **sin desplazamiento horizontal a 320, 390 y 1440 px** (y a 320 px con zoom de texto 200 %); un `h1` solo en la página del héroe; orden de encabezados sin saltos; foco visible al recorrer con Tab; con movimiento reducido nada del bloque anima; oscuro; consola limpia. La pasada en Firefox y WebKit se hace **una vez** al cerrar el lote (verificación por niveles).
+**Playwright, Chromium (`design/lab/theme-playground/`, puerto propio 4213):** página `packages/blocks/playground/marketing/<seccion>.html` con las tres variantes del banco, una debajo de otra (**salvo el héroe: una variante por carga, `?v=01|02|03`**, porque una página tiene un solo `h1`; #836), y selector de tema: el tema por defecto y **dos temas generados con `@grana/cli`** con `typeScale`, radios y fuente de títulos distintos (los de M-L5, rústico y lujo, cuando existan; mientras, dos de los del banco del playground). Comprobar: **sin desplazamiento horizontal a 320, 390 y 1440 px** (y a 320 px con zoom de texto 200 %); un `h1` solo en la página del héroe; orden de encabezados sin saltos; foco visible al recorrer con Tab; con movimiento reducido nada del bloque anima; oscuro; consola limpia. La pasada en Firefox y WebKit se hace **una vez** al cerrar el lote (verificación por niveles).
 
 ## 9. Compuertas (bruno, en el script del paquete y en `gates.sh`)
 
@@ -217,7 +219,10 @@ test -f packages/blocks/dist/marketing.js && test -f packages/blocks/dist/market
 ! grep -q "__shared" packages/blocks/dist/marketing.js
 ! grep -qE "g-[a-z-]+__[a-z]" packages/blocks/dist/marketing.js                                       # ninguna clase interna de un componente
 ! grep -q "GbHero01" packages/blocks/dist/blocks.js                                                    # Gestión no paga Marketing
+test "$(gzip -c packages/blocks/dist/marketing.js | wc -c)" -le 18432                                  # tope de la entrada (#844)
 ```
+
+Y la parcial (#844): la aplicación de prueba de importación parcial que bruno ya usa (esbuild, `vue` y `@grana/vue*` externos) mide cada una de las 27 variantes sola y falla si alguna pasa de 4 096 B gzip.
 
 ## 10. Correcciones al plan §4.1 (recogidas en #816)
 
@@ -238,9 +243,46 @@ test -f packages/blocks/dist/marketing.js && test -f packages/blocks/dist/market
 - **B-L2 · `GAdaptiveLayout` con lista nativa.** Hoy la rejilla usa `role="list"`/`listitem` porque la raíz es siempre `div` (#343). Una prop `as` (`div`/`ul`/`ol`) daría `ul > li` nativos. Reservado.
 - **B-L3 · Imagen suelta.** El logo del pie es el único `<img>` fuera de un componente: sin CSS no se limita al ancho de su caja. Mientras, `Brand.logo` exige `width`/`height` y el banco usa un logo ≤ 160 px; coco lo mide a 320 px en la auditoría.
 - **B-L4 · Nivel por defecto de `GCard`/`GAccordion` dentro de `GSection`** (L14 de `section.md`). `useSectionLevel()` (#817) lo resuelve para quien lo lee; que los componentes lo lean solos sigue reservado.
+- **B-L5 · Texto suelto: primitiva de texto (#841; F-L1 de coco).** Dirección decidida: una primitiva de `@grana/vue` que tipografía su texto y el flujo nativo de dentro, no reglas de prosa en `GSurface`/`GCard`/`GSection` (reservado) ni `GContainer prose` (solo mide). **Propuesta mínima para kiwi y coco** (nombre de trabajo `GText`; la confirma el usuario, es un componente público nuevo de la v1):
+
+  | Prop | Valores | Default | Qué hace |
+  | --- | --- | --- | --- |
+  | `as` | `p` `div` `span` `small` `blockquote` `figure` `figcaption` `address` | `p` | Elemento raíz; nada interactivo |
+  | `size` | `body` `sm` `caption` | `body` | Rol tipográfico existente (`--g-text-body-*`, `--g-text-body-sm-*`, `--g-text-caption-*`) |
+  | `tone` | `default` `muted` | `default` | `--g-color-text` o `--g-color-text-muted` (los redeclara la zona de marca, §44.5) |
+
+  Reglas propuestas: margen 0 y `font-style: normal` en sí misma (`address`, `cite` dentro); sus hijos de bloque nativos (`p`, `blockquote`, `figure`, `figcaption`, `ul`, `ol`) sin márgenes del navegador y separados por un ritmo derivado de `space` (coco); los hijos en línea no se tocan; `lang` y `dir` por `$attrs`; sin JS de comportamiento, **ningún token nuevo**, en el principal con compuerta ≤ 512 B gzip de `dist/grana.js` (#506). Uso previsto en el lote: la `figure` de Testimonials (`GText as="figure"` › `GText as="blockquote"` + `GText as="figcaption" size="sm" tone="muted"`), `assurance` de CTA (`size="sm" tone="muted"`), `legal` de Newsletter y la nota y los legales del pie (`size="caption" tone="muted"`), `address` y horario del pie (`as="address" size="sm"`), párrafos de Stats 03 y de las respuestas de FAQ (`as="div"`). **Flujo:** ronda corta de kiwi (`design/lab/text/r01/`, con los textos reales del lote y los dos temas del CLI) → contrato de lima (`design/contracts/text.md`) → coco → bruno → coco; después, bruno cambia los bloques (§13).
+- **B-L6 · Línea entre tarjetas planas (#843).** `divided` de `GStack` no pinta sobre hijos con superficie (#752), tampoco sobre `GCard level="flat"`. Una lista de tarjetas planas con línea queda reservada; mientras, las separa el `gap`.
+- **B-L7 · Banda de marca redondeada dentro de la columna (#830).** Las bandas de los bloques son `flat` (sin radio). Una banda con radio cuando no va a sangre queda reservada.
 
 ## 12. Encargos
 
 - **bruno (Sonnet; Opus en Hero y FAQ, que componen `GHero` con sus tres formas y el buscador):** `useSectionLevel()` en `@grana/vue` (#817, `section.md`); `packages/blocks/src/blocks/common/`; las 27 variantes, nueve `props.js`, nueve `meta.json`, nueve bancos y nueve archivos de prueba; `src/marketing.js` y el plugin; `types/marketing.d.ts`; `build-types.mjs` (§6); `exports` y `vite.config.js`; compuertas de §9; playground `packages/blocks/playground/marketing/` y `tests/blocks-marketing.spec.mjs` (puerto 4213); medida de peso.
 - **coco (Sonnet; Opus en Hero):** **solo auditoría** (#766): `auditoria-visual.md` previa y posterior por sección sobre el bloque real con el tema por defecto y los dos del CLI, y la rúbrica de movimiento sobre lo compuesto (`GHero`, `GAccordion`); todo lo que pida CSS vuelve a lima como hallazgo. Resultado en `design/lab/blocks/marketing/auditoria.md`.
 - **mora-docs (Sonnet):** un `README.md` por sección con las tres variantes lado a lado, la `Props`, el banco como ejemplo y las entradas *peer* que carga la aplicación.
+
+## 13. Remates tras la construcción (#827 a #844, 2026-10-22)
+
+Revisión de lima tras bruno (99c1aef, f2e7888, cfd4573) y las correcciones de CSS de coco (04fd906), con la auditoría de coco en curso (`design/lab/blocks/marketing/auditoria.md`).
+
+| # | Qué | Dónde | Quién |
+| --- | --- | --- | --- |
+| #827 | `GStack` con `as="ul"`/`ol`: sin marcas (CSS hecho) y `role="list"` en la raíz | `stack.md` | bruno (`GStack.vue`, prueba) |
+| #828 | `GBtn variant="link"` mide su contenido; `block` gana | `btn.md` | hecho (coco); coco lo confirma en la auditoría |
+| #829 | Unidad de `GMetric` en caja en línea atómica | `widget.md` «GMetric» | hecho (coco) |
+| #830 | Bandas de marca `level="flat"` (Stats 02, CTA 01, Newsletter 03) | `stats.md`, `cta.md`, `newsletter.md` | bruno |
+| #831 | Hero 02 con menos de dos vistas = `window` sin `detail` + H1 | `hero.md` | hecho (bruno) |
+| #832 | Enlace externo: `aria-label` en el control, marca decorativa | §3 | hecho (bruno) |
+| #833 | `item` = elemento de datos; slot `item` = cuerpo | §4, `features.md` | hecho (bruno) |
+| #834 | C6 (deshabilitado o tarjeta sin interacción); `tel:`/`mailto:`/`sms:` sin `navigate` | §4, §5 | hecho (bruno) |
+| #835 | `id` de `GbHero*` = `id` de `GHero` | `hero.md` | hecho (bruno); mora-docs lo dice en el README |
+| #836 | Héroe una variante por carga; prueba de tipos desde los `meta.json` | §6, §8 | hecho (bruno) |
+| #837 | Testimonials 01/02: tarjeta `role="group"` con el nombre del autor | `testimonials.md` | hecho (bruno) |
+| #838 | `assurance`: `describedby` en `GbActions`; slot `actions` con `{ describedby }` | `cta.md` | bruno (alcance del slot, `meta.json`, prueba) |
+| #839 | Newsletter: `ValidityState` + `labels.invalid`/`labels.required` | `newsletter.md` | bruno |
+| #840 | Newsletter: `labels.form` → `labels` de `GForm` | `newsletter.md` | bruno |
+| #841 | Texto suelto → primitiva de texto (B-L5); secciones con el hallazgo siguen en `draft` | §1 regla 7, §11 | usuario (confirmar), kiwi, lima, coco, bruno |
+| #842 | `media` de `GCard` adopta la caja de `GAvatar` | `card.md` | coco (`GCard.css`) |
+| #843 | Blog list 02 sin `divided`, `gap="sm"` | `blog-list.md` | bruno |
+| #844 | Topes: 18 KiB la entrada, 4 KiB una variante | §6, §9, `api.md` | bruno (compuertas y `bundle.cap`) |
+

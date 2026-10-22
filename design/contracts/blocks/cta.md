@@ -1,6 +1,6 @@
 # Contrato · CTA (`GbCta01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #815 a #817 y #822, 2026-10-22) · **Plan:** M7 (§4.1); receta R5 de `design/lab/marketing/r01/` · **Entrada:** `@grana/blocks/marketing` · **Común:** `_comun.md` · **Compone:** `GSurface zone="brand"`, `GSection`, `GStack`, `GCard`, `GDivider`, `GBtn`
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #815 a #817 y #822, 2026-10-22; remates #830, #838, #841) · **Plan:** M7 (§4.1); receta R5 de `design/lab/marketing/r01/` · **Entrada:** `@grana/blocks/marketing` · **Común:** `_comun.md` · **Compone:** `GSurface zone="brand"`, `GSection`, `GStack`, `GCard`, `GDivider`, `GBtn`
 
 ## Promesa
 
@@ -23,15 +23,15 @@ interface GbCtaProps {
 
 | Variante | Concepto | Compone | Notas |
 | --- | --- | --- | --- |
-| **01 · Banda de marca** | Una banda de tinta de marca con la acción invertida | `GSurface zone="brand" padding="lg"` (raíz) › `GSection` (título, descripción) › `GStack orientation="horizontal" gap="sm"` (acciones: `solid` + `outline`) + `p` con `assurance` | Banda a sangre con `class="g-bleed"` de la aplicación. `media` ignorada |
+| **01 · Banda de marca** | Una banda de tinta de marca con la acción invertida | `GSurface zone="brand" level="flat" padding="lg"` (raíz; sin borde ni radio, #830) › `GSection` (título, descripción) › `GStack orientation="horizontal" gap="sm"` (acciones: `solid` + `outline`) + `p` con `assurance` | Banda a sangre con `class="g-bleed"` de la aplicación. `media` ignorada |
 | **02 · Tarjeta con imagen** | La acción en una tarjeta con la foto al lado | `GCard as="section" orientation="auto" mediaPosition="start"` (raíz): `media` en el slot `media`, `title` (nivel `useSectionLevel()`), `description`, acciones en `actions`, `assurance` en `footer` | Sin `media`, tarjeta sin foto |
 | **03 · Línea sobria** | Sin superficie: un divisor y la sección con su acción al final de la fila del título | `GStack gap="md"` (raíz) › `GDivider decorative` + `GSection` (título, descripción; acciones en su slot `actions` con `labels.actions`) + `p` con `assurance` en el cuerpo | `media` ignorada; acciones `solid` + `link` |
 
-**`assurance` va unida a la acción principal:** `aria-describedby` del `GBtn` principal apunta al `id` del texto (`GBtn` pasa los atributos a su raíz): quien llega a «Reservar» con el lector oye también «Sin pago ahora».
+**`assurance` va unida a la acción principal:** `aria-describedby` del `GBtn` principal apunta al `id` del texto (`GBtn` pasa los atributos a su raíz): quien llega a «Reservar» con el lector oye también «Sin pago ahora». El componente interno de acciones lo pone solo en la **primera** (#838). `assurance` es texto de apoyo: irá en la primitiva de texto con `size="sm" tone="muted"` (#841; hallazgo F-L1: hoy sale más grande que la descripción); en 02 va en el `footer` de la tarjeta, que ya lo tipografía.
 
 ## Eventos y slots
 
-`navigate` y `activate`. Slot `actions` (escape: sustituye a los botones generados; la aplicación cuida entonces la jerarquía y el `aria-describedby`).
+`navigate` y `activate`. Slot `actions` **`{ describedby }`** (escape: sustituye a los botones generados; la aplicación cuida entonces la jerarquía y pone `:aria-describedby="describedby"` en su principal; `describedby` es el `id` del texto de `assurance`, o `undefined` sin él, #838).
 
 ## Qué lo hace distinto (#822)
 
@@ -54,4 +54,4 @@ Comunes C2, C4 a C6 y C8. Además: **A1** · `actions` vacío (se pinta sin acci
 
 ## Verificación propia
 
-Vitest: `aria-describedby` de la principal → `assurance`; 01 con `data-g-zone="brand"`; 02 con encabezado de la tarjeta al nivel de sección; 03 con el grupo de acciones nombrado; aviso A2 con dos bloques montados. Chromium: en 01, la principal invertida con contraste ≥ 4,5:1 en los dos temas del CLI.
+Vitest: `aria-describedby` de la principal → `assurance` (y solo en ella); el slot `actions` recibe `describedby`; 01 con `data-g-zone="brand"` y `g-surface--level-flat`; 02 con encabezado de la tarjeta al nivel de sección; 03 con el grupo de acciones nombrado; aviso A2 con dos bloques montados. Chromium: en 01, la principal invertida con contraste ≥ 4,5:1 en los dos temas del CLI.

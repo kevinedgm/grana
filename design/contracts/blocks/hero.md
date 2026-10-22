@@ -1,6 +1,6 @@
 # Contrato · Hero (`GbHero01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #815 a #818, 2026-10-22) · **Plan:** M2 (§4.1) · **Entrada:** `@grana/blocks/marketing` · **Común:** `_comun.md` · **Compone:** `GHero` (`@grana/vue/hero`, `design/contracts/hero.md`), `GBtn`, `GIcon`
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #815 a #818, 2026-10-22; remates #831, #835, #836) · **Plan:** M2 (§4.1) · **Entrada:** `@grana/blocks/marketing` · **Común:** `_comun.md` · **Compone:** `GHero` (`@grana/vue/hero`, `design/contracts/hero.md`), `GBtn`, `GIcon`
 
 ## Promesa
 
@@ -25,6 +25,7 @@ interface GbHeroProps {
 - `views[].media` con `alt` obligatorio (cambia la foto informativa; aviso 3 de `GHero`).
 - `labels.views` lo necesita 02 (nombre del grupo de vistas); `labels.pause`, cualquier variante con vídeo en el slot `media`.
 - **Sin `headingLevel`:** el héroe siempre es el `h1` (`GHero headingLevel=1`, `priority` por defecto).
+- **`id` en `$attrs`** (#835): llega a `GHero`, que lo declara como prop: es la base de sus ids (título `{id}-title`) y **no** va en la raíz `section`. Para enlazar a la apertura, `#{id}-title`.
 
 ## Variantes
 
@@ -68,7 +69,7 @@ La de `GHero`: `section` con nombre por el `h1`, contenido antes que la foto en 
 
 ## Avisos propios (`[Grana GbHero<NN>]`)
 
-Los comunes C4 (solo para `detail` y `views[].media`; `media` lo avisa `GHero`), C5, C6 y C8. Además: **H1** · 02 con menos de dos `views` (se pinta como 01, que es lo que hace `GHero`).
+Los comunes C4 (solo para `detail` y `views[].media`; `media` lo avisa `GHero`), C5, C6 y C8. Además: **H1** · 02 con menos de dos `views`: se pinta con `GHero appearance="window"` **sin `detail`** (no es de la columna de 02) y sin pasar `views`, así que `GHero` no da su aviso 7 y avisa solo el bloque (#831).
 
 ## Banco (`hero.bank.js`)
 
@@ -76,4 +77,4 @@ Casa Alcalá: `title`, `eyebrow`, `lead`, `aside`; `media` 1600 × 2000 con `alt
 
 ## Verificación propia
 
-Vitest: cada variante pasa a `GHero` solo lo de su columna; jerarquía de acciones (01/02: `solid` + `link`; 03 con `consult`: dos `outline`; 03 sin `consult`: `solid` + `link`); exactamente un `h1`. Chromium: acción principal sin desplazar a 390 × 844 en 01 y 03 (medida de `GHero`); sin desbordamiento a 320.
+Vitest: cada variante pasa a `GHero` solo lo de su columna; jerarquía de acciones (01/02: `solid` + `link`; 03 con `consult`: dos `outline`; 03 sin `consult`: `solid` + `link`); exactamente un `h1`. Chromium (una variante por carga, `?v=01|02|03`, #836): acción principal sin desplazar a 390 × 844 en 01 y 03 (medida de `GHero`); sin desbordamiento a 320.

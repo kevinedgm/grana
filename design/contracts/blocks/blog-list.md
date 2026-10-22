@@ -1,6 +1,6 @@
 # Contrato · Blog list (`GbBlogList01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #815 a #817 y #825, 2026-10-22) · **Plan:** M13 (§4.1) · **Entrada:** `@grana/blocks/marketing` · **Común:** `_comun.md` · **Compone:** `GSection`, `GAdaptiveLayout`, `GStack`, `GCard` (`interaction="link"`), `GTag` (`@grana/vue/tag`)
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #815 a #817 y #825, 2026-10-22; remates #843) · **Plan:** M13 (§4.1) · **Entrada:** `@grana/blocks/marketing` · **Común:** `_comun.md` · **Compone:** `GSection`, `GAdaptiveLayout`, `GStack`, `GCard` (`interaction="link"`), `GTag` (`@grana/vue/tag`)
 
 ## Promesa
 
@@ -28,7 +28,7 @@ interface GbBlogListProps {
 | Variante | Concepto | Compone | Usa | Ignora |
 | --- | --- | --- | --- | --- |
 | **01 · Rejilla** | Tarjetas con foto lado a lado | `GSection` › `GAdaptiveLayout role="list"` › `div role="listitem" class="g-adapt-wide"` › `GCard as="article" interaction="link"` | `media` (slot `media`, arriba), fecha (slot `eyebrow`), `title`, `excerpt` (`description`, `descriptionLines` 3), `tags` (`GTag` estáticos en `footer`) | — |
-| **02 · Lista con fecha** | Una lista que se lee de arriba abajo, sin fotos | `GSection` › `GStack as="ul" divided` › `GCard as="li" level="flat" interaction="link"` | fecha (`eyebrow`), `title`, `excerpt` (`descriptionLines` 2) | `media`, `tags` |
+| **02 · Lista con fecha** | Una lista que se lee de arriba abajo, sin fotos | `GSection` › `GStack as="ul" gap="sm"` › `GCard as="li" level="flat" interaction="link"` (sin `divided`: no pinta sobre tarjetas, #752, #843) | fecha (`eyebrow`), `title`, `excerpt` (`descriptionLines` 2) | `media`, `tags` |
 | **03 · Destacada + lista** | La primera nota grande con su foto al lado; las demás en lista | `GSection` › `GStack as="ul" gap="md"` › primer `GCard as="li" orientation="auto" mediaPosition="start"` (todo lo de 01) + el resto como 02 (en la misma lista) | todo en la primera; como 02 en las demás | — |
 
 **Tarjeta = enlace:** `GCard interaction="link"` con `href`; el título es el enlace y la tarjeta entera responde (`card.md`); `navigate` se reemite (guarda #505 de la tarjeta); con `external`, `target="_blank"` y sin `navigate` (#574). Los `GTag` dentro son **estáticos** (sin `href`): un enlace dentro de otro no se admite. `GCard headingLevel` un nivel por debajo de la sección.
