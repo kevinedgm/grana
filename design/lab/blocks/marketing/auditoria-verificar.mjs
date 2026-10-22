@@ -44,6 +44,7 @@ const SCAN = () => {
     const d = document.createElement('div'); d.style.fontSize = `var(--g-text-${k}-size)`; document.body.append(d); sizes[k] = parseFloat(getComputedStyle(d).fontSize); d.remove()
   }
   const tokenSizes = Object.values(sizes)
+  { const d = document.createElement('div'); d.style.inlineSize = 'var(--g-space-1)'; document.body.append(d); window.__space = parseFloat(getComputedStyle(d).width); d.remove() }
   return [...document.querySelectorAll('[data-gb]')].map((blk) => {
     const text = []; const ctl = []; const margins = []
     for (const e of blk.querySelectorAll('*')) {
@@ -65,7 +66,19 @@ const SCAN = () => {
       }
       if (!/(^|\s)g-/.test(String(e.className)) && !e.closest('.g-hero') && !e.parentElement.classList.contains('g-adaptive-layout')) {
         const m = [cs.marginTop, cs.marginRight, cs.marginBottom, cs.marginLeft].map(parseFloat)
-        if (m.some((v) => Math.abs(v) > 0.5)) margins.push(`${e.tagName.toLowerCase()} ${m.map(Math.round).join('/')}`)
+        // El ritmo de GText (#851, #856) es margen propio del bloque, no del navegador: un elemento dentro del ámbito de una GText
+        // (sin un componente g-* de por medio salvo otra GText) puede llevar space × 3 / 2,5 / 2 arriba y abajo según el tamaño de la
+        // GText más cercana, y 0 en línea. Cualquier otro margen sigue siendo del navegador.
+        const rhythm = (() => {
+          for (let a = e.parentElement; a && a !== blk; a = a.parentElement) {
+            if (a.classList.contains('g-text')) { const k = /g-text--size-(body-sm|caption|body)/.exec(a.className); return k ? ({ body: 3, 'body-sm': 2.5, caption: 2 })[k[1]] * window.__space : null }
+            if (/(^|\s)g-(?!text(\s|$|--))/.test(String(a.className)) || a.matches('.g-tooltip')) return null
+          }
+          return null
+        })()
+        const ok0 = (v) => Math.abs(v) <= 0.5
+        const okRhythm = rhythm !== null && ok0(m[1]) && ok0(m[3]) && [m[0], m[2]].every((v) => ok0(v) || Math.abs(v - rhythm) <= 0.5)
+        if (!okRhythm && m.some((v) => Math.abs(v) > 0.5)) margins.push(`${e.tagName.toLowerCase()} ${m.map(Math.round).join('/')}`)
       }
     }
     return { gb: blk.dataset.gb, text, ctl, margins, sizes }

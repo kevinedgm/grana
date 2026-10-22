@@ -1,0 +1,71 @@
+/*
+  GText · texto suelto: tipografía del tema y una pausa por tamaño entre sus bloques nativos, sin aire hacia fuera.
+  Dueño: coco. Contrato: design/contracts/text.md (DECISIONS.md #851 a #856). Estética: design/lab/text/estilo.md.
+  Solo var(--g-*) y alias --_*; sin respaldos. Las constantes space × 3 / 2,5 / 2 (ritmo) y × 6 (sangría de listas) son
+  relación con la escala, no tema (#717; X-L5). Especificidad 0 en todo lo de dentro (:where / @scope): la aplicación sin
+  capa y las utilidades ganan sin !important (#516, #806). Sin movimiento. Sin reglas de comillas (reservadas).
+*/
+
+/* ---------- La raíz: sin margen ni cursiva, rol, peso de texto y color explícitos ---------- */
+:where(.g-text) {
+  margin: 0;
+  font-style: normal;
+  font-family: var(--g-font-ui);
+  font-size: var(--_tx-size);
+  line-height: var(--_tx-line);
+  letter-spacing: var(--_tx-track);
+  /* Peso de texto en los tres tamaños: el rol caption pesa como rótulo (X-L4) */
+  font-weight: var(--g-text-body-weight);
+  color: var(--_tx-color);
+  text-wrap: pretty;
+}
+.g-text--size-body {
+  --_tx-size: var(--g-text-body-size);
+  --_tx-line: var(--g-text-body-line);
+  --_tx-track: var(--g-text-body-tracking);
+}
+.g-text--size-body-sm {
+  --_tx-size: var(--g-text-body-sm-size);
+  --_tx-line: var(--g-text-body-sm-line);
+  --_tx-track: var(--g-text-body-sm-tracking);
+}
+.g-text--size-caption {
+  --_tx-size: var(--g-text-caption-size);
+  --_tx-line: var(--g-text-caption-line);
+  --_tx-track: var(--g-text-caption-tracking);
+}
+/* Siempre explícitos (no heredados): fuera de superficie no cae al negro del navegador, y la zona de marca los redeclara */
+.g-text--tone-default { --_tx-color: var(--g-color-text); }
+.g-text--tone-muted { --_tx-color: var(--g-color-text-muted); }
+
+/* ---------- El flujo nativo de dentro ----------
+   El ámbito se corta en cualquier componente de Grana (clase g-*) salvo otra GText, y en el nodo del tooltip (#383).
+   El ritmo va en un ámbito POR TAMAÑO con el valor escrito en la regla (no en una variable): una variable se resuelve en
+   el elemento que recibe el margen y la GText anidada tiene la suya; con el valor en la regla, la de fuera da su ritmo a la
+   anidada y, dentro de la anidada, su ámbito (más cercano) gana por proximidad. */
+@scope (.g-text--size-body) to ([class^="g-"]:not(.g-text), [class*=" g-"]:not(.g-text), .g-tooltip) {
+  :where(p, div, ul, ol, dl, blockquote, figure, figcaption, address, pre):where(:not(:scope)) { margin-block: calc(var(--g-space-1) * 3); }
+}
+@scope (.g-text--size-body-sm) to ([class^="g-"]:not(.g-text), [class*=" g-"]:not(.g-text), .g-tooltip) {
+  :where(p, div, ul, ol, dl, blockquote, figure, figcaption, address, pre):where(:not(:scope)) { margin-block: calc(var(--g-space-1) * 2.5); }
+}
+@scope (.g-text--size-caption) to ([class^="g-"]:not(.g-text), [class*=" g-"]:not(.g-text), .g-tooltip) {
+  :where(p, div, ul, ol, dl, blockquote, figure, figcaption, address, pre):where(:not(:scope)) { margin-block: calc(var(--g-space-1) * 2); }
+}
+@scope (.g-text) to ([class^="g-"]:not(.g-text), [class*=" g-"]:not(.g-text), .g-tooltip) {
+  /* Sin sangría del navegador (figure, blockquote) */
+  :where(p, div, ul, ol, dl, blockquote, figure, figcaption, address, pre):where(:not(:scope)) { margin-inline: 0; }
+  /* Nada antes del primero ni tras el último, contados sin [hidden], template ni el nodo del tooltip */
+  :where(p, div, ul, ol, dl, blockquote, figure, figcaption, address, pre):where(:not(:scope)):where(:nth-child(1 of :not([hidden], template, .g-tooltip))) { margin-block-start: 0; }
+  :where(p, div, ul, ol, dl, blockquote, figure, figcaption, address, pre):where(:not(:scope)):where(:nth-last-child(1 of :not([hidden], template, .g-tooltip))) { margin-block-end: 0; }
+  /* Listas: la sangría dentro de la caja, al lado lógico, en múltiplos de space */
+  :where(ul, ol) { padding-inline-start: calc(var(--g-space-1) * 6); }
+  /* Fraseo: solo lo que el navegador pone sin significar nada. em, i, a y code quedan intactos */
+  :where(cite, address) { font-style: normal; }
+  :where(small) { font-size: inherit; } /* 12 px es el suelo (§7): smaller daría 10 en un caption */
+  :where(strong, b) { font-weight: var(--g-text-title-sm-weight); } /* peso de énfasis del tema, nunca bolder (700 con un tema 400/500/600) */
+  :where(figcaption) { text-wrap: balance; }
+}
+
+/* ---------- Colores forzados ----------
+   Nada que perder: no pinta fondo, borde ni foco; el texto toma los colores del sistema. */
