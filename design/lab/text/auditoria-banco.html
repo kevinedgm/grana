@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GText · banco de la auditoría (coco)</title>
+<!-- Banco de la auditoría de coco de GText con el COMPONENTE REAL (packages/vue/dist/grana.js, plantillas compiladas en el
+     navegador): los casos C1 a C9 de kiwi (r01/index.html) más vacío, anidada en GSection, marca sin enlace y forced-colors.
+     Parámetros: ?dark=1 · ?tema=rustico|lujo · ?space5=1 -->
+<link rel="stylesheet" href="/packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="/packages/vue/dist/grana.css">
+<link rel="stylesheet" id="tema" href="data:text/css,">
+<style>
+  body{margin:0;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
+  .lab-cases{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:var(--g-space-6);padding:var(--g-space-6) var(--g-space-4);max-inline-size:1280px;margin-inline:auto}
+  .lab-case{min-inline-size:0}
+  .lab-frame{outline:1px dashed var(--g-color-border)}
+</style>
+<script>window.process = { env: { NODE_ENV: 'development' } }</script>
+<script type="importmap">
+{ "imports": { "vue": "/node_modules/vue/dist/vue.esm-browser.js", "@grana/vue": "/packages/vue/dist/grana.js" } }
+</script>
+</head>
+<body>
+<div id="app"></div>
+<script type="module">
+import { createApp } from 'vue'
+import Grana from '@grana/vue'
+const q = new URLSearchParams(location.search)
+const tema = ['rustico', 'lujo'].includes(q.get('tema')) ? q.get('tema') : 'defecto'
+if (tema !== 'defecto') document.getElementById('tema').href = `/packages/blocks/playground/marketing/temas/${tema}.css`
+if (q.has('dark')) document.documentElement.dataset.theme = 'dark'
+if (q.has('space5')) { const s = document.createElement('style'); s.textContent = ':root, :root[data-theme] { --g-space-1: 5px; }'; document.head.append(s) }
+const template = `
+<div class="lab-cases">
+  <section class="lab-case"><h2>C1</h2>
+    <g-text as="figure" size="body-sm" class="lab-frame" id="c1">
+      <g-text as="blockquote" lang="es" id="c1q"><p id="c1p1">Despertar con el patio lleno de luz y el café ya servido.</p><p id="c1p2">Volveríamos mañana mismo, sin pensarlo dos veces.</p></g-text>
+      <g-text as="figcaption" size="caption" tone="muted" id="c1c">Lucía Hernández — <cite id="c1cite">Google, septiembre de 2026</cite></g-text>
+    </g-text>
+  </section>
+  <section class="lab-case"><h2>C2</h2>
+    <g-text as="address" size="body-sm" class="lab-frame" id="c2">
+      <p id="c2a">Calle Macedonio Alcalá 407<br>Centro, Oaxaca</p>
+      <g-stack as="ul" gap="sm" id="c2s"><li><a href="#c2">+52 951 555 0000</a></li><li><a href="#c2">hola@casa.example</a></li></g-stack>
+      <p id="c2b">Recepción 24 h</p>
+    </g-text>
+  </section>
+  <section class="lab-case"><h2>C3</h2>
+    <g-text size="caption" tone="muted" class="lab-frame" id="c3">Al suscribirte aceptas el <small id="c3s">aviso de privacidad</small>; <em id="c3e">nunca</em> compartimos tu correo. Fuente: <cite id="c3c">Ley de datos</cite>. <a href="#c3" id="c3a">Leer el aviso</a>. <strong id="c3st">Fuerte</strong> y <b id="c3b">negrita</b> y <code id="c3code">code</code>.</g-text>
+  </section>
+  <section class="lab-case"><h2>C4</h2>
+    <g-stack gap="sm" class="lab-frame" id="c4">
+      <g-text id="c4a">Primer texto de la pila.</g-text>
+      <g-text id="c4b">Segundo texto: la pila es la única fuente de aire entre los dos.</g-text>
+      <g-text id="c4empty"></g-text>
+      <g-text id="c4empty2"><!-- --> </g-text>
+      <g-text id="c4c">Tras una GText vacía.</g-text>
+    </g-stack>
+  </section>
+  <section class="lab-case"><h2>C5</h2>
+    <g-text as="div" class="lab-frame" id="c5"><p hidden>Oculto</p><p id="c5p">Incluye:</p><ul id="c5u"><li>Desayuno de la casa</li><li>Estacionamiento a una calle</li></ul><p id="c5z">Y nada más.</p></g-text>
+    <g-text as="div" class="lab-frame" id="c5r" dir="rtl" lang="ar"><ul id="c5ru"><li>إفطار</li><li>موقف سيارات</li></ul></g-text>
+  </section>
+  <section class="lab-case"><h2>C6</h2>
+    <g-surface zone="brand" padding="lg" id="c6z"><g-text size="body-sm" tone="muted" id="c6">Sin pago ahora · Respuesta por WhatsApp en menos de una hora.</g-text><g-text id="c6d">Texto por defecto en la zona.</g-text></g-surface>
+    <g-surface padding="lg" id="c6s"><g-text tone="muted" id="c6sm">Muted sobre superficie.</g-text><g-text id="c6sd">Default sobre superficie.</g-text></g-surface>
+  </section>
+  <section class="lab-case" style="grid-column:1/-1"><h2>C7</h2>
+    <g-container width="xl" prose class="lab-frame" id="c7">
+      <p id="c7plain">Párrafo de la aplicación sin GText: la medida de prose lo deja en sesenta y seis caracteres de la columna, que es lo que se lee cómodo en una pantalla ancha sin perder el renglón al volver.</p>
+      <g-text id="c7gt">Párrafo con GText: se mide como la prosa vecina, aunque sea un componente de Grana, porque la primitiva es transparente para prose.</g-text>
+      <g-text as="div" id="c7div"><p id="c7dp">Con as=div se miden sus bloques de dentro igual que la prosa de la aplicación, sesenta y seis caracteres.</p></g-text>
+      <p class="g-mt-4" id="c7util">Párrafo con una utilidad (g-mt-4): el prefijo lo saca del ámbito aunque no sea un componente; ocupa toda la columna y conserva el margen inferior del navegador.</p>
+    </g-container>
+  </section>
+  <section class="lab-case"><h2>C8</h2>
+    <div style="inline-size:300px" class="lab-frame">
+      <g-text id="c8">Las mismas habitaciones que en la página, sin pago ahora y con respuesta en una hora como mucho.</g-text>
+      <p style="margin:0;text-wrap:wrap;font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)" id="c8ref">Las mismas habitaciones que en la página, sin pago ahora y con respuesta en una hora como mucho.</p>
+    </div>
+  </section>
+  <section class="lab-case"><h2>E1 marca sin enlace</h2>
+    <g-stack gap="sm" class="lab-frame" id="e1"><g-text id="e1brand">Casa del Patio</g-text><g-text size="body-sm" tone="muted" id="e1next">Hotel boutique en Oaxaca</g-text></g-stack>
+  </section>
+  <section class="lab-case"><h2>E2 FAQ 02 anidada</h2>
+    <g-section title="Preguntas" id="e2"><g-section title="Reservas" id="e2in"><g-text as="div" id="e2t"><p id="e2p1">Primera respuesta, primer párrafo.</p><p id="e2p2">Segundo párrafo de la respuesta.</p></g-text></g-section></g-section>
+  </section>
+  <section class="lab-case" v-if="invalid"><h2>E3 invalid</h2>
+    <g-text as="h1" size="xl" tone="loud" id="e3">Props inválidas</g-text>
+  </section>
+  <section class="lab-case"><h2>E4 anidada de misma talla en tooltip/componente</h2>
+    <g-text as="div" id="e4"><p id="e4a">Antes</p><g-btn id="e4b">Botón</g-btn><p id="e4c">Después</p></g-text>
+  </section>
+</div>`
+const app = createApp({ template, setup: () => ({ invalid: q.has('invalid') }) })
+app.use(Grana)
+app.mount('#app')
+requestAnimationFrame(() => requestAnimationFrame(() => { window.__lab = { ready: true } }))
+</script>
+</body>
+</html>

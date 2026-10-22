@@ -121,3 +121,16 @@ Distinción título/avance: es de peso y color, no de tamaño (los dos miden `bo
 - **FAQ**, **Stats**, **Testimonials**, **CTA**, **Newsletter** y **Footer**: `draft` solo por MK-L1 (B-L5, `GText`, #841).
 
 **Límites:** Firefox y WebKit de Features 03 y FAQ 02 no se han vuelto a medir tras bc843a6; la columna de lectura y las columnas del pie se comprobaron solo en Chromium.
+
+## Addendum · los seis bloques con `GText` real (B-L5, #856; 2026-10-22)
+
+**Qué se midió:** `auditoria-verificar.mjs` sobre `packages/blocks/dist/marketing.js` y `packages/vue/dist` reconstruidos tras baea37f, tres motores, tema por defecto, rústico y lujo, claro y oscuro: **4327/4327, 0 fallos** (Chromium, Firefox y WebKit). Verificador actualizado: selector del `assurance` `.g-text[id]`; hueco ayuda → texto legal de Newsletter ≤ 40 px (el `gap` de `GForm`, `newsletter.md` B-L5 regla 2) en vez de `32·(fs/16)+1`; comprobación de que cada bloque usa `GText` real (36 en Testimonials, 1 en CTA 01 y 02, 3 en Newsletter, 7 en Footer, 1 en Stats 03, 8 en FAQ 02) y de que no quedan `p` desnudos fuera de componentes (0 en todos). El ritmo y las cursivas de `GText` cuentan como margen propio (e65f9ca): **MK-L1 queda en 0** (antes 231 fallos entre márgenes del navegador, cursivas, tamaño fuera de escala, `assurance`/`legal` mayores que su referencia y hueco doble). Ningún fallo de contraste, reflujo (1440, 390, 320), consola ni RTL.
+
+**Medidas que cambian:** Newsletter ayuda → legal 40 px (antes 54–56); la cita de Testimonials arranca en el borde de la figura (antes 40 px); `assurance` de CTA no mayor que la descripción; FAQ 02 con sus respuestas en `body` del tema (en rústico ya no caen a 16 px fuera de escala).
+
+**Veredicto por sección** (el cambio de `status` en los `meta.json` es de bruno):
+- **Stats**, **Testimonials**, **CTA**, **FAQ**, **Newsletter** y **Footer**: sin defecto bloqueante, **pueden pasar a `candidate`** (MK-L1 cerrado; MK-B1, MK-B2 y MK-B3 ya cerrados en el addendum anterior).
+- **Hero**, **Features** y **Blog list** siguen como estaban.
+- **`GText`** (`design/lab/text/auditoria.md`, 900/900): **puede pasar a `candidate`**.
+
+**Cumplimientos / Correcciones / Pendientes:** *Cumplimientos:* lo anterior, en tres motores. *Correcciones:* solo del verificador (arriba); ningún CSS de coco cambió. *Pendientes (no verificado):* lector de pantalla real (cita en inglés, `assurance` por `aria-describedby`); `forced-colors` en Firefox y WebKit; teléfono y puntero grueso reales; MK-L2 (filas de distinto alto, lima) y notas de Blog list 02/03 (#843) siguen anotados. Nota informativa del verificador: un enlace de texto de Newsletter 01 mide 22 px de alto y cumple 2.5.8 por separación.

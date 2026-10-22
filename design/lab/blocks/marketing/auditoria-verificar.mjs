@@ -218,7 +218,7 @@ async function shapes (b, eng, tema) {
   // CTA: assurance no más grande que la descripción; Newsletter: legal igual y sin hueco doble tras la ayuda
   for (const v of ['01', '03']) {
     const { p, close } = await open(b, 'cta.html', `v=${v}&tema=${tema}`)
-    const s = await p.evaluate(() => { const d = document.querySelector('[data-gb] .g-section__desc'); const a = document.querySelector('[data-gb] [id][class=""], [data-gb] p:not([class])'); return [parseFloat(getComputedStyle(d).fontSize), parseFloat(getComputedStyle(a).fontSize)] })
+    const s = await p.evaluate(() => { const d = document.querySelector('[data-gb] .g-section__desc'); const a = document.querySelector('[data-gb] .g-text[id]'); return [parseFloat(getComputedStyle(d).fontSize), parseFloat(getComputedStyle(a).fontSize)] })
     ok(s[1] <= s[0] + 0.3, `${E} · cta-${v}: assurance no más grande que la descripción`, `${s[1]} > ${s[0]}`)
     await close()
   }
@@ -232,7 +232,7 @@ async function shapes (b, eng, tema) {
     }))
     for (const x of s) {
       ok(x.fs <= x.hint + 2.5, `${E} · ${x.gb}: el texto legal en el tamaño secundario`, `${x.fs} px frente a la ayuda ${x.hint} px`)
-      ok(x.gapPx <= 32 * (x.fs / 16) + 1, `${E} · ${x.gb}: sin hueco doble entre la ayuda y el texto legal`, `${Math.round(x.gapPx)} px`)
+      ok(x.gapPx <= 41, `${E} · ${x.gb}: sin hueco doble entre la ayuda y el texto legal (≤ gap de GForm 40 px, B-L5 regla 2)`, `${Math.round(x.gapPx)} px`)
     }
     await close()
   }
@@ -366,6 +366,14 @@ async function extras (b) {
     await p.keyboard.press('Tab'); await p.keyboard.press('Tab')
     const f = await p.evaluate(() => { const el = document.activeElement; if (!el.closest('[data-gb]')) return null; const c = getComputedStyle(el); const box = el.closest('.g-input__row, .g-input__control'); const cb = box && getComputedStyle(box); return (c.outlineStyle !== 'none' && parseFloat(c.outlineWidth) > 0) || (cb && cb.outlineStyle !== 'none') })
     if (f !== null) ok(f, `chromium · forced-colors · ${gb}: anillo de foco con contorno del sistema`)
+    await close()
+  }
+  // B-L5 (#856): los seis bloques usan GText REAL (MK-L1 en 0 vale solo si la clase está puesta); ni un p desnudo con margen del navegador
+  for (const [file, q, nombre, min] of [['testimonials.html', '', 'testimonials', 3], ['cta.html', 'v=01', 'cta-01', 1], ['cta.html', 'v=02', 'cta-02', 0], ['newsletter.html', '', 'newsletter', 1], ['footer.html', '', 'footer', 2], ['stats.html', 'v=03', 'stats-03', 1], ['faq.html', 'v=02', 'faq-02', 1]]) {
+    const { p, close } = await open(b, file, q)
+    const n = await p.evaluate(() => { const raw = [...document.querySelectorAll('[data-gb] p')].filter((e) => !/\bg-/.test(e.className) && !e.closest('[class*="g-"]:not(.g-text):not([data-gb]):not(.g-section__body)')).length; return { gt: document.querySelectorAll('[data-gb] .g-text').length, raw } })
+    ok(n.gt >= min, `chromium · ${nombre}: usa GText real`, `${n.gt} GText`)
+    note(`${nombre}: ${n.gt} GText; p desnudos fuera de componentes ${n.raw}`)
     await close()
   }
   // RTL (Chromium): toda la página en rtl a 390 sin desplazamiento horizontal

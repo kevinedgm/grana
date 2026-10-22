@@ -1,6 +1,6 @@
 # GText · estilo (coco)
 
-**CSS:** `packages/vue/src/components/GText/GText.css` · **Contrato:** `design/contracts/text.md` (#851 a #856) · **Prototipo de kiwi:** `design/lab/text/r01/` (`tx.css` es la regla estructural; `GText.css` es su transcripción con los nombres del contrato) · **Verificación propia:** `GRANA_PW_PORT=4219 node design/lab/text/estilo-verificar.mjs` (3767/3767 en Chromium, Firefox y WebKit).
+**CSS:** `packages/vue/src/components/GText/GText.css` · **Contrato:** `design/contracts/text.md` (#851 a #856) · **Prototipo de kiwi:** `design/lab/text/r01/` (`tx.css` es la regla estructural; `GText.css` es su transcripción con los nombres del contrato) · **Verificación propia:** `GRANA_PW_PORT=4219 node design/lab/text/estilo-verificar.mjs` (3767/3767, prototipo de kiwi) y, sobre el componente real, `design/lab/text/auditoria-verificar.mjs` (900/900; ver `auditoria.md`).
 
 ## Qué le da personalidad aunque no tenga forma
 
