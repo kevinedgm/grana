@@ -40,6 +40,10 @@ const T = {
     fromAccent: 'Acento',
     collision: 'Separar los semánticos si se parecen a la marca',
     radius: 'Radio (radius)',
+    borderWidth: 'Grosor de borde (--g-border-width)',
+    borderHint: 'Bordes de campos, botones con contorno, tarjetas y divisores. Va en overrides: no tiene clave propia.',
+    focusWidth: 'Grosor del anillo de foco (--g-focus-width)',
+    focusHint: 'Mínimo 2 px: el motor rechaza menos (WCAG 2.4.13).',
     shapeLabel: 'Botones, chips e insignias',
     rounded: 'Redondeados',
     pill: 'Píldora',
@@ -161,6 +165,10 @@ const T = {
     fromAccent: 'Accent',
     collision: 'Separate semantic colors that look like the brand',
     radius: 'Radius (radius)',
+    borderWidth: 'Border width (--g-border-width)',
+    borderHint: 'Field borders, outline buttons, cards and dividers. Goes in overrides: it has no key of its own.',
+    focusWidth: 'Focus ring width (--g-focus-width)',
+    focusHint: 'At least 2 px: the engine rejects less (WCAG 2.4.13).',
     shapeLabel: 'Buttons, chips and badges',
     rounded: 'Rounded',
     pill: 'Pill',
@@ -257,7 +265,7 @@ const { lang, isDark } = useData()
 const L = computed(() => T[lang.value === 'en' ? 'en' : 'es'])
 
 // Valores del tema por defecto (tokens.md §3 a §5): lo que no se aparta de ellos no va en la configuración
-const BASE = { brand: '', accent: '', primary: '', neutrals: 'tinted', neutralsHue: 'brand', collision: false, radius: 6, shape: 'rounded', space: 4, font: 'default', fontDisplay: 'default', fontSize: 16, typeScale: 1.25 }
+const BASE = { brand: '', accent: '', primary: '', neutrals: 'tinted', neutralsHue: 'brand', collision: false, radius: 6, shape: 'rounded', space: 4, font: 'default', fontDisplay: 'default', fontSize: 16, typeScale: 1.25, borderWidth: 1, focusWidth: 2 }
 const FONTS = {
   default: null,
   system: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
@@ -312,6 +320,11 @@ const config = computed(() => {
   if (FONTS[s.fontDisplay]) c.fontDisplay = FONTS[s.fontDisplay]
   if (s.fontSize !== BASE.fontSize) c.fontSize = s.fontSize
   if (s.typeScale !== BASE.typeScale) c.typeScale = s.typeScale
+  // Grosores: tokens sin clave propia en la configuración (tokens.md §6), por `overrides`
+  const overrides = {}
+  if (s.borderWidth !== BASE.borderWidth) overrides['--g-border-width'] = `${s.borderWidth}px`
+  if (s.focusWidth !== BASE.focusWidth) overrides['--g-focus-width'] = `${s.focusWidth}px`
+  if (Object.keys(overrides).length) c.overrides = overrides
   return c
 })
 
@@ -425,6 +438,9 @@ const fromConfig = (c) => {
   if (c.semanticCollision === 'adjust') next.collision = true
   if (c.shape === 'pill') next.shape = 'pill'
   for (const k of ['radius', 'space', 'fontSize', 'typeScale']) if (typeof c[k] === 'number') next[k] = c[k]
+  const px = (v) => (typeof v === 'string' && /^\d+(\.\d+)?px$/.test(v) ? parseFloat(v) : null)
+  next.borderWidth = px(c.overrides?.['--g-border-width']) ?? BASE.borderWidth
+  next.focusWidth = px(c.overrides?.['--g-focus-width']) ?? BASE.focusWidth
   for (const k of ['font', 'fontDisplay']) {
     const id = Object.keys(FONTS).find((f) => FONTS[f] === c[k])
     if (id) next[k] = id
@@ -501,6 +517,8 @@ watch(L, (l) => { notes.value = l.notes }, { immediate: true })
         <section class="tp-group" aria-labelledby="tp-g-shape">
           <h3 id="tp-g-shape" class="tp-h3">{{ L.shape }}</h3>
           <g-slider v-model="s.radius" :label="L.radius" :min="0" :max="24" :value-text="(v) => `${fmt(v)} px`" />
+          <g-slider v-model="s.borderWidth" :label="L.borderWidth" :hint="L.borderHint" :min="1" :max="3" :step="0.5" :value-text="(v) => `${fmt(v, 1)} px`" />
+          <g-slider v-model="s.focusWidth" :label="L.focusWidth" :hint="L.focusHint" :min="2" :max="4" :value-text="(v) => `${fmt(v)} px`" />
           <g-radio-group v-model="s.shape" appearance="segmented" :label="L.shapeLabel"
                          :options="seg([['rounded', L.rounded], ['pill', L.pill]])" />
         </section>
