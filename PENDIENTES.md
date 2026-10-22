@@ -156,7 +156,6 @@ Origen: página de Notion «Hallazgos de integración real · Grana» (22 hallaz
 ## 10. Moneda y precio (auditoría de coco 882110a, 2026-10-22)
 
 - **No verificado (entorno real):** lector de pantalla real (VoiceOver y NVDA sobre «1,850 pesos mexicanos», el «-» de los negativos, la frase dentro de una tarjeta enlace); `forced-colors` real y en Firefox y WebKit (solo emulado en Chromium); zoom 200 a 400 % (se midió el reflujo a 320 px); puntero grueso en el día con precio (el área de 44 px es la de `GDatePicker`, no se remidió); `GPrice` dentro de `GLoadRegion`.
-- **P-A4 (bruno, bloquea `candidate`):** rendimiento de A con 50 precios (tarea larga de 51 a 83 ms).
-- **P-A2 (bruno, banco):** `TODAY` en UTC en `price.html`; usar fecha local.
+- **Cerrados:** P-A4 (rendimiento de A con 50 precios, bruno, 6f9d3c6: cuadro de pintado de 54–77 ms a 27–29 ms, prueba 6/6) y P-A2 (fecha local en el banco `price.html`, bruno, 6f9d3c6).
 - **P-A5 (informativo, banco):** la fila árabe usa los `labels` en español y `?dir=rtl` deja texto español en línea RTL; son textos de la aplicación, sin acción de contrato.
-- **Reservado (#801):** `notation: 'compact'` para el día con precio de cinco cifras.
+- **P-A3 (límite documentado, #801):** el día con precio de cinco cifras se pinta completo; `notation: 'compact'` queda reservado.
