@@ -22,6 +22,7 @@ Nada del contenido se escribe en `site/`: `site/scripts/generate.mjs` lo genera 
 | Empezar, Tematización, Accesibilidad, Personalidad, Proyecto | Secciones `##` del `README.md` raíz (plan en `GUIDE`, `generate.mjs`) |
 | Componentes (índice y barra lateral) | «## Componentes» del `README.md` raíz: cada `###` es una categoría y cada enlace a un README de componente, una entrada |
 | `@grana/cli` | `packages/cli/README.md` |
+| Utilidades (clases `g-*`) | `packages/vue/src/styles/README-utilities.md`: página de guía sin componente ni `meta.json` (`GUIDE`, entrada con `demos: true`), que admite bloques `vue demo` como los de un componente |
 | Cambios | `CHANGELOG.md` |
 | Una página por componente | `packages/vue/src/components/G<Nombre>/README.md` + sus `*.meta.json` (cabecera con etiqueta, estado, entrada y desde; importación; tabla de props, eventos, slots y métodos). Una carpeta con `meta.json` y sin README (`GTagGroup`) se suma a la página de su prefijo (`GTag`) |
 

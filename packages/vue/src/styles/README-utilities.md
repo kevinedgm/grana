@@ -2,7 +2,7 @@
 
 229 clases `g-*` para el **último ajuste** de tu página: un margen, una fila, el tamaño de un texto. No son una escala de píxeles: **hablan el idioma del tema**. `g-p-4` es `padding: var(--g-space-4)`, `g-text-caption` es el rol `caption` del tema, `g-radius-lg` es el radio `lg`. Sin `!important`, sin breakpoints y sin colores propios: el color lo pone el tema.
 
-**Etiqueta:** `class="g-…"` (sin componente) · **Estado:** `draft` (contratada, construida e integrada; pasa a `candidate` tras la auditoría de coco, que aún no existe en `design/lab/utilities/auditoria.md`) · **Desde:** sin publicar (`0.1.0-beta.0`, [`CHANGELOG.md`](../../../../CHANGELOG.md))
+**Etiqueta:** `class="g-…"` (sin componente) · **Estado:** `candidate` (contratada, construida, integrada y auditada por coco sin defecto bloqueante, [`design/lab/utilities/auditoria.md`](../../../../design/lab/utilities/auditoria.md); estado escrito por lima en [`utilities.md`](../../../../design/contracts/utilities.md), 2026-10-22) · **Desde:** sin publicar (`0.1.0-beta.0`, [`CHANGELOG.md`](../../../../CHANGELOG.md))
 
 ```js
 import '@grana/vue/style.css'      // ya incluye las utilidades
@@ -34,7 +34,7 @@ Con `@grana/vue/style.css` no hay nada más que hacer: las utilidades ya vienen 
 <span class="g-sr-only">(abre en una pestaña nueva)</span>
 ```
 
-**Solo las utilidades.** Si usas los tokens de Grana sin los componentes, carga `@grana/vue/utilities.css` (1 892 B gzip). La hoja declara ella misma el orden de capas, así que da igual si la cargas antes o después de otra hoja de Grana. **Necesita los tokens**: un tema completo de `@grana/cli` o `@grana/vue/style.css`. Con `style.css` no hace falta cargarla además.
+**Solo las utilidades.** Si usas los tokens de Grana sin los componentes, carga `@grana/vue/utilities.css` (1 878 B gzip). La hoja declara ella misma el orden de capas, así que da igual si la cargas antes o después de otra hoja de Grana. **Necesita los tokens**: un tema completo de `@grana/cli` o `@grana/vue/style.css`. Con `style.css` no hace falta cargarla además.
 
 **Si tienes estilos de elemento propios** (un `h3 { margin: … }` o un reinicio de terceros), declara las capas de Grana detrás de la tuya para que no ganen a los componentes. La receta completa, con las cinco capas, es la de [`docs/contract/api.md`](../../../../docs/contract/api.md) «Estilos de elemento de la aplicación»:
 
@@ -179,6 +179,17 @@ Las utilidades valen sobre tus elementos y **dentro de los slots** de cualquier 
 | Márgenes (`g-m*`), `g-self-*`, `g-grow`, `g-shrink-0`, `g-w-full`, `g-min-w-0`, `g-hidden` | **Exterior, estable:** colocan el componente entre sus vecinos. Si el componente tiene una prop para lo mismo, usa la prop (`GBtn block` antes que `g-w-full`) |
 | Relleno (`g-p*`), `display`, `g-flex-*`, `g-items-*`, `g-justify-*`, `gap`, texto (`g-text-*`, `g-font-*`, `g-truncate`), `g-radius-*`, `g-h-full`, `g-sr-only` | **Interior, fuera de contrato:** ganan por capa y por eso pueden romper una altura de contrato, una rejilla, el área táctil o la tipografía del componente. No se abren defectos por su efecto: para cambiar el interior, usa la prop, el tema o una regla tuya sobre el componente |
 
+**La evidencia (U-A6, `medido`, `GBtn` real, Chromium, Firefox y WebKit):**
+
+| Clase sobre la raíz de un `GBtn` | Efecto medido | Clase |
+| --- | --- | --- |
+| `g-ms-auto` | Aparta el botón del inicio de la fila; la misma distancia en LTR y en RTL | Exterior |
+| `g-w-full` | Lo ensancha a la línea entera | Exterior |
+| `g-hidden` | Lo deja en `display: none` | Exterior |
+| `g-p-8` | Su caja pasa de **87,3 × 36 px a 119,3 × 86 px**: pierde la altura de contrato | Interior |
+
+Es el límite contratado de la tabla, no un defecto: la clase gana por capa y el componente cambia de medida. Para ocupar la línea entera, `GBtn` tiene su prop: `block` aplica `display: flex` e `inline-size: 100%` (`GBtn.css`), mientras que `g-w-full` solo fija el ancho. Úsala y deja `g-w-full` para los elementos tuyos y los componentes que no traen prop.
+
 ## Capas y especificidad
 
 Las utilidades viven en la capa **`grana.utilities`**, la última de Grana. El orden completo, de más débil a más fuerte, es `grana.defaults`, `grana.components`, `grana.blocks`, `grana.utilities`, y tu CSS **sin capa** gana a todo. Dos consecuencias:
@@ -190,9 +201,9 @@ Todas las reglas tienen la misma especificidad (una clase; la guarda de `hidden`
 
 ## Accesibilidad
 
-a. **Texto no más pequeño que 12 px.** `caption` (0,75 rem) es el rol más pequeño y es el mínimo: ninguna utilidad de texto baja de ahí en el tema por defecto ni en un tema del CLI (`medido`, `design/lab/utilities/verificar.mjs`, coco). No combines `g-text-caption` con un `font-size` propio menor.
+a. **Texto no más pequeño que 12 px.** `caption` (0,75 rem) es el rol más pequeño y **mide 12 px: es el mínimo**; ninguna utilidad de texto baja de ahí en el tema por defecto ni en un tema del CLI con `fontSize` 14, donde `caption` mide 12,25 px (`medido`, `design/lab/utilities/verificar.mjs`, 1767/1767, y auditoría de coco). No combines `g-text-caption` con un `font-size` propio menor.
 
-b. **Contraste de `g-text-muted` y `g-text-subtle`** sobre la página: 7,46:1 y 5,10:1 en claro, 9,29:1 y 6,71:1 en oscuro (`medido`, mismo verificador). El contrato los garantiza ≥ 4,5:1 sobre `bg`, `surface` y `surface-sunken`; **sobre un fondo propio de tu aplicación, el contraste es tuyo**.
+b. **Contraste de `g-text-muted` y `g-text-subtle`** sobre la página: 7,46:1 y 5,10:1 en claro, 9,29:1 y 6,71:1 en oscuro (`medido`, `design/lab/utilities/estilo.md`). En el ejemplo `g-text-caption g-text-muted` del playground real: 7,46:1 en claro y 8,59:1 en oscuro. El caso más justo es `g-text-subtle` sobre `surface-sunken` en claro: 4,72:1 con el tema por defecto y 4,70:1 en el peor de 12 temas (`lustre`). Las 168 comprobaciones de `contraste-temas.mjs` (12 temas, claro y oscuro, tres superficies) están ≥ 4,5:1 (`medido`, 168/168). El margen de 0,2 es estrecho: lo fija la derivación del motor de tema, no la utilidad (U-A5). **Sobre un fondo propio de tu aplicación, el contraste es tuyo**.
 
 c. **`g-sr-only` sigue en el árbol de accesibilidad y no ocupa sitio:** un botón con texto `g-sr-only` conserva su nombre accesible («Guardar cambios») y mide lo mismo que su gemelo sin él (`medido` con el nombre que calculan los motores; no con un lector de pantalla real). `g-hidden`, en cambio, lo saca del árbol.
 
@@ -200,9 +211,11 @@ d. **Dirección del texto:** al ser ejes lógicos, `g-ms-4` cae a la izquierda e
 
 e. **Foco:** ninguna utilidad toca el contorno de foco; no hay variantes de estado (`focus:`, `hover:`) que pudieran quitarlo.
 
-f. **Reflujo:** `g-flex` no se parte por sí solo. Para que una fila no desborde a 320 px (WCAG 1.4.10), añade `g-flex-wrap` o usa `GStack orientation="horizontal"`, que siempre se parte.
+f. **`forced-colors`:** con `forced-colors: active` emulado en Chromium, Firefox y WebKit, `g-sr-only` sigue en 1 × 1 px, absoluta y con su nombre accesible, `g-hidden` queda en `display: none` y `g-truncate` recorta con elipsis (`medido`, auditoría de coco; son las únicas tres que el modo afecta). Con Windows real, sin verificar.
 
-> **Peligro.** `g-sr-only` no va nunca en un elemento enfocable ni en un antepasado de uno: el foco caería en algo invisible y quien navega con teclado perdería la referencia (WCAG 2.4.7, foco visible). Para un enlace de salto que aparece al enfocar, la clase `g-sr-only-focusable` está **reservada** (#809); por ahora no existe. Y `g-truncate` recorta lo que se ve, no el texto: si el contenido importa, quien ve necesita otra forma de leerlo completo (`GTooltip`, un detalle).
+g. **Reflujo:** `g-flex` no se parte por sí solo. Para que una fila no desborde a 320 px (WCAG 1.4.10), añade `g-flex-wrap` o usa `GStack orientation="horizontal"`, que siempre se parte.
+
+> **Peligro.** `g-sr-only` no va nunca en un elemento enfocable ni en un antepasado de uno: el foco caería en algo invisible y quien navega con teclado perdería la referencia (WCAG 2.4.7, foco visible). Para un enlace de salto que aparece al enfocar, la clase `g-sr-only-focusable` está **reservada** (#809); por ahora no existe. `g-truncate` recorta lo que se ve, no el texto, y **en una fila flex necesita `g-min-w-0`** en el elemento recortado: sin ella la fila crece con el texto y no corta nada (un hijo flex no baja de su contenido por defecto). Si el contenido importa, quien ve necesita otra forma de leerlo completo (`GTooltip`, un detalle).
 
 ## Personalidad
 
@@ -246,13 +259,21 @@ No añaden ningún token. Leen exactamente:
   - `!important` o una variante «fuerte».
 - **Nombres reservados:** los prefijos de las utilidades (`g-m-`, `g-p-`, `g-gap-`, `g-text-`, `g-items-`, `g-justify-`, `g-self-`, `g-radius-`, `g-font-`, `g-w-`, `g-h-`, `g-min-w-`) y los nombres `g-grid`, `g-flex`, `g-block`, `g-inline` y `g-hidden` quedan reservados: ningún componente futuro los usará como etiqueta ni como clase.
 - **Sin JS ni avisos de desarrollo:** son CSS puro; los usos fuera de contrato de la tabla exterior/interior no se detectan.
-- **Peso:** `@grana/vue/utilities.css` suelta pesa **1 892 B gzip** (`gzip -9`, `medido` sobre `dist/utilities.css`); dentro de `dist/grana.css` suman **+1 561 B gzip** (100 163 → 101 724 B; `medido` por bruno, [`CHANGELOG.md`](../../../../CHANGELOG.md)), dentro del tope de 3 KiB. No afectan a `grana.js` ni al UMD.
+- **Peso** (tope de 3 KiB gzip -9, #810, `medido`): `dist/utilities.css` suelta, 9 953 B sin comprimir y **1 878 B gzip -9** (por la entrada estándar; `gzip -9 archivo` añade el nombre al encabezado y da 1 892 B, la cifra del [`CHANGELOG.md`](../../../../CHANGELOG.md)). Dentro de `dist/grana.css`: **+1 544 B** las utilidades solas (coco) y **+1 561 B** con la declaración de orden de capas, +17 B (bruno, 100 163 → 101 724 B), la mitad del tope. No afectan a `grana.js` ni al UMD.
 
 ## Verificación
 
 - **Pruebas de bruno** (`prueba`): [`utilities.test.js`](utilities.test.js), 13 pruebas en verde (mora-docs, 2026-10-22). Comprueban que el conjunto **y el orden** de selectores coincide con `utilities.json` (229), que cada declaración es la del JSON, que todo valor es `var(--g-…)` sin respaldo o un literal permitido, que no hay `!important`, que todo token leído existe en `defaults.css`, que las seis de `display` (y solo ellas) llevan la guarda de `hidden` y que `dist/utilities.css` empieza por la declaración del orden de capas completo y envuelve sus reglas en `@layer grana.utilities`.
-- **Banco de coco** (`medido`): `design/lab/utilities/verificar.mjs` sobre el `dist/` real, **565/565 en cada uno de Chromium, Firefox y WebKit (1695/1695 en total)**, ejecutado por mora-docs el 2026-10-22 con la versión de trabajo de coco (sin commit al escribir esto). Cubre las 229 clases contra su declaración, seis configuraciones por motor (defecto claro, defecto oscuro, «Tema de prueba» con `space` 5, tema del CLI con `space` 5 y `fontSize` 14, RTL y `utilities.css` cargado antes que `grana.css`) y `dist/utilities.css` cargada **sola**. Antes de integrar, coco había medido 553/553 por motor en `design/lab/utilities/estilo.md`.
-- **No verificado:** (1) con lector de pantalla real, solo el nombre accesible que calculan los motores; (2) `forced-colors` y `prefers-reduced-motion` no aplican; (3) con `fontSize` 14 como mínimo del CLI no se mide un tema con `body-sm` por debajo de 12 px (el motor lo rechaza a propósito); (4) **la auditoría de coco** (`design/lab/utilities/auditoria.md`) no existe todavía: hasta entonces el estado es `draft` y las cifras de arriba son del banco, no de una auditoría. Al llegar, esta página se sincroniza (M3).
+- **Auditoría de coco** (`medido`, 2026-10-22, sobre el `dist/` real): [`design/lab/utilities/auditoria.md`](../../../../design/lab/utilities/auditoria.md), sin defecto bloqueante. Tres verificaciones propias:
+
+| Verificación | Qué mide | Resultado |
+| --- | --- | --- |
+| [`verificar.mjs`](../../../../design/lab/utilities/verificar.mjs) | Las 229 clases contra su declaración, escala con `space` 5 y `fontSize` 14, ejes lógicos y RTL, orden dentro de la familia, capas (gana a `grana.components`, pierde ante la aplicación), `hidden`, flex y rejilla, texto, `g-truncate`, `g-sr-only` frente a `g-hidden`, `GStack divided`, hoja suelta `dist/utilities.css`, orden de capas sin ayuda del banco y `forced-colors` | **589/589** en cada uno de Chromium, Firefox y WebKit (**1767/1767**) |
+| [`auditoria-playground.mjs`](../../../../design/lab/utilities/auditoria-playground.mjs) | El `#sec-utilities` del playground real en claro y oscuro, y la caja, el `display`, el margen, el relleno, el tamaño de letra y el `gap` de ≈ 16 800 elementos con y sin la capa | **42/42** por motor (**126/126**); ningún componente cambia de medida |
+| [`contraste-temas.mjs`](../../../../design/lab/utilities/contraste-temas.mjs) | `g-text-muted` y `g-text-subtle` sobre `bg`, `surface` y `surface-sunken`, claro y oscuro, en 12 temas | **168/168** ≥ 4,5:1 |
+
+  Hallazgos de la auditoría: U-A1 a U-A4 eran del banco y del verificador (corregidos, `utilities.css` no cambió); U-A5 es el margen de 0,2 en `text-subtle` sobre `surface-sunken`; U-A6 es el límite exterior/interior.
+- **No verificado:** (1) con lector de pantalla real, solo el nombre accesible que calculan los motores; (2) Safari, táctil y `forced-colors` de Windows reales (emulado, no real); (3) con `fontSize` 14 como mínimo del CLI no se mide un tema con `body-sm` por debajo de 12 px (el motor lo rechaza a propósito); (4) la comparación «con y sin la capa» es contra el mismo `dist/` sin el bloque de utilidades, **no** contra un `grana.css` anterior; (5) un tema escrito a mano que solo cambie `--g-space-1` no se midió (ver «Alcance»).
 - **Pendientes abiertos:** ninguno propio; los generales, en [`PENDIENTES.md`](../../../../PENDIENTES.md) §6.
 
 ## Fuentes
@@ -261,6 +282,7 @@ No añaden ningún token. Leen exactamente:
 - Decisiones: #804 a #811 en [`DECISIONS.md`](../../../../DECISIONS.md)
 - API y tokens: [`docs/contract/api.md`](../../../../docs/contract/api.md) «Clases utilitarias» y [`docs/contract/tokens.md`](../../../../docs/contract/tokens.md) §8 y §55
 - Hoja: [`utilities.css`](utilities.css) (coco) y su generación suelta en `dist/utilities.css` (bruno)
+- Auditoría: [`design/lab/utilities/auditoria.md`](../../../../design/lab/utilities/auditoria.md)
 - Estilo y mediciones: [`design/lab/utilities/estilo.md`](../../../../design/lab/utilities/estilo.md); verificación propia [`design/lab/utilities/verificar.mjs`](../../../../design/lab/utilities/verificar.mjs); banco [`design/lab/utilities/estilo-banco.html`](../../../../design/lab/utilities/estilo-banco.html)
 - Pruebas: [`utilities.test.js`](utilities.test.js)
 - Banco: `#sec-utilities` de [`packages/vue/playground/index.html`](../../playground/index.html)
