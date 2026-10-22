@@ -123,7 +123,7 @@ El paquete es **solo ESM** (`"type": "module"`; `exports` con `types`, `import` 
 
 ### Entradas propias
 
-Dieciséis piezas **no viajan en el paquete principal**: cada una tiene su entrada y solo la paga quien la importa. Todas dependen de `@grana/vue` (que ya tienes instalado) y comparten con él las piezas comunes sin copiarlas; **su CSS sí está en la misma `style.css`** y es inerte sin el marcado.
+Diecisiete piezas **no viajan en el paquete principal**: cada una tiene su entrada y solo la paga quien la importa. Todas dependen de `@grana/vue` (que ya tienes instalado) y comparten con él las piezas comunes sin copiarlas; **su CSS sí está en la misma `style.css`** y es inerte sin el marcado.
 
 | Entrada | Qué trae | Cuándo usarla | Global UMD | Tamaño (gzip) |
 | --- | --- | --- | --- | --- |
@@ -143,6 +143,7 @@ Dieciséis piezas **no viajan en el paquete principal**: cada una tiene su entra
 | `@grana/vue/hero` | `GHero` | La apertura de una página de un sitio: título, promesa, acción y la foto que vende, con el texto siempre fuera de la foto | `GranaHero` | ≈ 4,0 kB |
 | `@grana/vue/gallery` | `GGallery`, `GGalleryViewer` | Las fotos de un lugar por espacios o en tira, con visor ampliable | `GranaGallery` | ≈ 9,3 kB |
 | `@grana/vue/booking` | `GBookingBar`, `GPartyField` | La consulta de disponibilidad de un sitio (estancia, mesa o recorrido) y las personas por tipo | `GranaBooking` | ≈ 14,2 kB |
+| `@grana/vue/price` | `GPrice`, `GPriceScope`, `formatPrice`, `currencyDigits` | Mostrar precios que dicen su moneda: la región que la declara una vez, la referencia nombrada y el total de lo pedido | `GranaPrice` | ≈ 6,0 kB |
 
 **Por qué van aparte:** las primeras añadirían más de 8 kB gzip al paquete principal (criterio de [#328](DECISIONS.md)); desde que el margen del principal se agotó ([#550](DECISIONS.md)), todo componente nuevo con peso propio va en su entrada por defecto. No todas las aplicaciones las necesitan. Los tamaños de esta tabla son los del archivo de `dist/` de cada entrada, **sin minificar y comprimido con `gzip`** (medidos el 2026-10-18; kB = 1000 bytes): sirven para comparar entradas entre sí, no para predecir lo que sumará a tu aplicación. Por la misma razón, `dist/grana.js` entero pesa ≈ 179 kB gzip, mientras que importar toda la librería en una aplicación con el JavaScript minificado añade ≈ 155 KB (tabla de [Tamaño e importación parcial](#tamaño-e-importación-parcial)); ninguna de las dos cifras incluye la hoja de CSS (≈ 69 kB gzip). Para saber cuánto añade lo que usas, guíate por la tabla de importación parcial. Los servicios (`createSpeech`, `createStatus`) son además plugins de Vue: `app.use(speech)` registra sus componentes.
 
@@ -336,6 +337,7 @@ Todos están en **`candidate`**: ver [Estado](#estado-010-beta). «Propia» indi
 | [`GCalendar`](packages/vue/src/components/GCalendar/README.md) | Calendario y planificador de recursos: Día, Semana, Mes y Timeline | principal |
 | [`GMetric`](packages/vue/src/components/GMetric/README.md), [`GProgress`](packages/vue/src/components/GProgress/README.md) | Valor con tendencia y barra de progreso | principal |
 | [`GBadge`](packages/vue/src/components/GBadge/README.md) | Insignia no interactiva, anclable | principal |
+| [`GPrice`](packages/vue/src/components/GPrice/README.md), `GPriceScope` | Precio que dice su moneda (el nombre en la lectura, el código solo si el símbolo es ambiguo), con región de moneda, referencia nombrada y total de lo pedido; `formatPrice` para texto llano | **propia** (`price`) |
 | [`GSummary`](packages/vue/src/components/GSummary/README.md) | Ficha de resumen adaptable de una entidad | principal |
 | [`GAvatar`](packages/vue/src/components/GAvatar/README.md), [`GAvatarMotion`](packages/vue/src/components/GAvatarMotion/README.md) | Cara de una persona o entidad; avatar ilustrado que responde a estados | principal |
 | [`GTag`](packages/vue/src/components/GTag/README.md), `GTagGroup` | Etiquetas de un conjunto: estáticas, enlace, alternar o quitables; al quitar queda una huella con «Deshacer» en el sitio; racimos por faceta | **propia** (`tag`) |

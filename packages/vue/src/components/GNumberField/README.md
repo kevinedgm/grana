@@ -45,7 +45,7 @@ Los atributos nativos (`placeholder`, `autocomplete`, `form`, `inputmode`, `aria
 
 El `<input>` es **`type="text" role="spinbutton"`**, nunca `type="number"`: la rueda del ratón cambia el valor sin querer, las flechas y la validación nativas son confusas y el formato no sigue al idioma (criterio de GOV.UK). Con `role="spinbutton"` el árbol de accesibilidad conserva valor, límites y «incrementador». La **rueda del ratón no hace nada**. Lleva `inputmode` derivado de `precision` (`decimal`, o `numeric` con `precision` `0`; `$attrs` puede sobrescribirlo), `autocomplete="off"` por defecto y `dir="ltr"` siempre (sin él, el «-» de «-4,5» se dibuja al final en una página RTL).
 
-Un identificador hecho de cifras (código postal, folio, teléfono, tarjeta) **no** es una cantidad: usa `GInput inputmode="numeric"`. El dinero con formato de moneda no está en esta versión.
+Un identificador hecho de cifras (código postal, folio, teléfono, tarjeta) **no** es una cantidad: usa `GInput inputmode="numeric"`. El dinero con formato de moneda se pide con la prop `currency` (ver [Moneda](#moneda-currency)); `prefix="$"` no sirve para eso.
 
 ### Fuera de rango: no se recorta
 
@@ -74,6 +74,7 @@ Grana no valida (DECISIONS #157). Lo escrito o pegado fuera de `min`/`max` **no 
 | `suffix` | String | | sin valor |
 | `prefixLabel` | String | | sin valor |
 | `suffixLabel` | String | | sin valor |
+| `currency` | String | código ISO 4217 | sin valor (ver [Moneda](#moneda-currency)) |
 | `steppers` | Boolean | | `false` |
 | `decrementLabel` | String | | sin valor |
 | `incrementLabel` | String | | sin valor |
@@ -206,6 +207,31 @@ No hay prop `unit`. Una unidad **fija** es un `suffix`; una **elegible** es otra
 ```
 
 La alternativa es un `GInputGroup` (una sola pregunta, un solo mensaje) con `GInputGroupInput inputmode="decimal"` y `GInputGroupSelect`; es la que usa la receta de signos vitales, pero ahí el valor es texto, no un `Number`. Un número como **parte** de un `GInputGroup` (`GInputGroupNumber`) está reservado, no existe.
+
+## Moneda (`currency`)
+
+Con `currency` el campo toma de la moneda y del idioma resuelto lo que antes escribías a mano (DECISIONS #777, `design/contracts/number-field.md` «Moneda»). No es un componente nuevo ni cambia el modelo: sigue siendo `Number | null` y la moneda es una prop.
+
+- **`precision`** pasa a ser los decimales de la moneda (MXN 2, JPY 0, KWD 3). Una `precision` explícita gana.
+- **Símbolo en su lado:** delante (`prefix`) o detrás (`suffix`) según el idioma («$» en `es-MX`, «€» detrás en `de-DE`), pegado a la cifra. Si el símbolo es de varias monedas, lleva también el código («$ MXN»).
+- **Lectura con el nombre:** el lector oye «pesos mexicanos» en la descripción del campo (`aria-describedby`); el símbolo visible es `aria-hidden`. No entra en `aria-valuetext`.
+- **Se formatea al salir**, no mientras escribes: «2500.5» al editar, «2,500.50» al salir. El canónico oculto sigue siendo `2500.5`.
+- **El lado de la moneda es de la moneda:** `prefix` o `suffix` (y su `*Label`) del lado que ocupa el símbolo se ignoran con aviso; el otro lado queda libre (`suffix="/ noche"`).
+- **Cambiar la moneda o la `precision` redondea el modelo:** si el modelo tiene más decimales que la precisión nueva, el campo emite `update:modelValue` una vez con el valor redondeado (sin `change`). De 2500,5 MXN a JPY queda 2501, y lo visible y lo enviado coinciden.
+- **Pegar con símbolo se interpreta:** «$1,850.00 MXN» da 1850 y «MXN 95» da 95. Una moneda distinta no se quita: «€50» en un campo MXN no entra.
+- **Envío nativo:** el oculto del importe lleva `name`; la moneda va en su propio campo (el `GSelect` con `name`) o en un oculto tuyo si es fija. No hay un segundo oculto automático.
+- **SSR:** con `locale`, el servidor escribe ya el símbolo en su lado; sin `locale`, escribe el canónico sin afijo y el símbolo aparece al montar.
+
+```vue
+<!-- Fragmento: `precio` y `moneda` son de tu aplicación -->
+<g-form-row>
+  <g-number-field v-model="precio" class="g-form-w-sm" label="Precio" name="precio" :currency="moneda" locale="es-MX"></g-number-field>
+  <g-select v-model="moneda" class="g-form-w-xs" label="Moneda" name="moneda"
+            :options="[{ value: 'MXN', label: 'Peso mexicano' }, { value: 'USD', label: 'Dólar estadounidense' }, { value: 'JPY', label: 'Yen' }]"></g-select>
+</g-form-row>
+```
+
+Es la receta de moneda elegible: dos preguntas, dos etiquetas. El `v-model:currency` con selector integrado está reservado (DECISIONS #777). Para **mostrar** un precio, usa [`GPrice`](../GPrice/README.md).
 
 ## −/+ (`steppers`)
 
@@ -392,7 +418,7 @@ Las emite el componente y las estiliza `GNumberField.css`, después de `GInput.c
 
 - **Teclear «.» en `es`** lo convierte en «,» (decimal): «1.234» tecleado es 1,234. Los miles se escriben sin separador y los pone `Intl` al salir («12345» → «12.345»; en `es`, «1234» queda «1234»). **Pegar** sí distingue miles. La regla de pegado no se midió con la agrupación india («12,34,567») ni con `de-CH` (apóstrofo).
 
-- **`GInputGroupNumber` y `field` están reservados:** un número como parte de un `GInputGroup` y el campo suelto dentro de otro componente (la cantidad por fila de una tabla) no existen; `field` exige antes el mismo slot en `GInput`. La moneda con formato es una ronda propia (DECISIONS #154).
+- **`GInputGroupNumber` y `field` están reservados:** un número como parte de un `GInputGroup` y el campo suelto dentro de otro componente (la cantidad por fila de una tabla) no existen; `field` exige antes el mismo slot en `GInput`. La moneda elegible con selector integrado (`v-model:currency`) está reservada (DECISIONS #777); la moneda fija es la prop `currency`.
 
 - **`GInput` gana dos slots internos** para esto ([nota en su README](../GInput/README.md#slots-internos)); no son API pública.
 

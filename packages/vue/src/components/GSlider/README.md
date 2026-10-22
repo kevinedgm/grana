@@ -97,6 +97,8 @@ const precio = ref([800, 2400])   // [inicio, fin]
 
 `range` es **explícita** (no se deduce del modelo). `labels.start` y `labels.end` nombran las dos asas («Precio mínimo», «Precio máximo»); sin ellos las dos se llamarían igual y el campo avisa. `minGap` es la distancia mínima entre las asas. Cada emisión es un **arreglo nuevo**: nunca se muta el de tu aplicación.
 
+**Moneda en la lectura (DECISIONS #779).** Con `format.style === 'currency'` y sin `valueText`, la píldora muestra el formato tal cual («$800») y `aria-valuetext` usa el mismo `format` con el **nombre** de la moneda y sin decimales en los enteros («800 pesos mexicanos»; con `en-US` y USD, «800 US dollars»): el lector nunca dice «dólar» por un «$» de pesos. Es la única excepción a «lo que se ve es lo que se oye»: la cifra es la misma, solo cambia cómo se nombra la moneda. Si una marca tiene nombre, se sigue añadiendo («800 pesos mexicanos, Económico»). Con `valueText`, manda tu texto. `prueba` (bloque «moneda en la lectura (#779)» de `GSlider.test.js`, en verde al documentar); no se oyó con lector de pantalla real.
+
 ### Un texto propio en la píldora
 
 ```vue

@@ -82,6 +82,7 @@ Con el slot `trigger` no se renderizan `label`, `hint`, `error`, `name` ni `spli
 | `open` | Boolean | (con `update:open`; solo sin `inline`) | `false` |
 | `min`, `max` | String | fecha ISO | sin valor |
 | `disabledDates` | Function | `(iso) => boolean` | sin valor |
+| `dayDescription` | Function | `(iso) => string`: texto que se añade al nombre accesible del día (ver «Precio y otros datos del día») | sin valor |
 | `disabledNights` | Function | solo `range`: `(iso) => boolean`, la noche que empieza `iso` está agotada (ver «Noches y salida») | sin valor |
 | `minNights`, `maxNights` | Number | solo `range`: noches mínimas (entero ≥ 1) y máximas (entero ≥ `minNights`) | sin valor |
 | `months` | String \| Number | `auto` `1` `2` | `auto` |
@@ -110,6 +111,37 @@ Un valor de prop fuera de su lista avisa en desarrollo. `loading` **no aplica**.
 - **`error`:** deja el campo inválido (`aria-invalid`, mensaje visible con región viva siempre presente). **El componente no valida.**
 - **`readonly`:** el campo se enfoca pero no abre; en `inline`, navega sin elegir. **`disabled`:** sin foco ni envío.
 - **Atributos:** `class` y `style` van a la raíz; `aria-*`, `data-*` y escuchas (`onFocus`…) al **botón del campo** (al primero con `split`; en `inline`, a la raíz). Solo se declaran los eventos de la tabla.
+
+## Precio y otros datos del día (`dayDescription`, slot `day`)
+
+Para enseñar un dato bajo el número de cada día (un precio por noche) se usan dos piezas (DECISIONS #778, `design/contracts/datepicker.md`):
+
+- El slot `day` pinta el dato tras el número. **No cambia el nombre accesible** del día.
+- `dayDescription(iso)` devuelve lo que debe **oírse**; se añade al `aria-label` del día después de los sufijos de estado, separado por «, »: «miércoles, 21 de octubre de 2026, hoy, 1,850 pesos mexicanos». Una cadena vacía, `null` o algo que no es texto no añade nada. Se llama para cada día pintado del mes, así que mantenla barata.
+
+Con el slot `day` la raíz lleva `g-datepicker--day-content` y **todas** las celdas toman la misma forma (ninguna salta de tamaño por tener o no dato).
+
+```vue
+<!-- Fragmento: `tarifas` (un objeto fecha → importe) es de tu aplicación -->
+<script setup>
+import { ref } from 'vue'
+import { formatPrice } from '@grana/vue/price'
+
+const fecha = ref(null)
+const tarifa = (iso) => tarifas[iso] ? { amount: tarifas[iso], currency: 'MXN' } : null
+const hablado = (iso) => tarifa(iso) ? formatPrice(tarifa(iso), { locale: 'es-MX' }).spoken : ''
+</script>
+
+<template>
+  <g-date-picker v-model="fecha" inline label="Fecha de llegada" locale="es-MX" :day-description="hablado">
+    <template #day="{ date }">
+      <g-price v-if="tarifa(date)" :value="tarifa(date)" size="xs" display="none" cents="never" locale="es-MX" />
+    </template>
+  </g-date-picker>
+</template>
+```
+
+**Límite medido (auditoría de coco, hallazgo P-A3):** a 320 px la celda mide 38 px; un precio de cuatro cifras cabe y uno de cinco («12,400») desborda en los tres motores. Para importes así, no pongas el precio en el día. La notación compacta está reservada (DECISIONS #778 y #801).
 
 ## Noches y salida (`disabledNights`, `minNights`, `maxNights`)
 
@@ -166,7 +198,7 @@ Métodos expuestos: `open()`, `close()` y `focus()`.
 | `label`, `hint`, `error` | Texto rico del campo (sin interactivos) |
 | `trigger` | Sustituye al campo. Alcance: `{ id, expanded, controls, toggle, open, close, value, text }` |
 | `summary` | Sustituye al resumen. Alcance: `{ start, end, pending, days }` (`days` inclusivos) |
-| `day` | Contenido **tras el número** del día (por ejemplo, un precio). Alcance: `{ date, day, selected, inRange, disabled, outside }`. No cambia el nombre accesible ni el tamaño de la celda: si es información, añádela también a tus `labels`/resumen |
+| `day` | Contenido **tras el número** del día (por ejemplo, un precio). Alcance: `{ date, day, selected, inRange, disabled, outside }`. No cambia el nombre accesible: lo que deba oírse va en `dayDescription`. Con el slot, todas las celdas toman la forma `g-datepicker--day-content` |
 | `icon` | Icono del campo (decorativo); por defecto, un calendario dibujado con CSS |
 
 ## Teclado

@@ -17,6 +17,7 @@ import AppShell from '@grana/vue/app-shell'
 import Hero from '@grana/vue/hero'
 import Gallery from '@grana/vue/gallery'
 import Booking from '@grana/vue/booking'
+import Price from '@grana/vue/price'
 import '@grana/vue/style.css'
 import '@grana/vue/fonts.css'
 import '../../src/.lucide.css'
@@ -35,7 +36,7 @@ export default {
     // La voz y la isla de estado son servicios: cada ejemplo crea el suyo.
     app.use(Grana).use(createIcons(siteIcons)).use(Combobox).use(FileField).use(TimeField).use(Slider).use(Tag).use(LoadRegion)
       .use(CardGroup).use(PageHeader).use(Fab).use(FormFold).use(AppShell)
-      .use(Hero).use(Gallery).use(Booking)
+      .use(Hero).use(Gallery).use(Booking).use(Price)
     app.component('GranaDemo', GranaDemo)
     app.component('GranaThemePlayground', GranaThemePlayground)
   }
