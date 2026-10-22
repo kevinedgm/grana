@@ -22,6 +22,7 @@ function themeFor(locale) {
     nav: [
       { text: U.nav.guide, link: p + 'getting-started', activeMatch: `^${p}(getting-started|theming|cli|accessibility|personality|project)` },
       { text: U.nav.components, link: p + 'components/', activeMatch: `^${p}components/` },
+      { text: U.nav.playground, link: p + 'playground', activeMatch: `^${p}playground` },
       { text: U.nav.changelog, link: p + 'changelog' },
       { text: U.nav.github, link: 'https://github.com/kevinedgm/grana' }
     ],
