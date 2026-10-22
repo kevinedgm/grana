@@ -81,3 +81,7 @@
 ## No verificado
 
 Lector de pantalla real, `forced-colors` real (solo emulado en Chromium), zoom 200–400 %, teléfono real; el componente real (`GPrice.vue` aún no existe: todo se midió sobre el marcado del contrato). Queda para la auditoría (paso 5) en `design/lab/price/auditoria.md`.
+
+## Auditoría (paso 5)
+
+Hecha sobre el componente real en `auditoria.md` (2026-10-22): una corrección de este CSS (P-A1, separación del importe `ltr` en líneas RTL con `:dir(rtl)`); lo demás de esta hoja se reprodujo en los tres motores. Pendiente de bruno el rendimiento de A (P-A4).

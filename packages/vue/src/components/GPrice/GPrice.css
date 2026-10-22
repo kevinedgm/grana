@@ -120,6 +120,14 @@
 .g-price__total > :not(:last-child) {
   margin-inline-end: var(--_gap);
 }
+/* El importe lleva dir="ltr": su margin-inline-end se resuelve en su propia dirección (la derecha). En una línea RTL el
+   siguiente queda a su izquierda, así que la separación va en el lado físico izquierdo (auditoría, P-A1 de coco) */
+.g-price__now:dir(rtl) > [dir="ltr"]:not(:last-child),
+.g-price__compare:dir(rtl) > [dir="ltr"]:not(:last-child),
+.g-price__total:dir(rtl) > [dir="ltr"]:not(:last-child) {
+  margin-right: 0;
+  margin-left: var(--_gap);
+}
 
 /* ---------- La cifra ---------- */
 /* dir="ltr" lo pone el .vue (signo, símbolo y cifras no se reordenan); isolate para que no arrastre lo de alrededor */
@@ -212,6 +220,10 @@
 }
 .g-price--compare-strike .g-price__now > :last-child {
   margin-inline-end: var(--_gap);
+}
+.g-price--compare-strike .g-price__now:dir(rtl) > [dir="ltr"]:last-child {
+  margin-right: 0;
+  margin-left: var(--_gap);
 }
 .g-price__visual > s.g-price__compare {
   display: inline-block;
