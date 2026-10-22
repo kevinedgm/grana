@@ -1,6 +1,6 @@
 # Contrato · FAQ (`GbFaq01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #815 a #817 y #823, 2026-10-22; remates #841) · **Plan:** M8 (§4.1) · **Entrada:** `@grana/blocks/marketing` · **Común:** `_comun.md` · **Compone:** `GSection`, `GAccordion` + `GAccordionItem`, `GContainer`, `GStack`, `GInput`, `GEmpty`
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #815 a #817 y #823, 2026-10-22; remates #841, #856) · **Plan:** M8 (§4.1) · **Entrada:** `@grana/blocks/marketing` · **Común:** `_comun.md` · **Compone:** `GSection`, `GAccordion` + `GAccordionItem`, `GContainer`, `GStack`, `GInput`, `GEmpty`
 
 ## Promesa
 
@@ -22,7 +22,7 @@ interface GbFaqProps {
 }
 ```
 
-`answer` es texto plano: cada bloque separado por una línea en blanco es un `p`. Para enlaces o listas en una respuesta, slot `answer`. Los párrafos son texto suelto: irán en la primitiva de texto (`as="div"`, #841) cuando exista.
+`answer` es texto plano: cada bloque separado por una línea en blanco es un `p`. Para enlaces o listas en una respuesta, slot `answer`. Los párrafos (o el slot `answer`) van dentro de **`GText as="div"`** (#841, #856; `text.md`): una pausa de `body` entre ellos y ninguna antes del primero ni tras el último, en el panel de `GAccordionItem` (01, 03) y en el cuerpo de la `GSection` anidada (02; no medido por kiwi, lo mide coco). El `peek` es del acordeón y no lleva `GText`.
 
 ## Variantes
 
@@ -63,4 +63,4 @@ Ocho preguntas con `id` (`mascotas`, `estacionamiento`, `llegada`, `desayuno`, `
 
 ## Verificación propia
 
-Vitest: `id` en el elemento (01, 03) y en la sección (02); `peek` = primer párrafo; búsqueda sin diacríticos ni mayúsculas en pregunta y respuesta; cuenta en el `output` tras `SEARCH_MS` con temporizadores falsos; vacío con `GEmpty` y `clear` que vacía y enfoca el campo; ninguna se abre sola. Chromium: `#mascotas` en la URL abre esa respuesta en 01 y 03; la búsqueda del navegador encuentra texto plegado.
+Vitest: `id` en el elemento (01, 03) y en la sección (02); la respuesta dentro de una `GText` `div` en las tres; `peek` = primer párrafo; búsqueda sin diacríticos ni mayúsculas en pregunta y respuesta; cuenta en el `output` tras `SEARCH_MS` con temporizadores falsos; vacío con `GEmpty` y `clear` que vacía y enfoca el campo; ninguna se abre sola. Chromium: `#mascotas` en la URL abre esa respuesta en 01 y 03; la búsqueda del navegador encuentra texto plegado.

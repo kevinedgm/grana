@@ -660,6 +660,8 @@ Duración y curva de la marca y de la entrada del contenido: los existentes (`--
 | Opciones de `GRadioGroup` | como `GCheckbox`: tamaño del control, 400, `text`; en `appearance="card"`/`"chip"`/`"segmented"`, 500 (propuesta para coco) | descripción de la opción: caption 12/16, `muted` | — (el mensaje es del grupo) |
 | `GForm` | `__required-hint`: body-sm 14/20, `muted` | — | — |
 
+**Texto suelto (`GText`, #854; X-L4):** como la ayuda de campo, es **texto** y no rótulo: pesa `--g-text-body-weight` (400) en sus tres tamaños, también en `caption` (el 500 de `--g-text-caption-weight` es de rótulo: eyebrow, rótulo de grupo). Color `text` o `muted` según `tone`.
+
 ### 23.3 Navegación y listas
 
 | Componente | Texto | Rótulo de grupo |
@@ -676,7 +678,7 @@ Un **rótulo de grupo** (caption 12) clasifica elementos de una lista; **no** es
 
 ### 23.4 Regla de uso
 
-- **El título lo decide el contenedor**, no quien lo usa: `GDialog` title-sm 20; `GFormSection`, `GCard`, `GErrorSummary` body 16; `GWidget`, `GToast` body-sm 14. Se pasa por props (`title`, `description`) o slots del componente; no hay primitivas `Text`/`Heading` (#196).
+- **El título lo decide el contenedor**, no quien lo usa: `GDialog` title-sm 20; `GFormSection`, `GCard`, `GErrorSummary` body 16; `GWidget`, `GToast` body-sm 14. Se pasa por props (`title`, `description`) o slots del componente; no hay primitiva `Heading` ni subcomponentes de título (#196). **Enmienda #854 (#841):** existe **`GText`** solo para el **texto corrido** que no va en una prop de componente (`design/contracts/text.md`): roles `body`, `body-sm` y `caption`, nunca un título ni un tamaño fuera de esos tres; `GHeading` sigue descartada.
 - **El subtítulo o descripción de un contenedor con encabezado es body-sm atenuado** (`GDialog`, `GFormSection`, `GCard`, `GToast`). Excepción de los densos, que bajan un rol: `GWidget __sub`, `GTable __subtitle` y `GStepper __description` son caption 12/16 `muted`.
 - **Un solo recurso de jerarquía:** tamaño + peso del título. Sin cambiar de familia, sin mayúsculas forzadas, sin color de acento en el título y sin líneas ni fondos añadidos para «marcar» un título.
 - **Nunca un título por debajo de body-sm (14).** Los rótulos de grupo a 12 no son títulos.
@@ -1307,3 +1309,11 @@ Consume además (lista exacta de `GHero.css`, #759): `--g-color-bg`, `--g-color-
 **No leen** `density` (multiplicador local de componente, §4): una utilidad mide el token tal cual (#808).
 
 **No son tokens:** los valores sin medida de las reglas (`0`, `auto`, `1`, `100%` y las palabras clave de `display`, flex, alineación y texto; lista exacta en `utilities.json`, `allowedLiterals`) y el patrón de texto oculto accesible de `g-sr-only` (§7: `1px`, `-1px`, `clip-path: inset(50%)`). **Mínimo de texto (§7):** `caption` (0,75 rem = 12 px con la raíz a 16 px) es el menor rol y el mínimo; ninguna utilidad baja de ahí. **Movimiento:** ninguno.
+
+## 56. Texto suelto (`GText`; sin tokens nuevos)
+
+**`GText` no añade tokens** (`design/contracts/text.md`, DECISIONS.md #851 a #854; X-L4 y X-L5 de `design/lab/text/r01/`). Consume `--g-font-ui`; `--g-text-{body|body-sm|caption}-{size|line|tracking}` según `size`; **`--g-text-body-weight` en los tres tamaños** (no `--g-text-caption-weight`, §23.2); `--g-color-text` y `--g-color-text-muted` según `tone` (redeclarados por el oscuro y por la zona de marca, §44.5); `--g-space-1` (ritmo y sangría de listas). Si coco fija el peso de `strong` dentro, con un `--g-text-*-weight` existente que se añade aquí al entregar `GText.css`.
+
+**No son tokens (#717):** la pausa entre bloques nativos internos **`space × 3` (`body`) · `× 2,5` (`body-sm`) · `× 2` (`caption`)** (12 · 10 · 8 px con `space` 4) y la sangría de listas en múltiplos de `space`. ¿Token del tema? **No**: la pausa de `body` es el `sm` de `GStack` (§49) y un token dejaría que un tema desacompasara el texto de la pila. Descartado: medio interlineado del rol (`--g-text-*-line` / 2), fuera de la escala de `space`. **Mínimo de texto (§7):** `caption` es el menor rol y `small` dentro no encoge. **Movimiento:** ninguno.
+
+*Nota de lima:* hay dos secciones numeradas 55 (lista de recursos y utilidades); se mantienen para no romper las referencias ya escritas a «§55» de cada una. La siguiente sección nueva es la 57.

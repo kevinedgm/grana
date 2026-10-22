@@ -1,6 +1,6 @@
 # Contrato · Newsletter (`GbNewsletter01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #815 a #817 y #824, 2026-10-22; remates #830, #839, #840, #841) · **Plan:** M11 (§4.1) · **Entrada:** `@grana/blocks/marketing` · **Común:** `_comun.md` · **Compone:** `GSection`, `GForm`, `GInput` (slot `action`), `GBtn`, `GCard`, `GSurface zone="brand"`
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #815 a #817 y #824, 2026-10-22; remates #830, #839, #840, #841, #856) · **Plan:** M11 (§4.1) · **Entrada:** `@grana/blocks/marketing` · **Común:** `_comun.md` · **Compone:** `GSection`, `GForm`, `GInput` (slot `action`), `GBtn`, `GCard`, `GSurface zone="brand"`
 
 ## Promesa
 
@@ -37,9 +37,11 @@ interface GbNewsletterProps {
 
 | Variante | Concepto | Compone |
 | --- | --- | --- |
-| **01 · En línea** | La sección y el campo con el botón acoplado | `GSection` (título, descripción) › `GForm` › `GInput` + `p` con `legal` |
+| **01 · En línea** | La sección y el campo con el botón acoplado | `GSection` (título, descripción) › `GForm` › `GInput` + `GText size="caption" tone="muted"` con `legal` (#856) |
 | **02 · Tarjeta** | La suscripción en una tarjeta | `GCard as="section"` (raíz; título al nivel de `useSectionLevel()`, descripción) › cuerpo: el `GForm` de 01 + `legal` |
 | **03 · Banda de marca** | La suscripción en una banda de tinta de marca | `GSurface zone="brand" level="flat" padding="lg"` (raíz; sin borde ni radio, #830) › el contenido de 01 |
+
+**El legal (igual en las tres; #841, #856; `text.md`):** `GText size="caption" tone="muted"` hijo del `GForm` (el texto, el enlace y el slot `legal` dentro), con el peso de texto (400, como la ayuda del campo). Queda a **40 px** de la ayuda, el `gap` de `GForm` (con el `p` desnudo, 54–56 px: márgenes del navegador sumados); ningún margen propio. Si un día el legal debe ir «con el campo», será `GStack gap="sm"` o el hueco del campo, no un margen.
 
 **El formulario (igual en las tres):** `GForm` › `GInput type="email" autocomplete="email" required` (`label`, `hint`, `placeholder`, `name`), con el slot **`action`** = `GBtn type="submit"` (`action.label`, `loading` = `busy`, `loadingText` = `labels.busy`). `error` llega al campo por `errors` de `GForm` (`{ [name]: error }`) y `done` como mensaje `valid` del `GInput`.
 
@@ -83,4 +85,4 @@ Comunes C5 y C6. Además: **N1** · falta `field.hint` (la promesa; se pinta sin
 
 ## Verificación propia
 
-Vitest: `GInput` con el slot `action` y `type="submit"`; `hint` en `aria-describedby` del campo; vacío → `labels.required` y correo mal formado → `labels.invalid` en el campo (no el `validationMessage`), **sin** `submit`; sin esos textos, C5 una vez y `validationMessage`; `labels.form` llega a `GForm` (sin avisos de `GForm` con el banco); 03 con `g-surface--level-flat`; válido → `submit` con el correo recortado; `busy` → `GBtn loading`; `error` y `done` en el campo; 02 con encabezado de la tarjeta al nivel de sección; 03 en zona de marca. Chromium: campo y botón en una línea a 390 y sin desbordamiento a 320 (el botón no se sale de la caja).
+Vitest: `GInput` con el slot `action` y `type="submit"`; el legal es una `GText` `caption` `muted` (y no se pinta sin `legal` ni slot); `hint` en `aria-describedby` del campo; vacío → `labels.required` y correo mal formado → `labels.invalid` en el campo (no el `validationMessage`), **sin** `submit`; sin esos textos, C5 una vez y `validationMessage`; `labels.form` llega a `GForm` (sin avisos de `GForm` con el banco); 03 con `g-surface--level-flat`; válido → `submit` con el correo recortado; `busy` → `GBtn loading`; `error` y `done` en el campo; 02 con encabezado de la tarjeta al nivel de sección; 03 en zona de marca. Chromium: campo y botón en una línea a 390 y sin desbordamiento a 320 (el botón no se sale de la caja).

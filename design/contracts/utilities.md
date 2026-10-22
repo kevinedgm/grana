@@ -34,6 +34,7 @@ Las utilidades son el **ajuste puntual de la aplicación**; **no sustituyen** a 
 | La columna de la página y el sangrado | `GContainer` (`g-bleed`, `g-bleed-raw`, #721) | Márgenes negativos (no existen, #809) |
 | Un título con nivel por anidación | `GSection` (#720) | `<h2 class="g-text-title">` cuando la jerarquía es de la página |
 | Un texto de la aplicación con el tamaño de un rol del tema | **`g-text-{rol}`** | `font-size` escrito a mano |
+| Un texto con flujo nativo dentro (párrafos, cita y su pie, dirección, legal) o un texto sin hoja propia (#855; X-L8) | **`GText`** (`text.md`: rol, tono, márgenes del navegador fuera, una pausa entre bloques, sin cursivas de `cite`/`address`) | `g-text-{rol}` + `g-m*-0` en cada `p` (no normaliza el flujo de dentro); utilidades sobre los bloques **dentro** de una `GText` (cortan su ámbito: van en la raíz de la `GText`, `text.md` regla 12) |
 | Una fila de piezas que se parte | `GStack orientation="horizontal"` | `g-flex` sin `g-flex-wrap` (no se parte: 1.4.10 queda en manos de la aplicación) |
 | Repartir con `between`/`around`/`evenly` | **`g-justify-*`** (no existe en `GStack`, que no reparte) | — |
 | Texto solo para lectores de pantalla | **`g-sr-only`** | `g-hidden` (lo quita también del árbol de accesibilidad) |
@@ -180,6 +181,7 @@ No hay `meta.json` (no es componente). El estado vive en este contrato:
 - **Estilos en línea:** una propiedad que el `.vue` de un componente escribe en `style` (posiciones, alias `--_*`) gana a cualquier capa; una utilidad no la cambia.
 - **`GStack divided`** sí detecta `g-hidden` y `g-sr-only` como ocultos (equivalen a `[hidden]` en `GStack.css`, coco 5c10f15, #813; medido en los tres motores); sigue sin detectar una clase **propia de la aplicación** con `display: none` (`stack.md` «Reglas de los hijos» 4).
 - **Margen estrecho de `g-text-subtle` (U-A5):** sobre `surface-sunken` mide 4,72:1 por defecto y 4,70:1 en el peor de los 12 temas (`lustre`, claro), 0,2 por encima del 4,5:1. Si cambia la derivación de `text-subtle` en el motor de tema, volver a correr `design/lab/utilities/contraste-temas.mjs`.
+- **Utilidades sobre bloques dentro de `GText` o de `GContainer prose` (X-L3, #855):** el ámbito de los dos se corta en cualquier clase `g-*`, y las utilidades lo son: un `<p class="g-mt-4">` dentro sale de su tipografía y de su medida y conserva el margen del navegador del otro lado. La utilidad va en la raíz de la `GText` (`.g-text` no corta) o en un envoltorio. Afinar el corte está reservado (`text.md`).
 - **Utilidad de interior sobre la raíz de un componente (U-A6):** `g-p-8` sobre un `GBtn` lo pasa de 87,3×36 a 119,3×86 px. Es el límite de la regla exterior/interior de este contrato, no un defecto; las de exterior (`g-ms-auto`, `g-w-full`, `g-hidden`) son seguras sobre el componente real.
 
 ## Pendientes por rol

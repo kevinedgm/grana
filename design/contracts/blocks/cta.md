@@ -1,6 +1,6 @@
 # Contrato · CTA (`GbCta01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #815 a #817 y #822, 2026-10-22; remates #830, #838, #841) · **Plan:** M7 (§4.1); receta R5 de `design/lab/marketing/r01/` · **Entrada:** `@grana/blocks/marketing` · **Común:** `_comun.md` · **Compone:** `GSurface zone="brand"`, `GSection`, `GStack`, `GCard`, `GDivider`, `GBtn`
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #815 a #817 y #822, 2026-10-22; remates #830, #838, #841, #856) · **Plan:** M7 (§4.1); receta R5 de `design/lab/marketing/r01/` · **Entrada:** `@grana/blocks/marketing` · **Común:** `_comun.md` · **Compone:** `GSurface zone="brand"`, `GSection`, `GStack`, `GCard`, `GDivider`, `GBtn`
 
 ## Promesa
 
@@ -27,7 +27,7 @@ interface GbCtaProps {
 | **02 · Tarjeta con imagen** | La acción en una tarjeta con la foto al lado | `GCard as="section" orientation="auto" mediaPosition="start"` (raíz): `media` en el slot `media`, `title` (nivel `useSectionLevel()`), `description`, acciones en `actions`, `assurance` en `footer` | Sin `media`, tarjeta sin foto |
 | **03 · Línea sobria** | Sin superficie: un divisor y la sección con su acción al final de la fila del título | `GStack gap="md"` (raíz) › `GDivider decorative` + `GSection` (título, descripción; acciones en su slot `actions` con `labels.actions`) + `p` con `assurance` en el cuerpo | `media` ignorada; acciones `solid` + `link` |
 
-**`assurance` va unida a la acción principal:** `aria-describedby` del `GBtn` principal apunta al `id` del texto (`GBtn` pasa los atributos a su raíz): quien llega a «Reservar» con el lector oye también «Sin pago ahora». El componente interno de acciones lo pone solo en la **primera** (#838). `assurance` es texto de apoyo: irá en la primitiva de texto con `size="sm" tone="muted"` (#841; hallazgo F-L1: hoy sale más grande que la descripción); en 02 va en el `footer` de la tarjeta, que ya lo tipografía.
+**`assurance` va unida a la acción principal:** `aria-describedby` del `GBtn` principal apunta al `id` del texto (`GBtn` pasa los atributos a su raíz): quien llega a «Reservar» con el lector oye también «Sin pago ahora». El componente interno de acciones lo pone solo en la **primera** (#838). `assurance` es texto de apoyo en **`GText`** (#841, #856; `text.md`), con el `id` en su raíz: en 01 y 03 `size="body-sm" tone="muted"` (igual que la descripción; hallazgo F-L1: con el `p` desnudo salía más grande); en 02, en el `footer` de la tarjeta, `size="caption" tone="muted"` (el rol del pie; sin el margen de 12 px del navegador). Sin `assurance`, no hay `GText` (vacía no se pinta, y el bloque ya usa `v-if`).
 
 ## Eventos y slots
 
@@ -54,4 +54,4 @@ Comunes C2, C4 a C6 y C8. Además: **A1** · `actions` vacío (se pinta sin acci
 
 ## Verificación propia
 
-Vitest: `aria-describedby` de la principal → `assurance` (y solo en ella); el slot `actions` recibe `describedby`; 01 con `data-g-zone="brand"` y `g-surface--level-flat`; 02 con encabezado de la tarjeta al nivel de sección; 03 con el grupo de acciones nombrado; aviso A2 con dos bloques montados. Chromium: en 01, la principal invertida con contraste ≥ 4,5:1 en los dos temas del CLI.
+Vitest: `aria-describedby` de la principal → `assurance` (y solo en ella), que es una `GText` con el `size` del reparto (`caption` en 02); el slot `actions` recibe `describedby`; 01 con `data-g-zone="brand"` y `g-surface--level-flat`; 02 con encabezado de la tarjeta al nivel de sección; 03 con el grupo de acciones nombrado; aviso A2 con dos bloques montados. Chromium: en 01, la principal invertida con contraste ≥ 4,5:1 en los dos temas del CLI.

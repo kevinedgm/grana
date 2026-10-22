@@ -1,6 +1,6 @@
 # Contrato · Testimonials (`GbTestimonials01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #815 a #817 y #821, 2026-10-22; remates #837, #841, #842) · **Plan:** M5 (§4.1); receta R7 de `design/lab/marketing/r01/` · **Entrada:** `@grana/blocks/marketing` · **Común:** `_comun.md` · **Compone:** `GSection`, `GAdaptiveLayout`, `GStack`, `GCard`, `GAvatar`, `GAccordion`, `GBtn`
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #815 a #817 y #821, 2026-10-22; remates #837, #841, #842, #856) · **Plan:** M5 (§4.1); receta R7 de `design/lab/marketing/r01/` · **Entrada:** `@grana/blocks/marketing` · **Común:** `_comun.md` · **Compone:** `GSection`, `GAdaptiveLayout`, `GStack`, `GCard`, `GAvatar`, `GAccordion`, `GBtn`
 
 ## Promesa
 
@@ -34,7 +34,7 @@ figure
 
 **Nombre de la tarjeta (01 y 02, #837):** sin título visible, `GCard as="div" role="group"` con `aria-labelledby` al `span` de `author.name` del `figcaption` (el `role` hace falta: un `div` sin rol no admite nombre; `GCard` no avisa con `aria-labelledby` en `$attrs`).
 
-**Tipografía (#841):** `figure`, `blockquote` y `figcaption` son texto suelto: irán en la primitiva de texto (`_comun.md` §11 B-L5; `figcaption` en `size="sm" tone="muted"`). Hasta entonces la sección queda en `draft` si la auditoría de coco confirma los márgenes del navegador (F-L1).
+**Tipografía (#841, #856; `text.md`):** la `figure`, el `blockquote` y el `figcaption` son `GText` anidadas (la de fuera da la pausa entre la cita y su pie; la cita, la de sus párrafos): `GText as="figure"` › `GText as="blockquote" :lang :cite` (párrafos de `quote` o el slot `quote` dentro) + `GText as="figcaption" size="body-sm" tone="muted"` (nombre y `cite`, sin cursiva). **En tarjeta** (01 y la destacada de 02) la `figure` y el `blockquote` van en `size="body-sm"` (el contexto del cuerpo de `GCard`); en la lista de 02 y en el panel de 03, en `body`. La cita arranca en el borde de la figura (sin la sangría de 40 px del navegador). Reparto completo en `_comun.md` §11 B-L5. La sección sigue en `draft` hasta que bruno la cambie y la auditoría de coco lo confirme (F-L1, MK-L1).
 
 ## Variantes
 
@@ -66,4 +66,4 @@ Cuatro opiniones: dos en español (Google, TripAdvisor con `href` externo), una 
 
 ## Verificación propia
 
-Vitest: `figure > blockquote + figcaption` en las tres; `lang` en el `blockquote`; `cite` con la fuente; en 03, `peek` = primer párrafo y la `figure` en el panel; ningún recorte. Chromium: en 01 las tarjetas iguales a 1440 y una columna a 320.
+Vitest: `figure > blockquote + figcaption` en las tres, cada uno con la clase `g-text` y el `size` del reparto (`body-sm` en tarjeta); `lang` en el `blockquote`; `cite` con la fuente; en 03, `peek` = primer párrafo y la `figure` en el panel; ningún recorte. Chromium: en 01 las tarjetas iguales a 1440 y una columna a 320.

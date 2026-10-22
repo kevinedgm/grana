@@ -1,6 +1,6 @@
 # Contrato · Footer (`GbFooter01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #815 a #817 y #826, 2026-10-22; remates #834, #841) · **Plan:** M14 (§4.1) · **Entrada:** `@grana/blocks/marketing` · **Común:** `_comun.md` · **Compone:** `GStack`, `GAdaptiveLayout`, `GSection`, `GDivider`, `GBtn`, `GIcon`; va **dentro** del slot `footer` de `GAppShell` o suelto
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #815 a #817 y #826, 2026-10-22; remates #834, #841, #856) · **Plan:** M14 (§4.1) · **Entrada:** `@grana/blocks/marketing` · **Común:** `_comun.md` · **Compone:** `GStack`, `GAdaptiveLayout`, `GSection`, `GDivider`, `GBtn`, `GIcon`; va **dentro** del slot `footer` de `GAppShell` o suelto
 
 ## Promesa
 
@@ -26,7 +26,7 @@ interface GbFooterProps {
 ```
 
 - **`as`:** `GAppShell` ya pinta el `footer` (`contentinfo`, `app-shell.md`); un `footer` dentro de otro es HTML inválido. Dentro del chasis, `as="div"`. Con `as="footer"` y un `footer` o `[role="contentinfo"]` antepasado, aviso O1 (en `onMounted`).
-- **Tipografía (#841):** `address` (en cursiva por el navegador), sus líneas, el horario, `note` y la marca sin enlace son texto suelto: irán en la primitiva de texto (`_comun.md` §11 B-L5: `as="address" size="sm"`; nota y legales `size="caption" tone="muted"`). Hasta entonces la sección queda en `draft` si la auditoría de coco lo confirma (F-L1).
+- **Tipografía (#841, #856; `text.md`):** el contacto es `GText as="address" size="body-sm"` (sin cursiva; sus líneas, los canales y el horario se separan con la pausa de `body-sm`, también junto al `GStack` de canales); `note` (y su slot) es `GText size="caption" tone="muted"`; la marca sin enlace, `GText` con los valores por defecto (el nombre no se atenúa; no medido por kiwi: lo mide coco). Los legales son `GBtn variant="link"` (no texto suelto). Reparto en `_comun.md` §11 B-L5. La sección sigue en `draft` hasta que bruno la cambie y la auditoría de coco lo confirme (F-L1, MK-L1).
 - **Logo:** `Brand.logo` es la única imagen suelta de los bloques (hallazgo B-L3): `width`/`height` obligatorios (C4), `alt = brand.name` y sin texto repetido junto a él.
 
 ## Anatomía común
@@ -35,14 +35,14 @@ interface GbFooterProps {
 {footer|div} [data-gb]
 ├─ div · marca y contacto           ← PRIMERO en el DOM
 │  ├─ GBtn variant="link" (brand.href) › logo o nombre
-│  └─ address
+│  └─ GText as="address" size="body-sm"
 │     ├─ líneas de `address`
 │     ├─ GStack as="ul" › GBtn variant="link" por canal (tel:, mailto:, https://wa.me/…)
 │     └─ hours
 ├─ nav [aria-label=labels.nav] › una GSection por grupo (title) › GStack as="ul" gap="sm" › GBtn variant="link"
 ├─ GDivider decorative
 └─ GStack orientation="horizontal" gap="md" (fila final)
-   ├─ p · note
+   ├─ GText size="caption" tone="muted" · note
    ├─ nav [aria-label=labels.legal] › GStack as="ul" orientation="horizontal" gap="sm" › GBtn variant="link"
    └─ GStack as="ul" orientation="horizontal" gap="sm" [aria-label=labels.social] › li › GBtn variant="link" (externos: marca y labels.external)
 ```
