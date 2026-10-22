@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "name": "GText",
+  "tag": "g-text",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Texto suelto con la tipografía del tema (rol y color) y una pausa por tamaño entre sus bloques nativos, sin aire hacia fuera: la cita y su pie, la garantía bajo una llamada a la acción, el legal de un boletín. Sin contenido no se pinta.",
+  "contract": "design/contracts/text.md",
+  "prototype": "design/lab/text/r01/",
+  "style": "packages/vue/src/components/GText/GText.css",
+  "decisions": ["#851", "#852", "#853", "#854", "#855", "#856"],
+  "props": [
+    {
+      "name": "as",
+      "type": "String",
+      "default": "p",
+      "values": ["p", "div", "span", "small", "blockquote", "figure", "figcaption", "address"],
+      "description": "Etiqueta de la raíz (lista cerrada; sin encabezados, listas ni controles). Fuera de lista: aviso 1 y se pinta p. p, span o small con bloques dentro es HTML no válido: usar div."
+    },
+    {
+      "name": "size",
+      "type": "String",
+      "default": "body",
+      "values": ["body", "body-sm", "caption"],
+      "description": "Rol tipográfico del tema (--g-text-{rol}-size, -line, -tracking) y pausa entre bloques: space × 3 · 2,5 · 2. Fuera de lista: aviso 1 y body."
+    },
+    {
+      "name": "tone",
+      "type": "String",
+      "default": "default",
+      "values": ["default", "muted"],
+      "description": "default = --g-color-text, muted = --g-color-text-muted, siempre explícitos. Fuera de lista: aviso 1 y default."
+    }
+  ],
+  "events": [],
+  "slots": [
+    {
+      "name": "default",
+      "purpose": "Texto, fraseo y bloques nativos (p, ul, ol, dl, blockquote, figure, figcaption, address, pre, div). Sin contenido, el componente no deja elemento."
+    }
+  ],
+  "methods": [],
+  "classes": {
+    "root": "g-text g-text--size-{body|body-sm|caption} g-text--tone-{default|muted}",
+    "state": []
+  },
+  "tokens": [
+    "--g-font-ui",
+    "--g-text-body-size",
+    "--g-text-body-line",
+    "--g-text-body-tracking",
+    "--g-text-body-sm-size",
+    "--g-text-body-sm-line",
+    "--g-text-body-sm-tracking",
+    "--g-text-caption-size",
+    "--g-text-caption-line",
+    "--g-text-caption-tracking",
+    "--g-text-body-weight",
+    "--g-color-text",
+    "--g-color-text-muted",
+    "--g-space-1"
+  ],
+  "states": ["default"],
+  "bundle": {
+    "measured": "2026-10-22: grana.js 222 542 → 222 898 B gzip (+356 B, tope 512 B)",
+    "main": "tope +512 B gzip en grana.js (#853); base 222 542 B"
+  },
+  "pending": [
+    "Auditoría de coco sobre el componente y los seis bloques (status draft hasta entonces)",
+    "Adopción en los seis bloques de @grana/blocks (encargo siguiente, _comun.md §11 B-L5)"
+  ]
+}

@@ -37,7 +37,7 @@ export async function ssr(Comp, { props = {}, slots = {}, icons = [] } = {}) {
 }
 
 /** Expresión de utilidades de _comun.md §9 (#807), sobre clases y sobre el código de un .vue. */
-export const UTILITY = /\bg-(m|p)[tbsexy]?-[0-9]|\bg-(text|font|gap|flex|grid|block|hidden|w-|h-|items|justify|self|grow|shrink|truncate|radius|sr-only)\b/
+export const UTILITY = /\bg-(m|p)[tbsexy]?-[0-9]|\bg-(font|gap|flex|grid|block|hidden|w-|h-|items|justify|self|grow|shrink|truncate|radius|sr-only)\b|\bg-text-[a-z]/
 
 /** Un <a> solo lo pintan GBtn, GCard (enlace de la tarjeta) o GTag. */
 export const ownAnchor = (a) => a.classList.contains('g-btn') || a.classList.contains('g-card__primary') || [...a.classList].some((c) => c.startsWith('g-tag'))

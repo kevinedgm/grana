@@ -2042,6 +2042,25 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
             </g-section>
           </div>
         </section>
+        <section class="pg-section" id="sec-text" data-pg-section>
+          <h2>GText</h2>
+          <p class="pg-lead">Texto suelto con la tipografía del tema: tres tamaños (<code>body</code>, <code>body-sm</code>, <code>caption</code>) y dos tonos, sin aire hacia fuera y con una pausa por tamaño entre sus bloques. Sin contenido no se pinta. El aire entre piezas es de <code>GStack</code>.</p>
+          <div class="pg-panel" id="txt-demo">
+            <g-stack gap="sm" id="txt-stack">
+              <g-text id="txt-a">Primer texto, body por defecto.</g-text>
+              <g-text id="txt-b" size="body-sm" tone="muted">Segundo, body-sm apagado.</g-text>
+              <g-text id="txt-empty"></g-text>
+              <g-text id="txt-c" size="caption">Tercero, caption.</g-text>
+            </g-stack>
+            <h3>Una opinión: figura, cita y pie anidados</h3>
+            <g-text as="figure" size="body-sm" id="txt-fig">
+              <g-text as="blockquote" size="body-sm" lang="en" id="txt-quote"><p>First paragraph of the quote.</p><p>Second paragraph.</p></g-text>
+              <g-text as="figcaption" size="body-sm" tone="muted" id="txt-cap"><span>Ana</span> — <cite>Google</cite></g-text>
+            </g-text>
+            <h3>Bloques de un texto largo</h3>
+            <g-text as="div" id="txt-div"><p>Primer párrafo.</p><p>Segundo párrafo.</p><ul><li>Uno</li><li>Dos</li></ul></g-text>
+          </div>
+        </section>
         <section class="pg-section" id="sec-marketing" data-pg-section>
           <h2>Marketing: GHero, GGallery y GBookingBar</h2>
           <p class="pg-lead">Las primitivas de un sitio (hotel, restaurante, tour) van en entradas propias (<code>@grana/vue/hero</code>, <code>@grana/vue/gallery</code> y <code>@grana/vue/booking</code>; aquí <code>dist/hero.umd.js</code>, <code>dist/gallery.umd.js</code> y <code>dist/booking.umd.js</code>, globales <code>GranaHero</code>, <code>GranaGallery</code> y <code>GranaBooking</code>). Cada una tiene su banco con el componente real: <a href="hero.html">hero.html</a> (A · La ventana, <a href="hero.html?c=views">B · Vistas a elegir</a>, <a href="hero.html?c=threshold">C · El umbral</a> con la consulta, <a href="hero.html?video=1">con vídeo</a>), <a href="gallery.html">gallery.html</a> (A · Recorrido por espacios, <a href="gallery.html?c=strip">B · La tira</a>, <a href="gallery.html?solo=1">visor suelto</a>) y <a href="booking.html">booking.html</a> (A · La frase, <a href="booking.html?a=bar">la barra</a>, <a href="booking.html?dock=1">B · El muelle</a>, <a href="booking.html?kind=table&amp;quick=7">mesa con días rápidos</a>, <a href="booking.html?kind=tour">recorrido</a>, <a href="booking.html?party=1">GPartyField suelto</a>).</p>

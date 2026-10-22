@@ -147,6 +147,9 @@ must_not_have app-shell.js "new WeakMap" "El registro de bordes (utils/edgeReser
 must_have grana.css "g-container__body" "$CSS_MSG"
 must_have grana.css "g-container--width-reading" "$CSS_MSG"
 
+# GText (principal, #851; incremento de grana.js <= 512 B gzip, #853 (base 222 542 B antes de GText); la compuerta no mide peso, solo presencia)
+must_have grana.css "g-text--size-body-sm" "$CSS_MSG"
+
 # Marketing (#742): tres entradas propias con tope (hero 4 KiB, gallery 12 KiB, booking 14 KiB gzip); el CSS en grana.css
 must_have grana.css "g-hero__media" "$CSS_MSG"
 must_have grana.css "g-hero__frame" "$CSS_MSG"
