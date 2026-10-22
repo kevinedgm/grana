@@ -27,7 +27,7 @@ createApp(App).use(Grana).use(Price).mount('#app')   // registra <g-price> y <g-
 
 Sin empaquetador, carga `vue.global.js`, `dist/grana.umd.js` y `dist/price.umd.js` (global `GranaPrice`): `app.use(Grana).use(GranaPrice)`. En plantillas dentro del HTML (sin compilar), escribe las etiquetas con cierre: `<g-price ...></g-price>`.
 
-**Peso.** Tope de la entrada: 6 KiB gzip (6 144 B). `GPrice.meta.json` anota **5 819 B** (`dist/price.js`, `gzip -9`, medido por bruno). Al documentar, el `dist/price.js` del árbol dio **5 963 B** con `gzip -9` y 5 972 B con `gzip` por defecto: las dos bajo el tope, con 172 B de margen. La diferencia con la cifra anotada es del `dist/` de este árbol, que no se reconstruyó al documentar; si el margen importa, vuelve a medirlo tras `npm run build`. El lote que sí viaja en el paquete principal (los datos de moneda con la tabla de símbolos, `GNumberField currency` y `GDatePicker dayDescription`) creció **1 314 B** gzip (tope 1 536 B), según el `meta.json`. `dist/grana.js` no contiene `GPriceScope` ni `formatPrice`.
+**Peso.** Tope de la entrada: 6 KiB gzip (6 144 B). `GPrice.meta.json` anota **5 963 B** (`dist/price.js`, `gzip -9`, medido por bruno): margen de **181 B** sobre el tope. El lote que sí viaja en el paquete principal (los datos de moneda con la tabla de símbolos, `GNumberField currency` y `GDatePicker dayDescription`) creció **1 314 B** gzip (tope 1 536 B), según el `meta.json`. `dist/grana.js` no contiene `GPriceScope` ni `formatPrice`.
 
 ## Qué lo hace distinto
 
