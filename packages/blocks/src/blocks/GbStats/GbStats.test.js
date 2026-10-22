@@ -1,4 +1,5 @@
 // GbStats (dueño: bruno): stats.md «Verificación propia» + la batería común de _comun.md §8.
+import { GText as GTextB5 } from '@grana/vue'
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { GMetric } from '@grana/vue'
 import meta from './GbStats.meta.json'
@@ -109,5 +110,21 @@ describe('GbStats · avisos', () => {
     const second = run(GbStats02, {}, { attachTo: other })
     expect(own(second.warnings, '02', 'S2')).toHaveLength(1)
     first.w.unmount(); second.w.unmount()
+  })
+})
+
+describe('GbStats · texto suelto con GText (B-L5, #856)', () => {
+  it('03: los párrafos de description van dentro de una GText div; el slot description también', () => {
+    const { w } = mountBlock(GbStats03, { props: bank.props, slots: bank.slots })
+    const t = w.findAllComponents(GTextB5)
+    expect(t).toHaveLength(1)
+    expect(t[0].element.tagName).toBe('DIV')
+    expect(t[0].classes()).toEqual(expect.arrayContaining(['g-text', 'g-text--size-body', 'g-text--tone-default']))
+    expect(t[0].findAll('p').length).toBeGreaterThan(0)
+    const s = mountBlock(GbStats03, { props: bank.props, slots: { description: () => 'RICO' } })
+    expect(s.w.findComponent(GTextB5).text()).toBe('RICO')
+  })
+  it('01 y 02 no llevan GText (la descripción es de GSection)', () => {
+    for (const C of [GbStats01, GbStats02]) expect(mountBlock(C, { props: bank.props, slots: bank.slots }).w.findAllComponents(GTextB5)).toHaveLength(0)
   })
 })

@@ -4,7 +4,7 @@
 // (useSectionLevel, _comun.md §1 regla 6), `description`, acciones (solid + outline) en `actions` y `assurance` en
 // `footer`, ligada a la principal. Sin `media`, tarjeta sin foto.
 import { computed } from 'vue'
-import { GCard, useSectionLevel } from '@grana/vue'
+import { GCard, GText, useSectionLevel } from '@grana/vue'
 import GbActions from '../common/GbActions.js'
 import { checkMedia, imgAttrs } from '../common/media.js'
 import { has } from '../common/text.js'
@@ -35,6 +35,6 @@ const media = computed(() => {
         <GbActions :actions="actions" :variants="['solid', 'outline']" :external="labels.external" :describedby="assuranceId" :warn="warn" @navigate="emit('navigate', $event)" @activate="emit('activate', $event)" />
       </slot>
     </template>
-    <template v-if="assuranceId" #footer><p :id="assuranceId">{{ assurance }}</p></template>
+    <template v-if="assuranceId" #footer><GText :id="assuranceId" size="caption" tone="muted">{{ assurance }}</GText></template>
   </GCard>
 </template>

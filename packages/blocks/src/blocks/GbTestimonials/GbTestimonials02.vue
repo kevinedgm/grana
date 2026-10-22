@@ -26,7 +26,7 @@ const rest = computed(() => rows.value.slice(1))
     <GStack gap="lg">
       <GCard as="div" role="group" orientation="auto" media-position="start" :aria-labelledby="`${uid}-${lead.index}-author`">
         <template #media><GAvatar size="xl" :name="lead.item.author.name" :src="lead.item.author.avatar" /></template>
-        <TestimonialFigure :row="lead" :name-id="`${uid}-${lead.index}-author`" :labels="labels" :quote="$slots.quote" :warn="warn" @navigate="emit('navigate', $event)" />
+        <TestimonialFigure :row="lead" card :name-id="`${uid}-${lead.index}-author`" :labels="labels" :quote="$slots.quote" :warn="warn" @navigate="emit('navigate', $event)" />
       </GCard>
       <GStack v-if="rest.length" as="ul" divided>
         <li v-for="r in rest" :key="r.key">

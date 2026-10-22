@@ -153,7 +153,7 @@
   "root": "La de GHero (section con nombre por el h1), con data-gb=\"hero-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/marketing",
-    "measured": 17187,
+    "measured": 17446,
     "cap": 18432,
     "peers": [
       "vue",

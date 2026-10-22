@@ -1,4 +1,5 @@
 // GbNewsletter (dueño: bruno): newsletter.md «Verificación propia» + la batería común de _comun.md §8.
+import { GText as GTextB5 } from '@grana/vue'
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { h, nextTick } from 'vue'
 import { flushPromises } from '@vue/test-utils'
@@ -247,5 +248,24 @@ describe('GbNewsletter · avisos (una vez por instancia y motivo)', () => {
       expect(w.find('a[href^="javascript"]').exists()).toBe(false)
       expect(w.find('form p button[disabled]').text()).toBe('Aviso')
     }
+  })
+})
+
+
+describe('GbNewsletter · legal con GText (B-L5, #856)', () => {
+  it('legal es una GText caption muted, hija del formulario; el slot legal queda dentro', () => {
+    for (const [n, C] of ALL) {
+      const { w } = run(C)
+      const t = w.findAllComponents(GTextB5)
+      expect(t, n).toHaveLength(1)
+      expect(t[0].element.tagName).toBe('P')
+      expect(t[0].classes()).toEqual(expect.arrayContaining(['g-text--size-caption', 'g-text--tone-muted']))
+      expect(t[0].element.parentElement.tagName).toBe('FORM')
+      const s = mountBlock(C, { props: bank.props, icons: bank.appIcons, slots: { legal: () => 'LEGAL' } })
+      expect(s.w.findComponent(GTextB5).text()).toBe('LEGAL')
+    }
+  })
+  it('sin legal ni slot no hay GText', () => {
+    for (const [, C] of ALL) expect(run(C, { legal: undefined }).w.findAllComponents(GTextB5)).toHaveLength(0)
   })
 })

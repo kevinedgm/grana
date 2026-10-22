@@ -2,7 +2,7 @@
 // El contacto del pie, en un `address` real (dueño: bruno; footer.md «Anatomía común», #826). Interno: no se exporta. Sin
 // CSS. Líneas de la dirección, los canales como enlaces que el teléfono abre (tel:, mailto:, https://wa.me/…; sin navigate)
 // y el horario. `inline`: los canales en una fila (02).
-import { GStack } from '@grana/vue'
+import { GStack, GText } from '@grana/vue'
 import GbLink from '../common/link.js'
 
 defineOptions({ name: 'GbFooterContact' })
@@ -16,7 +16,7 @@ const emit = defineEmits(['navigate'])
 </script>
 
 <template>
-  <address v-if="data.any">
+  <GText v-if="data.any" as="address" size="body-sm">
     <p v-if="data.lines.length"><template v-for="(line, i) in data.lines" :key="i"><br v-if="i">{{ line }}</template></p>
     <GStack v-if="data.channels.length" as="ul" :orientation="inline ? 'horizontal' : 'vertical'" gap="sm">
       <li v-for="c in data.channels" :key="c.key">
@@ -24,5 +24,5 @@ const emit = defineEmits(['navigate'])
       </li>
     </GStack>
     <p v-if="data.hours">{{ data.hours }}</p>
-  </address>
+  </GText>
 </template>

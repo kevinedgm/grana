@@ -153,7 +153,7 @@
   "root": "GStack (as footer o div) con data-gb=\"footer-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/marketing",
-    "measured": 17187,
+    "measured": 17446,
     "cap": 18432,
     "peers": [
       "vue",

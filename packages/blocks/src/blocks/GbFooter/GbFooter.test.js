@@ -1,4 +1,5 @@
 // GbFooter (dueño: bruno): footer.md «Verificación propia» + la batería común de _comun.md §8.
+import { GText as GTextB5 } from '@grana/vue'
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { h } from 'vue'
 import { GSection } from '@grana/vue'
@@ -210,6 +211,34 @@ describe('GbFooter · avisos (una vez por instancia y motivo)', () => {
     for (const [n, C] of ALL) {
       const { warnings } = run(C, { contact: { channels: [{ label: 'Tel', href: 'tel:+52 951 555 0000' }] } })
       expect(own(warnings, n, 'O3')).toHaveLength(1)
+    }
+  })
+})
+
+const kind = (t) => [t.element.tagName.toLowerCase(), (t.classes().find((c) => c.startsWith('g-text--size-')) || '').slice(13), (t.classes().find((c) => c.startsWith('g-text--tone-')) || '').slice(13)].join(' ')
+
+describe('GbFooter · texto suelto con GText (B-L5, #856)', () => {
+  it('el contacto es una GText address body-sm (también en 02) y note una GText caption muted', () => {
+    for (const [n, C] of ALL) {
+      const { w } = run(C)
+      const ks = w.findAllComponents(GTextB5).map(kind)
+      expect(ks.filter((k) => k.startsWith('address ')), n).toEqual(['address body-sm default'])
+      expect(ks, n).toContain('p caption muted')
+      expect(w.find('address').classes()).toContain('g-text')
+    }
+  })
+  it('la marca sin href es una GText con los valores por defecto; con href no', () => {
+    for (const [n, C] of ALL) {
+      const a = run(C, { brand: { ...bank.props.brand, href: undefined } })
+      expect(a.w.findAllComponents(GTextB5).map(kind), n).toContain('p body default')
+      const b = run(C)
+      expect(b.w.findAllComponents(GTextB5).map(kind).filter((k) => k === 'p body default')).toHaveLength(0)
+    }
+  })
+  it('slot note dentro de la GText', () => {
+    for (const [, C] of ALL) {
+      const { w } = mountBlock(C, { props: bank.props, icons: bank.appIcons, slots: { ...bank.slots, note: () => 'NOTA' } })
+      expect(w.findAllComponents(GTextB5).some((t) => t.text() === 'NOTA')).toBe(true)
     }
   })
 })

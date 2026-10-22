@@ -131,7 +131,7 @@
   "root": "GSurface (01), GCard (02) o GStack (03) con data-gb=\"cta-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/marketing",
-    "measured": 17187,
+    "measured": 17446,
     "cap": 18432,
     "peers": [
       "vue",

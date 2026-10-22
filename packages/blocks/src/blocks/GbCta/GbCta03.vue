@@ -3,7 +3,7 @@
 // GStack gap="md" (raíz) › GDivider decorative + GSection (título, descripción; acciones solid + link en su slot
 // `actions`, nombrado con labels.actions —si falta, avisa GSection—) + p con `assurance` en el cuerpo, ligada a la
 // principal. `media` se ignora.
-import { GDivider, GSection, GStack } from '@grana/vue'
+import { GDivider, GSection, GStack, GText } from '@grana/vue'
 import GbActions from '../common/GbActions.js'
 import { useWarn } from '../common/warn.js'
 import { emits as sectionEmits, props as sectionProps } from './props.js'
@@ -26,7 +26,7 @@ const { actions, assuranceId } = useCta(props, warn)
           <GbActions :actions="actions" :variants="['solid', 'link']" :external="labels.external" :describedby="assuranceId" :warn="warn" @navigate="emit('navigate', $event)" @activate="emit('activate', $event)" />
         </slot>
       </template>
-      <p v-if="assuranceId" :id="assuranceId">{{ assurance }}</p>
+      <GText v-if="assuranceId" :id="assuranceId" size="body-sm" tone="muted">{{ assurance }}</GText>
     </GSection>
   </GStack>
 </template>

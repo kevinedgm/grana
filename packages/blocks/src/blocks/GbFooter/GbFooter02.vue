@@ -2,7 +2,7 @@
 // GbFooter02 · Una línea (dueño: bruno). Contrato: design/contracts/blocks/footer.md · Común: _comun.md · Sin CSS (#763).
 // GStack :as orientation="horizontal" gap="md" (una fila que se parte) › marca, canales (en su `address`: el contacto se
 // queda, #826), legales, redes y nota. Ignora `groups`, `contact.address` y `contact.hours`.
-import { GStack } from '@grana/vue'
+import { GStack, GText } from '@grana/vue'
 import { useWarn } from '../common/warn.js'
 import FooterBrand from './FooterBrand.vue'
 import FooterContact from './FooterContact.vue'
@@ -23,6 +23,6 @@ const fwd = (e) => emit('navigate', e)
     <slot name="brand"><FooterBrand :data="f.brand.value" :warn="warn" @navigate="fwd" /></slot>
     <FooterContact :data="f.contact.value" :external="f.external.value" inline :warn="warn" @navigate="fwd" />
     <FooterLegal :f="f" :warn="warn" @navigate="fwd" />
-    <p v-if="$slots.note || note"><slot name="note">{{ note }}</slot></p>
+    <GText v-if="$slots.note || note" size="caption" tone="muted"><slot name="note">{{ note }}</slot></GText>
   </GStack>
 </template>

@@ -148,7 +148,7 @@
   "root": "GSection (01), GCard as=\"section\" (02) o GSurface zone=\"brand\" (03) con data-gb=\"newsletter-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/marketing",
-    "measured": 17187,
+    "measured": 17446,
     "cap": 18432,
     "peers": [
       "vue",

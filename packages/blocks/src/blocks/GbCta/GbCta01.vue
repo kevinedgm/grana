@@ -3,7 +3,7 @@
 // GSurface zone="brand" padding="lg" (raíz) › GSection (título, descripción) › GStack horizontal gap="sm" (acciones:
 // solid + outline) + p con `assurance`, que describe la acción principal (aria-describedby). A sangre, la aplicación
 // pone `class="g-bleed"` en la raíz (llega por $attrs). `media` se ignora.
-import { GSection, GStack, GSurface } from '@grana/vue'
+import { GSection, GStack, GSurface, GText } from '@grana/vue'
 import GbActions from '../common/GbActions.js'
 import { useWarn } from '../common/warn.js'
 import { emits as sectionEmits, props as sectionProps } from './props.js'
@@ -25,7 +25,7 @@ const { actions, assuranceId } = useCta(props, warn)
           <GbActions :actions="actions" :variants="['solid', 'outline']" :external="labels.external" :describedby="assuranceId" :warn="warn" @navigate="emit('navigate', $event)" @activate="emit('activate', $event)" />
         </slot>
       </GStack>
-      <p v-if="assuranceId" :id="assuranceId">{{ assurance }}</p>
+      <GText v-if="assuranceId" :id="assuranceId" size="body-sm" tone="muted">{{ assurance }}</GText>
     </GSection>
   </GSurface>
 </template>

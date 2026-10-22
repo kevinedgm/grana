@@ -10,7 +10,7 @@
 // enfoca) y NO emite `submit`. `error` (servidor) entra por la misma vía y gana; `done` es el mensaje `valid` del campo.
 // `labels.form` ({ error, valid }) va tal cual a `labels` de GForm (#840).
 import { computed, nextTick, ref, watch } from 'vue'
-import { GBtn, GForm, GIcon, GInput } from '@grana/vue'
+import { GBtn, GForm, GIcon, GInput, GText } from '@grana/vue'
 import GbLink from '../common/link.js'
 import { has } from '../common/text.js'
 
@@ -114,8 +114,8 @@ async function onSubmit({ event }) {
         </GBtn>
       </template>
     </GInput>
-    <p v-if="$slots.legal || (legal && has(legal.text))">
+    <GText v-if="$slots.legal || (legal && has(legal.text))" size="caption" tone="muted">
       <slot name="legal">{{ legal.text }}<template v-if="legal.link && has(legal.link.label)">{{ ' ' }}<GbLink :link="legal.link" :external="labels.external" what="legal.link" :warn="warn" @navigate="emit('navigate', $event)" /></template></slot>
-    </p>
+    </GText>
   </GForm>
 </template>

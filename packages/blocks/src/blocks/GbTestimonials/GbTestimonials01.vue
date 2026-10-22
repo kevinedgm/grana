@@ -25,7 +25,7 @@ const rows = useTestimonials(props, warn)
       <div v-for="r in rows" :key="r.key" role="listitem" class="g-adapt-wide">
         <GCard as="div" role="group" :aria-labelledby="`${uid}-${r.index}-author`">
           <template #lead><GAvatar size="lg" :name="r.item.author.name" :src="r.item.author.avatar" /></template>
-          <TestimonialFigure :row="r" :name-id="`${uid}-${r.index}-author`" :labels="labels" :quote="$slots.quote" :warn="warn" @navigate="emit('navigate', $event)" />
+          <TestimonialFigure :row="r" card :name-id="`${uid}-${r.index}-author`" :labels="labels" :quote="$slots.quote" :warn="warn" @navigate="emit('navigate', $event)" />
         </GCard>
       </div>
     </GAdaptiveLayout>

@@ -1,9 +1,9 @@
 <script setup>
 // GbStats03 · Junto a un párrafo (dueño: bruno). Contrato: design/contracts/blocks/stats.md · Común: _comun.md · Sin CSS.
-// GSection (sin descripción) › GAdaptiveLayout › [div g-adapt-wide › GContainer width="reading" › párrafos de
+// GSection (sin descripción) › GAdaptiveLayout › [div g-adapt-wide › GContainer width="reading" › GText as="div" › párrafos de
 // `description`] + [GAdaptiveLayout role="list" con las cifras de 01]. Sin `description` ni slot, se pinta como 01.
 import { computed, useSlots } from 'vue'
-import { GAdaptiveLayout, GContainer, GMetric, GSection } from '@grana/vue'
+import { GAdaptiveLayout, GContainer, GMetric, GSection, GText } from '@grana/vue'
 import { paragraphs } from '../common/text.js'
 import { useWarn } from '../common/warn.js'
 import { emits as sectionEmits, props as sectionProps } from './props.js'
@@ -23,7 +23,7 @@ const beside = computed(() => Boolean(slots.description) || paras.value.length >
     <GAdaptiveLayout v-if="beside">
       <div class="g-adapt-wide">
         <GContainer width="reading">
-          <slot name="description"><p v-for="(p, i) in paras" :key="i">{{ p }}</p></slot>
+          <GText as="div"><slot name="description"><p v-for="(p, i) in paras" :key="i">{{ p }}</p></slot></GText>
         </GContainer>
       </div>
       <GAdaptiveLayout role="list">

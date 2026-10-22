@@ -3,7 +3,7 @@
 // no se exporta. Sin CSS. GAdaptiveLayout gap="lg" › [marca y contacto, PRIMERO (g-adapt-wide)] + [un solo nav con nombre ›
 // GAdaptiveLayout de grupos (g-adapt-standard) › GSection por grupo (nivel automático) › GStack as="ul" gap="sm" › GBtn
 // link] + GDivider decorativo + fila final GStack horizontal gap="md" (nota, legales, redes).
-import { GAdaptiveLayout, GDivider, GSection, GStack } from '@grana/vue'
+import { GAdaptiveLayout, GDivider, GSection, GStack, GText } from '@grana/vue'
 import GbLink from '../common/link.js'
 import FooterBrand from './FooterBrand.vue'
 import FooterContact from './FooterContact.vue'
@@ -41,7 +41,7 @@ const fwd = (e) => emit('navigate', e)
   </GAdaptiveLayout>
   <GDivider decorative />
   <GStack orientation="horizontal" gap="md">
-    <p v-if="$slots.note || note"><slot name="note">{{ note }}</slot></p>
+    <GText v-if="$slots.note || note" size="caption" tone="muted"><slot name="note">{{ note }}</slot></GText>
     <FooterLegal :f="f" :warn="warn" @navigate="fwd" />
   </GStack>
 </template>

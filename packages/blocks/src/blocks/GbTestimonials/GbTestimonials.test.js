@@ -1,4 +1,5 @@
 // GbTestimonials (dueño: bruno): testimonials.md «Verificación propia» + la batería común de _comun.md §8.
+import { GText as GTextB5 } from '@grana/vue'
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { h } from 'vue'
 import { GAccordionItem, GAvatar, GCard, GSection } from '@grana/vue'
@@ -203,5 +204,40 @@ describe('GbTestimonials · avisos (una vez por instancia y motivo)', () => {
       expect(w.find('blockquote').text()).toBe(long)
       expect(own(warnings, n, 'T2')).toHaveLength(1)
     }
+  })
+})
+
+const kind = (t) => [t.element.tagName.toLowerCase(), (t.classes().find((c) => c.startsWith('g-text--size-')) || '').slice(13), (t.classes().find((c) => c.startsWith('g-text--tone-')) || '').slice(13)].join(' ')
+
+describe('GbTestimonials · texto suelto con GText (B-L5, #856)', () => {
+  it('figure, blockquote y figcaption son GText; en tarjeta (01, destacada de 02) body-sm, en lista y panel body; figcaption body-sm muted', () => {
+    const cases = [
+      [GbTestimonials01, 'body-sm', 'default', ITEMS.length],
+      [GbTestimonials02, null, null, ITEMS.length],
+      [GbTestimonials03, 'body', 'default', ITEMS.length]
+    ]
+    for (const [C, size, , n] of cases) {
+      const { w } = run(C)
+      const ks = w.findAllComponents(GTextB5).map(kind)
+      expect(ks.filter((k) => k.startsWith('figure ')), String(C.name)).toHaveLength(n)
+      expect(ks.filter((k) => k.startsWith('blockquote '))).toHaveLength(n)
+      expect(ks.filter((k) => k === 'figcaption body-sm muted')).toHaveLength(n)
+      if (size) {
+        expect(ks.filter((k) => k.startsWith('figure '))).toEqual(Array(n).fill(`figure ${size} default`))
+        expect(ks.filter((k) => k.startsWith('blockquote '))).toEqual(Array(n).fill(`blockquote ${size} default`))
+      }
+    }
+  })
+  it('02: la destacada en body-sm y las demás en body', () => {
+    const ks = run(GbTestimonials02).w.findAllComponents(GTextB5).map(kind).filter((k) => k.startsWith('figure '))
+    expect(ks).toEqual(['figure body-sm default', ...Array(N - 1).fill('figure body default')])
+  })
+  it('lang y cite van a la raíz del blockquote y el slot quote queda dentro de la GText', () => {
+    const { w } = run(GbTestimonials03)
+    const bq = w.findAll('blockquote')[0]
+    expect(bq.classes()).toContain('g-text')
+    expect(bq.attributes('cite')).toBe('#opiniones-google')
+    const r = mountBlock(GbTestimonials03, { props: bank.props, slots: { quote: ({ item }) => h('p', null, `RICO ${item.author.name}`) } })
+    expect(r.w.findAll('blockquote')[1].classes()).toContain('g-text')
   })
 })

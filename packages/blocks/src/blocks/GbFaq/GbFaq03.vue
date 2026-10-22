@@ -8,7 +8,7 @@
 //   vacío. Es la única voz: el bloque no tiene región propia (#792).
 // - El `clear` de GEmpty vacía el campo y le devuelve el foco. Sin envío: el campo no está en un form.
 import { computed, onBeforeUnmount, ref, useId, watch } from 'vue'
-import { GAccordion, GAccordionItem, GEmpty, GInput, GSection, useSectionLevel } from '@grana/vue'
+import { GAccordion, GAccordionItem, GEmpty, GInput, GSection, GText, useSectionLevel } from '@grana/vue'
 import { has } from '../common/text.js'
 import { useWarn } from '../common/warn.js'
 import { SEARCH_MS, emits as sectionEmits, props as sectionProps } from './props.js'
@@ -69,7 +69,7 @@ function clear() {
     <GInput :id="inputId" v-model="query" type="search" :label="searchLabel" :output="said" autocomplete="off" />
     <GAccordion v-if="shown.length" :heading-level="inner">
       <GAccordionItem v-for="r in shown" :id="r.anchor" :key="r.key" :value="r.key" :title="r.item.question" :peek="r.peek">
-        <slot name="answer" :item="r.item"><p v-for="(p, i) in r.paras" :key="i">{{ p }}</p></slot>
+        <GText as="div"><slot name="answer" :item="r.item"><p v-for="(p, i) in r.paras" :key="i">{{ p }}</p></slot></GText>
       </GAccordionItem>
     </GAccordion>
     <GEmpty v-else cause="filtered" :title="noneTitle" :filters="[{ key: 'search', label: query.trim() }]" :labels="{ clear: labels.clear }" @clear="clear" />

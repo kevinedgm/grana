@@ -1,4 +1,5 @@
 // GbFaq (dueño: bruno): faq.md «Verificación propia» + la batería común de _comun.md §8.
+import { GText as GTextB5 } from '@grana/vue'
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { h, nextTick } from 'vue'
 import { GAccordion, GAccordionItem, GEmpty, GInput, GSection } from '@grana/vue'
@@ -195,6 +196,24 @@ describe('GbFaq · avisos', () => {
       expect(own(warnings, n, 'Q2')).toHaveLength(1)
       expect(w.find('[id="con espacio"]').exists()).toBe(false)
       expect(w.text()).toContain('Tres')
+    }
+  })
+})
+
+
+describe('GbFaq · respuestas con GText (B-L5, #856)', () => {
+  it('cada respuesta va en una GText div (body); el slot answer queda dentro; el peek no lleva GText', () => {
+    for (const [n, C] of Object.entries(ALL)) {
+      const { w } = run(C)
+      const t = w.findAllComponents(GTextB5)
+      expect(t, n).toHaveLength(N)
+      for (const x of t) {
+        expect(x.element.tagName).toBe('DIV')
+        expect(x.classes()).toEqual(expect.arrayContaining(['g-text--size-body', 'g-text--tone-default']))
+        expect(x.findAll('p').length).toBeGreaterThan(0)
+      }
+      const r = mountBlock(C, { props: bank.props, slots: { answer: ({ item }) => h('p', null, `RICO ${item.id}`) } })
+      expect(r.w.findAllComponents(GTextB5)[0].text()).toContain('RICO')
     }
   })
 })

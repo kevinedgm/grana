@@ -1,4 +1,5 @@
 // GbCta (dueño: bruno): cta.md «Verificación propia» + la batería común de _comun.md §8.
+import { GText as GTextB5 } from '@grana/vue'
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { h } from 'vue'
 import { GBtn, GCard, GDivider, GSection } from '@grana/vue'
@@ -165,5 +166,23 @@ describe('GbCta · avisos', () => {
     const cta = run(GbCta01, {}, { attachTo: at() })
     expect(own(cta.warnings, '01', 'A2')).toHaveLength(1)
     stats.w.unmount(); cta.w.unmount()
+  })
+})
+
+
+describe('GbCta · assurance con GText (B-L5, #856)', () => {
+  it('assurance es una GText con su id: body-sm muted en 01 y 03, caption muted en 02', () => {
+    const SIZE = { '01': 'body-sm', '02': 'caption', '03': 'body-sm' }
+    for (const [n, C] of Object.entries(ALL)) {
+      const { w } = run(C)
+      const t = w.findAllComponents(GTextB5).filter((x) => x.attributes('id'))
+      expect(t, n).toHaveLength(1)
+      expect(t[0].classes()).toEqual(expect.arrayContaining([`g-text--size-${SIZE[n]}`, 'g-text--tone-muted']))
+      expect(t[0].text()).toBe(bank.props.assurance)
+      expect(w.find('.g-btn').attributes('aria-describedby')).toBe(t[0].attributes('id'))
+    }
+  })
+  it('sin assurance no hay GText', () => {
+    for (const C of Object.values(ALL)) expect(run(C, { assurance: undefined }).w.findAllComponents(GTextB5)).toHaveLength(0)
   })
 })
