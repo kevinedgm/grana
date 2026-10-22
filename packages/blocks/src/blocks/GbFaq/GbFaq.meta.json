@@ -3,7 +3,7 @@
   "name": "GbFaq",
   "kind": "block-section",
   "family": "marketing",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.0.0",
   "description": "Las preguntas que el viajero haría por WhatsApp, contestadas en la página: plegadas con su primera línea a la vista, todas abiertas o con un buscador, y cada respuesta con su propio enlace (#id).",
   "contract": "design/contracts/blocks/faq.md",

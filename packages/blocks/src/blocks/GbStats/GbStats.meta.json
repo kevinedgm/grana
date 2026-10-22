@@ -3,7 +3,7 @@
   "name": "GbStats",
   "kind": "block-section",
   "family": "marketing",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.0.0",
   "description": "Dos a seis cifras que sostienen la promesa del sitio, quietas, legibles al primer pintado y con su origen a la vista. Ninguna cuenta hacia arriba.",
   "contract": "design/contracts/blocks/stats.md",

@@ -3,7 +3,7 @@
   "name": "GbNewsletter",
   "kind": "block-section",
   "family": "marketing",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.0.0",
   "description": "Suscripción con un solo campo, el correo, con el botón acoplado y lo que va a recibir la persona dicho antes de pedírselo (la promesa es la descripción del campo). El bloque valida con el navegador, lo enseña con GForm y emite el correo; la aplicación suscribe.",
   "contract": "design/contracts/blocks/newsletter.md",

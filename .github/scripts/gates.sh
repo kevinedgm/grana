@@ -147,8 +147,16 @@ must_not_have app-shell.js "new WeakMap" "El registro de bordes (utils/edgeReser
 must_have grana.css "g-container__body" "$CSS_MSG"
 must_have grana.css "g-container--width-reading" "$CSS_MSG"
 
-# GText (principal, #851; incremento de grana.js <= 512 B gzip, #853 (base 222 542 B antes de GText); la compuerta no mide peso, solo presencia)
+# GText (principal, #851; incremento de grana.js <= 512 B gzip, #853 (base 222 542 B antes de GText); la presencia va por must_have y el peso por la línea de abajo)
 must_have grana.css "g-text--size-body-sm" "$CSS_MSG"
+# Peso de GText (#853, TX-A1): grana.js en gzip por defecto (gzip -c) <= 222 542 + 512 = 223 054 B; medido 222 898 B (+356 B)
+total=$((total + 1))
+text_gz=$(gzip -c "$DIST/grana.js" 2>/dev/null | wc -c | tr -d ' ')
+if [ -z "$text_gz" ] || [ "$text_gz" -gt 223054 ]; then
+  fail "gzip -c grana.js <= 223054 B (peso de GText, #853)" "grana.js pesa ${text_gz:-?} B gzip (tope 223 054 B = base 222 542 + 512); si crece por otro componente, valorar según #506 antes de subir el tope"
+else
+  pass "gzip -c grana.js <= 223054 B (peso de GText, #853): ${text_gz} B"
+fi
 
 # Marketing (#742): tres entradas propias con tope (hero 4 KiB, gallery 12 KiB, booking 14 KiB gzip); el CSS en grana.css
 must_have grana.css "g-hero__media" "$CSS_MSG"

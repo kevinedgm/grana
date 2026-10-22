@@ -3,7 +3,7 @@
   "name": "GbCta",
   "kind": "block-section",
   "family": "marketing",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.0.0",
   "description": "La llamada a la acción de la página, una sola además del héroe: el título, una frase, la acción y lo que quita la duda antes de pulsarla (assurance, ligada al botón principal).",
   "contract": "design/contracts/blocks/cta.md",

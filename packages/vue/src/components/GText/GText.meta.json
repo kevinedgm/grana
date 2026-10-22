@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GText",
   "tag": "g-text",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Texto suelto con la tipografía del tema (rol y color) y una pausa por tamaño entre sus bloques nativos, sin aire hacia fuera: la cita y su pie, la garantía bajo una llamada a la acción, el legal de un boletín. Sin contenido no se pinta.",
   "contract": "design/contracts/text.md",

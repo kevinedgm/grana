@@ -3,7 +3,7 @@
   "name": "GbFooter",
   "kind": "block-section",
   "family": "marketing",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.0.0",
   "description": "El pie del sitio: cómo llegar y cómo escribir primero (un address real con los canales que el teléfono abre), luego los enlaces del sitio en un solo nav, los legales y las redes; en columnas, en una línea o con la suscripción. Suelto es un footer; dentro del slot footer de GAppShell, as=\"div\".",
   "contract": "design/contracts/blocks/footer.md",

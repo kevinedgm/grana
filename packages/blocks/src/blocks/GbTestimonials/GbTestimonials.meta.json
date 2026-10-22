@@ -3,7 +3,7 @@
   "name": "GbTestimonials",
   "kind": "block-section",
   "family": "marketing",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.0.0",
   "description": "Lo que dicen quienes ya estuvieron, entero, en su idioma y con su fuente: en tarjetas, con una voz destacada o en una lista que asoma. Sin carrusel y sin recortar la cita.",
   "contract": "design/contracts/blocks/testimonials.md",
