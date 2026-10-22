@@ -23,6 +23,12 @@
   color: var(--g-color-text-muted);
 }
 .g-metric__value {
+  /* Cifra y unidad en una fila que se parte: si la unidad no cabe, baja entera y empieza a ras de la cifra (con un margen
+     al inicio quedaba sangrada space × 1 en la segunda línea, medido en la auditoría de Marketing, MK-C2) */
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: var(--g-space-1);
   font-size: var(--_value);
   line-height: 1.1;
   font-weight: var(--g-text-title-weight);
@@ -31,17 +37,14 @@
   overflow-wrap: anywhere;
 }
 .g-metric__unit {
-  margin-inline-start: var(--g-space-1);
   font-size: var(--g-text-body-sm-size);
   font-weight: var(--g-text-body-weight);
   letter-spacing: 0;
   color: var(--g-color-text-muted);
-  /* La cifra pega con la unidad y su overflow-wrap: anywhere la partía por dentro («habita/ciones»). Caja en línea
-     atómica: entre la cifra y la unidad hay una oportunidad de salto, así que la unidad baja de línea entera; solo se
-     parte (break-word) si ella sola no cabe en la caja */
-  display: inline-block;
+  /* La cifra pega con la unidad y su overflow-wrap: anywhere la partía por dentro («habita/ciones»). Elemento propio de la
+     fila: baja de línea entero; solo se parte (break-word) si él solo no cabe en la caja */
+  min-inline-size: 0;
   max-inline-size: 100%;
-  vertical-align: baseline;
   overflow-wrap: break-word;
 }
 .g-metric__trend {
@@ -58,7 +61,14 @@
   inline-size: calc(var(--g-space-1) * 3.5);
   block-size: calc(var(--g-space-1) * 3.5);
 }
+/* context va en <small> (widget.md): sin tamaño propio el navegador lo dejaba en «smaller» (13,3 px fuera de la escala
+   del tema, y 10 px dentro de la tendencia, bajo el mínimo de 12; MK-C1). El tamaño es el de la escala, nunca el relativo */
+.g-metric__context {
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+}
 .g-metric__trend small {
+  font-size: var(--g-text-caption-size);
   font-weight: var(--g-text-body-weight);
   color: var(--g-color-text-subtle);
 }

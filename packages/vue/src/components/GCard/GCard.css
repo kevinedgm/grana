@@ -595,6 +595,20 @@
   margin-inline-end: var(--_bleed);
 }
 .g-card--layout-row.g-card--size-medium { --_media-w: calc(var(--g-space-1) * 28 * var(--_density)); }
+/* Con un GAvatar (hijo directo, #842; como lead, #295): el hueco adopta la caja del avatar. Sin fondo, proporción, recorte
+   ni sangrado: mide lo que el avatar, va al inicio del bloque (fila) o al inicio en línea (columna) y queda dentro del
+   relleno de la tarjeta, alineado con el cuerpo. Antes: retrato xl en una columna gris de 160 px a sangre (Testimonials 02,
+   MK-C4). Va después de las reglas de media lateral para ganarles a igual especificidad; el esqueleto de carga no cambia */
+.g-card:not(.is-loading, .g-card--media-background) .g-card__media:has(> .g-avatar) {
+  inline-size: auto;
+  aspect-ratio: auto;
+  align-self: flex-start;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  overflow: visible;
+}
 
 /* Fondo: detrás de todo el contenido, con velo y texto de color propio */
 .g-card.g-card--media-background {
