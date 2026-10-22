@@ -60,7 +60,10 @@
 
 /* ---------- Raíz ---------- */
 .g-page-header {
-  /* Relleno lateral: el zócalo sangra hasta el borde de la raíz y lo devuelve a las pestañas con --g-tabs-inset */
+  /* Relleno lateral: el zócalo sangra hasta el borde de la raíz y lo devuelve a las pestañas con --g-tabs-inset.
+     Inset en línea de CONTRATO (#715 a): space × 6 y, con is-narrow (raíz < space × 150), space × 4. Quien compone el
+     encabezado con otro cuerpo (GResourceList, una vista de la aplicación) alinea su contenido con el hN con estos mismos
+     factores; cambiarlos es decisión de lima */
   --_pad: calc(var(--g-space-1) * 6);
   --_gap: var(--g-space-4);
   /* Alto del zócalo: constante de CONTRATO (#629), con el borde incluido; la aplicación la suma en su scroll-padding */
@@ -257,6 +260,16 @@
   align-items: center;
   margin-inline-start: auto;
   padding-inline-start: var(--g-space-4);
+}
+/* Sin pestañas (#715 b): las acciones empiezan al principio del zócalo, bajo el hN y en su columna (Δ0 en el borde de
+   inicio); no flotan al final de una fila vacía. El título compacto (B) las empuja como empuja a las pestañas: la separación
+   crece con --_p (en reposo 0; en estrecho el título compacto no se pinta). Con pestañas, nada cambia */
+.g-page-header:not(.has-tabs) .g-page-header__actions-home {
+  margin-inline-start: 0;
+  padding-inline-start: calc(var(--g-space-4) * var(--_p));
+}
+.g-page-header.is-narrow:not(.has-tabs) .g-page-header__actions-home {
+  padding-inline-start: 0;
 }
 .g-page-header__actions {
   display: flex;

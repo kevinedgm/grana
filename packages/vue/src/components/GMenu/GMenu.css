@@ -176,6 +176,36 @@ a.g-menu__item:is(:visited, :hover, :active, :focus) { text-decoration: none; }
   text-decoration-color: var(--g-color-border-strong);
 }
 
+/* Motivo de no disponible (#718): segunda línea visible, último hijo del elemento, referida por aria-describedby. La
+   etiqueta sigue tachada; el motivo no se tacha y va en text-muted (≥ 4,5:1 sobre surface y sobre el resaltado
+   surface-sunken), también en un elemento peligroso. Empieza en la columna de la etiqueta (tras la marca o el icono) */
+.g-menu__item:has(> .g-menu__reason) {
+  flex-wrap: wrap;
+  row-gap: 0;
+  padding-block: calc(var(--g-space-1) * 1.5);
+}
+.g-menu__reason {
+  flex: 1 0 100%;
+  box-sizing: border-box;
+  min-inline-size: 0;
+  color: var(--g-color-text-muted);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-body-sm-weight);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-decoration: none;
+}
+.g-menu__item:has(> .g-menu__icon:not(:empty)) > .g-menu__reason {
+  padding-inline-start: calc(var(--_slot) + var(--g-space-3));
+}
+.g-menu__item:has(> .g-menu__mark) > .g-menu__reason {
+  padding-inline-start: calc(var(--_mark) + var(--g-space-3));
+}
+.g-menu__item:has(> .g-menu__mark):has(> .g-menu__icon:not(:empty)) > .g-menu__reason {
+  padding-inline-start: calc(var(--_mark) + var(--_slot) + var(--g-space-3) * 2);
+}
+
 /* Peligroso: triangle-alert de Lucide (GIcon) y negrita, además del color */
 .g-menu__item--danger { color: var(--g-color-danger-text); }
 .g-menu__item--danger .g-menu__label {
@@ -350,6 +380,110 @@ a.g-menu__item:is(:visited, :hover, :active, :focus) { text-decoration: none; }
 /* Callado: el texto se vuelve transparente y el alto no cambia */
 .g-menu__dest.is-empty > * { opacity: 0; }
 
+/* ---------- Buscar al escribir (#725; api.md «Buscar al escribir en todos los menús») ----------
+   Primera fila li.g-menu__find (aria-hidden): la pista desde que se abre y, al escribir, lo escrito (como ficha) y el
+   recuento. Pegada arriba mientras la lista desplaza y de alto constante (pista, búsqueda o «sin coincidencias» miden lo
+   mismo: nada salta bajo el puntero). La misma forma que la cabecera del panel de GFab, en la letra de la lista */
+.g-menu__list > .g-menu__find {
+  position: sticky;
+  inset-block-start: calc(var(--_pad) * -1);
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-1) var(--g-space-2);
+  box-sizing: border-box;
+  min-block-size: var(--_ctl);
+  margin: calc(var(--_pad) * -1) calc(var(--_pad) * -1) var(--_pad);
+  padding-block: var(--g-space-1);
+  padding-inline: calc(var(--_pad) + var(--g-space-3));
+  border-block-end: var(--g-border-width) solid var(--g-color-border);
+  background: var(--g-color-surface);
+  color: var(--g-color-text-muted);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  pointer-events: none;
+}
+.g-menu__find.is-empty-result {
+  color: var(--g-color-text);
+  font-weight: var(--g-text-action-weight);
+}
+.g-menu__find-query {
+  padding-inline: calc(var(--g-space-1) * 1.5);
+  border-radius: var(--g-radius-sm);
+  background: var(--g-color-surface-sunken);
+  color: var(--g-color-text);
+  font-weight: var(--g-text-action-weight);
+  overflow-wrap: anywhere;
+}
+.g-menu__find-count {
+  color: var(--g-color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+/* Lo que no coincide sale del árbol y del foco (hidden), también el grupo o el separador que se quedan sin visibles */
+.g-menu__list li[hidden],
+.g-menu__list .g-menu__item[hidden] {
+  display: none;
+}
+
+/* ---------- Confirmación en el sitio (#718; patrón de GFab, #662 y #677) ----------
+   La fila del elemento peligroso se parte en «Cancelar» (con el foco) | la confirmación, con la geometría de la fila:
+   mismo alto (--_ctl) y el ancho que tenía al armar (--_armed-w, px, lo escribe el .vue en el li armado y lo retira al
+   desarmar o confirmar): ni la lista ni la tabla de debajo se mueven. Sin movimiento propio (el par aparece en su sitio) */
+.g-menu__list li.is-armed {
+  --_armed-w: auto;
+  min-inline-size: var(--_armed-w);
+}
+.g-menu__confirm {
+  display: flex;
+  gap: var(--g-border-width);
+  inline-size: 100%;
+}
+.g-menu__confirm > :is(.g-menu__confirm-cancel, .g-menu__confirm-ok) {
+  position: relative;
+  /* Reparto por contenido (no a partes iguales): en la lista mínima (space × 50) «Cancelar | Dar de baja» cabe en una
+     línea y la fila no cambia de alto */
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-inline-size: 0;
+  min-block-size: var(--_ctl);
+  margin: 0;
+  padding-block: var(--g-space-1);
+  padding-inline: var(--g-space-2);
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  font: inherit;
+  font-weight: var(--g-text-action-weight);
+  text-align: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+/* Confirmar: sólido de peligro con contorno danger-text (§7.1, como GBtn solid y el par de GFab) */
+.g-menu__confirm > .g-menu__confirm-ok {
+  border-color: var(--g-color-danger-text);
+  background: var(--g-color-danger);
+  color: var(--g-color-on-danger);
+}
+.g-menu__confirm > .g-menu__confirm-cancel:focus {
+  background: var(--g-color-surface-sunken);
+}
+.g-menu__confirm > :is(.g-menu__confirm-cancel, .g-menu__confirm-ok):focus {
+  outline: 0;
+}
+.g-menu__confirm > :is(.g-menu__confirm-cancel, .g-menu__confirm-ok):focus-visible {
+  outline: var(--_ring) solid var(--g-color-focus);
+  outline-offset: calc(var(--_ring) * -1);
+}
+/* El activo es uno de los dos botones (con su propia superficie): la luz que viaja no se ve detrás de la junta */
+.g-menu__list:has(li.is-armed .g-menu__confirm :focus) > .g-menu__highlight {
+  opacity: 0;
+}
+
 /* ---------- Grupo y separador ---------- */
 .g-menu__group-title {
   display: block;
@@ -452,4 +586,14 @@ a.g-menu__item:is(:visited, :hover, :active, :focus) { text-decoration: none; }
   .g-menu__dest-host { color: CanvasText; }
   .g-menu__list.is-modifier .g-menu__item:not([href]),
   .g-menu__list.is-modifier .g-menu__item:not([href]) .g-menu__icon { color: GrayText; }
+  /* #718 y #725: el motivo, en el color del texto del sistema (no GrayText: se lee entero); la cabecera de búsqueda con
+     su filo; el par con contornos del sistema y el foco en Highlight */
+  .g-menu__reason { color: CanvasText; }
+  .g-menu__list > .g-menu__find { border-block-end-color: CanvasText; }
+  .g-menu__find-query { outline: var(--g-border-width) solid CanvasText; }
+  .g-menu__confirm > :is(.g-menu__confirm-cancel, .g-menu__confirm-ok) { border-color: CanvasText; }
+  .g-menu__confirm > :is(.g-menu__confirm-cancel, .g-menu__confirm-ok):focus {
+    outline: var(--_ring) solid Highlight;
+    outline-offset: calc(var(--_ring) * -1);
+  }
 }

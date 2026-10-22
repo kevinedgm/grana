@@ -1,1 +1,9 @@
-/* Importará el CSS de cada block (dueño: coco). Vacío mientras no haya blocks. */
+/*
+  Registro de estilos de los blocks (dueño: coco; #721).
+  Orden de capas de Grana: grana.defaults < grana.components < grana.blocks. La declaración va primero: si blocks.css se
+  carga antes que grana.css, el orden ya queda fijado; si se carga después, grana.blocks se añade al final. El tema de la
+  aplicación va sin capa y gana a las tres. Cada block se importa aquí, dentro de la capa grana.blocks (sin @layer propio).
+*/
+@layer grana.defaults, grana.components, grana.blocks;
+
+@import url("./blocks/GResourceList/GResourceList.css") layer(grana.blocks);

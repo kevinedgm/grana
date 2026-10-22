@@ -1,0 +1,289 @@
+/*
+  GResourceList · estilo del block (Grana Blocks, @grana/blocks)
+  Dueño: coco. Contrato: design/contracts/resource-list.md (DECISIONS.md #709 a #725; tokens.md §48: ningún token nuevo).
+  Estructura: design/lab/resource-list/r01/ (kiwi, forma C · «La frase»). Estética, medidas y encargos:
+  design/lab/resource-list/estilo.md (banco: estilo-banco.html; verificación: estilo-verificar.mjs).
+  Reglas: solo var(--g-*) y alias locales var(--_*); sin respaldos ni literales de tema; únicas medidas literales 24px y
+  44px (área táctil) y el patrón de texto oculto accesible. Sin @layer aquí: lo aplica el registro del paquete
+  (packages/blocks/src/components.css → layer(grana.blocks), #721), detrás de grana.components; el tema del usuario va sin
+  capa y gana siempre. El block NO estiliza piezas internas de lo que compone (.g-table__*, .g-menu__*, .g-tag__*,
+  .g-page-header__*): lo que no encaja es una enmienda de ese componente.
+
+  Marcado que espera (lo pinta bruno; resource-list.md «Anatomía» y «Clases y datos»):
+    div.g-resource-list[.is-narrow]                      ← contenedor largo de GPageHeader (regla 7 de «Pegado»: sin
+      header.g-page-header (GPageHeader)                   transform, filter, contain ni container-type aquí)
+      div.g-resource-list__body
+        div.g-resource-list__query[role=search]
+          div.g-resource-list__facets[role=group] > GTag de alternar…
+          p.g-resource-list__phrase > texto · GMenu > button.g-resource-list__blank[.is-set]
+              > span.g-resource-list__blank-field (oculto) · span.g-resource-list__blank-text · span.g-resource-list__blank-chev
+          GInput.g-resource-list__search
+        GTable → [toolbar] span.g-resource-list__total | div.g-resource-list__bulk[role=group]
+                   > GBtn… | div.g-resource-list__bulk-confirm[role=group].is-armed > GBtn «Cancelar» · GBtn «Dar de baja N»
+      GDialog.g-resource-list__editor
+
+  Carácter (C · «La frase», #710): la consulta se LEE. El texto fijo de la frase va en tinta apagada y las palabras que se
+  cambian en tinta plena, cada una sobre su raya: discontinua mientras el hueco está abierto («cualquiera») y continua
+  cuando ya dice algo (forma, no solo color ni peso: 1.4.1). Al pasar, la palabra se ilumina como una tecla sin mover la
+  frase (el relleno de la tecla invade el espacio entre palabras, no el texto). El único movimiento propio: la palabra
+  nueva entra con un fundido corto cuando la eligió la persona en ese hueco (no al montar ni al llegar datos).
+*/
+
+/* ---------- Raíz: el contenedor largo del encabezado ---------- */
+.g-resource-list {
+  /* Inset en línea de CONTRATO, el de GPageHeader (#715 a): space × 6; space × 4 en estrecho (< space × 150) */
+  --_inset: calc(var(--g-space-1) * 6);
+  /* Ritmo vertical por proximidad: lo de la consulta va más junto entre sí que con la tabla */
+  --_gap-body: var(--g-space-5);
+  --_gap-query: var(--g-space-3);
+
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  min-inline-size: 0;
+  color: var(--g-color-text);
+  font-family: var(--g-font-ui);
+}
+.g-resource-list.is-narrow {
+  --_inset: var(--g-space-4);
+  --_gap-body: var(--g-space-4);
+}
+
+/* ---------- Cuerpo: mismo borde de inicio que el hN (Δ0 con h1, facetas, frase y tabla) ---------- */
+.g-resource-list__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--_gap-body);
+  box-sizing: border-box;
+  min-inline-size: 0;
+  padding-block: var(--g-space-5) var(--g-space-8);
+  padding-inline: var(--_inset);
+}
+.g-resource-list__body > :not(:where(.g-tooltip)) {
+  min-inline-size: 0;
+}
+
+/* ---------- Región de consulta (role="search"): facetas → frase → búsqueda, en el orden del DOM ----------
+   Sin caja ni fondo: la delimitan la proximidad y el borde común con la tabla que describe (sin decoración, §2). La
+   búsqueda comparte línea con la frase cuando cabe (no reordena: va después en el DOM y a la derecha en LTR) */
+.g-resource-list__query {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--_gap-query) var(--g-space-6);
+  min-inline-size: 0;
+}
+.g-resource-list__query > :not(:where(.g-tooltip)) {
+  min-inline-size: 0;
+}
+
+/* Facetas: GTag de alternar, una línea de etiquetas neutras. Las cifras son tabulares (heredado por GTag): al cambiar una
+   cuenta la etiqueta no baila. En estrecho el .vue pliega las no fijadas en su hueco (una fila; aviso 7 si no) */
+.g-resource-list__facets {
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- La frase ----------
+   Cuerpo de texto (no compite con el h1). El interlineado deja aire entre las teclas de dos líneas seguidas; con puntero
+   grueso, cada línea mide la diana táctil (44px) y las teclas no se solapan entre líneas */
+.g-resource-list__phrase {
+  --_line: calc(var(--g-text-body-line) + var(--g-space-2));
+  --_key-h: max(24px, calc(var(--g-text-body-line) + var(--g-space-1)));
+
+  flex: 1 1 calc(var(--g-space-16) * 7);
+  margin: 0;
+  color: var(--g-color-text-muted);
+  font-size: var(--g-text-body-size);
+  line-height: var(--_line);
+  letter-spacing: var(--g-text-body-tracking);
+  font-weight: var(--g-text-body-weight);
+  overflow-wrap: anywhere;
+}
+/* El hueco: una palabra que es un botón. Relleno y margen negativos iguales: el texto cae donde caería una palabra normal
+   y la tecla (fondo al pasar, anillo de foco) ocupa el espacio entre palabras */
+.g-resource-list__blank {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--g-space-1) * 0.5);
+  box-sizing: border-box;
+  max-inline-size: 100%;
+  min-block-size: var(--_key-h);
+  margin: 0;
+  margin-inline: calc(var(--g-space-1) * -1);
+  padding: 0;
+  padding-inline: var(--g-space-1);
+  vertical-align: baseline;
+  border: 0;
+  border-radius: var(--g-radius-sm);
+  background: transparent;
+  color: var(--g-color-text);
+  font: inherit;
+  font-weight: var(--g-text-body-weight);
+  text-align: start;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.g-resource-list__blank.is-set {
+  font-weight: var(--g-text-action-weight);
+}
+@media (hover: hover) {
+  .g-resource-list__blank:hover {
+    background: var(--g-color-neutral-soft);
+  }
+}
+.g-resource-list__blank[aria-expanded="true"] {
+  background: var(--g-color-neutral-soft);
+}
+.g-resource-list__blank:focus {
+  outline: 0;
+}
+.g-resource-list__blank:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+
+/* El campo, para quien no ve la frase entera («Estado: …»): patrón de texto oculto accesible */
+.g-resource-list__blank-field {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* La palabra sobre su raya (border-control ≥ 3:1): discontinua = hueco abierto; continua = ya dice algo */
+.g-resource-list__blank-text {
+  min-inline-size: 0;
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-color: var(--g-color-border-control);
+  text-decoration-thickness: var(--g-border-width);
+  text-underline-offset: calc(var(--g-space-1) * 1.25);
+  text-decoration-skip-ink: none;
+}
+.g-resource-list__blank.is-set .g-resource-list__blank-text {
+  text-decoration-style: solid;
+}
+
+/* chevron-down decorativo (GIcon), el de GMenu y GSelect */
+.g-resource-list__blank-chev {
+  display: grid;
+  flex: none;
+  place-items: center;
+  color: var(--g-color-text-muted);
+}
+.g-resource-list__blank-chev > svg,
+.g-resource-list__blank-chev > .g-icon {
+  inline-size: calc(var(--g-space-1) * 3.5);
+  block-size: calc(var(--g-space-1) * 3.5);
+}
+
+/* La palabra nueva (#710): entra con un fundido cuando la eligió la persona en SU hueco. El .vue pinta la palabra con clave =
+   su texto visible (palabra nueva = nodo nuevo) y, solo en el nodo que nace del gesto en ese hueco (select de su GMenu), la
+   clase is-entering; la animación corre una vez al nacer el nodo. Al montar, al pulsar una faceta, al llegar datos o al
+   cambiar la consulta desde fuera, la palabra nace sin la clase y aparece en su sitio. Interrumpible: un cambio nuevo es
+   otra palabra que parte de 0. (Con :focus, :focus-within o aria-expanded + @starting-style no sale: el primer estilo de la
+   palabra se resuelve cuando el menú ya se cerró y antes de que el foco vuelva al hueco; medido en los tres motores) */
+@keyframes g-resource-list-word {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-resource-list__blank-text.is-entering {
+    animation: g-resource-list-word var(--g-duration-fast) var(--g-ease-out) both;
+  }
+  .g-resource-list__blank {
+    transition: background-color var(--g-duration-fast) var(--g-ease-standard);
+  }
+}
+
+/* ---------- Búsqueda ---------- */
+.g-resource-list__search {
+  flex: 0 1 calc(var(--g-space-16) * 5);
+}
+/* En estrecho, la búsqueda ocupa su línea entera, bajo la frase (borde común con la tabla en los dos lados) */
+.g-resource-list.is-narrow .g-resource-list__search {
+  flex-basis: 100%;
+}
+
+/* ---------- Barra de la tabla (slot toolbar de GTable, #717): alto constante en reposo, con selección y armada ---------- */
+.g-resource-list__total {
+  color: var(--g-color-text-muted);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-variant-numeric: tabular-nums;
+}
+.g-resource-list__bulk,
+.g-resource-list__bulk-confirm {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-2);
+  min-inline-size: 0;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-variant-numeric: tabular-nums;
+}
+/* El par de confirmación ocupa el sitio de «Dar de baja» con una junta corta (lee como un solo control partido, como el
+   par de GMenu y GFab); «Cancelar» va primero y con el foco */
+.g-resource-list__bulk-confirm {
+  flex-wrap: nowrap;
+  gap: var(--g-space-1);
+}
+
+/* ---------- Editor (GDialog placement="end", mobile="sheet") ----------
+   Lo pinta GDialog: el block no añade nada a la hoja. La clase queda para la aplicación. */
+
+/* ---------- Táctil: la palabra mide la diana; cada línea de la frase, también ---------- */
+@media (pointer: coarse) {
+  .g-resource-list__phrase {
+    --_line: max(calc(var(--g-text-body-line) + var(--g-space-2)), 44px);
+    --_key-h: 44px;
+  }
+}
+
+/* ---------- Movimiento reducido (§29): la palabra aparece en su sitio; sin fundido ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .g-resource-list__blank {
+    transition: none;
+  }
+  .g-resource-list__blank-text.is-entering {
+    animation: none;
+  }
+}
+
+/* ---------- Colores forzados: la raya y el chevron siguen al texto del sistema; el foco, Highlight ---------- */
+@media (forced-colors: active) {
+  .g-resource-list__blank {
+    color: ButtonText;
+  }
+  .g-resource-list__blank-text {
+    text-decoration-color: currentColor;
+  }
+  .g-resource-list__blank-chev {
+    color: inherit;
+  }
+  .g-resource-list__blank:focus-visible {
+    outline-color: Highlight;
+  }
+  .g-resource-list__blank[aria-expanded="true"] {
+    outline: var(--g-border-width) solid ButtonText;
+  }
+}
+
+/* ---------- Impresión: la frase se lee como texto ---------- */
+@media print {
+  .g-resource-list__blank-chev {
+    display: none;
+  }
+}
