@@ -46,6 +46,7 @@ Tabla de datos con **personalidad** (celdas ricas, filas como superficie, densid
 | `lastOpened` | String \| Number \| null | clave (`rowKey`) | `null` | propia (`v-model:lastOpened`, #598; sin `v-model`, estado propio): la última fila abierta |
 | `expanded` | Array | claves (`rowKey`) | `[]` (función) | propia (`v-model:expanded`, #599; solo con el slot `detail`) |
 | `rowStatus` | Function | `(row) => { status, text, key? } \| null` | sin valor | propia (#600); **sin `rowClass`** |
+| `showSelectedCount` | Boolean | | `true` | propia (#728): con `false`, el recuento de selección sigue montado con `role="status"` y su texto, pero **oculto a la vista** (patrón de texto oculto); para quien pinta su propio recuento visible en el `toolbar` |
 | `labels` | Object | ver «Textos» | `{}` (función) | propia |
 
 ### Columnas
@@ -452,6 +453,8 @@ Las pide el primer block de `@grana/blocks` (`design/contracts/resource-list.md`
 ### Recuento de selección a cero (#717; L7)
 
 Con `selectable` y `labels.selectedCount`, el recuento `g-table__count` (`role="status"`) **sigue montado siempre** (una región viva tiene que existir antes de cambiar), pero **con 0 seleccionadas su texto queda vacío** y la parte lleva `is-empty`: coco la oculta con el patrón de texto oculto accesible (nunca `display: none`, que la sacaría del árbol). Con ≥ 1, el texto de hoy. Así no se pinta «0 seleccionadas» en reposo (hallazgo de kiwi) y la barra no gana ni pierde nada que el lector necesite. **Sin cambio de orden** de la barra (`toolbar` sigue antes del recuento) ni de API. Si la barra se queda sin nada visible (sin `toolbar`, sin controles de tarjetas y con 0), lleva `is-quiet` y coco la deja sin alto (sin `gap` ni relleno); la región sigue dentro. Prueba: `GTable.test.js` (texto vacío con 0, el mismo nodo antes y después, `is-empty`, `is-quiet`).
+
+**`showSelectedCount` (#728; H1 de la auditoría de estilo de `GResourceList`).** Con `false`, `g-table__count` lleva además `is-sr` (coco: patrón de texto oculto accesible, nunca `display: none`) con cualquier recuento: sigue siendo la región que anuncia «N seleccionadas», pero no ocupa sitio en la barra. Lo usa quien pinta su propio recuento visible en el `toolbar` (el grupo de masivas de `GResourceList`), para que la barra no cambie de líneas al seleccionar en tarjetas (Δ0). Sin `labels.selectedCount` no hay recuento, como hoy. Peso dentro del lote de #721 (≈ 30 B). Prueba: `GTable.test.js` (`is-sr` con `false`, mismo nodo y texto, sin cambio con `true`).
 
 ## Límites conocidos
 

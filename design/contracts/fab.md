@@ -447,7 +447,9 @@ Corregido en #671 con el CSS real de coco: el FAB no lee `brand` (lo impide `rol
 | `g-fab__icon`, `__label`, `__desc`, `__reason`, `__mark` | Partes del elemento | Según el elemento |
 | `g-fab__group-title` | Título de grupo | Panel con `group` |
 | `g-fab__find` (+ `is-empty-result`) | Cabecera de C | Panel de C con sus textos |
-| `g-fab__find-query`, `g-fab__find-count` | Dentro de `g-fab__find` | Con algo escrito: lo escrito y el recuento (o `labels.none` + lo intentado) (#671) |
+| `g-fab__find-query`, `g-fab__find-count` | Dentro de `g-fab__find` | Con algo escrito: lo escrito y el recuento (o `labels.none` + lo intentado) (#671); desde #725 también en la pila y el panel de A |
+| `is-gathering` | Lista de la pila | Mientras las píldoras que quedan se juntan hacia el FAB tras filtrar (#725, #726) |
+| `is-shifted`, `--_shift` | Cada `li` de la pila que se desplaza; `--_shift` en línea (px, la distancia que recorre) | Solo el primer cuadro del juntarse (técnica FLIP: el `.vue` escribe el desplazamiento y lo retira para que el CSS lo anime con `--g-duration-fast` + `--g-ease-out`; sin ellos con movimiento reducido) (#726) |
 | `g-fab__confirm`, `__cancel`, `__confirm-action` | Par de confirmación | Armada (estructura en §«Anatomía») |
 | `has-highlight`, `is-highlight-instant`, `--_active-y`, `--_active-h` | Panel | M1 (motor compartido) |
 | `g-fab__scrim`, `g-fab__scrim-part` | Velo y su cuarta pieza | `pointer: coarse` y abierto (#668) |
