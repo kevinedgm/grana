@@ -115,13 +115,13 @@ type FormattedPrice = {
 1. **Lectura** (`spoken`): `Intl.NumberFormat(locale, { style: 'currency', currencyDisplay: 'name' })` sin decimales en los enteros (con `trailingZeroDisplay: 'stripIfInteger'` o fijando los decimales mínimos a 0; con `cents="never"`, sin decimales nunca): «1,850 pesos mexicanos», «1,850.50 pesos mexicanos». Orden de la frase: `{labels.total} {total.label}: {total}.` → `{lead} {approx} {importe o rango} {unitLabel}` → `. {compareLabel}: {referencia}` → `. {saving}`. Cada pieza ausente desaparece con su puntuación.
 2. **Visible** (`text` y `parts`): `formatToParts` con `currencyDisplay: 'symbol'` (o `code`), decimales según `cents`. Las **marcas bidi** de `Intl` (U+200E, U+200F, U+061C) se quitan. El **menos va delante del símbolo** y es el tipográfico **U+2212** («−$200.00 MXN»); en la lectura queda el «-» de `Intl` (los lectores dicen «menos»).
 3. **Decimales de la moneda**, no «dos»: `resolvedOptions().maximumFractionDigits` (MXN 2, JPY 0, KWD 3, medidos). `currencyDigits` los expone.
-4. **Ambigüedad** (`display="auto"`): el código se añade si el símbolo que da `Intl` **en ese idioma** está en la **tabla de símbolos compartidos** y la moneda no es `scopeCurrency`. Medido: `es-MX` + MXN → «$1,850 MXN»; `en-US` + MXN → «MX$1,850» (sin código); `es-MX` + USD → «USD 95» (lo dice `Intl`); `de-DE` + EUR → «1.850 €». La tabla está en «Tabla de símbolos compartidos».
+4. **Ambigüedad** (`display="auto"`; regla literal, sin mirar la región, #803): el código se añade si el símbolo que da `Intl` **en ese idioma** está en la **tabla de símbolos compartidos** y la moneda no es `scopeCurrency`. Medido: `es-MX` + MXN → «$1,850 MXN»; `en-US` + MXN → «MX$1,850» (sin código); `es-MX` + USD → «USD 95» (lo dice `Intl`); `de-DE` + EUR → «1.850 €». La tabla está en «Tabla de símbolos compartidos».
 5. **Rango** (`max`): visible y lectura con la plantilla **`labels.range`** («{min} a {max}»), **nunca** `formatRange` (su guion se lee «menos»). Visible: el mínimo con su símbolo y sin código, el máximo con símbolo y código si toca («$900 a $1,400 MXN»). Lectura: el mínimo como número y el máximo con el nombre («900 a 1,400 pesos mexicanos»). Sin `labels.range`, el rango no se pinta (solo `money`) y avisa.
 6. **Cero** → `state: 'free'` con `labels.free` («Gratis»); sin `labels.free`, el cero formateado («$0») y aviso. Con referencia, «Gratis» + referencia.
 7. **`null`** → `state: 'onRequest'` con `labels.onRequest` («Precio a consultar»); sin él, texto vacío y aviso.
 8. **Aproximado** (`approximate`): `labels.approx` delante del importe, en lo visible y en la lectura («aprox. USD 105.00»). Sin `labels.approx`, aviso (un importe convertido sin marca engaña; la aplicación debe darla).
 9. **Alternativas** (`Money[]`): se elige la de moneda `view`; si no hay, la de `scopeCurrency`; si no, la primera. `max`, `compareAt` y `total` se eligen **en la moneda del importe elegido**; si no la tienen, no se pintan y avisa. Fuera de una región (sin `view` ni `scopeCurrency`) un arreglo de más de un elemento avisa: las alternativas solo se eligen dentro de `GPriceScope`.
-10. **Inválido** (moneda que `Intl` rechaza, objeto sin `currency`): `state: 'invalid'`, textos vacíos y aviso. `amount` no finito (`NaN`, `±Infinity`) se lee como `null` con aviso. **Nunca lanza.**
+10. **Inválido** (moneda que `Intl` rechaza por **mal formada**: no son tres letras ASCII; un código bien formado pero inexistente como «XXZ» lo acepta `Intl` y Grana lo pinta con su código, #802; objeto sin `currency`): `state: 'invalid'`, textos vacíos y aviso. `amount` no finito (`NaN`, `±Infinity`) se lee como `null` con aviso. **Nunca lanza.**
 11. **Ahorro** (solo `trace`): `compareAt − importe`, con enteros escalados a los decimales de la moneda (2300 − 1850 = 450 exacto). Solo si es > 0 y hay `labels.saving` («Ahorras {amount}»); el importe del ahorro va **sin código** (la moneda ya está dicha). Con `compareAt ≤ importe`, aviso y sin ahorro (la referencia se pinta).
 12. **Caché:** los `Intl.NumberFormat` se crean una vez por idioma y opciones (un calendario llama 42 veces por mes).
 
@@ -336,7 +336,7 @@ Una **región que declara su moneda**. Dentro, un precio de esa moneda **no llev
 
 Con la **guarda canónica de #653** (`try { if (process.env.NODE_ENV !== 'production' …) … } catch {}` en el sitio de cada texto; `api.md` «Avisos de desarrollo»). Un `GPrice` avisa **una vez por instancia y motivo**; `formatPrice` llamada por la aplicación, una vez por motivo y moneda en el módulo; un mismo motivo no sale dos veces por pasar de `GPrice` a `formatPrice` (bruno lo resuelve con una opción interna, no pública).
 
-1. `Money` inválido: sin `currency`, moneda que `Intl` rechaza, o `amount` no finito (se lee como `null`).
+1. `Money` inválido: sin `currency`, moneda **mal formada** que `Intl` rechaza (un código bien formado pero inexistente, como «XXZ», pasa sin aviso: es responsabilidad de la aplicación, #802), o `amount` no finito (se lee como `null`).
 2. `max`, `compareAt` o `total` sin la moneda del importe elegido: no se pintan.
 3. `cents="never"` con un tamaño distinto de `xs`: se usa `auto`.
 4. `compareAt ≤ value`: sin ahorro.
@@ -433,9 +433,13 @@ Lector de pantalla real (cómo pronuncian VoiceOver y NVDA «1,850 pesos mexican
 - **Idioma cambiado en caliente:** pasar `locale` reactivo.
 - `trailingZeroDisplay` no existe en motores antiguos: bruno usa decimales mínimos 0 en los enteros.
 
+- **Cinco cifras en el día del calendario (#801):** a 320 px la celda del día de `GDatePicker` mide 38 px; un precio de cuatro cifras cabe y uno de cinco («12,400») desborda en los tres motores (P-A3). Para precios así, la aplicación no pone precio en el día (`dayDescription` y el precio por día son opcionales) o muestra el importe fuera de la celda.
+- **`en-US` + USD sale «$95 USD» (#803):** `$` es un símbolo compartido y `display="auto"` no mira la región. Para un sitio de una sola moneda, la receta es `GPriceScope` (omite el código); sin región, `display="symbol"`.
+- **Código inexistente (#802):** `Intl` acepta cualquier código de tres letras («XXZ»); Grana no lleva la lista de monedas ISO. Validar el código es de la aplicación.
+
 ## Fuera de v1 (reservado con nombre)
 
-- **`notation: 'compact'`** («$1.9 mil») para el día del calendario estrecho (P-L6): solo si coco mide que `cents="never"` + `display="none"` no caben a 320px (#778).
+- **`notation: 'compact'`** («$12 mil») para el día del calendario estrecho (P-L6, #778, #801): coco midió que cinco cifras no caben a 320 px (P-A3). Se activa **solo** cuando la aplicación lo pida en un lote posterior o un usuario real tope con ello; la regla prevista sería compacto con cinco cifras o más en el día, sin prop pública en v1. No se contrata ahora para no abrir una prop, un `Intl` por idioma y pruebas de lectura («12 mil», `es`) con el lote 1 por cerrar.
 - **`v-model:currency`** en `GNumberField` con selector integrado, junto a `GInputGroupNumber` (#314, #777).
 - **`cartTotals`** (utilidad sin estado de líneas, descuentos e impuestos): lote de Ecommerce (#767).
 - Lectura aparte para `GMetric` (`valueLabel`) y `GSummary` (dato con lectura): ronda de cada anfitrión.

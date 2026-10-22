@@ -151,3 +151,11 @@ Origen: página de Notion «Hallazgos de integración real · Grana» (22 hallaz
 | 20 | CLI: `dark: false` impide cambiar de tema en caliente con el sistema en oscuro | P3 bug | **hecho** (23f26c2; `:root:where(:not(...))`, #561). Sin probar en navegador; los CSS de tema de auditorías antiguas en `design/lab/` conservan el selector anterior | — |
 | 21 | README: «No hay tema oscuro todavía» y ejemplos que no montan solos | P3 doc | **hecho** (23f26c2; el script `check-readme-fragments.mjs` está en el repo y en `ci.yml`; 13 ejemplos más marcados en e2e8ba1) | — |
 | 22 | `GBtn neutral soft` sobre marca parece deshabilitado | P3 nota | **hecho** (sección «Sobre una superficie de marca» del README de `GBtn`, 23f26c2) | — |
+
+## 10. Moneda y precio (auditoría de coco 882110a, 2026-10-22)
+
+- **No verificado (entorno real):** lector de pantalla real (VoiceOver y NVDA sobre «1,850 pesos mexicanos», el «-» de los negativos, la frase dentro de una tarjeta enlace); `forced-colors` real y en Firefox y WebKit (solo emulado en Chromium); zoom 200 a 400 % (se midió el reflujo a 320 px); puntero grueso en el día con precio (el área de 44 px es la de `GDatePicker`, no se remidió); `GPrice` dentro de `GLoadRegion`.
+- **P-A4 (bruno, bloquea `candidate`):** rendimiento de A con 50 precios (tarea larga de 51 a 83 ms).
+- **P-A2 (bruno, banco):** `TODAY` en UTC en `price.html`; usar fecha local.
+- **P-A5 (informativo, banco):** la fila árabe usa los `labels` en español y `?dir=rtl` deja texto español en línea RTL; son textos de la aplicación, sin acción de contrato.
+- **Reservado (#801):** `notation: 'compact'` para el día con precio de cinco cifras.
