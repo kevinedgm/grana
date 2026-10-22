@@ -1,13 +1,13 @@
 # Contrato · GResourceList (Grana Blocks)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #709 a #722, 2026-10-20); pendiente de coco (CSS del block y de las enmiendas) y de bruno (`.vue`, enmiendas, pruebas) · **Basado en:** `design/lab/resource-list/r01/` (kiwi, bb211db: `brief.md`, `declaracion.md` §1–§15, `rl.js`, `index.html?c=C`, `verificar.mjs` 432/432 en Chromium, Firefox y WebKit, puerto 4211)
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #709 a #722, 2026-10-20; respuestas del usuario #723 a #725, 2026-10-21); pendiente de coco (CSS del block y de las enmiendas) y de bruno (`.vue`, enmiendas, pruebas) · **Basado en:** `design/lab/resource-list/r01/` (kiwi, bb211db: `brief.md`, `declaracion.md` §1–§15, `rl.js`, `index.html?c=C`, `verificar.mjs` 432/432 en Chromium, Firefox y WebKit, puerto 4211)
 **Tag:** `g-resource-list` · **Categoría:** block (pantalla de gestión) · **Paquete:** **`@grana/blocks`** (`packages/blocks/`, privado, `0.0.0`; #708) · **Avisos:** `[Grana GResourceList]`
 
 **Componente complejo** (compone `GPageHeader`, `GTable` con su `GFilterBar` y su `GPagination`, `GEmpty`, `GMenu`, `GDialog`, `GTag`, `GInput`, `GBtn`, `GIcon`; motor de consulta y de selección; una superposición): **coco y bruno en Opus** (regla de `CLAUDE.md`).
 
 La pantalla que toda aplicación de negocio repite: **ver** un conjunto de recursos, **encontrar** uno, **crearlo**, **cambiarlo** y **retirarlo**, sin perder dónde estaba la persona. El block **ensambla** componentes de `@grana/vue`; lo propio es el **orden** de la pantalla, la **frase** de la consulta, las **facetas**, el **sitio del editor**, la **selección** con sus masivas y **a dónde vuelve el foco**. No hace `fetch`, no valida, no guarda y no conoce endpoints (#708).
 
-**Forma (decisión del usuario del 2026-10-20, #709): C · «La frase».** La consulta **se lee** como una frase con huecos («Tinas **en cualquier estado** de **cualquier agave** a cargo de **cualquier maestro**, **lo que pide atención primero**»), cada hueco un `GMenu` de radios; las **facetas** cuentan sin su propio filtro; la pantalla **empieza por lo que pide atención**; las bajas se confirman **en el sitio**; el editor es una **hoja lateral**. A · «En su sitio» y B · «Lente» **no se contratan** (su futuro es una pregunta de producto abierta, §«Dudas para el usuario»).
+**Forma (decisión del usuario del 2026-10-20, #709): C · «La frase».** La consulta **se lee** como una frase con huecos («Tinas **en cualquier estado** de **cualquier agave** a cargo de **cualquier maestro**, **lo que pide atención primero**»), cada hueco un `GMenu` de radios; las **facetas** cuentan sin su propio filtro; la pantalla **empieza por lo que pide atención**; las bajas se confirman **en el sitio**; el editor es una **hoja lateral**. A · «En su sitio» y B · «Lente» **no se contratan**: quedan **reservadas** como formas futuras (`removal="undo"` y `editor="lens"`, #723), sin construir, con ronda propia.
 
 ---
 
@@ -141,7 +141,7 @@ main                                              ← de la aplicación; el cont
 | `labels` | Object | §«Textos» | `{}` (**sin valores por defecto**) | propia; `labels.table`, `labels.emptyExit` y `labels.menu` pasan a sus componentes |
 | `id` | String | | generado (SSR-seguro) | base de ids (`{id}-title`, editor, frase) |
 
-**No existen** (y por qué): `appearance` (A y B no se contratan; nombre reservado, §«Dudas»); `removal` (la huella con «Deshacer» de A; reservado); `current`/lente (B; reservado con `GTable` C · Lente, #601); `counts` suelto (las cuentas van en cada faceta); `filters`/`sort`/`page` sueltos (todo es `query`); `fetch`, `endpoint`, `adapter` (#708; los adaptadores `@grana/data` y `@grana/forms` siguen en `PENDIENTES.md`).
+**No existen** (y por qué): `appearance`; **reservados como formas futuras por decisión del usuario (#723)**, sin construir ni coste de peso y con ronda propia de kiwi cuando se retomen: `removal="undo"` (la huella con «Deshacer» de A, con L1, L2 y L11) y `editor="lens"` (la lente de B, con L6 y `GTable` C · Lente, #601); `counts` suelto (las cuentas van en cada faceta); `filters`/`sort`/`page` sueltos (todo es `query`); `fetch`, `endpoint`, `adapter` (#708; los adaptadores `@grana/data` y `@grana/forms` siguen en `PENDIENTES.md`).
 
 ### Reglas de props
 
@@ -183,6 +183,7 @@ La consulta se dice en **una frase de la aplicación**. El block no concatena fr
 | `options` | Array | `{ value, label, phrase?, sort? }`. `label`: el radio del menú. `phrase`: la forma dentro de la frase. `sort` (solo en `sort`): `{ key, direction }` que aplica |
 
 - **Cada hueco es un `GMenu`** cuyo disparador es el botón del hueco (slot `trigger` con sus `attrs`; `id` propio, #308) y cuyos elementos son un `group` con el `label` del hueco y `radio` por opción (`checked` según la consulta); la opción «cualquiera» va primero. `closeOnSelect="always"`: elegir es una decisión, cierra y devuelve el foco al hueco (que ya dice el valor nuevo).
+- **Buscar al escribir (#725):** los menús de los huecos filtran al escribir con la regla común (`api.md`) si llegan sus textos por `labels.menu` (`findHint`, `matches`, `matchesOne`, `none`); útil con listas largas (agaves, maestros). Sin ellos, saltan por letra.
 - **Solo listas de un valor.** Rangos, fechas y varios valores **no** van en la frase: se declaran como `filter` en las columnas y los pinta la `GFilterBar` de la tabla (kiwi §6, riesgo). `multiple` en un hueco queda **reservado**.
 - **En estrecho**, las facetas no fijadas se pliegan **dentro del hueco de su clave** (§«Facetas»): cada radio lleva su cuenta en el `label` (`labels.facetOption`).
 
@@ -517,8 +518,8 @@ Lector de pantalla real (VoiceOver, NVDA) con la frase en modo exploración y lo
 - **bruno (Opus):** `GResourceList.vue`, `.test.js`, `.meta.json`, exportación en `packages/blocks/src/index.js`, tipos del paquete, compuertas; `GTable` (`focusRow`, `focus`, recuento a cero) y `GMenu` (`disabled` String, `confirm`, `confirmLabel`, `labels.cancel`) con sus `meta.json` y pruebas; `GPageHeader` (#715 c); specs y una página del playground; medidas de peso (#721).
 - **mora-docs (Sonnet):** `GResourceList/README.md` tras la auditoría (la frase en varios idiomas con la función de plantilla, la receta de la consulta inicial por atención, las cuentas sin su propio filtro, `returns`, permisos, el editor y `close`, las entradas *peer* que carga la aplicación); y las secciones nuevas de los README de `GTable`, `GMenu` y `GPageHeader`.
 
-## Dudas para el usuario (no bloquean)
+## Dudas para el usuario (resueltas el 2026-10-21)
 
-1. **¿A y B quedan reservados como formas de `GResourceList`** (p. ej. `editor="lens"` para la lente de B y `removal="undo"` para la huella de A, con L1, L2, L6 y L11), **o se descartan?** Hoy no se contratan; sus nombres no se usan para otra cosa.
-2. **Selector de filas por página en el teléfono** (#716): el block lo quita en estrecho (el pie acoplado chocaba con el muelle y robaba ≈ 100 px). Si el producto lo quiere en el teléfono, la salida es otra forma del pie (ronda de kiwi sobre `GPagination`), no volver a acoplarlo.
-3. **Buscar al escribir en los menús de los huecos** (hoy la letra salta, #658): misma pregunta abierta que en `fab.md`.
+1. ~~**¿A y B quedan reservados como formas de `GResourceList`** (p. ej. `editor="lens"` para la lente de B y `removal="undo"` para la huella de A, con L1, L2, L6 y L11), **o se descartan?** Hoy no se contratan; sus nombres no se usan para otra cosa.~~ **Reservados (#723):** `removal="undo"` y `editor="lens"`, con ronda propia.
+2. ~~**Selector de filas por página en el teléfono** (#716): el block lo quita en estrecho (el pie acoplado chocaba con el muelle y robaba ≈ 100 px). Si el producto lo quiere en el teléfono, la salida es otra forma del pie (ronda de kiwi sobre `GPagination`), no volver a acoplarlo.~~ **Cerrada (#724):** en el teléfono, sin selector, como dice #716.
+3. ~~**Buscar al escribir en los menús de los huecos**~~ **Sí (#725)**, en todos los menús de Grana (§«Huecos»).

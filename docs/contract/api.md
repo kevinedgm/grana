@@ -265,7 +265,23 @@ En una lista con `role="menu"` **la letra salta** al siguiente elemento cuya eti
 5. El recuento va por el canal cortés de página (`announcePage`, #533).
 6. La semántica sigue siendo `menu`: ningún `textbox` dentro.
 
-Comparación sin mayúsculas ni diacríticos y por «contiene» sobre la etiqueta y la descripción. **Hoy filtra solo el panel de C de `GFab`** (`fab.md` «C · Buscar al escribir»); `GMenu`, la pila y el panel de A de `GFab` saltan. Extenderlo es decisión del usuario (pregunta abierta en `fab.md` «Dudas»).
+Comparación sin mayúsculas ni diacríticos y por «contiene» sobre la etiqueta y la descripción.
+
+### Buscar al escribir en todos los menús (#725; decisión del usuario del 2026-10-21, cambia la v1)
+
+**Una sola regla para toda lista `role="menu"` de Grana:** `GMenu` (también los menús de los huecos de `GResourceList`), y en `GFab` la pila, el panel de A y el panel de C. Sustituye a «hoy filtra solo el panel de C». El motor vive en **`utils/menuNav.js`** (se saca de `GFab.vue` el filtro de C y pasa a ser un modo del motor compartido; `GFab` lo recibe por `__shared`). Cumple las seis condiciones de arriba y fija lo que el patrón de APG (*typeahead*) deja abierto:
+
+1. **Se activa con los textos.** La lista filtra si la aplicación da sus cuatro textos (`labels.findHint`, `matches` con `{count}`, `matchesOne`, `none`; los nombres de `GFab`). Sin ellos, **salta por letra como hoy** (búfer de 500 ms, APG) y nada cambia para quien no los da (#226: sin textos por defecto). En el panel de C de `GFab` sigue el aviso 11; en `GMenu` y en la pila y el panel de A, **sin aviso** (es opcional).
+2. **Acumulación sin plazo mientras filtra:** lo escrito se queda (está a la vista en la fila de la pista) hasta Retroceso, Esc o cerrar. El plazo de 500 ms solo existe en el salto por letra.
+3. **Salto:** el foco cae en el primer visible cuya etiqueta **empieza** por lo escrito (si ninguno, el primer visible); **nunca activa** nada (Intro y Espacio activan, como siempre; Espacio no se escribe).
+4. **Cíclico (APG):** si la tecla no tiene coincidencias (condición 3: no se amplía) y lo escrito es esa misma letra repetida, el foco pasa al **siguiente** visible que empieza por ella, con vuelta al principio. Así «f», «f», «f» recorre «Fermentando», «Filtrar», «Fijar» como en un menú nativo.
+5. **Deshabilitados incluidos:** un elemento con `disabled` (Boolean o motivo, #718) se filtra y se puede enfocar como hoy (`aria-disabled`, enfocable); el motivo cuenta como su descripción para buscar. Lo que no se puede usar se puede **encontrar y leer** (#643 regla 1).
+6. **Submenús:** cada nivel filtra **sus** elementos con su propio texto; abrir un submenú empieza vacío; un padre coincide por su etiqueta. Grupos sin visibles se ocultan; separadores entre ocultos también.
+7. **Casillas y opciones:** se filtran igual; Espacio las marca y el filtro se mantiene (`closeOnSelect` decide si se cierra).
+8. **Sin `aria-keyshortcuts`:** escribir para buscar no es un atajo de un elemento; la pista visible (`aria-hidden`) y el anuncio cortés lo dicen.
+9. **La pila de `GFab`:** las píldoras que no coinciden se ocultan y las demás se juntan hacia el FAB (`--g-duration-fast` + `--g-ease-out`; quietas con movimiento reducido); la pista va en la fila más alejada del FAB. El panel de A, como el de C.
+
+**Peso (#725):** el motor pasa de `fab.js` al principal; `GMenu` gana la fila de la pista, el recuento y el texto sin coincidencias. **Presupuesto de lote propio: ≤ +1 KiB (1 024 B) gzip de `dist/grana.js`** (estimación de lima ≈ 0,9 KiB: el filtro de C midió ≈ 489 B en `fab.js`, más ≈ 400 B de `GMenu`); **no cabe en el lote de #721** (≈ 1,45 de 1,5 KiB ya estimados). `dist/fab.js` **baja** al recibir el motor por `__shared` y la pila y el panel de A lo usan sin código propio; sigue con su tope de #676 (10 496 B). Con más de lo previsto en cualquiera de los dos, vuelve a lima y no se sube.
 
 ## Flotantes persistentes y el foco (#664; WCAG 2.4.11)
 

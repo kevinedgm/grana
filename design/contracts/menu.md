@@ -1,6 +1,6 @@
 # Contrato · GMenu
 
-**Dueño:** lima · **Estado:** aprobado; motivo de no disponible y confirmación en el sitio contratados el 2026-10-20 para `GResourceList` (#718, pendiente de coco y bruno) · **Basado en:** `design/lab/menu/r01/` y `design/lab/menu/r02/` (elementos-enlace, §«Elementos-enlace») (kiwi) · **Complementa:** `design/contracts/widget.md`
+**Dueño:** lima · **Estado:** aprobado; motivo de no disponible y confirmación en el sitio contratados el 2026-10-20 para `GResourceList` (#718) y buscar al escribir el 2026-10-21 (#725), pendientes de coco y bruno · **Basado en:** `design/lab/menu/r01/` y `design/lab/menu/r02/` (elementos-enlace, §«Elementos-enlace») (kiwi) · **Complementa:** `design/contracts/widget.md`
 **Tag:** `g-menu` · **Categoría:** superposiciones
 
 Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Menu* de APG): acciones, separadores, grupos con título, casillas, opciones, submenús y elementos peligrosos. Alcance decidido por el usuario (DECISIONS.md #82 a #84): botón de menú (sin menú contextual ni anclaje libre), contenido por arreglo de `items` con slots, y `GWidget` pasa a usarlo.
@@ -24,7 +24,7 @@ Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Men
 | `side` | String | `auto` `bottom` `top` | `auto` | propia |
 | `closeOnSelect` | String | `auto` `always` `never` | `auto` | propia |
 | `density` | String | `default` `comfortable` `compact` | `default` | compartida |
-| `labels` | Object | textos de los elementos-enlace (§«Elementos-enlace», «Textos») y `cancel` de la confirmación en el sitio (#718) | `{}` | compartida (sin valores por defecto, #226) |
+| `labels` | Object | textos de los elementos-enlace (§«Elementos-enlace», «Textos»), `cancel` de la confirmación en el sitio (#718) y `findHint`, `matches`, `matchesOne`, `none` de buscar al escribir (#725) | `{}` | compartida (sin valores por defecto, #226) |
 | `id` | String | | generado | propia |
 
 ### Reglas de props
@@ -457,6 +457,10 @@ Lectores reales (cómo leen VoiceOver y NVDA un `<a role="menuitem">` con `aria-
 | L10 | Sin slot `link` | Reservado; #523 no aplica | #572 |
 | L11 | Reservados | `download`, `hreflang`, `referrerpolicy`; foco inicial en la página actual | #572 |
 | L12 | Peso | Sigue en el principal; compuerta de 2,5 KiB gzip para toda la extensión (era 2 KiB); avisos con la guarda en línea | #579, #636 |
+
+## Buscar al escribir (#725; decisión del usuario del 2026-10-21, cambia la v1)
+
+`GMenu` adopta la regla común de `api.md` «Letras en listas de comandos» → «Buscar al escribir en todos los menús»: con los cuatro textos **`labels.findHint`**, **`labels.matches`** (`{count}`), **`labels.matchesOne`** y **`labels.none`**, escribir **filtra** la lista (sin campo, la semántica sigue siendo `menu`); sin ellos, **salta por letra como hoy** (500 ms) y sin aviso. Primera fila `li.g-menu__find` (`aria-hidden`) con la pista y, al escribir, lo escrito y el recuento; anuncio por el canal cortés de página (#533). Foco al primer visible que empieza por lo escrito, cíclico con la misma letra, deshabilitados incluidos (con su motivo como descripción buscable), cada submenú con su propio texto, Esc limpia y la siguiente cierra. Elementos-enlace: se filtran igual (su `label`). El motor es `utils/menuNav.js`, el mismo que `GFab`. Clases nuevas: `g-menu__find`, `is-filtering` (lista) y `hidden` en los que no coinciden. Tokens: los existentes (`--g-text-body-sm-*`, `--g-color-text-muted`). Peso en el lote propio de #725 (≤ +1 KiB gzip de `grana.js`). Pruebas: `GMenu.test.js` (sin textos, el salto de hoy sin cambios en sus aserciones; con textos, las seis condiciones, el ciclo, deshabilitados y submenús) y `tests/menu.spec.mjs` en los tres motores.
 
 ## Motivo y confirmación en el sitio (#718; enmienda para `GResourceList`, cambia la v1)
 
