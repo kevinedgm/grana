@@ -1,6 +1,6 @@
 # Plan · `@grana/blocks` — bloques de página para Marketing, Ecommerce y Booking
 
-> 2026-10-21. Elaborado a partir de la página de Notion «🧱 Grana Blocks» (estado: prototipo documentado, P0), del inventario de marketing de kiwi (`design/lab/marketing/r01/`), de los contratos vigentes de las primitivas (`stack.md`, `container.md`, `section.md`, `adaptive-layout.md`, `card-group.md`) y de los componentes de marketing ya `candidate` (`GHero`, `GGallery`/`GGalleryViewer`, `GBookingBar`/`GPartyField`). **Estado:** decisiones D1 a D4 tomadas (#764 a #767; D2 enmendada por #814); lote 2 contratado (#815 a #826). No toca código.
+> 2026-10-21. Elaborado a partir de la página de Notion «🧱 Grana Blocks» (estado: prototipo documentado, P0), del inventario de marketing de kiwi (`design/lab/marketing/r01/`), de los contratos vigentes de las primitivas (`stack.md`, `container.md`, `section.md`, `adaptive-layout.md`, `card-group.md`) y de los componentes de marketing ya `candidate` (`GHero`, `GGallery`/`GGalleryViewer`, `GBookingBar`/`GPartyField`). **Estado:** decisiones D1 a D4 tomadas (#764 a #767; D2 enmendada por #814); lote 2 contratado (#815 a #826) y cerrado (#858); **lote 3 (Booking) contratado** (#860 a #877). No toca código.
 
 ## 1. Qué cambia respecto a la página de Notion
 
@@ -86,6 +86,8 @@ Por familia: sección, variantes (concepto de layout), `Props` compartida, compo
 | E12 | **Trust / incentives** | 01 fila de iconos con texto · 02 tarjetas · 03 lista compacta en pie | `{ items: Incentive[] }` con `{ icon, title, description? }` | `GAdaptiveLayout`, `GIcon` | — | P0 |
 
 ### 4.3 Booking (12 secciones)
+
+> Las once secciones propias están contratadas en `design/contracts/blocks/` (#860 a #877; `_comun.md` §14 a §25) y B12 reutiliza `GbTestimonials` (#865). Donde difieren de esta tabla manda el contrato (correcciones en `_comun.md` §23: Search 03 «La que acompaña» con el umbral como receta, `consult` como slot en Offer detail, `GDatePicker` y no `GCalendar` en Availability, Booking summary sin columna pegada ni muelle propio, Guest form con `GStepper` en la página, Itinerary 03 en `GTable`, Policies 02 «todo a la vista»).
 
 | # | Sección | Variantes | Props compartida (resumen) | Compone | Dep. | Pri. |
 | --- | --- | --- | --- | --- | --- | --- |

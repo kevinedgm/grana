@@ -1,6 +1,6 @@
 # Contrato · GBookingBar y GPartyField (consulta de reserva y campo de grupo)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #736 a #742, #744 y #745, 2026-10-21; remates #757 y #759 tras el estilo de coco; enmienda de `datepicker.md` «Noches y salida» (#739); `tokens.md` §29.6 y §53; `api.md` «Paquete, entradas y tipos», «Convivencia de servicios» (`EDGE_ORDER`), «Paneles anclados», «Una activación por gesto» y «Flotantes persistentes») · **Basado en:** `design/lab/booking-bar/r01/` (kiwi, commit b32b79a: `brief.md`, `declaracion.md` con 14 decisiones de base, conceptos A/B/C, rúbrica y hallazgos B-L1 a B-L12, `index.html`, `booking.css`, `booking.js`, `verificar.mjs` 413/413 en Chromium, Firefox y WebKit) y el inventario `design/lab/marketing/r01/`
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #736 a #742, #744 y #745, 2026-10-21; remates #757 y #759 tras el estilo de coco; `describeQuery` exportada para los bloques de Booking, #862; enmienda de `datepicker.md` «Noches y salida» (#739); `tokens.md` §29.6 y §53; `api.md` «Paquete, entradas y tipos», «Convivencia de servicios» (`EDGE_ORDER`), «Paneles anclados», «Una activación por gesto» y «Flotantes persistentes») · **Basado en:** `design/lab/booking-bar/r01/` (kiwi, commit b32b79a: `brief.md`, `declaracion.md` con 14 decisiones de base, conceptos A/B/C, rúbrica y hallazgos B-L1 a B-L12, `index.html`, `booking.css`, `booking.js`, `verificar.mjs` 413/413 en Chromium, Firefox y WebKit) y el inventario `design/lab/marketing/r01/`
 **Tags:** `g-booking-bar`, `g-party-field` · **Categoría:** marketing (consulta) y formularios (grupo) · **Paquete:** entrada propia **`@grana/vue/booking`** (#742)
 
 **Componente complejo** (compone `GDatePicker`, `GNumberField`, `GSelect`, `GRadioGroup`, `GDialog`, `GBtn` y `GPartyField`; popovers propios; motor de estado y forma compacta medida): **coco y bruno en Opus** (regla de `CLAUDE.md`).
@@ -185,6 +185,26 @@ Texto legible de lo que se va a pedir, unido por `labels.separator`: `stay` «13
 - **No se parte (B-L11):** la fila se mide (desborda su caja) y, si no cabe, pasa a **compacto**: `button.g-booking-bar__summary` («{summaryTitle} · {resumen}» + «{change}») + la acción. **Con histéresis:** guarda el ancho que la fila necesitaba para volver a ella. **Sin puntos de corte literales** (#34). **El cambio se aplica fuera de la llamada del `ResizeObserver`** (en el cuadro siguiente; en WebKit, cambiar la forma dentro produce «ResizeObserver loop»). SSR y antes de medir: la fila.
 - **Hoja** (`GDialog`, dentro del `<form>`, sin Teleport; `title` = `title`, `closeLabel` = `labels.close`): los mismos campos **en línea** (`GDatePicker inline` con un mes, `GPartyField mode="inline"`): en un modal no se abre otro popover (regla de `datepicker.md`). Pie: la acción de envío (es un `type="submit"` del mismo formulario). Esc cierra y el foco vuelve al resumen (`from` de `GDialog`).
 
+## `describeQuery`: el resumen como utilidad pública (#862; enmienda, cambia la v1)
+
+El texto de `__digest` (§«Resumen») se **extrae** a una utilidad pura y se exporta desde **`@grana/vue/booking`**, para que los bloques de Booking (`design/contracts/blocks/_comun.md` §15 regla 3) digan la consulta **con las mismas palabras** que la barra sin rehacer el formato. `GBookingBar` la usa por dentro: el resumen, el texto del compacto y el del muelle salen de ella.
+
+```ts
+describeQuery(query: { kind: 'stay' | 'table' | 'tour', from?, to?, date?, time?, tour?, party }, options: {
+  partyRows: PartyRow[]                       // las filas de GPartyField (su `unit` da las piezas del grupo)
+  times?: { value: string, label?: string }[] // table: etiqueta del turno
+  tours?: { value: string | number, label: string }[]   // tour: nombre del recorrido
+  locale?: string                             // BCP 47; sin él, el de Intl del entorno (no lee el DOM)
+  labels: { nights, separator, checkout?, noDates?, noDate?, noTime?, noTour? }   // las claves de «Textos» con el mismo significado
+}): { text: string, checkout: string, nights: number | null, missing: ('dates' | 'date' | 'time' | 'tour')[] }
+```
+
+- **`text`** es exactamente lo que hoy pinta `__digest` con esos datos (misma regla: rango con `formatRange`, noches contadas, grupo con el resumen de `GPartyField`, lo que falta con `no*`, unido por `separator`). **`checkout`** es «Salida el {date}» (`stay` completo; vacío si no). **`missing`** nombra lo que falta en orden.
+- **Pura:** sin DOM, sin `window`, sin estado salvo la caché de `Intl` que ya usa el componente; funciona en SSR. Nunca lanza: una consulta con forma inválida devuelve `text` con lo que falta.
+- **`labels` que falten:** sin aviso propio (la utilidad es silenciosa); la pieza sin texto se omite. Los avisos siguen siendo de `GBookingBar` (aviso 7) y de los bloques (K2).
+- **Peso:** dentro del tope de `@grana/vue/booking` (14 KiB, #742); es código que ya está en la entrada, extraído (`utils/bookingQuery.js`, interno; no entra en el principal). Tipos en `types/api/booking.d.ts` (función) y `PartyRow`, `BookingQueryModel` en `types/shared.d.ts` (#443: el `.d.ts` de la entrada declara la exportación nueva; `src/types.test.js` la comprueba).
+- **Verificación (bruno):** para los tres `kind`, con y sin huecos, `describeQuery(...).text === ` el texto de `__digest` del componente montado con la misma consulta y los mismos `labels`; SSR en Node; sin regresión en las pruebas de `GBookingBar`.
+
 ## B · El muelle (`dock`)
 
 - **Cuándo:** aparece cuando **la consulta entera** sale del visor por arriba (`IntersectionObserver`, sin manejador de desplazamiento) y se va al volver a verla. Oculto: `hidden` + `inert`. Aparece y se va **sin robar el foco ni anunciarse** (consecuencia del desplazamiento del usuario).
@@ -358,7 +378,7 @@ Sin muelle ni rebote propios.
 
 ## Peso y paquete (#742)
 
-- **Entrada propia `@grana/vue/booking`** (global UMD `GranaBooking`): exporta `GBookingBar`, `GPartyField` y un plugin que registra los dos. **Tope: 14 KiB (14 336 B) gzip.** Llegan por `__shared` (#240, sin copias): `GDatePicker`, `GNumberField`, `GSelect`, `GRadioGroup`, `GDialog`, `GBtn`, `GLibIcon`, `useFormField` y las claves de contexto (`formKey`, `sectionKey`, la interna de la fila), `utils/anchor.js`, `utils/edgeReserve.js` (**obligatorio**: un registro por documento), `utils/topModal.js`, `utils/liveRegion.js` (`announcePage`), `utils/template.js`, `utils/dates.js`, `utils/sizeObserver.js`, `utils/oneOf.js`. **No importa `GTimeField`** (entrada propia; #737). CSS en `grana.css`.
+- **Entrada propia `@grana/vue/booking`** (global UMD `GranaBooking`): exporta `GBookingBar`, `GPartyField`, **`describeQuery`** (#862) y un plugin que registra los dos. **Tope: 14 KiB (14 336 B) gzip.** Llegan por `__shared` (#240, sin copias): `GDatePicker`, `GNumberField`, `GSelect`, `GRadioGroup`, `GDialog`, `GBtn`, `GLibIcon`, `useFormField` y las claves de contexto (`formKey`, `sectionKey`, la interna de la fila), `utils/anchor.js`, `utils/edgeReserve.js` (**obligatorio**: un registro por documento), `utils/topModal.js`, `utils/liveRegion.js` (`announcePage`), `utils/template.js`, `utils/dates.js`, `utils/sizeObserver.js`, `utils/oneOf.js`. **No importa `GTimeField`** (entrada propia; #737). CSS en `grana.css`.
 - Cuatro registros de #443; `EDGE_ORDER.bookingDock` en `utils/edgeReserve.js` (principal); compuertas (`grep -q "g-booking-bar__phrase"` y `grep -q "g-party-field__panel"` en `grana.css`; `! grep -q "GBookingBar"` y `! grep -q "GPartyField"` en `grana.js`; `test -f dist/booking.js`).
 
 ## `meta.json` y tipos (#443)
@@ -412,4 +432,5 @@ Las dos piezas con props y valores, eventos (`update:modelValue`, `submit` con s
 ## Encargos
 
 - **coco (Opus):** `GBookingBar.css` y `GPartyField.css` (frase y huecos con su subrayado por forma y alto táctil, paneles, barra y compacto, hoja, muelle con el alto de contrato y el `scroll-padding-block-end` en la capa de Grana, reducido, forzados, RTL, oscuro); `g-datepicker--trigger` y `g-party-field--trigger` con `display: contents` (`GDatePicker.css` es suyo); el estado «solo salida» del día en `GDatePicker.css` (#739); auditoría.
+- **bruno (enmienda #862, lote 3 de Blocks, parte A):** `describeQuery` extraída a `utils/bookingQuery.js` y exportada desde `@grana/vue/booking`, con `GBookingBar` usándola; tipos, prueba de igualdad y medida (§«`describeQuery`»).
 - **bruno (Opus):** `GBookingBar.vue` y `GPartyField.vue` (plantilla, huecos, validación, intención, medida compacta, muelle con `edgeReserve` y cuarto), enmienda de `GDatePicker.vue` (#739: `disabledNights`, `minNights`, `maxNights`, aviso dentro de `<p>`; **y el defecto B-L6**), `EDGE_ORDER.bookingDock`, pruebas, `meta.json` (también `GDatePicker`), entrada `@grana/vue/booking`, compuertas, playground y spec.

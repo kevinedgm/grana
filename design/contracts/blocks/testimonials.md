@@ -17,6 +17,8 @@ interface GbTestimonialsProps {
 }
 ```
 
+**`Testimonial.source` es obligatoria en el tipo** (#865, enmienda del lote 3: `GbTestimonials` es también la sección de opiniones de Booking, B12): una opinión sin fuente no se puede comprobar (R7). El aviso T1 sigue para quien no usa TypeScript.
+
 `rating` queda **reservado** (M-L2: sin `star` en la lista de la librería). Una calificación agregada («4,8 de 5») va en Stats.
 
 ## Anatomía de una opinión (común a las tres variantes)
