@@ -66,7 +66,7 @@
     "main": "tope +512 B gzip en grana.js (#853); base 222 542 B"
   },
   "pending": [
-    "Auditoría de coco sobre el componente y los seis bloques (status draft hasta entonces)",
-    "Adopción en los seis bloques de @grana/blocks (encargo siguiente, _comun.md §11 B-L5)"
+    "Reservados: comillas por idioma; afinar el corte de ámbito",
+    "No verificado: lector de pantalla real, WCAG 1.4.12 con hoja de usuario, forced-colors en Firefox y WebKit, zoom, SSR de p con bloques"
   ]
 }
