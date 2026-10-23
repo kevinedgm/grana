@@ -5,14 +5,14 @@
 **Etiquetas:** `<g-booking-bar>` y `<g-party-field>` · **Estado:** `candidate` (ver [`design/lab/booking-bar/auditoria.md`](../../../../../design/lab/booking-bar/auditoria.md) y «Verificación») · **Desde:** 0.1.0 · **Entrada:** propia, `@grana/vue/booking` (global UMD `GranaBooking`)
 
 ```js
-import Booking, { GBookingBar, GPartyField } from '@grana/vue/booking'
+import Booking, { GBookingBar, GPartyField, describeQuery } from '@grana/vue/booking'
 ```
 
 > `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (banco del componente real en `packages/vue/playground/booking.html`). Exige Vue `^3.5.0` y un navegador actual.
 
 ## Instalación: entrada propia
 
-Ni `GBookingBar` ni `GPartyField` viajan en `@grana/vue` (DECISIONS #742).
+Ni `GBookingBar`, ni `GPartyField`, ni `describeQuery` viajan en `@grana/vue` (DECISIONS #742, #862).
 
 ```js
 import { createApp } from 'vue'
@@ -25,7 +25,7 @@ createApp(App).use(Grana).use(Booking).mount('#app')   // registra <g-booking-ba
 
 Sin empaquetador, carga `vue.global.js`, `dist/grana.umd.js` y `dist/booking.umd.js` (global `GranaBooking`): `app.use(Grana).use(GranaBooking)`. En plantillas dentro del HTML (sin compilar), escribe las etiquetas con cierre: `<g-booking-bar ...></g-booking-bar>`.
 
-**Peso.** Tope de la entrada: 14 KiB gzip (14 336 B). Medido por bruno y anotado en los `meta.json`: **14 074 B** (`dist/booking.js`) y 12 571 B (`dist/booking.umd.js`). Al documentar, el `dist/` del árbol recomprimido con `gzip` (nivel por defecto) dio 14 151 B: la misma cifra con otro nivel de compresión, con 185 B de margen. `GDatePicker`, `GNumberField`, `GSelect`, `GRadioGroup`, `GDialog`, `GBtn` y `useFormField` llegan del principal por `__shared`, sin copia. **No importa `GTimeField`** (es otra entrada). `dist/grana.js` no contiene `GBookingBar`.
+**Peso.** Tope de la entrada: **15 KiB gzip (15 360 B)** (DECISIONS #878: los 14 KiB de #742 más el cargo único de `describeQuery`, extraída del componente; no vuelve a subir sin decisión del usuario). Medido al documentar sobre el `dist/` del árbol (2026-10-23): **14 776 B** con `gzip -9` y 14 847 B con `gzip -c` (nivel por defecto), 513 B de margen sobre el tope; `GBookingBar.meta.json` anota 14 697 B (`gzip -9`) y todavía cita el tope anterior de 14 336 B (conflicto señalado a bruno). `GDatePicker`, `GNumberField`, `GSelect`, `GRadioGroup`, `GDialog`, `GBtn` y `useFormField` llegan del principal por `__shared`, sin copia. **No importa `GTimeField`** (es otra entrada). `dist/grana.js` no contiene `GBookingBar`.
 
 ## Qué lo hace distinto
 
@@ -177,6 +177,40 @@ Mientras el muelle se ve, Grana escribe en `<html>` un `scroll-padding-block-end
 ```
 
 Con `name="guests"` el formulario recibe un campo oculto por fila (`guests[adults]`, `guests[rooms]`, …), incluso con el campo deshabilitado.
+
+## `describeQuery`: la consulta en palabras
+
+`describeQuery` es la utilidad que escribe el resumen de `GBookingBar` («13–15 nov · 2 noches · 2 adultos · 1 niño»), exportada para que **otras piezas digan la consulta con las mismas palabras** sin rehacer el formato. La usan las secciones de [`@grana/blocks/booking`](../../../../blocks/README.md#la-consulta-es-el-hilo) (oferta, resumen, formulario, confirmación); la barra la usa por dentro para su resumen, el compacto y el muelle. Entrada y salida:
+
+```js
+import { describeQuery } from '@grana/vue/booking'
+
+const { text, checkout, nights, missing } = describeQuery(
+  { kind: 'stay', from: '2026-11-13', to: '2026-11-15', party: { adults: 2, children: 1, rooms: 1 } },
+  {
+    partyRows: filas, // las filas de GPartyField: su `unit` da las piezas del grupo
+    locale: 'es',     // sin él, el de Intl del entorno (no lee el DOM)
+    labels: { nights: (n) => `${n} ${n === 1 ? 'noche' : 'noches'}`, separator: ' · ', checkout: 'Salida el {date}', noDates: 'Sin fechas' }
+  }
+)
+// text: '13–15 nov · 2 noches · 2 adultos · 1 niño · 1 habitación'
+// checkout: 'Salida el domingo, 15 de noviembre'  nights: 2  missing: []
+```
+
+<!-- Fragmento: `filas` es de tu aplicación (las `partyRows` de la barra) -->
+
+| Opción | Tipo | Qué hace |
+| --- | --- | --- |
+| `partyRows` | `PartyRow[]` | Las filas de `GPartyField`; dan las piezas del grupo («2 adultos») |
+| `times` | `{ value, label? }[]` | `table`: la etiqueta del turno |
+| `tours` | `{ value, label }[]` | `tour`: el nombre del recorrido |
+| `locale` | `string` | BCP 47; sin él, el de `Intl` del entorno |
+| `labels` | `{ nights, separator, checkout?, noDates?, noDate?, noTime?, noTour? }` | Las mismas claves de «Textos» con el mismo significado |
+
+- **`text`** es exactamente lo que pinta el resumen de la barra con esos datos; **`checkout`** es «Salida el {date}» (solo en `stay` completo; vacío si no); **`nights`** es el número de noches o `null`; **`missing`** nombra lo que falta en orden (`dates`, `date`, `time`, `tour`).
+- **Pura:** sin DOM, sin `window` y sin estado salvo la caché de `Intl`; funciona en el servidor. **Nunca lanza:** una consulta con forma inválida devuelve el `text` con lo que falta. Una clave de `labels` que falta omite su pieza, sin aviso (los avisos siguen siendo de `GBookingBar`, aviso 7).
+- **Lo relativo se hereda:** con `kind: 'table'` el texto dice «hoy» y «mañana» como el resumen de la barra (`Intl.RelativeTimeFormat`); no hay opción para apagarlo (DECISIONS #884). Una página cacheada puede decir «mañana» un día después.
+- **Evidencia:** `bookingQuery.test.js` comprueba, para los tres `kind`, con y sin huecos, que `describeQuery(...).text` es igual al resumen de `GBookingBar` montado con la misma consulta (y en inglés), más el resultado, los `labels` que faltan y que nunca lanza; `bookingQuery.ssr.test.js` lo ejecuta sin `window` ni `document`; 18 de 18 en verde (`prueba`, 2026-10-23).
 
 ## Props de `GBookingBar`
 
@@ -373,7 +407,7 @@ Tres movimientos, todos con tokens y sin muelle ni rebote propios:
 
 ## Verificación
 
-- **Pruebas** (vitest, jsdom): `GBookingBar.test.js` **29 de 29**, `GPartyField.test.js` **14 de 14** y `GDatePicker.test.js` **98 de 98** (por las enmiendas que usa la barra), en verde, ejecutadas de nuevo al documentar. `prueba`.
+- **Pruebas** (vitest, jsdom): `GBookingBar.test.js` **29 de 29**, `GPartyField.test.js` **15 de 15** y `GDatePicker.test.js` **102 de 102** (por las enmiendas que usa la barra), en verde, ejecutadas de nuevo al documentar. `prueba`.
 - **Auditoría de coco** con el componente real (`dist/booking.umd.js`, banco `packages/vue/playground/booking.html`) y temas distintos al por defecto (terracota, añil, pálida, stripe, amazon, linear y notion): `node design/lab/booking-bar/auditoria-verificar.mjs`. El informe (2026-10-21) registra **760 de 760** en Chromium, Firefox y WebKit y que **se repitió al documentar** sobre el árbol actual: **760 de 760** (`medido`, 2026-10-21, tres motores).
 - **Banco de estilo** (`estilo-verificar.mjs`): 214 de 214 en Chromium, según el informe. **Specs de bruno** (`tests/booking.spec.mjs`): en verde en los tres motores, según el informe. No se corrieron al documentar.
 - **Empaquetado** (al documentar): `dist/grana.js` no contiene `GBookingBar`; `dist/booking.js`, `dist/booking.umd.js` y `dist/booking.d.ts` existen.

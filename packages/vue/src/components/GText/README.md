@@ -134,8 +134,25 @@ Los bloques que la reciben son `p`, `div`, `ul`, `ol`, `dl`, `blockquote`, `figu
 - `small` dentro no encoge (en `caption` daría 10 px, por debajo del mínimo de 12).
 - `strong` y `b` pesan lo que el título pequeño del tema (`--g-text-title-sm-weight`), nunca un número escrito.
 - `em` e `i` conservan la cursiva (es el énfasis). `a` conserva su subrayado y su color (1.4.1). `code` no se toca.
-- Las listas conservan viñeta y semántica, con la sangría dentro de la caja y del lado lógico (`space × 6`).
+- Las listas conservan viñeta y semántica, con la sangría dentro de la caja y del lado lógico (`space × 6`). `ul` lleva `disc` y solo un `ul` anidado **dentro** de la misma `GText` lleva `circle`: sin esa regla, una lista dentro de una tarjeta `li` salía con `circle` en una variante y con `disc` en otra (hallazgo BK-C3 de la auditoría de Booking, corregido en `GText.css`).
 - Encabezados, `hr` y `table` dentro de una `GText` quedan **fuera de contrato**: los títulos son de `GSection` y una tabla es `GTable`.
+
+**Listas de definiciones (`dl`).** Un `dl` dentro de una `GText` es una lista de término y definición (la carta de un restaurante, el desglose de un total; DECISIONS #863):
+
+- **`dd` sin la sangría del navegador** (`margin-inline-start: 0`): los 40 px no significan nada y desbordan a 320 px.
+- **`dt` con el peso de título pequeño del tema** (`--g-text-title-sm-weight`, el mismo que `strong`), sin cambiar tamaño ni color.
+- **Sin pausa entre `dt` y `dd`** (son de fraseo dentro del par); **cada grupo** (un `div` dentro del `dl`, o el par `dt` y `dd` si no hay `div`) recibe la pausa del tamaño respecto al siguiente, como un bloque.
+- Lo de dentro de un `dd` (un `GPrice`, un `GStack` de `GTag`) es de su componente.
+- **Reservado:** el renglón con el último `dd` al final de la línea (BK-L3); hoy el precio queda debajo del nombre.
+
+```vue
+<GText as="div" size="body-sm">
+  <dl>
+    <div><dt>Viernes 13 de noviembre</dt><dd>$1,850</dd></div>
+    <div><dt>Sábado 14 de noviembre</dt><dd>$2,100</dd></div>
+  </dl>
+</GText>
+```
 
 **Línea.** `text-wrap: pretty` en el texto y `balance` en `figcaption`, sin JavaScript. Donde el motor no lo sabe hacer, se ignora.
 
@@ -213,7 +230,7 @@ No lee `--g-text-caption-weight`, `density` ni colores de familia.
 
 ## Verificación
 
-- **Motores:** `design/lab/text/auditoria-verificar.mjs` sobre el componente real: **900/900** en Chromium, Firefox y WebKit, con tema por defecto, rústico y lujo, claro y oscuro (`medido`, coco, 2026-10-22). Se suma el verificador del estilo con el prototipo (3767/3767) y los seis bloques de marketing de `@grana/blocks`, 4327/4327 en los tres motores (addendum de `design/lab/blocks/marketing/auditoria.md`).
+- **Motores:** `design/lab/text/auditoria-verificar.mjs` sobre el componente real: **900/900** en Chromium, Firefox y WebKit, con tema por defecto, rústico y lujo, claro y oscuro (`medido`, coco, 2026-10-22). Se suma el verificador del estilo con el prototipo (3767/3767) y los seis bloques de marketing de `@grana/blocks`, 4327/4327 en los tres motores (addendum de `design/lab/blocks/marketing/auditoria.md`). Tras las enmiendas de Booking (`dl`, #863, y la viñeta `disc`, BK-C3), coco volvió a pasar el verificador en Chromium: 331/331 (`medido`, 2026-10-23, según `design/lab/blocks/booking/auditoria.md`; no se repitió en Firefox y WebKit).
 - **Pruebas de bruno:** `GText.test.js` (21 pruebas, nivel `prueba`: etiqueta por `as`, defaults y avisos, clases, atributos en la raíz, vacío, SSR) y `text.spec.mjs` (5 casos en Chromium).
 - **Defectos corregidos en la auditoría:** ninguno en el CSS; sí en el verificador de los bloques.
 - **No verificado:** lector de pantalla real (la `figure` nombrada por su `figcaption`, `cite`, `address`, la garantía por `aria-describedby`); 1.4.12 con una hoja de usuario real; `forced-colors` en Firefox y WebKit; zoom del navegador (solo reflujo a 320 px); SSR de un `p` con bloques dentro (razonado, no ejecutado).
