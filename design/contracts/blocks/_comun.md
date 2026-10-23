@@ -1,9 +1,9 @@
-# Contrato común · Bloques estructurales: Marketing P0 (`@grana/blocks/marketing`) y Booking (`@grana/blocks/booking`)
+# Contrato común · Bloques estructurales: Marketing P0 (`@grana/blocks/marketing`), Booking (`@grana/blocks/booking`) y Ecommerce (`@grana/blocks/ecommerce`)
 
 **Dueño:** lima · **Estado:** contratado (DECISIONS.md #814 a #826, 2026-10-22; remates tras la construcción #827 a #844, §13; decisión del usuario del 2026-10-22: «Vale #780: los bloques van en `packages/blocks/` como paquete `@grana/blocks` aparte. Que lima enmiende #765 y arranca el lote 2 (Marketing P0) ahí») · **Plan:** `design/lab/blocks/plan.md` §2, §4.1, §5 (lote 2), §6 · **Flujo:** reducido (#766): lima → bruno → coco (solo auditoría) → mora-docs
 **Paquete:** `@grana/blocks`, entrada **`@grana/blocks/marketing`** (`dist/marketing.js`, #815) · **Avisos:** `[Grana Gb<Sección><NN>]` · **Usuario final de referencia:** el viajero en el teléfono del inventario `design/lab/marketing/r01/brief.md` (hotel boutique, restaurante, tour; inglés además de español, conexión lenta, sol de frente)
 
-Este archivo fija lo que comparten las nueve secciones del lote 2 (§1 a §13) y, desde el lote 3, las once secciones de Booking (**§14 a §24**, #860 a #877; las reglas de §1 a §5 valen también para Booking salvo donde §15 las amplía). Cada sección tiene su contrato corto con el mismo esqueleto:
+Este archivo fija lo que comparten las nueve secciones del lote 2 (§1 a §13) y, desde el lote 3, las once secciones de Booking (**§14 a §24**, #860 a #877; las reglas de §1 a §5 valen también para Booking salvo donde §15 las amplía) y, desde el lote 4, las doce de Ecommerce (**§26 a §38**, #909 a #926; §1 a §5 y lo que §27 toma de §15). Cada sección tiene su contrato corto con el mismo esqueleto:
 
 | Sección (plan §4.1) | Contrato | Variantes |
 | --- | --- | --- |
@@ -550,3 +550,340 @@ test "$(gzip -c packages/blocks/dist/booking.js | wc -c)" -le 37888
 **coco** (Sonnet; Opus en Offer detail y Availability): **`GText.css`** con la enmienda de `dl` (#863, antes de que bruno cierre Menu) y su caso en el verificador de `GText`; **solo auditoría** de las once secciones (`auditoria-visual.md` previa y posterior, dos temas del CLI, rúbrica de movimiento sobre lo compuesto: visor de fotos, muelle, acordeón, cuenta de `GPrice`), resultado en `design/lab/blocks/booking/auditoria.md`; lo que pida CSS vuelve a lima.
 
 **mora-docs** (Sonnet): un `README.md` por sección (las tres variantes, la `Props`, el banco, las entradas *peer*) y las recetas: «El umbral» (`GbHero03` + `GbSearch01`), «La consulta que viaja» (de `GbSearch` a `GbOfferList`, `GbBookingSummary`, `GbGuestForm` y `GbConfirmation` con el mismo objeto), «Columna pegada con CSS de la aplicación» (BK-L1), «Opiniones con `GbTestimonials`».
+
+---
+
+# Parte C · Ecommerce (`@grana/blocks/ecommerce`, lote 4)
+
+**Estado:** contratado (DECISIONS.md **#909 a #926**, 2026-10-23; decisión del usuario del 2026-10-23: «Arranca el lote 4 (Ecommerce) según el plan §4.2 y §5: lima contrata las secciones y seguimos el flujo reducido») · **Plan:** `design/lab/blocks/plan.md` §4.2 y §5 (lote 4) · **Flujo:** reducido (#766) · **Usuario final:** quien compra **en el teléfono**, con una mano, a ratos (vuelve a la lista, cierra la app, regresa al carrito al día siguiente), con datos móviles y sin paciencia para reescribir; a veces con lector de pantalla o con zoom. Plantilla: **la tienda de Oaxaca «Barro y Agave»** (mezcal, textiles teñidos con grana cochinilla y añil, barro negro y verde), la misma ciudad que Casa Alcalá.
+
+## 26. Secciones del lote
+
+| Sección (plan §4.2) | Contrato | Variantes | Parte de bruno | Compleja (coco y bruno en Opus) |
+| --- | --- | --- | --- | --- |
+| E1 Product card | `product-card.md` | `GbProductCard01` Foto arriba · `02` Horizontal · `03` Compacta con acción rápida | A | — |
+| E3 Category previews | `category-previews.md` | `GbCategoryPreviews01` Puertas con foto · `02` Tira · `03` Lista con cuenta | A | — |
+| E12 Trust | `trust.md` | `GbTrust01` Fila · `02` Tarjetas · `03` Lista al pie | A | — |
+| E11 Promo | `promo.md` | `GbPromo01` Banda · `02` Tarjeta con imagen · `03` Línea | A | — |
+| E2 Product grid | `product-grid.md` | `GbProductGrid01` Rejilla · `02` Con filtros al lado · `03` Renglones | B | **Sí** |
+| E4 Product overview | `product-overview.md` | `GbProductOverview01` Galería + panel · `02` Galería arriba · `03` Tira + pestañas | B | **Sí** |
+| E5 Quick view | `quick-view.md` | `GbQuickView01` Diálogo · `02` Hoja lateral · `03` Elegir y añadir | B | **Sí** |
+| E6 Reviews | `reviews.md` | `GbReviews01` Lista con resumen · `02` Resumen y distribución · `03` Tarjetas | B | — |
+| E7 Cart | `cart.md` | `GbCart01` Lista + resumen al lado · `02` Resumen al pie · `03` Cajón | C | **Sí** |
+| E8 Checkout | `checkout.md` | `GbCheckout01` Por pasos · `02` Se pliega lo hecho · `03` Con el pedido al lado | C | **Sí** |
+| E9 Order summary | `order-summary.md` | `GbOrderSummary01` Tarjeta · `02` El recibo · `03` Línea | C | — |
+| E10 Order history | `order-history.md` | `GbOrderHistory01` Tabla · `02` Tarjetas con seguimiento · `03` Lista | C | — |
+
+Tags `gb-product-card-01`, `gb-product-grid-02`, `gb-quick-view-03`… (#764). 36 variantes.
+
+## 27. Reglas comunes de Ecommerce (amplían §1 a §5 y toman de §15 lo que se nombra)
+
+1. **Todo lo de §1** y la jerarquía de acciones de §3; de Booking (§15) valen tal cual: **precios solo con `GPrice`** y **una** `GPriceScope` por región (regla 4; en Ecommerce la región es **obligatoria** donde hay más de un precio de la misma moneda: lista, rejilla, carrito, pedido), **pasos directos de `labels`** (regla 5, con las claves `price`, `gallery`, `form`, `errorSummary`, `stepper`, `datePicker`, `pagination`, `region` → `GLoadRegion`, `tags` → `GTagGroup`, `table` → `GTable`, `dialog` → `GDialog`), **fechas en `<time datetime>`** con `Intl` y sin relativas (regla 6; los plazos de entrega relativos, «Llega mañana», solo como texto de la aplicación en `note`, porque la aplicación sabe cuándo pinta), **lo no disponible se dice, no se esconde** (regla 7: un producto, una variante, una línea o una categoría que no se puede pedir sigue a la vista con su motivo en texto y sin la acción de pedirla) y **estado de vista sí, de negocio no** (regla 9). **Ningún bloque de Ecommerce pinta `h1`.**
+2. **Entradas *peer* que compone** (todas públicas, #792): `@grana/vue` (principal: `GSection`, `GStack`, `GContainer`, `GAdaptiveLayout`, `GCard`, `GText`, `GBtn`, `GIcon`, `GBadge`, `GSummary`, `GMetric`, `GProgress`, `GAccordion`, `GTabs`, `GTable`, `GStepper`, `GDialog`, `GSelect`, `GRadioGroup`, `GNumberField`, `GDatePicker`, `GForm` y campos, `GErrorSummary`, `GFormActions`, `GFormSection`, `GFieldGroup`, `GCheckbox`, `GPagination`, `GEmpty`, `GSurface`, `useSectionLevel`), **`@grana/vue/price`** (`GPrice`, `GPriceScope`, `formatPrice`, `currencyDigits`), **`@grana/vue/gallery`** (`GGallery`, `GGalleryViewer`), **`@grana/vue/tag`** (`GTag`, `GTagGroup`) y **`@grana/vue/load-region`** (`GLoadRegion`). **No** compone `@grana/vue/booking` (Ecommerce no tiene consulta). El README de cada sección dice qué entradas carga la aplicación.
+3. **Nada se pierde al volver** (#913, personalidad de familia). Quien compra en el teléfono va y vuelve: de la rejilla a la ficha, de la vista rápida a la lista, del pago a la dirección, del carrito a la tienda. La familia promete que **lo que eligió le sigue y se dice con las mismas palabras**, y que **ningún gesto de ida borra lo hecho**:
+   - **La elección viaja** (`selection` y `options` de §28): la talla, el color y la cantidad que se eligieron en la ficha o en la vista rápida son las mismas `{ label, value }` que se leen en la línea del carrito, en el resumen del pedido y en el historial; ninguna sección las vuelve a redactar.
+   - **Quitar deja huella** (Cart, #921): la línea quitada deja en su sitio «Quitaste {nombre} · Deshacer» con el foco en «Deshacer», hasta que foco y puntero se van (el patrón A «Huella» de `GTag`, `tag.md`, aplicado a una línea); el foco nunca cae en `body`.
+   - **Volver no borra** (Checkout, #922): retroceder un paso conserva lo escrito; lo hecho se resume en una línea con «Cambiar».
+   - **Cerrar devuelve** (Quick view, #919): al cerrar la vista rápida el foco vuelve a la tarjeta que la abrió y la elección queda en la aplicación (`v-model:selection`) para la próxima vez.
+   - **Nunca a ciegas** (Product card, Product overview, Quick view): una acción rápida **no añade** un producto con opciones sin elegir; dice «Elegir opciones» y abre la elección. «Añadir» sin una opción obligatoria no emite y lleva el foco a la pregunta que falta.
+4. **Grana suma una sola vez, en un solo sitio** (#911). Los bloques **no suman, no multiplican ni redondean** precios: el total de una línea, el del carrito y el del pedido llegan hechos (`CartLine.total`, `Totals`). La aritmética del carrito vive solo en **`cartTotals`** (§29), utilidad pura que la aplicación llama (o no: su servidor puede dar los mismos `Totals`). Así el bloque pinta lo mismo venga de donde venga, y un total del servidor con una regla fiscal propia nunca discute con uno de Grana. Lo único que un bloque calcula es de vista: el porcentaje de cada fila de la distribución de opiniones (Reviews) y qué variante corresponde a la elección (Product overview).
+5. **La calificación se dice en palabras** (#912): «4,8 de 5 · 312 opiniones», con su cuenta siempre; **sin estrellas** (M-L2 sigue reservada: sin `star` en la lista de la librería, `icons.md`). Sin opiniones, `labels.noReviews` («Todavía sin opiniones»), nunca «0 de 5». Cuando llegue M-L2, la forma visual irá **junto** al texto, nunca en su lugar, y el dato (`Rating`, §28) no cambia.
+6. **El pago es de la aplicación** (#922). Ningún bloque pide, pinta, valida ni transmite datos de tarjeta, cuenta o identidad fiscal: el paso de pago de Checkout es un **slot** donde la aplicación monta el componente de su pasarela; los bloques solo muestran lo que la aplicación ya resumió («Tarjeta terminada en 4242», §28 `PaymentSummary`). Sin `fetch`, sin `XMLHttpRequest`, sin globals (compuerta de §34).
+7. **Urgencia honesta** (2.2.2 y patrones oscuros): sin cuenta atrás, sin «quedan 5 minutos», sin contadores de «personas viendo esto», sin temporizadores. Una oferta dice **hasta qué fecha** (`until`, en `<time>`); unas existencias bajas son un `badge` de texto que da la aplicación («Últimas 3 piezas») y solo si es verdad; una referencia de precio siempre **nombrada** (`compareLabel`, C de `price.md`): una referencia sin nombre no se pinta.
+8. **Intenciones con objeto** (§30): la carga lleva **el dato entero** (`product`, `line`, `order`) y la **elección** (`variant`, `selection`, `quantity`) para que la aplicación arme su llamada a su carrito sin volver a buscar nada. Nada navega, añade ni cobra por su cuenta.
+
+## 28. Tipos compartidos de Ecommerce (#910)
+
+En `packages/blocks/types/ecommerce.d.ts` (a mano, bruno), reexportados desde `dist/ecommerce.d.ts`; sin `[key: string]: unknown` (§2). **Tipos de más de una familia (#909):** los que ya usan Booking y ahora Ecommerce (`Photo`, `PhotoGroup`, `PriceSpec`, `PriceRegion`, `Totals`, `TotalsLine`, `Reference`, `GuestField`, `Consent`, `Policy`) pasan a **`types/common.d.ts`** (bruno), y `booking.d.ts` y `ecommerce.d.ts` los reexportan **con los mismos nombres** (ninguna importación de la aplicación cambia; la prueba de tipos de #836 lo comprueba con los dos bancos). `Media`, `Action` y `NavLink` siguen en `marketing.d.ts` y también se reexportan.
+
+```ts
+// ── De otras familias y de @grana/vue (no se redefinen) ──
+type Money = import('@grana/vue/price').Money
+type PriceTotal = import('@grana/vue/price').PriceTotal
+type PriceLabels = import('@grana/vue/price').PriceLabels
+// Photo, PhotoGroup, PriceSpec, PriceRegion, Reference, GuestField, Consent, Policy: §16, ahora en types/common.d.ts
+
+/** Enmienda aditiva de §16 (#910): una línea de `Totals` puede decir qué es y si ya está incluida.
+ *  Booking no la usa y no cambia; un `amount: null` es «se calcula después» (se pinta con `labels.pending`). */
+type TotalsLine = {
+  label: string
+  amount: Money | Money[] | null
+  note?: string
+  kind?: 'subtotal' | 'discount' | 'shipping' | 'tax' | 'fee'
+  included?: boolean          // impuesto ya incluido en los precios («Incluye IVA $172»): se dice, no se suma
+}
+type Totals = { lines?: TotalsLine[]; total: PriceTotal; note?: string }
+
+// ── Producto ──
+type Rating = { average: number; max?: number; count: number }   // max por defecto 5; average lo da la aplicación (no se calcula)
+type ProductFact = { label: string; value: string }               // ya formateado: «Contenido» → «750 ml»
+type Product = {
+  id: string | number            // obligatorio: identidad en add/open (EC5)
+  name: string
+  lang?: string                  // idioma del nombre y del resumen si no es el de la página (3.1.2)
+  maker?: string                 // antetítulo: quien lo hace o la línea («Taller Mendoza · Teotitlán»)
+  summary?: string               // una línea
+  href?: string                  // la ficha (la tarjeta es enlace)
+  external?: boolean
+  photos?: Photo[]               // la primera es la portada
+  price: PriceSpec               // value, compareAt + compareLabel (C), lead («desde»), unit
+  badge?: string                 // «Nuevo», «Últimas 3 piezas»: texto corto que da la aplicación, nunca solo color
+  rating?: Rating
+  facts?: ProductFact[]          // ≤ 2 a la vista en la tarjeta; la ficha los enseña todos
+  optionsSummary?: string        // «3 colores · 4 tallas» (texto de la aplicación)
+  options?: ProductOption[]      // si trae opciones obligatorias, la acción rápida es «Elegir opciones» (§27 regla 3)
+  available?: boolean | string   // false: labels.unavailable; String: el motivo («Vuelve el 2 de diciembre»)
+}
+type OptionValue = { value: string | number; label: string; available?: boolean | string; photo?: number }   // photo: índice en ProductDetail.photos
+type ProductOption = { key: string; label: string; values: OptionValue[]; required?: boolean }   // required por defecto true
+type Variant = {
+  id: string | number
+  options: Record<string, string | number>   // una entrada por ProductOption.key
+  price?: PriceSpec                          // sin él, el de Product
+  available?: boolean | string
+  max?: number                               // existencias o tope por pedido (GNumberField max)
+  photo?: number
+  sku?: string
+}
+type ProductSection = { id?: string; title: string; body?: string; items?: string[] }   // «Cuidados», «Envío y devoluciones»
+type ProductDetail = Product & {
+  photos: Photo[]                // obligatorio en la ficha (≥ 1)
+  groups?: PhotoGroup[]
+  description?: string           // párrafos separados por una línea en blanco
+  variants?: Variant[]
+  sections?: ProductSection[]
+  note?: string                  // «Hecho a mano: cada pieza cambia un poco», «Envío en 2 días hábiles»
+  reviews?: { href: string; label?: string }   // ancla a la sección de opiniones («#opiniones»)
+}
+/** La elección, tal como viaja (§27 regla 3): ya formateada para leerla igual en todas partes. */
+type ChosenOption = { key?: string; label: string; value: string }   // «Talla» · «M»; «Color» · «Añil»
+
+// ── Categorías, promociones, confianza ──
+type Category = { id?: string | number; name: string; lang?: string; href: string; description?: string; media?: Media; count?: number; external?: boolean }
+type PromoCode = { value: string; label: string }    // «OAXACA10», «Código»
+type Incentive = { id?: string | number; icon?: string; title: string; description?: string; action?: Action; policy?: string }   // policy: id de una Policy (ancla #policy)
+
+// ── Carrito ──
+type CartLine = {
+  id: string | number            // obligatorio (EC5)
+  product: Pick<Product, 'id' | 'name' | 'lang' | 'href' | 'photos' | 'maker'>
+  variant?: string | number      // Variant.id elegida
+  options?: ChosenOption[]       // la elección, como se leerá
+  quantity: number               // entero ≥ 0 (0 = quitar)
+  min?: number                   // por defecto 1
+  max?: number                   // existencias o tope por pedido
+  unitPrice: Money | Money[]
+  compareAt?: Money | Money[]; compareLabel?: string
+  total?: Money | Money[]        // total de la línea; de la aplicación o de `cartTotals` (byLine). Sin él, solo el unitario
+  available?: boolean | string   // false/motivo: «Ya no queda»; no entra en el total
+  note?: string                  // «Hecho a pedido: sale en 10 días»
+}
+type CartGoal = { id: string; label: string; reached: boolean; remaining: Money; target: Money; value: Money }   // salida de cartTotals (§29)
+
+// ── Pago, pedido, historial ──
+type PaymentSummary = { label: string; value: string }    // «Pago» · «Tarjeta terminada en 4242» (texto de la aplicación; nunca el número)
+type ShippingSummary = { label: string; method?: string; address?: string[]; date?: string; note?: string }   // date ISO (entrega estimada)
+type OrderLine = { id: string | number; name: string; lang?: string; href?: string; photo?: Photo; options?: ChosenOption[]
+                   quantity: number; unitPrice?: Money | Money[]; total: Money | Money[] }
+type OrderSummary = { reference?: Reference; placedAt?: string; lines: OrderLine[]; totals: Totals
+                      shipping?: ShippingSummary; payment?: PaymentSummary; note?: string }
+type OrderStatus = 'pending' | 'paid' | 'preparing' | 'shipped' | 'delivered' | 'cancelled' | 'returned'
+type OrderProgress = { steps: { id: string; label: string; date?: string }[]; current: string }   // la aplicación da los pasos y el actual
+type Order = { id: string | number; reference: Reference; placedAt: string; status: OrderStatus; statusText: string
+               total: Money | Money[]; count: number; lines?: OrderLine[]; href?: string; tracking?: NavLink
+               progress?: OrderProgress; note?: string }
+
+// ── Checkout ──
+type ChoiceOption = { value: string; label: string; description?: string; price?: PriceSpec; disabled?: boolean | string }
+type CheckoutField = GuestField | (Omit<GuestField, 'type' | 'options' | 'autocomplete' | 'placeholder'> & { type: 'choice'; options: ChoiceOption[] })
+type CheckoutStep = {
+  id: string                     // obligatorio: v-model:step y slot `step-{id}`
+  title: string
+  description?: string
+  fields?: CheckoutField[]       // sin `fields`: un paso de la aplicación (slot `step-{id}`, p. ej. el pago)
+  groups?: { id: string; title: string; fields: string[] }[]   // grupos dentro del paso (GFormSection), por `name`
+  consents?: Consent[]           // casillas del paso, nunca marcadas (§ guest-form)
+  action: string                 // texto del botón del paso («Continuar al envío», «Confirmar pedido»)
+  summary?: string               // resumen del paso hecho que da la aplicación (sin él, el bloque lo arma con los valores: §checkout)
+}
+
+// ── Opiniones ──
+type ReviewSummary = Rating & { distribution?: { value: number; count: number }[] }   // value 1..max; la aplicación da las cuentas
+type Review = {
+  id?: string | number
+  rating: number                 // 1..max
+  title?: string
+  quote: string                  // párrafos separados por una línea en blanco
+  lang?: string
+  author: { name: string; avatar?: string; place?: string }
+  date: string                   // ISO
+  verified?: boolean | string    // true: labels.verified («Compra verificada»); String: ese texto
+  options?: ChosenOption[]       // lo que compró («Talla M»)
+  source?: { label: string; href?: string; external?: boolean }   // si la opinión viene de otro sitio
+  reply?: { author: string; quote: string; date?: string }        // la respuesta de la tienda, a la vista
+}
+```
+
+**Identidad y orden:** como §2 y §16 (`id` o el índice; repetido, C3), salvo `Product.id`, `CartLine.id`, `Order.id` y `CheckoutStep.id`, obligatorios (EC5). Los textos de dato llegan **ya formateados** (`ProductFact.value`, `ChosenOption.value`, `statusText`, `PaymentSummary.value`); el bloque formatea solo fechas ISO (§15 regla 6), importes (`GPrice`/`formatPrice`) y la calificación (`Intl.NumberFormat`, regla 5 de §27).
+
+## 29. `cartTotals` (#911; reservada en `price.md` «Fuera de v1» y #776/#858)
+
+**Dónde:** exportada desde **`@grana/blocks/ecommerce`** (no desde `@grana/vue/price`: la v1 de `@grana/vue` mantiene «Grana nunca calcula totales», principio 2 de `price.md`, y la entrada de precio tiene su tope de 6 KiB). Pura: sin DOM, sin estado, sin `Intl` salvo lo que use `currencyDigits` (importada de `@grana/vue/price`, *peer*); funciona en SSR, en un worker y en el servidor de la aplicación. Tipos en `ecommerce.d.ts`.
+
+```ts
+cartTotals(lines: CartLine[], options: CartTotalsOptions): CartTotals
+
+type CartTotalsOptions = {
+  currency: string                               // la moneda del carrito (ISO 4217); obligatoria
+  discounts?: ({ id?: string; label: string } & ({ amount: Money } | { percent: number }))[]   // en orden; los da la aplicación (cupón ya validado)
+  shipping?: { label: string; amount: Money | null; note?: string }   // null: «se calcula después»
+  taxes?: { label: string; rate?: number; amount?: Money; included?: boolean }[]   // rate en fracción (0.16); o amount ya calculado
+  goals?: { id: string; label: string; target: Money }[]               // umbrales («envío gratis desde $1,500»)
+  labels: { subtotal: string; total: string | ((count: number) => string) }   // total = PriceTotal.label («por 3 piezas»)
+}
+type CartTotals = Totals & {
+  count: number                                   // piezas que entran (suma de quantity de las líneas disponibles)
+  subtotal: Money
+  byLine: Record<string, Money>                   // total de cada línea, por String(id): para `CartLine.total`
+  excluded: (string | number)[]                   // ids que no entran: no disponibles o de otra moneda
+  pending: boolean                                // hay un importe por calcular (envío null)
+  approximate: boolean                            // algún importe usado era `approximate`
+  goals: CartGoal[]
+}
+```
+
+**Reglas:**
+1. **Enteros escalados**: cada importe se pasa a unidades menores con `currencyDigits(currency)` (`Math.round(amount × 10^d)`) antes de operar; el resultado vuelve a unidades mayores al final. Nunca se suma coma flotante.
+2. **Líneas:** entra una línea con `available` verdadero (o ausente), `quantity` entero > 0 y un `unitPrice` en `currency` (de un `Money[]` se toma la alternativa de esa moneda). Su total es `CartLine.total` si la aplicación lo dio (gana: descuentos por línea, precios por volumen) o `unitario × quantity`. No disponibles, de otra moneda o con `quantity` inválida → `excluded` (aviso CT2 en las dos últimas).
+3. **Orden:** subtotal (suma de líneas) → descuentos en su orden (`percent` sobre el subtotal, redondeado; `amount` tal cual; **nunca por debajo de 0**: lo que sobra se recorta, aviso CT3) → envío → impuestos **no incluidos** con `rate` sobre (subtotal − descuentos), o su `amount` → total. Los impuestos **incluidos** (`included: true`, el IVA de los precios de México) se calculan como `base − base / (1 + rate)` para decirlos («Incluye IVA $172.41») y **no** se suman.
+4. **Redondeo:** a la unidad menor, **mitad hacia fuera de cero**, **una vez por operación** (por descuento y por impuesto, sobre su base; no por línea). Una regla fiscal distinta (por línea, al par, impuestos sobre el envío) la aplica la aplicación y pasa `amount`; es el límite declarado, no un defecto.
+5. **Salida:** `lines` de `Totals` en orden: `subtotal` (`kind: 'subtotal'`, `options.labels.subtotal`), cada descuento (`kind: 'discount'`, importe **negativo**: `GPrice` lo pinta con U+2212), el envío (`kind: 'shipping'`, `amount: null` si está por calcular), cada impuesto (`kind: 'tax'`, `included` si lo es). `total = { value: Money, label }` con `label` = `options.labels.total` (función de `count` si lo es). `goals`: por umbral, `reached` si el subtotal tras descuentos ≥ `target`, `remaining` = lo que falta (0 si se alcanzó).
+6. **Contagio de aproximado:** si algún importe usado lleva `approximate`, el total, el subtotal y las líneas resultantes lo llevan y `approximate: true` (la aplicación marcó una conversión; Grana no la oculta).
+7. **Nunca lanza.** `currency` mal formada o ausente: total `null`-seguro (todo a 0, `excluded` = todas) y aviso CT1. Avisos con la guarda de #653 y prefijo `[Grana cartTotals]`: **CT1** moneda inválida, **CT2** línea de otra moneda o `quantity` no entera, **CT3** descuentos mayores que el subtotal, **CT4** impuesto sin `rate` ni `amount`, **CT5** `percent` fuera de 0..100.
+8. **Lo que no hace:** convertir divisas, validar cupones, decidir existencias, calcular el envío, decidir qué impuesto aplica. Todo eso es de la aplicación.
+
+**Verificación (bruno, Vitest):** los casos de `price.md` sin error de coma flotante (0.1 + 0.2; 3 × 33.33 = 99.99); JPY (0 decimales) y KWD (3); descuentos `percent` y `amount`, recortados en 0; IVA no incluido 16 % y **incluido** (Barro y Agave: 2 880 MXN con IVA → 397.24 incluido); envío `null` → `pending`; líneas no disponibles y de otra moneda en `excluded` sin entrar en `count`; `CartLine.total` gana a la multiplicación; aproximado contagiado; `goals` alcanzado y por alcanzar; los cinco avisos una vez; SSR sin DOM; **la misma salida que un `Totals` hecho a mano** pintada por `GbCart` y `GbOrderSummary` (el bloque no distingue el origen).
+
+## 30. Eventos de intención de Ecommerce (además de §4)
+
+| Evento | Carga | Secciones | Cuándo |
+| --- | --- | --- | --- |
+| `add` | `{ event, product, variant, selection, options, quantity }` (`variant`: la `Variant` resuelta o `null`; `selection`: `{ [key]: value }`; `options`: `ChosenOption[]` ya dichas) | E1 (03), E2, E4, E5 | «Añadir» con todo lo obligatorio elegido y el producto disponible |
+| `open` | `{ event, product }` (E1, E2) · `{ event, order }` (E10) | E1, E2, E10 | Abrir la vista rápida o elegir opciones (tarjeta sin `href`, «Elegir opciones»); abrir un pedido sin `href` |
+| `change` | `{ event, line, quantity }` | E7 | La cantidad de una línea cambia **por gesto** (el `change` de `GNumberField`, no cada tecla) |
+| `remove` | `{ event, line, index }` | E7 | «Quitar», o cantidad 0 |
+| `restore` | `{ event, line, index }` | E7 | «Deshacer» de la huella (vuelve a la misma posición) |
+| `select` | `{ event, product, key, value, variant }` | E4, E5 | Se elige un valor de una opción (informativo: la elección ya está en `v-model:selection`) |
+| `submit` | `{ event, step, data: FormData, values, consents, final, preventDefault(), defaultPrevented }` | E8 | Paso válido (o el último). **Cancelable** y síncrono: sin `preventDefault()`, el bloque pasa al paso siguiente; con él, espera a que la aplicación cambie `step` |
+| `update:filters` · `update:sort` · `update:page` | el valor | E2 · E2 · E2, E6, E10 | Estado de vista: la aplicación vuelve a pedir la página |
+| `update:selection` · `update:quantity` · `update:open` · `update:step` · `update:values` | el valor | E4, E5 · E4, E5 · E5, E7 (03) · E8 · E8 | Estado de vista (§15 regla 9) |
+| `retry` | `{ event }` | E2, E10 | «Reintentar» de la región que falló (el de `GLoadRegion`/`GTable`) |
+
+`navigate` y `activate` siguen §4. **Una activación por gesto** (#661) en los disparadores que abren algo (vista rápida, cajón, visor): la cumplen `GDialog`, `GGalleryViewer` y `GBtn`; el bloque no añade otra. `restore` es nuevo en la familia (#913): «Deshacer» no es un `add` (la aplicación debe devolver la línea **a su sitio** con su cantidad, no añadir un producto nuevo al final).
+
+## 31. Avisos comunes de Ecommerce (`[Grana Gb<Sección><NN>]`, guarda de #653)
+
+Los de §5 (C1 a C8), K3 y K4 de §18 (precio sin `value` o lista sin región; `available` que no es Boolean ni String) y además:
+
+| # | Motivo | Qué pasa |
+| --- | --- | --- |
+| EC1 | Una lista con precios y sin `prices` (región obligatoria en Ecommerce, §27 regla 1) | Se pinta sin región (cada `GPrice` con su código, regla `auto`) |
+| EC2 | `rating` con `average` fuera de `0..max`, o sin `count` | No se pinta la calificación |
+| EC3 | Un producto con `options` obligatorias y la acción «Añadir» sin `labels.choose` | La acción rápida no se pinta (nunca se añade a ciegas) |
+| EC4 | `variants` cuya `options` no cubre todas las `ProductOption.key`, o dos variantes con la misma combinación | Esa variante se ignora |
+| EC5 | Falta el `id` obligatorio (`Product`, `CartLine`, `Order`, `CheckoutStep`) | Se usa el índice (o, en `CheckoutStep`, el paso se omite) |
+| EC6 | Un dato de tarjeta en un campo del bloque: `autocomplete` `cc-*` o `name` que empieza por `card` (§27 regla 6) | El campo **no se pinta** (el pago es del slot de la aplicación) |
+| EC7 | `until` en el pasado al montar (Promo) | Se pinta igual (la aplicación decide quitarla) |
+
+## 32. Archivos, `meta.json`, tipos, paquete y peso (#909; encargo a bruno, parte A)
+
+```
+packages/blocks/src/blocks/Gb<Sección>/        ← como §6: props.js, 01..03.vue, meta.json, test, banco, README
+packages/blocks/src/blocks/common/             ← se reutiliza; lo nuevo de Ecommerce aquí (rating, elección y variante, huella, campos)
+packages/blocks/src/ecommerce.js               ← índice: las 36 variantes (puras), `cartTotals` y el plugin `ecommerce`
+packages/blocks/src/cartTotals.js              ← la utilidad (§29), sin dependencias de Vue
+packages/blocks/types/common.d.ts              ← tipos de más de una familia (§28)
+packages/blocks/types/ecommerce.d.ts           ← §28, a mano
+packages/blocks/src/blocks/bank/ecommerce.js   ← la tienda común (§33)
+```
+
+- **`meta.json`:** la forma de §6 con `family: "ecommerce"` y `bundle.entry: "@grana/blocks/ecommerce"`; `complex: true` en las cinco complejas (§26). `build-types.mjs` escribe `dist/ecommerce.d.ts` por `family` (§19), reexporta `types/common.d.ts`, `types/ecommerce.d.ts` y los de §2, declara `cartTotals` y amplía `GlobalComponents` con las 36; se detiene ante una variante sin exportar o una exportación sin `meta.json`.
+- **`package.json`:** `exports` gana `"./ecommerce"` (`types`/`import`/`default`) y `typesVersions` `ecommerce`; `vite.config.js` gana la entrada; externos: `vue`, `@grana/vue`, `@grana/vue/price`, `@grana/vue/gallery`, `@grana/vue/tag`, `@grana/vue/load-region`.
+- **Código común:** el motor de campos de Guest form (tipo cerrado → control, `ValidityState`, mensajes, consentimientos, pasos con foco) lo necesita Checkout: bruno lo lleva a `common/` como pieza compartida por las dos entradas (trozo interno del paquete, §19), **sin cambiar el comportamiento de Guest form** (sus pruebas siguen verdes) y **sin que `dist/booking.js` pase de 37 888 B** (#907: ese tope no se vuelve a subir; si moverlo lo pasa, Checkout lleva su copia y lo anota con su medida). Lo mismo con la anatomía de cita de Testimonials (Reviews).
+- **Peso (#909):** **sin tope hasta medir** (como #879): con las 36 medidas, lima fija al cierre el tope de `dist/ecommerce.js` (con sus trozos) y por variante. **Referencias mientras**, el criterio de Booking: una variante sola **≤ 5 KiB (5 120 B)**; Checkout **≤ 7 KiB (7 168 B)** (formulario por pasos, como Guest form); Product overview y Quick view **≤ 6 KiB (6 144 B)** (galería, opciones, cantidad y precio); `cartTotals` sola **≤ 1 KiB (1 024 B)**. Una que pase vuelve a lima con su medida. **`dist/marketing.js` (18 432 B), `dist/booking.js` (37 888 B) y `dist/blocks.js` no crecen** por Ecommerce (compuertas de §34).
+
+## 33. Banco y verificación de Ecommerce
+
+- **Banco común** (`bank/ecommerce.js`, bruno): la tienda **Barro y Agave** (Oaxaca), `prices` `{ currency: 'MXN', taxes: 'IVA incluido' }` y los `labels` comunes de tarjeta, calificación y precio, exportados una vez para que la misma tarjeta se lea igual en Product card, Product grid y Cart. **Productos** (fotos con las proporciones de `bank/fotos.js`, servidas en local): Mezcal espadín «Tierra de Sola» 750 ml ($890, `facts` contenido y grado, `rating` 4.8 de 5 con 312); Mezcal tobalá ($1,650 con `compareAt` $1,850 y `compareLabel` «Precio de lista»); Rebozo de algodón teñido con grana cochinilla ($2,400, opción **Color** Grana/Añil/Natural con foto por color, Añil agotado: «Vuelve el 2 de diciembre»); Huipil bordado de San Antonino ($3,200, opciones **Talla** CH/M/G/EG —G sin existencias— y Color, `variants` con `max`, `badge` «Últimas 3 piezas»); Jarro de barro negro de San Bartolo Coyotepec ($480); Plato de barro verde de Atzompa (`available: 'Vuelve el 2 de diciembre'`); uno **mínimo** (`id`, `name`, `price`). Una opinión en inglés con `lang="en"`, un texto largo con palabra sin espacios (§7), un enlace externo (el transportista). **Carrito** de tres líneas (mezcal × 2, rebozo Grana × 1, plato no disponible), `totals` de `cartTotals` con IVA incluido, envío por calcular y el umbral «Envío gratis desde $3,000». **Pedido** con referencia `BYA-2611-07`, dirección de Oaxaca, «Tarjeta terminada en 4242»; **historial** de cinco pedidos (uno por estado, uno cancelado y uno en USD aproximado). Ninguna variante avisa con el banco (§7).
+- **Vitest:** lo de §8 en las 36 variantes y además: (1) **ningún cálculo de precio en un bloque**: los bancos dan totales que **no** son la suma de sus partes y los bloques pintan lo dado; (2) un solo `GPriceScope` por región y ningún precio fuera de `GPrice`; (3) la calificación es texto («4,8 de 5 · 312 opiniones» en `es-MX`, «4.8 out of 5…» con los `labels` en inglés), nunca un `img` ni un icono; (4) lo no disponible a la vista con su motivo y sin acción; (5) la elección viaja: la misma `ChosenOption` sale igual en la línea del carrito, el resumen del pedido y el historial; (6) cada intención con su carga exacta; (7) ningún campo de tarjeta (EC6); (8) avisos EC1 a EC7 y los propios, una vez; (9) SSR de las 36 sin `window`.
+- **Playwright, Chromium** (`packages/blocks/playground/ecommerce/<seccion>.html`, spec `tests/blocks-ecommerce.spec.mjs`, **puertos propios 4217 (A), 4218 (B), 4219 (C)**): lo de §8 (320, 390, 1440; zoom 200 %; Tab con foco visible; reducido; oscuro; consola limpia; tema por defecto y dos del CLI) y, por sección, su «Verificación propia». La pasada en Firefox y WebKit, una vez al cerrar el lote.
+
+## 34. Compuertas de Ecommerce (bruno, en el script del paquete y en `gates.sh`)
+
+Las de §9 sobre los `Gb*` y además:
+
+```bash
+test -f packages/blocks/dist/ecommerce.js && test -f packages/blocks/dist/ecommerce.d.ts
+! grep -q "createApp" packages/blocks/dist/ecommerce.js
+! grep -q "__shared" packages/blocks/dist/ecommerce.js
+! grep -qE "g-[a-z-]+__[a-z]" packages/blocks/dist/ecommerce.js      # ninguna clase interna de un componente
+! grep -qE "fetch\(|XMLHttpRequest|sendBeacon" packages/blocks/dist/ecommerce.js
+! grep -q "describeQuery" packages/blocks/dist/ecommerce.js          # Ecommerce no carga Booking
+! grep -q "GbProductCard01" packages/blocks/dist/booking.js           # Booking no paga Ecommerce
+! grep -q "GbProductCard01" packages/blocks/dist/marketing.js
+! grep -q "GbProductCard01" packages/blocks/dist/blocks.js
+! grep -q "cartTotals" packages/blocks/dist/booking.js packages/blocks/dist/marketing.js
+! grep -qE "cc-(number|csc|exp)" packages/blocks/src/blocks/Gb*/*.vue  # ningún campo de tarjeta (§27 regla 6)
+test "$(gzip -c packages/blocks/dist/marketing.js | wc -c)" -le 18432
+test "$(gzip -c packages/blocks/dist/booking.js | wc -c)" -le 37888
+```
+
+Las de peso de Ecommerce (entrada y por variante) entran cuando lima fije los topes al cierre (§32).
+
+## 35. Alcance: lo que se reutiliza y lo que queda fuera (#914)
+
+- **Políticas de la tienda** (devoluciones, envíos): **`GbPolicies` de `@grana/blocks/booking`** tal cual (receta del README; su `Policy.id` es el ancla que citan `Incentive.policy` y los consentimientos de Checkout). No se reexporta (una sección, una entrada; importación parcial: la variante sola pesa ≤ 5 KiB). Hallazgo EC-L5 por si la familia de políticas se muda a una entrada común.
+- **Lo que dicen de la tienda** (no de un producto): `GbTestimonials` de Marketing. **Las opiniones de un producto** son `GbReviews` (E6, #920): llevan calificación por opinión, fecha, compra verificada, lo que se compró, la respuesta de la tienda y la distribución, que `Testimonial` no tiene; la anatomía de la cita (`figure` › `blockquote` + `figcaption` con `GText`) es la misma.
+- **Fuera del lote:** pago y pasarela (slot de la aplicación, §27 regla 6), validación de cupones, cálculo de envío y de existencias (aplicación), lista de deseos, comparador, búsqueda con sugerencias (receta con `GCombobox`), estrellas (M-L2), mini carrito en la cabecera (receta: `GBadge` con la cuenta sobre el `GBtn` del carrito y `GbCart03`), mapa de la tienda (`GEmbed`), un muelle genérico y una columna pegada (BK-L1, BK-L2).
+
+## 36. Correcciones al plan §4.2 (#914)
+
+| Plan | Contrato | Por qué |
+| --- | --- | --- |
+| Product grid con `GFilterBar` | Facetas con **`GTag` de alternar** en un `GTagGroup layout="facets"` (01, 03) o en un `GAccordion` por faceta (02) | `GFilterBar` es un editor de reglas (`op`, `value`) sobre columnas de datos (`filter-bar.md`); quien compra elige valores, y un filtro de la vista que actúa en el acto es `GTag` de alternar (`radio-group.md` «Frontera», `tag.md`) |
+| Product grid con `GCardGroup` | `GAdaptiveLayout role="list"` (§1.5) | `GCardGroup` es una barra de tarjetas que filtran (`role="toolbar"`, #603), no una rejilla (como #816) |
+| Product grid 03 «lista» | 03 **Renglones** (`GStack as="ul"` con la tarjeta horizontal de E1 02) | La misma anatomía de E1 en las tres; «lista» sin tarjeta pediría tipografía propia |
+| Quick view con dos variantes (diálogo · hoja) | Tres: 01 Diálogo (hoja inferior en el teléfono), 02 Hoja lateral, **03 Elegir y añadir** (solo opciones, cantidad y «Añadir») | Toda sección lleva tres variantes con la misma `Props`; la tercera es el destino de «Elegir opciones» de la tarjeta compacta (§27 regla 3) |
+| Reviews «resumen + distribución con `GProgress`» | La distribución se **lee como texto**; la barra de `GProgress` va en un envoltorio `aria-hidden` (decorativa) | Una distribución no es un progreso: `role="progressbar"` mentiría al lector. Hallazgo EC-L2 (`GProgress` como medidor) |
+| Reviews depende de M-L2 (P2) | Contratado ya con **calificación textual** (§27 regla 5) | El dato es el mismo con o sin estrellas; esperar a M-L2 dejaría la ficha de producto sin opiniones |
+| Cart 02 «resumen al pie (muelle)» | 02 **Resumen al pie** sin muelle: el total va **justo antes** de la acción principal, en la misma tarjeta del pie | No hay muelle genérico (BK-L2), y el pie pegado que existe (`GFormActions sticky`) es de un `GForm`: el carrito no es un formulario |
+| Cart 03 «compacta (cajón)» | 03 **Cajón**: el bloque lleva su `GDialog placement="end"` (hoja lateral; pantalla completa en el teléfono) con `v-model:open` | Un cajón es una superficie con foco atrapado y devolución: `GDialog` ya lo cuida (`GSidebar drawer` es navegación) |
+| Checkout 03 «dos columnas con resumen pegado» | 03 **Con el pedido al lado** (sin pegar) y el total en el `status` de `GFormActions sticky` | Sin CSS no hay columna pegada (BK-L1); el pie pegado de `GFormActions` sí existe y cuida 2.4.11 |
+| Checkout 02 «una página larga con secciones» | 02 **Se pliega lo hecho**: `GFormSection mode="collapsible"` por paso; el hecho se pliega con su `summary` y «Cambiar» | Una página larga con todo abierto obliga a desplazar entre el envío y el total en el teléfono; plegar lo hecho da el mismo formulario sin perder nada |
+| Order history 02 «tarjetas con `GStepper` de estado» | Se mantiene, con `GStepper` **informativo** (`navigation="none"`) y el estado también en texto | Igual que Confirmation 02 (#873) |
+| Promo 03 «dos ofertas lado a lado» | 03 **Línea** (una oferta en una línea sobria); dos ofertas = dos `GbPromo02` en una rejilla de la aplicación (receta) | Una sección, una `interface`: «dos ofertas» obligaría a una lista con un título de sección que repite el de la oferta en 01 y 02 |
+| Promo con `eyebrow` | Sin antetítulo (B-L1) | `GSection` no tiene antetítulo |
+| E1 «`rating?`» (M-L2) | `rating` textual (§27 regla 5) | — |
+
+## 37. Hallazgos para lima (no bloquean; en `PENDIENTES.md` §3)
+
+- **EC-L1 · El nombre del producto como `h1`.** En una ficha de producto el nombre suele ser el `h1`; ningún bloque pinta `h1` (§1 regla 6) y `GSection` admite 2 a 4. Como Offer detail, Product overview titula la sección con el nombre (`h2` bajo el `h1` de la aplicación). Reservado: que la aplicación declare la sección como cabecera de página (`GSection headingLevel="1"` o el `h1` en `GPageHeader` con el nombre), ronda propia si el usuario lo pide.
+- **EC-L2 · `GProgress` como medidor.** La distribución de opiniones y el umbral del carrito son medidas, no progresos de una tarea; hoy `GProgress` es siempre `progressbar`. Reservado: `role="meter"` (cambia la v1). Mientras, Reviews lo usa decorativo con el texto al lado y Cart lo usa como progreso hacia una meta (que sí lo es).
+- **EC-L3 · Recuento de una rejilla filtrada sin carga.** Si la aplicación filtra en el cliente sin `loading`, nadie anuncia «24 productos» (sin región viva propia, #792); el recuento visible cambia y `GTag` anuncia su estado. Se resolverá con `announce` (nombre reservado en `api.md` «Grana Blocks» regla 2).
+- **EC-L4 · Muestra de color.** Una opción de color se dice con su nombre («Añil»); una muestra visual del color (un círculo) necesita CSS o un componente. Reservado (ronda de kiwi si una plantilla lo pide); la foto por color (`OptionValue.photo`) ya enseña el color real.
+- **EC-L5 · Políticas en una entrada común.** `GbPolicies` vive en Booking y la tienda la importa de ahí (§35). Si una tercera familia la pide, se muda a una entrada común sin cambiar su API.
+- **EC-L6 · Copiar un código** (Promo) depende de la aplicación (`activate` síncrono con `navigator.clipboard`, como «Compartir» de Confirmation, #873); un acuse en el sitio («Copiado») es el patrón de acciones con acuse de `api.md` (#643), reservado para cuando un componente lo ofrezca.
+- **BK-L1, BK-L2, BK-L3** siguen abiertos y los toca Ecommerce (resumen pegado, muelle del total, precio al final del renglón).
+
+## 38. Encargos de Ecommerce
+
+**bruno**, en **tres partes** (cada una con su puerto si corre a la vez: A 4217, B 4218, C 4219). Opus en las cinco complejas (§26); Sonnet en el resto.
+
+- **A · Infraestructura + E1, E3, E12, E11:** entrada `@grana/blocks/ecommerce` (§32: `src/ecommerce.js`, plugin, `exports`, `typesVersions`, `vite.config.js`, externos, `build-types.mjs` por `family`); `types/common.d.ts` (mudanza de §28, con la prueba de tipos de Booking verde) y `types/ecommerce.d.ts`; **`cartTotals`** (§29) con su prueba; `common/` de Ecommerce (calificación textual, elección y variante, `ChosenOption`); `bank/ecommerce.js`; compuertas de §34; `tests/blocks-ecommerce.spec.mjs` y `playground/ecommerce/`. Secciones **Product card**, **Category previews**, **Trust**, **Promo**.
+- **B · E2, E4, E5, E6:** **Product grid** (facetas, orden, `GLoadRegion`, `GEmpty filtered`, `GPagination`), **Product overview** (galería que sigue a la elección, opciones, cantidad, variante), **Quick view** (comparte el panel de E4 por `common/`, no importa la variante de E4), **Reviews** (anatomía de cita compartida con Testimonials, distribución decorativa). Depende de A en la entrada, el banco y la tarjeta.
+- **C · E7, E8, E9, E10:** **Cart** (huella con `restore`, cantidad por gesto, umbral, cajón), **Checkout** (motor de campos llevado a `common/` desde Guest form sin cambiarlo, pasos con `submit` cancelable, paso de la aplicación por slot, EC6), **Order summary**, **Order history** (`GTable` con `rowHref`/`detail`, seguimiento con `GStepper` informativo).
+- Al final de las tres: la medida de peso (entrada con sus trozos, 36 parciales y `cartTotals` sola) para que lima fije los topes, y la pasada única en Firefox y WebKit.
+
+**coco** (Sonnet; **Opus en las cinco complejas**): **solo auditoría** de las doce secciones (`auditoria-visual.md` previa y posterior, dos temas del CLI, rúbrica de movimiento sobre lo compuesto: vista rápida y cajón de `GDialog`, visor de `GGallery`, cifras que ruedan de `GPrice` en el carrito, plegado de `GFormSection` y `GAccordion`, la huella), resultado en `design/lab/blocks/ecommerce/auditoria.md`; lo que pida CSS vuelve a lima.
+
+**mora-docs** (Sonnet): un `README.md` por sección y las recetas: «La elección que viaja» (de `GbProductOverview` a `GbCart`, `GbOrderSummary` y `GbOrderHistory` con las mismas `ChosenOption`), «`cartTotals` o el servidor» (los mismos `Totals` de los dos lados), «El pago en el slot» (Checkout con la pasarela de la aplicación), «Mini carrito en la cabecera», «Dos promociones lado a lado», «Políticas de la tienda con `GbPolicies`».

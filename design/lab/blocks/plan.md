@@ -70,6 +70,8 @@ Por familia: sección, variantes (concepto de layout), `Props` compartida, compo
 
 ### 4.2 Ecommerce (12 secciones)
 
+> Las doce secciones están contratadas en `design/contracts/blocks/` (#909 a #926; `_comun.md` Parte C, §26 a §38). Donde difieren de esta tabla manda el contrato (correcciones en `_comun.md` §36: facetas con `GTag` y no `GFilterBar`, Quick view con tres variantes, Reviews con calificación textual y adelantada a P1, Cart 03 como cajón con `GDialog`, Checkout 02 «Se pliega lo hecho» y 03 sin pegar, Promo 03 «Línea»; `cartTotals` en `@grana/blocks/ecommerce`, #911).
+
 | # | Sección | Variantes | Props compartida (resumen) | Compone | Dep. | Pri. |
 | --- | --- | --- | --- | --- | --- | --- |
 | E1 | **Product card** (pieza base de las listas) | 01 foto arriba · 02 horizontal · 03 compacta con acción rápida | `Product = { id, name, price: Money, compareAt?: Money, media, href, badge?, rating?, variants?, available }` | `GCard`, `GBadge`, `GBtn` | **M-L1**, M-L2 | P1 |
