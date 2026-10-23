@@ -45,7 +45,7 @@
       "name": "GbGuestForm01",
       "tag": "gb-guest-form-01",
       "concept": "Una página",
-      "root": "GSection › GForm (GErrorSummary, GFormSection por grupo —sin groups, sin GFormSection (#881); en 02 sin description (#900)— › GFormLayout › GFormRow › campo, GFieldGroup de consentimientos con legend = labels.consents (#880; en 02, el último paso), GFormActions)"
+      "root": "GSection › GForm (GErrorSummary, GFormSection por grupo —sin groups, sin GFormSection (#881)— › GFormLayout › GFormRow › campo, GFieldGroup de consentimientos con legend = labels.consents (#880), GFormActions)"
     },
     {
       "name": "GbGuestForm02",
@@ -57,7 +57,7 @@
       "name": "GbGuestForm03",
       "tag": "gb-guest-form-03",
       "concept": "Con lo pedido a la vista",
-      "root": "GSection › GStack › [GCard level=\"flat\" con la oferta, la consulta y su precio] + GForm de 01 con GFormActions sticky"
+      "root": "GSection › GStack gap=\"lg\" › [GCard level=\"flat\" role=\"group\" con GSummary (oferta), la consulta (describeQuery) y GPrice del offer.price en la región de precios] + GForm de 01 con GFormActions sticky"
     }
   ],
   "props": [
@@ -280,6 +280,6 @@
       "@grana/vue/booking",
       "@grana/vue/price"
     ],
-    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c), las 11 secciones y 33 variantes (remate de bruno tras la auditoría de coco, 2026-10-23): 36 851 B de 36 864 (#886; margen 13 B). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbGuestForm01 6375 B, GbGuestForm02 6473 B, GbGuestForm03 6940 B; tope por variante 7168 B (#887)."
+    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c), las 11 secciones y 33 variantes (remate de bruno tras la auditoría de coco, 2026-10-23): 36 851 B de 37 888 (#907; margen 1 037 B). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbGuestForm01 6375 B, GbGuestForm02 6473 B, GbGuestForm03 6940 B; tope por variante 7168 B (#887)."
   }
 }

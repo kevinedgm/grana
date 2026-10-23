@@ -45,7 +45,7 @@
       "name": "GbBookingSummary03",
       "tag": "gb-booking-summary-03",
       "concept": "Línea",
-      "root": "GStack as=\"section\" horizontal gap=\"md\" vertical=\"center\" [aria-label=title] › GSummary inline + GPrice sm (solo el total) + la primera acción (outline)"
+      "root": "GText as=\"div\" role=\"group\" [aria-label = title] › GAdaptiveLayout gap=\"md\" vertical=\"center\" › GSummary inline + GPrice sm (solo el total) + acciones outline (GbActions: le llegan todas y pinta hasta dos; el contrato pide solo la primera, pendiente) › garantía en GText con id debajo"
     }
   ],
   "props": [
@@ -180,6 +180,6 @@
       "@grana/vue/booking",
       "@grana/vue/price"
     ],
-    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c), las 11 secciones y 33 variantes (remate de bruno tras la auditoría de coco, 2026-10-23): 36 851 B de 36 864 (#886; margen 13 B). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbBookingSummary01 4082 B, GbBookingSummary02 3894 B, GbBookingSummary03 3949 B; tope por variante 5120 B (#887)."
+    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c), las 11 secciones y 33 variantes (remate de bruno tras la auditoría de coco, 2026-10-23): 36 851 B de 37 888 (#907; margen 1 037 B). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbBookingSummary01 4082 B, GbBookingSummary02 3894 B, GbBookingSummary03 3949 B; tope por variante 5120 B (#887)."
   }
 }

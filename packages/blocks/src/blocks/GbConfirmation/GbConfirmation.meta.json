@@ -216,6 +216,6 @@
       "@grana/vue/booking",
       "@grana/vue/price"
     ],
-    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c), las 11 secciones y 33 variantes (remate de bruno tras la auditoría de coco, 2026-10-23): 36 851 B de 36 864 (#886; margen 13 B). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbConfirmation01 4746 B, GbConfirmation02 4799 B, GbConfirmation03 4619 B; tope por variante 5120 B (#887)."
+    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c), las 11 secciones y 33 variantes (remate de bruno tras la auditoría de coco, 2026-10-23): 36 851 B de 37 888 (#907; margen 1 037 B). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbConfirmation01 4746 B, GbConfirmation02 4799 B, GbConfirmation03 4619 B; tope por variante 5120 B (#887)."
   }
 }

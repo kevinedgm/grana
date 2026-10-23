@@ -41,7 +41,7 @@
       "name": "GbLocation03",
       "tag": "gb-location-03",
       "concept": "Puntos de encuentro",
-      "root": "GSection › [dirección principal + «Cómo llegar» outline] + GSection anidada (labels.points) › GStack as=\"ul\" › GCard as=\"li\" por punto (eyebrow = <time>, dirección, su ruta outline)"
+      "root": "GSection › [dirección principal + «Cómo llegar» outline] + GSection anidada (labels.points; sin título, un div) › GStack as=\"ul\" › GCard as=\"li\" por punto (eyebrow = <time>, media = su foto, GText as=\"address\", actions = sus rutas outline)"
     }
   ],
   "props": [
@@ -187,6 +187,6 @@
       "vue",
       "@grana/vue"
     ],
-    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c), las 11 secciones y 33 variantes (remate de bruno tras la auditoría de coco, 2026-10-23): 36 851 B de 36 864 (#886; margen 13 B). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbLocation01 3877 B, GbLocation02 3954 B, GbLocation03 4268 B; tope por variante 5120 B (#887)."
+    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c), las 11 secciones y 33 variantes (remate de bruno tras la auditoría de coco, 2026-10-23): 36 851 B de 37 888 (#907; margen 1 037 B). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbLocation01 3877 B, GbLocation02 3954 B, GbLocation03 4268 B; tope por variante 5120 B (#887)."
   }
 }

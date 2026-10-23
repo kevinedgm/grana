@@ -10,10 +10,10 @@
   "tag": "g-booking-bar",
   "bundle": {
     "global": "GranaBooking",
-    "gzip": 14697,
-    "limit": 14336,
+    "gzip": 14776,
+    "limit": 15360,
     "umdGzip": 13118,
-    "note": "Con describeQuery (#862, 2026-10-23): 14 697 B gzip -9, por encima del tope de 14 336 B (#742); vuelve a lima. Antes 14 081 B."
+    "note": "Medido el 2026-10-23 tras reconstruir (npm run build -w @grana/vue): gzip -9 -c packages/vue/dist/booking.js = 14 776 B, tope 15 360 B (#878, lima). Antes 14 697 B con describeQuery (#862) sobre el tope de 14 336 B (#742)."
   },
   "style": "packages/vue/src/components/GBookingBar/GBookingBar.css",
   "description": "Consulta de disponibilidad (estancia, mesa o recorrido) que emite una intención y no hace la reserva: A · La frase (por defecto, la plantilla de la aplicación con huecos), la barra (una fila que, si no cabe, pasa a resumen + hoja) y B · El muelle opcional. Valida al enviar, dice lo que falta y distingue la noche agotada del día de salida.",
