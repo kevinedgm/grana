@@ -45,7 +45,7 @@
       "name": "GbBookingSummary03",
       "tag": "gb-booking-summary-03",
       "concept": "Línea",
-      "root": "GText as=\"div\" role=\"group\" [aria-label = title] › GAdaptiveLayout gap=\"md\" vertical=\"center\" › GSummary inline + GPrice sm (solo el total) + acciones outline (GbActions: le llegan todas y pinta hasta dos; el contrato pide solo la primera, pendiente) › garantía en GText con id debajo"
+      "root": "GText as=\"div\" role=\"group\" [aria-label = title] › GAdaptiveLayout gap=\"md\" vertical=\"center\" › GSummary inline + GPrice sm (solo el total) + acciones outline (GbActions: le llega solo la primera, `actions.slice(0, 1)` en `useBookingSummary`) › garantía en GText con id debajo"
     }
   ],
   "props": [

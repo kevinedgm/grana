@@ -106,6 +106,17 @@ describe('GbBookingSummary · lo pedido y el total', () => {
     expect(run(GbBookingSummary01).w.findAll('img')).toHaveLength(1)
     expect(run(GbBookingSummary02).w.findAll('img')).toHaveLength(0)
   })
+  it('03 con dos acciones pinta solo la primera (outline), en el hueco por defecto', () => {
+    // El banco trae dos acciones («Continuar» y «Cambiar fechas»); 03 recorta en useBookingSummary (slice(0, 1)) antes de GbActions
+    expect(bank.props.actions).toHaveLength(2)
+    const w = run(GbBookingSummary03).w
+    const btns = w.findAllComponents(GBtn)
+    expect(btns).toHaveLength(1)
+    expect(btns[0].props('variant')).toBe('outline')
+    expect(btns[0].text()).toBe('Continuar')
+    expect(w.findAll('.g-btn').map((b) => b.text())).toEqual(['Continuar'])
+    expect(w.text()).not.toContain('Cambiar fechas')
+  })
   it('navigate con clic primario; no con Ctrl; activate sin href', () => {
     for (const [, C] of ALL) {
       const onNavigate = vi.fn((p) => p.event.preventDefault())
