@@ -104,6 +104,27 @@ Por familia: sección, variantes (concepto de layout), `Props` compartida, compo
 | B11 | **Policies** | 01 acordeón · 02 lista `dl` · 03 tarjetas por tema | `{ title, items: Policy[] }` con `{ title, body, icon? }` | `GAccordion`, `dl`, `GCard` | — | P0 |
 | B12 | **Reviews** (opiniones del sitio) | reutiliza M5 con `source` obligatorio | misma `Props` que M5 | M5 | M-L2 | P0 (rating P2) |
 
+### 4.4 Dashboards (12 secciones; añadida el 2026-10-23 a petición del usuario)
+
+Familia para **paneles de la aplicación** (gestión, operación, dirección): la pantalla que se abre cada día. Es distinta de la familia Gestión de la página de Notion (`GResourceList` y afines: CRUD de una entidad) y la complementa: un dashboard compone métricas, gráficas, tablas cortas, actividad y accesos, no edita una entidad. Compone lo que Grana ya tiene para paneles: `GWidget`, `GWidgetGrid`, `GWidgetGallery`, `GWidgetConfig`, `GMetric`, `GProgress`, `GTable`, `GDataList`, `GFilterBar`, `GPageHeader`, `GStatusIsland`/`GStatus`, `GEmpty`/`GLoadRegion`, `GCard`, `GAvatar`, `GTag`, `GBadge`, `GMenu`, `GPrice` (importes). Grana **no tiene componente de gráficas**: la gráfica la aporta la aplicación en un slot (receta con un `<figure>` accesible, tabla de datos equivalente oculta o visible) hasta que exista una ronda propia (`GChart`, reservado).
+
+| # | Sección | Variantes | Props compartida (resumen) | Compone | Dep. | Pri. |
+| --- | --- | --- | --- | --- | --- | --- |
+| D1 | **Dashboard header** (título, periodo, acciones) | 01 título + selector de periodo · 02 con resumen de estado · 03 compacto pegado | `{ title, period?: PeriodOption[], periodValue?, status?: Status, actions: Action[] }` emite `update:period` | `GPageHeader`, `GRadioGroup segmented`/`GSelect`, `GStatus`, `GBtn` | — | P0 |
+| D2 | **KPI row** (cifras clave) | 01 fila de métricas · 02 tarjetas con tendencia y mini objetivo · 03 lista compacta | `{ items: Kpi[] }` con `Kpi = { label, value, unit?, delta?, trend?, target?, href?, source? }` | `GAdaptiveLayout`, `GMetric`, `GProgress`, `GPrice` | — | P0 |
+| D3 | **Chart card** (gráfica) | 01 una gráfica con leyenda · 02 gráfica + cifra destacada · 03 gráfica + tabla equivalente | `{ title, description?, summary?: Kpi, data: Series[], legend?, table?: boolean }` slot `chart` obligatorio | `GWidget`/`GCard`, `GTable` (equivalente), `GText` | gráfica de la app (`GChart` reservado) | P1 |
+| D4 | **Widget grid** (distribución del panel) | 01 rejilla fija por niveles s/m/l · 02 galería configurable por la persona · 03 columnas de prioridad | `{ widgets: WidgetDef[], layout?, editable? }` emite `update:layout` | `GWidgetGrid`, `GWidgetGallery`, `GWidgetConfig` | — | P0 |
+| D5 | **Activity feed** (actividad reciente) | 01 lista con avatar y hora · 02 agrupada por día · 03 compacta | `{ title, items: Activity[], page?, total? }` emite `open`, `page` | `GDataList`, `GAvatar`, `time`, `GPagination` | — | P0 |
+| D6 | **Table card** (tabla corta con «ver todo») | 01 tabla · 02 tarjetas en estrecho · 03 lista con estado | `{ title, columns, rows, rowHref?, action?: Action, page? }` emite `open`, `page` | `GWidget`, `GTable` (`rowHref`, `rowStatus`), `GBadge`, `GEmpty` | — | P0 |
+| D7 | **Goals / progress** (objetivos) | 01 barras con meta · 02 anillos (CSS) · 03 lista con plazo | `{ title, goals: Goal[] }` con `{ label, value, target, unit?, due?, status? }` | `GProgress`, `GMetric`, `GText`, `time` | — | P0 |
+| D8 | **Alerts panel** (pendientes y avisos) | 01 lista por severidad · 02 tarjetas con acción · 03 cinta compacta | `{ title, alerts: Alert[] }` emite `resolve`, `open` | `GStatus`, `GBadge`, `GCard`, `GBtn` | sin región viva propia (#792) | P0 |
+| D9 | **Quick actions** (accesos) | 01 rejilla de botones con icono · 02 lista · 03 barra | `{ title?, actions: Action[] }` emite `navigate`/`activate` | `GAdaptiveLayout`, `GBtn`, `GIcon` | — | P0 |
+| D10 | **Filters bar** (filtros del panel) | 01 barra · 02 chips · 03 editor en hoja (estrecho) | `{ filters: FilterDef[], value, presets? }` emite `update:value` | `GFilterBar`, `GTag facets` | — | P0 |
+| D11 | **Recent items** (últimos elementos) | 01 tarjetas · 02 lista · 03 tira | `{ title, items: Item[], action? }` emite `open` | `GCard`, `GAvatar`, `GTag` | — | P0 |
+| D12 | **Empty dashboard** (primer uso / sin datos) | 01 molde del panel · 02 pasos de arranque · 03 vacío con una acción | `{ title, description?, steps?: Step[], action?: Action }` | `GEmpty` (molde), `GLoadRegion`, `GStepper` | — | P0 |
+
+**Qué lo hace distinto (propuesta para lima):** «el panel dice qué cambió desde la última vez»: cada bloque con datos recibe `since` (fecha de la visita anterior) y marca lo nuevo sin mover nada; y «ninguna cifra sin su origen» (regla heredada de Stats #820): cada KPI lleva `source`.
+
 **Tipos compartidos entre familias** (un solo archivo `blocks/types.ts` generado desde `meta.json`): `Action = { label, href?, variant?, icon?, external? }`, `NavLink`, `Media = { src, srcset?, sizes?, width, height, alt }`, `Photo` (el de `gallery.md`), `Money = { amount, currency }` (lo define la ronda de moneda), `Party` (el de `GPartyField`), `BookingQuery` (el modelo de `GBookingBar`).
 
 ## 5. Orden de trabajo
@@ -115,6 +136,7 @@ Por familia: sección, variantes (concepto de layout), `Props` compartida, compo
 | **2 · Marketing P0** (9 secciones, 3 variantes cada una; **contratado**, `design/contracts/blocks/`, #815 a #826) | M2 Hero, M3 Features, M7 CTA, M8 FAQ, M5 Testimonials, M4 Stats, M11 Newsletter, M13 Blog, M14 Footer | Todo compone componentes `candidate`; es el **primer sitio real** (hotel de Oaxaca) y prueba la regla «cero CSS» |
 | **3 · Booking P0 + P1** | B1 Search, B2 Offer list, B6 Guest form, B7 Confirmation, B8 Itinerary, B10 Location, B11 Policies, luego B3, B5, B9, B4 | Con el lote 1 hecho, cierra las tres plantillas de Oaxaca (hotel, restaurante, tour) |
 | **4 · Ecommerce** | E1 Product card, E2 Grid, E3 Categories, E4 Overview, E7 Cart, E9 Summary, E8 Checkout, E10 History, E11 Promo, E12 Trust, E5 Quick view | Depende de lote 1 y de la utilidad `cartTotals` |
+| **4b · Dashboards** (añadido 2026-10-23) | D1 Header, D2 KPI row, D4 Widget grid, D5 Activity, D6 Table card, D7 Goals, D8 Alerts, D9 Quick actions, D10 Filters, D11 Recent, D12 Empty; D3 Chart card con la gráfica de la app en slot | Todo compone componentes `candidate`; `GChart` reservado |
 | **5 · Lo que necesita componente nuevo** | Calificación (`star`, M-L2) → E6 Reviews y `rating`; `GEmbed` → mapa vivo en M12/B10; `lang`/`hreflang` → idiomas en M1; Header 02 transparente (H-L6) | Cada uno con su ronda de kiwi |
 | **6 · CLI** | `grana add block <seccion>` en el CLI | La extracción a `@grana/blocks` (`packages/blocks/`, *peer* `@grana/vue`) ya no espera: los bloques nacen ahí (#780, #814) |
 
