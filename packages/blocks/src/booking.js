@@ -29,6 +29,15 @@ import GbPolicies03 from './blocks/GbPolicies/GbPolicies03.vue'
 import GbOfferDetail01 from './blocks/GbOfferDetail/GbOfferDetail01.vue'
 import GbOfferDetail02 from './blocks/GbOfferDetail/GbOfferDetail02.vue'
 import GbOfferDetail03 from './blocks/GbOfferDetail/GbOfferDetail03.vue'
+import GbBookingSummary01 from './blocks/GbBookingSummary/GbBookingSummary01.vue'
+import GbBookingSummary02 from './blocks/GbBookingSummary/GbBookingSummary02.vue'
+import GbBookingSummary03 from './blocks/GbBookingSummary/GbBookingSummary03.vue'
+import GbMenu01 from './blocks/GbMenu/GbMenu01.vue'
+import GbMenu02 from './blocks/GbMenu/GbMenu02.vue'
+import GbMenu03 from './blocks/GbMenu/GbMenu03.vue'
+import GbAvailability01 from './blocks/GbAvailability/GbAvailability01.vue'
+import GbAvailability02 from './blocks/GbAvailability/GbAvailability02.vue'
+import GbAvailability03 from './blocks/GbAvailability/GbAvailability03.vue'
 
 export {
   GbSearch01, GbSearch02, GbSearch03,
@@ -38,7 +47,10 @@ export {
   GbItinerary01, GbItinerary02, GbItinerary03,
   GbLocation01, GbLocation02, GbLocation03,
   GbPolicies01, GbPolicies02, GbPolicies03,
-  GbOfferDetail01, GbOfferDetail02, GbOfferDetail03
+  GbOfferDetail01, GbOfferDetail02, GbOfferDetail03,
+  GbBookingSummary01, GbBookingSummary02, GbBookingSummary03,
+  GbMenu01, GbMenu02, GbMenu03,
+  GbAvailability01, GbAvailability02, GbAvailability03
 }
 
 /** Plugin: `app.use(booking)` registra todas las variantes (`<gb-search-01>`, `<GbSearch01>`…). */
@@ -52,7 +64,10 @@ export const booking = {
       GbItinerary01, GbItinerary02, GbItinerary03,
       GbLocation01, GbLocation02, GbLocation03,
       GbPolicies01, GbPolicies02, GbPolicies03,
-      GbOfferDetail01, GbOfferDetail02, GbOfferDetail03
+      GbOfferDetail01, GbOfferDetail02, GbOfferDetail03,
+      GbBookingSummary01, GbBookingSummary02, GbBookingSummary03,
+      GbMenu01, GbMenu02, GbMenu03,
+      GbAvailability01, GbAvailability02, GbAvailability03
     }
     for (const [name, component] of Object.entries(variants)) app.component(name, component)
   }

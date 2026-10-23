@@ -1,0 +1,183 @@
+{
+  "schemaVersion": 1,
+  "name": "GbBookingSummary",
+  "kind": "block-section",
+  "family": "booking",
+  "status": "draft",
+  "since": "0.0.0",
+  "description": "Lo que vas a pedir, dicho con tus palabras (la misma frase de la consulta) y con el total que cobra el lugar, y qué pasa si cambias de idea pegado a la acción que sigue. El bloque no calcula nada: la aplicación da las líneas y el total.",
+  "contract": "design/contracts/blocks/booking-summary.md",
+  "common": "design/contracts/blocks/_comun.md",
+  "decisions": [
+    860,
+    861,
+    862,
+    863,
+    864,
+    866,
+    871
+  ],
+  "composes": [
+    "GCard",
+    "GSection",
+    "GStack",
+    "GSummary",
+    "GPrice",
+    "GPriceScope",
+    "GText",
+    "GBtn",
+    "GIcon"
+  ],
+  "variants": [
+    {
+      "name": "GbBookingSummary01",
+      "tag": "gb-booking-summary-01",
+      "concept": "Tarjeta",
+      "root": "GCard as=\"section\" (media = offer.photos[0]) › GSummary + GPrice (tarifa con la cuenta) + garantía; acciones solid + outline"
+    },
+    {
+      "name": "GbBookingSummary02",
+      "tag": "gb-booking-summary-02",
+      "concept": "El recibo",
+      "root": "GSection › GStack gap=\"md\" › GSummary + GPriceScope › [GSection labels.lines › GText › dl] + GPrice del total · nota · garantía · acciones"
+    },
+    {
+      "name": "GbBookingSummary03",
+      "tag": "gb-booking-summary-03",
+      "concept": "Línea",
+      "root": "GStack as=\"section\" horizontal gap=\"md\" vertical=\"center\" [aria-label=title] › GSummary inline + GPrice sm (solo el total) + la primera acción (outline)"
+    }
+  ],
+  "props": [
+    {
+      "name": "title",
+      "type": "String",
+      "ts": "string",
+      "required": true,
+      "note": "«Tu reserva»; en 03 nombra la línea (aria-label)"
+    },
+    {
+      "name": "query",
+      "type": "Object",
+      "ts": "BookingQuery",
+      "required": true,
+      "note": "Dicha con describeQuery (#862)"
+    },
+    {
+      "name": "partyRows",
+      "type": "Array",
+      "ts": "PartyRow[]",
+      "required": true
+    },
+    {
+      "name": "context",
+      "type": "Object",
+      "ts": "QueryContextExtra",
+      "default": null
+    },
+    {
+      "name": "offer",
+      "type": "Object",
+      "ts": "OfferRef",
+      "default": null,
+      "note": "Nombre y tipo en el GSummary; la tarifa (price) como contexto del total; la primera foto en 01"
+    },
+    {
+      "name": "totals",
+      "type": "Object",
+      "ts": "Totals",
+      "default": null,
+      "note": "Lo que cobra el lugar (de la aplicación); el bloque no suma ni comprueba las líneas. 02 pinta el desglose y la nota"
+    },
+    {
+      "name": "prices",
+      "type": "Object",
+      "ts": "PriceRegion",
+      "default": null,
+      "note": "Una GPriceScope (la moneda se dice una vez); con precios y sin ella, K3"
+    },
+    {
+      "name": "assurance",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "Lo que pasa si cambias de idea; describe la acción principal (aria-describedby, #838)"
+    },
+    {
+      "name": "actions",
+      "type": "Array",
+      "ts": "Action[]",
+      "default": null,
+      "note": "0 a 2 (§3): la primera solid, la segunda outline; 03 pinta solo la primera (outline)"
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "ts": "string",
+      "default": null
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "ts": "BookingSummaryLabels",
+      "required": true,
+      "note": "when y query (C5, K2), lines (02 con totals.lines), price, external; sin valores por defecto"
+    }
+  ],
+  "events": [
+    {
+      "name": "navigate",
+      "payload": "{ event, href, item }",
+      "ts": "BlockNavigate<Action>",
+      "trigger": "Una acción con href y clic primario (#505); nunca con external (#574)"
+    },
+    {
+      "name": "activate",
+      "payload": "{ event, item }",
+      "ts": "BlockActivate<Action>",
+      "trigger": "Una acción sin href"
+    }
+  ],
+  "slots": [
+    {
+      "name": "summary",
+      "ts": "{ query: BookingQuery; offer: OfferRef | undefined }",
+      "purpose": "Escape: lo pedido propio en lugar del GSummary"
+    },
+    {
+      "name": "actions",
+      "ts": "{ describedby: string | undefined }",
+      "purpose": "Escape de las acciones (§3), con el id de la garantía (#838)"
+    }
+  ],
+  "types": [
+    "BookingQuery",
+    "PartyRow",
+    "QueryContextExtra",
+    "OfferRef",
+    "Totals",
+    "PriceRegion",
+    "Action",
+    "BookingSummaryLabels",
+    "BlockNavigate",
+    "BlockActivate"
+  ],
+  "warnings": [
+    "C5, C6, C8",
+    "K1 a K3",
+    "R1 · totals.total sin label",
+    "R2 · más de 8 líneas en totals.lines (02)"
+  ],
+  "root": "GCard as=\"section\" (01), GSection (02) o GStack as=\"section\" (03) con data-gb=\"booking-summary-NN\" y $attrs",
+  "bundle": {
+    "entry": "@grana/blocks/booking",
+    "measured": 35942,
+    "peers": [
+      "vue",
+      "@grana/vue",
+      "@grana/vue/booking",
+      "@grana/vue/price"
+    ],
+    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c) con las once secciones (33 variantes; partes A, B y C sobre 0a70920, 2026-10-23); la parte C suma 8076 B (A y C solas en un árbol aislado sobre 1cac455: 25134 B frente a los 17058 B de A). Sin tope hasta que lo fije lima (§19, #879). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbBookingSummary01 4050 B, GbBookingSummary02 3865 B, GbBookingSummary03 3883 B."
+  }
+}

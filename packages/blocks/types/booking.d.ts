@@ -346,3 +346,59 @@ export interface OfferDetailLabels {
 }
 /** `book` de Offer detail: la oferta entera y la consulta. */
 export interface OfferBook { event: MouseEvent | KeyboardEvent; offer: OfferDetail; query: BookingQuery | null }
+
+// ── B5 Booking summary (booking-summary.md; parte C) ──
+
+export interface BookingSummaryLabels {
+  /** Rótulo de la consulta en el resumen («Fechas y personas»). */
+  when: string
+  /** Nombre del desglose («Desglose»); 02 con totals.lines. */
+  lines?: string
+  query: QueryLabels
+  price?: PriceRegionLabels
+  external?: string
+}
+
+// ── B9 Menu (menu.md; parte C) ──
+
+export interface MenuLabels {
+  /** Nombre del tablist (02). */
+  tabs?: string
+  /** Nombre de la lista de avisos de un plato («Contiene»). */
+  tags?: string
+  /** «Agotado hoy» (available: false). */
+  unavailable?: string
+  /** Rótulo del horario del tiempo («Se sirve»). */
+  hours?: string
+  price?: PriceRegionLabels
+}
+
+// ── B4 Availability (availability.md; parte C) ──
+
+/** Una estancia elegida (ISO); `end` null mientras falta la salida (02 elige la llegada). */
+export interface AvailabilityRange { start: string | null; end: string | null }
+/** `v-model:value`: ISO en table y tour; rango en stay. */
+export type AvailabilityValue = string | AvailabilityRange | null
+export interface AvailabilityLabels {
+  /** Estado en palabras: «quedan pocas», «lleno», «cerrado». */
+  status: { few: string; full: string; closed: string }
+  /** «Elegir estas fechas» (03). */
+  select?: string
+  /** Nombre de la lista de 02 («Próximas fechas»). */
+  upcoming?: string
+  query?: QueryLabels
+  /** A GDatePicker, tal cual. */
+  datePicker?: GranaLabels
+  price?: PriceRegionLabels
+}
+/** `select` de Availability. `event`: el gesto que completó la elección (null si no lo hubo). */
+export interface AvailabilitySelect {
+  event: Event | null
+  kind: BookingKind
+  value: string | AvailabilityRange
+  day: AvailabilityDay | null
+  /** La consulta recibida con las fechas elegidas puestas. */
+  query: BookingQuery | null
+}
+/** Alcance del slot `day`: el de GDatePicker con el `AvailabilityDay` del día. */
+export interface AvailabilityDaySlot { date: string; day: AvailabilityDay | null; selected: boolean; disabled: boolean; outside: boolean }

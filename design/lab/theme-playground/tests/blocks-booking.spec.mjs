@@ -23,7 +23,13 @@ const PAGES = [
   { name: 'policies 03', file: 'policies.html', qs: 'v=03', h1: 0, blocks: 1 },
   { name: 'offer-detail 01', file: 'offer-detail.html', qs: 'v=01', h1: 0, blocks: 1 },
   { name: 'offer-detail 02', file: 'offer-detail.html', qs: 'v=02', h1: 0, blocks: 1 },
-  { name: 'offer-detail 03', file: 'offer-detail.html', qs: 'v=03', h1: 0, blocks: 1 }
+  { name: 'offer-detail 03', file: 'offer-detail.html', qs: 'v=03', h1: 0, blocks: 1 },
+  // Parte C. Menu de uno en uno: 01 y 03 repetirían los id de ancla de los tiempos
+  { name: 'booking-summary', file: 'booking-summary.html', qs: '', h1: 0, blocks: 3 },
+  { name: 'menu 01', file: 'menu.html', qs: 'v=01', h1: 0, blocks: 1 },
+  { name: 'menu 02', file: 'menu.html', qs: 'v=02', h1: 0, blocks: 1 },
+  { name: 'menu 03', file: 'menu.html', qs: 'v=03', h1: 0, blocks: 1 },
+  { name: 'availability', file: 'availability.html', qs: '', h1: 0, blocks: 3 }
 ]
 const THEMES = ['defecto', 'rustico', 'lujo']
 
@@ -271,6 +277,7 @@ for (const dark of [false, true]) {
   })
 }
 
+
 // ---------- Verificación propia · parte B (itinerary.md, location.md, policies.md, offer-detail.md) ----------
 
 for (const v of ['01', '02', '03']) {
@@ -400,4 +407,113 @@ test('offer-detail: con consult, la consulta junto al precio y ningún «Reserva
   await expect(page.locator('[data-gb="offer-detail-01"] [data-gb="search-01"]')).toHaveCount(1)
   await expect(page.getByRole('button', { name: 'Reservar esta suite' })).toHaveCount(0)
   expect(errs).toEqual([])
+})
+
+// ---------- Verificación propia · parte C (booking-summary.md, menu.md, availability.md) ----------
+
+// GSummary layout="inline" ocupa la fila entera dentro de la GStack horizontal (hallazgo BS-L1 para lima): a 1440 la
+// línea es la consulta y, debajo, el total, la garantía y la acción en una sola fila; a 320 se parte sin desbordar.
+test('booking-summary 03: el total, la garantía y la acción en una fila a 1440; se parte a 320 sin desbordar', async ({ page }) => {
+  await open(page, 'booking-summary.html', 'v=03')
+  // Una fila: hay una línea horizontal que corta a todos (centrados en vertical, sus bordes no coinciden)
+  const oneRow = () => page.evaluate(() => {
+    const r = [...document.querySelector('[data-gb="booking-summary-03"]').children].filter((c) => !c.matches('.g-summary')).map((c) => c.getBoundingClientRect())
+    return Math.max(...r.map((x) => x.top)) < Math.min(...r.map((x) => x.bottom))
+  })
+  expect(await oneRow()).toBe(true)
+  await page.setViewportSize({ width: 320, height: 640 })
+  await settle(page)
+  expect(await overflow(page)).toBe(false)
+  expect(await oneRow()).toBe(false)
+})
+
+test('booking-summary 01: en una columna de 360 px sin desbordar', async ({ page }) => {
+  await open(page, 'booking-summary.html', 'v=01')
+  await page.evaluate(() => { document.querySelector('.pg-stage').style.maxInlineSize = '360px' })
+  await settle(page)
+  const r = await page.evaluate(() => { const b = document.querySelector('[data-gb="booking-summary-01"]'); return { w: b.getBoundingClientRect().width, sw: b.scrollWidth, cw: b.clientWidth } })
+  expect(r.w).toBeLessThanOrEqual(361)
+  expect(r.sw).toBeLessThanOrEqual(r.cw + 1)
+})
+
+for (const reduce of [false, true]) {
+  test(`booking-summary: el total que cambia ${reduce ? 'no rueda con movimiento reducido' : 'rueda (regla de GPrice)'}`, async ({ page }) => {
+    if (reduce) await page.emulateMedia({ reducedMotion: 'reduce' })
+    await open(page, 'booking-summary.html', 'v=01')
+    // Se observa el DOM desde antes del cambio: la capa puede retirarse pronto con la máquina cargada
+    const rolling = await page.evaluate(() => new Promise((r) => {
+      const root = document.querySelector('[data-gb="booking-summary-01"]')
+      let seen = false
+      // Rueda = hay una animación en curso dentro del total (con reducido, la capa se retira en el acto sin animación)
+      const anim = () => document.getAnimations().some((a) => a.playState === 'running' && a.effect && a.effect.target && root.contains(a.effect.target))
+      const mo = new MutationObserver(() => { if (root.querySelector('.is-rolling') && anim()) seen = true })
+      mo.observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] })
+      window.blockViews['01'].totals = { total: { value: { amount: 5950, currency: 'MXN' }, label: 'por 3 noches' } }
+      requestAnimationFrame(() => { if (anim()) seen = true })
+      setTimeout(() => { mo.disconnect(); r(seen) }, 300)
+    }))
+    expect(rolling).toBe(!reduce)
+    await expect(page.locator('[data-gb="booking-summary-01"]')).toContainText(/5[,.\u00a0\u202f]?950/)
+  })
+}
+
+test('booking-summary: la garantía describe la acción principal', async ({ page }) => {
+  await open(page, 'booking-summary.html', 'v=02')
+  const d = await page.getByRole('link', { name: 'Continuar' }).getAttribute('aria-describedby')
+  await expect(page.locator(`[id="${d}"]`)).toHaveText('Cancelación gratis hasta el 11 de noviembre.')
+})
+
+test('menu: cifras tabulares en los precios y dd sin la sangría del navegador (#863)', async ({ page }) => {
+  await open(page, 'menu.html', 'v=01')
+  const r = await page.evaluate(() => {
+    const amt = document.querySelector('[data-gb="menu-01"] .g-price__amount')
+    const dd = document.querySelector('[data-gb="menu-01"] dd')
+    return { num: getComputedStyle(amt).fontVariantNumeric, dd: getComputedStyle(dd).marginInlineStart }
+  })
+  expect(r.num).toContain('tabular-nums')
+  expect(r.dd).toBe('0px')
+})
+
+test('menu 02: el hash abre su pestaña al montar', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.goto(`${BASE}menu.html?v=02#cena`)
+  await page.waitForSelector('html[data-ready="1"] [data-gb]')
+  await expect(page.getByRole('tab', { name: 'Cena' })).toHaveAttribute('aria-selected', 'true')
+  await expect(page.locator('[data-gb="menu-02"] [role="tabpanel"]:not([hidden])')).toContainText('Pesca del día')
+})
+
+test('availability: el nombre del día lleva su estado y su precio', async ({ page }) => {
+  await open(page, 'availability.html', 'v=01')
+  const label = await page.locator('[data-gb="availability-01"] .g-datepicker__day[data-date="2026-11-12"]').first().getAttribute('aria-label')
+  expect(label).toMatch(/quedan pocas, 1[,.\u00a0\u202f]?850 pesos mexicanos, Quedan 2$/)
+  expect(await page.locator('[data-gb="availability-01"] .g-datepicker__day[data-date="2026-11-20"]').first().getAttribute('aria-label')).toContain('lleno')
+})
+
+test('availability: el viernes lleno sirve de salida y no de llegada (#739)', async ({ page }) => {
+  await open(page, 'availability.html', 'v=01')
+  const day = (iso) => page.locator(`[data-gb="availability-01"] .g-datepicker__day[data-date="${iso}"]`).first()
+  // Como llegada no hace nada
+  await day('2026-11-20').click()
+  expect(await page.evaluate(() => window.blockEvents.filter((e) => e[0] === 'select'))).toEqual([])
+  // Como salida, sí
+  await day('2026-11-18').click()
+  await day('2026-11-20').click()
+  expect(await page.evaluate(() => window.blockEvents.filter((e) => e[0] === 'select'))).toEqual([['select', '01', { start: '2026-11-18', end: '2026-11-20' }]])
+})
+
+// El contrato pide dos columnas a 1440; GAdaptiveLayout trata el calendario (una <table>) como bloque completo y lo pone
+// en su propia fila (hallazgo AV-L1 para lima). Se comprueba lo que hay: el resumen debajo, sin desbordar, a 1440 y 390.
+test('availability 03: el resumen va debajo del calendario (AV-L1) sin desbordar a 1440 y 390', async ({ page }) => {
+  await open(page, 'availability.html', 'v=03')
+  const below = () => page.evaluate(() => {
+    const b = document.querySelector('[data-gb="availability-03"]')
+    const a = b.querySelector('.g-datepicker').getBoundingClientRect()
+    const c = b.querySelector('.g-adapt-standard').getBoundingClientRect()
+    return c.top >= a.bottom - 1
+  })
+  expect(await below()).toBe(true)
+  await page.setViewportSize({ width: 390, height: 844 })
+  await settle(page)
+  expect(await below()).toBe(true)
+  expect(await overflow(page)).toBe(false)
 })

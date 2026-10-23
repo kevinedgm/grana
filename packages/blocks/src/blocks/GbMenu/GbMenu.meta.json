@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 1,
+  "name": "GbMenu",
+  "kind": "block-section",
+  "family": "booking",
+  "status": "draft",
+  "since": "0.0.0",
+  "description": "La carta de un restaurante en HTML, no en PDF: por tiempos, cada plato con lo que lleva, su precio en la moneda dicha una vez y sus avisos (alérgenos, picante, vegetariano) en palabras. Lo agotado hoy se queda a la vista como agotado.",
+  "contract": "design/contracts/blocks/menu.md",
+  "common": "design/contracts/blocks/_comun.md",
+  "decisions": [
+    860,
+    861,
+    863,
+    866,
+    875
+  ],
+  "composes": [
+    "GSection",
+    "GStack",
+    "GText",
+    "GTabs",
+    "GAdaptiveLayout",
+    "GCard",
+    "GPrice",
+    "GPriceScope",
+    "GTag"
+  ],
+  "variants": [
+    {
+      "name": "GbMenu01",
+      "tag": "gb-menu-01",
+      "concept": "Carta",
+      "root": "GSection › GPriceScope › GStack gap=\"lg\" › GSection anidada por tiempo (id = ancla) › horario + GText › dl de platos"
+    },
+    {
+      "name": "GbMenu02",
+      "tag": "gb-menu-02",
+      "concept": "Por tiempos",
+      "root": "GSection › GPriceScope › GTabs (label = labels.tabs; una pestaña por tiempo, la del hash al montar) › panel: descripción, horario y el dl de platos"
+    },
+    {
+      "name": "GbMenu03",
+      "tag": "gb-menu-03",
+      "concept": "Platos con foto",
+      "root": "GSection › GPriceScope › GStack gap=\"lg\" › GSection por tiempo › GAdaptiveLayout role=\"list\" › div role=\"listitem\" g-adapt-standard › GCard as=\"div\" (media = la foto; GPrice + GTag)"
+    }
+  ],
+  "props": [
+    {
+      "name": "title",
+      "type": "String",
+      "ts": "string",
+      "required": true
+    },
+    {
+      "name": "description",
+      "type": "String",
+      "ts": "string",
+      "default": null
+    },
+    {
+      "name": "sections",
+      "type": "Array",
+      "ts": "MenuSection[]",
+      "required": true,
+      "note": "1 a 12 tiempos (C7); un tiempo con 1 a 40 platos (C7). `id` = ancla estable (#comida); en 02 abre su pestaña"
+    },
+    {
+      "name": "prices",
+      "type": "Object",
+      "ts": "PriceRegion",
+      "required": true,
+      "note": "Una carta dice su moneda (#772): una GPriceScope con su leyenda; sin ella, K3"
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "ts": "string",
+      "default": null
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "ts": "MenuLabels",
+      "required": true,
+      "note": "tabs (02), tags (con algún tags), unavailable (available: false), hours (con algún hours), price (legend, onRequest); sin valores por defecto (C5)"
+    }
+  ],
+  "events": [],
+  "slots": [
+    {
+      "name": "item",
+      "ts": "{ item: MenuItem; section: MenuSection }",
+      "purpose": "Escape: el cuerpo de un plato (lo que va tras el nombre)"
+    }
+  ],
+  "types": [
+    "MenuSection",
+    "MenuItem",
+    "PriceSpec",
+    "PriceRegion",
+    "MenuLabels",
+    "Media"
+  ],
+  "warnings": [
+    "C1 a C4, C7",
+    "K3",
+    "M1 · un precio en otra moneda que prices.currency (se pinta con su código)",
+    "M2 · section.id repetido o ausente en 02 (la pestaña usa el índice)"
+  ],
+  "root": "GSection con data-gb=\"menu-NN\" y $attrs",
+  "bundle": {
+    "entry": "@grana/blocks/booking",
+    "measured": 35942,
+    "peers": [
+      "vue",
+      "@grana/vue",
+      "@grana/vue/price",
+      "@grana/vue/tag"
+    ],
+    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c) con las once secciones (33 variantes; partes A, B y C sobre 0a70920, 2026-10-23); la parte C suma 8076 B (A y C solas en un árbol aislado sobre 1cac455: 25134 B frente a los 17058 B de A). Sin tope hasta que lo fije lima (§19, #879). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbMenu01 2650 B, GbMenu02 2833 B, GbMenu03 2767 B."
+  }
+}

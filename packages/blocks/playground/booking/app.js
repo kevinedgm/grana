@@ -29,6 +29,8 @@ export async function mountBank(section, bank, { concepts = {}, only } = {}) {
   const state = (bank.states && bank.states[q.get('estado')]) || {}
   // Estado de vista de cada variante (v-model de la consulta, los valores y el paso)
   const views = Object.fromEntries(nums.map((n) => [n, reactive({})]))
+  // El spec cambia el estado de una variante en vivo (p. ej. el total de Booking summary: las cifras ruedan)
+  window.blockViews = views
   const variant = (n) => {
     const C = Blocks[`Gb${section}${n}`]
     const view = views[n]
@@ -40,9 +42,10 @@ export async function mountBank(section, bank, { concepts = {}, only } = {}) {
       'onUpdate:query': (x) => { view.query = x; events.push(['update:query', n]) },
       'onUpdate:values': (x) => { view.values = x },
       'onUpdate:step': (x) => { view.step = x; events.push(['update:step', n, x]) },
+      'onUpdate:value': (x) => { view.value = x; events.push(['update:value', n, x]) },
       onNavigate: (p) => { p.event.preventDefault(); events.push(['navigate', n, p.href]) },
       onActivate: (p) => events.push(['activate', n, p.item && p.item.id]),
-      onSelect: (p) => events.push(['select', n, p.offer && p.offer.id]),
+      onSelect: (p) => events.push(['select', n, p.offer ? p.offer.id : p.value]),
       onPhotos: (p) => events.push(['photos', n, p.offer && p.offer.id]),
       onSubmit: (p) => { if (p.preventDefault) p.preventDefault(); events.push(['submit', n, p.values || p.kind]) }
     }, bank.slots)

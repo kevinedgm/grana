@@ -84,3 +84,28 @@ const sameLoc: Same<PropsOf<typeof GbLocation01>, PropsOf<typeof GbLocation03>> 
 const samePol: Same<PropsOf<typeof GbPolicies01>, PropsOf<typeof GbPolicies03>> = true
 const sameDetail: Same<PropsOf<typeof GbOfferDetail01>, PropsOf<typeof GbOfferDetail02>> = true
 export { itinerary, location, policies, offerDetail, onBook, sameItin, sameLoc, samePol, sameDetail }
+
+// ── Parte C: Booking summary, Menu y Availability ──
+import { GbAvailability01, GbAvailability03, GbBookingSummary01, GbBookingSummary03, GbMenu02 } from '@grana/blocks/booking'
+import type { AvailabilityDay, AvailabilitySelect, AvailabilityValue, GbAvailabilityProps, GbBookingSummaryProps, GbMenuProps, MenuItem } from '@grana/blocks/booking'
+
+const summary: GbBookingSummaryProps = { title: 'Tu reserva', query, partyRows: [row], totals, labels: { when: 'Fechas y personas', query: { nights: (n) => `${n} noches`, separator: ' · ' } } }
+// @ts-expect-error: labels.when es obligatoria
+const noWhen: GbBookingSummaryProps = { title: 'x', query, partyRows: [row], labels: { query: { nights: 'n', separator: ' · ' } } }
+const dish: MenuItem = { name: 'Mole negro', price: { value: { amount: 245, currency: 'MXN' } }, tags: ['Contiene nuez'], available: 'Agotado hoy' }
+// @ts-expect-error: un plato sin nombre
+const noName: MenuItem = { price: onRequest }
+const menu: GbMenuProps = { title: 'La carta', sections: [{ id: 'comida', name: 'Comida', items: [dish] }], prices: { currency: 'MXN' }, labels: { tags: 'Contiene' } }
+// @ts-expect-error: una carta dice su moneda (prices obligatoria)
+const noPrices: GbMenuProps = { title: 'x', sections: [], labels: {} }
+const day: AvailabilityDay = { date: '2026-11-20', status: 'full' }
+// @ts-expect-error: estado fuera de la lista
+const badDay: AvailabilityDay = { date: '2026-11-20', status: 'maybe' }
+const range: AvailabilityValue = { start: '2026-11-13', end: null }
+const avail: GbAvailabilityProps = { title: 'Disponibilidad', kind: 'stay', days: [day], value: range, labels: { status: { few: 'pocas', full: 'lleno', closed: 'cerrado' } } }
+// @ts-expect-error: labels.status es obligatoria
+const noStatus: GbAvailabilityProps = { title: 'x', kind: 'table', days: [], labels: {} }
+const onPick = (p: AvailabilitySelect) => (typeof p.value === 'string' ? p.value : p.value.start)
+const sameAvail: Same<PropsOf<typeof GbAvailability01>, PropsOf<typeof GbAvailability03>> = true
+const sameSummary: Same<PropsOf<typeof GbBookingSummary01>, PropsOf<typeof GbBookingSummary03>> = true
+export { summary, menu, avail, onPick, sameAvail, sameSummary, GbMenu02 }

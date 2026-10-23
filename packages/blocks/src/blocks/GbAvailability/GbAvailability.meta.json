@@ -1,0 +1,249 @@
+{
+  "schemaVersion": 1,
+  "name": "GbAvailability",
+  "kind": "block-section",
+  "family": "booking",
+  "status": "draft",
+  "since": "0.0.0",
+  "description": "Qué días hay sitio y cuánto cuestan, dicho en el día (visible y oído en su nombre), y lo lleno dicho como lleno. En una estancia, el día lleno sigue sirviendo de salida. El viajero elige una fecha o una estancia y el bloque emite la intención; la disponibilidad y los precios los da la aplicación.",
+  "contract": "design/contracts/blocks/availability.md",
+  "common": "design/contracts/blocks/_comun.md",
+  "decisions": [
+    739,
+    778,
+    801,
+    860,
+    861,
+    862,
+    864,
+    866,
+    870
+  ],
+  "composes": [
+    "GSection",
+    "GDatePicker",
+    "GPrice",
+    "GPriceScope",
+    "GStack",
+    "GCard",
+    "GAdaptiveLayout",
+    "GBtn"
+  ],
+  "variants": [
+    {
+      "name": "GbAvailability01",
+      "tag": "gb-availability-01",
+      "concept": "Calendario con precio",
+      "root": "GSection › GPriceScope › GDatePicker inline (range en stay; disabledDates/disabledNights del dato; dayDescription; slot day con GPrice xs display=\"none\" cents=\"never\")"
+    },
+    {
+      "name": "GbAvailability02",
+      "tag": "gb-availability-02",
+      "concept": "Próximas fechas",
+      "root": "GSection › GPriceScope › GStack as=\"ul\" gap=\"sm\" [aria-label] › GCard as=\"li\" level=\"flat\" orientation=\"horizontal\" interaction=\"button\" (title = <time>, badge = pocas, description = nota, GPrice sm)"
+    },
+    {
+      "name": "GbAvailability03",
+      "tag": "gb-availability-03",
+      "concept": "Calendario + resumen",
+      "root": "GSection › GPriceScope › GAdaptiveLayout gap=\"lg\" › [el calendario de 01, sin pista: bloque completo (AV-L1)] + [GCard g-adapt-standard (título = la selección con describeQuery) › GPrice total + GBtn solid]"
+    }
+  ],
+  "props": [
+    {
+      "name": "title",
+      "type": "String",
+      "ts": "string",
+      "required": true
+    },
+    {
+      "name": "description",
+      "type": "String",
+      "ts": "string",
+      "default": null
+    },
+    {
+      "name": "kind",
+      "type": "String",
+      "ts": "BookingKind",
+      "required": true,
+      "note": "stay: rango (llegada–salida); table y tour: un día"
+    },
+    {
+      "name": "days",
+      "type": "Array",
+      "ts": "AvailabilityDay[]",
+      "required": true,
+      "note": "Los días que la aplicación conoce (≤ 120, C7); un día ausente = sin dato"
+    },
+    {
+      "name": "value",
+      "type": "String | Object",
+      "ts": "AvailabilityValue",
+      "default": null,
+      "note": "v-model:value (ISO; { start, end } en stay)"
+    },
+    {
+      "name": "min",
+      "type": "String",
+      "ts": "string",
+      "default": null
+    },
+    {
+      "name": "max",
+      "type": "String",
+      "ts": "string",
+      "default": null
+    },
+    {
+      "name": "minNights",
+      "type": "Number",
+      "ts": "number",
+      "default": null,
+      "note": "Solo stay (V2)"
+    },
+    {
+      "name": "maxNights",
+      "type": "Number",
+      "ts": "number",
+      "default": null,
+      "note": "Solo stay (V2)"
+    },
+    {
+      "name": "upcoming",
+      "type": "Number",
+      "ts": "number",
+      "default": 8,
+      "note": "Cuántas fechas abiertas enseñar (1 a 30)",
+      "variants": [
+        "GbAvailability02"
+      ]
+    },
+    {
+      "name": "total",
+      "type": "Object",
+      "ts": "PriceTotal",
+      "default": null,
+      "note": "El total de la selección, de la aplicación",
+      "variants": [
+        "GbAvailability03"
+      ]
+    },
+    {
+      "name": "query",
+      "type": "Object",
+      "ts": "BookingQuery | null",
+      "default": null,
+      "note": "Para decir la selección (03) y emitirla con las fechas puestas"
+    },
+    {
+      "name": "partyRows",
+      "type": "Array",
+      "ts": "PartyRow[]",
+      "default": null
+    },
+    {
+      "name": "context",
+      "type": "Object",
+      "ts": "QueryContextExtra",
+      "default": null
+    },
+    {
+      "name": "prices",
+      "type": "Object",
+      "ts": "PriceRegion",
+      "default": null
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "ts": "string",
+      "default": null
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "ts": "AvailabilityLabels",
+      "required": true,
+      "note": "status (C5), select (03), upcoming (02), query (03 con query, K2), datePicker (tal cual a GDatePicker), price"
+    }
+  ],
+  "events": [
+    {
+      "name": "update:value",
+      "payload": "ISO | { start, end }",
+      "ts": "AvailabilityValue",
+      "trigger": "Cada elección completa en el calendario (01, 03)"
+    },
+    {
+      "name": "select",
+      "payload": "{ event, kind, value, day, query }",
+      "ts": "AvailabilitySelect",
+      "trigger": "01: al completar la elección; 02: al activar una fecha (en stay, { start, end: null }); 03: el botón labels.select con la elección completa"
+    }
+  ],
+  "slots": [
+    {
+      "name": "day",
+      "ts": "AvailabilityDaySlot",
+      "purpose": "Escape del contenido de la celda (sin interactivos; no cambia el nombre del día)",
+      "variants": [
+        "GbAvailability01",
+        "GbAvailability03"
+      ]
+    },
+    {
+      "name": "summary",
+      "ts": "{ value: AvailabilityValue; query: BookingQuery | null }",
+      "purpose": "Escape del resumen de 03",
+      "variants": [
+        "GbAvailability03"
+      ]
+    },
+    {
+      "name": "empty",
+      "purpose": "02 sin fechas abiertas: lo que pinta la aplicación (p. ej. GEmpty)",
+      "variants": [
+        "GbAvailability02"
+      ]
+    },
+    {
+      "name": "description",
+      "purpose": "Sustituye a la prop description de la GSection"
+    }
+  ],
+  "types": [
+    "BookingKind",
+    "AvailabilityDay",
+    "AvailabilityValue",
+    "AvailabilityRange",
+    "PriceTotal",
+    "BookingQuery",
+    "PartyRow",
+    "QueryContextExtra",
+    "PriceRegion",
+    "AvailabilityLabels",
+    "AvailabilitySelect",
+    "AvailabilityDaySlot"
+  ],
+  "warnings": [
+    "C2, C3, C5, C7",
+    "K1 a K3",
+    "V1 · status fuera de lista (sin dato)",
+    "V2 · minNights/maxNights fuera de stay",
+    "V3 · precio de día de cinco cifras en 01 o 03 (#801)",
+    "V4 · 02 sin fechas abiertas y sin slot empty"
+  ],
+  "root": "GSection con data-gb=\"availability-NN\" y $attrs",
+  "bundle": {
+    "entry": "@grana/blocks/booking",
+    "measured": 35942,
+    "peers": [
+      "vue",
+      "@grana/vue",
+      "@grana/vue/booking",
+      "@grana/vue/price"
+    ],
+    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c) con las once secciones (33 variantes; partes A, B y C sobre 0a70920, 2026-10-23); la parte C suma 8076 B (A y C solas en un árbol aislado sobre 1cac455: 25134 B frente a los 17058 B de A). Sin tope hasta que lo fije lima (§19, #879). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbAvailability01 3900 B, GbAvailability02 3879 B, GbAvailability03 4576 B (GbAvailability03 pasa la referencia de 4096 B: vuelve a lima)."
+  }
+}
