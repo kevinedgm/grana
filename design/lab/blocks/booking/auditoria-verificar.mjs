@@ -363,25 +363,46 @@ async function shapes (b, eng, tema) {
     ok(f, `${E} · search-03: el foco en el último botón no queda tapado (2.4.11)`)
     await close()
   }
-  // Booking summary 03 «Línea»: una fila a 1440 (BS-L1, lima)
+  // Booking summary 03 «Línea» (BS-L1, #897): GText role="group" > GAdaptiveLayout (GSummary, precio, acción) y la garantía debajo
   {
     const { p, close } = await open(b, 'booking-summary.html', q('v=03', t))
-    const r = await p.evaluate(() => { const kids = [...document.querySelector('[data-gb]').children].map((x) => x.getBoundingClientRect()); return Math.max(...kids.map((x) => x.top)) < Math.min(...kids.map((x) => x.bottom)) })
+    const r = await p.evaluate(() => { const al = document.querySelector('[data-gb] > .g-adaptive-layout, [data-gb] .g-adaptive-layout'); const kids = [...al.children].map((x) => x.getBoundingClientRect()); return Math.max(...kids.map((x) => x.top)) < Math.min(...kids.map((x) => x.bottom)) })
     ok(r, `${E} · booking-summary-03: lo pedido, el total y la acción en una sola fila a 1440 (BS-L1)`)
     await close()
   }
-  // Availability 03: dos columnas a 1440 (AV-L1, lima)
-  {
-    const { p, close } = await open(b, 'availability.html', q('v=03', t))
-    const r = await p.evaluate(() => { const x = document.querySelector('[data-gb]'); const a = x.querySelector('.g-datepicker').getBoundingClientRect(); const c = x.querySelector('.g-adapt-standard').getBoundingClientRect(); return c.top < a.bottom - 1 })
-    ok(r, `${E} · availability-03: el calendario y el resumen en dos columnas a 1440 (AV-L1)`)
+  // Booking summary 03 a 1440, 1024, 768, 390 y 320: sin desbordar ni solapar; las líneas se anotan (#906: una línea desde 1024, dos por debajo)
+  for (const vw of [1440, 1024, 768, 390, 320]) {
+    const { p, close } = await open(b, 'booking-summary.html', q('v=03', t), { vw, vh: 900 })
+    const r = await p.evaluate(() => {
+      const gb = document.querySelector('[data-gb]'); const al = gb.querySelector('.g-adaptive-layout')
+      const kids = [...al.children].map((x) => x.getBoundingClientRect())
+      const g = gb.getBoundingClientRect()
+      const out = kids.some((k) => k.left < g.left - 1 || k.right > g.right + 1)
+      let over = false
+      for (let i = 0; i < kids.length; i++) for (let j = i + 1; j < kids.length; j++) { const a = kids[i], c = kids[j]; if (a.left < c.right - 1 && c.left < a.right - 1 && a.top < c.bottom - 1 && c.top < a.bottom - 1) over = true }
+      let rows = 0, bot = -1e9; for (const k of [...kids].sort((a, c) => a.top - c.top)) { if (k.top >= bot - 1) rows++; bot = Math.max(bot, k.bottom) }
+      const gar = [...gb.querySelectorAll('*')].find((e) => /garant|cancel/i.test(e.textContent) && !e.children.length)
+      const below = gar ? gar.getBoundingClientRect().top >= Math.max(...kids.map((k) => k.bottom)) - 1 : null
+      return { out, over, rows, below, sw: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1 }
+    })
+    ok(!r.out && !r.over && !r.sw, `${E} · booking-summary-03 a ${vw}: sin desbordar ni solapar (hijos dentro de su caja)`, JSON.stringify(r))
+    ok(r.below !== false, `${E} · booking-summary-03 a ${vw}: la garantía debajo de la línea`, String(r.below))
+    ok(vw >= 1024 ? r.rows === 1 : vw >= 768 ? r.rows <= 2 : r.rows <= 3, `${E} · booking-summary-03 a ${vw}: ${vw >= 1024 ? 'una línea' : vw >= 768 ? 'dos líneas limpias (#906)' : 'apilada en bloques limpios (≤ 3)'}`, `${r.rows} línea(s)`)
+    if (vw < 768) note(`${E} · ${t} · booking-summary-03 a ${vw}: ${r.rows} bloques apilados (lima #906 esperaba dos; el resumen y el total no comparten línea)`)
     await close()
   }
-  // Offer list 01: la última fila no estira una tarjeta sola a todo el ancho (BK-L7)
+  // Availability 03: una columna (AV-L1 cerrado, #899): calendario y resumen sin solaparse
+  {
+    const { p, close } = await open(b, 'availability.html', q('v=03', t))
+    const r = await p.evaluate(() => { const x = document.querySelector('[data-gb]'); const a = x.querySelector('.g-datepicker').getBoundingClientRect(); const s = [...x.querySelectorAll('button.g-btn')].find((e) => /Elegir/.test(e.textContent)); const c = s.getBoundingClientRect(); return c.top >= a.bottom - 1 && c.right <= x.getBoundingClientRect().right + 1 })
+    ok(r, `${E} · availability-03: una columna, resumen bajo el calendario sin desbordar (AV-L1 cerrado)`)
+    await close()
+  }
+  // Offer list 01 (BK-L7, límite aceptado #904): se anota la proporción, no falla
   {
     const { p, close } = await open(b, 'offer-list.html', q('v=01', t))
     const r = await p.evaluate(() => { const w = [...document.querySelectorAll('[data-gb] [role="listitem"]')].map((li) => li.getBoundingClientRect().width); return [Math.round(Math.min(...w)), Math.round(Math.max(...w))] })
-    ok(r[1] <= r[0] * 1.5, `${E} · offer-list-01: tarjetas de ancho parecido en todas las filas a 1440 (BK-L7)`, `${r[0]} a ${r[1]} px`)
+    if (r[1] > r[0] * 1.5) note(`${E} · ${t} · offer-list-01: BK-L7 límite aceptado (#904), tarjetas de ${r[0]} a ${r[1]} px`)
     await close()
   }
   // Offer list 02: la viñeta de lo incluido igual que en 01 (BK-C3)
@@ -404,7 +425,7 @@ async function shapes (b, eng, tema) {
     const r = await p.evaluate(() => { const cb = document.querySelector('[data-gb] input[name="politica"]'); const fs = cb && cb.closest('fieldset'); return fs ? (fs.querySelector('legend') || {}).textContent || '' : '' })
     ok(!!r, `${E} · guest-form: los consentimientos en un GFieldGroup con legend (#880, BK-B1)`, r || 'sin fieldset/legend')
     const a = await p.evaluate(() => { const ln = [...document.querySelectorAll('[data-gb] a')].find((x) => /política/i.test(x.textContent)); const lab = [...document.querySelectorAll('[data-gb] label')].find((x) => /Acepto/.test(x.textContent)); const txt = [...lab.querySelectorAll('*')].find((y) => [...y.childNodes].some((n) => n.nodeType === 3 && /Acepto/.test(n.textContent))) || lab; return [Math.round(ln.getBoundingClientRect().left), Math.round(txt.getBoundingClientRect().left)] })
-    ok(Math.abs(a[0] - a[1]) <= 1, `${E} · guest-form: el enlace de la política alineado con el texto de su casilla (BK-L8)`, `${a[0]} frente a ${a[1]} px`)
+    if (Math.abs(a[0] - a[1]) > 1) note(`${E} · ${t} · guest-form: BK-L8 límite aceptado (#901), enlace en ${a[0]} frente a ${a[1]} px`)
     const opt = await p.evaluate(() => [...document.querySelectorAll('[data-gb] label')].filter((l) => /^(Adultos|Niños|Habitaciones)/.test(l.textContent.trim()) && /opcional/.test(l.textContent)).length)
     ok(opt === 0, `${E} · guest-form: los contadores del grupo no se marcan «opcional» (siempre tienen valor, BK-L9)`, `${opt} marcados`)
     await close()

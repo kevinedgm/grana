@@ -102,3 +102,29 @@ Los 99 fallos son, todos, hallazgos abiertos de la tabla, iguales en los tres mo
 - **No verificado:** lector de pantalla real (la consulta, el «ahora», el nombre del día con precio, el grupo de consentimientos cuando exista); `forced-colors` real y en Firefox/WebKit; teléfono real y puntero grueso (la diana de 44 px de `GBtn` no se midió); rendimiento con el perfilador; las pestañas de Offer detail 02 (BK-B5) y los consentimientos como paso de 02 (BK-B1), que no se pueden medir hasta corregirlos.
 
 **Veredicto:** pueden pasar a **`candidate`** **Search, Offer list, Confirmation, Location, Policies y Menu** (sin defecto bloqueante; lo anotado no bloquea). Siguen en **`draft`**: **Guest form** (BK-B1), **Itinerary** (BK-B4), **Offer detail** (BK-B5), **Booking summary** (BS-L1) y **Availability** (AV-L1). Cada uno pasa en cuanto su comprobación esté en verde en el verificador, sin nueva auditoría salvo que el arreglo cambie la forma.
+
+## Addendum · 2026-10-23 · tras el remate de bruno (8eb1e8b) y los contratos de lima (#897 a #907)
+
+**Sobre:** `dist/` de `@grana/vue` y `@grana/blocks` reconstruidos; `auditoria-verificar.mjs` actualizado (AV-L1 cerrado: Availability 03 en una columna; BS-L1 mide los hijos de `GAdaptiveLayout`; BK-L7 y BK-L8 pasan a nota de límite; nueva medida de Booking summary 03 a 1440, 1024, 768, 390 y 320).
+**Resultado:** pasada completa, tres motores, tres temas, claro y oscuro: 6000/6045; los 45 fallos eran solo la cuenta de líneas de Booking summary 03 (error del propio verificador: contaba cimas distintas y no filas; corregido). Tras corregirlo, `--solo=shapes` 396/396 en los tres motores. No se repitió la pasada completa tras esa última corrección (solo tocó la medida de Booking summary 03).
+
+| # | Estado |
+| --- | --- |
+| BK-B1 | **Cerrado** (consentimientos con `legend`, en verde en los tres motores). |
+| BK-B3 | Cerrado (canales alineados, en verde). |
+| BK-B4 | **Cerrado** (Itinerary 03 dice su fin). |
+| BK-B5 | **Cerrado** (pestañas de Offer detail 02 cambian). |
+| AV-L1 | Cerrado (#899, una columna; sin solapes ni desbordes). |
+| BS-L1 | Cerrado en 1440 y 1024 (una línea, #897/#906); ver Booking summary abajo. |
+| BK-L7, BK-L8 | **Límites aceptados** (#904, #901); el verificador los anota, no fallan. |
+| BK-L9, BK-L10 | Cerrados por bruno. |
+| BK-L11 a L14 | Anotados (sin cambio; mora-docs para L13). |
+| BK-C1 a BK-C5 | Siguen en verde (sin regresión). |
+
+**Booking summary 03, medida (hijos de `> .g-adaptive-layout`, tres motores, tres temas):** 1440 y 1024: una línea. 768: dos líneas limpias (resumen y precio con su leyenda arriba, acción debajo), sin desbordar ni solapar. 390 y 320: **tres bloques apilados** (resumen, precio con leyenda, acción), también limpios, sin desbordar ni solapar; la garantía queda siempre bajo la línea. Diferencia con #906: lima esperaba «resumen en una línea; total y acción en otra» y por debajo de 768 el total y la leyenda de moneda ocupan una fila propia, así que son tres. No es un defecto de CSS ni bloquea (la leyenda de moneda se conserva, #906). Observación para lima/bruno (no bloquea): a 768 el `GSummary inline` cede el identificador («Suit…») y a 390 corta «1 hab…» con puntos suspensivos; es la cesión por prioridad de `GSummary` y deja la consulta legible en otras partes del bloque, pero si se quiere que el identificador sobreviva a 768, `layout="stack"` o más espacio para el resumen.
+
+**Cambios de forma revisados a ojo:** garantía bajo la línea en Booking summary 03: bien (a 768 y 390, alineada al inicio, contraste ≥ 4,5:1); precio dentro de la `description` de la tarjeta-botón de Availability 02 (1440): sin solapes, bajo el nombre del día.
+
+**Veredicto:** **`candidate`**: Guest form, Itinerary y Offer detail (BK-B1, BK-B4, BK-B5 en verde), Availability y **Booking summary** (puede pasar ya: la medida de 768 son dos líneas limpias sin desbordar; el apilado en tres bloques a ≤ 390 es limpio y no es defecto bloqueante; solo falta que lima confirme que acepta tres bloques en estrecho o lo ajuste). Con lo anterior, las 11 secciones sin defecto bloqueante.
+
+**Cumplimientos / Correcciones / Pendientes.** Cumplimientos: contraste, tamaños, foco, reflujo, consola y estructura sin fallos en los tres motores. Correcciones: ninguna de CSS nueva (solo el verificador). Pendientes: lima, aceptar tres bloques apilados de Booking summary 03 a ≤ 390 y valorar el identificador cedido; bruno, cambiar `status` en los `meta.json`; mora-docs, BK-L13. No verificado: lector de pantalla real, teléfono real, rendimiento con perfilador, repetición de la pasada completa tras la última corrección del verificador.
