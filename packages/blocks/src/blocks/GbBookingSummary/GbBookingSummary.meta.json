@@ -3,7 +3,7 @@
   "name": "GbBookingSummary",
   "kind": "block-section",
   "family": "booking",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.0.0",
   "description": "Lo que vas a pedir, dicho con tus palabras (la misma frase de la consulta) y con el total que cobra el lugar, y qué pasa si cambias de idea pegado a la acción que sigue. El bloque no calcula nada: la aplicación da las líneas y el total.",
   "contract": "design/contracts/blocks/booking-summary.md",
@@ -172,7 +172,7 @@
   "bundle": {
     "entry": "@grana/blocks/booking",
     "measured": 36851,
-    "cap": 36864,
+    "cap": 37888,
     "variantCap": 5120,
     "peers": [
       "vue",

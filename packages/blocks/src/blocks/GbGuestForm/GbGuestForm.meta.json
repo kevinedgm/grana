@@ -272,7 +272,7 @@
   "bundle": {
     "entry": "@grana/blocks/booking",
     "measured": 36851,
-    "cap": 36864,
+    "cap": 37888,
     "variantCap": 7168,
     "peers": [
       "vue",
