@@ -30,7 +30,7 @@ interface GbItineraryProps {
 ## «Ahora» por la hora del lugar (todas las variantes)
 
 1. **Cuándo:** solo si algún día tiene `date` igual a **hoy en `timeZone`** (sin `timeZone`, la del navegador, aviso I1). Se calcula **en `onMounted`** y al volver la página a primer plano (`visibilitychange` a `visible`); **nunca con un temporizador** mientras se lee (2.2.2: nada cambia solo en paralelo al contenido) y **nunca en el servidor** (SSR sin marca: la hora del servidor no es la del lugar ni la del viajero).
-2. **Qué marca:** la parada cuyo intervalo `[time, end ?? siguiente time)` contiene la hora local del lugar es **«ahora»**; la siguiente, **«siguiente»**. Antes de la primera: solo «siguiente» en la primera. Después de la última: nada.
+2. **Qué marca:** la parada cuyo intervalo `[time, end ?? siguiente time)` contiene la hora local del lugar es **«ahora»**; la siguiente, **«siguiente»**. Antes de la primera: solo «siguiente» en la primera. Después de la última: nada. Una **última parada sin `end`** no tiene siguiente que la acote: nunca es «ahora» (puede ser «siguiente», #890).
 3. **Cómo:** el elemento de la parada lleva **`aria-current="time"`** (ARIA: el elemento que representa la hora actual) y una insignia con texto (`labels.now` / `labels.next`; `GCard badge` en 01 y 02, una celda de texto en 03), nunca solo color. **No se anuncia** (sin región viva: lo que cambia es consecuencia de abrir la página).
 4. **No mueve nada:** no desplaza la página hasta la parada ni abre su día (02): la persona decide. El cambio de marca no cambia el alto de nada (la insignia existe en el diseño de la tarjeta; coco lo mide).
 
@@ -40,7 +40,7 @@ interface GbItineraryProps {
 | --- | --- | --- | --- |
 | **01 · Lista con hora** | Las paradas en orden, cada una con su hora delante | `GSection` › por día (si hay más de uno, `GSection` anidada con `label`; con uno, directo) › `GStack as="ol" gap="sm"` › `GCard as="li" level="flat" orientation="auto" mediaPosition="start"` (slot `eyebrow` = `<time>` de la parada (y `end`), `title`, `description`, `media`, `badge` del «ahora») + `GText` con `place` | — |
 | **02 · Por días** | Un día por elemento de un acordeón: el nombre del día y su primera parada asoman | `GSection` › `GAccordion` (`headingLevel` un nivel por debajo; `arrows`) › `GAccordionItem` por día (`id` = `day.id`, `title` = `label`, `meta` = la fecha en palabras, `peek` = `summary` o «{hora} · {primera parada}») › el `ol` de 01 | — |
-| **03 · Tabla** | Una tabla por día: hora, parada y lugar | `GSection` › por día una `GTable` (`caption` = `label` + fecha, `columns` hora/parada/lugar con `labels.time`/`stop`/`place`, `rows` = paradas, `responsive="auto"`) | `media`, `Stop.description` (la tabla es la vista breve; el detalle está en 01 y 02) |
+| **03 · Tabla** | Una tabla por día: hora, parada y lugar | `GSection` › por día una `GTable` (`caption` = `label` + fecha en **texto plano** (el `caption` de `GTable` no admite marcado: es la excepción a «toda fecha en `time`» de `_comun.md` §20.3; las horas de las celdas sí van en `time`), `columns` hora/parada/lugar con `labels.time`/`stop`/`place`, `rows` = paradas, `responsive="auto"`) | `media`, `Stop.description` (la tabla es la vista breve; el detalle está en 01 y 02) |
 
 **El día de hoy en 02:** el elemento del día con «ahora» **no se abre solo** (regla 4); su `meta` lleva además `labels.now` en texto para que se encuentre al recorrer los encabezados.
 
@@ -75,3 +75,9 @@ Tour Monte Albán (`America/Mexico_City`): dos días con `date`; el primero con 
 ## Verificación propia
 
 Vitest: `ol` real (01, panel de 02) y una `GTable` por día (03); horas en `time datetime`; con el reloj simulado, `aria-current="time"` e insignias en la parada correcta **según `timeZone`**, también con el navegador en otra zona; sin marca en SSR ni sin `date`; ningún temporizador (`setInterval`/`setTimeout` periódico) tras montar; `visibilitychange` recalcula; 02 no abre el día de hoy. Chromium: 01 con la foto al lado en ancho y arriba a 320; 03 pasa a tarjetas en estrecho (`GTable responsive`); orden de encabezados sin saltos.
+
+## Enmiendas del remate de Booking B (#890)
+
+- **03 y «ahora»:** `GTable` no admite atributos por fila, así que `aria-current="time"` va en el **elemento del nombre de la parada** (la celda lleva además el texto `labels.now`/`labels.next`).
+- **03 en estrecho:** mínimos de columna 16/40/32 (hora, parada, lugar) para pasar a tarjetas a 320 px (`responsive="auto"`).
+- **Última parada sin `end`:** nunca «ahora».

@@ -54,7 +54,7 @@ interface GbAvailabilityProps {
 | --- | --- | --- | --- |
 | **01 · Calendario con precio** | El mes con el precio en cada día | `GSection` › `GPriceScope` › `GDatePicker inline` (`mode` = `range` en `stay` y `single` en el resto, `months="auto"`, `min`/`max`, `disabledDates`/`disabledNights` derivados, `minNights`/`maxNights`, `dayDescription`, slot `day`, `labels` = `labels.datePicker`, `v-model` = `value`) | `upcoming`, `total` |
 | **02 · Próximas fechas** | Las próximas fechas abiertas en una lista, cada una con su día en palabras, su estado y su precio | `GSection` › `GPriceScope` › `GStack as="ul" gap="sm" [aria-label=labels.upcoming]` › `GCard as="li" level="flat" orientation="horizontal" interaction="button"` por cada uno de los `upcoming` primeros días `open`/`few` desde hoy o `min` (`title` = `<time>` con la fecha en palabras, `badge` = `labels.status.few` si toca, cuerpo `GPrice size="sm"` y `note`; activar → `select`) | `total`, `minNights`/`maxNights` (en `stay` elige **la llegada**) |
-| **03 · Calendario + resumen** | El calendario y, al lado, lo elegido con su total y la acción | `GSection` › `GAdaptiveLayout gap="lg"` › [`GPriceScope` › el `GDatePicker` de 01, `g-adapt-wide`] + [`GCard level="outlined"` `g-adapt-standard`: `GSummary` (`facts` = la selección dicha con `describeQuery`), `GPrice` con `total`, `GBtn solid` `labels.select` → `select`] | `upcoming` |
+| **03 · Calendario + resumen** | El calendario y, **debajo** (dos columnas reservadas, AV-L1 / #892), lo elegido con su total y la acción | `GSection` › `GStack gap="lg"` › [`GPriceScope` › el `GDatePicker` de 01] + [`GCard level="outlined"`: el `title` es la selección dicha con `describeQuery` (sin `GSummary`, #892), `GPrice` con `total`, `GBtn solid` `labels.select` → `select`] | `upcoming` |
 
 ## Eventos
 
@@ -93,3 +93,10 @@ Casa Alcalá, noviembre de 2026: 30 días con precios de cuatro cifras (fin de s
 ## Verificación propia
 
 Vitest: derivación de la tabla (`full` en `stay` es `disabledNights` y en `table` es `disabledDates`); `dayDescription` con estado y precio leído; slot `day` con `GPrice xs display none cents never` y sin precio en un día lleno; 02 con los `upcoming` primeros días abiertos en orden y `time datetime`; las tres cargas de `select`; 03 con la selección igual a `describeQuery` y el `total` dado. Chromium: el nombre accesible del día incluye estado y precio (`ariaSnapshot`); el día lleno se puede elegir como salida y no como llegada en `stay`; 01 a 320 sin desbordar con cuatro cifras; 03 en dos columnas a 1440 y una a 390.
+
+## Enmiendas del remate de Booking C (#892, #893)
+
+- **AV-L1 · 03 en una columna:** `GAdaptiveLayout` ignora la pista cuando el hijo es una `<table>` (el calendario lo es) y el resumen queda debajo. Aceptado; dos columnas queda **reservado** hasta que la pista funcione con ese hijo o se decida otra forma de envolverlo. Se reabre solo con esa medida.
+- **03 sin `GSummary`:** el `title` de la tarjeta es la frase de `describeQuery`; un `GSummary layout="stack"` partía el valor en una columna de ~130 px (#896).
+- **02 · nombre y descripción:** `labels.select` solo se usa en 03. La tarjeta-botón se nombra por **la fecha** (con el estado si es «pocas plazas»); **el precio y la nota son su descripción** (`aria-describedby`), porque el cuerpo de un botón no se oye al enfocar. Bruno lo construye así.
+- **V4:** con el slot `empty` presente no se avisa (la aplicación ya decidió el mensaje).

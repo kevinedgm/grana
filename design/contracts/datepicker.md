@@ -78,7 +78,7 @@ Selector de **una fecha o de un rango de fechas** (patrón *date picker dialog* 
 - **`name`:** con `name`, el componente renderiza `<input type="hidden">`: en `single`, `name` con el ISO (o `''`); en `range`, **dos**: `name-start` y `name-end`. Con `disabled`, ocultos también. **Límite:** un campo oculto no participa en la validación nativa (como `GSelect`).
 - **`readonly`:** el campo es enfocable pero no abre; el valor se envía. **`disabled`:** atributo nativo, sin foco ni envío. En `inline`, `readonly` deja la superficie navegable pero sin elegir, y `disabled` la deshabilita entera.
 - **`id`:** si no se da, se genera uno estable (`useId`); de él derivan los ids de la etiqueta, el campo, el popover, los meses, la ayuda y el error.
-- **Resto de atributos** (`aria-*`, `data-*`, escuchas): van al **botón del campo** (o al primero con `split`); en `inline`, a la raíz de la superficie. `class` y `style` van a la raíz (`inheritAttrs: false`).
+- **Resto de atributos** (`aria-*`, `data-*`, escuchas): van al **botón del campo** (o al primero con `split`); en `inline`, a la raíz de la superficie (el contrato no cambia, #895: que hoy las escuchas no lleguen es un defecto de `GDatePicker.vue`, de bruno, en `PENDIENTES.md`). `class` y `style` van a la raíz (`inheritAttrs: false`).
 
 ## Textos (`labels`)
 

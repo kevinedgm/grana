@@ -82,3 +82,7 @@ Restaurante: tres tiempos (Desayuno con `hours`, Comida, Cena) con nueve platos:
 ## Verificación propia
 
 Vitest: un `GPriceScope` por carta y ningún precio fuera de `GPrice`; `dl` real con `dt` y `dd` en el orden del contrato dentro de una `GText`; `lang` en el nombre; `GTag` sin `href` ni `pressed`; lo agotado en el DOM con su texto; 02 con una pestaña por tiempo y la del `hash` activa al montar. Chromium: precios con cifras tabulares (mismo ancho de dígito); 01 y 03 sin desbordar a 320 con un nombre largo; `dd` sin la sangría del navegador (#863, mide coco).
+
+## Enmienda del remate de Booking B (#890)
+
+02 pone el contenido de cada tiempo en el slot `panel-{id}` de `GTabs` (no `GTabPanel`), como Offer detail 02.

@@ -77,7 +77,7 @@ GBtn (directions) — la primera acción del bloque: `solid` en 01, `outline` en
 
 ## Avisos propios (`[Grana GbLocation<NN>]`)
 
-C4 a C7. Además: **L1** · sin `address` ni `points`, **L2** · `map.alt` vacío o que solo dice «mapa»/«map» (se pinta; el texto alternativo debe describir el sitio, R8), **L3** · `points` en 01 o 02 (no los usan; una vez, para que la aplicación elija 03).
+C4 a C7. Además: **L1** · sin `address` ni `points`, **L2** · `map.alt` vacío o que solo dice «mapa»/«map» (se pinta; el texto alternativo debe describir el sitio, R8), **L3** · `points` en 01 o 02 **y sin `address`** (no los usan y la sección quedaría sin nada que leer; una vez, para que la aplicación elija 03; con `address` no avisa, #888).
 
 ## Banco (`location.bank.js`)
 

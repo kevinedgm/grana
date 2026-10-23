@@ -43,7 +43,7 @@ interface GbBookingSummaryProps {
 | --- | --- | --- | --- |
 | **01 · Tarjeta** | Lo pedido, el total, la garantía y la acción en una tarjeta para la columna de al lado | `GCard as="section"` (raíz; título al nivel de `useSectionLevel()`, `media` = `offer.photos[0]` si hay) › `GSummary` + `GPrice` + garantía + `actions` | `totals.lines` |
 | **02 · El recibo** | El desglose completo, línea a línea, para revisar antes de confirmar | `GSection` (título) › `GStack gap="md"` › `GSummary` + desglose (`dl`, nombre `labels.lines`) + `GPrice` del total + `totals.note` + garantía + acciones | `offer.photos` |
-| **03 · Línea** | Una sola línea compacta para lo alto de un paso del flujo | `GStack orientation="horizontal" gap="md" vertical="center"` (raíz) › `GSummary layout="inline"` + `GPrice size="sm"` (solo el total, sin la tarifa) + la primera acción (`outline`) | `totals.lines`, `totals.note`, `offer.photos`, la segunda acción |
+| **03 · Línea** | Una sola línea compacta para lo alto de un paso del flujo | `GStack orientation="horizontal" gap="md" vertical="center"` (raíz: **`div role="group"` con `aria-label` = `title`**, #894) › `GSummary layout="inline"` (toma el sobrante) + `GPrice size="sm"` (solo el total, sin la tarifa) + la primera acción (`outline`) | `totals.lines`, `totals.note`, `offer.photos`, la segunda acción |
 
 **Columna pegada y muelle** (plan §4.3: «tarjeta lateral pegada», «muelle al pie»): sin CSS no hay forma de pegar el bloque ni un muelle propio (BK-L1, BK-L2, `_comun.md` §23). La aplicación pega su columna con su CSS (receta del README: `position: sticky` en **su** contenedor, con `top` = `--g-app-shell-top` si hay chasis); el bloque no lo necesita para funcionar.
 
@@ -79,3 +79,8 @@ La consulta común; Suite Jardín con foto y `price` («desde» $1,850 / noche);
 ## Verificación propia
 
 Vitest: la línea de la consulta igual a `describeQuery`; `GPrice` con `total` = `totals.total` (la cuenta) y sin aritmética en el bloque (el banco tiene líneas cuya suma **no** es el total y el bloque pinta el total dado); la garantía en `aria-describedby` de la principal; 02 con un `dl` real y sus `dd` sin sangría (clase `g-text` alrededor); 03 en una sola fila con una sola acción. Chromium: 03 se parte en líneas a 320 sin desbordar; 01 en una columna de 360 px sin desbordar; el cambio de `totals` hace rodar la cifra (regla de `GPrice`) y con reducido no.
+
+## Enmiendas del remate de Booking C (#894)
+
+- **03 sin encabezado:** un `div role="group"` con `aria-label` = `title` (como Guest form 03, #882); no es una región, para no sumar un hito de navegación a una línea.
+- **BS-L1:** el `GSummary` en línea ocupa toda la fila de la `GStack` horizontal y el total y la acción pasaban a una segunda línea en escritorio. Contrato: en la raíz de 03, lo pedido toma **solo el sobrante** (`flex: 1 1 auto; min-inline-size: 0`) y el total y la acción conservan su ancho; la fila se parte en líneas solo cuando el ancho no alcanza. Es de CSS: **coco** lo corrige en la auditoría y bruno añade la clase si falta.
