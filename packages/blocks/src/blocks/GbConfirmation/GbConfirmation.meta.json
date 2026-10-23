@@ -1,0 +1,219 @@
+{
+  "schemaVersion": 1,
+  "name": "GbConfirmation",
+  "kind": "block-section",
+  "family": "booking",
+  "status": "draft",
+  "since": "0.0.0",
+  "description": "Lo que quedó reservado (o pedido), dicho entero en una pieza que cabe en una captura: el código primero y grande, qué, cuándo y quiénes con las mismas palabras de la consulta, cuánto (el total del lugar), qué sigue y cómo escribir. Lo pedido no se disfraza de confirmado.",
+  "contract": "design/contracts/blocks/confirmation.md",
+  "common": "design/contracts/blocks/_comun.md",
+  "decisions": [
+    860,
+    861,
+    862,
+    864,
+    866,
+    873,
+    874
+  ],
+  "composes": [
+    "GCard",
+    "GSection",
+    "GStack",
+    "GMetric",
+    "GSummary",
+    "GStepper",
+    "GPrice",
+    "GPriceScope",
+    "GBtn",
+    "GIcon",
+    "GText"
+  ],
+  "variants": [
+    {
+      "name": "GbConfirmation01",
+      "tag": "gb-confirmation-01",
+      "concept": "Tarjeta",
+      "root": "GCard as=\"section\" (badge = estado, media = offer.photos[0]) › código, ficha, total, canales y acciones"
+    },
+    {
+      "name": "GbConfirmation02",
+      "tag": "gb-confirmation-02",
+      "concept": "Lo que sigue",
+      "root": "GSection › GStack gap=\"lg\" › [estado en GText, lo confirmado, acciones] + GSection anidada › GStepper vertical informativo"
+    },
+    {
+      "name": "GbConfirmation03",
+      "tag": "gb-confirmation-03",
+      "concept": "Captura",
+      "root": "GCard as=\"section\" density=\"compact\" level=\"outlined\" sin media › código, consulta, total y canales; como mucho dos acciones"
+    }
+  ],
+  "props": [
+    {
+      "name": "title",
+      "type": "String",
+      "ts": "string",
+      "required": true,
+      "note": "«Reserva confirmada» / «Recibimos tu solicitud»"
+    },
+    {
+      "name": "state",
+      "type": "String",
+      "ts": "ConfirmationState",
+      "required": true,
+      "note": "confirmed o requested; fuera de lista se pinta requested (F1)"
+    },
+    {
+      "name": "reference",
+      "type": "Object",
+      "ts": "Reference",
+      "required": true,
+      "note": "{ code, label }: el código en GMetric, primero tras el título; el bloque no lo parte (BK-L4); vacío, F2"
+    },
+    {
+      "name": "query",
+      "type": "Object",
+      "ts": "BookingQuery",
+      "required": true,
+      "note": "Dicha con describeQuery (#862)"
+    },
+    {
+      "name": "partyRows",
+      "type": "Array",
+      "ts": "PartyRow[]",
+      "required": true
+    },
+    {
+      "name": "context",
+      "type": "Object",
+      "ts": "QueryContextExtra",
+      "default": null
+    },
+    {
+      "name": "offer",
+      "type": "Object",
+      "ts": "OfferRef",
+      "default": null,
+      "note": "Nombre y tipo en la ficha; la primera foto en 01"
+    },
+    {
+      "name": "totals",
+      "type": "Object",
+      "ts": "Totals",
+      "default": null,
+      "note": "Lo que cobra el lugar (de la aplicación); 03 solo el total (F3 con lines)"
+    },
+    {
+      "name": "prices",
+      "type": "Object",
+      "ts": "PriceRegion",
+      "default": null
+    },
+    {
+      "name": "next",
+      "type": "Array",
+      "ts": "NextStep[]",
+      "default": null,
+      "note": "0 a 6 (C7); fechas en la zona del lugar (timeZone)",
+      "variants": [
+        "GbConfirmation02"
+      ]
+    },
+    {
+      "name": "channels",
+      "type": "Array",
+      "ts": "Channel[]",
+      "default": null,
+      "note": "WhatsApp, tel:, mailto:; los del sistema no emiten navigate (#834)"
+    },
+    {
+      "name": "actions",
+      "type": "Array",
+      "ts": "Action[]",
+      "default": null,
+      "note": "0 a 2 (la primera solid, la segunda outline); «Compartir» sin href emite activate síncrono (navigator.share en el gesto); 03 como mucho dos (F3)"
+    },
+    {
+      "name": "timeZone",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "IANA del lugar: fechas de next en su zona"
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "ts": "string",
+      "default": null
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "ts": "ConfirmationLabels",
+      "required": true,
+      "note": "states (C5), query y when (K2, C5), next y stepper (02 con next), channels (con channels), price, external"
+    }
+  ],
+  "events": [
+    {
+      "name": "navigate",
+      "payload": "{ event, href, item }",
+      "ts": "BlockNavigate<Action | Channel>",
+      "trigger": "Una acción o un canal interno con clic primario (#505); nunca con external ni con tel:/mailto:/sms:"
+    },
+    {
+      "name": "activate",
+      "payload": "{ event, item }",
+      "ts": "BlockActivate<Action>",
+      "trigger": "Una acción sin href («Compartir»), síncrono en el gesto"
+    }
+  ],
+  "slots": [
+    {
+      "name": "summary",
+      "ts": "{ query: BookingQuery; offer: OfferRef | undefined }",
+      "purpose": "Escape: ficha propia en lugar del GSummary"
+    },
+    {
+      "name": "actions",
+      "purpose": "Escape de las acciones (§3)"
+    }
+  ],
+  "types": [
+    "ConfirmationState",
+    "Reference",
+    "BookingQuery",
+    "PartyRow",
+    "QueryContextExtra",
+    "OfferRef",
+    "Totals",
+    "PriceRegion",
+    "NextStep",
+    "Channel",
+    "Action",
+    "ConfirmationLabels",
+    "BlockNavigate",
+    "BlockActivate"
+  ],
+  "warnings": [
+    "C3 a C8",
+    "K1 a K3",
+    "F1 · state fuera de lista (se pinta requested)",
+    "F2 · reference.code vacío",
+    "F3 · 03 con más de dos actions o con totals.lines"
+  ],
+  "root": "GCard as=\"section\" (01, 03) o GSection (02) con data-gb=\"confirmation-NN\" y $attrs",
+  "bundle": {
+    "entry": "@grana/blocks/booking",
+    "measured": 17058,
+    "peers": [
+      "vue",
+      "@grana/vue",
+      "@grana/vue/booking",
+      "@grana/vue/price"
+    ],
+    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c), 4 de 11 secciones (12 de 33 variantes; parte A, 2026-10-23). Sin tope hasta que lo fije lima (§19). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbConfirmation01 4599 B, 02 4663 B, 03 4480 B (pasan la referencia de 4096 B: vuelve a lima)."
+  }
+}

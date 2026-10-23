@@ -1,0 +1,178 @@
+{
+  "schemaVersion": 1,
+  "name": "GbOfferList",
+  "kind": "block-section",
+  "family": "booking",
+  "status": "draft",
+  "since": "0.0.0",
+  "description": "Las habitaciones, mesas o recorridos que se pueden pedir, con su foto, lo que incluyen, su precio y, si ya hay consulta, lo que cuestan para esa consulta (el total que da el lugar). Cada una se elige o se abre; lo no disponible se queda a la vista con su motivo; las fotos se ven en un visor sin salir de la lista y el foco vuelve al botón de esa oferta.",
+  "contract": "design/contracts/blocks/offer-list.md",
+  "common": "design/contracts/blocks/_comun.md",
+  "decisions": [
+    860,
+    861,
+    862,
+    864,
+    866,
+    868
+  ],
+  "composes": [
+    "GSection",
+    "GAdaptiveLayout",
+    "GStack",
+    "GCard",
+    "GText",
+    "GBtn",
+    "GIcon",
+    "GPrice",
+    "GPriceScope",
+    "GGalleryViewer"
+  ],
+  "variants": [
+    {
+      "name": "GbOfferList01",
+      "tag": "gb-offer-list-01",
+      "concept": "Tarjetas",
+      "root": "GSection › [línea de la consulta] + GPriceScope › GAdaptiveLayout role=\"list\" › div role=\"listitem\" g-adapt-standard › GCard as=\"div\" mediaPosition=\"top\""
+    },
+    {
+      "name": "GbOfferList02",
+      "tag": "gb-offer-list-02",
+      "concept": "Renglones",
+      "root": "GSection › [línea] + GPriceScope › GStack as=\"ul\" gap=\"md\" › GCard as=\"li\" orientation=\"auto\" mediaPosition=\"start\""
+    },
+    {
+      "name": "GbOfferList03",
+      "tag": "gb-offer-list-03",
+      "concept": "Rejilla compacta",
+      "root": "GSection › [línea] + GPriceScope › GAdaptiveLayout role=\"list\" › div role=\"listitem\" g-adapt-short › GCard as=\"div\" density=\"compact\" sin media"
+    }
+  ],
+  "props": [
+    {
+      "name": "title",
+      "type": "String",
+      "ts": "string",
+      "required": true
+    },
+    {
+      "name": "description",
+      "type": "String",
+      "ts": "string",
+      "default": null
+    },
+    {
+      "name": "offers",
+      "type": "Array",
+      "ts": "Offer[]",
+      "required": true,
+      "note": "1 a 24 (C7 por encima de 24). id obligatorio (K5)"
+    },
+    {
+      "name": "query",
+      "type": "Object",
+      "ts": "BookingQuery | null",
+      "default": null,
+      "note": "La consulta que la lista responde (K1, K2): se dice una vez bajo el título y, con price.total, cada tarjeta enseña la cuenta"
+    },
+    {
+      "name": "partyRows",
+      "type": "Array",
+      "ts": "PartyRow[]",
+      "default": null,
+      "note": "Para decir la consulta (con query)"
+    },
+    {
+      "name": "context",
+      "type": "Object",
+      "ts": "QueryContextExtra",
+      "default": null,
+      "note": "times/tours para decir una consulta table/tour"
+    },
+    {
+      "name": "prices",
+      "type": "Object",
+      "ts": "PriceRegion",
+      "default": null,
+      "note": "Una GPriceScope alrededor de la lista (la moneda se dice una vez, #772); con precios y sin ella, K3"
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "BCP 47; sin él, el lang del ancestro al montar"
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "ts": "OfferListLabels",
+      "default": {},
+      "note": "select (con href y disponible), photos (dos o más fotos), unavailable (available: false), forQuery y query (con query, K2), price, gallery (tal cual a GGalleryViewer), external; sin valores por defecto (C5)"
+    }
+  ],
+  "events": [
+    {
+      "name": "select",
+      "payload": "{ event, offer, query }",
+      "ts": "OfferSelect",
+      "trigger": "«Elegir» (tarjeta-enlace) o la tarjeta-botón, con la oferta disponible"
+    },
+    {
+      "name": "photos",
+      "payload": "{ event, offer, index: 0 }",
+      "ts": "OfferPhotos",
+      "trigger": "Al abrir el visor (informativo: el bloque ya lo abre)"
+    },
+    {
+      "name": "navigate",
+      "payload": "{ event, href, item: offer }",
+      "ts": "BlockNavigate<Offer>",
+      "trigger": "La tarjeta-enlace con clic primario (reemite el de GCard, #505, #574; nunca con external)"
+    }
+  ],
+  "slots": [
+    {
+      "name": "offer",
+      "ts": "{ offer: Offer }",
+      "purpose": "Escape: contenido extra al final del cuerpo de la tarjeta, después del precio"
+    },
+    {
+      "name": "description",
+      "purpose": "Sustituye a la prop description de la GSection"
+    }
+  ],
+  "types": [
+    "Offer",
+    "OfferFact",
+    "Photo",
+    "PriceSpec",
+    "PriceRegion",
+    "BookingQuery",
+    "PartyRow",
+    "QueryContextExtra",
+    "QueryLabels",
+    "OfferListLabels",
+    "OfferSelect",
+    "OfferPhotos",
+    "BlockNavigate"
+  ],
+  "warnings": [
+    "C1 a C7",
+    "K1 a K5",
+    "OL1 · una oferta sin photos en 01 o 02 (sin media)"
+  ],
+  "root": "GSection con data-gb=\"offer-list-NN\" y $attrs",
+  "bundle": {
+    "entry": "@grana/blocks/booking",
+    "measured": 17058,
+    "peers": [
+      "vue",
+      "@grana/vue",
+      "@grana/vue/booking",
+      "@grana/vue/price",
+      "@grana/vue/gallery"
+    ],
+    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c), 4 de 11 secciones (12 de 33 variantes; parte A, 2026-10-23). Sin tope hasta que lo fije lima (§19). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbOfferList01 4034 B, 02 4018 B, 03 4042 B."
+  }
+}

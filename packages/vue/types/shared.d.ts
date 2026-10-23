@@ -1243,6 +1243,38 @@ export interface BookingSubmitEvent extends BookingQuery {
   readonly defaultPrevented: boolean
 }
 
+/** Lo que `describeQuery` lee de la consulta (#862): el modelo de `GBookingBar` con su `kind`. */
+export interface DescribeQueryInput extends Partial<BookingQuery> {
+  kind: 'stay' | 'table' | 'tour'
+}
+/** Opciones de `describeQuery`: las filas del grupo, turnos o recorridos, idioma y las claves de textos de `GBookingBar`. */
+export interface DescribeQueryOptions {
+  partyRows: PartyRow[]
+  times?: { value: string; label?: string }[]
+  tours?: { value: string | number; label: string }[]
+  /** BCP 47; sin él, el de Intl del entorno (no lee el DOM). */
+  locale?: string
+  labels: {
+    nights: string | ((count: number, vars: { count: string }) => string)
+    separator: string
+    checkout?: string
+    noDates?: string
+    noDate?: string
+    noTime?: string
+    noTour?: string
+  }
+}
+/** Resultado de `describeQuery`. */
+export interface DescribedQuery {
+  /** El resumen («13–15 nov · 2 noches · 2 adultos · 1 niño»). */
+  text: string
+  /** «Salida el {date}» con la consulta de estancia completa; vacío si no. */
+  checkout: string
+  nights: number | null
+  /** Lo que falta, en orden. */
+  missing: ('dates' | 'date' | 'time' | 'tour')[]
+}
+
 /** Importe en una moneda (`api.md` «Dinero y precio», price.md «Modelo»): unidades mayores y código ISO 4217. */
 export interface Money {
   /** Unidades mayores (1850.5), finito. */

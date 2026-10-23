@@ -19,7 +19,8 @@ vi.spyOn(console, 'warn').mockImplementation(() => {})
 const ENTRIES = [
   { name: 'hero', mod: hero, global: 'GranaHero', components: ['GHero'], dirs: ['GHero'], limit: 4096, gate: 'g-hero__media' },
   { name: 'gallery', mod: gallery, global: 'GranaGallery', components: ['GGallery', 'GGalleryViewer'], dirs: ['GGallery'], limit: 12288, gate: 'g-gallery-viewer__stage' },
-  { name: 'booking', mod: booking, global: 'GranaBooking', components: ['GBookingBar', 'GPartyField'], dirs: ['GBookingBar', 'GPartyField'], limit: 14336, gate: 'g-booking-bar__phrase' }
+  // describeQuery (#862): función pura de la entrada, en utils/bookingQuery.js (propio de booking, fuera de __shared)
+  { name: 'booking', mod: booking, global: 'GranaBooking', components: ['GBookingBar', 'GPartyField'], functions: ['describeQuery'], files: ['utils/bookingQuery.js'], dirs: ['GBookingBar', 'GPartyField'], limit: 14336, gate: 'g-booking-bar__phrase' }
 ]
 const metaOf = (c) => {
   for (const d of readdirSync(resolve(SRC, 'components'))) {
@@ -31,7 +32,7 @@ const metaOf = (c) => {
 
 describe.each(ENTRIES)('@grana/vue/$name · entrada propia (#742)', (e) => {
   it('exporta sus componentes, install y el plugin por defecto; nada interno', () => {
-    expect(Object.keys(e.mod).sort()).toEqual([...e.components, 'default', 'install'].sort())
+    expect(Object.keys(e.mod).sort()).toEqual([...e.components, ...(e.functions || []), 'default', 'install'].sort())
     expect(e.mod.default.install).toBe(e.mod.install)
   })
 
@@ -95,9 +96,9 @@ describe.each(ENTRIES)('@grana/vue/$name · entrada propia (#742)', (e) => {
   })
 
   it('importa del principal solo lo que src/shared.js expone, nombre por nombre', () => {
-    const own = (key) => key === `${e.name}.js` || e.dirs.some((d) => key.startsWith(`components/${d}/`))
+    const own = (key) => key === `${e.name}.js` || (e.files || []).includes(key) || e.dirs.some((d) => key.startsWith(`components/${d}/`))
     const keyOf = (file) => relative(SRC, file).split(sep).join('/')
-    const files = [`${e.name}.js`, ...e.dirs.flatMap((d) => readdirSync(resolve(SRC, 'components', d)).filter((f) => /\.(vue|js)$/.test(f) && !/\.test\.js$/.test(f)).map((f) => `components/${d}/${f}`))]
+    const files = [`${e.name}.js`, ...(e.files || []), ...e.dirs.flatMap((d) => readdirSync(resolve(SRC, 'components', d)).filter((f) => /\.(vue|js)$/.test(f) && !/\.test\.js$/.test(f)).map((f) => `components/${d}/${f}`))]
     let n = 0
     for (const f of files) {
       const text = readFileSync(resolve(SRC, f), 'utf8')

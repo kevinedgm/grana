@@ -117,13 +117,13 @@
   "root": "GSection con data-gb=\"blog-list-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/marketing",
-    "measured": 17446,
+    "measured": 17630,
     "cap": 18432,
     "peers": [
       "vue",
       "@grana/vue",
       "@grana/vue/tag"
     ],
-    "note": "dist/marketing.js gzip (gzip -c) con las nueve secciones (27 de 27 variantes; 2026-10-22). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbBlogList01 2369 B, GbBlogList02 2128 B, GbBlogList03 2431 B. Tope conjunto 18 432 B (#844); una variante sola, 4 096 B."
+    "note": "dist/marketing.js gzip (gzip -c) con las nueve secciones (27 de 27 variantes; 2026-10-22). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbBlogList01 2369 B, GbBlogList02 2128 B, GbBlogList03 2431 B. Tope conjunto 18 432 B (#844); una variante sola, 4 096 B. Tras la entrada de Booking (2026-10-23): 17 630 B con el trozo compartido de common/ (dist/GbActions-*.js, que Vite separa al haber dos familias; scripts/measure-entry.mjs) y el icono opcional de GbLink."
   }
 }

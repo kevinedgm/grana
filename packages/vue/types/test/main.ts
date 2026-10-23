@@ -240,3 +240,15 @@ const sectionLevel = useSectionLevel()
 const headingLevelHere: number = sectionLevel.level.value + sectionLevel.depth.value
 // @ts-expect-error: level es de solo lectura
 sectionLevel.level = sectionLevel.depth
+
+// describeQuery (#862): la consulta en palabras desde @grana/vue/booking
+import { describeQuery } from '@grana/vue/booking'
+import type { DescribedQuery, PartyRow } from '@grana/vue/booking'
+const partyRowsDQ: PartyRow[] = [{ key: 'adults', label: 'Adultos', unit: '{count} adultos', decrementLabel: 'Menos', incrementLabel: 'Más' }]
+const described: DescribedQuery = describeQuery({ kind: 'stay', from: '2026-11-13', to: '2026-11-15', party: { adults: 2 } }, { partyRows: partyRowsDQ, locale: 'es', labels: { nights: '{count} noches', separator: ' · ', checkout: 'Salida el {date}' } })
+const describedText: string = described.text + described.checkout
+const describedNights: number | null = described.nights
+// @ts-expect-error describeQuery: kind fuera de la lista
+describeQuery({ kind: 'hotel', party: {} }, { partyRows: partyRowsDQ, labels: { nights: 'x', separator: ' ' } })
+// @ts-expect-error describeQuery: labels.separator es obligatorio
+describeQuery({ kind: 'table', party: {} }, { partyRows: partyRowsDQ, labels: { nights: 'x' } })

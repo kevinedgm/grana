@@ -44,6 +44,8 @@ const testimonial: Testimonial = { quote: 'Volveríamos.', lang: 'en', author: {
 const testimonials: GbTestimonialsProps = { title: 'Opiniones', items: [testimonial], labels: { external: 'se abre en otra pestaña' } }
 // @ts-expect-error: Testimonial sin author.name
 const noAuthor: Testimonial = { quote: 'x', author: {} }
+// @ts-expect-error: Testimonial sin source (obligatoria desde #865)
+const noSource: Testimonial = { quote: 'x', author: { name: 'A' } }
 // @ts-expect-error: rating está reservado (M-L2)
 const rated: Testimonial = { quote: 'x', author: { name: 'A' }, rating: 5 }
 const cta: GbCtaProps = { title: 'Reserva', actions: [action], assurance: 'Sin pago ahora', media, labels: { actions: 'Acciones', external: 'se abre en otra pestaña' } }

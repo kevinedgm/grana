@@ -1,6 +1,7 @@
-// Peso de cada variante de Marketing importada sola (dueño: bruno; #844): esbuild sobre dist/marketing.js con `vue` y
-// `@grana/vue*` externos (lo que paga una aplicación que usa una o dos secciones), `gzip -c` equivalente (zlib nivel 6).
-// Uso: node scripts/measure-partial.mjs [tope=4096]  → imprime «Variante bytes» y sale con 1 si alguna lo supera.
+// Peso de cada variante de una familia importada sola (dueño: bruno; #844, _comun.md §19): esbuild sobre dist/<familia>.js
+// con `vue` y `@grana/vue*` externos (lo que paga una aplicación que usa una o dos secciones), `gzip -c` equivalente (zlib
+// nivel 6). Uso: node scripts/measure-partial.mjs [tope=4096] [familia=marketing]  → imprime «Variante bytes» y sale con 1
+// si alguna lo supera (VERBOSE=1 lista todas).
 import { build } from 'esbuild'
 import { readFileSync } from 'node:fs'
 import { gzipSync } from 'node:zlib'
@@ -9,9 +10,10 @@ import { dirname, resolve } from 'node:path'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const cap = Number(process.argv[2] || 4096)
-const entry = resolve(root, 'dist/marketing.js')
+const family = process.argv[3] || 'marketing'
+const entry = resolve(root, `dist/${family}.js`)
 const names = [...readFileSync(entry, 'utf8').matchAll(/\bas (Gb[A-Za-z]+\d\d)\b/g)].map((m) => m[1])
-const variants = [...new Set(names.length ? names : [...readFileSync(resolve(root, 'src/marketing.js'), 'utf8').matchAll(/\bGb[A-Za-z]+\d\d\b/g)].map((m) => m[0]))].sort()
+const variants = [...new Set(names.length ? names : [...readFileSync(resolve(root, `src/${family}.js`), 'utf8').matchAll(/\bGb[A-Za-z]+\d\d\b/g)].map((m) => m[0]))].sort()
 let worst = { name: '', size: 0 }
 let failed = 0
 for (const name of variants) {
@@ -25,5 +27,5 @@ for (const name of variants) {
   if (size > cap) { failed++; console.log(`${name} ${size} > ${cap}`) }
   else if (process.env.VERBOSE) console.log(`${name} ${size}`)
 }
-console.log(`${variants.length} variantes; la mayor: ${worst.name} ${worst.size} B gzip (tope ${cap})`)
+console.log(`${family}: ${variants.length} variantes; la mayor: ${worst.name} ${worst.size} B gzip (tope ${cap})`)
 process.exit(failed ? 1 : 0)

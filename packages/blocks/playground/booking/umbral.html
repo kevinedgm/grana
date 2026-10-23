@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Receta «El umbral» · GbHero03 + GbSearch01 (bruno)</title>
+<!-- search.md «El umbral es una receta» (#866): GbHero03 (marketing) con GbSearch01 (booking) en su slot `consult`. Un solo
+     h1 (el del héroe) y la consulta antes de las acciones del héroe. Bloques REALES de dist/. -->
+<link rel="stylesheet" href="/packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="/packages/vue/dist/grana.css">
+<style>body{margin:0;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}</style>
+<script>window.process = { env: { NODE_ENV: 'development' } }</script>
+<script type="importmap">
+{ "imports": {
+  "vue": "/node_modules/vue/dist/vue.esm-browser.js",
+  "@grana/vue": "/packages/vue/dist/grana.js",
+  "@grana/vue/booking": "/packages/vue/dist/booking.js",
+  "@grana/vue/gallery": "/packages/vue/dist/gallery.js",
+  "@grana/vue/price": "/packages/vue/dist/price.js",
+  "@grana/vue/hero": "/packages/vue/dist/hero.js",
+  "@grana/vue/tag": "/packages/vue/dist/tag.js",
+  "@grana/blocks/marketing": "/packages/blocks/dist/marketing.js",
+  "@grana/blocks/booking": "/packages/blocks/dist/booking.js"
+} }
+</script>
+</head>
+<body>
+<div id="app"></div>
+<script type="module">
+  import { createApp, h } from 'vue'
+  import Grana from '@grana/vue'
+  import { GbHero03 } from '@grana/blocks/marketing'
+  import { GbSearch01 } from '@grana/blocks/booking'
+  import * as hero from '/packages/blocks/src/blocks/GbHero/hero.bank.js'
+  import * as search from '/packages/blocks/src/blocks/GbSearch/search.bank.js'
+  const app = createApp({ render: () => h('main', null, [h(GbHero03, hero.props, { consult: () => h(GbSearch01, { ...search.props, onSubmit: (p) => p.preventDefault() }) })]) })
+  app.use(Grana)
+  app.config.warnHandler = (msg) => console.warn(`[Vue warn] ${msg}`)
+  app.mount('#app')
+  document.documentElement.dataset.ready = '1'
+</script>
+</body>
+</html>

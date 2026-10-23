@@ -1,0 +1,229 @@
+{
+  "schemaVersion": 1,
+  "name": "GbSearch",
+  "kind": "block-section",
+  "family": "booking",
+  "status": "draft",
+  "since": "0.0.0",
+  "description": "La consulta de disponibilidad de una página de sitio (estancia, mesa o recorrido) como una frase, una barra o una frase que acompaña al bajar, con los mismos datos en las tres. Elige la apariencia de GBookingBar, añade una nota de lo que pasa después y reemite la intención tal cual; la consulta que emite (BookingQuery con su kind) es el hilo que reciben las demás secciones de Booking.",
+  "contract": "design/contracts/blocks/search.md",
+  "common": "design/contracts/blocks/_comun.md",
+  "decisions": [
+    860,
+    861,
+    862,
+    864,
+    866,
+    867
+  ],
+  "composes": [
+    "GBookingBar",
+    "GStack",
+    "GText"
+  ],
+  "variants": [
+    {
+      "name": "GbSearch01",
+      "tag": "gb-search-01",
+      "concept": "La frase",
+      "root": "GStack gap=\"sm\" › GBookingBar appearance=\"phrase\" + GText body-sm muted con la nota"
+    },
+    {
+      "name": "GbSearch02",
+      "tag": "gb-search-02",
+      "concept": "La barra",
+      "root": "GStack gap=\"sm\" › GBookingBar appearance=\"bar\" (sin quickDays) + nota"
+    },
+    {
+      "name": "GbSearch03",
+      "tag": "gb-search-03",
+      "concept": "La que acompaña",
+      "root": "GStack gap=\"sm\" › GBookingBar appearance=\"phrase\" dock + nota"
+    }
+  ],
+  "props": [
+    {
+      "name": "kind",
+      "type": "String",
+      "ts": "BookingKind",
+      "required": true,
+      "note": "stay, table o tour; tal cual a GBookingBar"
+    },
+    {
+      "name": "title",
+      "type": "String",
+      "ts": "string",
+      "required": true,
+      "note": "Título de la consulta: el encabezado y el nombre de GBookingBar (nivel por GSection o 2)"
+    },
+    {
+      "name": "partyRows",
+      "type": "Array",
+      "ts": "PartyRow[]",
+      "required": true,
+      "note": "Filas de GPartyField"
+    },
+    {
+      "name": "query",
+      "type": "Object",
+      "ts": "BookingQuery | null",
+      "default": null,
+      "note": "v-model:query. Su kind debe ser el de la sección (K1: si no, se pasa null). Sin query, GBookingBar guarda el estado"
+    },
+    {
+      "name": "note",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "Lo que pasa después («Sin pago ahora · Te respondemos por WhatsApp»), en GText body-sm muted después del formulario"
+    },
+    {
+      "name": "min",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "ISO"
+    },
+    {
+      "name": "max",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "ISO"
+    },
+    {
+      "name": "disabledDates",
+      "type": "Function",
+      "ts": "DateRule",
+      "default": null,
+      "note": "(iso, query) => boolean"
+    },
+    {
+      "name": "disabledNights",
+      "type": "Function",
+      "ts": "DateRule",
+      "default": null,
+      "note": "Solo stay: la noche que empieza iso está agotada"
+    },
+    {
+      "name": "minNights",
+      "type": "Number",
+      "ts": "number",
+      "default": null,
+      "note": "Solo stay (GBookingBar: 1 por defecto)"
+    },
+    {
+      "name": "maxNights",
+      "type": "Number",
+      "ts": "number",
+      "default": null,
+      "note": "Solo stay"
+    },
+    {
+      "name": "times",
+      "type": "Array | Function",
+      "ts": "BookingTimes",
+      "default": null,
+      "note": "table: turnos o función del día"
+    },
+    {
+      "name": "tours",
+      "type": "Array",
+      "ts": "BookingTour[]",
+      "default": null,
+      "note": "tour: recorridos"
+    },
+    {
+      "name": "quickDays",
+      "type": "Number",
+      "ts": "number",
+      "default": null,
+      "note": "Días rápidos del hueco de fecha de la frase",
+      "variants": [
+        "GbSearch01",
+        "GbSearch03"
+      ]
+    },
+    {
+      "name": "names",
+      "type": "Object",
+      "ts": "BookingNames",
+      "default": null,
+      "note": "Nombres de los ocultos del envío nativo"
+    },
+    {
+      "name": "pending",
+      "type": "Boolean",
+      "ts": "boolean",
+      "default": false,
+      "note": "La aplicación consulta (GBookingBar pending)"
+    },
+    {
+      "name": "disabled",
+      "type": "Boolean",
+      "ts": "boolean",
+      "default": false
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "BCP 47"
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "ts": "SearchLabels",
+      "required": true,
+      "note": "bar: los labels de GBookingBar tal cual (paso directo, #761); los avisa GBookingBar (aviso 7)"
+    }
+  ],
+  "events": [
+    {
+      "name": "submit",
+      "payload": "la carga de GBookingBar tal cual",
+      "ts": "SearchSubmit",
+      "trigger": "Envío válido. Síncrono: preventDefault() en la escucha deja sin hacer el envío nativo (con action)"
+    },
+    {
+      "name": "update:query",
+      "payload": "BookingQuery",
+      "ts": "BookingQuery",
+      "trigger": "Cada cambio de la consulta, con su kind"
+    }
+  ],
+  "slots": [
+    {
+      "name": "note",
+      "purpose": "Escape: contenido rico de la nota, dentro de la misma GText"
+    }
+  ],
+  "attrs": "action, method, target, enctype, accept-charset y autocomplete van al <form> de GBookingBar (envío nativo al motor); class, style, id, aria-* y data-* a la raíz",
+  "types": [
+    "BookingKind",
+    "BookingQuery",
+    "PartyRow",
+    "DateRule",
+    "BookingTimes",
+    "BookingTour",
+    "BookingNames",
+    "SearchLabels",
+    "SearchSubmit"
+  ],
+  "warnings": [
+    "K1 · query con otro kind o forma inválida (se pasa null)",
+    "S1 · más de un GbSearch03 en el documento"
+  ],
+  "root": "GStack gap=\"sm\" con data-gb=\"search-NN\" y $attrs (salvo los del envío nativo)",
+  "bundle": {
+    "entry": "@grana/blocks/booking",
+    "measured": 17058,
+    "peers": [
+      "vue",
+      "@grana/vue",
+      "@grana/vue/booking"
+    ],
+    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c), 4 de 11 secciones (12 de 33 variantes; parte A, 2026-10-23). Sin tope hasta que lo fije lima (§19). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbSearch01 1719 B, 02 1721 B, 03 1723 B."
+  }
+}

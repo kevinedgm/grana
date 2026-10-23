@@ -1,0 +1,281 @@
+{
+  "schemaVersion": 1,
+  "name": "GbGuestForm",
+  "kind": "block-section",
+  "family": "booking",
+  "status": "draft",
+  "since": "0.0.0",
+  "description": "Los datos de quien reserva sin volver a pedir lo que ya dijo: la consulta llega hecha (el grupo arranca con query.party y se corrige en el sitio); se piden solo los campos que define el lugar, cada uno con por qué; los consentimientos nunca vienen marcados. El bloque valida como el navegador, lo enseña con GForm y emite los datos; la aplicación reserva.",
+  "contract": "design/contracts/blocks/guest-form.md",
+  "common": "design/contracts/blocks/_comun.md",
+  "decisions": [
+    860,
+    861,
+    862,
+    864,
+    866,
+    872
+  ],
+  "composes": [
+    "GSection",
+    "GForm",
+    "GFormSection",
+    "GFormLayout",
+    "GFormRow",
+    "GInput",
+    "GTextarea",
+    "GSelect",
+    "GDatePicker",
+    "GPartyField",
+    "GCheckbox",
+    "GErrorSummary",
+    "GFormActions",
+    "GStepper",
+    "GBtn",
+    "GIcon",
+    "GStack",
+    "GCard",
+    "GSummary",
+    "GText",
+    "GPrice",
+    "GPriceScope"
+  ],
+  "variants": [
+    {
+      "name": "GbGuestForm01",
+      "tag": "gb-guest-form-01",
+      "concept": "Una página",
+      "root": "GSection › GForm (GErrorSummary, GFormSection por grupo › GFormLayout › GFormRow › campo, consentimientos, GFormActions)"
+    },
+    {
+      "name": "GbGuestForm02",
+      "tag": "gb-guest-form-02",
+      "concept": "Por pasos",
+      "root": "GSection › GStack › GStepper navigation=\"back\" + GForm con solo el grupo actual a la vista (los demás hidden y montados)"
+    },
+    {
+      "name": "GbGuestForm03",
+      "tag": "gb-guest-form-03",
+      "concept": "Con lo pedido a la vista",
+      "root": "GSection › GStack › [GCard level=\"flat\" con la oferta, la consulta y su precio] + GForm de 01 con GFormActions sticky"
+    }
+  ],
+  "props": [
+    {
+      "name": "title",
+      "type": "String",
+      "ts": "string",
+      "required": true,
+      "note": "Título de la sección (GSection); las GFormSection van un nivel por debajo"
+    },
+    {
+      "name": "description",
+      "type": "String",
+      "ts": "string",
+      "default": null
+    },
+    {
+      "name": "fields",
+      "type": "Array",
+      "ts": "GuestField[]",
+      "required": true,
+      "note": "1 a 20 (C7 por encima de 12); type de la lista cerrada (G1); autocomplete obligatorio en email y tel (G2); why se suma a la ayuda"
+    },
+    {
+      "name": "groups",
+      "type": "Array",
+      "ts": "GuestGroup[]",
+      "default": null,
+      "note": "Secciones (01, 03) o pasos (02); sin groups, una sola GFormSection con el título de la sección; un field.group que no está, al final (G5)"
+    },
+    {
+      "name": "values",
+      "type": "Object",
+      "ts": "Record<string, string>",
+      "default": null,
+      "note": "v-model:values; un consentimiento marcado aquí al empezar se ignora (G3)"
+    },
+    {
+      "name": "party",
+      "type": "Object",
+      "ts": "GuestParty",
+      "default": null,
+      "note": "Con query.party y partyRows: GPartyField mode=\"inline\" al principio del primer grupo, arrancando con lo ya dicho (G4 sin partyRows)"
+    },
+    {
+      "name": "partyRows",
+      "type": "Array",
+      "ts": "PartyRow[]",
+      "default": null
+    },
+    {
+      "name": "query",
+      "type": "Object",
+      "ts": "BookingQuery | null",
+      "default": null,
+      "note": "Lo pedido: se dice arriba (03) y su party llena el campo del grupo; las fechas no se vuelven a pedir"
+    },
+    {
+      "name": "context",
+      "type": "Object",
+      "ts": "QueryContextExtra",
+      "default": null
+    },
+    {
+      "name": "consents",
+      "type": "Array",
+      "ts": "Consent[]",
+      "default": null,
+      "note": "Casillas, nunca marcadas al empezar; required → labels.consent al enviar sin marcar; el enlace va junto a la casilla, fuera de su etiqueta"
+    },
+    {
+      "name": "offer",
+      "type": "Object",
+      "ts": "OfferRef",
+      "default": null,
+      "note": "Lo pedido a la vista",
+      "variants": [
+        "GbGuestForm03"
+      ]
+    },
+    {
+      "name": "prices",
+      "type": "Object",
+      "ts": "PriceRegion",
+      "default": null,
+      "variants": [
+        "GbGuestForm03"
+      ]
+    },
+    {
+      "name": "action",
+      "type": "Object",
+      "ts": "{ label: string; icon?: string }",
+      "required": true,
+      "note": "El botón de envío"
+    },
+    {
+      "name": "step",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "v-model:step: id del grupo actual",
+      "variants": [
+        "GbGuestForm02"
+      ]
+    },
+    {
+      "name": "busy",
+      "type": "Boolean",
+      "ts": "boolean",
+      "default": false,
+      "note": "Enviando: GBtn loading con loadingText = labels.busy"
+    },
+    {
+      "name": "errors",
+      "type": "Object",
+      "ts": "Record<string, string>",
+      "default": null,
+      "note": "Errores de la aplicación (servidor) por name; ganan a la validación y se revelan en el acto; en 02, al enviar llevan a su paso"
+    },
+    {
+      "name": "error",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "Error general de la aplicación, al final del resumen de errores"
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "ts": "string",
+      "default": null
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "ts": "GuestFormLabels",
+      "required": true,
+      "note": "required e invalid (plantillas con {label}), consent, next/back/stepper (02), busy, forQuery y query (03, K2), form, errorSummary, party, price y datePicker (pasos directos), external"
+    }
+  ],
+  "events": [
+    {
+      "name": "submit",
+      "payload": "{ event, data: FormData, values, party, consents, query }",
+      "ts": "GuestSubmit",
+      "trigger": "Envío sin errores (el submit de GForm y la validez de los controles en el navegador); values recortados; query con la party corregida"
+    },
+    {
+      "name": "update:values",
+      "payload": "Record<string, string>",
+      "ts": "Record<string, string>",
+      "trigger": "Cada cambio de un campo"
+    },
+    {
+      "name": "update:step",
+      "payload": "String",
+      "ts": "string",
+      "trigger": "02, al avanzar o retroceder"
+    },
+    {
+      "name": "navigate",
+      "payload": "{ event, href, item }",
+      "ts": "BlockNavigate<NavLink>",
+      "trigger": "El enlace interno de un consentimiento con clic primario; item es consent.link"
+    }
+  ],
+  "slots": [
+    {
+      "name": "field-{name}",
+      "ts": "GuestFieldSlot",
+      "purpose": "Escape: un campo propio de la aplicación en lugar del generado, dentro del mismo GFormRow (la aplicación lo nombra y lo valida)"
+    },
+    {
+      "name": "consents",
+      "purpose": "Escape: los consentimientos"
+    },
+    {
+      "name": "description",
+      "purpose": "Sustituye a la prop description de la GSection"
+    }
+  ],
+  "types": [
+    "GuestField",
+    "GuestGroup",
+    "GuestParty",
+    "Consent",
+    "OfferRef",
+    "PriceRegion",
+    "BookingQuery",
+    "PartyRow",
+    "QueryContextExtra",
+    "GuestFormLabels",
+    "GuestSubmit",
+    "GuestFieldSlot",
+    "NavLink",
+    "BlockNavigate"
+  ],
+  "warnings": [
+    "C1 a C7 (C1: fields vacío)",
+    "K1 a K3",
+    "G1 · type fuera de lista",
+    "G2 · email o tel sin autocomplete",
+    "G3 · consentimiento marcado por values al empezar",
+    "G4 · party sin partyRows",
+    "G5 · field.group que no está en groups",
+    "G6 · sin escucha de submit"
+  ],
+  "root": "GSection con data-gb=\"guest-form-NN\" y $attrs",
+  "bundle": {
+    "entry": "@grana/blocks/booking",
+    "measured": 17058,
+    "peers": [
+      "vue",
+      "@grana/vue",
+      "@grana/vue/booking",
+      "@grana/vue/price"
+    ],
+    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c), 4 de 11 secciones (12 de 33 variantes; parte A, 2026-10-23). Sin tope hasta que lo fije lima (§19). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbGuestForm01 5982 B, 02 6087 B, 03 6547 B (pasan la referencia de 4096 B: vuelve a lima)."
+  }
+}

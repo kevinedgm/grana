@@ -12,7 +12,8 @@ import { fileURLToPath } from 'node:url'
 const SRC = resolve(dirname(fileURLToPath(import.meta.url)), 'src')
 const PREFIX = '\0grana-shared:'
 const toKey = (file) => relative(SRC, file).split(sep).join('/')
-const isOwn = (key) => key === 'booking.js' || /^components\/(GBookingBar|GPartyField)\//.test(key)
+// utils/bookingQuery.js (describeQuery, #862) es de esta entrada: no entra en el principal ni en __shared
+const isOwn = (key) => key === 'booking.js' || key === 'utils/bookingQuery.js' || /^components\/(GBookingBar|GPartyField)\//.test(key)
 
 function sharedFromMain() {
   const declared = readFileSync(resolve(SRC, 'shared.js'), 'utf8')

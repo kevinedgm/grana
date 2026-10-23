@@ -24,10 +24,11 @@ import { completeParty, partySummary, validRows } from '../GPartyField/party.js'
 import { fieldGroupKey, formKey, layoutKey, spaceUnit } from '../GForm/formContext.js'
 import { sectionKey } from '../../utils/sectionKey.js'
 import { fill } from '../../utils/template.js'
-import { addDays, daysBetween, isISO, parseISO, todayISO } from '../../utils/dates.js'
+import { addDays, daysBetween, isISO, todayISO } from '../../utils/dates.js'
 import { observeSize } from '../../utils/sizeObserver.js'
 import { EDGE_ORDER, clearEdgeReserve, edgeReserve, setEdgeReserve } from '../../utils/edgeReserve.js'
 import { acquirePageLive, announcePage } from '../../utils/liveRegion.js'
+import { describeQuery, queryFormat } from '../../utils/bookingQuery.js'
 
 defineOptions({ name: 'GBookingBar' })
 
@@ -98,23 +99,13 @@ const sep = () => (typeof L.value.separator === 'string' ? L.value.separator : l
 
 // ---------- Idioma y formatos ----------
 const loc = ref(props.locale)
-const dtf = (o) => { try { return new Intl.DateTimeFormat(loc.value, o) } catch { return new Intl.DateTimeFormat(undefined, o) } }
-const fShort = computed(() => dtf({ weekday: 'short', day: 'numeric', month: 'short' }))
-const fLong = computed(() => dtf({ weekday: 'long', day: 'numeric', month: 'long' }))
-const fRange = computed(() => dtf({ day: 'numeric', month: 'short' }))
-const nf = computed(() => { try { return new Intl.NumberFormat(loc.value) } catch { return new Intl.NumberFormat() } })
-const short = (iso) => fShort.value.format(parseISO(iso))
-const long = (iso) => fLong.value.format(parseISO(iso))
-const rangeText = (a, b) => {
-  const f = fRange.value
-  return typeof f.formatRange === 'function' ? f.formatRange(parseISO(a), parseISO(b)) : `${f.format(parseISO(a))} – ${f.format(parseISO(b))}`
-}
+// Formatos compartidos con describeQuery (utils/bookingQuery.js): las fechas de los huecos y del resumen salen iguales
+const fmt = computed(() => queryFormat(loc.value))
+const nf = computed(() => fmt.value.nf)
+const short = (iso) => fmt.value.short(iso)
+const long = (iso) => fmt.value.long(iso)
 const today = () => todayISO()
-const dayWord = (iso) => {
-  const d = daysBetween(today(), iso) - 1
-  if (d === 0 || d === 1) { try { return new Intl.RelativeTimeFormat(loc.value, { numeric: 'auto' }).format(d, 'day') } catch {} }
-  return short(iso)
-}
+const dayWord = (iso) => fmt.value.day(iso)
 
 // ---------- Modelo (B-L4): la consulta; las noches se derivan ----------
 const rows = computed(() => validRows(props.partyRows))
@@ -218,17 +209,13 @@ const slotValue = (slot) => {
   if (slot === 'tour') { const t = tourOf(q.tour); return t ? t.label || String(t.value) : null }
   return null
 }
-const digest = computed(() => {
-  const q = query.value
-  const parts = []
-  if (kind.value === 'stay') parts.push(q.from && q.to ? `${rangeText(q.from, q.to)}${sep()}${nightsText(nights.value)}` : lab('noDates'))
-  if (kind.value === 'tour') parts.push(slotValue('tour') || lab('noTour'))
-  if (kind.value !== 'stay') parts.push(slotValue('date') || lab('noDate'))
-  if (kind.value === 'table') parts.push(slotValue('time') || lab('noTime'))
-  parts.push(partyText.value)
-  return parts.filter(Boolean).join(sep())
-})
-const checkoutText = computed(() => (kind.value === 'stay' && query.value.from && query.value.to ? fill(lab('checkout'), { date: long(query.value.to) }) : ''))
+// El resumen y la salida salen de describeQuery (utils/bookingQuery.js, #862), la misma que exporta la entrada: los bloques de
+// Booking dicen la consulta con estas mismas palabras. Los textos se leen con `lab` al pedirlos (aviso 7 como antes, solo
+// de lo que la pieza necesita); `checkout` va aparte para no pedir labels.checkout donde no se pinta.
+const qLabels = (withCheckout) => new Proxy({}, { get: (_, k) => (k === 'separator' ? sep() : k === 'checkout' && !withCheckout ? undefined : lab(k)) })
+const describe = (withCheckout) => describeQuery({ kind: kind.value, ...query.value }, { partyRows: rows.value, times: timeList.value, tours: tourList.value, locale: loc.value, labels: qLabels(withCheckout) })
+const digest = computed(() => describe(false).text)
+const checkoutText = computed(() => (kind.value === 'stay' && query.value.from && query.value.to ? describe(true).checkout : ''))
 
 // ---------- Apariencia y plantilla de la frase ----------
 const tokens = computed(() => {

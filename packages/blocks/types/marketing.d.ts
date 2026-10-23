@@ -80,8 +80,8 @@ export interface Testimonial {
   lang?: string
   /** avatar: URL de la foto (GAvatar src). */
   author: { name: string; role?: string; avatar?: string }
-  /** Dónde se publicó; #821. */
-  source?: { label: string; href?: string; external?: boolean }
+  /** Dónde se publicó (#821); obligatoria desde #865: una opinión nunca llega sin fuente (el aviso T1 queda para quien no usa TypeScript). */
+  source: { label: string; href?: string; external?: boolean }
 }
 
 export interface Faq {

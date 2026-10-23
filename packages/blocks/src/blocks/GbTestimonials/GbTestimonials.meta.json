@@ -12,7 +12,8 @@
     815,
     816,
     817,
-    821
+    821,
+    865
   ],
   "composes": [
     "GSection",
@@ -61,7 +62,7 @@
       "type": "Array",
       "ts": "Testimonial[]",
       "required": true,
-      "note": "1 a 12 (C7 por encima de 12). quote se pinta entera; lang va en el blockquote"
+      "note": "1 a 12 (C7 por encima de 12). quote se pinta entera; lang va en el blockquote. Testimonial.source es obligatoria en el tipo (#865); sin TypeScript, una opinión sin source avisa T1"
     },
     {
       "name": "labels",
@@ -107,12 +108,12 @@
   "root": "GSection con data-gb=\"testimonials-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/marketing",
-    "measured": 17446,
+    "measured": 17630,
     "cap": 18432,
     "peers": [
       "vue",
       "@grana/vue"
     ],
-    "note": "dist/marketing.js gzip (gzip -c) con las nueve secciones (27 de 27 variantes; 2026-10-22). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbTestimonials01 2460 B, GbTestimonials02 2535 B, GbTestimonials03 2447 B. Tope conjunto 18 432 B (#844); una variante sola, 4 096 B."
+    "note": "dist/marketing.js gzip (gzip -c) con las nueve secciones (27 de 27 variantes; 2026-10-22). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbTestimonials01 2460 B, GbTestimonials02 2535 B, GbTestimonials03 2447 B. Tope conjunto 18 432 B (#844); una variante sola, 4 096 B. Tras la entrada de Booking (2026-10-23): 17 630 B con el trozo compartido de common/ (dist/GbActions-*.js, que Vite separa al haber dos familias; scripts/measure-entry.mjs) y el icono opcional de GbLink."
   }
 }

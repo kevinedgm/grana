@@ -21,6 +21,9 @@
     "*": {
       "marketing": [
         "./dist/marketing.d.ts"
+      ],
+      "booking": [
+        "./dist/booking.d.ts"
       ]
     }
   },
@@ -34,6 +37,11 @@
       "types": "./dist/marketing.d.ts",
       "import": "./dist/marketing.js",
       "default": "./dist/marketing.js"
+    },
+    "./booking": {
+      "types": "./dist/booking.d.ts",
+      "import": "./dist/booking.js",
+      "default": "./dist/booking.js"
     },
     "./style.css": "./dist/blocks.css",
     "./package.json": "./package.json"

@@ -6,8 +6,10 @@
 // de `__shared` (src/shared.js), sin copia. No importa GTimeField (#737). El CSS sigue en grana.css.
 import GBookingBar from './components/GBookingBar/GBookingBar.vue'
 import GPartyField from './components/GPartyField/GPartyField.vue'
+import { describeQuery } from './utils/bookingQuery.js'
 
-export { GBookingBar, GPartyField }
+// describeQuery (#862): la consulta en palabras, igual que el resumen de GBookingBar, para los bloques de Booking
+export { GBookingBar, GPartyField, describeQuery }
 
 export function install(app) {
   if (!app.component('GBookingBar')) app.component('GBookingBar', GBookingBar)
