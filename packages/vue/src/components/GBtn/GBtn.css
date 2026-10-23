@@ -49,6 +49,8 @@
   padding-block: calc((var(--_h) - var(--_lh)) / 2 - var(--g-border-width));
   padding-inline: calc(var(--_px) * var(--_density));
   vertical-align: middle;
+  /* Nunca más ancho que su contenedor (BK-C2): con una etiqueta de una palabra larga el botón crece en alto, no a lo ancho */
+  max-inline-size: 100%;
 
   font-family: var(--g-font-ui);
   font-size: var(--_fs);
@@ -142,6 +144,10 @@
 }
 .g-btn__label {
   min-inline-size: 0;
+  /* Una palabra que no cabe (alemán, una URL, un nombre propio largo) se parte dentro de la etiqueta en vez de sacar el
+     botón de su contenedor: con max-inline-size del botón, la etiqueta cede y break-word solo actúa cuando no hay otra
+     ruptura (no cambia el ancho mínimo ni parte palabras que caben). Hallazgo de la parte A de Booking (BK-C2) */
+  overflow-wrap: break-word;
 }
 .g-btn__loader {
   /* loader-circle de Lucide (GIcon, docs/contract/icons.md): gira y toma currentColor.

@@ -89,7 +89,8 @@ for (const eng of ENGINES) {
       const cart = [...document.querySelectorAll('.pr-cart dd .g-price__visual')].map((v) => v.textContent)
       const menuCodes = document.querySelectorAll('[data-scope="menu"] .g-price__code').length
       const lg = document.querySelector('[data-scope="menu"] .g-price-scope__legend')
-      const tax = getComputedStyle(lg.querySelector('.g-price-scope__taxes'))
+      // El filete es el ::before de los impuestos desde BK-C4 (auditoría de Booking): recortado si los impuestos bajan de línea
+      const tax = getComputedStyle(lg.querySelector('.g-price-scope__taxes'), '::before')
       const seal = lg.querySelector('.g-price-scope__seal')
       const saving = card.querySelector('.g-price__saving')
       return {
@@ -279,7 +280,7 @@ for (const eng of ENGINES) {
     const p = await open('price.html?c=C', { fc: true })
     const fc = await p.evaluate(() => {
       const sv = document.querySelector('[data-room="patio"] .g-price__saving'), seal = document.querySelector('.g-price-scope__seal'), tax = document.querySelector('.g-price-scope__taxes'), ar = document.querySelector('[data-room="patio"] .g-price__arrow')
-      return { saving: getComputedStyle(sv).borderTopStyle, seal: getComputedStyle(seal).borderTopStyle, taxes: getComputedStyle(tax).borderInlineStartStyle, arrow: getComputedStyle(ar).color, text: getComputedStyle(document.body).color }
+      return { saving: getComputedStyle(sv).borderTopStyle, seal: getComputedStyle(seal).borderTopStyle, taxes: getComputedStyle(tax, '::before').borderInlineStartStyle, arrow: getComputedStyle(ar).color, text: getComputedStyle(document.body).color }
     })
     ok(fc.saving === 'solid' && fc.seal === 'solid' && fc.taxes === 'solid' && fc.arrow === fc.text, E('forced-colors: ahorro, sello y filete con borde del sistema; flecha en CanvasText'), JSON.stringify(fc))
     await close(p, 'forced-colors')

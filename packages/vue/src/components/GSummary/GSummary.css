@@ -381,7 +381,9 @@
 }
 .g-summary--layout-stack .g-summary__flow {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(calc(var(--g-space-1) * 28), 100%), 1fr));
+  /* auto-fit (no auto-fill): las pistas vacías se pliegan y los datos reparten el ancho. Con auto-fill, un solo dato (la
+     consulta de Booking) quedaba en una pista de space × 28 y su valor se partía a ~115 px en una ficha de 1000 (BK-C1) */
+  grid-template-columns: repeat(auto-fit, minmax(min(calc(var(--g-space-1) * 28), 100%), 1fr));
   gap: var(--g-space-2) var(--g-space-3);
 }
 .g-summary--layout-stack .g-summary__facts { display: contents; }

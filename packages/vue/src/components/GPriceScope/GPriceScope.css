@@ -53,16 +53,26 @@
   min-inline-size: 0;
 }
 
-/* Impuestos: separados de la leyenda por un filete (el patrón de separadores de GSummary), no por un carácter */
-.g-price-scope__taxes {
-  padding-inline-start: calc(var(--g-space-1) * 2);
+/* Impuestos: separados de la leyenda por un filete (el patrón de separadores de GSummary), no por un carácter.
+   El filete va en el hueco ANTES de los impuestos (el aire de la leyenda + el column-gap) y la leyenda recorta lo que sale
+   de su caja: cuando los impuestos bajan a una línea propia, su filete queda fuera del inicio y no se ve. Antes era el
+   borde de los impuestos y, en estrecho, la segunda línea empezaba con un «|» suelto (BK-C4, Availability y Guest form 03
+   a 390 px). Mismo resultado en una línea: texto · 8 · filete · 8 · impuestos */
+.g-price-scope__legend:has(> .g-price-scope__taxes) { overflow: hidden; }
+.g-price-scope__legend-text:has(+ .g-price-scope__taxes) { padding-inline-end: calc(var(--g-space-1) * 2); }
+.g-price-scope__taxes { position: relative; }
+.g-price-scope__taxes::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: calc(var(--g-space-1) * -2);
   border-inline-start: var(--g-border-width) solid var(--g-color-border-strong);
 }
 
 /* ---------- Colores forzados ---------- */
 @media (forced-colors: active) {
   .g-price-scope__seal,
-  .g-price-scope__taxes {
+  .g-price-scope__taxes::before {
     border-color: CanvasText;
   }
 }

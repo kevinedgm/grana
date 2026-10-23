@@ -57,6 +57,9 @@
 .g-form-actions--stacked,
 .g-form-actions[data-stacked] {
   flex-direction: column;
+  /* Una sola línea: en columna con `wrap`, el ancho de la línea lo da el contenido y no el pie, y un botón con una
+     etiqueta larga estiraba la fila de botones por fuera del formulario (378 px en un pie de 288, BK-C2) */
+  flex-wrap: nowrap;
   align-items: stretch;
 }
 .g-form-actions--stacked > .g-form-actions__buttons,

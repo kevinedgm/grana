@@ -100,7 +100,9 @@
   align-items: baseline;
   gap: var(--g-space-1);
   box-sizing: border-box;
-  max-inline-size: 100%;
+  /* Un hueco que ocupa la línea entera deja sitio a la puntuación que lo sigue en la plantilla («… 1 habitación.»): con
+     100 %, el punto final bajaba solo a una línea propia a 390 px (BK-C5). space × 3 cabe un punto o una coma en title */
+  max-inline-size: calc(100% - var(--g-space-3));
   margin: 0;
   padding: 0 var(--g-space-1);
   vertical-align: baseline;
