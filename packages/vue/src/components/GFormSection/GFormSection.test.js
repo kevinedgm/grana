@@ -985,3 +985,12 @@ describe('GFormSection · claves internas', () => {
     expect(OPEN_REQUEST).toBe('g-open-request')
   })
 })
+
+describe('GFormSection · hidden y aria-hidden por $attrs', () => {
+  it('se respetan en la raíz', () => {
+    const w = mount(GFormSection, { props: { title: 'P' }, attrs: { hidden: '', 'aria-hidden': 'true' } })
+    expect(w.attributes('hidden')).toBeDefined()
+    expect(w.attributes('aria-hidden')).toBe('true')
+    expect(mount(GFormSection, { props: { title: 'P' } }).attributes('hidden')).toBeUndefined()
+  })
+})

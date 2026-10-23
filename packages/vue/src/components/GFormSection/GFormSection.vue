@@ -400,7 +400,7 @@ const hasActions = () => Boolean(slots.actions) || removeVisible.value
 </script>
 
 <template>
-  <section v-bind="attrs" ref="root" :class="classes" :hidden="hiddenRoot || undefined">
+  <section v-bind="attrs" ref="root" :class="classes" :hidden="hiddenRoot || attrs.hidden">
     <GDivider v-if="divider" decorative emphasis="subtle" inset="none" class="g-form-section__divider" />
     <div v-if="isAddable && !addedL && editable" class="g-form-section__add">
       <GBtn v-if="labelOf('add')" class="g-form-section__add-button" variant="outline" color="neutral" :aria-describedby="hasDescription() ? `${baseId}-add-description` : undefined" @click="add">

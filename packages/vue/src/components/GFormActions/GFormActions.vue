@@ -54,7 +54,6 @@ onMounted(() => {
     })
     observer.observe(el)
   }
-  try { if (process.env.NODE_ENV !== 'production') checkButtons() } catch {}
 })
 onBeforeUnmount(() => {
   observer?.disconnect()
@@ -70,16 +69,24 @@ function flatten(nodes, out = []) {
   }
   return out
 }
+const warned = new Set()
+function warnOnce(msg) {
+  if (warned.has(msg)) return
+  warned.add(msg)
+  console.warn(msg)
+}
+// Se llama dentro del render (v-if del marcado): los slots solo pueden invocarse ahí
 function checkButtons() {
   try {
     if (process.env.NODE_ENV !== 'production') {
       const nodes = flatten(slots.default ? slots.default() : [])
       const btns = nodes.filter((n) => n.type === GBtn || n.type?.name === 'GBtn')
       const solid = btns.filter((n) => (n.props?.variant ?? 'solid') === 'solid')
-      if (solid.length > 1) console.warn('[Grana GFormActions] hay más de una acción primaria (GBtn solid); deja una.')
-      if (solid.length === 1 && btns[btns.length - 1] !== solid[0]) console.warn('[Grana GFormActions] la primaria (GBtn solid) debe ser el último botón.')
+      if (solid.length > 1) warnOnce('[Grana GFormActions] hay más de una acción primaria (GBtn solid); deja una.')
+      if (solid.length === 1 && btns[btns.length - 1] !== solid[0]) warnOnce('[Grana GFormActions] la primaria (GBtn solid) debe ser el último botón.')
     }
   } catch {}
+  return false
 }
 
 const classes = computed(() => [
@@ -93,5 +100,6 @@ const classes = computed(() => [
   <div ref="root" :class="classes" :data-stacked="stacked ? '' : undefined">
     <div class="g-form-actions__status" role="status"><slot name="status"><template v-if="status">{{ status }}</template></slot></div>
     <div class="g-form-actions__buttons"><slot /></div>
+    <template v-if="checkButtons()" />
   </div>
 </template>

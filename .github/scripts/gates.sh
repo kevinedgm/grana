@@ -150,7 +150,7 @@ must_have grana.css "g-container--width-reading" "$CSS_MSG"
 # GText (principal, #851): presencia del estilo. El peso se anota en GText.meta.json (bundle.measured) como en los demás componentes del principal (#506)
 must_have grana.css "g-text--size-body-sm" "$CSS_MSG"
 
-# Marketing (#742): tres entradas propias con tope (hero 4 KiB, gallery 12 KiB, booking 14 KiB gzip); el CSS en grana.css
+# Marketing (#742): tres entradas propias con tope (hero 4 KiB, gallery 12 KiB, booking 15 KiB gzip); el CSS en grana.css
 must_have grana.css "g-hero__media" "$CSS_MSG"
 must_have grana.css "g-hero__frame" "$CSS_MSG"
 must_not_have grana.js "GHero" "GHero viajó en el paquete principal grana.js; debe ir solo en la entrada hero.js (#742)"

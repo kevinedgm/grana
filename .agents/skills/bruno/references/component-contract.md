@@ -71,6 +71,10 @@ export default { install }
 - Teclado: la activación funciona con Enter y Espacio donde aplique.
 - Atributos ARIA según el contrato de lima.
 
+### Receta: encontrar el `button` de un `GBtn`
+
+`wrapper.findComponent(GBtn)` devuelve el envoltorio funcional (`TooltipWrap`, que existe para el atajo `tooltip`), no el elemento. Para escuchas, atributos o clics se usa `wrapper.find('button.g-btn')` (o `a.g-btn` si lleva `href`).
+
 ## Terminado significa
 
 - Las entregas de kiwi, lima y coco existen (o están anotadas en `pending` con autorización del usuario).

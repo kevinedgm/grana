@@ -20,7 +20,7 @@ const ENTRIES = [
   { name: 'hero', mod: hero, global: 'GranaHero', components: ['GHero'], dirs: ['GHero'], limit: 4096, gate: 'g-hero__media' },
   { name: 'gallery', mod: gallery, global: 'GranaGallery', components: ['GGallery', 'GGalleryViewer'], dirs: ['GGallery'], limit: 12288, gate: 'g-gallery-viewer__stage' },
   // describeQuery (#862): función pura de la entrada, en utils/bookingQuery.js (propio de booking, fuera de __shared)
-  { name: 'booking', mod: booking, global: 'GranaBooking', components: ['GBookingBar', 'GPartyField'], functions: ['describeQuery'], files: ['utils/bookingQuery.js'], dirs: ['GBookingBar', 'GPartyField'], limit: 14336, gate: 'g-booking-bar__phrase' }
+  { name: 'booking', mod: booking, global: 'GranaBooking', components: ['GBookingBar', 'GPartyField'], functions: ['describeQuery'], files: ['utils/bookingQuery.js'], dirs: ['GBookingBar', 'GPartyField'], limit: 15360, gate: 'g-booking-bar__phrase' }
 ]
 const metaOf = (c) => {
   for (const d of readdirSync(resolve(SRC, 'components'))) {

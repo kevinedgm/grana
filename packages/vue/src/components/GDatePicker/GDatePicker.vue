@@ -685,7 +685,8 @@ onBeforeUnmount(() => {
 })
 
 // ---------- Marcado ----------
-const rootAttrs = computed(() => ({ class: attrs.class, style: attrs.style }))
+// inline: la raíz es la superficie y recibe todos los atributos (#895); con campo, solo class y style
+const rootAttrs = computed(() => (props.inline ? attrs : { class: attrs.class, style: attrs.style }))
 const fieldAttrs = computed(() => {
   const { class: _c, style: _s, ...rest } = attrs
   return rest

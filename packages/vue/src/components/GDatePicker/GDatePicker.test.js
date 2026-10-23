@@ -1051,3 +1051,14 @@ describe('GDatePicker · dayDescription y forma del día con contenido (#778)', 
     expect(day(w, '2026-10-03').attributes('aria-label')).toBe('sábado, 3 de octubre de 2026')
   })
 })
+
+describe('GDatePicker · atributos en inline (#895)', () => {
+  it('las escuchas y aria-* de $attrs llegan a la raíz de la superficie', async () => {
+    const onClick = vi.fn()
+    const w = inline({ modelValue: '2026-10-20' }, { attrs: { onClick, 'aria-describedby': 'ayuda', 'data-x': '1' } })
+    expect(w.attributes('aria-describedby')).toBe('ayuda')
+    expect(w.attributes('data-x')).toBe('1')
+    await w.trigger('click')
+    expect(onClick).toHaveBeenCalled()
+  })
+})
