@@ -35,7 +35,7 @@ type ProductCardLabels = {
 ```
 GCard [data-gb] as="article" · interaction "link" si product.href, "button" si no (→ open)
 ├─ media: <img> portada (photos[0]) — 01 y 02 (03: la portada en pequeño, mediaPosition top, density compact)
-├─ eyebrow: product.maker · title: product.name (nivel min(sección + 1, 6), useSectionLevel) · subtitle: product.optionsSummary
+├─ eyebrow: product.maker · title: product.name (nivel min(level, 6) con useSectionLevel(): sin GSection propia, #927) · subtitle: product.optionsSummary
 ├─ badge: product.badge (texto; badgeColor neutral)
 ├─ meta: product.facts (≤ 2; 02 todos hasta 4)
 ├─ default: GPrice (product.price tal cual, size "md"; 03 "sm")
@@ -47,7 +47,7 @@ GCard [data-gb] as="article" · interaction "link" si product.href, "button" si 
 - **Una acción principal**: la tarjeta. Con `href`, es el enlace a la ficha (`navigate`, reemite el de `GCard`, #505, #574); sin `href`, la tarjeta entera es el botón «ver» (`interaction="button"`) y emite **`open { event, product }`** (la aplicación abre la vista rápida). **Nunca un `GBtn solid`** en una tarjeta (en una rejilla de doce competirían doce principales, §3; como Offer list, #868).
 - **La acción rápida (solo 03)**: un `GBtn variant="outline"` en `actions`, interno a la tarjeta (no activa la principal, `card.md` «Eventos»). Si el producto tiene `options` con alguna obligatoria (`required` por defecto), dice **`labels.choose`** y emite **`open { event, product }`**; si no, dice **`labels.add`** y emite **`add { event, product, variant: null, selection: {}, options: [], quantity: 1 }`**. Sin `labels.choose` y con opciones: **EC3** y la acción no se pinta (§27 regla 3: nunca a ciegas). Con `busy`: `loading` y `loadingText = labels.busy`.
 - **Precio**: `GPrice` con el `PriceSpec` tal cual (`compareAt` + `compareLabel` en C · «el antes y el ahora» de `price.md`: la referencia nombrada, encima, con el ahorro en texto; sin `compareLabel` ni `labels.price.before`, no se pinta). Ningún distintivo «−20 %» como única señal (`price.md` «Fronteras»).
-- **Calificación** (§27 regla 5): `GText` con `labels.rating` y `average` formateado con `Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })`, `max` (5 por defecto) y `count` con agrupación. `count: 0` → `labels.noReviews`. Sin estrellas ni icono. EC2 si el dato es inválido.
+- **Calificación** (§27 regla 5): `GText` con `labels.rating` y `average` formateado con `Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })` (el separador lo pone `Intl`, #929: «4,8» con `locale: 'es'`, «4.8» con `es-MX` y `en-US`; los «4,8» de los ejemplos del contrato son de `es`), `max` (5 por defecto) y `count` con agrupación. `count: 0` → `labels.noReviews`. Sin estrellas ni icono. EC2 si el dato es inválido.
 - **No disponible** (§27 regla 1): sin acción rápida, el motivo en texto en el cuerpo y el precio a la vista; con `href` la tarjeta sigue siendo enlace (se puede leer la ficha).
 - **`lang`**: con `product.lang`, a la raíz de lo que pinta el nombre y el resumen (como `Offer.lang`, #885; límite #891: marca también los `labels` del mismo nodo, así que va en el título y la descripción, no en la raíz de la tarjeta).
 - **Región**: con `prices`, la tarjeta va dentro de **un** `GPriceScope` (`as="div"`, `legend` de `prices`). Sin `prices`, el `GPrice` con su código (regla `auto`); suelta, una tarjeta no avisa EC1 (es un solo precio).
@@ -74,7 +74,7 @@ GCard [data-gb] as="article" · interaction "link" si product.href, "button" si 
 
 ## Estructura accesible
 
-Raíz `article` con nombre por su título (`GCard`); título al nivel de dentro (`useSectionLevel`); la portada es decorativa en una tarjeta-enlace (`GCard media` `aria-hidden`: el nombre ya lo dice); el precio se lee con su frase (`GPrice` `__spoken`); la calificación es texto llano; el `badge` es texto. Sin `h1`, sin región viva. El orden de lectura (nombre → precio → calificación → acción) es el del DOM.
+Raíz `article` con nombre por su título (`GCard`); título al nivel que `useSectionLevel()` da en ese sitio, `min(level, 6)` (la tarjeta no abre sección propia; #927); la portada es decorativa en una tarjeta-enlace (`GCard media` `aria-hidden`: el nombre ya lo dice); el precio se lee con su frase (`GPrice` `__spoken`); la calificación es texto llano; el `badge` es texto. Sin `h1`, sin región viva. El orden de lectura (nombre → precio → calificación → acción) es el del DOM.
 
 ## Qué lo hace distinto (#915)
 

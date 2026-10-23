@@ -39,7 +39,7 @@ interface GbPromoProps {
 | Variante | Concepto | Compone | Ignora |
 | --- | --- | --- | --- |
 | **01 · Banda** | Una banda de marca a todo lo ancho entre dos secciones | `GSurface zone="brand" level="flat"` (raíz, #830) › `GContainer` › `GSection` (título, descripción) › `GStack gap="md"` › fecha + código + condiciones + acciones | `media` |
-| **02 · Tarjeta con imagen** | La oferta sobre la foto de lo que se vende | `GSection` › `GCard mediaPosition="background"` (título de la oferta como título de la tarjeta, `min(level, 6)`, como CTA 02) con fecha, código, condiciones y acciones en el cuerpo y `actions` | — |
+| **02 · Tarjeta con imagen** | La oferta sobre la foto de lo que se vende | `GCard as="section" mediaPosition="background"` (raíz, como CTA 02, #930: sin `GSection` alrededor, que repetiría el título; título de la oferta como título de la tarjeta, `min(level, 6)`) con fecha, código, condiciones y acciones en el cuerpo y `actions` | — |
 | **03 · Línea** | Una línea sobria sobre la rejilla: el título, la fecha y una acción | `GText as="div" size="body-sm"` (raíz, `role="group"` con `aria-label` = `title`, como Booking summary 03, #894) › `GAdaptiveLayout gap="md" vertical="center"` › [`strong` título + fecha] + código + primera acción (`variant="link"`) | `media`, `description`, la segunda acción; `terms` va debajo de la línea |
 
 **Dos ofertas lado a lado** (plan): dos `GbPromo02` en una rejilla de la aplicación (`GAdaptiveLayout` con `g-adapt-standard` en cada una; receta del README), no una variante (§36).

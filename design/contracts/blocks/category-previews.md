@@ -13,11 +13,11 @@ interface GbCategoryPreviewsProps {
   title: string
   description?: string
   categories: Category[]               // 1 a 12 (C7 por encima de 12)
-  action?: Action                      // «Ver toda la tienda» (una sola acción de la sección, secundaria)
+  action?: Action                      // «Ver toda la tienda» (una sola acción de la sección, secundaria; al final del cuerpo, #928)
   locale?: string                      // formato de la cuenta
   labels?: {
-    count?: string | ((count: number) => string)   // «{count} piezas»
-    empty?: string                     // «Vuelve pronto» (count: 0)
+    count?: string | ((name: string, count: number) => string)   // título completo con la cuenta: «{name} · {count} piezas»
+    empty?: string | ((name: string) => string)                  // título completo de la vacía: «{name} · Vuelve pronto»
     external?: string
   }
 }
@@ -29,11 +29,11 @@ interface GbCategoryPreviewsProps {
 GCard interaction "link" (category.href) · la tarjeta es el enlace
 ├─ media: <img> de category.media (01: top; 02: background, con velo de GCard)
 ├─ title: category.name (nivel de dentro; lang si lo trae) · description: category.description
-└─ meta | subtitle: la cuenta (labels.count con Intl), si hay count
+└─ la cuenta va DENTRO del título: «Mezcal · 18 piezas» (labels.count con {name} y {count}, #928); sin subtitle
 ```
 
 - **Categoría vacía** (`count: 0`, §27 regla 1): la tarjeta se queda **sin interacción** (no es enlace: una puerta a una página vacía hace perder un viaje con datos móviles) y dice `labels.empty` en el lugar de la cuenta. Sin `count`, no se sabe y la tarjeta es enlace.
-- **La acción de la sección** (`action`): un `GBtn variant="outline"` (secundaria; la puerta principal es cada tarjeta) en el slot `actions` de `GSection`.
+- **La acción de la sección** (`action`): un `GBtn variant="outline"` (secundaria; la puerta principal es cada tarjeta) **al final del cuerpo de la sección**, después de las puertas, no en el slot `actions` de `GSection` (#928: ese slot exige `labels.actions` y la `Props` no gana esa clave; la acción lleva su propio nombre).
 - **Externa** (`external`): marca y `labels.external` dentro del título (§3).
 
 ## Variantes
@@ -42,7 +42,7 @@ GCard interaction "link" (category.href) · la tarjeta es el enlace
 | --- | --- | --- | --- |
 | **01 · Puertas con foto** | Tarjetas iguales, foto arriba y el nombre debajo | `GSection` › `GAdaptiveLayout role="list"` › `div role="listitem" class="g-adapt-standard"` › `GCard as="div" mediaPosition="top"` | — |
 | **02 · Tira** | Tarjetas más bajas con el nombre sobre la foto, muchas en poco alto | `GSection` › `GAdaptiveLayout role="list"` › `div role="listitem" class="g-adapt-short"` › `GCard as="div" mediaPosition="background" density="compact"` (velo y `--g-card-on-scrim` de `GCard`) | `description` |
-| **03 · Lista con cuenta** | Una lista de nombres con su cuenta, sin foto, para un menú de la tienda | `GSection` › `GStack as="ul" gap="sm"` › `GCard as="li" level="flat" density="compact"` con la cuenta en `subtitle` | `media` |
+| **03 · Lista con cuenta** | Una lista de nombres con su cuenta, sin foto, para un menú de la tienda | `GSection` › `GStack as="ul" gap="sm"` › `GCard as="li" level="flat" density="compact"` con la cuenta en el título | `media` |
 
 **02 sin desplazamiento horizontal:** «tira» es la forma de la tarjeta, no un carrusel (§1 regla 10): las tarjetas se reparten en filas con `GAdaptiveLayout`, nada se desplaza de lado ni avanza solo.
 
@@ -66,13 +66,13 @@ GCard interaction "link" (category.href) · la tarjeta es el enlace
 
 | Clave | Requerido |
 | --- | --- |
-| `count` | Sí, con alguna categoría con `count` > 0 (C5; sin él, sin cuenta) |
-| `empty` | Sí, con alguna `count: 0` (C5) |
+| `count` | Sí, con alguna categoría con `count` > 0 (C5; sin él, sin cuenta). Plantilla con `{name}` y `{count}` (cuenta con `Intl` y agrupación) o función `(name, count)`. **Sin `{name}` en la plantilla**, aviso **CP2** y se pinta el nombre solo (nunca un literal « · » del bloque, #928) |
+| `empty` | Sí, con alguna `count: 0` (C5). Plantilla con `{name}` o función `(name)`; mismo CP2 |
 | `external` | Sí, con una categoría o `action` externa (C5) |
 
 ## Avisos propios (`[Grana GbCategoryPreviews<NN>]`)
 
-C1 a C7. Además: **CP1** · una categoría sin `media` en 01 o 02 (se pinta sin media).
+C1 a C7. Además: **CP1** · una categoría sin `media` en 01 o 02 (se pinta sin media); **CP2** · `labels.count` o `labels.empty` sin `{name}` (se pinta el nombre solo, #928).
 
 ## Banco (`category-previews.bank.js`)
 
