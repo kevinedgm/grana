@@ -1,0 +1,176 @@
+{
+  "schemaVersion": 1,
+  "name": "GbPromo",
+  "kind": "block-section",
+  "family": "ecommerce",
+  "status": "draft",
+  "since": "0.0.0",
+  "description": "Una oferta de la tienda con lo que da, hasta qué fecha (una fecha en la hora de la tienda, nunca una cuenta atrás) y con qué condiciones, siempre a la vista y oídas con la acción principal; el código se copia en un toque y se puede leer en voz alta.",
+  "contract": "design/contracts/blocks/promo.md",
+  "common": "design/contracts/blocks/_comun.md",
+  "decisions": [
+    909,
+    914,
+    925
+  ],
+  "composes": [
+    "GSurface",
+    "GContainer",
+    "GSection",
+    "GStack",
+    "GCard",
+    "GAdaptiveLayout",
+    "GBtn",
+    "GText"
+  ],
+  "variants": [
+    {
+      "name": "GbPromo01",
+      "tag": "gb-promo-01",
+      "concept": "Banda",
+      "root": "GSurface zone=\"brand\" level=\"flat\" padding=\"lg\" › GContainer › GSection › GStack gap=\"md\" (fecha + código + condiciones + acciones)"
+    },
+    {
+      "name": "GbPromo02",
+      "tag": "gb-promo-02",
+      "concept": "Tarjeta con imagen",
+      "root": "GCard as=\"section\" mediaPosition=\"background\" (título al nivel de sección) con fecha, código y condiciones en el cuerpo y las acciones en actions"
+    },
+    {
+      "name": "GbPromo03",
+      "tag": "gb-promo-03",
+      "concept": "Línea",
+      "root": "GText as=\"div\" body-sm role=\"group\" aria-label=title › GAdaptiveLayout gap=\"md\" vertical=\"center\" (título + fecha + código + primera acción link) + condiciones debajo"
+    }
+  ],
+  "props": [
+    {
+      "name": "title",
+      "type": "String",
+      "ts": "string",
+      "required": true
+    },
+    {
+      "name": "description",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "variants": [
+        "GbPromo01",
+        "GbPromo02"
+      ]
+    },
+    {
+      "name": "media",
+      "type": "Object",
+      "ts": "Media",
+      "default": null,
+      "variants": [
+        "GbPromo02"
+      ]
+    },
+    {
+      "name": "actions",
+      "type": "Array",
+      "ts": "Action[]",
+      "required": true,
+      "note": "1 a 2 (§3; C8 por encima): la primera solid, la segunda outline; 03 pinta solo la primera, link"
+    },
+    {
+      "name": "until",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "ISO (fecha, o fecha y hora): hasta cuándo vale; se dice como fecha en <time>. Sin zona = la hora de la tienda. No ISO: PM1; ya pasada al montar: EC7"
+    },
+    {
+      "name": "timeZone",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "IANA de la tienda: una fecha con zona (Z, ±hh:mm) se dice en ella"
+    },
+    {
+      "name": "code",
+      "type": "Object",
+      "ts": "PromoCode",
+      "default": null,
+      "note": "{ value, label }: el valor con translate=\"no\" y «Copiar código»"
+    },
+    {
+      "name": "terms",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "Condiciones, siempre a la vista; describen la acción principal (aria-describedby)"
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "BCP 47; sin él, el lang del ancestro al montar"
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "ts": "PromoLabels",
+      "default": {},
+      "note": "until (con until), copy (con code), external; sin valores por defecto (C5)"
+    }
+  ],
+  "events": [
+    {
+      "name": "navigate",
+      "payload": "{ event, href, item }",
+      "ts": "BlockNavigate<Action>",
+      "trigger": "Una acción con href, con clic primario; nunca con external"
+    },
+    {
+      "name": "activate",
+      "payload": "{ event, item }",
+      "ts": "PromoActivate",
+      "trigger": "Una acción sin href (item: la Action) o «Copiar código» (item: el PromoCode), síncrono en el gesto"
+    }
+  ],
+  "slots": [
+    {
+      "name": "description",
+      "purpose": "Sustituye a la prop description",
+      "variants": [
+        "GbPromo01",
+        "GbPromo02"
+      ]
+    },
+    {
+      "name": "actions",
+      "ts": "{ describedby: string | undefined }",
+      "purpose": "Escape de las acciones (§3) con el id de las condiciones (#838)"
+    }
+  ],
+  "types": [
+    "Action",
+    "Media",
+    "PromoCode",
+    "PromoLabels",
+    "PromoActivate",
+    "BlockNavigate"
+  ],
+  "warnings": [
+    "C2",
+    "C4 a C6",
+    "C8",
+    "EC7 · until ya pasado al montar (se pinta igual)",
+    "PM1 · until que no es ISO (sin fecha)"
+  ],
+  "root": "01: GSurface; 02: GCard as=\"section\"; 03: GText as=\"div\" role=\"group\"; con data-gb=\"promo-NN\" y $attrs",
+  "bundle": {
+    "entry": "@grana/blocks/ecommerce",
+    "measured": 14059,
+    "peers": [
+      "vue",
+      "@grana/vue"
+    ],
+    "note": "Sin tope hasta medir (#909): lima lo fija al cierre del lote con las 36 variantes. Medida de la parte A (2026-10-23): dist/ecommerce.js con sus trozos 14 059 B gzip (scripts/measure-entry.mjs, 4 secciones, 12 variantes); importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbPromo01 2841 B, GbPromo02 3079 B, GbPromo03 2813 B (referencia 5 120 B). cartTotals sola 1 594 B por el mismo procedimiento (referencia 1 024 B: pasa, vuelve a lima)."
+  }
+}

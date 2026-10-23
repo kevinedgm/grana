@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 1,
+  "name": "GbProductCard",
+  "kind": "block-section",
+  "family": "ecommerce",
+  "status": "draft",
+  "since": "0.0.0",
+  "description": "Un producto en una tarjeta: su foto, su nombre, lo que cuesta de verdad (la referencia de precio siempre nombrada), cuántos lo calificaron dicho en palabras y si se puede pedir. Un toque lleva a su ficha; en la compacta, la acción rápida nunca añade un producto sin sus opciones obligatorias: dice «Elegir opciones» y abre la elección.",
+  "contract": "design/contracts/blocks/product-card.md",
+  "common": "design/contracts/blocks/_comun.md",
+  "decisions": [
+    909,
+    910,
+    911,
+    912,
+    913,
+    914,
+    915
+  ],
+  "composes": [
+    "GCard",
+    "GPrice",
+    "GPriceScope",
+    "GBadge",
+    "GBtn",
+    "GText",
+    "GIcon"
+  ],
+  "variants": [
+    {
+      "name": "GbProductCard01",
+      "tag": "gb-product-card-01",
+      "concept": "Foto arriba",
+      "root": "[GPriceScope as=\"div\"] › GCard as=\"article\" mediaPosition=\"top\""
+    },
+    {
+      "name": "GbProductCard02",
+      "tag": "gb-product-card-02",
+      "concept": "Horizontal",
+      "root": "[GPriceScope as=\"div\"] › GCard as=\"article\" orientation=\"auto\" mediaPosition=\"start\" (summary como descripción, hasta 4 facts)"
+    },
+    {
+      "name": "GbProductCard03",
+      "tag": "gb-product-card-03",
+      "concept": "Compacta con acción rápida",
+      "root": "[GPriceScope as=\"div\"] › GCard as=\"article\" density=\"compact\" mediaPosition=\"top\" + una acción rápida outline en actions"
+    }
+  ],
+  "props": [
+    {
+      "name": "product",
+      "type": "Object",
+      "ts": "Product",
+      "required": true,
+      "note": "id obligatorio (EC5); sin name o sin price no se pinta (C2); lang va al título y a la descripción, no a la raíz (#891)"
+    },
+    {
+      "name": "prices",
+      "type": "Object",
+      "ts": "PriceRegion",
+      "default": null,
+      "note": "Una GPriceScope alrededor de la tarjeta suelta (raíz); en una rejilla la pone la rejilla. Suelta no avisa EC1"
+    },
+    {
+      "name": "busy",
+      "type": "Boolean",
+      "ts": "boolean",
+      "default": false,
+      "variants": [
+        "GbProductCard03"
+      ],
+      "note": "Añadiendo: la acción rápida «Añadir» con loading y loadingText = labels.busy"
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "BCP 47; sin él, el lang del ancestro al montar"
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "ts": "ProductCardLabels",
+      "default": {},
+      "note": "add y choose (03; sin choose y con opciones obligatorias, EC3: sin acción), busy, unavailable, rating y noReviews (con rating), price (a GPriceScope/GPrice), external; sin valores por defecto (C5)"
+    }
+  ],
+  "events": [
+    {
+      "name": "navigate",
+      "payload": "{ event, href, item }",
+      "ts": "BlockNavigate<Product>",
+      "trigger": "La tarjeta-enlace (product.href) con clic primario (reemite el de GCard, #505, #574; nunca con external)"
+    },
+    {
+      "name": "open",
+      "payload": "{ event, product }",
+      "ts": "ProductOpen",
+      "trigger": "La tarjeta-botón (sin href: la aplicación abre la vista rápida) o «Elegir opciones» (03)"
+    },
+    {
+      "name": "add",
+      "payload": "{ event, product, variant: null, selection: {}, options: [], quantity: 1 }",
+      "ts": "ProductAdd",
+      "trigger": "«Añadir» (03), producto disponible y sin opciones obligatorias"
+    }
+  ],
+  "slots": [
+    {
+      "name": "product",
+      "ts": "{ product: Product }",
+      "purpose": "Escape: contenido al final del cuerpo de la tarjeta, después del precio"
+    },
+    {
+      "name": "media",
+      "ts": "{ product: Product }",
+      "purpose": "Escape: la portada propia de la aplicación (p. ej. una picture); se respeta §1 regla 9"
+    }
+  ],
+  "types": [
+    "Product",
+    "Photo",
+    "PriceSpec",
+    "PriceRegion",
+    "Rating",
+    "ProductFact",
+    "ProductOption",
+    "ProductCardLabels",
+    "ProductOpen",
+    "ProductAdd",
+    "BlockNavigate"
+  ],
+  "warnings": [
+    "C2 (sin name o sin price: no se pinta)",
+    "C4",
+    "C5",
+    "C6 (tarjeta sin interacción)",
+    "K3",
+    "K4",
+    "EC2",
+    "EC3",
+    "EC5",
+    "PC1 · un producto sin photos en 01 o 02 (sin media)"
+  ],
+  "root": "Con prices: GPriceScope as=\"div\" con data-gb=\"product-card-NN\" y $attrs; sin prices: la GCard (article) misma",
+  "bundle": {
+    "entry": "@grana/blocks/ecommerce",
+    "measured": 14059,
+    "peers": [
+      "vue",
+      "@grana/vue",
+      "@grana/vue/price"
+    ],
+    "note": "Sin tope hasta medir (#909): lima lo fija al cierre del lote con las 36 variantes. Medida de la parte A (2026-10-23): dist/ecommerce.js con sus trozos 14 059 B gzip (scripts/measure-entry.mjs, 4 secciones, 12 variantes); importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbProductCard01 3416 B, GbProductCard02 3421 B, GbProductCard03 3419 B (referencia 5 120 B). cartTotals sola 1 594 B por el mismo procedimiento (referencia 1 024 B: pasa, vuelve a lima)."
+  }
+}

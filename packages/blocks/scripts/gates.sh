@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Compuertas de @grana/blocks (dueño: bruno; design/contracts/blocks/_comun.md §9 y §21, #763, #793, #807, #815, #860).
+# Compuertas de @grana/blocks (dueño: bruno; design/contracts/blocks/_comun.md §9, §21 y §34, #763, #793, #807, #815, #860,
+# #909).
 # Comprueban el código y el build ya hecho (packages/blocks/dist): lo que DEBE estar y lo que NO debe estar.
 # Uso: bash packages/blocks/scripts/gates.sh   (tras `npm run build -w @grana/blocks`); también lo llama
 #      .github/scripts/gates.sh. Sale con 1 si falla alguna. Formato de línea: «ok     …» o «FALLA  …».
@@ -57,6 +58,28 @@ check "cada variante de Booking importada sola ≤ 5 120 B gzip (Guest form ≤ 
   node scripts/measure-partial.mjs 5120 booking GbGuestForm=7168
 check "bundle.cap en los meta.json de Booking (37888; variante 5120, Guest form 7168)" "Falta bundle.cap/variantCap o difiere de los topes de #886 y #887" \
   none bash -c "for f in \$(grep -l '\"family\": \"booking\"' src/blocks/Gb*/Gb*.meta.json); do v=5120; case \$f in *GbGuestForm*) v=7168;; esac; grep -q '\"cap\": 37888' \$f && grep -q \"\\\"variantCap\\\": \$v\" \$f || echo \$f; done | grep -q ."
+# Entrada de Ecommerce (_comun.md §32 y §34, #909): externos, sin Booking dentro, sin red, sin datos de tarjeta, y ni
+# Marketing ni Booking ni Gestión pagan Ecommerce (ni crecen por ella)
+check "dist/ecommerce.js y dist/ecommerce.d.ts existen" "No se generó la entrada de Ecommerce (vite.config.js, scripts/build-types.mjs)" \
+  test -f dist/ecommerce.js -a -f dist/ecommerce.d.ts
+check "! grep -q createApp dist/ecommerce.js" "Vue quedó empaquetado en ecommerce.js (debe ser externo)" none grep -q "createApp" dist/ecommerce.js
+check "! grep -q __shared dist/ecommerce.js" "Un bloque usa __shared de @grana/vue: solo API pública (#792)" none grep -q "__shared" dist/ecommerce.js
+check "sin clases internas de componentes en dist/ecommerce.js" "Un bloque nombra una clase interna (.g-x__y) de lo que compone (#792)" none grep -qE "g-[a-z-]+__[a-z]" dist/ecommerce.js
+check "sin .css en dist/ecommerce.js" "La entrada de Ecommerce importa una hoja de estilo (no hay CSS)" none grep -q "\.css" dist/ecommerce.js
+check "sin fetch, XMLHttpRequest ni sendBeacon en dist/ecommerce.js (y sus trozos)" "Un bloque hace red (§27 regla 6, #780, #792)" \
+  none bash -c "node scripts/measure-entry.mjs ecommerce --files | xargs grep -lE 'fetch\\(|XMLHttpRequest|sendBeacon' | grep -q ."
+check "Ecommerce no carga Booking: sin describeQuery ni @grana/vue/booking en ecommerce.js ni en sus trozos" "Un módulo de Ecommerce importa common/booking.js o @grana/vue/booking (§34)" \
+  none bash -c "node scripts/measure-entry.mjs ecommerce --files | xargs grep -lE 'describeQuery|@grana/vue/booking' | grep -q ."
+check "! grep -q GbProductCard01 dist/booking.js" "Booking arrastra Ecommerce (§34)" none grep -q "GbProductCard01" dist/booking.js
+check "! grep -q GbProductCard01 dist/marketing.js" "Marketing arrastra Ecommerce (§34)" none grep -q "GbProductCard01" dist/marketing.js
+check "! grep -q GbProductCard01 dist/blocks.js" "Gestión arrastra Ecommerce (§34)" none grep -q "GbProductCard01" dist/blocks.js
+check "cartTotals solo en Ecommerce (ni en booking.js ni en marketing.js)" "Booking o Marketing arrastran cartTotals (§34)" none grep -q "cartTotals" dist/booking.js dist/marketing.js
+check "ningún campo de tarjeta (cc-number, cc-csc, cc-exp) en los bloques" "Un bloque pide un dato de tarjeta: el pago es del slot de la aplicación (§27 regla 6, EC6)" \
+  none grep -qE "cc-(number|csc|exp)" src/blocks/Gb*/*.vue
+check "status draft y bundle.entry en los meta.json de Ecommerce, sin cap hasta que lima fije los topes (#909)" "Un meta.json de Ecommerce no está en draft, no nombra su entrada o ya lleva cap" \
+  none bash -c "for f in \$(grep -l '\"family\": \"ecommerce\"' src/blocks/Gb*/Gb*.meta.json); do grep -q '\"status\": \"draft\"' \$f && grep -q '\"entry\": \"@grana/blocks/ecommerce\"' \$f && ! grep -q '\"cap\"' \$f || echo \$f; done | grep -q ."
+# Ecommerce no hace crecer a Marketing (18 432 B, #844) ni a Booking (37 888 B, #907): las de peso de arriba lo vigilan.
+# Las de peso de Ecommerce (entrada y por variante) entran cuando lima fije los topes al cierre (§32, §34).
 
 echo
 if [ "$failed" -eq 0 ]; then echo "Compuertas de blocks: $total/$total superadas."; exit 0; fi

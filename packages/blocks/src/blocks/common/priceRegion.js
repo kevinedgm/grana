@@ -3,7 +3,7 @@
 // contenido va tal cual y cada GPrice dice su código. Interno del paquete.
 import { defineComponent, h } from 'vue'
 import { GPriceScope } from '@grana/vue/price'
-import { regionAttrs } from './booking.js'
+import { regionAttrs } from './price.js'
 
 export default /* @__PURE__ */ defineComponent({
   name: 'GbPriceRegion',

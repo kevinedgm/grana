@@ -1,0 +1,167 @@
+// Lo común de los bancos de Ecommerce (dueño: bruno; _comun.md §33, #909 a #914): la tienda «Barro y Agave» (Oaxaca; mezcal,
+// textiles teñidos con grana cochinilla y añil, barro negro y verde), la misma región de precios y los mismos textos de
+// tarjeta, calificación y precio, exportados una vez para que la misma tarjeta se lea igual en Product card, Product grid y
+// Cart. Solo bancos (Vitest, playground y spec): no lo importa ningún bloque ni la entrada. Sin red: fotos de bank/fotos.js.
+// Ninguna variante avisa con estos datos (§7). Las partes B y C añaden aquí lo suyo (opiniones, pasos del pago…).
+import { foto, LONG_WORD } from './fotos.js'
+import { cartTotals } from '../../cartTotals.js'
+
+export const STORE = 'Barro y Agave'
+export const LOCALE = 'es-MX'
+export const mxn = (amount) => ({ amount, currency: 'MXN' })
+export const usd = (amount, approximate = true) => ({ amount, currency: 'USD', ...(approximate ? { approximate } : {}) })
+
+/** Región de precios de la tienda (MXN, IVA incluido) y sus textos (los de GPriceScope/GPrice: §27 regla 1). */
+export const PRICES = { currency: 'MXN', taxes: 'IVA incluido' }
+export const PRICE_LABELS = {
+  onRequest: 'Precio a consultar', approx: 'aprox.', total: 'Total', free: 'Gratis', before: 'Antes',
+  range: '{min} a {max}', saving: 'Ahorras {amount}', legend: 'Precios en {name} ({code})'
+}
+
+/** La calificación en palabras (§27 regla 5), con singular y plural. */
+export const RATING = (r) => `${r.average} de ${r.max} · ${r.countText} ${r.count === 1 ? 'opinión' : 'opiniones'}`
+
+/** `ProductCardLabels`: el mismo juego en Product card, Product grid (`labels.card`) y Cart. */
+export const CARD_LABELS = {
+  add: 'Añadir al carrito',
+  choose: 'Elegir opciones',
+  busy: 'Añadiendo…',
+  unavailable: 'No disponible',
+  rating: RATING,
+  noReviews: 'Todavía sin opiniones',
+  price: PRICE_LABELS,
+  external: 'se abre en otra pestaña'
+}
+
+/** `n` fotos (Photo de GGallery: alt obligatorio) de las claves dadas. */
+export const photos = (keys, w = 1200, h = 1500) => keys.map(([key, alt], i) => ({ id: `${key}-${i + 1}`, src: foto(key, w, h), thumb: foto(key, 240, 300), width: w, height: h, alt }))
+
+const COLOR = {
+  key: 'color', label: 'Color', values: [
+    { value: 'grana', label: 'Grana', photo: 0 },
+    { value: 'anil', label: 'Añil', photo: 1, available: 'Vuelve el 2 de diciembre' },
+    { value: 'natural', label: 'Natural', photo: 2 }
+  ]
+}
+
+/** Los productos de la tienda (§33). */
+export const PRODUCTS = {
+  espadin: {
+    id: 'espadin-sola',
+    name: 'Mezcal espadín «Tierra de Sola» 750 ml',
+    maker: 'Palenque Hernández · Sola de Vega',
+    summary: 'Destilado en olla de barro; notas de fruta madura y humo suave.',
+    href: '/tienda/mezcal-espadin-tierra-de-sola',
+    photos: photos([['espadin', 'Botella de mezcal espadín con etiqueta de papel amate']]),
+    price: { value: mxn(890) },
+    facts: [{ label: 'Contenido', value: '750 ml' }, { label: 'Grado', value: '47 % Alc. Vol.' }, { label: 'Maguey', value: 'Espadín' }, { label: 'Destilación', value: 'Olla de barro' }],
+    rating: { average: 4.8, count: 312 }
+  },
+  tobala: {
+    id: 'tobala',
+    name: 'Mezcal tobalá 750 ml',
+    maker: 'Palenque Hernández · Sola de Vega',
+    summary: 'Maguey silvestre de la sierra; se cosecha una vez cada quince años.',
+    href: '/tienda/mezcal-tobala',
+    photos: photos([['tobala', 'Botella de mezcal tobalá junto a una jícara']]),
+    price: { value: mxn(1650), compareAt: mxn(1850), compareLabel: 'Precio de lista' },
+    facts: [{ label: 'Contenido', value: '750 ml' }, { label: 'Grado', value: '48 % Alc. Vol.' }],
+    rating: { average: 4.9, count: 87 }
+  },
+  rebozo: {
+    id: 'rebozo-grana',
+    name: 'Rebozo de algodón teñido con grana cochinilla',
+    maker: 'Taller Mendoza · Teotitlán del Valle',
+    summary: 'Tejido en telar de cintura; cada color sale de un tinte natural.',
+    href: '/tienda/rebozo-de-algodon',
+    photos: photos([['rebozoGrana', 'Rebozo de color grana, doblado'], ['rebozoAnil', 'Rebozo de color añil, doblado'], ['rebozoNatural', 'Rebozo de color natural, doblado']]),
+    price: { value: mxn(2400) },
+    optionsSummary: '3 colores',
+    options: [COLOR],
+    variants: [
+      { id: 'rebozo-grana', options: { color: 'grana' }, photo: 0, max: 4 },
+      { id: 'rebozo-anil', options: { color: 'anil' }, photo: 1, available: 'Vuelve el 2 de diciembre' },
+      { id: 'rebozo-natural', options: { color: 'natural' }, photo: 2, max: 6 }
+    ],
+    rating: { average: 5, count: 2 }
+  },
+  huipil: {
+    id: 'huipil-san-antonino',
+    name: 'Huipil bordado de San Antonino',
+    maker: 'Taller Mendoza · San Antonino Castillo Velasco',
+    summary: 'Flores bordadas a mano en hilo de algodón; cada pieza tarda tres semanas.',
+    photos: photos([['huipil', 'Huipil blanco con flores bordadas']]),
+    price: { value: mxn(3200) },
+    badge: 'Últimas 3 piezas',
+    optionsSummary: '4 tallas · 2 colores',
+    facts: [{ label: 'Tela', value: 'Manta de algodón' }, { label: 'Bordado', value: 'A mano' }, { label: 'Lavado', value: 'A mano, en frío' }],
+    options: [
+      { key: 'talla', label: 'Talla', values: [{ value: 'ch', label: 'CH' }, { value: 'm', label: 'M' }, { value: 'g', label: 'G', available: 'Sin existencias' }, { value: 'eg', label: 'EG' }] },
+      { key: 'color', label: 'Color', values: [{ value: 'blanco', label: 'Blanco' }, { value: 'negro', label: 'Negro' }] }
+    ],
+    variants: [
+      { id: 'huipil-ch-blanco', options: { talla: 'ch', color: 'blanco' }, max: 1 },
+      { id: 'huipil-m-blanco', options: { talla: 'm', color: 'blanco' }, max: 2 },
+      { id: 'huipil-g-blanco', options: { talla: 'g', color: 'blanco' }, available: false },
+      { id: 'huipil-eg-blanco', options: { talla: 'eg', color: 'blanco' }, max: 1 },
+      { id: 'huipil-m-negro', options: { talla: 'm', color: 'negro' }, max: 1 }
+    ],
+    rating: { average: 4.7, count: 58 }
+  },
+  jarro: {
+    id: 'jarro-barro-negro',
+    name: 'Jarro de barro negro de San Bartolo Coyotepec',
+    maker: 'Familia Nieto · San Bartolo Coyotepec',
+    summary: 'Bruñido a mano con cuarzo; para agua o flores, no para el fuego.',
+    href: '/tienda/jarro-de-barro-negro',
+    photos: photos([['jarro', 'Jarro de barro negro bruñido']]),
+    price: { value: mxn(480) },
+    facts: [{ label: 'Alto', value: '18 cm' }],
+    rating: { average: 4.6, count: 0 }
+  },
+  plato: {
+    id: 'plato-atzompa',
+    name: 'Plato de barro verde de Atzompa',
+    maker: 'Cooperativa de Santa María Atzompa',
+    href: '/tienda/plato-de-barro-verde',
+    photos: photos([['plato', 'Plato de barro verde vidriado']]),
+    price: { value: mxn(350) },
+    available: 'Vuelve el 2 de diciembre'
+  },
+  // En inglés (§7): la tienda vende también a quien visita Oaxaca
+  chocolate: {
+    id: 'chocolate-metate',
+    name: 'Stone-ground Oaxacan chocolate',
+    lang: 'en',
+    summary: 'Cacao and cinnamon, ground on a metate in Tlacolula.',
+    // Externo (§7): se vende en la tienda de la cooperativa
+    href: 'https://cooperativa-tlacolula.example/chocolate',
+    external: true,
+    photos: photos([['cocina', 'Tableta de chocolate de metate']]),
+    price: { value: mxn(260), unit: '/ 500 g', unitLabel: 'por medio kilo' }
+  },
+  // El mínimo (§7): solo lo obligatorio; con el nombre largo sin espacios de la prueba de 320 px
+  minimo: { id: 'tarjeta-regalo', name: `Tarjeta de regalo ${LONG_WORD}`, price: { value: mxn(500) } }
+}
+
+/** El `Product` de una ficha (`ProductDetail`): sin lo que solo lleva la ficha (variantes, grupos, descripción…). */
+export const asProduct = ({ variants, groups, description, sections, note, reviews, ...p }) => p
+
+// ── Carrito, pedido e historial (los usan las partes B y C) ──
+
+/** Las tres líneas del carrito (§33): mezcal × 2, rebozo Grana × 1 y el plato, que ya no está. */
+export const CART_LINES = [
+  { id: 'l1', product: { id: 'espadin-sola', name: PRODUCTS.espadin.name, href: PRODUCTS.espadin.href, photos: PRODUCTS.espadin.photos, maker: PRODUCTS.espadin.maker }, quantity: 2, max: 6, unitPrice: mxn(890) },
+  { id: 'l2', product: { id: 'rebozo-grana', name: PRODUCTS.rebozo.name, href: PRODUCTS.rebozo.href, photos: PRODUCTS.rebozo.photos.slice(0, 1), maker: PRODUCTS.rebozo.maker }, variant: 'rebozo-grana', options: [{ key: 'color', label: 'Color', value: 'Grana' }], quantity: 1, max: 4, unitPrice: mxn(2400) },
+  { id: 'l3', product: { id: 'plato-atzompa', name: PRODUCTS.plato.name, href: PRODUCTS.plato.href, photos: PRODUCTS.plato.photos }, quantity: 1, unitPrice: mxn(350), available: 'Ya no queda' }
+]
+/** Las opciones de cartTotals de la tienda: IVA incluido 16 %, envío por calcular y el umbral de envío gratis. */
+export const CART_OPTIONS = {
+  currency: 'MXN',
+  shipping: { label: 'Envío', amount: null, note: 'Se calcula con tu código postal' },
+  taxes: [{ label: 'Incluye IVA', rate: 0.16, included: true }],
+  goals: [{ id: 'envio-gratis', label: 'Envío gratis desde $3,000', target: mxn(3000) }],
+  labels: { subtotal: 'Subtotal', total: (n) => `por ${n} ${n === 1 ? 'pieza' : 'piezas'}` }
+}
+/** Los totales del carrito, de cartTotals (Grana suma en un solo sitio, §27 regla 4). */
+export const CART_TOTALS = cartTotals(CART_LINES, CART_OPTIONS)

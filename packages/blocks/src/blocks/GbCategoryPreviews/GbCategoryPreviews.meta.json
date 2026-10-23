@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "name": "GbCategoryPreviews",
+  "kind": "block-section",
+  "family": "ecommerce",
+  "status": "draft",
+  "since": "0.0.0",
+  "description": "Las puertas de la tienda: cada categoría con una foto de lo que hay dentro y cuánto hay, para entrar en un toque. La cuenta va con el nombre y se lee en el enlace; una categoría vacía se queda a la vista con «Vuelve pronto» y no es enlace.",
+  "contract": "design/contracts/blocks/category-previews.md",
+  "common": "design/contracts/blocks/_comun.md",
+  "decisions": [
+    909,
+    914,
+    917
+  ],
+  "composes": [
+    "GSection",
+    "GAdaptiveLayout",
+    "GStack",
+    "GCard",
+    "GBtn",
+    "GIcon"
+  ],
+  "variants": [
+    {
+      "name": "GbCategoryPreviews01",
+      "tag": "gb-category-previews-01",
+      "concept": "Puertas con foto",
+      "root": "GSection › GAdaptiveLayout role=\"list\" › div role=\"listitem\" g-adapt-standard › GCard as=\"div\" mediaPosition=\"top\""
+    },
+    {
+      "name": "GbCategoryPreviews02",
+      "tag": "gb-category-previews-02",
+      "concept": "Tira",
+      "root": "GSection › GAdaptiveLayout role=\"list\" › div role=\"listitem\" g-adapt-short › GCard as=\"div\" mediaPosition=\"background\" density=\"compact\""
+    },
+    {
+      "name": "GbCategoryPreviews03",
+      "tag": "gb-category-previews-03",
+      "concept": "Lista con cuenta",
+      "root": "GSection › GStack as=\"ul\" gap=\"sm\" › GCard as=\"li\" level=\"flat\" density=\"compact\" sin media"
+    }
+  ],
+  "props": [
+    {
+      "name": "title",
+      "type": "String",
+      "ts": "string",
+      "required": true
+    },
+    {
+      "name": "description",
+      "type": "String",
+      "ts": "string",
+      "default": null
+    },
+    {
+      "name": "categories",
+      "type": "Array",
+      "ts": "Category[]",
+      "required": true,
+      "note": "1 a 12 (C7 por encima de 12); sin name o sin href se omite (C2); count 0 = vacía (sin enlace, labels.empty)"
+    },
+    {
+      "name": "action",
+      "type": "Object",
+      "ts": "Action",
+      "default": null,
+      "note": "«Ver toda la tienda»: la única acción de la sección, secundaria (outline), al final del cuerpo"
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "Formato de la cuenta; sin él, el lang del ancestro al montar"
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "ts": "CategoryPreviewsLabels",
+      "default": {},
+      "note": "count (con alguna count > 0), empty (con alguna count 0), external; sin valores por defecto (C5)"
+    }
+  ],
+  "events": [
+    {
+      "name": "navigate",
+      "payload": "{ event, href, item }",
+      "ts": "BlockNavigate<Category | Action>",
+      "trigger": "La tarjeta-enlace de una categoría (reemite el de GCard) o el enlace de action, con clic primario; nunca con external"
+    },
+    {
+      "name": "activate",
+      "payload": "{ event, item: action }",
+      "ts": "BlockActivate<Action>",
+      "trigger": "action sin href"
+    }
+  ],
+  "slots": [
+    {
+      "name": "category",
+      "ts": "{ category: Category }",
+      "purpose": "Escape: contenido al final del cuerpo de la tarjeta"
+    },
+    {
+      "name": "description",
+      "purpose": "Sustituye a la prop description de la GSection"
+    }
+  ],
+  "types": [
+    "Category",
+    "Media",
+    "Action",
+    "CategoryPreviewsLabels",
+    "BlockNavigate",
+    "BlockActivate"
+  ],
+  "warnings": [
+    "C1 a C7",
+    "CP1 · una categoría sin media en 01 o 02 (sin media)"
+  ],
+  "root": "GSection con data-gb=\"category-previews-NN\" y $attrs",
+  "bundle": {
+    "entry": "@grana/blocks/ecommerce",
+    "measured": 14059,
+    "peers": [
+      "vue",
+      "@grana/vue"
+    ],
+    "note": "Sin tope hasta medir (#909): lima lo fija al cierre del lote con las 36 variantes. Medida de la parte A (2026-10-23): dist/ecommerce.js con sus trozos 14 059 B gzip (scripts/measure-entry.mjs, 4 secciones, 12 variantes); importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbCategoryPreviews01 3022 B, GbCategoryPreviews02 3040 B, GbCategoryPreviews03 3004 B (referencia 5 120 B). cartTotals sola 1 594 B por el mismo procedimiento (referencia 1 024 B: pasa, vuelve a lima)."
+  }
+}

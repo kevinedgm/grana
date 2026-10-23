@@ -3,21 +3,44 @@
 //   1. Lee cada src/blocks/Gb*/Gb*.meta.json con kind "block-section" y su `family`.
 //   2. Escribe en dist/<familia>.d.ts UN `export interface Gb<Sección>Props` por sección (con sus eventos y slots) y, por
 //      cada variante, `export declare const Gb<Sección><NN>: BlockComponent<Gb<Sección>Props, …>` con ese mismo tipo.
-//   3. Reexporta los tipos escritos a mano de types/<familia>.d.ts (copiados a dist/types/<familia>.d.ts).
+//   3. Reexporta los tipos escritos a mano de types/<familia>.d.ts (copiados a dist/types/<familia>.d.ts, con los que
+//      importa: types/marketing.d.ts y types/common.d.ts, los de más de una familia, #909).
 //   4. Amplía GlobalComponents de Vue con todas las variantes de la familia.
 //   5. Se detiene si una variante del meta.json no se exporta en src/<familia>.js, si una exportación no consta en ningún
 //      meta.json de la familia o si un tipo no se sabe leer.
-// Añadir una familia: una fila en FAMILIES (entrada, plugin y archivo de tipos a mano) y su llamada en build-types.mjs.
+//   6. Declara los valores de la entrada que no son variantes ni el plugin (`values`: `cartTotals` de Ecommerce, §29); una
+//      exportación que no esté en `values` ni en un meta.json lo detiene.
+// Añadir una familia: una fila en FAMILIES (entrada, plugin, tipos a mano, los que importa y sus valores); build-types.mjs
+// recorre FAMILIES entera.
 import { readFileSync, readdirSync, existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 
-/** Familias: su entrada, el nombre del plugin y los tipos a mano. `needs`: los tipos a mano de otra familia que importa. */
+/**
+ * Familias: su entrada, el nombre del plugin y los tipos a mano. `needs`: los tipos a mano de otra familia (o los comunes,
+ * types/common.d.ts, #909) que importa. `values`: exportaciones de la entrada que no son variantes ni el plugin, con su
+ * declaración (citan los tipos a mano de la familia).
+ */
 export const FAMILIES = {
-  marketing: { entry: 'src/marketing.js', plugin: 'marketing', hand: 'types/marketing.d.ts', needs: [] },
-  booking: { entry: 'src/booking.js', plugin: 'booking', hand: 'types/booking.d.ts', needs: ['types/marketing.d.ts'] }
+  marketing: { entry: 'src/marketing.js', plugin: 'marketing', hand: 'types/marketing.d.ts', needs: [], values: {} },
+  booking: { entry: 'src/booking.js', plugin: 'booking', hand: 'types/booking.d.ts', needs: ['types/marketing.d.ts', 'types/common.d.ts'], values: {} },
+  ecommerce: {
+    entry: 'src/ecommerce.js',
+    plugin: 'ecommerce',
+    hand: 'types/ecommerce.d.ts',
+    needs: ['types/marketing.d.ts', 'types/common.d.ts'],
+    values: {
+      cartTotals: [
+        '/**',
+        ' * Los totales del carrito (_comun.md §29, #911): pura, con enteros escalados a los decimales de la moneda, un redondeo',
+        ' * por operación (mitad hacia fuera de cero) y los impuestos incluidos dichos sin sumar. Nunca lanza (avisos CT1 a CT5).',
+        ' */',
+        'export declare function cartTotals(lines: CartLine[], options: CartTotalsOptions): CartTotals'
+      ].join('\n')
+    }
+  }
 }
 const familyOf = (family) => {
   const f = FAMILIES[family]
@@ -135,14 +158,17 @@ export function generateFamilyTypes({ root = ROOT, family = 'marketing' } = {}) 
   const exported = exportedNames(readFileSync(join(root, fam.entry), 'utf8'))
   const variants = metas.flatMap((m) => m.variants.map((v) => v.name))
   for (const name of variants) if (!exported.has(name)) throw new Error(`${fam.entry} no exporta «${name}», que declara su meta.json.`)
-  for (const name of exported) if (name !== fam.plugin && !variants.includes(name)) throw new Error(`${fam.entry} exporta «${name}», que no consta en ningún meta.json de sección de ${family}.`)
+  const values = fam.values || {}
+  for (const name of exported) if (name !== fam.plugin && !variants.includes(name) && !(name in values)) throw new Error(`${fam.entry} exporta «${name}», que no consta en ningún meta.json de sección de ${family}.`)
   if (!exported.has(fam.plugin)) throw new Error(`${fam.entry} no exporta el plugin «${fam.plugin}».`)
+  for (const name of Object.keys(values)) if (!exported.has(name)) throw new Error(`${fam.entry} no exporta «${name}», que declara FAMILIES.${family}.values.`)
 
   let out = '// GENERADO por packages/blocks/scripts/build-types.mjs desde los *.meta.json de sección. No editar a mano.\n'
   out += "import type { App } from 'vue'\n"
   out += `import type { ${[...hand].sort().join(', ')} } from './types/${family}.js'\n`
   out += `export type * from './types/${family}.js'\n\n`
   for (const meta of metas) out += sectionDeclaration(meta, known) + '\n'
+  for (const text of Object.values(values)) out += `${text}\n\n`
   out += `/** Plugin: \`app.use(${fam.plugin})\` registra todas las variantes. */\n`
   out += `export declare const ${fam.plugin}: { install(app: App): void }\n\n`
   out += "declare module 'vue' {\n  export interface GlobalComponents {\n"

@@ -8,9 +8,14 @@
 //   - `dateTime`: una fecha u hora para `<time datetime>` con su texto de Intl (en la zona del lugar si hay `timeZone`).
 //   - `availability` (K4), `priceSpec` (K3), `offerKey` (K5).
 // Avisos con la guarda de #653 en el sitio de cada texto.
-import { computed, getCurrentInstance, onMounted, ref, watch } from 'vue'
+import { computed } from 'vue'
 import { describeQuery } from '@grana/vue/booking'
 import { has } from './text.js'
+import { fill } from './locale.js'
+
+// Lo que comparte con Ecommerce vive en locale.js y price.js (sin describeQuery); se reexporta con los mismos nombres
+export { dateTime, fill, useLocale } from './locale.js'
+export { availability, checkRegion, priceSpec, regionAttrs } from './price.js'
 
 export const KINDS = ['stay', 'table', 'tour']
 const ISO = /^\d{4}-\d{2}-\d{2}$/
@@ -41,26 +46,6 @@ export function checkQuery(query, warn, kind) {
   return query
 }
 
-/** Sustituye {nombre} (texto de la aplicación); un marcador sin valor se deja tal cual. */
-export const fill = (text, vars) => (typeof text === 'string' ? text.replace(/\{(\w+)\}/g, (m, k) => (vars[k] === undefined || vars[k] === null ? m : String(vars[k]))) : '')
-
-/**
- * `locale` de la sección › `lang` del ancestro › `navigator.language`, leído al montar (SSR: solo la prop). Devuelve un ref.
- */
-export function useLocale(props) {
-  const loc = ref(has(props.locale) ? props.locale : undefined)
-  const inst = getCurrentInstance()
-  onMounted(() => {
-    if (has(props.locale)) return
-    const el = inst && inst.proxy && inst.proxy.$el
-    const node = el && el.nodeType === 1 ? el : el && el.parentElement
-    const near = node && typeof node.closest === 'function' ? node.closest('[lang]') : null
-    loc.value = (near && near.getAttribute('lang')) || (typeof navigator !== 'undefined' && navigator.language) || undefined
-  })
-  watch(() => props.locale, (v) => { if (has(v)) loc.value = v })
-  return loc
-}
-
 /**
  * La consulta dicha (§15 regla 3): `{ query, text, checkout, line }` o null sin consulta válida. `line` es `labels.forQuery`
  * con `{query}` (o el texto solo si la sección no lo pide: `forQuery: false`). K2: con consulta y sin `partyRows` o sin
@@ -89,76 +74,3 @@ export function useQueryLine(props, warn, { kind, forQuery = true, locale } = {}
     return { query: q, text: d.text, checkout: d.checkout, line }
   })
 }
-
-const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/
-/**
- * Una fecha (AAAA-MM-DD) o fecha y hora ISO para `<time datetime>`: `{ datetime, text }`. La fecha sola se dice tal como la
- * escribió la aplicación (en UTC, el mismo día en cualquier zona); con hora, en la zona del lugar (`timeZone` IANA). Sin
- * idioma resuelto (SSR sin `locale`), el texto es el ISO (se reformatea al montar). Lo que no se lee: el texto tal cual.
- */
-export function dateTime(iso, { locale, timeZone, weekday = true } = {}) {
-  if (typeof iso !== 'string' || !iso.trim()) return null
-  const s = iso.trim()
-  const m = DATE_ONLY.exec(s)
-  const d = m ? new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]))) : new Date(Date.parse(s))
-  if (Number.isNaN(d.getTime())) return { datetime: undefined, text: s }
-  if (!locale) return { datetime: s, text: s }
-  const o = { day: 'numeric', month: 'long', ...(weekday ? { weekday: 'long' } : {}) }
-  if (m) o.timeZone = 'UTC'
-  else {
-    o.hour = 'numeric'
-    o.minute = '2-digit'
-    if (has(timeZone)) o.timeZone = timeZone
-  }
-  let text
-  try { text = new Intl.DateTimeFormat(locale, o).format(d) } catch {
-    try { delete o.timeZone; text = new Intl.DateTimeFormat(locale, m ? { ...o, timeZone: 'UTC' } : o).format(d) } catch { text = s }
-  }
-  return { datetime: s, text }
-}
-
-/** K4: `{ ok, reason }` de `available` (false → labels.unavailable; String → ese motivo). Otro tipo cuenta como disponible. */
-export function availability(item, labels, what, warn) {
-  const a = item ? item.available : undefined
-  if (a === undefined || a === true) return { ok: true, reason: '' }
-  if (a === false) {
-    const t = labels && labels.unavailable
-    if (!has(t)) {
-      try { if (process.env.NODE_ENV !== 'production') warn('C5:unavailable', `${what} no disponible y falta labels.unavailable: se pinta sin el motivo (C5).`) } catch {}
-    }
-    return { ok: false, reason: has(t) ? t : '' }
-  }
-  if (typeof a === 'string') return { ok: !has(a) ? true : false, reason: a.trim() }
-  try { if (process.env.NODE_ENV !== 'production') warn(`K4:${what}`, `${what}.available no es Boolean ni String: cuenta como disponible (K4).`) } catch {}
-  return { ok: true, reason: '' }
-}
-
-const PRICE_KEYS = ['value', 'max', 'compareAt', 'compareLabel', 'lead', 'unit', 'unitLabel', 'total']
-/** K3: las props de GPrice de un `PriceSpec` tal cual (sin renombrar), o null si no hay precio. */
-export function priceSpec(spec, what, warn) {
-  if (spec === undefined || spec === null) return null
-  if (typeof spec !== 'object' || !('value' in spec)) {
-    try { if (process.env.NODE_ENV !== 'production') warn(`K3:${what}`, `${what} sin value (ni null explícito): se pinta sin precio (K3).`) } catch {}
-    return null
-  }
-  const out = {}
-  for (const k of PRICE_KEYS) if (spec[k] !== undefined) out[k] = spec[k]
-  return out
-}
-
-/** K3: una lista con precios y sin `prices` se pinta sin región (GPrice con su código). */
-export function checkRegion(prices, anyPrice, warn) {
-  const ok = prices && typeof prices === 'object' && has(prices.currency)
-  try { if (process.env.NODE_ENV !== 'production' && anyPrice && !ok) warn('K3:prices', 'hay precios y falta prices (la región): se pintan sin región, cada uno con su código (K3).') } catch {}
-  return ok ? prices : null
-}
-
-/** Las props de GPriceScope de una `PriceRegion` + `labels.price`. */
-export const regionAttrs = (prices, labels, locale) => ({
-  currency: prices.currency,
-  view: prices.view,
-  legend: prices.legend,
-  taxes: prices.taxes,
-  locale: prices.locale || locale || undefined,
-  labels: labels && labels.price && typeof labels.price === 'object' ? labels.price : undefined
-})

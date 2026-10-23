@@ -24,6 +24,9 @@
       ],
       "booking": [
         "./dist/booking.d.ts"
+      ],
+      "ecommerce": [
+        "./dist/ecommerce.d.ts"
       ]
     }
   },
@@ -42,6 +45,11 @@
       "types": "./dist/booking.d.ts",
       "import": "./dist/booking.js",
       "default": "./dist/booking.js"
+    },
+    "./ecommerce": {
+      "types": "./dist/ecommerce.d.ts",
+      "import": "./dist/ecommerce.js",
+      "default": "./dist/ecommerce.js"
     },
     "./style.css": "./dist/blocks.css",
     "./package.json": "./package.json"

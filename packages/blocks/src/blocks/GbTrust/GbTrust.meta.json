@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "name": "GbTrust",
+  "kind": "block-section",
+  "family": "ecommerce",
+  "status": "draft",
+  "since": "0.0.0",
+  "description": "Lo que la tienda promete (envío, devoluciones, pago seguro, hecho a mano) dicho en una frase y con su letra pequeña a un toque: cada promesa enlaza a la política que la sostiene (el ancla de GbPolicies) o a su prueba. Sin sellos dibujados ni logotipos mudos.",
+  "contract": "design/contracts/blocks/trust.md",
+  "common": "design/contracts/blocks/_comun.md",
+  "decisions": [
+    909,
+    914,
+    926
+  ],
+  "composes": [
+    "GSection",
+    "GAdaptiveLayout",
+    "GStack",
+    "GCard",
+    "GIcon",
+    "GBtn",
+    "GText"
+  ],
+  "variants": [
+    {
+      "name": "GbTrust01",
+      "tag": "gb-trust-01",
+      "concept": "Fila",
+      "root": "GSection › GAdaptiveLayout role=\"list\" › div role=\"listitem\" g-adapt-short › GCard as=\"div\" level=\"flat\" density=\"compact\""
+    },
+    {
+      "name": "GbTrust02",
+      "tag": "gb-trust-02",
+      "concept": "Tarjetas",
+      "root": "GSection › GAdaptiveLayout role=\"list\" › div role=\"listitem\" g-adapt-standard › GCard as=\"div\""
+    },
+    {
+      "name": "GbTrust03",
+      "tag": "gb-trust-03",
+      "concept": "Lista al pie",
+      "root": "GSection › GStack as=\"ul\" gap=\"sm\" › li › GText body-sm (GIcon en línea + strong + descripción) + GBtn link; sin encabezados por promesa"
+    }
+  ],
+  "props": [
+    {
+      "name": "title",
+      "type": "String",
+      "ts": "string",
+      "required": true
+    },
+    {
+      "name": "description",
+      "type": "String",
+      "ts": "string",
+      "default": null
+    },
+    {
+      "name": "items",
+      "type": "Array",
+      "ts": "Incentive[]",
+      "required": true,
+      "note": "1 a 6 (C7 por encima de 6); sin title se omite (C2). La prueba: action o, sin ella, policy (ancla #policy)"
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "ts": "TrustLabels",
+      "default": {},
+      "note": "policy (con alguna promesa con policy y sin action), external; sin valores por defecto (C5)"
+    }
+  ],
+  "events": [
+    {
+      "name": "navigate",
+      "payload": "{ event, href, item }",
+      "ts": "BlockNavigate<Incentive>",
+      "trigger": "La prueba de una promesa: action con href o el ancla #policy, con clic primario (un ancla de la página también emite); nunca con external"
+    },
+    {
+      "name": "activate",
+      "payload": "{ event, item: incentive }",
+      "ts": "BlockActivate<Incentive>",
+      "trigger": "Una action sin href"
+    }
+  ],
+  "slots": [
+    {
+      "name": "item",
+      "ts": "{ item: Incentive }",
+      "purpose": "Escape: el cuerpo de una promesa"
+    },
+    {
+      "name": "description",
+      "purpose": "Sustituye a la prop description de la GSection"
+    }
+  ],
+  "types": [
+    "Incentive",
+    "Action",
+    "TrustLabels",
+    "BlockNavigate",
+    "BlockActivate"
+  ],
+  "warnings": [
+    "C1 a C3",
+    "C5 a C7",
+    "PR1 · una promesa sin action ni policy (sin prueba; una vez por instancia)"
+  ],
+  "root": "GSection con data-gb=\"trust-NN\" y $attrs",
+  "bundle": {
+    "entry": "@grana/blocks/ecommerce",
+    "measured": 14059,
+    "peers": [
+      "vue",
+      "@grana/vue"
+    ],
+    "note": "Sin tope hasta medir (#909): lima lo fija al cierre del lote con las 36 variantes. Medida de la parte A (2026-10-23): dist/ecommerce.js con sus trozos 14 059 B gzip (scripts/measure-entry.mjs, 4 secciones, 12 variantes); importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbTrust01 2395 B, GbTrust02 2377 B, GbTrust03 2321 B (referencia 5 120 B). cartTotals sola 1 594 B por el mismo procedimiento (referencia 1 024 B: pasa, vuelve a lima)."
+  }
+}

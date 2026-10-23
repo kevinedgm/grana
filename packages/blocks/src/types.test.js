@@ -20,6 +20,7 @@ beforeAll(() => {
   rmSync(OUT, { recursive: true, force: true })
   buildMarketingTypes({ root: ROOT, outDir: OUT })
   buildFamilyTypes({ root: ROOT, outDir: OUT, family: 'booking' })
+  buildFamilyTypes({ root: ROOT, outDir: OUT, family: 'ecommerce' })
   generated = readFileSync(join(OUT, 'marketing.d.ts'), 'utf8')
 })
 
@@ -60,6 +61,48 @@ describe('generador de tipos de Booking (§19, #860)', () => {
     cpSync(join(ROOT, 'src/blocks'), join(tmp, 'src/blocks'), { recursive: true, filter: (f) => !/\.(vue|js)$/.test(f) || f.endsWith('blocks') })
     writeFileSync(join(tmp, 'src/booking.js'), "export { GbSearch01 }\nexport const booking = {}")
     expect(() => generateFamilyTypes({ root: tmp, family: 'booking' })).toThrow(/no exporta «Gb\w+0\d»/)
+  })
+})
+
+describe('generador de tipos de Ecommerce (§32, #909)', () => {
+  it('un Gb<Sección>Props por sección de ecommerce, cada variante con ese tipo, cartTotals declarada y GlobalComponents', () => {
+    const e = readFileSync(join(OUT, 'ecommerce.d.ts'), 'utf8')
+    const metas = familyMetas(ROOT, 'ecommerce')
+    expect(metas.length).toBeGreaterThanOrEqual(4)
+    for (const meta of metas) {
+      expect(e).toContain(`export interface ${meta.name}Props {`)
+      for (const v of meta.variants) {
+        expect(e).toContain(`export declare const ${v.name}: BlockComponent<${meta.name}Props, ${meta.name}Emits, ${meta.name}Slots>`)
+        expect(e).toContain(`    ${v.name}: typeof ${v.name}\n`)
+      }
+    }
+    expect(e).toContain('export declare function cartTotals(lines: CartLine[], options: CartTotalsOptions): CartTotals')
+    expect(e).toContain("export type * from './types/ecommerce.js'")
+    expect(e).toContain('export declare const ecommerce: { install(app: App): void }')
+    expect(e).not.toContain('GbOfferList01')
+    expect(e).not.toContain('GbHero01')
+  })
+  it('los tipos de más de una familia viven en common.d.ts y booking y ecommerce los reexportan con los mismos nombres', () => {
+    const common = readFileSync(join(OUT, 'types/common.d.ts'), 'utf8')
+    expect(common).toBe(readFileSync(join(ROOT, 'types/common.d.ts'), 'utf8'))
+    for (const fam of ['booking', 'ecommerce']) {
+      const known = familyHand(ROOT, fam)
+      for (const n of ['Photo', 'PhotoGroup', 'PriceSpec', 'PriceRegion', 'Totals', 'TotalsLine', 'Reference', 'GuestField', 'Consent', 'Policy', 'Media', 'Action', 'NavLink']) expect(known.has(n), `${fam}: ${n}`).toBe(true)
+    }
+    for (const n of ['Photo', 'PriceSpec', 'Totals', 'GuestField', 'Policy']) expect(readFileSync(join(ROOT, 'types/booking.d.ts'), 'utf8')).not.toMatch(new RegExp(`export (interface|type) ${n}\\b`))
+    expect(readFileSync(join(ROOT, 'types/ecommerce.d.ts'), 'utf8').replace(/\/\/.*$|\/\*[\s\S]*?\*\//gm, '')).not.toMatch(/\[key: string\]/)
+  })
+  it('se detiene ante una exportación de ecommerce que no es variante, plugin ni valor declarado', () => {
+    const tmp = join(OUT, 'roto-ecommerce')
+    rmSync(tmp, { recursive: true, force: true })
+    mkdirSync(join(tmp, 'src'), { recursive: true })
+    cpSync(join(ROOT, 'types'), join(tmp, 'types'), { recursive: true })
+    cpSync(join(ROOT, 'src/blocks'), join(tmp, 'src/blocks'), { recursive: true, filter: (f) => !/\.(vue|js)$/.test(f) || f.endsWith('blocks') })
+    const all = familyMetas(ROOT, 'ecommerce').flatMap((m) => m.variants.map((v) => v.name)).join(', ')
+    writeFileSync(join(tmp, 'src/ecommerce.js'), `export { ${all}, cartTotals, sumar }\nexport const ecommerce = {}`)
+    expect(() => generateFamilyTypes({ root: tmp, family: 'ecommerce' })).toThrow(/sumar/)
+    writeFileSync(join(tmp, 'src/ecommerce.js'), `export { ${all} }\nexport const ecommerce = {}`)
+    expect(() => generateFamilyTypes({ root: tmp, family: 'ecommerce' })).toThrow(/cartTotals/)
   })
 })
 
@@ -154,6 +197,17 @@ describe('uso con vue-tsc', () => {
       banks += `import type { Gb${name}Props } from '@grana/blocks/booking'\n`
       banks += `export const booking${name}: Gb${name}Props = ${json}\n`
     }
+    for (const [name, file] of [
+      ['ProductCard', 'GbProductCard/product-card.bank.js'],
+      ['CategoryPreviews', 'GbCategoryPreviews/category-previews.bank.js'],
+      ['Trust', 'GbTrust/trust.bank.js'],
+      ['Promo', 'GbPromo/promo.bank.js']
+    ]) {
+      const bank = await import(/* @vite-ignore */ join(ROOT, 'src/blocks', file))
+      const json = JSON.stringify(bank.props, (_k, v) => (typeof v === 'function' ? '__fn__' : v)).replace(/"__fn__"/g, '(null as never)')
+      banks += `import type { Gb${name}Props } from '@grana/blocks/ecommerce'\n`
+      banks += `export const ecommerce${name}: Gb${name}Props = ${json}\n`
+    }
     writeFileSync(join(OUT, 'banks.ts'), banks)
     writeFileSync(join(OUT, 'tsconfig.json'), JSON.stringify({
       compilerOptions: {
@@ -161,11 +215,12 @@ describe('uso con vue-tsc', () => {
         baseUrl: '.', paths: {
           '@grana/blocks/marketing': ['./marketing.d.ts'],
           '@grana/blocks/booking': ['./booking.d.ts'],
+          '@grana/blocks/ecommerce': ['./ecommerce.d.ts'],
           '@grana/vue': [join(VUE_DIST, 'grana.d.ts')],
           '@grana/vue/*': [join(VUE_DIST, '*.d.ts')]
         }
       },
-      include: [join(OUT, 'banks.ts'), join(ROOT, 'types/test/main.ts'), join(ROOT, 'types/test/booking.ts'), join(ROOT, 'types/test/App.vue')]
+      include: [join(OUT, 'banks.ts'), join(ROOT, 'types/test/main.ts'), join(ROOT, 'types/test/booking.ts'), join(ROOT, 'types/test/ecommerce.ts'), join(ROOT, 'types/test/App.vue')]
     }))
     const bin = createRequire(import.meta.url).resolve('vue-tsc/bin/vue-tsc.js')
     let output = ''

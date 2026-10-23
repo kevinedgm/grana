@@ -8,7 +8,19 @@ const F = {
   mezcal: ['#2A1E1A', '#C98B4A', 'Copa de mezcal sobre barra de madera'],
   desayuno: ['#F3E3C3', '#7A3B22', 'Desayuno oaxaqueño con chocolate y pan de yema'],
   calle: ['#9CC3D9', '#59663D', 'Calle empedrada hacia Santo Domingo'],
-  traslado: ['#DDE7EA', '#4E7A86', 'Camioneta de la casa en la puerta']
+  traslado: ['#DDE7EA', '#4E7A86', 'Camioneta de la casa en la puerta'],
+  // Barro y Agave (Ecommerce, _comun.md §33)
+  espadin: ['#E9DCC4', '#6B4A2B', 'Botella de mezcal espadín con etiqueta de papel amate'],
+  tobala: ['#D9CBB0', '#3F2E20', 'Botella de mezcal tobalá junto a una jícara'],
+  rebozoGrana: ['#F1D3D3', '#9B1B30', 'Rebozo de algodón teñido con grana cochinilla, doblado'],
+  rebozoAnil: ['#D3DDF1', '#1F3A7A', 'Rebozo de algodón teñido con añil, doblado'],
+  rebozoNatural: ['#F2ECE0', '#B9A88C', 'Rebozo de algodón en su color natural, doblado'],
+  huipil: ['#F6EFE4', '#8E2F3C', 'Huipil blanco con flores bordadas de San Antonino'],
+  jarro: ['#4A4A4A', '#121212', 'Jarro de barro negro bruñido de San Bartolo Coyotepec'],
+  plato: ['#CFE3C2', '#3E6B34', 'Plato de barro verde vidriado de Atzompa'],
+  textiles: ['#E8D5C8', '#7A2E3A', 'Telar de cintura con hilos teñidos'],
+  cocina: ['#F3E0C0', '#8A4B1C', 'Molcajete con chiles y chocolate de metate'],
+  regalos: ['#E6E0F0', '#5B4A7A', 'Caja de regalo con papel picado']
 }
 
 export function foto(key, w = 1600, h = 1000) {
