@@ -7,7 +7,9 @@ import {
   FileText, Filter, Flag, Folder, Globe, Heart, Hospital, House, Image, Inbox, LayoutDashboard,
   Leaf, Lock, LockOpen, LogOut, Mail, MapPin, Music, Package, Palette, Pencil, Phone, Pill, Printer,
   Rocket, Save, Send, Settings, Share2, ShoppingCart, Sparkles, Star, Stethoscope, Tag, Truck,
-  Upload, Users, Wallet, Zap
+  Upload, Users, Wallet, Zap,
+  // los que registran los bancos de @grana/blocks (appIcons)
+  Baby, CalendarPlus, CalendarX, MessageCircle, Navigation, PawPrint, Wifi
 } from 'lucide-static'
 
 export const siteIcons = [
@@ -16,5 +18,6 @@ export const siteIcons = [
   FileText, Filter, Flag, Folder, Globe, Heart, Hospital, House, Image, Inbox, LayoutDashboard,
   Leaf, Lock, LockOpen, LogOut, Mail, MapPin, Music, Package, Palette, Pencil, Phone, Pill, Printer,
   Rocket, Save, Send, Settings, Share2, ShoppingCart, Sparkles, Star, Stethoscope, Tag, Truck,
-  Upload, Users, Wallet, Zap
+  Upload, Users, Wallet, Zap,
+  Baby, CalendarPlus, CalendarX, MessageCircle, Navigation, PawPrint, Wifi
 ]

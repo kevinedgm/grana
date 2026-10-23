@@ -2,11 +2,11 @@
 // Recorrido rápido de las páginas de componente con Chromium: consola limpia, ejemplo vivo pintado
 // y sin desplazamiento horizontal. Para iterar sobre los ejemplos (docs:dev o docs:preview).
 //
-//   node site/scripts/check-pages.mjs [--base http://localhost:4219/grana/] [--width 1280] [--locale en] [--no-grana-warnings] [slug…]
+//   node site/scripts/check-pages.mjs [--base http://localhost:4219/grana/] [--width 1280] [--locale en] [--no-grana-warnings] [slug… | blocks/<familia>/<sección>…]
 //
 // Por defecto inyecta `process.env.NODE_ENV = 'development'` antes de cargar: los avisos de desarrollo
 // de Grana se guardan con `typeof process !== 'undefined'` y en un navegador no saldrían nunca.
-// Sin slugs, recorre todos los componentes de site/src/.site-data.json (ejecuta antes el generador).
+// Sin slugs, recorre todos los componentes y todas las secciones de blocks de site/src/.site-data.json (ejecuta antes el generador).
 
 import fs from 'node:fs'
 import path from 'node:path'
@@ -28,7 +28,7 @@ const locale = opt('locale', '')
 const granaWarnings = !args.includes('--no-grana-warnings')
 if (!granaWarnings) args.splice(args.indexOf('--no-grana-warnings'), 1)
 const data = JSON.parse(fs.readFileSync(path.join(here, '../src/.site-data.json'), 'utf8'))
-const slugs = args.length ? args : data.components.map((c) => c.slug)
+const slugs = args.length ? args : [...data.components.map((c) => c.slug), ...(data.blocks || []).map((b) => `blocks/${b.family}/${b.slug}`)]
 
 const browser = await chromium.launch()
 const context = await browser.newContext({ viewport: { width, height: 900 } })
@@ -41,7 +41,7 @@ for (const slug of slugs) {
     if (['error', 'warning'].includes(m.type())) problems.push(`${m.type()}: ${m.text().slice(0, 300)}`)
   })
   page.on('pageerror', (e) => problems.push(`pageerror: ${e.message.slice(0, 300)}`))
-  const url = `${base}${locale ? locale + '/' : ''}components/${slug}.html`
+  const url = `${base}${locale ? locale + '/' : ''}${slug.startsWith('blocks/') ? '' : 'components/'}${slug}.html`
   const res = await page.goto(url, { waitUntil: 'networkidle' })
   if (!res || res.status() !== 200) problems.push(`HTTP ${res?.status()}`)
   await page.waitForTimeout(300)

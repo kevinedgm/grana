@@ -3,6 +3,8 @@
 //   - README.md raíz      → inicio, empezar, tematización, accesibilidad, personalidad, índice, proyecto
 //   - packages/cli/README → @grana/cli          - CHANGELOG.md → cambios
 //   - packages/vue/src/components/<G…>/README.md + *.meta.json → una página por componente
+//   - packages/blocks/README.md → índice de blocks/ y de cada familia; packages/blocks/src/blocks/<Gb…>/README.md
+//     + <Gb…>.meta.json → una página por sección, blocks/<familia>/<sección>
 // Español es la fuente. Para inglés se usa `<archivo>.en.md` si existe; si no, la página en
 // inglés muestra el español con el aviso «Translation pending».
 // Páginas de guía con `demos: true` en GUIDE (hoy «Utilidades»): igual, desde su propio README.
@@ -18,6 +20,13 @@ import { LOCALES, UI, t } from '../.vitepress/i18n.mjs'
 const SITE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 export const REPO_URL = 'https://github.com/kevinedgm/grana'
 export const COMPONENTS_DIR = 'packages/vue/src/components'
+export const BLOCKS_DIR = 'packages/blocks/src/blocks'
+export const BLOCKS_README = 'packages/blocks/README.md'
+/** Familias de @grana/blocks: `section` es el comienzo del `##` del README del paquete que las describe. */
+export const BLOCK_FAMILIES = [
+  { id: 'marketing', section: 'Marketing' },
+  { id: 'booking', section: 'Booking' }
+]
 
 /**
  * Plan de las páginas de guía. `sections` son los `##` del README raíz (por el comienzo del
@@ -101,6 +110,30 @@ export function discoverComponents(root) {
     else orphans.push(dir)
   }
   return { components, orphans }
+}
+
+/** Secciones de @grana/blocks con README y meta.json: [{ dir, name, slug, family, readme, meta }]. */
+export function discoverBlocks(root) {
+  const base = path.join(root, BLOCKS_DIR)
+  if (!fs.existsSync(base)) return []
+  const out = []
+  for (const d of fs.readdirSync(base, { withFileTypes: true }).filter((d) => d.isDirectory() && /^Gb[A-Z]/.test(d.name)).sort((a, b) => a.name.localeCompare(b.name))) {
+    const metaFile = path.join(base, d.name, `${d.name}.meta.json`)
+    if (!fs.existsSync(path.join(base, d.name, 'README.md')) || !fs.existsSync(metaFile)) continue
+    const meta = JSON.parse(fs.readFileSync(metaFile, 'utf8'))
+    out.push({ dir: d.name, name: d.name, slug: lib.componentSlug('G' + d.name.slice(2)), family: meta.family, readme: `${BLOCKS_DIR}/${d.name}/README.md`, meta })
+  }
+  return out
+}
+
+/** Orden de las secciones de una familia: el de los enlaces de la tabla de su `##` en el README del paquete. */
+export function blockOrder(sectionText) {
+  const names = []
+  for (const href of lib.listLinks(sectionText)) {
+    const m = href.match(/blocks\/(Gb[A-Za-z]+)\/README\.md$/)
+    if (m && !names.includes(m[1])) names.push(m[1])
+  }
+  return names
 }
 
 /** Índice de componentes por categoría desde «## Componentes» del README raíz. */
@@ -267,9 +300,130 @@ function buildPlan(root, locale) {
     page.parts.push({ kind: 'gen', text: `<p class="grana-source">${L.source}: <a href="${REPO_URL}/blob/main/${src.rel}"><code>${src.rel}</code></a></p>\n` })
     pages.push(page)
   }
+
+  // --- @grana/blocks: índice, una página por familia y una por sección
+  const blocks = exists(root, BLOCKS_README) ? discoverBlocks(root) : []
+  if (blocks.length) {
+    const bs = source(root, BLOCKS_README, locale)
+    const esB = lib.splitSections(read(root, BLOCKS_README), 2)
+    const bSplit = bs.rel === BLOCKS_README ? esB : lib.splitSections(bs.text, 2)
+    const bHeadings = lib.parseHeadings(bs.text)
+    const BL = UI[locale].blocks
+    const familyIdx = new Map()
+    BLOCK_FAMILIES.forEach((f) => {
+      const i = esB.sections.findIndex((x) => x.title.startsWith(f.section))
+      if (i === -1) throw new Error(`${BLOCKS_README}: no existe la sección «${f.section}» (familia ${f.id})`)
+      familyIdx.set(f.id, i)
+    })
+    const srcPart = (i, promote) => {
+      const sec = bSplit.sections[i]
+      if (!sec) {
+        warnings.push(`${bs.rel}: falta la sección ${i + 1} (se espera la misma estructura que README.md)`)
+        return null
+      }
+      const offset = bHeadings.findIndex((h) => h.level === 2 && h.text === sec.title)
+      return { kind: 'src', doc: BLOCKS_README, rel: bs.rel, text: promote ? lib.promoteHeadings(sec.text) : sec.text, headingOffset: offset, title: sec.title }
+    }
+    const byFamily = (id) => blocks.filter((b) => b.family === id)
+    for (const b of blocks) if (!BLOCK_FAMILIES.some((f) => f.id === b.family)) warnings.push(`${b.dir}: familia «${b.family}» sin página (BLOCK_FAMILIES)`)
+
+    // índice de blocks/
+    {
+      const id = 'blocks/'
+      const page = { id, locale, url: pageUrl(locale, id), file: pageFile(locale, id), title: t(locale, 'pages.blocks/'), translated: bs.translated, blockIndex: true, parts: [] }
+      page.parts.push({ kind: 'gen', text: `# ${page.title}\n` })
+      const pre = lib.stripH1(bSplit.preamble).body
+      page.parts.push({ kind: 'src', doc: BLOCKS_README, rel: bs.rel, text: pre.trim() + '\n', headingOffset: 1 })
+      const rows = ['## ' + BL.sections, '', `| ${BL.section} | ${BL.family} | ${BL.variants} | ${BL.status} |`, '| --- | --- | --- | --- |']
+      for (const f of BLOCK_FAMILIES) {
+        for (const b of byFamily(f.id)) {
+          rows.push(`| [\`${b.name}\`](${pageUrl(locale, `blocks/${f.id}/${b.slug}`)}) | [${BL[f.id]}](${pageUrl(locale, `blocks/${f.id}/`)}) | ${b.meta.variants.length} | \`${b.meta.status}\` |`)
+        }
+      }
+      page.parts.push({ kind: 'gen', text: rows.join('\n') + '\n' })
+      const family = new Set(familyIdx.values())
+      esB.sections.forEach((sec, i) => {
+        if (family.has(i)) return
+        const part = srcPart(i, false)
+        if (part) page.parts.push(part)
+      })
+      pages.push(page)
+    }
+    // una página por familia (su `##` del README del paquete, promovido a título)
+    for (const f of BLOCK_FAMILIES) {
+      const id = `blocks/${f.id}/`
+      const part = srcPart(familyIdx.get(f.id), true)
+      const page = { id, locale, url: pageUrl(locale, id), file: pageFile(locale, id), title: BL[f.id], translated: bs.translated, blockFamily: f.id, parts: part ? [part] : [] }
+      pages.push(page)
+    }
+    // una página por sección
+    const BC = UI[locale].component
+    for (const b of blocks) {
+      const src = source(root, b.readme, locale)
+      const { body } = lib.stripH1(src.text)
+      const meta = b.meta
+      const id = `blocks/${b.family}/${b.slug}`
+      const page = {
+        id, locale, url: pageUrl(locale, id), file: pageFile(locale, id), title: b.name, block: b, translated: src.translated,
+        description: meta.description, demoSlug: `gb-${b.family}-${b.slug}`, parts: []
+      }
+      const entry = meta.bundle?.entry || `@grana/blocks/${b.family}`
+      const header = [
+        `# ${page.title}`,
+        '',
+        `<p class="grana-meta"><span><strong>${BC.tag}</strong> ${meta.variants.map((v) => `<code>&lt;${v.tag}&gt;</code>`).join(' ')}</span>` +
+          `<span><strong>${BC.status}</strong> <code class="grana-status">${meta.status}</code></span>` +
+          `<span><strong>${BC.entry}</strong> <code>${entry}</code></span>` +
+          (meta.since ? `<span><strong>${BC.since}</strong> <code>${meta.since}</code></span>` : '') +
+          `<span><strong>${BL.family}</strong> <a href="${pageUrl(locale, `blocks/${b.family}/`)}">${BL[b.family]}</a></span></p>`,
+        '',
+        '```js',
+        `import { ${meta.variants.map((v) => v.name).join(', ')} } from '${entry}'`,
+        '```',
+        ''
+      ].join('\n')
+      page.parts.push({ kind: 'gen', text: header })
+      const segs = lib.extractDemos(body)
+      const hasDemo = segs.some((x) => x.type === 'demo')
+      const demoRel = `site/demos/${b.dir}.vue`
+      if (!hasDemo) {
+        if (exists(root, demoRel)) {
+          page.parts.push({ kind: 'gen', text: `## ${BC.example}\n` })
+          page.parts.push({ kind: 'demo', file: demoRel, code: read(root, demoRel), fallback: true })
+        } else warnings.push(`${b.dir}: sin ejemplo vivo (ni bloque \`vue demo\` en el README ni ${demoRel})`)
+      }
+      page.demoCount = segs.filter((x) => x.type === 'demo').length + (hasDemo ? 0 : exists(root, demoRel) ? 1 : 0)
+      page.demoSource = hasDemo ? 'readme' : exists(root, demoRel) ? 'fallback' : null
+      let n = 0
+      for (const x of segs) {
+        if (x.type === 'md') page.parts.push({ kind: 'src', doc: b.readme, rel: src.rel, text: x.text, headingOffset: null })
+        else page.parts.push({ kind: 'demo', code: x.code, index: ++n })
+      }
+      // API desde el meta.json: variantes y la interfaz única de props, eventos y slots
+      const vrows = [`| ${BC.variant} | ${BC.tag} | ${BC.concept} |`, '| --- | --- | --- |']
+      for (const v of meta.variants) vrows.push(`| \`${v.name}\` | \`<${v.tag}>\` | ${lib.cell(v.concept)} |`)
+      const apiMeta = {
+        ...meta,
+        props: (meta.props || []).map((p) => ({ ...p, type: p.ts ? '`' + p.ts + '`' : p.type, description: p.description || p.note })),
+        events: (meta.events || []).map((e) => ({ ...e, payload: e.ts || e.payload })),
+        slots: (meta.slots || []).map((sl) => ({ ...sl, scope: sl.ts || sl.scope }))
+      }
+      const metaRel = `${BLOCKS_DIR}/${b.dir}/${b.dir}.meta.json`
+      page.parts.push({
+        kind: 'gen',
+        text: `## ${BC.api}\n\n<p class="grana-api-note">${BC.apiNote} <a href="${REPO_URL}/blob/main/${metaRel}"><code>${b.dir}.meta.json</code></a></p>\n\n### ${BC.variants}\n\n${vrows.join('\n')}\n\n${lib.apiTables([apiMeta], BC)}\n`
+      })
+      const links = [`${BC.contract}: <a href="${REPO_URL}/blob/main/${meta.contract}"><code>${meta.contract}</code></a>`]
+      const audit = `design/lab/blocks/${b.family}/auditoria.md`
+      if (exists(root, audit)) links.push(`${BC.audit}: <a href="${REPO_URL}/blob/main/${audit}"><code>${audit}</code></a>`)
+      links.push(`${BC.source}: <a href="${REPO_URL}/blob/main/${src.rel}"><code>${src.rel}</code></a>`)
+      page.parts.push({ kind: 'gen', text: `<p class="grana-source">${links.join(' · ')}</p>\n` })
+      pages.push(page)
+    }
+  }
   // las partes `src` de un README de componente: el desplazamiento de encabezados es 1 (H1 fuera)
   // más los encabezados de los segmentos anteriores (los bloques de ejemplo no tienen).
-  for (const p of pages.filter((p) => p.component || p.demoSlug)) {
+  for (const p of pages.filter((p) => p.component || p.demoSlug)) {  // también las secciones de blocks (demoSlug)
     let offset = 1
     for (const part of p.parts) {
       if (part.kind !== 'src') continue
@@ -277,7 +431,7 @@ function buildPlan(root, locale) {
       offset += lib.parseHeadings(part.text).length
     }
   }
-  return { pages, warnings, components }
+  return { pages, warnings, components, blocks }
 }
 
 function metaPath(root, c, m) {
@@ -474,6 +628,32 @@ function sidebarFor(locale, plan, index) {
   return { groups, unlisted: rest.map((p) => p.component.dir) }
 }
 
+/** Barra lateral de blocks/: el resumen y, por familia, sus secciones en el orden del README del paquete. */
+function blocksSidebarFor(locale, plan, root) {
+  const BL = UI[locale].blocks
+  const secs = plan.pages.filter((p) => p.block)
+  if (!secs.length && !plan.pages.some((p) => p.blockIndex)) return { groups: [], unlisted: [] }
+  const esB = lib.splitSections(read(root, BLOCKS_README), 2)
+  const groups = [
+    {
+      text: t(locale, 'pages.blocks/'),
+      items: [{ text: BL.overview, link: pageUrl(locale, 'blocks/') }].concat(
+        BLOCK_FAMILIES.map((f) => ({ text: BL[f.id], link: pageUrl(locale, `blocks/${f.id}/`) }))
+      )
+    }
+  ]
+  const used = new Set()
+  for (const f of BLOCK_FAMILIES) {
+    const sec = esB.sections.find((x) => x.title.startsWith(f.section))
+    const order = sec ? blockOrder(sec.text) : []
+    const mine = secs.filter((p) => p.block.family === f.id)
+    const ordered = [...order.map((n) => mine.find((p) => p.block.dir === n)).filter(Boolean), ...mine.filter((p) => !order.includes(p.block.dir))]
+    ordered.forEach((p) => used.add(p.block.dir))
+    if (ordered.length) groups.push({ text: BL[f.id], collapsed: false, items: ordered.map((p) => ({ text: p.block.name, link: p.url })) })
+  }
+  return { groups, unlisted: secs.filter((p) => !used.has(p.block.dir)).map((p) => p.block.dir) }
+}
+
 /* ------------------------------------------------------------------ iconos (Lucide) */
 
 /** CSS que sustituye los iconos de VitePress por los de lucide-static (la versión del proyecto). */
@@ -545,7 +725,8 @@ export function generate({ root = path.resolve(SITE, '..'), out = path.join(SITE
     for (const page of plan.pages) files.set(page.file, renderPage(page, ctx))
     warnings.push(...[...new Set(ctx.warnings)].map((w) => `[${locale}] ${w}`))
     const sidebar = sidebarFor(locale, plan, index)
-    result.locales[locale] = { pages: plan.pages, sidebar: sidebar.groups, unlisted: sidebar.unlisted, components: plan.components }
+    const blocksSidebar = blocksSidebarFor(locale, plan, root)
+    result.locales[locale] = { pages: plan.pages, sidebar: sidebar.groups, unlisted: sidebar.unlisted, components: plan.components, blocks: plan.blocks, blocksSidebar: blocksSidebar.groups, blocksUnlisted: blocksSidebar.unlisted }
   }
   result.files = files
   result.demoFiles = demoFiles
@@ -554,7 +735,9 @@ export function generate({ root = path.resolve(SITE, '..'), out = path.join(SITE
     for (const [rel, text] of demoFiles) all.set(`.demos/${rel}`, text)
     const data = {
       sidebar: Object.fromEntries(Object.entries(result.locales).map(([l, v]) => [l, v.sidebar])),
-      components: result.locales.es.pages.filter((p) => p.component).map((p) => ({ name: p.component.dir, slug: p.component.slug, demo: p.demoSource }))
+      blocksSidebar: Object.fromEntries(Object.entries(result.locales).map(([l, v]) => [l, v.blocksSidebar])),
+      components: result.locales.es.pages.filter((p) => p.component).map((p) => ({ name: p.component.dir, slug: p.component.slug, demo: p.demoSource })),
+      blocks: result.locales.es.pages.filter((p) => p.block).map((p) => ({ name: p.block.dir, family: p.block.family, slug: p.block.slug, demo: p.demoSource }))
     }
     all.set('.site-data.json', JSON.stringify(data, null, 2) + '\n')
     all.set('.lucide.css', lucideCss(root))
@@ -568,10 +751,16 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const r = generate()
   const comps = r.locales.es.pages.filter((p) => p.component)
   const withDemo = comps.filter((p) => p.demoSource)
+  const blks = r.locales.es.pages.filter((p) => p.block)
   console.log(
     `sitio generado: ${r.files.size} páginas (${comps.length} componentes × ${Object.keys(LOCALES).length} idiomas), ` +
       `${withDemo.length}/${comps.length} con ejemplo vivo (${comps.filter((p) => p.demoSource === 'readme').length} desde el README), ` +
       `${Math.round(performance.now() - t0)} ms`
+  )
+  const bIdx = r.locales.es.pages.filter((p) => p.blockIndex || p.blockFamily)
+  console.log(
+    `blocks: ${blks.length} secciones + ${bIdx.length} índices (resumen y familias) × ${Object.keys(LOCALES).length} idiomas = ${(blks.length + bIdx.length) * Object.keys(LOCALES).length} páginas, ` +
+      `${blks.filter((p) => p.demoSource).length}/${blks.length} con ejemplo vivo (${blks.filter((p) => p.demoSource === 'readme').length} desde el README)`
   )
   for (const w of r.warnings) console.warn('aviso:', w)
 }

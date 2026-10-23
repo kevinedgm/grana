@@ -211,3 +211,24 @@ test.describe('puntero grueso', () => {
     expect(small).toEqual([])
   })
 })
+
+test('blocks: índice, una sección de cada familia con su ejemplo vivo y la barra lateral por familia', async ({ page }) => {
+  test.setTimeout(120_000)
+  const problems = watchConsole(page)
+  // El 404 del logo es del servidor de previsualización sin la base; no es de estas páginas.
+  const real = () => problems.filter((p) => !/Failed to load resource/.test(p))
+  for (const p of ['blocks/', 'blocks/marketing/', 'blocks/marketing/features', 'blocks/booking/offer-list', 'en/blocks/booking/search']) {
+    const r = await page.goto(p.endsWith('/') ? p : `${p}.html`)
+    expect(r.status(), p).toBe(200)
+    await page.waitForLoadState('networkidle')
+    await expect(page.locator('.vp-doc h1').first()).toBeVisible()
+    if (!p.endsWith('/')) {
+      await expect(page.locator('.grana-block-bank [data-gb]').first()).toBeVisible()
+      expect(await page.locator('.grana-block-bank [data-gb]').count(), p).toBe(3)
+      expect(await hScroll(page), p).toBeLessThanOrEqual(0)
+    }
+    await expect(page.locator('.VPSidebar').getByText('Booking').first()).toBeVisible()
+  }
+  await expect(page.locator('.VPNavBarMenuLink', { hasText: 'Blocks' })).toBeVisible()
+  expect(real()).toEqual([])
+})

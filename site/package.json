@@ -13,6 +13,7 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@grana/blocks": "*",
     "@grana/cli": "*",
     "@grana/vue": "*",
     "lucide-static": "^1.49.0",

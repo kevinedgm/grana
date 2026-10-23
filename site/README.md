@@ -24,11 +24,22 @@ Nada del contenido se escribe en `site/`: `site/scripts/generate.mjs` lo genera 
 | `@grana/cli` | `packages/cli/README.md` |
 | Utilidades (clases `g-*`) | `packages/vue/src/styles/README-utilities.md`: página de guía sin componente ni `meta.json` (`GUIDE`, entrada con `demos: true`), que admite bloques `vue demo` como los de un componente |
 | Cambios | `CHANGELOG.md` |
+| Blocks (`blocks/`) | `packages/blocks/README.md`: el resumen (preámbulo, reglas, tipos, playground, comandos, peso y lo que no hay) y, por familia, su `##` (`Marketing`, `Booking`; `BLOCK_FAMILIES`, `generate.mjs`) |
+| Una página por sección de bloque (`blocks/<familia>/<sección>`) | `packages/blocks/src/blocks/Gb<Sección>/README.md` + `Gb<Sección>.meta.json` (`kind: "block-section"`, `family`, `variants`): cabecera con las etiquetas de las tres variantes, estado, entrada y desde; ejemplo vivo; texto del README; «Referencia de la API» con variantes, la `Props` única, eventos y slots desde el `meta.json`; pie con contrato, auditoría de la familia (`design/lab/blocks/<familia>/auditoria.md`) y fuente |
 | Una página por componente | `packages/vue/src/components/G<Nombre>/README.md` + sus `*.meta.json` (cabecera con etiqueta, estado, entrada y desde; importación; tabla de props, eventos, slots y métodos). Una carpeta con `meta.json` y sin README (`GTagGroup`) se suma a la página de su prefijo (`GTag`) |
 
 Los enlaces se reescriben solos: a otro README de componente → su página; a una sección del README raíz → la página que la contiene (con el ancla de VitePress); a cualquier otro archivo del repositorio (`DECISIONS.md`, contratos, auditorías) → GitHub. El texto de los README va en `<div v-pre>`: `{{ }}` y etiquetas se muestran tal cual.
 
 La prueba `site/scripts/generate.test.mjs` (en `npm test`) falla si un componente con README no genera su página en los dos idiomas, si no está en el índice del README raíz, si no tiene ejemplo vivo, si una sección `##` del README raíz no tiene página o si queda un enlace relativo sin resolver.
+
+## Blocks (`@grana/blocks`)
+
+- **Una fuente más, mismas reglas.** `discoverBlocks` recoge toda carpeta `packages/blocks/src/blocks/Gb*/` con `README.md` y `Gb*.meta.json`; la familia sale del `family` del `meta.json` y debe estar en `BLOCK_FAMILIES` (si no, aviso). Una familia nueva se añade a esa lista con el comienzo del `##` que la describe en el README del paquete. `GResourceList` (Gestión) no tiene README ni `meta.json` y no aparece.
+- **Rutas:** `blocks/` (resumen), `blocks/marketing/` y `blocks/booking/` (índices) y `blocks/<familia>/<sección>` (`GbBlogList` → `blog-list`). Barra lateral propia en `/blocks/` (resumen y una agrupación por familia, en el orden de la tabla del README del paquete); el resto del sitio conserva la suya. Entrada «Blocks» junto a «Componentes» en la navegación.
+- **Ejemplo vivo.** Un bloque `vue demo` en el README de la sección se pinta como en un componente. Mientras no lo lleve, la página usa el respaldo `site/demos/Gb<Sección>.vue`: monta las tres variantes con el banco de datos de la sección (`<seccion>.bank.js`, el mismo de las pruebas y del playground del paquete) mediante `GranaBlockBank` (`.vitepress/theme/BlockBank.vue`). Las intenciones que emite cada variante (`navigate`, `activate`, `submit`, `select`, `book`…) se anotan debajo del ejemplo, sin salir de la página, y los `update:*` escriben de vuelta en los datos. `GbHero` se muestra de una variante en una, porque pinta el `h1` de la página.
+- **Qué hay registrado.** El tema instala `marketing` y `booking` (`@grana/blocks/marketing` y `/booking`) además de las entradas de `@grana/vue` que componen (`booking`, `gallery`, `price`, `tag`, `hero`), y los iconos que registran los bancos están en `icons.js`. `@grana/blocks` es dependencia del sitio (`workspace`): antes de `docs:dev` o `docs:build`, `npm run build -w @grana/blocks` además del de `@grana/vue`.
+- **Inglés:** `README.en.md` junto al original (`packages/blocks/README.en.md`, `Gb<Sección>/README.en.md`); sin él, aviso «Translation pending». Hoy no hay ninguno.
+- **Pruebas:** `generate.test.mjs` exige que cada sección con README y `meta.json` genere su página en los dos idiomas con ejemplo vivo, contrato y auditoría enlazados, que cada prop del `meta.json` conste en la tabla Props del README (`check-readme-props.mjs` y `check-readme-fragments.mjs` leen solo `packages/vue`), que índices y barra lateral las recojan y que el tema registre los plugins. `site/tests/site.spec.mjs` recorre el resumen, una familia y tres secciones. `node scripts/check-pages.mjs` recorre también todas las secciones de blocks.
 
 ## Convención para mora-docs
 
@@ -50,7 +61,7 @@ Un bloque de código **de primer nivel** (sin sangría, fuera de listas y citas)
 - **Disponible en el sitio sin importar:** todo `@grana/vue` y los plugins de `combobox`, `file-field`, `time-field`, `slider`, `tag`, `load-region`, `card-group`, `page-header`, `fab`, `form-fold`, `app-shell`, `hero`, `gallery`, `booking` y `price`. La voz (`speech`), la isla de estado (`status`) y `GToast` son servicios: el ejemplo crea el suyo (ver `site/demos/GSpeechHost.vue`, `GStatusIsland.vue`, `GToast.vue`).
 - Puede haber varios por README; cada uno se pinta donde está.
 
-Hoy lo llevan `GBtn` (iconos en los huecos), `GBadge`, `GTag` (grupo con huella) y `GDivider` (con texto).
+Los README de las 20 secciones de blocks aún no marcan ningún bloque (sus ejemplos usan variables de la aplicación: son fragmentos). Hoy lo llevan `GBtn` (iconos en los huecos), `GBadge`, `GTag` (grupo con huella) y `GDivider` (con texto).
 
 **Respaldo:** si un README no marca ningún bloque, la página muestra `site/demos/G<Nombre>.vue` en una sección «Ejemplo» antes del texto. Al marcar un bloque en el README, el respaldo deja de usarse y se puede borrar. La prueba exige que cada componente tenga uno de los dos.
 

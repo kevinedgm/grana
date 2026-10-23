@@ -18,6 +18,8 @@ import Hero from '@grana/vue/hero'
 import Gallery from '@grana/vue/gallery'
 import Booking from '@grana/vue/booking'
 import Price from '@grana/vue/price'
+import { marketing } from '@grana/blocks/marketing'
+import { booking } from '@grana/blocks/booking'
 import '@grana/vue/style.css'
 import '@grana/vue/fonts.css'
 import '../../src/.lucide.css'
@@ -25,6 +27,7 @@ import './grana-site.css'
 import Layout from './Layout.vue'
 import GranaDemo from './GranaDemo.vue'
 import GranaThemePlayground from './ThemePlayground.vue'
+import GranaBlockBank from './BlockBank.vue'
 import { siteIcons } from './icons.js'
 
 export default {
@@ -37,7 +40,10 @@ export default {
     app.use(Grana).use(createIcons(siteIcons)).use(Combobox).use(FileField).use(TimeField).use(Slider).use(Tag).use(LoadRegion)
       .use(CardGroup).use(PageHeader).use(Fab).use(FormFold).use(AppShell)
       .use(Hero).use(Gallery).use(Booking).use(Price)
+    // @grana/blocks: sus secciones (<gb-*>) y, como una aplicación, las entradas de @grana/vue que componen (arriba).
+    app.use(marketing).use(booking)
     app.component('GranaDemo', GranaDemo)
     app.component('GranaThemePlayground', GranaThemePlayground)
+    app.component('GranaBlockBank', GranaBlockBank)
   }
 }

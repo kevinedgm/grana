@@ -22,11 +22,13 @@ function themeFor(locale) {
     nav: [
       { text: U.nav.guide, link: p + 'getting-started', activeMatch: `^${p}(getting-started|theming|cli|utilities|accessibility|personality|project)` },
       { text: U.nav.components, link: p + 'components/', activeMatch: `^${p}components/` },
+      { text: U.nav.blocks, link: p + 'blocks/', activeMatch: `^${p}blocks/` },
       { text: U.nav.playground, link: p + 'playground', activeMatch: `^${p}playground` },
       { text: U.nav.changelog, link: p + 'changelog' },
       { text: U.nav.github, link: 'https://github.com/kevinedgm/grana' }
     ],
-    sidebar: data.sidebar[locale],
+    // Dos barras: la de Blocks (por familia) en /blocks/ y la de siempre en el resto (se elige la ruta más profunda).
+    sidebar: { [p + 'blocks/']: data.blocksSidebar[locale], [p]: data.sidebar[locale] },
     outline: { level: [2, 3], label: T.outline },
     docFooter: { prev: T.prev, next: T.next },
     darkModeSwitchLabel: T.appearance,
@@ -100,6 +102,8 @@ export default defineConfig({
     theme: { light: 'github-light', dark: 'github-dark' }
   },
   vite: {
+    // El logo vive en site/public; con srcDir «src» VitePress buscaría site/src/public (que el generador vacía): 404 del logo.
+    publicDir: path.join(site, 'public'),
     resolve: {
       alias: {
         '@site-demos': path.join(site, 'demos'),
@@ -116,7 +120,7 @@ export default defineConfig({
       }
     },
     // Las páginas importan el paquete construido (`dist/`), como lo haría una aplicación.
-    ssr: { noExternal: ['@grana/vue'] },
+    ssr: { noExternal: ['@grana/vue', '@grana/blocks'] },
     build: { chunkSizeWarningLimit: 2000 }
   }
 })

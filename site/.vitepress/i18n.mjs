@@ -25,6 +25,7 @@ export const UI = {
       accessibility: 'Accesibilidad',
       personality: 'Personalidad',
       'components/': 'Componentes',
+      'blocks/': 'Blocks',
       project: 'Proyecto',
       changelog: 'Cambios',
       playground: 'Playground de tema'
@@ -32,10 +33,25 @@ export const UI = {
     tools: {
       playground: 'Elige color, forma, espaciado y tipografía y mira en vivo cómo cambian los componentes de Grana. El tema se deriva con el motor de @grana/cli y se exporta como configuración o como tokens.'
     },
-    nav: { guide: 'Guía', components: 'Componentes', playground: 'Playground', changelog: 'Cambios', github: 'GitHub' },
+    nav: { guide: 'Guía', components: 'Componentes', blocks: 'Blocks', playground: 'Playground', changelog: 'Cambios', github: 'GitHub' },
     groups: { guide: 'Guía', other: 'Otros' },
     categories: {},
+    blocks: {
+      overview: 'Resumen',
+      marketing: 'Marketing',
+      booking: 'Booking',
+      sections: 'Secciones',
+      section: 'Sección',
+      family: 'Familia',
+      variants: 'Variantes',
+      status: 'Estado'
+    },
     component: {
+      contract: 'Contrato',
+      audit: 'Auditoría',
+      variants: 'Variantes',
+      variant: 'Variante',
+      concept: 'Concepto',
       tag: 'Etiqueta',
       status: 'Estado',
       entry: 'Entrada',
@@ -117,6 +133,7 @@ export const UI = {
       accessibility: 'Accessibility',
       personality: 'Personality',
       'components/': 'Components',
+      'blocks/': 'Blocks',
       project: 'Project',
       changelog: 'Changelog',
       playground: 'Theme playground'
@@ -124,7 +141,7 @@ export const UI = {
     tools: {
       playground: 'Pick color, shape, spacing and type and watch Grana components change live. The theme is derived with the @grana/cli engine and exports as a config or as tokens.'
     },
-    nav: { guide: 'Guide', components: 'Components', playground: 'Playground', changelog: 'Changelog', github: 'GitHub' },
+    nav: { guide: 'Guide', components: 'Components', blocks: 'Blocks', playground: 'Playground', changelog: 'Changelog', github: 'GitHub' },
     groups: { guide: 'Guide', other: 'Other' },
     // Las categorías del índice de componentes salen de los `###` de «Componentes» del README.
     categories: {
@@ -138,7 +155,22 @@ export const UI = {
       'Avisos y estado': 'Notices and status',
       'Captura de voz': 'Voice capture'
     },
+    blocks: {
+      overview: 'Overview',
+      marketing: 'Marketing',
+      booking: 'Booking',
+      sections: 'Sections',
+      section: 'Section',
+      family: 'Family',
+      variants: 'Variants',
+      status: 'Status'
+    },
     component: {
+      contract: 'Contract',
+      audit: 'Audit',
+      variants: 'Variants',
+      variant: 'Variant',
+      concept: 'Concept',
       tag: 'Tag',
       status: 'Status',
       entry: 'Entry',

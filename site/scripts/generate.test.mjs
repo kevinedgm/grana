@@ -9,7 +9,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import * as lib from './lib.mjs'
-import { generate, discoverComponents, GUIDE, COMPONENTS_DIR } from './generate.mjs'
+import { generate, discoverComponents, discoverBlocks, GUIDE, COMPONENTS_DIR, BLOCKS_DIR, BLOCK_FAMILIES } from './generate.mjs'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const result = generate({ root: ROOT, write: false })
@@ -117,6 +117,94 @@ test('fixture: un componente nuevo con README genera página aunque no tenga met
   assert.match(r.files.get('components/nuevo.md'), /\]\(\/components\/btn\)/)
   assert.ok(r.demoFiles.has('nuevo-1.vue'))
   fs.rmSync(tmp, { recursive: true, force: true })
+})
+
+/* ---------------------------------------------------------------- @grana/blocks */
+
+test('blocks: cada sección con README y meta.json genera su página en los dos idiomas, con ejemplo vivo', () => {
+  const blocks = discoverBlocks(ROOT)
+  const onDisk = fs.readdirSync(path.join(ROOT, BLOCKS_DIR), { withFileTypes: true }).filter((d) => d.isDirectory() && /^Gb[A-Z]/.test(d.name) && fs.existsSync(path.join(ROOT, BLOCKS_DIR, d.name, 'README.md')))
+  assert.equal(blocks.length, onDisk.length, 'una sección con README no tiene meta.json (o al revés)')
+  assert.ok(blocks.length >= 20, `se esperaban las 20 secciones (Marketing 9 y Booking 11), hay ${blocks.length}`)
+  for (const b of blocks) {
+    assert.ok(BLOCK_FAMILIES.some((f) => f.id === b.family), `${b.dir}: familia «${b.family}» sin página`)
+    for (const prefix of ['', 'en/']) {
+      const file = `${prefix}blocks/${b.family}/${b.slug}.md`
+      assert.ok(result.files.has(file), `${b.dir}: falta ${file}`)
+      const page = result.files.get(file)
+      assert.match(page, /GranaExample\d/, `${file}: sin ejemplo vivo`)
+      assert.match(page, new RegExp(`<code>&lt;${b.meta.variants[0].tag}&gt;</code>`), `${file}: sin la etiqueta de la primera variante`)
+      assert.match(page, new RegExp(`blob/main/${b.meta.contract}`), `${file}: sin enlace a su contrato`)
+      assert.match(page, new RegExp(`blob/main/design/lab/blocks/${b.family}/auditoria\\.md`), `${file}: sin enlace a su auditoría`)
+    }
+  }
+  const slugs = blocks.map((b) => `${b.family}/${b.slug}`)
+  assert.equal(new Set(slugs).size, slugs.length, 'dos secciones comparten ruta')
+  const missing = result.locales.es.pages.filter((p) => p.block && !p.demoSource).map((p) => p.block.dir)
+  assert.deepEqual(missing, [], `sin ejemplo vivo: ${missing.join(', ')}`)
+})
+
+test('blocks: la página de una sección trae variantes, props, eventos y slots desde el meta.json', () => {
+  const page = result.files.get('blocks/marketing/features.md')
+  assert.match(page, /\| `GbFeatures02` \| `<gb-features-02>` \| Alternada \|/)
+  assert.match(page, /### Props/)
+  assert.match(page, /\| `items` \| `Feature\[\]` \|/)
+  assert.match(page, /### Eventos/)
+  assert.match(page, /\| `navigate` \| `BlockNavigate<Feature>` \|/)
+  assert.match(page, /### Slots/)
+  assert.match(page, /\| `item` \| `\{ item: Feature; index: number \}` \|/)
+  assert.match(result.files.get('en/blocks/marketing/features.md'), /### Variants/)
+  assert.match(result.files.get('en/blocks/marketing/features.md'), /::: warning Translation pending/)
+})
+
+test('blocks: cada prop de cada meta.json consta en la tabla Props de su README', () => {
+  const faltan = []
+  for (const b of discoverBlocks(ROOT)) {
+    const readme = fs.readFileSync(path.join(ROOT, b.readme), 'utf8')
+    const rows = readme.split('\n').filter((l) => /^\|\s*`/.test(l)).join('\n')
+    for (const p of b.meta.props || []) if (!rows.includes('`' + p.name + '`')) faltan.push(`${b.dir}: ${p.name}`)
+  }
+  assert.deepEqual(faltan, [])
+})
+
+test('blocks: índice, índice por familia, navegación y barra lateral', () => {
+  for (const [prefix, locale] of [['', 'es'], ['en/', 'en']]) {
+    const index = result.files.get(`${prefix}blocks/index.md`)
+    assert.ok(index, `${locale}: falta blocks/index.md`)
+    assert.match(index, /Reglas de bloque estructural|Structural block rules/)
+    for (const b of discoverBlocks(ROOT)) assert.ok(index.includes(`/${prefix}blocks/${b.family}/${b.slug})`), `${locale}: el índice no enlaza ${b.dir}`)
+    for (const f of BLOCK_FAMILIES) {
+      const fam = result.files.get(`${prefix}blocks/${f.id}/index.md`)
+      assert.ok(fam, `${locale}: falta el índice de ${f.id}`)
+      for (const b of discoverBlocks(ROOT).filter((x) => x.family === f.id)) assert.ok(fam.includes(`/${prefix}blocks/${f.id}/${b.slug})`), `${locale}/${f.id}: no enlaza ${b.dir}`)
+    }
+    const groups = result.locales[locale].blocksSidebar
+    assert.deepEqual(result.locales[locale].blocksUnlisted, [], `${locale}: secciones fuera de la barra lateral`)
+    assert.equal(groups.flatMap((g) => g.items).filter((i) => /\/blocks\/[a-z]+\/[a-z-]+$/.test(i.link)).length, discoverBlocks(ROOT).length)
+  }
+  const config = fs.readFileSync(path.join(ROOT, 'site/.vitepress/config.mjs'), 'utf8')
+  assert.match(config, /activeMatch: `\^\$\{p\}blocks\/`/, 'falta «Blocks» en la navegación')
+  assert.ok(result.files.has('blocks/marketing/hero.md') && result.files.has('en/blocks/booking/search.md'))
+})
+
+test('blocks: el tema registra los plugins y el sitio depende de @grana/blocks', () => {
+  const theme = fs.readFileSync(path.join(ROOT, 'site/.vitepress/theme/index.js'), 'utf8')
+  assert.match(theme, /from '@grana\/blocks\/marketing'/)
+  assert.match(theme, /from '@grana\/blocks\/booking'/)
+  assert.match(theme, /\.use\(marketing\)\.use\(booking\)/)
+  const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'site/package.json'), 'utf8'))
+  assert.equal(pkg.dependencies['@grana/blocks'], '*')
+})
+
+test('blocks: sin glifos de pictograma en el texto generado', () => {
+  for (const [file, text] of result.files) {
+    if (!file.includes('blocks/')) continue
+    assert.doesNotMatch(text, /[\u2713\u2714\u25B2\u25CF\u203A\u26A0]/u, `${file}: glifo en lugar de icono`)
+  }
+})
+
+test('los GText y GPrice nuevos salen en «Componentes»', () => {
+  for (const slug of ['text', 'price']) assert.ok(result.files.has(`components/${slug}.md`), `falta components/${slug}.md`)
 })
 
 /* ---------------------------------------------------------------- utilidades */
