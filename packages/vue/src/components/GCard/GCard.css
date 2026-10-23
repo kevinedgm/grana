@@ -639,6 +639,8 @@
 .g-card--media-background > .g-card__main { justify-content: flex-end; }
 .g-card--media-background .g-card__body { flex: 0 1 auto; padding-block-start: calc(var(--_pad) * 2); }
 .g-card--media-background :is(.g-card__title, .g-card__eyebrow, .g-card__subtitle, .g-card__description, .g-card__meta dt, .g-card__meta dd, .g-card__footer, .g-card__menu, .g-card__expand, .g-card__more-toggle, .g-card__footer a:not([class])) { color: inherit; }
+/* GText suelto en el cuerpo (Promo 02, fecha/código/condiciones): su color explícito (--_tx-color, text.md) no hereda, así que toma el del velo; ambos tonos, el atenuado no garantizaría 4,5:1 sobre la foto */
+.g-card--media-background .g-text { --_tx-color: var(--g-card-on-scrim); }
 .g-card--media-background .g-card__footer { border-block-start-color: color-mix(in srgb, var(--g-card-on-scrim) 35%, transparent); }
 .g-card--media-background .g-card__menu:hover,
 .g-card--media-background .g-card__menu[aria-expanded="true"] { background: color-mix(in srgb, var(--g-card-on-scrim) 18%, transparent); }
