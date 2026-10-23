@@ -1,0 +1,161 @@
+{
+  "schemaVersion": 1,
+  "name": "GbOfferDetail",
+  "kind": "block-section",
+  "family": "booking",
+  "status": "draft",
+  "since": "0.0.0",
+  "description": "La página de una habitación, una mesa o un recorrido: sus fotos ordenadas por lo que se vende, una ficha con lo que incluye y lo que cuesta, el texto largo y la consulta o el botón de reservar junto al precio. La ficha enseña lo que dice: un dato con su espacio lleva a las fotos de ese espacio.",
+  "contract": "design/contracts/blocks/offer-detail.md",
+  "common": "design/contracts/blocks/_comun.md",
+  "decisions": [
+    860,
+    861,
+    862,
+    864,
+    866,
+    869
+  ],
+  "composes": [
+    "GSection",
+    "GStack",
+    "GAdaptiveLayout",
+    "GContainer",
+    "GGallery",
+    "GCard",
+    "GPrice",
+    "GPriceScope",
+    "GTabs",
+    "GAccordion",
+    "GAccordionItem",
+    "GText",
+    "GBtn"
+  ],
+  "variants": [
+    {
+      "name": "GbOfferDetail01",
+      "tag": "gb-offer-detail-01",
+      "concept": "Espacios + ficha",
+      "root": "GSection (title = offer.name) › GStack gap=\"lg\" › GGallery (recorrido por espacios) + GAdaptiveLayout › [g-adapt-wide: descripción + GSection por apartado] + [ficha g-adapt-standard]"
+    },
+    {
+      "name": "GbOfferDetail02",
+      "tag": "gb-offer-detail-02",
+      "concept": "Tira + pestañas",
+      "root": "GSection › GStack gap=\"lg\" › GGallery appearance=\"strip\" + ficha + GTabs (descripción y una pestaña por apartado)"
+    },
+    {
+      "name": "GbOfferDetail03",
+      "tag": "gb-offer-detail-03",
+      "concept": "Lectura larga",
+      "root": "GSection › GContainer width=\"reading\" horizontal=\"start\" › GStack gap=\"lg\" › descripción + GAccordion por apartado + GGallery + ficha"
+    }
+  ],
+  "props": [
+    {
+      "name": "offer",
+      "type": "Object",
+      "ts": "OfferDetail",
+      "required": true,
+      "note": "name es el título de la sección; photos y groups a GGallery; facts (≤ 6, C7) con group para enlazar el espacio (D1); price tal cual a GPrice (la cuenta solo con query); available false o motivo (K4); sections con id único (D3); lang a la raíz (#885); href se ignora (es la página misma)"
+    },
+    {
+      "name": "query",
+      "type": "Object",
+      "ts": "BookingQuery | null",
+      "default": null,
+      "note": "Dicha con describeQuery (#862) en la ficha: «Para {query}» y la salida en palabras"
+    },
+    {
+      "name": "partyRows",
+      "type": "Array",
+      "ts": "PartyRow[]",
+      "default": null,
+      "note": "Necesarias para decir la consulta (K2)"
+    },
+    {
+      "name": "context",
+      "type": "Object",
+      "ts": "QueryContextExtra",
+      "default": null
+    },
+    {
+      "name": "prices",
+      "type": "Object",
+      "ts": "PriceRegion",
+      "default": null,
+      "note": "Una GPriceScope alrededor del precio de la ficha (K3 sin ella)"
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "ts": "string",
+      "default": null
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "ts": "OfferDetailLabels",
+      "required": true,
+      "note": "photos y facts (C5); perks (con perks), book (sin slot consult), unavailable (con available false), showPhotos (con un dato con espacio), details y tabs (02), forQuery y query (con query, K2), gallery (a GGallery tal cual), price (a GPriceScope); sin valores por defecto"
+    }
+  ],
+  "events": [
+    {
+      "name": "book",
+      "payload": "{ event, offer, query }",
+      "ts": "OfferBook",
+      "trigger": "«Reservar» de la ficha (sin slot consult y con la oferta disponible)"
+    }
+  ],
+  "slots": [
+    {
+      "name": "consult",
+      "scope": "{ offer }",
+      "ts": "{ offer: OfferDetail }",
+      "purpose": "La consulta junto al precio (GbSearch03 o un GBookingBar): sustituye al botón «Reservar» (una sola acción principal)"
+    },
+    {
+      "name": "facts",
+      "scope": "{ offer }",
+      "ts": "{ offer: OfferDetail }",
+      "purpose": "Escape: ficha propia en lugar del dl de facts"
+    },
+    {
+      "name": "section-{id}",
+      "scope": "{ section }",
+      "ts": "{ section: OfferSection }",
+      "purpose": "Escape: cuerpo rico de un apartado (por su id)"
+    }
+  ],
+  "types": [
+    "OfferDetail",
+    "OfferSection",
+    "BookingQuery",
+    "PartyRow",
+    "QueryContextExtra",
+    "PriceRegion",
+    "OfferDetailLabels",
+    "OfferBook"
+  ],
+  "warnings": [
+    "C4 a C7 (las fotos las avisa GGallery)",
+    "K1 a K5",
+    "D1 · OfferFact.group que no está en groups o sin id (sin enlace)",
+    "D2 · offer.photos vacío (sin galería; la ficha sigue)",
+    "D3 · section.id repetido (se usa el índice)"
+  ],
+  "root": "GSection con data-gb=\"offer-detail-NN\" y $attrs",
+  "bundle": {
+    "entry": "@grana/blocks/booking",
+    "measured": 35924,
+    "peers": [
+      "vue",
+      "@grana/vue",
+      "@grana/vue/booking",
+      "@grana/vue/gallery",
+      "@grana/vue/price"
+    ],
+    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c): 35 924 B con las once secciones (33 variantes; partes A, B y C, estas últimas aún en construcción, 2026-10-23). Sin tope hasta que lo fije lima (§19). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbOfferDetail01 4034 B, 02 4197 B, 03 4023 B (02 por encima de la referencia de 4096 B: vuelve a lima)."
+  }
+}

@@ -12,7 +12,18 @@ const PAGES = [
   { name: 'guest-form 01', file: 'guest-form.html', qs: 'v=01', h1: 0, blocks: 1 },
   { name: 'guest-form 02', file: 'guest-form.html', qs: 'v=02', h1: 0, blocks: 1 },
   { name: 'guest-form 03', file: 'guest-form.html', qs: 'v=03', h1: 0, blocks: 1 },
-  { name: 'confirmation', file: 'confirmation.html', qs: '', h1: 0, blocks: 3 }
+  { name: 'confirmation', file: 'confirmation.html', qs: '', h1: 0, blocks: 3 },
+  // Parte B. De una en una donde las tres repetirían anclas (días, políticas, espacios y apartados)
+  { name: 'itinerary 01', file: 'itinerary.html', qs: 'v=01', h1: 0, blocks: 1 },
+  { name: 'itinerary 02', file: 'itinerary.html', qs: 'v=02', h1: 0, blocks: 1 },
+  { name: 'itinerary 03', file: 'itinerary.html', qs: 'v=03', h1: 0, blocks: 1 },
+  { name: 'location', file: 'location.html', qs: '', h1: 0, blocks: 3 },
+  { name: 'policies 01', file: 'policies.html', qs: 'v=01', h1: 0, blocks: 1 },
+  { name: 'policies 02', file: 'policies.html', qs: 'v=02', h1: 0, blocks: 1 },
+  { name: 'policies 03', file: 'policies.html', qs: 'v=03', h1: 0, blocks: 1 },
+  { name: 'offer-detail 01', file: 'offer-detail.html', qs: 'v=01', h1: 0, blocks: 1 },
+  { name: 'offer-detail 02', file: 'offer-detail.html', qs: 'v=02', h1: 0, blocks: 1 },
+  { name: 'offer-detail 03', file: 'offer-detail.html', qs: 'v=03', h1: 0, blocks: 1 }
 ]
 const THEMES = ['defecto', 'rustico', 'lujo']
 
@@ -259,3 +270,134 @@ for (const dark of [false, true]) {
     expect(ratio).toBeGreaterThanOrEqual(4.5)
   })
 }
+
+// ---------- Verificación propia · parte B (itinerary.md, location.md, policies.md, offer-detail.md) ----------
+
+for (const v of ['01', '02', '03']) {
+  test(`itinerary ${v}: «ahora» por la hora del lugar con el reloj fijado (aria-current e insignia en texto)`, async ({ page }) => {
+    await page.clock.setFixedTime(new Date('2026-11-14T09:30:00-06:00'))
+    await open(page, 'itinerary.html', `v=${v}`)
+    const cur = page.locator('[data-gb] [aria-current="time"]')
+    await expect(cur).toHaveCount(1)
+    await expect(cur).toContainText('Gran Plaza')
+    await expect(page.locator('[data-gb]')).toContainText('Siguiente')
+    if (v === '02') expect(await page.locator('[data-gb] [aria-expanded="true"]').count()).toBe(0) // no abre el día solo
+  })
+}
+
+test('itinerary 01: la foto al lado en ancho y arriba a 320', async ({ page }) => {
+  await open(page, 'itinerary.html', 'v=01')
+  const side = () => page.evaluate(() => {
+    const img = document.querySelector('[data-gb="itinerary-01"] li.g-card img')
+    const card = img.closest('li.g-card')
+    const t = card.querySelector('h4').getBoundingClientRect()
+    const i = img.getBoundingClientRect()
+    return { beside: i.right <= t.left + 1, above: i.bottom <= t.top + 1 }
+  })
+  expect((await side()).beside).toBe(true)
+  await page.setViewportSize({ width: 320, height: 640 })
+  await settle(page)
+  expect((await side()).above).toBe(true)
+})
+
+test('itinerary 03: tabla en ancho y tarjetas en estrecho (GTable responsive)', async ({ page }) => {
+  await open(page, 'itinerary.html', 'v=03')
+  expect(await page.locator('[data-gb="itinerary-03"] .g-table--mode-table').count()).toBe(2)
+  await page.setViewportSize({ width: 320, height: 640 })
+  await settle(page)
+  expect(await page.locator('[data-gb="itinerary-03"] .g-table--mode-cards').count()).toBe(2)
+  expect(await overflow(page)).toBe(false)
+})
+
+test('location 02: dos columnas a 1440 y una a 390; la dirección no desborda a 320', async ({ page }) => {
+  await open(page, 'location.html', 'v=02')
+  const cols = () => page.evaluate(() => new Set([...document.querySelector('[data-gb="location-02"] .g-adaptive-layout').children].map((c) => Math.round(c.getBoundingClientRect().top))).size)
+  expect(await cols()).toBe(1)
+  await page.setViewportSize({ width: 390, height: 844 })
+  await settle(page)
+  expect(await cols()).toBe(2)
+  await page.setViewportSize({ width: 320, height: 640 })
+  await settle(page)
+  const r = await page.evaluate(() => { const a = document.querySelector('[data-gb="location-02"] address'); return { sw: a.scrollWidth, cw: a.clientWidth } })
+  expect(r.sw).toBeLessThanOrEqual(r.cw + 1)
+  expect(await overflow(page)).toBe(false)
+})
+
+test('location: sin peticiones de red a terceros al cargar la página del banco', async ({ page }) => {
+  const hosts = new Set()
+  page.on('request', (r) => { const u = new URL(r.url()); if (/^https?:$/.test(u.protocol)) hosts.add(u.hostname) })
+  await open(page, 'location.html', '')
+  expect([...hosts]).toEqual(['localhost'])
+})
+
+test('policies 01: #cancelacion abre la política al cargar y la trae a la vista', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 640 })
+  await page.goto(`${BASE}policies.html?v=01#cancelacion`)
+  await page.waitForSelector('html[data-ready="1"] [data-gb]')
+  await settle(page)
+  const item = page.locator('#cancelacion')
+  await expect(item.locator('[aria-expanded]').first()).toHaveAttribute('aria-expanded', 'true')
+  await expect(item.getByText('Después de ese plazo')).toBeInViewport()
+})
+
+for (const v of ['02', '03']) {
+  test(`policies ${v}: #mascotas lleva al sitio`, async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 640 })
+    await page.goto(`${BASE}policies.html?v=${v}#mascotas`)
+    await page.waitForSelector('html[data-ready="1"] [data-gb]')
+    await settle(page)
+    await page.evaluate(() => { location.hash = ''; location.hash = 'mascotas' })
+    await settle(page)
+    await expect(page.locator('#mascotas')).toBeInViewport()
+  })
+}
+
+test('policies 03: en columnas a 1440 y una a 320', async ({ page }) => {
+  await open(page, 'policies.html', 'v=03')
+  const lefts = () => page.evaluate(() => new Set([...document.querySelectorAll('[data-gb="policies-03"] [role="listitem"]')].map((e) => Math.round(e.getBoundingClientRect().left))).size)
+  expect(await lefts()).toBeGreaterThan(1)
+  await page.setViewportSize({ width: 320, height: 640 })
+  await settle(page)
+  expect(await lefts()).toBe(1)
+})
+
+test('offer-detail 01: la ficha al lado del texto a 1440 y debajo a 390; un solo h2', async ({ page }) => {
+  await open(page, 'offer-detail.html', 'v=01')
+  expect(await page.locator('h2').count()).toBe(1)
+  const tops = () => page.evaluate(() => [...document.querySelector('[data-gb="offer-detail-01"] .g-adaptive-layout').children].map((c) => Math.round(c.getBoundingClientRect().top)))
+  const [a, b] = await tops()
+  expect(a).toBe(b)
+  await page.setViewportSize({ width: 390, height: 844 })
+  await settle(page)
+  const [c, d] = await tops()
+  expect(d).toBeGreaterThan(c)
+})
+
+for (const v of ['01', '03']) {
+  test(`offer-detail ${v}: «Ver el baño» lleva al espacio del baño en la galería`, async ({ page }) => {
+    await open(page, 'offer-detail.html', `v=${v}`, { width: 390, height: 844 })
+    await page.getByRole('link', { name: 'Ver el baño' }).click()
+    await settle(page)
+    expect(await page.evaluate(() => location.hash)).toBe('#fotos-bano')
+    await expect(page.locator('#fotos-bano')).toBeInViewport()
+  })
+}
+
+test('offer-detail 02: «Ver el baño» abre el visor en la primera foto del baño; la tira no desborda a 320', async ({ page }) => {
+  await open(page, 'offer-detail.html', 'v=02', { width: 320, height: 640 })
+  expect(await overflow(page)).toBe(false)
+  await page.getByRole('button', { name: 'Ver el baño' }).click()
+  const dialog = page.locator('dialog[open]')
+  await expect(dialog).toHaveCount(1)
+  await expect(dialog).toContainText('Regadera de piedra volcánica')
+  await page.keyboard.press('Escape')
+  await expect(dialog).toHaveCount(0)
+})
+
+test('offer-detail: con consult, la consulta junto al precio y ningún «Reservar»', async ({ page }) => {
+  const errs = watchConsole(page)
+  await open(page, 'offer-detail.html', 'v=01&consult=1')
+  await expect(page.locator('[data-gb="offer-detail-01"] [data-gb="search-01"]')).toHaveCount(1)
+  await expect(page.getByRole('button', { name: 'Reservar esta suite' })).toHaveCount(0)
+  expect(errs).toEqual([])
+})

@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "name": "GbPolicies",
+  "kind": "block-section",
+  "family": "booking",
+  "status": "draft",
+  "since": "0.0.0",
+  "description": "Las condiciones del lugar (cancelación, llegada y salida, mascotas, niños, pagos) con lo que decide en una línea a la vista, el texto completo a un toque y nunca recortado, y cada política con su ancla estable.",
+  "contract": "design/contracts/blocks/policies.md",
+  "common": "design/contracts/blocks/_comun.md",
+  "decisions": [
+    860,
+    861,
+    864,
+    866,
+    877
+  ],
+  "composes": [
+    "GSection",
+    "GAccordion",
+    "GAccordionItem",
+    "GContainer",
+    "GStack",
+    "GAdaptiveLayout",
+    "GCard",
+    "GText",
+    "GIcon",
+    "GBtn"
+  ],
+  "variants": [
+    {
+      "name": "GbPolicies01",
+      "tag": "gb-policies-01",
+      "concept": "Avance",
+      "root": "GSection › GAccordion (un nivel por debajo) › GAccordionItem (id = ancla, title, peek = summary o el primer párrafo) › GText as=\"div\" con body y link"
+    },
+    {
+      "name": "GbPolicies02",
+      "tag": "gb-policies-02",
+      "concept": "Todo a la vista",
+      "root": "GSection › GContainer width=\"reading\" horizontal=\"start\" › GStack gap=\"lg\" › GSection anidada por política (id, title, description = summary) › GText as=\"div\" con body y link"
+    },
+    {
+      "name": "GbPolicies03",
+      "tag": "gb-policies-03",
+      "concept": "Tarjetas",
+      "root": "GSection › GAdaptiveLayout role=\"list\" › div role=\"listitem\" g-adapt-wide › GCard as=\"div\" (id, title, description = summary, lead = GIcon, cuerpo = body, actions = link)"
+    }
+  ],
+  "props": [
+    {
+      "name": "title",
+      "type": "String",
+      "ts": "string",
+      "required": true
+    },
+    {
+      "name": "description",
+      "type": "String",
+      "ts": "string",
+      "default": null
+    },
+    {
+      "name": "items",
+      "type": "Array",
+      "ts": "Policy[]",
+      "required": true,
+      "note": "1 a 20 (C7). summary = la línea que decide; body en texto plano (párrafos separados por una línea en blanco), nunca recortado; id = ancla estable (#cancelacion) que citan Consent.policy y la confirmación; icon solo en 03"
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "ts": "PoliciesLabels",
+      "default": {},
+      "note": "external, requerido con un link externo (C5); sin valores por defecto"
+    }
+  ],
+  "events": [
+    {
+      "name": "navigate",
+      "payload": "{ event, href, item: policy }",
+      "ts": "BlockNavigate<Policy>",
+      "trigger": "El link interno de una política con clic primario (#505); nunca con external (#574) ni con tel:/mailto:/sms: (#834)"
+    }
+  ],
+  "slots": [
+    {
+      "name": "body",
+      "scope": "{ item }",
+      "ts": "{ item: Policy }",
+      "purpose": "Escape: contenido rico del texto completo, dentro de la misma GText (el link sigue después)"
+    }
+  ],
+  "types": [
+    "Policy",
+    "PoliciesLabels",
+    "BlockNavigate"
+  ],
+  "warnings": [
+    "C1 a C3",
+    "C5 (external)",
+    "C6",
+    "C7",
+    "P1 · una política sin summary (01 asoma el primer párrafo; 02 y 03 sin la línea), una vez por instancia",
+    "P2 · id con caracteres que no sirven de ancla (se pinta sin ancla)",
+    "P3 · icon sin registrar en 03: lo avisa GIcon, el bloque no lo repite"
+  ],
+  "root": "GSection con data-gb=\"policies-NN\" y $attrs",
+  "bundle": {
+    "entry": "@grana/blocks/booking",
+    "measured": 35924,
+    "peers": [
+      "vue",
+      "@grana/vue"
+    ],
+    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c): 35 924 B con las once secciones (33 variantes; partes A, B y C, estas últimas aún en construcción, 2026-10-23). Sin tope hasta que lo fije lima (§19). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbPolicies01 2394 B, 02 2362 B, 03 2465 B."
+  }
+}

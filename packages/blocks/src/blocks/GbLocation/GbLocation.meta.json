@@ -1,0 +1,190 @@
+{
+  "schemaVersion": 1,
+  "name": "GbLocation",
+  "kind": "block-section",
+  "family": "booking",
+  "status": "draft",
+  "since": "0.0.0",
+  "description": "Dónde está el lugar (o dónde se reúne el grupo) en una dirección de verdad que se puede copiar, con su horario, el mapa como imagen que dice el sitio y «Cómo llegar» que abre la ruta en el teléfono; en un recorrido, cada punto de encuentro con su hora en la zona del lugar. Sin iframes ni terceros al cargar.",
+  "contract": "design/contracts/blocks/location.md",
+  "common": "design/contracts/blocks/_comun.md",
+  "decisions": [
+    860,
+    861,
+    864,
+    866,
+    876
+  ],
+  "composes": [
+    "GSection",
+    "GCard",
+    "GAdaptiveLayout",
+    "GStack",
+    "GText",
+    "GBtn",
+    "GIcon"
+  ],
+  "variants": [
+    {
+      "name": "GbLocation01",
+      "tag": "gb-location-01",
+      "concept": "Tarjeta con mapa",
+      "root": "GCard as=\"section\" (media = el mapa arriba) › GText as=\"address\" (nombre, dirección, canales, horario) › actions: «Cómo llegar» solid"
+    },
+    {
+      "name": "GbLocation02",
+      "tag": "gb-location-02",
+      "concept": "Dos columnas",
+      "root": "GSection › GAdaptiveLayout gap=\"lg\" › [GStack g-adapt-wide: dirección + «Cómo llegar» outline] + [GCard level=\"flat\" g-adapt-standard, title = labels.map, media = el mapa]"
+    },
+    {
+      "name": "GbLocation03",
+      "tag": "gb-location-03",
+      "concept": "Puntos de encuentro",
+      "root": "GSection › [dirección principal + «Cómo llegar» outline] + GSection anidada (labels.points) › GStack as=\"ul\" › GCard as=\"li\" por punto (eyebrow = <time>, dirección, su ruta outline)"
+    }
+  ],
+  "props": [
+    {
+      "name": "title",
+      "type": "String",
+      "ts": "string",
+      "required": true
+    },
+    {
+      "name": "description",
+      "type": "String",
+      "ts": "string",
+      "default": null
+    },
+    {
+      "name": "name",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "Nombre del lugar en la dirección («Casa Alcalá»)"
+    },
+    {
+      "name": "address",
+      "type": "Array",
+      "ts": "string[]",
+      "default": null,
+      "note": "Líneas postales; texto real que se copia (1.1.1, 1.4.5)"
+    },
+    {
+      "name": "hours",
+      "type": "Array",
+      "ts": "string[]",
+      "default": null,
+      "note": "Líneas de horario («Recepción 24 h»), con labels.hours (C5)"
+    },
+    {
+      "name": "map",
+      "type": "Object",
+      "ts": "Media",
+      "default": null,
+      "note": "Imagen estática con alt que describe el sitio (L2), no «mapa»; 03 la ignora",
+      "variants": [
+        "GbLocation01",
+        "GbLocation02"
+      ]
+    },
+    {
+      "name": "directions",
+      "type": "Object",
+      "ts": "Action",
+      "default": null,
+      "note": "«Cómo llegar»: la primera acción del bloque (solid en 01, outline en 02 y 03); casi siempre external (no emite navigate, #574)"
+    },
+    {
+      "name": "channels",
+      "type": "Array",
+      "ts": "Channel[]",
+      "default": null,
+      "note": "Teléfono, WhatsApp, correo; tel:/mailto:/sms: y los externos no emiten navigate (#834)"
+    },
+    {
+      "name": "points",
+      "type": "Array",
+      "ts": "Point[]",
+      "default": null,
+      "note": "Puntos de encuentro (tour), 0 a 8 (C7); solo 03. 01 y 02 los ignoran en silencio salvo sin address (L3)",
+      "variants": [
+        "GbLocation03"
+      ]
+    },
+    {
+      "name": "timeZone",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "IANA del lugar: la hora de Point.time (HH:mm tal cual; una fecha y hora ISO, en esa zona)"
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "ts": "string",
+      "default": null
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "ts": "LocationLabels",
+      "default": {},
+      "note": "map (02 con map), points (03 con points), hours (con hours), channels (con channels), external (con un enlace externo); C5; sin valores por defecto"
+    }
+  ],
+  "events": [
+    {
+      "name": "navigate",
+      "payload": "{ event, href, item }",
+      "ts": "BlockNavigate<Action | Channel | Point>",
+      "trigger": "Un enlace interno con clic primario (#505): directions, un canal o la ruta de un punto (item = el punto); nunca con external (#574) ni con tel:/mailto:/sms:/geo (#834)"
+    },
+    {
+      "name": "activate",
+      "payload": "{ event, item }",
+      "ts": "BlockActivate<Action | Point>",
+      "trigger": "Una directions sin href"
+    }
+  ],
+  "slots": [
+    {
+      "name": "map",
+      "purpose": "Escape: en lugar del <img> del mapa (p. ej. la fachada de GEmbed cuando exista), dentro del media de GCard",
+      "variants": [
+        "GbLocation01",
+        "GbLocation02"
+      ]
+    },
+    {
+      "name": "address",
+      "purpose": "Escape: el contenido de la GText as=\"address\" de la dirección principal"
+    }
+  ],
+  "types": [
+    "Media",
+    "Action",
+    "Channel",
+    "Point",
+    "LocationLabels",
+    "BlockNavigate",
+    "BlockActivate"
+  ],
+  "warnings": [
+    "C4 a C7",
+    "L1 · sin address ni points (no hay a dónde ir; se pinta lo que haya)",
+    "L2 · map.alt vacío o que solo dice «mapa»/«map» (se pinta; el alt debe describir el sitio)",
+    "L3 · points en 01 o 02 sin address (no los usan; para un recorrido, 03)"
+  ],
+  "root": "GCard as=\"section\" (01) o GSection (02, 03) con data-gb=\"location-NN\" y $attrs",
+  "bundle": {
+    "entry": "@grana/blocks/booking",
+    "measured": 35924,
+    "peers": [
+      "vue",
+      "@grana/vue"
+    ],
+    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c): 35 924 B con las once secciones (33 variantes; partes A, B y C, estas últimas aún en construcción, 2026-10-23). Sin tope hasta que lo fije lima (§19). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbLocation01 3866 B, 02 3946 B, 03 4260 B (03 por encima de la referencia de 4096 B: vuelve a lima)."
+  }
+}

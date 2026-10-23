@@ -137,7 +137,11 @@ describe('uso con vue-tsc', () => {
       ['Search', 'GbSearch/search.bank.js'],
       ['OfferList', 'GbOfferList/offer-list.bank.js'],
       ['GuestForm', 'GbGuestForm/guest-form.bank.js'],
-      ['Confirmation', 'GbConfirmation/confirmation.bank.js']
+      ['Confirmation', 'GbConfirmation/confirmation.bank.js'],
+      ['Itinerary', 'GbItinerary/itinerary.bank.js'],
+      ['Location', 'GbLocation/location.bank.js'],
+      ['Policies', 'GbPolicies/policies.bank.js'],
+      ['OfferDetail', 'GbOfferDetail/offer-detail.bank.js']
     ]) {
       const bank = await import(/* @vite-ignore */ join(ROOT, 'src/blocks', file))
       // Las funciones (filas del grupo, noches contadas, reglas de días) no pasan por JSON: van como `null as never`, que

@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "name": "GbItinerary",
+  "kind": "block-section",
+  "family": "booking",
+  "status": "draft",
+  "since": "0.0.0",
+  "description": "Un recorrido por horas, en orden y con la hora del lugar; el día del recorrido dice qué parada toca ahora y cuál sigue, calculado con la zona del lugar al abrir la página y al volver a ella, sin temporizador ni salto automático. Es un programa que se lee, no un proceso: nunca GStepper.",
+  "contract": "design/contracts/blocks/itinerary.md",
+  "common": "design/contracts/blocks/_comun.md",
+  "decisions": [
+    860,
+    861,
+    864,
+    866,
+    874
+  ],
+  "composes": [
+    "GSection",
+    "GStack",
+    "GCard",
+    "GAccordion",
+    "GAccordionItem",
+    "GTable",
+    "GText"
+  ],
+  "variants": [
+    {
+      "name": "GbItinerary01",
+      "tag": "gb-itinerary-01",
+      "concept": "Lista con hora",
+      "root": "GSection › (GSection anidada por día si hay varios) › GStack as=\"ol\" › GCard as=\"li\" (eyebrow = <time>, title, description, media, badge now/next) + GText con place"
+    },
+    {
+      "name": "GbItinerary02",
+      "tag": "gb-itinerary-02",
+      "concept": "Por días",
+      "root": "GSection › GAccordion (un nivel por debajo, arrows) › GAccordionItem por día (title = label, meta = fecha en <time>, peek = summary o la primera parada) › las paradas de 01"
+    },
+    {
+      "name": "GbItinerary03",
+      "tag": "gb-itinerary-03",
+      "concept": "Tabla",
+      "root": "GSection › una GTable por día (caption = label y fecha, columnas hora/parada/lugar, responsive=\"auto\")"
+    }
+  ],
+  "props": [
+    {
+      "name": "title",
+      "type": "String",
+      "ts": "string",
+      "required": true
+    },
+    {
+      "name": "description",
+      "type": "String",
+      "ts": "string",
+      "default": null
+    },
+    {
+      "name": "days",
+      "type": "Array",
+      "ts": "ItineraryDay[]",
+      "required": true,
+      "note": "1 a 14 días (C7); un día con 1 a 30 paradas (C7). Stop.time/end en HH:mm del lugar (I2 si no); date ISO da el día y el «ahora»"
+    },
+    {
+      "name": "timeZone",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "IANA del lugar («America/Mexico_City»): el «ahora» se calcula en esa zona aunque el teléfono esté en otra; sin ella, la del navegador (I1)"
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "Idioma de las horas (12 h o 24 h) y las fechas; sin él, el lang del ancestro al montar"
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "ts": "ItineraryLabels",
+      "default": {},
+      "note": "now y next (con algún date, al marcar: C5; sin ellos, solo aria-current), time, stop y place (cabeceras de 03, C5), external; sin valores por defecto"
+    }
+  ],
+  "events": [],
+  "slots": [
+    {
+      "name": "stop",
+      "scope": "{ stop, day, now, next }",
+      "ts": "{ stop: Stop; day: ItineraryDay; now: boolean; next: boolean }",
+      "purpose": "Escape: cuerpo de la parada (en lugar del place) en 01 y 02",
+      "variants": [
+        "GbItinerary01",
+        "GbItinerary02"
+      ]
+    }
+  ],
+  "types": [
+    "ItineraryDay",
+    "Stop",
+    "ItineraryLabels"
+  ],
+  "warnings": [
+    "C1 a C4",
+    "C5 (now/next al marcar; time/stop/place en 03)",
+    "C7 (días y paradas)",
+    "I1 · un date sin timeZone (se usa la zona del navegador)",
+    "I2 · time/end que no es HH:mm (se pinta tal cual, sin «ahora» para esa parada)",
+    "I3 · paradas fuera de orden por time dentro de un día (se pintan en el orden del arreglo)"
+  ],
+  "root": "GSection con data-gb=\"itinerary-NN\" y $attrs",
+  "bundle": {
+    "entry": "@grana/blocks/booking",
+    "measured": 35924,
+    "peers": [
+      "vue",
+      "@grana/vue"
+    ],
+    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c): 35 924 B con las once secciones (33 variantes; partes A, B y C, estas últimas aún en construcción, 2026-10-23). Sin tope hasta que lo fije lima (§19). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbItinerary01 3572 B, 02 3611 B, 03 3092 B."
+  }
+}

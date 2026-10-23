@@ -126,6 +126,8 @@ export interface Offer {
   /** Página de la oferta (la tarjeta es enlace). */
   href?: string
   external?: boolean
+  /** Idioma del nombre, el resumen y los detalles si no es el de la página (3.1.2, #885); va a la raíz de lo que los pinta. */
+  lang?: string
 }
 /** Lo que una sección necesita de una oferta ya elegida (Guest form, Confirmation). */
 export type OfferRef = Pick<Offer, 'id' | 'name' | 'kind' | 'photos' | 'price'>
@@ -284,3 +286,63 @@ export interface ConfirmationLabels {
   price?: PriceRegionLabels
   external?: string
 }
+
+// ── B8 Itinerary (itinerary.md; parte B) ──
+
+export interface ItineraryLabels {
+  /** «Ahora»; con algún `date` (C5 al marcar; sin él, solo aria-current). */
+  now?: string
+  /** «Siguiente». */
+  next?: string
+  /** Cabeceras de columna de 03: «Hora», «Parada», «Lugar» (C5 en 03). */
+  time?: string
+  stop?: string
+  place?: string
+  external?: string
+}
+
+// ── B10 Location (location.md; parte B) ──
+
+export interface LocationLabels {
+  /** Nombre de la tarjeta del mapa en 02 («Mapa de la zona»). */
+  map?: string
+  /** Título de los puntos de encuentro en 03. */
+  points?: string
+  /** Rótulo del horario («Horario»). */
+  hours?: string
+  /** Nombre de la lista de canales («Escríbenos»). */
+  channels?: string
+  external?: string
+}
+
+// ── B11 Policies (policies.md; parte B) ──
+
+export interface PoliciesLabels { external?: string }
+
+// ── B3 Offer detail (offer-detail.md; parte B) ──
+
+export interface OfferDetailLabels {
+  /** Título de la galería («Fotos de la suite»). */
+  photos: string
+  /** Título de la ficha («La suite»). */
+  facts: string
+  /** Nombre de la lista de lo que incluye («Incluye»), con perks. */
+  perks?: string
+  /** «Reservar esta suite» (sin slot `consult`). */
+  book?: string
+  unavailable?: string
+  /** «Ver {group}»: el enlace de un dato a las fotos de su espacio. */
+  showPhotos?: string | ((group: string) => string)
+  /** Pestaña de la descripción (02). */
+  details?: string
+  /** Nombre del grupo de pestañas (02). */
+  tabs?: string
+  /** «Para {query}». */
+  forQuery?: string
+  query?: QueryLabels
+  /** A GGallery, tal cual. */
+  gallery?: GalleryLabels
+  price?: PriceRegionLabels
+}
+/** `book` de Offer detail: la oferta entera y la consulta. */
+export interface OfferBook { event: MouseEvent | KeyboardEvent; offer: OfferDetail; query: BookingQuery | null }

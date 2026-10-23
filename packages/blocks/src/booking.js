@@ -17,12 +17,28 @@ import GbGuestForm03 from './blocks/GbGuestForm/GbGuestForm03.vue'
 import GbConfirmation01 from './blocks/GbConfirmation/GbConfirmation01.vue'
 import GbConfirmation02 from './blocks/GbConfirmation/GbConfirmation02.vue'
 import GbConfirmation03 from './blocks/GbConfirmation/GbConfirmation03.vue'
+import GbItinerary01 from './blocks/GbItinerary/GbItinerary01.vue'
+import GbItinerary02 from './blocks/GbItinerary/GbItinerary02.vue'
+import GbItinerary03 from './blocks/GbItinerary/GbItinerary03.vue'
+import GbLocation01 from './blocks/GbLocation/GbLocation01.vue'
+import GbLocation02 from './blocks/GbLocation/GbLocation02.vue'
+import GbLocation03 from './blocks/GbLocation/GbLocation03.vue'
+import GbPolicies01 from './blocks/GbPolicies/GbPolicies01.vue'
+import GbPolicies02 from './blocks/GbPolicies/GbPolicies02.vue'
+import GbPolicies03 from './blocks/GbPolicies/GbPolicies03.vue'
+import GbOfferDetail01 from './blocks/GbOfferDetail/GbOfferDetail01.vue'
+import GbOfferDetail02 from './blocks/GbOfferDetail/GbOfferDetail02.vue'
+import GbOfferDetail03 from './blocks/GbOfferDetail/GbOfferDetail03.vue'
 
 export {
   GbSearch01, GbSearch02, GbSearch03,
   GbOfferList01, GbOfferList02, GbOfferList03,
   GbGuestForm01, GbGuestForm02, GbGuestForm03,
-  GbConfirmation01, GbConfirmation02, GbConfirmation03
+  GbConfirmation01, GbConfirmation02, GbConfirmation03,
+  GbItinerary01, GbItinerary02, GbItinerary03,
+  GbLocation01, GbLocation02, GbLocation03,
+  GbPolicies01, GbPolicies02, GbPolicies03,
+  GbOfferDetail01, GbOfferDetail02, GbOfferDetail03
 }
 
 /** Plugin: `app.use(booking)` registra todas las variantes (`<gb-search-01>`, `<GbSearch01>`…). */
@@ -32,7 +48,11 @@ export const booking = {
       GbSearch01, GbSearch02, GbSearch03,
       GbOfferList01, GbOfferList02, GbOfferList03,
       GbGuestForm01, GbGuestForm02, GbGuestForm03,
-      GbConfirmation01, GbConfirmation02, GbConfirmation03
+      GbConfirmation01, GbConfirmation02, GbConfirmation03,
+      GbItinerary01, GbItinerary02, GbItinerary03,
+      GbLocation01, GbLocation02, GbLocation03,
+      GbPolicies01, GbPolicies02, GbPolicies03,
+      GbOfferDetail01, GbOfferDetail02, GbOfferDetail03
     }
     for (const [name, component] of Object.entries(variants)) app.component(name, component)
   }
