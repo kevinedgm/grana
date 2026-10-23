@@ -449,6 +449,7 @@ Lector de pantalla real (cómo pronuncian VoiceOver y NVDA «1,850 pesos mexican
 - **`notation: 'compact'`** («$12 mil») para el día del calendario estrecho (P-L6, #778, #801): coco midió que cinco cifras no caben a 320 px (P-A3). Se activa **solo** cuando la aplicación lo pida en un lote posterior o un usuario real tope con ello; la regla prevista sería compacto con cinco cifras o más en el día, sin prop pública en v1. No se contrata ahora para no abrir una prop, un `Intl` por idioma y pruebas de lectura («12 mil», `es`) con el lote 1 por cerrar.
 - **`v-model:currency`** en `GNumberField` con selector integrado, junto a `GInputGroupNumber` (#314, #777).
 - **`cartTotals`** (utilidad sin estado de líneas, descuentos e impuestos): lote de Ecommerce (#767).
+- **Forma `total` sola** (un `GPrice` que enseña únicamente el total de lo pedido, sin precio actual): hoy Confirmation lo hace con `value` = total, `unit` = `total.label` y `lead` = `labels.price.total` (#883). Se activa si otra sección lo repite o la lectura (`spoken`) engaña.
 - Lectura aparte para `GMetric` (`valueLabel`) y `GSummary` (dato con lectura): ronda de cada anfitrión.
 
 ## Resolución de hallazgos de kiwi (P-L1 a P-L11)

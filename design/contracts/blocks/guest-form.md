@@ -32,6 +32,7 @@ interface GbGuestFormProps {
     required: string                     // «Escribe {label}» (plantilla con {label}; un campo puede traer el suyo en messages)
     invalid: string                      // «Revisa {label}»
     consent?: string                     // «Marca esta casilla para continuar»
+    consents?: string                    // título del grupo de casillas («Tu consentimiento») y del último paso de 02 (#880)
     next?: string; back?: string         // 02
     busy?: string
     forQuery?: string; query?: QueryLabels
@@ -53,16 +54,17 @@ interface GbGuestFormProps {
 ```
 GForm [data-gb] (labels.form, errors = errores del bloque ∪ errors de la app)
 ├─ GErrorSummary (labels.errorSummary; con `error`, el general al final)
-├─ GFormSection por grupo (title, description)      ← sin groups: una sola GFormSection con `title` de la sección
+├─ GFormSection por grupo (title, description)      ← sin groups (#881): sin GFormSection; los campos van directos en el GFormLayout bajo el título de la GSection (no se repite el encabezado)
 │  └─ GFormLayout › GFormRow por `row` (o uno por campo) › campo
 │     · GPartyField mode="inline" (label = party.label, rows = partyRows, v-model = la `party` de la consulta)  ← si hay party
-├─ GFormSection (consentimientos) › GCheckbox por consent (label + GBtn variant="link" con su link)
+├─ GFieldGroup (legend = labels.consents; #880) › GCheckbox por consent (label + GBtn variant="link" con su link)
 └─ GFormActions [sticky en 03] › GBtn type="submit" (action.label, loading = busy, loadingText = labels.busy)
 ```
 
 - **Encabezados:** el `title` de la sección es el título del `GForm` en la página: el bloque pone **`GSection`** alrededor (título, descripción) y las `GFormSection` van un nivel por debajo (`GForm headingLevel` = `min(sección + 1, 6)` con `useSectionLevel()`).
 - **Validación (como Newsletter, #839):** el bloque lee el `ValidityState` de cada control nativo (`valueMissing` → `field.messages.required ?? fill(labels.required, { label })`, `typeMismatch`/`patternMismatch` → `messages.invalid ?? fill(labels.invalid, { label })`); `select`, `date` y el grupo, vacío con `required` → `required`. Ese texto entra en `errors` de `GForm` (que no valida, #157) con su momento («castigar tarde», `form.md`); al enviar con errores, `showErrors()` y **ningún** `submit`. `errors` de la aplicación ganan.
-- **Consentimientos:** `GCheckbox` sin marcar al empezar (un `values[name] = 'true'` inicial en un consentimiento se ignora con aviso G3: el consentimiento no se da por adelantado); `required` → sin marcar al enviar, `labels.consent` como error. El enlace del consentimiento (`link`, «Política de cancelación») es un `GBtn variant="link"` **junto** a la casilla, nunca dentro de su etiqueta (un enlace dentro del `label` cambia la casilla al tocarlo). Con `policy` y sin `link`, el enlace es `#{policy}` (el ancla de `GbPolicies`).
+- **Consentimientos:** `GCheckbox` sin marcar al empezar (un `values[name] = 'true'` inicial en un consentimiento se ignora con aviso G3: el consentimiento no se da por adelantado); `required` → sin marcar al enviar, `labels.consent` como error. El enlace del consentimiento (`link`, «Política de cancelación») es un `GBtn variant="link"` **junto** a la casilla, nunca dentro de su etiqueta (un enlace dentro del `label` cambia la casilla al tocarlo). Con `policy` y sin `link`, el enlace **se pinta** y es `#{policy}` (el ancla de `GbPolicies`; el texto es `Consent.linkLabel`; sin él, `policy` no pinta enlace y avisa G8). **Título (#880):** los consentimientos van en un **`GFieldGroup`** (un `fieldset` con `legend`) con `labels.consents`, no en `GFormSection` (no son un grupo de datos de la persona y no cuentan como sección de `GForm`); en 02 son el último paso y `labels.consents` es su rótulo en el `GStepper`. Sin `labels.consents`: aviso **G7**, el grupo sin `legend` visible y `aria-label` omitido.
+- **03, la consulta a la vista (#882):** `GSummary` no admite un dato sin rótulo (aviso 12), así que la consulta de 03 va en un `GText` con las palabras de `describeQuery` y la tarjeta lleva `role="group"` y `aria-label` = `offer.name`. Queda así; si un `GSummary` con dato sin rótulo llega, se cambia sin tocar la API del bloque.
 - **La consulta en el formulario:** con `query` y `party`, el grupo es un `GPartyField` que **arranca con `query.party`** (lo ya dicho no se vuelve a escribir) y se puede corregir; sus ocultos con `party.name`. Las fechas **no** se vuelven a pedir: se dicen (03) y se corrigen en la consulta, no aquí.
 
 ## Variantes
@@ -106,7 +108,7 @@ GForm [data-gb] (labels.form, errors = errores del bloque ∪ errors de la app)
 
 ## Avisos propios (`[Grana GbGuestForm<NN>]`)
 
-C1 a C7 (C1: `fields` vacío), K1 a K3. Además: **G1** · `type` fuera de lista, **G2** · `email` o `tel` sin `autocomplete`, **G3** · un consentimiento marcado por `values` al empezar (se ignora), **G4** · `party` sin `partyRows`, **G5** · un `field.group` que no está en `groups` (va a un grupo final sin título propio), **G6** · sin escucha de `submit`.
+C1 a C7 (C1: `fields` vacío), K1 a K3. Además: **G1** · `type` fuera de lista, **G2** · `email` o `tel` sin `autocomplete`, **G3** · un consentimiento marcado por `values` al empezar (se ignora), **G4** · `party` sin `partyRows`, **G5** · un `field.group` que no está en `groups` (va a un grupo final sin título propio), **G6** · sin escucha de `submit`, **G7** · `consents` sin `labels.consents`, **G8** · `policy` sin `link` y sin `linkLabel`.
 
 ## Banco (`guest-form.bank.js`)
 

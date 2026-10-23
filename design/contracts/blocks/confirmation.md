@@ -39,11 +39,13 @@ interface GbConfirmationProps {
 
 ## Anatomía de lo confirmado (común)
 
+**Sin oferta (#883):** la consulta es el `title` del `GSummary` (no hay nombre que anteponerle).
+
 ```
 ├─ GMetric · value = reference.code, label = reference.label       ← el código, grande, primero tras el título
 ├─ GSummary layout="stack" · title = offer.name, subtitle = offer.kind,
 │           facts = [{ label: labels.when, value: describeQuery(query).text, priority: 1 }]   ← la consulta con las mismas palabras
-├─ GPrice (totals.total como `total`; líneas en GText as="div" › dl, #863)   ← con totals
+├─ GPrice (#883: `value` = totals.total, `unit` = totals.total.label, `lead` = labels.price.total; sin precio por noche; líneas en GText as="div" › dl, #863)   ← con totals
 ├─ GText size="body-sm" › totals.note
 ├─ canales: GStack as="ul" orientation="horizontal" gap="sm" [aria-label=labels.channels] › li › GBtn variant="outline" (icono, label; hint en GText caption muted)
 └─ acciones (§3: la primera solid, la segunda outline)
