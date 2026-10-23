@@ -56,6 +56,7 @@ const MEASURE = () => {
     e1: { m: ['marginTop', 'marginRight', 'marginBottom', 'marginLeft'].map((k) => parseFloat(getComputedStyle(e1n)[k])), style: getComputedStyle(e1n).fontStyle, fs: parseFloat(getComputedStyle(e1n).fontSize), w: getComputedStyle(e1n).fontWeight, gap: gap('e1brand', 'e1next'), rowGap: parseFloat(cs('e1').rowGap), contrast: contrast('e1brand') },
     e2: { t: R('e2t').top - $('e2in').querySelector('.g-section__title').getBoundingClientRect().bottom, m: cs('e2t').margin, p: gap('e2p1', 'e2p2'), first: cs('e2p1').marginTop, last: cs('e2p2').marginBottom },
     e4: { a: gap('e4a', 'e4b'), b: gap('e4b', 'e4c') },
+    e5: { ddInline: cs('e5bd1').marginInlineStart, ddLeft: R('e5bd1').left - R('e5b').left, dtW: cs('e5bt1').fontWeight, dtW2: getComputedStyle($('e5a1').firstElementChild).fontWeight, pair: gap('e5bt1', 'e5bd1'), group: gap('e5bd1', 'e5bt2'), divGroup: gap('e5a1', 'e5a2'), ddColor: cs('e5bd1').color, dtColor: cs('e5bt1').color, dtFs: parseFloat(cs('e5bt1').fontSize), ddFs: parseFloat(cs('e5bd1').fontSize) },
     scrollW: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1
   }
 }
@@ -119,6 +120,10 @@ async function casos (b, eng) {
         ok(near(m.e1.gap, m.e1.rowGap) && m.e1.contrast >= 4.5, `${id}: E1 solo el gap de la pila y ≥ 4,5:1`, `${m.e1.gap} vs ${m.e1.rowGap}, ${m.e1.contrast}`)
         ok(m.e2.m === '0px' && near(m.e2.p, r * 3) && m.e2.first === '0px' && m.e2.last === '0px', `${id}: E2 FAQ 02 anidada: GText sin margen, respuestas a space × 3`, JSON.stringify(m.e2))
         ok(near(m.e4.a, r * 3) && near(m.e4.b, r * 3), `${id}: E4 un botón dentro: ritmo a los dos lados lo da el p, el componente no se toca`, `${m.e4.a}/${m.e4.b}`)
+        ok(m.e5.ddInline === '0px' && near(m.e5.ddLeft, 0), `${id}: E5 dd sin sangría`, `${m.e5.ddInline}/${m.e5.ddLeft}`)
+        ok(m.e5.dtW === m.wTitle && m.e5.dtW2 === m.wTitle && m.wTitle !== m.wBody, `${id}: E5 dt con --g-text-title-sm-weight (con y sin div)`, `${m.e5.dtW}/${m.e5.dtW2} vs ${m.wTitle}`)
+        ok(m.e5.ddColor === m.e5.dtColor && near(m.e5.dtFs, m.e5.ddFs, 0.3), `${id}: E5 dt y dd sin cambiar color ni tamaño`)
+        ok(near(m.e5.pair, 0) && near(m.e5.group, r * 3) && near(m.e5.divGroup, r * 3), `${id}: E5 sin pausa dentro del par, space × 3 entre grupos (con y sin div)`, `${m.e5.pair}/${m.e5.group}/${m.e5.divGroup}`)
         ok(!m.scrollW, `${id}: sin desplazamiento horizontal a 1440`)
         ok(!p.__errs.length && !p.__warns.length, `${id}: consola limpia (sin avisos con props válidas)`, p.__errs.concat(p.__warns).join(' | '))
         await close()

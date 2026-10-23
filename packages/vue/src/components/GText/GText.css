@@ -45,12 +45,18 @@
    anidada y, dentro de la anidada, su ámbito (más cercano) gana por proximidad. */
 @scope (.g-text--size-body) to ([class^="g-"]:not(.g-text), [class*=" g-"]:not(.g-text), .g-tooltip) {
   :where(p, div, ul, ol, dl, blockquote, figure, figcaption, address, pre):where(:not(:scope)) { margin-block: calc(var(--g-space-1) * 3); }
+  /* dl sin div: la pausa del tamaño entre grupos dt+dd (regla 8 bis); dentro del par, ninguna */
+  :where(dl > dd + dt) { margin-block-start: calc(var(--g-space-1) * 3); }
 }
 @scope (.g-text--size-body-sm) to ([class^="g-"]:not(.g-text), [class*=" g-"]:not(.g-text), .g-tooltip) {
   :where(p, div, ul, ol, dl, blockquote, figure, figcaption, address, pre):where(:not(:scope)) { margin-block: calc(var(--g-space-1) * 2.5); }
+  /* dl sin div: la pausa del tamaño entre grupos dt+dd (regla 8 bis); dentro del par, ninguna */
+  :where(dl > dd + dt) { margin-block-start: calc(var(--g-space-1) * 2.5); }
 }
 @scope (.g-text--size-caption) to ([class^="g-"]:not(.g-text), [class*=" g-"]:not(.g-text), .g-tooltip) {
   :where(p, div, ul, ol, dl, blockquote, figure, figcaption, address, pre):where(:not(:scope)) { margin-block: calc(var(--g-space-1) * 2); }
+  /* dl sin div: la pausa del tamaño entre grupos dt+dd (regla 8 bis); dentro del par, ninguna */
+  :where(dl > dd + dt) { margin-block-start: calc(var(--g-space-1) * 2); }
 }
 @scope (.g-text) to ([class^="g-"]:not(.g-text), [class*=" g-"]:not(.g-text), .g-tooltip) {
   /* Sin sangría del navegador (figure, blockquote) */
@@ -64,6 +70,9 @@
   :where(cite, address) { font-style: normal; }
   :where(small) { font-size: inherit; } /* 12 px es el suelo (§7): smaller daría 10 en un caption */
   :where(strong, b) { font-weight: var(--g-text-title-sm-weight); } /* peso de énfasis del tema, nunca bolder (700 con un tema 400/500/600) */
+  /* Listas de definiciones (#863): dd sin la sangría del navegador, dt con el peso de término (el de strong) */
+  :where(dd) { margin-inline-start: 0; }
+  :where(dt) { font-weight: var(--g-text-title-sm-weight); }
   :where(figcaption) { text-wrap: balance; }
 }
 

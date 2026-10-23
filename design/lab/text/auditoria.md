@@ -56,3 +56,11 @@ Ninguno de CSS ni bloqueante. Anotados:
 - El peso real de `GText.css` dentro de `dist/grana.css`.
 
 **Veredicto:** `GText` puede pasar a **`candidate`** (cambio de `status` en `GText.meta.json`, de bruno).
+
+## Addendum · regla 8 bis (`dl`, #863)
+
+**Cambio en `GText.css`:** `dd` con `margin-inline-start: 0`; `dt` con `--g-text-title-sm-weight` (sin tocar tamaño ni color); la pausa del tamaño entre grupos `dt`+`dd` sin `div` va como `dd + dt { margin-block-start }` en cada ámbito por tamaño (con `div`, el grupo ya recibía la pausa como bloque); nada entre `dt` y `dd`. Especificidad 0, solo tokens y la relación con `space`.
+
+**Verificación:** caso E5 en `auditoria-banco.html` (un `dl` con `div` y otro sin) y en `auditoria-verificar.mjs`: antes 310/331 (sangría 40 px, `dt` en 400, sin pausa entre grupos sin `div`); después **984/984 en Chromium, Firefox y WebKit** (defecto, rústico, lujo, oscuro, space 5). `tests/text.spec.mjs` 5/5 en Chromium.
+
+**Pendientes:** BK-L3 (último `dd` al final del renglón) sigue reservado; RTL del `dl` no tiene caso propio (la regla usa propiedades lógicas); el caso `dl` en `text.spec.mjs` es de bruno.
