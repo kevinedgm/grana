@@ -98,3 +98,7 @@ Casa Alcalá: cinco habitaciones (Suite Jardín con 9 fotos agrupadas, `badge`, 
 ## Verificación propia
 
 Vitest: una sola acción principal por tarjeta (enlace o botón) y ningún `GBtn solid`; «Elegir» solo con `href` y disponible; no disponible en el DOM con su motivo y sin `select`; un solo `GGalleryViewer` en la sección, `from` = el botón, foco de vuelta al cerrar; la línea de la consulta igual a `describeQuery`; `GPrice` con el `PriceSpec` tal cual y un `GPriceScope`; 03 sin `media`. Chromium: 01 con tarjetas a la misma altura a 1440 (regla de #847) y una columna a 320; 02 con la foto al lado en ancho y arriba en estrecho; el visor abre y vuelve al botón.
+
+## Límites aceptados tras la auditoría (#904)
+
+- **BK-L7 · la última tarjeta sola llena la fila** en 01: es el reparto de `GAdaptiveLayout` (los límites ganan a los pesos, pero una `standard` no tiene máximo) con la regla de llenado de fila de #847. Con una foto `top` que domina la sección (575 px de alto frente a 136). **Se acepta como límite** y no se cambia a `g-adapt-short`, que daría tarjetas de ≤ 16 glifos. Receta para quien necesite un tope: montar el bloque en una columna (`GContainer`, ancho de lectura) o en una rejilla de la aplicación. **Reservado**, en ronda de kiwi si el usuario lo pide: un máximo de familia para `standard`.

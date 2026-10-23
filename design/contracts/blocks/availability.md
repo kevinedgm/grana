@@ -96,7 +96,7 @@ Vitest: derivación de la tabla (`full` en `stay` es `disabledNights` y en `tabl
 
 ## Enmiendas del remate de Booking C (#892, #893)
 
-- **AV-L1 · 03 en una columna:** `GAdaptiveLayout` ignora la pista cuando el hijo es una `<table>` (el calendario lo es) y el resumen queda debajo. Aceptado; dos columnas queda **reservado** hasta que la pista funcione con ese hijo o se decida otra forma de envolverlo. Se reabre solo con esa medida.
+- **AV-L1 · 03 en una columna (cerrado, #892 y #899):** no hay contrato de dos columnas ni la verificación debe pedirlas; el único criterio de 03 es el calendario, **debajo** la tarjeta con la selección, el total y la acción, en una columna a cualquier ancho. No bloquea `candidate`. Detalle: `GAdaptiveLayout` ignora la pista cuando el hijo es una `<table>` (el calendario lo es) y el resumen queda debajo. Aceptado; dos columnas queda **reservado** hasta que la pista funcione con ese hijo o se decida otra forma de envolverlo. Se reabre solo con esa medida.
 - **03 sin `GSummary`:** el `title` de la tarjeta es la frase de `describeQuery`; un `GSummary layout="stack"` partía el valor en una columna de ~130 px (#896).
 - **02 · nombre y descripción:** `labels.select` solo se usa en 03. La tarjeta-botón se nombra por **la fecha** (con el estado si es «pocas plazas»); **el precio y la nota son su descripción** (`aria-describedby`), porque el cuerpo de un botón no se oye al enfocar. Bruno lo construye así.
 - **V4:** con el slot `empty` presente no se avisa (la aplicación ya decidió el mensaje).

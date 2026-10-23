@@ -81,3 +81,7 @@ Vitest: `ol` real (01, panel de 02) y una `GTable` por día (03); horas en `time
 - **03 y «ahora»:** `GTable` no admite atributos por fila, así que `aria-current="time"` va en el **elemento del nombre de la parada** (la celda lleva además el texto `labels.now`/`labels.next`).
 - **03 en estrecho:** mínimos de columna 16/40/32 (hora, parada, lugar) para pasar a tarjetas a 320 px (`responsive="auto"`).
 - **Última parada sin `end`:** nunca «ahora».
+
+## Límites aceptados tras la auditoría (#905)
+
+- **BK-L11:** las paradas de 01 entran el relleno de `GCard level="flat"` respecto al título del día; es la regla de las tarjetas planas en lista (como B-L6) y se acepta. No se quita el relleno ni se pinta una caja para explicarlo.

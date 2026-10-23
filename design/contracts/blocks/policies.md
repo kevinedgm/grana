@@ -53,3 +53,7 @@ Casa Alcalá: cancelación (`id: 'cancelacion'`, `summary`, dos párrafos, `link
 ## Verificación propia
 
 Vitest: `summary` a la vista en las tres; `id` como ancla en las tres; 01 abre la política de `location.hash` y usa `hidden="until-found"` (de `GAccordion`); el cuerpo nunca se recorta; enlaces con la guarda de `navigate`. Chromium: `#cancelacion` abre y enfoca en 01 y lleva al sitio en 02 y 03; 03 en columnas a 1440 y una a 320.
+
+## Límites aceptados tras la auditoría (#905)
+
+- **BK-L12:** en 03 la línea que decide (`summary`) va como `description` de `GCard` (tono atenuado, ≥ 4,5:1) y el texto completo en tono normal. Se acepta: el título de la tarjeta es el que lleva el peso, y el tono de `description` es el de `GCard` en toda la librería. Si el usuario quiere invertirlo, es una enmienda de `GCard` (otra ronda).

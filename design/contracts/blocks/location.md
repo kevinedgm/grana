@@ -86,3 +86,7 @@ Casa Alcalá: `name`, dos líneas de dirección, `hours` (recepción, desayuno),
 ## Verificación propia
 
 Vitest: `address` real con las líneas y los canales dentro; el mapa es un `<img>` con su `alt` dentro de `media` (01, 02), nunca fuera de un componente; «Cómo llegar» externo con `aria-label` «{label}, {external}» y sin `navigate`; 03 con un `li` por punto y su hora en `time`; L2 con `alt: 'Mapa'`. Chromium: 02 en dos columnas a 1440 y una a 390; la dirección no desborda a 320 con una calle larga; sin peticiones de red a terceros al cargar la página del banco.
+
+## Montaje en columna (BK-L13, #905)
+
+La variante «tarjeta» (01) está pensada para una **columna** (≈ 360 a 640 px), no para toda la página. A todo el ancho de 1440 su foto mide 560 a 700 px de alto y baja el dato que importa (código, dirección, total) del primer pantallazo. Sin pista nueva: **receta para el README (mora-docs)** — montarla dentro de una columna de la aplicación (`GContainer` o una rejilla de dos columnas con el resumen al lado). El banco la monta a 1024 por la misma razón.

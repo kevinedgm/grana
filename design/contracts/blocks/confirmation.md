@@ -99,3 +99,7 @@ Casa Alcalá: `state: 'confirmed'`, `reference` `{ code: 'CA-7K29Q', label: 'Có
 ## Verificación propia
 
 Vitest: el código es el primer dato tras el título; `GSummary` con la consulta igual a `describeQuery`; insignia con texto por estado; F1 pinta `requested`; 02 con `GStepper` informativo (sin botones de paso); 03 sin `next`, sin foto, sin líneas del total; canales del sistema sin `navigate`; «Compartir» emite `activate` síncrono. Chromium: **03 entera dentro de 390 × 844 sin desplazar** con el banco (la medida de la promesa) y sin desbordar a 320; contraste de la insignia en claro y oscuro.
+
+## Montaje en columna (BK-L13, #905)
+
+La variante «tarjeta» (01) está pensada para una **columna** (≈ 360 a 640 px), no para toda la página. A todo el ancho de 1440 su foto mide 560 a 700 px de alto y baja el dato que importa (código, dirección, total) del primer pantallazo. Sin pista nueva: **receta para el README (mora-docs)** — montarla dentro de una columna de la aplicación (`GContainer` o una rejilla de dos columnas con el resumen al lado). El banco la monta a 1024 por la misma razón.
