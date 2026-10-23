@@ -62,6 +62,36 @@ describe('GbOfferDetail · galería, ficha y texto (#869)', () => {
       expect(p.props('size')).toBe('lg')
     }
   })
+  it('#889: los facts van al principio del cuerpo (antes que perks, consulta y precio) y no en meta de GCard', () => {
+    for (const C of Object.values(ALL)) {
+      const f = ficha(run(C).w)
+      expect(f.find('.g-card__meta').exists()).toBe(false)
+      const t = f.find('.g-text')
+      expect([...t.element.children].map((e) => e.tagName)).toEqual(['DL', 'UL', 'P'])
+      const dl = f.find('dl').element
+      const price = f.findComponent(GPriceScope).element
+      expect(dl.compareDocumentPosition(price) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    }
+  })
+  it('#889: 01 con la ficha en un div con g-adapt-standard; con consult, sin pista', () => {
+    const fa = ficha(run(GbOfferDetail01).w)
+    expect(fa.element.parentElement.tagName).toBe('DIV')
+    expect(fa.element.parentElement.classList.contains('g-adapt-standard')).toBe(true)
+    const fb = ficha(run(GbOfferDetail01, {}, { slots: { consult: () => h('p', 'x') } }).w)
+    expect(fb.element.parentElement.classList.contains('g-adapt-standard')).toBe(false)
+  })
+  it('BK-B5: 02 cambia de pestaña al pulsarla (estado de vista con v-model de GTabs)', async () => {
+    const { w } = run(GbOfferDetail02, {}, { attachTo: document.body })
+    const tabs = w.findComponent(GTabs)
+    const ids = tabs.props('items').map((t) => t.id)
+    expect(ids.length).toBeGreaterThan(1)
+    const sel = () => w.find('[role="tab"][aria-selected="true"]').text()
+    expect(sel()).toBe(tabs.props('items')[0].label)
+    await w.findAll('[role="tab"]')[1].trigger('click')
+    await nextTick()
+    expect(tabs.props('modelValue')).toBe(ids[1])
+    expect(sel()).toBe(tabs.props('items')[1].label)
+  })
   it('sin consulta, el precio es la tarifa sola (sin la cuenta) y no hay línea', () => {
     const f = ficha(run(GbOfferDetail01, { query: null }).w)
     expect(f.findComponent(GPrice).props('total')).toBeFalsy()

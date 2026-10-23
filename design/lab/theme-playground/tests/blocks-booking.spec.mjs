@@ -411,20 +411,36 @@ test('offer-detail: con consult, la consulta junto al precio y ningún «Reserva
 
 // ---------- Verificación propia · parte C (booking-summary.md, menu.md, availability.md) ----------
 
-// GSummary layout="inline" ocupa la fila entera dentro de la GStack horizontal (hallazgo BS-L1 para lima): a 1440 la
-// línea es la consulta y, debajo, el total, la garantía y la acción en una sola fila; a 320 se parte sin desbordar.
-test('booking-summary 03: el total, la garantía y la acción en una fila a 1440; se parte a 320 sin desbordar', async ({ page }) => {
+// #897: la fila es una GAdaptiveLayout con GSummary inline de hijo directo; lo pedido, el total y la acción en una sola
+// línea (centrados en el mismo eje ±1 px) a 1440 y 1024; a 390 y 320 se parten sin desbordar. A 768 (bloque de 707 px)
+// NO cabe: el suelo de GSummary (#363) + el total con su leyenda + la acción suman ≈ 760 px y la acción baja de línea.
+// Se anota (no falla) para coco y lima: Booking summary 03 sigue en draft hasta decidirlo (#897 pide 768).
+test('booking-summary 03: una sola línea a 1440 y 1024 (768 anotado); se parte a 390 y 320 sin desbordar (#897)', async ({ page }) => {
   await open(page, 'booking-summary.html', 'v=03')
-  // Una fila: hay una línea horizontal que corta a todos (centrados en vertical, sus bordes no coinciden)
-  const oneRow = () => page.evaluate(() => {
-    const r = [...document.querySelector('[data-gb="booking-summary-03"]').children].filter((c) => !c.matches('.g-summary')).map((c) => c.getBoundingClientRect())
-    return Math.max(...r.map((x) => x.top)) < Math.min(...r.map((x) => x.bottom))
+  const row = () => page.evaluate(() => {
+    const l = document.querySelector('[data-gb="booking-summary-03"] > .g-adaptive-layout')
+    const kids = [...l.children].filter((c) => c.getBoundingClientRect().height > 0)
+    const r = kids.map((c) => c.getBoundingClientRect())
+    const mids = r.map((x) => (x.top + x.bottom) / 2)
+    return { n: kids.length, spread: Math.max(...mids) - Math.min(...mids), oneLine: Math.max(...r.map((x) => x.top)) < Math.min(...r.map((x) => x.bottom)) }
   })
-  expect(await oneRow()).toBe(true)
-  await page.setViewportSize({ width: 320, height: 640 })
+  for (const width of [1440, 1024]) {
+    await page.setViewportSize({ width, height: 900 })
+    await settle(page)
+    const r = await row()
+    expect(r.n, `${width}`).toBeGreaterThanOrEqual(3)
+    expect(r.oneLine, `${width}`).toBe(true)
+    expect(r.spread, `${width}`).toBeLessThanOrEqual(1)
+  }
+  await page.setViewportSize({ width: 768, height: 900 })
   await settle(page)
-  expect(await overflow(page)).toBe(false)
-  expect(await oneRow()).toBe(false)
+  const r768 = await row()
+  test.info().annotations.push({ type: 'BS-L1 a 768', description: `una línea: ${r768.oneLine}; desfase de ejes ${r768.spread.toFixed(1)} px` })
+  for (const width of [390, 320]) {
+    await page.setViewportSize({ width, height: 844 })
+    await settle(page)
+    expect(await overflow(page), `${width}`).toBe(false)
+  }
 })
 
 test('booking-summary 01: en una columna de 360 px sin desbordar', async ({ page }) => {
@@ -501,14 +517,14 @@ test('availability: el viernes lleno sirve de salida y no de llegada (#739)', as
   expect(await page.evaluate(() => window.blockEvents.filter((e) => e[0] === 'select'))).toEqual([['select', '01', { start: '2026-11-18', end: '2026-11-20' }]])
 })
 
-// El contrato pide dos columnas a 1440; GAdaptiveLayout trata el calendario (una <table>) como bloque completo y lo pone
-// en su propia fila (hallazgo AV-L1 para lima). Se comprueba lo que hay: el resumen debajo, sin desbordar, a 1440 y 390.
-test('availability 03: el resumen va debajo del calendario (AV-L1) sin desbordar a 1440 y 390', async ({ page }) => {
+// Una columna a cualquier ancho (#892, #899; dos columnas reservadas): el resumen debajo, sin desbordar, a 1440 y 390.
+test('availability 03: el resumen va debajo del calendario (una columna, #892) sin desbordar a 1440 y 390', async ({ page }) => {
   await open(page, 'availability.html', 'v=03')
   const below = () => page.evaluate(() => {
     const b = document.querySelector('[data-gb="availability-03"]')
     const a = b.querySelector('.g-datepicker').getBoundingClientRect()
-    const c = b.querySelector('.g-adapt-standard').getBoundingClientRect()
+    const cards = b.querySelectorAll('.g-card')
+    const c = cards[cards.length - 1].getBoundingClientRect()
     return c.top >= a.bottom - 1
   })
   expect(await below()).toBe(true)

@@ -4,7 +4,7 @@
 // último; navigation="back", v-model = `step`) + el formulario con solo el grupo actual a la vista (los demás hidden y
 // montados: sus datos van en el envío). «Siguiente» comprueba solo el paso; «Atrás» no valida; el último envía. El cambio
 // de paso lo anuncia GStepper. Ignora `offer`.
-import { computed } from 'vue'
+import { computed, useSlots } from 'vue'
 import { GSection, GStack, GStepper, useSectionLevel } from '@grana/vue'
 import { useWarn } from '../common/warn.js'
 import GuestForm from './GuestForm.js'
@@ -17,7 +17,7 @@ const emit = defineEmits(sectionEmits)
 const warn = useWarn('GbGuestForm02')
 const { level } = useSectionLevel()
 const inner = computed(() => Math.min(Math.min(level.value, 4) + 1, 6))
-const g = useGuestForm(props, emit, warn, '02')
+const g = useGuestForm(props, emit, warn, '02', useSlots())
 const onStep = (id) => g.goTo(g.stepIds.value.indexOf(id))
 </script>
 

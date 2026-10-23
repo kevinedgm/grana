@@ -3,7 +3,7 @@
   "name": "GbGuestForm",
   "kind": "block-section",
   "family": "booking",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.0.0",
   "description": "Los datos de quien reserva sin volver a pedir lo que ya dijo: la consulta llega hecha (el grupo arranca con query.party y se corrige en el sitio); se piden solo los campos que define el lugar, cada uno con por qué; los consentimientos nunca vienen marcados. El bloque valida como el navegador, lo enseña con GForm y emite los datos; la aplicación reserva.",
   "contract": "design/contracts/blocks/guest-form.md",
@@ -45,7 +45,7 @@
       "name": "GbGuestForm01",
       "tag": "gb-guest-form-01",
       "concept": "Una página",
-      "root": "GSection › GForm (GErrorSummary, GFormSection por grupo › GFormLayout › GFormRow › campo, consentimientos, GFormActions)"
+      "root": "GSection › GForm (GErrorSummary, GFormSection por grupo —sin groups, sin GFormSection (#881); en 02 sin description (#900)— › GFormLayout › GFormRow › campo, GFieldGroup de consentimientos con legend = labels.consents (#880; en 02, el último paso), GFormActions)"
     },
     {
       "name": "GbGuestForm02",
@@ -126,7 +126,7 @@
       "type": "Array",
       "ts": "Consent[]",
       "default": null,
-      "note": "Casillas, nunca marcadas al empezar; required → labels.consent al enviar sin marcar; el enlace va junto a la casilla, fuera de su etiqueta"
+      "note": "Casillas en un GFieldGroup con legend = labels.consents (#880; en 02, el último paso), nunca marcadas al empezar; required → labels.consent al enviar sin marcar; el enlace va junto a la casilla, fuera de su etiqueta; con policy y sin link, el enlace #{policy} con linkLabel (G8 sin él)"
     },
     {
       "name": "offer",
@@ -196,7 +196,7 @@
       "type": "Object",
       "ts": "GuestFormLabels",
       "required": true,
-      "note": "required e invalid (plantillas con {label}), consent, next/back/stepper (02), busy, forQuery y query (03, K2), form, errorSummary, party, price y datePicker (pasos directos), external"
+      "note": "required e invalid (plantillas con {label}), consent, consents (título del grupo de casillas y del último paso de 02, G7), next/back/stepper (02), busy, forQuery y query (03, K2), form, errorSummary, party, price y datePicker (pasos directos), external"
     }
   ],
   "events": [
@@ -264,18 +264,22 @@
     "G3 · consentimiento marcado por values al empezar",
     "G4 · party sin partyRows",
     "G5 · field.group que no está en groups",
-    "G6 · sin escucha de submit"
+    "G6 · sin escucha de submit",
+    "G7 · consents sin labels.consents",
+    "G8 · policy sin link y sin linkLabel"
   ],
   "root": "GSection con data-gb=\"guest-form-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/booking",
-    "measured": 17058,
+    "measured": 36851,
+    "cap": 36864,
+    "variantCap": 7168,
     "peers": [
       "vue",
       "@grana/vue",
       "@grana/vue/booking",
       "@grana/vue/price"
     ],
-    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c), 4 de 11 secciones (12 de 33 variantes; parte A, 2026-10-23). Sin tope hasta que lo fije lima (§19). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbGuestForm01 5982 B, 02 6087 B, 03 6547 B (pasan la referencia de 4096 B: vuelve a lima)."
+    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c), las 11 secciones y 33 variantes (remate de bruno tras la auditoría de coco, 2026-10-23): 36 851 B de 36 864 (#886; margen 13 B). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbGuestForm01 6375 B, GbGuestForm02 6473 B, GbGuestForm03 6940 B; tope por variante 7168 B (#887)."
   }
 }

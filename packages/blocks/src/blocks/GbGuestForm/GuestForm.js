@@ -2,19 +2,20 @@
 // la sección. Sin CSS (#763).
 //   GForm (labels.form, errors = los del bloque ∪ los de la aplicación, headingLevel = sección + 1)
 //   ├─ GErrorSummary (labels.errorSummary; con `error`, el general al final)
-//   ├─ GFormSection por grupo (title, description; en 02 solo el actual a la vista, los demás hidden y montados)
+//   ├─ GFormSection por grupo (title, description; en 02 solo el actual a la vista, los demás hidden y montados, y sin
+//   │  description: el paso ya la dice en GStepper, #900) · sin `groups`, sin GFormSection (#881)
 //   │  └─ GFormLayout › GFormRow por `row` (o uno por campo) › el campo (o el slot field-{name})
 //   │     · GPartyField mode="inline" al principio del primer grupo, arrancando con query.party
-//   ├─ GFormLayout (campos sin grupo conocido, G5) · en 02 van con el último paso
-//   ├─ GFormLayout (consentimientos) › GStack › GCheckbox (nunca marcado al empezar) + GBtn link con su política, fuera
-//   │  de la etiqueta (un enlace dentro del label cambiaría la casilla) · en 02, con el último paso
+//   ├─ GFormLayout (campos sin grupo conocido, G5) · en 02 van con el último grupo
+//   ├─ GFormLayout › GFieldGroup (legend = labels.consents, #880) › GStack › por consentimiento GStack › GCheckbox (nunca
+//   │  marcado al empezar) + GBtn link con su política, fuera de la etiqueta (un enlace dentro del label cambiaría la
+//   │  casilla) · en 02, el último paso
 //   └─ GFormActions [sticky en 03] › [«Atrás» ghost] + «Siguiente» o el envío (solid, el último)
 import { defineComponent, h } from 'vue'
-import { GCheckbox, GDatePicker, GErrorSummary, GForm, GFormLayout, GFormRow, GFormSection, GInput, GSelect, GStack, GTextarea } from '@grana/vue'
+import { GCheckbox, GDatePicker, GErrorSummary, GFieldGroup, GForm, GFormLayout, GFormRow, GFormSection, GInput, GSelect, GStack, GTextarea } from '@grana/vue'
 import { GPartyField } from '@grana/vue/booking'
 import GbLink from '../common/link.js'
 import GuestActions from './GuestActions.vue'
-import { has } from '../common/text.js'
 
 export default /* @__PURE__ */ defineComponent({
   name: 'GbGuestFormForm',
@@ -53,15 +54,17 @@ export default /* @__PURE__ */ defineComponent({
     }
     const consents = (hidden) => {
       const g = props.g
-      if (props.slots.consents) return h(GFormLayout, { key: 'consents', hidden }, () => props.slots.consents())
-      if (!g.consents.value.length) return null
-      return h(GFormLayout, { key: 'consents', hidden }, () => g.consents.value.map(({ item, key, id }) => {
-        const link = item.link && has(item.link.label) && has(item.link.href) ? item.link : null
-        return h(GStack, { key, gap: 'sm' }, () => [
-          h(GCheckbox, { id, name: item.name, label: item.label, required: Boolean(item.required), modelValue: Boolean(g.consentState.value[item.name]), 'onUpdate:modelValue': (v) => g.setConsent(item.name, v) }),
-          link ? h(GbLink, { link, external: g.L.value.external, what: 'consents.link', warn: props.warn, onNavigate: (e) => emit('navigate', e) }) : null
-        ])
-      }))
+      if (!g.consentsOn.value) return null
+      // Un solo hijo en la fila del grupo (la pila): cada consentimiento en su línea
+      const list = () => h(GStack, { gap: 'sm' }, () => props.slots.consents ? props.slots.consents() : g.consents.value.map(({ item, key, id, link }) => h(GStack, { key, gap: 'sm' }, () => [
+        h(GCheckbox, { id, name: item.name, label: item.label, required: Boolean(item.required), modelValue: Boolean(g.consentState.value[item.name]), 'onUpdate:modelValue': (v) => g.setConsent(item.name, v) }),
+        link ? h(GbLink, { link, external: g.L.value.external, what: 'consents.link', warn: props.warn, onNavigate: (e) => emit('navigate', e) }) : null
+      ])))
+      // El grupo es obligatorio si alguna casilla lo es: así no se marca «opcional» entero y solo la casilla opcional
+      // lleva su marca (la que difiere del grupo)
+      // 02: en un div con `hidden` (montado siempre: sus datos van en el envío)
+      const group = h(GFormLayout, { key: 'consents' }, () => h(GFieldGroup, { label: g.consentsTitle.value, required: g.consents.value.some((c) => c.item.required) }, list))
+      return hidden === undefined ? group : h('div', { key: 'c:consents', hidden: hidden || undefined }, [group])
     }
     return () => {
       const g = props.g
@@ -73,18 +76,20 @@ export default /* @__PURE__ */ defineComponent({
       const kids = [h(GErrorSummary, { key: 'summary', errors: g.summaryErrors.value, labels: L.errorSummary })]
       list.forEach((grp, i) => {
         const shown = !stepped || i === g.index.value
-        const section = h(GFormSection, { key: `g:${grp.id || i}`, title: grp.title, description: grp.description }, () => h(GFormLayout, null, () => [
+        const layout = () => h(GFormLayout, grp.bare ? { key: 'g:bare' } : null, () => [
           i === 0 && g.partyOn.value ? party() : null,
           ...rowsOf(grp.rows),
-          // 02: lo que no tiene grupo y los consentimientos, con el último paso
+          // 02: lo que no tiene grupo, con el último grupo
           ...(stepped && i === lastIndex ? [...rowsOf(rest)] : [])
-        ]))
+        ])
+        // Sin `groups` (#881), sin GFormSection: el título es el de la sección. En 02 la descripción la dice el paso (#900)
+        const section = grp.bare ? layout() : h(GFormSection, { key: `g:${grp.id || i}`, title: grp.title, description: stepped ? undefined : grp.description }, layout)
         // 02: cada paso en un div con `hidden` (GFormSection pone su propio `hidden` sobre el de $attrs: hallazgo para
         // @grana/vue); montados siempre, así sus datos van en el envío
         kids.push(stepped ? h('div', { key: `p:${grp.id || i}`, hidden: shown ? undefined : true }, [section]) : section)
-        // En 02 los consentimientos van con el último paso (montados siempre: sus datos van en el envío)
-        if (stepped && i === lastIndex) kids.push(consents(g.last.value ? undefined : true))
       })
+      // En 02 los consentimientos son el último paso
+      if (stepped) kids.push(consents(g.index.value !== g.consentStep.value))
       if (!stepped && rest.length) kids.push(h(GFormLayout, { key: 'rest' }, () => rowsOf(rest)))
       if (!stepped) kids.push(consents())
       kids.push(h(GuestActions, { key: 'actions', g, action: props.p.action || {}, busy: props.p.busy, variant: props.variant }))

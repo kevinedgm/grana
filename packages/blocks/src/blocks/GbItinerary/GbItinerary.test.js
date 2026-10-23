@@ -59,7 +59,8 @@ describe('GbItinerary · horas y estructura', () => {
       const { w } = run(C)
       const times = w.findAll('time').map((t) => [t.attributes('datetime'), t.text()])
       expect(times, n).toContainEqual(['07:45', '7:45'])
-      if (n !== '03') expect(times, n).toContainEqual(['14:30', '14:30'])
+      // La hora de fin también en 03 (BK-B4)
+      expect(times, n).toContainEqual(['14:30', '14:30'])
       if (n !== '03') expect(times, n).toContainEqual(['2026-11-14', 'sábado, 14 de noviembre'])
     }
     const en = run(GbItinerary01, { locale: 'en-US' }).w.findAll('time').map((t) => t.text())
@@ -76,6 +77,12 @@ describe('GbItinerary · horas y estructura', () => {
     expect(acc.w.findComponent(GAccordion).props('headingLevel')).toBe(3)
     expect(acc.w.findComponent(GAccordion).props('arrows')).toBe(true)
     expect(acc.w.findAllComponents(GAccordionItem).map((i) => i.props('peek'))).toEqual(['Zona arqueológica por la mañana y comida en Arrazola', '9:00 · Mercado 20 de Noviembre'])
+  })
+  it('BK-B4: 03 dice inicio y fin («9:00–10:30») en la celda de la hora, como el antetítulo de 01', () => {
+    // La celda lleva delante su cabecera para el modo tarjeta (oculta en tabla)
+    const cells = run(GbItinerary03).w.findAll('td, th').map((c) => c.text().replace(/^Hora/, ''))
+    expect(cells).toContain('9:00–10:30')
+    expect(cells).toContain('13:00–14:30')
   })
   it('03 ignora media y description; 01 pinta la foto como <img> en media', () => {
     const t = run(GbItinerary03).w

@@ -3,7 +3,7 @@
   "name": "GbOfferDetail",
   "kind": "block-section",
   "family": "booking",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.0.0",
   "description": "La página de una habitación, una mesa o un recorrido: sus fotos ordenadas por lo que se vende, una ficha con lo que incluye y lo que cuesta, el texto largo y la consulta o el botón de reservar junto al precio. La ficha enseña lo que dice: un dato con su espacio lleva a las fotos de ese espacio.",
   "contract": "design/contracts/blocks/offer-detail.md",
@@ -57,7 +57,7 @@
       "type": "Object",
       "ts": "OfferDetail",
       "required": true,
-      "note": "name es el título de la sección; photos y groups a GGallery; facts (≤ 6, C7) con group para enlazar el espacio (D1); price tal cual a GPrice (la cuenta solo con query); available false o motivo (K4); sections con id único (D3); lang a la raíz (#885); href se ignora (es la página misma)"
+      "note": "name es el título de la sección; photos y groups a GGallery; facts (≤ 6, C7) con group para enlazar el espacio (D1); price tal cual a GPrice (la cuenta solo con query); available false o motivo (K4); sections con id único (D3); lang a la raíz de la sección y vale también para sus labels (#885, #891); href se ignora (es la página misma)"
     },
     {
       "name": "query",
@@ -119,7 +119,7 @@
       "name": "facts",
       "scope": "{ offer }",
       "ts": "{ offer: OfferDetail }",
-      "purpose": "Escape: ficha propia en lugar del dl de facts"
+      "purpose": "Escape: lo que va al principio del cuerpo de la ficha en lugar del dl de facts (#889)"
     },
     {
       "name": "section-{id}",
@@ -148,7 +148,9 @@
   "root": "GSection con data-gb=\"offer-detail-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/booking",
-    "measured": 35924,
+    "measured": 36851,
+    "cap": 36864,
+    "variantCap": 5120,
     "peers": [
       "vue",
       "@grana/vue",
@@ -156,6 +158,6 @@
       "@grana/vue/gallery",
       "@grana/vue/price"
     ],
-    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c): 35 924 B con las once secciones (33 variantes; partes A, B y C, estas últimas aún en construcción, 2026-10-23). Sin tope hasta que lo fije lima (§19). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbOfferDetail01 4034 B, 02 4197 B, 03 4023 B (02 por encima de la referencia de 4096 B: vuelve a lima)."
+    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c), las 11 secciones y 33 variantes (remate de bruno tras la auditoría de coco, 2026-10-23): 36 851 B de 36 864 (#886; margen 13 B). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbOfferDetail01 4049 B, GbOfferDetail02 4273 B, GbOfferDetail03 4038 B; tope por variante 5120 B (#887)."
   }
 }

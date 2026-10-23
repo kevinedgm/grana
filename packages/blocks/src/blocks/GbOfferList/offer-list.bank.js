@@ -57,7 +57,8 @@ export const props = {
       photos: photos(1),
       price: { value: null }
     },
-    { id: 'minima', name: 'Cuarto del Mezcal', photos: photos(1) }
+    // En inglés (§20, #885): el nombre de la casa no se traduce
+    { id: 'minima', name: 'The Mezcal Room', lang: 'en', photos: photos(1) }
   ],
   labels: {
     select: 'Elegir',

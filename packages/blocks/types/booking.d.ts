@@ -165,8 +165,8 @@ export interface GuestField {
   messages?: { required?: string; invalid?: string }
 }
 export interface GuestGroup { id: string; title: string; description?: string }
-/** policy = id de una Policy (el ancla de GbPolicies). */
-export interface Consent { name: string; label: string; required?: boolean; link?: NavLink; policy?: string }
+/** policy = id de una Policy (el ancla de GbPolicies); sin `link`, el enlace `#{policy}` con `linkLabel` (#880, G8). */
+export interface Consent { name: string; label: string; required?: boolean; link?: NavLink; policy?: string; linkLabel?: string }
 export interface Policy { id?: string; title: string; summary?: string; body: string; icon?: string; link?: NavLink }
 
 // ── Confirmación y contacto ──
@@ -245,6 +245,8 @@ export interface GuestFormLabels {
   invalid: string
   /** «Marca esta casilla para continuar». */
   consent?: string
+  /** Título del grupo de casillas («Tu consentimiento») y del último paso de 02 (#880, G7). */
+  consents?: string
   next?: string
   back?: string
   busy?: string

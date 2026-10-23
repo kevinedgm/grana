@@ -3,7 +3,7 @@
   "name": "GbSearch",
   "kind": "block-section",
   "family": "booking",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.0.0",
   "description": "La consulta de disponibilidad de una página de sitio (estancia, mesa o recorrido) como una frase, una barra o una frase que acompaña al bajar, con los mismos datos en las tres. Elige la apariencia de GBookingBar, añade una nota de lo que pasa después y reemite la intención tal cual; la consulta que emite (BookingQuery con su kind) es el hilo que reciben las demás secciones de Booking.",
   "contract": "design/contracts/blocks/search.md",
@@ -218,12 +218,14 @@
   "root": "GStack gap=\"sm\" con data-gb=\"search-NN\" y $attrs (salvo los del envío nativo)",
   "bundle": {
     "entry": "@grana/blocks/booking",
-    "measured": 17058,
+    "measured": 36851,
+    "cap": 36864,
+    "variantCap": 5120,
     "peers": [
       "vue",
       "@grana/vue",
       "@grana/vue/booking"
     ],
-    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c), 4 de 11 secciones (12 de 33 variantes; parte A, 2026-10-23). Sin tope hasta que lo fije lima (§19). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbSearch01 1719 B, 02 1721 B, 03 1723 B."
+    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c), las 11 secciones y 33 variantes (remate de bruno tras la auditoría de coco, 2026-10-23): 36 851 B de 36 864 (#886; margen 13 B). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbSearch01 1837 B, GbSearch02 1841 B, GbSearch03 1840 B; tope por variante 5120 B (#887)."
   }
 }

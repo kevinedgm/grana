@@ -17,6 +17,8 @@ import { GBtn, GCard, GText } from '@grana/vue'
 import { GPrice, GPriceScope } from '@grana/vue/price'
 import { GGalleryViewer } from '@grana/vue/gallery'
 import { describeQuery } from '@grana/vue/booking'
+import GbSearch02 from '../GbSearch/GbSearch02.vue'
+import * as searchBank from '../GbSearch/search.bank.js'
 import { click, mountBlock } from '../bank/harness.js'
 import { PARTY_ROWS, QUERY, QUERY_LABELS } from '../bank/booking.js'
 
@@ -165,6 +167,41 @@ describe('GbOfferList · avisos', () => {
       const many = Array.from({ length: 25 }, (_, i) => ({ id: i, name: `O${i}`, photos: bank.props.offers[4].photos }))
       expect(own(run(C, { offers: many }).warnings, n, 'C7')).toHaveLength(1)
       expect(own(run(C, { labels: { ...bank.props.labels, select: undefined } }).warnings, n, 'C5')).toHaveLength(1)
+    }
+  })
+})
+
+describe('GbOfferList · idioma de la oferta (#885, #891)', () => {
+  it('offer.lang va a la raíz de su tarjeta; las demás sin lang', () => {
+    for (const [n, C] of ALL) {
+      const { w } = run(C)
+      const en = w.findAll('[lang="en"]')
+      expect(en.length, n).toBe(1)
+      expect(en[0].classes(), n).toContain('g-card')
+      expect(en[0].text(), n).toContain('The Mezcal Room')
+    }
+  })
+})
+
+describe('GbOfferList · la consulta de mesa con «hoy» y «mañana» (§20.1, #884)', () => {
+  it('la línea es describeQuery(table) y coincide con el resumen de GBookingBar, también con fecha relativa', () => {
+    const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    const today = new Date()
+    const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
+    const times = searchBank.tests.table.times
+    for (const date of [iso(today), iso(tomorrow), '2026-11-13']) {
+      const q = { kind: 'table', date, time: '20:00', party: { adults: 2, children: 0, rooms: 1 } }
+      const text = describeQuery(q, { partyRows: PARTY_ROWS, times, locale: 'es', labels: QUERY_LABELS }).text
+      if (date === iso(today)) expect(text).toMatch(/^hoy/)
+      if (date === iso(tomorrow)) expect(text).toMatch(/^mañana/)
+      const s = mountBlock(GbSearch02, { props: { ...searchBank.tests.table, query: q } }).w
+      expect(s.find('.g-booking-bar__digest').text(), date).toBe(text)
+      for (const [n, C] of ALL) {
+        const { w } = run(C, { query: q, context: { times } })
+        const line = w.findAllComponents(GText).find((t) => t.text().startsWith('Para '))
+        expect(line && line.text(), `${n} ${date}`).toContain(`Para ${text}`)
+      }
+      s.unmount()
     }
   })
 })

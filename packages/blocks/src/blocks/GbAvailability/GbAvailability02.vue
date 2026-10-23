@@ -3,7 +3,8 @@
 // §15 · Sin CSS (#763). Las próximas fechas abiertas en una lista que se lee de un vistazo en el teléfono: GSection ›
 // GPriceScope › GStack as="ul" gap="sm" [aria-label=labels.upcoming] › GCard as="li" level="flat"
 // orientation="horizontal" interaction="button" por cada uno de los `upcoming` primeros días open/few desde hoy (al
-// montar) o `min` (título = <time> con el día en palabras; insignia = labels.status.few; cuerpo: GPrice sm y la nota);
+// montar) o `min` (título = <time> con el día en palabras; insignia = labels.status.few; el precio (GPrice sm) y la nota
+// son su descripción, #893: el cuerpo de un botón no se oye al enfocar y GCard liga la descripción con aria-describedby);
 // activar → `select` (en stay elige la llegada: { start, end: null }). Sin fechas abiertas, la lista no se pinta y va el
 // slot `empty` (V4). Ignora `total`, `minNights`/`maxNights`.
 import { computed, useSlots } from 'vue'
@@ -29,6 +30,7 @@ const listLabel = computed(() => {
   try { if (process.env.NODE_ENV !== 'production' && upcomingList.value.length && !has(t)) warn('C5:upcoming', 'falta labels.upcoming («Próximas fechas»): la lista va sin nombre (C5).') } catch {}
   return has(t) ? t : undefined
 })
+const sep = computed(() => (props.labels && props.labels.query && typeof props.labels.query.separator === 'string' ? props.labels.query.separator : ' '))
 const pick = (event, r) => a.select(event, a.stay.value ? { start: r.iso, end: null } : r.iso)
 </script>
 
@@ -37,9 +39,9 @@ const pick = (event, r) => a.select(event, a.stay.value ? { start: r.iso, end: n
     <template v-if="$slots.description" #description><slot name="description" /></template>
     <GbPriceRegion v-if="upcomingList.length" :region="region" :labels="labels" :locale="locale">
       <GStack as="ul" gap="sm" :aria-label="listLabel">
-        <GCard v-for="r in upcomingList" :key="r.key" as="li" level="flat" orientation="horizontal" interaction="button" :title="r.time.text" :badge="r.few || undefined" :description="r.day.note || undefined" :heading-level="inner" @activate="pick($event.event, r)">
+        <GCard v-for="r in upcomingList" :key="r.key" as="li" level="flat" orientation="horizontal" interaction="button" :title="r.time.text" :badge="r.few || undefined" :heading-level="inner" @activate="pick($event.event, r)">
           <template #title><time :datetime="r.time.datetime">{{ r.time.text }}</time></template>
-          <GPrice v-if="r.price" v-bind="r.price" size="sm" />
+          <template v-if="r.price || r.day.note" #description><GPrice v-if="r.price" v-bind="r.price" size="sm" /><template v-if="r.price && r.day.note">{{ sep }}</template><template v-if="r.day.note">{{ r.day.note }}</template></template>
         </GCard>
       </GStack>
     </GbPriceRegion>

@@ -20,7 +20,9 @@ export default /* @__PURE__ */ defineComponent({
     summarySlot: { type: Function, default: undefined },
     // 'stack' (01, 02) o 'inline' (03)
     layout: { type: String, default: 'stack' },
-    priceSize: { type: String, default: 'lg' }
+    priceSize: { type: String, default: 'lg' },
+    // 03: la garantía va fuera de la fila (debajo), para que la línea sea lo pedido, el total y la acción (#897)
+    withAssurance: { type: Boolean, default: true }
   },
   setup(props) {
     return () => {
@@ -53,7 +55,7 @@ export default /* @__PURE__ */ defineComponent({
         }))
       }
       if (t && t.note) out.push(h(GText, { size: 'body-sm' }, () => t.note))
-      if (s.assuranceId.value) out.push(h(GText, { id: s.assuranceId.value, size: 'body-sm', tone: 'muted' }, () => props.assurance))
+      if (props.withAssurance && s.assuranceId.value) out.push(h(GText, { id: s.assuranceId.value, size: 'body-sm', tone: 'muted' }, () => props.assurance))
       return out
     }
   }

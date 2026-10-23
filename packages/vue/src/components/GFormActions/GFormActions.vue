@@ -73,7 +73,7 @@ const warned = new Set()
 function warnOnce(msg) {
   if (warned.has(msg)) return
   warned.add(msg)
-  console.warn(msg)
+  try { if (process.env.NODE_ENV !== 'production') console.warn(msg) } catch {}
 }
 // Se llama dentro del render (v-if del marcado): los slots solo pueden invocarse ahí
 function checkButtons() {

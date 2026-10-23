@@ -94,8 +94,15 @@ describe('GbBookingSummary · lo pedido y el total', () => {
     for (const C of [GbBookingSummary01, GbBookingSummary02]) expect(run(C).w.findAllComponents(GBtn).map((b) => b.props('variant'))).toEqual(['solid', 'outline'])
     const w3 = run(GbBookingSummary03).w
     expect(w3.findAllComponents(GBtn).map((b) => b.props('variant'))).toEqual(['outline'])
-    expect(w3.element.tagName).toBe('SECTION')
+    // #894, #897, #898: raíz GText (div) role="group" con el nombre; la fila es una GAdaptiveLayout con GSummary de hijo directo
+    expect(w3.element.tagName).toBe('DIV')
+    expect(w3.element.classList.contains('g-text')).toBe(true)
+    expect(w3.element.getAttribute('role')).toBe('group')
     expect(w3.element.getAttribute('aria-label')).toBe('Tu reserva')
+    const row = w3.find('.g-adaptive-layout')
+    expect(row.exists()).toBe(true)
+    expect(row.element.parentElement).toBe(w3.element)
+    expect(row.find('.g-summary').element.parentElement).toBe(row.element)
     expect(run(GbBookingSummary01).w.findAll('img')).toHaveLength(1)
     expect(run(GbBookingSummary02).w.findAll('img')).toHaveLength(0)
   })

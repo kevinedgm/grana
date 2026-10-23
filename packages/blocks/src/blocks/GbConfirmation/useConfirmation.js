@@ -47,7 +47,10 @@ export function useConfirmation(props, warn, variant) {
       try { if (process.env.NODE_ENV !== 'production') warn('C5:when', 'falta labels.when («Cuándo y quiénes»): la consulta va sin rótulo (C5).') } catch {}
     }
     if (offer.value) {
-      return { title: offer.value.name, subtitle: has(offer.value.kind) ? offer.value.kind : undefined, facts: q && has(when) ? [{ label: when, value: q.text, priority: 1 }] : [], line: q && !has(when) ? q.text : '' }
+      // 02 (#896): la consulta es una frase y va como línea de GText, no como dato de GSummary (una frase en la rejilla de
+      // pares quedaría en una columna estrecha)
+      const asFact = q && has(when) && variant !== '02'
+      return { title: offer.value.name, subtitle: has(offer.value.kind) ? offer.value.kind : undefined, facts: asFact ? [{ label: when, value: q.text, priority: 1 }] : [], line: q && !asFact ? q.text : '' }
     }
     return q ? { title: q.text, subtitle: undefined, facts: [], line: '' } : null
   })

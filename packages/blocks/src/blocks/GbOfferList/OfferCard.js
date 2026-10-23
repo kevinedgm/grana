@@ -47,6 +47,8 @@ export default /* @__PURE__ */ defineComponent({
         badge: o.badge || undefined,
         meta: r.meta,
         headingLevel: props.headingLevel,
+        // Idioma de la oferta si no es el de la página (3.1.2, #885, #891): a la raíz de la tarjeta que la pinta
+        lang: o.lang || undefined,
         onNavigate: (p) => emit('navigate', { ...p, item: o }),
         onActivate: ({ event }) => emit('select', event)
       }, slots)

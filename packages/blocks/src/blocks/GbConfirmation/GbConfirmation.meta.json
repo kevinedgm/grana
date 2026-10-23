@@ -3,7 +3,7 @@
   "name": "GbConfirmation",
   "kind": "block-section",
   "family": "booking",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.0.0",
   "description": "Lo que quedó reservado (o pedido), dicho entero en una pieza que cabe en una captura: el código primero y grande, qué, cuándo y quiénes con las mismas palabras de la consulta, cuánto (el total del lugar), qué sigue y cómo escribir. Lo pedido no se disfraza de confirmado.",
   "contract": "design/contracts/blocks/confirmation.md",
@@ -207,13 +207,15 @@
   "root": "GCard as=\"section\" (01, 03) o GSection (02) con data-gb=\"confirmation-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/booking",
-    "measured": 17058,
+    "measured": 36851,
+    "cap": 36864,
+    "variantCap": 5120,
     "peers": [
       "vue",
       "@grana/vue",
       "@grana/vue/booking",
       "@grana/vue/price"
     ],
-    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c), 4 de 11 secciones (12 de 33 variantes; parte A, 2026-10-23). Sin tope hasta que lo fije lima (§19). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbConfirmation01 4599 B, 02 4663 B, 03 4480 B (pasan la referencia de 4096 B: vuelve a lima)."
+    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c), las 11 secciones y 33 variantes (remate de bruno tras la auditoría de coco, 2026-10-23): 36 851 B de 36 864 (#886; margen 13 B). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbConfirmation01 4746 B, GbConfirmation02 4799 B, GbConfirmation03 4619 B; tope por variante 5120 B (#887)."
   }
 }

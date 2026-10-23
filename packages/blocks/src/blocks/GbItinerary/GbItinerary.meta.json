@@ -3,7 +3,7 @@
   "name": "GbItinerary",
   "kind": "block-section",
   "family": "booking",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.0.0",
   "description": "Un recorrido por horas, en orden y con la hora del lugar; el día del recorrido dice qué parada toca ahora y cuál sigue, calculado con la zona del lugar al abrir la página y al volver a ella, sin temporizador ni salto automático. Es un programa que se lee, no un proceso: nunca GStepper.",
   "contract": "design/contracts/blocks/itinerary.md",
@@ -115,11 +115,13 @@
   "root": "GSection con data-gb=\"itinerary-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/booking",
-    "measured": 35924,
+    "measured": 36851,
+    "cap": 36864,
+    "variantCap": 5120,
     "peers": [
       "vue",
       "@grana/vue"
     ],
-    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c): 35 924 B con las once secciones (33 variantes; partes A, B y C, estas últimas aún en construcción, 2026-10-23). Sin tope hasta que lo fije lima (§19). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbItinerary01 3572 B, 02 3611 B, 03 3092 B."
+    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c), las 11 secciones y 33 variantes (remate de bruno tras la auditoría de coco, 2026-10-23): 36 851 B de 36 864 (#886; margen 13 B). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbItinerary01 3579 B, GbItinerary02 3620 B, GbItinerary03 3144 B; tope por variante 5120 B (#887)."
   }
 }

@@ -232,6 +232,8 @@ const rowProps = (r) => ({
   block: true,
   disabled: isDisabled.value || undefined,
   readonly: isReadonly.value || undefined,
+  // Un contador siempre tiene valor: dentro de GForm no se marca «opcional» (#902, BK-L9)
+  mark: false,
   'onUpdate:modelValue': (n) => setRow(r.key, n)
 })
 defineExpose({ open: () => panel.show(triggerEl.value), close: () => panel.hide(true), focus: () => triggerEl.value && triggerEl.value.focus() })

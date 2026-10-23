@@ -124,7 +124,21 @@ describe('GbAvailability · del dato al calendario', () => {
     // la insignia de pocas
     const few = run(GbAvailability02, { min: '2026-11-12', upcoming: 1 }).w.findComponent(GCard)
     expect(few.props('badge')).toBe('quedan pocas')
-    expect(few.props('description')).toBe('Quedan 2')
+    // El precio y la nota son la descripción de la tarjeta-botón (#893): el botón la lleva en aria-describedby
+    const btn = few.find('button.g-card__primary')
+    const desc = few.find(`#${btn.attributes('aria-describedby')}`)
+    expect(desc.text()).toContain('Quedan 2')
+    expect(desc.find('.g-price').exists()).toBe(true)
+    expect(btn.element.contains(desc.element)).toBe(false)
+  })
+  it('03 en una columna (#892, #899): el calendario y debajo la tarjeta, sin GAdaptiveLayout ni pistas', () => {
+    const { w } = run(GbAvailability03)
+    expect(w.find('.g-adaptive-layout').exists()).toBe(false)
+    expect(w.find('[class*="g-adapt-"]').exists()).toBe(false)
+    expect(w.find('.g-summary').exists()).toBe(false)
+    const card = w.findAllComponents(GCard).at(-1)
+    const cal = w.find('table')
+    expect(cal.element.compareDocumentPosition(card.element) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
   it('02 desde hoy: los días pasados no salen', async () => {
     vi.setSystemTime(new Date(2026, 10, 10, 12))

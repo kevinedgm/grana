@@ -3,7 +3,7 @@
   "name": "GbLocation",
   "kind": "block-section",
   "family": "booking",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.0.0",
   "description": "Dónde está el lugar (o dónde se reúne el grupo) en una dirección de verdad que se puede copiar, con su horario, el mapa como imagen que dice el sitio y «Cómo llegar» que abre la ruta en el teléfono; en un recorrido, cada punto de encuentro con su hora en la zona del lugar. Sin iframes ni terceros al cargar.",
   "contract": "design/contracts/blocks/location.md",
@@ -180,11 +180,13 @@
   "root": "GCard as=\"section\" (01) o GSection (02, 03) con data-gb=\"location-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/booking",
-    "measured": 35924,
+    "measured": 36851,
+    "cap": 36864,
+    "variantCap": 5120,
     "peers": [
       "vue",
       "@grana/vue"
     ],
-    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c): 35 924 B con las once secciones (33 variantes; partes A, B y C, estas últimas aún en construcción, 2026-10-23). Sin tope hasta que lo fije lima (§19). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbLocation01 3866 B, 02 3946 B, 03 4260 B (03 por encima de la referencia de 4096 B: vuelve a lima)."
+    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c), las 11 secciones y 33 variantes (remate de bruno tras la auditoría de coco, 2026-10-23): 36 851 B de 36 864 (#886; margen 13 B). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbLocation01 3877 B, GbLocation02 3954 B, GbLocation03 4268 B; tope por variante 5120 B (#887)."
   }
 }

@@ -155,6 +155,13 @@ describe('GPartyField · inline, slot trigger y GForm', () => {
     expect(w.find('.g-party-field').classes()).toContain('is-disabled')
   })
 
+  it('#902: dentro de GForm los contadores no se marcan «opcional» (siempre tienen valor)', async () => {
+    const w = mount({ render: () => h(GForm, { labels: { optional: 'opcional' } }, () => [h(GPartyField, { rows: ROWS, label: 'H', labels: LB, name: 'guests', mode: 'inline' })]) }, { attachTo: document.body })
+    await flush()
+    expect(w.findAll('.g-number-field').length).toBe(3)
+    expect(w.text()).not.toContain('opcional')
+  })
+
   it('avisos: sin rows (1), sin nombre (2), labels incompletos (3), popover dentro de un <dialog> (4), fuera de rango (5)', () => {
     const spy = quiet()
     mount(GPartyField, { props: { rows: [] } })

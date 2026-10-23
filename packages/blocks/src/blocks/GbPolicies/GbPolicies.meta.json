@@ -3,7 +3,7 @@
   "name": "GbPolicies",
   "kind": "block-section",
   "family": "booking",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.0.0",
   "description": "Las condiciones del lugar (cancelación, llegada y salida, mascotas, niños, pagos) con lo que decide en una línea a la vista, el texto completo a un toque y nunca recortado, y cada política con su ancla estable.",
   "contract": "design/contracts/blocks/policies.md",
@@ -108,11 +108,13 @@
   "root": "GSection con data-gb=\"policies-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/booking",
-    "measured": 35924,
+    "measured": 36851,
+    "cap": 36864,
+    "variantCap": 5120,
     "peers": [
       "vue",
       "@grana/vue"
     ],
-    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c): 35 924 B con las once secciones (33 variantes; partes A, B y C, estas últimas aún en construcción, 2026-10-23). Sin tope hasta que lo fije lima (§19). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbPolicies01 2394 B, 02 2362 B, 03 2465 B."
+    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c), las 11 secciones y 33 variantes (remate de bruno tras la auditoría de coco, 2026-10-23): 36 851 B de 36 864 (#886; margen 13 B). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbPolicies01 2404 B, GbPolicies02 2372 B, GbPolicies03 2474 B; tope por variante 5120 B (#887)."
   }
 }

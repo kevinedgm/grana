@@ -3,7 +3,7 @@
   "name": "GbMenu",
   "kind": "block-section",
   "family": "booking",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.0.0",
   "description": "La carta de un restaurante en HTML, no en PDF: por tiempos, cada plato con lo que lleva, su precio en la moneda dicha una vez y sus avisos (alérgenos, picante, vegetariano) en palabras. Lo agotado hoy se queda a la vista como agotado.",
   "contract": "design/contracts/blocks/menu.md",
@@ -112,13 +112,15 @@
   "root": "GSection con data-gb=\"menu-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/booking",
-    "measured": 35942,
+    "measured": 36851,
+    "cap": 36864,
+    "variantCap": 5120,
     "peers": [
       "vue",
       "@grana/vue",
       "@grana/vue/price",
       "@grana/vue/tag"
     ],
-    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c) con las once secciones (33 variantes; partes A, B y C sobre 0a70920, 2026-10-23); la parte C suma 8076 B (A y C solas en un árbol aislado sobre 1cac455: 25134 B frente a los 17058 B de A). Sin tope hasta que lo fije lima (§19, #879). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbMenu01 2650 B, GbMenu02 2833 B, GbMenu03 2767 B."
+    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c), las 11 secciones y 33 variantes (remate de bruno tras la auditoría de coco, 2026-10-23): 36 851 B de 36 864 (#886; margen 13 B). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbMenu01 2657 B, GbMenu02 2845 B, GbMenu03 2777 B; tope por variante 5120 B (#887)."
   }
 }

@@ -2,7 +2,8 @@
 // sección. Devuelve los hermanos (sin envoltorio: los coloca la primitiva de la variante):
 //   GMetric (el código, primero tras el título) · GSummary layout="stack" (oferta + la consulta con describeQuery) o el
 //   slot `summary` · región de precios › GPrice (el total de la aplicación) + GText as="div" › dl de líneas (01, 02) ·
-//   GText body-sm con totals.note · canales: GStack as="ul" horizontal gap="sm" [aria-label] › li › GBtn outline (icono,
+//   GText body-sm con totals.note · canales: GStack as="ul" horizontal gap="sm" vertical="top" (BK-B3: alineados arriba
+//   aunque solo unos lleven ayuda) [aria-label] › li › GBtn outline (icono,
 //   label) + GText caption muted con el hint.
 import { defineComponent, h } from 'vue'
 import { GMetric, GStack, GSummary, GText } from '@grana/vue'
@@ -47,7 +48,7 @@ export default /* @__PURE__ */ defineComponent({
       }
       const ch = c.channels.value
       if (ch.length) {
-        out.push(h(GStack, { as: 'ul', orientation: 'horizontal', gap: 'sm', 'aria-label': has(L.channels) ? L.channels : undefined }, () => ch.map(({ item, key }) => h('li', { key }, [
+        out.push(h(GStack, { as: 'ul', orientation: 'horizontal', gap: 'sm', vertical: 'top', 'aria-label': has(L.channels) ? L.channels : undefined }, () => ch.map(({ item, key }) => h('li', { key }, [
           h(GbLink, { link: item, icon: item.icon, variant: 'outline', external: L.external, what: 'channels', warn: props.warn, onNavigate: (p) => emit('navigate', p) }),
           has(item.hint) ? h(GText, { size: 'caption', tone: 'muted' }, () => item.hint) : null
         ]))))

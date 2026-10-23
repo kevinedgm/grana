@@ -2,7 +2,7 @@
 // GbGuestForm01 · Una página (dueño: bruno). Contrato: design/contracts/blocks/guest-form.md · Común: _comun.md §15 · Sin
 // CSS (#763). GSection (título, descripción) › el formulario (GuestForm.js): todos los grupos uno debajo de otro y el envío
 // al final. Ignora `step`, labels.next/back/stepper y `offer`.
-import { computed } from 'vue'
+import { computed, useSlots } from 'vue'
 import { GSection, useSectionLevel } from '@grana/vue'
 import { useWarn } from '../common/warn.js'
 import GuestForm from './GuestForm.js'
@@ -15,7 +15,7 @@ const emit = defineEmits(sectionEmits)
 const warn = useWarn('GbGuestForm01')
 const { level } = useSectionLevel()
 const inner = computed(() => Math.min(Math.min(level.value, 4) + 1, 6))
-const g = useGuestForm(props, emit, warn, '01')
+const g = useGuestForm(props, emit, warn, '01', useSlots())
 </script>
 
 <template>

@@ -90,7 +90,8 @@ describe('GbGuestForm · validación y envío', () => {
       const onSubmit = vi.fn()
       const onValues = vi.fn()
       const { w } = run(C, { onSubmit, 'onUpdate:values': onValues, values: FULL }, { attachTo: document.body })
-      if (n === '02') { await w.findAll('button').find((b) => b.text() === 'Siguiente').trigger('click'); await flush() }
+      // 02: hasta el último paso (los consentimientos, #880)
+      if (n === '02') for (let i = 0; i < 2; i++) { await w.findAll('button').find((b) => b.text() === 'Siguiente').trigger('click'); await flush() }
       await send(w)
       expect(onSubmit).not.toHaveBeenCalled()
       expect(w.findComponent(GForm).props('errors').politica).toBe('Marca esta casilla para continuar.')
@@ -139,7 +140,7 @@ describe('GbGuestForm · 02 por pasos', () => {
   it('un paso por grupo; «Siguiente» no avanza con errores del paso y enfoca el primero; avanza y enfoca el primer control', async () => {
     const onStep = vi.fn()
     const { w } = run(GbGuestForm02, { 'onUpdate:step': onStep, values: { nombre: 'Rosa' } }, { attachTo: document.body })
-    expect(w.findComponent(GStepper).props('steps').map((s) => s.label)).toEqual(['Quién viene', 'Tu llegada'])
+    expect(w.findComponent(GStepper).props('steps').map((s) => s.label)).toEqual(['Quién viene', 'Tu llegada', 'Tu consentimiento'])
     const sections = w.findAllComponents(GFormSection)
     expect(sections[1].element.parentElement.hidden).toBe(true)
     const next = () => w.findAll('button').find((b) => b.text() === 'Siguiente')
@@ -214,6 +215,87 @@ describe('GbGuestForm · avisos', () => {
       const { w, warnings } = run(C, { fields: [] })
       expect(own(warnings, n, 'C1')).toHaveLength(1)
       expect(w.find('form').exists()).toBe(false)
+    }
+  })
+})
+
+describe('GbGuestForm · consentimientos (#880), sin groups (#881) y pasos sin descripción repetida (#900)', () => {
+  it('los consentimientos van en un GFieldGroup con legend = labels.consents; el enlace fuera del label', () => {
+    for (const [n, C] of ALL) {
+      const { w } = run(C, n === '02' ? { step: 'consents' } : {})
+      const fs = w.findAll('fieldset.g-field-group')
+      expect(fs, n).toHaveLength(1)
+      expect(fs[0].find('legend').text(), n).toBe('Tu consentimiento')
+      expect(fs[0].findAll('input[type="checkbox"]').map((i) => i.attributes('name')), n).toEqual(['politica', 'ofertas'])
+      const a = fs[0].find('a[href="#cancelacion"]')
+      expect(a.exists(), n).toBe(true)
+      expect(a.element.closest('label'), n).toBeNull()
+      // No es una sección de GForm
+      expect(fs[0].element.closest('.g-form-section'), n).toBeNull()
+    }
+  })
+  it('con policy y sin link, el enlace #{policy} con linkLabel; sin linkLabel, sin enlace y G8 una vez', () => {
+    for (const [n, C] of ALL) {
+      const base = { name: 'politica', label: 'Acepto la política', required: true, policy: 'cancelacion' }
+      const a = run(C, { consents: [{ ...base, linkLabel: 'Leer la política' }], ...(n === '02' ? { step: 'consents' } : {}) })
+      const link = a.w.find('fieldset a[href="#cancelacion"]')
+      expect(link.text(), n).toBe('Leer la política')
+      expect(own(a.warnings, n, 'G8'), n).toHaveLength(0)
+      const b = run(C, { consents: [base] })
+      expect(b.w.find('fieldset a').exists(), n).toBe(false)
+      expect(own(b.warnings, n, 'G8'), n).toHaveLength(1)
+    }
+  })
+  it('G7: consentimientos sin labels.consents (una vez), el grupo sin legend', () => {
+    for (const [n, C] of ALL) {
+      const { w, warnings } = run(C, { labels: { ...bank.props.labels, consents: undefined } })
+      expect(own(warnings, n, 'G7'), n).toHaveLength(1)
+      expect(w.find('fieldset.g-field-group legend').exists(), n).toBe(false)
+    }
+    expect(own(run(GbGuestForm01).warnings, '01', 'G7')).toHaveLength(0)
+  })
+  it('02: los consentimientos son el último paso, ocultos hasta entonces y montados', async () => {
+    const { w } = run(GbGuestForm02, {}, { attachTo: document.body })
+    const steps = w.findComponent(GStepper).props('steps')
+    expect(steps.at(-1)).toMatchObject({ id: 'consents', label: 'Tu consentimiento' })
+    const fs = w.find('fieldset.g-field-group')
+    expect(fs.element.closest('[hidden]')).not.toBeNull()
+    await w.setProps({ step: 'consents' })
+    await flush()
+    expect(w.find('fieldset.g-field-group').element.closest('[hidden]')).toBeNull()
+    expect(w.findAllComponents(GFormSection).every((s) => s.element.closest('[hidden]'))).toBe(true)
+    expect(w.findAll('button').some((b) => b.text() === 'Confirmar reserva')).toBe(true)
+    w.unmount()
+  })
+  it('02: «Siguiente» del último grupo lleva a los consentimientos y enfoca la primera casilla', async () => {
+    const onStep = vi.fn()
+    const { w } = run(GbGuestForm02, { 'onUpdate:step': onStep, values: FULL, step: 'llegada' }, { attachTo: document.body })
+    await w.findAll('button').find((b) => b.text() === 'Siguiente').trigger('click')
+    await flush()
+    expect(onStep).toHaveBeenCalledWith('consents')
+    expect(document.activeElement.name).toBe('politica')
+    w.unmount()
+  })
+  it('#900: en 02 la GFormSection del paso lleva title y no description; en 01 y 03 sí', () => {
+    const s2 = run(GbGuestForm02).w.findAllComponents(GFormSection)[0]
+    expect(s2.props('title')).toBe('Quién viene')
+    expect(s2.props('description')).toBeUndefined()
+    for (const C of [GbGuestForm01, GbGuestForm03]) expect(run(C).w.findAllComponents(GFormSection)[0].props('description')).toBe('La persona que hace la reserva.')
+  })
+  it('#881: sin groups, sin GFormSection; los campos bajo el título de la sección', () => {
+    for (const [n, C] of ALL) {
+      const fields = bank.props.fields.map(({ group, ...f }) => f)
+      const { w } = run(C, { groups: undefined, fields })
+      expect(w.findAllComponents(GFormSection), n).toHaveLength(0)
+      expect(w.findAll('input[name="nombre"]'), n).toHaveLength(1)
+      if (n === '02') expect(w.findComponent(GStepper).props('steps').map((s) => s.label)).toEqual(['Tus datos', 'Tu consentimiento'])
+    }
+  })
+  it('#902: los contadores del grupo no se marcan «opcional»', () => {
+    for (const [n, C] of ALL) {
+      const p = run(C).w.findComponent(GPartyField)
+      expect(p.exists(), n).toBe(true)
+      expect(p.text(), n).not.toContain('opcional')
     }
   })
 })

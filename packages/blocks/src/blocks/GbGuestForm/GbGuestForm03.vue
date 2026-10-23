@@ -3,7 +3,7 @@
 // _comun.md §15 · Sin CSS (#763). GSection › GStack gap="lg" › [GCard level="flat" con lo que se va a reservar: GSummary
 // (oferta), la consulta con describeQuery y GPrice del offer.price en una GPriceScope] + el formulario de 01 con el pie de
 // envío pegado (GFormActions sticky, que cuida 2.4.11 dentro de GForm). Ignora `step` y labels.next/back/stepper.
-import { computed } from 'vue'
+import { computed, useSlots } from 'vue'
 import { GCard, GSection, GStack, GSummary, GText, useSectionLevel } from '@grana/vue'
 import { GPrice } from '@grana/vue/price'
 import { checkRegion, priceSpec } from '../common/booking.js'
@@ -20,7 +20,7 @@ const emit = defineEmits(sectionEmits)
 const warn = useWarn('GbGuestForm03')
 const { level } = useSectionLevel()
 const inner = computed(() => Math.min(Math.min(level.value, 4) + 1, 6))
-const g = useGuestForm(props, emit, warn, '03')
+const g = useGuestForm(props, emit, warn, '03', useSlots())
 const offer = computed(() => (props.offer && typeof props.offer === 'object' && has(props.offer.name) ? props.offer : null))
 const price = computed(() => (offer.value ? priceSpec(offer.value.price, 'offer.price', warn) : null))
 const region = computed(() => checkRegion(props.prices, Boolean(price.value), warn))

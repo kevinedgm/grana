@@ -52,6 +52,7 @@ export const props = {
     required: 'Escribe {label}.',
     invalid: 'Revisa {label}.',
     consent: 'Marca esta casilla para continuar.',
+    consents: 'Tu consentimiento',
     next: 'Siguiente',
     back: 'Atrás',
     busy: 'Confirmando…',

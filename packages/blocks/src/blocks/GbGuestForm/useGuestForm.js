@@ -1,10 +1,13 @@
 // GbGuestForm · el motor que comparten las tres variantes (dueño: bruno; guest-form.md «Anatomía», «Pasos (02)», «Eventos»,
-// avisos C1 a C7, K1 a K3, G1 a G6). Grana presenta y emite intención (form.md): GForm no valida (#157), así que el bloque
+// avisos C1 a C7, K1 a K3, G1 a G8). Grana presenta y emite intención (form.md): GForm no valida (#157), así que el bloque
 // calcula los errores como el navegador (vacío con `required` → labels.required con {label}; mal formado, leído del
 // ValidityState del control al escribir y al enviar → labels.invalid) y se los da a GForm por `errors`, que decide cuándo
 // enseñarlos («castigar tarde»). Al enviar con errores, `showErrors()` y ningún `submit`. Los `errors` de la aplicación
 // ganan. Lo que ya dijo la consulta no se vuelve a pedir: el grupo arranca con `query.party` (§15 regla 3).
-//   02 · Por pasos: un grupo por paso (los demás `hidden`, montados: sus datos van en el envío). GForm solo conoce los
+//   Consentimientos (#880): en un GFieldGroup con legend = labels.consents (G7 sin él); con `policy` y sin `link`, el
+//   enlace #{policy} con `linkLabel` (G8 sin él). Sin `groups` (#881), los campos van sin GFormSection (`bare`).
+//   02 · Por pasos: un grupo por paso y los consentimientos como último paso, rotulado con labels.consents (los demás
+//   `hidden`, montados: sus datos van en el envío). GForm solo conoce los
 //   errores de los pasos hasta el actual, así «Siguiente» revela y enfoca los del paso; sin errores, avanza y enfoca el
 //   primer control del paso nuevo (por el id que el bloque da a cada campo; nunca el título, DOM interno, §1 regla 2).
 import { computed, getCurrentInstance, nextTick, ref, useId, watch } from 'vue'
@@ -13,7 +16,7 @@ import { entries, useItems } from '../common/list.js'
 import { has } from '../common/text.js'
 import { MAX_FIELDS, TYPES } from './props.js'
 
-export function useGuestForm(props, emit, warn, variant) {
+export function useGuestForm(props, emit, warn, variant, slots) {
   const uid = useId()
   const locale = useLocale(props)
   const L = computed(() => props.labels || {})
@@ -34,7 +37,24 @@ export function useGuestForm(props, emit, warn, variant) {
     return { key: e.key, field: f, name: f.name, type, id: `${uid}-f${e.index}`, hint: [f.hint, f.why].filter(has).join(' ') || undefined }
   }))
   const byName = computed(() => new Map(fields.value.map((f) => [f.name, f])))
-  const consents = computed(() => entries(props.consents, ['name', 'label'], 'consents', warn).map((e) => ({ ...e, id: `${uid}-c${e.index}` })))
+  const consents = computed(() => entries(props.consents, ['name', 'label'], 'consents', warn).map((e) => {
+    const c = e.item
+    // El enlace de la política (#880): `link` tal cual; con `policy` y sin `link`, el ancla de GbPolicies con `linkLabel`
+    let link = c.link && has(c.link.label) && has(c.link.href) ? c.link : null
+    if (!link && has(c.policy)) {
+      if (has(c.linkLabel)) link = { label: c.linkLabel, href: `#${c.policy}` }
+      else {
+        try { if (process.env.NODE_ENV !== 'production') warn(`G8:${c.name}`, `consents «${c.name}» con policy y sin link ni linkLabel: no se pinta el enlace a la política (G8).`) } catch {}
+      }
+    }
+    return { ...e, link, id: `${uid}-c${e.index}` }
+  }))
+  const consentsOn = computed(() => Boolean(consents.value.length || (slots && slots.consents)))
+  const consentsTitle = computed(() => {
+    const t = L.value.consents
+    try { if (process.env.NODE_ENV !== 'production' && consentsOn.value && !has(t)) warn('G7', 'hay consentimientos y falta labels.consents (título del grupo y, en 02, del último paso): el grupo va sin legend (G7).') } catch {}
+    return has(t) ? t : undefined
+  })
   const consentNames = computed(() => new Set(consents.value.map((c) => c.item.name)))
 
   /** Filas: los campos con el mismo `row` comparten GFormRow; los demás, uno por fila. */
@@ -47,10 +67,11 @@ export function useGuestForm(props, emit, warn, variant) {
     }
     return rows
   }
-  /** Grupos con sus filas. Sin `groups`, uno con el título de la sección; los campos sin grupo conocido van al final (G5). */
+  /** Grupos con sus filas. Sin `groups`, uno sin GFormSection (`bare`, #881: el título es el de la sección y no se repite;
+   *  en 02, el rótulo del paso); los campos sin grupo conocido van al final (G5). */
   const groups = computed(() => {
     const defined = entries(props.groups, ['id', 'title'], 'groups', warn)
-    if (!defined.length) return { list: [{ id: '', title: props.title, description: undefined, fields: fields.value, rows: toRows(fields.value) }], rest: [] }
+    if (!defined.length) return { list: [{ id: '', title: props.title, description: undefined, bare: true, fields: fields.value, rows: toRows(fields.value) }], rest: [] }
     const out = defined.map((g) => ({ id: String(g.item.id), title: g.item.title, description: has(g.item.description) ? g.item.description : undefined, fields: [] }))
     const rest = []
     for (const f of fields.value) {
@@ -62,7 +83,7 @@ export function useGuestForm(props, emit, warn, variant) {
       }
     }
     const kept = out.filter((g) => g.fields.length).map((g) => ({ ...g, rows: toRows(g.fields) }))
-    if (!kept.length) return { list: [{ id: '', title: props.title, description: undefined, fields: rest, rows: toRows(rest) }], rest: [] }
+    if (!kept.length) return { list: [{ id: '', title: props.title, description: undefined, bare: true, fields: rest, rows: toRows(rest) }], rest: [] }
     return { list: kept, rest: toRows(rest) }
   })
 
@@ -149,7 +170,13 @@ export function useGuestForm(props, emit, warn, variant) {
 
   // ---------- Pasos (02) ----------
   const stepGroups = computed(() => groups.value.list)
-  const stepIds = computed(() => stepGroups.value.map((g, i) => g.id || `paso-${i + 1}`))
+  // Los consentimientos son el último paso (#880), con su id propio
+  const consentStep = computed(() => (consentsOn.value ? stepGroups.value.length : -1))
+  const stepIds = computed(() => {
+    const ids = stepGroups.value.map((g, i) => g.id || `paso-${i + 1}`)
+    if (consentsOn.value) ids.push(ids.includes('consents') ? `consents-${uid}` : 'consents')
+    return ids
+  })
   const localStep = ref(null)
   const current = computed(() => {
     const s = props.step !== undefined ? props.step : localStep.value
@@ -157,11 +184,16 @@ export function useGuestForm(props, emit, warn, variant) {
   })
   const index = computed(() => Math.max(stepIds.value.indexOf(current.value), 0))
   const last = computed(() => index.value === stepIds.value.length - 1)
-  const steps = computed(() => stepGroups.value.map((g, i) => ({ id: stepIds.value[i], label: g.title, description: g.description })))
+  const steps = computed(() => {
+    const out = stepGroups.value.map((g, i) => ({ id: stepIds.value[i], label: g.title, description: g.description }))
+    if (consentsOn.value) out.push({ id: stepIds.value[consentStep.value], label: consentsTitle.value || '' })
+    return out
+  })
   const groupOf = (name) => {
     const i = stepGroups.value.findIndex((g) => g.fields.some((f) => f.name === name))
     if (i >= 0) return i
-    // El grupo final (G5), los consentimientos y el grupo van con el último y el primer paso
+    if (consentsOn.value && consents.value.some((c) => c.item.name === name)) return consentStep.value
+    // El grupo final (G5) va con el último grupo y el grupo de personas con el primer paso
     if (name === (props.party && props.party.name)) return 0
     return stepGroups.value.length - 1
   }
@@ -175,7 +207,7 @@ export function useGuestForm(props, emit, warn, variant) {
   const form = ref(null)
   function focusFirst(i) {
     const g = stepGroups.value[i]
-    const id = i === 0 && partyOn.value ? partyId : g && g.fields[0] ? g.fields[0].id : null
+    const id = i === consentStep.value ? (consents.value[0] ? consents.value[0].id : null) : i === 0 && partyOn.value ? partyId : g && g.fields[0] ? g.fields[0].id : null
     const el = id && typeof document !== 'undefined' ? document.getElementById(id) : null
     if (el && typeof el.focus === 'function') el.focus()
   }
@@ -191,6 +223,7 @@ export function useGuestForm(props, emit, warn, variant) {
   /** «Siguiente»: comprueba solo el paso (los controles del grupo en el DOM y sus errores); con errores, los revela y enfoca. */
   async function next(event) {
     const g = stepGroups.value[index.value]
+    if (!g) return
     const f = event && event.currentTarget && event.currentTarget.form
     if (f && f.elements) for (const el of f.elements) if (g.fields.some((x) => x.name === el.name)) check(el)
     const bad = g.fields.some((x) => fieldErrors.value[x.name])
@@ -272,7 +305,7 @@ export function useGuestForm(props, emit, warn, variant) {
   })
 
   return {
-    uid, locale, L, queryLine, query, fields, groups, consents, valueOf, setValue, consentState, setConsent,
+    uid, locale, L, queryLine, query, fields, groups, consents, consentsOn, consentsTitle, consentStep, valueOf, setValue, consentState, setConsent,
     partyOn, partyId, partyValue, setParty, formErrors, onInput, onSubmit, onInvalid, form,
     steps, stepIds, current, index, last, next, back, goTo, summaryErrors, busyText, stepLabels
   }

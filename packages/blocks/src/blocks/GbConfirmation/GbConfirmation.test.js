@@ -36,10 +36,22 @@ describe('GbConfirmation · lo confirmado', () => {
     }
   })
   it('la ficha dice la consulta con describeQuery (el hilo)', () => {
-    for (const [, C] of ALL) {
-      const s = run(C).w.findComponent(GSummary)
+    for (const [n, C] of ALL) {
+      const { w } = run(C)
+      const s = w.findComponent(GSummary)
       expect(s.props('title')).toBe('Suite Jardín')
-      expect(s.props('facts')).toEqual([{ label: 'Cuándo y quiénes', value: TEXT, priority: 1 }])
+      // 02 (#896): la consulta en una línea de GText, no como dato de GSummary
+      if (n === '02') {
+        expect(s.props('facts')).toEqual([])
+        expect(w.findAllComponents(GText).some((t) => t.text() === TEXT)).toBe(true)
+      } else expect(s.props('facts')).toEqual([{ label: 'Cuándo y quiénes', value: TEXT, priority: 1 }])
+    }
+  })
+  it('BK-B3: los canales alineados arriba (vertical="top") aunque solo unos lleven ayuda', () => {
+    for (const [n, C] of ALL) {
+      const ul = run(C).w.find('ul.g-stack')
+      expect(ul.exists(), n).toBe(true)
+      expect(ul.classes().some((c) => /v-top|vertical-top/.test(c)), n).toBe(true)
     }
   })
   it('estado en texto: insignia en 01 y 03 (success/warning), GText en 02; F1 pinta requested', () => {

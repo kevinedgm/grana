@@ -50,10 +50,13 @@ check "! grep -q GbHero01 dist/booking.js" "Booking arrastra Marketing (#860)" n
 check "! grep -q GbOfferList01 dist/marketing.js" "Marketing arrastra Booking (#860)" none grep -q "GbOfferList01" dist/marketing.js
 check "! grep -q GbOfferList01 dist/blocks.js" "Gestión arrastra Booking (#860)" none grep -q "GbOfferList01" dist/blocks.js
 check "sin fetch ni XMLHttpRequest en dist/booking.js" "Un bloque hace red (#780, #792)" none grep -qE "fetch\(|XMLHttpRequest" dist/booking.js
-check "dist/booking.js con sus trozos (informativa: sin tope hasta que lo fije lima, §19)" "measure-entry.mjs no pudo medir booking.js" \
-  node scripts/measure-entry.mjs booking
-check "cada variante de Booking importada sola (informativa, referencia 4 096 B)" "measure-partial.mjs no pudo medir booking.js" \
-  node scripts/measure-partial.mjs 999999 booking
+# Peso de Booking (#886, #887): la entrada con su trozo compartido y cada variante importada sola
+check "dist/booking.js con sus trozos ≤ 36 864 B gzip" "booking.js (con el trozo compartido de common/) supera el tope de #886 (36864 B gzip -c); con más, vuelve a lima" \
+  node scripts/measure-entry.mjs booking 36864
+check "cada variante de Booking importada sola ≤ 5 120 B gzip (Guest form ≤ 7 168 B)" "Una variante arrastra a las demás o supera el tope de #887 (scripts/measure-partial.mjs lista cuál)" \
+  node scripts/measure-partial.mjs 5120 booking GbGuestForm=7168
+check "bundle.cap en los meta.json de Booking (36864; variante 5120, Guest form 7168)" "Falta bundle.cap/variantCap o difiere de los topes de #886 y #887" \
+  none bash -c "for f in \$(grep -l '\"family\": \"booking\"' src/blocks/Gb*/Gb*.meta.json); do v=5120; case \$f in *GbGuestForm*) v=7168;; esac; grep -q '\"cap\": 36864' \$f && grep -q \"\\\"variantCap\\\": \$v\" \$f || echo \$f; done | grep -q ."
 
 echo
 if [ "$failed" -eq 0 ]; then echo "Compuertas de blocks: $total/$total superadas."; exit 0; fi
