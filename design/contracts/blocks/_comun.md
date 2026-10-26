@@ -591,6 +591,8 @@ Tags `gb-product-card-01`, `gb-product-grid-02`, `gb-quick-view-03`… (#764). 3
 6. **El pago es de la aplicación** (#922). Ningún bloque pide, pinta, valida ni transmite datos de tarjeta, cuenta o identidad fiscal: el paso de pago de Checkout es un **slot** donde la aplicación monta el componente de su pasarela; los bloques solo muestran lo que la aplicación ya resumió («Tarjeta terminada en 4242», §28 `PaymentSummary`). Sin `fetch`, sin `XMLHttpRequest`, sin globals (compuerta de §34).
 7. **Urgencia honesta** (2.2.2 y patrones oscuros): sin cuenta atrás, sin «quedan 5 minutos», sin contadores de «personas viendo esto», sin temporizadores. Una oferta dice **hasta qué fecha** (`until`, en `<time>`); unas existencias bajas son un `badge` de texto que da la aplicación («Últimas 3 piezas») y solo si es verdad; una referencia de precio siempre **nombrada** (`compareLabel`, C de `price.md`): una referencia sin nombre no se pinta.
 8. **Intenciones con objeto** (§30): la carga lleva **el dato entero** (`product`, `line`, `order`) y la **elección** (`variant`, `selection`, `quantity`) para que la aplicación arme su llamada a su carrito sin volver a buscar nada. Nada navega, añade ni cobra por su cuenta.
+9. **Una pregunta que no es un campo no lleva `name`** (#934). Las preguntas de un bloque que se eligen por `v-model` y no se envían (las opciones de Product overview y Quick view) usan `GRadioGroup` **sin `name`**: el componente genera uno único y estable. Un `name` legible fuera de un `<form>` junta en un solo grupo nativo los radios de dos bloques de la página (la ficha y la vista rápida) y elegir en uno desmarca el otro. Los `choice` de Checkout son campos de `GForm` y conservan su `name`.
+10. **Escuchas de la raíz** (#940). Un bloque cuya raíz es un componente que emite un evento con el mismo nombre que una intención de la familia (Cart 03 sobre `GDialog`: `open`) declara `inheritAttrs: false` y **no le pasa esas escuchas**; el resto de atributos sí llega a la raíz.
 
 ## 28. Tipos compartidos de Ecommerce (#910)
 
@@ -770,14 +772,16 @@ type CartTotals = Totals & {
 | --- | --- | --- | --- |
 | `add` | `{ event, product, variant, selection, options, quantity }` (`variant`: la `Variant` resuelta o `null`; `selection`: `{ [key]: value }`; `options`: `ChosenOption[]` ya dichas) | E1 (03), E2, E4, E5 | «Añadir» con todo lo obligatorio elegido y el producto disponible |
 | `open` | `{ event, product }` (E1, E2) · `{ event, order }` (E10) | E1, E2, E10 | Abrir la vista rápida o elegir opciones (tarjeta sin `href`, «Elegir opciones»); abrir un pedido sin `href` |
-| `change` | `{ event, line, quantity }` | E7 | La cantidad de una línea cambia **por gesto** (el `change` de `GNumberField`, no cada tecla) |
+| `change` | `{ event: null, line, quantity }` | E7 | La cantidad de una línea cambia **por gesto** (el `change` de `GNumberField`, no cada tecla; sin evento del DOM, #936) |
 | `remove` | `{ event, line, index }` | E7 | «Quitar», o cantidad 0 |
 | `restore` | `{ event, line, index }` | E7 | «Deshacer» de la huella (vuelve a la misma posición) |
 | `select` | `{ event, product, key, value, variant }` | E4, E5 | Se elige un valor de una opción (informativo: la elección ya está en `v-model:selection`) |
 | `submit` | `{ event, step, data: FormData, values, consents, final, preventDefault(), defaultPrevented }` | E8 | Paso válido (o el último). **Cancelable** y síncrono: sin `preventDefault()`, el bloque pasa al paso siguiente; con él, espera a que la aplicación cambie `step` |
 | `update:filters` · `update:sort` · `update:page` | el valor | E2 · E2 · E2, E6, E10 | Estado de vista: la aplicación vuelve a pedir la página |
 | `update:selection` · `update:quantity` · `update:open` · `update:step` · `update:values` | el valor | E4, E5 · E4, E5 · E5, E7 (03) · E8 · E8 | Estado de vista (§15 regla 9) |
-| `retry` | `{ event }` | E2, E10 | «Reintentar» de la región que falló (el de `GLoadRegion`/`GTable`) |
+| `retry` | `{ event: null }` | E2, E10 | «Reintentar» de la región que falló (el de `GLoadRegion`/`GTable`, que no entregan evento, #936) |
+
+**`event: null`** (#936): cuando el componente compuesto no entrega un evento del DOM, la carga lleva `event: null` (nunca un evento fabricado ni la clave ausente); el tipo es `Event | null` en esas intenciones.
 
 `navigate` y `activate` siguen §4. **Una activación por gesto** (#661) en los disparadores que abren algo (vista rápida, cajón, visor): la cumplen `GDialog`, `GGalleryViewer` y `GBtn`; el bloque no añade otra. `restore` es nuevo en la familia (#913): «Deshacer» no es un `add` (la aplicación debe devolver la línea **a su sitio** con su cantidad, no añadir un producto nuevo al final).
 
@@ -810,7 +814,8 @@ packages/blocks/src/blocks/bank/ecommerce.js   ← la tienda común (§33)
 - **`meta.json`:** la forma de §6 con `family: "ecommerce"` y `bundle.entry: "@grana/blocks/ecommerce"`; `complex: true` en las cinco complejas (§26). `build-types.mjs` escribe `dist/ecommerce.d.ts` por `family` (§19), reexporta `types/common.d.ts`, `types/ecommerce.d.ts` y los de §2, declara `cartTotals` y amplía `GlobalComponents` con las 36; se detiene ante una variante sin exportar o una exportación sin `meta.json`.
 - **`package.json`:** `exports` gana `"./ecommerce"` (`types`/`import`/`default`) y `typesVersions` `ecommerce`; `vite.config.js` gana la entrada; externos: `vue`, `@grana/vue`, `@grana/vue/price`, `@grana/vue/gallery`, `@grana/vue/tag`, `@grana/vue/load-region`.
 - **Código común:** el motor de campos de Guest form (tipo cerrado → control, `ValidityState`, mensajes, consentimientos, pasos con foco) lo necesita Checkout: bruno lo lleva a `common/` como pieza compartida por las dos entradas (trozo interno del paquete, §19), **sin cambiar el comportamiento de Guest form** (sus pruebas siguen verdes) y **sin que `dist/booking.js` pase de 37 888 B** (#907: ese tope no se vuelve a subir; si moverlo lo pasa, Checkout lleva su copia y lo anota con su medida). Lo mismo con la anatomía de cita de Testimonials (Reviews).
-- **Peso (#909):** **sin tope hasta medir** (como #879): con las 36 medidas, lima fija al cierre el tope de `dist/ecommerce.js` (con sus trozos) y por variante. **Referencias mientras**, el criterio de Booking: una variante sola **≤ 5 KiB (5 120 B)**; Checkout **≤ 7 KiB (7 168 B)** (formulario por pasos, como Guest form); Product overview y Quick view **≤ 6 KiB (6 144 B)** (galería, opciones, cantidad y precio); `cartTotals` sola **≤ 2 KiB (2 048 B)**, fijado con la medida real (1 594 B gzip con el preludio de importaciones que esbuild conserva, ≈ 290 B; 1 305 B desde el fuente) y **sin volver a subir** (#931). Una que pase vuelve a lima con su medida. **`dist/marketing.js` (18 432 B), `dist/booking.js` (37 888 B) y `dist/blocks.js` no crecen** por Ecommerce (compuertas de §34).
+- **Peso (#932, cierre de medidas del lote 4; sustituye las referencias de #909):** **`dist/ecommerce.js` ≤ 50 KiB (51 200 B) gzip** con sus trozos (medido 48 712 B con las 36 variantes; **no se vuelve a subir: con más, decide el usuario**); **una variante importada sola ≤ 7 KiB (7 168 B)** (la mayor, Product grid, 6 633 B); **Checkout ≤ 9,5 KiB (9 728 B)**, excepción con nombre (medido 9 048 a 9 176 B: formulario por pasos, copia del motor de campos, pedido y hueco del pago); **`cartTotals` sola ≤ 2 KiB (2 048 B)** sin volver a subir (#931; medida al cierre 1 903 B, margen 145 B). Una que pase vuelve a lima con su medida. **`dist/marketing.js` (18 432 B; 17 712 medidos), `dist/booking.js` (37 888 B; 37 105 medidos) y `dist/blocks.js` no suben** por Ecommerce: crecen solo por el preludio compartido y dentro de sus topes (compuertas de §34).
+- **Motor de campos de Checkout** (#941): compartirlo con Booking pasaba `GbGuestForm03` de 7 168 B, así que Checkout lleva **su copia** en `common/fields.js` y Guest form conserva la suya. Las dos cumplen el mismo contrato (`guest-form.md` «Anatomía» y avisos G1 a G8): un cambio en una va a la otra en el mismo commit y una **prueba de paridad** pasa los mismos casos por las dos.
 
 ## 33. Banco y verificación de Ecommerce
 
@@ -836,9 +841,10 @@ test -f packages/blocks/dist/ecommerce.js && test -f packages/blocks/dist/ecomme
 ! grep -qE "cc-(number|csc|exp)" packages/blocks/src/blocks/Gb*/*.vue  # ningún campo de tarjeta (§27 regla 6)
 test "$(gzip -c packages/blocks/dist/marketing.js | wc -c)" -le 18432
 test "$(gzip -c packages/blocks/dist/booking.js | wc -c)" -le 37888
+test "$(gzip -c packages/blocks/dist/ecommerce.js | wc -c)" -le 51200   # #932
 ```
 
-Las de peso de Ecommerce (entrada y por variante) entran cuando lima fije los topes al cierre (§32).
+Por variante (#932), con `measure-partial.mjs` y los `bundle.cap`/`bundle.variantCap` de cada `meta.json`: cada una de las 36 ≤ 7 168 B, las tres de Checkout ≤ 9 728 B y `+cartTotals=2048`.
 
 ## 35. Alcance: lo que se reutiliza y lo que queda fuera (#914)
 
@@ -873,7 +879,9 @@ Las de peso de Ecommerce (entrada y por variante) entran cuando lima fije los to
 - **EC-L4 · Muestra de color.** Una opción de color se dice con su nombre («Añil»); una muestra visual del color (un círculo) necesita CSS o un componente. Reservado (ronda de kiwi si una plantilla lo pide); la foto por color (`OptionValue.photo`) ya enseña el color real.
 - **EC-L5 · Políticas en una entrada común.** `GbPolicies` vive en Booking y la tienda la importa de ahí (§35). Si una tercera familia la pide, se muda a una entrada común sin cambiar su API.
 - **EC-L6 · Copiar un código** (Promo) depende de la aplicación (`activate` síncrono con `navigator.clipboard`, como «Compartir» de Confirmation, #873); un acuse en el sitio («Copiado») es el patrón de acciones con acuse de `api.md` (#643), reservado para cuando un componente lo ofrezca.
-- **BK-L1, BK-L2, BK-L3** siguen abiertos y los toca Ecommerce (resumen pegado, muelle del total, precio al final del renglón).
+- **EC-L7 · Dos columnas** (#933; PO-L1, CR-L1, Checkout 03, Product grid 02, y antes AV-L1 y Booking summary 03). `GAdaptiveLayout` pone en línea propia todo hijo con varios controles, una `section` o una `table` (#361, #365), y sin CSS (#763) un bloque no puede poner un panel al lado de otra cosa. **Recomendación de lima: primitiva nueva `GSplit`** (solo CSS, dos regiones con proporción que se apilan cuando no caben; ronda corta de kiwi). **Pendiente de decisión del usuario**; mientras, las cuatro secciones afectadas siguen en `draft` con una columna, que no es defecto.
+- **CK-L1 · `focus()` público en `GRadioGroup`** (#940). Un paso de Checkout que empieza por un `choice` no puede llevar el foco a la pregunta sin leer el DOM interno; el foco se queda en el botón del paso. Reservado (cambio de la v1).
+- **BK-L1, BK-L2, BK-L3** siguen abiertos y los toca Ecommerce (resumen pegado, muelle del total, precio al final del renglón). BK-L1 se resolvería con la `sticky` reservada de `GSplit` si el usuario la aprueba (#933).
 
 ## 38. Encargos de Ecommerce
 
@@ -887,3 +895,35 @@ Las de peso de Ecommerce (entrada y por variante) entran cuando lima fije los to
 **coco** (Sonnet; **Opus en las cinco complejas**): **solo auditoría** de las doce secciones (`auditoria-visual.md` previa y posterior, dos temas del CLI, rúbrica de movimiento sobre lo compuesto: vista rápida y cajón de `GDialog`, visor de `GGallery`, cifras que ruedan de `GPrice` en el carrito, plegado de `GFormSection` y `GAccordion`, la huella), resultado en `design/lab/blocks/ecommerce/auditoria.md`; lo que pida CSS vuelve a lima.
 
 **mora-docs** (Sonnet): un `README.md` por sección y las recetas: «La elección que viaja» (de `GbProductOverview` a `GbCart`, `GbOrderSummary` y `GbOrderHistory` con las mismas `ChosenOption`), «`cartTotals` o el servidor» (los mismos `Totals` de los dos lados), «El pago en el slot» (Checkout con la pasarela de la aplicación), «Mini carrito en la cabecera», «Dos promociones lado a lado», «Políticas de la tienda con `GbPolicies`».
+
+## 39. Remates tras la construcción (#932 a #941, 2026-10-26)
+
+Tras las partes B (942ce40) y C (64ec599) de bruno, con coco auditando en paralelo (`design/lab/blocks/ecommerce/`).
+
+| # | Qué | Dónde |
+| --- | --- | --- |
+| #932 | Topes: entrada 51 200 B, variante 7 168 B, Checkout 9 728 B, `cartTotals` 2 048 B | §32, §34, `api.md` regla 5 |
+| #933 | Dos columnas (EC-L7): recomendación `GSplit`, pendiente del usuario; Product overview, Cart, Checkout y Product grid en `draft` | §37, cuatro contratos |
+| #934 | PO-L2: preguntas sin `name` fuera de un formulario | §27 regla 9, `product-overview.md` |
+| #935 | PG-L1: `labels.facetOption` con `{label}` y `{count}`, aviso PG4 | `product-grid.md` |
+| #936 | PG-L2 y D: `event: null` en `change` y `retry` | §30 |
+| #937 | `GGallery` en tira sigue un `index` externo (defecto de `GGallery`) | `gallery.md` «Reglas de props» |
+| #938 | Checkout: `labels.quantity`, claves del pedido opcionales, G5 → CK4 | `checkout.md` |
+| #939 | Order history: «Ver el pedido» al final de la ficha; la puerta y las tarjetas se nombran con el código | `order-history.md` |
+| #940 | Esc escalonado en el cajón; paso que empieza por `choice` (CK-L1); `GbActions block`; escuchas de la raíz | §27 regla 10, `cart.md`, `checkout.md` |
+| #941 | Copia del motor de campos en `common/fields.js` con prueba de paridad | §32 |
+
+**Estado:** Product card, Category previews, Trust, Promo, Quick view, Reviews, Order summary y Order history pueden pasar a `candidate` con la auditoría de coco y los encargos de abajo. **Product overview, Cart, Checkout y Product grid siguen en `draft`** hasta que el usuario decida EC-L7 (#933). Quick view comparte el panel con Product overview pero no tiene dos columnas: no depende de la pregunta.
+
+**Encargos a bruno (remate de Ecommerce):**
+
+1. Pesos (#932): `bundle.cap: 51200` y `bundle.variantCap: 7168` en los doce `meta.json` (Checkout `9728`); compuertas de entrada, por variante y `+cartTotals=2048` en `measure-partial.mjs` (hoy dice `1024`) y `gates.sh`.
+2. PO-L2 (#934): quitar `name = option.key` de las preguntas en `common/ProductPanel.js`; prueba con dos paneles del mismo producto en una página (elegir en uno no desmarca el otro).
+3. PG-L1 (#935): `labels.facetOption` (plantilla o función), aviso PG4, cuenta con `Intl`; tipos y banco.
+4. `event: null` (#936): `change` de Cart y `retry` de Product grid y Order history; tipos `Event | null`.
+5. `GGallery` (#937, en `packages/vue`): la tira sigue un `index` externo desplazando solo la tira, sin mover el foco ni anunciar; prueba en `GGallery.test.js` y en el spec de la galería.
+6. Checkout (#938): `labels.quantity` en el tipo (claves del pedido opcionales, C5 solo si el bloque pinta el pedido); retirar G5 de su lista y añadir CK4; un campo sin grupo va después de los grupos.
+7. Order history (#939): «Ver el pedido» al final del `detail` en 01 (`labels.open(reference)`, `navigate` u `open`); la puerta y las tarjetas con el código como nombre (sin `labels.open`).
+8. #940: prueba de que el foco no cae en `body` al avanzar a un paso que empieza por `choice`.
+9. #941: prueba de paridad de `common/fields.js` con el motor de Guest form.
+10. **No tocar** el «al lado» de Product overview 01, Cart 01, Checkout 03 y Product grid 02 hasta la decisión del usuario (#933).

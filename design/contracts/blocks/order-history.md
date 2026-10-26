@@ -1,6 +1,6 @@
 # Contrato · Order history (`GbOrderHistory01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #909 a #914 y #924, 2026-10-23) · **Plan:** E10 (§4.2) · **Entrada:** `@grana/blocks/ecommerce` · **Común:** `_comun.md` §1 a §5 y §26 a §38 · **Compone:** `GSection`, `GTable` (`rowHref`, `activatable`, `detail`, `rowStatus`), `GCard`, `GStack`, `GAdaptiveLayout`, `GStepper` (informativo), `GBadge`, `GPrice` + `GPriceScope`, `GText`, `GBtn`, `GPagination`, `GEmpty`, `GLoadRegion` (`@grana/vue/load-region`) · **Parte de bruno:** C
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #909 a #914 y #924, 2026-10-23; #932, #936, #939) · **Plan:** E10 (§4.2) · **Entrada:** `@grana/blocks/ecommerce` · **Común:** `_comun.md` §1 a §5 y §26 a §38 · **Compone:** `GSection`, `GTable` (`rowHref`, `activatable`, `detail`, `rowStatus`), `GCard`, `GStack`, `GAdaptiveLayout`, `GStepper` (informativo), `GBadge`, `GPrice` + `GPriceScope`, `GText`, `GBtn`, `GPagination`, `GEmpty`, `GLoadRegion` (`@grana/vue/load-region`) · **Parte de bruno:** C
 
 ## Promesa
 
@@ -23,7 +23,7 @@ interface GbOrderHistoryProps {
     status: string                     // «Estado»
     total: string                      // «Total»
     count: string | ((count: number) => string)   // «{count} piezas»
-    open: string | ((reference: string) => string) // nombre de la puerta («Ver el pedido {reference}»)
+    open: string | ((reference: string) => string) // «Ver el pedido {reference}»: el botón al final de la ficha de 01 (#939)
     tracking?: string                  // «Seguir el envío» (con tracking)
     progress?: string | ((reference: string) => string)   // nombre del GStepper («Seguimiento del pedido {reference}»)
     detail?: string                    // a GTable labels.detail (01, con lines)
@@ -42,14 +42,14 @@ interface GbOrderHistoryProps {
 - **El estado** (`status`, `statusText`): `GBadge` (`variant="soft"`, `size="sm"`) con **el texto** de la aplicación (`statusText`: «Enviado») y el color por estado (`pending`/`paid`/`preparing` → `neutral`; `shipped` → `info`; `delivered` → `success`; `cancelled`/`returned` → `warning`): **el color nunca es la única señal** (1.4.1), el texto lo dice. Con `note` («Llega el lunes 16»), al lado en `GText size="body-sm"`.
 - **El seguimiento** (`progress`, 02): `GStepper` **informativo** (`navigation="none"`, `orientation="horizontal"`, `responsive="auto"`, `indicator="dot"`, `modelValue` = `progress.current`, `label` = `labels.progress(reference.code)`; cada paso con su fecha en `description` como texto de `Intl`), como Confirmation 02 (#873): un pedido es un proceso que avanza. **Cancelado o devuelto**: sin `GStepper` (no avanza), el estado en texto.
 - **El transportista** (`tracking`, `NavLink` normalmente externo): `GBtn variant="link"` `labels.tracking` con marca externa y `labels.external` (§3; sin `navigate`, #574).
-- **Abrir un pedido**: con `href`, enlace (`navigate`); sin él, botón que emite **`open { event, order }`**.
+- **Abrir un pedido**: con `href`, enlace (`navigate`); sin él, botón que emite **`open { event, order }`**. **Nombres (#939):** la puerta de la tabla y el enlace de las tarjetas de 02 y 03 se nombran con **el código** (`GTable` y `GCard` nombran con el título, #598); el contexto lo dan la columna y la lista con nombre. `labels.open(reference)` nombra solo «Ver el pedido» de la ficha de 01.
 - **Fechas** en `<time datetime>` con `Intl` en la zona de la tienda; importes con `GPrice` (`total` del pedido) dentro de un `GPriceScope` si hay `prices`; un pedido en otra moneda conserva su código (regla `auto`) y `approximate` si lo trae.
 
 ## Variantes
 
 | Variante | Concepto | Compone | Ignora |
 | --- | --- | --- | --- |
-| **01 · Tabla** | Una tabla para la cuenta en escritorio; tarjetas en estrecho (las de `GTable`) | `GSection` › `GPriceScope` › `GTable` (`columns`: referencia (principal, `title`), fecha (`format` con `Intl`), estado (slot `cell-status` con `GBadge`), piezas, total (`align="end"`, slot con `GPrice`); `rows` = `orders`, `rowKey: 'id'`; **`rowHref`** = `order.href`, **`activatable`** si alguno no tiene `href` (→ `open`); slot **`detail`** con lo comprado (`lines`) si los pedidos lo traen; **`rowStatus`** para `cancelled`/`returned` (`{ status: 'warning', text: statusText }`); `loading`, `error`, `page`/`pageSize`/`total` → paginación de `GTable`; `labels` = `labels.table` con `labels.pagination` y `detail`) | `labels.progress`, `labels.region` |
+| **01 · Tabla** | Una tabla para la cuenta en escritorio; tarjetas en estrecho (las de `GTable`) | `GSection` › `GPriceScope` › `GTable` (`columns`: referencia (principal, `title`), fecha (`format` con `Intl`), estado (slot `cell-status` con `GBadge`), piezas, total (`align="end"`, slot con `GPrice`); `rows` = `orders`, `rowKey: 'id'`; **`rowHref`** = `order.href`, **`activatable`** si alguno no tiene `href` (→ `open`); slot **`detail`** con lo comprado (`lines`) si los pedidos lo traen y, **al final de la ficha, «Ver el pedido»** (`GBtn variant="link"`, nombre `labels.open(reference)`; con `href` → `navigate`, sin él → `open`): con `detail` la puerta es la de divulgación y `GTable` ignora `activatable` (#599, #939); **`rowStatus`** para `cancelled`/`returned` (`{ status: 'warning', text: statusText }`); `loading`, `error`, `page`/`pageSize`/`total` → paginación de `GTable`; `labels` = `labels.table` con `labels.pagination` y `detail`) | `labels.progress`, `labels.region` |
 | **02 · Tarjetas con seguimiento** | Cada pedido en su tarjeta con su seguimiento, para el teléfono | `GSection` › `GPriceScope` › `GLoadRegion` (`labels.region`) › `GStack as="ul" gap="md"` › `GCard as="li"` (`interaction` link o button; `title` = `reference.code`, `subtitle` = la fecha, `badge` = `statusText` con `badgeColor` por estado, `meta` = las piezas) con el total en `GPrice` (el `meta` de `GCard` es solo texto), el `GStepper` y el transportista en el cuerpo + `GPagination` | `labels.detail`, `labels.table` |
 | **03 · Lista** | Una lista compacta: referencia, fecha, estado y total en una línea por pedido | `GSection` › `GPriceScope` › `GLoadRegion` › `GStack as="ul" gap="sm"` › `GCard as="li" level="flat" density="compact"` (título, fecha, estado, total) + `GPagination` | `progress`, `lines`, `labels.progress`/`detail`/`table` |
 
@@ -60,7 +60,7 @@ interface GbOrderHistoryProps {
 | `open` | `{ event, order }` | Abrir un pedido sin `href` |
 | `navigate` | `{ event, href, item: order }` | Abrir un pedido con `href` (01: la puerta de `GTable`; 02, 03: la tarjeta) |
 | `update:page` | `number` | Paginación |
-| `retry` | `{ event }` | «Reintentar» de `GTable` (01) o `GLoadRegion` (02, 03) |
+| `retry` | `{ event: null }` | «Reintentar» de `GTable` (01) o `GLoadRegion` (02, 03); no entregan evento (#936) |
 
 ## Slots
 
@@ -68,7 +68,7 @@ interface GbOrderHistoryProps {
 
 ## Estructura accesible
 
-`GSection` con título; 01 es una tabla con `caption` (`title`) y su puerta por fila (`rowHref`/`activatable`, #598) nombrada `labels.open(reference)`; 02 y 03, listas reales de tarjetas con nombre; el estado es texto en un `GBadge`; el seguimiento de 02 es un `GStepper` con nombre que **no** es navegable (informativo); las fechas en `time`. Sin `h1`.
+`GSection` con título; 01 es una tabla con `caption` (`title`) y su puerta por fila (`rowHref`/`activatable`, #598; con `lines`, la de divulgación de `detail`) nombrada con el código, y «Ver el pedido» (`labels.open(reference)`) al final de la ficha (#939); 02 y 03, listas reales de tarjetas con nombre; el estado es texto en un `GBadge`; el seguimiento de 02 es un `GStepper` con nombre que **no** es navegable (informativo); las fechas en `time`. Sin `h1`.
 
 ## Qué lo hace distinto (#924)
 
@@ -95,4 +95,4 @@ Cinco pedidos de Barro y Agave: pendiente de pago, en preparación, enviado (con
 
 ## Verificación propia
 
-Vitest: el estado con su texto y su color de la tabla de arriba; cancelado sin `GStepper`; `GStepper` con `navigation="none"`; `rowHref` y `activatable` en 01 con `open` para el pedido sin `href`; el `detail` con lo comprado; el pedido en USD con su código; `time` con `datetime` en la zona de la tienda. Chromium: 01 como tabla a 1440 y como tarjetas de `GTable` a 390; 02 con el seguimiento sin desbordar a 320.
+Vitest: el estado con su texto y su color de la tabla de arriba; cancelado sin `GStepper`; `GStepper` con `navigation="none"`; `rowHref` y `activatable` en 01 con `open` para el pedido sin `href`; con `lines`, «Ver el pedido» al final de la ficha con `labels.open(reference)` y la puerta nombrada con el código (#939); `retry` con `event: null` (#936); el `detail` con lo comprado; el pedido en USD con su código; `time` con `datetime` en la zona de la tienda. Chromium: 01 como tabla a 1440 y como tarjetas de `GTable` a 390; 02 con el seguimiento sin desbordar a 320.

@@ -1,6 +1,6 @@
 # Contrato · Quick view (`GbQuickView01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #909 a #914 y #919, 2026-10-23) · **Plan:** E5 (§4.2) · **Entrada:** `@grana/blocks/ecommerce` · **Común:** `_comun.md` §1 a §5 y §26 a §38; el panel es el de `product-overview.md` · **Compone:** `GDialog`, `GGallery` (`@grana/vue/gallery`), el panel de Product overview (`GRadioGroup`, `GNumberField`, `GBtn`, `GPrice` + `GPriceScope`, `GText`), `GBtn` · **Parte de bruno:** B · **Compleja: coco y bruno en Opus** (superficie modal con foco y la elección del panel)
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #909 a #914 y #919, 2026-10-23; #932, #934: las preguntas del panel van sin `name`, así la vista rápida y la ficha del mismo producto no comparten grupo de radios) · **Plan:** E5 (§4.2) · **Entrada:** `@grana/blocks/ecommerce` · **Común:** `_comun.md` §1 a §5 y §26 a §38; el panel es el de `product-overview.md` · **Compone:** `GDialog`, `GGallery` (`@grana/vue/gallery`), el panel de Product overview (`GRadioGroup`, `GNumberField`, `GBtn`, `GPrice` + `GPriceScope`, `GText`), `GBtn` · **Parte de bruno:** B · **Compleja: coco y bruno en Opus** (superficie modal con foco y la elección del panel)
 
 ## Promesa
 

@@ -1,6 +1,6 @@
 # Contrato · Checkout (`GbCheckout01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #909 a #914 y #922, 2026-10-23) · **Plan:** E8 (§4.2) · **Entrada:** `@grana/blocks/ecommerce` · **Común:** `_comun.md` §1 a §5 y §26 a §38; el motor de campos de `guest-form.md` · **Compone:** `GForm`, `GFormSection`, `GFormLayout`, `GFormRow`, `GInput`, `GTextarea`, `GSelect`, `GDatePicker`, `GRadioGroup appearance="card"`, `GCheckbox`, `GFieldGroup`, `GErrorSummary`, `GFormActions`, `GStepper`, `GSummary`, `GAccordion`, `GBtn`, `GPrice` + `GPriceScope`, `GText` (con `dl`) y el resumen de Order summary (E9) · **Parte de bruno:** C · **Compleja: coco y bruno en Opus** (formulario por pasos, validación, paso de la aplicación por slot y resumen del pedido)
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #909 a #914 y #922, 2026-10-23; #932, #933, #938, #940, #941) · **Remates #932 a #941 (2026-10-26):** sigue en `draft` hasta la decisión del usuario sobre las dos columnas (EC-L7, #933) (03) · **Peso:** ≤ 9,5 KiB (9 728 B) por variante, excepción de #932 · **Plan:** E8 (§4.2) · **Entrada:** `@grana/blocks/ecommerce` · **Común:** `_comun.md` §1 a §5 y §26 a §38; el motor de campos de `guest-form.md` · **Compone:** `GForm`, `GFormSection`, `GFormLayout`, `GFormRow`, `GInput`, `GTextarea`, `GSelect`, `GDatePicker`, `GRadioGroup appearance="card"`, `GCheckbox`, `GFieldGroup`, `GErrorSummary`, `GFormActions`, `GStepper`, `GSummary`, `GAccordion`, `GBtn`, `GPrice` + `GPriceScope`, `GText` (con `dl`) y el resumen de Order summary (E9) · **Parte de bruno:** C · **Compleja: coco y bruno en Opus** (formulario por pasos, validación, paso de la aplicación por slot y resumen del pedido)
 
 ## Promesa
 
@@ -30,7 +30,8 @@ interface GbCheckoutProps {
     order: string                      // título del resumen del pedido («Tu pedido»)
     total: string                      // «Total»
     busy?: string
-    lines?: string; pending?: string   // los de Order summary
+    lines?: string; quantity?: string | ((count: number) => string); pending?: string   // los de Order summary (#938): opcionales; C5 solo si el bloque pinta el pedido
+    placedAt?: string | ((date: string) => string); delivery?: string | ((date: string) => string); reference?: string
     form?: GranaLabels; errorSummary?: GranaLabels; stepper?: GranaLabels; datePicker?: GranaLabels
     price?: PriceLabels & { legend?: string }
     external?: string
@@ -68,6 +69,8 @@ GForm [data-gb] (labels.form; errors = los del paso ∪ errors de la app; un sol
 | **02 · Se pliega lo hecho** | Todos los pasos en la página; el hecho se pliega en su resumen con «Cambiar» y el siguiente se abre | `GSection` › `GStack gap="lg"` › `GAccordion` del pedido (como 01) + `GForm` › un `GFormSection mode="collapsible"` por paso (`title`, `summary` = el resumen del paso hecho, `open` = es el actual; los posteriores al actual, cerrados e `inert` hasta llegar: no se salta un paso sin hacer el anterior) | `labels.stepper` |
 | **03 · Con el pedido al lado** | El formulario por pasos y, al lado en ancho (debajo en estrecho), el pedido abierto; el pie con el total pegado | `GSection` › `GAdaptiveLayout gap="lg"` › [`div class="g-adapt-wide"` › `GStepper` + `GForm` de 01 con `GFormActions sticky`] + [`div class="g-adapt-standard"` › el pedido abierto (E9 02)] | el `GAccordion` del pedido |
 
+**03 en ancho (#933):** el formulario (varios controles) va en línea propia de `GAdaptiveLayout`, así que **hoy el pedido va debajo también en ancho**; el «al lado» espera la decisión del usuario sobre EC-L7 (recomendación `GSplit`). El total sigue junto al botón en el `status` del pie pegado.
+
 **Volver no borra** en las tres (§27 regla 3): «Atrás» (01, 03) o «Cambiar» (02, y el resumen de 01/03) no valida, conserva `values` y lleva al paso; los pasos hechos siguen hechos al volver hacia delante si nada cambió.
 
 ## Eventos
@@ -99,13 +102,15 @@ GForm [data-gb] (labels.form; errors = los del paso ∪ errors de la app; un sol
 | `choose` | Sí, con un `choice` obligatorio (C5) |
 | `consent`, `consents` | Sí, con `consents` (C5, G7) |
 | `busy` | Sí, con `busy` (C5) |
-| `lines`, `pending` | Los de Order summary (C5 donde los pida) |
+| `lines`, `quantity`, `pending`, `placedAt`, `delivery`, `reference` | Los de Order summary (#938): opcionales en el tipo; C5 cuando el bloque pinta el pedido (no con el slot `order`) |
 | `form`, `errorSummary`, `stepper`, `datePicker`, `price` | Los de cada componente (avisan ellos) |
 | `external` | Sí, con un enlace externo (C5) |
 
 ## Avisos propios (`[Grana GbCheckout<NN>]`)
 
-C5, C7, EC1, EC5, EC6 y los del motor de campos de Guest form con este prefijo (G1, G2, G3, G5, G7, G8). Además: **CK1** · un paso sin `fields` y sin slot `step-{id}` (se pinta el título y el botón, sin contenido), **CK2** · sin escucha de `submit` (nada puede pedir el pedido), **CK3** · `step` que no está en `steps` (se usa el primero).
+C5, C7, EC1, EC5, EC6 y los del motor de campos de Guest form con este prefijo (G1, G2, G3, G7, G8; **G5 no aplica**: los grupos de un paso citan campos por `name`, #938). Además: **CK1** · un paso sin `fields` y sin slot `step-{id}` (se pinta el título y el botón, sin contenido), **CK2** · sin escucha de `submit` (nada puede pedir el pedido), **CK3** · `step` que no está en `steps` (se usa el primero), **CK4** · un `name` de `step.groups[].fields` que no está en `step.fields` (se ignora; #938). Un campo del paso que ningún grupo cita va después de los grupos, sin título propio y sin aviso.
+
+**Motor de campos (#941):** copia en `common/fields.js`, con el mismo comportamiento que el de Guest form y una prueba de paridad. **Foco al avanzar (#940):** al primer control del paso; si el paso empieza por un `choice`, `GRadioGroup` no expone `focus()` y el foco se queda en el botón del paso (montado), nunca en `body` (CK-L1 reservado).
 
 ## Banco (`checkout.bank.js`)
 

@@ -1,6 +1,6 @@
 # Contrato · Cart (`GbCart01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #909 a #914, #911 y #921, 2026-10-23) · **Plan:** E7 (§4.2) · **Entrada:** `@grana/blocks/ecommerce` · **Común:** `_comun.md` §1 a §5 y §26 a §38 · **Compone:** `GSection`, `GStack`, `GAdaptiveLayout`, `GCard`, `GNumberField`, `GBtn`, `GPrice` + `GPriceScope` (`@grana/vue/price`), `GText` (con `dl`, #863), `GProgress`, `GEmpty`, `GDialog` (03) · **Parte de bruno:** C · **Compleja: coco y bruno en Opus** (cantidad por línea, huella con foco, totales y cajón modal)
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #909 a #914, #911 y #921, 2026-10-23; #932, #933, #936, #940) · **Remates #932 a #941 (2026-10-26):** sigue en `draft` hasta la decisión del usuario sobre las dos columnas (EC-L7, #933) (01) · **Plan:** E7 (§4.2) · **Entrada:** `@grana/blocks/ecommerce` · **Común:** `_comun.md` §1 a §5 y §26 a §38 · **Compone:** `GSection`, `GStack`, `GAdaptiveLayout`, `GCard`, `GNumberField`, `GBtn`, `GPrice` + `GPriceScope` (`@grana/vue/price`), `GText` (con `dl`, #863), `GProgress`, `GEmpty`, `GDialog` (03) · **Parte de bruno:** C · **Compleja: coco y bruno en Opus** (cantidad por línea, huella con foco, totales y cajón modal)
 
 ## Promesa
 
@@ -89,14 +89,18 @@ GCard as="section" (title = labels.summary, nivel de dentro) · dentro del únic
 | **02 · Resumen al pie** | Una columna: las líneas y, al final, el resumen con el total justo antes de pagar | `GSection` › `GPriceScope` › `GStack gap="lg"` › `GStack as="ul" gap="md"` › líneas + resumen | `open`, `from`, `labels.close`/`dialog` |
 | **03 · Cajón** | El carrito que se abre al borde sin salir de la página; pantalla completa en el teléfono | `GDialog placement="end" size="sm" mobile="fullscreen"` (raíz, `v-model` = `open`, `title` = `title`, `closeLabel` = `labels.close`, `from`) › `GPriceScope` › `GStack gap="md"` › líneas **sin media** + resumen con solo el total (sin `totals.lines` salvo las de `amount: null`, que se dicen) | `media` de las líneas, las líneas de desglose con importe |
 
+**01 en ancho (CR-L1, #933):** las líneas (varios controles) van en línea propia de `GAdaptiveLayout`, así que **hoy el resumen va debajo también en ancho**; el «al lado» espera la decisión del usuario sobre EC-L7 (recomendación `GSplit`).
+
+**Esc en 03 (#940):** con el foco en la cantidad, el primer Esc lo toma `GNumberField` (devuelve el texto) y el segundo cierra el cajón: Esc escalonado (#565). La raíz (`GDialog`) no recibe las escuchas de sus propios eventos (`open`, `closed`…): son de la aplicación para el bloque (`_comun.md` §27 regla 10).
+
 **Sin muelle ni columna pegada** (BK-L1, BK-L2; §36): en 02 el total está justo encima de «Pagar»; la aplicación que quiera el resumen pegado en 01 lo hace con su CSS en **su** contenedor (receta de Booking summary).
 
 ## Eventos
 
 | Evento | Carga | Cuándo |
 | --- | --- | --- |
-| `change` | `{ event, line, quantity }` | Cantidad por gesto (> 0) |
-| `remove` | `{ event, line, index }` | «Quitar» o cantidad 0 |
+| `change` | `{ event: null, line, quantity }` | Cantidad por gesto (> 0); `GNumberField` da el valor, no un evento (#936) |
+| `remove` | `{ event, line, index }` | «Quitar» (con el evento del clic) o cantidad 0 (`event: null`, #936) |
 | `restore` | `{ event, line, index }` | «Deshacer» de la huella |
 | `navigate` | `{ event, href, item }` | El nombre de un producto (`item` = la línea) o una acción con `href` |
 | `activate` | `{ event, item }` | Una acción sin `href` |
@@ -138,4 +142,4 @@ El carrito común (§33): Mezcal espadín × 2 (con `total` de `byLine`), Rebozo
 
 ## Verificación propia
 
-Vitest: `change` solo por gesto (no por tecla) con la carga exacta; cantidad 0 → `remove`; tras quitar, la huella en el mismo índice con el foco en «Deshacer» y `restore` con `line` e `index`; la huella se va con foco y puntero fuera, no por tiempo; sin escucha de `restore`, sin «Deshacer» (CA3); la línea no disponible sin cantidad, con motivo y fuera del total (lo dice `excluded`); el total es el de `totals` (el banco da un total que no es la suma y se pinta tal cual); un solo `GPriceScope`; `GProgress` con su rol en el umbral; 03 con `GDialog placement="end"` y el foco de vuelta al disparador. Chromium: 01 con el resumen al lado a 1440 y debajo a 390; las líneas sin desbordar a 320 con el nombre largo de §7; el total de una línea rueda al cambiar la cantidad y con reducido no; 03 a pantalla completa a 390.
+Vitest: `change` solo por gesto (no por tecla) con la carga exacta; cantidad 0 → `remove`; tras quitar, la huella en el mismo índice con el foco en «Deshacer» y `restore` con `line` e `index`; la huella se va con foco y puntero fuera, no por tiempo; sin escucha de `restore`, sin «Deshacer» (CA3); la línea no disponible sin cantidad, con motivo y fuera del total (lo dice `excluded`); el total es el de `totals` (el banco da un total que no es la suma y se pinta tal cual); un solo `GPriceScope`; `GProgress` con su rol en el umbral; 03 con `GDialog placement="end"` y el foco de vuelta al disparador. Chromium: 01 con el resumen debajo a 390 (al lado a 1440 **no se verifica** hasta #933); las líneas sin desbordar a 320 con el nombre largo de §7; el total de una línea rueda al cambiar la cantidad y con reducido no; 03 a pantalla completa a 390.
