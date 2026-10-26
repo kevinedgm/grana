@@ -1,6 +1,6 @@
 # Contrato · Product grid (`GbProductGrid01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #909 a #914 y #916, 2026-10-23; #932, #933, #935, #936) · **Remates #932 a #941 (2026-10-26):** sigue en `draft` hasta la decisión del usuario sobre las dos columnas (EC-L7, #933) (02) · **Plan:** E2 (§4.2) · **Entrada:** `@grana/blocks/ecommerce` · **Común:** `_comun.md` §1 a §5 y §26 a §38 · **Compone:** `GSection`, `GAdaptiveLayout`, `GStack`, `GTagGroup` + `GTag` de alternar (`@grana/vue/tag`), `GAccordion`, `GSelect`, `GLoadRegion` (`@grana/vue/load-region`), `GEmpty`, `GPagination`, `GPriceScope` (`@grana/vue/price`) y la tarjeta de Product card (E1) · **Parte de bruno:** B · **Compleja: coco y bruno en Opus** (facetas, orden, carga, vacío por filtros y paginación a la vez)
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #909 a #914 y #916, 2026-10-23; #932, #933, #935, #936) · **Remates #932 a #941 (2026-10-26):** **`candidate`** (#942: la 02 deja las facetas al lado a 1440, medido por coco; no depende de `GSplit`) · **Plan:** E2 (§4.2) · **Entrada:** `@grana/blocks/ecommerce` · **Común:** `_comun.md` §1 a §5 y §26 a §38 · **Compone:** `GSection`, `GAdaptiveLayout`, `GStack`, `GTagGroup` + `GTag` de alternar (`@grana/vue/tag`), `GAccordion`, `GSelect`, `GLoadRegion` (`@grana/vue/load-region`), `GEmpty`, `GPagination`, `GPriceScope` (`@grana/vue/price`) y la tarjeta de Product card (E1) · **Parte de bruno:** B · **Compleja: coco y bruno en Opus** (facetas, orden, carga, vacío por filtros y paginación a la vez)
 
 ## Promesa
 
@@ -65,7 +65,7 @@ type Facet = {
 | **02 · Con filtros al lado** | Las facetas en una columna plegable al inicio y la rejilla al lado; en el teléfono, las facetas plegadas arriba | `GSection` › `GAdaptiveLayout gap="lg"` › [`div class="g-adapt-short"` › `GAccordion` (`exclusive` false, nivel de dentro): un `GAccordionItem` por faceta, `title` = `facet.label`, `meta` = la cuenta de elegidos, `peek` = los valores elegidos en palabras; dentro, `GTagGroup` (flow) con sus `GTag`] + [`div class="g-adapt-wide"` › cabecera + resultados con tarjeta E1 **03** (compacta, con acción rápida) + paginación] | — |
 | **03 · Renglones** | Un producto por renglón con la foto al lado y todo su detalle | `GSection` › `GStack gap="md"` › cabecera + `GTagGroup layout="facets"` + resultados: `GStack as="ul" gap="md"` › `li` › tarjeta E1 **02** + paginación | — |
 
-**02 en ancho (#933):** el `div` de las facetas lleva un `GAccordion` (varios controles) y `GAdaptiveLayout` lo pone en línea propia: **hoy las facetas van encima de la rejilla también en ancho**. El «al lado» espera la decisión del usuario sobre EC-L7 (recomendación `GSplit`).
+**02 en ancho (#933):** el `div` de las facetas lleva un `GAccordion` (varios controles) y `GAdaptiveLayout` lo pone en línea propia: coco midió que a 1440 las facetas quedan **al lado** de la rejilla (#942, que corrige la lectura de #933); en estrecho van encima. No depende de `GSplit`.
 
 **02 en el teléfono:** la columna de facetas va primero en el DOM (se lee y se usa antes que la rejilla, 1.3.2) y está **plegada** (cada faceta, un encabezado de una línea con lo elegido en `peek`): la rejilla queda a uno o dos pantallazos, no a cinco.
 

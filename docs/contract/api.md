@@ -292,6 +292,10 @@ Reglas para todo block de `@grana/blocks` (`packages/blocks/`, #780; la ubicaci�
 9. **La consulta es el hilo (Booking, #864):** toda sección de Booking que habla de lo pedido recibe el mismo `BookingQuery` (`blocks/_comun.md` §16) y lo dice con **`describeQuery`** de `@grana/vue/booking` (#862), nunca con un formato propio; los precios, solo con `GPrice`/`GPriceScope` y los totales, de la aplicación (#769).
 10. **Nada se pierde al volver (Ecommerce, #913):** la elección (`ChosenOption`, `blocks/_comun.md` §28) viaja con las mismas palabras de la ficha al carrito, al pedido y al historial; quitar deja huella con «Deshacer» y el foco en ella (`restore`); volver de un paso no borra; cerrar una superficie devuelve el foco a su disparador; una acción rápida nunca añade sin las opciones obligatorias. **Los bloques no suman** (#911): la aritmética del carrito solo en `cartTotals` (o en el servidor de la aplicación, con los mismos `Totals`). **La calificación se dice en palabras** (#912) y **el pago es de la aplicación** (slot; ningún campo de tarjeta en un bloque, compuerta de `blocks/_comun.md` §34).
 
+## Varias aplicaciones en una página (#944)
+
+Los ids y el `name` de `GRadioGroup` salen de `useId()` de Vue, que numera **por aplicación**. Dos apps en la misma página repiten ids (`label for`, `aria-describedby`) y dos grupos de radios sin `form` con el mismo `name` se tratan como uno. Receta: `app.config.idPrefix` distinto en cada app (`docs/integracion.md`). Ningún componente prefija por su cuenta.
+
 ## Carga y vacío: motor común (#531 a #541)
 
 Contratos: `design/contracts/load-region.md` (`GLoadRegion`, el motor y la adopción) y `design/contracts/empty.md` (`GEmpty`). Reglas que valen para **todo componente que carga una región** (hoy `GLoadRegion`; por adopción, `GTable` en la primera entrega y `GCard`, `GWidget`, `GCalendar` en la segunda, #540):
