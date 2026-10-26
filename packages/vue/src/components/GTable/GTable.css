@@ -627,6 +627,10 @@ th[aria-sort] .g-table__sort .g-icon { opacity: 1; }
   font-size: var(--g-text-caption-size);
   color: var(--g-color-text-muted);
 }
+/* Una celda con varias piezas (un slot con GBadge y una nota): se reparten en líneas en vez de ponerse en fila y
+   desbordar la tarjeta (EC-C3, GbOrderHistory01 a 320 con texto al 200 %). Igual con una GBadge sola: no se parte, así que
+   baja entera bajo el rótulo antes que recortarse (su texto es la señal). Una celda de texto no cambia */
+.g-table--mode-cards .g-table__table td:has(> .g-badge, > :not(.g-table__label) ~ :not(.g-table__label)) { flex-wrap: wrap; }
 .g-table--mode-cards .g-table__title,
 .g-table--mode-cards .g-table__subtitle { white-space: normal; }
 .g-table--mode-cards .g-table__table td.g-table__empty { display: block; }

@@ -54,6 +54,10 @@
   vertical-align: middle;
 }
 
+/* Una insignia de texto puede encogerse en una fila flex (su mínimo automático era el texto entero y desbordaba la
+   caja, EC-C3): con max-inline-size llega la elipsis del contrato */
+.g-badge--kind-text { min-inline-size: 0; }
+
 /* Texto: una línea con elipsis; el texto completo sigue en el DOM */
 .g-badge__text {
   min-inline-size: 0;

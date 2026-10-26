@@ -18,6 +18,9 @@
 .g-stack--gap-lg { --_gap: calc(var(--g-space-1) * 12 * var(--_d)); }
 .g-stack--density-comfortable { --_d: 0.875; }
 .g-stack--density-compact { --_d: 0.75; }
+/* [hidden] gana a display: flex (la hoja del navegador pierde contra una clase): un paso oculto de un formulario por
+   pasos (GbCheckout 01 y 03) se veía entero con los demás (EC-C1) */
+.g-stack[hidden] { display: none; }
 
 /* En línea siempre se parte (1.4.10); misma separación entre filas */
 .g-stack--orientation-horizontal { flex-direction: row; flex-wrap: wrap; align-items: center; }
