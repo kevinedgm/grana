@@ -15,7 +15,7 @@ const F = {
   rebozoGrana: ['#F1D3D3', '#9B1B30', 'Rebozo de algodón teñido con grana cochinilla, doblado'],
   rebozoAnil: ['#D3DDF1', '#1F3A7A', 'Rebozo de algodón teñido con añil, doblado'],
   rebozoNatural: ['#F2ECE0', '#B9A88C', 'Rebozo de algodón en su color natural, doblado'],
-  huipil: ['#F6EFE4', '#8E2F3C', 'Huipil blanco con flores bordadas de San Antonino'],
+  huipil: ['#F6EFE4', '#8E2F3C', 'Huipil de manta natural con flores bordadas de San Antonino'],
   jarro: ['#4A4A4A', '#121212', 'Jarro de barro negro bruñido de San Bartolo Coyotepec'],
   plato: ['#CFE3C2', '#3E6B34', 'Plato de barro verde vidriado de Atzompa'],
   textiles: ['#E8D5C8', '#7A2E3A', 'Telar de cintura con hilos teñidos'],

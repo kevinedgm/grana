@@ -281,14 +281,16 @@ export interface ProductAdd {
 export interface ProductOpen { event: MouseEvent | KeyboardEvent; product: Product }
 /** `open` de un pedido sin href (Order history). */
 export interface OrderOpen { event: MouseEvent | KeyboardEvent; order: Order }
-/** `change` de una línea: por gesto (el `change` de GNumberField). */
-export interface CartLineChange { event: Event; line: CartLine; quantity: number }
-/** `remove` y `restore` de una línea («Quitar» o cantidad 0; «Deshacer» de la huella, a la misma posición). */
-export interface CartLineEvent { event: Event; line: CartLine; index: number }
+/** `change` de una línea: por gesto (el `change` de GNumberField); el bloque emite `event: null` (GNumberField no entrega
+ *  un evento del DOM, #936). */
+export interface CartLineChange { event: Event | null; line: CartLine; quantity: number }
+/** `remove` y `restore` de una línea («Quitar» o cantidad 0; «Deshacer» de la huella, a la misma posición): el evento del
+ *  botón, o `null` al quitar por cantidad 0 (#936). */
+export interface CartLineEvent { event: Event | null; line: CartLine; index: number }
 /** `select` de una opción (informativo: la elección ya está en v-model:selection). */
 export interface OptionSelect { event: Event; product: Product; key: string; value: string | number; variant: Variant | null }
-/** `retry` de la región que falló. */
-export interface BlockRetry { event: Event }
+/** `retry` de la región que falló: el bloque emite `event: null` (GLoadRegion y GTable no entregan evento, #936). */
+export interface BlockRetry { event: Event | null }
 
 // ── E1 Product card (product-card.md) ──
 
@@ -357,6 +359,9 @@ export interface ProductGridLabels {
   facets?: string
   /** «Quitar filtros». */
   clear?: string
+  /** La etiqueta de una opción con cuenta: «{label} · {count}» ({count} con agrupación del idioma) o función (#935). Sin
+   *  {label}, aviso PG4 y la etiqueta sola; el bloque no escribe el separador. */
+  facetOption?: string | ((label: string, count: number) => string)
   /** Rótulo del orden («Ordenar por»). */
   sort?: string
   /** Sin productos y sin filtros. */

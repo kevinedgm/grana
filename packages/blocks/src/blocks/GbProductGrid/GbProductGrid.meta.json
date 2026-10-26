@@ -4,7 +4,7 @@
   "kind": "block-section",
   "family": "ecommerce",
   "complex": true,
-  "status": "draft",
+  "status": "candidate",
   "since": "0.0.0",
   "description": "El escaparate de una categoría o de una búsqueda: los productos de la página, cuántos hay, cómo afinarlos y qué quitar si no queda ninguno. Cada faceta dice cuánto queda antes de tocarla y el vacío ofrece quitar justo el filtro que devuelve más. El bloque no filtra ni ordena: dice lo que la aplicación le da y emite lo que la persona pide.",
   "contract": "design/contracts/blocks/product-grid.md",
@@ -171,7 +171,7 @@
       "type": "Object",
       "ts": "ProductGridLabels",
       "required": true,
-      "note": "count, empty y card obligatorios; facets, clear y emptyFiltered con facets; sort con sorts; region (GLoadRegion), emptyLabels (GEmpty), tags (GTagGroup) y pagination (GPagination) tal cual"
+      "note": "count, empty y card obligatorios; facets, clear y emptyFiltered con facets; facetOption («{label} · {count}» o función) con alguna opción con count (#935; sin {label}, PG4 y la etiqueta sola); sort con sorts; region (GLoadRegion), emptyLabels (GEmpty), tags (GTagGroup) y pagination (GPagination) tal cual"
     }
   ],
   "events": [
@@ -213,9 +213,9 @@
     },
     {
       "name": "retry",
-      "payload": "{ event }",
+      "payload": "{ event: null }",
       "ts": "BlockRetry",
-      "trigger": "«Reintentar» de GLoadRegion (event es null: GLoadRegion no lo da; hallazgo PG-L2)"
+      "trigger": "«Reintentar» de GLoadRegion (event: null: GLoadRegion no entrega evento del DOM, #936)"
     }
   ],
   "slots": [
@@ -257,12 +257,15 @@
     "EC5",
     "PG1 · un valor de filters que no está en facets (se ignora)",
     "PG2 · sort que no está en sorts (GSelect sin selección)",
-    "PG3 · total menor que products.length (se usa products.length)"
+    "PG3 · total menor que products.length (se usa products.length)",
+    "PG4 · labels.facetOption sin {label} (se pinta la etiqueta sola, #935)"
   ],
   "root": "GSection con data-gb=\"product-grid-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/ecommerce",
-    "measured": 6633,
+    "measured": 48926,
+    "cap": 51200,
+    "variantCap": 7168,
     "peers": [
       "vue",
       "@grana/vue",
@@ -270,6 +273,6 @@
       "@grana/vue/tag",
       "@grana/vue/load-region"
     ],
-    "note": "Sin tope hasta medir (#909): lima lo fija al cierre del lote con las 36 variantes. Medida de la parte B (2026-10-26, con las 12 secciones en el árbol): importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbProductGrid01 6430 B, GbProductGrid02 6633 B, GbProductGrid03 6431 B (referencia 5 120 B: pasa, vuelve a lima). La medida incluye el preludio de importaciones de dist/ecommerce.js que esbuild conserva, que crece con cada sección de la entrada (Product card pasó de 3 416 a ≈ 3 600 B sin cambiar). dist/ecommerce.js con sus trozos: 48 816 B gzip con las 12 secciones (29 219 B con las 8 de A y B)."
+    "note": "dist/ecommerce.js con sus trozos (scripts/measure-entry.mjs, gzip -c), 12 secciones y 36 variantes (remate de bruno tras la auditoría de coco, 2026-10-26): 48 926 B de 51 200 (#932; margen 2 274 B; no se vuelve a subir: con más, decide el usuario). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbProductGrid01 6456, GbProductGrid02 6656, GbProductGrid03 6456; tope por variante 7 168 B (#932). cartTotals sola 1 903 B de 2 048."
   }
 }

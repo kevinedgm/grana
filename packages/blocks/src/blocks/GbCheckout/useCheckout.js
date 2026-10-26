@@ -1,5 +1,5 @@
 // GbCheckout · el motor que comparten las tres variantes (dueño: bruno; checkout.md «Anatomía», avisos C5, C7, EC1, EC5,
-// EC6, G1 a G8 del motor de Guest form, CK1 a CK3). Un solo GForm para todos los pasos; los campos con el motor de Guest
+// EC6, G1 a G8 del motor de Guest form salvo G5, CK1 a CK4). Un solo GForm para todos los pasos; los campos con el motor de Guest
 // form (common/fields.js, §32) más el tipo `choice`. GForm no valida (#157): el bloque calcula los errores como el
 // navegador y GForm los revela («castigar tarde»); solo conoce los de los pasos hasta el actual, más los de la aplicación.
 //   - Enviar un paso (Intro o su botón, type="submit") comprueba SOLO sus campos; con errores, los revela y enfoca el
@@ -45,6 +45,12 @@ export function useCheckout(props, emit, warn, variant, slots) {
       const grouped = new Set()
       const groups = entries(s.groups, ['id', 'title'], `steps[${si}].groups`, warn).map((g) => {
         const names = Array.isArray(g.item.fields) ? g.item.fields : []
+        try {
+          if (process.env.NODE_ENV !== 'production') {
+            const known = new Set((Array.isArray(s.fields) ? s.fields : []).map((f) => f && f.name))
+            for (const n of names) if (!known.has(n)) warn(`CK4:${s.id}:${String(n)}`, `steps «${s.id}»: el grupo «${String(g.item.id)}» cita «${String(n)}», que no está en sus fields: se ignora (CK4).`)
+          }
+        } catch {}
         const fs = fields.filter((f) => names.includes(f.name))
         for (const f of fs) grouped.add(f.name)
         return { key: g.key, title: g.item.title, rows: toRows(fs) }

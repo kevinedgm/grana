@@ -42,6 +42,9 @@ const PH = [
 ]
 const PHOTOS = PH.map(([key, group, alt], i) => ({ id: `h${i + 1}`, src: foto(key, 1200, 1500), thumb: foto(key, 240, 300), width: 1200, height: 1500, alt, group }))
 
+/** La primera foto de cada color en `PHOTOS`. */
+const COLOR_PHOTO = { natural: 0, grana: 3 }
+
 /** El huipil como ficha (`ProductDetail`). */
 export const DETAIL = {
   ...PRODUCTS.huipil,
@@ -53,18 +56,9 @@ export const DETAIL = {
     { value: 'detalle', label: 'El bordado', id: 'fotos-detalle' }
   ],
   optionsSummary: '4 tallas · 2 colores',
-  options: [
-    { key: 'talla', label: 'Talla', values: [{ value: 'ch', label: 'CH' }, { value: 'm', label: 'M' }, { value: 'g', label: 'G' }, { value: 'eg', label: 'EG' }] },
-    { key: 'color', label: 'Color', values: [{ value: 'natural', label: 'Natural', photo: 0 }, { value: 'grana', label: 'Grana', photo: 3 }] }
-  ],
-  variants: [
-    { id: 'huipil-ch-natural', options: { talla: 'ch', color: 'natural' }, max: 2, sku: 'HSA-CH-N' },
-    { id: 'huipil-m-natural', options: { talla: 'm', color: 'natural' }, max: 3, sku: 'HSA-M-N' },
-    { id: 'huipil-g-natural', options: { talla: 'g', color: 'natural' }, available: false, sku: 'HSA-G-N' },
-    { id: 'huipil-eg-natural', options: { talla: 'eg', color: 'natural' }, max: 1, sku: 'HSA-EG-N' },
-    { id: 'huipil-m-grana', options: { talla: 'm', color: 'grana' }, price: { value: mxn(3400) }, max: 2, photo: 3, sku: 'HSA-M-G' },
-    { id: 'huipil-g-grana', options: { talla: 'g', color: 'grana' }, price: { value: mxn(3400) }, max: 1, photo: 3, sku: 'HSA-G-G' }
-  ],
+  // Las opciones y variantes del huipil común (EC-B2), con la foto de cada color y el SKU de la ficha
+  options: PRODUCTS.huipil.options.map((o) => (o.key === 'color' ? { ...o, values: o.values.map((v) => ({ ...v, photo: COLOR_PHOTO[v.value] })) } : o)),
+  variants: PRODUCTS.huipil.variants.map((v) => ({ ...v, ...(v.options.color === 'grana' ? { photo: COLOR_PHOTO.grana } : {}), sku: `HSA-${v.options.talla.toUpperCase()}-${v.options.color === 'grana' ? 'G' : 'N'}` })),
   facts: [
     { label: 'Tela', value: 'Manta de algodón' },
     { label: 'Bordado', value: 'A mano, punto de cruz y pepenado' },

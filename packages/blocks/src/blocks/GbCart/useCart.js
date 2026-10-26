@@ -103,14 +103,12 @@ export function useCart(props, emit, warn, variant) {
   watch(() => (Array.isArray(props.lines) ? props.lines.map((l) => (l ? l.quantity : null)).join(',') : ''), () => { typed.value = {} })
   const quantityOf = (x) => (typed.value[x.key] !== undefined ? typed.value[x.key] : x.line.quantity)
   const setTyped = (x, v) => { typed.value = { ...typed.value, [x.key]: v } }
-  const gestures = new Map() // clave → último evento nativo sobre la línea (captura en el li)
-  const record = (x, event) => { gestures.set(x.key, event) }
-  const gestureOf = (x) => gestures.get(x.key) || (typeof Event === 'function' ? new Event('change') : null)
+  // GNumberField entrega el valor, no un evento del DOM: la intención lleva `event: null` (#936), también la de quitar por
+  // cantidad 0; nunca un evento fabricado.
   function onChange(x, q) {
-    const event = gestureOf(x)
     if (q === null || q === undefined || !Number.isFinite(q)) { setTyped(x, x.line.quantity); return }
-    if (q === 0) { remove(x, event); return }
-    emit('change', { event, line: x.line, quantity: q })
+    if (q === 0) { remove(x, null); return }
+    emit('change', { event: null, line: x.line, quantity: q })
   }
 
   // ---------- La huella ----------
@@ -180,6 +178,6 @@ export function useCart(props, emit, warn, variant) {
 
   return {
     uid, locale, L, lines, rows, empty, region, totals, totalsParts, excluded, goal, assuranceId, actions,
-    quantityOf, setTyped, record, onChange, remove, restore, leave, undoable, traces
+    quantityOf, setTyped, onChange, remove, restore, leave, undoable, traces
   }
 }

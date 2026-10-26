@@ -20,7 +20,6 @@ import { labelOf } from '../common/order.js'
 import GbTotals from '../common/totals.js'
 import { has } from '../common/text.js'
 
-const GESTURES = ['onClickCapture', 'onKeydownCapture', 'onFocusoutCapture', 'onPointerupCapture', 'onChangeCapture']
 
 export const CartLines = /* @__PURE__ */ defineComponent({
   name: 'GbCartLines',
@@ -85,10 +84,8 @@ export const CartLines = /* @__PURE__ */ defineComponent({
         h(GBtn, { id: `${x.id}-r`, variant: 'link', size: 'sm', disabled: x.busy, 'aria-label': removeName && removeName !== removeText ? removeName : undefined, onClick: (event) => c.remove(x, event) }, () => removeText)
       ]
       const meta = (Array.isArray(l.options) ? l.options : []).filter((o) => o && has(o.label) && has(o.value)).map((o) => ({ label: o.label, value: o.value }))
-      const on = Object.fromEntries(GESTURES.map((k) => [k, (event) => c.record(x, event)]))
       return h(GCard, {
         key: x.key,
-        ...on,
         as: 'li',
         level: 'flat',
         orientation: 'horizontal',
@@ -96,6 +93,7 @@ export const CartLines = /* @__PURE__ */ defineComponent({
         density: 'compact',
         eyebrow: has(p.maker) ? p.maker : undefined,
         title: name,
+        titleLines: 'none', // el nombre del producto entero (EC-B1)
         meta,
         headingLevel: props.headingLevel,
         interaction: has(p.href) && !p.external ? 'link' : undefined,

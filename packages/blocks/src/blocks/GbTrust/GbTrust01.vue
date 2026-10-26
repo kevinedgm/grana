@@ -1,6 +1,6 @@
 <script setup>
 // GbTrust01 · Fila (dueño: bruno). Contrato: design/contracts/blocks/trust.md · Común: _comun.md §27 · Sin CSS.
-// Tres o cuatro promesas en una fila: GSection › GAdaptiveLayout role="list" › div role="listitem" g-adapt-short › GCard as="div" level="flat" density="compact"
+// Tres o cuatro promesas en una fila: GSection › GAdaptiveLayout role="list" › div role="listitem" g-adapt-standard (EC-B3) › GCard as="div" level="flat" density="compact" titleLines="none" (la promesa entera, EC-B1)
 // (lead = GIcon decorativo, title al nivel de dentro, description, actions = la prueba en GBtn variant="link").
 import { computed } from 'vue'
 import { GAdaptiveLayout, GCard, GIcon, GSection, useSectionLevel } from '@grana/vue'
@@ -22,8 +22,8 @@ const { rows } = useTrust(props, warn)
   <GSection v-if="rows.length" :title="title" :description="description" data-gb="trust-01">
     <template v-if="$slots.description" #description><slot name="description" /></template>
     <GAdaptiveLayout role="list">
-      <div v-for="r in rows" :key="r.key" role="listitem" class="g-adapt-short">
-        <GCard as="div" level="flat" density="compact" :title="r.item.title" :description="r.item.description" :heading-level="inner">
+      <div v-for="r in rows" :key="r.key" role="listitem" class="g-adapt-standard">
+        <GCard as="div" level="flat" density="compact" title-lines="none" :title="r.item.title" :description="r.item.description" :heading-level="inner">
           <template v-if="r.icon" #lead><GIcon :name="r.icon" /></template>
           <template v-if="$slots.item" #default><slot name="item" :item="r.item" /></template>
           <template v-if="r.proof" #actions><TrustProof :row="r" :external="labels.external" :warn="warn" @navigate="emit('navigate', $event)" @activate="emit('activate', $event)" /></template>

@@ -419,6 +419,47 @@ describe('GGallery · B · La tira', () => {
     expect(w.findAll('.g-gallery__thumb')[2].attributes('tabindex')).toBe('0')
   })
 
+  it('un index que cambia desde fuera (#937): mueve la actual y desplaza SOLO la tira (scrollTo), sin foco ni anuncio', async () => {
+    const intoView = vi.fn()
+    Element.prototype.scrollIntoView = intoView
+    const before = document.createElement('button')
+    document.body.appendChild(before)
+    before.focus()
+    const w = mkB({ index: 0 })
+    const strip = w.find('.g-gallery__strip').element
+    strip.scrollTo = vi.fn()
+    strip.getBoundingClientRect = () => ({ left: 0, right: 400, top: 0, bottom: 300, width: 400, height: 300 })
+    w.findAll('.g-gallery__slide').forEach((s, i) => { s.element.getBoundingClientRect = () => ({ left: i * 320, right: i * 320 + 300, top: 0, bottom: 300, width: 300, height: 300 }) })
+    await w.setProps({ index: 2 })
+    await flush()
+    expect(w.findAll('.g-gallery__slide')[2].classes()).toContain('is-current')
+    expect(w.findAll('.g-gallery__thumb')[2].attributes('tabindex')).toBe('0')
+    expect(w.find('.g-gallery__strip-count').text()).toBe('3 / 4')
+    expect(strip.scrollTo).toHaveBeenCalledTimes(1)
+    expect(strip.scrollTo.mock.calls[0][0].left).toBe(640)
+    expect(intoView).not.toHaveBeenCalled()
+    expect(document.activeElement).toBe(before)
+    expect(w.find('.g-gallery__live').text()).toBe('')
+    expect(w.emitted('update:index')).toBeUndefined()
+  })
+  it('con movimiento reducido el desplazamiento externo es instantáneo; la vuelta por v-model de un cambio propio no vuelve a desplazar', async () => {
+    Element.prototype.scrollIntoView = vi.fn()
+    const mm = window.matchMedia
+    window.matchMedia = (q) => ({ matches: q.includes('reduce'), media: q, addEventListener() {}, removeEventListener() {} })
+    try {
+      const w = mkB({ index: 0, 'onUpdate:index': (v) => w.setProps({ index: v }) })
+      const strip = w.find('.g-gallery__strip').element
+      strip.scrollTo = vi.fn()
+      strip.getBoundingClientRect = () => ({ left: 0, right: 400, top: 0, bottom: 300, width: 400, height: 300 })
+      w.findAll('.g-gallery__slide').forEach((s, i) => { s.element.getBoundingClientRect = () => ({ left: i * 320, right: i * 320 + 300, top: 0, bottom: 300, width: 300, height: 300 }) })
+      await w.find('.g-gallery__next').trigger('click'); await flush()
+      expect(w.props('index')).toBe(1)
+      expect(strip.scrollTo).not.toHaveBeenCalled()
+      await w.setProps({ index: 3 }); await flush()
+      expect(strip.scrollTo).toHaveBeenCalledWith({ left: 960, behavior: 'instant' })
+    } finally { window.matchMedia = mm }
+  })
+
   it('sin labels.carousel o slide: sin aria-roledescription (aviso 6)', () => {
     const spy = quiet()
     const w = mkB({ labels: { ...LABELS, carousel: undefined } })

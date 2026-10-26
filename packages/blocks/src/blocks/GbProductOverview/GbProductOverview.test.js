@@ -1,6 +1,6 @@
 // GbProductOverview (dueño: bruno): product-overview.md «Verificación propia» + la batería común de _comun.md §8 y §33.
 import { describe, it, expect, afterEach, vi } from 'vitest'
-import { nextTick } from 'vue'
+import { h, nextTick } from 'vue'
 import meta from './GbProductOverview.meta.json'
 import * as bank from './product-overview.bank.js'
 import * as section from './props.js'
@@ -74,6 +74,22 @@ describe('GbProductOverview · nada preelegido y nunca a ciegas (#918, §27 regl
     expect(addBtn(w).attributes('aria-busy')).toBe('true')
     await addBtn(w).trigger('click')
     expect(onAdd).not.toHaveBeenCalled()
+  })
+})
+
+describe('GbProductOverview · preguntas sin name fuera de un formulario (#934, PO-L2)', () => {
+  it('dos paneles del mismo producto en una página: elegir en uno no desmarca el otro', async () => {
+    const { w } = mountBlock(GbProductOverview01, { props: bank.props, slots: bank.slots, attachTo: document.body, wrap: (render) => h('div', [render(), h(GbProductOverview03, bank.props, bank.slots)]) })
+    const [a, b] = w.findAllComponents(GbProductOverview01).concat(w.findAllComponents(GbProductOverview03))
+    const names = (x) => [...x.element.querySelectorAll('input[type="radio"]')].map((r) => r.name)
+    for (const n of names(a)) expect(names(b)).not.toContain(n)
+    expect(names(a).some((n) => n === 'talla' || n === 'color')).toBe(false)
+    await pick(a, 'talla', 'M')
+    await pick(b, 'talla', 'CH')
+    expect(radio(a, 'talla', 'M').checked).toBe(true)
+    expect(radio(b, 'talla', 'CH').checked).toBe(true)
+    expect(group(a, 'talla').props('modelValue')).toBe('m')
+    expect(group(b, 'talla').props('modelValue')).toBe('ch')
   })
 })
 

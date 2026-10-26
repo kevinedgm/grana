@@ -139,13 +139,13 @@
   "events": [
     {
       "name": "change",
-      "payload": "{ event, line, quantity }",
+      "payload": "{ event: null, line, quantity } (#936)",
       "ts": "CartLineChange",
-      "trigger": "La cantidad de una línea cambia POR GESTO (el change de GNumberField: al soltar el escalón, al salir del campo o con Intro), > 0. event = el último evento nativo sobre la línea"
+      "trigger": "La cantidad de una línea cambia POR GESTO (el change de GNumberField: al soltar el escalón, al salir del campo o con Intro), > 0. event: null: GNumberField entrega el valor, no un evento del DOM (#936)"
     },
     {
       "name": "remove",
-      "payload": "{ event, line, index }",
+      "payload": "{ event, line, index } (event: null al quitar por cantidad 0, #936)",
       "ts": "CartLineEvent",
       "trigger": "«Quitar» o cantidad 0. Cuando la aplicación quita la línea de lines, el bloque deja la huella en su sitio con el foco en «Deshacer»"
     },
@@ -224,12 +224,14 @@
   "root": "01, 02: GSection · 03: el GDialog (su <dialog>); con data-gb=\"cart-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/ecommerce",
+    "measured": 48926,
+    "cap": 51200,
+    "variantCap": 7168,
     "peers": [
       "vue",
       "@grana/vue",
       "@grana/vue/price"
     ],
-    "note": "Sin tope hasta medir (#909). Medida de la parte C (2026-10-26): dist/ecommerce.js con sus trozos 48 712 B gzip (scripts/measure-entry.mjs, 12 secciones, 36 variantes); cada variante sola (scripts/measure-partial.mjs): GbCart01 6369, GbCart02 6353, GbCart03 6507 (referencia 5 120 B). Pasa la referencia de la parte C y vuelve a lima con su medida.",
-    "measured": 48712
+    "note": "dist/ecommerce.js con sus trozos (scripts/measure-entry.mjs, gzip -c), 12 secciones y 36 variantes (remate de bruno tras la auditoría de coco, 2026-10-26): 48 926 B de 51 200 (#932; margen 2 274 B; no se vuelve a subir: con más, decide el usuario). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbCart01 6252, GbCart02 6234, GbCart03 6400; tope por variante 7 168 B (#932). cartTotals sola 1 903 B de 2 048."
   }
 }

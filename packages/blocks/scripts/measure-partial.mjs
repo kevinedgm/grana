@@ -3,7 +3,7 @@
 // nivel 6). Uso: node scripts/measure-partial.mjs [tope=4096] [familia=marketing] [Prefijo=tope…]  → imprime «Variante
 // bytes» y sale con 1 si alguna lo supera (VERBOSE=1 lista todas). `Prefijo=tope`: tope propio de las variantes cuyo nombre
 // empieza por el prefijo (Booking: GbGuestForm=7168, #887). `+nombre=tope`: mide también una exportación que no es variante
-// (Ecommerce: +cartTotals=1024, §32), importada sola con el mismo procedimiento.
+// (Ecommerce: +cartTotals=2048, #932), importada sola con el mismo procedimiento.
 import { build } from 'esbuild'
 import { readFileSync } from 'node:fs'
 import { gzipSync } from 'node:zlib'

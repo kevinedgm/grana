@@ -3,7 +3,7 @@
   "name": "GbOrderSummary",
   "kind": "block-section",
   "family": "ecommerce",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.0.0",
   "description": "Un pedido leído como su recibo: el código primero (lo que te piden si llamas), lo que compraste con la talla y el color tal como los elegiste, el desglose con el total como último renglón y lo incluido (el IVA) dicho después sin sumarlo otra vez, a dónde va con su fecha de entrega en la hora de la tienda y cómo se pagó. No calcula nada.",
   "contract": "design/contracts/blocks/order-summary.md",
@@ -159,12 +159,14 @@
   "root": "01: GCard as=\"section\" · 02: GSection · 03: GText as=\"div\" role=\"group\"; las tres con data-gb=\"order-summary-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/ecommerce",
+    "measured": 48926,
+    "cap": 51200,
+    "variantCap": 7168,
     "peers": [
       "vue",
       "@grana/vue",
       "@grana/vue/price"
     ],
-    "note": "Sin tope hasta medir (#909). Medida de la parte C (2026-10-26): dist/ecommerce.js con sus trozos 48 712 B gzip (scripts/measure-entry.mjs, 12 secciones, 36 variantes); cada variante sola (scripts/measure-partial.mjs): GbOrderSummary01 4698, GbOrderSummary02 4662, GbOrderSummary03 2924 (referencia 5 120 B).",
-    "measured": 48712
+    "note": "dist/ecommerce.js con sus trozos (scripts/measure-entry.mjs, gzip -c), 12 secciones y 36 variantes (remate de bruno tras la auditoría de coco, 2026-10-26): 48 926 B de 51 200 (#932; margen 2 274 B; no se vuelve a subir: con más, decide el usuario). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbOrderSummary01 4698, GbOrderSummary02 4663, GbOrderSummary03 2923; tope por variante 7 168 B (#932). cartTotals sola 1 903 B de 2 048."
   }
 }

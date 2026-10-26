@@ -90,21 +90,24 @@ export const PRODUCTS = {
     name: 'Huipil bordado de San Antonino',
     maker: 'Taller Mendoza · San Antonino Castillo Velasco',
     summary: 'Flores bordadas a mano en hilo de algodón; cada pieza tarda tres semanas.',
-    photos: photos([['huipil', 'Huipil blanco con flores bordadas']]),
+    photos: photos([['huipil', 'Huipil de manta natural con flores bordadas']]),
     price: { value: mxn(3200) },
     badge: 'Últimas 3 piezas',
     optionsSummary: '4 tallas · 2 colores',
     facts: [{ label: 'Tela', value: 'Manta de algodón' }, { label: 'Bordado', value: 'A mano' }, { label: 'Lavado', value: 'A mano, en frío' }],
+    // Un solo huipil en toda la tienda (EC-B2): las mismas opciones y variantes en la tarjeta, la ficha (Product overview y
+    // Quick view las toman de aquí y les añaden fotos y SKU), el carrito, el pedido y el historial
     options: [
-      { key: 'talla', label: 'Talla', values: [{ value: 'ch', label: 'CH' }, { value: 'm', label: 'M' }, { value: 'g', label: 'G', available: 'Sin existencias' }, { value: 'eg', label: 'EG' }] },
-      { key: 'color', label: 'Color', values: [{ value: 'blanco', label: 'Blanco' }, { value: 'negro', label: 'Negro' }] }
+      { key: 'talla', label: 'Talla', values: [{ value: 'ch', label: 'CH' }, { value: 'm', label: 'M' }, { value: 'g', label: 'G' }, { value: 'eg', label: 'EG' }] },
+      { key: 'color', label: 'Color', values: [{ value: 'natural', label: 'Natural' }, { value: 'grana', label: 'Grana' }] }
     ],
     variants: [
-      { id: 'huipil-ch-blanco', options: { talla: 'ch', color: 'blanco' }, max: 1 },
-      { id: 'huipil-m-blanco', options: { talla: 'm', color: 'blanco' }, max: 2 },
-      { id: 'huipil-g-blanco', options: { talla: 'g', color: 'blanco' }, available: false },
-      { id: 'huipil-eg-blanco', options: { talla: 'eg', color: 'blanco' }, max: 1 },
-      { id: 'huipil-m-negro', options: { talla: 'm', color: 'negro' }, max: 1 }
+      { id: 'huipil-ch-natural', options: { talla: 'ch', color: 'natural' }, max: 2 },
+      { id: 'huipil-m-natural', options: { talla: 'm', color: 'natural' }, max: 3 },
+      { id: 'huipil-g-natural', options: { talla: 'g', color: 'natural' }, available: false },
+      { id: 'huipil-eg-natural', options: { talla: 'eg', color: 'natural' }, max: 1 },
+      { id: 'huipil-m-grana', options: { talla: 'm', color: 'grana' }, price: { value: mxn(3400) }, max: 2 },
+      { id: 'huipil-g-grana', options: { talla: 'g', color: 'grana' }, price: { value: mxn(3400) }, max: 1 }
     ],
     rating: { average: 4.7, count: 58 }
   },
@@ -219,7 +222,7 @@ const progress = (current) => ({
  *  entregado en USD aproximado y sin `href` (se abre con `open`); tres con lo comprado. */
 export const ORDERS = [
   { id: 'BYA-2611-12', reference: { code: 'BYA-2611-12', label: 'Pedido' }, placedAt: '2026-11-12', status: 'pending', statusText: 'Pendiente de pago', total: mxn(890), count: 1, href: '/cuenta/pedidos/BYA-2611-12', note: 'Paga antes del 14 de noviembre para apartar la pieza.' },
-  { id: 'BYA-2611-09', reference: { code: 'BYA-2611-09', label: 'Pedido' }, placedAt: '2026-11-09', status: 'preparing', statusText: 'En preparación', total: mxn(3200), count: 1, href: '/cuenta/pedidos/BYA-2611-09', lines: [{ id: 'h1', name: PRODUCTS.huipil.name, options: [{ key: 'talla', label: 'Talla', value: 'M' }, { key: 'color', label: 'Color', value: 'Blanco' }], quantity: 1, total: mxn(3200) }] },
+  { id: 'BYA-2611-09', reference: { code: 'BYA-2611-09', label: 'Pedido' }, placedAt: '2026-11-09', status: 'preparing', statusText: 'En preparación', total: mxn(3200), count: 1, href: '/cuenta/pedidos/BYA-2611-09', lines: [{ id: 'h1', name: PRODUCTS.huipil.name, options: [{ key: 'talla', label: 'Talla', value: 'M' }, { key: 'color', label: 'Color', value: 'Natural' }], quantity: 1, total: mxn(3200) }] },
   { id: 'BYA-2611-07', reference: ORDER.reference, placedAt: ORDER.placedAt, status: 'shipped', statusText: 'Enviado', total: ORDER.totals.total.value, count: 4, href: '/cuenta/pedidos/BYA-2611-07', lines: ORDER.lines, progress: progress('enviado'), tracking: { label: 'Estafeta · guía 7012 3344 5566', href: 'https://rastreo.example/7012334455', external: true }, note: 'Llega el jueves 12 de noviembre' },
   { id: 'BYA-2610-21', reference: { code: 'BYA-2610-21', label: 'Pedido' }, placedAt: '2026-10-21', status: 'delivered', statusText: 'Entregado', total: usd(52), count: 1, lines: [{ id: 'h2', name: PRODUCTS.chocolate.name, lang: 'en', quantity: 1, total: usd(52) }] },
   { id: 'BYA-2610-03', reference: { code: 'BYA-2610-03', label: 'Pedido' }, placedAt: '2026-10-03', status: 'cancelled', statusText: 'Cancelado', total: mxn(480), count: 1, href: '/cuenta/pedidos/BYA-2610-03', note: 'Cancelado a petición tuya; el reembolso ya se hizo.' }

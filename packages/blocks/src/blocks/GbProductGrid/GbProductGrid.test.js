@@ -183,6 +183,27 @@ describe('GbProductGrid · avisos propios (una vez por instancia)', () => {
     for (const code of ['PG1', 'PG2', 'PG3', 'EC1', 'C7']) expect(own(warnings, '02', code), code).toHaveLength(1)
     expect(w.findComponent(GSelect).props('modelValue')).toBeNull()
   })
+  it('labels.facetOption (#935): la plantilla manda el orden, la función recibe etiqueta y cuenta, la cuenta con Intl', () => {
+    const big = [{ key: 'tinte', label: 'Tinte', options: [{ value: 'grana', label: 'Grana', count: 1240 }] }]
+    let { w, warnings } = run(GbProductGrid01, { facets: big, filters: {}, labels: { ...bank.LABELS, facetOption: '{count} — {label}' } })
+    expect(tag(w, '1,240').props('label')).toBe('1,240 — Grana')
+    expect(own(warnings, '01', 'PG4')).toHaveLength(0)
+    w.unmount()
+    ;({ w } = run(GbProductGrid01, { facets: big, filters: {}, labels: { ...bank.LABELS, facetOption: (label, count) => `${label} (${count})` } }))
+    expect(tag(w, 'Grana').props('label')).toBe('Grana (1240)')
+    w.unmount()
+  })
+  it('PG4 facetOption sin {label} y C5 sin facetOption: la etiqueta sola, sin separador del bloque', () => {
+    let { w, warnings } = run(GbProductGrid01, { labels: { ...bank.LABELS, facetOption: '{count}' } })
+    expect(own(warnings, '01', 'PG4')).toHaveLength(1)
+    expect(tag(w, 'Grana cochinilla').props('label')).toBe('Grana cochinilla')
+    w.unmount()
+    const { facetOption, ...labels } = bank.LABELS
+    ;({ w, warnings } = run(GbProductGrid01, { labels }))
+    expect(own(warnings, '01', 'C5').some((t) => t.includes('labels.facetOption'))).toBe(true)
+    expect(tag(w, 'Grana cochinilla').props('label')).toBe('Grana cochinilla')
+    expect(w.findAllComponents(GTag).some((t) => t.props('label').includes(' · '))).toBe(false)
+  })
   it('C5 sin labels.count', () => {
     const { count, ...labels } = bank.LABELS
     const { warnings } = run(GbProductGrid01, { labels })

@@ -155,6 +155,38 @@ test('B: una parada de Tab en la tira, flechas mueven la actual y los botones an
   await expect(page.locator('.g-gallery__live')).toHaveText(/3 de 6\./)
 })
 
+test('B: un index que cambia desde fuera trae su diapositiva a la vista desplazando solo la tira; ni la página, ni el foco, ni anuncio (#937)', async ({ page }) => {
+  const errs = watchConsole(page)
+  await open(page, '?c=strip', { width: 390, height: 700 })
+  await page.evaluate(() => { document.body.style.paddingBlockEnd = '1200px'; window.scrollTo(0, 120) })
+  await settle(page)
+  const before = await page.evaluate(() => ({ y: window.scrollY, active: document.activeElement === document.body ? 'body' : document.activeElement.className }))
+  await page.evaluate(() => { window.galState.index.value = 4 })
+  await page.waitForFunction(() => { const s = document.querySelector('.g-gallery__strip'); const c = s.querySelector('.g-gallery__slide.is-current'); const sr = s.getBoundingClientRect(); const r = c.getBoundingClientRect(); return r.left >= sr.left - 1 && r.right <= sr.right + 1 && s.scrollLeft > 0 }, null, { timeout: 3000 })
+  await settle(page, 400)
+  const after = await page.evaluate(() => {
+    const s = document.querySelector('.g-gallery__strip')
+    const slides = [...s.querySelectorAll('.g-gallery__slide')]
+    return {
+      y: window.scrollY,
+      active: document.activeElement === document.body ? 'body' : document.activeElement.className,
+      current: slides.findIndex((x) => x.classList.contains('is-current')),
+      tab: slides.findIndex((x) => x.querySelector('.g-gallery__thumb').getAttribute('tabindex') === '0'),
+      count: document.querySelector('.g-gallery__strip-count').textContent.trim(),
+      live: document.querySelector('.g-gallery__live').textContent.trim(),
+      index: window.galState.index.value
+    }
+  })
+  expect(after.y).toBe(before.y)
+  expect(after.active).toBe(before.active)
+  expect(after.current).toBe(4)
+  expect(after.tab).toBe(4)
+  expect(after.count).toBe('5 / 6')
+  expect(after.live).toBe('')
+  expect(after.index).toBe(4)
+  expect(errs).toEqual([])
+})
+
 test('controles del visor ≥ 44 px con puntero grueso', async ({ browser, browserName }) => {
   test.skip(browserName === 'firefox', 'Firefox no emula isMobile/hasTouch')
   const ctx = await browser.newContext({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } })

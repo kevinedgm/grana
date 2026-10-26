@@ -4,7 +4,7 @@
   "kind": "block-section",
   "family": "ecommerce",
   "complex": true,
-  "status": "draft",
+  "status": "candidate",
   "since": "0.0.0",
   "description": "Ver un producto y elegirlo sin salir de la lista: una superficie (GDialog) con las fotos, el precio, las opciones, la cantidad y «Añadir» (el panel de Product overview) y un enlace a la ficha completa. Al cerrar, el foco vuelve a la tarjeta que la abrió y la elección queda en la aplicación (v-model:selection). No cierra sola tras «Añadir».",
   "contract": "design/contracts/blocks/quick-view.md",
@@ -192,13 +192,15 @@
   "root": "GDialog (<dialog>) con data-gb=\"quick-view-NN\" y $attrs; su id es el id de la aplicación o uno propio",
   "bundle": {
     "entry": "@grana/blocks/ecommerce",
-    "measured": 5832,
+    "measured": 48926,
+    "cap": 51200,
+    "variantCap": 7168,
     "peers": [
       "vue",
       "@grana/vue",
       "@grana/vue/price",
       "@grana/vue/gallery"
     ],
-    "note": "Sin tope hasta medir (#909): lima lo fija al cierre del lote con las 36 variantes. Medida de la parte B (2026-10-26, con las 12 secciones en el árbol): importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbQuickView01 5577 B, GbQuickView02 5610 B, GbQuickView03 5832 B (referencia 6 144 B de §32: dentro). La medida incluye el preludio de importaciones de dist/ecommerce.js que esbuild conserva, que crece con cada sección de la entrada (Product card pasó de 3 416 a ≈ 3 600 B sin cambiar). dist/ecommerce.js con sus trozos: 48 816 B gzip con las 12 secciones (29 219 B con las 8 de A y B)."
+    "note": "dist/ecommerce.js con sus trozos (scripts/measure-entry.mjs, gzip -c), 12 secciones y 36 variantes (remate de bruno tras la auditoría de coco, 2026-10-26): 48 926 B de 51 200 (#932; margen 2 274 B; no se vuelve a subir: con más, decide el usuario). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbQuickView01 5559, GbQuickView02 5593, GbQuickView03 5808; tope por variante 7 168 B (#932). cartTotals sola 1 903 B de 2 048."
   }
 }

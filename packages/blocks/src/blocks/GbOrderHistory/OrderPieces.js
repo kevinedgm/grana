@@ -4,8 +4,8 @@
 //     body-sm › dl (dt labels.total · dd GPrice · dd las piezas) + la nota + [02] el seguimiento (GStepper informativo,
 //     navigation="none", indicator="dot", la fecha de cada paso como texto) + slot `order` · actions: el transportista.
 //   OrderStatus (01): GBadge soft sm con statusText y su color + la nota.
-//   OrderDetail (01, slot `detail` de GTable): lo comprado (ul) + «Ver el pedido {reference}» (enlace o botón → open) + el
-//     transportista + slot `order`.
+//   OrderDetail (01, slot `detail` de GTable): lo comprado (ul) + el transportista + slot `order` + al final «Ver el pedido
+//     {reference}» (enlace → navigate o botón → open, #939).
 import { defineComponent, h } from 'vue'
 import { GBadge, GBtn, GCard, GStack, GStepper, GText } from '@grana/vue'
 import { GPrice } from '@grana/vue/price'
@@ -96,8 +96,10 @@ export const OrderDetail = /* @__PURE__ */ defineComponent({
             h('p', null, [words, words ? ' ' : null, h(GPrice, { value: l.total, size: 'sm', locale: props.priceLocale })])
           ]
         })))) : null,
-        h(GStack, { orientation: 'horizontal', gap: 'sm' }, () => [door, tracking(r, L, props.warn, emit)]),
-        props.orderSlot ? props.orderSlot({ order: r.order }) : null
+        tracking(r, L, props.warn, emit),
+        props.orderSlot ? props.orderSlot({ order: r.order }) : null,
+        // «Ver el pedido» va al final de la ficha (#939): la puerta de la fila es la de divulgación y se nombra con el código
+        door
       ])
     }
   }

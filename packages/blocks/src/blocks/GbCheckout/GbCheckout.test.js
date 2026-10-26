@@ -167,12 +167,52 @@ describe('GbCheckout · errores de la aplicación', () => {
   })
 })
 
+describe('GbCheckout · un paso que empieza por un choice (#940, CK-L1)', () => {
+  it('al avanzar, el foco no cae en body: se queda en el formulario (el botón del paso sigue montado)', async () => {
+    for (const [n, C] of ALL) {
+      const forma = bank.STEPS[1].fields.find((f) => f.type === 'choice')
+      const steps = [bank.STEPS[0], { id: 'forma', title: 'Forma de envío', fields: [forma], action: 'Continuar' }, bank.STEPS[3]]
+      const onStep = vi.fn()
+      const { w } = run(C, { steps, 'onUpdate:step': onStep }, { attachTo: document.body })
+      await type(w, 'email', CONTACT.email)
+      await type(w, 'tel', CONTACT.tel)
+      const submitter = [...w.element.querySelectorAll('button[type="submit"]')].find((b) => b.textContent.includes('Continuar al envío'))
+      submitter.focus()
+      await send(w)
+      expect(onStep, n).toHaveBeenLastCalledWith('forma')
+      expect(w.findAllComponents(GRadioGroup).some((g) => g.props('label') === 'Forma de envío'), n).toBe(true)
+      expect(document.activeElement, n).not.toBe(document.body)
+      expect(w.element.contains(document.activeElement), n).toBe(true)
+      w.unmount()
+    }
+  })
+})
+
 describe('GbCheckout · avisos propios', () => {
   it('CK1 sin slot del paso de la aplicación; CK2 sin escucha de submit; CK3 step fuera de steps; una vez', () => {
     const a = run(GbCheckout02, { onSubmit: undefined, step: 'nada' }, { slots: {} })
     expect(own(a.warnings, '02', 'CK1')).toHaveLength(1)
     expect(own(a.warnings, '02', 'CK2')).toHaveLength(1)
     expect(own(a.warnings, '02', 'CK3')).toHaveLength(1)
+  })
+  it('CK4 (#938): un name de un grupo que no está en los fields del paso se ignora y avisa una vez; un campo sin grupo va después de los grupos', async () => {
+    const steps = bank.STEPS.map((s) => (s.id === 'envio' ? { ...s, groups: [{ id: 'direccion', title: 'Dirección', fields: ['calle', 'colonia', 'cp', 'ciudad', 'estado', 'calle2'] }] } : s))
+    const { w, warnings } = run(GbCheckout03, { steps, step: 'envio' }, { attachTo: document.body })
+    await settle()
+    expect(own(warnings, '03', 'CK4')).toHaveLength(1)
+    expect(own(warnings, '03', 'CK4')[0]).toContain('calle2')
+    expect(own(warnings, '03', 'G5')).toHaveLength(0)
+    const names = [...w.element.querySelectorAll('input[name], select[name]')].map((x) => x.getAttribute('name'))
+    expect(names.indexOf('forma')).toBeGreaterThan(names.indexOf('estado'))
+    w.unmount()
+  })
+  it('las claves del pedido son opcionales: con el slot order, sin lines ni quantity no hay C5 (#938)', () => {
+    const { lines, quantity, pending, placedAt, delivery, reference, ...labels } = bank.LABELS
+    const { warnings } = run(GbCheckout03, { labels }, { slots: { ...bank.slots, order: () => 'El pedido de la aplicación' } })
+    for (const k of ['lines', 'quantity', 'reference']) expect(warnings.some((t) => t.includes(`labels.${k}`) && t.includes('(C5)')), k).toBe(false)
+    const b = run(GbCheckout03, { labels })
+    expect(b.warnings.some((t) => t.includes('labels.lines') && t.includes('(C5)'))).toBe(true)
+    expect(b.warnings.some((t) => t.includes('labels.quantity') && t.includes('(C5)'))).toBe(true)
   })
   it('EC5: un paso sin id se omite; C7 con más de cinco pasos', () => {
     const steps = [...bank.STEPS, { title: 'Sin id', action: 'Ir' }, { id: 'a', title: 'A', action: 'A', fields: [] }, { id: 'b', title: 'B', action: 'B', fields: [] }]

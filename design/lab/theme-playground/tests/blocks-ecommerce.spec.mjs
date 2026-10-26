@@ -304,6 +304,20 @@ test('product-grid: alternar una faceta emite update:filters y el refresco (keep
   expect((await box(first)).top).toBe(before.top)
 })
 
+test('product-grid: la etiqueta de la faceta sale de labels.facetOption; con otra plantilla, su orden (#935)', async ({ page }) => {
+  const errs = watchConsole(page)
+  await open(page, 'product-grid.html', 'v=01', { width: 1440, height: 900 })
+  const block = page.locator('[data-gb="product-grid-01"]')
+  await expect(block.getByRole('button', { name: 'Grana cochinilla · 12' })).toHaveCount(1)
+  await page.evaluate(async () => {
+    const bank = await import('/packages/blocks/src/blocks/GbProductGrid/product-grid.bank.js')
+    window.blockViews['01'].labels = { ...bank.LABELS, facetOption: '{count} in {label}' }
+  })
+  await expect(block.getByRole('button', { name: '12 in Grana cochinilla' })).toHaveCount(1)
+  expect(await block.locator('.g-tag').evaluateAll((els) => els.filter((e) => e.textContent.includes(' · ')).length)).toBe(0)
+  expect(errs).toEqual([])
+})
+
 test('product-grid: el vacío por filtros ofrece quitar justo un filtro (relax)', async ({ page }) => {
   await open(page, 'product-grid.html', 'v=03&estado=filtrado')
   const block = page.locator('[data-gb="product-grid-03"]')

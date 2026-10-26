@@ -99,3 +99,13 @@ describe('GbCategoryPreviews · las puertas (#917)', () => {
     expect(own(empty.warnings, '03', 'C1')).toHaveLength(1)
   })
 })
+
+describe('GbCategoryPreviews 02 · el título con su dato entero (EC-B1, EC-B3)', () => {
+  it('titleLines="none" en sus tarjetas y la pista g-adapt-standard', () => {
+    const { w } = run(GbCategoryPreviews02)
+    const cards = w.findAllComponents(GCard)
+    expect(cards.length).toBeGreaterThan(0)
+    for (const c of cards) expect(c.props('titleLines')).toBe('none')
+    for (const li of w.findAll('[role="listitem"]')) expect(li.classes()).toEqual(['g-adapt-standard'])
+  })
+})

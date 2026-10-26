@@ -36,6 +36,7 @@ export const LABELS = {
   count: (n) => `${n} ${n === 1 ? 'producto' : 'productos'}`,
   facets: 'Filtrar',
   clear: 'Quitar filtros',
+  facetOption: '{label} · {count}',
   sort: 'Ordenar por',
   empty: { title: 'Todavía no hay textiles', description: 'Vuelve pronto: el taller está tejiendo.' },
   emptyFiltered: { title: 'Ningún textil con esos filtros', description: 'Quita uno para ver más.' },

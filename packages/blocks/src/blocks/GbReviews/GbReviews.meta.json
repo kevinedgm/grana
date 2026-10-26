@@ -3,7 +3,7 @@
   "name": "GbReviews",
   "kind": "block-section",
   "family": "ecommerce",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.0.0",
   "description": "Lo que opinan quienes compraron este producto: la calificación en palabras con cuántas la sostienen, cómo se reparten (también los «1 de 5») y cada opinión entera, con su fecha, lo que compró y la respuesta de la tienda. Sin estrellas: la distribución se lee como texto y sus barras son decorativas.",
   "contract": "design/contracts/blocks/reviews.md",
@@ -173,11 +173,13 @@
   "root": "GSection con data-gb=\"reviews-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/ecommerce",
-    "measured": 5412,
+    "measured": 48926,
+    "cap": 51200,
+    "variantCap": 7168,
     "peers": [
       "vue",
       "@grana/vue"
     ],
-    "note": "Sin tope hasta medir (#909): lima lo fija al cierre del lote con las 36 variantes. Medida de la parte B (2026-10-26, con las 12 secciones en el árbol): importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbReviews01 5316 B, GbReviews02 5380 B, GbReviews03 5412 B (referencia 5 120 B: pasa por ≈ 300 B, vuelve a lima). La medida incluye el preludio de importaciones de dist/ecommerce.js que esbuild conserva, que crece con cada sección de la entrada (Product card pasó de 3 416 a ≈ 3 600 B sin cambiar). dist/ecommerce.js con sus trozos: 48 816 B gzip con las 12 secciones (29 219 B con las 8 de A y B)."
+    "note": "dist/ecommerce.js con sus trozos (scripts/measure-entry.mjs, gzip -c), 12 secciones y 36 variantes (remate de bruno tras la auditoría de coco, 2026-10-26): 48 926 B de 51 200 (#932; margen 2 274 B; no se vuelve a subir: con más, decide el usuario). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbReviews01 5298, GbReviews02 5361, GbReviews03 5393; tope por variante 7 168 B (#932). cartTotals sola 1 903 B de 2 048."
   }
 }

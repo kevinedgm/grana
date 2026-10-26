@@ -186,13 +186,15 @@
   "root": "GSection con data-gb=\"product-overview-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/ecommerce",
-    "measured": 6138,
+    "measured": 48926,
+    "cap": 51200,
+    "variantCap": 7168,
     "peers": [
       "vue",
       "@grana/vue",
       "@grana/vue/price",
       "@grana/vue/gallery"
     ],
-    "note": "Sin tope hasta medir (#909): lima lo fija al cierre del lote con las 36 variantes. Medida de la parte B (2026-10-26, con las 12 secciones en el árbol): importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbProductOverview01 6053 B, GbProductOverview02 6019 B, GbProductOverview03 6138 B (referencia 6 144 B de §32: dentro). La medida incluye el preludio de importaciones de dist/ecommerce.js que esbuild conserva, que crece con cada sección de la entrada (Product card pasó de 3 416 a ≈ 3 600 B sin cambiar). dist/ecommerce.js con sus trozos: 48 816 B gzip con las 12 secciones (29 219 B con las 8 de A y B)."
+    "note": "dist/ecommerce.js con sus trozos (scripts/measure-entry.mjs, gzip -c), 12 secciones y 36 variantes (remate de bruno tras la auditoría de coco, 2026-10-26): 48 926 B de 51 200 (#932; margen 2 274 B; no se vuelve a subir: con más, decide el usuario). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbProductOverview01 6029, GbProductOverview02 5997, GbProductOverview03 6114; tope por variante 7 168 B (#932). cartTotals sola 1 903 B de 2 048."
   }
 }

@@ -3,7 +3,7 @@
   "name": "GbCategoryPreviews",
   "kind": "block-section",
   "family": "ecommerce",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.0.0",
   "description": "Las puertas de la tienda: cada categoría con una foto de lo que hay dentro y cuánto hay, para entrar en un toque. La cuenta va con el nombre y se lee en el enlace; una categoría vacía se queda a la vista con «Vuelve pronto» y no es enlace.",
   "contract": "design/contracts/blocks/category-previews.md",
@@ -32,7 +32,7 @@
       "name": "GbCategoryPreviews02",
       "tag": "gb-category-previews-02",
       "concept": "Tira",
-      "root": "GSection › GAdaptiveLayout role=\"list\" › div role=\"listitem\" g-adapt-short › GCard as=\"div\" mediaPosition=\"background\" density=\"compact\""
+      "root": "GSection › GAdaptiveLayout role=\"list\" › div role=\"listitem\" g-adapt-standard › GCard as=\"div\" mediaPosition=\"background\" density=\"compact\" titleLines=\"none\" (EC-B1, EC-B3)"
     },
     {
       "name": "GbCategoryPreviews03",
@@ -123,11 +123,13 @@
   "root": "GSection con data-gb=\"category-previews-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/ecommerce",
-    "measured": 14059,
+    "measured": 48926,
+    "cap": 51200,
+    "variantCap": 7168,
     "peers": [
       "vue",
       "@grana/vue"
     ],
-    "note": "Sin tope hasta medir (#909): lima lo fija al cierre del lote con las 36 variantes. Medida de la parte A (2026-10-23): dist/ecommerce.js con sus trozos 14 059 B gzip (scripts/measure-entry.mjs, 4 secciones, 12 variantes); importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbCategoryPreviews01 3022 B, GbCategoryPreviews02 3040 B, GbCategoryPreviews03 3004 B (referencia 5 120 B). cartTotals sola 1 594 B por el mismo procedimiento (referencia 1 024 B: pasa, vuelve a lima)."
+    "note": "dist/ecommerce.js con sus trozos (scripts/measure-entry.mjs, gzip -c), 12 secciones y 36 variantes (remate de bruno tras la auditoría de coco, 2026-10-26): 48 926 B de 51 200 (#932; margen 2 274 B; no se vuelve a subir: con más, decide el usuario). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbCategoryPreviews01 3357, GbCategoryPreviews02 3385, GbCategoryPreviews03 3339; tope por variante 7 168 B (#932). cartTotals sola 1 903 B de 2 048."
   }
 }

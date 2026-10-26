@@ -109,6 +109,10 @@ describe('GbOrderHistory · abrir un pedido', () => {
     const open = [...detail.querySelectorAll('button')].find((b) => b.textContent === 'Ver el pedido BYA-2610-21')
     open.click()
     expect(onOpen.mock.calls[0][0].order).toBe(ORDERS[3])
+    // #939: «Ver el pedido» al final de la ficha; la puerta de la fila se nombra con el código, sin labels.open
+    const controls = [...detail.querySelectorAll('a[href], button')]
+    expect(controls[controls.length - 1]).toBe(open)
+    expect(door.textContent).not.toContain('Ver el pedido')
   })
   it('02: la tarjeta sin href es botón (open); con href, enlace (navigate con item = el pedido)', async () => {
     const onOpen = vi.fn()
@@ -152,6 +156,12 @@ describe('GbOrderHistory · fechas, precios, estados de carga', () => {
       await e.find('button').trigger('click')
       expect(onRetry).toHaveBeenCalledWith({ event: null })
     }
+  })
+  it('01: el retry de GTable sale con event: null (#936)', () => {
+    const onRetry = vi.fn()
+    const { w } = run(GbOrderHistory01, { ...bank.states.error, onRetry })
+    w.findComponent(GTable).vm.$emit('retry')
+    expect(onRetry).toHaveBeenCalledWith({ event: null })
   })
   it('paginación: update:page de GPagination (02, 03) y de GTable (01)', async () => {
     for (const C of [GbOrderHistory02, GbOrderHistory03]) {

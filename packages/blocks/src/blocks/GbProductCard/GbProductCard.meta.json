@@ -3,7 +3,7 @@
   "name": "GbProductCard",
   "kind": "block-section",
   "family": "ecommerce",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.0.0",
   "description": "Un producto en una tarjeta: su foto, su nombre, lo que cuesta de verdad (la referencia de precio siempre nombrada), cuántos lo calificaron dicho en palabras y si se puede pedir. Un toque lleva a su ficha; en la compacta, la acción rápida nunca añade un producto sin sus opciones obligatorias: dice «Elegir opciones» y abre la elección.",
   "contract": "design/contracts/blocks/product-card.md",
@@ -146,12 +146,14 @@
   "root": "Con prices: GPriceScope as=\"div\" con data-gb=\"product-card-NN\" y $attrs; sin prices: la GCard (article) misma",
   "bundle": {
     "entry": "@grana/blocks/ecommerce",
-    "measured": 14059,
+    "measured": 48926,
+    "cap": 51200,
+    "variantCap": 7168,
     "peers": [
       "vue",
       "@grana/vue",
       "@grana/vue/price"
     ],
-    "note": "Sin tope hasta medir (#909): lima lo fija al cierre del lote con las 36 variantes. Medida de la parte A (2026-10-23): dist/ecommerce.js con sus trozos 14 059 B gzip (scripts/measure-entry.mjs, 4 secciones, 12 variantes); importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbProductCard01 3416 B, GbProductCard02 3421 B, GbProductCard03 3419 B (referencia 5 120 B). cartTotals sola 1 594 B por el mismo procedimiento (referencia 1 024 B: pasa, vuelve a lima)."
+    "note": "dist/ecommerce.js con sus trozos (scripts/measure-entry.mjs, gzip -c), 12 secciones y 36 variantes (remate de bruno tras la auditoría de coco, 2026-10-26): 48 926 B de 51 200 (#932; margen 2 274 B; no se vuelve a subir: con más, decide el usuario). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbProductCard01 3735, GbProductCard02 3740, GbProductCard03 3737; tope por variante 7 168 B (#932). cartTotals sola 1 903 B de 2 048."
   }
 }

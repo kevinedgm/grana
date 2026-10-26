@@ -71,3 +71,13 @@ describe('GbTrust · cada promesa lleva a su letra pequeña (#926)', () => {
     expect(a.w.findAll('a.g-btn').map((x) => x.attributes('href'))).toEqual(['/talleres'])
   })
 })
+
+describe('GbTrust 01 · la promesa entera (EC-B1, EC-B3)', () => {
+  it('titleLines="none" en sus tarjetas y la pista g-adapt-standard', () => {
+    const { w } = run(GbTrust01)
+    const cards = w.findAllComponents(GCard)
+    expect(cards.length).toBeGreaterThan(0)
+    for (const c of cards) expect(c.props('titleLines')).toBe('none')
+    for (const li of w.findAll('[role="listitem"]')) expect(li.classes()).toEqual(['g-adapt-standard'])
+  })
+})

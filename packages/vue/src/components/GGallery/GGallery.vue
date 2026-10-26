@@ -72,11 +72,16 @@ const localOpen = ref(false)
 const clamp = (i) => Math.max(0, Math.min(N.value - 1, Number.isInteger(i) ? i : 0))
 const cur = computed(() => clamp(props.index !== undefined ? props.index : localIndex.value))
 const isOpen = computed(() => (props.open !== undefined ? props.open : localOpen.value) && N.value > 0)
+let echo = null // el último index emitido: su vuelta por v-model no es un cambio «desde fuera»
 function setIndex(i) {
   const t = clamp(i)
   const prev = cur.value
   localIndex.value = t
-  if (t !== prev) emit('update:index', t)
+  if (t !== prev) {
+    echo = t
+    emit('update:index', t)
+    nextTick(() => { if (echo === t) echo = null })
+  }
 }
 function setOpen(v) {
   localOpen.value = v
@@ -157,6 +162,30 @@ function onStripKeydown(e) {
   if (t < 0 || t > N.value - 1) return
   setAt(t, { scroll: true, focus: true })
 }
+// Un index que cambia desde fuera (#937): la diapositiva a la vista desplazando SOLO la tira (scrollTo del contenedor, no
+// scrollIntoView, que movería la página), sin mover el foco ni anunciar; instantáneo con movimiento reducido.
+function scrollStrip(t) {
+  const el = stripEl.value
+  const s = slideOf(t)
+  if (!el || !s || typeof el.scrollTo !== 'function') return
+  const sr = el.getBoundingClientRect()
+  const r = s.getBoundingClientRect()
+  const rtl = isRtl()
+  const pad = parseFloat(getComputedStyle(el)[rtl ? 'scrollPaddingRight' : 'scrollPaddingLeft']) || 0
+  const delta = rtl ? r.right - (sr.right - pad) : r.left - (sr.left + pad)
+  if (Math.abs(delta) < 1) return
+  steering = t
+  clearTimeout(steerTimer)
+  steerTimer = setTimeout(() => { steering = null }, 1500)
+  el.scrollTo({ left: el.scrollLeft + delta, behavior: reduced() ? 'instant' : 'smooth' })
+}
+watch(() => props.index, (v) => {
+  if (v === undefined || !strip.value) return
+  const t = clamp(v)
+  const mine = echo === t
+  echo = null
+  if (!mine) nextTick(() => scrollStrip(t))
+})
 // El desplazamiento a mano mueve «la actual» sin anunciar; durante un desplazamiento pedido no se recalcula
 let tick = 0
 function syncFromScroll() {

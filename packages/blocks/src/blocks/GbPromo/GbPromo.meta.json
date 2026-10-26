@@ -3,7 +3,7 @@
   "name": "GbPromo",
   "kind": "block-section",
   "family": "ecommerce",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.0.0",
   "description": "Una oferta de la tienda con lo que da, hasta qué fecha (una fecha en la hora de la tienda, nunca una cuenta atrás) y con qué condiciones, siempre a la vista y oídas con la acción principal; el código se copia en un toque y se puede leer en voz alta.",
   "contract": "design/contracts/blocks/promo.md",
@@ -166,11 +166,13 @@
   "root": "01: GSurface; 02: GCard as=\"section\"; 03: GText as=\"div\" role=\"group\"; con data-gb=\"promo-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/ecommerce",
-    "measured": 14059,
+    "measured": 48926,
+    "cap": 51200,
+    "variantCap": 7168,
     "peers": [
       "vue",
       "@grana/vue"
     ],
-    "note": "Sin tope hasta medir (#909): lima lo fija al cierre del lote con las 36 variantes. Medida de la parte A (2026-10-23): dist/ecommerce.js con sus trozos 14 059 B gzip (scripts/measure-entry.mjs, 4 secciones, 12 variantes); importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbPromo01 2841 B, GbPromo02 3079 B, GbPromo03 2813 B (referencia 5 120 B). cartTotals sola 1 594 B por el mismo procedimiento (referencia 1 024 B: pasa, vuelve a lima)."
+    "note": "dist/ecommerce.js con sus trozos (scripts/measure-entry.mjs, gzip -c), 12 secciones y 36 variantes (remate de bruno tras la auditoría de coco, 2026-10-26): 48 926 B de 51 200 (#932; margen 2 274 B; no se vuelve a subir: con más, decide el usuario). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbPromo01 3177, GbPromo02 3411, GbPromo03 3146; tope por variante 7 168 B (#932). cartTotals sola 1 903 B de 2 048."
   }
 }

@@ -8,9 +8,9 @@ const collect = () => { const out = []; const warn = (key, text) => out.push([ke
 
 describe('la elección que viaja (§27 regla 3)', () => {
   it('chosenOptions dice la elección con las palabras de la ficha, en el orden de las opciones', () => {
-    expect(chosenOptions(PRODUCTS.huipil, { color: 'blanco', talla: 'm' })).toEqual([
+    expect(chosenOptions(PRODUCTS.huipil, { color: 'grana', talla: 'm' })).toEqual([
       { key: 'talla', label: 'Talla', value: 'M' },
-      { key: 'color', label: 'Color', value: 'Blanco' }
+      { key: 'color', label: 'Color', value: 'Grana' }
     ])
     // La misma ChosenOption que lleva la línea del carrito del banco
     expect(chosenOptions(PRODUCTS.rebozo, { color: 'grana' })).toEqual(CART_LINES[1].options)
@@ -19,12 +19,12 @@ describe('la elección que viaja (§27 regla 3)', () => {
   it('requiredOptions y missingOption: required por defecto true; la primera que falta', () => {
     expect(requiredOptions(PRODUCTS.huipil).map((o) => o.key)).toEqual(['talla', 'color'])
     expect(requiredOptions(PRODUCTS.jarro)).toEqual([])
-    expect(missingOption(PRODUCTS.huipil, { color: 'negro' }).key).toBe('talla')
-    expect(missingOption(PRODUCTS.huipil, { talla: 'm', color: 'negro' })).toBe(null)
+    expect(missingOption(PRODUCTS.huipil, { color: 'grana' }).key).toBe('talla')
+    expect(missingOption(PRODUCTS.huipil, { talla: 'm', color: 'grana' })).toBe(null)
   })
   it('resolveVariant: la variante de la elección o null; EC4 ignora las que no cubren todas las claves o se repiten', () => {
-    expect(resolveVariant(PRODUCTS.huipil, { talla: 'm', color: 'negro' }, () => {}).variant.id).toBe('huipil-m-negro')
-    expect(resolveVariant(PRODUCTS.huipil, { talla: 'ch', color: 'negro' }, () => {}).variant).toBe(null)
+    expect(resolveVariant(PRODUCTS.huipil, { talla: 'm', color: 'grana' }, () => {}).variant.id).toBe('huipil-m-grana')
+    expect(resolveVariant(PRODUCTS.huipil, { talla: 'ch', color: 'grana' }, () => {}).variant).toBe(null)
     const { out, warn } = collect()
     const p = { ...PRODUCTS.rebozo, variants: [...PRODUCTS.rebozo.variants, { id: 'x', options: {} }, { id: 'y', options: { color: 'grana' } }] }
     const r = resolveVariant(p, { color: 'grana' }, warn)

@@ -3,7 +3,7 @@
   "name": "GbTrust",
   "kind": "block-section",
   "family": "ecommerce",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.0.0",
   "description": "Lo que la tienda promete (envío, devoluciones, pago seguro, hecho a mano) dicho en una frase y con su letra pequeña a un toque: cada promesa enlaza a la política que la sostiene (el ancla de GbPolicies) o a su prueba. Sin sellos dibujados ni logotipos mudos.",
   "contract": "design/contracts/blocks/trust.md",
@@ -27,7 +27,7 @@
       "name": "GbTrust01",
       "tag": "gb-trust-01",
       "concept": "Fila",
-      "root": "GSection › GAdaptiveLayout role=\"list\" › div role=\"listitem\" g-adapt-short › GCard as=\"div\" level=\"flat\" density=\"compact\""
+      "root": "GSection › GAdaptiveLayout role=\"list\" › div role=\"listitem\" g-adapt-standard › GCard as=\"div\" level=\"flat\" density=\"compact\" titleLines=\"none\" (EC-B1, EC-B3)"
     },
     {
       "name": "GbTrust02",
@@ -110,11 +110,13 @@
   "root": "GSection con data-gb=\"trust-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/ecommerce",
-    "measured": 14059,
+    "measured": 48926,
+    "cap": 51200,
+    "variantCap": 7168,
     "peers": [
       "vue",
       "@grana/vue"
     ],
-    "note": "Sin tope hasta medir (#909): lima lo fija al cierre del lote con las 36 variantes. Medida de la parte A (2026-10-23): dist/ecommerce.js con sus trozos 14 059 B gzip (scripts/measure-entry.mjs, 4 secciones, 12 variantes); importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbTrust01 2395 B, GbTrust02 2377 B, GbTrust03 2321 B (referencia 5 120 B). cartTotals sola 1 594 B por el mismo procedimiento (referencia 1 024 B: pasa, vuelve a lima)."
+    "note": "dist/ecommerce.js con sus trozos (scripts/measure-entry.mjs, gzip -c), 12 secciones y 36 variantes (remate de bruno tras la auditoría de coco, 2026-10-26): 48 926 B de 51 200 (#932; margen 2 274 B; no se vuelve a subir: con más, decide el usuario). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbTrust01 2727, GbTrust02 2693, GbTrust03 2637; tope por variante 7 168 B (#932). cartTotals sola 1 903 B de 2 048."
   }
 }

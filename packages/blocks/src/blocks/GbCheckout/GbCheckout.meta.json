@@ -140,7 +140,7 @@
       "type": "Object",
       "ts": "CheckoutLabels",
       "required": true,
-      "note": "required, invalid, back, edit, order, total (C5); choose con un choice obligatorio; consent y consents con consentimientos; busy con busy; los de Order summary para el pedido (lines, quantity, pending, placedAt, delivery, reference); form, errorSummary, stepper, datePicker y price a sus componentes; external. Sin valores por defecto"
+      "note": "required, invalid, back, edit, order, total (C5); choose con un choice obligatorio; consent y consents con consentimientos; busy con busy; los de Order summary para el pedido (lines, quantity, pending, placedAt, delivery, reference; opcionales, C5 solo cuando el bloque pinta el pedido, no con el slot order, #938); form, errorSummary, stepper, datePicker y price a sus componentes; external. Sin valores por defecto"
     }
   ],
   "events": [
@@ -211,20 +211,23 @@
     "EC1",
     "EC5 (paso sin id: se omite)",
     "EC6 (campo de tarjeta: no se pinta)",
-    "G1, G2, G3, G5, G7, G8 (los del motor de campos de Guest form)",
+    "G1, G2, G3, G7, G8 (los del motor de campos de Guest form; G5 no aplica: los grupos citan campos por name, #938)",
     "CK1 · un paso sin fields y sin slot step-{id} (título y botón, sin contenido)",
     "CK2 · sin escucha de submit",
-    "CK3 · step que no está en steps (se usa el primero)"
+    "CK3 · step que no está en steps (se usa el primero)",
+    "CK4 · un name de step.groups[].fields que no está en step.fields (se ignora; un campo que ningún grupo cita va después de los grupos, sin aviso, #938)"
   ],
   "root": "GSection con data-gb=\"checkout-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/ecommerce",
+    "measured": 48926,
+    "cap": 51200,
+    "variantCap": 9728,
     "peers": [
       "vue",
       "@grana/vue",
       "@grana/vue/price"
     ],
-    "note": "Sin tope hasta medir (#909). El motor de campos es una copia del de Guest form en common/fields.js (§32: compartido, GbGuestForm03 pasaba de su tope de 7 168 B, medido 7 328 B). Medida de la parte C (2026-10-26): dist/ecommerce.js con sus trozos 48 712 B gzip (scripts/measure-entry.mjs, 12 secciones, 36 variantes); cada variante sola (scripts/measure-partial.mjs): GbCheckout01 9158, GbCheckout02 9048, GbCheckout03 9176 (referencia 7 168 B). Pasa la referencia de la parte C y vuelve a lima con su medida.",
-    "measured": 48712
+    "note": "dist/ecommerce.js con sus trozos (scripts/measure-entry.mjs, gzip -c), 12 secciones y 36 variantes (remate de bruno tras la auditoría de coco, 2026-10-26): 48 926 B de 51 200 (#932; margen 2 274 B; no se vuelve a subir: con más, decide el usuario). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbCheckout01 9163, GbCheckout02 9049, GbCheckout03 9179; tope por variante 9 728 B (#932, Checkout con la copia del motor de campos, #941). cartTotals sola 1 903 B de 2 048."
   }
 }

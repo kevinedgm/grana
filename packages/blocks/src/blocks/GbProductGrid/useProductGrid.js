@@ -1,6 +1,6 @@
 // GbProductGrid · lo que comparten las tres variantes (dueño: bruno; product-grid.md «Piezas»). Avisos C3, C5, C7, EC1, EC5,
-// PG1 (un valor de `filters` que no está en `facets`), PG2 (`sort` que no está en `sorts`) y PG3 (`total` menor que la
-// página). Sin filtrar ni ordenar: los productos salen en el orden en que llegan.
+// PG1 (un valor de `filters` que no está en `facets`), PG2 (`sort` que no está en `sorts`), PG3 (`total` menor que la
+// página) y PG4 (`labels.facetOption` sin {label}, #935). Sin filtrar ni ordenar: los productos salen en el orden en que llegan.
 //   - Filtros, orden y página: copia propia (sin v-model funciona igual) que la prop sustituye; cada cambio emite un valor
 //     NUEVO (`update:filters` con un objeto nuevo y arreglos nuevos; nunca muta lo recibido).
 //   - Facetas → `TagItem` de GTagGroup (alternar): id «clave:valor», la cuenta en la etiqueta, `facet` con el nombre (racimo),
@@ -85,7 +85,22 @@ export function useProductGrid(props, emit, warn) {
   const clear = () => setFilters({})
   // C5 de los textos de las facetas
   watch(() => facets.value.length, (n) => { if (n) { need('facets', 'nombre del grupo de facetas'); need('clear', '«Quitar filtros»'); need('emptyFiltered', 'vacío por filtros') } }, { immediate: true })
-  const optionLabel = (o) => (Number.isFinite(o.count) ? `${o.label} · ${countText(o.count, locale.value)}` : o.label)
+  /** La etiqueta de una opción con cuenta: `labels.facetOption` (plantilla con {label} y {count}, o función; #935). El bloque
+   *  no escribe el separador; sin el texto (C5) o sin {label} (PG4), la etiqueta va sola. */
+  const optionLabel = (o) => {
+    if (!Number.isFinite(o.count)) return o.label
+    const t = L.value.facetOption
+    if (typeof t === 'function') return String(t(o.label, o.count))
+    if (!has(t)) {
+      try { if (process.env.NODE_ENV !== 'production') warn('C5:facetOption', 'hay opciones de faceta con count y falta labels.facetOption («{label} · {count}»): se pinta la etiqueta sola (C5).') } catch {}
+      return o.label
+    }
+    if (!t.includes('{label}')) {
+      try { if (process.env.NODE_ENV !== 'production') warn('PG4', 'labels.facetOption no lleva {label}: se pinta la etiqueta sola (PG4).') } catch {}
+      return o.label
+    }
+    return fill(t, { label: o.label, count: countText(o.count, locale.value) })
+  }
   /** Los `TagItem` de una faceta (o de todas, con `facet` para el racimo). */
   const tagItems = (only) => facets.value.filter((f) => !only || f.key === only).flatMap((f) => f.options.map((o) => {
     const pressed = isOn(f.key, o.value)

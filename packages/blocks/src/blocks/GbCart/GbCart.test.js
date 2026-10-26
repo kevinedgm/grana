@@ -21,7 +21,7 @@ sectionSuite({ meta, bank, variants, section, dir: 'src/blocks/GbCart', headless
 afterEach(() => { vi.restoreAllMocks(); document.body.innerHTML = '' })
 
 import { nextTick } from 'vue'
-import { GBtn, GDialog, GEmpty, GNumberField, GProgress } from '@grana/vue'
+import { GBtn, GCard, GDialog, GEmpty, GNumberField, GProgress } from '@grana/vue'
 import { GPrice, GPriceScope } from '@grana/vue/price'
 import { mountBlock } from '../bank/harness.js'
 import { mxn } from '../bank/ecommerce.js'
@@ -33,7 +33,7 @@ const tick = async () => { await nextTick(); await nextTick() }
 const input = (w, name) => w.findAll('input').find((i) => i.element.closest('.g-number-field') && i.element.closest('li').textContent.includes(name))
 
 describe('GbCart · la cantidad cambia por gesto (cart.md «Anatomía de una línea»)', () => {
-  it('escribir no emite; Intro (el change de GNumberField) emite change una vez con la línea, la cantidad y el evento nativo', async () => {
+  it('escribir no emite; Intro (el change de GNumberField) emite change una vez con la línea, la cantidad y event: null (#936)', async () => {
     for (const [, C] of LISTS) {
       const onChange = vi.fn()
       const { w } = run(C, { onChange }, { attachTo: document.body })
@@ -47,7 +47,8 @@ describe('GbCart · la cantidad cambia por gesto (cart.md «Anatomía de una lí
       const p = onChange.mock.calls[0][0]
       expect(p.line).toBe(bank.props.lines[0])
       expect(p.quantity).toBe(3)
-      expect(p.event).toBeInstanceOf(Event)
+      expect(p.event).toBeNull()
+      expect('event' in p).toBe(true)
       w.unmount()
     }
   })
@@ -104,6 +105,7 @@ describe('GbCart · quitar deja huella (§27 regla 3, #921)', () => {
     await i.trigger('keydown', { key: 'Enter' })
     expect(onChange).not.toHaveBeenCalled()
     expect(onRemove.mock.calls[0][0]).toMatchObject({ line: lines[0], index: 0 })
+    expect(onRemove.mock.calls[0][0].event).toBeNull()
   })
   it('la huella se va cuando foco y puntero salen (no por tiempo); si la aplicación no quita la línea, no hay huella', async () => {
     vi.useFakeTimers()
@@ -232,5 +234,18 @@ describe('GbCart · avisos propios', () => {
     const totals = { ...bank.props.totals, total: { value: mxn(1) } }
     const { warnings } = run(GbCart02, { lines, totals, prices: undefined })
     for (const code of ['CA1', 'CA2', 'EC5', 'EC1']) expect(own(warnings, '02', code), code).toHaveLength(1)
+  })
+})
+
+describe('GbCart · el nombre del producto entero (EC-B1)', () => {
+  it('las líneas de 01, 02 y 03 llevan titleLines="none"', async () => {
+    for (const [n, C] of [...LISTS, ['03', GbCart03]]) {
+      const { w } = run(C, n === '03' ? { open: true } : {}, { attachTo: document.body })
+      await nextTick()
+      const lines = w.findAllComponents(GCard).filter((c) => c.props('as') === 'li')
+      expect(lines.length, n).toBeGreaterThan(0)
+      for (const c of lines) expect(c.props('titleLines'), n).toBe('none')
+      w.unmount()
+    }
   })
 })

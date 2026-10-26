@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Compuertas de @grana/blocks (dueño: bruno; design/contracts/blocks/_comun.md §9, §21 y §34, #763, #793, #807, #815, #860,
-# #909).
+# #909, #932).
 # Comprueban el código y el build ya hecho (packages/blocks/dist): lo que DEBE estar y lo que NO debe estar.
 # Uso: bash packages/blocks/scripts/gates.sh   (tras `npm run build -w @grana/blocks`); también lo llama
 #      .github/scripts/gates.sh. Sale con 1 si falla alguna. Formato de línea: «ok     …» o «FALLA  …».
@@ -76,10 +76,14 @@ check "! grep -q GbProductCard01 dist/blocks.js" "Gestión arrastra Ecommerce (�
 check "cartTotals solo en Ecommerce (ni en booking.js ni en marketing.js)" "Booking o Marketing arrastran cartTotals (§34)" none grep -q "cartTotals" dist/booking.js dist/marketing.js
 check "ningún campo de tarjeta (cc-number, cc-csc, cc-exp) en los bloques" "Un bloque pide un dato de tarjeta: el pago es del slot de la aplicación (§27 regla 6, EC6)" \
   none grep -qE "cc-(number|csc|exp)" src/blocks/Gb*/*.vue
-check "status draft y bundle.entry en los meta.json de Ecommerce, sin cap hasta que lima fije los topes (#909)" "Un meta.json de Ecommerce no está en draft, no nombra su entrada o ya lleva cap" \
-  none bash -c "for f in \$(grep -l '\"family\": \"ecommerce\"' src/blocks/Gb*/Gb*.meta.json); do grep -q '\"status\": \"draft\"' \$f && grep -q '\"entry\": \"@grana/blocks/ecommerce\"' \$f && ! grep -q '\"cap\"' \$f || echo \$f; done | grep -q ."
+check "bundle.entry y bundle.cap en los meta.json de Ecommerce (51200; variante 7168, Checkout 9728)" "Falta bundle.entry/cap/variantCap o difiere de los topes de #932" \
+  none bash -c "for f in \$(grep -l '\"family\": \"ecommerce\"' src/blocks/Gb*/Gb*.meta.json); do v=7168; case \$f in *GbCheckout*) v=9728;; esac; grep -q '\"entry\": \"@grana/blocks/ecommerce\"' \$f && grep -q '\"cap\": 51200' \$f && grep -q \"\\\"variantCap\\\": \$v\" \$f || echo \$f; done | grep -q ."
+# Peso de Ecommerce (#932): la entrada con sus trozos, cada variante importada sola y cartTotals sola
+check "dist/ecommerce.js con sus trozos ≤ 51 200 B gzip" "ecommerce.js (con sus trozos) supera el tope de #932 (51200 B gzip -c); no se vuelve a subir: con más, decide el usuario" \
+  node scripts/measure-entry.mjs ecommerce 51200
+check "cada variante de Ecommerce importada sola ≤ 7 168 B gzip (Checkout ≤ 9 728 B; cartTotals sola ≤ 2 048 B)" "Una variante arrastra a las demás o supera el tope de #932 (scripts/measure-partial.mjs lista cuál)" \
+  node scripts/measure-partial.mjs 7168 ecommerce GbCheckout=9728 +cartTotals=2048
 # Ecommerce no hace crecer a Marketing (18 432 B, #844) ni a Booking (37 888 B, #907): las de peso de arriba lo vigilan.
-# Las de peso de Ecommerce (entrada y por variante) entran cuando lima fije los topes al cierre (§32, §34).
 
 echo
 if [ "$failed" -eq 0 ]; then echo "Compuertas de blocks: $total/$total superadas."; exit 0; fi
