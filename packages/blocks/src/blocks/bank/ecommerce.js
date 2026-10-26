@@ -165,3 +165,62 @@ export const CART_OPTIONS = {
 }
 /** Los totales del carrito, de cartTotals (Grana suma en un solo sitio, §27 regla 4). */
 export const CART_TOTALS = cartTotals(CART_LINES, CART_OPTIONS)
+
+// ── Pedido e historial (parte C: Order summary, Checkout y Order history; §33) ──
+
+/** La zona de la tienda: la fecha del pedido y la entrega se dicen en la hora de Oaxaca. */
+export const TIME_ZONE = 'America/Mexico_City'
+/** «{count} piezas» (Cart, Order summary, Order history). */
+export const PIECES = (n) => `${n} ${n === 1 ? 'pieza' : 'piezas'}`
+/** El pedido común (§33): BYA-2611-07, tres líneas con la MISMA elección que el carrito (la elección viaja, §27 regla 3). */
+export const ORDER = {
+  reference: { code: 'BYA-2611-07', label: 'Número de pedido' },
+  placedAt: '2026-11-07T10:42:00-06:00',
+  lines: [
+    { id: 'o1', name: PRODUCTS.espadin.name, href: PRODUCTS.espadin.href, photo: PRODUCTS.espadin.photos[0], quantity: 2, unitPrice: mxn(890), total: mxn(1780) },
+    { id: 'o2', name: PRODUCTS.rebozo.name, href: PRODUCTS.rebozo.href, photo: PRODUCTS.rebozo.photos[0], options: CART_LINES[1].options, quantity: 1, unitPrice: mxn(2400), total: mxn(2400) },
+    { id: 'o3', name: PRODUCTS.jarro.name, href: PRODUCTS.jarro.href, photo: PRODUCTS.jarro.photos[0], quantity: 1, unitPrice: mxn(480), total: mxn(480) }
+  ],
+  totals: {
+    lines: [
+      { label: 'Subtotal', amount: mxn(4660), kind: 'subtotal' },
+      { label: 'Descuento OAXACA10', amount: mxn(-466), kind: 'discount' },
+      { label: 'Envío estándar', amount: mxn(99), kind: 'shipping' },
+      { label: 'Incluye IVA', amount: mxn(578.48), kind: 'tax', included: true }
+    ],
+    total: { value: mxn(4293), label: 'por 4 piezas' }
+  },
+  shipping: { label: 'Envío a domicilio', method: 'Estándar, de 3 a 5 días', address: ['Ana Ruiz', 'Macedonio Alcalá 202, Centro', '68000 Oaxaca de Juárez, Oax.'], date: '2026-11-12', note: 'Te escribimos por WhatsApp cuando salga del taller.' },
+  payment: { label: 'Pago', value: 'Tarjeta terminada en 4242' },
+  note: 'Cada pieza está hecha a mano: puede cambiar un poco respecto a la foto.'
+}
+/** Textos de un pedido (Order summary y el pedido de Checkout). */
+export const ORDER_LABELS = {
+  lines: 'Lo que compraste',
+  quantity: PIECES,
+  total: 'Total',
+  pending: 'Se calcula en el siguiente paso',
+  placedAt: 'Pedido el {date}',
+  delivery: 'Llega el {date}',
+  reference: 'Número de pedido',
+  price: PRICE_LABELS,
+  external: 'se abre en otra pestaña'
+}
+const progress = (current) => ({
+  steps: [
+    { id: 'pagado', label: 'Pagado', date: '2026-11-07' },
+    { id: 'preparado', label: 'Preparado', date: '2026-11-08' },
+    { id: 'enviado', label: 'Enviado', date: '2026-11-09' },
+    { id: 'entregado', label: 'Entregado' }
+  ],
+  current
+})
+/** El historial (§33): cinco pedidos, uno por estado (pendiente, en preparación, enviado, entregado, cancelado); el
+ *  entregado en USD aproximado y sin `href` (se abre con `open`); tres con lo comprado. */
+export const ORDERS = [
+  { id: 'BYA-2611-12', reference: { code: 'BYA-2611-12', label: 'Pedido' }, placedAt: '2026-11-12', status: 'pending', statusText: 'Pendiente de pago', total: mxn(890), count: 1, href: '/cuenta/pedidos/BYA-2611-12', note: 'Paga antes del 14 de noviembre para apartar la pieza.' },
+  { id: 'BYA-2611-09', reference: { code: 'BYA-2611-09', label: 'Pedido' }, placedAt: '2026-11-09', status: 'preparing', statusText: 'En preparación', total: mxn(3200), count: 1, href: '/cuenta/pedidos/BYA-2611-09', lines: [{ id: 'h1', name: PRODUCTS.huipil.name, options: [{ key: 'talla', label: 'Talla', value: 'M' }, { key: 'color', label: 'Color', value: 'Blanco' }], quantity: 1, total: mxn(3200) }] },
+  { id: 'BYA-2611-07', reference: ORDER.reference, placedAt: ORDER.placedAt, status: 'shipped', statusText: 'Enviado', total: ORDER.totals.total.value, count: 4, href: '/cuenta/pedidos/BYA-2611-07', lines: ORDER.lines, progress: progress('enviado'), tracking: { label: 'Estafeta · guía 7012 3344 5566', href: 'https://rastreo.example/7012334455', external: true }, note: 'Llega el jueves 12 de noviembre' },
+  { id: 'BYA-2610-21', reference: { code: 'BYA-2610-21', label: 'Pedido' }, placedAt: '2026-10-21', status: 'delivered', statusText: 'Entregado', total: usd(52), count: 1, lines: [{ id: 'h2', name: PRODUCTS.chocolate.name, lang: 'en', quantity: 1, total: usd(52) }] },
+  { id: 'BYA-2610-03', reference: { code: 'BYA-2610-03', label: 'Pedido' }, placedAt: '2026-10-03', status: 'cancelled', statusText: 'Cancelado', total: mxn(480), count: 1, href: '/cuenta/pedidos/BYA-2610-03', note: 'Cancelado a petición tuya; el reembolso ya se hizo.' }
+]

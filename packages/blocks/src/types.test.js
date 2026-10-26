@@ -212,6 +212,19 @@ describe('uso con vue-tsc', () => {
       banks += `import type { Gb${name}Props } from '@grana/blocks/ecommerce'\n`
       banks += `export const ecommerce${name}: Gb${name}Props = ${json}\n`
     }
+    // Ecommerce, parte C: las escuchas de la huella y del envío no son props (CA3, CK2) y salen del literal
+    for (const [name, file] of [
+      ['Cart', 'GbCart/cart.bank.js'],
+      ['Checkout', 'GbCheckout/checkout.bank.js'],
+      ['OrderSummary', 'GbOrderSummary/order-summary.bank.js'],
+      ['OrderHistory', 'GbOrderHistory/order-history.bank.js']
+    ]) {
+      const bank = await import(/* @vite-ignore */ join(ROOT, 'src/blocks', file))
+      const { onRemove: _r, onRestore: _t, onSubmit: _s, ...data } = bank.props
+      const json = JSON.stringify(data, (_k, v) => (typeof v === 'function' ? '__fn__' : v)).replace(/"__fn__"/g, '(null as never)')
+      banks += `import type { Gb${name}Props } from '@grana/blocks/ecommerce'\n`
+      banks += `export const ecommerce${name}: Gb${name}Props = ${json}\n`
+    }
     writeFileSync(join(OUT, 'banks.ts'), banks)
     writeFileSync(join(OUT, 'tsconfig.json'), JSON.stringify({
       compilerOptions: {

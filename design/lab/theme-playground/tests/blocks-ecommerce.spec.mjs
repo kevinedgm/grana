@@ -22,7 +22,13 @@ const PAGES = [
   { name: 'product-overview 03', file: 'product-overview.html', qs: 'v=03', h1: 0, blocks: 1 },
   // Quick view: una tarjeta disparadora (GbProductCard01) y el diálogo cerrado por variante (el título del diálogo se pinta al abrir)
   { name: 'quick-view', file: 'quick-view.html', qs: '', h1: 0, blocks: 6 },
-  { name: 'reviews', file: 'reviews.html', qs: '', h1: 0, blocks: 3 }
+  { name: 'reviews', file: 'reviews.html', qs: '', h1: 0, blocks: 3 },
+  // Parte C (puerto 4219): Cart (03 es el cajón cerrado: su <dialog> cuenta), Checkout, Order summary (03 es una línea sin
+  // encabezado, role="group") y Order history
+  { name: 'cart', file: 'cart.html', qs: '', h1: 0, blocks: 3 },
+  { name: 'checkout', file: 'checkout.html', qs: '', h1: 0, blocks: 3 },
+  { name: 'order-summary', file: 'order-summary.html', qs: '', h1: 0, blocks: 3 },
+  { name: 'order-history', file: 'order-history.html', qs: '', h1: 0, blocks: 3 }
 ]
 const THEMES = ['defecto', 'rustico', 'lujo']
 
@@ -424,3 +430,150 @@ test('reviews: la calificación y cada puntuación en palabras, sin estrellas', 
   await expect(block.locator('figure').first()).toContainText('5 de 5')
   await expect(block.locator('img')).toHaveCount(0)
 })
+
+
+// ---------- Verificación propia · parte C (Cart, Checkout, Order summary, Order history; puerto 4219) ----------
+
+const boxC = (loc) => loc.evaluate((el) => { const r = el.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, left: r.left, right: r.right, width: r.width } })
+
+// CR-L1 (hallazgo para lima): GAdaptiveLayout trata el hijo de las líneas (varios controles) como bloque completo y lo
+// pone en fila entera: el resumen va debajo también a 1440. Se comprueba lo que hay; el lado a lado queda pendiente
+test('cart 01: el resumen debajo de las líneas a 390 (a 1440, pendiente de CR-L1)', async ({ page }) => {
+  await open(page, 'cart.html', 'v=01', { width: 390, height: 844 })
+  const block = page.locator('[data-gb="cart-01"]')
+  const summary = await boxC(block.locator('section.g-card'))
+  const list = await boxC(block.locator('ul.g-stack').first())
+  expect(summary.top).toBeGreaterThanOrEqual(list.bottom - 1)
+})
+
+test('cart: las líneas no desbordan a 320 con el nombre largo sin espacios', async ({ page }) => {
+  await open(page, 'cart.html', 'v=02', { width: 320, height: 640 })
+  const block = page.locator('[data-gb="cart-02"]')
+  const b = await boxC(block)
+  for (const li of await block.locator('ul.g-stack > li').all()) {
+    const x = await boxC(li)
+    expect(x.right).toBeLessThanOrEqual(b.right + 1)
+  }
+  expect(await overflow(page)).toBe(false)
+})
+
+test('cart 02: quitar deja la huella en su sitio con el foco en «Deshacer»; «Deshacer» devuelve la línea y el foco a su cantidad', async ({ page }) => {
+  await open(page, 'cart.html', 'v=02')
+  const block = page.locator('[data-gb="cart-02"]')
+  await block.getByRole('button', { name: /^Quitar Mezcal espadín/ }).click()
+  await expect(block.locator('ul.g-stack > li').first()).toContainText('Quitaste Mezcal espadín')
+  await expect(page.locator(':focus')).toHaveText('Deshacer')
+  await page.keyboard.press('Enter')
+  await expect(block.locator('ul.g-stack > li').first()).not.toContainText('Quitaste')
+  await expect(page.locator(':focus')).toHaveAttribute('role', 'spinbutton')
+  expect(await page.evaluate(() => window.blockEvents.filter((e) => ['remove', 'restore'].includes(e[0])))).toEqual([['remove', '02', 'l1'], ['restore', '02', 'l1']])
+  // La huella se va cuando foco y puntero salen
+  await block.getByRole('button', { name: /^Quitar Jarro|^Quitar Rebozo/ }).first().click()
+  await expect(page.locator(':focus')).toHaveText('Deshacer')
+  await page.mouse.move(2, 2)
+  await page.keyboard.press('Tab')
+  await expect(block).not.toContainText('Quitaste')
+})
+
+test('cart 01: cambiar la cantidad emite change por gesto y el total de la línea rueda (con movimiento reducido, no)', async ({ page }) => {
+  for (const reduced of [false, true]) {
+    await page.emulateMedia({ reducedMotion: reduced ? 'reduce' : 'no-preference' })
+    await open(page, 'cart.html', 'v=01')
+    const line = page.locator('[data-gb="cart-01"] ul.g-stack > li').first()
+    await line.getByRole('button', { name: 'Añadir una' }).click()
+    await expect(line).toContainText('por 3 piezas')
+    // Las cifras del total que ruedan (GPrice); los cambios de color del campo al pulsar no cuentan
+    const running = await line.evaluate((el) => el.getAnimations({ subtree: true }).filter((a) => a.playState === 'running' && a.effect && a.effect.target && a.effect.target.closest && a.effect.target.closest('.g-price')).length)
+    if (reduced) expect(running).toBe(0)
+    else expect(running).toBeGreaterThan(0)
+    expect(await page.evaluate(() => window.blockEvents.filter((e) => e[0] === 'change'))).toEqual([['change', '01', 'l1', 3]])
+  }
+})
+
+test('cart 03: el cajón al borde a 1440 y a pantalla completa a 390; el foco vuelve al disparador', async ({ page }) => {
+  for (const [w, h] of [[1440, 900], [390, 844]]) {
+    await page.setViewportSize({ width: w, height: h })
+    await page.goto(`${BASE}cart.html?v=03`)
+    await page.waitForSelector('html[data-ready="1"]')
+    await page.locator('#abrir-carrito').click()
+    const dialog = page.locator('dialog[data-gb="cart-03"]')
+    await expect(dialog).toHaveAttribute('open', '')
+    await settle(page)
+    const b = await boxC(dialog)
+    if (w === 390) expect(b.width).toBeGreaterThanOrEqual(389)
+    else { expect(b.width).toBeLessThan(w / 2); expect(b.right).toBeGreaterThanOrEqual(w - 1) }
+    // El cierre del cajón (Esc lo toma antes el campo de cantidad enfocado: deshace lo escrito, number-field.md)
+    await dialog.getByRole('button', { name: 'Cerrar el carrito' }).click()
+    await expect(dialog).not.toHaveAttribute('open', '')
+    await expect(page.locator(':focus')).toHaveAttribute('id', 'abrir-carrito')
+  }
+})
+
+test('checkout: el precio de cada forma de envío está en el nombre del radio; Intro envía el paso y avanza', async ({ page }) => {
+  await open(page, 'checkout.html', 'v=01')
+  const block = page.locator('[data-gb="checkout-01"]')
+  await block.getByRole('textbox', { name: /Correo electrónico/ }).fill('ana@example.com')
+  await page.keyboard.press('Enter')
+  await expect(block.getByRole('textbox', { name: /Calle y número/ })).toBeFocused()
+  await expect(block.getByRole('radio', { name: /Estándar.*de 3 a 5 días.*99/ })).toHaveCount(1)
+  await expect(block.getByRole('radio', { name: /Recoger en el taller.*Gratis/ })).toHaveCount(1)
+  await expect(block.getByRole('radio', { name: /No llega a tu código postal/ })).toBeDisabled()
+  expect(await page.evaluate(() => window.blockEvents.filter((e) => e[0] === 'submit'))).toEqual([['submit', '01', 'contacto', false]])
+  // Volver no borra
+  await block.getByRole('button', { name: 'Atrás' }).click()
+  await expect(block.getByRole('textbox', { name: /Correo electrónico/ })).toHaveValue('ana@example.com')
+})
+
+test('checkout 03 a 390 × 844: el campo enfocado nunca queda bajo el pie pegado (2.4.11)', async ({ page }) => {
+  await open(page, 'checkout.html', 'v=03', { width: 390, height: 844 })
+  const block = page.locator('[data-gb="checkout-03"]')
+  await block.getByRole('textbox', { name: /Correo electrónico/ }).fill('ana@example.com')
+  await page.keyboard.press('Enter')
+  await expect(block.getByRole('textbox', { name: /Calle y número/ })).toBeFocused()
+  const footer = block.locator('.g-form-actions')
+  for (let i = 0; i < 8; i++) {
+    const r = await page.evaluate(() => {
+      const el = document.activeElement
+      if (!el || !el.closest('[data-gb]')) return null
+      const f = document.querySelector('[data-gb="checkout-03"] .g-form-actions')
+      return { el: el.getBoundingClientRect().bottom, foot: f.getBoundingClientRect().top, inFoot: f.contains(el) }
+    })
+    if (r && !r.inFoot) expect(r.el, `campo #${i}`).toBeLessThanOrEqual(r.foot + 1)
+    await page.keyboard.press('Tab')
+  }
+  expect(await footer.count()).toBe(1)
+})
+
+test('order-summary 01 en una columna de 360 sin desbordar; 03 en línea a 1440 y apilada a 390', async ({ page }) => {
+  await open(page, 'order-summary.html', 'v=01', { width: 360, height: 800 })
+  expect(await overflow(page)).toBe(false)
+  const card = await boxC(page.locator('[data-gb="order-summary-01"]'))
+  expect(card.right).toBeLessThanOrEqual(361)
+  await open(page, 'order-summary.html', 'v=03', { width: 1440, height: 900 })
+  const line = page.locator('[data-gb="order-summary-03"]')
+  // Una línea: las piezas comparten franja vertical (centradas: sus tops difieren)
+  const oneLine = async () => { const bs = await Promise.all((await line.locator('.g-adaptive-layout > *').all()).map((x) => boxC(x))); return Math.max(...bs.map((b) => b.top)) < Math.min(...bs.map((b) => b.bottom)) }
+  expect(await oneLine()).toBe(true)
+  for (const [w, h] of [[768, 900], [390, 844]]) {
+    await page.setViewportSize({ width: w, height: h })
+    await settle(page)
+    expect(await overflow(page), `${w}`).toBe(false)
+  }
+  expect(await oneLine()).toBe(false)
+})
+
+test('order-history 01: tabla a 1440 y tarjetas de GTable a 390; 02 con el seguimiento sin desbordar a 320', async ({ page }) => {
+  await open(page, 'order-history.html', 'v=01', { width: 1440, height: 900 })
+  await expect(page.locator('[data-gb="order-history-01"] table')).toBeVisible()
+  await expect(page.locator('[data-gb="order-history-01"]')).toContainText('Enviado')
+  await page.setViewportSize({ width: 390, height: 844 })
+  await settle(page)
+  expect(await page.locator('[data-gb="order-history-01"] .g-table').evaluate((el) => el.className)).toMatch(/cards|is-cards/)
+  await open(page, 'order-history.html', 'v=02', { width: 320, height: 640 })
+  expect(await overflow(page)).toBe(false)
+  const card = page.locator('[data-gb="order-history-02"] li', { hasText: 'BYA-2611-07' })
+  const c = await boxC(card)
+  const s = await boxC(card.locator('.g-stepper'))
+  expect(s.right).toBeLessThanOrEqual(c.right + 1)
+})
+

@@ -453,3 +453,146 @@ export interface ReviewsLabels {
   pagination?: GranaLabels
   external?: string
 }
+
+// ── E9 Order summary (order-summary.md) ──
+
+export interface OrderSummaryLabels {
+  /** Nombre de la lista de lo comprado («Lo que compraste»). */
+  lines: string
+  /** «{count} piezas» (y la cuenta de 03). */
+  quantity: string | ((count: number) => string)
+  /** Término del total («Total»): el último par del desglose. */
+  total: string
+  /** Una línea de Totals con amount null («Se calcula en el siguiente paso»). */
+  pending?: string
+  /** «Pedido el {date}» (placedAt, en la zona de la tienda). */
+  placedAt?: string | ((date: string) => string)
+  /** «Llega el {date}» (shipping.date). */
+  delivery?: string | ((date: string) => string)
+  /** Rótulo del código si `reference` no trae `label` («Número de pedido»). */
+  reference?: string
+  price?: PriceRegionLabels
+  external?: string
+}
+
+// ── E7 Cart (cart.md) ──
+
+/** 03: el disparador del cajón, tal cual a `from` de GDialog (#583): `id` o elemento. */
+export type CartFrom = string | HTMLElement
+
+export interface CartLabels {
+  /** Nombre del campo de cantidad: «Cantidad de {name}». */
+  quantity: string | ((name: string) => string)
+  /** Escalones de GNumberField («Quitar una», «Añadir una»). */
+  decrement: string
+  increment: string
+  /** Nombre accesible de «Quitar»: «Quitar {name}». */
+  remove: string | ((name: string) => string)
+  /** Texto visible de «Quitar» (obligatorio si `remove` es una función). */
+  removeText?: string
+  /** La huella: «Quitaste {name}». */
+  removed: string | ((name: string) => string)
+  /** «Deshacer» (con escucha de `restore`). */
+  undo: string
+  /** Una línea con available: false («Ya no está disponible»). */
+  unavailable?: string
+  /** Lo que no entra: «{count} artículos no entran en tu pedido». */
+  excluded?: string | ((count: number) => string)
+  /** Unidad del total de la línea: «por {count} piezas». */
+  forQuantity?: string | ((count: number) => string)
+  /** Unidad visible del unitario («c/u») y su lectura («cada una»). */
+  each?: string
+  eachLabel?: string
+  /** Título del resumen («Resumen»). */
+  summary: string
+  /** Término del total («Total»). */
+  total: string
+  /** Una línea de Totals con amount null («Se calcula en el siguiente paso»). */
+  pending?: string
+  /** El umbral: «Te faltan {remaining} para {label}» y «Ya tienes {label}». */
+  goal?: string | ((g: { label: string; remaining: string }) => string)
+  goalReached?: string | ((label: string) => string)
+  /** El carrito vacío (GEmpty). */
+  empty: { title: string; description?: string }
+  /** 03: nombre del cierre del cajón y los textos de GDialog. */
+  close?: string
+  dialog?: GranaLabels
+  price?: PriceRegionLabels
+  external?: string
+}
+
+// ── E8 Checkout (checkout.md) ──
+
+export interface CheckoutLabels {
+  /** «Escribe {label}» / «Revisa {label}» / «Elige {label}» (el motor de campos de Guest form). */
+  required: string
+  invalid: string
+  choose?: string
+  /** El mensaje de un consentimiento obligatorio y el título de su grupo. */
+  consent?: string
+  consents?: string
+  /** «Atrás» (01, 03). */
+  back: string
+  /** «Cambiar {step}» (el resumen de un paso hecho). */
+  edit: string | ((step: string) => string)
+  /** Título del pedido («Tu pedido»). */
+  order: string
+  /** Término del total («Total»): el pie y el desglose del pedido. */
+  total: string
+  /** loadingText del botón con `busy`. */
+  busy?: string
+  /** Los de Order summary para el pedido. */
+  lines?: string
+  quantity?: string | ((count: number) => string)
+  pending?: string
+  placedAt?: string | ((date: string) => string)
+  delivery?: string | ((date: string) => string)
+  reference?: string
+  /** A sus componentes, tal cual. */
+  form?: GranaLabels
+  errorSummary?: GranaLabels
+  stepper?: GranaLabels
+  datePicker?: GranaLabels
+  price?: PriceRegionLabels
+  external?: string
+}
+/** `submit` de un paso: síncrono y cancelable (sin preventDefault(), el bloque avanza al siguiente). */
+export interface CheckoutSubmit {
+  event: SubmitEvent | Event
+  step: string
+  data: FormData | null
+  values: Record<string, string>
+  consents: Record<string, boolean>
+  final: boolean
+  preventDefault(): void
+  defaultPrevented: boolean
+}
+
+// ── E10 Order history (order-history.md) ──
+
+export interface OrderHistoryLabels {
+  /** Columnas y rótulos («Pedido», «Fecha», «Estado», «Total»). */
+  reference: string
+  date: string
+  status: string
+  total: string
+  /** «{count} piezas». */
+  count: string | ((count: number) => string)
+  /** «Ver el pedido {reference}». */
+  open: string | ((reference: string) => string)
+  /** «Seguir el envío» (con tracking). */
+  tracking?: string
+  /** Nombre del GStepper de 02: «Seguimiento del pedido {reference}». */
+  progress?: string | ((reference: string) => string)
+  /** A GTable labels.detail (01, con lines): «Pedido {title}». */
+  detail?: string
+  /** El vacío (GEmpty). */
+  empty: { title: string; description?: string }
+  /** A sus componentes, tal cual: GTable (01), GLoadRegion (02, 03), GPagination, GStepper (02). */
+  table?: GranaLabels
+  region?: GranaLabels
+  pagination?: GranaLabels
+  stepper?: GranaLabels
+  price?: PriceRegionLabels
+  external?: string
+}

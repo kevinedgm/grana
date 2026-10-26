@@ -1,0 +1,235 @@
+{
+  "schemaVersion": 1,
+  "name": "GbCart",
+  "kind": "block-section",
+  "family": "ecommerce",
+  "status": "draft",
+  "since": "0.0.0",
+  "complex": true,
+  "description": "Lo que vas a comprar, línea a línea con lo que elegiste, lo que cuesta, lo que falta para pedirlo y el total que se cobrará. Cambiar una cantidad o quitar una línea no te hace perder el sitio: quitar deja su huella con «Deshacer» y el foco ahí mismo. El bloque no suma: pinta los totales que da la aplicación (con cartTotals o su servidor).",
+  "contract": "design/contracts/blocks/cart.md",
+  "common": "design/contracts/blocks/_comun.md",
+  "decisions": [
+    909,
+    910,
+    911,
+    913,
+    914,
+    921
+  ],
+  "composes": [
+    "GSection",
+    "GStack",
+    "GAdaptiveLayout",
+    "GCard",
+    "GNumberField",
+    "GBtn",
+    "GPrice",
+    "GPriceScope",
+    "GText",
+    "GProgress",
+    "GEmpty",
+    "GDialog"
+  ],
+  "variants": [
+    {
+      "name": "GbCart01",
+      "tag": "gb-cart-01",
+      "concept": "Lista + resumen al lado",
+      "root": "GSection › GPriceScope › GAdaptiveLayout gap=\"lg\" › [div › GStack as=\"ul\" (líneas y huella)] + [div › GCard as=\"section\" (resumen)]; hoy uno debajo de otro (CR-L1)"
+    },
+    {
+      "name": "GbCart02",
+      "tag": "gb-cart-02",
+      "concept": "Resumen al pie",
+      "root": "GSection › GPriceScope › GStack gap=\"lg\" › GStack as=\"ul\" (líneas y huella) + GCard as=\"section\" (resumen, el total justo encima de «Pagar»)"
+    },
+    {
+      "name": "GbCart03",
+      "tag": "gb-cart-03",
+      "concept": "Cajón",
+      "root": "GDialog placement=\"end\" size=\"sm\" mobile=\"fullscreen\" (v-model:open, from) › GPriceScope › GStack gap=\"md\" › líneas sin foto + resumen con solo el total"
+    }
+  ],
+  "props": [
+    {
+      "name": "title",
+      "type": "String",
+      "ts": "string",
+      "required": true,
+      "note": "«Tu carrito»: título de la sección (01, 02) o del cajón (03)"
+    },
+    {
+      "name": "lines",
+      "type": "Array",
+      "ts": "CartLine[]",
+      "required": true,
+      "note": "0 a 50 (C7 por encima). id obligatorio (EC5); sin product.name o sin unitPrice se omite (C2); quantity fuera de min/max, CA1. Vacío y sin huella: GEmpty con la segunda acción"
+    },
+    {
+      "name": "totals",
+      "type": "Object",
+      "ts": "Totals | CartTotals",
+      "required": true,
+      "note": "De la aplicación (cartTotals o su servidor): el bloque pinta lo dado, no suma. Con CartTotals, además goals (el umbral) y excluded (lo que no entra). Sin total.label, CA2"
+    },
+    {
+      "name": "prices",
+      "type": "Object",
+      "ts": "PriceRegion",
+      "required": true,
+      "note": "Obligatoria (EC1): UNA GPriceScope alrededor de las líneas y el resumen"
+    },
+    {
+      "name": "actions",
+      "type": "Array",
+      "ts": "Action[]",
+      "required": true,
+      "note": "[pagar, seguir comprando?] (§3): la primera solid a lo ancho, la segunda outline; vacío: solo la segunda, en el GEmpty. C8 con más de dos"
+    },
+    {
+      "name": "assurance",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "«Devoluciones gratis en 30 días»: en aria-describedby de la principal (#838)"
+    },
+    {
+      "name": "busy",
+      "type": "Array",
+      "ts": "(string | number)[]",
+      "default": [],
+      "note": "ids de línea que se están actualizando: su cantidad y su «Quitar», disabled"
+    },
+    {
+      "name": "open",
+      "type": "Boolean",
+      "ts": "boolean",
+      "default": false,
+      "variants": [
+        "GbCart03"
+      ],
+      "note": "v-model:open: el cajón abierto"
+    },
+    {
+      "name": "from",
+      "type": "String",
+      "ts": "CartFrom | null",
+      "default": null,
+      "variants": [
+        "GbCart03"
+      ],
+      "note": "El disparador: el foco vuelve a él al cerrar (GDialog from)"
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "BCP 47; sin él, el lang del ancestro al montar"
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "ts": "CartLabels",
+      "required": true,
+      "note": "quantity, decrement, increment, remove, removed, undo, summary, total, empty (C5); removeText con remove función; unavailable, excluded, forQuantity/each/eachLabel, pending, goal/goalReached según el estado; close y dialog en 03; price; external. Sin valores por defecto"
+    }
+  ],
+  "events": [
+    {
+      "name": "change",
+      "payload": "{ event, line, quantity }",
+      "ts": "CartLineChange",
+      "trigger": "La cantidad de una línea cambia POR GESTO (el change de GNumberField: al soltar el escalón, al salir del campo o con Intro), > 0. event = el último evento nativo sobre la línea"
+    },
+    {
+      "name": "remove",
+      "payload": "{ event, line, index }",
+      "ts": "CartLineEvent",
+      "trigger": "«Quitar» o cantidad 0. Cuando la aplicación quita la línea de lines, el bloque deja la huella en su sitio con el foco en «Deshacer»"
+    },
+    {
+      "name": "restore",
+      "payload": "{ event, line, index }",
+      "ts": "CartLineEvent",
+      "trigger": "«Deshacer» de la huella: la aplicación devuelve la línea a ese índice con su cantidad (no es un add, #913)"
+    },
+    {
+      "name": "navigate",
+      "payload": "{ event, href, item }",
+      "ts": "BlockNavigate<CartLine | Action>",
+      "trigger": "El nombre de un producto (item = la línea) o una acción con href, con clic primario (#505); nunca con external (#574)"
+    },
+    {
+      "name": "activate",
+      "payload": "{ event, item }",
+      "ts": "BlockActivate<Action>",
+      "trigger": "Una acción sin href"
+    },
+    {
+      "name": "update:open",
+      "payload": "boolean",
+      "ts": "boolean",
+      "trigger": "03: abrir y cerrar el cajón"
+    }
+  ],
+  "slots": [
+    {
+      "name": "line",
+      "ts": "{ line: CartLine }",
+      "purpose": "Escape: contenido al final del cuerpo de una línea (p. ej. «Envolver para regalo» de la aplicación)"
+    },
+    {
+      "name": "summary",
+      "ts": "{ totals: Totals | CartTotals }",
+      "purpose": "Escape: contenido del resumen antes de las acciones (p. ej. el campo de cupón de la aplicación)"
+    },
+    {
+      "name": "actions",
+      "ts": "{ describedby: string | undefined }",
+      "purpose": "Escape de las acciones (§3), con el id de la garantía (#838)"
+    }
+  ],
+  "types": [
+    "CartLine",
+    "CartTotals",
+    "CartGoal",
+    "Totals",
+    "TotalsLine",
+    "ChosenOption",
+    "PriceRegion",
+    "Action",
+    "CartLabels",
+    "CartLineChange",
+    "CartLineEvent",
+    "BlockNavigate",
+    "BlockActivate"
+  ],
+  "warnings": [
+    "C2 (línea sin product.name o sin unitPrice: se omite; totals sin total)",
+    "C3",
+    "C5",
+    "C6",
+    "C7 (más de 50)",
+    "C8",
+    "K3",
+    "K4",
+    "EC1",
+    "EC5",
+    "CA1 · quantity fuera de min/max (se pinta lo dado; GNumberField lo ajusta al gesto)",
+    "CA2 · totals.total sin label",
+    "CA3 · sin escucha de remove o de restore (la huella sin «Deshacer»)"
+  ],
+  "root": "01, 02: GSection · 03: el GDialog (su <dialog>); con data-gb=\"cart-NN\" y $attrs",
+  "bundle": {
+    "entry": "@grana/blocks/ecommerce",
+    "peers": [
+      "vue",
+      "@grana/vue",
+      "@grana/vue/price"
+    ],
+    "note": "Sin tope hasta medir (#909). Medida de la parte C (2026-10-26): dist/ecommerce.js con sus trozos 48 712 B gzip (scripts/measure-entry.mjs, 12 secciones, 36 variantes); cada variante sola (scripts/measure-partial.mjs): GbCart01 6369, GbCart02 6353, GbCart03 6507 (referencia 5 120 B). Pasa la referencia de la parte C y vuelve a lima con su medida.",
+    "measured": 48712
+  }
+}

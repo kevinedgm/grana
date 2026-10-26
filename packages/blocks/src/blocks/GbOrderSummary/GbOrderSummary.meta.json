@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 1,
+  "name": "GbOrderSummary",
+  "kind": "block-section",
+  "family": "ecommerce",
+  "status": "draft",
+  "since": "0.0.0",
+  "description": "Un pedido leído como su recibo: el código primero (lo que te piden si llamas), lo que compraste con la talla y el color tal como los elegiste, el desglose con el total como último renglón y lo incluido (el IVA) dicho después sin sumarlo otra vez, a dónde va con su fecha de entrega en la hora de la tienda y cómo se pagó. No calcula nada.",
+  "contract": "design/contracts/blocks/order-summary.md",
+  "common": "design/contracts/blocks/_comun.md",
+  "decisions": [
+    909,
+    910,
+    913,
+    923,
+    927
+  ],
+  "composes": [
+    "GCard",
+    "GSection",
+    "GStack",
+    "GAdaptiveLayout",
+    "GSummary",
+    "GMetric",
+    "GAvatar",
+    "GPrice",
+    "GPriceScope",
+    "GText",
+    "GBtn"
+  ],
+  "variants": [
+    {
+      "name": "GbOrderSummary01",
+      "tag": "gb-order-summary-01",
+      "concept": "Tarjeta",
+      "root": "GCard as=\"section\" (título al nivel de useSectionLevel(), #927) › GPriceScope › GStack gap=\"md\" (código, lo comprado, el total sin desglose) + acciones"
+    },
+    {
+      "name": "GbOrderSummary02",
+      "tag": "gb-order-summary-02",
+      "concept": "El recibo",
+      "root": "GSection › GStack gap=\"lg\" › [GPriceScope › GStack gap=\"lg\" (código, fecha, lo comprado con miniatura, desglose, pago, envío, nota)] + acciones"
+    },
+    {
+      "name": "GbOrderSummary03",
+      "tag": "gb-order-summary-03",
+      "concept": "Línea",
+      "root": "GText as=\"div\" size=\"body\" role=\"group\" aria-label=title › GAdaptiveLayout gap=\"md\" vertical=\"center\" › GSummary inline (código y piezas) + GPrice sm del total + la primera acción outline"
+    }
+  ],
+  "props": [
+    {
+      "name": "title",
+      "type": "String",
+      "ts": "string",
+      "required": true,
+      "note": "«Tu pedido»: título de la sección (01, 02) o nombre del grupo (03)"
+    },
+    {
+      "name": "order",
+      "type": "Object",
+      "ts": "OrderSummary",
+      "required": true,
+      "note": "Sin totals.total no se pinta (C2); el total sin label avisa OS1; más de 30 líneas en 01, OS2"
+    },
+    {
+      "name": "prices",
+      "type": "Object",
+      "ts": "PriceRegion",
+      "required": true,
+      "note": "Obligatoria (EC1): una GPriceScope alrededor del pedido; sin ella, cada GPrice con su código"
+    },
+    {
+      "name": "actions",
+      "type": "Array",
+      "ts": "Action[]",
+      "default": [],
+      "note": "0 a 2 (§3): la primera solid, la segunda outline; 03 pinta solo la primera (outline). C8 con más de dos"
+    },
+    {
+      "name": "timeZone",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "variants": [
+        "GbOrderSummary02"
+      ],
+      "note": "IANA de la tienda: la fecha del pedido y la entrega se dicen en esa hora"
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "BCP 47; sin él, el lang del ancestro al montar"
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "ts": "OrderSummaryLabels",
+      "required": true,
+      "note": "lines, quantity, total (C5); pending con una línea de amount null; placedAt y delivery con su fecha; reference con un código sin label; price a GPriceScope/GPrice; external. Sin valores por defecto"
+    }
+  ],
+  "events": [
+    {
+      "name": "navigate",
+      "payload": "{ event, href, item }",
+      "ts": "BlockNavigate<Action | OrderLine>",
+      "trigger": "Una acción con href o el nombre de un producto (item = la OrderLine), con clic primario (#505); nunca con external (#574)"
+    },
+    {
+      "name": "activate",
+      "payload": "{ event, item }",
+      "ts": "BlockActivate<Action>",
+      "trigger": "Una acción sin href"
+    }
+  ],
+  "slots": [
+    {
+      "name": "line",
+      "ts": "{ line: OrderLine }",
+      "purpose": "Escape: contenido al final de una línea (p. ej. «Valorar este producto»)",
+      "variants": [
+        "GbOrderSummary01",
+        "GbOrderSummary02"
+      ]
+    },
+    {
+      "name": "actions",
+      "purpose": "Escape de las acciones (§3)"
+    }
+  ],
+  "types": [
+    "OrderSummary",
+    "OrderLine",
+    "ChosenOption",
+    "Reference",
+    "Totals",
+    "TotalsLine",
+    "ShippingSummary",
+    "PaymentSummary",
+    "Photo",
+    "PriceRegion",
+    "Action",
+    "OrderSummaryLabels",
+    "BlockNavigate",
+    "BlockActivate"
+  ],
+  "warnings": [
+    "C2 (order sin totals.total: no se pinta)",
+    "C5",
+    "C6",
+    "C8",
+    "EC1",
+    "OS1 · order.totals.total sin label",
+    "OS2 · más de 30 líneas en 01 (se pintan todas)"
+  ],
+  "root": "01: GCard as=\"section\" · 02: GSection · 03: GText as=\"div\" role=\"group\"; las tres con data-gb=\"order-summary-NN\" y $attrs",
+  "bundle": {
+    "entry": "@grana/blocks/ecommerce",
+    "peers": [
+      "vue",
+      "@grana/vue",
+      "@grana/vue/price"
+    ],
+    "note": "Sin tope hasta medir (#909). Medida de la parte C (2026-10-26): dist/ecommerce.js con sus trozos 48 712 B gzip (scripts/measure-entry.mjs, 12 secciones, 36 variantes); cada variante sola (scripts/measure-partial.mjs): GbOrderSummary01 4698, GbOrderSummary02 4662, GbOrderSummary03 2924 (referencia 5 120 B).",
+    "measured": 48712
+  }
+}

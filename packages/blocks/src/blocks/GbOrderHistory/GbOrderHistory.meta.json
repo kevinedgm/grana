@@ -1,0 +1,205 @@
+{
+  "schemaVersion": 1,
+  "name": "GbOrderHistory",
+  "kind": "block-section",
+  "family": "ecommerce",
+  "status": "draft",
+  "since": "0.0.0",
+  "description": "Tus pedidos: cuándo los hiciste, qué estado tienen dicho en palabras y con su fecha (nunca solo un color), cuánto costaron y dónde seguirlos. Uno se abre en un toque; un cancelado no finge avanzar: no lleva pasos, lleva su estado.",
+  "contract": "design/contracts/blocks/order-history.md",
+  "common": "design/contracts/blocks/_comun.md",
+  "decisions": [
+    909,
+    910,
+    913,
+    924
+  ],
+  "composes": [
+    "GSection",
+    "GTable",
+    "GCard",
+    "GStack",
+    "GStepper",
+    "GBadge",
+    "GPrice",
+    "GPriceScope",
+    "GText",
+    "GBtn",
+    "GPagination",
+    "GEmpty",
+    "GLoadRegion"
+  ],
+  "variants": [
+    {
+      "name": "GbOrderHistory01",
+      "tag": "gb-order-history-01",
+      "concept": "Tabla",
+      "root": "GSection › [GPriceScope] › GTable (caption = title; pedido compuesto con sus piezas, fecha, estado, total; rowHref/activatable sin lo comprado, slot detail con lo comprado; rowStatus en cancelados; tarjetas de GTable en estrecho)"
+    },
+    {
+      "name": "GbOrderHistory02",
+      "tag": "gb-order-history-02",
+      "concept": "Tarjetas con seguimiento",
+      "root": "GSection › [GPriceScope] › GStack gap=\"lg\" › GLoadRegion › GStack as=\"ul\" gap=\"md\" › GCard as=\"li\" (badge de estado, total, GStepper informativo, transportista) + GPagination"
+    },
+    {
+      "name": "GbOrderHistory03",
+      "tag": "gb-order-history-03",
+      "concept": "Lista",
+      "root": "GSection › [GPriceScope] › GStack gap=\"lg\" › GLoadRegion › GStack as=\"ul\" gap=\"sm\" › GCard as=\"li\" level=\"flat\" density=\"compact\" + GPagination"
+    }
+  ],
+  "props": [
+    {
+      "name": "title",
+      "type": "String",
+      "ts": "string",
+      "required": true,
+      "note": "«Tus pedidos»: título de la sección; en 01 también el caption de la tabla; en 02 y 03 el nombre de la región que carga"
+    },
+    {
+      "name": "orders",
+      "type": "Array",
+      "ts": "Order[]",
+      "required": true,
+      "note": "La página (0 a 50; C7 por encima). id obligatorio (EC5); sin reference.code o sin statusText se omite (C2); vacío: GEmpty con labels.empty"
+    },
+    {
+      "name": "total",
+      "type": "Number",
+      "ts": "number",
+      "default": null,
+      "note": "Pedidos en total (paginación del servidor)"
+    },
+    {
+      "name": "page",
+      "type": "Number",
+      "ts": "number",
+      "default": null,
+      "note": "v-model:page"
+    },
+    {
+      "name": "pageSize",
+      "type": "Number",
+      "ts": "number",
+      "default": null,
+      "note": "Pedidos por página; con total, la paginación"
+    },
+    {
+      "name": "loading",
+      "type": "Boolean",
+      "ts": "boolean",
+      "default": false,
+      "note": "01: el de GTable; 02 y 03: GLoadRegion (molde en la primera carga, lo último conocido al refrescar)"
+    },
+    {
+      "name": "error",
+      "type": "Boolean",
+      "ts": "boolean | string",
+      "default": false,
+      "note": "El fallo de la última carga; String: su texto. Con «Reintentar» → retry"
+    },
+    {
+      "name": "prices",
+      "type": "Object",
+      "ts": "PriceRegion",
+      "default": null,
+      "note": "Si todos los pedidos son de una moneda; EC1 con más de un pedido y sin ella. Un pedido en otra moneda conserva su código (regla auto)"
+    },
+    {
+      "name": "timeZone",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "IANA de la tienda: las fechas se dicen en esa hora"
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "BCP 47; sin él, el lang del ancestro al montar"
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "ts": "OrderHistoryLabels",
+      "required": true,
+      "note": "reference, date, status, total, count, open, empty (C5); tracking con algún tracking (01, 02); progress en 02 con algún progress; detail en 01 con lines; table, region, pagination, stepper (02) y price a sus componentes (pasos directos, §27 regla 1); external. Sin valores por defecto"
+    }
+  ],
+  "events": [
+    {
+      "name": "open",
+      "payload": "{ event, order }",
+      "ts": "OrderOpen",
+      "trigger": "Abrir un pedido sin href: la puerta de GTable (01 sin lo comprado), «Ver el pedido» de la ficha (01) o la tarjeta-botón (02, 03)"
+    },
+    {
+      "name": "navigate",
+      "payload": "{ event, href, item }",
+      "ts": "BlockNavigate<Order>",
+      "trigger": "Abrir un pedido con href, con clic primario (#505): la puerta de GTable o «Ver el pedido» (01), la tarjeta (02, 03). El transportista externo no emite (#574)"
+    },
+    {
+      "name": "update:page",
+      "payload": "number",
+      "ts": "number",
+      "trigger": "Paginación (la de GTable en 01, GPagination en 02 y 03)"
+    },
+    {
+      "name": "retry",
+      "payload": "{ event: null }",
+      "ts": "BlockRetry",
+      "trigger": "«Reintentar» de GTable (01) o de GLoadRegion/GEmpty (02, 03). event es null: GTable y GLoadRegion emiten retry sin evento (hallazgo para lima)"
+    }
+  ],
+  "slots": [
+    {
+      "name": "order",
+      "ts": "{ order: Order }",
+      "purpose": "Escape: contenido al final de cada pedido (en 01, al final de la ficha desplegada)"
+    },
+    {
+      "name": "empty",
+      "purpose": "Escape del vacío (sustituye al GEmpty con labels.empty)"
+    }
+  ],
+  "types": [
+    "Order",
+    "OrderLine",
+    "OrderStatus",
+    "OrderProgress",
+    "Reference",
+    "ChosenOption",
+    "NavLink",
+    "PriceRegion",
+    "OrderHistoryLabels",
+    "OrderOpen",
+    "BlockNavigate",
+    "BlockRetry"
+  ],
+  "warnings": [
+    "C2 (sin reference.code o sin statusText: se omite)",
+    "C3",
+    "C5",
+    "C6 (sin puerta)",
+    "C7 (más de 50)",
+    "EC1",
+    "EC5",
+    "OH1 · status fuera de la lista (neutral con su statusText)",
+    "OH2 · progress.current que no está en sus steps (sin GStepper)"
+  ],
+  "root": "GSection con data-gb=\"order-history-NN\" y $attrs",
+  "bundle": {
+    "entry": "@grana/blocks/ecommerce",
+    "peers": [
+      "vue",
+      "@grana/vue",
+      "@grana/vue/price",
+      "@grana/vue/load-region"
+    ],
+    "note": "Sin tope hasta medir (#909). Medida de la parte C (2026-10-26): dist/ecommerce.js con sus trozos 48 712 B gzip (scripts/measure-entry.mjs, 12 secciones, 36 variantes); cada variante sola (scripts/measure-partial.mjs): GbOrderHistory01 4687, GbOrderHistory02 4503, GbOrderHistory03 4504 (referencia 5 120 B).",
+    "measured": 48712
+  }
+}

@@ -1,0 +1,230 @@
+{
+  "schemaVersion": 1,
+  "name": "GbCheckout",
+  "kind": "block-section",
+  "family": "ecommerce",
+  "status": "draft",
+  "since": "0.0.0",
+  "complex": true,
+  "description": "Pedir lo que hay en el carrito dando solo lo necesario, paso a paso y sin perder nada al volver: lo hecho se resume en una línea con «Cambiar», el precio de cada forma de envío se oye al elegirla y el total va siempre junto al botón. El bloque valida como el navegador y emite cada paso (cancelable); el pago es de la pasarela de la tienda, en su propio hueco: Grana nunca toca un número de tarjeta.",
+  "contract": "design/contracts/blocks/checkout.md",
+  "common": "design/contracts/blocks/_comun.md",
+  "decisions": [
+    909,
+    910,
+    913,
+    914,
+    922
+  ],
+  "composes": [
+    "GSection",
+    "GStack",
+    "GAdaptiveLayout",
+    "GForm",
+    "GErrorSummary",
+    "GFormSection",
+    "GFormLayout",
+    "GFormRow",
+    "GInput",
+    "GTextarea",
+    "GSelect",
+    "GDatePicker",
+    "GRadioGroup",
+    "GCheckbox",
+    "GFieldGroup",
+    "GFormActions",
+    "GStepper",
+    "GSummary",
+    "GAccordion",
+    "GAccordionItem",
+    "GBtn",
+    "GPrice",
+    "GPriceScope",
+    "GText",
+    "GMetric",
+    "GAvatar"
+  ],
+  "variants": [
+    {
+      "name": "GbCheckout01",
+      "tag": "gb-checkout-01",
+      "concept": "Por pasos",
+      "root": "GSection › GPriceScope › GStack gap=\"lg\" › GAccordion (el pedido plegado) + GStepper (navigation=\"back\") + GForm (solo el paso actual a la vista; los demás hidden y montados) con «Atrás»"
+    },
+    {
+      "name": "GbCheckout02",
+      "tag": "gb-checkout-02",
+      "concept": "Se pliega lo hecho",
+      "root": "GSection › GPriceScope › GStack gap=\"lg\" › GAccordion (el pedido) + GForm › GFormSection mode=\"collapsible\" por paso (lo hecho plegado con su resumen y «Cambiar»; los posteriores plegados e inert)"
+    },
+    {
+      "name": "GbCheckout03",
+      "tag": "gb-checkout-03",
+      "concept": "Con el pedido al lado",
+      "root": "GSection › GPriceScope › GAdaptiveLayout gap=\"lg\" › [div › GStepper + GForm con GFormActions sticky] + [div › GSection (el pedido abierto)]; hoy uno debajo de otro (CR-L1)"
+    }
+  ],
+  "props": [
+    {
+      "name": "title",
+      "type": "String",
+      "ts": "string",
+      "required": true,
+      "note": "«Finalizar compra»"
+    },
+    {
+      "name": "steps",
+      "type": "Array",
+      "ts": "CheckoutStep[]",
+      "required": true,
+      "note": "2 a 5 (C7). id obligatorio (EC5: sin él, el paso se omite); sin title o sin action, C2. Sin fields ni consents: un paso de la aplicación (slot step-{id}; CK1 sin él). Un campo de tarjeta (autocomplete cc-* o name card*) no se pinta (EC6)"
+    },
+    {
+      "name": "step",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "v-model:step: el id del paso actual (el primero por defecto; uno que no está en steps, CK3)"
+    },
+    {
+      "name": "values",
+      "type": "Object",
+      "ts": "Record<string, string>",
+      "default": null,
+      "note": "v-model:values; un consentimiento nunca llega marcado (G3)"
+    },
+    {
+      "name": "order",
+      "type": "Object",
+      "ts": "OrderSummary",
+      "required": true,
+      "note": "Lo que se compra (de la aplicación): el pedido con la pieza de Order summary 02 y el total del pie"
+    },
+    {
+      "name": "prices",
+      "type": "Object",
+      "ts": "PriceRegion",
+      "required": true,
+      "note": "Obligatoria (EC1): UNA GPriceScope alrededor del pedido, los precios del envío y el total"
+    },
+    {
+      "name": "busy",
+      "type": "Boolean",
+      "ts": "boolean",
+      "default": false,
+      "note": "Enviando un paso: el botón con loading y labels.busy"
+    },
+    {
+      "name": "errors",
+      "type": "Object",
+      "ts": "Record<string, string>",
+      "default": null,
+      "note": "Errores de la aplicación por name: ganan a la validación y llevan a su paso y a su campo"
+    },
+    {
+      "name": "error",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "Error general (al final del resumen de errores)"
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "BCP 47; sin él, el lang del ancestro al montar"
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "ts": "CheckoutLabels",
+      "required": true,
+      "note": "required, invalid, back, edit, order, total (C5); choose con un choice obligatorio; consent y consents con consentimientos; busy con busy; los de Order summary para el pedido (lines, quantity, pending, placedAt, delivery, reference); form, errorSummary, stepper, datePicker y price a sus componentes; external. Sin valores por defecto"
+    }
+  ],
+  "events": [
+    {
+      "name": "submit",
+      "payload": "{ event, step, data, values, consents, final, preventDefault(), defaultPrevented }",
+      "ts": "CheckoutSubmit",
+      "trigger": "Un paso válido (Intro o su botón). Síncrono y cancelable: sin preventDefault() el bloque avanza al siguiente y enfoca su primer control; con él, espera a que la aplicación cambie step. final en el último paso"
+    },
+    {
+      "name": "update:step",
+      "payload": "string",
+      "ts": "string",
+      "trigger": "Avanzar, volver («Atrás», el GStepper) o «Cambiar» (sin validar ni borrar)"
+    },
+    {
+      "name": "update:values",
+      "payload": "Record<string, string>",
+      "ts": "Record<string, string>",
+      "trigger": "Cada cambio de un campo"
+    },
+    {
+      "name": "navigate",
+      "payload": "{ event, href, item }",
+      "ts": "BlockNavigate<NavLink | OrderLine>",
+      "trigger": "Un enlace de consentimiento o un producto del pedido, con clic primario (#505); nunca con external (#574)"
+    }
+  ],
+  "slots": [
+    {
+      "name": "step-{id}",
+      "ts": "{ step: CheckoutStep; values: Record<string, string> }",
+      "purpose": "Obligatorio para un paso sin fields: el pago (la pasarela de la tienda, con su propia accesibilidad) u otro paso de la aplicación. El bloque no lo lee ni lo valida"
+    },
+    {
+      "name": "field-{name}",
+      "ts": "{ field: CheckoutField; value: string; error: string | undefined; id: string }",
+      "purpose": "Escape de un campo (el del motor de Guest form)"
+    },
+    {
+      "name": "order",
+      "ts": "{ order: OrderSummary }",
+      "purpose": "Escape: el resumen del pedido propio"
+    },
+    {
+      "name": "description",
+      "purpose": "Descripción rica de la sección"
+    }
+  ],
+  "types": [
+    "CheckoutStep",
+    "CheckoutField",
+    "ChoiceOption",
+    "GuestField",
+    "Consent",
+    "OrderSummary",
+    "PriceRegion",
+    "CheckoutLabels",
+    "CheckoutSubmit",
+    "BlockNavigate",
+    "NavLink",
+    "OrderLine"
+  ],
+  "warnings": [
+    "C2 (paso sin title o sin action: se omite)",
+    "C5",
+    "C7 (más de 5 pasos)",
+    "EC1",
+    "EC5 (paso sin id: se omite)",
+    "EC6 (campo de tarjeta: no se pinta)",
+    "G1, G2, G3, G5, G7, G8 (los del motor de campos de Guest form)",
+    "CK1 · un paso sin fields y sin slot step-{id} (título y botón, sin contenido)",
+    "CK2 · sin escucha de submit",
+    "CK3 · step que no está en steps (se usa el primero)"
+  ],
+  "root": "GSection con data-gb=\"checkout-NN\" y $attrs",
+  "bundle": {
+    "entry": "@grana/blocks/ecommerce",
+    "peers": [
+      "vue",
+      "@grana/vue",
+      "@grana/vue/price"
+    ],
+    "note": "Sin tope hasta medir (#909). El motor de campos es una copia del de Guest form en common/fields.js (§32: compartido, GbGuestForm03 pasaba de su tope de 7 168 B, medido 7 328 B). Medida de la parte C (2026-10-26): dist/ecommerce.js con sus trozos 48 712 B gzip (scripts/measure-entry.mjs, 12 secciones, 36 variantes); cada variante sola (scripts/measure-partial.mjs): GbCheckout01 9158, GbCheckout02 9048, GbCheckout03 9176 (referencia 7 168 B). Pasa la referencia de la parte C y vuelve a lima con su medida.",
+    "measured": 48712
+  }
+}

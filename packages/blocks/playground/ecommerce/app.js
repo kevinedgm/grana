@@ -59,7 +59,10 @@ export async function mountBank(section, bank, { concepts = {}, only } = {}) {
       onChange: (p) => events.push(['change', n, id(p.line), p.quantity]),
       onRemove: (p) => events.push(['remove', n, id(p.line)]),
       onRestore: (p) => events.push(['restore', n, id(p.line)]),
-      onSubmit: (p) => { if (p.preventDefault) p.preventDefault(); events.push(['submit', n, p.step]) }
+      onSubmit: (p) => { if (p.preventDefault) p.preventDefault(); events.push(['submit', n, p.step]) },
+      // Lo que hace la aplicación con una intención (parte C: el carrito quita y devuelve líneas, el pago avanza): el banco
+      // puede dar `app(view, events, n)` con escuchas que sustituyen a las de arriba
+      ...(bank.app ? bank.app(view, events, n) : {})
     }, bank.slots)
   }
   const variant = (n) => {
