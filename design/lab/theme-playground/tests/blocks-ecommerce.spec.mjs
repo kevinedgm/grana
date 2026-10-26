@@ -13,7 +13,16 @@ const PAGES = [
   { name: 'category-previews', file: 'category-previews.html', qs: '', h1: 0, blocks: 3 },
   { name: 'trust', file: 'trust.html', qs: '', h1: 0, blocks: 3 },
   // Promo 03 es una línea sin encabezado (role="group"): en la página anidada no cuenta
-  { name: 'promo', file: 'promo.html', qs: '', h1: 0, blocks: 3 }
+  { name: 'promo', file: 'promo.html', qs: '', h1: 0, blocks: 3 },
+  // Parte B (puerto 4218): Product grid, Product overview, Quick view y Reviews
+  { name: 'product-grid', file: 'product-grid.html', qs: '', h1: 0, blocks: 3 },
+  // Product overview: una variante por carga (los ids de los apartados, anclas, no se repiten en una página)
+  { name: 'product-overview 01', file: 'product-overview.html', qs: 'v=01', h1: 0, blocks: 1 },
+  { name: 'product-overview 02', file: 'product-overview.html', qs: 'v=02', h1: 0, blocks: 1 },
+  { name: 'product-overview 03', file: 'product-overview.html', qs: 'v=03', h1: 0, blocks: 1 },
+  // Quick view: una tarjeta disparadora (GbProductCard01) y el diálogo cerrado por variante (el título del diálogo se pinta al abrir)
+  { name: 'quick-view', file: 'quick-view.html', qs: '', h1: 0, blocks: 6 },
+  { name: 'reviews', file: 'reviews.html', qs: '', h1: 0, blocks: 3 }
 ]
 const THEMES = ['defecto', 'rustico', 'lujo']
 
@@ -98,7 +107,7 @@ for (const pg of PAGES) {
         const card = el.closest('.g-card')
         const cardRing = card ? (() => { const c = getComputedStyle(card, '::after'); return (c.outlineStyle !== 'none' && parseFloat(c.outlineWidth) > 0) || c.boxShadow !== 'none' })() : false
         // GInput (buscador de FAQ 03): el anillo lo pinta su caja (.g-input__row/.g-input__control:has(:focus-visible))
-        const boxRing = [el.closest('.g-input__control'), el.closest('.g-input__row'), el.closest('.g-select__control'), el.closest('.g-textarea__control')].some((box) => { if (!box) return false; const c = getComputedStyle(box); return (c.outlineStyle !== 'none' && parseFloat(c.outlineWidth) > 0) || c.boxShadow !== 'none' })
+        const boxRing = [el.closest('.g-input__control'), el.closest('.g-input__row'), el.closest('.g-select__control'), el.closest('.g-textarea__control'), el.closest('.g-radio-group__option')].some((box) => { if (!box) return false; const c = getComputedStyle(box); return (c.outlineStyle !== 'none' && parseFloat(c.outlineWidth) > 0) || c.boxShadow !== 'none' })
         return { tag: el.tagName, ring: ring || cardRing || boxRing }
       })
       if (r) { checked++; expect(r.ring, `${r.tag} #${i}`).toBe(true) }
@@ -233,4 +242,185 @@ test('promo: ningún temporizador ni animación del bloque tras montar (sin cuen
   const texts = await page.locator('[data-gb^="promo-"] time').allTextContents()
   await page.waitForTimeout(1100)
   expect(await page.locator('[data-gb^="promo-"] time').allTextContents()).toEqual(texts)
+})
+
+// ---------- Verificación propia · parte B (product-grid.md, product-overview.md, quick-view.md, reviews.md) ----------
+
+test('product-grid 01: tarjetas a la misma altura por fila a 1440 (#847) y una columna a 320', async ({ page }) => {
+  await open(page, 'product-grid.html', 'v=01', { width: 1440, height: 900 })
+  const items = page.locator('[data-gb="product-grid-01"] [role="list"] > [role="listitem"]')
+  const rows = new Map()
+  for (const it of await items.all()) {
+    const b = await box(it.locator('.g-card').first())
+    const k = Math.round(b.top)
+    rows.set(k, [...(rows.get(k) || []), Math.round(b.bottom - b.top)])
+  }
+  expect(rows.size).toBeGreaterThan(1)
+  for (const hs of rows.values()) expect(Math.max(...hs) - Math.min(...hs), hs.join(',')).toBeLessThanOrEqual(1)
+  await page.setViewportSize({ width: 320, height: 640 })
+  await settle(page)
+  const lefts = new Set()
+  for (const it of await items.all()) lefts.add(Math.round((await box(it)).left))
+  expect(lefts.size).toBe(1)
+  expect(await overflow(page)).toBe(false)
+})
+
+test('product-grid 02: las facetas al lado a 1440 y plegadas arriba a 390', async ({ page }) => {
+  await open(page, 'product-grid.html', 'v=02', { width: 1440, height: 900 })
+  const block = page.locator('[data-gb="product-grid-02"]')
+  const facets = block.locator('[role="group"][aria-label="Filtrar"]')
+  const results = block.locator('[role="list"]').last()
+  let f = await box(facets)
+  let r = await box(results)
+  expect(f.right).toBeLessThanOrEqual(r.left + 1)
+  await page.setViewportSize({ width: 390, height: 844 })
+  await settle(page)
+  f = await box(facets)
+  r = await box(results)
+  expect(f.bottom).toBeLessThanOrEqual(r.top + 1)
+  // Plegadas: ningún botón de etiqueta a la vista hasta abrir la faceta
+  await expect(facets.locator('.g-tag').first()).toBeHidden()
+  await expect(facets).toContainText('Grana cochinilla')
+})
+
+test('product-grid: alternar una faceta emite update:filters y el refresco (keep) no mueve la rejilla (Δ0 del primer producto)', async ({ page }) => {
+  await open(page, 'product-grid.html', 'v=01', { width: 1440, height: 900 })
+  const block = page.locator('[data-gb="product-grid-01"]')
+  await block.getByRole('button', { name: /^Añil/ }).click()
+  expect(await page.evaluate(() => window.blockEvents.filter((e) => e[0] === 'update:filters').map((e) => e[2]))).toEqual([{ tinte: ['grana', 'anil'] }])
+  const first = block.locator('[role="list"] > [role="listitem"]').first()
+  const before = await box(first)
+  await page.evaluate(() => { window.blockViews['01'].loading = true })
+  await page.waitForTimeout(700)
+  expect((await box(first)).top).toBe(before.top)
+  await page.evaluate(() => { window.blockViews['01'].loading = false })
+  await page.waitForTimeout(500)
+  expect((await box(first)).top).toBe(before.top)
+})
+
+test('product-grid: el vacío por filtros ofrece quitar justo un filtro (relax)', async ({ page }) => {
+  await open(page, 'product-grid.html', 'v=03&estado=filtrado')
+  const block = page.locator('[data-gb="product-grid-03"]')
+  await expect(block).toContainText('Ningún textil con esos filtros')
+  await block.getByRole('button', { name: /Quitar «Grana cochinilla»/ }).click()
+  expect(await page.evaluate(() => window.blockEvents.filter((e) => e[0] === 'update:filters').map((e) => e[2]))).toEqual([{ talla: ['g'] }])
+})
+
+// PO-L1 (hallazgo para lima): el panel lleva varios controles y GAdaptiveLayout lo trata como bloque completo (línea propia):
+// queda debajo de las fotos también a 1440. Pendiente hasta que el contrato diga cómo pedir «al lado» con API pública.
+test.fixme('product-overview 01: el panel al lado de las fotos a 1440 y debajo a 390', async ({ page }) => {
+  await open(page, 'product-overview.html', 'v=01', { width: 1440, height: 900 })
+  const block = page.locator('[data-gb="product-overview-01"]')
+  const gallery = block.locator('.g-gallery')
+  const panel = block.locator('fieldset').first()
+  let g = await box(gallery)
+  let p = await box(panel)
+  expect(g.right).toBeLessThanOrEqual(p.left + 1)
+  await page.setViewportSize({ width: 390, height: 844 })
+  await settle(page)
+  g = await box(gallery)
+  p = await box(panel)
+  expect(g.bottom).toBeLessThanOrEqual(p.top + 1)
+})
+
+test('product-overview: los chips de talla en una línea a 320 sin desbordar', async ({ page }) => {
+  await open(page, 'product-overview.html', 'v=02', { width: 320, height: 640 })
+  const chips = page.locator('[data-gb="product-overview-02"] fieldset').first().locator('label')
+  const tops = new Set()
+  for (const c of await chips.all()) tops.add(Math.round((await box(c)).top))
+  expect(tops.size).toBe(1)
+  expect(await overflow(page)).toBe(false)
+})
+
+test('product-overview: elegir color no desplaza la página (Δ0 del panel) y la talla agotada se dice; «Añadir» sin talla lleva a la talla', async ({ page }) => {
+  await open(page, 'product-overview.html', 'v=01', { width: 1440, height: 900 })
+  const block = page.locator('[data-gb="product-overview-01"]')
+  const add = block.getByRole('button', { name: 'Añadir al carrito' })
+  await add.scrollIntoViewIfNeeded()
+  const y0 = await page.evaluate(() => scrollY)
+  const p0 = await box(add)
+  await block.getByRole('radio', { name: 'Natural' }).check()
+  await settle(page)
+  expect(await page.evaluate(() => scrollY)).toBe(y0)
+  expect((await box(add)).top).toBe(p0.top)
+  await expect(block.getByRole('radio', { name: 'G, agotada' })).toBeDisabled()
+  await add.click()
+  await expect(block.getByRole('radio', { name: 'CH' })).toBeFocused()
+  await expect(block).toContainText('Elige Talla')
+  expect(await page.evaluate(() => window.blockEvents.filter((e) => e[0] === 'add'))).toEqual([])
+})
+
+test('quick-view: abrir desde la tarjeta, elegir talla, cerrar con Esc y el foco vuelve a esa tarjeta', async ({ page }) => {
+  await open(page, 'quick-view.html', 'v=01', { width: 1440, height: 900 })
+  const card = page.locator('#disparador-01 .g-card__primary, [data-gb="product-card-01"] .g-card__primary').first()
+  await card.click()
+  const dlg = page.locator('dialog[data-gb="quick-view-01"]')
+  await expect(dlg).toBeVisible()
+  await dlg.getByRole('radio', { name: 'M' }).check()
+  await page.keyboard.press('Escape')
+  await expect(dlg).toBeHidden()
+  await expect(card).toBeFocused()
+  const ev = await page.evaluate(() => window.blockEvents)
+  expect(ev.filter((e) => e[0] === 'update:selection').pop()[2]).toEqual({ talla: 'm' })
+  expect(ev.filter((e) => e[0] === 'update:open')).toEqual([['update:open', '01', false]])
+})
+
+test('quick-view 01: hoja inferior a 390 × 844 con «Añadir» a la vista sin tapar el campo enfocado', async ({ page }) => {
+  await open(page, 'quick-view.html', 'v=01', { width: 390, height: 844 })
+  await page.locator('[data-gb="product-card-01"] .g-card__primary').first().click()
+  const dlg = page.locator('dialog[data-gb="quick-view-01"]')
+  await expect(dlg).toBeVisible()
+  const d = await box(dlg)
+  expect(Math.round(d.bottom)).toBeGreaterThanOrEqual(843)
+  const add = dlg.getByRole('button', { name: 'Añadir al carrito' })
+  await add.scrollIntoViewIfNeeded()
+  const a = await box(add)
+  expect(a.bottom).toBeLessThanOrEqual(844)
+  const q = dlg.getByRole('spinbutton')
+  await q.focus()
+  const f = await box(q)
+  expect(f.bottom).toBeLessThanOrEqual(844)
+  expect(f.top).toBeGreaterThanOrEqual(d.top)
+})
+
+test('quick-view 02: al borde final a 1440 y a pantalla completa a 390', async ({ page }) => {
+  await open(page, 'quick-view.html', 'v=02', { width: 1440, height: 900 })
+  await page.locator('[data-gb="product-card-01"] .g-card__primary').first().click()
+  const dlg = page.locator('dialog[data-gb="quick-view-02"]')
+  await expect(dlg).toBeVisible()
+  await page.waitForTimeout(400)
+  let d = await box(dlg)
+  expect(Math.round(d.right)).toBeGreaterThanOrEqual(1439)
+  expect(d.left).toBeGreaterThan(400)
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.waitForTimeout(400)
+  d = await box(dlg)
+  expect(Math.round(d.left)).toBeLessThanOrEqual(1)
+  expect(Math.round(d.right)).toBeGreaterThanOrEqual(389)
+})
+
+test('reviews 02: dos columnas a 1440 y una a 390; la distribución se lee como texto y sus barras no están en el árbol accesible', async ({ page }) => {
+  await open(page, 'reviews.html', 'v=02', { width: 1440, height: 900 })
+  const block = page.locator('[data-gb="reviews-02"]')
+  const dist = block.getByRole('list', { name: 'Cómo se reparten' })
+  const first = block.locator('figure').first()
+  let a = await box(dist)
+  let b = await box(first)
+  expect(a.right).toBeLessThanOrEqual(b.left + 1)
+  await expect(block.getByRole('progressbar')).toHaveCount(0)
+  await expect(dist.getByRole('listitem')).toHaveCount(5)
+  await page.setViewportSize({ width: 390, height: 844 })
+  await settle(page)
+  a = await box(dist)
+  b = await box(first)
+  expect(a.bottom).toBeLessThanOrEqual(b.top + 1)
+})
+
+test('reviews: la calificación y cada puntuación en palabras, sin estrellas', async ({ page }) => {
+  await open(page, 'reviews.html', 'v=01')
+  const block = page.locator('[data-gb="reviews-01"]')
+  await expect(block).toContainText('4.6')
+  await expect(block).toContainText('128 opiniones')
+  await expect(block.locator('figure').first()).toContainText('5 de 5')
+  await expect(block.locator('img')).toHaveCount(0)
 })

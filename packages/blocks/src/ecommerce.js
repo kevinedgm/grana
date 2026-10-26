@@ -35,6 +35,18 @@ import GbTrust03 from './blocks/GbTrust/GbTrust03.vue'
 import GbPromo01 from './blocks/GbPromo/GbPromo01.vue'
 import GbPromo02 from './blocks/GbPromo/GbPromo02.vue'
 import GbPromo03 from './blocks/GbPromo/GbPromo03.vue'
+import GbProductGrid01 from './blocks/GbProductGrid/GbProductGrid01.vue'
+import GbProductGrid02 from './blocks/GbProductGrid/GbProductGrid02.vue'
+import GbProductGrid03 from './blocks/GbProductGrid/GbProductGrid03.vue'
+import GbProductOverview01 from './blocks/GbProductOverview/GbProductOverview01.vue'
+import GbProductOverview02 from './blocks/GbProductOverview/GbProductOverview02.vue'
+import GbProductOverview03 from './blocks/GbProductOverview/GbProductOverview03.vue'
+import GbQuickView01 from './blocks/GbQuickView/GbQuickView01.vue'
+import GbQuickView02 from './blocks/GbQuickView/GbQuickView02.vue'
+import GbQuickView03 from './blocks/GbQuickView/GbQuickView03.vue'
+import GbReviews01 from './blocks/GbReviews/GbReviews01.vue'
+import GbReviews02 from './blocks/GbReviews/GbReviews02.vue'
+import GbReviews03 from './blocks/GbReviews/GbReviews03.vue'
 
 export { cartTotals } from './cartTotals.js'
 
@@ -42,7 +54,11 @@ export {
   GbProductCard01, GbProductCard02, GbProductCard03,
   GbCategoryPreviews01, GbCategoryPreviews02, GbCategoryPreviews03,
   GbTrust01, GbTrust02, GbTrust03,
-  GbPromo01, GbPromo02, GbPromo03
+  GbPromo01, GbPromo02, GbPromo03,
+  GbProductGrid01, GbProductGrid02, GbProductGrid03,
+  GbProductOverview01, GbProductOverview02, GbProductOverview03,
+  GbQuickView01, GbQuickView02, GbQuickView03,
+  GbReviews01, GbReviews02, GbReviews03
 }
 
 /** Plugin: `app.use(ecommerce)` registra todas las variantes (`<gb-product-card-01>`, `<GbProductCard01>`…). */
@@ -52,7 +68,11 @@ export const ecommerce = {
       GbProductCard01, GbProductCard02, GbProductCard03,
       GbCategoryPreviews01, GbCategoryPreviews02, GbCategoryPreviews03,
       GbTrust01, GbTrust02, GbTrust03,
-      GbPromo01, GbPromo02, GbPromo03
+      GbPromo01, GbPromo02, GbPromo03,
+      GbProductGrid01, GbProductGrid02, GbProductGrid03,
+      GbProductOverview01, GbProductOverview02, GbProductOverview03,
+      GbQuickView01, GbQuickView02, GbQuickView03,
+      GbReviews01, GbReviews02, GbReviews03
     }
     for (const [name, component] of Object.entries(variants)) app.component(name, component)
   }

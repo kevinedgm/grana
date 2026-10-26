@@ -3,7 +3,7 @@
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { h } from 'vue'
+import { h, nextTick } from 'vue'
 import { GSection } from '@grana/vue'
 import { UTILITY, mountBlock, ownAnchor, ssr } from './harness.js'
 
@@ -17,8 +17,10 @@ import { UTILITY, mountBlock, ownAnchor, ssr } from './harness.js'
  * @param {number} [o.h1=0]    h1 que pinta cada variante (1 solo en Hero)
  * @param {string[]} [o.headless=[]] variantes que con el banco no pintan ningún encabezado (GbFooter02: una línea)
  * @param {object} [o.inner={}] bloques que el banco mete en un slot de la variante ({ GbFooter03: 1 }: la suscripción)
+ * @param {string[]} [o.dialogs=[]] variantes cuya raíz es un GDialog (Quick view): su contenido se pinta al abrir (tras un
+ *   ciclo) y su título es el h2 del diálogo, que empieza su propio esquema (también dentro de una GSection)
  */
-export function sectionSuite({ meta, bank, variants, section, dir, h1 = 0, headless = [], inner = {} }) {
+export function sectionSuite({ meta, bank, variants, section, dir, h1 = 0, headless = [], inner = {}, dialogs = [] }) {
   const names = meta.variants.map((v) => v.name)
   const icons = bank.appIcons || []
   const run = (name, extra = {}) => mountBlock(variants[name], { props: bank.props, slots: bank.slots, icons, ...extra })
@@ -115,7 +117,20 @@ export function sectionSuite({ meta, bank, variants, section, dir, h1 = 0, headl
           expect(nested.w.element.querySelector('[data-gb]').querySelectorAll('h1, h2, h3, h4, h5, h6')).toHaveLength(0)
         })
       }
-      for (const n of names.filter((x) => !headless.includes(x))) {
+      for (const n of names.filter((x) => dialogs.includes(x))) {
+        it(`${n}: diálogo abierto con su título h2, también dentro de una GSection (el diálogo empieza su propio esquema)`, async () => {
+          for (const wrap of [undefined, (render) => h(GSection, { title: 'Página' }, render)]) {
+            const { w } = run(n, { wrap, attachTo: document.body })
+            await nextTick()
+            await nextTick()
+            const block = w.element.matches && w.element.matches('[data-gb]') ? w.element : w.element.querySelector('[data-gb]')
+            expect(block.tagName).toBe('DIALOG')
+            expect(block.querySelector('h1, h2, h3, h4, h5, h6').tagName).toBe('H2')
+            w.unmount()
+          }
+        })
+      }
+      for (const n of names.filter((x) => !headless.includes(x) && !dialogs.includes(x))) {
         it(`${n}: título de la sección h2 en la raíz y h3 dentro de una GSection de la aplicación`, () => {
           const top = run(n)
           expect(top.w.element.querySelector('h2, h3, h4, h5, h6').tagName).toBe('H2')

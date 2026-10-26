@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GbQuickView · banco de Ecommerce (bruno)</title>
+<!-- Banco de GbQuickView con los bloques REALES (packages/blocks/dist/ecommerce.js) y el banco único de la sección
+     (src/blocks/GbQuickView/quick-view.bank.js). Requiere `npm run build` en packages/vue y packages/blocks.
+     Desde la raíz del repo: python3 -m http.server 4218 → /packages/blocks/playground/ecommerce/quick-view.html
+     Parámetros: ?tema=defecto|rustico|lujo · ?dark=1 · ?v=01|02|03 · ?zoom=2 · ?anidado=1 · ?abierta=01|02|03
+     Cada variante con su disparador: una tarjeta GbProductCard01 (tarjeta-botón) que la abre con `open { event }` y le pasa
+     event.currentTarget como `from` (el foco vuelve a ella al cerrar, #919). -->
+<link rel="stylesheet" href="/packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="/packages/vue/dist/grana.css">
+<link rel="stylesheet" id="tema" href="data:text/css,">
+<style>
+  /* Andamio del banco (no es de Grana ni del bloque) */
+  body{margin:0;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui)}
+  .pg-label{margin:var(--g-space-6) 0 var(--g-space-2);font-size:13px;color:var(--g-color-text-muted)}
+  .pg-stage{padding-block-end:var(--g-space-8)}
+</style>
+<script>
+  // Activa los avisos de desarrollo de Grana en el navegador (sin empaquetador `process` no existe, #653)
+  window.process = { env: { NODE_ENV: 'development' } }
+</script>
+<script type="importmap">
+{ "imports": {
+  "vue": "/node_modules/vue/dist/vue.esm-browser.js",
+  "@grana/vue": "/packages/vue/dist/grana.js",
+  "@grana/vue/price": "/packages/vue/dist/price.js",
+  "@grana/vue/gallery": "/packages/vue/dist/gallery.js",
+  "@grana/vue/tag": "/packages/vue/dist/tag.js",
+  "@grana/vue/load-region": "/packages/vue/dist/load-region.js",
+  "@grana/blocks/ecommerce": "/packages/blocks/dist/ecommerce.js"
+} }
+</script>
+</head>
+<body>
+<div id="app"></div>
+<script type="module">
+  // Disparador + vista rápida por variante (dueño: bruno). Como app.js, pero con el estado de la superficie: la tarjeta abre
+  // con su `open { event }` y pasa event.currentTarget como `from`; `update:open` lo cierra. window.blockEvents recoge las
+  // intenciones; window.blockViews el estado de cada variante.
+  import { createApp, h, reactive } from 'vue'
+  import Grana, { GContainer, GSection, createIcons } from '@grana/vue'
+  import { ecommerce } from '@grana/blocks/ecommerce'
+  import * as Blocks from '@grana/blocks/ecommerce'
+  import * as bank from '/packages/blocks/src/blocks/GbQuickView/quick-view.bank.js'
+  import { CARD_LABELS, asProduct } from '/packages/blocks/src/blocks/bank/ecommerce.js'
+
+  const q = new URLSearchParams(location.search)
+  const tema = ['rustico', 'lujo'].includes(q.get('tema')) ? q.get('tema') : 'defecto'
+  if (tema !== 'defecto') document.getElementById('tema').href = `../marketing/temas/${tema}.css`
+  if (q.has('dark')) document.documentElement.dataset.theme = 'dark'
+  if (q.get('zoom') === '2') document.documentElement.style.fontSize = '200%'
+  const concepts = { '01': 'Diálogo', '02': 'Hoja lateral', '03': 'Elegir y añadir' }
+  const v = q.get('v')
+  const nums = ['01', '02', '03'].filter((n) => !v || n === v)
+  const events = []
+  window.blockEvents = events
+  const views = Object.fromEntries(nums.map((n) => [n, reactive({ open: q.get('abierta') === n, from: undefined })]))
+  window.blockViews = views
+  // La tarjeta que abre: el huipil sin enlace (tarjeta-botón «ver»)
+  const trigger = { ...asProduct(bank.props.product), href: undefined }
+  const variant = (n) => {
+    const view = views[n]
+    const card = h(Blocks.GbProductCard01, {
+      product: trigger, prices: bank.props.prices, locale: bank.props.locale, labels: CARD_LABELS, id: `disparador-${n}`,
+      onOpen: (p) => { view.from = p.event.currentTarget; view.open = true; events.push(['open', n]) }
+    })
+    const qv = h(Blocks[`GbQuickView${n}`], {
+      ...bank.props, ...view, id: `gb-${n}`,
+      'onUpdate:open': (x) => { view.open = x; events.push(['update:open', n, x]) },
+      'onUpdate:selection': (x) => { view.selection = x; events.push(['update:selection', n, x]) },
+      'onUpdate:quantity': (x) => { view.quantity = x; events.push(['update:quantity', n, x]) },
+      onAdd: (p) => events.push(['add', n, p.product.id, p.quantity, p.variant && p.variant.id]),
+      onSelect: (p) => events.push(['select', n, p.key, p.value]),
+      onNavigate: (p) => { p.event.preventDefault(); events.push(['navigate', n, p.href]) }
+    }, bank.slots)
+    const label = h('p', { class: 'pg-label' }, `GbQuickView${n} · ${concepts[n]}`)
+    const block = [card, qv]
+    return h(GContainer, { as: 'div', class: 'pg-stage' }, () => [label, q.has('anidado') ? h(GSection, { title: 'Sección de la aplicación' }, () => block) : block])
+  }
+  const app = createApp({ render: () => h('main', { id: 'main' }, nums.map(variant)) })
+  app.use(Grana).use(ecommerce).use(createIcons([]))
+  app.config.warnHandler = (msg) => console.warn(`[Vue warn] ${msg}`)
+  app.mount('#app')
+  document.documentElement.dataset.ready = '1'
+</script>
+</body>
+</html>

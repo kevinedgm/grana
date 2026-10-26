@@ -1,0 +1,183 @@
+{
+  "schemaVersion": 1,
+  "name": "GbReviews",
+  "kind": "block-section",
+  "family": "ecommerce",
+  "status": "draft",
+  "since": "0.0.0",
+  "description": "Lo que opinan quienes compraron este producto: la calificación en palabras con cuántas la sostienen, cómo se reparten (también los «1 de 5») y cada opinión entera, con su fecha, lo que compró y la respuesta de la tienda. Sin estrellas: la distribución se lee como texto y sus barras son decorativas.",
+  "contract": "design/contracts/blocks/reviews.md",
+  "common": "design/contracts/blocks/_comun.md",
+  "decisions": [
+    909,
+    910,
+    911,
+    912,
+    913,
+    914,
+    920
+  ],
+  "composes": [
+    "GSection",
+    "GStack",
+    "GAdaptiveLayout",
+    "GCard",
+    "GMetric",
+    "GProgress",
+    "GAvatar",
+    "GText",
+    "GBtn",
+    "GPagination",
+    "GEmpty"
+  ],
+  "variants": [
+    {
+      "name": "GbReviews01",
+      "tag": "gb-reviews-01",
+      "concept": "Lista con resumen",
+      "root": "GSection › GStack gap=\"lg\" › GMetric + acción + GStack as=\"ul\" divided › li › opinión + GPagination"
+    },
+    {
+      "name": "GbReviews02",
+      "tag": "gb-reviews-02",
+      "concept": "Resumen y distribución",
+      "root": "GSection › GAdaptiveLayout gap=\"lg\" › [g-adapt-short › GMetric + distribución + acción] + [g-adapt-wide › GStack as=\"ul\" divided › opiniones + GPagination]"
+    },
+    {
+      "name": "GbReviews03",
+      "tag": "gb-reviews-03",
+      "concept": "Tarjetas",
+      "root": "GSection › GStack gap=\"lg\" › GMetric + acción + GAdaptiveLayout role=\"list\" › div g-adapt-wide › GCard as=\"div\" role=\"group\" (GAvatar en lead) + GPagination"
+    }
+  ],
+  "props": [
+    {
+      "name": "title",
+      "type": "String",
+      "ts": "string",
+      "required": true
+    },
+    {
+      "name": "description",
+      "type": "String",
+      "ts": "string",
+      "default": null
+    },
+    {
+      "name": "summary",
+      "type": "Object",
+      "ts": "ReviewSummary",
+      "default": null,
+      "note": "average, max (5), count y distribution de la aplicación; count 0 = sin opiniones (labels.noReviews, nunca «0 de 5»)"
+    },
+    {
+      "name": "reviews",
+      "type": "Array",
+      "ts": "Review[]",
+      "required": true,
+      "note": "La página (0 a 20; C7 por encima); cada cita entera, sin recortar"
+    },
+    {
+      "name": "total",
+      "type": "Number",
+      "ts": "number",
+      "default": null
+    },
+    {
+      "name": "page",
+      "type": "Number",
+      "ts": "number",
+      "default": 1,
+      "note": "v-model:page"
+    },
+    {
+      "name": "pageSize",
+      "type": "Number",
+      "ts": "number",
+      "default": null
+    },
+    {
+      "name": "action",
+      "type": "Object",
+      "ts": "Action",
+      "default": null,
+      "note": "«Escribir una opinión» (secundaria, outline); sin opiniones, en el slot actions de GEmpty"
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "ts": "string",
+      "default": null
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "ts": "ReviewsLabels",
+      "required": true,
+      "note": "average, outOf, count, noReviews y score obligatorios; row y distribution con distribution; verified, bought, reply y external con su dato; pagination a GPagination"
+    }
+  ],
+  "events": [
+    {
+      "name": "update:page",
+      "payload": "number",
+      "ts": "number",
+      "trigger": "GPagination"
+    },
+    {
+      "name": "navigate",
+      "payload": "{ event, href, item }",
+      "ts": "BlockNavigate<Action> | BlockNavigate<Review>",
+      "trigger": "La acción con href o la fuente interna de una opinión (§4)"
+    },
+    {
+      "name": "activate",
+      "payload": "{ event, item }",
+      "ts": "BlockActivate<Action>",
+      "trigger": "La acción sin href"
+    }
+  ],
+  "slots": [
+    {
+      "name": "quote",
+      "ts": "{ item: Review }",
+      "purpose": "Escape: contenido rico dentro del blockquote (como Testimonials)"
+    },
+    {
+      "name": "description",
+      "purpose": "Sustituye a la prop description en la GSection"
+    }
+  ],
+  "types": [
+    "Review",
+    "ReviewSummary",
+    "Rating",
+    "ChosenOption",
+    "Action",
+    "ReviewsLabels",
+    "BlockNavigate",
+    "BlockActivate"
+  ],
+  "warnings": [
+    "C1 (sin aviso si hay summary con count 0: es el vacío)",
+    "C2 (opinión sin quote, author.name, date o rating)",
+    "C3",
+    "C5",
+    "C6 (los de la acción y la fuente)",
+    "C7 (más de 20)",
+    "EC2",
+    "RV1 · rating de una opinión fuera de 1..max (sin puntuación)",
+    "RV2 · distribution cuya suma no es summary.count (se pinta lo dado)",
+    "RV3 · una cita de más de 1 200 caracteres (entera)"
+  ],
+  "root": "GSection con data-gb=\"reviews-NN\" y $attrs",
+  "bundle": {
+    "entry": "@grana/blocks/ecommerce",
+    "measured": 5412,
+    "peers": [
+      "vue",
+      "@grana/vue"
+    ],
+    "note": "Sin tope hasta medir (#909): lima lo fija al cierre del lote con las 36 variantes. Medida de la parte B (2026-10-26, con las 12 secciones en el árbol): importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbReviews01 5316 B, GbReviews02 5380 B, GbReviews03 5412 B (referencia 5 120 B: pasa por ≈ 300 B, vuelve a lima). La medida incluye el preludio de importaciones de dist/ecommerce.js que esbuild conserva, que crece con cada sección de la entrada (Product card pasó de 3 416 a ≈ 3 600 B sin cambiar). dist/ecommerce.js con sus trozos: 48 816 B gzip con las 12 secciones (29 219 B con las 8 de A y B)."
+  }
+}

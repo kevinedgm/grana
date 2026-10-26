@@ -1,0 +1,198 @@
+{
+  "schemaVersion": 1,
+  "name": "GbProductOverview",
+  "kind": "block-section",
+  "family": "ecommerce",
+  "complex": true,
+  "status": "draft",
+  "since": "0.0.0",
+  "description": "La ficha de un producto: las fotos, lo que cuesta la combinación que eliges, si queda y el botón que la añade; luego la descripción, la ficha técnica y los apartados. La foto sigue a la elección, un valor sin existencias se queda a la vista con «agotada» en su nombre, nada viene preelegido y «Añadir» sin una opción obligatoria no emite: lleva el foco a la pregunta que falta y la dice.",
+  "contract": "design/contracts/blocks/product-overview.md",
+  "common": "design/contracts/blocks/_comun.md",
+  "decisions": [
+    909,
+    910,
+    911,
+    912,
+    913,
+    914,
+    918
+  ],
+  "composes": [
+    "GSection",
+    "GStack",
+    "GAdaptiveLayout",
+    "GGallery",
+    "GRadioGroup",
+    "GNumberField",
+    "GBtn",
+    "GPrice",
+    "GPriceScope",
+    "GTabs",
+    "GAccordion",
+    "GAccordionItem",
+    "GText"
+  ],
+  "variants": [
+    {
+      "name": "GbProductOverview01",
+      "tag": "gb-product-overview-01",
+      "concept": "Galería + panel",
+      "root": "GSection › GStack gap=\"lg\" › GAdaptiveLayout gap=\"lg\" › [g-adapt-wide › GGallery] + [g-adapt-standard › panel] + GAccordion"
+    },
+    {
+      "name": "GbProductOverview02",
+      "tag": "gb-product-overview-02",
+      "concept": "Galería arriba",
+      "root": "GSection › GStack gap=\"lg\" › GGallery + panel + GAccordion"
+    },
+    {
+      "name": "GbProductOverview03",
+      "tag": "gb-product-overview-03",
+      "concept": "Tira + pestañas",
+      "root": "GSection › GStack gap=\"lg\" › GGallery appearance=\"strip\" + panel + GTabs (slot panel-{id})"
+    }
+  ],
+  "props": [
+    {
+      "name": "product",
+      "type": "Object",
+      "ts": "ProductDetail",
+      "required": true,
+      "note": "name es el título de la sección (h2 bajo el h1 de la aplicación, EC-L1); lang va a la GSection"
+    },
+    {
+      "name": "selection",
+      "type": "Object",
+      "ts": "Selection",
+      "default": null,
+      "note": "v-model:selection (clave de opción → valor); sin él, el bloque guarda su copia. Nada preelegido salvo una opción de un solo valor; un valor que no está en su opción se ignora (PO2)"
+    },
+    {
+      "name": "quantity",
+      "type": "Number",
+      "ts": "number",
+      "default": 1,
+      "note": "v-model:quantity; GNumberField min 1, max = Variant.max (PO3)"
+    },
+    {
+      "name": "prices",
+      "type": "Object",
+      "ts": "PriceRegion",
+      "default": null,
+      "note": "Un GPriceScope alrededor del precio del panel"
+    },
+    {
+      "name": "busy",
+      "type": "Boolean",
+      "ts": "boolean",
+      "default": false,
+      "note": "Añadiendo: «Añadir» con loading y loadingText = labels.busy; no emite"
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "BCP 47; sin él, el lang del ancestro al montar"
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "ts": "OverviewLabels",
+      "required": true,
+      "note": "add, quantity, decrement, increment, choose y photos obligatorios (C5); busy con busy; unavailable y unavailableValue con lo agotado; facts y details con facts o descripción; tabs en 03; rating, noReviews y reviews con rating y product.reviews; gallery (a GGallery) y price (a GPriceScope) tal cual"
+    }
+  ],
+  "events": [
+    {
+      "name": "add",
+      "payload": "{ event, product, variant, selection, options, quantity }",
+      "ts": "ProductAdd",
+      "trigger": "«Añadir» con todo lo obligatorio elegido y la variante disponible; con una opción obligatoria sin elegir NO emite (error y foco en esa pregunta)"
+    },
+    {
+      "name": "select",
+      "payload": "{ event, product, key, value, variant }",
+      "ts": "OptionSelect",
+      "trigger": "Se elige un valor (informativo: la elección ya está en v-model:selection)"
+    },
+    {
+      "name": "update:selection",
+      "payload": "Record<string, string | number> (objeto nuevo)",
+      "ts": "Selection",
+      "trigger": "Cada elección"
+    },
+    {
+      "name": "update:quantity",
+      "payload": "number",
+      "ts": "number",
+      "trigger": "La cantidad cambia"
+    },
+    {
+      "name": "navigate",
+      "payload": "{ event, href, item }",
+      "ts": "BlockNavigate<ProductReviewsLink>",
+      "trigger": "El enlace a las opiniones (item = product.reviews), con clic primario"
+    }
+  ],
+  "slots": [
+    {
+      "name": "panel",
+      "ts": "{ product: ProductDetail; variant: Variant | null }",
+      "purpose": "Escape: contenido al final del panel (p. ej. «Envío a tu código postal» de la aplicación)"
+    },
+    {
+      "name": "section-{id}",
+      "ts": "{ section: ProductSection }",
+      "purpose": "Escape: el contenido rico de un apartado"
+    },
+    {
+      "name": "description",
+      "purpose": "Escape: la descripción rica"
+    }
+  ],
+  "types": [
+    "ProductDetail",
+    "Product",
+    "Variant",
+    "ProductOption",
+    "OptionValue",
+    "ProductSection",
+    "Photo",
+    "PhotoGroup",
+    "PriceSpec",
+    "PriceRegion",
+    "Rating",
+    "ProductFact",
+    "Selection",
+    "ChosenOption",
+    "OverviewLabels",
+    "ProductAdd",
+    "OptionSelect",
+    "BlockNavigate"
+  ],
+  "warnings": [
+    "C4 (en la galería avisa GGallery)",
+    "C5",
+    "K3",
+    "K4",
+    "EC2",
+    "EC4",
+    "PO1 · product.photos vacío (sin galería)",
+    "PO2 · un selection con un valor que no está en su opción (se ignora)",
+    "PO3 · quantity fuera de min/max (lo ajusta GNumberField)"
+  ],
+  "root": "GSection con data-gb=\"product-overview-NN\" y $attrs",
+  "bundle": {
+    "entry": "@grana/blocks/ecommerce",
+    "measured": 6138,
+    "peers": [
+      "vue",
+      "@grana/vue",
+      "@grana/vue/price",
+      "@grana/vue/gallery"
+    ],
+    "note": "Sin tope hasta medir (#909): lima lo fija al cierre del lote con las 36 variantes. Medida de la parte B (2026-10-26, con las 12 secciones en el árbol): importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbProductOverview01 6053 B, GbProductOverview02 6019 B, GbProductOverview03 6138 B (referencia 6 144 B de §32: dentro). La medida incluye el preludio de importaciones de dist/ecommerce.js que esbuild conserva, que crece con cada sección de la entrada (Product card pasó de 3 416 a ≈ 3 600 B sin cambiar). dist/ecommerce.js con sus trozos: 48 816 B gzip con las 12 secciones (29 219 B con las 8 de A y B)."
+  }
+}

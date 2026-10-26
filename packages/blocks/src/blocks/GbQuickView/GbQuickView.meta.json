@@ -1,0 +1,204 @@
+{
+  "schemaVersion": 1,
+  "name": "GbQuickView",
+  "kind": "block-section",
+  "family": "ecommerce",
+  "complex": true,
+  "status": "draft",
+  "since": "0.0.0",
+  "description": "Ver un producto y elegirlo sin salir de la lista: una superficie (GDialog) con las fotos, el precio, las opciones, la cantidad y «Añadir» (el panel de Product overview) y un enlace a la ficha completa. Al cerrar, el foco vuelve a la tarjeta que la abrió y la elección queda en la aplicación (v-model:selection). No cierra sola tras «Añadir».",
+  "contract": "design/contracts/blocks/quick-view.md",
+  "common": "design/contracts/blocks/_comun.md",
+  "decisions": [
+    909,
+    910,
+    911,
+    912,
+    913,
+    914,
+    918,
+    919
+  ],
+  "composes": [
+    "GDialog",
+    "GStack",
+    "GGallery",
+    "GRadioGroup",
+    "GNumberField",
+    "GBtn",
+    "GPrice",
+    "GPriceScope",
+    "GText",
+    "GCard"
+  ],
+  "variants": [
+    {
+      "name": "GbQuickView01",
+      "tag": "gb-quick-view-01",
+      "concept": "Diálogo",
+      "root": "GDialog size=\"lg\" mobile=\"sheet\" › GStack gap=\"md\" › GGallery appearance=\"strip\" + panel + ficha completa"
+    },
+    {
+      "name": "GbQuickView02",
+      "tag": "gb-quick-view-02",
+      "concept": "Hoja lateral",
+      "root": "GDialog placement=\"end\" size=\"md\" mobile=\"fullscreen\" › GStack gap=\"md\" › GGallery + panel + ficha completa"
+    },
+    {
+      "name": "GbQuickView03",
+      "tag": "gb-quick-view-03",
+      "concept": "Elegir y añadir",
+      "root": "GDialog size=\"sm\" mobile=\"sheet\" › GStack gap=\"md\" › GCard level=\"flat\" (portada que sigue a la elección, maker y precio) + panel sin maker ni precio + ficha completa"
+    }
+  ],
+  "props": [
+    {
+      "name": "product",
+      "type": "Object",
+      "ts": "ProductDetail",
+      "required": true,
+      "note": "name es el título del diálogo; href da la ficha completa"
+    },
+    {
+      "name": "open",
+      "type": "Boolean",
+      "ts": "boolean",
+      "default": null,
+      "note": "v-model:open; lo pone la aplicación por un gesto. Sin v-model, el bloque guarda su copia (Esc y cerrar la ponen en false)"
+    },
+    {
+      "name": "from",
+      "type": "String",
+      "ts": "DialogFrom | null",
+      "default": null,
+      "note": "El disparador, tal cual a from de GDialog (#583): el foco vuelve a él al cerrar; la aplicación lo toma de open { event } (event.currentTarget). Sin él y sin un disparador enfocado, QV1"
+    },
+    {
+      "name": "selection",
+      "type": "Object",
+      "ts": "Selection",
+      "default": null,
+      "note": "v-model:selection: la elección queda en la aplicación para la próxima vez (#919)"
+    },
+    {
+      "name": "quantity",
+      "type": "Number",
+      "ts": "number",
+      "default": 1,
+      "note": "v-model:quantity"
+    },
+    {
+      "name": "prices",
+      "type": "Object",
+      "ts": "PriceRegion",
+      "default": null,
+      "note": "Un GPriceScope alrededor del precio"
+    },
+    {
+      "name": "busy",
+      "type": "Boolean",
+      "ts": "boolean",
+      "default": false,
+      "note": "Añadiendo: «Añadir» con loading; el bloque no cierra solo"
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "ts": "string",
+      "default": null,
+      "note": "BCP 47; sin él, el lang del ancestro al montar"
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "ts": "QuickViewLabels",
+      "required": true,
+      "note": "Los de Product overview (OverviewLabels) más close (obligatorio), full (con product.href) y dialog (a GDialog, tal cual)"
+    }
+  ],
+  "events": [
+    {
+      "name": "update:open",
+      "payload": "boolean",
+      "ts": "boolean",
+      "trigger": "Cerrar (botón, Esc o fondo: GDialog)"
+    },
+    {
+      "name": "add",
+      "payload": "{ event, product, variant, selection, options, quantity }",
+      "ts": "ProductAdd",
+      "trigger": "«Añadir» válido (la carga de product-overview.md); no cierra"
+    },
+    {
+      "name": "select",
+      "payload": "{ event, product, key, value, variant }",
+      "ts": "OptionSelect",
+      "trigger": "Se elige un valor (informativo)"
+    },
+    {
+      "name": "update:selection",
+      "payload": "Record<string, string | number> (objeto nuevo)",
+      "ts": "Selection",
+      "trigger": "Cada elección"
+    },
+    {
+      "name": "update:quantity",
+      "payload": "number",
+      "ts": "number",
+      "trigger": "La cantidad cambia"
+    },
+    {
+      "name": "navigate",
+      "payload": "{ event, href, item }",
+      "ts": "BlockNavigate<Product> | BlockNavigate<ProductReviewsLink>",
+      "trigger": "La ficha completa (item = product; con preventDefault la aplicación cierra y navega con su router) o el enlace a las opiniones"
+    }
+  ],
+  "slots": [
+    {
+      "name": "panel",
+      "ts": "{ product: ProductDetail; variant: Variant | null }",
+      "purpose": "Escape: contenido al final del panel (el de E4)"
+    }
+  ],
+  "types": [
+    "ProductDetail",
+    "Product",
+    "Variant",
+    "ProductOption",
+    "OptionValue",
+    "Photo",
+    "PriceSpec",
+    "PriceRegion",
+    "Rating",
+    "Selection",
+    "ChosenOption",
+    "OverviewLabels",
+    "QuickViewLabels",
+    "ProductAdd",
+    "OptionSelect",
+    "BlockNavigate"
+  ],
+  "warnings": [
+    "C5",
+    "K3",
+    "K4",
+    "EC2",
+    "EC4",
+    "PO2",
+    "PO3",
+    "QV1 · open sin from y sin un disparador previo enfocado (una vez por instancia)"
+  ],
+  "root": "GDialog (<dialog>) con data-gb=\"quick-view-NN\" y $attrs; su id es el id de la aplicación o uno propio",
+  "bundle": {
+    "entry": "@grana/blocks/ecommerce",
+    "measured": 5832,
+    "peers": [
+      "vue",
+      "@grana/vue",
+      "@grana/vue/price",
+      "@grana/vue/gallery"
+    ],
+    "note": "Sin tope hasta medir (#909): lima lo fija al cierre del lote con las 36 variantes. Medida de la parte B (2026-10-26, con las 12 secciones en el árbol): importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbQuickView01 5577 B, GbQuickView02 5610 B, GbQuickView03 5832 B (referencia 6 144 B de §32: dentro). La medida incluye el preludio de importaciones de dist/ecommerce.js que esbuild conserva, que crece con cada sección de la entrada (Product card pasó de 3 416 a ≈ 3 600 B sin cambiar). dist/ecommerce.js con sus trozos: 48 816 B gzip con las 12 secciones (29 219 B con las 8 de A y B)."
+  }
+}

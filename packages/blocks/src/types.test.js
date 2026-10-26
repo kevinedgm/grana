@@ -201,7 +201,11 @@ describe('uso con vue-tsc', () => {
       ['ProductCard', 'GbProductCard/product-card.bank.js'],
       ['CategoryPreviews', 'GbCategoryPreviews/category-previews.bank.js'],
       ['Trust', 'GbTrust/trust.bank.js'],
-      ['Promo', 'GbPromo/promo.bank.js']
+      ['Promo', 'GbPromo/promo.bank.js'],
+      ['ProductGrid', 'GbProductGrid/product-grid.bank.js'],
+      ['ProductOverview', 'GbProductOverview/product-overview.bank.js'],
+      ['QuickView', 'GbQuickView/quick-view.bank.js'],
+      ['Reviews', 'GbReviews/reviews.bank.js']
     ]) {
       const bank = await import(/* @vite-ignore */ join(ROOT, 'src/blocks', file))
       const json = JSON.stringify(bank.props, (_k, v) => (typeof v === 'function' ? '__fn__' : v)).replace(/"__fn__"/g, '(null as never)')

@@ -1,0 +1,275 @@
+{
+  "schemaVersion": 1,
+  "name": "GbProductGrid",
+  "kind": "block-section",
+  "family": "ecommerce",
+  "complex": true,
+  "status": "draft",
+  "since": "0.0.0",
+  "description": "El escaparate de una categoría o de una búsqueda: los productos de la página, cuántos hay, cómo afinarlos y qué quitar si no queda ninguno. Cada faceta dice cuánto queda antes de tocarla y el vacío ofrece quitar justo el filtro que devuelve más. El bloque no filtra ni ordena: dice lo que la aplicación le da y emite lo que la persona pide.",
+  "contract": "design/contracts/blocks/product-grid.md",
+  "common": "design/contracts/blocks/_comun.md",
+  "decisions": [
+    909,
+    910,
+    911,
+    912,
+    913,
+    914,
+    915,
+    916
+  ],
+  "composes": [
+    "GSection",
+    "GStack",
+    "GAdaptiveLayout",
+    "GTagGroup",
+    "GTag",
+    "GAccordion",
+    "GAccordionItem",
+    "GSelect",
+    "GLoadRegion",
+    "GEmpty",
+    "GPagination",
+    "GPriceScope",
+    "GCard",
+    "GPrice",
+    "GText",
+    "GBtn"
+  ],
+  "variants": [
+    {
+      "name": "GbProductGrid01",
+      "tag": "gb-product-grid-01",
+      "concept": "Rejilla",
+      "root": "GSection › GStack gap=\"md\" › cabecera + GTagGroup layout=\"facets\" + GPriceScope › GLoadRegion › GAdaptiveLayout role=\"list\" › div g-adapt-standard › tarjeta E1 01 + GPagination"
+    },
+    {
+      "name": "GbProductGrid02",
+      "tag": "gb-product-grid-02",
+      "concept": "Con filtros al lado",
+      "root": "GSection › GAdaptiveLayout gap=\"lg\" › [div g-adapt-short role=\"group\" › GAccordion por faceta con su GTagGroup] + [div g-adapt-wide › cabecera + resultados con la tarjeta E1 03 + GPagination]"
+    },
+    {
+      "name": "GbProductGrid03",
+      "tag": "gb-product-grid-03",
+      "concept": "Renglones",
+      "root": "GSection › GStack gap=\"md\" › cabecera + GTagGroup layout=\"facets\" + GPriceScope › GLoadRegion › GStack as=\"ul\" › li › tarjeta E1 02 + GPagination"
+    }
+  ],
+  "props": [
+    {
+      "name": "title",
+      "type": "String",
+      "ts": "string",
+      "required": true
+    },
+    {
+      "name": "description",
+      "type": "String",
+      "ts": "string",
+      "default": null
+    },
+    {
+      "name": "products",
+      "type": "Array",
+      "ts": "Product[]",
+      "required": true,
+      "note": "La página actual (0 a 48; C7 por encima), en el orden de la aplicación (el bloque no ordena)"
+    },
+    {
+      "name": "total",
+      "type": "Number",
+      "ts": "number",
+      "default": null,
+      "note": "Resultados con los filtros: la cuenta y GPagination (PG3 si es menor que la página)"
+    },
+    {
+      "name": "page",
+      "type": "Number",
+      "ts": "number",
+      "default": 1,
+      "note": "v-model:page"
+    },
+    {
+      "name": "pageSize",
+      "type": "Number",
+      "ts": "number",
+      "default": null,
+      "note": "Fijo de la aplicación (sin selector, #796); con total, hay paginación"
+    },
+    {
+      "name": "facets",
+      "type": "Array",
+      "ts": "Facet[]",
+      "default": null,
+      "note": "Filtros de la vista: GTag de alternar con la cuenta de cada valor; una opción con count 0 no elegida, a la vista y deshabilitada"
+    },
+    {
+      "name": "filters",
+      "type": "Object",
+      "ts": "Record<string, (string | number)[]>",
+      "default": null,
+      "note": "v-model:filters (clave de faceta → valores); cada cambio emite un objeto nuevo. Un valor que no está en facets se ignora (PG1)"
+    },
+    {
+      "name": "sorts",
+      "type": "Array",
+      "ts": "SortOption[]",
+      "default": null
+    },
+    {
+      "name": "sort",
+      "type": "String",
+      "ts": "string | null",
+      "default": null,
+      "note": "v-model:sort (PG2 si no está en sorts)"
+    },
+    {
+      "name": "loading",
+      "type": "Boolean",
+      "ts": "boolean",
+      "default": false,
+      "note": "La aplicación trae la página (GLoadRegion: molde de sample la primera vez, lo último conocido después)"
+    },
+    {
+      "name": "error",
+      "type": "Boolean",
+      "ts": "boolean | string",
+      "default": false,
+      "note": "La última carga falló (barra de fallo con «Reintentar» sobre lo conocido)"
+    },
+    {
+      "name": "sample",
+      "type": "Array",
+      "ts": "Product[]",
+      "default": null,
+      "note": "Molde de la primera carga (GLoadRegion sample)"
+    },
+    {
+      "name": "prices",
+      "type": "Object",
+      "ts": "PriceRegion",
+      "required": true,
+      "note": "Obligatoria (EC1): UNA GPriceScope alrededor de los resultados"
+    },
+    {
+      "name": "busy",
+      "type": "Array",
+      "ts": "(string | number)[]",
+      "default": null,
+      "note": "Ids que se están añadiendo (acción rápida de la tarjeta compacta, 02)"
+    },
+    {
+      "name": "locale",
+      "type": "String",
+      "ts": "string",
+      "default": null
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "ts": "ProductGridLabels",
+      "required": true,
+      "note": "count, empty y card obligatorios; facets, clear y emptyFiltered con facets; sort con sorts; region (GLoadRegion), emptyLabels (GEmpty), tags (GTagGroup) y pagination (GPagination) tal cual"
+    }
+  ],
+  "events": [
+    {
+      "name": "update:filters",
+      "payload": "Record<string, (string | number)[]> (nuevo)",
+      "ts": "Record<string, (string | number)[]>",
+      "trigger": "Alternar una faceta, quitar uno (salida del vacío) o todos"
+    },
+    {
+      "name": "update:sort",
+      "payload": "string",
+      "ts": "string",
+      "trigger": "Cambiar el orden"
+    },
+    {
+      "name": "update:page",
+      "payload": "number",
+      "ts": "number",
+      "trigger": "Cambiar de página (sin mover el foco)"
+    },
+    {
+      "name": "add",
+      "payload": "{ event, product, variant: null, selection: {}, options: [], quantity: 1 }",
+      "ts": "ProductAdd",
+      "trigger": "La acción rápida «Añadir» de la tarjeta compacta (02), reemitida"
+    },
+    {
+      "name": "open",
+      "payload": "{ event, product }",
+      "ts": "ProductOpen",
+      "trigger": "La tarjeta-botón (sin href) o «Elegir opciones», reemitida"
+    },
+    {
+      "name": "navigate",
+      "payload": "{ event, href, item }",
+      "ts": "BlockNavigate<Product>",
+      "trigger": "La tarjeta-enlace, reemitida"
+    },
+    {
+      "name": "retry",
+      "payload": "{ event }",
+      "ts": "BlockRetry",
+      "trigger": "«Reintentar» de GLoadRegion (event es null: GLoadRegion no lo da; hallazgo PG-L2)"
+    }
+  ],
+  "slots": [
+    {
+      "name": "product",
+      "ts": "{ product: Product }",
+      "purpose": "Escape de la tarjeta: contenido al final de su cuerpo"
+    },
+    {
+      "name": "empty",
+      "ts": "{ filtered: boolean }",
+      "purpose": "Escape: el vacío propio de la aplicación dentro de la región"
+    },
+    {
+      "name": "description",
+      "purpose": "Sustituye a la prop description en la GSection"
+    }
+  ],
+  "types": [
+    "Product",
+    "Facet",
+    "SortOption",
+    "PriceRegion",
+    "ProductGridLabels",
+    "ProductCardLabels",
+    "ProductAdd",
+    "ProductOpen",
+    "BlockNavigate",
+    "BlockRetry"
+  ],
+  "warnings": [
+    "C2 y C4 a C6 (los de la tarjeta)",
+    "C3",
+    "C5",
+    "C7 (más de 48)",
+    "EC1",
+    "EC2",
+    "EC3",
+    "EC5",
+    "PG1 · un valor de filters que no está en facets (se ignora)",
+    "PG2 · sort que no está en sorts (GSelect sin selección)",
+    "PG3 · total menor que products.length (se usa products.length)"
+  ],
+  "root": "GSection con data-gb=\"product-grid-NN\" y $attrs",
+  "bundle": {
+    "entry": "@grana/blocks/ecommerce",
+    "measured": 6633,
+    "peers": [
+      "vue",
+      "@grana/vue",
+      "@grana/vue/price",
+      "@grana/vue/tag",
+      "@grana/vue/load-region"
+    ],
+    "note": "Sin tope hasta medir (#909): lima lo fija al cierre del lote con las 36 variantes. Medida de la parte B (2026-10-26, con las 12 secciones en el árbol): importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbProductGrid01 6430 B, GbProductGrid02 6633 B, GbProductGrid03 6431 B (referencia 5 120 B: pasa, vuelve a lima). La medida incluye el preludio de importaciones de dist/ecommerce.js que esbuild conserva, que crece con cada sección de la entrada (Product card pasó de 3 416 a ≈ 3 600 B sin cambiar). dist/ecommerce.js con sus trozos: 48 816 B gzip con las 12 secciones (29 219 B con las 8 de A y B)."
+  }
+}

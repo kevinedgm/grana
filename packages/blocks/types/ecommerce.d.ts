@@ -339,3 +339,117 @@ export interface PromoLabels {
 }
 /** Las acciones de la sección (`navigate`/`activate`) y «Copiar código» (`activate` con el código). */
 export type PromoActivate = BlockActivate<Action> | BlockActivate<PromoCode>
+
+// ── E2 Product grid (product-grid.md) ──
+
+/** Un filtro de la vista: los valores con cuántos quedarían eligiendo cada uno (lo da la aplicación). */
+export interface Facet {
+  key: string
+  /** «Material». */
+  label: string
+  options: { value: string | number; label: string; count?: number }[]
+}
+export interface SortOption { value: string; label: string }
+export interface ProductGridLabels {
+  /** «{count} productos»; {count} con agrupación del idioma. */
+  count: string | ((count: number) => string)
+  /** Nombre del grupo de facetas («Filtrar»). */
+  facets?: string
+  /** «Quitar filtros». */
+  clear?: string
+  /** Rótulo del orden («Ordenar por»). */
+  sort?: string
+  /** Sin productos y sin filtros. */
+  empty: { title: string; description?: string }
+  /** Sin productos por los filtros. */
+  emptyFiltered?: { title: string; description?: string }
+  /** Los de la tarjeta (product-card.md), tal cual. */
+  card: ProductCardLabels
+  /** A GLoadRegion (loading, loaded, slow, refreshing, failed, retry). */
+  region?: GranaLabels
+  /** A GEmpty (relax, returns, clear, before). */
+  emptyLabels?: GranaLabels
+  /** A GTagGroup. */
+  tags?: GranaLabels
+  /** A GPagination. */
+  pagination?: GranaLabels
+}
+
+// ── E4 Product overview (product-overview.md) ──
+
+/** El enlace a las opiniones de la ficha («#opiniones»): el `item` de su `navigate`. */
+export type ProductReviewsLink = NonNullable<ProductDetail['reviews']>
+export interface OverviewLabels {
+  /** «Añadir al carrito». */
+  add: string
+  /** «Añadiendo…». */
+  busy?: string
+  /** Rótulo de la cantidad («Cantidad»). */
+  quantity: string
+  /** Botones de GNumberField («Quitar una», «Añadir una»). */
+  decrement: string
+  increment: string
+  /** Error de una opción sin elegir: «Elige {option}». */
+  choose: string | ((option: string) => string)
+  /** El producto o la combinación no se puede pedir. */
+  unavailable?: string
+  /** Nombre de un valor sin existencias: «{value}, agotada». */
+  unavailableValue?: string | ((value: string) => string)
+  /** Título de la galería («Fotos del rebozo»). */
+  photos: string
+  /** Nombre de la ficha técnica («Ficha»). */
+  facts?: string
+  /** Nombre de la descripción («Descripción»). */
+  details?: string
+  /** Nombre del tablist (03). */
+  tabs?: string
+  rating?: ProductCardLabels['rating']
+  noReviews?: string
+  /** Texto del enlace a las opiniones («Leer las opiniones»). */
+  reviews?: string
+  /** A GGallery, tal cual. */
+  gallery?: GranaLabels
+  price?: PriceRegionLabels
+  external?: string
+}
+
+// ── E5 Quick view (quick-view.md) ──
+
+/** El disparador, tal cual a `from` de GDialog (#583): `id` o elemento. */
+export type DialogFrom = string | HTMLElement
+export type QuickViewLabels = OverviewLabels & {
+  /** Nombre del botón de cerrar (closeLabel de GDialog). */
+  close: string
+  /** «Ver la ficha completa» (con product.href). */
+  full?: string
+  /** A GDialog, tal cual. */
+  dialog?: GranaLabels
+}
+
+// ── E6 Reviews (reviews.md) ──
+
+export interface ReviewsLabels {
+  /** Rótulo de GMetric («Calificación media»). */
+  average: string
+  /** Unidad del promedio: «de {max}». */
+  outOf: string | ((max: string) => string)
+  /** Contexto de GMetric: «{count} opiniones». */
+  count: string | ((count: number) => string)
+  /** «Todavía sin opiniones». */
+  noReviews: string
+  /** La de cada opinión: «{value} de {max}». */
+  score: string | ((r: { value: string; max: string }) => string)
+  /** Fila de la distribución: «{value} de {max}: {count} ({percent})». */
+  row?: string | ((r: { value: string; max: string; count: number; countText: string; percent: string }) => string)
+  /** Nombre de la lista de la distribución («Cómo se reparten»). */
+  distribution?: string
+  /** «Compra verificada» (verified: true). */
+  verified?: string
+  /** Rótulo de lo que compró («Compró»). */
+  bought?: string
+  /** «Respuesta de {author}». */
+  reply?: string | ((author: string) => string)
+  /** A GPagination. */
+  pagination?: GranaLabels
+  external?: string
+}
