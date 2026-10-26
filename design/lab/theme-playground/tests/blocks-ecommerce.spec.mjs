@@ -576,6 +576,19 @@ test('order-summary 01 en una columna de 360 sin desbordar; 03 en línea a 1440 
   expect(await oneLine()).toBe(false)
 })
 
+test('order-summary 03: la leyenda de la moneda queda bajo la línea, sin desbordar, a 1440, 390 y 320 (EC-L1)', async ({ page }) => {
+  for (const [w, h] of [[1440, 900], [390, 844], [320, 640]]) {
+    await open(page, 'order-summary.html', 'v=03', { width: w, height: h })
+    const block = page.locator('[data-gb="order-summary-03"]')
+    const leg = await boxC(block.locator('[data-gb-legend]'))
+    const line = await boxC(block.locator('.g-adaptive-layout'))
+    const root = await boxC(block)
+    expect(leg.top, `${w}`).toBeGreaterThanOrEqual(line.bottom - 1)
+    expect(leg.right, `${w}`).toBeLessThanOrEqual(root.right + 1)
+    expect(await overflow(page), `${w}`).toBe(false)
+  }
+})
+
 test('order-history 01: tabla a 1440 y tarjetas de GTable a 390; 02 con el seguimiento sin desbordar a 320', async ({ page }) => {
   await open(page, 'order-history.html', 'v=01', { width: 1440, height: 900 })
   await expect(page.locator('[data-gb="order-history-01"] table')).toBeVisible()

@@ -156,7 +156,7 @@
     "OS1 · order.totals.total sin label",
     "OS2 · más de 30 líneas en 01 (se pintan todas)"
   ],
-  "root": "01: GCard as=\"section\" · 02: GSection · 03: GText as=\"div\" role=\"group\"; las tres con data-gb=\"order-summary-NN\" y $attrs",
+  "root": "01: GCard as=\"section\" · 02: GSection · 03: GText as=\"div\" role=\"group\" › GPriceScope (legend false) › GStack › la línea + el renglón de la leyenda (GText); las tres con data-gb=\"order-summary-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/ecommerce",
     "measured": 48926,

@@ -88,6 +88,19 @@ describe('GbOrderSummary · el recibo (order-summary.md «Piezas»)', () => {
     expect(s.props('facts')).toEqual([{ label: 'Lo que compraste', value: '4 piezas', bare: true }])
     expect(w.findAll('.g-btn')).toHaveLength(1)
   })
+  it('03: la leyenda (moneda e IVA) va en su propio renglón bajo la línea, dentro del group (EC-L1)', () => {
+    const { w } = run(GbOrderSummary03)
+    const root = w.element
+    const leg = root.querySelector('[data-gb-legend]')
+    expect(leg).not.toBeNull()
+    expect(root.contains(leg)).toBe(true)
+    expect(leg.textContent).toMatch(/MXN/)
+    const line = root.querySelector('.g-adaptive-layout')
+    expect(line.contains(leg)).toBe(false)
+    expect(line.compareDocumentPosition(leg) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(root.querySelector('.g-price-scope__legend')).toBeNull()
+    expect(w.findAllComponents(GPriceScope)).toHaveLength(1)
+  })
   it('navigate con el nombre de un producto (item = la OrderLine), no con Ctrl', () => {
     const onNavigate = vi.fn((p) => p.event.preventDefault())
     const { w } = run(GbOrderSummary02, { onNavigate }, { attachTo: document.body })
