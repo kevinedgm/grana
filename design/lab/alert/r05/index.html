@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Isla de estado · r05 · progreso determinado</title>
+<!-- El CSS REAL de la isla y de la marca (coco, 74e2404) con el tema por defecto: los conceptos se juzgan sobre el
+     material elegido (L1 claro, V2C oscuro), no sobre un kit gris. Lo que añade la ronda va en <style> con prefijo x-. -->
+<link rel="stylesheet" href="../../../../packages/vue/src/styles/defaults.css">
+<link rel="stylesheet" href="../../../../packages/vue/src/components/GIcon/GIcon.css">
+<link rel="stylesheet" href="../../../../packages/vue/src/components/GBtn/GBtn.css">
+<link rel="stylesheet" href="../../../../packages/vue/src/components/GStatusIsland/GStatusIsland.css">
+<link rel="stylesheet" href="../../../../packages/vue/src/components/GStatusMark/GStatusMark.css">
+<script src="../../lucide-icons.js"></script>
+<style>
+/* r05 (kiwi): progreso determinado en la isla. Tres conceptos sobre D1:
+     A · El anillo cambia de oficio  (el titular se queda mientras dura; el anillo dice el avance)
+     B · La isla avisa, la marca lleva  (la isla dice el inicio y el final; el avance vive en la marca)
+     C · Cápsula testigo  (tras leerse, la isla se queda en la cápsula vacía de fold, con el avance)
+   Prototipo: el CSS definitivo es de coco. Los literales de este bloque (ch, %) son del prototipo. */
+*{box-sizing:border-box}
+html{color-scheme:light}
+body{margin:0;font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line);color:var(--g-color-text);background:var(--g-color-bg)}
+.sr{position:absolute;inline-size:1px;block-size:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+.x-bar{position:sticky;inset-block-start:0;z-index:20;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--g-space-2);
+  min-block-size:var(--g-space-16);padding:var(--g-space-2) var(--g-space-4);background:var(--g-color-surface);border-block-end:var(--g-border-width) solid var(--g-color-border)}
+.x-bar b{font-weight:650}
+.x-pick{display:flex;flex-wrap:wrap;gap:var(--g-space-1)}
+.x-pick a{display:inline-flex;align-items:center;min-block-size:var(--g-space-8);padding-inline:var(--g-space-3);border:var(--g-border-width) solid var(--g-color-border-control);border-radius:var(--g-radius-md);color:inherit;text-decoration:none;font-size:var(--g-text-body-sm-size)}
+.x-pick a[aria-current]{background:var(--g-color-text);color:var(--g-color-bg);border-color:var(--g-color-text)}
+main{max-inline-size:56rem;margin:0 auto;padding:var(--g-space-8) var(--g-space-4) calc(var(--g-space-16) * 4)}
+h1{font-size:var(--g-text-title-lg-size);line-height:var(--g-text-title-lg-line);margin:0 0 var(--g-space-1)}
+.x-lead{color:var(--g-color-text-muted);margin:0 0 var(--g-space-6);max-inline-size:70ch}
+.x-card{padding:var(--g-space-6);background:var(--g-color-surface);border:var(--g-border-width) solid var(--g-color-border);border-radius:var(--g-radius-lg);margin-block-end:var(--g-space-6)}
+.x-card h2{font-size:var(--g-text-title-sm-size);line-height:var(--g-text-title-sm-line);margin:0 0 var(--g-space-2)}
+.x-file{display:flex;align-items:center;gap:var(--g-space-2);color:var(--g-color-text-muted);font-size:var(--g-text-body-sm-size)}
+.x-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:var(--g-space-2);margin-block-start:var(--g-space-4);min-block-size:calc(var(--g-space-1) * 10)}
+.x-table{inline-size:100%;border-collapse:collapse}
+.x-table th,.x-table td{padding:var(--g-space-2) var(--g-space-3);text-align:start;border-block-end:var(--g-border-width) solid var(--g-color-border)}
+.x-table th{font-size:var(--g-text-body-sm-size);color:var(--g-color-text-muted)}
+.x-sim{position:fixed;inset-block-end:var(--g-space-3);inset-inline-end:var(--g-space-3);z-index:60;inline-size:min(22rem,calc(100vw - var(--g-space-6)));display:grid;gap:var(--g-space-2);
+  padding:var(--g-space-3);background:var(--g-color-surface);border:var(--g-border-width) dashed var(--g-color-border-strong);border-radius:var(--g-radius-lg);font-size:var(--g-text-body-sm-size);box-shadow:var(--g-shadow-2)}
+.x-sim strong{display:block}
+.x-sim .x-row{display:flex;flex-wrap:wrap;gap:var(--g-space-1)}
+.x-sim label{display:inline-flex;gap:var(--g-space-1);align-items:center;min-block-size:24px}
+.x-log{margin:0;padding:0;list-style:none;max-block-size:8rem;overflow:auto;font-size:var(--g-text-caption-size);line-height:var(--g-text-caption-line);color:var(--g-color-text-muted)}
+.x-log li[data-ch=assertive]{color:var(--g-color-danger-text)}
+
+/* ---------- Lo que propone r05 (para coco: estructura, no estética final) ---------- */
+@property --x-p { syntax: "<number>"; inherits: true; initial-value: 0; }
+/* Avance = un anillo que SE LLENA desde arriba en el sentido del reloj (el tiempo de lectura es el que se vacía).
+   Nunca los dos en la misma insignia a la vez: en A y C el anillo de tiempo no existe mientras dura la actividad. */
+.x-pring{position:absolute;inset:calc(var(--g-border-width) * -3);border-radius:50%;pointer-events:none;
+  --_parc:calc(var(--x-p) * 1turn);
+  background:conic-gradient(var(--_ink, currentColor) var(--_parc), color-mix(in oklab, var(--_ink, currentColor) 40%, transparent) 0);
+  -webkit-mask:radial-gradient(closest-side, transparent calc(100% - var(--g-border-width) * 2), currentColor calc(100% - var(--g-border-width) * 2));
+  mask:radial-gradient(closest-side, transparent calc(100% - var(--g-border-width) * 2), currentColor calc(100% - var(--g-border-width) * 2))}
+.g-status-mark .x-pring{--_ink:currentColor}
+.g-status-mark__badge{position:relative}
+/* La cifra reserva el ancho de «100 %»: el avance no cambia el ancho de la cápsula (nada que medir en cada paso) */
+.x-amount{grid-row:1;display:inline-flex;align-items:center;justify-content:flex-end;min-inline-size:5.5ch;
+  font-size:var(--g-text-caption-size);line-height:var(--g-text-caption-line);font-weight:var(--g-text-title-sm-weight);font-variant-numeric:tabular-nums;white-space:nowrap}
+.x-amount[hidden]{display:none}
+@media (prefers-reduced-motion: no-preference){
+  .x-pring{transition:--x-p var(--g-duration-press) var(--g-ease-out)}
+  .g-status-island:is([data-stage="drop"],[data-stage="rise"]) .x-amount{opacity:0}
+}
+/* C · la cápsula testigo: el tamaño de fold, quieta; insignia con el avance y la cifra; sin título ni cola */
+.g-status-island.x-witness .g-status-island__shape{--_status-w:var(--_cap-w);--_status-w-out:var(--_cap-w);--_status-h:var(--_cap-h);--_status-h-out:var(--_cap-h)}
+.g-status-island.x-witness :is(.g-status-island__text,.g-status-island__tail,.g-status-island__peek){display:none}
+.g-status-island.x-witness .g-status-island__summary{grid-template-columns:auto auto;justify-content:start}
+.g-status-island.x-witness .x-amount{grid-column:2;min-inline-size:0}
+/* La marca con avance: la misma insignia con anillo que se llena, y la cifra */
+.g-status-mark .x-mark-amount{font-variant-numeric:tabular-nums;font-weight:var(--g-text-title-sm-weight)}
+</style>
+</head>
+<body>
+<header class="x-bar">
+  <b>Facturación</b>
+  <nav class="x-pick" aria-label="Concepto">
+    <a href="?p=A">A · El anillo cambia de oficio</a><a href="?p=B">B · La isla avisa, la marca lleva</a><a href="?p=C">C · Cápsula testigo</a><a id="x-theme" href="#">Oscuro</a>
+  </nav>
+</header>
+<main>
+  <h1>Informe trimestral</h1>
+  <p class="x-lead" id="x-lead"></p>
+  <section class="x-card" aria-labelledby="x-up-h">
+    <h2 id="x-up-h">Adjuntar el informe</h2>
+    <p class="x-file"><svg class="g-icon" aria-hidden="true"></svg>informe-t3.pdf · 30 MB</p>
+    <div class="x-actions" id="x-actions">
+      <!-- GStatusMark for="upload": junto al origen, ANTES del botón (Δ 0px) -->
+      <button class="g-status-mark g-status-mark--link g-status-mark--type-info" id="x-mark" type="button" aria-expanded="false" hidden>
+        <span class="g-status-mark__badge" data-type="info" aria-hidden="true"></span>
+        <span class="g-status-mark__text"><span class="g-status-mark__type">Información: </span><span id="x-mark-title"></span> <span class="x-mark-amount" id="x-mark-amount"></span></span>
+      </button>
+      <button class="g-btn g-btn--variant-solid g-btn--color-brand g-btn--size-md" id="x-start" type="button"><span class="g-btn__label">Subir informe</span></button>
+    </div>
+  </section>
+  <section class="x-card" aria-labelledby="x-t-h">
+    <h2 id="x-t-h">Facturas del trimestre</h2>
+    <table class="x-table" id="x-ref"><thead><tr><th>Folio</th><th>Cliente</th><th>Total</th></tr></thead>
+      <tbody><tr><td>F-1021</td><td>Ferretería Ochoa</td><td>$12 400</td></tr><tr><td>F-1022</td><td>Panadería La Espiga</td><td>$3 180</td></tr><tr><td>F-1023</td><td>Taller Medina</td><td>$7 950</td></tr></tbody></table>
+  </section>
+  <p><a href="#x-ref" id="x-ref-link">Ir a las facturas</a> · <input aria-label="Notas" id="x-notes" placeholder="Escribe mientras sube…"></p>
+</main>
+
+<div class="x-sim" aria-label="Simular" role="group">
+  <strong>Simular</strong>
+  <div class="x-row">
+    <button class="g-btn g-btn--variant-outline g-btn--color-neutral g-btn--size-sm" id="x-fail" type="button"><span class="g-btn__label">Fallar</span></button>
+    <button class="g-btn g-btn--variant-outline g-btn--color-neutral g-btn--size-sm" id="x-err" type="button"><span class="g-btn__label">Llega un error de otra parte</span></button>
+  </div>
+  <label><input type="checkbox" id="x-has-mark" checked> Marca montada junto a «Subir informe»</label>
+  <ol class="x-log" id="x-log" aria-label="Registro de anuncios"></ol>
+</div>
+
+<!-- GStatusIsland: estructura del contrato (status.md «Estructura accesible»), con las piezas nuevas x-* -->
+<div class="g-status-island g-status-island--position-top-center" id="isl" data-position="top-center" data-align="center" data-form="empty">
+  <div class="g-status-island__live" id="live-p" role="status" aria-live="polite" aria-atomic="true"></div>
+  <div class="g-status-island__live" id="live-a" role="alert" aria-atomic="true"></div>
+  <section class="g-status-island__shape" id="shape" aria-label="Estado de la aplicación (Alt+F8)" hidden>
+    <div class="g-status-island__inner" id="inner">
+      <button class="g-status-island__summary" id="sum" type="button" aria-expanded="false" aria-keyshortcuts="Alt+F8">
+        <span class="g-status-island__badge" id="badge" data-type="info" aria-hidden="true"></span>
+        <span class="g-status-island__text" id="text"></span>
+        <span class="x-amount" id="amount" aria-hidden="true" hidden></span>
+        <span class="g-status-island__tail" id="tail"><span class="g-status-island__chevron" aria-hidden="true"></span></span>
+      </button>
+      <div class="g-status-island__peek" id="peek" hidden>
+        <p class="g-status-island__desc" id="desc"></p>
+        <div class="g-status-island__acts">
+          <button class="g-btn g-btn--variant-solid g-btn--color-brand g-btn--size-sm g-status-island__action" id="act" type="button"><span class="g-btn__label"></span></button>
+          <button class="g-btn g-btn--variant-ghost g-btn--color-neutral g-btn--size-sm g-status-island__hide" id="hide" type="button"><span class="g-btn__label">Ocultar</span></button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id)
+  const q = new URLSearchParams(location.search)
+  const P = ['A', 'B', 'C'].includes(q.get('p')) ? q.get('p') : 'C'
+  const SPEED = Number(q.get('speed')) || 1
+  const READ_T = Number(q.get('t')) || 0
+  const dark = q.get('theme') === 'dark'
+  if (dark) { document.documentElement.dataset.theme = 'dark'; document.documentElement.style.colorScheme = 'dark' }
+  document.querySelectorAll('.x-pick a[href^="?p="]').forEach((a) => {
+    const p = a.getAttribute('href').slice(3); const u = new URLSearchParams(location.search); u.set('p', p); a.href = '?' + u
+    if (p === P) a.setAttribute('aria-current', 'page')
+  })
+  { const u = new URLSearchParams(location.search); dark ? u.delete('theme') : u.set('theme', 'dark'); $('x-theme').href = '?' + u; $('x-theme').textContent = dark ? 'Claro' : 'Oscuro' }
+  $('x-lead').textContent = {
+    A: 'A · El anillo cambia de oficio: mientras dura la subida el titular se queda (la lectura está en pausa, como con busy) y el anillo de la insignia se llena con el avance. «Ocultar» lo manda a la marca. Al terminar, el anillo lleno empieza a vaciarse como tiempo de lectura.',
+    B: 'B · La isla avisa, la marca lleva: la isla dice que empezó y se recoge con su tiempo de lectura, como cualquier condición. El avance vive en la marca junto a «Subir informe» (y en Alt+F8). La isla vuelve a caer con el final o el fallo.',
+    C: 'C · Cápsula testigo: la isla dice que empezó; al acabar su lectura no sube, se queda en la cápsula vacía (la forma de fold) con el anillo que se llena y la cifra. Pasar o enfocar la abre en el sitio. Al terminar, crece hacia el resultado.'
+  }[P]
+  const icon = (n) => window.lucide(n)
+  $('x-start').querySelector('.g-btn__label').insertAdjacentHTML('beforebegin', '<span class="g-btn__prepend" aria-hidden="true">' + icon('upload') + '</span>')
+  document.querySelector('.x-file svg').outerHTML = icon('file-text')
+  document.querySelector('.g-status-island__chevron').innerHTML = icon('chevron-down')
+
+  // ---------- Constantes del contrato ----------
+  const css = getComputedStyle(document.documentElement)
+  const ms = (v) => parseFloat(v) * (String(v).trim().endsWith('ms') ? 1 : 1000)
+  const SLOW = 240 // --g-duration-slow = press × 1,5
+  const RANK = { error: 0, warning: 1, info: 2, success: 3 }
+  const TYPES = { error: 'Error', warning: 'Advertencia', info: 'Información', success: 'Correcto' }
+  const ICON = { error: 'circle-alert', warning: 'triangle-alert', info: 'info', success: 'circle-check' }
+  const readMs = (c) => READ_T || Math.min(12000, Math.max(5000, 2000 + 60 * (c.title.length + (c.description || '').length)))
+  const pct = (p) => new Intl.NumberFormat('es', { style: 'percent', maximumFractionDigits: 0 }).format(p / 100)
+
+  // ---------- Canales (par propio, 50 ms / 5000 ms) y coalescencia de hitos ----------
+  const log = window.__live = []
+  function announce (text, assertive) {
+    const el = assertive ? $('live-a') : $('live-p')
+    log.push({ text, ch: assertive ? 'assertive' : 'polite', t: Math.round(performance.now()) })
+    const li = document.createElement('li'); li.dataset.ch = assertive ? 'assertive' : 'polite'; li.textContent = (assertive ? 'enérgico · ' : 'cortés · ') + text; $('x-log').prepend(li)
+    el.textContent = ''; setTimeout(() => { el.textContent = text; setTimeout(() => { if (el.textContent === text) el.textContent = '' }, 5000) }, 50)
+  }
+  const say = (c) => `${TYPES[c.type]}: ${c.title}${c.description ? '. ' + c.description : ''}`
+  // Hitos (base común): 25, 50 y 75 % por el canal cortés; si el anterior anuncio de ESA actividad fue hace < 5000 ms,
+  // se espera al final de la ventana y se dice solo el último hito cruzado. 100 % no se anuncia: el final es resolve.
+  const MILES = [25, 50, 75], WINDOW = 5000
+  function milestone (c) {
+    if (c.progress == null) return
+    const m = MILES.filter((x) => c.progress >= x).pop() || 0
+    if (m <= c.mile) return
+    c.mile = m
+    const since = performance.now() - c.lastSaid
+    clearTimeout(c.mileT)
+    const go = () => { if (c.progress != null && model.has(c.id)) { announce(`${c.title}: ${pct(c.mile)}`); c.lastSaid = performance.now() } }
+    since >= WINDOW ? go() : (c.mileT = setTimeout(go, WINDOW - since))
+  }
+
+  // ---------- Modelo mínimo (lo del contrato que hace falta para juzgar) ----------
+  const model = new Map()
+  let cur = null, queue = [], stage = null, form = 'empty', peek = false, witness = false
+  let readT = null, readEnd = 0, readLeft = 0, readTotal = 0, paused = new Set(), hiddenByPerson = new Set()
+  function set (id, o) {
+    const old = model.get(id)
+    const c = Object.assign(old || { id, mile: 0, lastSaid: -Infinity }, o)
+    model.set(id, c)
+    const changed = !old || ['type', 'title', 'description'].some((k) => k in o && old && o[k] !== undefined)
+    if (!old || changed) { c.seen = false; announce(say(c), c.type === 'error'); c.lastSaid = performance.now(); hiddenByPerson.delete(id); enqueue(c) }
+    render(); syncMark()
+    return c
+  }
+  function enqueue (c) {
+    if (cur === c) { witness ? show(c) : relay(c); return }   // C: el final crece desde la testigo (grow)
+    queue = queue.filter((x) => x !== c)
+    if (!cur) { show(c); return }
+    // Lo más grave pasa delante, salvo bajo la mano (#702)
+    if (RANK[c.type] < RANK[cur.type] && !personPaused()) { queue.unshift(cur); show(c, true) } else { queue.push(c); queue.sort((a, b) => RANK[a.type] - RANK[b.type]); render() }
+  }
+  const running = (c) => c && c.progress != null
+  const personPaused = () => [...paused].some((k) => k !== 'activity')
+
+  // ---------- Etapas (las clases y datos del contrato; el CSS real hace el movimiento) ----------
+  const isl = $('isl'), shape = $('shape'), inner = $('inner')
+  function measure () { requestAnimationFrame(() => {}); shape.style.setProperty('--_island-w', inner.offsetWidth + 'px'); shape.style.setProperty('--_island-h', inner.offsetHeight + 'px') }
+  function setStage (s) { stage = s; s ? isl.dataset.stage = s : delete isl.dataset.stage }
+  let stageT = null
+  function show (c, isRelay) {
+    cur = c; clearTimeout(stageT)
+    if (form === 'empty' || stage === 'rise') {
+      form = 'line'; isl.dataset.form = 'line'; render(); measure()
+      setStage('drop'); shape.hidden = false
+      stageT = setTimeout(() => { setStage('grow'); measure(); stageT = setTimeout(() => { setStage(null); startReading() }, SLOW) }, SLOW)
+    } else if (witness) {
+      leaveWitness(); render(); measure(); setStage('grow'); stageT = setTimeout(() => { setStage(null); startReading() }, SLOW)
+    } else { relay(c, isRelay) }
+  }
+  function relay (c) {
+    cur = c; const old = $('text'); const copy = old.cloneNode(true); copy.removeAttribute('id'); copy.setAttribute('aria-hidden', 'true'); old.before(copy)
+    const fresh = old.cloneNode(false); old.replaceWith(fresh); render(); measure(); setStage(null)
+    setTimeout(() => copy.remove(), SLOW); startReading()
+  }
+  function fold (then) {
+    clearTimeout(stageT); stopReading(); setPeek(false); setStage('fold')
+    stageT = setTimeout(then, SLOW)
+  }
+  function rise () {
+    const shown = cur
+    setStage('rise'); echo(shown)
+    stageT = setTimeout(() => {
+      setStage(null); shape.hidden = true; form = 'empty'; isl.dataset.form = 'empty'; delete isl.dataset.type
+      shape.style.removeProperty('--_island-w'); shape.style.removeProperty('--_island-h'); cur = null
+    }, SLOW)
+  }
+  function toWitness () { fold(() => { setStage(null); witness = true; isl.classList.add('x-witness'); render() }) }
+  function leaveWitness () { witness = false; isl.classList.remove('x-witness') }
+  function collapse () {
+    // Qué queda al recogerse: un resultado sin enlace se retira (motivo read); la actividad sigue en el modelo
+    const c = cur
+    if (c) c.seen = true
+    if (c && c.result) { fold(() => { rise(); model.delete(c.id); syncMark() }); return }
+    fold(rise)
+  }
+  function afterRead () {
+    const c = cur; c.seen = true
+    const next = queue.shift()
+    if (next) { show(next, true); return }
+    if (running(c) && !hiddenByPerson.has(c.id)) {
+      if (P === 'C') { toWitness(); return }
+      if (P === 'A') { startReading(); return }
+    }
+    collapse()
+  }
+
+  // ---------- Lectura (tiempo) ----------
+  function startReading () {
+    stopReading(); if (!cur) return
+    // A: mientras dura la actividad no hay tiempo de lectura (como busy): el titular se queda
+    if (P === 'A' && running(cur)) { paused.add('activity'); render(); return }
+    paused.delete('activity')
+    readTotal = readMs(cur); readLeft = readTotal; resumeReading()
+  }
+  function resumeReading () {
+    if (!cur || personPaused() || paused.has('activity')) { render(); return }
+    readLeft = Math.max(readLeft, Math.min(1000, readTotal)); readEnd = performance.now() + readLeft
+    clearTimeout(readT); readT = setTimeout(afterRead, readLeft); ringTramo(readLeft / readTotal, readLeft); render()
+  }
+  function pauseReading () { if (readT) { clearTimeout(readT); readT = null; readLeft = Math.max(0, readEnd - performance.now()) } render() }
+  function stopReading () { clearTimeout(readT); readT = null }
+  function pause (k) { const was = personPaused(); paused.add(k); if (!was) pauseReading() }
+  function resume (k) { paused.delete(k); if (!personPaused() && cur && !witness && stage == null && !readT) resumeReading() }
+
+  // ---------- Pintura ----------
+  let tramo = 0
+  function ringTramo (left, run) { tramo++; const b = $('badge'); b.querySelector('.g-status-island__ring')?.remove(); const r = document.createElement('span'); r.className = 'g-status-island__ring'; b.append(r); shape.style.setProperty('--_left', left); shape.style.setProperty('--_run-ms', run) }
+  function render () {
+    const c = cur
+    isl.classList.toggle('is-paused', personPaused())
+    if (!c) return
+    isl.dataset.type = c.type
+    const b = $('badge'); b.dataset.type = c.type
+    const prog = running(c) && P !== 'B'
+    // Insignia: icono del tipo; anillo de tiempo O anillo de avance, nunca los dos
+    b.querySelector('.g-icon')?.remove(); b.insertAdjacentHTML('afterbegin', icon(ICON[c.type]))
+    if (prog) { b.querySelector('.g-status-island__ring')?.remove(); let pr = b.querySelector('.x-pring'); if (!pr) { pr = document.createElement('span'); pr.className = 'x-pring'; b.append(pr) } }
+    else { b.querySelector('.x-pring')?.remove(); if (!b.querySelector('.g-status-island__ring') && stage == null && cur) ringTramo(1, readMs(c)) }
+    shape.style.setProperty('--x-p', running(c) ? c.progress / 100 : 0)
+    const t = $('text'); t.innerHTML = ''
+    const sr = document.createElement('span'); sr.className = 'g-status-island__sr'; sr.textContent = TYPES[c.type] + ': '
+    t.append(sr, c.title)
+    if (running(c)) { const s = document.createElement('span'); s.className = 'g-status-island__sr'; s.textContent = ', ' + pct(c.progress); t.append(s) }
+    const am = $('amount'); am.hidden = !running(c); if (running(c)) am.textContent = pct(c.progress)
+    // «+N» = las que esperan
+    const tail = $('tail'); tail.querySelector('.g-status-island__more')?.remove()
+    if (queue.length) tail.insertAdjacentHTML('afterbegin', `<span class="g-status-island__more"><span aria-hidden="true">+${queue.length}</span><span class="g-status-island__sr">y ${queue.length} más en espera</span></span>`)
+    $('desc').textContent = c.description || ''; $('desc').hidden = !c.description
+    $('sum').toggleAttribute('aria-describedby', !!c.description); if (c.description) $('sum').setAttribute('aria-describedby', 'desc')
+    const act = $('act'); act.hidden = !c.action; if (c.action) act.querySelector('.g-btn__label').textContent = c.action.label
+  }
+  function syncMark () {
+    const m = $('x-mark'), c = model.get('upload')
+    const on = $('x-has-mark').checked && c
+    m.hidden = !on; if (!on) return
+    m.className = 'g-status-mark g-status-mark--link g-status-mark--type-' + c.type + (m.classList.contains('is-echo') ? ' is-echo' : '')
+    const b = m.querySelector('.g-status-mark__badge'); b.dataset.type = c.type; b.innerHTML = icon(ICON[c.type]) + (running(c) ? '<span class="x-pring"></span>' : '')
+    m.style.setProperty('--x-p', running(c) ? c.progress / 100 : 0)
+    m.querySelector('.g-status-mark__type').textContent = TYPES[c.type] + ': '
+    $('x-mark-title').textContent = running(c) ? 'Subiendo' : c.title
+    $('x-mark-amount').textContent = running(c) ? pct(c.progress) : ''
+  }
+  function markVisible () { const m = $('x-mark'); if (m.hidden) return false; const r = m.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight }
+  function echo (c) { if (!c || !model.has(c.id) || c.id !== 'upload' || !markVisible()) return; const m = $('x-mark'); m.classList.remove('is-echo'); void m.offsetWidth; m.classList.add('is-echo'); m.addEventListener('animationend', () => m.classList.remove('is-echo'), { once: true }) }
+
+  // ---------- Asomo (puntero y teclado; en C también abre la testigo en el sitio) ----------
+  function setPeek (on) {
+    if (on === peek) return
+    peek = on; isl.classList.toggle('is-peek', on); $('peek').hidden = !on
+    if (on && witness) { witness = false; isl.classList.remove('x-witness'); isl.dataset.fromWitness = '' }
+    render(); measure()
+    if (!on && 'fromWitness' in isl.dataset) { delete isl.dataset.fromWitness; if (running(cur) && cur.seen) { witness = true; isl.classList.add('x-witness'); render() } }
+  }
+  shape.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse' || e.pointerType === 'pen') { pause('pointer'); if (stage == null) setPeek(true) } })
+  shape.addEventListener('pointerleave', () => { if (!shape.contains(document.activeElement)) setPeek(false); resume('pointer') })
+  shape.addEventListener('focusin', () => { pause('focus'); setPeek(true) })
+  shape.addEventListener('focusout', (e) => { if (!shape.contains(e.relatedTarget)) { setPeek(false); resume('focus') } })
+  $('x-mark').addEventListener('pointerenter', () => pause('mark')); $('x-mark').addEventListener('pointerleave', () => resume('mark'))
+  $('hide').addEventListener('click', () => { if (!cur) return; hiddenByPerson.add(cur.id); paused.delete('focus'); paused.delete('pointer'); collapse(); $('x-start').focus() })
+  $('act').addEventListener('click', () => cur?.action?.run())
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && shape.contains(document.activeElement)) { e.preventDefault(); e.stopPropagation(); if (cur) { hiddenByPerson.add(cur.id); collapse() } $('x-start').focus() } })
+
+  // ---------- La actividad simulada (lo que haría la aplicación) ----------
+  let simT = null
+  const api = window.proto = {
+    P, model, get cur () { return cur }, get queue () { return queue }, get stage () { return stage }, get witness () { return witness }, get peek () { return peek },
+    start () {
+      clearInterval(simT)
+      set('upload', { type: 'info', title: 'Subiendo informe-t3.pdf', description: '30 MB · puedes seguir trabajando', progress: 0, result: false,
+        action: { label: 'Cancelar', run: () => api.cancel() } })
+      simT = setInterval(() => { const c = model.get('upload'); if (!running(c)) return clearInterval(simT); api.progress(Math.min(100, c.progress + (1.8 + Math.random() * 1.2) * SPEED)) }, 250)
+    },
+    progress (p) {
+      const c = model.get('upload'); if (!running(c)) return
+      c.progress = p; render(); syncMark(); milestone(c)   // el avance NO cambia seen, no anuncia salvo hito, no mide
+      if (p >= 100) setTimeout(() => api.resolve(), 600)   // la aplicación decide el final (100 % ≠ procesado)
+    },
+    resolve () { clearInterval(simT); const c = model.get('upload'); if (!c) return; clearTimeout(c.mileT); set('upload', { type: 'success', title: 'Informe subido', description: undefined, progress: null, action: undefined, result: true }) },
+    fail () { clearInterval(simT); const c = model.get('upload'); if (!running(c)) return; clearTimeout(c.mileT); set('upload', { type: 'error', title: 'No se pudo subir el informe', description: 'Se cortó la conexión al 60 %.', progress: null, action: { label: 'Reintentar', run: () => api.start() } }) },
+    cancel () { clearInterval(simT); const c = model.get('upload'); if (!c) return; clearTimeout(c.mileT); set('upload', { type: 'info', title: 'Subida cancelada', description: undefined, progress: null, action: undefined, result: true }) },
+    otherError () { set('save', { type: 'error', title: 'No se pudo guardar la factura', description: 'El servidor no respondió.', action: { label: 'Reintentar', run: () => { model.delete('save'); afterRead() } } }) },
+    stopSim () { clearInterval(simT) }
+  }
+  $('x-start').addEventListener('click', () => api.start())
+  $('x-fail').addEventListener('click', () => api.fail())
+  $('x-err').addEventListener('click', () => api.otherError())
+  $('x-has-mark').addEventListener('change', syncMark)
+  // Receta «Cabecera fija» (status.md): el alto de la cabecera como offset.top
+  isl.style.setProperty('--_status-offset-top', document.querySelector('.x-bar').offsetHeight + 'px')
+  // is-ready dos cuadros tras montar (plan 012)
+  requestAnimationFrame(() => requestAnimationFrame(() => isl.classList.add('is-ready')))
+  isl.setAttribute('popover', 'manual'); try { isl.showPopover() } catch {}
+})()
+</script>
+</body>
+</html>
