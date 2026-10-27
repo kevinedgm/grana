@@ -315,10 +315,10 @@ export interface ProductCardLabels {
 // ── E3 Category previews (category-previews.md) ──
 
 export interface CategoryPreviewsLabels {
-  /** «{count} piezas»; {count} con agrupación del idioma. */
-  count?: string | ((count: number) => string)
-  /** «Vuelve pronto» (count: 0). */
-  empty?: string
+  /** Título completo: «{name} · {count} piezas»; {count} con agrupación del idioma. Sin {name}, CP2. */
+  count?: string | ((name: string, count: number) => string)
+  /** Título completo de la vacía (count: 0): «{name} · Vuelve pronto». Sin {name}, CP2. */
+  empty?: string | ((name: string) => string)
   external?: string
 }
 

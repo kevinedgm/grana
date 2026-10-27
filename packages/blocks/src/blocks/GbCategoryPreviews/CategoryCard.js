@@ -1,7 +1,7 @@
 // Una categoría como GCard (dueño: bruno; category-previews.md «Anatomía de una categoría»). Interno de la sección.
 //   GCard · interaction link (category.href) / none (vacía: count 0, o href javascript:, C6)
 //   media: <img> de category.media (01 top; 02 background con el velo de GCard; 03 sin media)
-//   title: el nombre (lang si lo trae) · la cuenta («24 piezas») o «Vuelve pronto», DENTRO del título: GCard nombra su
+//   title: el nombre (lang si lo trae) · el título lo compone la aplicación (labels.count / labels.empty con {name}, #928), DENTRO del título: GCard nombra su
 //          enlace solo con el título, y la cuenta se lee en el enlace («Barro negro · 24 piezas», #917)
 //   description: category.description (01, 03) · default: slot `category` · marca externa con su nombre en el título
 import { defineComponent, h } from 'vue'
@@ -26,8 +26,9 @@ export default /* @__PURE__ */ defineComponent({
       if (r.media) slots.media = () => h('img', imgAttrs(r.media))
       const name = c.lang ? h('span', { lang: c.lang }, c.name) : c.name
       slots.title = () => [
+        r.title ? r.title[0] : null,
         name,
-        r.count ? ` · ${r.count}` : null,
+        r.title ? r.title[1] : null,
         r.external ? [' ', h(GIcon, { name: 'external-link', label: props.external || undefined })] : null
       ]
       if (r.description) slots.description = () => (c.lang ? h('span', { lang: c.lang }, r.description) : r.description)

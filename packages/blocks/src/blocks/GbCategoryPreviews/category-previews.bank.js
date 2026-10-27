@@ -21,5 +21,5 @@ export const props = {
     { id: 'mercado', name: 'Mercado de la cooperativa', href: 'https://cooperativa-tlacolula.example/', external: true, media: m('desayuno') }
   ],
   action: { label: 'Ver toda la tienda', href: '/tienda' },
-  labels: { count: '{count} piezas', empty: 'Vuelve pronto', external: 'se abre en otra pestaña' }
+  labels: { count: '{name} · {count} piezas', empty: '{name} · Vuelve pronto', external: 'se abre en otra pestaña' }
 }

@@ -38,7 +38,7 @@ describe('GbCategoryPreviews · las puertas (#917)', () => {
       expect(cardOf(w, 'cocina').find('a.g-card__primary').text()).toBe('Cocina oaxaqueña')
     }
     expect(run(GbCategoryPreviews01, { locale: 'de' }).w.text()).toContain('Gifts · 1.240 piezas')
-    expect(run(GbCategoryPreviews01, { labels: { ...bank.props.labels, count: (n) => `${n} pieces` } }).w.text()).toContain('Mezcal · 18 pieces')
+    expect(run(GbCategoryPreviews01, { labels: { ...bank.props.labels, count: (name, n) => `${name}: ${n} pieces` } }).w.text()).toContain('Mezcal: 18 pieces')
   })
   it('count 0: sin enlace, con labels.empty en el lugar de la cuenta', () => {
     for (const [, C] of ALL) {
@@ -47,6 +47,12 @@ describe('GbCategoryPreviews · las puertas (#917)', () => {
       expect(card.find('a').exists()).toBe(false)
       expect(card.find('.g-card__title').text()).toBe('Barro verde · Vuelve pronto')
     }
+  })
+  it('CP2: labels sin {name} pintan el nombre solo, sin separadores del bloque', () => {
+    const r = run(GbCategoryPreviews03, { labels: { ...bank.props.labels, count: '{count} piezas', empty: () => 'Vuelve pronto' } })
+    expect(cardOf(r.w, 'mezcal').find('a.g-card__primary').text()).toBe('Mezcal')
+    expect(cardOf(r.w, 'barro-verde').find('.g-card__title').text()).toBe('Barro verde')
+    expect(own(r.warnings, '03', 'CP2')).toHaveLength(2)
   })
   it('lang en el título; externa con target _blank, su marca con nombre y sin navigate', () => {
     const onNavigate = vi.fn()

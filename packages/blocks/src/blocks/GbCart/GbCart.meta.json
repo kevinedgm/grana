@@ -224,7 +224,7 @@
   "root": "01, 02: GSection · 03: el GDialog (su <dialog>); con data-gb=\"cart-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/ecommerce",
-    "measured": 48926,
+    "measured": 49537,
     "cap": 51200,
     "variantCap": 7168,
     "peers": [
@@ -232,6 +232,6 @@
       "@grana/vue",
       "@grana/vue/price"
     ],
-    "note": "dist/ecommerce.js con sus trozos (scripts/measure-entry.mjs, gzip -c), 12 secciones y 36 variantes (remate de bruno tras la auditoría de coco, 2026-10-26): 48 926 B de 51 200 (#932; margen 2 274 B; no se vuelve a subir: con más, decide el usuario). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbCart01 6252, GbCart02 6234, GbCart03 6400; tope por variante 7 168 B (#932). cartTotals sola 1 903 B de 2 048."
+    "note": "dist/ecommerce.js con sus trozos (scripts/measure-entry.mjs, gzip -c), 12 secciones y 36 variantes (medido de nuevo tras #943 y CP2, 2026-10-26): 49 537 B de 51 200 (#932; margen 1 663 B; no se vuelve a subir: con más, decide el usuario). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbCart01 6266, GbCart02 6250, GbCart03 6415; tope por variante 7 168 B (#932). cartTotals sola 1 917 B de 2 048."
   }
 }

@@ -80,7 +80,7 @@
       "type": "Object",
       "ts": "CategoryPreviewsLabels",
       "default": {},
-      "note": "count (con alguna count > 0), empty (con alguna count 0), external; sin valores por defecto (C5)"
+      "note": "count (con alguna count > 0; plantilla con {name} y {count} o función (name, count)), empty (con alguna count 0; plantilla con {name} o función (name)), external; el título entero lo compone la aplicación, sin {name} se pinta el nombre solo (CP2); sin valores por defecto (C5)"
     }
   ],
   "events": [
@@ -118,18 +118,19 @@
   ],
   "warnings": [
     "C1 a C7",
-    "CP1 · una categoría sin media en 01 o 02 (sin media)"
+    "CP1 · una categoría sin media en 01 o 02 (sin media)",
+    "CP2 · labels.count o labels.empty sin {name} (se pinta el nombre solo)"
   ],
   "root": "GSection con data-gb=\"category-previews-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/ecommerce",
-    "measured": 48926,
+    "measured": 49537,
     "cap": 51200,
     "variantCap": 7168,
     "peers": [
       "vue",
       "@grana/vue"
     ],
-    "note": "dist/ecommerce.js con sus trozos (scripts/measure-entry.mjs, gzip -c), 12 secciones y 36 variantes (remate de bruno tras la auditoría de coco, 2026-10-26): 48 926 B de 51 200 (#932; margen 2 274 B; no se vuelve a subir: con más, decide el usuario). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbCategoryPreviews01 3357, GbCategoryPreviews02 3385, GbCategoryPreviews03 3339; tope por variante 7 168 B (#932). cartTotals sola 1 903 B de 2 048."
+    "note": "dist/ecommerce.js con sus trozos (scripts/measure-entry.mjs, gzip -c), 12 secciones y 36 variantes (medido de nuevo tras #943 y CP2, 2026-10-26): 49 537 B de 51 200 (#932; margen 1 663 B; no se vuelve a subir: con más, decide el usuario). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbCategoryPreviews01 3475, GbCategoryPreviews02 3502, GbCategoryPreviews03 3460; tope por variante 7 168 B (#932). cartTotals sola 1 917 B de 2 048."
   }
 }
