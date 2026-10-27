@@ -172,6 +172,7 @@ const verFoto = (n) => { actual.value = n; abierto.value = true }
 - **`appearance`:** `grid` es la base y, si alguna foto trae `group`, A (`g-gallery--grouped`: índice, espacios e hilo). `strip` es B; los grupos no forman espacios en la tira, pero el visor sigue hablando en el espacio. `inline` está **reservada**: avisa y se pinta como `grid`.
 - **`groups`:** un `group` que no está en la lista avisa y va a un espacio al final, con su valor como etiqueta.
 - **`index`:** fuera de rango, se toma el más cercano y avisa.
+- **`index` que cambia desde fuera (DECISIONS #937):** la tira (B) trae a la vista la foto pedida **desplazando solo la tira**, nunca la página ni el foco, sin desplazamiento suave con movimiento reducido y sin anuncio (anuncian los botones de anterior y siguiente). Es lo que usa una ficha de producto que sigue a la elección del color ([`GbProductOverview`](../../../../blocks/src/blocks/GbProductOverview/GbProductOverview.meta.json) y [`GbQuickView`](../../../../blocks/src/blocks/GbQuickView/README.md), de `@grana/blocks/ecommerce`). Con la cuadrícula (A) no aplica: no hay tira que desplazar.
 - **`zoom="false"`:** sin botón, sin `+`/`-` y sin doble clic; el pellizco del sistema sigue.
 - **`viewerZone`:** el visor es, por defecto, una **zona de marca** (fondo y pares de color garantizados por el tema; con la marca por defecto, un «cuarto oscuro»). Con una marca de color (terracota, añil) el visor se tiñe: `none` usa la página. `inverse` está reservado.
 - **Resto de atributos** (`class`, `style`, `data-*`, `aria-*`): van a la raíz `section`.
@@ -310,7 +311,7 @@ Prefijo `[Grana GGallery]` o `[Grana GGalleryViewer]`, una vez por instancia y m
 
 ## Verificación
 
-- **Pruebas** (vitest, jsdom): `GGallery.test.js`, **32 de 32** en verde, ejecutadas de nuevo al documentar. `prueba`.
+- **Pruebas** (vitest, jsdom): `GGallery.test.js`, **35 de 35** en verde (2026-10-26), con la prueba «un `index` que cambia desde fuera (#937): mueve la actual y desplaza SOLO la tira (`scrollTo`), sin foco ni anuncio». `prueba`.
 - **Auditoría de coco** con el componente real (`dist/gallery.umd.js`, banco `packages/vue/playground/gallery.html`; el visor es el `GDialog` real) y temas distintos al por defecto (terracota, añil, pálida, stripe, github, spotify, caracol-púrpura y lustre): `node design/lab/gallery/auditoria-verificar.mjs`. El informe de coco registra la misma cifra, **1348 de 1348**, en Chromium, Firefox y WebKit.
   - **Reproducida al documentar** sobre el árbol actual (con el remate G-A3 de bruno, `54d9046`: la ampliación conserva el relleno de reposo de la imagen): **1348 de 1348** en Chromium, Firefox y WebKit, con la ampliación real de **×2,000** sobre la foto pintada en las fotos 0 y 4, a 1280×800 y 390×844. `medido`.
 - **Specs de bruno** (`tests/gallery.spec.mjs`): **42 pasan y 3 se omiten por diseño**, según el informe de bruno (puerto 4247). No se corrieron al documentar. `prueba`.

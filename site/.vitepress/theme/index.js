@@ -20,6 +20,7 @@ import Booking from '@grana/vue/booking'
 import Price from '@grana/vue/price'
 import { marketing } from '@grana/blocks/marketing'
 import { booking } from '@grana/blocks/booking'
+import { ecommerce } from '@grana/blocks/ecommerce'
 import '@grana/vue/style.css'
 import '@grana/vue/fonts.css'
 import '../../src/.lucide.css'
@@ -41,7 +42,7 @@ export default {
       .use(CardGroup).use(PageHeader).use(Fab).use(FormFold).use(AppShell)
       .use(Hero).use(Gallery).use(Booking).use(Price)
     // @grana/blocks: sus secciones (<gb-*>) y, como una aplicación, las entradas de @grana/vue que componen (arriba).
-    app.use(marketing).use(booking)
+    app.use(marketing).use(booking).use(ecommerce)
     app.component('GranaDemo', GranaDemo)
     app.component('GranaThemePlayground', GranaThemePlayground)
     app.component('GranaBlockBank', GranaBlockBank)

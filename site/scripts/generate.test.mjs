@@ -125,7 +125,16 @@ test('blocks: cada sección con README y meta.json genera su página en los dos 
   const blocks = discoverBlocks(ROOT)
   const onDisk = fs.readdirSync(path.join(ROOT, BLOCKS_DIR), { withFileTypes: true }).filter((d) => d.isDirectory() && /^Gb[A-Z]/.test(d.name) && fs.existsSync(path.join(ROOT, BLOCKS_DIR, d.name, 'README.md')))
   assert.equal(blocks.length, onDisk.length, 'una sección con README no tiene meta.json (o al revés)')
-  assert.ok(blocks.length >= 20, `se esperaban las 20 secciones (Marketing 9 y Booking 11), hay ${blocks.length}`)
+  assert.ok(blocks.length >= 29, `se esperaban las 29 secciones (Marketing 9, Booking 11 y Ecommerce 9 con README), hay ${blocks.length}`)
+  // Ecommerce: toda sección `candidate` tiene README (y por tanto página); las `draft` (EC-L7) pueden no tenerlo todavía
+  const ecoDirs = fs.readdirSync(path.join(ROOT, BLOCKS_DIR), { withFileTypes: true }).filter((d) => d.isDirectory() && /^Gb[A-Z]/.test(d.name))
+  for (const d of ecoDirs) {
+    const metaFile = path.join(ROOT, BLOCKS_DIR, d.name, `${d.name}.meta.json`)
+    if (!fs.existsSync(metaFile)) continue
+    const m = JSON.parse(fs.readFileSync(metaFile, 'utf8'))
+    if (m.family === 'ecommerce' && m.status === 'candidate') assert.ok(blocks.some((b) => b.dir === d.name), `${d.name}: Ecommerce candidate sin README`)
+  }
+  assert.ok(blocks.filter((b) => b.family === 'ecommerce').length >= 9, 'se esperaban las 9 secciones de Ecommerce con README')
   for (const b of blocks) {
     assert.ok(BLOCK_FAMILIES.some((f) => f.id === b.family), `${b.dir}: familia «${b.family}» sin página`)
     for (const prefix of ['', 'en/']) {
@@ -184,14 +193,15 @@ test('blocks: índice, índice por familia, navegación y barra lateral', () => 
   }
   const config = fs.readFileSync(path.join(ROOT, 'site/.vitepress/config.mjs'), 'utf8')
   assert.match(config, /activeMatch: `\^\$\{p\}blocks\/`/, 'falta «Blocks» en la navegación')
-  assert.ok(result.files.has('blocks/marketing/hero.md') && result.files.has('en/blocks/booking/search.md'))
+  assert.ok(result.files.has('blocks/marketing/hero.md') && result.files.has('en/blocks/booking/search.md') && result.files.has('en/blocks/ecommerce/product-grid.md'))
 })
 
 test('blocks: el tema registra los plugins y el sitio depende de @grana/blocks', () => {
   const theme = fs.readFileSync(path.join(ROOT, 'site/.vitepress/theme/index.js'), 'utf8')
   assert.match(theme, /from '@grana\/blocks\/marketing'/)
   assert.match(theme, /from '@grana\/blocks\/booking'/)
-  assert.match(theme, /\.use\(marketing\)\.use\(booking\)/)
+  assert.match(theme, /from '@grana\/blocks\/ecommerce'/)
+  assert.match(theme, /\.use\(marketing\)\.use\(booking\)\.use\(ecommerce\)/)
   const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'site/package.json'), 'utf8'))
   assert.equal(pkg.dependencies['@grana/blocks'], '*')
 })

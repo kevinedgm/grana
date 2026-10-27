@@ -217,7 +217,7 @@ test('blocks: índice, una sección de cada familia con su ejemplo vivo y la bar
   const problems = watchConsole(page)
   // El 404 del logo es del servidor de previsualización sin la base; no es de estas páginas.
   const real = () => problems.filter((p) => !/Failed to load resource/.test(p))
-  for (const p of ['blocks/', 'blocks/marketing/', 'blocks/marketing/features', 'blocks/booking/offer-list', 'en/blocks/booking/search']) {
+  for (const p of ['blocks/', 'blocks/marketing/', 'blocks/marketing/features', 'blocks/booking/offer-list', 'en/blocks/booking/search', 'blocks/ecommerce/', 'blocks/ecommerce/product-grid', 'en/blocks/ecommerce/reviews']) {
     const r = await page.goto(p.endsWith('/') ? p : `${p}.html`)
     expect(r.status(), p).toBe(200)
     await page.waitForLoadState('networkidle')

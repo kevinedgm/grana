@@ -25,7 +25,8 @@ export const BLOCKS_README = 'packages/blocks/README.md'
 /** Familias de @grana/blocks: `section` es el comienzo del `##` del README del paquete que las describe. */
 export const BLOCK_FAMILIES = [
   { id: 'marketing', section: 'Marketing' },
-  { id: 'booking', section: 'Booking' }
+  { id: 'booking', section: 'Booking' },
+  { id: 'ecommerce', section: 'Ecommerce' }
 ]
 
 /**
