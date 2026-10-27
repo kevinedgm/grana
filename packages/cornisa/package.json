@@ -1,0 +1,75 @@
+{
+  "name": "cornisa",
+  "version": "0.2.0-alpha.0",
+  "description": "Superficie de actividad no modal que nace del borde superior del viewport. Sin framework, 0 dependencias. Vive en el monorepo de Grana como paquete independiente (no usa los tokens --g-*).",
+  "private": true,
+  "license": "MIT",
+  "homepage": "https://github.com/kevinedgm/grana/tree/main/packages/cornisa#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kevinedgm/grana.git",
+    "directory": "packages/cornisa"
+  },
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "main": "./dist/cornisa.esm.js",
+  "module": "./dist/cornisa.esm.js",
+  "types": "./types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "default": "./dist/cornisa.esm.js"
+    },
+    "./core": {
+      "types": "./types/core.d.ts",
+      "default": "./src/core/index.js"
+    },
+    "./source": {
+      "types": "./types/index.d.ts",
+      "default": "./src/index.js"
+    },
+    "./style.css": "./dist/cornisa.css",
+    "./style.min.css": "./dist/cornisa.min.css",
+    "./dist/*": "./dist/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "src",
+    "types",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "browserslist": [
+    "chrome >= 84",
+    "edge >= 84",
+    "firefox >= 69",
+    "safari >= 14",
+    "ios_saf >= 14"
+  ],
+  "scripts": {
+    "test": "npm run test:core",
+    "test:core": "node --test test/core/*.test.js",
+    "test:browser": "playwright test -c test/browser/playwright.config.js",
+    "typecheck": "tsc -p tsconfig.json",
+    "size": "node scripts/size.mjs",
+    "serve": "python3 -m http.server 4500",
+    "build": "node scripts/build.mjs && node scripts/gen-cdn-examples.mjs",
+    "prepack": "node scripts/build.mjs",
+    "test:all": "npm run test:core && npm run test:browser"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "^1.64.1",
+    "esbuild": "^0.28.2",
+    "typescript": "^5.9.3"
+  },
+  "unpkg": "./dist/cornisa.iife.min.js",
+  "jsdelivr": "./dist/cornisa.iife.min.js"
+}

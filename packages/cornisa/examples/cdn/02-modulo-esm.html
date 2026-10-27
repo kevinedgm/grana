@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>cornisa · módulo ESM (CDN)</title>
+<link rel="stylesheet" href="ejemplos.css">
+<script src="cdn-config.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cornisa@0.2.0-alpha.0/dist/cornisa.min.css" crossorigin="anonymous"
+      onerror="cornisaCssFallback(this)">
+</head>
+<body>
+<header><strong>cornisa</strong> · 02 · módulo ESM</header>
+<main>
+  <nav><a href="index.html">← Índice</a></nav>
+  <h1>Módulo ESM desde CDN</h1>
+  <p><span id="origen">Cargando…</span></p>
+<pre>&lt;script type="module"&gt;
+  import { createIsland } from 'https://cdn.jsdelivr.net/npm/cornisa@0.2.0-alpha.0/dist/cornisa.esm.min.js';
+  const island = createIsland();
+  island.show({ title: 'Cambios guardados', intent: 'success' });
+&lt;/script&gt;</pre>
+  <div class="acciones">
+    <button type="button" id="b-aviso">Aviso breve</button>
+    <button type="button" id="b-progreso">Subida con progreso</button>
+    <button type="button" id="b-deshacer">Archivar (con Deshacer)</button>
+  </div>
+</main>
+<script type="module">
+  let Cornisa, origin = 'cdn';
+  try { Cornisa = await import(CORNISA_CDN.base + 'cornisa.esm.min.js'); }
+  catch {
+    try { Cornisa = await import(CORNISA_CDN.local + 'cornisa.esm.min.js'); origin = 'local'; }
+    catch { Cornisa = await window.cornisaClassicFallback(); origin = 'local-script'; }   // p. ej. abierto como file://
+  }
+  window.cornisaOrigin(origin);
+    const island = Cornisa.createIsland({ labels: { close: 'Cerrar', more: (n) => `Mostrar la siguiente (${n} en espera)` } });
+    document.getElementById('b-aviso').onclick = () => island.show({ title: 'Cambios guardados', intent: 'success' });
+    document.getElementById('b-progreso').onclick = async () => {
+      const h = island.show({ title: 'Subiendo informe.pdf', progress: 0, duration: 'persistent' });
+      for (let p = 10; p <= 100; p += 10) { await new Promise((r) => setTimeout(r, 200)); h.update({ progress: p }); }
+      h.update({ title: 'Informe subido', intent: 'success', progress: null, duration: 5000 });
+    };
+    document.getElementById('b-deshacer').onclick = () => island.show({ title: 'Conversación archivada', duration: 'persistent',
+      actions: [{ label: 'Deshacer', onSelect: (h) => { h.dismiss('undo'); island.show({ title: 'Archivado deshecho', intent: 'success' }); } }] });
+    window.island = island;
+  window.ready = true;
+</script>
+</body>
+</html>

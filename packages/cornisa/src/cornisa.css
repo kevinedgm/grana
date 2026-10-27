@@ -1,0 +1,106 @@
+/* cornisa · estilos base NEUTROS (sin identidad visual).
+   Personaliza solo con tokens --cornisa-*. No hay clases de tema. */
+:root {
+  --cornisa-bg: #111111;
+  --cornisa-fg: #ffffff;
+  --cornisa-muted: rgba(255, 255, 255, 0.78);
+  --cornisa-track: rgba(255, 255, 255, 0.28);
+  --cornisa-focus: #ffffff;
+  --cornisa-hover: rgba(255, 255, 255, 0.14);
+  --cornisa-max-width: 400px;
+  --cornisa-radius-expanded: 24px;
+  --cornisa-z: 2147483000;            /* solo se usa sin Popover API */
+  --cornisa-safe-top: env(safe-area-inset-top, 0px);
+  --cornisa-font: inherit;
+}
+
+.cornisa {
+  position: fixed; top: 0; right: 0; left: 0; bottom: auto; z-index: var(--cornisa-z);   /* sin `inset`: Chrome 87 / Safari 14.1 */
+  margin: 0; padding: 0; border: 0; background: transparent; color: var(--cornisa-fg);
+  width: 100%; height: 0; overflow: visible; pointer-events: none;   /* nunca bloquea la página */
+  font: var(--cornisa-font);
+}
+.cornisa[popover] { top: 0; right: 0; left: 0; bottom: auto; width: 100%; height: 0; max-width: none; max-height: none; overflow: visible; color: var(--cornisa-fg); }
+.cornisa[hidden] { display: none; }
+
+.cornisa-shape { position: absolute; top: 0; left: 0; width: 100%; height: 100vh; overflow: visible; pointer-events: none; }
+.cornisa-shape path { fill: var(--cornisa-bg); }
+
+.cornisa-ui {
+  position: absolute; top: calc(var(--cornisa-safe-top) + 4px); left: 50%; transform: translateX(-50%);
+  box-sizing: border-box; color: var(--cornisa-fg); pointer-events: none;
+}
+.cornisa-ui[data-content] { pointer-events: auto; }
+.cornisa-row, .cornisa-progress, .cornisa-detail { transition: opacity 120ms ease-out; }
+.cornisa-ui:not([data-content]) .cornisa-row,
+.cornisa-ui:not([data-content]) .cornisa-progress { opacity: 0; }   /* sin visibility:hidden: no se pierde el foco durante un cambio de contenido */
+.cornisa-ui:not([data-detail]) .cornisa-detail { opacity: 0; visibility: hidden; }
+
+.cornisa-row { display: flex; align-items: center; justify-content: center; min-height: 44px; }
+.cornisa-toggle, .cornisa-quick, .cornisa-more, .cornisa-action, .cornisa-close {
+  -webkit-appearance: none; -moz-appearance: none; appearance: none; margin: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer;
+  box-sizing: border-box; min-height: 44px; min-width: 44px; border-radius: 22px;
+}
+.cornisa-toggle { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 0 16px; min-width: 0; flex: 1 1 auto; }
+.cornisa-icon { flex: none; display: inline-grid; place-items: center; width: 20px; height: 20px; }
+.cornisa-icon > svg, .cornisa-icon > img { width: 20px; height: 20px; }
+.cornisa-chevron { flex: none; width: 16px; height: 16px; color: var(--cornisa-muted); transition: transform 160ms ease-out; }
+.cornisa-ui[data-expanded] .cornisa-chevron { transform: rotate(180deg); }
+.cornisa-title { font-weight: 600; font-size: 0.875rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.cornisa-ui[data-expanded] .cornisa-title { white-space: normal; padding-top: 11px; padding-bottom: 11px; }
+.cornisa-ui[data-expanded] { display: flex; flex-direction: column; }
+.cornisa-ui[data-expanded] .cornisa-detail { overflow: auto; overscroll-behavior: contain; min-height: 0; }
+.cornisa-meta { font-size: 0.8125rem; color: var(--cornisa-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cornisa-meta:empty { display: none; }
+.cornisa-quick { flex: none; min-height: 44px; padding: 0 12px; margin-inline-end: 4px; border: 4px solid transparent; background-clip: padding-box;
+  border-radius: 22px; background-color: var(--cornisa-fg); color: var(--cornisa-bg); font-size: 0.8125rem; font-weight: 700; white-space: nowrap; }
+.cornisa-quick[hidden], .cornisa-ui[data-expanded] .cornisa-quick { display: none; }   /* en expandido, las acciones viven en el detalle */
+.cornisa-more { flex: none; padding: 0 10px; font-size: 0.75rem; font-weight: 700; }
+
+.cornisa-progress { height: 4px; margin: 0 16px 4px; border-radius: 2px; background: var(--cornisa-track); overflow: hidden; }
+.cornisa-progress-bar { display: block; height: 100%; width: 0; background: var(--cornisa-fg); }
+.cornisa-progress[data-indeterminate] .cornisa-progress-bar { width: 30%; animation: cornisa-indeterminate 1.2s ease-in-out infinite; }
+/* Excepción revisada (impeccable `marquee`): indicador de estado en curso, no contenido que se desplace;
+   se detiene con prefers-reduced-motion y desaparece al llegar un progreso o un resultado. */
+@keyframes cornisa-indeterminate { from { transform: translateX(-100%); } to { transform: translateX(340%); } }
+
+.cornisa-detail { padding: 2px 16px 14px; }
+.cornisa-body { margin: 0 0 12px; font-size: 0.875rem; line-height: 1.4; overflow-wrap: anywhere; }
+.cornisa-body[hidden] { display: none; }
+.cornisa-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.cornisa-action, .cornisa-close { padding: 0 14px; border: 1px solid currentColor; font-size: 0.875rem; font-weight: 600; }
+.cornisa-action--primary { background: var(--cornisa-fg); color: var(--cornisa-bg); border-color: var(--cornisa-fg); }
+.cornisa-close { margin-inline-start: auto; border-color: var(--cornisa-track); }
+
+.cornisa-ui :focus { outline: 3px solid var(--cornisa-focus); outline-offset: -5px; }      /* respaldo sin :focus-visible */
+.cornisa-ui :focus:not(:focus-visible) { outline: none; }                                     /* donde :focus-visible existe, solo con teclado */
+.cornisa-ui ::selection { background: var(--cornisa-fg); color: var(--cornisa-bg); }
+@media (hover: hover) {
+  .cornisa-toggle:hover, .cornisa-more:hover, .cornisa-close:hover, .cornisa-action:not(.cornisa-action--primary):hover { background: var(--cornisa-hover); }
+  .cornisa-action--primary:hover, .cornisa-quick:hover { background-color: var(--cornisa-muted); }
+  .cornisa-action--primary:hover { border-color: var(--cornisa-muted); }
+}
+.cornisa-toggle:active, .cornisa-more:active, .cornisa-quick:active, .cornisa-action:active, .cornisa-close:active { background: var(--cornisa-hover); }
+
+/* utilidades internas */
+.cornisa-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.cornisa-probe { position: fixed; top: 0; left: 0; height: 0; visibility: hidden; pointer-events: none;
+  padding-top: var(--cornisa-safe-top); width: var(--cornisa-max-width); border-top-left-radius: var(--cornisa-radius-expanded); }
+.cornisa-measure { position: fixed; top: 0; left: -100000px; visibility: hidden; pointer-events: none; contain: layout style; }
+.cornisa-measure .cornisa-ui { position: static; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cornisa:not([hidden]) { animation: cornisa-fade 160ms ease-out; }
+  .cornisa-progress[data-indeterminate] .cornisa-progress-bar { animation: none; width: 100%; opacity: 0.5; }
+  .cornisa-chevron { transition: none; }
+}
+@keyframes cornisa-fade { from { opacity: 0; } to { opacity: 1; } }
+
+@media (forced-colors: active) {
+  .cornisa-shape path { fill: Canvas; stroke: CanvasText; stroke-width: 2px; }
+  .cornisa-ui, .cornisa-meta, .cornisa-chevron { color: CanvasText; }
+  .cornisa-progress { background: Canvas; outline: 1px solid CanvasText; }
+  .cornisa-progress-bar { background: Highlight; }
+  .cornisa-action--primary, .cornisa-quick { background-color: ButtonText; color: ButtonFace; forced-color-adjust: none; }
+  .cornisa-ui :focus-visible { outline-color: Highlight; }
+}

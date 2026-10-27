@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>cornisa · ejemplos</title>
+<link rel="stylesheet" href="../src/cornisa.css">
+<link rel="stylesheet" href="example.css">
+</head>
+<body>
+<header class="bar"><strong>cornisa</strong> · ejemplos (identidad neutra)</header>
+<main id="main">
+  <h1>Ejemplos de uso</h1>
+  <p>Cada botón usa la API pública. La isla no roba el foco: sigue tabulando por la página.</p>
+  <div class="grid">
+    <button type="button" data-demo="toast">Aviso breve</button>
+    <button type="button" data-demo="upload">Subida con progreso → éxito</button>
+    <button type="button" data-demo="promise">promise(): cargando → resultado</button>
+    <button type="button" data-demo="timer">Temporizador persistente</button>
+    <button type="button" data-demo="media">Multimedia persistente</button>
+    <button type="button" data-demo="undo">Archivado · Deshacer</button>
+    <button type="button" data-demo="error">Error persistente</button>
+    <button type="button" data-demo="burst">Varias a la vez (+N)</button>
+    <button type="button" data-demo="long">Contenido largo</button>
+    <button type="button" data-demo="clear">Descartar todo</button>
+  </div>
+  <section class="filler" aria-label="Contenido de ejemplo"><p>Contenido de la página anfitriona.</p></section>
+</main>
+<script type="module" src="example.js"></script>
+</body>
+</html>

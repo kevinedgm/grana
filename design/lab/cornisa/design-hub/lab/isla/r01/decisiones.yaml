@@ -1,0 +1,76 @@
+# kiwi · registros de decisión · isla r01
+# source: rule (norma citada) | product-context (decisión del usuario) | inference (mía; NO es una norma)
+- id: D-01
+  choice: Superficie no modal; nunca mueve el foco al aparecer; sin inert, aria-modal ni scrim
+  source: rule
+  because: WCAG 3.2.1/3.2.2 (cambio de contexto inesperado) + requisito del usuario «sin bloquear la interacción»
+  affects: [compact, medium, expanded]
+  status: proposed
+- id: D-02
+  choice: Expandir es un disclosure (botón con aria-expanded + aria-controls), no un diálogo
+  source: inference
+  because: el contenido expandido es una ampliación de la misma actividad; un diálogo implicaría modalidad
+  alternatives_rejected: [role=dialog no modal (ambiguo para el lector de pantalla), popover con toggle nativo (Popover no es requisito)]
+  affects: [compact, medium, expanded]
+  status: proposed
+- id: D-03
+  choice: Regiones vivas persistentes y separadas de la vista; status cortés con ≥1 s entre anuncios, cola FIFO coalescida por actividad; el progreso solo se anuncia en hitos de 25 % y al terminar; role=alert solo para intent=error
+  source: inference
+  because: las regiones vivas creadas dinámicamente no se anuncian de forma fiable; anunciar cada tick satura. La cifra de 1 s y los hitos del 25 % son una propuesta, no una norma
+  affects: [compact, medium, expanded]
+  status: proposed
+- id: D-04
+  choice: "Ancho: contenido, con máximo min(400px, 100% − 24px); expandido = min(400px, 100% − 24px); alto compacto ≥ 44px"
+  source: inference
+  because: "44 px = target táctil del perfil (touch_min_px). 24 px = 2 × 12 px de margen lateral. 400 px es una propuesta (≈ 45–55 caracteres a 14 px por línea); unresolved hasta F3"
+  affects: [compact, medium, expanded]
+  status: proposed
+- id: D-05
+  choice: "Varias actividades: 1 primaria + 1 secundaria compacta (botón que la promueve) + contador +N; prioridad high > normal > low; la primaria no se desplaza si está expandida o tiene el foco"
+  source: inference
+  because: limitar a 2 visibles evita apilar ruido (problema detectado en docs/01); no interrumpir al usuario que está interactuando
+  affects: [compact, medium, expanded]
+  status: proposed
+- id: D-06
+  choice: Fase `queued` explícita (sin DOM ni timer) + demote compact→queued; expand()/collapse() en cola se guardan como intención
+  source: inference
+  because: "Hallazgo H-01/H-03 del QA: sin queued las actividades en espera quedaban en entering para siempre y show().expand() se ignoraba"
+  affects: [compact, medium, expanded]
+  status: proposed
+- id: D-07
+  choice: El expandido se contrae al salir el foco hacia la página o al pulsar fuera (no descarta)
+  source: rule
+  because: "WCAG 2.4.11 Focus Not Obscured (Minimum), AA: en 393 px el expandido tapaba la acción primaria del anfitrión (H-04)"
+  alternatives_rejected: [desplazar la página (cambia la maquetación del anfitrión), dejarlo abierto (incumple 2.4.11)]
+  affects: [compact, medium]
+  status: proposed
+- id: D-08
+  choice: "La isla compacta también puede tapar contenido del anfitrión (p. ej. la ruta/breadcrumb en 393). Propuesta: exponer --isl-reserved (alto ocupado) y documentar scroll-padding-top; la librería no desplaza la página por defecto"
+  source: inference
+  because: superponerse sin reservar espacio es lo esperado del patrón, pero 2.4.11 se aplica cuando el foco queda debajo
+  affects: [compact]
+  status: unresolved
+- id: D-09
+  choice: Posición en el DOM y alcance por teclado (al final de body = se llega con Tab al final; al principio = interrumpe el orden en cada página; ¿atajo opcional?)
+  source: inference
+  because: decisión de producto con contrapartidas; el prototipo la coloca antes del contenido del marco
+  affects: [compact, medium, expanded]
+  status: unresolved
+- id: D-10
+  choice: ¿Autodescartar la secundaria mientras está visible pero no es primaria?
+  source: inference
+  because: el prototipo lo permite (los avisos breves expiran también como secundarios); puede que no se llegue a leer
+  affects: [compact, medium, expanded]
+  status: unresolved
+- id: D-11
+  choice: "Morph de tamaño: el prototipo anima width/height (provoca layout). Para F3: evaluar transform/clip-path (solo compositor) frente a fidelidad del texto"
+  source: inference
+  because: rendimiento en móviles modestos; no medido
+  affects: [compact, medium, expanded]
+  status: unresolved
+- id: D-12
+  choice: Esc en compacto (con foco dentro) ¿descarta o no hace nada? El prototipo no hace nada
+  source: inference
+  because: descartar con Esc puede perder información persistente (multimedia, temporizador)
+  affects: [compact, medium, expanded]
+  status: unresolved

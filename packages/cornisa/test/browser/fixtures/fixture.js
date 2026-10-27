@@ -1,0 +1,10 @@
+import { createIsland } from '/src/index.js';
+const params = new URLSearchParams(location.search);
+const island = createIsland({ shortcut: params.get('shortcut') });
+window.island = island;
+window.reserved = [];
+island.on('reservedchange', (e) => window.reserved.push(e.height));
+window.cspViolations = [];
+document.addEventListener('securitypolicyviolation', (e) => window.cspViolations.push(`${e.violatedDirective} ${e.blockedURI}`));
+document.getElementById('dialog-close').addEventListener('click', () => document.getElementById('host-dialog').close());
+window.ready = true;
