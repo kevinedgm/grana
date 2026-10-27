@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>cornisa · script clásico (CDN)</title>
+<link rel="stylesheet" href="ejemplos.css">
+<script src="cdn-config.js"></script>
+<!-- 1) CSS desde el CDN con SRI; si falla, la copia local -->
+<link rel="stylesheet" id="cornisa-css"
+      href="https://cdn.jsdelivr.net/npm/cornisa@0.2.0-alpha.0/dist/cornisa.min.css"
+      integrity="sha384-5/loD6Trp16gsEhk2J0wvLltioBZ2vvqMLUQBn5U8TlRzwTtbOq0WFl2PbBdnrZz" crossorigin="anonymous"
+      onerror="cornisaCssFallback(this)">
+</head>
+<body>
+<header><strong>cornisa</strong> · 01 · script clásico</header>
+<main>
+  <nav><a href="index.html">← Índice</a></nav>
+  <h1>Script clásico desde CDN</h1>
+  <p><span id="origen">Cargando…</span></p>
+<pre>&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cornisa@0.2.0-alpha.0/dist/cornisa.min.css"
+      integrity="sha384-5/loD6Trp16gsEhk2J0wvLltioBZ2vvqMLUQBn5U8TlRzwTtbOq0WFl2PbBdnrZz" crossorigin="anonymous"&gt;
+&lt;script src="https://cdn.jsdelivr.net/npm/cornisa@0.2.0-alpha.0/dist/cornisa.iife.min.js"
+        integrity="sha384-Z3QUBjZ/gp9f8k/RuiJFEX1bN/hPwBhtobuoix2V5JnexjBZHOBVV98ExUD82mmB" crossorigin="anonymous"&gt;&lt;/script&gt;
+&lt;script&gt;
+  const island = Cornisa.createIsland();
+  island.show({ title: 'Cambios guardados', intent: 'success' });
+&lt;/script&gt;</pre>
+  <div class="acciones">
+    <button type="button" id="b-aviso">Aviso breve</button>
+    <button type="button" id="b-progreso">Subida con progreso</button>
+    <button type="button" id="b-deshacer">Archivar (con Deshacer)</button>
+  </div>
+</main>
+<!-- 2) JS desde el CDN con SRI; si falla (hoy: 404), carga la copia local y continúa -->
+<script>
+  (function () {
+    function start(origin) { window.cornisaOrigin(origin); init(); }
+    function init() {
+    const island = Cornisa.createIsland({ labels: { close: 'Cerrar', more: (n) => `Mostrar la siguiente (${n} en espera)` } });
+    document.getElementById('b-aviso').onclick = () => island.show({ title: 'Cambios guardados', intent: 'success' });
+    document.getElementById('b-progreso').onclick = async () => {
+      const h = island.show({ title: 'Subiendo informe.pdf', progress: 0, duration: 'persistent' });
+      for (let p = 10; p <= 100; p += 10) { await new Promise((r) => setTimeout(r, 200)); h.update({ progress: p }); }
+      h.update({ title: 'Informe subido', intent: 'success', progress: null, duration: 5000 });
+    };
+    document.getElementById('b-deshacer').onclick = () => island.show({ title: 'Conversación archivada', duration: 'persistent',
+      actions: [{ label: 'Deshacer', onSelect: (h) => { h.dismiss('undo'); island.show({ title: 'Archivado deshecho', intent: 'success' }); } }] });
+    window.island = island;
+      window.ready = true;
+    }
+    var s = document.createElement('script');
+    s.src = CORNISA_CDN.base + 'cornisa.iife.min.js';
+    s.integrity = 'sha384-Z3QUBjZ/gp9f8k/RuiJFEX1bN/hPwBhtobuoix2V5JnexjBZHOBVV98ExUD82mmB';
+    s.crossOrigin = 'anonymous';
+    s.onload = function () { start('cdn'); };
+    s.onerror = function () {
+      var l = document.createElement('script');
+      l.src = CORNISA_CDN.local + 'cornisa.iife.min.js';
+      l.onload = function () { start('local'); };
+      document.head.appendChild(l);
+    };
+    document.head.appendChild(s);
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+# kiwi · registros de decisión · isla r02 (las de r01 siguen vigentes salvo que se indique)
+- id: D2-01
+  choice: Silueta = un único <path> SVG (aria-hidden) recalculado por frame desde un modelo de muelles; el borde superior del path siempre está en y=0 (y se extiende a y=-2 para fundirse con el borde)
+  source: product-context
+  because: brief del usuario («nacer físicamente del borde», «no usar solo height/opacity/translateY», «explorar CSS/SVG»)
+  alternatives_rejected:
+    - "clip-path: path() animado con CSS: no permite interpolar entre paths con distinto número de comandos ni interrumpir conservando la velocidad"
+    - "filtro gooey (feGaussianBlur + feColorMatrix): coste de raster alto (AUDIT.md §5 avisa del blur en Safari) y bordes del texto contaminados"
+    - "border-radius + height animados: es exactamente lo que el brief prohíbe"
+  affects: [compact, medium, expanded]
+  status: frozen   # aprobado por el usuario 2026-10-26
+- id: D2-02
+  choice: "Muelles con la forma response/bounce (k=(2π/response)², c=4π(1−bounce)/response). Entrada: alto 0.46 s/0.28, ancho 0.50 s/0.22; expansión 0.42/0.18 y 0.40/0.12; salida 0.26/0 y 0.22/0. Integración con paso fijo de 1/240 s"
+  source: rule
+  because: "improve-animations/AUDIT.md §4: springs para lo interrumpible y bounce entre 0.1 y 0.3; animate.md: la salida, más rápida que la entrada; nada de elasticidad por reflejo (aquí la pide el brief, y se acota al rango)"
+  affects: [compact, medium, expanded]
+  status: proposed   # los valores finales se ajustan en F3 con prueba de sensación en dispositivo
+- id: D2-03
+  choice: Coreografía de nacimiento en dos ejes (primero baja estrecha y, al llegar al 55 % del alto, se ensancha) + curvatura inferior proporcional a |velocidad vertical|, limitada a [−5, 14] px y aplicada solo al tramo recto (evita el «pico»)
+  source: inference
+  because: así se produce la lectura de «gota» (estrecha y alta → ancha y baja) sin escalar nada
+  affects: [compact, medium, expanded]
+  status: frozen   # aprobado por el usuario 2026-10-26
+- id: D2-04
+  choice: El texto es HTML que nunca se transforma; solo es visible cuando la silueta ya lo contiene, y se oculta ANTES de que la silueta se encoja. El título solo se reajusta a varias líneas cuando el expandido está asentado
+  source: product-context
+  because: «evitar deformaciones que afecten la legibilidad»
+  affects: [compact, medium, expanded]
+  status: frozen   # aprobado por el usuario 2026-10-26
+- id: D2-05
+  choice: Movimiento reducido = la silueta aparece y desaparece ya asentada, con un fundido de opacidad de 160 ms; no hay bucle rAF
+  source: rule
+  because: animate.md y AUDIT.md §6 («fewer and gentler, not zero»)
+  affects: [compact, medium, expanded]
+  status: frozen   # aprobado por el usuario 2026-10-26
+- id: D2-06
+  choice: ¿Cómo convive la gota con varias actividades? Opciones — (a) una sola gota; la secundaria es un «+N» dentro de la píldora; (b) una segunda gota pequeña unida al borde junto a la primaria; (c) la gota se ensancha en dos lóbulos
+  source: inference
+  because: el modelo lado a lado de r01 no conserva la metáfora de una superficie unida al borde
+  affects: [compact, medium, expanded]
+  status: frozen   # usuario 2026-10-26: opción (a) una sola gota con «+N»
+- id: D2-07
+  choice: ¿Línea de borde visible? El prototipo dibuja una banda de 2 px como «borde del viewport». En producción, el borde real es el cromo del navegador o el borde de la pantalla
+  source: inference
+  because: sin la banda, en un fondo claro la unión con el borde se percibe menos; con ella, la librería dibuja algo fuera de su superficie
+  affects: [compact, medium, expanded]
+  status: frozen   # usuario 2026-10-26: NO se dibuja línea de borde
+- id: D2-08
+  choice: "La gota en reposo cubre siempre la franja central superior (≈52 px más el notch), que en muchas webs es la cabecera. Esto agrava D-08 de r01 (contenido del anfitrión tapado)"
+  source: inference
+  because: el anclaje al borde es la esencia de la dirección; la mitigación (--isl-reserved / scroll-padding-top) sigue pendiente
+  affects: [compact, medium, expanded]
+  status: frozen   # usuario 2026-10-26: SÍ se expone la altura ocupada
+- id: D2-09
+  choice: "forced-colors: el path SVG debe usar fill: CanvasText / color: Canvas (o un contorno) en modo de alto contraste. No probado"
+  source: inference
+  because: en forced-colors el relleno SVG no se ajusta solo
+  affects: [compact, medium, expanded]
+  status: unresolved

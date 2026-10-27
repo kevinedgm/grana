@@ -1,0 +1,18 @@
+- id: D3-01
+  choice: Primera acción visible en la fila compacta (botón hermano del conmutador); oculta en expandido; 36 px visuales / 44 px de área
+  source: product-context
+  because: aprobado por el usuario el 2026-10-26 (critique P1 «acciones ocultas en compacto»)
+  affects: [compact, medium, expanded]
+  status: frozen
+- id: D3-02
+  choice: "Atajo opcional createIsland({ shortcut }), desactivado por defecto, siempre con modificador (Alt/Ctrl/Meta); conmuta el foco entre la isla y el elemento previo; aria-keyshortcuts"
+  source: rule
+  because: D-09 aprobado por el usuario; WCAG 2.1.4 (Character Key Shortcuts) obliga a usar modificador o poder desactivarlo
+  affects: [compact, medium, expanded]
+  status: frozen
+- id: D3-03
+  choice: ¿Actividades con acciones persistentes por defecto?
+  source: inference
+  because: una acción que caduca a los 5 s es frágil (WCAG 2.2.1); cambia un valor por defecto de la API v0
+  affects: [compact, medium, expanded]
+  status: unresolved

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>cornisa · casos de uso (CDN)</title>
+<link rel="stylesheet" href="ejemplos.css">
+<script src="cdn-config.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cornisa@0.2.0-alpha.0/dist/cornisa.min.css" crossorigin="anonymous"
+      onerror="cornisaCssFallback(this)">
+<style>
+  /* Personalización SOLO con tokens (ejemplo; la librería no impone identidad).
+     Se activa con la casilla «Tema de ejemplo». */
+  html[data-tema="ejemplo"] {
+    --cornisa-bg: #1f3a5f;
+    --cornisa-fg: #ffffff;
+    --cornisa-muted: rgba(255, 255, 255, 0.8);
+    --cornisa-max-width: 440px;
+    --cornisa-radius-expanded: 18px;
+  }
+</style>
+</head>
+<body>
+<header><strong>cornisa</strong> · 04 · casos de uso</header>
+<main>
+  <nav><a href="index.html">← Índice</a></nav>
+  <h1>Casos de uso (script clásico desde CDN)</h1>
+  <p><span id="origen">Cargando…</span></p>
+  <p>Atajo de teclado activado en este ejemplo: <kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>N</kbd> lleva el foco a la isla y lo devuelve.</p>
+  <label><input type="checkbox" id="tema"> Tema de ejemplo (solo tokens <code>--cornisa-*</code>)</label>
+
+  <div class="acciones">
+    <button type="button" data-caso="aviso">Aviso breve</button>
+    <button type="button" data-caso="progreso">Subida: progreso → éxito</button>
+    <button type="button" data-caso="promise">promise(): cargando → resultado</button>
+    <button type="button" data-caso="promise-error">promise() con error</button>
+    <button type="button" data-caso="temporizador">Temporizador persistente</button>
+    <button type="button" data-caso="multimedia">Multimedia persistente</button>
+    <button type="button" data-caso="deshacer">Archivar (Deshacer)</button>
+    <button type="button" data-caso="error">Error persistente</button>
+    <button type="button" data-caso="cola">Varias a la vez (+N)</button>
+    <button type="button" data-caso="largo">Contenido largo</button>
+    <button type="button" data-caso="icono">Icono propio (Node)</button>
+    <button type="button" data-caso="todo">Descartar todo</button>
+  </div>
+
+<pre id="codigo">// Pulsa un caso para ver aquí el código que lo genera.</pre>
+</main>
+
+<script>
+(function () {
+  var casos = {
+    aviso: "island.show({ title: 'Cambios guardados', intent: 'success' });",
+    progreso: "const h = island.show({ title: 'Subiendo informe.pdf', progress: 0, duration: 'persistent',\n  actions: [{ label: 'Cancelar', onSelect: (h) => h.dismiss('cancel') }] });\nfor (let p = 5; p <= 100; p += 5) { await espera(150); if (!h.update({ progress: p })) return; }\nh.update({ title: 'Informe subido', intent: 'success', progress: null, duration: 5000,\n  actions: [{ label: 'Abrir', onSelect: (h) => h.dismiss() }] });",
+    promise: "island.promise(espera(1800).then(() => 42), {\n  loading: 'Calculando totales',\n  success: (n) => `Total listo: ${n} registros`,\n  error: 'No se pudo calcular' });",
+    'promise-error': "island.promise(espera(1200).then(() => { throw new Error('timeout'); }), {\n  loading: 'Exportando',\n  success: 'Exportación lista',\n  error: (e) => ({ title: 'No se pudo exportar', body: `Motivo: ${e.message}`, actions: [{ label: 'Reintentar' }] }) });",
+    temporizador: "island.show({ id: 'pomodoro', title: 'Pomodoro', timer: { endsAt: Date.now() + 25 * 60e3 },\n  duration: 'persistent', body: 'Bloque 2 de 4', actions: [{ label: 'Detener', onSelect: (h) => h.dismiss('stop') }] });",
+    multimedia: "island.show({ id: 'media', title: 'Episodio 12 · Diseño sin color', duration: 'persistent',\n  body: 'Podcast de ejemplo · 18:20 / 41:05', actions: [{ label: 'Pausar' }, { label: '+15 s' }] });",
+    deshacer: "island.show({ title: 'Conversación archivada', duration: 'persistent',\n  actions: [{ label: 'Deshacer', onSelect: (h) => { h.dismiss('undo'); island.show({ title: 'Archivado deshecho', intent: 'success' }); } }] });",
+    error: "island.show({ title: 'No se pudo subir informe.pdf', intent: 'error', priority: 'high',\n  body: 'Se perdió la conexión. El archivo sigue en tu dispositivo.', actions: [{ label: 'Reintentar' }] });",
+    cola: "island.show({ title: 'Sincronizado', intent: 'success' });\nisland.show({ title: '3 comentarios nuevos', duration: 'persistent' });\nisland.show({ title: 'Recordatorio: reunión 10:30', priority: 'low' });",
+    largo: "island.show({ title: 'Sincronización completada para «Presupuesto anual del departamento de operaciones internacionales 2026»',\n  duration: 'persistent', body: 'Se actualizaron 1.284 filas en 37 hojas.',\n  actions: [{ label: 'Ver cambios' }, { label: 'Descartar', onSelect: (h) => h.dismiss() }] });",
+    icono: "// El icono es un Node (se clona); nunca una cadena HTML.\nconst svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');\nsvg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('fill', 'none'); svg.setAttribute('stroke', 'currentColor'); svg.setAttribute('stroke-width', '2');\nconst c = document.createElementNS('http://www.w3.org/2000/svg', 'path'); c.setAttribute('d', 'M4 12h16M12 4v16'); svg.append(c);\nisland.show({ title: 'Nuevo elemento creado', icon: svg });",
+    todo: "island.dismissAll();",
+  };
+
+  function init(origin) {
+    window.cornisaOrigin(origin);
+    var island = Cornisa.createIsland({
+      shortcut: 'Alt+Shift+N',
+      labels: { close: 'Cerrar', more: function (n) { return 'Mostrar la siguiente (' + n + ' en espera)'; } },
+    });
+    var espera = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
+    // Los casos se ejecutan desde el mismo texto que se muestra (fuente única de verdad del ejemplo).
+    var run = function (codigo) { return new Function('island', 'espera', 'return (async () => {\n' + codigo + '\n})();')(island, espera); };
+    document.querySelector('.acciones').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-caso]'); if (!b) return;
+      var codigo = casos[b.dataset.caso];
+      document.getElementById('codigo').textContent = codigo;
+      run(codigo);
+    });
+    document.getElementById('tema').addEventListener('change', function (e) {
+      if (e.target.checked) document.documentElement.dataset.tema = 'ejemplo'; else delete document.documentElement.dataset.tema;
+    });
+    window.island = island; window.ready = true;
+  }
+
+  var s = document.createElement('script');
+  s.src = CORNISA_CDN.base + 'cornisa.iife.min.js';
+  s.crossOrigin = 'anonymous';
+  s.onload = function () { init('cdn'); };
+  s.onerror = function () {
+    var l = document.createElement('script');
+    l.src = CORNISA_CDN.local + 'cornisa.iife.min.js';
+    l.onload = function () { init('local'); };
+    document.head.appendChild(l);
+  };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>

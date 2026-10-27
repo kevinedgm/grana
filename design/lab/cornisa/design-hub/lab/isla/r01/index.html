@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="wf-fidelidad" content="F2">
+<title>Wireframe · Isla (superficie de actividad superior) · r01</title>
+<link rel="stylesheet" href="vendor/wireframe-kit.css">
+<style>
+/* ── Prototipo F2: geometría y comportamiento, no identidad visual ──────────
+   Todo es gris del kit. El movimiento es FUNCIONAL (mide interrupciones),
+   no la curva/duración final: eso es F3 (coco) + improve-animations.       */
+.wf-frame{--sat:0px}
+.wf-frame[data-notch="on"]{--sat:48px}           /* inset simulado, ejemplo declarado */
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:var(--sat);
+  background:repeating-linear-gradient(45deg,var(--wf-g3) 0 6px,var(--wf-g2) 6px 12px);border-radius:0 0 12px 12px;z-index:39;display:none}
+.wf-frame[data-notch="on"] .notch{display:block}
+
+.isl-root{position:absolute;z-index:40;left:0;right:0;top:calc(var(--sat) + 8px);
+  display:flex;justify-content:center;align-items:flex-start;gap:8px;pointer-events:none;padding:0 12px}
+.isl-root>*{pointer-events:auto}
+.isl-act{background:var(--wf-g9);color:var(--wf-g0);border-radius:22px;overflow:hidden;
+  max-width:min(400px,100%);min-width:0;box-sizing:border-box}
+.isl-act[data-phase="expanded"]{border-radius:18px;width:min(400px,100%)}
+.isl-toggle{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:8px;min-height:44px;
+  padding:0 16px 0 12px;width:100%;cursor:pointer}
+.isl-toggle:focus-visible,.isl-act button:focus-visible{outline:3px solid var(--wf-g0);outline-offset:-5px;border-radius:18px}
+.isl-ico{flex:none;width:20px;height:20px;border:2px solid currentColor;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700}
+.isl-ico[data-i="success"]{border-radius:4px}
+.isl-ico[data-i="error"]{border-radius:0;transform:rotate(45deg)}
+.isl-ico[data-i="error"] span{transform:rotate(-45deg)}
+.isl-title{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.isl-act[data-phase="expanded"] .isl-title{white-space:normal;padding:12px 0}   /* texto completo al expandir */
+.isl-meta{margin-left:auto;font-size:13px;font-variant-numeric:tabular-nums;opacity:.85;white-space:nowrap}
+.isl-bar{height:4px;background:var(--wf-g6);margin:0 12px 8px;border-radius:2px;overflow:hidden}
+.isl-bar>i{display:block;height:100%;background:var(--wf-g0);width:0}
+.isl-bar[data-ind]>i{width:30%;margin-left:35%}
+.isl-detail{padding:0 16px 14px}
+.isl-detail p{margin:2px 0 10px;font-size:14px;line-height:1.4;overflow-wrap:anywhere}
+.isl-actions{display:flex;gap:8px;flex-wrap:wrap}
+.isl-actions button{all:unset;box-sizing:border-box;min-height:44px;padding:0 14px;border-radius:22px;border:1px solid var(--wf-g0);font-weight:600;font-size:14px;cursor:pointer;display:inline-flex;align-items:center}
+.isl-actions button.primary{background:var(--wf-g0);color:var(--wf-g9)}
+.isl-actions .close{margin-left:auto;border-style:dashed}
+.isl-sec{all:unset;pointer-events:auto;box-sizing:border-box;background:var(--wf-g9);color:var(--wf-g0);border-radius:22px;min-height:44px;min-width:44px;
+  padding:0 12px;display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;font-weight:600}
+.isl-sec:focus-visible{outline:3px solid var(--wf-g9);outline-offset:2px}
+.isl-sec .lbl{max-width:9ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@container wf (max-width: 359px){ .isl-sec .lbl{display:none} }   /* 320: secundaria solo icono + nombre accesible */
+.isl-count{font-size:12px;border:1px solid currentColor;border-radius:10px;padding:0 6px}
+
+/* panel de escenarios (fuera del marco: no forma parte del diseño) */
+.scn{max-width:1440px;margin:0 auto;padding:12px 16px 0;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.scn .wf-btn{min-height:36px;font-size:13px}
+.log{font:12px var(--wf-mono);max-width:1440px;margin:8px auto 0;padding:0 16px;color:var(--wf-g6);white-space:pre-wrap;max-height:120px;overflow:auto}
+.page-filler .wf-line{max-width:640px}
+</style>
+</head>
+<body class="wf">
+
+<div class="wf-ctl" role="region" aria-label="Controles del wireframe">
+  <strong>Isla · r01 · F2 (prototipo, no producción)</strong>
+  <fieldset><legend>Espacio</legend>
+    <button data-w="1440" aria-pressed="false">expanded 1440</button>
+    <button data-w="834" aria-pressed="false">medium 834</button>
+    <button data-w="393" aria-pressed="false">compact 393</button>
+    <button data-w="320" aria-pressed="false">compact 320</button>
+  </fieldset>
+  <label>Estado
+    <select id="wf-state" data-wf-states>
+      <option value="default">Vacío · default (sin actividad)</option>
+      <option value="compact">Compacto · aviso</option>
+      <option value="expanded">Expandido · con acciones</option>
+      <option value="updating">Actualizando · progreso → éxito</option>
+      <option value="error">Error · persistente</option>
+      <option value="multi">Varias actividades</option>
+      <option value="long">Contenido largo</option>
+    </select>
+  </label>
+  <label><input type="checkbox" id="opt-rm"> Movimiento reducido (simulado)</label>
+  <label><input type="checkbox" id="opt-slow"> Cámara lenta ×5</label>
+  <label><input type="checkbox" id="opt-notch"> Notch / safe-area</label>
+  <label><input type="checkbox" id="wf-notes" checked> Notas</label>
+</div>
+
+<div class="scn" role="group" aria-label="Escenarios de interacción">
+  <button class="wf-btn" data-s="toast">Aviso breve (4 s)</button>
+  <button class="wf-btn" data-s="upload">Subida: progreso → éxito</button>
+  <button class="wf-btn" data-s="timer">Temporizador persistente</button>
+  <button class="wf-btn" data-s="media">Multimedia persistente</button>
+  <button class="wf-btn" data-s="undo">Archivado · Deshacer</button>
+  <button class="wf-btn" data-s="burst">Ráfaga de 4 (cola)</button>
+  <button class="wf-btn" data-s="int1">Interrupción: expandir→contraer en 60 ms</button>
+  <button class="wf-btn" data-s="int2">Interrupción: actualizar durante morph</button>
+  <button class="wf-btn" data-s="int3">Interrupción: descartar durante entrada</button>
+  <button class="wf-btn wf-btn--quiet" data-s="clear">Limpiar todo</button>
+</div>
+<div class="log" id="log" aria-hidden="true"></div>
+
+<div class="wf-stage">
+  <p class="wf-frame-label" id="wf-label"></p>
+  <div class="wf-frame" id="wf-frame">
+    <div class="notch" aria-hidden="true"></div>
+    <!-- La isla: en la librería real cuelga de <body> con position:fixed; aquí el marco simula el viewport. -->
+    <div class="isl-root" id="isl"></div>
+    <!-- Región viva PERSISTENTE y separada de la parte visual (existe antes de cualquier anuncio). -->
+    <div class="wf-sr" id="isl-live" role="status" aria-live="polite" aria-atomic="true"></div>
+    <div class="wf-sr" id="isl-alert" role="alert" aria-atomic="true"></div>
+    <div class="wf-shell">
+      <nav class="wf-side" aria-label="Navegación principal"><strong>App de ejemplo</strong>
+        <ul class="wf-list" style="border:0;margin-top:12px"><li><a href="#" aria-current="page">Documentos</a></li><li><a href="#">Ajustes</a></li></ul>
+      </nav>
+      <div>
+        <header class="wf-top"><nav class="wf-small" aria-label="Ruta">Inicio / <b>Documentos</b></nav></header>
+        <main class="wf-main" id="wf-view" tabindex="-1">
+          <h1>Documentos</h1>
+          <p class="wf-muted">Página anfitriona de ejemplo: debe seguir siendo usable con la isla visible.</p>
+          <div class="wf-actions"><button class="wf-btn wf-btn--primary" id="host-primary">Subir documento</button><button class="wf-btn">Filtrar</button></div>
+          <span class="wf-note">La isla nunca roba el foco: al aparecer, el foco sigue en el disparador. Es no modal: no hay scrim ni inert.</span>
+          <span class="wf-note">La isla ocupa el borde superior: la página anfitriona NO se desplaza; se superpone. La librería expone --isl-reserved (altura ocupada) por si el anfitrión quiere reservar espacio.</span>
+          <div class="page-filler"><div class="wf-line"></div><div class="wf-line" style="width:80%"></div><div class="wf-line" style="width:60%"></div></div>
+          <div id="state-notes"></div>
+        </main>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════════════════════════
+   PROTOTIPO DESECHABLE. Sirve para validar el contrato y la máquina de
+   estados propuestos; NO es el código de la librería y no se reutiliza.
+   ════════════════════════════════════════════════════════════════════════ */
+const $ = s => document.querySelector(s);
+const log = m => { const l = $('#log'); l.textContent = `${(performance.now()/1000).toFixed(2)}s ${m}\n` + l.textContent.slice(0, 2000); };
+const opts = { rm: false, slow: 1 };
+const reducedMotion = () => opts.rm || matchMedia('(prefers-reduced-motion: reduce)').matches;
+const D = ms => ms * opts.slow;
+
+/* ── Máquina de estados (pura: sin DOM) ───────────────────────────────── */
+const T = { // transiciones permitidas: phase -> evento -> phase
+  queued:     { promote:'entering', dismiss:'removed', update:'queued' },   // sin hueco visible: sin timer, sin DOM
+  entering:   { entered:'compact', expand:'expanded', dismiss:'dismissing', update:'entering' },
+  compact:    { expand:'expanded', dismiss:'dismissing', update:'compact', demote:'queued' },
+  expanded:   { collapse:'compact', dismiss:'dismissing', update:'expanded' },
+  dismissing: { removed:'removed' },   // terminal: update/expand ignorados
+};
+function step(phase, ev){ const n = T[phase] && T[phase][ev]; return n || null; }
+
+/* ── Gestor: 1 primaria + 1 secundaria visibles, resto en cola por prioridad ── */
+const P = { low:0, normal:1, high:2 };
+let seq = 0; const acts = new Map(); let order = []; // ids visibles/encolados
+const timers = new Set();      // para verificar limpieza
+window.__proto = { acts, timers, step, get order(){ return order.slice(); } };
+
+function show(o){
+  const a = { id: o.id || 'a' + (++seq), intent:'neutral', priority:'normal', duration: 4000, actions: [], ...o,
+              phase:'queued', remaining: null, t0: 0, timer: null, lastPct: -1 };
+  if (a.duration === 'persistent') a.remaining = Infinity; else a.remaining = a.duration;
+  acts.set(a.id, a);
+  order.push(a.id); order.sort((x,y) => P[acts.get(y).priority] - P[acts.get(x).priority]);
+  scheduleRender(); return handle(a.id);   // render por lotes (microtarea); se anuncia al hacerse visible, no al encolarse
+}
+function handle(id){ return {
+  id,
+  update: p => send(id,'update',p), expand: () => send(id,'expand'), collapse: () => send(id,'collapse'),
+  dismiss: r => send(id,'dismiss',{reason:r}), get state(){ return acts.get(id)?.phase ?? 'removed'; } }; }
+
+function send(id, ev, payload){
+  const a = acts.get(id); if (!a) return false;
+  // expand()/collapse() antes de ser visible se recuerdan como intención (show(...).expand() debe funcionar)
+  if (a.phase === 'queued' && (ev === 'expand' || ev === 'collapse')){ a.wantExpand = ev === 'expand'; log(`#${id} intención ${ev} (en cola)`); return true; }
+  const next = step(a.phase, ev);
+  if (!next){ log(`ignorado ${ev} en ${a.phase} (#${id})`); return false; }
+  if (ev === 'update'){ Object.assign(a, payload); announce(a, false); }
+  log(`#${id} ${a.phase} --${ev}--> ${next}`);
+  a.phase = next;
+  if (next === 'expanded' || next === 'dismissing') pauseTimer(a);
+  if (next === 'compact' && ev === 'entered' && a.wantExpand){ a.wantExpand = false; a.phase = 'compact'; return send(id, 'expand'); }
+  if (next === 'compact') armTimer(a);
+  if (next === 'queued') { pauseTimer(a); const k = annQ.findIndex(m => m.id === id); if (k >= 0) annQ.splice(k, 1); }
+  if (next === 'removed') { acts.delete(id); order = order.filter(i => i !== id); render(); return true; }
+  if (next === 'dismissing') { renderLeave(a); return true; }
+  render(); return true;
+}
+
+/* temporizador de autodescartar: pausa en hover/foco/expandido/pestaña oculta (WCAG 2.2.1) */
+function armTimer(a){
+  if (a.remaining === Infinity || a.timer || a.paused) return;
+  a.t0 = performance.now();
+  a.timer = setTimeout(() => { timers.delete(a.timer); a.timer = null; send(a.id,'dismiss',{reason:'timeout'}); }, D(a.remaining));
+  timers.add(a.timer);
+}
+function pauseTimer(a){
+  if (!a.timer) return;
+  clearTimeout(a.timer); timers.delete(a.timer); a.timer = null;
+  a.remaining = Math.max(0, a.remaining - (performance.now() - a.t0) / opts.slow);
+}
+document.addEventListener('visibilitychange', () => acts.forEach(a => document.hidden ? pauseTimer(a) : (a.phase==='compact' && armTimer(a))));
+
+/* ── Anunciador: separado de la vista, con frecuencia limitada ─────────── */
+let lastAnn = 0, annTimer = null;
+function announce(a, isNew){
+  let msg = null;
+  if (isNew) msg = [a.title, a.body].filter(Boolean).join('. ');
+  else if (typeof a.progress === 'number'){
+    const b = Math.floor(a.progress / 25) * 25;          // solo hitos 25/50/75/100
+    if (b !== a.lastPct && b > 0){ a.lastPct = b; msg = `${a.title}: ${b} %`; }
+  } else if (a.title !== a._annTitle) msg = [a.title, a.body].filter(Boolean).join('. ');
+  a._annTitle = a.title;
+  if (!msg) return;
+  if (a.intent === 'error'){ $('#isl-alert').textContent = msg; return; }
+  // cola FIFO: un mensaje por actividad (el más reciente sustituye al pendiente de ESA actividad); nunca se descartan los de otras
+  const i = annQ.findIndex(m => m.id === a.id);
+  if (i >= 0) annQ[i].msg = msg; else annQ.push({ id: a.id, msg });
+  pump();
+}
+const annQ = [];
+function pump(){
+  if (annTimer || !annQ.length) return;
+  const wait = Math.max(0, 1000 - (performance.now() - lastAnn));   // ≥ 1 s entre anuncios corteses
+  annTimer = setTimeout(() => { timers.delete(annTimer); annTimer = null;
+    const m = annQ.shift(); $('#isl-live').textContent = m.msg; lastAnn = performance.now(); log(`anuncio: "${m.msg}"`); pump(); }, wait);
+  timers.add(annTimer);
+}
+
+/* ── Vista ─────────────────────────────────────────────────────────────── */
+const root = $('#isl');
+const ICON = { neutral:'i', success:'✓', warning:'!', error:'×' };
+function esc(s){ const d = document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML; }  // nunca HTML del consumidor
+
+let shownPrimary = null;
+function visible(){
+  // la primaria actual NO se desplaza si está expandida o tiene el foco (no interrumpir al usuario)
+  const cur = shownPrimary && acts.get(shownPrimary);
+  if (cur && (cur.phase === 'expanded' || root.querySelector('.isl-act')?.contains(document.activeElement)))
+    order = [shownPrimary, ...order.filter(i => i !== shownPrimary)];
+  const v = order.filter(id => acts.get(id).phase !== 'removed');
+  v.slice(2).forEach(id => { const a = acts.get(id); if (a.phase === 'compact') send(id, 'demote'); });
+  v.slice(0, 2).forEach(id => { const a = acts.get(id); if (a.phase === 'queued') { a.phase = 'entering'; log(`#${id} queued --promote--> entering`); announce(a, true); } });
+  return { primary: v[0], secondary: v[1], queued: Math.max(0, v.length - 2) };
+}
+
+function actHTML(a){
+  const exp = a.phase === 'expanded';
+  const pct = typeof a.progress === 'number' ? a.progress : null;
+  const meta = a.timerEnd ? fmtTimer(a) : pct !== null ? `${Math.round(pct)} %` : a.progress === 'indeterminate' ? '…' : '';
+  return `
+  <button class="isl-toggle" aria-expanded="${exp}" aria-controls="d-${a.id}">
+    <span class="isl-ico" data-i="${a.intent}" aria-hidden="true"><span>${ICON[a.intent]}</span></span>
+    <span class="isl-title" id="t-${a.id}">${esc(a.title)}</span>
+    ${meta ? `<span class="isl-meta" ${a.timerEnd ? 'role="timer"' : 'aria-hidden="true"'}>${meta}</span>` : ''}
+  </button>
+  ${a.progress !== undefined ? `<div class="isl-bar" ${a.progress==='indeterminate'?'data-ind':''} role="progressbar" aria-labelledby="t-${a.id}"
+      aria-valuemin="0" aria-valuemax="100" ${pct!==null?`aria-valuenow="${Math.round(pct)}"`:''}><i style="width:${pct ?? ''}%"></i></div>` : ''}
+  <div class="isl-detail" id="d-${a.id}" ${exp ? '' : 'hidden'}>
+    ${a.body ? `<p>${esc(a.body)}</p>` : ''}
+    <div class="isl-actions">
+      ${a.actions.map((x,i) => `<button class="${i===0?'primary':''}" data-act="${i}">${esc(x.label)}</button>`).join('')}
+      <button class="close" data-close>Cerrar</button>
+    </div>
+  </div>`;
+}
+function fmtTimer(a){ const s = Math.max(0, Math.ceil((a.timerEnd - Date.now())/1000)); return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`; }
+
+/* render con morph FLIP interrumpible: el "from" es el tamaño ACTUAL en pantalla
+   (aunque haya una animación a medias); se cancela la anterior y se parte de ahí. */
+let renderQueued = false;
+function scheduleRender(){ if (renderQueued) return; renderQueued = true; queueMicrotask(() => { renderQueued = false; render(); }); }
+function render(){
+  const { primary, secondary, queued } = visible();
+  let el = root.querySelector('.isl-act');
+  const focusedInIsland = root.contains(document.activeElement);
+  const focusSel = focusedInIsland ? focusKey(document.activeElement) : null;
+
+  if (!primary){ shownPrimary = null; if (el) el.remove(); root.querySelector('.isl-sec')?.remove(); return; }
+  const a = acts.get(primary); shownPrimary = primary;
+  const from = el ? el.getBoundingClientRect() : null;
+  const isNewEl = !el || el.dataset.id !== a.id;
+  if (!el){ el = document.createElement('div'); el.className = 'isl-act'; root.prepend(el); }
+  el.getAnimations().forEach(x => { if (x.id === 'morph') x.cancel(); });
+  el.dataset.id = a.id; el.dataset.phase = a.phase;
+  el.setAttribute('role','group'); el.setAttribute('aria-labelledby', `t-${a.id}`);
+  el.innerHTML = actHTML(a);
+  const to = el.getBoundingClientRect();
+
+  if (reducedMotion()){
+    if (isNewEl || a.phase === 'entering') el.animate([{opacity:0},{opacity:1}], {duration:D(120)}).id = 'fade';
+    if (a.phase === 'entering') queueMicrotask(() => send(a.id,'entered'));
+  } else if (from && !isNewEl){
+    const m = el.animate([{width:from.width+'px', height:from.height+'px'},{width:to.width+'px', height:to.height+'px'}],
+                         {duration:D(260), easing:'cubic-bezier(.2,.8,.2,1)'});
+    m.id = 'morph';
+  } else {
+    const e = el.animate([{transform:'translateY(-120%) scale(.9)', opacity:0},{transform:'none', opacity:1}], {duration:D(280), easing:'cubic-bezier(.2,.8,.2,1)'});
+    e.id = 'morph';
+    if (a.phase === 'entering') e.finished.then(() => send(a.id,'entered')).catch(() => {});
+  }
+  if (a.phase === 'entering' && from && !isNewEl) queueMicrotask(() => send(a.id,'entered'));
+
+  // secundaria: siempre compacta, un botón que la promueve a primaria
+  let sec = root.querySelector('.isl-sec');
+  if (secondary){
+    const s = acts.get(secondary);
+    if (s.phase === 'entering') queueMicrotask(() => send(s.id, 'entered'));
+    if (!sec){ sec = document.createElement('button'); sec.className = 'isl-sec'; root.append(sec); }
+    sec.dataset.id = s.id;
+    sec.setAttribute('aria-label', `${s.title}${queued ? `, y ${queued} más en espera` : ''}. Mostrar`);
+    sec.innerHTML = `<span class="isl-ico" data-i="${s.intent}" aria-hidden="true"><span>${ICON[s.intent]}</span></span><span class="lbl" aria-hidden="true">${esc(s.title)}</span>${queued?`<span class="isl-count" aria-hidden="true">+${queued}</span>`:''}`;
+  } else sec?.remove();
+
+  if (focusSel){ const t = root.querySelector(focusSel) || root.querySelector('.isl-toggle'); t?.focus({preventScroll:true}); }
+}
+function focusKey(n){ if (n.matches('.isl-toggle')) return '.isl-toggle'; if (n.dataset.act) return `[data-act="${n.dataset.act}"]`; if (n.matches('[data-close]')) return '[data-close]'; if (n.matches('.isl-sec')) return '.isl-sec'; return null; }
+
+function renderLeave(a){
+  const el = root.querySelector(`.isl-act[data-id="${a.id}"]`);
+  const hadFocus = el && el.contains(document.activeElement);
+  const done = () => { a.phase = 'removed'; acts.delete(a.id); order = order.filter(i => i !== a.id); pauseTimer(a); clearInterval(a.tick); timers.delete(a.tick);
+    log(`#${a.id} removed`); if (el) el.remove(); render();
+    if (hadFocus) (lastTrigger && document.contains(lastTrigger) ? lastTrigger : $('#wf-view')).focus({preventScroll:true}); };
+  if (!el){ done(); return; }
+  el.getAnimations().forEach(x => x.cancel());
+  const kf = reducedMotion() ? [{opacity:1},{opacity:0}] : [{transform:'none',opacity:1},{transform:'translateY(-120%) scale(.9)',opacity:0}];
+  el.animate(kf, {duration: D(reducedMotion()?120:220), easing:'cubic-bezier(.4,0,1,1)', fill:'forwards'}).finished.then(done, done);
+}
+
+/* ── Interacción ───────────────────────────────────────────────────────── */
+let lastTrigger = null;   // a dónde vuelve el foco si se descarta con foco dentro
+root.addEventListener('click', e => {
+  const host = e.target.closest('.isl-act'); const id = host?.dataset.id;
+  if (e.target.closest('.isl-sec')){ promote(e.target.closest('.isl-sec').dataset.id); return; }
+  if (!id) return; const a = acts.get(id);
+  if (e.target.closest('.isl-toggle')) send(id, a.phase === 'expanded' ? 'collapse' : 'expand');
+  else if (e.target.closest('[data-close]')) send(id, 'dismiss', {reason:'user'});
+  else if (e.target.closest('[data-act]')){ const x = a.actions[+e.target.closest('[data-act]').dataset.act]; x.onSelect?.(handle(id)); }
+});
+root.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  const id = e.target.closest('.isl-act')?.dataset.id; if (!id) return;
+  e.stopPropagation();
+  if (acts.get(id).phase === 'expanded'){ send(id,'collapse'); root.querySelector('.isl-toggle')?.focus(); }
+});
+// hover/foco pausan el autodescartar
+root.addEventListener('pointerenter', () => acts.forEach(pauseTimer), true);
+root.addEventListener('pointerleave', e => { if (!root.contains(e.relatedTarget)) acts.forEach(a => a.phase==='compact' && !root.contains(document.activeElement) && armTimer(a)); }, true);
+root.addEventListener('focusin', () => acts.forEach(pauseTimer));
+root.addEventListener('focusout', e => { if (root.contains(e.relatedTarget) || !e.relatedTarget) return;
+  // WCAG 2.4.11: si el foco pasa a la página, el expandido se contrae para no tapar el elemento enfocado
+  acts.forEach(a => { if (a.phase==='expanded') send(a.id,'collapse'); if (a.phase==='compact') armTimer(a); }); });
+// pulsar fuera contrae (no descarta) el expandido
+document.addEventListener('pointerdown', e => { if (!root.contains(e.target) && e.target.closest('#wf-frame')) acts.forEach(a => a.phase==='expanded' && send(a.id,'collapse')); });
+function promote(id){ order = [id, ...order.filter(i => i !== id)]; render(); root.querySelector('.isl-toggle')?.focus(); }
+
+/* ── Escenarios ────────────────────────────────────────────────────────── */
+function clearAll(){ [...acts.values()].forEach(a => { pauseTimer(a); clearInterval(a.tick); timers.delete(a.tick); }); acts.clear(); order = []; annQ.length = 0; clearTimeout(annTimer); timers.delete(annTimer); annTimer = null; root.innerHTML = ''; shownPrimary = null; }
+const S = {
+  toast: () => show({ title:'Cambios guardados', intent:'success' }),
+  upload: () => { const h = show({ title:'Subiendo informe.pdf', progress:0, duration:'persistent', body:'2,4 MB de 8 MB' });
+    let p = 0; const iv = setInterval(() => { p += 7; if (h.state==='removed'){ clearInterval(iv); timers.delete(iv); return; }
+      if (p >= 100){ clearInterval(iv); timers.delete(iv); h.update({ title:'Informe subido', intent:'success', progress:undefined, body:'Disponible en Documentos', duration:4000, remaining:4000, actions:[{label:'Abrir'}] }); armTimer(acts.get(h.id)); }
+      else h.update({ progress:p }); }, D(250)); timers.add(iv); },
+  timer: () => { const h = show({ title:'Pomodoro', duration:'persistent', timerEnd: Date.now()+25*60e3, actions:[{label:'Pausar'}], body:'Concentración · bloque 2 de 4' });
+    const a = acts.get(h.id); a.tick = setInterval(() => { const m = root.querySelector(`.isl-act[data-id="${h.id}"] .isl-meta`); if (m) m.textContent = fmtTimer(a); }, 1000); timers.add(a.tick); },
+  media: () => show({ title:'Episodio 12 · Diseño sin color', duration:'persistent', body:'Podcast de ejemplo · 18:20 / 41:05', actions:[{label:'Pausar'},{label:'+15 s'}] }),
+  undo: () => show({ title:'Conversación archivada', duration:6000, actions:[{label:'Deshacer', onSelect:h => { h.dismiss('action'); show({title:'Archivado deshecho', intent:'success'}); }}] }),
+  burst: () => { show({title:'Sincronizado', intent:'success'}); show({title:'3 comentarios nuevos'}); show({title:'Sin conexión', intent:'warning', priority:'high', duration:'persistent', body:'Los cambios se guardan en este dispositivo.'}); show({title:'Recordatorio: reunión 10:30', priority:'low'}); },
+  int1: () => { const h = show({ title:'Prueba de interrupción', duration:'persistent', body:'Expandir y contraer en 60 ms: debe terminar contraída, sin saltos ni animaciones apiladas.', actions:[{label:'Vale'}] });
+    setTimeout(() => { h.expand(); setTimeout(() => h.collapse(), D(60)); }, D(400)); },
+  int2: () => { const h = show({ title:'Exportando', progress:'indeterminate', duration:'persistent', body:'Preparando archivo' });
+    setTimeout(() => { h.expand(); setTimeout(() => h.update({ title:'Exportación lista para descargar con un nombre mucho más largo', intent:'success', progress:undefined, body:'informe-trimestral.csv', actions:[{label:'Descargar'}] }), D(100)); }, D(400)); },
+  int3: () => { const h = show({ title:'Me voy enseguida' }); setTimeout(() => h.dismiss('test'), D(80)); },
+  clear: clearAll,
+};
+document.querySelector('.scn').addEventListener('click', e => { const b = e.target.closest('[data-s]'); if (!b) return; lastTrigger = b; S[b.dataset.s](); });
+
+/* ── Estados estáticos del panel (kit) ─────────────────────────────────── */
+const ST = {
+  default: () => [],
+  compact: () => [S.toast],
+  expanded: () => [() => { const h = S.undo; h(); const id = [...acts.keys()].pop(); acts.get(id).remaining = Infinity; send(id,'expand'); }],
+  updating: () => [S.upload],
+  error: () => [() => show({ title:'No se pudo subir informe.pdf', intent:'error', duration:'persistent', body:'Se perdió la conexión. El archivo sigue en tu dispositivo.', actions:[{label:'Reintentar'}] })],
+  multi: () => [S.media, S.timer, S.toast],
+  long: () => [() => { show({ title:'Sincronización completada para «Presupuesto anual del departamento de operaciones internacionales 2026»', duration:'persistent',
+      body:'Se actualizaron 1.284 filas en 37 hojas. Donaudampfschifffahrtsgesellschaftskapitänsmütze (palabra larga sin espacios).', actions:[{label:'Ver cambios'},{label:'Descartar'}] }); send([...acts.keys()].pop(),'expand'); }],
+};
+const NOTES = {
+  default: 'Sin actividad no hay nada en el DOM visual (las regiones vivas sí existen desde el inicio).',
+  compact: 'Compacto: icono + título + valor. Altura 44 px (target 2.5.8 + toque). Ancho = contenido, máx. min(400 px, viewport − 24 px).',
+  expanded: 'Expandido: disclosure (aria-expanded), no diálogo. Esc contrae y devuelve el foco al conmutador. El temporizador se pausa.',
+  updating: 'Misma instancia: el título y el valor cambian y el tamaño se transforma desde el tamaño actual. Se anuncia solo en hitos de 25 % y el resultado.',
+  error: 'Error: único caso con role=alert. Persistente por defecto: no desaparece antes de que se pueda leer.',
+  multi: 'Una primaria + una secundaria compacta + contador «+N». La secundaria es un botón que la promueve. En 320 px la secundaria muestra solo el icono, con nombre accesible.',
+  long: 'Título: 1 línea con elipsis en compacto; texto completo en expandido y en el anuncio. Palabras largas: overflow-wrap:anywhere.',
+};
+function applyState(v){ clearAll(); ST[v]().forEach(f => f());
+  $('#state-notes').innerHTML = `<span class="wf-note">${NOTES[v]}</span>`; }
+$('#wf-state').addEventListener('change', e => applyState(e.target.value));
+
+/* ── Controles de espacio y opciones ───────────────────────────────────── */
+let W = innerWidth < 700 ? 393 : innerWidth < 1200 ? 834 : 1440;
+function frame(){
+  const f = $('#wf-frame'); f.style.setProperty('--wf-w', W + 'px'); $('#wf-label').style.setProperty('--wf-w', W + 'px');
+  $('#wf-label').textContent = `Marco ${W}px · ${W < 600 ? 'compact' : W < 1024 ? 'medium' : 'expanded'} (referencia declarada)`;
+  document.querySelectorAll('[data-w]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.w === W)));
+  render();
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-w]'); if (b){ W = +b.dataset.w; frame(); } });
+$('#opt-rm').addEventListener('change', e => opts.rm = e.target.checked);
+$('#opt-slow').addEventListener('change', e => opts.slow = e.target.checked ? 5 : 1);
+$('#opt-notch').addEventListener('change', e => { $('#wf-frame').dataset.notch = e.target.checked ? 'on' : 'off'; render(); });
+$('#wf-notes').addEventListener('change', e => document.body.classList.toggle('wf-no-notes', !e.target.checked));
+window.__proto.show = show; window.__proto.clearAll = clearAll; window.__proto.S = S; window.__proto.opts = opts;
+frame(); applyState('default');
+</script>
+</body>
+</html>

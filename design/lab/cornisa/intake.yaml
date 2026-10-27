@@ -1,0 +1,30 @@
+# === lima · project intake ===
+project_name: "Isla (nombre pendiente)"
+design_system_name: NEW
+
+color_law: NEW
+type_law: NEW
+
+tokens_source: AUTO
+canonical_reference:
+
+framework: vanilla-js
+styling: vanilla-css
+icon_library: custom-svg
+router: none
+component_dir: AUTO
+naming_convention: AUTO
+
+hub_root: design-hub
+hub_language: es
+
+a11y_target: "WCAG 2.2 AA"
+breakpoints: [1440, 834, 393, 320]
+touch_min_px: 44
+
+qa_runner: playwright
+serve_command: "python3 -m http.server 4321 --directory ."
+
+anti_references:
+  - "Copiar la apariencia, iconografía o terminología de Apple (Dynamic Island es marca de Apple)"
+  - "Props de estilo en la API pública (color, radius, px)"

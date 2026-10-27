@@ -1,0 +1,4 @@
+Total sin minificar: 55.8 KiB
+JS  (concatenado) gzip 14.6 KiB · brotli 12.9 KiB
+CSS gzip 2.1 KiB · brotli 1.8 KiB
+Nota: sin minificar ni tree-shaking; es una cota superior del coste en red.

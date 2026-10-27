@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="wf-fidelidad" content="F2">
+<title>Wireframe · Isla «Top-Edge Droplet» · r02</title>
+<link rel="stylesheet" href="vendor/wireframe-kit.css">
+<style>
+/* ── r02 · Top-Edge Droplet ────────────────────────────────────────────────
+   La silueta es UN path SVG generado cada frame a partir de un modelo físico
+   (muelles). El texto es HTML normal: nunca se escala ni se deforma.
+   Solo grises del kit: la identidad visual es F3 y la decide el usuario.     */
+.wf-frame{--sat:0px}
+.wf-frame[data-notch="on"]{--sat:48px}
+.edge{position:absolute;inset:0 0 auto 0;height:2px;background:var(--wf-g9);z-index:41}          /* el borde superior del viewport */
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:var(--sat);z-index:39;display:none;
+  background:repeating-linear-gradient(45deg,var(--wf-g3) 0 6px,var(--wf-g2) 6px 12px);border-radius:0 0 12px 12px}
+.wf-frame[data-notch="on"] .notch{display:block}
+
+.drop-svg{position:absolute;top:0;left:0;width:100%;height:520px;z-index:40;pointer-events:none;overflow:visible}
+.drop-svg path{fill:var(--wf-g9)}
+.drop-svg[data-rm]{transition:opacity 160ms ease}
+
+.drop-ui{position:absolute;z-index:42;top:calc(var(--sat) + 4px);left:50%;transform:translateX(-50%);   /* centrado: no se anima nunca */
+  color:var(--wf-g0);display:none}
+.drop-ui[data-on]{display:block}
+.drop-row{all:unset;pointer-events:auto;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:8px;
+  height:44px;padding:0 18px;width:100%;cursor:pointer;transition:opacity 120ms ease}
+.drop-row:focus-visible,.drop-ui button:focus-visible{outline:3px solid var(--wf-g0);outline-offset:-6px;border-radius:22px}
+.drop-ico{flex:none;width:20px;height:20px;border:2px solid currentColor;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700}
+.drop-ico[data-i="success"]{border-radius:4px}
+.drop-title{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.drop-ui[data-ex] .drop-row{height:auto;min-height:44px;padding-top:11px;padding-bottom:11px}
+.drop-ui[data-ex] .drop-title{white-space:normal;text-align:center}   /* texto completo al expandir (H-07 de r01) */
+.drop-meta{font-size:13px;opacity:.85;font-variant-numeric:tabular-nums;white-space:nowrap}
+.drop-detail{pointer-events:auto;padding:2px 18px 16px;transition:opacity 140ms ease}
+.drop-detail p{margin:0 0 12px;font-size:14px;line-height:1.4;overflow-wrap:anywhere}
+.drop-actions{display:flex;gap:8px;flex-wrap:wrap}
+.drop-actions button{all:unset;pointer-events:auto;box-sizing:border-box;min-height:44px;padding:0 14px;border-radius:22px;border:1px solid var(--wf-g0);font-weight:600;font-size:14px;cursor:pointer;display:inline-flex;align-items:center}
+.drop-actions button.primary{background:var(--wf-g0);color:var(--wf-g9)}
+.drop-actions .close{margin-left:auto;border-style:dashed}
+.measure{position:absolute;visibility:hidden;left:-9999px;top:0;display:inline-flex}
+
+/* línea de tiempo y filmstrip (fuera del diseño) */
+.panel{max-width:1440px;margin:0 auto;padding:12px 16px 0;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.panel .wf-btn{min-height:36px;font-size:13px}
+.phase{font:13px var(--wf-mono);padding:4px 8px;border:1px dashed var(--wf-g6);border-radius:4px}
+.film{max-width:1440px;margin:12px auto 0;padding:0 16px}
+.film-strip{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px}
+.film-strip figure{margin:0;flex:none;text-align:center;font:11px var(--wf-mono);color:var(--wf-g6)}
+.film-strip svg{display:block;background:var(--wf-g0);border:1px solid var(--wf-g3);border-radius:4px}
+.film-strip figure.key svg{border:2px solid var(--wf-g9)}
+.overlay svg{background:var(--wf-g0);border:1px solid var(--wf-g3);border-radius:4px}
+.film h2{font-size:15px;margin:8px 0}
+</style>
+</head>
+<body class="wf">
+
+<div class="wf-ctl" role="region" aria-label="Controles del wireframe">
+  <strong>Isla · r02 · «Top-Edge Droplet» · F2 (prototipo)</strong>
+  <fieldset><legend>Espacio</legend>
+    <button data-w="1440" aria-pressed="false">expanded 1440</button>
+    <button data-w="834" aria-pressed="false">medium 834</button>
+    <button data-w="393" aria-pressed="false">compact 393</button>
+    <button data-w="320" aria-pressed="false">compact 320</button>
+  </fieldset>
+  <label>Estado
+    <select id="wf-state" data-wf-states>
+      <option value="default">Vacío · borde sin actividad</option>
+      <option value="compact">Reposo compacto</option>
+      <option value="expanded">Expandido</option>
+      <option value="progress">Actualizando (progreso) / carga</option>
+      <option value="error">Error persistente</option>
+      <option value="long">Contenido largo</option>
+    </select>
+  </label>
+  <label><input type="checkbox" id="opt-rm"> Movimiento reducido (simulado)</label>
+  <label><input type="checkbox" id="opt-slow"> Cámara lenta ×4</label>
+  <label><input type="checkbox" id="opt-notch"> Notch / safe-area</label>
+  <label><input type="checkbox" id="wf-notes" checked> Notas</label>
+</div>
+
+<div class="panel" role="group" aria-label="Secuencia">
+  <button class="wf-btn" data-a="sequence">▶ Secuencia completa</button>
+  <button class="wf-btn" data-a="show">1 · Nacer</button>
+  <button class="wf-btn" data-a="expand">2 · Expandir</button>
+  <button class="wf-btn" data-a="collapse">3 · Contraer</button>
+  <button class="wf-btn" data-a="retract">4 · Retirar</button>
+  <button class="wf-btn" data-a="update">Actualizar contenido</button>
+  <button class="wf-btn" data-a="interrupt">Interrupción: retirar a mitad de nacimiento y volver</button>
+  <span class="phase" id="phase" aria-live="off">fase: vacío</span>
+</div>
+
+<div class="wf-stage">
+  <p class="wf-frame-label" id="wf-label"></p>
+  <div class="wf-frame" id="wf-frame">
+    <div class="edge" aria-hidden="true"></div>
+    <div class="notch" aria-hidden="true"></div>
+    <svg class="drop-svg" id="drop-svg" aria-hidden="true" focusable="false"><path id="drop-path" d=""/></svg>
+    <div class="drop-ui" id="drop-ui" role="group" aria-labelledby="drop-title">
+      <button class="drop-row" id="drop-row" aria-expanded="false" aria-controls="drop-detail">
+        <span class="drop-ico" id="drop-ico" aria-hidden="true">i</span>
+        <span class="drop-title" id="drop-title"></span>
+        <span class="drop-meta" id="drop-meta"></span>
+      </button>
+      <div class="drop-detail" id="drop-detail" hidden></div>
+    </div>
+    <div class="wf-sr" id="live" role="status" aria-live="polite" aria-atomic="true"></div>
+    <div class="wf-sr" id="alert" role="alert" aria-atomic="true"></div>
+    <div class="measure" id="measure" aria-hidden="true"></div>
+
+    <div class="wf-shell">
+      <nav class="wf-side" aria-label="Navegación principal"><strong>App de ejemplo</strong>
+        <ul class="wf-list" style="border:0;margin-top:12px"><li><a href="#" aria-current="page">Documentos</a></li><li><a href="#">Ajustes</a></li></ul></nav>
+      <div>
+        <header class="wf-top"><nav class="wf-small" aria-label="Ruta">Inicio / <b>Documentos</b></nav></header>
+        <main class="wf-main" id="wf-view" tabindex="-1">
+          <h1>Documentos</h1>
+          <p class="wf-muted">Página anfitriona: sigue operativa mientras la gota existe.</p>
+          <div class="wf-actions"><button class="wf-btn wf-btn--primary" id="host-primary">Subir documento</button><button class="wf-btn">Filtrar</button></div>
+          <span class="wf-note">Silueta = un único path SVG recalculado por frame desde un modelo de muelles (alto, ancho, curvatura inferior, filetes cóncavos de unión al borde). Sin height/translateY/scale: el borde superior del path está SIEMPRE en y=0.</span>
+          <span class="wf-note">Legibilidad: el texto es HTML que no se transforma nunca; solo es visible cuando la silueta ya lo contiene por completo. Durante la deformación la gota está vacía.</span>
+          <span class="wf-note" id="state-note"></span>
+          <div class="page-filler"><div class="wf-line"></div><div class="wf-line" style="width:80%"></div><div class="wf-line" style="width:60%"></div></div>
+        </main>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="film" aria-label="Secuencia fotograma a fotograma (generada con el mismo modelo)">
+  <h2>Secuencia completa, fotograma a fotograma (modelo determinista, 393 px, sin notch)</h2>
+  <div class="film-strip" id="film"></div>
+  <h2>Siluetas superpuestas durante el nacimiento (0–700 ms, cada 25 ms)</h2>
+  <div class="overlay" id="overlay"></div>
+</section>
+
+<script>
+/* ════════════════════════════════════════════════════════════════════════
+   PROTOTIPO DESECHABLE. Modelo físico + choreografía + vista.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── Muelle (forma SwiftUI/Apple: response + bounce → k, c) ──────────────
+   k = (2π/response)², c = 4π(1−bounce)/response   (masa 1)
+   bounce 0.1–0.3 según improve-animations/AUDIT.md §4.                   */
+function spring(response, bounce){ return { k: (2*Math.PI/response)**2, c: 4*Math.PI*(1-bounce)/response }; }
+const CFG = {
+  hBirth:  spring(0.46, 0.28),  // descenso: un poco de rebote → «gota»
+  wBirth:  spring(0.50, 0.22),  // ensanche tardío → elasticidad lateral
+  hExpand: spring(0.42, 0.18),
+  wExpand: spring(0.40, 0.12),
+  hExit:   spring(0.26, 0.0),   // salida más rápida que la entrada, sin rebote
+  wExit:   spring(0.22, 0.0),
+};
+const SEED_W = 30;          // ancho de la gota recién nacida
+const FILLET = 12;          // radio de los filetes cóncavos que unen la gota al borde
+
+/* ── Modelo puro (sin DOM): se usa en vivo y para el filmstrip ──────────── */
+class Drop {
+  constructor(){ this.h = {x:0,v:0,t:0,cfg:CFG.hBirth}; this.w = {x:0,v:0,t:0,cfg:CFG.wBirth};
+    this.sag = 0; this.phase = 'empty'; this.goal = null; this.hold = 0; this.events = []; }
+  set(ax, target, cfg){ this[ax].t = target; this[ax].cfg = cfg; }
+  emit(e){ this.events.push(e); }
+  // dims = { compactW, compactH, expandedW, expandedH }
+  show(d){ this.d = d;
+    if (this.phase === 'empty' || this.phase === 'gone'){ this.h.x = 0; this.w.x = SEED_W * 0.4; this.h.v = this.w.v = 0; }
+    this.phase = 'birth'; this.set('h', d.compactH, CFG.hBirth); this.set('w', SEED_W, CFG.wBirth); }
+  expand(){ if (!['rest','settling','birth','contracting'].includes(this.phase)) return false;
+    this.phase = 'expanding'; this.set('w', this.d.expandedW, CFG.wExpand); this.set('h', this.d.expandedH, CFG.hExpand); return true; }
+  collapse(){ if (!['expanded','expanding'].includes(this.phase)) return false;
+    this.phase = 'collapsing'; this.hold = 0.12; return true; }   // primero se recoge el contenido
+  retract(){ if (['empty','gone','retract1','retract2','retract0'].includes(this.phase)) return false;
+    this.phase = 'retract0'; this.hold = 0.12; return true; }
+  resize(d){ this.d = d;   // actualizar contenido: el ancho se re-centra elásticamente
+    if (['rest','settling','contracting'].includes(this.phase)) { this.set('w', d.compactW, CFG.wExpand); this.set('h', d.compactH, CFG.hExpand); this.phase = 'settling'; }
+    if (['expanded','expanding'].includes(this.phase)) { this.set('w', d.expandedW, CFG.wExpand); this.set('h', d.expandedH, CFG.hExpand); this.phase = 'expanding'; } }
+  integrate(s, dt){ const a = -s.cfg.k*(s.x - s.t) - s.cfg.c*s.v; s.v += a*dt; s.x += s.v*dt; }
+  atRest(s, eps=0.25){ return Math.abs(s.x - s.t) < eps && Math.abs(s.v) < 4; }
+  step(dt){
+    const d = this.d;
+    if (this.hold > 0){ this.hold -= dt; if (this.hold <= 0){
+        if (this.phase === 'collapsing'){ this.set('w', d.compactW, CFG.wExpand); this.set('h', d.compactH, CFG.hExpand); this.phase = 'contracting'; }
+        if (this.phase === 'retract0'){ this.set('w', SEED_W, CFG.wExit); this.set('h', Math.min(this.h.x, d.compactH), CFG.hExit); this.phase = 'retract1'; } } }
+    this.integrate(this.h, dt); this.integrate(this.w, dt);
+    if (this.h.x < 0){ this.h.x = 0; this.h.v = Math.max(0, this.h.v); }   // nunca por encima del borde
+    if (this.w.x < 0){ this.w.x = 0; }
+    // curvatura inferior: inercia vertical, filtrada (la gota «pesa» al bajar y se estira al subir)
+    const target = Math.max(-5, Math.min(14, Math.abs(this.h.v) * 0.022));
+    this.sag += (target - this.sag) * Math.min(1, dt * 18);
+    // coreografía
+    if (this.phase === 'birth' && this.h.x >= d.compactH * 0.55){ this.set('w', d.compactW, CFG.wBirth); this.phase = 'settling'; }
+    if ((this.phase === 'settling' || this.phase === 'contracting') && this.atRest(this.h) && this.atRest(this.w)){ this.phase = 'rest'; this.emit('rest'); }
+    if (this.phase === 'expanding' && this.atRest(this.h) && this.atRest(this.w)){ this.phase = 'expanded'; this.emit('expanded'); }
+    if (this.phase === 'retract1' && this.w.x <= SEED_W + 8){ this.set('h', 0, CFG.hExit); this.set('w', 0, CFG.wExit); this.phase = 'retract2'; }
+    if (this.phase === 'retract2' && this.h.x < 0.6){ this.h.x = this.w.x = this.h.v = this.w.v = 0; this.sag = 0; this.phase = 'gone'; this.emit('gone'); }
+  }
+  snap(){ // movimiento reducido: sin estados intermedios
+    this.h.x = this.h.t; this.w.x = this.w.t; this.h.v = this.w.v = 0; this.sag = 0; this.hold = 0;
+    if (['birth','settling','collapsing','contracting'].includes(this.phase)){
+      const d = this.d; this.h.x = this.h.t = d.compactH; this.w.x = this.w.t = d.compactW; this.phase = 'rest'; this.emit('rest'); }
+    else if (this.phase === 'expanding'){ this.phase = 'expanded'; this.emit('expanded'); }
+    else if (this.phase.startsWith('retract')){ this.h.x = this.w.x = 0; this.phase = 'gone'; this.emit('gone'); }
+  }
+  busy(){ return !['empty','gone','rest','expanded'].includes(this.phase); }
+}
+
+/* ── Silueta: un único path cerrado anclado a y=0 ──────────────────────── */
+function silhouette(cx, w, h, sag, expanded){
+  if (h < 0.4 || w < 0.4) return '';
+  const R = expanded ? Math.min(24, h/2, w/2) : Math.min(h, w)/2;    // compacto = extremo inferior totalmente redondo
+  const f = Math.max(0, Math.min(FILLET, h - R, w*0.6));             // filete cóncavo de unión con el borde
+  const L = cx - w/2, Rt = cx + w/2, k = 0.5523, flat = Math.max(0, w - 2*R), s = sag * Math.min(1, flat / 24), mid = flat / 3;
+  const n = v => v.toFixed(2);
+  return `M${n(L-f)} -2 L${n(L-f)} 0 Q${n(L)} 0 ${n(L)} ${n(f)} L${n(L)} ${n(h-R)}`
+    + ` C${n(L)} ${n(h-R+k*R)} ${n(L+R-k*R)} ${n(h)} ${n(L+R)} ${n(h)}`
+    + ` C${n(L+R+mid)} ${n(h+s)} ${n(Rt-R-mid)} ${n(h+s)} ${n(Rt-R)} ${n(h)}`
+    + ` C${n(Rt-R+k*R)} ${n(h)} ${n(Rt)} ${n(h-R+k*R)} ${n(Rt)} ${n(h-R)}`
+    + ` L${n(Rt)} ${n(f)} Q${n(Rt)} 0 ${n(Rt+f)} 0 L${n(Rt+f)} -2 Z`;
+}
+
+/* ── Vista en vivo ─────────────────────────────────────────────────────── */
+const $ = s => document.querySelector(s);
+const frame = $('#wf-frame'), svg = $('#drop-svg'), path = $('#drop-path'), ui = $('#drop-ui'), row = $('#drop-row'), detail = $('#drop-detail');
+const opts = { rm:false, slow:1 };
+const reduced = () => opts.rm || matchMedia('(prefers-reduced-motion: reduce)').matches;
+const drop = new Drop(); let content = null, raf = 0, last = 0, lastTrigger = null;
+const trace = [], drawCost = [];  // muestras por frame para QA: {h,w,sag,top,rowOp,detOp}
+window.__proto = { drawCost, drop, trace, silhouette, Drop, CFG, get running(){ return raf !== 0; } };
+
+const sat = () => parseFloat(getComputedStyle(frame).getPropertyValue('--sat')) || 0;
+function dims(){
+  const W = frame.clientWidth, maxW = Math.min(400, W - 24);
+  const m = $('#measure'); m.innerHTML = `<span class="drop-row" style="width:auto;display:inline-flex">${row.innerHTML}</span>`;
+  const compactW = Math.min(maxW, Math.ceil(m.firstChild.getBoundingClientRect().width));
+  // el detalle se mide en un contenedor aparte (la UI real puede estar en display:none) — hallazgo H2-01
+  const c = ui.cloneNode(true); c.removeAttribute('id'); c.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'));
+  c.setAttribute('data-on',''); c.setAttribute('data-ex',''); c.style.cssText = `position:static;transform:none;width:${maxW}px`;
+  c.querySelector('.drop-detail').hidden = false; m.replaceChildren(c); const exH = c.getBoundingClientRect().height; m.replaceChildren();
+  const top = sat() + 4;
+  return { compactW, compactH: top + 44 + 4, expandedW: maxW, expandedH: Math.ceil(top + exH) };
+}
+function setContent(c){
+  content = c;
+  $('#drop-title').textContent = c.title; $('#drop-meta').textContent = c.meta || '';
+  $('#drop-ico').textContent = { neutral:'i', success:'✓', error:'×' }[c.intent || 'neutral'];
+  $('#drop-ico').dataset.i = c.intent || 'neutral';
+  detail.innerHTML = '';
+  if (c.body){ const p = document.createElement('p'); p.textContent = c.body; detail.append(p); }
+  const acts = document.createElement('div'); acts.className = 'drop-actions';
+  (c.actions || []).forEach((a,i) => { const b = document.createElement('button'); b.textContent = a; if (!i) b.className = 'primary'; acts.append(b); });
+  const x = document.createElement('button'); x.className = 'close'; x.textContent = 'Cerrar'; x.dataset.close = ''; acts.append(x);
+  detail.append(acts);
+}
+function announce(msg, err){ const n = err ? $('#alert') : $('#live'); n.textContent = ''; setTimeout(() => n.textContent = msg, 30); }
+
+function loop(t){
+  const dt = Math.min(0.05, (t - last) / 1000) / opts.slow; last = t;
+  // paso fijo de 1/240 s: estable con independencia de la tasa de refresco
+  let acc = dt; while (acc > 0){ const s = Math.min(acc, 1/240); drop.step(s); acc -= s; }
+  const t0 = performance.now(); draw(); drawCost.push(performance.now() - t0);
+  if (drop.busy()) raf = requestAnimationFrame(loop); else { raf = 0; draw(); }
+}
+function kick(){ if (reduced()){ drop.snap(); draw(); return; } if (!raf){ last = performance.now(); raf = requestAnimationFrame(loop); } }
+
+function draw(){
+  const cx = frame.clientWidth / 2, ex = ['expanding','expanded','collapsing'].includes(drop.phase) || (drop.phase==='contracting' && drop.h.x > drop.d?.compactH + 4);
+  path.setAttribute('d', silhouette(cx, drop.w.x, drop.h.x, drop.sag, ex));
+  const d = drop.d || {};
+  // el contenido solo aparece cuando la silueta ya lo contiene; se recoge antes de que la silueta se mueva
+  const rowFits = drop.h.x >= d.compactH - 1.5 && drop.w.x >= d.compactW - 1.5 && !['retract0','retract1','retract2','gone','empty'].includes(drop.phase);
+  const detFits = drop.phase === 'expanded' || (drop.phase === 'expanding' && drop.h.x >= d.expandedH - 2 && drop.w.x >= d.expandedW - 2);
+  ui.toggleAttribute('data-on', drop.phase !== 'gone' && drop.phase !== 'empty');
+  ui.style.width = (ex ? d.expandedW : d.compactW) + 'px'; ui.toggleAttribute('data-ex', drop.phase === 'expanded');   // el título solo se reajusta cuando la silueta ya está asentada
+  row.style.opacity = rowFits ? 1 : 0;
+  detail.hidden = !(detFits || drop.phase === 'collapsing');
+  detail.style.opacity = detFits ? 1 : 0;
+  row.setAttribute('aria-expanded', String(drop.phase === 'expanded' || drop.phase === 'expanding'));
+  $('#phase').textContent = 'fase: ' + drop.phase;
+  if (trace.length < 4000) trace.push({ p: drop.phase, h: drop.h.x, w: drop.w.x, sag: drop.sag, rowOp: +row.style.opacity, detOp: +detail.style.opacity || 0,
+    rowW: d.compactW, rowH: d.compactH, expW: d.expandedW, expH: d.expandedH, ex });
+  drop.events.splice(0).forEach(onEvent);
+}
+function onEvent(e){
+  if (e === 'gone'){ ui.removeAttribute('data-on'); path.setAttribute('d',''); if (ui.contains(document.activeElement)) (lastTrigger || $('#wf-view')).focus({preventScroll:true}); }
+}
+
+/* ── Acciones públicas del prototipo ───────────────────────────────────── */
+const DEMO = { title:'Informe subido', intent:'success', meta:'', body:'informe-trimestral.pdf · 2,4 MB. Disponible en Documentos.', actions:['Abrir'] };
+const A = {
+  show(c = DEMO){ setContent(c); const d = dims(); if (reduced()) svg.setAttribute('data-rm',''); else svg.removeAttribute('data-rm');
+    if (reduced()){ svg.style.opacity = 0; requestAnimationFrame(() => svg.style.opacity = 1); }
+    drop.show(d); kick(); announce([c.title, c.body].filter(Boolean).join('. '), c.intent === 'error'); },
+  expand(){ if (drop.expand()) kick(); },
+  collapse(){ if (drop.collapse()) kick(); },
+  retract(){ if (!drop.retract()) return; if (reduced()){ svg.style.opacity = 0; setTimeout(() => { drop.snap(); draw(); svg.style.opacity = 1; }, 160); } else kick(); },
+  update(){ if (!content) return; const c = { ...content, title: content.title.length < 20 ? 'Informe subido y compartido con el equipo' : 'Informe subido' };
+    setContent(c); drop.resize(dims()); kick(); announce(c.title); },
+  async sequence(){ const w = ms => new Promise(r => setTimeout(r, ms * opts.slow));
+    if (drop.phase !== 'empty' && drop.phase !== 'gone'){ A.retract(); await w(700); }
+    await w(500); A.show(); await w(1300); A.expand(); await w(1500); A.collapse(); await w(1100); A.retract(); },
+  interrupt(){ A.show(); setTimeout(() => A.retract(), 160 * opts.slow); setTimeout(() => A.show(), 330 * opts.slow); },
+};
+document.querySelector('.panel').addEventListener('click', e => { const b = e.target.closest('[data-a]'); if (b){ lastTrigger = b; A[b.dataset.a](); } });
+
+/* interacción dentro de la gota (no roba foco; Esc/foco fuera/clic fuera contraen) */
+row.addEventListener('click', () => (drop.phase === 'expanded' || drop.phase === 'expanding') ? A.collapse() : A.expand());
+detail.addEventListener('click', e => { if (e.target.closest('[data-close]')) A.retract(); });
+ui.addEventListener('keydown', e => { if (e.key === 'Escape' && (drop.phase === 'expanded' || drop.phase === 'expanding')){ e.stopPropagation(); A.collapse(); row.focus(); } });
+ui.addEventListener('focusout', e => { if (e.relatedTarget && !ui.contains(e.relatedTarget)) A.collapse(); });
+document.addEventListener('pointerdown', e => { if (!ui.contains(e.target) && e.target.closest('#wf-frame')) A.collapse(); });
+
+/* ── Estados del panel ─────────────────────────────────────────────────── */
+const ST = {
+  default: [null, 'Vacío: solo el borde superior. No hay nodos visuales; las regiones vivas existen desde el inicio.'],
+  compact: [DEMO, 'Reposo compacto: píldora unida al borde por filetes cóncavos; el extremo inferior es totalmente redondo.'],
+  expanded: [DEMO, 'Expandido: la misma silueta se despliega hacia abajo; el detalle aparece solo cuando la silueta ya lo contiene.', true],
+  progress: [{ title:'Subiendo informe.pdf', meta:'62 %', body:'5 MB de 8 MB', actions:['Cancelar'] }, 'Actualizando: cambiar contenido re-centra el ancho con un muelle; la gota no se recrea.'],
+  error: [{ title:'No se pudo subir informe.pdf', intent:'error', body:'Se perdió la conexión. El archivo sigue en tu dispositivo.', actions:['Reintentar'] }, 'Error: role=alert; persistente.', true],
+  long: [{ title:'Sincronización completada para «Presupuesto anual del departamento de operaciones internacionales 2026»', body:'Se actualizaron 1.284 filas en 37 hojas. Donaudampfschifffahrtsgesellschaftskapitänsmütze.', actions:['Ver cambios','Descartar'] }, 'Contenido largo: título con elipsis en reposo; texto completo en expandido y en el anuncio.', true],
+};
+$('#wf-state').addEventListener('change', e => { const [c, note, ex] = ST[e.target.value]; $('#state-note').textContent = note;
+  const prev = opts.rm; opts.rm = true;                    // los estados estáticos se muestran ya asentados
+  drop.retract(); drop.snap(); draw();
+  if (c){ A.show(c); if (ex){ drop.expand(); drop.snap(); draw(); } }
+  opts.rm = prev; });
+
+/* ── Controles ─────────────────────────────────────────────────────────── */
+let W = innerWidth < 700 ? 393 : innerWidth < 1200 ? 834 : 1440;
+function setW(){ frame.style.setProperty('--wf-w', W+'px'); $('#wf-label').style.setProperty('--wf-w', W+'px');
+  $('#wf-label').textContent = `Marco ${W}px · ${W < 600 ? 'compact' : W < 1024 ? 'medium' : 'expanded'} (referencia declarada)`;
+  svg.setAttribute('viewBox', `0 0 ${W} 520`);
+  document.querySelectorAll('[data-w]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.w === W)));
+  if (content && drop.phase !== 'gone' && drop.phase !== 'empty'){ drop.resize(dims()); kick(); } draw(); }
+document.addEventListener('click', e => { const b = e.target.closest('[data-w]'); if (b){ W = +b.dataset.w; setW(); } });
+$('#opt-rm').addEventListener('change', e => opts.rm = e.target.checked);
+$('#opt-slow').addEventListener('change', e => opts.slow = e.target.checked ? 4 : 1);
+$('#opt-notch').addEventListener('change', e => { frame.dataset.notch = e.target.checked ? 'on' : 'off'; if (content && drop.phase !== 'gone') { drop.resize(dims()); kick(); } });
+$('#wf-notes').addEventListener('change', e => document.body.classList.toggle('wf-no-notes', !e.target.checked));
+setW(); $('#state-note').textContent = ST.default[1];
+
+/* ── Filmstrip determinista (mismo modelo, sin DOM) ────────────────────── */
+(function film(){
+  const VW = 393, cx = VW/2, D = { compactW: 172, compactH: 52, expandedW: 369, expandedH: 150 };
+  const m = new Drop(), dt = 1/240, frames = [], script = [[0,'show'],[1.05,'expand'],[2.1,'collapse'],[2.9,'retract']];
+  const keys = [0, .04, .08, .12, .16, .22, .3, .42, .6, .9, 1.1, 1.2, 1.3, 1.6, 2.2, 2.35, 2.6, 2.95, 3.05, 3.12, 3.2, 3.3, 3.5];
+  let t = 0, si = 0, ki = 0;
+  while (t <= 3.6){
+    while (si < script.length && t >= script[si][0]){ const a = script[si][1]; a === 'show' ? m.show(D) : m[a](); si++; }
+    if (ki < keys.length && t >= keys[ki] - 1e-9){ frames.push({ t: keys[ki], h: m.h.x, w: m.w.x, s: m.sag, p: m.phase }); ki++; }
+    m.step(dt); t += dt;
+  }
+  const label = { empty:'borde vacío', birth:'nacimiento', settling:'descenso / deformación', rest:'reposo', expanding:'expansión', expanded:'expandido', collapsing:'recoge contenido', contracting:'contracción', retract0:'recoge contenido', retract1:'estrecha', retract2:'asciende', gone:'reintegrada' };
+  $('#film').innerHTML = frames.map((f,i) => {
+    const ex = ['expanding','expanded','collapsing'].includes(f.p) || (f.p==='contracting' && f.h > D.compactH + 4);
+    const d = (i === 0 && f.h === 0) ? '' : silhouette(cx, f.w, f.h, f.s, ex);
+    return `<figure class="${['rest','expanded','gone'].includes(f.p)?'key':''}"><svg width="160" height="76" viewBox="0 -6 ${VW} 186" aria-hidden="true">
+      <rect x="0" y="-6" width="${VW}" height="6" fill="#2b2b2b"/><path d="${d}" fill="#111"/></svg>
+      <figcaption>${Math.round(f.t*1000)} ms<br>${label[f.p]||f.p}</figcaption></figure>`; }).join('');
+  // superposición de siluetas del nacimiento
+  const o = new Drop(); o.show(D); let paths = '', tt = 0, n = 0;
+  while (tt <= 0.7){ if (Math.abs(tt - n*0.025) < dt/2){ paths += `<path d="${silhouette(cx,o.w.x,o.h.x,o.sag,false)}" fill="none" stroke="#111" stroke-opacity="${(0.25+0.75*n/28).toFixed(2)}" stroke-width="1"/>`; n++; } o.step(dt); tt += dt; }
+  $('#overlay').innerHTML = `<svg width="420" height="110" viewBox="${cx-110} -4 220 66" aria-hidden="true"><rect x="${cx-110}" y="-4" width="220" height="4" fill="#2b2b2b"/>${paths}</svg>`;
+  window.__proto.film = frames;
+})();
+</script>
+</body>
+</html>

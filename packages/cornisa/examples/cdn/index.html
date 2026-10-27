@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>cornisa · ejemplos con CDN</title>
+<link rel="stylesheet" href="ejemplos.css">
+</head>
+<body>
+<header><strong>cornisa</strong> · ejemplos de uso desde CDN</header>
+<main>
+  <h1>Usar cornisa desde un CDN</h1>
+  <p><strong>Aviso:</strong> el paquete <code>cornisa</code> todavía <strong>no está publicado</strong>. Las URLs de CDN de estos ejemplos (jsDelivr / unpkg) darán 404 hasta que se publique la versión <code>0.2.0-alpha.0</code>. Mientras tanto, cada ejemplo usa automáticamente la copia local de <code>../../dist/</code> y lo indica en pantalla.</p>
+  <ol>
+    <li><a href="01-script-clasico.html">Script clásico</a>: <code>&lt;script src&gt;</code> + <code>window.Cornisa</code>, con SRI.</li>
+    <li><a href="02-modulo-esm.html">Módulo ESM</a>: <code>import { createIsland } from "https://…/cornisa.esm.min.js"</code>.</li>
+    <li><a href="03-import-map.html">Import map</a>: <code>import { createIsland } from "cornisa"</code>.</li>
+    <li><a href="04-casos-de-uso.html">Casos de uso completos</a>: progreso, promise, temporizador, deshacer, cola, atajo, etiquetas en español y tokens.</li>
+  </ol>
+  <p><strong>Consola:</strong> mientras no esté publicado verás «Refused to apply style / execute script… MIME type ('text/plain')» y un 404. Es la respuesta del CDN («esa versión no existe»), no un fallo de los ejemplos.</p>
+  <p><strong>Doble clic (file://):</strong> funciona, pero los ejemplos 02 y 03 usan el script clásico porque el navegador no carga módulos ES desde file://. Para probarlos como módulos: <code>python3 -m http.server</code> en esta carpeta.</p>
+  <h2>Archivos que sirve el CDN</h2>
+<pre>dist/cornisa.iife.min.js   → &lt;script&gt; clásico (window.Cornisa)
+dist/cornisa.esm.min.js    → &lt;script type="module"&gt; / import map
+dist/cornisa.min.css       → estilos neutros (tokens --cornisa-*)
+dist/sri.json              → hashes de integridad (SRI) de esta versión</pre>
+  <p>Los archivos de <code>dist/</code> están transpilados para Chrome/Edge ≥ 84, Firefox ≥ 69 y Safari/iOS ≥ 14 (suelo declarado, <strong>no probado en esas versiones</strong>).</p>
+</main>
+</body>
+</html>

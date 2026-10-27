@@ -1,0 +1,35 @@
+{
+  "artifact": "cornisa",
+  "round": "r03 (propuesta)",
+  "source": "impeccable critique (lima en modo revisión) → coco",
+  "next_owner": "mora (documentación) · usuario (D3-03)",
+  "unresolved": [
+    {
+      "id": "P1-acciones-compacto",
+      "issue": "Las acciones (p. ej. «Deshacer» con tiempo limitado, «Reintentar») solo se ven al expandir: dos pasos y riesgo de que caduquen",
+      "proposal": "Mostrar la acción primaria dentro de la fila compacta; el expandido queda para leer el detalle y la acción secundaria",
+      "why_not_applied": "Cambia la anatomía congelada de r02 (D2-04); una pasada de polish no puede rediseñar (AGENTS.md: forbidden inference / frozen lock)",
+      "needs": "decisión de producto del usuario + ronda r03 de kiwi",
+      "resolution": "implementado en r03 (D3-01 / D3-02)"
+    },
+    {
+      "id": "D-09",
+      "issue": "Alcance por teclado: la isla queda al final del orden de tabulación",
+      "proposal": "atajo opcional configurable, desactivado por defecto",
+      "needs": "decisión del usuario",
+      "resolution": "implementado en r03 (D3-01 / D3-02)"
+    }
+  ],
+  "evidence": [
+    "design-hub/lab/isla/implementacion/impeccable/critique.md",
+    ".impeccable/critique/2026-10-26T19-10-04Z__cornisa-examples-index-html.md"
+  ],
+  "status": "resuelto en r03 (2026-10-26)",
+  "unresolved_now": [
+    {
+      "id": "D3-03",
+      "issue": "¿actividades con acciones persistentes por defecto?",
+      "needs": "decisión del usuario"
+    }
+  ]
+}

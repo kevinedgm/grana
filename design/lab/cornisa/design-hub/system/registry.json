@@ -1,0 +1,54 @@
+{
+  "cornisa": {
+    "kind": "pattern",
+    "status": "candidate",
+    "documentation": "../../cornisa/README.md",
+    "source": "../../cornisa/src/cornisa.css",
+    "behavior": "../../cornisa/src/index.js",
+    "dependencies": [],
+    "profileDependencies": [],
+    "qa": {
+      "candidate": true,
+      "stable": false,
+      "visual": "screenshots-reviewed",
+      "prototype-behavior": {
+        "status": "runtime-verified-emulated",
+        "caveat": "Prototipo F2, no la librería. Chromium/Firefox/WebKit de Playwright; ni Safari/Edge reales ni dispositivos"
+      },
+      "motion-feel": "manual-verified",
+      "screen-reader": "pending",
+      "forced-colors": "pending",
+      "device-performance": "pending",
+      "library-unit": "passed-with-reviewed-findings",
+      "library-browser": {
+        "status": "runtime-verified-emulated",
+        "gateAccepted": true,
+        "caveat": "Playwright 1.64.1 (Chromium 156, Firefox 157, WebKit 27.2): 189/189. No son Safari/Edge reales ni dispositivos. Aceptado por el usuario SOLO para candidate; la Stable Gate lo reevalúa."
+      },
+      "keyboard": "runtime-verified",
+      "axe": "passed-with-reviewed-findings",
+      "csp": "runtime-verified",
+      "zoom-200": {
+        "status": "runtime-verified-approx",
+        "gateAccepted": true,
+        "caveat": "font-size raíz ×2 + pantalla baja 844×390; no es zoom nativo. Aceptado solo para candidate."
+      },
+      "typecheck": "passed-with-reviewed-findings"
+    },
+    "refinement": {
+      "critique": "degraded",
+      "distill": "manual-playbook",
+      "adapt": "manual-playbook",
+      "polish": "manual-playbook",
+      "detector": "passed-with-reviewed-findings"
+    },
+    "production": {
+      "framework": null,
+      "path": null
+    },
+    "version": "0.2.0-alpha.0",
+    "replacedBy": null,
+    "updated": "2026-10-26",
+    "notes": "Decisiones 2026-10-26: 1 gota con +N, sin línea de borde, altura expuesta, API v0 aprobada, suelo Chr/Edge 84 · FF 69 · Safari 14, identidad neutra. Dirección de movimiento r02 «Top-Edge Droplet» aprobada por el usuario el 2026-10-26. source/behavior son null porque todavía no hay código de librería. motion-feel = aprobación humana de la secuencia (vídeo + prototipo), no una medición. | 2026-10-26: implementación 0.1.0-alpha.0 (coco R3, protocolo seguido a mano). Candidate Gate evaluada: NO PASA (impeccable no ejecutado). Sigue en draft. | 2026-10-26: pasadas de impeccable (critique degradada; distill/adapt/polish manual-playbook). Licencia MIT. P1 «acciones en compacto» → kiwi r03 (unresolved). | 2026-10-26: r03 (acción rápida en compacto + atajo opcional) implementada. Snapshot de critique cerrado. Transición draft → candidate aplicada con aprobación explícita del usuario («sí, después de resolver 1 y 2»). D3-03 unresolved."
+  }
+}

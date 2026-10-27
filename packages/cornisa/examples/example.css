@@ -1,0 +1,8 @@
+:root { scroll-padding-top: var(--cornisa-reserved, 0px); }  /* reserva opcional del anfitrión */
+body { margin: 0; font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; color: #111; background: #f5f5f5; }
+.bar { padding: 14px 16px; border-bottom: 1px solid #d6d6d6; background: #fff; }
+main { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+.grid button { min-height: 44px; padding: 8px 16px; border: 1px solid #111; background: #fff; border-radius: 6px; font: inherit; font-weight: 600; cursor: pointer; }
+.grid button:focus-visible { outline: 3px solid #111; outline-offset: 2px; }
+.filler { height: 900px; margin-top: 24px; padding-top: 16px; border-top: 1px solid #d6d6d6; }
