@@ -12,7 +12,7 @@ import { GbCategoryPreviews01, GbCategoryPreviews02, GbCategoryPreviews03 } from
 
 ## Qué lo hace distinto
 
-**Cada puerta dice cuánto hay detrás y ninguna lleva a una sala vacía** (DECISIONS #917). La cuenta va con el nombre («Barro negro · 24 piezas»), se lee en el nombre del enlace y se formatea en el idioma de la página. Una categoría sin existencias se queda a la vista con «Vuelve pronto» en lugar de un enlace a «0 resultados», que en el teléfono cuesta un viaje y una vuelta atrás. Sin `count` no se sabe cuántas hay y la tarjeta es enlace. La tira enseña muchas categorías sin un carrusel que se mueva solo.
+**Cada puerta dice cuánto hay detrás y ninguna lleva a una sala vacía** (DECISIONS #917). La cuenta va con el nombre (la plantilla de `labels` compone el título entero: «{name} · {count} piezas» da «Barro negro · 24 piezas»), se lee en el nombre del enlace y se formatea en el idioma de la página. Una categoría sin existencias se queda a la vista con «Vuelve pronto» en lugar de un enlace a «0 resultados», que en el teléfono cuesta un viaje y una vuelta atrás. Sin `count` no se sabe cuántas hay y la tarjeta es enlace. La tira enseña muchas categorías sin un carrusel que se mueva solo.
 
 ## Las tres variantes
 
@@ -28,7 +28,7 @@ Las tres reciben la misma `interface Props` (`GbCategoryPreviewsProps`, el mismo
 
 **`titleLines="none"` (EC-B1):** en 02 el título lleva el dato (la cuenta, el motivo de la vacía, la marca de externo), así que no se recorta a dos líneas: lo que importa no se pierde a la vista.
 
-**La categoría (común):** `GCard` con `title` = `category.name`, el nombre con `lang` si lo trae, y la cuenta dentro del título (` · 24 piezas`) porque `GCard` nombra su enlace solo con el título. La foto (`media`) es decorativa. **Vacía** (`count: 0`): la tarjeta queda sin interacción y dice `labels.empty` en el lugar de la cuenta. **Externa** (`external`): enlace que abre en otra pestaña, con la marca y `labels.external` dentro del título (nunca emite `navigate`). **La acción de la sección** (`action`, por ejemplo «Ver toda la tienda») es un `GBtn outline` al final del cuerpo, después de las puertas.
+**La categoría (común):** `GCard` con `title` = `category.name`, el nombre con `lang` si lo trae, y el título entero (nombre y cuenta) lo compone tu aplicación en `labels.count` y `labels.empty` con `{name}` (el bloque no escribe separadores; sin `{name}` se pinta el nombre solo y avisa CP2), porque `GCard` nombra su enlace solo con el título. La foto (`media`) es decorativa. **Vacía** (`count: 0`): la tarjeta queda sin interacción y dice `labels.empty` en el lugar de la cuenta. **Externa** (`external`): enlace que abre en otra pestaña, con la marca y `labels.external` dentro del título (nunca emite `navigate`). **La acción de la sección** (`action`, por ejemplo «Ver toda la tienda») es un `GBtn outline` al final del cuerpo, después de las puertas.
 
 ## Recetas
 
@@ -39,7 +39,7 @@ Las tres reciben la misma `interface Props` (`GbCategoryPreviewsProps`, el mismo
 <GbCategoryPreviews01
   title="Recorre la tienda"
   :categories="[{ name: 'Barro verde', href: '/tienda/barro-verde', media: fotoBarroVerde, count: 0 }]"
-  :labels="{ count: '{count} piezas', empty: 'Vuelve pronto', external: 'se abre en otra pestaña' }"
+  :labels="{ count: '{name} · {count} piezas', empty: '{name} · Vuelve pronto', external: 'se abre en otra pestaña' }"
 />
 ```
 
@@ -47,12 +47,12 @@ Con `count: 0` la tarjeta no es un enlace, aunque lleve `href`: la persona ve «
 
 ### Una cuenta en el idioma de tu tienda
 
-`labels.count` es una plantilla con `{count}` (la cuenta sale con `Intl` y agrupación del idioma) o una función `(count) => string` para el plural:
+`labels.count` es una plantilla con `{name}` y `{count}` (la cuenta sale con `Intl` y agrupación del idioma) o una función `(name, count) => string` para el plural; `labels.empty` es una plantilla con `{name}` o una función `(name) => string`:
 
 ```js
 const labels = {
-  count: (n) => `${n} ${n === 1 ? 'pieza' : 'piezas'}`,
-  empty: 'Vuelve pronto',
+  count: (name, n) => `${name} · ${n} ${n === 1 ? 'pieza' : 'piezas'}`,
+  empty: '{name} · Vuelve pronto',
   external: 'se abre en otra pestaña'
 }
 ```
@@ -73,7 +73,7 @@ const categorias = [
     external: true, media: fotos.mercado }
 ]
 
-const labels = { count: '{count} piezas', empty: 'Vuelve pronto', external: 'se abre en otra pestaña' }
+const labels = { count: '{name} · {count} piezas', empty: '{name} · Vuelve pronto', external: 'se abre en otra pestaña' }
 </script>
 
 <template>
@@ -144,7 +144,7 @@ Una sola interfaz para las tres variantes (`GbCategoryPreviewsProps`). Los tipos
 | `categories` | `Category[]` (requerida) | 1 a 12 (C7 por encima de 12); sin `name` o sin `href` se omite (C2); `count: 0` = vacía (sin enlace, `labels.empty`). |
 | `action` | `Action` | «Ver toda la tienda»: la única acción de la sección, secundaria (`outline`), al final del cuerpo. |
 | `locale` | `string` | Formato de la cuenta; sin él, el `lang` del ancestro al montar. |
-| `labels` | `CategoryPreviewsLabels = {}` | `count` (con alguna `count` mayor que 0), `empty` (con alguna `count: 0`) y `external`; sin valores por defecto (C5). |
+| `labels` | `CategoryPreviewsLabels = {}` | `count` (con alguna `count` mayor que 0; plantilla con `{name}` y `{count}` o función `(name, count)`), `empty` (con alguna `count: 0`; plantilla con `{name}` o función `(name)`) y `external`; sin valores por defecto (C5); sin `{name}` se pinta el nombre solo (CP2). |
 
 ## Eventos
 
@@ -164,8 +164,8 @@ Una sola interfaz para las tres variantes (`GbCategoryPreviewsProps`). Los tipos
 
 | Clave | Requerido |
 | --- | --- |
-| `count` | Sí, con alguna categoría con `count` mayor que 0 (C5; sin él, sin cuenta). Plantilla con `{count}` (con `Intl` y agrupación) o función `(count) => string` |
-| `empty` | Sí, con alguna `count: 0` (C5). Texto que ocupa el lugar de la cuenta |
+| `count` | Sí, con alguna categoría con `count` mayor que 0 (C5; sin él, sin cuenta). Plantilla con `{name}` y `{count}` (con `Intl` y agrupación) o función `(name, count) => string`. Sin `{name}` se pinta el nombre solo (CP2) |
+| `empty` | Sí, con alguna `count: 0` (C5). Plantilla con `{name}` (p. ej. «{name} · Vuelve pronto») o función `(name) => string`; sin `{name}` se pinta el nombre solo (CP2) |
 | `external` | Sí, con una categoría o `action` externa (C5) |
 
 ## Teclado y foco
@@ -198,21 +198,22 @@ Prefijo `[Grana GbCategoryPreviews<NN>]`, una vez por instancia y motivo, solo e
 | Código | Motivo | Qué pasa |
 | --- | --- | --- |
 | CP1 | Una categoría sin `media` en 01 o 02 | Se pinta sin foto; la tarjeta no reserva un hueco vacío |
+| CP2 | `labels.count` o `labels.empty` sin `{name}` | Se pinta el nombre solo, sin la cuenta ni «Vuelve pronto» |
 
 ## Banco de datos de ejemplo
 
-`category-previews.bank.js` exporta `{ props }` con Barro y Agave: Mezcal (`count` 18), Textiles (32, con `description`), Barro negro (24), Barro verde (`count: 0`, la vacía), Cocina oaxaqueña (con `description` y sin `count`), una en inglés con `lang="en"` («Gifts», 1 240 y con la palabra larga sin espacios de la prueba de 320 px) y una externa (el mercado de la cooperativa); `action` «Ver toda la tienda»; `labels` `{ count: '{count} piezas', empty: 'Vuelve pronto', external }`. Con él ninguna variante avisa. Banco real: `packages/blocks/playground/ecommerce/category-previews.html`.
+`category-previews.bank.js` exporta `{ props }` con Barro y Agave: Mezcal (`count` 18), Textiles (32, con `description`), Barro negro (24), Barro verde (`count: 0`, la vacía), Cocina oaxaqueña (con `description` y sin `count`), una en inglés con `lang="en"` («Gifts», 1 240 y con la palabra larga sin espacios de la prueba de 320 px) y una externa (el mercado de la cooperativa); `action` «Ver toda la tienda»; `labels` `{ count: '{name} · {count} piezas', empty: '{name} · Vuelve pronto', external }`. Con él ninguna variante avisa. Banco real: `packages/blocks/playground/ecommerce/category-previews.html`.
 
 ## Peso
 
-`dist/ecommerce.js` pesa **49 328 B gzip** con sus trozos compartidos (`medido` con `node packages/blocks/scripts/measure-entry.mjs ecommerce`, 2026-10-26); tope de la entrada **51 200 B** (DECISIONS #932; no se vuelve a subir). Una variante importada sola (`node packages/blocks/scripts/measure-partial.mjs 7168 ecommerce GbCheckout=9728 +cartTotals=2048`): `GbCategoryPreviews01` 3 374 B, `GbCategoryPreviews02` 3 401 B, `GbCategoryPreviews03` 3 356 B; tope por variante **7 168 B** (#932). `@grana/vue` es *peer*: lo paga la aplicación.
+`dist/ecommerce.js` pesa **49 537 B gzip** con sus trozos compartidos (`medido` con `node packages/blocks/scripts/measure-entry.mjs ecommerce`, 2026-10-26); tope de la entrada **51 200 B** (DECISIONS #932; no se vuelve a subir). Una variante importada sola (`node packages/blocks/scripts/measure-partial.mjs 7168 ecommerce GbCheckout=9728 +cartTotals=2048`): `GbCategoryPreviews01` 3 475 B, `GbCategoryPreviews02` 3 502 B, `GbCategoryPreviews03` 3 460 B; tope por variante **7 168 B** (#932). `@grana/vue` es *peer*: lo paga la aplicación.
 
 ## Alcance
 
 - **No filtra ni cuenta:** `count` lo da tu aplicación; el bloque no suma ni consulta existencias (#911).
 - **Sin carrusel ni avance solo:** la «tira» reparte filas; si quieres desplazamiento horizontal, es de tu aplicación.
 - **Límite aceptado EC-N1 (#904):** en 01, la última tarjeta sola de la fila ocupa más ancho que las demás (reparto de `GAdaptiveLayout`, como BK-L7 de Booking). Para un tope, monta el bloque en una columna de lectura (`GContainer width="reading"`).
-- **Límite de la cuenta:** hoy el separador entre el nombre y la cuenta (« · ») lo escribe el bloque y `labels.count` recibe solo la cuenta. La decisión #928 contrata una plantilla con `{name}` y `{count}` que compone el título entero (aviso CP2); no está construida. Ver «Verificación».
+- **Límite de la cuenta:** el título entero (nombre y cuenta) lo compone tu aplicación con `labels` (`{name}` y `{count}`, #928). El bloque no escribe separadores: si la plantilla omite `{name}`, se pinta el nombre solo (aviso CP2). Ver «Verificación».
 - **`Category.lang` (#885, #891):** si el nombre no está en el idioma de la página, `lang` va a su `span` y los `labels` que pinta se esperan en ese idioma.
 - **Sin CSS ni utilidades** (#763, #807).
 
@@ -220,12 +221,12 @@ Prefijo `[Grana GbCategoryPreviews<NN>]`, una vez por instancia y motivo, solo e
 
 | Qué | Resultado | Nivel |
 | --- | --- | --- |
-| Vitest de `GbCategoryPreviews` (lista real con un `listitem` por categoría; cuenta con `Intl` en el título; `count: 0` sin enlace y con `labels.empty`; 02 con `mediaPosition="background"`; 03 sin `media`; avisos CP1, C5, C7 y C1) | `npm test -w @grana/blocks` pasa **1 463 de 1 463** en 40 archivos (todo el paquete, 2026-10-26) | `prueba` |
+| Vitest de `GbCategoryPreviews` (lista real con un `listitem` por categoría; cuenta con `Intl` en el título; `count: 0` sin enlace y con `labels.empty`; 02 con `mediaPosition="background"`; 03 sin `media`; avisos CP1, CP2, C5, C7 y C1) | `npm test -w @grana/blocks` pasa **1 463 de 1 463** en 40 archivos (todo el paquete, 2026-10-26) | `prueba` |
 | Auditoría de coco: 01, 02 y 03; texto de 02 sobre foto por píxeles (12,48:1); títulos sin recorte a la vista tras EC-B1 y EC-B3; veredicto `candidate` tras el remate de bruno | Al auditar (0aa51df): Chromium 3 248 de 3 275, Firefox 3 189 de 3 216, WebKit 3 188 de 3 216, con EC-B1 y EC-B3 abiertos; tras el remate de bruno (b663be5), 3 266 de 3 275 en la familia y EC-B1 y EC-B3 cerrados (#945) | `medido` |
 
 **No verificado:** lector de pantalla real (el nombre «Barro negro · 24 piezas» del enlace); `forced-colors` real; teléfono real; fotos reales (el banco usa SVG con degradado y una foto clara real se medirá con la aplicación).
 
-**Pendientes abiertos:** (1) **separador y plantilla de la cuenta** (#928 frente a `CategoryCard.js`: el contrato pide `labels.count` y `labels.empty` con `{name}` o función `(name, count)` y aviso CP2; el código escribe « · » y pasa solo la cuenta; derivado a bruno, o a lima si el contrato cambia); (2) **pista de 02** (el contrato dice `g-adapt-short`; el `meta.json` y el código usan `g-adapt-standard` tras EC-B3; derivado a lima para alinear el contrato); (3) EC-N1; los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md).
+**Pendientes abiertos:** (1) **pista de 02** (el contrato dice `g-adapt-short`; el `meta.json` y el código usan `g-adapt-standard` tras EC-B3; derivado a lima para alinear el contrato); (2) EC-N1; los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md).
 
 ## Fuentes
 
