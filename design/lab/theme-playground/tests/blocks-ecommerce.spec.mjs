@@ -285,7 +285,15 @@ test('product-grid 02: las facetas al lado a 1440 y plegadas arriba a 390', asyn
   r = await box(results)
   expect(f.bottom).toBeLessThanOrEqual(r.top + 1)
   // Plegadas: ningún botón de etiqueta a la vista hasta abrir la faceta
-  await expect(facets.locator('.g-tag').first()).toBeHidden()
+  // «Oculto» como lo ve la persona: Playwright (WebKit) da caja a lo que `content-visibility: hidden` omite al pintar,
+  // así que además de toBeHidden se comprueba que ningún antepasado lo omita y que el panel mida 0.
+  const shown = await facets.locator('.g-tag').first().evaluate((e) => {
+    for (let n = e.parentElement; n; n = n.parentElement) if (getComputedStyle(n).contentVisibility === 'hidden') return false
+    return true
+  })
+  expect(shown).toBe(false)
+  const panelH = await facets.locator('.g-accordion-item__panel').first().evaluate((e) => e.getBoundingClientRect().height)
+  expect(panelH).toBe(0)
   await expect(facets).toContainText('Grana cochinilla')
 })
 
