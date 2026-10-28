@@ -604,6 +604,47 @@
   inset-inline-end: calc(var(--g-space-1) * 1.5);
 }
 
+/* ---------- Lectura del día (AV-C1, #952; datepicker.md «Cuando el dato no cabe en la celda») ---------- */
+/* Si el dato del día no cabe en alguna celda, la raíz lleva is-day-content-hidden: el contenido del slot pasa a
+   visibility hidden en TODAS las celdas (sigue ocupando su sitio: la celda no cambia, Δ 0, y se puede seguir midiendo)
+   y la lectura bajo la cuadrícula enseña el dato del día activo. Sin la clase, la lectura no existe en pantalla */
+.g-datepicker__day-readout {
+  display: none;
+}
+.g-datepicker.is-day-content-hidden .g-datepicker__day > :not(.g-datepicker__today-dot) {
+  visibility: hidden;
+}
+/* Lo oculto sigue ocupando su sitio y, si es más ancho que la celda, ampliaría el desplazamiento de la página: el día
+   lo recorta en su propia caja (el contenido que no se ve no desborda; el anillo de foco es del propio botón y no se recorta) */
+.g-datepicker.is-day-content-hidden .g-datepicker__day {
+  overflow: clip;
+}
+.g-datepicker.is-day-content-hidden .g-datepicker__day-readout {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--g-space-2);
+  box-sizing: border-box;
+  inline-size: 100%;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+  /* Alto constante: una línea del cuerpo pequeño, ni más ni menos, aunque el día activo no tenga dato */
+  block-size: var(--g-text-body-sm-line);
+  min-block-size: var(--g-text-body-sm-line);
+  margin-block-start: var(--g-space-2);
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-body-sm-weight);
+  color: var(--g-color-text);
+}
+.g-datepicker.is-day-content-hidden .g-datepicker__day-readout > * {
+  flex: 0 0 auto;
+  font-size: inherit;
+  line-height: inherit;
+}
+
 /* ---------- Pie: proximidad, resumen y acciones ---------- */
 .g-datepicker__foot {
   display: flex;
