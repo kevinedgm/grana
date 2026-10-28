@@ -1,6 +1,6 @@
 # Contrato · Product overview (`GbProductOverview01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #909 a #914 y #918, 2026-10-23; #932 a #937) · **Remates #932 a #941 (2026-10-26):** sigue en `draft` hasta la decisión del usuario sobre las dos columnas (EC-L7, #933) · **Plan:** E4 (§4.2) · **Entrada:** `@grana/blocks/ecommerce` · **Común:** `_comun.md` §1 a §5 y §26 a §38 · **Compone:** `GSection`, `GStack`, `GAdaptiveLayout`, `GGallery` (`@grana/vue/gallery`), `GRadioGroup` (`chip`, `card`), `GNumberField`, `GBtn`, `GPrice` + `GPriceScope` (`@grana/vue/price`), `GTabs`, `GAccordion` + `GAccordionItem`, `GText` (con `dl`, #863) · **Parte de bruno:** B · **Compleja: coco y bruno en Opus** (galería que sigue a la elección, opciones con variantes, cantidad y precio a la vez)
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #909 a #914 y #918, 2026-10-23; #932 a #937) · **Remates #932 a #941 (2026-10-26):** **EC-L7 decidida (2026-10-28, #950):** 01 se recompone con `GSplit` y sigue en `draft` hasta que bruno lo construya y coco lo mida · **Plan:** E4 (§4.2) · **Entrada:** `@grana/blocks/ecommerce` · **Común:** `_comun.md` §1 a §5 y §26 a §38 · **Compone:** `GSection`, `GStack`, `GSplit` (01, #950), `GGallery` (`@grana/vue/gallery`), `GRadioGroup` (`chip`, `card`), `GNumberField`, `GBtn`, `GPrice` + `GPriceScope` (`@grana/vue/price`), `GTabs`, `GAccordion` + `GAccordionItem`, `GText` (con `dl`, #863) · **Parte de bruno:** B · **Compleja: coco y bruno en Opus** (galería que sigue a la elección, opciones con variantes, cantidad y precio a la vez)
 
 ## Promesa
 
@@ -55,11 +55,11 @@ type OverviewLabels = {
 
 | Variante | Concepto | Compone | Ignora |
 | --- | --- | --- | --- |
-| **01 · Galería + panel** | Las fotos y, a su lado, lo que se elige y el botón; debajo, el texto plegado | `GSection` (`title` = `name`, `description` = `summary`) › `GStack gap="lg"` › `GAdaptiveLayout gap="lg"` › [`div class="g-adapt-wide"` › `GGallery` (cuadrícula)] + [`div class="g-adapt-standard"` › panel] + `GAccordion` (descripción, ficha y un elemento por `sections`; `id` = `section.id`) | `labels.tabs` |
+| **01 · Galería + panel** | Las fotos y, a su lado, lo que se elige y el botón; debajo, el texto plegado | `GSection` (`title` = `name`, `description` = `summary`) › `GStack gap="lg"` › `GSplit ratio="1:1" collapse="lg" gap="lg"` › [`#start` › `GGallery` (cuadrícula)] + [`#end` › panel] + `GAccordion` (descripción, ficha y un elemento por `sections`; `id` = `section.id`) | `labels.tabs` |
 | **02 · Galería arriba** | Una columna: las fotos, luego el panel y el texto plegado (el teléfono primero) | `GSection` › `GStack gap="lg"` › `GGallery` (cuadrícula) + panel + `GAccordion` como 01 | `labels.tabs` |
 | **03 · Tira + pestañas** | La foto grande en una tira, el panel y el texto en pestañas | `GSection` › `GStack gap="lg"` › `GGallery appearance="strip"` + panel + `GTabs` (`label` = `labels.tabs`; pestañas: descripción, ficha y una por `sections`, contenido en el slot `panel-{id}`, #889) | — |
 
-**Orden de lectura = orden del DOM** (1.3.2): fotos → panel → texto en las tres; en 01 el panel debería quedar al lado de las fotos en ancho y debajo en estrecho, pero `GAdaptiveLayout` pone el panel (varios controles) en línea propia (PO-L1): **hoy va debajo también en ancho**, y el «al lado» espera la decisión del usuario sobre EC-L7 (#933; recomendación `GSplit`). Sin columna pegada: BK-L1.
+**Orden de lectura = orden del DOM** (1.3.2): fotos → panel → texto en las tres; en 01 el panel va **al lado** de las fotos cuando la caja lo admite y **debajo** cuando no, con `GSplit ratio="1:1" collapse="lg" gap="lg"` (PO-L1 resuelto por #950; `split.md` «Uso en los bloques»: al lado 488 · 488 a 1440 y 447 · 447 a 1024, apilado a 768, 390, 320 y con el texto al 200 %). `collapse="lg"` y no `md`: a 768 el panel va a todo el ancho de la tablet. Sin columna pegada: BK-L1 (la `sticky` de `GSplit` está reservada, #951).
 
 ## Eventos
 

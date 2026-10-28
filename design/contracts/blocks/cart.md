@@ -1,6 +1,6 @@
 # Contrato · Cart (`GbCart01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #909 a #914, #911 y #921, 2026-10-23; #932, #933, #936, #940) · **Remates #932 a #941 (2026-10-26):** sigue en `draft` hasta la decisión del usuario sobre las dos columnas (EC-L7, #933) (01) · **Plan:** E7 (§4.2) · **Entrada:** `@grana/blocks/ecommerce` · **Común:** `_comun.md` §1 a §5 y §26 a §38 · **Compone:** `GSection`, `GStack`, `GAdaptiveLayout`, `GCard`, `GNumberField`, `GBtn`, `GPrice` + `GPriceScope` (`@grana/vue/price`), `GText` (con `dl`, #863), `GProgress`, `GEmpty`, `GDialog` (03) · **Parte de bruno:** C · **Compleja: coco y bruno en Opus** (cantidad por línea, huella con foco, totales y cajón modal)
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #909 a #914, #911 y #921, 2026-10-23; #932, #933, #936, #940) · **Remates #932 a #941 (2026-10-26):** **EC-L7 decidida (2026-10-28, #950):** 01 se recompone con `GSplit` y sigue en `draft` hasta que bruno lo construya y coco lo mida · **Plan:** E7 (§4.2) · **Entrada:** `@grana/blocks/ecommerce` · **Común:** `_comun.md` §1 a §5 y §26 a §38 · **Compone:** `GSection`, `GStack`, `GSplit` (01, #950), `GCard`, `GNumberField`, `GBtn`, `GPrice` + `GPriceScope` (`@grana/vue/price`), `GText` (con `dl`, #863), `GProgress`, `GEmpty`, `GDialog` (03) · **Parte de bruno:** C · **Compleja: coco y bruno en Opus** (cantidad por línea, huella con foco, totales y cajón modal)
 
 ## Promesa
 
@@ -85,11 +85,11 @@ GCard as="section" (title = labels.summary, nivel de dentro) · dentro del únic
 
 | Variante | Concepto | Compone | Ignora |
 | --- | --- | --- | --- |
-| **01 · Lista + resumen al lado** | La página del carrito: las líneas y, a su lado en ancho (debajo en estrecho), el resumen | `GSection` › `GPriceScope` › `GAdaptiveLayout gap="lg"` › [`div class="g-adapt-wide"` › `GStack as="ul" gap="md"` › líneas] + [`div class="g-adapt-standard"` › resumen] | `open`, `from`, `labels.close`/`dialog` |
+| **01 · Lista + resumen al lado** | La página del carrito: las líneas y, a su lado en ancho (debajo en estrecho), el resumen | `GSection` › `GPriceScope` › `GSplit ratio="3:2" gap="lg"` › [`#start` › `GStack as="ul" gap="md"` › líneas] + [`#end` › resumen] | `open`, `from`, `labels.close`/`dialog` |
 | **02 · Resumen al pie** | Una columna: las líneas y, al final, el resumen con el total justo antes de pagar | `GSection` › `GPriceScope` › `GStack gap="lg"` › `GStack as="ul" gap="md"` › líneas + resumen | `open`, `from`, `labels.close`/`dialog` |
 | **03 · Cajón** | El carrito que se abre al borde sin salir de la página; pantalla completa en el teléfono | `GDialog placement="end" size="sm" mobile="fullscreen"` (raíz, `v-model` = `open`, `title` = `title`, `closeLabel` = `labels.close`, `from`) › `GPriceScope` › `GStack gap="md"` › líneas **sin media** + resumen con solo el total (sin `totals.lines` salvo las de `amount: null`, que se dicen) | `media` de las líneas, las líneas de desglose con importe |
 
-**01 en ancho (CR-L1, #933):** las líneas (varios controles) van en línea propia de `GAdaptiveLayout`, así que **hoy el resumen va debajo también en ancho**; el «al lado» espera la decisión del usuario sobre EC-L7 (recomendación `GSplit`).
+**01 en ancho (CR-L1 resuelto por #950):** `GSplit ratio="3:2" gap="lg"` (`collapse` por defecto, `md`) pone el resumen al lado de las líneas cuando la caja lo admite (586 · 390 a 1440, 536 · 358 a 1024) y debajo a 768, 390, 320 y con el texto al 200 % (`split.md` «Uso en los bloques»). Apilado, el resumen queda al final por el orden del DOM (1.3.2); quien lo quiera siempre al pie usa 02.
 
 **Esc en 03 (#940):** con el foco en la cantidad, el primer Esc lo toma `GNumberField` (devuelve el texto) y el segundo cierra el cajón: Esc escalonado (#565). La raíz (`GDialog`) no recibe las escuchas de sus propios eventos (`open`, `closed`…): son de la aplicación para el bloque (`_comun.md` §27 regla 10).
 

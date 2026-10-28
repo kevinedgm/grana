@@ -20,6 +20,7 @@ La separación **es una relación, no una cifra**: `sm` «va con lo anterior», 
 | Apilar bloques de una página o de un panel | **`GStack`** | Márgenes a mano |
 | Campos de un formulario | `GFormLayout` + `GFormRow` (#171, #361) | `GStack` para distribuir campos |
 | Repartir hijos en líneas por su tamaño | `GAdaptiveLayout` (#339 a #365) | `GStack horizontal` con `between` (no existe) |
+| Exactamente dos regiones lado a lado con proporción que se apilan cuando no caben (un panel con varios controles junto a otra cosa) | `GSplit` (`split.md`, #946; comparte `gap` y `density`) | `GStack orientation="horizontal"` (sus hijos van a su tamaño intrínseco y no guardan proporción) |
 | Un grupo de tarjetas que filtran | `GCardGroup` (#603) | — |
 | Relleno, fondo, borde | `GSurface` | `GStack` (sin superficie) |
 | La columna de la página | `GContainer` | — |

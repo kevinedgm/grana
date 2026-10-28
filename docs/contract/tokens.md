@@ -1317,3 +1317,15 @@ Consume además (lista exacta de `GHero.css`, #759): `--g-color-bg`, `--g-color-
 **No son tokens (#717):** la pausa entre bloques nativos internos **`space × 3` (`body`) · `× 2,5` (`body-sm`) · `× 2` (`caption`)** (12 · 10 · 8 px con `space` 4) y la sangría de listas en múltiplos de `space`. ¿Token del tema? **No**: la pausa de `body` es el `sm` de `GStack` (§49) y un token dejaría que un tema desacompasara el texto de la pila. Descartado: medio interlineado del rol (`--g-text-*-line` / 2), fuera de la escala de `space`. **Mínimo de texto (§7):** `caption` es el menor rol y `small` dentro no encoge. **Movimiento:** ninguno.
 
 *Nota de lima:* hay dos secciones numeradas 55 (lista de recursos y utilidades); se mantienen para no romper las referencias ya escritas a «§55» de cada una. La siguiente sección nueva es la 57.
+
+## 57. Dos regiones (`GSplit`; sin tokens nuevos)
+
+**`GSplit` no añade tokens** (`design/contracts/split.md`, DECISIONS.md #946 y #948; S-L3 de `design/lab/split/r01/`). Consume `--g-space-1` (separación y mínimo del lado estrecho) y `--g-text-body-size` (el mínimo que sigue al texto; en `rem`, así que crece con el texto de la raíz). Nada de color, superficie, borde, radio, sombra, fuente ni duración. **Movimiento:** ninguno.
+
+**No son tokens (#717):**
+
+- **Mínimo del lado estrecho de `collapse`:** `max(space × 64 · 80 · 96, --g-text-body-size × 16 · 20 · 24)` para `sm` · `md` · `lg` (256 · 320 · 384 px con `space` 4 y cuerpo de 16 px: los dos términos coinciden en el tema por defecto; con el texto al 200 % manda el segundo). Base de cada región = mínimo / `min(a, b)` × su peso.
+- **Separación:** la de `GStack` (§49): base `space × 6`, factores 0 · 0,5 · 1 · 2, densidad 1 · 0,875 · 0,75, igual en los dos ejes.
+- ¿Token `--g-split-*`? **No**: el umbral sigue a `space` y al cuerpo, como las alturas de §4; un token dejaría que un tema desacompasara la pareja del texto que contiene. Sin literales de unidad nuevos (`min()` de números sin unidad dentro de `calc()`, los tres motores).
+
+La siguiente sección nueva es la 58.

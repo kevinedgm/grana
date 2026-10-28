@@ -29,12 +29,14 @@ Sin forma visible propia, la regla de kiwi «conceptos antes que caja» no aplic
 | Campos que el consumidor **no conoce de antemano** (formulario generado desde un esquema, filtros configurables) | **`GAdaptiveLayout`**, con una pista en el hijo (`g-adapt-*`, `--g-adapt-chars`) solo en las excepciones, derivada del esquema | Calcular filas en la aplicación |
 | Un campo corto que debe **conservar su ancho** aunque quede solo en su línea | **`GAdaptiveLayout`** | Un campo `xs` suelto en `GFormLayout` (se estira, #172) |
 | Una pregunta compuesta con etiqueta por parte | `GFieldGroup` (`form.md` §5), como bloque | Un `GAdaptiveLayout` anidado como sustituto de `fieldset`/`legend` |
+| **Exactamente dos regiones** lado a lado con proporción, una o las dos con varios controles, una `section` o una `table` (el panel junto a las fotos, el resumen junto al carrito) | **`GSplit`** (`split.md`, #946; EC-L7) | `GAdaptiveLayout`: pone en línea propia el hijo con varios controles (#365) y la pista no actúa en una `table`. Una línea de piezas cortas que se parte (Booking summary 03, #906) sí es de `GAdaptiveLayout` |
 
 **Reglas de convivencia:**
 
 - **No va dentro de una `GFormRow`** (aviso de desarrollo). Una `GFormRow`, un `GFieldGroup` o cualquier hijo con varios controles **dentro** de un `GAdaptiveLayout` es un bloque de línea completa.
 - **Dentro de una `GFormSection`**, va en el `GFormLayout` del cuerpo (#283), como cualquier distribución.
 - **Mezclar las dos políticas en un formulario es válido por bloques:** un `GFormLayout` puede tener filas `GFormRow` y, como otro hijo, un `GAdaptiveLayout`.
+- **Un `GSplit` hijo directo es un bloque de línea completa** (#950), como una `section` (#365), tenga o no controles: la raíz `.g-split` entra en la lista de bloques completos del perfil (bruno, `GAdaptiveLayout`). Dentro de una región de un `GSplit` puede ir un `GAdaptiveLayout`.
 - **No comparte el motor de decisión con `GFormRow`.** Comparte el observador (`rowEngine`) y el canal de mínimos intrínsecos (`setIntrinsicMin`); la política de `GFormRow` no cambia.
 
 ## Props
