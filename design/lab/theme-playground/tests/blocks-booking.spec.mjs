@@ -64,10 +64,11 @@ const splitOf = (page, gb) => page.evaluate((gb) => {
 }, gb)
 // Orden de Tab = orden del DOM: recorriendo el bloque con Tab, ningún foco vuelve a start después de entrar en end
 async function tabOrder(page, gb, steps = 40) {
+  const tab = page.context().browser().browserType().name() === 'webkit' ? 'Alt+Tab' : 'Tab' // WebKit no lleva el Tab a los enlaces con la preferencia por defecto (como blocks-marketing y accordion)
   await page.evaluate((gb) => { const b = document.querySelector(`[data-gb="${gb}"]`); const t = document.createElement('button'); t.id = 'tab-probe'; t.textContent = 'antes'; b.before(t); t.focus() }, gb)
   const seq = []
   for (let i = 0; i < steps; i++) {
-    await page.keyboard.press('Tab')
+    await page.keyboard.press(tab)
     const where = await page.evaluate((gb) => { const el = document.activeElement; const reg = el && el.closest(`[data-gb="${gb}"] .g-split > *`); return reg ? (reg.classList.contains('g-split__region--start') ? 's' : 'e') : null }, gb)
     if (!where && seq.length) break // salió del GSplit: una sola pasada (Tab da la vuelta al documento)
     if (where && seq[seq.length - 1] !== where) seq.push(where)
