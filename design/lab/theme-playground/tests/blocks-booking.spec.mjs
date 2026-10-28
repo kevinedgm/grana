@@ -53,6 +53,56 @@ async function open(page, file, qs, { width = 1440, height = 900 } = {}) {
 }
 const overflow = (p) => p.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1)
 const headings = (p) => p.evaluate(() => [...document.querySelectorAll('h1, h2, h3, h4, h5, h6')].map((h) => Number(h.tagName[1])))
+// GSplit (§40, #950): mide las dos regiones del GSplit de un bloque. side = al lado (misma fila, start al inicio en línea);
+// stacked = end debajo de start; cada región dentro de la caja del GSplit; share = parte de start en la suma de anchos
+const splitOf = (page, gb) => page.evaluate((gb) => {
+  const root = document.querySelector(`[data-gb="${gb}"] .g-split`)
+  const [s, e] = [...root.children].map((c) => c.getBoundingClientRect())
+  const r = root.getBoundingClientRect()
+  const inside = [s, e].every((x) => x.left >= r.left - 1 && x.right <= r.right + 1)
+  return { side: Math.abs(s.top - e.top) <= 1 && s.right <= e.left + 1, stacked: e.top >= s.bottom - 1, inside, start: s.width, end: e.width, root: r.width }
+}, gb)
+// Orden de Tab = orden del DOM: recorriendo el bloque con Tab, ningún foco vuelve a start después de entrar en end
+async function tabOrder(page, gb, steps = 40) {
+  await page.evaluate((gb) => { const b = document.querySelector(`[data-gb="${gb}"]`); const t = document.createElement('button'); t.id = 'tab-probe'; t.textContent = 'antes'; b.before(t); t.focus() }, gb)
+  const seq = []
+  for (let i = 0; i < steps; i++) {
+    await page.keyboard.press('Tab')
+    const where = await page.evaluate((gb) => { const el = document.activeElement; const reg = el && el.closest(`[data-gb="${gb}"] .g-split > *`); return reg ? (reg.classList.contains('g-split__region--start') ? 's' : 'e') : null }, gb)
+    if (!where && seq.length) break // salió del GSplit: una sola pasada (Tab da la vuelta al documento)
+    if (where && seq[seq.length - 1] !== where) seq.push(where)
+  }
+  await page.evaluate(() => document.getElementById('tab-probe').remove())
+  return seq.join('')
+}
+async function splitCase(page, { file, qs, gb, ratio: [a, b], side1440, tabs = 40 }) {
+  await open(page, file, qs, { width: 1440, height: 900 })
+  let m = await splitOf(page, gb)
+  expect(m.side, '1440 al lado').toBe(true)
+  expect(m.inside).toBe(true)
+  expect(Math.abs(m.start - (m.start + m.end) * a / (a + b)), 'proporción ±1,5 px').toBeLessThanOrEqual(1.5)
+  if (side1440) expect(Math.abs(m.end - side1440), `lado estrecho ≈ ${side1440}`).toBeLessThanOrEqual(2)
+  expect(await tabOrder(page, gb, tabs), 'Tab: start y después end').toMatch(/^se?$/)
+  for (const width of [768, 390, 320]) {
+    await page.setViewportSize({ width, height: 844 })
+    await settle(page)
+    m = await splitOf(page, gb)
+    expect(m.stacked, `${width} apilado`).toBe(true)
+    expect(m.inside, `${width} sin salirse`).toBe(true)
+    expect(Math.abs(m.start - m.root) <= 1 && Math.abs(m.end - m.root) <= 1, `${width} cada región a todo el ancho`).toBe(true)
+    expect(await overflow(page), `${width} sin desplazamiento horizontal`).toBe(false)
+  }
+  // 768 → 1440: decide igual que al cargar (sin suelo de contenido, regla 6)
+  await page.setViewportSize({ width: 768, height: 900 })
+  await settle(page)
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await settle(page)
+  expect((await splitOf(page, gb)).side, '768 → 1440 vuelve al lado').toBe(true)
+  // Texto al 200 %: el lado estrecho sigue al texto y la pareja se apila a 1440
+  await open(page, file, [qs, 'zoom=2'].filter(Boolean).join('&'), { width: 1440, height: 900 })
+  expect((await splitOf(page, gb)).stacked, 'texto 200 % apilado').toBe(true)
+  expect(await overflow(page)).toBe(false)
+}
 
 for (const pg of PAGES) {
   for (const tema of THEMES) {
@@ -517,19 +567,11 @@ test('availability: el viernes lleno sirve de salida y no de llegada (#739)', as
   expect(await page.evaluate(() => window.blockEvents.filter((e) => e[0] === 'select'))).toEqual([['select', '01', { start: '2026-11-18', end: '2026-11-20' }]])
 })
 
-// Una columna a cualquier ancho (#892, #899; dos columnas reservadas): el resumen debajo, sin desbordar, a 1440 y 390.
-test('availability 03: el resumen va debajo del calendario (una columna, #892) sin desbordar a 1440 y 390', async ({ page }) => {
-  await open(page, 'availability.html', 'v=03')
-  const below = () => page.evaluate(() => {
-    const b = document.querySelector('[data-gb="availability-03"]')
-    const a = b.querySelector('.g-datepicker').getBoundingClientRect()
-    const cards = b.querySelectorAll('.g-card')
-    const c = cards[cards.length - 1].getBoundingClientRect()
-    return c.top >= a.bottom - 1
-  })
-  expect(await below()).toBe(true)
-  await page.setViewportSize({ width: 390, height: 844 })
-  await settle(page)
-  expect(await below()).toBe(true)
-  expect(await overflow(page)).toBe(false)
+// Dos columnas con GSplit 2:1 lg (§40, #950; enmienda de #892/#899): la tarjeta al lado del calendario a 1440 (651 + 325) y
+// debajo a 768, 390 y 320 y con el texto al 200 %, sin desbordar
+test('availability 03: la tarjeta al lado del calendario a 1440 y debajo a 768, 390 y 320 (GSplit 2:1)', async ({ page }) => {
+  await splitCase(page, { file: 'availability.html', qs: 'v=03', gb: 'availability-03', ratio: [2, 1], side1440: 325 })
+  const block = page.locator('[data-gb="availability-03"]')
+  await expect(block.locator('.g-split__region--start .g-datepicker')).toHaveCount(1)
+  await expect(block.locator('.g-split__region--end .g-card')).toHaveCount(1)
 })

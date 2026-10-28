@@ -20,7 +20,7 @@
   "composes": [
     "GSection",
     "GStack",
-    "GAdaptiveLayout",
+    "GSplit",
     "GCard",
     "GNumberField",
     "GBtn",
@@ -36,7 +36,7 @@
       "name": "GbCart01",
       "tag": "gb-cart-01",
       "concept": "Lista + resumen al lado",
-      "root": "GSection › GPriceScope › GAdaptiveLayout gap=\"lg\" › [div › GStack as=\"ul\" (líneas y huella)] + [div › GCard as=\"section\" (resumen)]; hoy uno debajo de otro (CR-L1)"
+      "root": "GSection › GPriceScope › GSplit ratio=\"3:2\" gap=\"lg\" › [#start GStack as=\"ul\" (líneas y huella)] + [#end GCard as=\"section\" (resumen)]; al lado cuando el resumen cabe en 320 px (#950)"
     },
     {
       "name": "GbCart02",
@@ -224,7 +224,7 @@
   "root": "01, 02: GSection · 03: el GDialog (su <dialog>); con data-gb=\"cart-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/ecommerce",
-    "measured": 49537,
+    "measured": 49557,
     "cap": 51200,
     "variantCap": 7168,
     "peers": [
@@ -232,6 +232,6 @@
       "@grana/vue",
       "@grana/vue/price"
     ],
-    "note": "dist/ecommerce.js con sus trozos (scripts/measure-entry.mjs, gzip -c), 12 secciones y 36 variantes (medido de nuevo tras #943 y CP2, 2026-10-26): 49 537 B de 51 200 (#932; margen 1 663 B; no se vuelve a subir: con más, decide el usuario). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbCart01 6266, GbCart02 6250, GbCart03 6415; tope por variante 7 168 B (#932). cartTotals sola 1 917 B de 2 048."
+    "note": "dist/ecommerce.js con sus trozos (scripts/measure-entry.mjs, gzip -c), 12 secciones y 36 variantes (medido de nuevo tras la recomposición con GSplit, §40 y #950, 2026-10-28; GSplit va en @grana/vue, externo): 49 557 B de 51 200 (#932; margen 1 643 B; no se vuelve a subir: con más, decide el usuario). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbCart01 6271, GbCart02 6256, GbCart03 6424; tope por variante 7 168 B (#932). cartTotals sola 1 922 B de 2 048."
   }
 }

@@ -131,14 +131,21 @@ describe('GbAvailability · del dato al calendario', () => {
     expect(desc.find('.g-price').exists()).toBe(true)
     expect(btn.element.contains(desc.element)).toBe(false)
   })
-  it('03 en una columna (#892, #899): el calendario y debajo la tarjeta, sin GAdaptiveLayout ni pistas', () => {
+  it('03 en dos regiones (§40, #950): GSplit 2:1 lg con el calendario en start y la tarjeta en end, sin GAdaptiveLayout ni pistas', () => {
     const { w } = run(GbAvailability03)
     expect(w.find('.g-adaptive-layout').exists()).toBe(false)
     expect(w.find('[class*="g-adapt-"]').exists()).toBe(false)
     expect(w.find('.g-summary').exists()).toBe(false)
+    const split = w.find('.g-split')
+    expect(split.classes()).toEqual(expect.arrayContaining(['g-split--ratio-2-1', 'g-split--collapse-md', 'g-split--gap-lg']))
+    const regions = split.element.children
+    expect(regions).toHaveLength(2)
+    expect(regions[0].classList.contains('g-split__region--start')).toBe(true)
+    expect(regions[1].classList.contains('g-split__region--end')).toBe(true)
     const card = w.findAllComponents(GCard).at(-1)
-    const cal = w.find('table')
-    expect(cal.element.compareDocumentPosition(card.element) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(regions[0].querySelector('table')).not.toBeNull()
+    expect(regions[1].contains(card.element)).toBe(true)
+    expect(split.attributes('style')).toBeUndefined()
   })
   it('02 desde hoy: los días pasados no salen', async () => {
     vi.setSystemTime(new Date(2026, 10, 10, 12))

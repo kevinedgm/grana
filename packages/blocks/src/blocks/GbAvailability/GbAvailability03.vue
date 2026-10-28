@@ -1,13 +1,13 @@
 <script setup>
 // GbAvailability03 · Calendario + resumen (dueño: bruno). Contrato: design/contracts/blocks/availability.md · Común:
-// _comun.md §15 · Sin CSS (#763). El calendario y, debajo, lo elegido con su total y la acción, en una columna a cualquier
-// ancho (#892, #899; dos columnas reservadas): GSection › GPriceScope (una sola región para el calendario y el total: la
-// moneda se dice una vez) › GStack gap="lg" › [el calendario de 01] + [GCard level="outlined" (título = la selección dicha con
+// _comun.md §15, §40 · Sin CSS (#763). El calendario y lo elegido con su total y la acción, al lado cuando la tarjeta cabe
+// en 320 px y debajo si no (#950, enmienda de #892/#899): GSection › GPriceScope (una sola región para el calendario y el
+// total: la moneda se dice una vez) › GSplit ratio="2:1" gap="lg" › [#start el calendario de 01] + [#end GCard level="outlined" (título = la selección dicha con
 // describeQuery, #862: GCard necesita nombre y la frase lo es; sin consulta, el título de la sección) › GPrice con el
 // `total` de la aplicación + GBtn solid labels.select → `select` con la elección completa (deshabilitado mientras no lo
 // está)]. El slot `summary` añade lo que la aplicación quiera antes del total. Ignora `upcoming`.
 import { computed, reactive } from 'vue'
-import { GBtn, GCard, GSection, GStack, useSectionLevel } from '@grana/vue'
+import { GBtn, GCard, GSection, GSplit, GStack, useSectionLevel } from '@grana/vue'
 import { GPrice } from '@grana/vue/price'
 import { useQueryLine } from '../common/booking.js'
 import GbPriceRegion from '../common/priceRegion.js'
@@ -49,16 +49,20 @@ const pick = (event) => { if (ready.value) a.select(event, current.value) }
   <GSection :title="title" :description="description" data-gb="availability-03">
     <template v-if="$slots.description" #description><slot name="description" /></template>
     <GbPriceRegion :region="region" :labels="labels" :locale="locale">
-    <GStack gap="lg">
-      <AvailabilityCalendar :a="a" :min="min" :max="max" :labels="labels" :day-slot="$slots.day" :scoped="false" @change="change" />
-      <GCard level="outlined" as="div" :title="line ? line.text : title" :heading-level="inner">
-        <GStack gap="md">
-          <slot name="summary" :value="current" :query="chosen.query" />
-          <GPrice v-if="total" v-bind="total" size="lg" :locale="region ? undefined : locale" />
-          <GBtn v-if="selectLabel" variant="solid" :disabled="!ready" @click="pick">{{ selectLabel }}</GBtn>
-        </GStack>
-      </GCard>
-    </GStack>
+    <GSplit ratio="2:1" gap="lg">
+      <template #start>
+        <AvailabilityCalendar :a="a" :min="min" :max="max" :labels="labels" :day-slot="$slots.day" :scoped="false" @change="change" />
+      </template>
+      <template #end>
+        <GCard level="outlined" as="div" :title="line ? line.text : title" :heading-level="inner">
+          <GStack gap="md">
+            <slot name="summary" :value="current" :query="chosen.query" />
+            <GPrice v-if="total" v-bind="total" size="lg" :locale="region ? undefined : locale" />
+            <GBtn v-if="selectLabel" variant="solid" :disabled="!ready" @click="pick">{{ selectLabel }}</GBtn>
+          </GStack>
+        </GCard>
+      </template>
+    </GSplit>
     </GbPriceRegion>
   </GSection>
 </template>

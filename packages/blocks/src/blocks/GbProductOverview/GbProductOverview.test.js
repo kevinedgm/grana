@@ -211,3 +211,31 @@ describe('GbProductOverview · avisos propios (una vez por instancia)', () => {
     expect(own(warnings, '03', 'C5').some((t) => t.includes('labels.tabs'))).toBe(true)
   })
 })
+
+describe('GbProductOverview01 · galería y panel con GSplit (§40, #950, PO-L1)', () => {
+  it('GSplit 1:1 lg lg: la galería en start, el panel en end; el GAccordion sigue después, fuera', () => {
+    const { w } = run(GbProductOverview01)
+    expect(w.find('.g-adaptive-layout').exists()).toBe(false)
+    expect(w.find('[class*="g-adapt-"]').exists()).toBe(false)
+    const split = w.find('.g-split')
+    expect(split.classes()).toEqual(expect.arrayContaining(['g-split--ratio-1-1', 'g-split--collapse-lg', 'g-split--gap-lg']))
+    const [start, end, ...rest] = split.element.children
+    expect(rest).toHaveLength(0)
+    expect(start.classList.contains('g-split__region--start')).toBe(true)
+    expect(start.contains(w.findComponent(GGallery).element)).toBe(true)
+    expect(end.classList.contains('g-split__region--end')).toBe(true)
+    expect(end.contains(addBtn(w).element)).toBe(true)
+    const acc = w.findComponent(GAccordion).element
+    expect(split.element.contains(acc)).toBe(false)
+    expect(split.element.compareDocumentPosition(acc) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(split.attributes('style')).toBeUndefined()
+    w.unmount()
+  })
+  it('sin fotos la región start no se pinta: el panel ocupa todo el ancho', () => {
+    const { w } = run(GbProductOverview01, { product: { ...bank.props.product, photos: [] } })
+    const regions = w.find('.g-split').element.children
+    expect(regions).toHaveLength(1)
+    expect(regions[0].classList.contains('g-split__region--end')).toBe(true)
+    w.unmount()
+  })
+})

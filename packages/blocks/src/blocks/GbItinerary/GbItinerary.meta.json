@@ -115,13 +115,13 @@
   "root": "GSection con data-gb=\"itinerary-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/booking",
-    "measured": 36851,
+    "measured": 37140,
     "cap": 37888,
     "variantCap": 5120,
     "peers": [
       "vue",
       "@grana/vue"
     ],
-    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c), las 11 secciones y 33 variantes (remate de bruno tras la auditoría de coco, 2026-10-23): 36 851 B de 37 888 (#907; margen 1 037 B). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbItinerary01 3579 B, GbItinerary02 3620 B, GbItinerary03 3144 B; tope por variante 5120 B (#887)."
+    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c), las 11 secciones y 33 variantes (medido de nuevo tras la recomposición de Availability 03 con GSplit, §40 y #950, 2026-10-28; GSplit va en @grana/vue, externo): 37 140 B de 37 888 (#907; margen 748 B). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbItinerary01 3624 B, GbItinerary02 3658 B, GbItinerary03 3177 B; tope por variante 5120 B (#887)."
   }
 }

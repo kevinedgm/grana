@@ -26,7 +26,7 @@
     "GPriceScope",
     "GStack",
     "GCard",
-    "GAdaptiveLayout",
+    "GSplit",
     "GBtn"
   ],
   "variants": [
@@ -46,7 +46,7 @@
       "name": "GbAvailability03",
       "tag": "gb-availability-03",
       "concept": "Calendario + resumen",
-      "root": "GSection › GPriceScope › GStack gap=\"lg\" › [el calendario de 01, sin pista: bloque completo (AV-L1)] + [GCard level=\"outlined\" (título = la selección con describeQuery, o el de la sección) › GStack › GPrice total (lg) + GBtn solid]"
+      "root": "GSection › GPriceScope › GSplit ratio=\"2:1\" gap=\"lg\" › [#start el calendario de 01] + [#end GCard level=\"outlined\" (título = la selección con describeQuery, o el de la sección) › GStack › GPrice total (lg) + GBtn solid]; al lado cuando la tarjeta cabe en 320 px (#950, enmienda de #892/#899)"
     }
   ],
   "props": [
@@ -237,7 +237,7 @@
   "root": "GSection con data-gb=\"availability-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/booking",
-    "measured": 36851,
+    "measured": 37140,
     "cap": 37888,
     "variantCap": 5120,
     "peers": [
@@ -246,6 +246,6 @@
       "@grana/vue/booking",
       "@grana/vue/price"
     ],
-    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c), las 11 secciones y 33 variantes (remate de bruno tras la auditoría de coco, 2026-10-23): 36 851 B de 37 888 (#907; margen 1 037 B). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbAvailability01 3908 B, GbAvailability02 3949 B, GbAvailability03 4565 B; tope por variante 5120 B (#887)."
+    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c), las 11 secciones y 33 variantes (medido de nuevo tras la recomposición de Availability 03 con GSplit, §40 y #950, 2026-10-28; GSplit va en @grana/vue, externo): 37 140 B de 37 888 (#907; margen 748 B). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbAvailability01 3962 B, GbAvailability02 3999 B, GbAvailability03 4628 B; tope por variante 5120 B (#887)."
   }
 }

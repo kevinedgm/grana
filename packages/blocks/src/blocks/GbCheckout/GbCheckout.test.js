@@ -221,3 +221,23 @@ describe('GbCheckout · avisos propios', () => {
     expect(own(warnings, '01', 'C7')).toHaveLength(1)
   })
 })
+
+describe('GbCheckout03 · dos regiones con GSplit (§40, #950)', () => {
+  it('GSplit 3:2 lg: pasos y formulario en start, el pedido en end, en ese orden', () => {
+    const { w } = run(GbCheckout03)
+    expect(w.find('.g-adaptive-layout').exists()).toBe(false)
+    const split = w.find('.g-split')
+    expect(split.classes()).toEqual(expect.arrayContaining(['g-split--ratio-3-2', 'g-split--collapse-md', 'g-split--gap-lg']))
+    const [start, end, ...rest] = split.element.children
+    expect(rest).toHaveLength(0)
+    expect(start.classList.contains('g-split__region--start')).toBe(true)
+    expect(end.classList.contains('g-split__region--end')).toBe(true)
+    expect(start.querySelector('form')).not.toBeNull()
+    expect(end.querySelector('form')).toBeNull()
+    expect(end.querySelector('.g-price')).not.toBeNull()
+    expect(split.attributes('style')).toBeUndefined()
+  })
+  it('01 y 02 no usan GSplit', () => {
+    for (const C of [GbCheckout01, GbCheckout02]) expect(run(C).w.find('.g-split').exists()).toBe(false)
+  })
+})

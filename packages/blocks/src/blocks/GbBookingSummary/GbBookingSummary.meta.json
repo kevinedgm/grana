@@ -171,7 +171,7 @@
   "root": "GCard as=\"section\" (01), GSection (02) o GStack as=\"section\" (03) con data-gb=\"booking-summary-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/booking",
-    "measured": 36851,
+    "measured": 37140,
     "cap": 37888,
     "variantCap": 5120,
     "peers": [
@@ -180,6 +180,6 @@
       "@grana/vue/booking",
       "@grana/vue/price"
     ],
-    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c), las 11 secciones y 33 variantes (remate de bruno tras la auditoría de coco, 2026-10-23): 36 851 B de 37 888 (#907; margen 1 037 B). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbBookingSummary01 4082 B, GbBookingSummary02 3894 B, GbBookingSummary03 3949 B; tope por variante 5120 B (#887)."
+    "note": "dist/booking.js con su trozo compartido de common/ (scripts/measure-entry.mjs, gzip -c), las 11 secciones y 33 variantes (medido de nuevo tras la recomposición de Availability 03 con GSplit, §40 y #950, 2026-10-28; GSplit va en @grana/vue, externo): 37 140 B de 37 888 (#907; margen 748 B). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbBookingSummary01 4137 B, GbBookingSummary02 3950 B, GbBookingSummary03 4006 B; tope por variante 5120 B (#887)."
   }
 }

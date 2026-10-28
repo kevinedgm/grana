@@ -52,6 +52,56 @@ async function open(page, file, qs, { width = 1440, height = 900 } = {}) {
 }
 const overflow = (p) => p.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1)
 const headings = (p) => p.evaluate(() => [...document.querySelectorAll('h1, h2, h3, h4, h5, h6')].map((h) => Number(h.tagName[1])))
+// GSplit (§40, #950): mide las dos regiones del GSplit de un bloque. side = al lado (misma fila, start al inicio en línea);
+// stacked = end debajo de start; cada región dentro de la caja del GSplit; share = parte de start en la suma de anchos
+const splitOf = (page, gb) => page.evaluate((gb) => {
+  const root = document.querySelector(`[data-gb="${gb}"] .g-split`)
+  const [s, e] = [...root.children].map((c) => c.getBoundingClientRect())
+  const r = root.getBoundingClientRect()
+  const inside = [s, e].every((x) => x.left >= r.left - 1 && x.right <= r.right + 1)
+  return { side: Math.abs(s.top - e.top) <= 1 && s.right <= e.left + 1, stacked: e.top >= s.bottom - 1, inside, start: s.width, end: e.width, root: r.width }
+}, gb)
+// Orden de Tab = orden del DOM: recorriendo el bloque con Tab, ningún foco vuelve a start después de entrar en end
+async function tabOrder(page, gb, steps = 40) {
+  await page.evaluate((gb) => { const b = document.querySelector(`[data-gb="${gb}"]`); const t = document.createElement('button'); t.id = 'tab-probe'; t.textContent = 'antes'; b.before(t); t.focus() }, gb)
+  const seq = []
+  for (let i = 0; i < steps; i++) {
+    await page.keyboard.press('Tab')
+    const where = await page.evaluate((gb) => { const el = document.activeElement; const reg = el && el.closest(`[data-gb="${gb}"] .g-split > *`); return reg ? (reg.classList.contains('g-split__region--start') ? 's' : 'e') : null }, gb)
+    if (!where && seq.length) break // salió del GSplit: una sola pasada (Tab da la vuelta al documento)
+    if (where && seq[seq.length - 1] !== where) seq.push(where)
+  }
+  await page.evaluate(() => document.getElementById('tab-probe').remove())
+  return seq.join('')
+}
+async function splitCase(page, { file, qs, gb, ratio: [a, b], side1440, tabs = 40 }) {
+  await open(page, file, qs, { width: 1440, height: 900 })
+  let m = await splitOf(page, gb)
+  expect(m.side, '1440 al lado').toBe(true)
+  expect(m.inside).toBe(true)
+  expect(Math.abs(m.start - (m.start + m.end) * a / (a + b)), 'proporción ±1,5 px').toBeLessThanOrEqual(1.5)
+  if (side1440) expect(Math.abs(m.end - side1440), `lado estrecho ≈ ${side1440}`).toBeLessThanOrEqual(2)
+  expect(await tabOrder(page, gb, tabs), 'Tab: start y después end').toMatch(/^se?$/)
+  for (const width of [768, 390, 320]) {
+    await page.setViewportSize({ width, height: 844 })
+    await settle(page)
+    m = await splitOf(page, gb)
+    expect(m.stacked, `${width} apilado`).toBe(true)
+    expect(m.inside, `${width} sin salirse`).toBe(true)
+    expect(Math.abs(m.start - m.root) <= 1 && Math.abs(m.end - m.root) <= 1, `${width} cada región a todo el ancho`).toBe(true)
+    expect(await overflow(page), `${width} sin desplazamiento horizontal`).toBe(false)
+  }
+  // 768 → 1440: decide igual que al cargar (sin suelo de contenido, regla 6)
+  await page.setViewportSize({ width: 768, height: 900 })
+  await settle(page)
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await settle(page)
+  expect((await splitOf(page, gb)).side, '768 → 1440 vuelve al lado').toBe(true)
+  // Texto al 200 %: el lado estrecho sigue al texto y la pareja se apila a 1440
+  await open(page, file, [qs, 'zoom=2'].filter(Boolean).join('&'), { width: 1440, height: 900 })
+  expect((await splitOf(page, gb)).stacked, 'texto 200 % apilado').toBe(true)
+  expect(await overflow(page)).toBe(false)
+}
 
 for (const pg of PAGES) {
   for (const tema of THEMES) {
@@ -334,21 +384,13 @@ test('product-grid: el vacío por filtros ofrece quitar justo un filtro (relax)'
   expect(await page.evaluate(() => window.blockEvents.filter((e) => e[0] === 'update:filters').map((e) => e[2]))).toEqual([{ talla: ['g'] }])
 })
 
-// PO-L1 (hallazgo para lima): el panel lleva varios controles y GAdaptiveLayout lo trata como bloque completo (línea propia):
-// queda debajo de las fotos también a 1440. Pendiente hasta que el contrato diga cómo pedir «al lado» con API pública.
-test.fixme('product-overview 01: el panel al lado de las fotos a 1440 y debajo a 390', async ({ page }) => {
-  await open(page, 'product-overview.html', 'v=01', { width: 1440, height: 900 })
+// PO-L1 resuelto con GSplit 1:1 lg lg (§40, #950): el panel al lado de las fotos a 1440 (488 + 488) y debajo a 768, 390 y 320
+test('product-overview 01: el panel al lado de las fotos a 1440 y debajo a 768, 390 y 320 (GSplit 1:1 lg)', async ({ page }) => {
+  await splitCase(page, { file: 'product-overview.html', qs: 'v=01', gb: 'product-overview-01', ratio: [1, 1], side1440: 488 })
+  // La galería en start y el panel (sus preguntas) en end
   const block = page.locator('[data-gb="product-overview-01"]')
-  const gallery = block.locator('.g-gallery')
-  const panel = block.locator('fieldset').first()
-  let g = await box(gallery)
-  let p = await box(panel)
-  expect(g.right).toBeLessThanOrEqual(p.left + 1)
-  await page.setViewportSize({ width: 390, height: 844 })
-  await settle(page)
-  g = await box(gallery)
-  p = await box(panel)
-  expect(g.bottom).toBeLessThanOrEqual(p.top + 1)
+  await expect(block.locator('.g-split__region--start .g-gallery')).toHaveCount(1)
+  await expect(block.locator('.g-split__region--end fieldset').first()).toBeVisible()
 })
 
 test('product-overview: los chips de talla en una línea a 320 sin desbordar', async ({ page }) => {
@@ -458,14 +500,12 @@ test('reviews: la calificación y cada puntuación en palabras, sin estrellas', 
 
 const boxC = (loc) => loc.evaluate((el) => { const r = el.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, left: r.left, right: r.right, width: r.width } })
 
-// CR-L1 (hallazgo para lima): GAdaptiveLayout trata el hijo de las líneas (varios controles) como bloque completo y lo
-// pone en fila entera: el resumen va debajo también a 1440. Se comprueba lo que hay; el lado a lado queda pendiente
-test('cart 01: el resumen debajo de las líneas a 390 (a 1440, pendiente de CR-L1)', async ({ page }) => {
-  await open(page, 'cart.html', 'v=01', { width: 390, height: 844 })
+// CR-L1 resuelto con GSplit 3:2 lg (§40, #950): el resumen al lado de las líneas a 1440 (586 + 390), debajo a 768, 390 y 320
+test('cart 01: el resumen al lado de las líneas a 1440 y debajo a 768, 390 y 320 (GSplit 3:2)', async ({ page }) => {
+  await splitCase(page, { file: 'cart.html', qs: 'v=01', gb: 'cart-01', ratio: [3, 2], side1440: 390, tabs: 60 })
   const block = page.locator('[data-gb="cart-01"]')
-  const summary = await boxC(block.locator('section.g-card'))
-  const list = await boxC(block.locator('ul.g-stack').first())
-  expect(summary.top).toBeGreaterThanOrEqual(list.bottom - 1)
+  await expect(block.locator('.g-split__region--start ul.g-stack')).toHaveCount(1)
+  await expect(block.locator('.g-split__region--end section.g-card')).toHaveCount(1)
 })
 
 test('cart: las líneas no desbordan a 320 con el nombre largo sin espacios', async ({ page }) => {
@@ -544,6 +584,15 @@ test('checkout: el precio de cada forma de envío está en el nombre del radio; 
   // Volver no borra
   await block.getByRole('button', { name: 'Atrás' }).click()
   await expect(block.getByRole('textbox', { name: /Correo electrónico/ })).toHaveValue('ana@example.com')
+})
+
+// GSplit 3:2 lg (§40, #950): el pedido al lado del formulario a 1440 (586 + 390), debajo a 768, 390 y 320; la secuencia
+// 768 → 1440 no se queda apilada aunque el GStepper en fila mida más que la región (regla 6 de split.md)
+test('checkout 03: el pedido al lado del formulario a 1440 y debajo a 768, 390 y 320 (GSplit 3:2)', async ({ page }) => {
+  await splitCase(page, { file: 'checkout.html', qs: 'v=03', gb: 'checkout-03', ratio: [3, 2], side1440: 390, tabs: 80 })
+  const block = page.locator('[data-gb="checkout-03"]')
+  await expect(block.locator('.g-split__region--start form')).toHaveCount(1)
+  await expect(block.locator('.g-split__region--end form')).toHaveCount(0)
 })
 
 test('checkout 03 a 390 × 844: el campo enfocado nunca queda bajo el pie pegado (2.4.11)', async ({ page }) => {

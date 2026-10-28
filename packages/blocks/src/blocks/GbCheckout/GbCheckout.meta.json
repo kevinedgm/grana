@@ -19,7 +19,7 @@
   "composes": [
     "GSection",
     "GStack",
-    "GAdaptiveLayout",
+    "GSplit",
     "GForm",
     "GErrorSummary",
     "GFormSection",
@@ -61,7 +61,7 @@
       "name": "GbCheckout03",
       "tag": "gb-checkout-03",
       "concept": "Con el pedido al lado",
-      "root": "GSection › GPriceScope › GAdaptiveLayout gap=\"lg\" › [div › GStepper + GForm con GFormActions sticky] + [div › GSection (el pedido abierto)]; hoy uno debajo de otro (CR-L1)"
+      "root": "GSection › GPriceScope › GSplit ratio=\"3:2\" gap=\"lg\" › [#start GStack › GStepper + GForm con GFormActions sticky] + [#end GSection (el pedido abierto)]; al lado cuando el pedido cabe en 320 px (#950)"
     }
   ],
   "props": [
@@ -220,7 +220,7 @@
   "root": "GSection con data-gb=\"checkout-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/ecommerce",
-    "measured": 49537,
+    "measured": 49557,
     "cap": 51200,
     "variantCap": 9728,
     "peers": [
@@ -228,6 +228,6 @@
       "@grana/vue",
       "@grana/vue/price"
     ],
-    "note": "dist/ecommerce.js con sus trozos (scripts/measure-entry.mjs, gzip -c), 12 secciones y 36 variantes (medido de nuevo tras #943 y CP2, 2026-10-26): 49 537 B de 51 200 (#932; margen 1 663 B; no se vuelve a subir: con más, decide el usuario). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbCheckout01 9178, GbCheckout02 9065, GbCheckout03 9195; tope por variante 9 728 B (#932, Checkout con la copia del motor de campos, #941). cartTotals sola 1 917 B de 2 048."
+    "note": "dist/ecommerce.js con sus trozos (scripts/measure-entry.mjs, gzip -c), 12 secciones y 36 variantes (medido de nuevo tras la recomposición con GSplit, §40 y #950, 2026-10-28; GSplit va en @grana/vue, externo): 49 557 B de 51 200 (#932; margen 1 643 B; no se vuelve a subir: con más, decide el usuario). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbCheckout01 9185, GbCheckout02 9072, GbCheckout03 9210; tope por variante 9 728 B (#932, Checkout con la copia del motor de campos, #941). cartTotals sola 1 922 B de 2 048."
   }
 }

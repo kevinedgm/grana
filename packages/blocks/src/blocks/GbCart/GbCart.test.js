@@ -249,3 +249,24 @@ describe('GbCart · el nombre del producto entero (EC-B1)', () => {
     }
   })
 })
+
+describe('GbCart01 · dos regiones con GSplit (§40, #950, CR-L1)', () => {
+  it('GSplit 3:2 lg: las líneas en start, el resumen en end, en ese orden y sin pistas de GAdaptiveLayout', () => {
+    const { w } = run(GbCart01)
+    expect(w.find('.g-adaptive-layout').exists()).toBe(false)
+    expect(w.find('[class*="g-adapt-"]').exists()).toBe(false)
+    const split = w.find('.g-split')
+    expect(split.classes()).toEqual(expect.arrayContaining(['g-split--ratio-3-2', 'g-split--collapse-md', 'g-split--gap-lg']))
+    const [start, end, ...rest] = split.element.children
+    expect(rest).toHaveLength(0)
+    expect(start.classList.contains('g-split__region--start')).toBe(true)
+    expect(end.classList.contains('g-split__region--end')).toBe(true)
+    expect(start.querySelector('ul')).not.toBeNull()
+    expect(end.querySelector('ul')).toBeNull()
+    expect(end.textContent).toContain('Pagar')
+    expect(split.attributes('style')).toBeUndefined()
+  })
+  it('02 y 03 no usan GSplit (una columna y cajón)', () => {
+    expect(run(GbCart02).w.find('.g-split').exists()).toBe(false)
+  })
+})

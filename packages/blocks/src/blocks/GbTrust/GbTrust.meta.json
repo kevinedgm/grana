@@ -110,13 +110,13 @@
   "root": "GSection con data-gb=\"trust-NN\" y $attrs",
   "bundle": {
     "entry": "@grana/blocks/ecommerce",
-    "measured": 49537,
+    "measured": 49557,
     "cap": 51200,
     "variantCap": 7168,
     "peers": [
       "vue",
       "@grana/vue"
     ],
-    "note": "dist/ecommerce.js con sus trozos (scripts/measure-entry.mjs, gzip -c), 12 secciones y 36 variantes (medido de nuevo tras #943 y CP2, 2026-10-26): 49 537 B de 51 200 (#932; margen 1 663 B; no se vuelve a subir: con más, decide el usuario). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbTrust01 2746, GbTrust02 2712, GbTrust03 2653; tope por variante 7 168 B (#932). cartTotals sola 1 917 B de 2 048."
+    "note": "dist/ecommerce.js con sus trozos (scripts/measure-entry.mjs, gzip -c), 12 secciones y 36 variantes (medido de nuevo tras la recomposición con GSplit, §40 y #950, 2026-10-28; GSplit va en @grana/vue, externo): 49 557 B de 51 200 (#932; margen 1 643 B; no se vuelve a subir: con más, decide el usuario). Importación parcial de cada variante sola (scripts/measure-partial.mjs: esbuild minificado, vue y @grana/vue* externos): GbTrust01 2752, GbTrust02 2717, GbTrust03 2657; tope por variante 7 168 B (#932). cartTotals sola 1 922 B de 2 048."
   }
 }
