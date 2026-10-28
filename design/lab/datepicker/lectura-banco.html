@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lectura del día de GDatePicker</title>
-<!-- Banco de coco (AV-C1, #952): GDatePicker REAL (dist/) con GPrice en el slot day. Mientras bruno no mida en el .vue, este
-     banco añade a mano la clase is-day-content-hidden en la raíz y el nodo g-datepicker__day-readout bajo la cuadrícula.
-     Parámetros: ?text=200 (html al 200 %), ?hide=1 (clase + nodo puestos), ?price=12345 (base del precio), ?months=2, ?theme=dark|light,
+<!-- Banco de coco (AV-C1, #952): GDatePicker REAL (dist/) con GPrice en el slot day. La clase is-day-content-hidden
+     y la lectura las pone el componente al medir (bruno, c5f83ba); el banco no añade nada a mano.
+     Parámetros: ?text=200 (html al 200 %), ?price=N (base del precio: uno corto cabe, uno de nueve cifras no), ?price=12345 (base del precio), ?months=2, ?theme=dark|light,
      ?cuerpo=17 (cuerpo mayor). Lo verifica: node design/lab/datepicker/lectura-verificar.mjs -->
 <link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
 <link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
@@ -33,6 +33,7 @@ if (P0.get('theme')) document.documentElement.dataset.theme = P0.get('theme')
 <script>
 const Q = new URLSearchParams(location.search)
 const base = +(Q.get('price') || 1850)
+// ?hide=1 → precio de cinco cifras (no cabe a 100 %); sin él, ?price manda (por defecto cabe)
 const app = Vue.createApp({
   data: () => ({ r: null, months: Q.get('months') || '1', min: '2020-01-01' }),
   methods: {
@@ -43,27 +44,10 @@ const app = Vue.createApp({
 app.use(Grana).use(GranaPrice)
 app.mount('#app')
 if (Q.get('cuerpo')) document.documentElement.style.setProperty('--g-text-body-sm-size', Q.get('cuerpo') + 'px'), document.documentElement.style.setProperty('--g-text-body-sm-line', (+Q.get('cuerpo') * 1.4) + 'px')
-// Mientras el .vue no mida: clase y nodo a mano. La lectura enseña el precio del día con la parada de Tab o bajo el puntero
-function hand() {
-  const root = document.querySelector('.g-datepicker'); if (!root) return requestAnimationFrame(hand)
-  if (Q.get('hide') === '1') {
-    root.classList.add('is-day-content-hidden')
-    const ro = document.createElement('div'); ro.className = 'g-datepicker__day-readout'; ro.setAttribute('aria-hidden', 'true')
-    const grid = root.querySelectorAll('.g-datepicker__months')[0]
-    grid.after(ro)
-    const show = (btn) => {
-      if (!btn) return
-      const clone = btn.cloneNode(true); clone.querySelectorAll('.g-datepicker__today-dot').forEach((e) => e.remove())
-      const price = clone.querySelector('.g-price') || clone.lastElementChild
-      ro.replaceChildren(Object.assign(document.createElement('span'), { textContent: new Date(btn.dataset.date + 'T12:00').toLocaleDateString('es', { weekday: 'short', day: 'numeric' }) }), price ? price.cloneNode(true) : document.createTextNode(''))
-    }
-    root.addEventListener('pointerover', (e) => show(e.target.closest('[data-date]')))
-    root.addEventListener('focusin', (e) => show(e.target.closest('[data-date]')))
-    show(root.querySelector('[data-date][tabindex="0"]'))
-  }
-  window.__ready = true
-}
-requestAnimationFrame(hand)
+// La clase y la lectura las pone el componente real. ?hide=1 solo fuerza un precio grande (que no cabe) para el caso "oculto"
+window.__ready = false
+function ready() { document.querySelector('.g-datepicker__day[data-date]') ? (window.__ready = true) : requestAnimationFrame(ready) }
+requestAnimationFrame(ready)
 </script>
 </body>
 </html>

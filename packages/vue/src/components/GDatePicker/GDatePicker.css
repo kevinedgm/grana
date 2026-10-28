@@ -478,6 +478,9 @@
   position: relative;
   z-index: 1;
   display: grid;
+  /* Pista acotada al día (AV-C1, #952): sin plantilla la columna implícita crece con el contenido y la regla de medida
+     (scrollWidth > clientWidth) del contrato nunca se cumple */
+  grid-template-columns: minmax(0, 1fr);
   place-items: center;
   box-sizing: border-box;
   inline-size: var(--_cell);

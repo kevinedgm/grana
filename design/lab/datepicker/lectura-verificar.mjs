@@ -1,5 +1,5 @@
 // Verificación de coco de la lectura del día de GDatePicker (AV-C1, #952) sobre dist/ real con el banco lectura-banco.html
-// (clase y nodo puestos a mano). Tres motores, 320 y 1440, texto 100 y 200 %, claro y oscuro: celda Δ 0 entre estados,
+// (la clase y la lectura las pone el componente al medir). Tres motores, 320 y 1440, texto 100 y 200 %, claro y oscuro: celda Δ 0 entre estados,
 // contenido oculto en todas, lectura dentro de la caja, alto constante al cambiar de día, ≥ 12 px, contraste ≥ 4,5:1,
 // sin transición, forced-colors (Chromium) y 0 errores de consola.
 // Ejecutar desde la raíz con dist/ reconstruido: node design/lab/datepicker/lectura-verificar.mjs [--engines=chromium] [--verbose]
@@ -29,6 +29,7 @@ const ok = (c, m) => { total++; if (!c) { failed++; fails.push(m) } }
 
 const MEASURE = () => {
   const root = document.querySelector('.g-datepicker')
+  const cls = root.classList.contains('is-day-content-hidden')
   const cells = [...root.querySelectorAll('.g-datepicker__grid td')].filter((t) => t.querySelector('.g-datepicker__day'))
   const surf = root.querySelector('.g-datepicker__surface').getBoundingClientRect()
   const rd = root.querySelector('.g-datepicker__day-readout')
@@ -53,6 +54,7 @@ const MEASURE = () => {
     }
   }
   return {
+    cls,
     cells: cells.slice(0, 40).map((t) => { const b = t.getBoundingClientRect(); return [+b.width.toFixed(2), +b.height.toFixed(2)] }),
     visible, overlaps, hiddenAll: cells.every((td) => [...td.querySelectorAll('.g-datepicker__day > :not(.g-datepicker__today-dot)')].every((e) => getComputedStyle(e).visibility === 'hidden')),
     readout: r && { x: r.left, r: r.right, t: r.top, b: r.bottom, h: r.height, font: parseFloat(getComputedStyle(rd).fontSize), trans: getComputedStyle(rd).transitionDuration, anim: getComputedStyle(rd).animationName, w: rd.scrollWidth, cw: rd.clientWidth, text: rd.textContent, color: getComputedStyle(rd).color },
@@ -62,13 +64,13 @@ const MEASURE = () => {
 
 for (const engine of ENGINES) {
   const browser = await pw[engine].launch()
-  for (const width of [320, 1440]) for (const text of ['100', '200']) for (const theme of ['light', 'dark']) for (const months of (width < 600 ? ['1'] : ['1', '2'])) {
-    const tag = `${engine} ${width}px texto ${text} % ${theme} ${months} mes(es)`
+  for (const width of [320, 1440]) for (const text of ['100', '200']) for (const theme of ['light', 'dark']) for (const months of (width < 600 ? ['1'] : ['1', '2'])) for (const cuerpo of (text === '100' ? ['', '17'] : [''])) {
+    const tag = `${engine} ${width}px texto ${text} % ${theme} ${months} mes(es)${cuerpo ? ' cuerpo ' + cuerpo + ' px' : ''}`
     const ctx = await browser.newContext({ viewport: { width, height: 900 }, colorScheme: theme, deviceScaleFactor: 1 })
     const page = await ctx.newPage()
     const errors = []
     page.on('pageerror', (e) => errors.push(String(e))); page.on('console', (m) => m.type() === 'error' && errors.push(m.text()))
-    const url = (hide) => `${BASE}?${new URLSearchParams({ text, theme, months, price: '12345', ...(hide ? { hide: '1' } : {}) })}`
+    const url = (hide) => `${BASE}?${new URLSearchParams({ text, theme, months, ...(cuerpo ? { cuerpo } : {}), price: hide ? '123456789' : '1' })}`
     const run = async (hide) => { await page.goto(url(hide)); await page.waitForFunction(() => window.__ready); await page.evaluate(() => document.fonts.ready); await page.waitForTimeout(150); return page.evaluate(MEASURE) }
     const a = await run(false), b = await run(true)
     ok(a.cells.length === b.cells.length && a.cells.every((c, i) => Math.abs(c[0] - b.cells[i][0]) <= 0.5 && Math.abs(c[1] - b.cells[i][1]) <= 0.5), `${tag}: celda Δ 0 entre estados`)
@@ -78,7 +80,9 @@ for (const engine of ENGINES) {
     ok(b.readout && b.readout.font >= 12, `${tag}: lectura ≥ 12 px`)
     ok(b.ratio >= 4.5, `${tag}: contraste ${b.ratio && b.ratio.toFixed(2)}`)
     ok(b.readout && /^0s$/.test(b.readout.trans) && b.readout.anim === 'none', `${tag}: sin movimiento`)
-    ok(a.readout === null, `${tag}: sin la clase la lectura no se pinta`)
+    ok(b.cls, `${tag}: con precio de nueve cifras el componente pone la clase`)
+    if (!a.cls) ok(a.readout === null, `${tag}: donde el precio cabe no hay clase y la lectura no se pinta`)
+    else ok(a.readout !== null, `${tag}: el precio corto tampoco cabe aquí: lectura pintada (informativo)`)
     // alto constante al pasar por días con y sin dato
     const hs = []
     const days = page.locator('.g-datepicker__day[data-date]:not(.is-disabled)')
@@ -97,7 +101,7 @@ for (const engine of ENGINES) {
   }
   // sin la clase, con 200 % hay solape (confirma el defecto que corrige): informativo
   const ctx = await browser.newContext({ viewport: { width: 320, height: 900 } }); const page = await ctx.newPage()
-  await page.goto(`${BASE}?text=200&price=12345`); await page.waitForFunction(() => window.__ready); await page.waitForTimeout(150)
+  await page.goto(`${BASE}?text=200&price=123456789`); await page.waitForFunction(() => window.__ready); await page.waitForTimeout(150)
   const o = await page.evaluate(MEASURE); if (args.verbose) console.log(engine, 'defecto sin clase a 320/200 %: solapes', o.overlaps, 'de', o.visible)
   await ctx.close()
   await browser.close()

@@ -45,3 +45,7 @@
 ## Sin verificar (no bloquea `candidate`)
 
 Lector de pantalla real (cuadrícula, rango, título vivo, hoja móvil); `forced-colors` y `prefers-reduced-motion` reales (se aplicaron los bloques sin condición); RTL con datos en un idioma RTL real; hoja móvil con teclado virtual y deslizamiento en táctil real; Firefox y Safari (`popover`, `::backdrop`, `Intl.Locale.getWeekInfo`, `scale` y `rotate` individuales); tema oscuro (no existe).
+
+## Addendum · 2026-10-28 · Lectura del día (AV-C1, #952) · coco
+
+`.g-datepicker__day` lleva `grid-template-columns: minmax(0, 1fr)`: la pista queda acotada al día y la regla del contrato (`scrollWidth > clientWidth + 0,5` en los hijos) vale; las celdas que caben no cambian (Δ 0). Verificación propia `node design/lab/datepicker/lectura-verificar.mjs` (banco `lectura-banco.html` con el componente real): 654/654 en los tres motores, incluido cuerpo 17 px; `datepicker-lectura.spec.mjs` 48/48; Booking 6516/6516. **AV-C1 cerrado.**

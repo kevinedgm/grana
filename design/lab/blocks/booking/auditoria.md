@@ -144,3 +144,15 @@ Los 99 fallos son, todos, hallazgos abiertos de la tabla, iguales en los tres mo
 **Veredicto:** **Availability sigue `candidate`**: la recomposición no añade ningún defecto bloqueante (dos columnas medidas, apilado limpio, sin desbordes, Tab en orden, consola limpia). AV-C1 es anterior y es de `GDatePicker` con precios en el día (afecta por igual a Availability 01 y 02), así que se sigue en ese componente y no en este bloque; si lima prefiere que lo bloquee, es la única comprobación roja del verificador.
 
 **Cumplimientos / Correcciones / Pendientes.** Cumplimientos: contraste, tamaños, foco, reflujo, consola, estructura, estados; nada de las otras diez secciones cambió (verde en los tres motores). Correcciones: ninguna de CSS (solo el verificador). Pendientes: **lima**, AV-C1 (decisión de producto sobre el precio del día a 200 % de texto) y SP-N1; **mora-docs**, README de Availability con la receta del `GSplit`; **bruno**, nada. No verificado: lector de pantalla real, teléfono real, rendimiento con perfilador.
+
+## Addendum · 2026-10-28 · AV-C1 (#952) sobre el componente real · coco
+
+**Sobre:** `GDatePicker.vue` de bruno (c5f83ba: `is-day-content-hidden` por medida y `g-datepicker__day-readout`) sobre el CSS de coco (553713f), `dist/` reconstruido. Puerto 4216, un motor tras otro.
+
+**Resultado:** verificador de Booking **6516/6516** (antes 6507/6516: los 9 fallos de AV-C1 en verde, en los tres motores y temas); `lectura-verificar.mjs` **654/654** en Chromium, Firefox y WebKit (320 y 1440, texto 100 y 200 %, claro y oscuro, 1 y 2 meses, cuerpo 17 px incluido); `datepicker-lectura.spec.mjs` **48/48** con `--workers=1` (con carga en paralelo se pasó el tiempo de espera en Firefox y WebKit; en serie, verde).
+
+**Desviación valorada (medida de bruno):** la regla de lima (`scrollWidth > clientWidth + 0,5`) no valía porque la pista implícita de `.g-datepicker__day` crecía con el contenido. Se acotó en `GDatePicker.css` (`grid-template-columns: minmax(0, 1fr)`): medido a 320 con el texto al 200 %, el hijo pasa de 78 = 78 a `clientWidth` 32 y `scrollWidth` 78, así que **la regla escrita en el contrato vale tal cual** y la de bruno (`min(...)`) queda redundante pero inofensiva. En celdas que caben el contenido sigue centrado en la misma caja (Δ 0 de celda entre estados en todo el verificador).
+
+**Veredicto: AV-C1 cerrado.** Availability sigue `candidate`.
+
+**Cumplimientos / Correcciones / Pendientes.** Cumplimientos: celda Δ 0, contenido oculto en todas, lectura dentro de la caja, alto constante, ≥ 12 px, contraste ≥ 4,5:1, sin movimiento, forced-colors (Chromium), consola limpia, cuerpo 17 px. Correcciones: una línea de CSS (pista acotada) y banco/verificador reescritos para usar el componente real (precio corto = cabe; nueve cifras = no cabe). Pendientes: bruno puede simplificar su medida a la regla del contrato (opcional); no verificado: lector de pantalla real, teléfono real.
