@@ -3,7 +3,7 @@
 // Contrato: design/contracts/datepicker.md · Estructura: design/lab/datepicker/r01/ · Estilo: GDatePicker.css (coco)
 // Patrón: date picker dialog (WAI-ARIA APG). Cada mes es un grid; un solo tabstop (tabindex móvil) y un
 // nombre completo por día. El valor es una cadena ISO (YYYY-MM-DD) o { start, end }; solo se emiten valores completos.
-import { computed, mergeProps, nextTick, onBeforeUnmount, onMounted, ref, useAttrs, useId, useSlots, watch } from 'vue'
+import { computed, mergeProps, nextTick, onBeforeUnmount, onMounted, onUpdated, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GLibIcon.js'
 import { messageIcon, spaceUnit, useFormField } from '../GForm/formContext.js'
@@ -125,6 +125,7 @@ const fmtShort = computed(() => dtf({ day: 'numeric', month: 'short', year: 'num
 const fmtMonth = computed(() => dtf({ month: 'long' }))
 const fmtWdNarrow = computed(() => dtf({ weekday: 'narrow' }))
 const fmtWdLong = computed(() => dtf({ weekday: 'long' }))
+const fmtReadout = computed(() => dtf({ weekday: 'short', day: 'numeric' }))
 const nf = computed(() => new Intl.NumberFormat(locale.value, { useGrouping: false }))
 const full = (iso) => fmtFull.value.format(parseISO(iso))
 const short = (iso) => fmtShort.value.format(parseISO(iso))
@@ -231,10 +232,12 @@ const grid = computed(() => {
   }
   return out
 })
-const tabbable = computed(() => {
-  for (const m of grid.value) for (const w of m.weeks) for (const c of w) if (c.render && c.iso === focusDate.value) return focusDate.value
-  return grid.value[0].first
-})
+const cellAt = (iso) => {
+  for (const m of grid.value) for (const w of m.weeks) for (const c of w) if (c.render && c.iso === iso) return c
+}
+const tabbable = computed(() => (cellAt(focusDate.value) ? focusDate.value : grid.value[0].first))
+// Alcance del slot day, el mismo en la celda y en la lectura
+const dayScope = (c) => ({ date: c.iso, day: c.day, selected: c.st.selected, inRange: c.st.inBand, disabled: c.st.disabled, outside: c.st.outside })
 
 function dayState(cell, today) {
   const { a, b, preview } = eff.value
@@ -444,9 +447,12 @@ function onDayFocus(iso) {
 function onGridPointerover(event) {
   const b = event.target.closest?.('.g-datepicker__day')
   if (b && pending.value && hover.value !== b.dataset.date) hover.value = b.dataset.date
+  // Día activo de la lectura (#952): el del puntero; el toque no cuenta (en táctil, el activo es el elegido)
+  if (b && slots.day && event.pointerType !== 'touch' && pointed.value !== b.dataset.date) pointed.value = b.dataset.date
 }
 function onGridPointerleave() {
   hover.value = null
+  pointed.value = null
 }
 
 // Deslizamiento horizontal (táctil)
@@ -469,6 +475,41 @@ function onSwipeUp(event) {
 // ---------- Uno o dos meses por la medida real de la celda ----------
 const isOpen = ref(false)
 const lastCell = ref(0)
+
+// ---------- Lectura del día (AV-C1, #952; datepicker.md «Cuando el dato no cabe en la celda») ----------
+// Si el contenido del slot day no cabe en alguna celda, la raíz lleva is-day-content-hidden (todo o nada) y la lectura
+// bajo la cuadrícula enseña el dato del día activo. Un hijo de 1 px o menos es texto oculto accesible y no cuenta; el ancho de referencia es el menor del hijo y del día (la pista de la rejilla del día crece con su contenido). Se mide en un solo cuadro y solo con lecturas; el contenido oculto
+// sigue ocupando su sitio (visibility, coco), así que la decisión no tiene histéresis. Se vuelve a medir al cambiar de
+// tamaño (el ResizeObserver de la raíz), al abrir y tras un render que cambie el mes o el texto de los días: la clave es
+// lo medido, no el render (un padre con props en línea no vuelve a medir)
+const pointed = ref(null)
+const dayHidden = ref(false)
+let measureRaf = 0
+let measuredKey = null
+function measureKey() {
+  const m = surfaceEl.value?.querySelector('.g-datepicker__months')
+  return m ? `${isOpen.value}|${view.value}|${n.value}|${m.textContent}` : null
+}
+function measureDays() {
+  measureRaf = 0
+  measuredKey = measureKey()
+  const el = surfaceEl.value
+  let over = false
+  if (el && slots.day && (props.inline || isOpen.value)) {
+    for (const c of el.querySelectorAll('.g-datepicker__day > :not(.g-datepicker__today-dot)')) if (c.clientWidth > 1 && c.scrollWidth > Math.min(c.clientWidth, c.parentElement.clientWidth) + 0.5) { over = true; break }
+  }
+  if (over !== dayHidden.value) dayHidden.value = over
+}
+function scheduleMeasure() {
+  if (measureRaf || !slots.day) return
+  measureRaf = requestAnimationFrame(measureDays)
+}
+onUpdated(() => {
+  if (!slots.day) { if (dayHidden.value) dayHidden.value = false; return }
+  const k = measureKey()
+  if (k !== measuredKey) { measuredKey = k; scheduleMeasure() }
+})
+const activeCell = computed(() => cellAt(pointed.value || tabbable.value))
 function availableWidth() {
   const margin = 16
   const vw = typeof window !== 'undefined' ? window.innerWidth : 0
@@ -672,15 +713,19 @@ let ro = null
 onMounted(() => {
   // Aviso (B-L7, #739): la raíz es un div y no va dentro de un <p> (el analizador cerraría el párrafo en SSR)
   try { if (process.env.NODE_ENV !== 'production' && root.value && root.value.parentElement && root.value.parentElement.closest('p')) warnOnce('in-p', 'la raíz está dentro de un <p> (usa un div).') } catch {}
-  if (props.inline && typeof ResizeObserver !== 'undefined' && root.value) {
-    ro = new ResizeObserver(() => fit())
+  // Un solo observador: la raíz en línea (uno o dos meses) y, con el slot day, la superficie (lectura del día, #952)
+  if ((props.inline || slots.day) && typeof ResizeObserver !== 'undefined' && root.value) {
+    ro = new ResizeObserver(() => { if (props.inline) fit(); scheduleMeasure() })
     ro.observe(root.value)
+    if (slots.day && surfaceEl.value) ro.observe(surfaceEl.value)
   }
   if (props.inline) nextTick(fit)
+  if (props.inline) nextTick(scheduleMeasure)
   if (props.open && !props.inline) nextTick(() => show(fieldEls.value[0] || null))
 })
 onBeforeUnmount(() => {
   ro?.disconnect()
+  if (measureRaf) cancelAnimationFrame(measureRaf)
   if (isOpen.value) close(false)
 })
 
@@ -707,6 +752,8 @@ const classes = computed(() => [
     'g-datepicker--split': splitOn.value,
     // Slot day (#778): todas las celdas toman la forma de «día con contenido» de coco
     'g-datepicker--day-content': Boolean(slots.day),
+    // El dato del día no cabe en alguna celda (#952): la lectura del día lo enseña
+    'is-day-content-hidden': Boolean(slots.day) && dayHidden.value,
     'g-datepicker--has-output': hasOutput.value,
     'is-open': isOpen.value,
     'is-disabled': isDisabled.value,
@@ -937,7 +984,7 @@ defineExpose({
                         :aria-disabled="cell.st.disabled ? 'true' : undefined"
                         :disabled="isDisabled || undefined"
                         @focus="onDayFocus(cell.iso)"
-                      >{{ nf.format(cell.day) }}<GIcon v-if="cell.st.today" class="g-datepicker__today-dot" name="circle" filled /><slot name="day" :date="cell.iso" :day="cell.day" :selected="cell.st.selected" :in-range="cell.st.inBand" :disabled="cell.st.disabled" :outside="cell.st.outside" /></button>
+                      >{{ nf.format(cell.day) }}<GIcon v-if="cell.st.today" class="g-datepicker__today-dot" name="circle" filled /><slot name="day" v-bind="dayScope(cell)" /></button>
                     </td>
                   </template>
                 </tr>
@@ -945,6 +992,7 @@ defineExpose({
             </table>
           </section>
         </div>
+        <div v-if="$slots.day" class="g-datepicker__day-readout" aria-hidden="true"><template v-if="activeCell"><span>{{ fmtReadout.format(parseISO(activeCell.iso)) }}</span><slot name="day" v-bind="dayScope(activeCell)" /></template></div>
         <div v-if="showFoot" class="g-datepicker__foot">
           <div v-if="proximityItems.length" class="g-datepicker__chips" role="group" :aria-label="L.proximityGroup">
             <button

@@ -423,8 +423,15 @@
     "Panel estable al desplazar la página (utils/anchor.js, mismas reglas que GCombobox): el lado se decide al abrir y se conserva; solo cambia si el actual baja de space × 40 y el otro ofrece al menos space × 12 más. --_max se fija al abrir, al pasar de uno a dos meses, en resize y al cambiar de lado; durante el desplazamiento solo se escribe la posición, una vez por cuadro y solo si cambia. Si el ancla sale del visor o de su contenedor con desplazamiento, el selector se cierra sin devolver el foco (no en la hoja móvil).",
     "Noches y salida (#739): con disabledNights, minNights o maxNights en range, el fin va después del inicio y cada día se clasifica por canStart/canEnd: sin inicio pendiente, lo que no puede ser inicio es is-disabled salvo «solo salida» (is-checkout-only, sin aria-disabled; tocarlo no hace nada); con inicio pendiente, lo que no puede ser fin pero sí inicio es is-inactive y lo que no es ninguno, is-disabled. La vista previa solo pinta fines válidos. La proximidad recorta antes de la primera noche agotada y no pasa de maxNights. Avisos: las tres props en single; maxNights < minNights; modelValue con una noche agotada dentro (se muestra tal cual).",
     "Slot trigger (B-L7, #739): la raíz lleva g-datepicker--trigger (coco: display: contents); aviso si al montar la raíz tiene un <p> ancestro.",
-    "B-L6 (#739): «Mes anterior» y «Mes siguiente» llevan disabled con disabled (también inline): el selector deshabilitado no navega."
+    "B-L6 (#739): «Mes anterior» y «Mes siguiente» llevan disabled con disabled (también inline): el selector deshabilitado no navega.",
+    "Lectura del día (AV-C1, #952): con el slot day (con o sin inline) se mide en un solo cuadro (requestAnimationFrame) y solo con lecturas si algún hijo de .g-datepicker__day que no es __today-dot cumple scrollWidth > min(clientWidth, ancho del día) + 0,5 (la pista implícita de la rejilla del día crece con su contenido, así que clientWidth del hijo no basta; un hijo de 1 px o menos es texto oculto accesible y no cuenta); si alguno no cabe, la raíz lleva is-day-content-hidden (todo o nada, sin histéresis: coco oculta con visibility). Se mide con el ResizeObserver de la raíz (que ahora también observa la superficie con el slot day), al abrir y tras un render cuya clave medida (abierto, mes, número de meses y texto de los días) cambie: un padre con props en línea no vuelve a medir. g-datepicker__day-readout (aria-hidden, siempre en el DOM con el slot day, uno solo con dos meses, tras __months y antes de __foot) lleva la fecha corta (Intl weekday short + day numeric) y el mismo slot day del día activo: el del puntero (no el toque) y, si no hay, el de la parada de Tab. Sin prop ni aviso nuevos."
   ],
+  "bundle": {
+    "gzip": 222191,
+    "growth": 482,
+    "limit": 512,
+    "note": "Lectura del día (AV-C1, #952): gzip -9 -c packages/vue/dist/grana.js = 222 191 B, antes 221 709 B (+482 B, compuerta propia ≤ 512 B fuera de #506), medido el 2026-10-28 tras npm run build."
+  },
   "pending": [
     "Lector de pantalla real (cuadrícula, rango, título vivo, hoja móvil)",
     "RTL completo, Firefox y Safari (popover, ::backdrop, Intl.Locale.getWeekInfo, scale/rotate individuales)",

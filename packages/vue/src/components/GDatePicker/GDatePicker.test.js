@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { nextTick, h } from 'vue'
+import { nextTick, h, defineComponent, ref } from 'vue'
 import GDatePicker from './GDatePicker.vue'
 
 // «Hoy» fijo. No se congela Date: Vue descarta escuchas de eventos si Date.now() no avanza (comparación de marcas de tiempo).
@@ -1060,5 +1060,132 @@ describe('GDatePicker · atributos en inline (#895)', () => {
     expect(w.attributes('data-x')).toBe('1')
     await w.trigger('click')
     expect(onClick).toHaveBeenCalled()
+  })
+})
+
+describe('GDatePicker · lectura del día (AV-C1, #952)', () => {
+  // jsdom no mide: el contenido mide data-w (la pista de la rejilla crece con él, como en el navegador); el día mide cap. Cuadros y observador simulados.
+  let cap
+  let frames
+  let roCb
+  beforeEach(() => {
+    cap = 30
+    frames = []
+    roCb = []
+    vi.stubGlobal('requestAnimationFrame', (cb) => { frames.push(cb); return frames.length })
+    vi.stubGlobal('cancelAnimationFrame', () => {})
+    vi.stubGlobal('ResizeObserver', class { constructor (cb) { roCb.push(cb) } observe () {} disconnect () {} })
+    vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockImplementation(function () { return this.dataset.w ? Number(this.dataset.w) : 0 })
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function () { return this.dataset.w ? Number(this.dataset.w) : this.classList.contains('g-datepicker__day') ? cap : 0 })
+  })
+  afterEach(() => { vi.unstubAllGlobals() })
+  const flush = async () => { await nextTick(); const f = frames.splice(0); f.forEach((cb) => cb()); await nextTick() }
+  const resize = async () => { roCb.forEach((cb) => cb([])); await flush() }
+  // Precio: 4 cifras (w 29) o 5 cifras (w 36) en el día 20
+  const price = (w5 = false) => ({ day: ({ date, day: d }) => h('span', { class: 'p', 'data-w': date === '2026-10-20' && w5 ? 36 : 29 }, date === '2026-10-20' && w5 ? `$${d}000` : `$${d}00`) })
+  const readout = (w) => w.find('.g-datepicker__day-readout')
+
+  it('sin el slot day no hay lectura ni clase', async () => {
+    const w = inline({ modelValue: '2026-10-20' })
+    await flush()
+    expect(readout(w).exists()).toBe(false)
+    expect(w.classes()).not.toContain('is-day-content-hidden')
+  })
+
+  it('con el slot day la lectura está en el DOM, aria-hidden, tras los meses y antes del pie, con fecha corta y el dato del día activo', async () => {
+    const w = inline({ mode: 'range', modelValue: RANGE }, { slots: price() })
+    await flush()
+    const r = readout(w)
+    expect(r.exists()).toBe(true)
+    expect(r.attributes('aria-hidden')).toBe('true')
+    expect(r.element.previousElementSibling.classList.contains('g-datepicker__months')).toBe(true)
+    expect(r.element.nextElementSibling.classList.contains('g-datepicker__foot')).toBe(true)
+    const kids = [...r.element.children]
+    expect(kids[0].tagName).toBe('SPAN')
+    expect(kids[0].textContent).toBe('jue 8') // tabbable = el elegido (inicio)
+    expect(kids[1].classList.contains('p')).toBe(true)
+    expect(kids[1].textContent).toBe('$800')
+  })
+
+  it('todo cabe: sin clase; no cabe en alguna celda (cinco cifras): clase en la raíz', async () => {
+    const a = inline({ modelValue: '2026-10-20' }, { slots: price(false) })
+    await flush()
+    expect(a.classes()).not.toContain('is-day-content-hidden')
+    const b = inline({ modelValue: '2026-10-20' }, { slots: price(true) })
+    await flush()
+    expect(b.classes()).toContain('is-day-content-hidden')
+  })
+
+  it('texto ampliado (la celda encoge): clase; sin histéresis tras 100 → 200 → 100 → 200 %', async () => {
+    const w = inline({ modelValue: '2026-10-20' }, { slots: price() })
+    await flush()
+    const seq = [[30, false], [20, true], [30, false], [20, true], [40, false]]
+    for (const [c, hidden] of seq) {
+      cap = c
+      await resize()
+      expect(w.classes().includes('is-day-content-hidden')).toBe(hidden)
+    }
+  })
+
+  it('el día activo es el del puntero y, sin él, el de la parada de Tab; cambia con las flechas', async () => {
+    const w = inline({ modelValue: '2026-10-20' }, { slots: price() })
+    await flush()
+    expect(readout(w).text()).toBe('mar 20$2000')
+    await day(w, '2026-10-05').trigger('pointerover', { pointerType: 'mouse' })
+    expect(readout(w).text()).toBe('lun 5$500')
+    await w.find('table').trigger('pointerleave')
+    expect(readout(w).text()).toBe('mar 20$2000')
+    await key(w, '2026-10-20', 'ArrowRight')
+    expect(readout(w).text()).toBe('mié 21$2100')
+    await key(w, '2026-10-21', 'ArrowDown')
+    expect(readout(w).text()).toBe('mié 28$2800')
+  })
+
+  it('en táctil el puntero no cuenta: el activo es el elegido', async () => {
+    const w = inline({ modelValue: '2026-10-20' }, { slots: price() })
+    await flush()
+    await day(w, '2026-10-05').trigger('pointerover', { pointerType: 'touch' })
+    expect(readout(w).text()).toBe('mar 20$2000')
+    await click(w, '2026-10-07')
+    expect(readout(w).text()).toBe('mié 7$700')
+  })
+
+  it('al cambiar de mes se vuelve a medir (un cuadro)', async () => {
+    const w = inline({ modelValue: '2026-10-20' }, { slots: price() })
+    await flush()
+    await w.find('.g-datepicker__nav--next').trigger('click')
+    await nextTick()
+    expect(frames.length).toBe(1)
+    await flush()
+  })
+
+  it('rendimiento: un padre con props en línea que re-renderiza no vuelve a medir', async () => {
+    const tick = ref(0)
+    const Parent = defineComponent({
+      setup: () => () => h('div', [
+        h('i', tick.value),
+        h(GDatePicker, { inline: true, locale: 'es', firstDay: 1, months: 1, labels: { ...LABELS }, proximity: [], modelValue: '2026-10-20' }, price())
+      ])
+    })
+    const w = mount(Parent, { attachTo: document.body })
+    await flush()
+    const reads = vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get')
+    reads.mockClear()
+    for (let i = 0; i < 10; i++) { tick.value++; await nextTick() }
+    expect(frames.length).toBe(0)
+    await flush()
+    expect(reads).not.toHaveBeenCalled()
+    w.unmount()
+  })
+
+  it('con campo (sin inline): se mide al abrir y la lectura vive en el popover', async () => {
+    const w = mk({ label: 'Fecha', modelValue: '2026-10-20' }, { slots: price(true) })
+    await flush()
+    expect(w.classes()).not.toContain('is-day-content-hidden')
+    await w.find('button.g-datepicker__field').trigger('click')
+    await nextTick(); await nextTick()
+    await flush()
+    expect(w.classes()).toContain('is-day-content-hidden')
+    expect(w.find('.g-datepicker__pop .g-datepicker__day-readout').exists()).toBe(true)
   })
 })
