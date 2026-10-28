@@ -3,7 +3,7 @@
   "name": "GbCart",
   "kind": "block-section",
   "family": "ecommerce",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.0.0",
   "complex": true,
   "description": "Lo que vas a comprar, línea a línea con lo que elegiste, lo que cuesta, lo que falta para pedirlo y el total que se cobrará. Cambiar una cantidad o quitar una línea no te hace perder el sitio: quitar deja su huella con «Deshacer» y el foco ahí mismo. El bloque no suma: pinta los totales que da la aplicación (con cartTotals o su servidor).",

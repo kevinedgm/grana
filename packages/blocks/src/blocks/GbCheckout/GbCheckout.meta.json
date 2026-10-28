@@ -3,7 +3,7 @@
   "name": "GbCheckout",
   "kind": "block-section",
   "family": "ecommerce",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.0.0",
   "complex": true,
   "description": "Pedir lo que hay en el carrito dando solo lo necesario, paso a paso y sin perder nada al volver: lo hecho se resume en una línea con «Cambiar», el precio de cada forma de envío se oye al elegirla y el total va siempre junto al botón. El bloque valida como el navegador y emite cada paso (cancelable); el pago es de la pasarela de la tienda, en su propio hueco: Grana nunca toca un número de tarjeta.",

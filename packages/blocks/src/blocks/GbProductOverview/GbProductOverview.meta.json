@@ -4,7 +4,7 @@
   "kind": "block-section",
   "family": "ecommerce",
   "complex": true,
-  "status": "draft",
+  "status": "candidate",
   "since": "0.0.0",
   "description": "La ficha de un producto: las fotos, lo que cuesta la combinación que eliges, si queda y el botón que la añade; luego la descripción, la ficha técnica y los apartados. La foto sigue a la elección, un valor sin existencias se queda a la vista con «agotada» en su nombre, nada viene preelegido y «Añadir» sin una opción obligatoria no emite: lleva el foco a la pregunta que falta y la dice.",
   "contract": "design/contracts/blocks/product-overview.md",

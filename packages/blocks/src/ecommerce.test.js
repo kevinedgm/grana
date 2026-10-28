@@ -70,14 +70,15 @@ describe('@grana/blocks/ecommerce · paquete', () => {
   it('no reexporta GbPolicies (las políticas de la tienda se importan de booking, §35)', () => {
     expect(Object.keys(entry).some((k) => k.startsWith('GbPolicies'))).toBe(false)
   })
-  it('meta.json de la familia: bundle.entry y los topes de #932 (51200; variante 7168, Checkout 9728); en draft lo que espera a EC-L7 (#933)', () => {
-    for (const m of metas.filter((x) => x.family === 'ecommerce')) {
-      expect(['draft', 'candidate'], m.name).toContain(m.status)
+  it('meta.json de la familia: bundle.entry y los topes de #932 (51200; variante 7168, Checkout 9728); los doce en candidate tras la auditoría de coco (GSplit, #950)', () => {
+    const ecommerce = metas.filter((x) => x.family === 'ecommerce')
+    expect(ecommerce).toHaveLength(12)
+    for (const m of ecommerce) {
+      expect(m.status, m.name).toBe('candidate')
       expect(m.bundle.entry).toBe('@grana/blocks/ecommerce')
       expect(m.bundle.cap, m.name).toBe(51200)
       expect(m.bundle.variantCap, m.name).toBe(m.name === 'GbCheckout' ? 9728 : 7168)
       expect(Number.isInteger(m.bundle.measured), m.name).toBe(true)
-      if (['GbProductOverview', 'GbCart', 'GbCheckout'].includes(m.name)) expect(m.status, m.name).toBe('draft')
     }
   })
 })
