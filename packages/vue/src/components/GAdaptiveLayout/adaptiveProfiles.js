@@ -4,7 +4,7 @@ export const adaptiveGroups = new WeakMap()
 const CONTROL = 'input:not([type=hidden]),textarea,select,[role=combobox]'
 const NATURAL = '.g-avatar,img,svg'
 // Full-line blocks (#361): a row, a field group or a form layout is a block even with a single control.
-const FULL_BLOCK = 'table,.g-table,.g-form-reveal,fieldset,section,.g-form-section,.g-form-row,.g-field-group,.g-form-layout'
+const FULL_BLOCK = 'table,.g-table,.g-form-reveal,fieldset,section,.g-form-section,.g-form-row,.g-field-group,.g-form-layout,.g-split'
 /** Child hints (#364): the five family classes; `g-adapt-auto` does not exist (absence already says it). */
 export const HINT_FAMILIES = ['short', 'standard', 'wide', 'full', 'natural']
 export function controlOf(root) {

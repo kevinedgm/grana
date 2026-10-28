@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GSplit · banco del componente real (bruno)</title>
+<!-- Banco de GSplit con el componente REAL de dist/ (paquete principal; dueño: bruno). Cada fixture vive en una caja de ancho
+     controlado (el spec cambia su inline-size) porque GSplit decide por su caja, no por el visor.
+     Lo verifica design/lab/theme-playground/tests/split.spec.mjs. Parámetros: ?dir=rtl · ?dark=1 -->
+<link rel="stylesheet" href="../dist/fonts.css">
+<link rel="stylesheet" href="../dist/grana.css">
+<style>
+  /* Andamio del banco (no es de Grana) */
+  body{margin:0;padding:8px;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  .w{margin-block-end:16px;inline-size:1400px;max-inline-size:100%}
+  .blk{min-block-size:40px;background:var(--g-color-border)}
+  .tall{block-size:200px}
+  .short{block-size:60px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="w" id="w-r11"><g-split id="r-1-1" ratio="1:1"><template #start><div class="blk">a</div></template><template #end><div class="blk">b</div></template></g-split></div>
+  <div class="w" id="w-r32"><g-split id="r-3-2" ratio="3:2"><template #start><div class="blk">a</div></template><template #end><div class="blk">b</div></template></g-split></div>
+  <div class="w" id="w-r21"><g-split id="r-2-1" ratio="2:1"><template #start><div class="blk">a</div></template><template #end><div class="blk">b</div></template></g-split></div>
+  <div class="w" id="w-r23"><g-split id="r-2-3" ratio="2:3"><template #start><div class="blk">a</div></template><template #end><div class="blk">b</div></template></g-split></div>
+  <div class="w" id="w-r12"><g-split id="r-1-2" ratio="1:2"><template #start><div class="blk">a</div></template><template #end><div class="blk">b</div></template></g-split></div>
+
+  <div class="w" id="w-k2"><g-split id="k2" ratio="2:1" collapse="md" gap="md"><template #start><div class="blk">a</div></template><template #end><div class="blk">b</div></template></g-split></div>
+
+  <div class="w" id="w-k4"><g-split id="k4-out" ratio="2:1" gap="lg"><template #start>
+    <g-split id="k4-in" ratio="1:1" collapse="sm" gap="md"><template #start><div class="blk">i1</div></template><template #end><div class="blk">i2</div></template></g-split>
+  </template><template #end><div class="blk">o2</div></template></g-split></div>
+
+  <div class="w" id="w-k6"><g-split id="k6"><template #start><div class="blk">solo</div></template><template #end><div v-if="false">nada</div></template></g-split></div>
+  <div class="w" id="w-k6e"><g-split id="k6e"><template #start><div v-if="false">nada</div></template></g-split></div>
+
+  <div class="w" id="w-k7"><g-split id="k7-none" gap="none"><template #start><div class="blk">a</div></template><template #end><div class="blk">b</div></template></g-split></div>
+  <div class="w" id="w-k7s"><g-split id="k7-sm" gap="sm"><template #start><div class="blk">a</div></template><template #end><div class="blk">b</div></template></g-split></div>
+  <div class="w" id="w-k7m"><g-split id="k7-md" gap="md"><template #start><div class="blk">a</div></template><template #end><div class="blk">b</div></template></g-split></div>
+  <div class="w" id="w-k7l"><g-split id="k7-lg" gap="lg"><template #start><div class="blk">a</div></template><template #end><div class="blk">b</div></template></g-split></div>
+  <div class="w" id="w-k7c"><g-split id="k7-compact" gap="md" density="compact"><template #start><div class="blk">a</div></template><template #end><div class="blk">b</div></template></g-split></div>
+
+  <div class="w" id="w-k8s"><g-split id="k8-start" align="start"><template #start><div class="blk tall">a</div></template><template #end><div class="blk short">b</div></template></g-split></div>
+  <div class="w" id="w-k8t"><g-split id="k8-stretch" align="stretch"><template #start><div class="blk tall">a</div></template><template #end><div class="blk short">b</div></template></g-split></div>
+
+  <div class="w" id="w-k9"><g-split id="k9" collapse="sm"><template #start><div id="k9-long">SupercalifragilisticoespialidosoextraordinariamentelargapalabraqueNoCabeEnLaRegionEstrechaDeLaCaja</div></template><template #end><div class="blk">b</div></template></g-split></div>
+
+  <div class="w" id="w-k10"><g-split id="k10"><template #start><button id="k10-1">Uno</button></template><template #end><button id="k10-2">Dos</button> <button id="k10-3">Tres</button></template></g-split></div>
+
+  <div class="w" id="w-adapt"><g-adaptive-layout id="adapt"><g-split id="adapt-split"><template #start><div class="blk">a</div></template><template #end><div class="blk">b</div></template></g-split><div id="adapt-next" class="blk">siguiente</div></g-adaptive-layout></div>
+
+  <div class="w" id="w-prose"><g-container id="prose" prose width="full"><g-split id="prose-split" gap="lg"><template #start><p id="prose-p">Un párrafo largo dentro de una región que debería medirse a sesenta y seis caracteres como la columna de prosa y nunca más ancho que su región, aunque la caja sea muy amplia y haya sitio de sobra para estirarlo hasta el final de la línea disponible.</p></template><template #end><div class="blk">b</div></template></g-split></g-container></div>
+
+  <div class="w" id="w-sec"><g-split id="sec" as="section" aria-labelledby="sec-h"><template #start><h2 id="sec-h">Resumen</h2></template><template #end><div class="blk">b</div></template></g-split></div>
+</div>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="../dist/grana.umd.js"></script>
+<script>
+  const P = new URLSearchParams(location.search)
+  if (P.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  if (P.get('dark') === '1') document.documentElement.dataset.theme = 'dark'
+  const app = Vue.createApp({})
+  app.use(Grana)
+  window.spApp = app.mount('#app')
+</script>
+</body>
+</html>

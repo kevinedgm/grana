@@ -2061,6 +2061,24 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
             <g-text as="div" id="txt-div"><p>Primer párrafo.</p><p>Segundo párrafo.</p><ul><li>Uno</li><li>Dos</li></ul></g-text>
           </div>
         </section>
+        <section class="pg-section" id="sec-split" data-pg-section>
+          <h2>GSplit</h2>
+          <p class="pg-lead">Dos regiones lado a lado con una proporción cuando caben y una debajo de otra cuando no, en el orden del DOM y solo con CSS. <code>collapse</code> no es un punto de corte: es el ancho mínimo del lado estrecho (<code>sm</code> 256, <code>md</code> 320, <code>lg</code> 384 px con el tema por defecto) y crece con el texto. Decide por su caja, no por el visor: estréchala y se apila. Banco con el componente real: <a href="split.html">split.html</a>.</p>
+          <div class="pg-panel" id="spl-demo">
+            <h3>3:2 · <code>md</code> · <code>gap="lg"</code> (se apila por debajo de 848 px de caja)</h3>
+            <g-split id="spl-a" ratio="3:2" gap="lg">
+              <template #start><g-surface padding="md" id="spl-a1"><p>Región <code>start</code>: lo que se lee primero. Va al inicio en línea al lado y arriba al apilar.</p></g-surface></template>
+              <template #end><g-surface padding="md" id="spl-a2"><p>Región <code>end</code>: el resumen no se aplasta nunca por debajo de <code>collapse</code>.</p></g-surface></template>
+            </g-split>
+            <h3>1:1 · <code>align="stretch"</code> · <code>density="compact"</code></h3>
+            <g-split id="spl-b" ratio="1:1" align="stretch" density="compact">
+              <template #start><g-surface padding="md"><p>Alturas iguales.</p></g-surface></template>
+              <template #end><g-surface padding="md"><p>Dos tarjetas.</p><p>Con más texto en una de ellas.</p></g-surface></template>
+            </g-split>
+            <h3>Una sola región (la otra vacía) ocupa todo el ancho</h3>
+            <g-split id="spl-c"><template #start><g-surface padding="md"><p>Sola.</p></g-surface></template><template #end></template></g-split>
+          </div>
+        </section>
         <section class="pg-section" id="sec-marketing" data-pg-section>
           <h2>Marketing: GHero, GGallery y GBookingBar</h2>
           <p class="pg-lead">Las primitivas de un sitio (hotel, restaurante, tour) van en entradas propias (<code>@grana/vue/hero</code>, <code>@grana/vue/gallery</code> y <code>@grana/vue/booking</code>; aquí <code>dist/hero.umd.js</code>, <code>dist/gallery.umd.js</code> y <code>dist/booking.umd.js</code>, globales <code>GranaHero</code>, <code>GranaGallery</code> y <code>GranaBooking</code>). Cada una tiene su banco con el componente real: <a href="hero.html">hero.html</a> (A · La ventana, <a href="hero.html?c=views">B · Vistas a elegir</a>, <a href="hero.html?c=threshold">C · El umbral</a> con la consulta, <a href="hero.html?video=1">con vídeo</a>), <a href="gallery.html">gallery.html</a> (A · Recorrido por espacios, <a href="gallery.html?c=strip">B · La tira</a>, <a href="gallery.html?solo=1">visor suelto</a>) y <a href="booking.html">booking.html</a> (A · La frase, <a href="booking.html?a=bar">la barra</a>, <a href="booking.html?dock=1">B · El muelle</a>, <a href="booking.html?kind=table&amp;quick=7">mesa con días rápidos</a>, <a href="booking.html?kind=tour">recorrido</a>, <a href="booking.html?party=1">GPartyField suelto</a>).</p>

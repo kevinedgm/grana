@@ -73,6 +73,8 @@
 @import url("../components/GContainer/GContainer.css");
 /* GText (text.md, #851): texto suelto; va después de GContainer (prose lo trata como primitiva transparente) */
 @import url("../components/GText/GText.css");
+/* GSplit (split.md, #946): dos regiones con proporción; sus reglas seleccionan solo .g-split y sus regiones, y GContainer.css lo trata como primitiva transparente de prose */
+@import url("../components/GSplit/GSplit.css");
 /* Isla de estado (status.md, entrada @grana/vue/status, #328): reasigna alias de GBtn y su hoja es un GDialog: va después
    de GBtn.css y GDialog.css */
 @import url("../components/GStatusIsland/GStatusIsland.css");

@@ -147,6 +147,9 @@ must_not_have app-shell.js "new WeakMap" "El registro de bordes (utils/edgeReser
 must_have grana.css "g-container__body" "$CSS_MSG"
 must_have grana.css "g-container--width-reading" "$CSS_MSG"
 
+# GSplit (principal, #949): presencia del estilo. El crecimiento de grana.js (<= 640 B gzip) se anota en GSplit.meta.json (bundle.measured), sin tope absoluto, como GText
+must_have grana.css "g-split--ratio-3-2" "$CSS_MSG"
+
 # GText (principal, #851): presencia del estilo. El peso se anota en GText.meta.json (bundle.measured) como en los demás componentes del principal (#506)
 must_have grana.css "g-text--size-body-sm" "$CSS_MSG"
 

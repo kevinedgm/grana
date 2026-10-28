@@ -159,6 +159,7 @@ describe('profile semantics', () => {
     expect(classify(make('<fieldset class="g-field-group"><input></fieldset>'))).toBe('block')
     expect(classify(make('<div class="g-form-layout"><input></div>'))).toBe('block')
     expect(classify(make('<section><input></section>'))).toBe('block')
+    expect(classify(make('<div class="g-split"><div class="g-split__region"><span>a</span></div></div>'))).toBe('block')
     expect(classify(make('<label>Uno<input><input></label>'))).toBe('block')
     expect(classify(make('<label>Uno<input></label>'))).toBe('field')
     expect(classify(make('<input>'))).toBe('field')
