@@ -28,6 +28,10 @@ El umbral lo dice el lado estrecho en palabras del diseño (`collapse`) y crece 
 
 **No verificado:** lector de pantalla real (no hay nada que anunciar), zoom de página real del navegador (se midió el texto al 200 % y los anchos), `forced-colors` real (no pinta nada), Safari/táctil reales, SSR real. El banco `estilo-banco.html` no se ha abierto a mano (los números salen de los scripts).
 
+## Auditoría (paso 5, 2026-10-28)
+
+`design/lab/split/auditoria.md`: `auditoria-verificar.mjs` sobre el componente real, **2241/2241** en los tres motores (tres temas, claro y oscuro, `forced-colors`, `#sec-split`). Sin cambios de `GSplit.css`. La hoja no pinta nada y no anima (rúbrica de movimiento: no aplica, confirmado). Hallazgos: SP-N1 (el cuerpo del tema sube el umbral), SP-N2 (el tramo «bloques» de `estilo-verificar.mjs` quedó obsoleto) y AV-C1 (precio del día del calendario a 200 % de texto, de `GDatePicker`, abierto, decisión de lima).
+
 ## S-L11(a) · calendario de Availability a 320 con texto al 200 %
 
 Era CSS mío (`GDatePicker.css`). Causa: `.g-datepicker__month { min-inline-size: calc(var(--_cell) * 7) }` = 280 px, más ancho que el interior de la superficie a 320 px (288 − relleno = 238); el mes se salía de la fila centrada por los dos lados y el precio del último día (con el texto al 200 % mide 58 px en un botón de 38) acababa 15 px fuera de la caja (319 vs 304). Corrección: `min-inline-size: min(calc(var(--_cell) * 7), 100%)`: el mes puede encoger hasta la fila (celdas de ≈ 34 px, ≥ 24 px de 2.5.8), y con la fila ancha no cambia nada.

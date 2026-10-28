@@ -4,6 +4,7 @@
 // claro y oscuro, en Chromium, Firefox y WebKit. Común (servidor, colores y contraste) en ../../hero/auditoria-comun.mjs.
 //   GRANA_PW_PORT=4219 node design/lab/blocks/booking/auditoria-verificar.mjs [--engines=chromium] [--verbose] [--solo=generic,states,…]
 // Requiere `npm run build` en packages/vue y packages/blocks. Cada fallo es un hallazgo de auditoria.md (BK-…).
+import { splitCase } from '../split-comun.mjs'
 import { serve, stop, pw, ENGINES, ok, note, report, HELPERS, settle, args } from '../../hero/auditoria-comun.mjs'
 
 const ORIGIN = (await serve()).replace(/\/packages\/vue\/playground\/$/, '')
@@ -391,11 +392,22 @@ async function shapes (b, eng, tema) {
     if (vw < 768) note(`${E} · ${t} · booking-summary-03 a ${vw}: ${r.rows} bloques apilados (lima #906 esperaba dos; el resumen y el total no comparten línea)`)
     await close()
   }
-  // Availability 03: una columna (AV-L1 cerrado, #899): calendario y resumen sin solaparse
+  // Availability 03 (AV-L1, #899 enmendado por #950): calendario · tarjeta con GSplit 2:1 lg, dos columnas a 1440 y apilado limpio
+  await splitCase((file, qs, o) => open(b, file, qs, o), ok, note, eng, E, t, { file: 'availability.html', qs: 'v=03', gb: 'availability-03', ratio: [2, 1], side1440: null, id: 'AV-L1', tabs: 80 })
   {
     const { p, close } = await open(b, 'availability.html', q('v=03', t))
-    const r = await p.evaluate(() => { const x = document.querySelector('[data-gb]'); const a = x.querySelector('.g-datepicker').getBoundingClientRect(); const s = [...x.querySelectorAll('button.g-btn')].find((e) => /Elegir/.test(e.textContent)); const c = s.getBoundingClientRect(); return c.top >= a.bottom - 1 && c.right <= x.getBoundingClientRect().right + 1 })
-    ok(r, `${E} · availability-03: una columna, resumen bajo el calendario sin desbordar (AV-L1 cerrado)`)
+    const r = await p.evaluate(() => { const x = document.querySelector('[data-gb="availability-03"]'); const a = x.querySelector('.g-datepicker').getBoundingClientRect(); const s = [...x.querySelectorAll('button.g-btn')].find((e) => /Elegir/.test(e.textContent)); const c = s.getBoundingClientRect(); return { right: c.right <= x.getBoundingClientRect().right + 1, rightOfCal: c.left >= a.right - 1 || c.top >= a.bottom - 1, calIn: a.right <= x.getBoundingClientRect().right + 1 } })
+    ok(r.right && r.rightOfCal && r.calIn, `${E} · availability-03 a 1440: la tarjeta junto al calendario sin solapes ni desbordes`, JSON.stringify(r))
+    await close()
+  }
+  // S-L11(a): el mes del calendario a 320 con el texto al 200 % cabe en la caja (corregido en GDatePicker.css, 8db1877)
+  {
+    const { p, close } = await open(b, 'availability.html', q('v=03', t, 'zoom=2'), { vw: 320, vh: 640 })
+    const r = await p.evaluate(() => { const x = document.querySelector('[data-gb="availability-03"]'); const X = x.getBoundingClientRect(); const mo = [...x.querySelectorAll('.g-datepicker__month, .g-datepicker__grid')].map((e) => e.getBoundingClientRect()); const m = Math.max(0, ...mo.map((r) => Math.max(r.right - X.right, X.left - r.left))); return { month: Math.round(m), sw: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1 } })
+    ok(r.month <= 1 && !r.sw, `${E} · availability-03 a 320 con el texto al 200 %: el mes y su rejilla caben en la caja (S-L11a)`, JSON.stringify(r))
+    // AV-C1 (hallazgo nuevo, de coco): con el texto al 200 % el precio del día (24 px) mide ~58 px en una columna de 32–46 px y se solapa con el vecino
+    const o = await p.evaluate(() => { const days = [...document.querySelectorAll('[data-gb="availability-03"] .g-datepicker__day')].filter((d) => d.querySelector('.g-price')); const rs = days.map((d) => d.querySelector('.g-price').getBoundingClientRect()); let ov = 0; for (let i = 0; i < rs.length; i++) for (let j = i + 1; j < rs.length; j++) { const a = rs[i], c = rs[j]; if (a.left < c.right - 1 && c.left < a.right - 1 && a.top < c.bottom - 1 && c.top < a.bottom - 1) ov++ } return { n: days.length, ov } })
+    ok(o.n === 0 || o.ov === 0, `${E} · availability-03 a 320 con el texto al 200 %: los precios de días vecinos no se solapan (AV-C1)`, JSON.stringify(o))
     await close()
   }
   // Offer list 01 (BK-L7, límite aceptado #904): se anota la proporción, no falla

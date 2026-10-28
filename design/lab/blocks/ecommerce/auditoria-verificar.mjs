@@ -6,6 +6,7 @@
 //   GRANA_PW_PORT=4216 node design/lab/blocks/ecommerce/auditoria-verificar.mjs [--engines=chromium] [--verbose]
 //     [--solo=structure,choice,motion,generic,photo,states,shapes,focus,extras]
 // Requiere `npm run build` en packages/vue y packages/blocks. Cada fallo es un hallazgo de auditoria.md (EC-…).
+import { splitCase } from '../split-comun.mjs'
 import { serve, stop, pw, ENGINES, ok, note, report, HELPERS, settle, args } from '../../hero/auditoria-comun.mjs'
 
 const ORIGIN = (await serve()).replace(/\/packages\/vue\/playground\/$/, '')
@@ -439,9 +440,14 @@ async function shapes (b, eng, tema) {
     ok(r && r.side, `${E} · ${gb} a 1440: ${label} (${id})`, JSON.stringify(r))
     await close()
   }
-  await sideBySide('product-overview.html', 'v=01', 'product-overview-01', '.g-gallery', 'fieldset', 'el panel al lado de las fotos', 'PO-L1')
-  await sideBySide('cart.html', 'v=01', 'cart-01', 'ul.g-stack', 'section.g-card', 'el resumen al lado de las líneas', 'CR-L1')
-  await sideBySide('checkout.html', 'v=03', 'checkout-03', 'form', '.g-metric', 'el pedido al lado del formulario', 'CK-L1')
+  // PO-L1, CR-L1 y CK-L1 cerrados con GSplit (#950, bruno 8710e80): las dos columnas a 1440, la regla de la caja y el apilado limpio
+  const sOpen = (file, qs, o) => open(b, file, qs, o)
+  const SPLITS = [
+    { file: 'product-overview.html', qs: 'v=01', gb: 'product-overview-01', ratio: [1, 1], side1440: 488, id: 'PO-L1', tabs: 80 },
+    { file: 'cart.html', qs: 'v=01', gb: 'cart-01', ratio: [3, 2], side1440: 390, id: 'CR-L1', tabs: 80 },
+    { file: 'checkout.html', qs: 'v=03', gb: 'checkout-03', ratio: [3, 2], side1440: 390, id: 'CK-L1', tabs: 100 }
+  ]
+  for (const c of SPLITS) await splitCase(sOpen, ok, note, eng, E, t, c)
   await sideBySide('reviews.html', 'v=02', 'reviews-02', '[role="list"][aria-label]', 'figure', 'resumen y distribución al lado de las opiniones', 'reviews.md')
   await sideBySide('product-grid.html', 'v=02', 'product-grid-02', '[role="group"]', '[role="list"]', 'las facetas al lado de la rejilla', 'product-grid.md')
   // Trust 01: una fila que llena el ancho a 1440 (pista g-adapt-short, EC-B3)

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GSplit",
   "tag": "g-split",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Dos regiones lado a lado con una proporción cuando caben y una debajo de otra cuando no, en el orden del DOM y solo con CSS. El umbral lo fija el ancho mínimo del lado estrecho (collapse), que sigue al texto, y decide por su caja, no por el visor.",
   "contract": "design/contracts/split.md",
