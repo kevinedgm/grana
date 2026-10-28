@@ -255,14 +255,14 @@ Prefijo `[Grana GbQuickView<NN>]`, una vez por instancia y motivo, solo en desar
 
 ## Peso
 
-`dist/ecommerce.js` pesa **49 328 B gzip** con sus trozos compartidos (`medido` con `node packages/blocks/scripts/measure-entry.mjs ecommerce`, 2026-10-26); tope de la entrada **51 200 B** (DECISIONS #932; no se vuelve a subir). Una variante importada sola (`node packages/blocks/scripts/measure-partial.mjs 7168 ecommerce GbCheckout=9728 +cartTotals=2048`): `GbQuickView01` 5 574 B, `GbQuickView02` 5 608 B, `GbQuickView03` 5 822 B; tope por variante **7 168 B** (#932). `@grana/vue` y sus entradas son *peer*: las paga la aplicación.
+`dist/ecommerce.js` pesa **49 557 B gzip** con sus trozos compartidos (`medido` con `node packages/blocks/scripts/measure-entry.mjs ecommerce`, 2026-10-28); tope de la entrada **51 200 B** (DECISIONS #932; no se vuelve a subir). Una variante importada sola (`node packages/blocks/scripts/measure-partial.mjs 7168 ecommerce GbCheckout=9728 +cartTotals=2048`): `GbQuickView01` 5 582 B, `GbQuickView02` 5 614 B, `GbQuickView03` 5 829 B; tope por variante **7 168 B** (#932). `@grana/vue` y sus entradas son *peer*: las paga la aplicación.
 
 ## Alcance
 
 - **Ni cierra ni añade por su cuenta:** `add` te da el producto, la variante y la elección; tu aplicación llama a su carrito, cierra y da su acuse (#911, #919).
 - **No lleva el texto largo:** la descripción, la ficha técnica y los apartados son de la ficha completa (`full`).
 - **Se abre por un gesto:** `open` lo pone tu aplicación; el bloque nunca se abre solo.
-- **Comparte el panel con Product overview**, que sigue en `draft` por EC-L7 (dos columnas, #933); Quick view no tiene dos columnas y no depende de esa decisión.
+- **Comparte el panel con Product overview** ([`GbProductOverview/README.md`](../GbProductOverview/README.md), `candidate` desde que su 01 lleva el panel al lado de las fotos con `GSplit`, #950); Quick view no tiene dos columnas.
 - **Sin muestra de color** (EC-L4, reservado): una opción de color se dice con su nombre y, si la opción trae `photo`, con la foto real.
 - **Sin CSS ni utilidades** (#763, #807).
 

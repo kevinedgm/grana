@@ -1,6 +1,6 @@
 # GbAvailability · GbAvailability01, GbAvailability02 y GbAvailability03
 
-Qué días hay sitio y cuánto cuestan, **dicho en el día** (visible y oído), y lo lleno **dicho como lleno**, no adivinado por un gris. La persona elige una fecha o una estancia y el bloque emite la intención; la disponibilidad y los precios los da tu aplicación. Va como calendario con precio, como lista de próximas fechas o como calendario con un resumen debajo. Compone `GSection`, `GDatePicker` (`inline`, con el precio del día), `GPrice` y `GPriceScope` (`@grana/vue/price`), `GStack`, `GCard`, `GText`, `GBtn` y `describeQuery` (`@grana/vue/booking`); no trae color, CSS ni textos propios.
+Qué días hay sitio y cuánto cuestan, **dicho en el día** (visible y oído), y lo lleno **dicho como lleno**, no adivinado por un gris. La persona elige una fecha o una estancia y el bloque emite la intención; la disponibilidad y los precios los da tu aplicación. Va como calendario con precio, como lista de próximas fechas o como calendario con un resumen al lado o debajo. Compone `GSection`, `GDatePicker` (`inline`, con el precio del día), `GPrice` y `GPriceScope` (`@grana/vue/price`), `GStack`, `GSplit`, `GCard`, `GText`, `GBtn` y `describeQuery` (`@grana/vue/booking`); no trae color, CSS ni textos propios.
 
 **Etiquetas:** `<gb-availability-01>`, `<gb-availability-02>`, `<gb-availability-03>` · **Estado:** `candidate` (ver «Verificación») · **Desde:** `0.0.0` (paquete privado, aún sin publicar) · **Entrada:** `@grana/blocks/booking`
 
@@ -22,7 +22,7 @@ Las tres reciben la misma `interface Props` (`GbAvailabilityProps`, el mismo obj
 | --- | --- | --- | --- |
 | `GbAvailability01` | Calendario con precio: el mes con el precio en cada día | `GSection` > `GPriceScope` > `GDatePicker inline` (`mode` = `range` en `stay` y `single` en el resto, `months="auto"`, `min`/`max`, los días derivados, `dayDescription`, el slot `day`) | `upcoming`, `total` |
 | `GbAvailability02` | Próximas fechas: las próximas fechas abiertas en una lista, con su día en palabras, su estado y su precio | `GSection` > `GPriceScope` > `GStack as="ul"` (nombre `labels.upcoming`) > `GCard as="li" level="flat" interaction="button"` por cada una de las primeras `upcoming` fechas `open` o `few` desde hoy o `min` | `total`, `minNights` y `maxNights` (en `stay` elige **la llegada**) |
-| `GbAvailability03` | Calendario + resumen: el calendario y, **debajo**, lo elegido con su total y la acción | `GSection` > `GStack gap="lg"` > [`GPriceScope` > el `GDatePicker` de 01] + [`GCard level="outlined"`: el `title` es la selección dicha con `describeQuery`, el `GPrice` con `total` y un `GBtn solid` `labels.select`] | `upcoming` |
+| `GbAvailability03` | Calendario + resumen: el calendario y, **al lado** si cabe (debajo si no), lo elegido con su total y la acción | `GSection` > `GPriceScope` > `GSplit ratio="2:1" gap="lg"` > [`#start`: el `GDatePicker` de 01] + [`#end`: `GCard level="outlined"`: el `title` es la selección dicha con `describeQuery`, el `GPrice` con `total` y un `GBtn solid` `labels.select`] | `upcoming` |
 
 **Del dato al calendario (01 y 03):**
 
@@ -37,11 +37,11 @@ Las tres reciben la misma `interface Props` (`GbAvailabilityProps`, el mismo obj
 - **El slot `day`** de `GDatePicker` pinta, bajo el número, el `GPrice` del precio del día y, en `few`, `full` o `closed`, nada más en la celda: el estado lo da la forma de `GDatePicker` y el texto oído. El precio de un día lleno no se pinta.
 - **`dayDescription`** devuelve el texto unido por «, »: «viernes, 13 de noviembre de 2026, quedan pocas, 1,850 pesos mexicanos». El bloque no repite lo que `GDatePicker` ya dice (hoy, seleccionado, no disponible).
 - **Con `prices`**, el calendario va dentro de un `GPriceScope`: la leyenda dice la moneda y las celdas llevan solo cifras.
-- **Límite de ancho (#801):** cinco cifras no caben en la celda a 320 px. Con precios de cinco cifras, no des `price` por día (se pinta sin precio, V3) o usa 02.
+- **Cuando el precio no cabe en la celda (AV-C1, #952 y #956):** con el texto al 200 % o con cifras largas (cinco cifras a 320 px), `GDatePicker` **saca el precio de todas las celdas** y lo enseña bajo el calendario, el del día activo (puntero o teclado); el precio sigue en el nombre accesible del día y las celdas no cambian de medida. No lo configuras tú: lo decide el calendario por lo que mide ([`GDatePicker/README.md`](../../../../vue/src/components/GDatePicker/README.md#cuando-el-dato-no-cabe-en-la-celda-la-lectura-del-día-av-c1)). En táctil, el día activo es el elegido (límite aceptado). El aviso V3 sigue avisando de las cinco cifras.
 
 **02, nombre y descripción de la fecha:** la tarjeta-botón se nombra por **la fecha** (con el estado si es «pocas plazas»); el precio y la nota son su descripción (`aria-describedby`), porque el cuerpo de un botón no se oye al enfocar. `labels.select` solo lo usa 03.
 
-**03 va en una columna** (#892, #899): el calendario y, debajo, la tarjeta de la selección, a cualquier ancho. Dos columnas queda **reservado** hasta que la pista de `GAdaptiveLayout` funcione con una tabla (el calendario lo es).
+**03 vuelve a dos columnas con `GSplit`** (DECISIONS #950, que enmienda #892 y #899): `GSplit ratio="2:1" gap="lg"` pone el calendario (`start`) y la tarjeta de la selección (`end`) **lado a lado cuando la caja alcanza el umbral y una debajo de la otra cuando no**. Con el tema por defecto y `collapse="md"` el umbral es **1008 px de caja** (`320 × 3 + 48`): a 1440 va al lado (calendario 651 px, tarjeta 325 px) y a 1024, 768, 390, 320 y con el texto al 200 % queda apilado, calendario arriba y tarjeta debajo (el orden del DOM). El umbral lo fija el lado estrecho, así que **la tarjeta nunca baja de 320 px**. `GSplit` no depende de la pista de `GAdaptiveLayout`, por eso el calendario (una tabla) ya no es un problema. **Con otro tema, el umbral cambia** (el mínimo del lado estrecho crece con el cuerpo de texto): con el tema rústico (cuerpo de 17 px) pide 1068 px y a 1440 se apila; es comportamiento contratado (SP-N1, #953), ver [`GSplit/README.md`](../../../../vue/src/components/GSplit/README.md#cuándo-va-al-lado).
 
 ## Recetas
 
@@ -136,7 +136,7 @@ Sin la escucha de `select`, la elección queda en el calendario y tu aplicación
 
 ### e3 · El calendario con su resumen y su acción (`GbAvailability03`)
 
-**Por qué:** cuando elegir fechas es el último paso antes de reservar. Debajo del calendario, una tarjeta dice la selección con las palabras de la consulta, el total que da tu aplicación y la acción.
+**Por qué:** cuando elegir fechas es el último paso antes de reservar. Junto al calendario (debajo cuando no cabe al lado), una tarjeta dice la selección con las palabras de la consulta, el total que da tu aplicación y la acción.
 
 ```vue
 <!-- Fragmento: `totalSeleccion`, `consulta` y `partyRows` son de tu aplicación -->
@@ -227,8 +227,10 @@ Cifras de la auditoría de coco ([`design/lab/blocks/booking/auditoria.md`](../.
 a. El nombre del día incluye su estado y su precio, y el día lleno se puede elegir como salida y no como llegada en `stay` (`prueba`, Vitest; `ariaSnapshot` en el spec de bruno).
 b. 02 sin lista cuando no hay fechas abiertas (V4): la aplicación pone su mensaje en el slot `empty`.
 c. Un día lleno dice «lleno» sin desbordar; 01 con precios de cuatro cifras no desborda a 320.
+c'. Con el texto al 200 % el precio de cada día no se solapa con el de sus vecinos: sale de las celdas y se lee bajo el calendario (AV-C1, `medido`, 6516/6516 en Booking y 654/654 en `lectura-verificar.mjs` de `GDatePicker`).
+
 d. El filete de la leyenda de moneda no queda suelto al principio de una línea a 390 (BK-C4, corregido en `GPriceScope.css`).
-e. La selección de 03 es exactamente `describeQuery(...)`; la tarjeta de 03 va debajo del calendario en una columna, sin solapes ni desbordes (AV-L1, cerrado).
+e. La selección de 03 es exactamente `describeQuery(...)`; la tarjeta de 03 va al lado del calendario a 1440 (651 · 325) y debajo cuando no cabe, en el orden del DOM (calendario y luego tarjeta, también para Tab), sin solapes ni desbordes (AV-L1, cerrado por #950; `medido`, addendum de la auditoría de Booking, 6516/6516 en los tres motores).
 f. El precio dentro de la descripción de la tarjeta-botón de 02 (1440) no solapa y queda bajo el nombre del día.
 g. Nada se mueve.
 
@@ -253,14 +255,14 @@ C3 es una fecha repetida en `days` y C7, más de 120 días.
 
 ## Peso
 
-`dist/booking.js` pesa **36 851 B gzip** con su trozo compartido de `common/` (las 11 secciones y 33 variantes; `medido` con `node packages/blocks/scripts/measure-entry.mjs booking`  2026-10-23); tope de la entrada **37 888 B** (DECISIONS #907; el tope inicial de 36 KiB no se vuelve a subir). Una variante importada sola (esbuild minificado  `vue` y `@grana/vue*` externos; `node packages/blocks/scripts/measure-partial.mjs 5120 booking GbGuestForm=7168`): `GbAvailability01` 3 908 B  `GbAvailability02` 3 949 B  `GbAvailability03` 4 565 B; tope por variante **5 120 B** (#887). `@grana/vue` y sus entradas son *peer*: las paga la aplicación.
+`dist/booking.js` pesa **37 140 B gzip** con su trozo compartido de `common/` (las 11 secciones y 33 variantes; `medido` con `node packages/blocks/scripts/measure-entry.mjs booking`, 2026-10-28, tras recomponer 03 con `GSplit`, que va en `@grana/vue` y es externo); tope de la entrada **37 888 B** (DECISIONS #907; no se vuelve a subir). Una variante importada sola (esbuild minificado  `vue` y `@grana/vue*` externos; `node packages/blocks/scripts/measure-partial.mjs 5120 booking GbGuestForm=7168`): `GbAvailability01` 3 962 B  `GbAvailability02` 3 999 B  `GbAvailability03` 4 628 B; tope por variante **5 120 B** (#887). `@grana/vue` y sus entradas son *peer*: las paga la aplicación.
 
 ## Alcance
 
 - **No calcula disponibilidad ni precios:** `days` y `total` los da tu aplicación (#769, #780).
 - **No reserva:** `select` entrega la elección; el siguiente paso es tuyo.
 - **Usa `GDatePicker` en línea, no `GCalendar`:** `GCalendar` es una agenda de recursos y eventos; el mes con precio por día es `GDatePicker` (#778, #866).
-- **03 en una columna** (#892, #899); dos columnas, reservadas hasta que la pista de `GAdaptiveLayout` funcione con una tabla.
+- **03 en dos columnas con `GSplit` cuando caben** (#950); apilada en estrecho, con el texto ampliado y con temas de cuerpo mayor (SP-N1). Columna pegada (BK-L1) reservada.
 - **BK-N2:** 01 y 03 enseñan diciembre entero inactivo cuando `months="auto"` y `max` es el 30 de noviembre; conforme al contrato.
 - **Sin CSS ni utilidades** (#763, #807).
 
@@ -269,12 +271,13 @@ C3 es una fecha repetida en `days` y C7, más de 120 días.
 | Qué | Resultado | Nivel |
 | --- | --- | --- |
 | Vitest de `GbAvailability` (derivación de la tabla: `full` en `stay` es noche agotada y en `table` día no elegible; `dayDescription` con estado y precio leído; slot `day` con el precio y sin precio en un día lleno; 02 con las primeras `upcoming` fechas abiertas en orden y `time datetime`; las tres cargas de `select`; 03 con la selección igual a `describeQuery`) | 46/46 (`npm test -w @grana/blocks`, 2026-10-23) | `prueba` |
-| Auditoría de coco: Availability 01, 02 y 03; AV-L1 cerrado (#892, #899: una columna, sin solapes ni desbordes); 02 vacía y llena | Veredicto `candidate` tras el remate de bruno y los contratos de lima (addendum del 2026-10-23) | `medido` |
+| Auditoría de coco: Availability 01, 02 y 03; AV-L1 cerrado (#950: 03 con `GSplit`, 651 · 325 a 1440 y apilada en estrecho, sin solapes ni desbordes); 02 vacía y llena | Veredicto `candidate` (addendum del 2026-10-23; recomposición con `GSplit` del 2026-10-28) | `medido` |
+| Verificador de Booking sobre las tres variantes, con las dos columnas de 03 (`design/lab/blocks/split-comun.mjs`) y la lectura del día (AV-C1) | **6516/6516** en Chromium, Firefox y WebKit, tres temas, claro y oscuro (addendum del 2026-10-28) | `medido` |
 
-**No verificado:** lector de pantalla real (el nombre de cada día con estado y precio, la fecha de la tarjeta de 02); `forced-colors` real; teléfono real y puntero grueso; rendimiento con el perfilador (el contrato admite hasta 120 días). **Pendientes abiertos:** dos columnas de 03 (reservado); los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md).
+**No verificado:** lector de pantalla real (el nombre de cada día con estado y precio, la fecha de la tarjeta de 02, la lectura del día de `GDatePicker`); `forced-colors` real; teléfono real y puntero grueso; rendimiento con el perfilador (el contrato admite hasta 120 días). **Pendientes abiertos:** la columna pegada de 03 (BK-L1, reservada); los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md).
 
 ## Fuentes
 
 - Contrato: [`design/contracts/blocks/availability.md`](../../../../../design/contracts/blocks/availability.md) y [`_comun.md`](../../../../../design/contracts/blocks/_comun.md) (§15 a §25); [`datepicker.md`](../../../../../design/contracts/datepicker.md) («Noches y salida», #739).
-- Decisiones: #739, #778, #860 a #866, #870, #892, #893, #899, #907 en `DECISIONS.md`.
+- Decisiones: #739, #778, #860 a #866, #870, #892, #893, #899, #907, #946 a #956 (`GSplit` y la lectura del día) en `DECISIONS.md`.
 - Metadatos: [`GbAvailability.meta.json`](./GbAvailability.meta.json). Pruebas: [`GbAvailability.test.js`](./GbAvailability.test.js). Auditoría: [`design/lab/blocks/booking/auditoria.md`](../../../../../design/lab/blocks/booking/auditoria.md).

@@ -241,7 +241,7 @@ Prefijo `[Grana GbReviews<NN>]`, una vez por instancia y motivo, solo en desarro
 
 ## Peso
 
-`dist/ecommerce.js` pesa **49 328 B gzip** con sus trozos compartidos (`medido` con `node packages/blocks/scripts/measure-entry.mjs ecommerce`, 2026-10-26); tope de la entrada **51 200 B** (DECISIONS #932; no se vuelve a subir). Una variante importada sola (`node packages/blocks/scripts/measure-partial.mjs 7168 ecommerce GbCheckout=9728 +cartTotals=2048`): `GbReviews01` 5 310 B, `GbReviews02` 5 376 B, `GbReviews03` 5 407 B; tope por variante **7 168 B** (#932). `@grana/vue` es *peer*: lo paga la aplicación.
+`dist/ecommerce.js` pesa **49 557 B gzip** con sus trozos compartidos (`medido` con `node packages/blocks/scripts/measure-entry.mjs ecommerce`, 2026-10-28); tope de la entrada **51 200 B** (DECISIONS #932; no se vuelve a subir). Una variante importada sola (`node packages/blocks/scripts/measure-partial.mjs 7168 ecommerce GbCheckout=9728 +cartTotals=2048`): `GbReviews01` 5 317 B, `GbReviews02` 5 383 B, `GbReviews03` 5 414 B; tope por variante **7 168 B** (#932). `@grana/vue` es *peer*: lo paga la aplicación.
 
 ## Alcance
 

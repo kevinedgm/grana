@@ -194,7 +194,7 @@ Prefijo `[Grana GbTrust<NN>]`, una vez por instancia y motivo, solo en desarroll
 
 ## Peso
 
-`dist/ecommerce.js` pesa **49 328 B gzip** con sus trozos compartidos (`medido` con `node packages/blocks/scripts/measure-entry.mjs ecommerce`, 2026-10-26); tope de la entrada **51 200 B** (DECISIONS #932; no se vuelve a subir). Una variante importada sola (`node packages/blocks/scripts/measure-partial.mjs 7168 ecommerce GbCheckout=9728 +cartTotals=2048`): `GbTrust01` 2 746 B, `GbTrust02` 2 711 B, `GbTrust03` 2 653 B; tope por variante **7 168 B** (#932). `@grana/vue` es *peer*: lo paga la aplicación.
+`dist/ecommerce.js` pesa **49 557 B gzip** con sus trozos compartidos (`medido` con `node packages/blocks/scripts/measure-entry.mjs ecommerce`, 2026-10-28); tope de la entrada **51 200 B** (DECISIONS #932; no se vuelve a subir). Una variante importada sola (`node packages/blocks/scripts/measure-partial.mjs 7168 ecommerce GbCheckout=9728 +cartTotals=2048`): `GbTrust01` 2 752 B, `GbTrust02` 2 717 B, `GbTrust03` 2 657 B; tope por variante **7 168 B** (#932). `@grana/vue` es *peer*: lo paga la aplicación.
 
 ## Alcance
 

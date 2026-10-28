@@ -8,7 +8,7 @@ Capa de composición sobre `@grana/vue`: secciones y pantallas armadas con los c
 | --- | --- | --- |
 | `@grana/blocks/marketing` | **Marketing P0**: 9 secciones, cada una con 3 variantes (27 componentes) | Las 9 secciones `candidate` (tabla abajo) |
 | `@grana/blocks/booking` | **Booking**: 11 secciones, cada una con 3 variantes (33 componentes), para sitios de hospedaje, restaurante y recorridos | Las 11 secciones `candidate` (tabla en «Booking») |
-| `@grana/blocks/ecommerce` | **Ecommerce**: 12 secciones, cada una con 3 variantes (36 componentes), más `cartTotals`, para tiendas | 9 secciones `candidate` y 3 en `draft` (tabla en «Ecommerce») |
+| `@grana/blocks/ecommerce` | **Ecommerce**: 12 secciones, cada una con 3 variantes (36 componentes), más `cartTotals`, para tiendas | Las 12 secciones `candidate` (tabla en «Ecommerce») |
 | `@grana/blocks` | Gestión (CRUD, editor, detalle, dashboard). **Sin componentes todavía**: `dist/blocks.js` no exporta ninguno | `GResourceList` tiene contrato y CSS (`GResourceList.css`, de coco), pero aún no tiene `.vue` ni `meta.json` ni README |
 
 ## Marketing P0
@@ -83,7 +83,7 @@ Entrada `@grana/blocks/booking` (DECISIONS #860 a #907). Once secciones para una
 
 Las opiniones (B12) **no tienen sección propia**: se usa `GbTestimonials` de `@grana/blocks/marketing` tal cual, con `source` obligatoria (DECISIONS #865; receta en [`GbOfferDetail/README.md`](./src/blocks/GbOfferDetail/README.md#opiniones-con-gbtestimonials)). Quien usa Booking y opiniones carga las dos entradas.
 
-Las once están en `candidate` tras la auditoría de coco ([`design/lab/blocks/booking/auditoria.md`](../../design/lab/blocks/booking/auditoria.md)) y su addendum del 2026-10-23, que cierra los hallazgos que bloqueaban (BK-B1, BK-B4, BK-B5, AV-L1 y BS-L1). Pasada completa con el verificador propio en Chromium, Firefox y WebKit, tema por defecto, rústico y lujo, claro y oscuro: 6000/6045, con los 45 fallos en un error del propio verificador (corregido; `--solo=shapes` 396/396 en los tres motores); no se repitió la pasada completa tras esa última corrección (`medido`).
+Las once están en `candidate` tras la auditoría de coco ([`design/lab/blocks/booking/auditoria.md`](../../design/lab/blocks/booking/auditoria.md)) y su addendum del 2026-10-23, que cierra los hallazgos que bloqueaban (BK-B1, BK-B4, BK-B5, AV-L1 y BS-L1). Pasada completa con el verificador propio en Chromium, Firefox y WebKit, tema por defecto, rústico y lujo, claro y oscuro: 6000/6045, con los 45 fallos en un error del propio verificador (corregido; `--solo=shapes` 396/396 en los tres motores); no se repitió la pasada completa tras esa última corrección (`medido`). **Addendum del 2026-10-28:** `GbAvailability03` volvió a dos columnas con [`GSplit`](../vue/src/components/GSplit/README.md) (AV-L1 cerrado, #950) y el precio del día de `GDatePicker` sale de las celdas cuando no cabe (AV-C1, #952 y #956); el verificador de Booking pasa **6516/6516** en los tres motores, tres temas, claro y oscuro (`medido`).
 
 ### Instalación
 
@@ -186,7 +186,7 @@ Prefijo `[Grana Gb<Sección><NN>]`, una vez por instancia y motivo, solo en desa
 
 ### Peso
 
-Medido con `gzip -c` (2026-10-23): `dist/booking.js` **36 851 B** con su trozo compartido de `common/` (`node scripts/measure-entry.mjs booking`), con tope de **37 888 B** (DECISIONS #907, no se vuelve a subir); una variante importada sola de 1837 B (`GbSearch01`) a 6940 B (`GbGuestForm03`), con tope de **5120 B** y de 7168 B para `GbGuestForm` (#887; `node scripts/measure-partial.mjs 5120 booking GbGuestForm=7168`). El tope de `@grana/vue/booking` es de 15 KiB (15 360 B) por `describeQuery` (#878). `dist/marketing.js` y `dist/blocks.js` no crecen por Booking: las compuertas lo vigilan.
+Medido con `gzip -c` (2026-10-28, tras recomponer `GbAvailability03` con `GSplit`, que va en `@grana/vue` y es externo): `dist/booking.js` **37 140 B** con su trozo compartido de `common/` (`node scripts/measure-entry.mjs booking`), con tope de **37 888 B** (DECISIONS #907, no se vuelve a subir); una variante importada sola de 1820 B (`GbSearch01`) a 6975 B (`GbGuestForm03`), con tope de **5120 B** y de 7168 B para `GbGuestForm` (#887; `node scripts/measure-partial.mjs 5120 booking GbGuestForm=7168`). El tope de `@grana/vue/booking` es de 15 KiB (15 360 B) por `describeQuery` (#878). `dist/marketing.js` y `dist/blocks.js` no crecen por Booking: las compuertas lo vigilan.
 
 ### Qué no hay todavía
 
@@ -194,7 +194,7 @@ Reservado (`design/contracts/blocks/_comun.md` §22 y §24): mapa vivo (`GEmbed`
 
 ## Ecommerce
 
-Entrada `@grana/blocks/ecommerce` (DECISIONS #909 a #945). Doce secciones para la tienda de un taller, un restaurante con venta o un comercio pequeño: del escaparate al historial de pedidos, con **la elección como hilo**. La talla y el color que se eligen en la ficha son las mismas `{ label, value }` que se leen en la línea del carrito, en el resumen del pedido y en el historial, con las mismas palabras. Como Marketing y Booking, son **estructurales** (sin CSS, sin `<style>`, sin utilidades): toda la forma sale de las primitivas de `@grana/vue` y del tema. No cobran, no validan cupones, no calculan el envío y no hacen `fetch`: emiten intenciones (`add`, `open`, `navigate`, `update:filters`, `update:page`, `retry`) y tu aplicación decide. **Nueve secciones son `candidate` y tres siguen en `draft`** (tabla abajo).
+Entrada `@grana/blocks/ecommerce` (DECISIONS #909 a #945). Doce secciones para la tienda de un taller, un restaurante con venta o un comercio pequeño: del escaparate al historial de pedidos, con **la elección como hilo**. La talla y el color que se eligen en la ficha son las mismas `{ label, value }` que se leen en la línea del carrito, en el resumen del pedido y en el historial, con las mismas palabras. Como Marketing y Booking, son **estructurales** (sin CSS, sin `<style>`, sin utilidades): toda la forma sale de las primitivas de `@grana/vue` y del tema. No cobran, no validan cupones, no calculan el envío y no hacen `fetch`: emiten intenciones (`add`, `open`, `navigate`, `update:filters`, `update:page`, `retry`) y tu aplicación decide. **Las doce secciones son `candidate`** (tabla abajo).
 
 | Sección | Variantes | Estado | README |
 | --- | --- | --- | --- |
@@ -207,13 +207,13 @@ Entrada `@grana/blocks/ecommerce` (DECISIONS #909 a #945). Doce secciones para l
 | `GbReviews` | `GbReviews01` Lista con resumen, `02` Resumen y distribución, `03` Tarjetas | `candidate` | [`GbReviews/README.md`](./src/blocks/GbReviews/README.md) |
 | `GbOrderSummary` | `GbOrderSummary01` Tarjeta, `02` El recibo, `03` Línea | `candidate` | [`GbOrderSummary/README.md`](./src/blocks/GbOrderSummary/README.md) |
 | `GbOrderHistory` | `GbOrderHistory01` Tabla, `02` Tarjetas con seguimiento, `03` Lista | `candidate` | [`GbOrderHistory/README.md`](./src/blocks/GbOrderHistory/README.md) |
-| `GbProductOverview` | `GbProductOverview01` Galería + panel, `02` Galería arriba, `03` Tira + pestañas | `draft` (EC-L7) | Sin README todavía |
-| `GbCart` | `GbCart01` Lista + resumen al lado, `02` Resumen al pie, `03` Cajón | `draft` (EC-L7) | Sin README todavía |
-| `GbCheckout` | `GbCheckout01` Por pasos, `02` Se pliega lo hecho, `03` Con el pedido al lado | `draft` (EC-L7) | Sin README todavía |
+| `GbProductOverview` | `GbProductOverview01` Galería + panel, `02` Galería arriba, `03` Tira + pestañas | `candidate` | [`GbProductOverview/README.md`](./src/blocks/GbProductOverview/README.md) |
+| `GbCart` | `GbCart01` Lista + resumen al lado, `02` Resumen al pie, `03` Cajón | `candidate` | [`GbCart/README.md`](./src/blocks/GbCart/README.md) |
+| `GbCheckout` | `GbCheckout01` Por pasos, `02` Se pliega lo hecho, `03` Con el pedido al lado | `candidate` | [`GbCheckout/README.md`](./src/blocks/GbCheckout/README.md) |
 
-Las nueve `candidate` pasaron la auditoría de coco ([`design/lab/blocks/ecommerce/auditoria.md`](../../design/lab/blocks/ecommerce/auditoria.md)) sobre las 36 variantes reales, en Chromium, Firefox y WebKit, con el tema por defecto, rústico y lujo, claro y oscuro: 3 248 de 3 275, 3 189 de 3 216 y 3 188 de 3 216 al auditar (0aa51df); tras el remate de bruno (b663be5) quedaron 3 266 de 3 275 en la familia, con los 9 fallos restantes solo de PO-L1, CR-L1 y CK-L1, los de las tres secciones `draft` (DECISIONS #945; `medido`).
+Las doce pasaron la auditoría de coco ([`design/lab/blocks/ecommerce/auditoria.md`](../../design/lab/blocks/ecommerce/auditoria.md)) sobre las 36 variantes reales, en Chromium, Firefox y WebKit, con el tema por defecto, rústico y lujo, claro y oscuro. La pasada del 2026-10-26 dejó 3 266 de 3 275 en la familia, con los 9 fallos restantes solo de PO-L1, CR-L1 y CK-L1; tras recomponer los tres con `GSplit` (addendum del 2026-10-28), el verificador pasa **11 129/11 129** en los tres motores, sin un fallo (`medido`; DECISIONS #945, #950 y #955).
 
-**Por qué tres siguen en `draft`.** `GbProductOverview`, `GbCart` y `GbCheckout` ponen un panel o un resumen **al lado** de otra cosa (las fotos, la lista o el formulario), y `GAdaptiveLayout` pone en línea propia todo hijo con varios controles, una `section` o una `table`; sin CSS (#763) un bloque no puede poner un panel al lado de otra cosa. La recomendación de lima es una primitiva nueva, `GSplit` (dos regiones con proporción que se apilan cuando no caben), y **está pendiente de la decisión del usuario** (EC-L7, DECISIONS #933, enmendada por #942). Mientras tanto, esas tres secciones se pintan en una columna, que no es un defecto, y no tienen README: el estado y las medidas de sus variantes están en sus `meta.json`. `GbProductGrid` 02 sí deja las facetas al lado a 1440 y es `candidate` (#942).
+**Dos columnas con `GSplit`.** `GbProductOverview`, `GbCart` y `GbCheckout` ponen un panel o un resumen **al lado** de otra cosa (las fotos, la lista o el formulario). Como un bloque no lleva CSS (#763), eso lo hace [`GSplit`](../vue/src/components/GSplit/README.md), la primitiva de `@grana/vue` de dos regiones con proporción que se apilan cuando no caben (DECISIONS #946 a #951, EC-L7 decidida el 2026-10-28): Product overview 01 es `1:1` con `collapse="lg"` (488 · 488 a 1440, apilado a 768), Cart 01 y Checkout 03 son `3:2` (586 · 390 a 1440, apilados a 768). **Cuándo van al lado depende de la caja y del texto, no del visor:** el lado estrecho no baja de 320 px (384 en Product overview), y con un tema de cuerpo mayor o con el texto ampliado el umbral sube (los de [`GSplit/README.md`](../vue/src/components/GSplit/README.md#cuándo-va-al-lado) son del tema por defecto). Apiladas, el orden del DOM es el de lectura: fotos, panel, texto; líneas y luego resumen; formulario y luego pedido. `GbProductGrid` 02 deja las facetas al lado con `GAdaptiveLayout` y no usa `GSplit` (#942).
 
 ### Instalación
 
@@ -295,15 +295,17 @@ import { GbPromo01, GbCategoryPreviews01, GbTrust01, GbProductGrid02 } from '@gr
 
 | Evento | Carga | Secciones (`candidate`) |
 | --- | --- | --- |
-| `add` | `{ event, product, variant, selection, options, quantity }` (la `Variant` resuelta o `null`; `options` ya dichas) | `GbProductCard` (03: `variant: null`, `selection: {}`), `GbProductGrid` (02), `GbQuickView` |
+| `add` | `{ event, product, variant, selection, options, quantity }` (la `Variant` resuelta o `null`; `options` ya dichas) | `GbProductCard` (03: `variant: null`, `selection: {}`), `GbProductGrid` (02), `GbQuickView`, `GbProductOverview` |
 | `open` | `{ event, product }` · `{ event, order }` | `GbProductCard`, `GbProductGrid` · `GbOrderHistory` |
-| `select` | `{ event, product, key, value, variant }` (informativo: la elección ya está en `v-model:selection`) | `GbQuickView` |
+| `select` | `{ event, product, key, value, variant }` (informativo: la elección ya está en `v-model:selection`) | `GbQuickView`, `GbProductOverview` |
+| `change`, `remove`, `restore` | `{ event: null, line, quantity }` · `{ event, line, index }` (el carrito: cantidad por gesto, quitar con huella y deshacer) | `GbCart` |
+| `submit` | `{ event, step, data, values, consents, final, preventDefault(), defaultPrevented }` (cancelable) | `GbCheckout` |
 | `update:filters`, `update:sort`, `update:page` | el valor (un objeto nuevo en `filters`) | `GbProductGrid`; `update:page` también en `GbReviews` y `GbOrderHistory` |
-| `update:open`, `update:selection`, `update:quantity` | el valor | `GbQuickView` |
+| `update:open`, `update:selection`, `update:quantity` | el valor | `GbQuickView` (`update:open` también en `GbCart03`; `selection` y `quantity` también en `GbProductOverview`); `GbCheckout` suma `update:step` y `update:values` |
 | `retry` | `{ event: null }` | `GbProductGrid`, `GbOrderHistory` |
 | `navigate`, `activate` | como en Marketing (enlaces y acciones sin `href`) | las que tienen acciones o enlaces |
 
-`event: null` (#936): cuando el componente compuesto no entrega un evento del DOM (`retry` de `GLoadRegion` y `GTable`), la carga lleva `event: null` y nunca un evento fabricado. Una activación por gesto (#661) en lo que abre algo (la vista rápida): la cumple `GDialog`. Las tres secciones en `draft` suman `change`, `remove` y `restore` (`GbCart`) y `submit` (`GbCheckout`), cuyas cargas se documentarán con su README.
+`event: null` (#936): cuando el componente compuesto no entrega un evento del DOM (`retry` de `GLoadRegion` y `GTable`), la carga lleva `event: null` y nunca un evento fabricado. Una activación por gesto (#661) en lo que abre algo (la vista rápida): la cumple `GDialog`.
 
 ### Avisos comunes de Ecommerce
 
@@ -352,7 +354,7 @@ Con esos datos devuelve (`medido`, ejecutado el 2026-10-26): `t.total` = 4 180 M
 
 ### Pruebas, peso y límites medidos
 
-`npm test -w @grana/blocks` pasa **1 463 pruebas en 40 archivos** (`medido`, 2026-10-26). Las compuertas del paquete (`bash packages/blocks/scripts/gates.sh`) pasan **40 de 40**, incluidas las de Ecommerce: la entrada y su `.d.ts` existen, sin `createApp` ni `__shared` ni clases internas ni `fetch`, `XMLHttpRequest` o `sendBeacon`, sin `describeQuery` (Ecommerce no carga Booking), ningún campo de tarjeta, y los topes de peso. **Pesos** (`medido` con `gzip -c`, 2026-10-26): `dist/ecommerce.js` **49 537 B de 51 200 B** (gzip, 2026-10-26) con sus trozos compartidos (`node scripts/measure-entry.mjs ecommerce`); el tope es de DECISIONS #932, no se vuelve a subir: con más, decide el usuario; una variante importada sola de 2 653 B (`GbTrust03`) a 9 195 B (`GbCheckout03`), con tope de **7 168 B** y excepción de **9 728 B** para `GbCheckout` (formulario por pasos, copia del motor de campos, pedido y hueco del pago; #941); `cartTotals` sola **1 917 B** de 2 048 B (`node scripts/measure-partial.mjs 7168 ecommerce GbCheckout=9728 +cartTotals=2048`). `dist/marketing.js` y `dist/booking.js` no crecen por Ecommerce: las compuertas lo vigilan. **Cifra de los `meta.json`:** el `bundle.measured` de los doce coincide con la medida de hoy (49 537 B la entrada; margen de 1 663 B).
+`npm test -w @grana/blocks` pasa **1 470 pruebas en 40 archivos** (`medido`, 2026-10-28). Las compuertas del paquete (`bash packages/blocks/scripts/gates.sh`) pasan **40 de 40**, incluidas las de Ecommerce: la entrada y su `.d.ts` existen, sin `createApp` ni `__shared` ni clases internas ni `fetch`, `XMLHttpRequest` o `sendBeacon`, sin `describeQuery` (Ecommerce no carga Booking), ningún campo de tarjeta, y los topes de peso. **Pesos** (`medido` con `gzip -c`, 2026-10-28, tras recomponer con `GSplit`, que va en `@grana/vue` y es externo): `dist/ecommerce.js` **49 557 B de 51 200 B** (gzip) con sus trozos compartidos (`node scripts/measure-entry.mjs ecommerce`); el tope es de DECISIONS #932, no se vuelve a subir: con más, decide el usuario; una variante importada sola de 2 657 B (`GbTrust03`) a 9 210 B (`GbCheckout03`), con tope de **7 168 B** y excepción de **9 728 B** para `GbCheckout` (formulario por pasos, copia del motor de campos, pedido y hueco del pago; #941); `cartTotals` sola **1 922 B** de 2 048 B (`node scripts/measure-partial.mjs 7168 ecommerce GbCheckout=9728 +cartTotals=2048`). `dist/marketing.js` y `dist/booking.js` no crecen por Ecommerce: las compuertas lo vigilan. **Cifra de los `meta.json`:** el `bundle.measured` de los doce coincide con la medida de hoy (49 557 B la entrada; margen de 1 643 B).
 
 ### Recetas
 
@@ -361,11 +363,13 @@ Con esos datos devuelve (`medido`, ejecutado el 2026-10-26): `t.total` = 4 180 M
 - **Abrir la vista rápida y volver a la tarjeta:** [`GbQuickView/README.md`](./src/blocks/GbQuickView/README.md#abrir-desde-una-tarjeta-y-volver-a-ella).
 - **Dos promociones lado a lado:** dos `GbPromo02` en una rejilla de la aplicación ([`GbPromo/README.md`](./src/blocks/GbPromo/README.md#dos-promociones-lado-a-lado)).
 - **Políticas de la tienda con `GbPolicies`:** el ancla que cita cada promesa ([`GbTrust/README.md`](./src/blocks/GbTrust/README.md#políticas-de-la-tienda-con-gbpolicies)).
+- **Quitar, deshacer y cambiar la cantidad del carrito:** [`GbCart/README.md`](./src/blocks/GbCart/README.md#quitar-deshacer-y-cambiar-la-cantidad).
+- **El pago es de tu pasarela** (el paso sin `fields` y su slot): [`GbCheckout/README.md`](./src/blocks/GbCheckout/README.md#el-pago-es-de-tu-pasarela).
 - **Tu propia rejilla de tarjetas** y qué pasa con la última fila (EC-N1): [`GbProductCard/README.md`](./src/blocks/GbProductCard/README.md#tu-propia-rejilla-y-qué-hace-la-última-fila).
 
 ### Qué no hay todavía
 
-Reservado (`design/contracts/blocks/_comun.md` §35 y §37): **dos columnas** (EC-L7, `GSplit`: la ficha con el panel al lado, el carrito con el resumen al lado, el pago con el pedido al lado; pendiente de la decisión del usuario), calificación con estrellas (M-L2), el nombre del producto como `h1` (EC-L1), `GProgress` como medidor (EC-L2), el anuncio del recuento al filtrar sin carga (EC-L3, `announce`), la muestra de color (EC-L4), políticas en una entrada común (EC-L5), el acuse «Copiado» en el sitio (EC-L6), `focus()` público en `GRadioGroup` (CK-L1), el renglón término-importe del desglose (EC-L2 de la auditoría, `data-g-receipt`), el rótulo corto de la cantidad (EC-L3 de la auditoría, `labels.quantityShort`), un muelle genérico y una columna pegada (BK-L1, BK-L2), lista de deseos, comparador, búsqueda con sugerencias (receta con `GCombobox`), mini carrito en la cabecera (receta con `GBadge` sobre el `GBtn` del carrito y `GbCart03`, cuando `GbCart` salga de `draft`), pago y pasarela (slot de la aplicación) y mapa de la tienda (`GEmbed`). Nada de eso se documenta como disponible. Los códigos `EC-L1` a `EC-L7` son los de `_comun.md` §37; la auditoría de coco reutiliza `EC-L1` a `EC-L3` para otros hallazgos (por eso los dos últimos de la lista llevan «de la auditoría»).
+Reservado (`design/contracts/blocks/_comun.md` §35 y §37): calificación con estrellas (M-L2), el nombre del producto como `h1` (EC-L1), `GProgress` como medidor (EC-L2), el anuncio del recuento al filtrar sin carga (EC-L3, `announce`), la muestra de color (EC-L4), políticas en una entrada común (EC-L5), el acuse «Copiado» en el sitio (EC-L6), `focus()` público en `GRadioGroup` (CK-L1), el renglón término-importe del desglose (EC-L2 de la auditoría, `data-g-receipt`), el rótulo corto de la cantidad (EC-L3 de la auditoría, `labels.quantityShort`), un muelle genérico y una columna pegada (BK-L1, BK-L2), lista de deseos, comparador, búsqueda con sugerencias (receta con `GCombobox`), mini carrito en la cabecera (receta con `GBadge` sobre el `GBtn` del carrito y `GbCart03`), pago y pasarela (slot de la aplicación) y mapa de la tienda (`GEmbed`). Nada de eso se documenta como disponible. Los códigos `EC-L1` a `EC-L7` son los de `_comun.md` §37 (EC-L7, las dos columnas, quedó cerrada por `GSplit`, #950); la auditoría de coco reutiliza `EC-L1` a `EC-L3` para otros hallazgos (por eso los dos últimos de la lista llevan «de la auditoría»).
 
 ## Reglas de bloque estructural
 

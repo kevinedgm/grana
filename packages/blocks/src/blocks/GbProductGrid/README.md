@@ -286,7 +286,7 @@ Prefijo `[Grana GbProductGrid<NN>]`, una vez por instancia y motivo, solo en des
 
 ## Peso
 
-`dist/ecommerce.js` pesa **49 328 B gzip** con sus trozos compartidos (`medido` con `node packages/blocks/scripts/measure-entry.mjs ecommerce`, 2026-10-26); tope de la entrada **51 200 B** (DECISIONS #932; no se vuelve a subir). Una variante importada sola (`node packages/blocks/scripts/measure-partial.mjs 7168 ecommerce GbCheckout=9728 +cartTotals=2048`): `GbProductGrid01` 6 471 B, `GbProductGrid02` 6 671 B, `GbProductGrid03` 6 472 B (la mayor de las candidatas); tope por variante **7 168 B** (#932). `@grana/vue` y sus entradas son *peer*: las paga la aplicación.
+`dist/ecommerce.js` pesa **49 557 B gzip** con sus trozos compartidos (`medido` con `node packages/blocks/scripts/measure-entry.mjs ecommerce`, 2026-10-28); tope de la entrada **51 200 B** (DECISIONS #932; no se vuelve a subir). Una variante importada sola (`node packages/blocks/scripts/measure-partial.mjs 7168 ecommerce GbCheckout=9728 +cartTotals=2048`): `GbProductGrid01` 6 480 B, `GbProductGrid02` 6 678 B, `GbProductGrid03` 6 480 B (la mayor de las candidatas); tope por variante **7 168 B** (#932). `@grana/vue` y sus entradas son *peer*: las paga la aplicación.
 
 ## Alcance
 

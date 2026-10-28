@@ -141,7 +141,24 @@ const hablado = (iso) => tarifa(iso) ? formatPrice(tarifa(iso), { locale: 'es-MX
 </template>
 ```
 
-**Límite medido (auditoría de coco, hallazgo P-A3):** a 320 px la celda mide 38 px; un precio de cuatro cifras cabe y uno de cinco («12,400») desborda en los tres motores. Para importes así, no pongas el precio en el día. La notación compacta está reservada (DECISIONS #778 y #801).
+### Cuando el dato no cabe en la celda: la lectura del día (AV-C1)
+
+El dato del día **sale de la celda, nunca de la información** (DECISIONS #952 y #956). El componente mide si el contenido del slot `day` cabe en **alguna** celda de los meses pintados; si no cabe en una, **no se pinta en ninguna** (todo o nada: un mes con precio en unos días y en otros no se leería como «sin precio») y aparece bajo la cuadrícula una **lectura del día** con el dato del día activo. No hay prop ni aviso nuevo: la aplicación no elige el modo.
+
+| Qué | Cómo queda |
+| --- | --- |
+| Cuándo | Con el texto al 200 % (un precio de cuatro cifras mide ~58 px en una columna de 32 a 46 px), o a 320 px con cinco cifras («12,400», el límite que antes era solo un aviso, #801). Con el texto al 100 % y cuatro cifras, el precio sigue en la celda (29 px en 32) |
+| Celda | `is-day-content-hidden` en la raíz: el contenido pasa a `visibility: hidden` en **todas** las celdas (sigue ocupando su sitio), así que la celda **no cambia de medida** (Δ 0) y la decisión es la misma tras cualquier secuencia de tamaños y escalas de texto (100 → 200 → 100 %, 320 → 1440 → 320), sin histéresis |
+| Lectura | `g-datepicker__day-readout`, una línea bajo la cuadrícula (una sola con dos meses): la **fecha corta** del día activo («vie 13») y el **mismo slot `day`** renderizado para ese día, con el mismo alcance. Cuerpo `body-sm`, alto constante, dentro de la caja a 320 con el texto al 200 % |
+| Día activo | El día bajo el puntero mientras lo hay; si no, el día con la parada de Tab (el enfocado, el elegido o hoy). Cambia al moverte con las flechas o con el puntero; nada más se mueve |
+| Lector de pantalla | La lectura es `aria-hidden`: el **precio sigue en el nombre accesible** del día (`dayDescription`, sin cambio), así que nada se anuncia dos veces |
+| Qué no se mide | Los hijos de 1 px o menos (texto oculto para lectores) |
+
+**Límite aceptado en táctil.** Sin puntero que pase por encima, el día activo es el **elegido**: tocar un día lo elige (reversible) y la lectura enseña su dato. Quien toca no puede mirar el precio de un día sin elegirlo mientras el contenido esté oculto de las celdas; en ese caso, la aplicación puede mostrar el dato en otro lugar (Availability 03 lleva el total en su tarjeta).
+
+**Descartado** (para que no se reabra): una columna que crece con el texto (7 × ~60 px no cabe a 320), dejar solo el nombre accesible (quien ve con el texto al 200 % se quedaría sin ningún precio visible, 1.4.4), la notación compacta («1,9 mil» es más largo que «1,850» y redondea el precio) y partir el precio en dos líneas.
+
+**Peso:** +482 B gzip en `grana.js` (de 222 191 B; compuerta propia de 512 B fuera de #506, `medido` por bruno, 2026-10-28).
 
 ## Noches y salida (`disabledNights`, `minNights`, `maxNights`)
 
@@ -224,6 +241,7 @@ Si el día con foco sale de los meses visibles, se desplazan los meses. En táct
 - **Objetivos táctiles:** día de `--g-space-1 × 10` (40px por defecto) y **44px** con `pointer: coarse`; chips, acciones y botones de mes de 44px en táctil.
 - **Contraste** (auditoría): con el tema por defecto, texto de día 17.4:1, atenuado y tachado 5.10:1, bordes del campo y de los chips 3.45:1; con un tema distinto (espacio 5, foco de 3px), 6.18:1 o más en el texto atenuado. **Con `forced-colors`** la franja pasa a un borde superior e inferior y la selección conserva su borde.
 - **Contorno del día elegido** (DECISIONS #431 y #432): el día elegido conserva su relleno y gana un trazo interior de `--g-border-width` en `--g-color-{color}-text` (el componente gana la variable interna `--_text`). El día **elegido y hoy** conserva su aro `on-{color}` de dos trazos, que es la señal de hoy. Sin cambio visible con el tema por defecto. Medido (medido por coco, [`design/lab/contraste-marcado/estilo.md`](../../../../../design/lab/contraste-marcado/estilo.md), tres motores) en el tema por defecto, lustre, spotify y uno con clave `primary` propia, claro y oscuro, con `brand`, `accent` y `warning`: día elegido **4.07:1 o más** sobre la franja `-soft` y elegido y hoy **4.53:1 o más**. La franja de rango no cambia: ya se distingue por sus filos `border-control` (3.19:1 o más).
+- **Dato del día que no cabe (AV-C1):** con el texto al 200 % o con importes largos, el dato sale de las celdas y se lee bajo la cuadrícula; el nombre del día conserva el precio y la lectura es `aria-hidden` (nada se anuncia dos veces). Ningún contenido visible fuera de su celda: 0 solapes (`medido`, `lectura-verificar.mjs` 654/654 en los tres motores).
 - **Movimiento:** solo transiciones de color y la aparición del popover; con `prefers-reduced-motion` no hay transiciones.
 - **RTL:** las propiedades son lógicas; en la auditoría se invirtieron columnas, chevrones y franja, y las flechas siguen la dirección.
 
@@ -251,6 +269,8 @@ Las emite el componente y las estiliza `GDatePicker.css`: `g-datepicker` (con `-
 
 - **La franja del rango lleva bordes superior e inferior en `--g-color-border-control`** (DECISIONS #89, `GDatePicker.css`): su relleno suave solo medía 1,14:1 frente a la superficie con el tema por defecto (1,22:1 con el de la auditoría) y, como elemento gráfico, debe llegar a 3:1. Lo que identifica el rango sigue siendo el inicio y el fin (círculos de alto contraste), el nombre de cada día y el resumen.
 
+- **El dato del día no se pinta en la celda si no cabe** (todo o nada, abajo en «Precio y otros datos del día»): sigue en el nombre accesible y en la lectura del día. La notación compacta sigue reservada (#778, #801).
+
 - **Sin textos por defecto:** sin `labels.prev` y `labels.next`, los botones de mes no tienen nombre; sin `labels.dialog`, el popover tampoco.
 
 - **No atrapa el foco:** Tab hacia fuera cierra el popover. En la hoja móvil el fondo lo cubre y el clic fuera cierra.
@@ -267,7 +287,9 @@ Las emite el componente y las estiliza `GDatePicker.css`: `g-datepicker` (con `-
 
 - **Contención en línea (#563 cerrado por #686) y altura vacío (cerrados 2026-10-18, coco):** la raíz lleva `contain: inline-size` y `contain-intrinsic-inline-size: space × 60` (`× 100` con `split`; `contain: none` en `GFormRow` y en `--inline`): en un padre que se ajusta al contenido mide 240 px (400 con `split`) en vez de ~200 (`design/lab/contencion/verificar.mjs` 336/336 en los tres motores). Vacío con el texto al 200 % mide 42 px como `GInput` (antes 37; `.g-datepicker__value` con `min-block-size: var(--_lh)`; `design/lab/datepicker/altura-verificar.mjs` 186/186 en los tres motores).
 
-- **Noches y salida (#739):** `GDatePicker.test.js` **98 de 98** en verde al documentar (ejecutadas de nuevo; `prueba`). En el calendario real, el día «solo salida» que además es el fin elegido llevaba `text-muted` sobre el relleno de la selección (hallazgo B-A1 de [`design/lab/booking-bar/auditoria.md`](../../../../../design/lab/booking-bar/auditoria.md)); coco lo corrigió en `GDatePicker.css` y lo midió ≥ 4,5:1, elegido y sin elegir, con tres temas en Chromium y con el tema por defecto en los tres motores, claro y oscuro. El raíz con `trigger` (`g-datepicker--trigger`) se midió dentro de la frase de la consulta. `medido` (informe de coco, 2026-10-21).
+- **Noches y salida (#739):** `GDatePicker.test.js` **98 de 98** en verde al documentar ese lote (`prueba`; el archivo suma hoy 111, con la lectura del día). En el calendario real, el día «solo salida» que además es el fin elegido llevaba `text-muted` sobre el relleno de la selección (hallazgo B-A1 de [`design/lab/booking-bar/auditoria.md`](../../../../../design/lab/booking-bar/auditoria.md)); coco lo corrigió en `GDatePicker.css` y lo midió ≥ 4,5:1, elegido y sin elegir, con tres temas en Chromium y con el tema por defecto en los tres motores, claro y oscuro. El raíz con `trigger` (`g-datepicker--trigger`) se midió dentro de la frase de la consulta. `medido` (informe de coco, 2026-10-21).
+
+- **Lectura del día (AV-C1, #952 y #956):** `GDatePicker.test.js` **111 de 111** (`prueba`, ejecutada el 2026-10-28; la lectura solo con el slot `day`, `aria-hidden`, día activo por puntero o `tabbable`, la clase por la medida simulada y una sola medida por cuadro con un padre que re-renderiza). `node design/lab/datepicker/lectura-verificar.mjs` sobre el componente real en `lectura-banco.html`: **654/654** en Chromium, Firefox y WebKit (320 y 1440, texto al 100 y 200 %, claro y oscuro, uno y dos meses, cuerpo de 17 px incluido; `medido`, coco). `datepicker-lectura.spec.mjs` **48/48** en los tres motores con `--workers=1` (con carga en paralelo se pasó el tiempo de espera en Firefox y WebKit). Booking **6516/6516** (`design/lab/blocks/booking/auditoria.md`, addendum del 2026-10-28). **No verificado:** lector de pantalla real con la lectura (es `aria-hidden` y el precio está en el nombre del día) y teléfono real.
 
 - **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
