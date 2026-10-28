@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dos columnas · r01</title>
+<!-- Prototipo de kiwi · GSplit r01 (nombre de trabajo). Tokens reales del tema por defecto (packages/vue/dist/grana.css); la
+     regla propuesta en ./sp.css (no es el CSS del componente). Dos vistas:
+       ?vista=bloques&b=po|cart|checkout|availability|booking[&w=1440|1024|768|390|320][&zoom=2]
+         antes / después sobre los bloques REALES del banco de bruno (iframes del mismo origen; sp.js pone el GSplit donde
+         iría y mueve dentro los dos envoltorios). booking = Booking summary 03, que NO es un caso de GSplit (solo «antes»).
+       ?vista=casos (por defecto): casos límite (proporciones, umbral exacto, caja y no visor, anidado, RTL, una región,
+         separación y densidad, alineación, palabra larga, contenido rígido, foco, experimento de sticky)
+     Servir desde la RAÍZ del repo (los bancos usan rutas /packages/…): python3 -m http.server 4218 →
+     /design/lab/split/r01/index.html, o con verificar.mjs (puerto 4218). -->
+<link rel="stylesheet" href="/packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="/packages/vue/dist/grana.css">
+<link rel="stylesheet" href="./sp.css">
+<script src="../../lucide-icons.js"></script>
+<script src="./sp.js"></script>
+<style>
+  /* Andamio del laboratorio (no es de Grana) */
+  body { margin: 0; background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui); font-size: var(--g-text-body-size); line-height: var(--g-text-body-line); }
+  .lab-bar { display: flex; flex-wrap: wrap; gap: var(--g-space-2); align-items: center; padding: var(--g-space-3) var(--g-space-4); border-block-end: var(--g-border-width) solid var(--g-color-border); }
+  .lab-bar strong { margin-inline-end: var(--g-space-2); font-size: var(--g-text-body-sm-size); display: inline-flex; gap: var(--g-space-1); align-items: center; }
+  .lab-bar a { font-size: var(--g-text-body-sm-size); color: var(--g-color-accent-text); }
+  .lab-bar a[aria-current] { font-weight: 600; color: var(--g-color-text); text-decoration: none; }
+  .lab-pair { display: grid; gap: var(--g-space-4); padding: var(--g-space-4); }
+  .lab-pair h2, .lab-case h2 { margin: 0 0 var(--g-space-2); font-size: var(--g-text-body-sm-size); color: var(--g-color-text-muted); font-weight: 600; }
+  .lab-pair iframe { display: block; max-inline-size: 100%; block-size: 1100px; border: var(--g-border-width) solid var(--g-color-border); border-radius: var(--g-radius-md); background: var(--g-color-bg); }
+  .lab-note { margin: 0 var(--g-space-4); font-size: var(--g-text-body-sm-size); color: var(--g-color-text-muted); max-inline-size: 72ch; }
+  .lab-cases { display: grid; gap: var(--g-space-8); padding: var(--g-space-6) var(--g-space-4); max-inline-size: 1280px; margin-inline: auto; }
+  .lab-case { min-inline-size: 0; }
+  .lab-icon svg { inline-size: 1em; block-size: 1em; vertical-align: -0.125em; }
+  /* Las regiones se ven: contorno discontinuo (andamio) */
+  .lab-box { outline: 1px dashed var(--g-color-border-strong); }
+  .lab-r { background: var(--g-color-surface-sunken); padding: var(--g-space-3); border-radius: var(--g-radius-md); }
+  .lab-r p { margin: 0 0 var(--g-space-2); }
+  .lab-tall { block-size: 1600px; }
+  .lab-rigid { inline-size: 520px; block-size: var(--g-space-8); background: var(--g-color-accent-soft); }
+  .lab-tag { font-size: var(--g-text-caption-size); color: var(--g-color-text-subtle); }
+</style>
+</head>
+<body>
+<nav class="lab-bar" aria-label="Laboratorio">
+  <strong><span class="lab-icon" data-icon="split"></span> GSplit r01</strong>
+  <a href="?vista=casos" data-v="casos">Casos límite</a>
+  <a href="?vista=bloques&amp;b=po" data-b="po">Product overview 01</a>
+  <a href="?vista=bloques&amp;b=cart" data-b="cart">Cart 01</a>
+  <a href="?vista=bloques&amp;b=checkout" data-b="checkout">Checkout 03</a>
+  <a href="?vista=bloques&amp;b=availability" data-b="availability">Availability 03</a>
+  <a href="?vista=bloques&amp;b=booking" data-b="booking">Booking summary 03</a>
+</nav>
+
+<main id="main">
+  <!-- Vista «bloques»: antes / después -->
+  <div class="lab-pair" id="pair" hidden>
+    <section aria-labelledby="h-antes"><h2 id="h-antes">Antes (bloque real: GAdaptiveLayout o GStack, una columna)</h2><iframe id="antes" title="Antes"></iframe></section>
+    <section aria-labelledby="h-desp" id="s-desp"><h2 id="h-desp">Después (GSplit donde iría)</h2><iframe id="despues" title="Después"></iframe></section>
+  </div>
+  <p class="lab-note" id="note-booking" hidden>Booking summary 03 es una línea de tres piezas (resumen, total y acción) que se parte en dos a 768 (#906). Es reparto en líneas por tamaño: lo hace GAdaptiveLayout y ya es <code>candidate</code>. No es un caso de GSplit (declaracion.md, punto 21).</p>
+
+  <!-- Vista «casos» -->
+  <div class="lab-cases" id="cases" hidden>
+    <section class="lab-case" aria-labelledby="k1h"><h2 id="k1h">K1 · Proporciones (caja 1000 px, gap md, collapse md)</h2>
+      <div id="k1" style="inline-size: 1000px; max-inline-size: 100%" class="lab-box">
+        <div class="sp sp--ratio-1-1" data-ratio="1:1"><div class="sp__region sp__region--start lab-r">1</div><div class="sp__region sp__region--end lab-r">1</div></div>
+        <div class="sp sp--ratio-2-1" data-ratio="2:1"><div class="sp__region sp__region--start lab-r">2</div><div class="sp__region sp__region--end lab-r">1</div></div>
+        <div class="sp sp--ratio-1-2" data-ratio="1:2"><div class="sp__region sp__region--start lab-r">1</div><div class="sp__region sp__region--end lab-r">2</div></div>
+        <div class="sp sp--ratio-3-2" data-ratio="3:2"><div class="sp__region sp__region--start lab-r">3</div><div class="sp__region sp__region--end lab-r">2</div></div>
+        <div class="sp sp--ratio-2-3" data-ratio="2:3"><div class="sp__region sp__region--start lab-r">2</div><div class="sp__region sp__region--end lab-r">3</div></div>
+      </div>
+    </section>
+
+    <section class="lab-case" aria-labelledby="k2h"><h2 id="k2h">K2 · Umbral exacto (2:1 md = 320 × 3 + 24 = 984 px): a 983 apila, a 984 al lado</h2>
+      <div id="k2a" style="inline-size: 983px" class="lab-box"><div class="sp sp--ratio-2-1"><div class="sp__region sp__region--start lab-r">Principal</div><div class="sp__region sp__region--end lab-r">Lateral</div></div></div>
+      <div id="k2b" style="inline-size: 984px" class="lab-box"><div class="sp sp--ratio-2-1"><div class="sp__region sp__region--start lab-r">Principal</div><div class="sp__region sp__region--end lab-r">Lateral</div></div></div>
+    </section>
+
+    <section class="lab-case" aria-labelledby="k3h"><h2 id="k3h">K3 · Mide su caja, no el visor: un cajón de 480 px en una página ancha apila</h2>
+      <div id="k3" style="inline-size: 480px" class="lab-box"><div class="sp sp--ratio-3-2 sp--gap-lg"><div class="sp__region sp__region--start lab-r">Líneas</div><div class="sp__region sp__region--end lab-r">Resumen</div></div></div>
+    </section>
+
+    <section class="lab-case" aria-labelledby="k4h"><h2 id="k4h">K4 · Anidado: un GSplit 1:1 dentro de la región ancha de un 2:1</h2>
+      <div id="k4" style="inline-size: 1200px; max-inline-size: 100%" class="lab-box">
+        <div class="sp sp--ratio-2-1" id="k4o"><div class="sp__region sp__region--start">
+          <div class="sp sp--ratio-1-1 sp--collapse-sm" id="k4i"><div class="sp__region sp__region--start lab-r">A</div><div class="sp__region sp__region--end lab-r">B</div></div>
+        </div><div class="sp__region sp__region--end lab-r">Lateral</div></div>
+      </div>
+    </section>
+
+    <section class="lab-case" aria-labelledby="k5h"><h2 id="k5h">K5 · RTL: start a la derecha (lógico)</h2>
+      <div id="k5" dir="rtl" lang="ar" style="inline-size: 1000px; max-inline-size: 100%" class="lab-box"><div class="sp sp--ratio-2-1"><div class="sp__region sp__region--start lab-r">البداية</div><div class="sp__region sp__region--end lab-r">النهاية</div></div></div>
+    </section>
+
+    <section class="lab-case" aria-labelledby="k6h"><h2 id="k6h">K6 · Una sola región (la otra vacía no se pinta): ancho completo</h2>
+      <div id="k6" style="inline-size: 1000px; max-inline-size: 100%" class="lab-box"><div class="sp sp--ratio-2-1"><div class="sp__region sp__region--start lab-r">Solo principal</div></div></div>
+    </section>
+
+    <section class="lab-case" aria-labelledby="k7h"><h2 id="k7h">K7 · Separación (none 0 · sm 12 · md 24 · lg 48 · compact md 18), al lado y apilado</h2>
+      <div id="k7" style="inline-size: 1200px; max-inline-size: 100%" class="lab-box">
+        <div class="sp sp--ratio-1-1 sp--collapse-sm sp--gap-none" data-g="0"><div class="sp__region sp__region--start lab-r">a</div><div class="sp__region sp__region--end lab-r">b</div></div>
+        <div class="sp sp--ratio-1-1 sp--collapse-sm sp--gap-sm" data-g="12"><div class="sp__region sp__region--start lab-r">a</div><div class="sp__region sp__region--end lab-r">b</div></div>
+        <div class="sp sp--ratio-1-1 sp--collapse-sm" data-g="24"><div class="sp__region sp__region--start lab-r">a</div><div class="sp__region sp__region--end lab-r">b</div></div>
+        <div class="sp sp--ratio-1-1 sp--collapse-sm sp--gap-lg" data-g="48"><div class="sp__region sp__region--start lab-r">a</div><div class="sp__region sp__region--end lab-r">b</div></div>
+        <div class="sp sp--ratio-1-1 sp--collapse-sm sp--density-compact" data-g="18"><div class="sp__region sp__region--start lab-r">a</div><div class="sp__region sp__region--end lab-r">b</div></div>
+      </div>
+      <div id="k7s" style="inline-size: 400px" class="lab-box">
+        <div class="sp sp--ratio-1-1 sp--gap-lg" data-g="48"><div class="sp__region sp__region--start lab-r">a</div><div class="sp__region sp__region--end lab-r">b</div></div>
+      </div>
+    </section>
+
+    <section class="lab-case" aria-labelledby="k8h"><h2 id="k8h">K8 · Alineación (start · center · stretch)</h2>
+      <div id="k8" style="inline-size: 1000px; max-inline-size: 100%" class="lab-box">
+        <div class="sp sp--ratio-2-1" data-a="start"><div class="sp__region sp__region--start lab-r"><p>Alta</p><p>Alta</p><p>Alta</p><p>Alta</p></div><div class="sp__region sp__region--end lab-r">Baja</div></div>
+        <div class="sp sp--ratio-2-1 sp--align-center" data-a="center"><div class="sp__region sp__region--start lab-r"><p>Alta</p><p>Alta</p><p>Alta</p><p>Alta</p></div><div class="sp__region sp__region--end lab-r">Baja</div></div>
+        <div class="sp sp--ratio-2-1 sp--align-stretch" data-a="stretch"><div class="sp__region sp__region--start lab-r"><p>Alta</p><p>Alta</p><p>Alta</p><p>Alta</p></div><div class="sp__region sp__region--end lab-r">Baja</div></div>
+      </div>
+    </section>
+
+    <section class="lab-case" aria-labelledby="k9h"><h2 id="k9h">K9 · Palabra larga en la región estrecha (fuera de GContainer) y contenido rígido de 520 px (límite)</h2>
+      <div id="k9" style="inline-size: 1000px; max-inline-size: 100%" class="lab-box"><div class="sp sp--ratio-2-1"><div class="sp__region sp__region--start lab-r">Principal</div><div class="sp__region sp__region--end lab-r" id="k9w">https://tienda.example.com/pedidos/confirmacion/0000000000000000000000000000000000000000000000000000</div></div></div>
+      <div id="k9r" style="inline-size: 1000px; max-inline-size: 100%" class="lab-box"><div class="sp sp--ratio-2-1"><div class="sp__region sp__region--start lab-r">Principal</div><div class="sp__region sp__region--end lab-r"><div class="lab-rigid" id="k9rigid"></div></div></div></div>
+    </section>
+
+    <section class="lab-case" aria-labelledby="k10h"><h2 id="k10h">K10 · Orden de lectura y de foco = orden del DOM, al lado y apilado</h2>
+      <div id="k10" style="inline-size: 1000px; max-inline-size: 100%" class="lab-box"><div class="sp sp--ratio-3-2">
+        <div class="sp__region sp__region--start lab-r"><button type="button" class="g-btn g-btn--variant-outline g-btn--color-brand g-btn--size-md" data-o="1"><span class="g-btn__label">Uno</span></button> <button type="button" class="g-btn g-btn--variant-outline g-btn--color-brand g-btn--size-md" data-o="2"><span class="g-btn__label">Dos</span></button></div>
+        <div class="sp__region sp__region--end lab-r"><button type="button" class="g-btn g-btn--variant-solid g-btn--color-brand g-btn--size-md" data-o="3"><span class="g-btn__label">Tres</span></button></div>
+      </div></div>
+    </section>
+
+    <section class="lab-case" aria-labelledby="k11h"><h2 id="k11h">K11 · EXPERIMENTO sticky (reservado): región final más alta que el visor, pegada</h2>
+      <div id="k11" style="inline-size: 1000px; max-inline-size: 100%" class="lab-box"><div class="sp sp--ratio-2-1 sp--lab-sticky">
+        <div class="sp__region sp__region--start lab-r lab-tall"><p>Contenido largo de la región principal.</p></div>
+        <div class="sp__region sp__region--end lab-r" id="k11end"><button type="button" class="g-btn g-btn--variant-outline g-btn--color-brand g-btn--size-md" id="k11first"><span class="g-btn__label">Primero</span></button><div style="block-size: 1100px"></div><button type="button" class="g-btn g-btn--variant-solid g-btn--color-brand g-btn--size-md" id="k11last"><span class="g-btn__label">Pagar</span></button></div>
+      </div></div>
+      <p class="lab-tag">Tras el experimento: <button type="button" id="k11after">Después</button></p>
+    </section>
+  </div>
+</main>
+
+<script>
+  // Iconos solo Lucide (design/lab/lucide-icons.js)
+  for (const el of document.querySelectorAll('[data-icon]')) {
+    const d = window.LUCIDE_ICONS[el.dataset.icon]
+    if (d) el.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`
+  }
+  const q = new URLSearchParams(location.search)
+  const vista = q.get('vista') || 'casos'
+  for (const a of document.querySelectorAll('.lab-bar a')) if ((vista === 'casos' && a.dataset.v) || (vista === 'bloques' && a.dataset.b === q.get('b'))) a.setAttribute('aria-current', 'page')
+  window.__lab = { ready: false }
+  const PAGES = {
+    po: 'ecommerce/product-overview.html?v=01',
+    cart: 'ecommerce/cart.html?v=01',
+    checkout: 'ecommerce/checkout.html?v=03',
+    availability: 'booking/availability.html?v=03',
+    booking: 'booking/booking-summary.html?v=03'
+  }
+  if (vista === 'bloques') {
+    document.getElementById('pair').hidden = false
+    const b = PAGES[q.get('b')] ? q.get('b') : 'cart'
+    const w = Number(q.get('w')) || 1440
+    const src = `/packages/blocks/playground/${PAGES[b]}${q.get('zoom') === '2' ? '&zoom=2' : ''}`
+    const wait = (f) => new Promise((r) => { const t = () => (f.contentDocument && f.contentDocument.documentElement.dataset.ready === '1' ? r() : setTimeout(t, 50)); f.addEventListener('load', t, { once: true }) })
+    const A = document.getElementById('antes'); const D = document.getElementById('despues')
+    for (const f of [A, D]) f.style.inlineSize = `${w}px`
+    A.src = src
+    if (b === 'booking') {
+      document.getElementById('s-desp').hidden = true
+      document.getElementById('note-booking').hidden = false
+      wait(A).then(() => { window.__lab.ready = true })
+    } else {
+      D.src = src
+      Promise.all([wait(A), wait(D)]).then(() => window.GSplitLab.apply(D.contentDocument)).then(() => { window.__lab.ready = true })
+    }
+  } else {
+    document.getElementById('cases').hidden = false
+    window.__lab.ready = true
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+/* Prototipo de kiwi · GSplit r01 (nombre de trabajo). Regla PROPUESTA, no es el CSS del componente (ese es de coco).
+   Nombres de trabajo → propuesta: .sp = .g-split · .sp__region = .g-split__region · .sp--ratio-2-1 = ratio="2:1" …
+   Solo tokens (--g-space-1), sin literales de tema ni respaldos. Sin @container ni @media (no admiten var(), #34, #39) y
+   sin JS: el umbral sale de una fila flexible que se parte. Cada región tiene de base su parte mínima (el lado estrecho a
+   `collapse`, el ancho en proporción); las bases son proporcionales a la proporción, así que el reparto del sobrante la
+   conserva exacta. Si las dos bases más la separación no caben en la caja, la fila se parte: apilado. La decisión depende
+   SOLO de la caja y del texto (nunca del contenido actual: sin histéresis, ver declaracion.md punto 9). */
+@layer grana.components {
+  .sp {
+    /* Separación: el vocabulario de GStack (#719, base de página space × 6; factor 0 · 0,5 · 1 · 2; densidad 1 · 0,875 · 0,75) */
+    --_sp-gf: 1;
+    --_sp-df: 1;
+    --_sp-gap: calc(var(--g-space-1) * 6 * var(--_sp-gf) * var(--_sp-df));
+    /* collapse = el ancho mínimo del lado ESTRECHO: sm 64 · md 80 · lg 96 × space, y nunca menos de 16 · 20 · 24 veces el
+       tamaño del texto de cuerpo (rem): con el texto al 200 % el umbral se dobla y se apila antes. Iguales con el tema por
+       defecto (4 px y 16 px). */
+    --_sp-k: 80;
+    --_sp-narrow: max(calc(var(--g-space-1) * var(--_sp-k)), calc(var(--g-text-body-size) * var(--_sp-k) / 4));
+    /* ratio a:b (orden del DOM: a = start, b = end); por defecto 3:2 (declaracion.md punto 12) */
+    --_sp-a: 3;
+    --_sp-b: 2;
+    /* Parte mínima de cada lado: el estrecho = collapse; el ancho, en proporción */
+    --_sp-unit: calc(var(--_sp-narrow) / min(var(--_sp-a), var(--_sp-b)));
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--_sp-gap);
+    align-items: flex-start;
+  }
+  .sp--gap-none { --_sp-gf: 0; }
+  .sp--gap-sm { --_sp-gf: 0.5; }
+  .sp--gap-lg { --_sp-gf: 2; }
+  .sp--density-comfortable { --_sp-df: 0.875; }
+  .sp--density-compact { --_sp-df: 0.75; }
+  .sp--collapse-sm { --_sp-k: 64; }
+  .sp--collapse-lg { --_sp-k: 96; }
+  .sp--ratio-1-1 { --_sp-a: 1; --_sp-b: 1; }
+  .sp--ratio-2-1 { --_sp-a: 2; --_sp-b: 1; }
+  .sp--ratio-1-2 { --_sp-a: 1; --_sp-b: 2; }
+  .sp--ratio-3-2 { --_sp-a: 3; --_sp-b: 2; }
+  .sp--ratio-2-3 { --_sp-a: 2; --_sp-b: 3; }
+  .sp--align-center { align-items: center; }
+  .sp--align-stretch { align-items: stretch; }
+
+  /* Umbral = unit × (a + b) + gap. Al lado: base proporcional + sobrante en proporción = proporción exacta, con el lado
+     estrecho ≥ collapse. min-inline-size: 0 = SIN suelo de contenido: el min-content de los componentes que se miden a sí
+     mismos (GStepper, GAdaptiveLayout, GFormRow) depende de su ancho actual y un suelo los dejaba atascados (medido:
+     Checkout 03 apilado a 1440 tras pasar por 768). El contenido se adapta a su región (1.4.10). */
+  .sp__region { box-sizing: border-box; min-inline-size: 0; overflow-wrap: break-word; } /* una palabra larga se parte en su región (como la columna de GContainer) */
+  .sp__region--start { flex: var(--_sp-a) 1 calc(var(--_sp-unit) * var(--_sp-a)); }
+  .sp__region--end { flex: var(--_sp-b) 1 calc(var(--_sp-unit) * var(--_sp-b)); }
+  .sp__region:only-child { flex-basis: 100%; }
+
+  /* EXPERIMENTO, NO PROPUESTO (sticky reservado, BK-L1): la región final pegada. Solo end: apilada es la última de la caja
+     y no tiene recorrido, así que se anula sola; start pegada taparía a end al apilar. */
+  .sp--lab-sticky > .sp__region--end { position: sticky; inset-block-start: 0; }
+}
