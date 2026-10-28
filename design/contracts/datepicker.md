@@ -295,6 +295,9 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `is-in-range`, `is-range-start`, `is-range-end`, `is-preview`, `is-cap-start`, `is-cap-end` | Celda `td` (franja) | Según estado; `is-cap-*` = extremo redondeado de la franja (borde de semana o de mes) |
 | `g-datepicker__foot`, `__chips`, `__chip`, `__bar`, `__summary`, `__actions`, `__action`, `__action--primary` | Pie | Con `proximity`, `summary` o acciones |
 | `g-datepicker__sr` | Texto oculto y región `status` | Siempre |
+| `g-datepicker--day-content` | Raíz | Con el slot `day` (#778) |
+| `is-day-content-hidden` | Raíz | Con el slot `day`, cuando su contenido no cabe en alguna celda (#952) |
+| `g-datepicker__day-readout` | Lectura del día bajo la cuadrícula (`aria-hidden`) | Con el slot `day`; visible solo con `is-day-content-hidden` (#952) |
 
 ## Resolución de hallazgos de r01
 
@@ -389,6 +392,26 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 - **La leyenda de la moneda** («Precio por noche en pesos mexicanos») la pone la aplicación fuera del calendario (o un `GPriceScope` alrededor): con `display="none"` el día solo lleva la cifra.
 - **Peso:** en el lote de enmiendas de moneda del principal (`price.md` «Paquete y peso»).
 - **Verificación (bruno):** vitest (el texto entra en el `aria-label` tras los sufijos, cadena vacía y no cadena no añaden nada; la clase solo con el slot) y Playwright (nombre del día con el precio en los tres motores; la celda no cambia de tamaño entre días con y sin precio; sin solapes a 320px).
+
+### Cuando el dato no cabe en la celda: lectura del día (AV-C1; DECISIONS.md #952, 2026-10-28)
+
+**Origen:** AV-C1 de coco (`design/lab/split/auditoria.md`, `design/lab/blocks/booking/auditoria.md`): con el texto al 200 % el precio de cuatro cifras mide ~58 px (caption a 24 px) en una columna de 32 a 46 px y se solapa con los vecinos (18 pares de 26 días, a 320 y a 1440, tres motores y tres temas); al 100 %, ninguno (29 px en 32). Lo mismo pasa a 320 con el texto al 100 % y cinco cifras (#801).
+
+**Regla:** el dato del día **sale de la celda, nunca de la información**. Si el contenido del slot `day` no cabe en **alguna** celda de los meses pintados, no se pinta en **ninguna** (todo o nada: un mes con precios en unos días y en otros no se leería como «sin precio») y aparece una **lectura del día** visible bajo la cuadrícula con el dato del día activo. Tres sitios lo conservan: el nombre del día (`dayDescription`, ya contratado), la lectura visible y lo que la aplicación pinte fuera (la tarjeta de Availability 03 lleva el total, no el precio por día).
+
+1. **Medir (bruno, `GDatePicker.vue`):** con el slot `day` presente (con `inline` o sin él), al cambiar de tamaño (el `ResizeObserver` de la raíz que ya existe para `months="auto"`, extendido a este caso; sin observador nuevo), al cambiar de mes y tras un render que cambie el contenido de los días, en **un solo cuadro** agrupado (`requestAnimationFrame`, como `GCalendar`, #169): para cada hijo del día que no es `__today-dot`, `scrollWidth > clientWidth + 0,5` → no cabe. **Solo lecturas**; se escribe la clase solo si cambia. Ningún render del padre con props en línea mide más de una vez por cuadro (lección de bd888df).
+2. **Determinista, sin histéresis:** al ocultar, el contenido pasa a **`visibility: hidden`** (sigue ocupando su sitio y se puede medir), así que la decisión es la misma tras cualquier secuencia de tamaños y escalas de texto (100 → 200 → 100 %, 320 → 1440 → 320). La celda no cambia de medida entre los dos estados (Δ 0).
+3. **Clase:** la raíz lleva **`is-day-content-hidden`** mientras no cabe. coco: el contenido del día con `visibility: hidden` y la lectura visible; sin la clase, la lectura con `display: none`.
+4. **Lectura del día** (`g-datepicker__day-readout`): un nodo bajo la cuadrícula (uno solo con dos meses, bajo los dos), **`aria-hidden="true"`** (el nombre del día ya lo dice; nada se anuncia dos veces) y siempre en el DOM con el slot `day`. Contiene la **fecha corta** del día activo con el `locale` del componente (`Intl.DateTimeFormat`, `weekday: 'short', day: 'numeric'`; sin `labels` nuevos) y el **mismo slot `day`** renderizado para ese día con el mismo alcance (`{ date, day, selected, inRange, disabled, outside }`). **Día activo:** el día bajo el puntero mientras lo hay; si no, el día con la parada de Tab (`tabbable`: el enfocado, el elegido o hoy). Al moverse con las flechas o con el puntero, la lectura cambia; nada más se mueve. Separación entre fecha y dato con espacio (coco, `gap`), sin caracteres decorativos (#85).
+5. **Forma (coco, `GDatePicker.css`):** una línea con el cuerpo `body-sm` (≥ 12 px, contraste de texto ≥ 4,5:1), alto constante (la lectura no cambia de alto entre días), alineada al inicio de la cuadrícula, dentro de la caja a 320 con el texto al 200 % (S-L11 (a) sigue cerrado). Sin movimiento: el cambio de texto no se anima (rúbrica de movimiento: no aplica). `forced-colors`: texto del sistema.
+6. **Táctil:** sin puntero que pase por encima, el día activo es el elegido: tocar un día lo elige (reversible) y la lectura enseña su dato. Límite aceptado y documentado en el README.
+7. **Sin prop ni aviso nuevos.** La aplicación no elige el modo; `notation: 'compact'` sigue reservado (#801).
+
+**Descartado:** (a) columna que crece con el texto (7 × ~60 px no cabe a 320 y deshace S-L11 (a)); (b) solo ocultar en la celda (quien ve con el texto al 200 % se quedaría sin ningún precio por día visible: el nombre accesible solo llega a quien usa lector, 1.4.4); (c) `compact` con texto ampliado (en español «1,9 mil» es **más** largo que «1,850» y redondea el precio); (d) el precio en dos líneas (partir una cifra se lee mal y tres cifras a 24 px siguen sin caber en 32).
+
+**Peso:** corrección de accesibilidad de un componente existente, compuerta propia **≤ 512 B gzip** (`gzip -9`) de crecimiento de `dist/grana.js` sobre la medida anterior, fuera de #506; si la supera, vuelve a lima.
+
+**Verificación:** vitest (bruno: la lectura solo con el slot `day`, `aria-hidden`, con la fecha corta y el contenido del día activo; día activo = puntero, si no `tabbable`; la clase según la medida simulada; una sola medida por cuadro con un padre que re-renderiza). Playwright (bruno, tres motores; `#sec-datepicker` con precios y Availability 01 y 03): texto al 200 % a 320 y a 1440 → clase puesta, **0 solapes** (ningún contenido visible fuera de su celda), lectura visible con el precio del día activo que cambia con ← → y con el puntero; texto al 100 % a 320 con cuatro cifras → sin clase, precios en la celda, lectura oculta; cinco cifras a 320 al 100 % → clase (cierra el límite #801); secuencias de tamaño y de escala sin histéresis; Δ 0 de la celda entre estados; nombre del día con el precio en los dos estados (`ariaSnapshot`); consola limpia; prueba de rendimiento con props en línea. coco lo audita con un tema distinto (cuerpo 17 px) en los tres motores.
 
 ## Contraste del día elegido (`tokens.md` §7.1; DECISIONS.md #431 y #432)
 

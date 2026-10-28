@@ -1,6 +1,6 @@
 # Contrato · Cart (`GbCart01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #909 a #914, #911 y #921, 2026-10-23; #932, #933, #936, #940) · **Remates #932 a #941 (2026-10-26):** **EC-L7 decidida (2026-10-28, #950):** 01 se recompone con `GSplit` y sigue en `draft` hasta que bruno lo construya y coco lo mida · **Plan:** E7 (§4.2) · **Entrada:** `@grana/blocks/ecommerce` · **Común:** `_comun.md` §1 a §5 y §26 a §38 · **Compone:** `GSection`, `GStack`, `GSplit` (01, #950), `GCard`, `GNumberField`, `GBtn`, `GPrice` + `GPriceScope` (`@grana/vue/price`), `GText` (con `dl`, #863), `GProgress`, `GEmpty`, `GDialog` (03) · **Parte de bruno:** C · **Compleja: coco y bruno en Opus** (cantidad por línea, huella con foco, totales y cajón modal)
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #909 a #914, #911 y #921, 2026-10-23; #932, #933, #936, #940) · **Remates #932 a #941 (2026-10-26):** **EC-L7 decidida (2026-10-28, #950):** 01 recompuesta con `GSplit` (bruno 8710e80, coco b19cd65) y la sección en **`candidate`** (f285c25, #955) · **Plan:** E7 (§4.2) · **Entrada:** `@grana/blocks/ecommerce` · **Común:** `_comun.md` §1 a §5 y §26 a §38 · **Compone:** `GSection`, `GStack`, `GSplit` (01, #950), `GCard`, `GNumberField`, `GBtn`, `GPrice` + `GPriceScope` (`@grana/vue/price`), `GText` (con `dl`, #863), `GProgress`, `GEmpty`, `GDialog` (03) · **Parte de bruno:** C · **Compleja: coco y bruno en Opus** (cantidad por línea, huella con foco, totales y cajón modal)
 
 ## Promesa
 

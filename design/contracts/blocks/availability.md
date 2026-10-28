@@ -1,6 +1,6 @@
 # Contrato · Availability (`GbAvailability01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #860 a #866 y #870, 2026-10-22; 03 en dos columnas con `GSplit`, #950, 2026-10-28: la sección sigue `candidate`; la recomposición de 03 la construye bruno y la mide coco antes de cerrarla) · **Plan:** B4 (§4.3) · **Entrada:** `@grana/blocks/booking` · **Común:** `_comun.md` §1 a §5 y §14 a §25 · **Compone:** `GSection`, `GDatePicker` (`inline`, slot `day`, `dayDescription`; `design/contracts/datepicker.md`), `GPrice` + `GPriceScope` + `formatPrice` (`@grana/vue/price`), `GStack`, `GSplit` (03, #950), `GCard`, `GAdaptiveLayout`, `GSummary`, `GText`, `GBtn`, `describeQuery` · **Parte de bruno:** C · **bruno y coco en Opus** (calendario con precio por día y lectura)
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #860 a #866 y #870, 2026-10-22; 03 en dos columnas con `GSplit`, #950, 2026-10-28: la sección sigue `candidate`; recomposición de 03 construida por bruno, 8710e80, y medida por coco, b19cd65: cerrada, #954; AV-C1, el precio del día con el texto al 200 %, decidido en #952 y pendiente en `GDatePicker`, no reabre la sección) · **Plan:** B4 (§4.3) · **Entrada:** `@grana/blocks/booking` · **Común:** `_comun.md` §1 a §5 y §14 a §25 · **Compone:** `GSection`, `GDatePicker` (`inline`, slot `day`, `dayDescription`; `design/contracts/datepicker.md`), `GPrice` + `GPriceScope` + `formatPrice` (`@grana/vue/price`), `GStack`, `GSplit` (03, #950), `GCard`, `GAdaptiveLayout`, `GSummary`, `GText`, `GBtn`, `describeQuery` · **Parte de bruno:** C · **bruno y coco en Opus** (calendario con precio por día y lectura)
 
 ## Promesa
 
@@ -44,7 +44,7 @@ interface GbAvailabilityProps {
 | `closed` | no elegible (`disabledDates`) | no elegible | `labels.status.closed` |
 | (sin dato) | elegible según `min`/`max` | elegible | nada |
 
-- **El slot `day`** de `GDatePicker` pinta, bajo el número, `GPrice size="xs" display="none" cents="never"` del `price` del día (la forma «día con contenido» de coco, `datepicker.md`) y, en `few`/`full`/`closed`, nada más en la celda (el estado lo da la forma de `GDatePicker` y el texto oído; el precio de un día lleno no se pinta). **Límite #801:** cinco cifras no caben a 320 px: con precios de cinco cifras, la aplicación no da `price` por día (se pinta sin precio) o usa 02.
+- **El slot `day`** de `GDatePicker` pinta, bajo el número, `GPrice size="xs" display="none" cents="never"` del `price` del día (la forma «día con contenido» de coco, `datepicker.md`) y, en `few`/`full`/`closed`, nada más en la celda (el estado lo da la forma de `GDatePicker` y el texto oído; el precio de un día lleno no se pinta). **Límite #801:** cinco cifras no caben a 320 px: con precios de cinco cifras, la aplicación no da `price` por día (se pinta sin precio) o usa 02. **AV-C1 (#952):** cuando el precio no cabe en alguna celda (cinco cifras a 320, o cuatro con el texto al 200 %, a cualquier ancho), `GDatePicker` no lo pinta en ninguna y lo enseña en su **lectura del día** bajo la cuadrícula, para el día activo; el nombre del día lo sigue diciendo. El bloque no hace nada: lo resuelve el componente (`datepicker.md`).
 - **`dayDescription(iso)`** devuelve el texto de la tabla, unido por «, »: «viernes, 13 de noviembre de 2026, quedan pocas, 1,850 pesos mexicanos». El bloque no repite lo que `GDatePicker` ya dice (hoy, seleccionado, no disponible).
 - La región: con `prices`, el calendario va dentro de un `GPriceScope` (la leyenda dice la moneda; las celdas, solo cifras).
 
@@ -84,7 +84,7 @@ interface GbAvailabilityProps {
 
 ## Avisos propios (`[Grana GbAvailability<NN>]`)
 
-C3 (fecha repetida en `days`), C7, K1 a K3. Además: **V1** · un día con `status` fuera de lista (cuenta como sin dato), **V2** · `minNights`/`maxNights` con `kind` distinto de `stay`, **V3** · un precio de día con cinco cifras o más en 01 o 03 (#801: se pinta y puede desbordar a 320; una vez), **V4** · 02 sin ninguna fecha abierta en lo que conoce (no se pinta la lista; la aplicación decide el mensaje, p. ej. con `GEmpty` en el slot `empty`).
+C3 (fecha repetida en `days`), C7, K1 a K3. Además: **V1** · un día con `status` fuera de lista (cuenta como sin dato), **V2** · `minNights`/`maxNights` con `kind` distinto de `stay`, **V3** · un precio de día con cinco cifras o más en 01 o 03 (#801; desde #952 no desborda: a 320 los precios pasan a la lectura del día; el aviso sigue para que la aplicación lo sepa; una vez), **V4** · 02 sin ninguna fecha abierta en lo que conoce (no se pinta la lista; la aplicación decide el mensaje, p. ej. con `GEmpty` en el slot `empty`).
 
 ## Banco (`availability.bank.js`)
 
