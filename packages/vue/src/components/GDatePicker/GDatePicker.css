@@ -342,7 +342,7 @@
 }
 .g-datepicker__month {
   flex: 1 1 0;
-  min-inline-size: calc(var(--_cell) * 7);
+  min-inline-size: min(calc(var(--_cell) * 7), 100%);
   max-inline-size: calc(var(--_cell) * 8.5);
 }
 

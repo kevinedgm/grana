@@ -1,0 +1,67 @@
+@layer grana.defaults, grana.components, grana.blocks, grana.utilities;
+
+/*
+  GSplit · dos regiones con proporción que se apilan por su caja
+  Dueño: coco. Contrato: design/contracts/split.md (DECISIONS.md #946 a #951). Regla medida: design/lab/split/r01/sp.css
+  (kiwi, 1272/1272 en tres motores). Estética y verificación: design/lab/split/estilo.md.
+  Solo var(--g-*) y alias --_*; sin respaldos ni literales de tema. Sin @container ni @media (no admiten var(), #34, #39),
+  sin contención y sin JS: una fila flexible que se parte. Las bases de las regiones son proporcionales a `ratio`, así que
+  el reparto del sobrante conserva la proporción exacta; si las dos bases más la separación no caben, se apilan.
+  La decisión depende solo de la caja y del texto, nunca del contenido actual (sin histéresis, regla 6).
+  Todo en lógico: RTL sin código. Sin movimiento: pasar de dos columnas a una no es un suceso del usuario (regla 8).
+*/
+@layer grana.components {
+  .g-split {
+    /* Separación: el vocabulario de GStack (#719): base de página space × 6; factor 0 · 0,5 · 1 · 2; densidad 1 · 0,875 · 0,75 */
+    --_gf: 1;
+    --_df: 1;
+    --_gap: calc(var(--g-space-1) * 6 * var(--_gf) * var(--_df));
+    /* collapse = ancho mínimo del lado estrecho: max(space × 64 · 80 · 96, cuerpo × 16 · 20 · 24); con el texto al 200 %
+       el término de texto se dobla y la pareja se apila antes (regla 4) */
+    --_k: 80;
+    --_narrow: max(calc(var(--g-space-1) * var(--_k)), calc(var(--g-text-body-size) * var(--_k) / 4));
+    /* ratio a:b en el orden del DOM (a = start, b = end) */
+    --_a: 3;
+    --_b: 2;
+    /* parte mínima de cada lado: el estrecho = collapse; el ancho, en proporción */
+    --_unit: calc(var(--_narrow) / min(var(--_a), var(--_b)));
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--_gap);
+    align-items: flex-start;
+  }
+
+  .g-split--gap-none { --_gf: 0; }
+  .g-split--gap-sm { --_gf: 0.5; }
+  .g-split--gap-lg { --_gf: 2; }
+
+  .g-split--density-comfortable { --_df: 0.875; }
+  .g-split--density-compact { --_df: 0.75; }
+
+  .g-split--collapse-sm { --_k: 64; }
+  .g-split--collapse-lg { --_k: 96; }
+
+  .g-split--ratio-1-1 { --_a: 1; --_b: 1; }
+  .g-split--ratio-2-1 { --_a: 2; --_b: 1; }
+  .g-split--ratio-1-2 { --_a: 1; --_b: 2; }
+  .g-split--ratio-3-2 { --_a: 3; --_b: 2; }
+  .g-split--ratio-2-3 { --_a: 2; --_b: 3; }
+
+  .g-split--align-stretch { align-items: stretch; }
+
+  /* Umbral = unit × (a + b) + gap. min-inline-size: 0 = SIN suelo de contenido (regla 6): el min-content de los
+     componentes que se miden a sí mismos depende de su disposición actual y un suelo los dejaba atascados. Una palabra
+     larga se parte en su región. */
+  .g-split__region {
+    box-sizing: border-box;
+    min-inline-size: 0;
+    overflow-wrap: break-word;
+  }
+  .g-split__region--start { flex: var(--_a) 1 calc(var(--_unit) * var(--_a)); }
+  .g-split__region--end { flex: var(--_b) 1 calc(var(--_unit) * var(--_b)); }
+  /* Una región sola ocupa todo el ancho (regla 1, K6) */
+  .g-split__region:only-child { flex-basis: 100%; }
+}
+
+/* ---------- Colores forzados ----------
+   Nada que perder: el componente no pinta (fondo, borde, foco ni texto). */

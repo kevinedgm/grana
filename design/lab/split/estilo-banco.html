@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GSplit · banco de estilo</title>
+<!-- coco · banco de GSplit.css (CSS real). Servir desde la raíz del repo: python3 -m http.server 4173 → /design/lab/split/estilo-banco.html
+     Redimensiona la ventana: cada pareja decide por su caja (no por la ventana). Etiquetas con tokens, sin literales de tema. -->
+<link rel="stylesheet" href="/packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="/packages/vue/dist/grana.css">
+<link rel="stylesheet" href="/packages/vue/src/components/GSplit/GSplit.css">
+<style>
+  body { margin: 0; padding: var(--g-space-6); font-family: var(--g-font-ui); background: var(--g-color-surface); color: var(--g-color-text); }
+  h2 { font-size: var(--g-text-body-size); margin: var(--g-space-8) 0 var(--g-space-2); }
+  .box { border: var(--g-border-width) dashed var(--g-color-border); padding: var(--g-space-2); resize: horizontal; overflow: auto; }
+  .r { background: var(--g-color-surface-sunken); border: var(--g-border-width) solid var(--g-color-border); padding: var(--g-space-3); }
+</style>
+</head>
+<body>
+<h1>GSplit · CSS real</h1>
+<p>Arrastra la esquina de cada caja punteada: la pareja se apila cuando el lado estrecho no llega a su mínimo.</p>
+
+<h2>3:2 · collapse md · gap lg (Cart, Checkout)</h2>
+<div class="box"><div class="g-split g-split--ratio-3-2 g-split--collapse-md g-split--gap-lg"><div class="g-split__region g-split__region--start r">Líneas (3)</div><div class="g-split__region g-split__region--end r">Resumen (2)</div></div></div>
+
+<h2>1:1 · collapse lg · gap lg (Product overview)</h2>
+<div class="box"><div class="g-split g-split--ratio-1-1 g-split--collapse-lg g-split--gap-lg"><div class="g-split__region g-split__region--start r">Galería</div><div class="g-split__region g-split__region--end r">Panel</div></div></div>
+
+<h2>2:1 · collapse md · gap lg (Availability)</h2>
+<div class="box"><div class="g-split g-split--ratio-2-1 g-split--collapse-md g-split--gap-lg"><div class="g-split__region g-split__region--start r">Calendario</div><div class="g-split__region g-split__region--end r">Tarjeta</div></div></div>
+
+<h2>align stretch · densidad compact · gap sm</h2>
+<div class="box"><div class="g-split g-split--ratio-1-1 g-split--collapse-sm g-split--gap-sm g-split--density-compact g-split--align-stretch"><div class="g-split__region g-split__region--start r">Alta<br>Alta<br>Alta</div><div class="g-split__region g-split__region--end r">Baja</div></div></div>
+
+<h2>Una región sola: todo el ancho</h2>
+<div class="box"><div class="g-split g-split--ratio-2-1"><div class="g-split__region g-split__region--start r">Solo principal</div></div></div>
+
+<h2>RTL</h2>
+<div class="box" dir="rtl" lang="ar"><div class="g-split g-split--ratio-2-1 g-split--collapse-sm"><div class="g-split__region g-split__region--start r">البداية</div><div class="g-split__region g-split__region--end r">النهاية</div></div></div>
+</body>
+</html>

@@ -172,11 +172,11 @@
    La prosa de la columna (a cualquier profundidad) se queda en 66ch de la fuente de la columna, alineada al inicio; lo
    demás usa la columna entera. Fuera de la medida: lo de dentro de un componente de Grana, de una tabla y de lo marcado
    con g-wide (límites del ámbito: el propio elemento y lo de dentro). Las primitivas de página que solo envuelven la prosa
-   de la aplicación (GStack, GSection y su cuerpo, una banda g-bleed, GText #855) NO cortan la medida. Especificidad 0 (@scope sin
+   de la aplicación (GStack, GSection y su cuerpo, una banda g-bleed, GText #855, GSplit y sus regiones #950) NO cortan la medida. Especificidad 0 (@scope sin
    :scope ni &): la aplicación siempre gana. */
 @scope (.g-container--prose > .g-container__body) to (
-  [class^="g-"]:not(.g-stack, .g-section, .g-section__body, .g-bleed, .g-bleed-raw, .g-text),
-  [class*=" g-"]:not(.g-stack, .g-section, .g-section__body, .g-bleed, .g-bleed-raw, .g-text),
+  [class^="g-"]:not(.g-stack, .g-section, .g-section__body, .g-bleed, .g-bleed-raw, .g-text, .g-split, .g-split__region),
+  [class*=" g-"]:not(.g-stack, .g-section, .g-section__body, .g-bleed, .g-bleed-raw, .g-text, .g-split, .g-split__region),
   table,
   .g-wide
 ) {
