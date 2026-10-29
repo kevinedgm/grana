@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Densidad · banco de auditoría</title>
+<!-- Banco de la auditoría posterior de coco (pieza 2, density.md §10). Componentes REALES de packages/vue/dist/, sin shim.
+     Servir desde la raíz del repo: python3 -m http.server 4209 -d /home/user/grana
+     Parámetros (antes del primer pintado): ?html=default|comfortable|compact (atributo en <html>) · ?cli=compact|comfortable
+     (las dos reglas de density.md §6, sin capa, tras grana.css) · ?cli2=… (un segundo tema cargado después) · ?dark=1
+     · ?only=kits,b,forms,dialog,menus,tabs,card,toast,perf (secciones; por defecto todas menos perf) · ?rows=500 (tabla de perf)
+     Verificación: node design/lab/density/auditoria-verificar.mjs (ver su cabecera). -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<script>
+  (function () {
+    const q = new URLSearchParams(location.search)
+    const html = q.get('html')
+    if (html) document.documentElement.setAttribute('data-g-density', html)
+    if (q.get('dark') === '1') document.documentElement.setAttribute('data-theme', 'dark')
+    const step = { compact: 0.75, comfortable: 0.875, default: 1 }
+    // Forma exacta de la salida del CLI (density.md §6): sin capa, cede ante <html data-g-density> y ante el dedo
+    for (const k of ['cli', 'cli2']) {
+      const v = q.get(k)
+      if (!step[v]) continue
+      const s = document.createElement('style')
+      s.id = k
+      s.textContent = `:root:where(:not([data-g-density])) { --g-density: ${step[v]}; }\n@media (pointer: coarse) {\n  :root:where(:not([data-g-density])) { --g-density: 1; }\n}`
+      document.head.appendChild(s)
+    }
+  })()
+</script>
+<style>
+  /* Maquetación del banco (no es CSS de componente) */
+  body { margin: 0; background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui);
+    font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); }
+  .db-page { max-inline-size: 1280px; margin-inline: auto; padding: var(--g-space-6) var(--g-space-4) var(--g-space-16); display: grid; gap: var(--g-space-8); }
+  .db-sec { display: grid; gap: var(--g-space-3); }
+  .db-sec > h2 { font-size: var(--g-text-title-sm-size); line-height: var(--g-text-title-sm-line); margin: 0; }
+  .db-sec > p { margin: 0; color: var(--g-color-text-muted); max-inline-size: 80ch; }
+  .db-region { border: var(--g-border-width) dashed var(--g-color-border-strong); border-radius: var(--g-radius-lg); padding: var(--g-space-4); display: grid; gap: var(--g-space-4); min-inline-size: 0; }
+  .db-cap { color: var(--g-color-text-muted); font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); }
+  .db-kits { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: var(--g-space-6); align-items: start; }
+  .db-kit { display: grid; gap: var(--g-space-3); min-inline-size: 0; }
+  .db-row { display: flex; flex-wrap: wrap; gap: var(--g-space-2); align-items: flex-end; }
+</style>
+<script src="../lucide-icons.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../../packages/vue/dist/slider.umd.js"></script>
+<script src="../../../packages/vue/dist/combobox.umd.js"></script>
+<script src="../../../packages/vue/dist/time-field.umd.js"></script>
+<script src="../../../packages/vue/dist/form-fold.umd.js"></script>
+<script src="../../../packages/vue/dist/status.umd.js"></script>
+<script>
+(function () {
+  const q = new URLSearchParams(location.search)
+  const only = (q.get('only') || 'kits,b,forms,dialog,menus,tabs,card,toast').split(',')
+  const rows = Number(q.get('rows') || 0)
+  const { createApp, ref, reactive } = Vue
+
+  const dpLabels = { prev: 'Mes anterior', next: 'Mes siguiente', dialog: 'Elegir fecha', close: 'Cerrar', today: 'hoy', selected: 'seleccionada',
+    rangeStart: 'inicio', rangeEnd: 'fin', rangeSingle: 'inicio y fin', inRange: 'dentro', unavailable: 'no disponible', clear: 'Limpiar', done: 'Listo',
+    proximityGroup: 'Ampliar', announceStart: '{date}', announceEnd: '{start} a {end}', announceDate: '{date}', announceWiden: '{start} a {end}', announceClear: 'Borrada' }
+  const tLabels = { results: '{count} lotes', empty: 'Sin lotes.', loading: 'Cargando lotes…', rowActions: 'Acciones de {title}', actionsHeader: 'Acciones' }
+  const sbLabels = { collapse: 'Contraer', expand: 'Expandir', more: 'Más', moreActive: 'contiene la actual', drawer: 'Navegación', close: 'Cerrar', search: 'Buscar' }
+  const gtLabels = { more: 'Más pestañas', menu: 'Todas las pestañas', loading: '{label}: cargando', loaded: '{label}: listo' }
+  const stpLabels = { complete: 'completado', current: 'paso actual', pending: 'pendiente', error: 'con error', warning: 'con advertencia', disabled: 'bloqueado', optional: 'opcional', progress: 'Paso {current} de {total}', showAll: 'Ver todos', hideAll: 'Ocultar' }
+  const cbLabels = { empty: 'Sin resultados', loading: 'Buscando…', results: '{count} resultados', clear: 'Limpiar', minChars: 'Escribe {count} letras', toggle: 'Mostrar opciones' }
+  const cdLabels = { menu: 'Acciones de', loading: 'Cargando', loaded: 'Cargada', expand: 'Más', collapse: 'Menos', more: 'Más detalles', less: 'Menos detalles', retry: 'Reintentar', empty: 'Vacío' }
+  const lotes = Array.from({ length: Math.max(rows, 3) }, (_, i) => ({ id: 'L-' + (2041 + i), titulo: 'L-' + (2041 + i), sub: 'Espadín · tina ' + ((i % 5) + 1), estado: ['Fermentando', 'Reposo', 'Destilado'][i % 3], litros: String(300 + i) }))
+  const columns = [{ key: 'lote', label: 'Lote', title: 'titulo', subtitle: 'sub' }, { key: 'estado', label: 'Estado' }, { key: 'litros', label: 'Litros', align: 'end' }]
+  const menuItems = [{ id: 'exp', label: 'Exportar' }, { id: 'dup', label: 'Duplicar' }, { id: 'arch', label: 'Archivar' }]
+  const opts = [{ value: 'a', label: 'Espadín' }, { value: 'b', label: 'Tobalá' }, { value: 'c', label: 'Cuishe' }]
+  const ladas = [{ value: '52', label: '+52' }, { value: '1', label: '+1' }]
+  const tabs = [{ id: 'g', label: 'General' }, { id: 'm', label: 'Miembros' }, { id: 'f', label: 'Facturación' }]
+  const steps = [{ id: 'a', label: 'Plan' }, { id: 'b', label: 'Cuenta' }, { id: 'c', label: 'Pago' }]
+  const sbItems = [{ label: 'Principal', items: [{ id: 'home', label: 'Inicio', href: '#home', icon: 'house' }, { id: 'inbox', label: 'Bandeja', href: '#inbox', icon: 'inbox' }] }]
+  const meta = [{ label: 'Lote', value: 'L-2041', priority: 'high' }, { label: 'Tina', value: '3' }, { label: 'Notas', value: 'Sin notas', priority: 'low' }]
+  const icon = (n) => (window.lucide ? window.lucide(n) : '')
+  const base = { dpLabels, tLabels, sbLabels, gtLabels, stpLabels, cbLabels, cdLabels, lotes, columns, menuItems, opts, ladas, tabs, steps, sbItems, meta, icon }
+
+  // Juego de componentes con densidad: el MISMO marcado con prop (d) o sin ella (d = undefined, sigue la región).
+  // La auditoría compara las cajas de todos los descendientes entre juegos (región frente a prop, anidación…)
+  const Kit = {
+    props: { d: String, k: String },
+    setup () {
+      return { ...base, m: reactive({ t: 'Espadín', s: 'a', f: null, n: 'Nota', lada: '52', tel: '951 123 4567', num: 3, h: '09:30', c: true, sw: false, r: 'a', vol: 40, cb: null, tab: 'g', step: 'b', side: 'home' }) }
+    },
+    template: `
+<div class="db-kit" :data-kit="k">
+  <div class="db-row"><g-btn :density="d" data-m="btn">Guardar</g-btn><g-btn :density="d" variant="outline" size="sm">Sm</g-btn><g-btn :density="d" variant="ghost" size="lg">Lg</g-btn></div>
+  <g-input :density="d" label="Nombre" v-model="m.t"></g-input>
+  <g-select :density="d" label="Tipo" v-model="m.s" :options="opts"></g-select>
+  <g-datepicker :density="d" label="Fecha" v-model="m.f" :labels="dpLabels"></g-datepicker>
+  <g-textarea :density="d" label="Nota" :rows="1" v-model="m.n"></g-textarea>
+  <g-input-group :density="d" label="Teléfono">
+    <g-input-group-select v-model="m.lada" part-label="Código de país" :options="ladas"></g-input-group-select>
+    <g-input-group-input v-model="m.tel" principal type="tel"></g-input-group-input>
+  </g-input-group>
+  <g-number-field :density="d" label="Cantidad" v-model="m.num"></g-number-field>
+  <g-time-field :density="d" label="Hora" v-model="m.h" locale="es"></g-time-field>
+  <g-combobox :density="d" label="Agave" v-model="m.cb" :options="opts" :labels="cbLabels"></g-combobox>
+  <g-checkbox :density="d" label="Acepto" v-model="m.c"></g-checkbox>
+  <g-switch :density="d" label="Avisos" v-model="m.sw"></g-switch>
+  <g-radio-group :density="d" label="Modo" :name="'r-' + k" :options="opts" v-model="m.r"></g-radio-group>
+  <g-radio-group :density="d" label="Vista" :name="'s-' + k" appearance="segmented" :options="opts" v-model="m.r"></g-radio-group>
+  <g-slider :density="d" label="Volumen" v-model="m.vol"></g-slider>
+  <g-tabs :density="d" :items="tabs" v-model="m.tab" label="Cuenta" :labels="gtLabels"></g-tabs>
+  <g-stepper :density="d" :steps="steps" v-model="m.step" :labels="stpLabels" aria-label="Pasos"></g-stepper>
+  <g-table :density="d" :columns="columns" :rows="lotes.slice(0, 3)" caption="Lotes" :labels="tLabels" responsive="table"></g-table>
+  <div style="block-size: 160px; display: flex"><g-sidebar :density="d" v-model="m.side" :items="sbItems" label="Secciones" :labels="sbLabels" mode="expanded" contained style="flex:none"></g-sidebar></div>
+  <g-stack :density="d"><g-btn variant="outline">Uno</g-btn><g-btn variant="outline">Dos</g-btn></g-stack>
+  <g-surface :density="d" padding="md"><span>Superficie</span></g-surface>
+  <g-card :density="d" title="Lote L-2041" description="Espadín" :meta="meta" :labels="cdLabels"><template #actions><g-btn variant="outline">Abrir</g-btn></template></g-card>
+  <g-form :density="d"><g-form-layout><g-form-row><g-input label="Calle"></g-input><g-input label="Número"></g-input></g-form-row></g-form-layout><g-form-actions><g-btn type="submit">Enviar</g-btn></g-form-actions></g-form>
+</div>`
+  }
+
+  const App = {
+    components: { Kit },
+    setup () {
+      const ui = reactive({ menu1: false, menu2: false, menu3: false, dlg1: false, dlg2: false, dlg3: false, dlgT: false, sel: 'a', cb: null, rev: true, fold: true })
+      return { ...base, only, rows, ui, menuItems }
+    },
+    template: `
+<main class="db-page">
+  <header class="db-sec"><h2>Densidad · banco de auditoría (coco)</h2><p>Componentes reales de dist/. Cada juego repite el mismo marcado; la verificación compara sus cajas.</p></header>
+
+  <section v-if="only.includes('kits')" class="db-sec" aria-label="Juegos">
+    <div class="db-kits">
+      <div class="db-region" id="r-page"><span class="db-cap">Página (sin región)</span><kit k="page"></kit></div>
+      <div class="db-region" id="r-compact" data-g-density="compact"><span class="db-cap">Región compact</span><kit k="rc"></kit></div>
+      <div class="db-region" id="r-comf" data-g-density="comfortable"><span class="db-cap">Región comfortable</span><kit k="rf"></kit></div>
+      <div class="db-region" id="r-prop-c"><span class="db-cap">Prop compact</span><kit k="pc" d="compact"></kit></div>
+      <div class="db-region" id="r-prop-f"><span class="db-cap">Prop comfortable</span><kit k="pf" d="comfortable"></kit></div>
+      <div class="db-region" id="r-nest1" data-g-density="comfortable"><span class="db-cap">compact dentro de comfortable</span>
+        <div data-g-density="compact"><kit k="n-cf"></kit></div></div>
+      <div class="db-region" id="r-nest2" data-g-density="compact"><span class="db-cap">default dentro de compact</span>
+        <div data-g-density="default"><kit k="n-dc"></kit></div></div>
+      <div class="db-region" id="r-nest3" data-g-density="compact"><span class="db-cap">compact › comfortable › compact</span>
+        <div data-g-density="comfortable"><div data-g-density="compact"><kit k="n-3"></kit></div></div></div>
+      <div class="db-region" id="r-bad" data-g-density="tiny"><span class="db-cap">Valor fuera de contrato (tiny)</span><kit k="bad"></kit></div>
+    </div>
+  </section>
+
+  <section v-if="only.includes('b')" class="db-sec" aria-label="La prop gana y es región">
+    <h2>La prop gana y es región (B)</h2>
+    <div class="db-region" data-g-density="compact" id="b-win">
+      <div class="db-row">
+        <g-btn data-probe="win-region">Región</g-btn>
+        <g-btn density="default" data-probe="win-default">Prop default</g-btn>
+        <g-btn density="compact" data-g-density="comfortable" data-probe="win-attr">Prop gana al atributo</g-btn>
+      </div>
+    </div>
+    <div class="db-region" data-g-density="comfortable"><g-btn density="compact" data-probe="win-compact-in-comf">Prop compact en comfortable</g-btn></div>
+    <div class="db-region" id="b-region">
+      <g-table density="compact" :columns="columns" :rows="lotes.slice(0, 2)" caption="Tabla compacta" :labels="tLabels" responsive="table" data-probe="b-table">
+        <template #toolbar><div class="db-row">
+          <g-btn variant="outline" data-probe="b-table-btn">Filtrar</g-btn>
+          <g-menu v-model="ui.menu2" :items="menuItems" label="Acciones de la tabla"><template #trigger="{ attrs }"><g-btn v-bind="attrs" variant="outline" data-probe="b-table-menu-trigger">Más</g-btn></template></g-menu>
+        </div></template>
+      </g-table>
+      <g-card density="compact" title="Tarjeta compacta" :labels="cdLabels" data-probe="b-card"><template #actions><g-btn variant="outline" data-probe="b-card-btn">Abrir</g-btn></template></g-card>
+      <g-stack density="compact" data-probe="b-stack"><g-btn data-probe="b-stack-btn">Uno</g-btn><g-btn>Dos</g-btn><div data-g-density="compact"><g-btn data-probe="b-stack-inner-region">Región de la aplicación dentro</g-btn></div></g-stack>
+      <g-stack data-probe="b-stack-default"><g-btn>Uno</g-btn><g-btn>Dos</g-btn></g-stack>
+      <g-btn @click="ui.dlgT = true" data-probe="b-dialog-open">Diálogo compacto</g-btn>
+      <g-dialog v-model="ui.dlgT" density="compact" title="Diálogo con prop" close-label="Cerrar" data-probe="b-dialog">
+        <g-input label="Nombre" data-probe="b-dialog-input"></g-input>
+        <template #footer><g-btn @click="ui.dlgT = false">Guardar</g-btn></template>
+      </g-dialog>
+    </div>
+  </section>
+
+  <section v-if="only.includes('menus')" class="db-sec" aria-label="Capa superior">
+    <h2>Capa superior</h2>
+    <div class="db-region" data-g-density="compact" id="tl-region">
+      <div class="db-row">
+        <g-menu v-model="ui.menu1" :items="menuItems" label="Más acciones"><template #trigger="{ attrs }"><g-btn v-bind="attrs" variant="outline" data-probe="tl-menu-trigger">Más</g-btn></template></g-menu>
+        <g-select label="Tipo" v-model="ui.sel" :options="opts" data-probe="tl-select"></g-select>
+        <g-combobox label="Agave" v-model="ui.cb" :options="opts" :labels="cbLabels" data-probe="tl-combobox"></g-combobox>
+      </div>
+    </div>
+    <div class="db-region" id="tl-prop">
+      <div class="db-row">
+        <g-menu v-model="ui.menu3" :items="menuItems" label="Más acciones (prop)" density="compact"><template #trigger="{ attrs }"><g-btn v-bind="attrs" variant="outline" density="compact" data-probe="tl-menu-trigger-prop">Más</g-btn></template></g-menu>
+        <g-select label="Tipo" v-model="ui.sel" :options="opts" density="compact" data-probe="tl-select-prop"></g-select>
+        <g-combobox label="Agave" v-model="ui.cb" :options="opts" :labels="cbLabels" density="compact" data-probe="tl-combobox-prop"></g-combobox>
+      </div>
+    </div>
+  </section>
+
+  <section v-if="only.includes('dialog')" class="db-sec" aria-label="Diálogo heredado">
+    <h2>Diálogo heredado</h2>
+    <div class="db-region" data-g-density="compact" id="dl-region">
+      <div class="db-row">
+        <g-btn @click="ui.dlg1 = true" data-probe="dl-open-inherit">Abrir (hereda)</g-btn>
+        <g-btn @click="ui.dlg2 = true" data-probe="dl-open-default">Abrir (prop default)</g-btn>
+      </div>
+      <g-dialog v-model="ui.dlg1" title="Hereda la región" close-label="Cerrar" data-probe="dl-inherit">
+        <g-input label="Nombre" data-probe="dl-inherit-input"></g-input>
+        <template #footer><g-btn @click="ui.dlg1 = false">Guardar</g-btn></template>
+      </g-dialog>
+      <g-dialog v-model="ui.dlg2" density="default" title="Prop default" close-label="Cerrar" data-probe="dl-default">
+        <g-input label="Nombre" data-probe="dl-default-input"></g-input>
+        <template #footer><g-btn @click="ui.dlg2 = false">Guardar</g-btn></template>
+      </g-dialog>
+    </div>
+    <div class="db-region" id="dl-page">
+      <g-btn @click="ui.dlg3 = true" data-probe="dl-open-page">Abrir (página)</g-btn>
+      <g-dialog v-model="ui.dlg3" title="Página" close-label="Cerrar" data-probe="dl-page">
+        <g-input label="Nombre" data-probe="dl-page-input"></g-input>
+        <template #footer><g-btn @click="ui.dlg3 = false">Guardar</g-btn></template>
+      </g-dialog>
+    </div>
+  </section>
+
+  <section v-if="only.includes('forms')" class="db-sec" aria-label="Formularios">
+    <h2>Formularios</h2>
+    <div class="db-kits">
+      <div class="db-region" data-g-density="compact" id="f-region"><span class="db-cap">GForm sin prop en región compact</span>
+        <g-form><g-form-layout>
+          <g-input label="Nombre" data-probe="f-region-input"></g-input>
+          <g-form-section title="Sección" description="Con separación"><g-form-layout><g-input label="Campo A"></g-input><g-input label="Campo B"></g-input></g-form-layout></g-form-section>
+          <g-form-reveal :when="ui.rev"><g-input label="Revelado"></g-input></g-form-reveal>
+          <g-form-fold v-model:open="ui.fold" title="Pliegue" for="f-region-foldtarget"><g-input label="Dentro del pliegue"></g-input></g-form-fold>
+        </g-form-layout><g-form-actions><g-btn type="submit" data-probe="f-region-submit">Enviar</g-btn></g-form-actions></g-form>
+      </div>
+      <div class="db-region" id="f-prop"><span class="db-cap">GForm density=compact</span>
+        <g-form density="compact"><g-form-layout>
+          <g-input label="Nombre" data-probe="f-prop-input"></g-input>
+          <g-form-section title="Sección" description="Con separación"><g-form-layout><g-input label="Campo A"></g-input><g-input label="Campo B"></g-input></g-form-layout></g-form-section>
+          <g-form-reveal :when="ui.rev"><g-input label="Revelado"></g-input></g-form-reveal>
+          <g-form-fold v-model:open="ui.fold" title="Pliegue" for="f-prop-foldtarget"><g-input label="Dentro del pliegue"></g-input></g-form-fold>
+        </g-form-layout><g-form-actions><g-btn type="submit" data-probe="f-prop-submit">Enviar</g-btn></g-form-actions></g-form>
+      </div>
+      <div class="db-region" id="f-page"><span class="db-cap">GForm sin prop en la página</span>
+        <g-form><g-form-layout>
+          <g-input label="Nombre"></g-input>
+          <g-form-section title="Sección" description="Con separación"><g-form-layout><g-input label="Campo A"></g-input><g-input label="Campo B"></g-input></g-form-layout></g-form-section>
+          <g-form-reveal :when="ui.rev"><g-input label="Revelado"></g-input></g-form-reveal>
+          <g-form-fold v-model:open="ui.fold" title="Pliegue" for="f-page-foldtarget"><g-input label="Dentro del pliegue"></g-input></g-form-fold>
+        </g-form-layout><g-form-actions><g-btn type="submit">Enviar</g-btn></g-form-actions></g-form>
+      </div>
+      <div class="db-region" id="f-out"><span class="db-cap">Región default entre GForm compact y el campo</span>
+        <g-form density="compact"><g-form-layout>
+          <div data-g-density="default"><g-input label="Sale de la región" data-probe="f-out-input"></g-input></div>
+        </g-form-layout></g-form>
+      </div>
+    </div>
+  </section>
+
+  <section v-if="only.includes('tabs')" class="db-sec" aria-label="Marca de GTabs">
+    <h2>Marca de GTabs</h2>
+    <div class="db-row" id="tabs-mark">
+      <div data-g-density="default"><g-tabs :items="tabs" model-value="g" label="d" :labels="gtLabels" data-probe="tabs-r-default"></g-tabs></div>
+      <div data-g-density="comfortable"><g-tabs :items="tabs" model-value="g" label="f" :labels="gtLabels" data-probe="tabs-r-comfortable"></g-tabs></div>
+      <div data-g-density="compact"><g-tabs :items="tabs" model-value="g" label="c" :labels="gtLabels" data-probe="tabs-r-compact"></g-tabs></div>
+      <g-tabs density="default" :items="tabs" model-value="g" label="pd" :labels="gtLabels" data-probe="tabs-p-default"></g-tabs>
+      <g-tabs density="comfortable" :items="tabs" model-value="g" label="pf" :labels="gtLabels" data-probe="tabs-p-comfortable"></g-tabs>
+      <g-tabs density="compact" :items="tabs" model-value="g" label="pc" :labels="gtLabels" data-probe="tabs-p-compact"></g-tabs>
+    </div>
+  </section>
+
+  <section v-if="only.includes('card')" class="db-sec" aria-label="Meta de GCard">
+    <h2>Meta de GCard</h2>
+    <div class="db-kits">
+      <div data-g-density="compact" id="card-rc"><g-card title="Región compact" :meta="meta" :labels="cdLabels" data-probe="card-rc"></g-card></div>
+      <div data-g-density="comfortable"><g-card title="Región comfortable" :meta="meta" :labels="cdLabels" data-probe="card-rf"></g-card></div>
+      <div><g-card title="Página" :meta="meta" :labels="cdLabels" data-probe="card-page"></g-card></div>
+      <div><g-card density="compact" title="Prop compact" :meta="meta" :labels="cdLabels" data-probe="card-pc"></g-card></div>
+    </div>
+  </section>
+
+  <section v-if="only.includes('perf')" class="db-sec" aria-label="Rendimiento">
+    <h2>Tabla de {{ rows }} filas</h2>
+    <g-table :columns="columns" :rows="lotes" caption="Lotes" :labels="tLabels" responsive="table" data-probe="perf-table"></g-table>
+  </section>
+
+  <g-toaster v-if="only.includes('toast')"></g-toaster>
+  <g-status-island v-if="only.includes('toast')"></g-status-island>
+</main>`
+  }
+
+  const app = createApp(App)
+  app.use(Grana).use(GranaSlider).use(GranaCombobox).use(GranaTimeField).use(GranaFormFold)
+  if (only.includes('toast')) {
+    const toaster = Grana.createToaster({ labels: { region: 'Notificaciones ({hotkey})', close: 'Cerrar notificación', types: { info: 'Información', success: 'Correcto', warning: 'Advertencia', error: 'Error', loading: 'En curso' }, repeated: '{count} veces', queued: '{count} más', actionHint: 'Pulsa {hotkey} para {action}.' } })
+    const status = GranaStatus.createStatus({ labels: { region: 'Estado ({hotkey})', waiting: (n) => 'y ' + n + ' más', listTitle: 'Pendiente ({count})', hide: 'Ocultar', types: { info: 'Información', success: 'Correcto', warning: 'Advertencia', error: 'Error' }, dismiss: 'Descartar: {title}', details: 'Detalle', copy: 'Copiar', copied: 'Copiado', remaining: 'Quedan {time}', sheetTitle: 'Estado', close: 'Cerrar' } })
+    window.dbToaster = toaster
+    window.dbStatus = status
+    app.use(toaster).use(status)
+  }
+  window.dbVueApp = app
+  window.dbApp = app.mount('#app')
+})()
+</script>
+</body>
+</html>
