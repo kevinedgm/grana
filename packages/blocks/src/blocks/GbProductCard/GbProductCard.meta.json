@@ -43,7 +43,7 @@
       "name": "GbProductCard03",
       "tag": "gb-product-card-03",
       "concept": "Compacta con acción rápida",
-      "root": "[GPriceScope as=\"div\"] › GCard as=\"article\" density=\"compact\" mediaPosition=\"top\" + una acción rápida outline en actions"
+      "root": "[GPriceScope as=\"div\"] › GCard as=\"article\" data-g-density=\"compact\" mediaPosition=\"top\" + una acción rápida outline en actions"
     }
   ],
   "props": [

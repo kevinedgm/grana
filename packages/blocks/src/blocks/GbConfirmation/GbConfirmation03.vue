@@ -1,7 +1,7 @@
 <script setup>
 // GbConfirmation03 · Captura (dueño: bruno). Contrato: design/contracts/blocks/confirmation.md · Común: _comun.md §15 · Sin
 // CSS (#763). Todo lo necesario en una sola tarjeta compacta que cabe en una pantalla de teléfono y se comparte por
-// WhatsApp: GCard as="section" density="compact" level="outlined" sin `media` › código, consulta, total y canales; como
+// WhatsApp: GCard as="section" data-g-density="compact" level="outlined" sin `media` › código, consulta, total y canales; como
 // mucho dos acciones (F3). Ignora `next`, `offer.photos` y `totals.lines` (solo el total).
 import { computed } from 'vue'
 import { GCard, GStack, useSectionLevel } from '@grana/vue'
@@ -22,7 +22,7 @@ const { stateText, badgeColor, actions } = c
 </script>
 
 <template>
-  <GCard as="section" density="compact" level="outlined" :title="title" :heading-level="heading" :badge="stateText || undefined" :badge-color="badgeColor" data-gb="confirmation-03">
+  <GCard as="section" data-g-density="compact" level="outlined" :title="title" :heading-level="heading" :badge="stateText || undefined" :badge-color="badgeColor" data-gb="confirmation-03">
     <GStack gap="sm">
       <ConfirmationBody :c="c" :query="query" :labels="labels" :summary-slot="$slots.summary" :warn="warn" @navigate="emit('navigate', $event)" />
     </GStack>

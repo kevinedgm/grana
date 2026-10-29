@@ -22,7 +22,7 @@ import { has } from './text.js'
 const FORMS = {
   top: { card: { mediaPosition: 'top' }, facts: 2, summary: false, subtitle: true, media: true, quick: false, size: 'md' },
   horizontal: { card: { orientation: 'auto', mediaPosition: 'start' }, facts: 4, summary: true, subtitle: true, media: true, quick: false, size: 'md' },
-  compact: { card: { density: 'compact', mediaPosition: 'top' }, facts: 0, summary: false, subtitle: false, media: true, quick: true, size: 'sm' }
+  compact: { card: { 'data-g-density': 'compact', mediaPosition: 'top' }, facts: 0, summary: false, subtitle: false, media: true, quick: true, size: 'sm' }
 }
 
 /** ¿Se puede pintar? (C2: sin `name` o sin `price`, no.) Sin avisar: el aviso lo da `productRow`. */

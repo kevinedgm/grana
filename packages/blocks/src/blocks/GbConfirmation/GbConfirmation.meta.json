@@ -47,7 +47,7 @@
       "name": "GbConfirmation03",
       "tag": "gb-confirmation-03",
       "concept": "Captura",
-      "root": "GCard as=\"section\" density=\"compact\" level=\"outlined\" sin media › código, consulta, total y canales; como mucho dos acciones"
+      "root": "GCard as=\"section\" data-g-density=\"compact\" level=\"outlined\" sin media › código, consulta, total y canales; como mucho dos acciones"
     }
   ],
   "props": [

@@ -1,6 +1,6 @@
 <script setup>
 // GbProductCard03 · Compacta con acción rápida (dueño: bruno). Contrato: design/contracts/blocks/product-card.md · Común: _comun.md §27 · Sin CSS.
-// Mucho producto en poco sitio (GCard density="compact" mediaPosition="top", GPrice sm) y una sola acción rápida outline que nunca añade a ciegas. Ignora `summary`, `optionsSummary` y `facts`.
+// Mucho producto en poco sitio (GCard data-g-density="compact" mediaPosition="top", GPrice sm) y una sola acción rápida outline que nunca añade a ciegas. Ignora `summary`, `optionsSummary` y `facts`.
 // Raíz: la GPriceScope de `prices` (as="div") con la tarjeta dentro o, sin región, la GCard (article) misma. El título va
 // al nivel del sitio donde está la tarjeta (useSectionLevel; h2 suelta, h3 dentro de una GSection de la aplicación).
 import { computed } from 'vue'

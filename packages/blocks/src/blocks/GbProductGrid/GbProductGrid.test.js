@@ -121,7 +121,7 @@ describe('GbProductGrid · resultados', () => {
     const r = run(GbProductGrid03)
     expect(r.w.find('ul.g-stack > li article, ul.g-stack > li .g-card').exists()).toBe(true)
     const c = run(GbProductGrid02)
-    expect(c.w.findAllComponents(GCard).filter((x) => x.props('density') === 'compact').length).toBe(bank.PRODUCTS.length)
+    expect(c.w.findAllComponents(GCard).filter((x) => x.attributes('data-g-density') === 'compact').length).toBe(bank.PRODUCTS.length)
   })
   it('add, open y navigate de la tarjeta, reemitidos', async () => {
     const onAdd = vi.fn()
