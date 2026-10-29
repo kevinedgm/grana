@@ -26,9 +26,6 @@
   line-height: var(--g-text-body-sm-line);
   color: var(--g-color-text);
 }
-.g-table--density-default { --_density: 1; }
-.g-table--density-comfortable { --_density: 0.875; }
-.g-table--density-compact { --_density: 0.75; }
 
 /* Texto oculto accesible */
 .g-table__sr {

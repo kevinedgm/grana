@@ -22,9 +22,6 @@
   font-family: var(--g-font-ui);
   color: var(--g-color-text);
 }
-.g-field-group--density-default { --_density: 1; }
-.g-field-group--density-comfortable { --_density: 0.875; }
-.g-field-group--density-compact { --_density: 0.75; }
 
 /* ---------- Pregunta (legend) ---------- */
 .g-field-group__label {

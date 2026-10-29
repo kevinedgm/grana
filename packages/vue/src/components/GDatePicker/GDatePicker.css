@@ -29,7 +29,7 @@
   --_border: var(--g-color-border-control);
   --_border-end: var(--_border);
 
-  /* Medidas del campo (se reasignan por --size-* y --density-*); por defecto: md. Las mismas que GSelect */
+  /* Medidas del campo (se reasignan por --size-*; la densidad llega heredada por --g-density); por defecto: md. Las mismas que GSelect */
   --_units: 9;
   --_density: var(--g-density);
   --_px: var(--g-space-3);
@@ -787,11 +787,6 @@
     --_lh: max(var(--_lh-role), var(--g-text-body-sm-line));
   }
 }
-
-/* ---------- Densidad del campo ---------- */
-.g-datepicker--density-default { --_density: 1; }
-.g-datepicker--density-comfortable { --_density: 0.875; }
-.g-datepicker--density-compact { --_density: 0.75; }
 
 /* ---------- Forma del campo ---------- */
 .g-datepicker--rounded-none { --_radius: var(--g-radius-none); }

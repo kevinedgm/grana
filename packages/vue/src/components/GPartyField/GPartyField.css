@@ -262,9 +262,6 @@
   }
 }
 
-.g-party-field--density-default { --_density: 1; }
-.g-party-field--density-comfortable { --_density: 0.875; }
-.g-party-field--density-compact { --_density: 0.75; }
 .g-party-field--rounded-none { --_radius: var(--g-radius-none); }
 .g-party-field--rounded-xs { --_radius: var(--g-radius-xs); }
 .g-party-field--rounded-sm { --_radius: var(--g-radius-sm); }

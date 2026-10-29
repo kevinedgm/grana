@@ -35,9 +35,6 @@
   .g-split--gap-sm { --_gf: 0.5; }
   .g-split--gap-lg { --_gf: 2; }
 
-  .g-split--density-comfortable { --_df: 0.875; }
-  .g-split--density-compact { --_df: 0.75; }
-
   .g-split--collapse-sm { --_k: 64; }
   .g-split--collapse-lg { --_k: 96; }
 

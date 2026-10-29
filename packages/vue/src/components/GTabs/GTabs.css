@@ -95,10 +95,6 @@
   }
 }
 
-/* Densidad: altura, relleno, separación y grosor de la marca (tipografía y lógica no cambian) */
-.g-tabs--density-comfortable { --_d: 0.875; --_mark-t: var(--g-tabs-mark-comfortable); }
-.g-tabs--density-compact { --_d: 0.75; --_mark-t: var(--g-tabs-mark-compact); }
-
 /* Color: familia de la marca de selección y de la superficie de la activa en pill */
 .g-tabs--color-brand { --_base: var(--g-color-primary-text); --_soft: var(--g-color-primary-soft); --_on-soft: var(--g-color-on-primary-soft); }
 .g-tabs--color-accent { --_base: var(--g-color-accent-text); --_soft: var(--g-color-accent-soft); --_on-soft: var(--g-color-on-accent-soft); }
@@ -585,20 +581,21 @@
   }
   @media (prefers-reduced-motion: no-preference) {
     /* Sin dirección (la marca se recoloca por un cambio de tamaño o de texto): los dos bordes juntos, sin muelle.
-       El tercer elemento es el tamaño del eje cruzado (alto en horizontal, ancho en vertical), como hoy */
+       El tamaño del eje cruzado (grosor de underline, alto de pill/segmented) NO se transiciona: solo cambia con la
+       densidad, la fuente o el reflujo, y el cambio de densidad no se anima (density.md §9, criterio 10). En una fila
+       las pestañas comparten alto, así que pasar de una a otra no lo cambia */
     .g-tabs.is-ready > .g-tabs__header .g-tabs__mark {
-      transition-property: --_tabs-s, --_tabs-e, block-size;
+      transition-property: --_tabs-s, --_tabs-e;
       transition-duration: var(--g-duration-press);
       transition-timing-function: var(--g-ease-standard);
     }
-    .g-tabs--orientation-vertical.is-ready > .g-tabs__header .g-tabs__mark { transition-property: --_tabs-s, --_tabs-e, inline-size; }
     .g-tabs.is-ready[data-direction="forward"] > .g-tabs__header .g-tabs__mark {
-      transition-duration: var(--g-duration-slow), var(--g-duration-press), var(--g-duration-press);
-      transition-timing-function: var(--g-ease-spring), var(--g-ease-out), var(--g-ease-standard);
+      transition-duration: var(--g-duration-slow), var(--g-duration-press);
+      transition-timing-function: var(--g-ease-spring), var(--g-ease-out);
     }
     .g-tabs.is-ready[data-direction="back"] > .g-tabs__header .g-tabs__mark {
-      transition-duration: var(--g-duration-press), var(--g-duration-slow), var(--g-duration-press);
-      transition-timing-function: var(--g-ease-out), var(--g-ease-spring), var(--g-ease-standard);
+      transition-duration: var(--g-duration-press), var(--g-duration-slow);
+      transition-timing-function: var(--g-ease-out), var(--g-ease-spring);
     }
   }
 }

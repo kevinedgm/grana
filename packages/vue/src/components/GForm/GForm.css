@@ -12,7 +12,7 @@
      de su GFormActions sticky; aquí, el valor sin pie fijo */
   --g-form-actions-size: 0px;
 
-  /* Densidad (se reasigna por --density-*) */
+  /* Densidad: heredada de la región (--g-density, density.md) */
   --_density: var(--g-density);
 
   display: flex;
@@ -26,11 +26,6 @@
   font-family: var(--g-font-ui);
   color: var(--g-color-text);
 }
-
-/* ---------- Densidad ---------- */
-.g-form--density-default { --_density: 1; }
-.g-form--density-comfortable { --_density: 0.875; }
-.g-form--density-compact { --_density: 0.75; }
 
 /* ---------- Frase de la convención «obligatorios» (marks="required") ---------- */
 /* Pertenece a lo que sigue: se acerca al primer bloque con el aire de una fila, no el de una sección */

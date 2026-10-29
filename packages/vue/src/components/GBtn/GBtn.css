@@ -23,7 +23,7 @@
   --_fg-hover: var(--_on);
   --_border-hover: transparent;
 
-  /* Medidas (se reasignan por --size-* y --density-*); por defecto: md. --_px y --_density los lee también
+  /* Medidas (se reasignan por --size-*; la densidad llega heredada por --g-density); por defecto: md. --_px y --_density los lee también
      GFormSection.css (alineación óptica de una acción ghost apilada): si cambian de nombre, cambiarlos allí */
   --_units: 9;
   --_density: var(--g-density);
@@ -257,11 +257,6 @@
 .g-btn--size-md { --_units: 9;  --_px: var(--g-space-4); --_gap: var(--g-space-2); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
 .g-btn--size-lg { --_units: 11; --_px: var(--g-space-5); --_gap: var(--g-space-2); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
 .g-btn--size-xl { --_units: 13; --_px: var(--g-space-6); --_gap: var(--g-space-3); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
-
-/* ---------- Densidad ---------- */
-.g-btn--density-default { --_density: 1; }
-.g-btn--density-comfortable { --_density: 0.875; }
-.g-btn--density-compact { --_density: 0.75; }
 
 /* ---------- Forma ---------- */
 .g-btn--rounded-none { --_radius: var(--g-radius-none); }

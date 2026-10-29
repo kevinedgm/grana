@@ -19,9 +19,6 @@
   box-sizing: border-box;
   min-inline-size: 0;
 }
-.g-form-layout--density-default { --_density: 1; }
-.g-form-layout--density-comfortable { --_density: 0.875; }
-.g-form-layout--density-compact { --_density: 0.75; }
 
 .g-form-layout > * {
   min-inline-size: 0;

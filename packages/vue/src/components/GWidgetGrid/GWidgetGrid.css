@@ -23,9 +23,6 @@
     --_handle: 44px;
   }
 }
-.g-widget-grid--density-default { --_density: 1; }
-.g-widget-grid--density-comfortable { --_density: 0.875; }
-.g-widget-grid--density-compact { --_density: 0.75; }
 
 .g-widget-grid__list {
   list-style: none;

@@ -505,11 +505,6 @@
 .g-slider--color-danger { --_c: var(--g-color-danger); --_c-strong: var(--g-color-danger-strong); --_on: var(--g-color-on-danger); --_text: var(--g-color-danger-text); }
 .g-slider--color-info { --_c: var(--g-color-info); --_c-strong: var(--g-color-info-strong); --_on: var(--g-color-on-info); --_text: var(--g-color-info-text); }
 
-/* ---------- Densidad (la de GInput: el área sigue a la caja md de la misma densidad) ---------- */
-.g-slider--density-default { --_density: 1; }
-.g-slider--density-comfortable { --_density: 0.875; }
-.g-slider--density-compact { --_density: 0.75; }
-
 /* ---------- Dentro de una GFormRow (form.md §4, #453): tres pistas compartidas por línea, como GInput ---------- */
 /* Cabecera · fila · pie por subgrid: el centro del riel coincide con el de las cajas vecinas. Solo clases propias
    (ningún selector por estructura, #383). El ancho lo da la fila */

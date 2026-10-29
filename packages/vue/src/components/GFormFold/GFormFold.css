@@ -12,7 +12,7 @@
   sangría: los raíles paralelos son el hilo de lo que se está creando dentro de qué.
 
   Marcado que espera (lo pinta bruno):
-    div.g-form-fold.g-form-fold--density-{d}[.is-open][.is-animating][.is-ready][hidden] style="--_d: N; --_fold-gap: Npx"
+    div.g-form-fold[.is-open][.is-animating][.is-ready][hidden] style="--_d: N; --_fold-gap: Npx"
       div.g-form-fold__panel
         div.g-form-fold__head > h{n}.g-form-fold__title + p.g-form-fold__description
         fieldset.g-form-fold__body[role=none]
@@ -47,9 +47,6 @@
 .g-form-fold[hidden] {
   display: none;
 }
-.g-form-fold--density-default { --_density: 1; }
-.g-form-fold--density-comfortable { --_density: 0.875; }
-.g-form-fold--density-compact { --_density: 0.75; }
 
 /* Dos clases para ganar a `.g-form-layout > * { margin: 0 }` sin !important; abierto y cerrado con el mismo peso para
    que la transición vaya entre las dos reglas */

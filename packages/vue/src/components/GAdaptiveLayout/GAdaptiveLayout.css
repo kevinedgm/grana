@@ -48,9 +48,6 @@
   box-sizing: border-box;
   min-inline-size: 0;
 }
-.g-adaptive-layout--density-default { --_adaptive-density: 1; }
-.g-adaptive-layout--density-comfortable { --_adaptive-density: 0.875; }
-.g-adaptive-layout--density-compact { --_adaptive-density: 0.75; }
 /* gap (#360): factor 0 · 0,5 · 1 · 2 sobre la separación de formulario × densidad; md por defecto */
 .g-adaptive-layout--gap-none { --_adaptive-gap-factor: 0; }
 .g-adaptive-layout--gap-sm { --_adaptive-gap-factor: 0.5; }

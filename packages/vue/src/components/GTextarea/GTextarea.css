@@ -19,7 +19,7 @@
   --_border: var(--g-color-border-control);
   --_border-end: var(--_border);
 
-  /* Medidas (se reasignan por --size-* y --density-*); por defecto: md. Las unidades son las de la
+  /* Medidas (se reasignan por --size-*; la densidad llega heredada por --g-density); por defecto: md. Las unidades son las de la
      altura de GInput: con una fila, la caja mide lo mismo */
   --_units: 9;
   --_density: var(--g-density);
@@ -268,11 +268,6 @@
     --_lh: max(var(--_lh-role), var(--g-text-body-sm-line));
   }
 }
-
-/* ---------- Densidad ---------- */
-.g-textarea--density-default { --_density: 1; }
-.g-textarea--density-comfortable { --_density: 0.875; }
-.g-textarea--density-compact { --_density: 0.75; }
 
 /* ---------- Forma ---------- */
 .g-textarea--rounded-none { --_radius: var(--g-radius-none); }

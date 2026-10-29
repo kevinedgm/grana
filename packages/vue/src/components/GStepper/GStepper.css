@@ -25,7 +25,7 @@
   --_text: var(--g-color-primary-text);
   --_on: var(--g-color-on-primary);
 
-  /* Medidas (se reasignan por --size-* y --density-*); por defecto: md */
+  /* Medidas (se reasignan por --size-*; la densidad llega heredada por --g-density); por defecto: md */
   --_units: 6;
   --_dot: calc(var(--g-space-1) * 3);
   --_density: var(--g-density);
@@ -500,9 +500,6 @@ button.g-stepper__hit:focus-visible {
 .g-stepper--size-sm { --_units: 5; --_dot: calc(var(--g-space-1) * 2.5); --_fs: var(--g-text-caption-size); --_lh: var(--g-text-caption-line); }
 .g-stepper--size-md { --_units: 6; --_dot: calc(var(--g-space-1) * 3);   --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
 .g-stepper--size-lg { --_units: 8; --_dot: calc(var(--g-space-1) * 3.5); --_fs: var(--g-text-body-size);    --_lh: var(--g-text-body-line); }
-.g-stepper--density-default { --_density: 1; }
-.g-stepper--density-comfortable { --_density: 0.875; }
-.g-stepper--density-compact { --_density: 0.75; }
 
 /* ---------- Color (la prop elige la familia) ---------- */
 .g-stepper--color-brand { --_base: var(--g-color-primary); --_strong: var(--g-color-primary-strong); --_soft: var(--g-color-primary-soft); --_text: var(--g-color-primary-text); --_on: var(--g-color-on-primary); }

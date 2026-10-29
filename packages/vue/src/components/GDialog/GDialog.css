@@ -14,7 +14,7 @@
 
 /* ---------- Carcasa ---------- */
 .g-dialog {
-  /* Medidas (se reasignan por --size-*, --density-* y consultas de medios) */
+  /* Medidas (se reasignan por --size-* y consultas de medios; la densidad llega heredada por --g-density) */
   --_d: var(--g-density);
   --_w: calc(var(--g-space-1) * 140);
   --_pad-units: 5;
@@ -60,8 +60,6 @@ html:has(.g-dialog[open]) {
 
 .g-dialog--size-sm { --_w: calc(var(--g-space-1) * 100); }
 .g-dialog--size-lg { --_w: calc(var(--g-space-1) * 190); }
-.g-dialog--density-comfortable { --_d: 0.875; }
-.g-dialog--density-compact { --_d: 0.75; }
 
 /* ---------- Encabezado ---------- */
 .g-dialog__header {

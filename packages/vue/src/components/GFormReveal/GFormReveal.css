@@ -6,7 +6,7 @@
   al inicio (un borde, para que sobreviva a forced-colors) y una sangría; el resto es la pila de siempre.
 
   Marcado que espera (lo pinta bruno):
-    div.g-form-reveal.g-form-reveal--density-{d}[.is-open][.is-animating][.is-ready][inert] style="--_reveal-gap: Npx"
+    div.g-form-reveal[.is-open][.is-animating][.is-ready][inert] style="--_reveal-gap: Npx"
       fieldset.g-form-reveal__body[role=none][disabled]
 
   Altura: rejilla de una pista 0fr → 1fr (sin medir alturas). Cerrado en reposo: visibility hidden (no display none:
@@ -33,9 +33,6 @@
   opacity: 0;
   visibility: hidden;
 }
-.g-form-reveal--density-default { --_density: 1; }
-.g-form-reveal--density-comfortable { --_density: 0.875; }
-.g-form-reveal--density-compact { --_density: 0.75; }
 
 /* Cerrado: sin hueco. Dos clases para ganar a `.g-form-layout > * { margin: 0 }` (y a cualquier `> *` de una clase)
    sin !important; el abierto, también con dos, para que la transición vaya entre las dos reglas */

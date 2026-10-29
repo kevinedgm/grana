@@ -58,8 +58,6 @@
   opacity: 1;
   scale: 1;
 }
-.g-menu__list--density-comfortable { --_d: 0.875; }
-.g-menu__list--density-compact { --_d: 0.75; }
 /* Reinicio de grupos y elementos; un submenú (también un ul dentro de la lista) conserva el relleno de su lista */
 .g-menu__list ul:not(.g-menu__list),
 .g-menu__list li {

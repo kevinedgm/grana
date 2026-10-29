@@ -18,7 +18,7 @@
   /* Contorno del riel encendido (tokens.md §7.1, #431) */
   --_text: var(--g-color-primary-text);
 
-  /* Medidas (se reasignan por --size-* y --density-*); por defecto: md. Alto y ancho del riel en unidades de space */
+  /* Medidas (se reasignan por --size-*; la densidad llega heredada por --g-density); por defecto: md. Alto y ancho del riel en unidades de space */
   --_th-units: 6;
   --_tw-units: 11;
   --_row-units: 6;
@@ -278,11 +278,6 @@
 .g-switch--size-md { --_th-units: 6;   --_tw-units: 11; --_row-units: 6;  --_gap: var(--g-space-3); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
 .g-switch--size-lg { --_th-units: 7.5; --_tw-units: 13; --_row-units: 8;  --_gap: var(--g-space-3); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
 .g-switch--size-xl { --_th-units: 9;   --_tw-units: 16; --_row-units: 10; --_gap: var(--g-space-4); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
-
-/* ---------- Densidad ---------- */
-.g-switch--density-default { --_density: 1; }
-.g-switch--density-comfortable { --_density: 0.875; }
-.g-switch--density-compact { --_density: 0.75; }
 
 /* ---------- Color (relleno del riel encendido) ---------- */
 .g-switch--color-brand { --_c: var(--g-color-primary); --_c-strong: var(--g-color-primary-strong); --_on: var(--g-color-on-primary); --_text: var(--g-color-primary-text); }

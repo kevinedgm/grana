@@ -13,8 +13,6 @@
   --_ctl: max(24px, calc(var(--g-space-1) * 9));
   --_ring: var(--g-focus-width);
 }
-.g-widget-config--density-comfortable { --_d: 0.875; }
-.g-widget-config--density-compact { --_d: 0.75; }
 @media (pointer: coarse) {
   .g-widget-config { --_ctl: 44px; }
 }

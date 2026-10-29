@@ -24,9 +24,6 @@
   font-family: var(--g-font-ui);
   color: var(--g-color-text);
 }
-.g-form-actions--density-default { --_density: 1; }
-.g-form-actions--density-comfortable { --_density: 0.875; }
-.g-form-actions--density-compact { --_density: 0.75; }
 
 /* ---------- Estado («Cambios sin guardar», «Guardado a las 10:42»): región viva siempre presente (#14) ---------- */
 .g-form-actions__status {

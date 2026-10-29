@@ -95,9 +95,6 @@
 .g-surface--padding-sm { --_pad: calc(var(--g-space-1) * 2 * var(--_density)); }
 .g-surface--padding-md { --_pad: calc(var(--g-space-1) * 4 * var(--_density)); }
 .g-surface--padding-lg { --_pad: calc(var(--g-space-1) * 6 * var(--_density)); }
-.g-surface--density-default { --_density: 1; }
-.g-surface--density-comfortable { --_density: 0.875; }
-.g-surface--density-compact { --_density: 0.75; }
 
 /* ---------- Radio de la instancia (gana siempre, también en inset; va al final) ---------- */
 .g-surface.g-surface--rounded-none { --_radius: var(--g-radius-none); }

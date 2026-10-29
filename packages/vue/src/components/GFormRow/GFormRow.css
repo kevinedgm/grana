@@ -44,9 +44,6 @@
   box-sizing: border-box;
   min-inline-size: 0;
 }
-.g-form-row--density-default { --_density: 1; }
-.g-form-row--density-comfortable { --_density: 0.875; }
-.g-form-row--density-compact { --_density: 0.75; }
 
 /* Cada hijo ocupa sus tres pistas de su línea y las columnas que le tocan. Valores neutros en el propio hijo (no en
    la fila) para que una fila anidada no herede la colocación de un antepasado */

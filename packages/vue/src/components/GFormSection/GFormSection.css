@@ -51,8 +51,6 @@
   font-family: var(--g-font-ui);
   color: var(--g-color-text);
 }
-.g-form--density-comfortable .g-form-section { --_d: 0.875; }
-.g-form--density-compact .g-form-section { --_d: 0.75; }
 /* addable sin agregar en un GForm readonly/disabled: no se pinta (form.md §3, punto 16). La raíz es flex y el estilo del
    agente de usuario para [hidden] pierde contra ella */
 .g-form-section[hidden] {

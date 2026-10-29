@@ -18,7 +18,7 @@
   --_on-soft: var(--g-color-on-primary-soft);
   --_text: var(--g-color-primary-text);
 
-  /* Medidas (se reasignan por --size-* y --density-*); por defecto: md */
+  /* Medidas (se reasignan por --size-*; la densidad llega heredada por --g-density); por defecto: md */
   --_box-units: 5;
   --_row-units: 7;
   --_density: var(--g-density);
@@ -227,11 +227,6 @@
 .g-checkbox--size-md { --_box-units: 5; --_row-units: 7;  --_gap: var(--g-space-3); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
 .g-checkbox--size-lg { --_box-units: 6; --_row-units: 8;  --_gap: var(--g-space-3); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
 .g-checkbox--size-xl { --_box-units: 7; --_row-units: 9;  --_gap: var(--g-space-4); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
-
-/* ---------- Densidad ---------- */
-.g-checkbox--density-default { --_density: 1; }
-.g-checkbox--density-comfortable { --_density: 0.875; }
-.g-checkbox--density-compact { --_density: 0.75; }
 
 /* ---------- Color (relleno de lo marcado) ---------- */
 .g-checkbox--color-brand { --_c: var(--g-color-primary); --_c-strong: var(--g-color-primary-strong); --_on: var(--g-color-on-primary); --_soft: var(--g-color-primary-soft); --_on-soft: var(--g-color-on-primary-soft); --_text: var(--g-color-primary-text); }

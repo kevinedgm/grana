@@ -26,7 +26,7 @@
   --_divider: var(--g-color-border-strong);
   --_divider-style: solid;
 
-  /* Medidas (se reasignan por --size-* y --density-*); por defecto: md. Las mismas unidades que GInput */
+  /* Medidas (se reasignan por --size-*; la densidad llega heredada por --g-density); por defecto: md. Las mismas unidades que GInput */
   --_units: 9;
   --_density: var(--g-density);
   --_px: var(--g-space-3);
@@ -311,11 +311,6 @@ select.g-input-group__control {
     --_lh: max(var(--_lh-role), var(--g-text-body-sm-line));
   }
 }
-
-/* ---------- Densidad ---------- */
-.g-input-group--density-default { --_density: 1; }
-.g-input-group--density-comfortable { --_density: 0.875; }
-.g-input-group--density-compact { --_density: 0.75; }
 
 /* ---------- Variante ---------- */
 /* soft: caja rellena con la línea inferior del borde de control (WCAG 1.4.11), como GInput */

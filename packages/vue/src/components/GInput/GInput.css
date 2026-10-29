@@ -16,7 +16,7 @@
   --_border: var(--g-color-border-control);
   --_border-end: var(--_border);
 
-  /* Medidas (se reasignan por --size-* y --density-*); por defecto: md */
+  /* Medidas (se reasignan por --size-*; la densidad llega heredada por --g-density); por defecto: md */
   --_units: 9;
   --_density: var(--g-density);
   --_px: var(--g-space-3);
@@ -466,11 +466,6 @@
     --_lh: max(var(--_lh-role), var(--g-text-body-sm-line));
   }
 }
-
-/* ---------- Densidad ---------- */
-.g-input--density-default { --_density: 1; }
-.g-input--density-comfortable { --_density: 0.875; }
-.g-input--density-compact { --_density: 0.75; }
 
 /* ---------- Forma ---------- */
 .g-input--rounded-none { --_radius: var(--g-radius-none); }
