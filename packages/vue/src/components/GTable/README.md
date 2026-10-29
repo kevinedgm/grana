@@ -368,12 +368,35 @@ Pon `loading` en `true` **de forma síncrona** en el manejador de `update:sort`,
 - **Orden:** `aria-sort` en el encabezado; el foco se queda en el botón; se anuncia («Ordenado por Total, descendente»).
 - **Selección:** casilla con nombre por fila; «todo» con estado mixto.
 - **Estados:** `aria-busy` al cargar y anuncio de la carga y del recuento al terminar (ver [Carga, error y vacío](#carga-error-y-vacío)); vacío real y vacío por filtros (con «Limpiar filtros») con `GEmpty`; fallo con barra o vacío de error; recuento anunciado al filtrar. El `<table>` lleva `tabindex="-1"` para recoger el foco durante una carga.
+- **Luz de hover** (coco, [`design/lab/hover-glide/auditoria.md`](../../../../../design/lab/hover-glide/auditoria.md)): la capa `g-table__highlight` es `aria-hidden`; el puntero no mueve el foco. Contraste del texto sobre la luz: título **16,10:1** y subtítulo **6,90:1** en claro, **17,00:1** y **9,59:1** en oscuro, **14,35:1** y **9,49:1** en zona de marca; `medido` en Chromium.
 - **Contraste medido:** texto ≥ 6.2:1 y bordes de control ≥ 3.45:1 en claro, tema de prueba y oscuro. Con `pointer: coarse`, controles de 44px. Puerta, despliegue y estado de fila medidos en 22 configuraciones (Chromium) y 4 (Firefox y WebKit): anillo de foco ≥ 4.52:1, lomo ≥ 4.88:1, etiqueta de estado ≥ 4.52:1 (ver [`auditoria-rows.md`](../../../../../design/lab/table/auditoria-rows.md), 717/717).
 - **Selección** (DECISIONS #431 y #432): la casilla nativa de fila y la de «todo» usan `accent-color: --g-color-primary-text`, y la tarjeta seleccionada pinta su borde en `--g-color-primary-text`. Sin cambio visible con el tema por defecto. Medido contra la superficie (medido por coco, [`design/lab/contraste-marcado/estilo.md`](../../../../../design/lab/contraste-marcado/estilo.md), tres motores) en el tema por defecto, lustre, spotify y uno con clave `primary` propia, claro y oscuro: casilla **4.07:1 o más** (también sobre la fila `primary-soft`) y borde de tarjeta **4.21:1 o más**.
 
+## Una sola luz
+
+El resaltado de hover es **un único fondo por tabla** que se desliza de fila en fila bajo el puntero, como en [`GMenu`](../GMenu/README.md), en vez de que cada fila funda su propio fondo (DECISIONS #957 a #964; contrato [`table.md`](../../../../../design/contracts/table.md) «Una sola luz» y [`api.md`](../../../../../docs/contract/api.md) «Una sola luz»). **No hay props, slots ni eventos nuevos.**
+
+- **La luz es del puntero y el anillo es del teclado.** El puntero **no mueve el foco** (WCAG 3.2.1 y 2.4.3): si el puntero y el teclado están en filas distintas, se ven los dos. El teclado no enciende la luz.
+- **Solo ratón y lápiz.** Con el toque no se enciende nada.
+- **Dice lo que hace un clic:**
+
+| Forma | Qué ilumina |
+| --- | --- |
+| Llana | La fila entera (hace de regla de lectura; sin cursor de mano) |
+| [A · La puerta](#puerta-de-la-fila) | Solo la celda principal de una fila con puerta; el resto de la fila y la casilla no se iluminan, y la casilla ya no tiene fondo de hover |
+| [B · Despliegue](#despliegue) | La fila entera; la ficha desplegada la apaga |
+
+- **Se apaga** sobre la cabecera, el esqueleto de carga, el vacío y el error. Durante la carga no se registra nada y, al llegar los datos, no se enciende hasta que muevas el puntero; si cambian las filas sin gesto (página, orden, filtros), se apaga y vuelve con el siguiente movimiento.
+- **La selección se ve encima:** la fila seleccionada pinta su `--g-color-primary-soft` sobre la luz, que pasa por debajo. «Aquí estabas», lo nuevo y el lomo de `rowStatus` también van encima.
+- **Con desplazamiento:** la luz va con su fila en los dos ejes, la cabecera pegada la tapa, y con un desplazamiento y el puntero quieto salta al instante a la fila que queda debajo.
+- **Sin luz en `appearance="surface"` ni `mode="cards"`:** cada fila o tarjeta es una superficie separada por un hueco real, así que conserva su hover por fila con un fundido de entrada y **salida instantánea**: nunca hay dos a la vez.
+- **Movimiento:** posición con `--g-duration-press` y `--g-ease-out`, aparición con `--g-duration-fast`; sin muelle. Al entrar, al desplegar una ficha o al cambiar de tamaño no viaja, solo se funde.
+- **`prefers-reduced-motion: reduce`:** la luz aparece en su sitio sin viajar (solo fundido). **`forced-colors`:** la luz se oculta y manda el foco del sistema.
+- **Tema:** sin tokens nuevos; la luz usa `--g-color-surface-sunken` (el hover de siempre; dentro de una zona de marca, el de la zona).
+
 ## Tema
 
-Sin tokens propios: encabezado en `--g-color-text-muted`, separadores `--g-color-border`, hover `--g-color-surface-sunken`, selección `--g-color-primary-soft`, filas `surface` con `--g-radius-lg`; tamaños desde `--g-space-1`. El esqueleto de carga usa `--g-color-mold` (el tono único del marcador de carga, DECISIONS #538; medido ≥ 1,46:1 frente a la superficie en 28 configuraciones) y `GrayText` en `forced-colors`; la barra de fallo y la espera larga reutilizan los tokens de [`GLoadRegion`](../GLoadRegion/README.md).
+Sin tokens propios: encabezado en `--g-color-text-muted`, separadores `--g-color-border`, hover (la luz) `--g-color-surface-sunken`, selección `--g-color-primary-soft`, filas `surface` con `--g-radius-lg`; tamaños desde `--g-space-1`. El esqueleto de carga usa `--g-color-mold` (el tono único del marcador de carga, DECISIONS #538; medido ≥ 1,46:1 frente a la superficie en 28 configuraciones) y `GrayText` en `forced-colors`; la barra de fallo y la espera larga reutilizan los tokens de [`GLoadRegion`](../GLoadRegion/README.md).
 
 ## Alcance
 
@@ -385,6 +408,8 @@ Sin tokens propios: encabezado en `--g-color-text-muted`, separadores `--g-color
 
 ## Verificación
 
+- **Luz de hover (Una sola luz), solo Chromium:** `node design/lab/hover-glide/auditoria-verificar.mjs chromium` 115/115 (tabla llana, A, B, `surface`, `cards`, carga, selección, cabecera pegada, desplazamiento en los dos ejes, RTL), `estilo-verificar.mjs chromium` 268/268 y `personalidad-table-glide.spec.mjs` con la del sidebar 24/24. **Sin verificar en Firefox, WebKit, con lector de pantalla real ni con `forced-colors` real** (emulado en Chromium). **Rendimiento (parcial):** con 500 filas, llana y A dan p95 de 1,0 a 1,9 ms; B, de 1,1 a 3,1 ms, por encima del tope de 2 ms en 2 de 4 pasadas (`tests/glide-perf.spec.mjs`, hallazgo H1 de la auditoría, abierto para bruno).
+
 - **Sin verificar:** lector de pantalla real (sobre todo en tarjetas), Safari real, zoom al 200% y táctil real. En concreto para la carga: VoiceOver y NVDA con `aria-busy` en el `<table>` y la región viva hermana (si anuncian `labels.loading`, `labels.slow`, el recuento final o el fallo, y en qué orden frente a un `sorted`), y el foco que vuelve por `rowKey`. La auditoría de la carga (coco, `design/lab/empty-skeleton/auditoria.md`) midió la tabla en los tres motores con el componente real; los specs `table-load.spec.mjs` y `table-page-size.spec.mjs` pasan en Chromium, Firefox y WebKit (ejecutados el 2026-10-18; ver `design/lab/limitaciones/revision.md`); `GTable.test.js` 112 de 112 en jsdom.
 
 - **«Aquí estabas» en WebKit al volver con el ratón:** cerrado en `c7dbc1e` (`tests/table-rows.spec.mjs:125` pasa en WebKit; 49/52 en tres repeticiones, los 2 fallos por un `dist/` a medio reconstruir).
@@ -393,4 +418,4 @@ Sin tokens propios: encabezado en `--g-color-text-muted`, separadores `--g-color
 
 ## Fuentes
 
-- API: [`GTable.meta.json`](./GTable.meta.json) · Contrato: [`design/contracts/table.md`](../../../../../design/contracts/table.md) · Prototipos: [`r01`](../../../../../design/lab/table/r01/), [`r02`](../../../../../design/lab/table/r02/) · Estilo: [`estilo.md`](../../../../../design/lab/table/estilo.md) · Auditoría (tabla base): [`auditoria.md`](../../../../../design/lab/table/auditoria.md) · Auditoría (filas por página, puerta, despliegue y estado de fila, #592–#602): [`auditoria-rows.md`](../../../../../design/lab/table/auditoria-rows.md) · Carga, vacío y error (DECISIONS #540, #548, #555 y #558; contrato `table.md` «Carga, vacío y error con el motor común»): [`GEmpty`](../GEmpty/README.md), [`GLoadRegion`](../GLoadRegion/README.md), [`auditoria de la carga`](../../../../../design/lab/empty-skeleton/auditoria.md)
+- API: [`GTable.meta.json`](./GTable.meta.json) · Contrato: [`design/contracts/table.md`](../../../../../design/contracts/table.md) · Prototipos: [`r01`](../../../../../design/lab/table/r01/), [`r02`](../../../../../design/lab/table/r02/) · Estilo: [`estilo.md`](../../../../../design/lab/table/estilo.md) · Auditoría (tabla base): [`auditoria.md`](../../../../../design/lab/table/auditoria.md) · Auditoría (filas por página, puerta, despliegue y estado de fila, #592–#602): [`auditoria-rows.md`](../../../../../design/lab/table/auditoria-rows.md) · Carga, vacío y error (DECISIONS #540, #548, #555 y #558; contrato `table.md` «Carga, vacío y error con el motor común»): [`GEmpty`](../GEmpty/README.md), [`GLoadRegion`](../GLoadRegion/README.md), [`auditoria de la carga`](../../../../../design/lab/empty-skeleton/auditoria.md) · Una sola luz (DECISIONS #957 a #964): [`api.md`](../../../../../docs/contract/api.md), [`estilo.md`](../../../../../design/lab/hover-glide/estilo.md), [`auditoria.md`](../../../../../design/lab/hover-glide/auditoria.md)
