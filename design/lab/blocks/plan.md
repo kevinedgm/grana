@@ -164,6 +164,28 @@ Familia para **las pantallas de cuenta y espacio de trabajo de un producto SaaS*
 | **5 · Lo que necesita componente nuevo** | Calificación (`star`, M-L2) → E6 Reviews y `rating`; `GEmbed` → mapa vivo en M12/B10; `lang`/`hreflang` → idiomas en M1; Header 02 transparente (H-L6) | Cada uno con su ronda de kiwi |
 | **6 · CLI** | `grana add block <seccion>` en el CLI | La extracción a `@grana/blocks` (`packages/blocks/`, *peer* `@grana/vue`) ya no espera: los bloques nacen ahí (#780, #814) |
 
+### 5.1 Fases pequeñas para no saturar la máquina (decisión del usuario, 2026-10-29)
+
+Los lotes 4b (Dashboards) y 4c (SaaS) ya no van de una vez: se parten en **fases de 3 o 4 secciones**, cada una con su ciclo completo y corto. Reglas de ejecución en todas las fases:
+
+- **Un solo agente a la vez.** Nunca dos bruno en paralelo ni coco auditando mientras alguien construye.
+- **Playwright con `--workers=1` y un motor tras otro**, nunca los tres en paralelo; los verificadores de coco igual.
+- **Verificación por niveles:** dentro de una fase, solo las pruebas de las secciones de esa fase y en Chromium. La pasada en los tres motores se hace **una vez al cerrar cada fase** y solo sobre los specs de esa fase; la pasada completa de la familia, una vez al cerrar su última fase.
+- Cada fase cierra con push y una línea de estado en Notion antes de empezar la siguiente.
+
+| Fase | Secciones | Ciclo |
+| --- | --- | --- |
+| **4b·0** | Contratos de la familia Dashboards (lima): `_comun.md` de la familia, tipos, personalidad y los doce contratos | Solo documentos, sin pruebas de navegador |
+| **4b·1** | D1 Dashboard header, D2 KPI row, D7 Goals, D9 Quick actions (+ infraestructura de la entrada `@grana/blocks/dashboards`) | bruno → coco (auditoría de 4) → remates → README |
+| **4b·2** | D5 Activity feed, D6 Table card, D8 Alerts panel, D11 Recent items | bruno → coco → remates → README |
+| **4b·3** | D4 Widget grid, D10 Filters bar, D12 Empty dashboard, D3 Chart card | bruno → coco → remates → README → pasada completa de Dashboards y sitio |
+| **4c·0** | Contratos de la familia SaaS (lima) | Solo documentos |
+| **4c·1** | S1 Auth, S2 Onboarding, S4 Profile, S3 Settings layout (+ infraestructura de `@grana/blocks/saas`) | bruno → coco → remates → README |
+| **4c·2** | S7 Usage & limits, S8 Team & roles, S11 Notification preferences, S10 Integrations | bruno → coco → remates → README |
+| **4c·3** | S5 Plans & upgrade, S6 Billing, S9 API keys, S12 Changelog & audit log | bruno → coco → remates → README → pasada completa de SaaS y sitio |
+
+Estimación por fase con la máquina libre: 2 a 3 horas (construcción 40 a 60 min, auditoría 40 a 60 min, remates y README 30 a 40 min, verificación 20 a 30 min).
+
 ## 6. Flujo por bloque (más corto que el de un componente)
 
 Un bloque no tiene forma propia ni CSS, así que **no aplica «conceptos antes que caja»** de kiwi: las variantes **son** los conceptos. Propuesta de flujo (D3):
