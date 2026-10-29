@@ -231,6 +231,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras. Los estados marcada e ind
 | `g-checkbox__error` | Región viva | Siempre presente |
 | `g-checkbox-group` | Raíz (`fieldset`) | Siempre |
 | `g-checkbox-group--layout-{layout}` | Raíz | Siempre |
+| `g-checkbox-group--density-{density}` | Raíz | Con la prop explícita, junto a `data-g-density` (#975, #983); sin prop, ninguna de las dos. Con ella el grupo es una región (`density.md` §3.1) y las clases `is-*`/`--density-*` de las hijas no cambian |
 | `g-checkbox-group__label` | `legend` | Si hay `label` o slot `label` |
 | `g-checkbox-group__head` | Contenedor de maestra y conteo | Con `selectAll` o `countText` |
 | `g-checkbox-group__count` | Región viva | Con `countText` |

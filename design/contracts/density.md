@@ -59,6 +59,7 @@
 
 - **Raíz de fragmento o raíz que no es la caja:** clase y atributo van en el elemento que pinta. `GMenu`: en `g-menu__list` (la lista y sus submenús, que van dentro). `GCard`: en su raíz, que es la `GSurface` (`g-surface--density-*`, `card.md`). `GWidgetConfig` y `GWidgetGallery`: en el `<dialog>` raíz, junto a `g-dialog`.
 - **Para salir de la región dentro de un componente con prop:** `density` en el hijo (`<GBtn density="default">`) o `data-g-density` en un elemento propio que envuelva la parte. Es el coste aceptado de B.
+- **`GDatePicker inline` ignora la prop pero sigue la región** (#983): su superficie lee `var(--g-density)` como cualquier hoja; no escribe clase ni atributo (la prop se ignora con su aviso, `datepicker.md`). Antes de #976 un `GForm` con `density` no lo apretaba porque `inline` no leía el contexto; ahora sí porque la densidad ya no viaja por el contexto, y es lo que B pide (la región manda sobre lo que contiene).
 - **`GCalendar` no entra** (escala propia `compact`/`comfortable`/`spacious`, #967): sigue con su clase «Siempre», no escribe `data-g-density` y no lee la región hasta la pieza 4.
 
 ### 3.2 Default de la prop: `null` con `resolvedDefault` (D1)
@@ -82,7 +83,7 @@ Un componente que compone otro le pasa **`density ?? undefined`** (nunca un valo
 
 ### 3.5 Qué cambia para quien ya usa la prop
 
-Cambio visible aceptado por el usuario (paquete sin publicar): un contenedor con `density` distinta de `default` aprieta ahora su contenido. Casos conocidos que coco revisa en su auditoría: `GbProductCard03` y `GbConfirmation03` (`GCard density="compact"`: su `GBtn` de acción pasa a compacto), `GResourceList` con `density` (barra y menús de la tabla), `GStack`/`GSplit` con `density` (`stack.md`, `split.md`: ya no «solo a su separación»), y `GForm` con `density` (los botones de `GFormActions` y todo lo de dentro lo siguen; era la incoherencia del inventario §2.3).
+Cambio visible aceptado por el usuario (paquete sin publicar): un contenedor con `density` distinta de `default` aprieta ahora su contenido. Casos conocidos que coco revisa en su auditoría: `GbProductCard03` y `GbConfirmation03` (`GCard density="compact"`: su `GBtn` de acción pasa a compacto), `GResourceList` con `density` (barra y menús de la tabla), `GStack`/`GSplit` con `density` (`stack.md`, `split.md`: ya no «solo a su separación»), y `GForm` con `density` (los botones de `GFormActions` y todo lo de dentro lo siguen; era la incoherencia del inventario §2.3). **Lista completa de blocks que cambian** (#984, construcción de bruno; todos por `GCard density="compact"`, que ahora aprieta lo que lleva dentro): `GbProductCard03`, `GbConfirmation03`, `GbCart`, `GbOfferList03`, `GbOrderHistory03`, `GbTrust01`, `GbCategoryPreviews02` y `GbCategoryPreviews03` (más `GResourceList` con `density`). Coco audita su coherencia visual (criterio 18 se amplía a la lista); si alguno resulta una regresión, la salida es `density="default"` en el hijo afectado o quitar la prop del `GCard`, decisión de producto del block, no de este contrato.
 
 ## 4. Formularios (D9, D7)
 
@@ -213,6 +214,8 @@ Tema por defecto (`space` 4: `md` = 9 unidades = 36 px → 31,5 en `comfortable`
 | `dist/blocks.js` (`@grana/blocks`) | **≤ +128 B** |
 | `dist/grana.css` | **≤ +256 B**; lo esperado es que **baje** (se quitan ~37 × 3 reglas de clase y se añaden siete reglas en `defaults.css` y la interpolación de `GTabs`). Si crece, coco lo explica en su informe |
 | `tokens.css` del CLI | Sin la clave o con `default`: **Δ0 bytes**; con la clave: las dos reglas de §6 |
+
+**Medido por bruno (`CHANGELOG.md`, #985):** `grana.js` **+586 B** (tope +768), `grana.css` **−739 B**, entradas propias **≤ +57 B** (tope +256; `slider` +57, `time-field` +32, `speech` +19…), `dist/blocks.js` **Δ0** (tope +128) y `tokens.css` **Δ0 sin clave**. Dentro de tope en todas las salidas.
 
 ## 12. Reparto y orden
 
