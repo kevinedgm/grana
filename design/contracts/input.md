@@ -330,3 +330,7 @@ I1: solo fundido, sin desplazamiento. I2: **no existe** (el error ya es borde, i
 - **Por qué no el slot `hint`:** lo de la ayuda es descripción del campo (`aria-describedby`); una lista con botones no puede serlo. **Por qué no un cuarto hijo:** rompería las tres pistas compartidas de `GFormRow` (`form.md` §4, C10).
 - **Coco:** nada en `GInput.css`; lo propio (`g-combobox__chosen`, `__rows`) va en `GCombobox.css`.
 - **Pruebas (bruno):** `GInput` sin N5 se renderiza igual (instantánea); con N5, el contenido es el último hijo de `g-input__support`, después del mensaje, sin `aria-hidden`, fuera de `aria-describedby`, y recibe `readonly` y `disabled` resueltos.
+
+## Texto con puntero grueso (DECISIONS.md #970 a #972)
+
+Regla común en `docs/contract/api.md` «Texto editable con puntero grueso» y mínimo en `tokens.md` §7: con `@media (pointer: coarse)`, `font-size: max(16px, <rol>)`; interlineado del rol con piso `--g-text-body-sm-line`; altura sin cambio; en escritorio, sin cambio. Aquí: `__field` y su marcador de posición, `__prefix`, `__suffix`, `__output` y `__loader` suben con el campo (la línea del valor); `__label`, ayuda, `__message` y contador se quedan en su rol. Lo heredan `GNumberField`, `GTimeField` y `GCombobox`.

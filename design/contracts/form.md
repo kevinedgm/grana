@@ -1721,3 +1721,6 @@ La librería está en `draft`: se cambia **sin capa de compatibilidad**; `GFormL
 | L11 | Buscar en la página | **No entra** en esta fase: límite documentado en el README; `hidden="until-found"` queda pendiente no bloqueante (ronda corta si un caso real lo pide) | #291 |
 | L12 | `GFormNav` | Anotado en «Fases siguientes»: lee `id`, título, `open`, recuento y `summary`; ir a una sección enfoca su botón sin abrirla; ir a un campo abre por `OPEN_REQUEST` | #291 |
 
+## Texto con puntero grueso (DECISIONS.md #970 a #972)
+
+Regla común en `docs/contract/api.md` «Texto editable con puntero grueso» y mínimo en `tokens.md` §7: con `@media (pointer: coarse)`, `font-size: max(16px, <rol>)`; interlineado del rol con piso `--g-text-body-sm-line`; altura sin cambio; en escritorio, sin cambio. Aquí, en `GInputGroup`: suben la parte de texto (`GInputGroupInput`), la parte de elección (`<select>` nativo, que iOS también amplía) y su `<input readonly>`, y la parte `GInputGroupText` (comparte la línea). Etiqueta, ayuda y mensaje del grupo, en su rol. `GForm`, `GFormRow` y `GFormLayout` no cambian; los mínimos publicados siguen a sus medidores.

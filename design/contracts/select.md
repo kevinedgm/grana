@@ -304,3 +304,7 @@ El estado elegida y deshabilitada de una opción se estiliza con `aria-selected`
 **Clases nuevas** (contrato bruno–coco): `g-select__support` (r02), `g-select__optional`, `g-select__message`, `__message-icon`, `__message-type`, `is-warning`, `is-valid` (`g-select__error` desaparece).
 
 **Marca fuera de `GForm` (#170):** sin contexto, el asterisco con `required` se pinta como antes aunque el campo sea `readonly` o `disabled`; la regla «solo campos editables llevan marca» rige solo dentro de `GForm`.
+
+## Texto con puntero grueso (DECISIONS.md #970 a #972)
+
+Regla común en `docs/contract/api.md` «Texto editable con puntero grueso» y mínimo en `tokens.md` §7: con `@media (pointer: coarse)`, `font-size: max(16px, <rol>)`; interlineado del rol con piso `--g-text-body-sm-line`; altura sin cambio; en escritorio, sin cambio. Aquí (grupo B, coherencia de fila: el control es un botón y no amplía): el valor de `__button` y su icono suben; **las opciones de la lista se quedan en el rol** aunque hoy lean `--_fs` (se fijan al alias base). Etiqueta, ayuda y mensaje, en su rol.

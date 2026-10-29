@@ -418,3 +418,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 ## Contraste del día elegido (`tokens.md` §7.1; DECISIONS.md #431 y #432)
 
 El día elegido (fecha única, inicio y fin; `is-selected`) conserva el círculo `{color}` con texto `on-{color}` y gana un **trazo interior `{color}-text`** (`box-shadow: inset`, el patrón del segmento de `GRadioGroup`; no un anillo exterior: es del foco). coco añade `--_text` a `--_color`/`--_on` y a las `.g-datepicker--color-*`. El aro y el punto de hoy, si usan `--_color` como forma sobre `surface`, pasan a `--_text`. **La franja de rango** (`{color}-soft`) no entra en esta regla: coco la mide y, si no llega a 3:1, vuelve a lima. Sin cambio en el tema por defecto. Pendiente de **coco** (encargo único en `checkbox.md` §«Contraste de lo marcado»).
+
+## Texto con puntero grueso (DECISIONS.md #970 a #972)
+
+Regla común en `docs/contract/api.md` «Texto editable con puntero grueso» y mínimo en `tokens.md` §7: con `@media (pointer: coarse)`, `font-size: max(16px, <rol>)`; interlineado del rol con piso `--g-text-body-sm-line`; altura sin cambio; en escritorio, sin cambio. Aquí (grupo B, coherencia de fila: los campos son botones y no amplían): el texto de `__field` y `output` suben; el calendario del panel se queda en su rol.

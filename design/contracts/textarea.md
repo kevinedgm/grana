@@ -193,3 +193,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 **Clases nuevas** (contrato bruno–coco): `g-textarea__support` (r02), `g-textarea__optional`, `g-textarea__message`, `__message-icon`, `__message-type`, `is-warning`, `is-valid` (`g-textarea__error` desaparece). Sin prefijo ni sufijo (#50).
 
 **Marca fuera de `GForm` (#170):** sin contexto, el asterisco con `required` se pinta como antes aunque el campo sea `readonly` o `disabled`; la regla «solo campos editables llevan marca» rige solo dentro de `GForm`.
+
+## Texto con puntero grueso (DECISIONS.md #970 a #972)
+
+Regla común en `docs/contract/api.md` «Texto editable con puntero grueso» y mínimo en `tokens.md` §7: con `@media (pointer: coarse)`, `font-size: max(16px, <rol>)`; interlineado del rol con piso `--g-text-body-sm-line`; altura sin cambio; en escritorio, sin cambio. Aquí: `__field` y su marcador de posición suben; etiqueta, ayuda, mensaje y contador se quedan. Con `xs` el piso de interlineado (16→20 con el tema por defecto) hace crecer 4px cada fila extra cuando `rows` ≥ 3: es la única altura que cambia y está aceptada (#972, criterio 4).

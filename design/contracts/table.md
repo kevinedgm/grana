@@ -540,3 +540,7 @@ Con `selectable` y `labels.selectedCount`, el recuento `g-table__count` (`role="
 - **Casilla de fila y de «todo»** (nativa, `accent-color`): `accent-color: var(--g-color-primary-text)` (antes `primary`), porque una casilla nativa no admite un contorno fiable. Sin cambio en el tema por defecto.
 - **Tarjeta seleccionada** (`mode="cards"`, `is-selected`): fondo `--g-color-primary-soft` (sin cambio) y **borde `--g-color-primary-text`** (antes `primary`).
 - coco mide también la casilla sobre la fila seleccionada (`primary-soft`). Pendiente de **coco** (encargo único en `checkbox.md` §«Contraste de lo marcado»).
+
+## Texto con puntero grueso (DECISIONS.md #970 a #972)
+
+Regla común en `docs/contract/api.md` «Texto editable con puntero grueso» y mínimo en `tokens.md` §7: con `@media (pointer: coarse)`, `font-size: max(16px, <rol>)`; interlineado del rol con piso `--g-text-body-sm-line`; altura sin cambio; en escritorio, sin cambio. Aquí: solo los dos `<select>` nativos de orden de la barra en `mode="cards"` (`g-table__bar-cards`), que iOS amplía; celdas, encabezados y controles de fila no cambian.

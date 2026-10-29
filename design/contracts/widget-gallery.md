@@ -178,3 +178,7 @@ Los de `GDialog` y los de los controles: `--g-color-surface`, `--g-color-surface
 ## Contraste de la categoría elegida (`tokens.md` §7.1; DECISIONS.md #431 y #432)
 
 La categoría elegida (`.g-widget-gallery__cat > input:checked + span`) conserva el relleno `--g-color-primary`, el texto `--g-color-on-primary` y su marca, y su **borde pasa a `--g-color-primary-text`**. Los botones `--primary` (con texto) están exentos. Sin cambio en el tema por defecto. Pendiente de **coco** (encargo único en `checkbox.md` §«Contraste de lo marcado»).
+
+## Texto con puntero grueso (DECISIONS.md #970 a #972)
+
+Regla común en `docs/contract/api.md` «Texto editable con puntero grueso» y mínimo en `tokens.md` §7: con `@media (pointer: coarse)`, `font-size: max(16px, <rol>)`; interlineado del rol con piso `--g-text-body-sm-line`; altura sin cambio; en escritorio, sin cambio. Aquí: la búsqueda (`__search input`) y el `<select>` de tamaño de cada fila suben; etiquetas y tarjetas se quedan.
