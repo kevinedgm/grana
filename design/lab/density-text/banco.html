@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Texto por densidad · banco de auditoría</title>
+<!-- Banco de la auditoría posterior de coco (pieza 3, density.md §16). Componentes REALES de packages/vue/dist/, sin shim.
+     Servir desde la raíz del repo: python3 -m http.server 4209 -d /home/user/grana
+     Parámetros (antes del primer pintado): ?html=default|comfortable|compact (atributo en <html>) · ?cli=compact (la regla de la
+     clave del CLI sin tipografía, density.md §6 y §16.5: densidad y texto compacto de DEFAULTS, sin capa) · ?only=roles,btns,fields,menus,dialog,prose,toast
+     Verificación: node design/lab/density-text/auditoria-verificar.mjs (ver su cabecera). -->
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../packages/vue/dist/grana.css">
+<script>
+  (function () {
+    const q = new URLSearchParams(location.search)
+    const html = q.get('html')
+    if (html) document.documentElement.setAttribute('data-g-density', html)
+    if (q.get('cli') === 'compact') {
+      const s = document.createElement('style')
+      s.id = 'cli'
+      const C = '--g-text-body-sm-size:0.8203rem;--g-text-body-size:0.9375rem;--g-text-title-sm-size:1.1719rem;--g-text-title-size:1.4648rem;--g-text-title-line:2rem;--g-text-title-lg-size:1.8311rem;--g-text-title-lg-line:2.25rem;--g-text-display-size:2.2888rem;--g-text-display-line:2.75rem;'
+      const D = '--g-text-body-sm-size:0.875rem;--g-text-body-size:1rem;--g-text-title-sm-size:1.25rem;--g-text-title-size:1.5625rem;--g-text-title-line:2.25rem;--g-text-title-lg-size:1.9531rem;--g-text-title-lg-line:2.5rem;--g-text-display-size:2.4414rem;--g-text-display-line:3rem;'
+      s.textContent = ':root:where(:not([data-g-density])) { --g-density: 0.75; ' + C + '}\n@media (pointer: coarse) {\n  :root:where(:not([data-g-density])) { --g-density: 1; ' + D + '}\n}'
+      document.head.appendChild(s)
+    }
+  })()
+</script>
+<style>
+  /* Maquetación del banco (no es CSS de componente) */
+  body { margin: 0; background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui);
+    font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); }
+  .dt-page { max-inline-size: 1280px; margin-inline: auto; padding: var(--g-space-6) var(--g-space-4) var(--g-space-16); display: grid; gap: var(--g-space-8); }
+  .dt-sec { display: grid; gap: var(--g-space-3); }
+  .dt-sec > h2 { font-size: var(--g-text-title-sm-size); line-height: var(--g-text-title-sm-line); margin: 0; }
+  .dt-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: var(--g-space-4); align-items: start; }
+  .dt-region { border: var(--g-border-width) dashed var(--g-color-border-strong); border-radius: var(--g-radius-lg); padding: var(--g-space-4); display: grid; gap: var(--g-space-3); min-inline-size: 0; }
+  .dt-cap { color: var(--g-color-text-muted); font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); }
+  .dt-row { display: flex; flex-wrap: wrap; gap: var(--g-space-2); align-items: flex-end; }
+  /* Un elemento por rol: la aplicación lee los tokens públicos, como cualquier texto propio (P2, criterio 12) */
+  .dt-role { margin: 0; font-family: var(--g-font-ui); font-weight: 400; }
+  .dt-role[data-role="caption"] { font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); }
+  .dt-role[data-role="body-sm"] { font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); }
+  .dt-role[data-role="body"] { font-size: var(--g-text-body-size); line-height: var(--g-text-body-line); }
+  .dt-role[data-role="title-sm"] { font-size: var(--g-text-title-sm-size); line-height: var(--g-text-title-sm-line); }
+  .dt-role[data-role="title"] { font-size: var(--g-text-title-size); line-height: var(--g-text-title-line); }
+  .dt-role[data-role="title-lg"] { font-size: var(--g-text-title-lg-size); line-height: var(--g-text-title-lg-line); }
+  .dt-role[data-role="display"] { font-size: var(--g-text-display-size); line-height: var(--g-text-display-line); }
+  .dt-prose { margin: 0; font: var(--g-text-body-size)/var(--g-text-body-line) var(--g-font-ui); max-inline-size: 28ch; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../../packages/vue/dist/status.umd.js"></script>
+<script>
+(function () {
+  const q = new URLSearchParams(location.search)
+  const only = (q.get('only') || 'roles,btns,fields,menus,dialog,prose,toast').split(',')
+  const { createApp, reactive } = Vue
+  const roles = ['caption', 'body-sm', 'body', 'title-sm', 'title', 'title-lg', 'display']
+  const opts = [{ value: 'a', label: 'Espadín' }, { value: 'b', label: 'Tobalá' }, { value: 'c', label: 'Cuishe' }]
+  const menuItems = [{ id: 'exp', label: 'Exportar' }, { id: 'dup', label: 'Duplicar' }, { id: 'arch', label: 'Archivar' }]
+  const tLabels = { results: '{count} lotes', empty: 'Sin lotes.', loading: 'Cargando lotes…', rowActions: 'Acciones de {title}', actionsHeader: 'Acciones' }
+  const columns = [{ key: 'lote', label: 'Lote' }, { key: 'estado', label: 'Estado' }]
+  const lotes = [{ id: 1, lote: 'L-2041', estado: 'Reposo' }, { id: 2, lote: 'L-2042', estado: 'Destilado' }]
+
+  // Región = [id, atributo de <div> (data-g-density) o null, prop density o undefined, leyenda]
+  const regs = [
+    ['page', null, undefined, 'Página (sin región)'],
+    ['rf', 'comfortable', undefined, 'Región comfortable'],
+    ['rc', 'compact', undefined, 'Región compact'],
+    ['pc', null, 'compact', 'Prop compact'],
+    ['pd', 'compact', 'default', 'Prop default en región compact']
+  ]
+  const Kit = {
+    props: { id: String, d: String },
+    setup () { return { roles, opts, columns, lotes, tLabels, m: reactive({ t: 'Nombre', s: 'a', n: 'Nota' }) } },
+    template: `
+<div class="dt-kit" :data-kit="id">
+  <div :data-roles="id"><p v-for="r in roles" :key="r" class="dt-role" :data-role="r">Mezcal artesanal {{ r }}</p></div>
+  <div class="dt-row" :data-btns="id">
+    <g-btn v-for="s in ['xs','sm','md','lg','xl']" :key="s" :size="s" :density="d" :data-size="s"><template #prepend><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/></svg></template>Guardar</g-btn>
+  </div>
+  <div :data-fields="id" style="display:grid;gap:var(--g-space-2)">
+    <g-input :density="d" label="Nombre" v-model="m.t" data-f="input"></g-input>
+    <g-select :density="d" label="Tipo" v-model="m.s" :options="opts" data-f="select"></g-select>
+    <g-textarea :density="d" label="Nota" :rows="1" v-model="m.n" data-f="textarea"></g-textarea>
+  </div>
+  <div :data-prose="id">
+    <p class="dt-prose" data-p="app">Un párrafo de la aplicación que lee los tokens de texto y se parte en varias líneas para medir el renglón compartido entre los pasos.</p>
+    <g-text :size="'body'" data-p="gtext">Un GText body con varias líneas de texto para medir su renglón.</g-text>
+    <g-metric label="Litros" :value="'1.250'" size="md" data-p="metric"></g-metric>
+  </div>
+  <g-table :density="d" :columns="columns" :rows="lotes" caption="Lotes" :labels="tLabels" responsive="table" :data-tbl="id"></g-table>
+</div>`
+  }
+
+  const App = {
+    components: { Kit },
+    setup () {
+      const ui = reactive({ menu1: false, menu2: false, dlg1: false, dlg2: false, dlg3: false, sel: 'a' })
+      return { only, regs, ui, menuItems, opts, roles }
+    },
+    template: `
+<main class="dt-page">
+  <header class="dt-sec"><h2>Texto por densidad · banco de auditoría (coco)</h2></header>
+
+  <section class="dt-sec" aria-label="Juegos">
+    <div class="dt-grid">
+      <div v-for="r in regs" :key="r[0]" class="dt-region" :id="'r-' + r[0]" :data-g-density="r[1]" ><span class="dt-cap">{{ r[3] }}</span><kit :id="r[0]" :d="r[2]"></kit></div>
+      <div class="dt-region" id="r-n1" data-g-density="compact"><span class="dt-cap">default dentro de compact</span><div data-g-density="default"><kit id="n1"></kit></div></div>
+      <div class="dt-region" id="r-n2" data-g-density="comfortable"><span class="dt-cap">compact dentro de comfortable</span><div data-g-density="compact"><kit id="n2"></kit></div></div>
+      <div class="dt-region" id="r-n3" data-g-density="compact"><span class="dt-cap">compact › comfortable › compact</span>
+        <div data-g-density="comfortable"><div data-g-density="compact"><kit id="n3"></kit></div></div></div>
+      <div class="dt-region" id="r-n4" data-g-density="compact"><span class="dt-cap">compact › comfortable › compact › default</span>
+        <div data-g-density="comfortable"><div data-g-density="compact"><div data-g-density="default"><kit id="n4"></kit></div></div></div></div>
+      <div class="dt-region" id="r-bad" data-g-density="tiny"><span class="dt-cap">Valor fuera de contrato</span><kit id="bad"></kit></div>
+    </div>
+  </section>
+
+  <section class="dt-sec" aria-label="Capa superior">
+    <div class="dt-region" data-g-density="compact" id="tl-region">
+      <div class="dt-row">
+        <g-btn variant="outline" @click="ui.menu1 = !ui.menu1" data-probe="menu-open">Abrir menú</g-btn>
+        <g-menu v-model="ui.menu1" :items="menuItems" label="Acciones"><template #trigger="{ attrs }"><g-btn v-bind="attrs" variant="outline" data-probe="menu-trigger">Más</g-btn></template></g-menu>
+      </div>
+    </div>
+    <div class="dt-region" data-g-density="compact" id="dl-region">
+      <div class="dt-row"><g-btn @click="ui.dlg1 = true" data-probe="dl-open-inherit">Hereda</g-btn><g-btn @click="ui.dlg2 = true" data-probe="dl-open-default">Prop default</g-btn></div>
+      <g-dialog v-model="ui.dlg1" title="Hereda la región" description="Descripción del diálogo" close-label="Cerrar" data-probe="dl-inherit">
+        <p class="dt-role" data-role="body" data-p="dl-body">Cuerpo del diálogo</p>
+        <p class="dt-role" data-role="caption" data-p="dl-cap">Pie del diálogo</p>
+        <g-input label="Nombre" data-probe="dl-inherit-input"></g-input>
+        <template #footer><g-btn @click="ui.dlg1 = false">Guardar</g-btn></template>
+      </g-dialog>
+      <g-dialog v-model="ui.dlg2" density="default" title="Prop default" description="Descripción del diálogo" close-label="Cerrar" data-probe="dl-default">
+        <p class="dt-role" data-role="body" data-p="dl-body">Cuerpo del diálogo</p>
+        <p class="dt-role" data-role="caption" data-p="dl-cap">Pie del diálogo</p>
+        <g-input label="Nombre" data-probe="dl-default-input"></g-input>
+        <template #footer><g-btn @click="ui.dlg2 = false">Guardar</g-btn></template>
+      </g-dialog>
+    </div>
+    <div class="dt-region" id="dl-page"><g-btn @click="ui.dlg3 = true" data-probe="dl-open-page">Página</g-btn>
+      <g-dialog v-model="ui.dlg3" title="Diálogo de página" description="Descripción del diálogo" close-label="Cerrar" data-probe="dl-page"><g-input label="Nombre"></g-input><template #footer><g-btn @click="ui.dlg3 = false">Guardar</g-btn></template></g-dialog>
+    </div>
+  </section>
+
+  <g-toaster v-if="only.includes('toast')"></g-toaster>
+  <g-status-island v-if="only.includes('toast')"></g-status-island>
+</main>`
+  }
+  const app = createApp(App)
+  app.use(Grana)
+  const toaster = Grana.createToaster({ labels: { region: 'Notificaciones ({hotkey})', close: 'Cerrar notificación', types: { info: 'Información', success: 'Correcto', warning: 'Advertencia', error: 'Error', loading: 'En curso' }, repeated: '{count} veces', queued: '{count} más', actionHint: 'Pulsa {hotkey} para {action}.' } })
+  window.dtToaster = toaster
+  const status = GranaStatus.createStatus({ labels: { region: 'Estado ({hotkey})', waiting: (n) => 'y ' + n + ' más', listTitle: 'Pendiente ({count})', hide: 'Ocultar', types: { info: 'Información', success: 'Correcto', warning: 'Advertencia', error: 'Error' }, dismiss: 'Descartar: {title}', details: 'Detalle', copy: 'Copiar', copied: 'Copiado', remaining: 'Quedan {time}', sheetTitle: 'Estado', close: 'Cerrar' } })
+  window.dtStatus = status
+  app.use(toaster).use(status)
+  window.dtVueApp = app
+  window.dtApp = app.mount('#app')
+})()
+</script>
+</body>
+</html>

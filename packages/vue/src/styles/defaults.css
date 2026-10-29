@@ -702,3 +702,61 @@
   [data-g-density="comfortable"][class*="--density-comfortable"] { --g-density: 0.875; }
   [data-g-density="compact"][class*="--density-compact"] { --g-density: 0.75; }
 }
+
+/* === TEXTO POR REGIÓN (density.md §16, tokens.md §5.1, DECISIONS.md #986 a #995) ===
+   En compact los roles toman la escala B «hermano menor» (fontSize × 15/16, piso 12px, interlineado por la regla de §5):
+   se reasignan los tokens públicos en el elemento de la región (M1), así que todo lo que lee un rol baja con ella y los
+   componentes no cambian. Son 9 tokens (caption y body-line no cambian). default/comfortable vuelven al paso 1 dentro de
+   una región compacta (comfortable no cambia el texto, #988). Un tema del CLI con tipografía emite estas mismas reglas con
+   sus valores; sin ellas, su :root sin capa ganaría a estas reglas en <html>. Mismo orden y motivo que --g-density: al final */
+[data-g-density="compact"] {
+  --g-text-body-sm-size: 0.8203rem;
+  --g-text-body-size: 0.9375rem;
+  --g-text-title-sm-size: 1.1719rem;
+  --g-text-title-size: 1.4648rem;
+  --g-text-title-line: 2rem;
+  --g-text-title-lg-size: 1.8311rem;
+  --g-text-title-lg-line: 2.25rem;
+  --g-text-display-size: 2.2888rem;
+  --g-text-display-line: 2.75rem;
+}
+
+[data-g-density="default"],
+[data-g-density="comfortable"] {
+  --g-text-body-sm-size: 0.875rem;
+  --g-text-body-size: 1rem;
+  --g-text-title-sm-size: 1.25rem;
+  --g-text-title-size: 1.5625rem;
+  --g-text-title-line: 2.25rem;
+  --g-text-title-lg-size: 1.9531rem;
+  --g-text-title-lg-line: 2.5rem;
+  --g-text-display-size: 2.4414rem;
+  --g-text-display-line: 3rem;
+}
+
+/* P2 (#987): con puntero grueso el texto vuelve al paso 1 (como --g-density) y la prop explícita no cede */
+@media (pointer: coarse) {
+  [data-g-density] {
+    --g-text-body-sm-size: 0.875rem;
+    --g-text-body-size: 1rem;
+    --g-text-title-sm-size: 1.25rem;
+    --g-text-title-size: 1.5625rem;
+    --g-text-title-line: 2.25rem;
+    --g-text-title-lg-size: 1.9531rem;
+    --g-text-title-lg-line: 2.5rem;
+    --g-text-display-size: 2.4414rem;
+    --g-text-display-line: 3rem;
+  }
+
+  [data-g-density="compact"][class*="--density-compact"] {
+    --g-text-body-sm-size: 0.8203rem;
+    --g-text-body-size: 0.9375rem;
+    --g-text-title-sm-size: 1.1719rem;
+    --g-text-title-size: 1.4648rem;
+    --g-text-title-line: 2rem;
+    --g-text-title-lg-size: 1.8311rem;
+    --g-text-title-lg-line: 2.25rem;
+    --g-text-display-size: 2.2888rem;
+    --g-text-display-line: 2.75rem;
+  }
+}
