@@ -7,6 +7,7 @@
 // <input type="hidden"> canónicos. Va en su propia entrada, `@grana/vue/slider` (#455).
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, useAttrs, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
+import { useDensityEpoch } from '../../utils/density.js'
 import {
   ACTION_KEYS, acceptTyped, bottom, decimalSeparator, format as formatValue, frac as fracOf, isMultiple, isValidFormat,
   isValidLocale, keyAction, latin, limits, merged as areMerged, move, normalizeMarks, parseTyped, pick, refValues, snap, top,
@@ -738,7 +739,7 @@ function onFonts() {
 }
 // Fuentes por separado (se comparan valor a valor): un getter que devuelve un arreglo nuevo dispararía en cada render del
 // padre con props en línea (`:format="{…}"`, `:marks="[…]"`), y cada medida fuerza un layout del documento entero
-watch([() => refTexts.value.join('|'), empty, () => props.range, () => ff.density.value, () => markInfo.value.list.length, locale], () => nextTick(() => {
+watch([() => refTexts.value.join('|'), empty, () => props.range, () => props.density, useDensityEpoch(), () => markInfo.value.list.length, locale], () => nextTick(() => {
   observe()
   scheduleMeasure()
 }))
@@ -776,7 +777,8 @@ onBeforeUnmount(() => {
 const classes = computed(() => [
   'g-slider',
   `g-slider--color-${COLORS.includes(props.color) ? props.color : 'brand'}`,
-  `g-slider--density-${ff.density.value}`,
+  // La clase sale solo de la prop: lo heredado (región, contenedor con prop) llega por CSS (#976)
+  props.density && `g-slider--density-${props.density}`,
   attrs.class,
   {
     'g-slider--range': props.range,
@@ -800,7 +802,7 @@ const visibleMarks = computed(() => markInfo.value.list)
 </script>
 
 <template>
-  <div ref="rootEl" v-bind="rootAttrs" :class="classes" :style="rootStyle" :data-bump="bumpDir || undefined" @animationend="onAnimationEnd" @animationcancel="onAnimationEnd" @transitionend="onTransitionEnd" @focusout="ff.handlers.onFocusout">
+  <div ref="rootEl" v-bind="rootAttrs" :class="classes" :data-g-density="props.density || rootAttrs['data-g-density']" :style="rootStyle" :data-bump="bumpDir || undefined" @animationend="onAnimationEnd" @animationcancel="onAnimationEnd" @transitionend="onTransitionEnd" @focusout="ff.handlers.onFocusout">
     <div class="g-slider__head"><label v-if="hasLabel && !range" :id="labelId" class="g-slider__label" :for="id"><slot name="label">{{ label }}</slot><template v-if="ff.mark.value === 'optional' && ff.markText.value">{{ ' ' }}<span class="g-slider__optional">{{ ff.markText.value }}</span></template><span v-if="ff.mark.value === 'required'" class="g-slider__required" aria-hidden="true">*</span></label><span v-else-if="hasLabel" :id="labelId" class="g-slider__label" @click="focusStart"><slot name="label">{{ label }}</slot><template v-if="ff.mark.value === 'optional' && ff.markText.value">{{ ' ' }}<span class="g-slider__optional">{{ ff.markText.value }}</span></template><span v-if="ff.mark.value === 'required'" class="g-slider__required" aria-hidden="true">*</span></span><span v-if="empty" class="g-slider__value" aria-hidden="true"><bdi>{{ labels.empty }}</bdi></span></div>
     <div class="g-slider__row" v-bind="groupNaming">
       <div ref="areaEl" class="g-slider__area" @mousedown.prevent @pointerdown="onDown" @pointermove="onMove" @pointerup="onUp" @pointercancel="onCancel" @lostpointercapture="onCancel">

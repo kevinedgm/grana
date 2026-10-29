@@ -5,6 +5,26 @@
 
 /** Props: tipo completo (sin `| undefined`; la opcionalidad sale del meta.json). */
 export const props = {
+  // density: el meta.json dice null + resolvedDefault (sin valor = la región, #975), pero el tipo no cambia (#443, density.md §3.2)
+  'GBtn.density': "'default' | 'comfortable' | 'compact'",
+  'GCard.density': "'default' | 'comfortable' | 'compact'",
+  'GCheckbox.density': "'default' | 'comfortable' | 'compact'",
+  'GDialog.density': "'default' | 'comfortable' | 'compact'",
+  'GForm.density': "'default' | 'comfortable' | 'compact'",
+  'GMenu.density': "'default' | 'comfortable' | 'compact'",
+  'GSidebar.density': "'default' | 'comfortable' | 'compact'",
+  'GSpeechTrigger.density': "'default' | 'comfortable' | 'compact'",
+  'GSplit.density': "'default' | 'comfortable' | 'compact'",
+  'GStack.density': "'default' | 'comfortable' | 'compact'",
+  'GStepper.density': "'default' | 'comfortable' | 'compact'",
+  'GSurface.density': "'default' | 'comfortable' | 'compact'",
+  'GTable.density': "'default' | 'comfortable' | 'compact'",
+  'GTabs.density': "'default' | 'comfortable' | 'compact'",
+  'GWidget.density': "'default' | 'comfortable' | 'compact'",
+  'GWidgetConfig.density': "'default' | 'comfortable' | 'compact'",
+  'GWidgetGallery.density': "'default' | 'comfortable' | 'compact'",
+  'GWidgetGrid.density': "'default' | 'comfortable' | 'compact'",
+  'GCombobox.density': "'default' | 'comfortable' | 'compact'",
   'GAccordion.modelValue': 'Array<string | number> | null',
   'GAvatar.color': "'neutral' | GranaCategory | `${GranaCategory}` | null",
   'GAvatar.categories': '0 | GranaCategory',

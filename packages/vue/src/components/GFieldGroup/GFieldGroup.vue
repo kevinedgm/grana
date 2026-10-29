@@ -11,7 +11,8 @@ import { layoutKey, messageIcon, nextFrame, useCompositeField, useFormField } fr
 import GFormRow from '../GFormRow/GFormRow.vue'
 import { rowRoots } from '../GFormRow/rowEngine.js'
 
-defineOptions({ name: 'GFieldGroup' })
+// Atributos a mano (después de los propios) para que el data-g-density de la prop gane (#975)
+defineOptions({ name: 'GFieldGroup', inheritAttrs: false })
 
 const props = defineProps({
   label: { type: String, default: undefined },
@@ -75,7 +76,8 @@ onMounted(() => {
 
 const classes = computed(() => [
   'g-field-group',
-  `g-field-group--density-${ff.density.value}`,
+  // La prop es la región del grupo (#976); sin prop, nada: lo heredado llega por CSS
+  props.density && `g-field-group--density-${props.density}`,
   {
     'is-disabled': ff.disabled.value,
     'is-readonly': ff.readonly.value,
@@ -91,9 +93,9 @@ try { if (process.env.NODE_ENV !== 'production' && !hasLabel.value) console.warn
 </script>
 
 <template>
-  <fieldset :id="groupId" ref="root" :class="classes" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd" :disabled="ff.disabled.value || undefined" :aria-describedby="describedBy">
+  <fieldset :id="groupId" ref="root" :class="classes" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd" :disabled="ff.disabled.value || undefined" :aria-describedby="describedBy" v-bind="$attrs" :data-g-density="props.density || $attrs['data-g-density']">
     <legend v-if="hasLabel" class="g-field-group__label"><slot name="label">{{ label }}</slot><template v-if="ff.mark.value === 'optional' && ff.markText.value">{{ ' ' }}<span class="g-field-group__optional">{{ ff.markText.value }}</span></template><span v-if="ff.mark.value === 'required'" class="g-field-group__required" aria-hidden="true">*</span></legend>
-    <GFormRow class="g-field-group__parts" :keep="keep" :density="ff.density.value"><slot /></GFormRow>
+    <GFormRow class="g-field-group__parts" :keep="keep"><slot /></GFormRow>
     <div class="g-field-group__support">
       <div v-if="hasHint" :id="hintId" class="g-field-group__hint"><slot name="hint">{{ hint }}</slot></div>
       <div :id="ff.messageId.value" class="g-field-group__message" :aria-live="ff.live.value"><template v-if="message"><GIcon class="g-field-group__message-icon" :name="messageIcon(message.type)" /><span v-if="message.prefix" class="g-field-group__message-type">{{ message.prefix }}</span>{{ message.text }}</template></div>

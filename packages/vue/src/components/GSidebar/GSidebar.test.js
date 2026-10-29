@@ -50,7 +50,7 @@ const last = (w, ev) => w.emitted(ev)?.at(-1)?.[0]
 describe('GSidebar · expandida', () => {
   it('estructura: raíz con clases, <nav> con nombre y solo enlaces y botones; cabecera y pie fuera del <nav>', () => {
     const w = mk({ mode: 'expanded', search: true }, { slots: { logo: () => 'Logo', user: () => h('button', 'AG') } })
-    expect(w.classes()).toEqual(expect.arrayContaining(['g-sidebar', 'g-sidebar--mode-expanded', 'g-sidebar--variant-fixed', 'g-sidebar--color-brand', 'g-sidebar--density-default']))
+    expect(w.classes()).toEqual(expect.arrayContaining(['g-sidebar', 'g-sidebar--mode-expanded', 'g-sidebar--variant-fixed', 'g-sidebar--color-brand']))
     const nav = w.find('nav')
     expect(nav.classes()).toContain('g-sidebar__nav')
     expect(nav.attributes('aria-label')).toBe('Principal')

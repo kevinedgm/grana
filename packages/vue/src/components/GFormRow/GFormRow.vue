@@ -7,11 +7,13 @@
 // pone un hijo por línea (nunca desborda).
 import { computed, inject, onBeforeUnmount, onMounted, provide, ref, unref, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
+import { useDensityEpoch } from '../../utils/density.js'
 import { formKey, layoutKey, spaceUnit } from '../GForm/formContext.js'
 import { MAX_CHILDREN, SIZES, placement, planLines, sizeOf } from './formRowPlan.js'
 import { knownWidth, observeRow, rowRoots, scheduleRow } from './rowEngine.js'
 
-defineOptions({ name: 'GFormRow' })
+// Atributos a mano para que el data-g-density de la prop gane (#975)
+defineOptions({ name: 'GFormRow', inheritAttrs: false })
 
 const props = defineProps({
   keep: Boolean,
@@ -143,16 +145,17 @@ onMounted(() => {
     mo.observe(el, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'] })
   }
 })
-watch([() => props.keep, stack, density], () => { if (root.value && knownWidth(root.value)) scheduleRow(root.value) })
+// La densidad de la región, por la época como fuente separada (density.md §7)
+watch([() => props.keep, stack, density, useDensityEpoch()], () => { if (root.value && knownWidth(root.value)) scheduleRow(root.value) })
 onBeforeUnmount(() => {
   stop?.()
   mo?.disconnect()
 })
 
-const classes = computed(() => ['g-form-row', `g-form-row--density-${density.value}`, { 'g-form-row--keep': props.keep }])
+const classes = computed(() => ['g-form-row', props.density && `g-form-row--density-${props.density}`, { 'g-form-row--keep': props.keep }])
 const style = computed(() => (columns.value ? { '--_form-row-columns': columns.value, '--_form-row-rows': rows.value } : undefined))
 </script>
 
 <template>
-  <div ref="root" :class="classes" :style="style" :data-lines="lines ?? undefined"><slot /></div>
+  <div ref="root" :class="classes" :style="style" :data-lines="lines ?? undefined" v-bind="$attrs" :data-g-density="props.density || $attrs['data-g-density']"><slot /></div>
 </template>

@@ -231,15 +231,18 @@ describe('GAdaptiveLayout public behavior', () => {
   })
   it('has minimal defaults, transparent attributes and no interactive semantics', () => {
     const wrapper = own(mount(GAdaptiveLayout, { attrs: { id: 'address', dir: 'rtl', 'aria-label': 'Dirección' }, slots: { default: '<p>Contenido</p>' } }))
-    expect(wrapper.classes()).toEqual(['g-adaptive-layout', 'g-adaptive-layout--horizontal-start', 'g-adaptive-layout--vertical-top', 'g-adaptive-layout--gap-md', 'g-adaptive-layout--density-default'])
+    expect(wrapper.classes()).toEqual(['g-adaptive-layout', 'g-adaptive-layout--horizontal-start', 'g-adaptive-layout--vertical-top', 'g-adaptive-layout--gap-md'])
     expect(wrapper.attributes('id')).toBe('address'); expect(wrapper.attributes('dir')).toBe('rtl')
     expect(wrapper.attributes('role')).toBeUndefined(); expect(wrapper.attributes('tabindex')).toBeUndefined()
   })
   it('inherits block/density and readonly/disabled context without changing form fields', () => {
     const wrapper = own(mount(GFormLayout, { props: { density: 'compact' }, slots: { default: () => h(GAdaptiveLayout, {}, { default: () => h(GInput, { label: 'Nombre' }) }) } }))
-    expect(wrapper.find('.g-adaptive-layout').classes()).toContain('g-adaptive-layout--density-compact')
+    // La densidad llega por CSS desde la región del layout con prop (#976): nada de clases heredadas
+    expect(wrapper.find('.g-form-layout').attributes('data-g-density')).toBe('compact')
+    expect(wrapper.find('.g-adaptive-layout').attributes('data-g-density')).toBeUndefined()
+    expect(wrapper.find('.g-adaptive-layout').classes().some((c) => c.includes('--density-'))).toBe(false)
     expect(wrapper.find('.g-input').classes()).toContain('g-input--block')
-    expect(wrapper.find('.g-input').classes()).toContain('g-input--density-compact')
+    expect(wrapper.find('.g-input').classes().some((c) => c.includes('--density-'))).toBe(false)
   })
   it('integrates GForm readonly/disabled inheritance and native FormData inside a section', async () => {
     const readonly = ref(true), disabled = ref(false)
@@ -247,7 +250,7 @@ describe('GAdaptiveLayout public behavior', () => {
     const wrapper = own(mount(App))
     expect(wrapper.find('[name=kept]').element.readOnly).toBe(true)
     expect(wrapper.find('[name=omitted]').element.disabled).toBe(true)
-    expect(wrapper.find('.g-adaptive-layout').classes()).toContain('g-adaptive-layout--density-comfortable')
+    expect(wrapper.find('form').attributes('data-g-density')).toBe('comfortable')
     let data = new FormData(wrapper.find('form').element)
     expect(data.get('kept')).toBe('Ana'); expect(data.get('quantity')).toBe('3'); expect(data.has('omitted')).toBe(false)
     disabled.value = true; await nextTick()

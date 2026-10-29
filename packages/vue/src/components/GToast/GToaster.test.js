@@ -157,7 +157,7 @@ describe('GToaster · marcado del aviso', () => {
     await flush()
     const li = toasts()[0]
     expect(li.tagName).toBe('LI')
-    expect([...li.classList]).toEqual(expect.arrayContaining(['g-toast', 'g-surface', 'g-surface--level-floating', 'g-surface--tone-surface', 'g-surface--padding-sm', 'g-surface--density-default', 'g-toast--type-error', 'has-action', 'has-description']))
+    expect([...li.classList]).toEqual(expect.arrayContaining(['g-toast', 'g-surface', 'g-surface--level-floating', 'g-surface--tone-surface', 'g-surface--padding-sm', 'g-toast--type-error', 'has-action', 'has-description']))
     expect(li.dataset.type).toBe('error')
     expect(li.id).toMatch(/-ttoast-1$/)
     expect(li.querySelector('.g-toast__icon').getAttribute('aria-hidden')).toBe('true')

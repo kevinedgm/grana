@@ -15,7 +15,7 @@ describe('GCheckbox · render y clases', () => {
     const w = mount(GCheckbox, { props: { label: 'Acepto' } })
     expect(input(w).attributes('type')).toBe('checkbox')
     expect(root(w).classes()).toEqual(expect.arrayContaining([
-      'g-checkbox', 'g-checkbox--layout-default', 'g-checkbox--size-md', 'g-checkbox--density-default', 'g-checkbox--color-brand'
+      'g-checkbox', 'g-checkbox--layout-default', 'g-checkbox--size-md', 'g-checkbox--color-brand'
     ]))
     expect(w.find('.g-checkbox__row').element.tagName).toBe('LABEL')
     expect(w.find('.g-checkbox__row').attributes('for')).toBe(input(w).attributes('id'))
@@ -260,7 +260,7 @@ describe('GCheckbox · field (#262)', () => {
   it('con field: true (por defecto) el HTML no cambia respecto al de antes de #262', () => {
     const html = (props, slots) => mount(GCheckbox, { props, slots }).html()
     expect(html({ label: 'Acepto', id: 'a' })).toMatchInlineSnapshot(`
-      "<div class="g-checkbox g-checkbox--layout-default g-checkbox--size-md g-checkbox--density-default g-checkbox--color-brand"><label class="g-checkbox__row" for="a"><span class="g-checkbox__box"><input type="checkbox" id="a" aria-labelledby="a-label" class="g-checkbox__input"><svg class="g-icon g-checkbox__mark g-checkbox__check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg><svg class="g-icon g-checkbox__mark g-checkbox__dash" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M5 12h14"></path></svg></span>
+      "<div class="g-checkbox g-checkbox--layout-default g-checkbox--size-md g-checkbox--color-brand"><label class="g-checkbox__row" for="a"><span class="g-checkbox__box"><input type="checkbox" id="a" aria-labelledby="a-label" class="g-checkbox__input"><svg class="g-icon g-checkbox__mark g-checkbox__check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg><svg class="g-icon g-checkbox__mark g-checkbox__dash" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M5 12h14"></path></svg></span>
           <!--v-if--><span class="g-checkbox__text"><span id="a-label" class="g-checkbox__label"><!--v-if-->Acepto<!--v-if--></span>
           <!--v-if--></span>
           <!--v-if-->
@@ -271,7 +271,7 @@ describe('GCheckbox · field (#262)', () => {
       </div>"
     `)
     expect(html({ label: 'Acepto', id: 'b', hint: 'Ayuda', error: 'Mal', required: true, modelValue: true })).toMatchInlineSnapshot(`
-      "<div class="g-checkbox g-checkbox--layout-default g-checkbox--size-md g-checkbox--density-default g-checkbox--color-brand is-invalid"><label class="g-checkbox__row" for="b"><span class="g-checkbox__box"><input type="checkbox" id="b" checked="" aria-required="true" aria-invalid="true" aria-labelledby="b-label" aria-describedby="b-hint b-message" class="g-checkbox__input"><svg class="g-icon g-checkbox__mark g-checkbox__check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg><svg class="g-icon g-checkbox__mark g-checkbox__dash" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M5 12h14"></path></svg></span>
+      "<div class="g-checkbox g-checkbox--layout-default g-checkbox--size-md g-checkbox--color-brand is-invalid"><label class="g-checkbox__row" for="b"><span class="g-checkbox__box"><input type="checkbox" id="b" checked="" aria-required="true" aria-invalid="true" aria-labelledby="b-label" aria-describedby="b-hint b-message" class="g-checkbox__input"><svg class="g-icon g-checkbox__mark g-checkbox__check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg><svg class="g-icon g-checkbox__mark g-checkbox__dash" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M5 12h14"></path></svg></span>
           <!--v-if--><span class="g-checkbox__text"><span id="b-label" class="g-checkbox__label"><!--v-if-->Acepto<span class="g-checkbox__required" aria-hidden="true">*</span></span><span id="b-hint" class="g-checkbox__hint">Ayuda</span></span>
           <!--v-if-->
         </label>
@@ -285,7 +285,7 @@ describe('GCheckbox · field (#262)', () => {
       </div>"
     `)
     expect(html({ label: 'Express', id: 'c', layout: 'card', warning: 'Ojo', readonly: true }, { meta: '5 €' })).toMatchInlineSnapshot(`
-      "<div class="g-checkbox g-checkbox--layout-card g-checkbox--size-md g-checkbox--density-default g-checkbox--color-brand is-readonly is-warning"><label class="g-checkbox__row" for="c"><span class="g-checkbox__box"><input type="checkbox" id="c" aria-readonly="true" aria-labelledby="c-label c-meta" aria-describedby="c-message" class="g-checkbox__input"><svg class="g-icon g-checkbox__mark g-checkbox__check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg><svg class="g-icon g-checkbox__mark g-checkbox__dash" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M5 12h14"></path></svg></span>
+      "<div class="g-checkbox g-checkbox--layout-card g-checkbox--size-md g-checkbox--color-brand is-readonly is-warning"><label class="g-checkbox__row" for="c"><span class="g-checkbox__box"><input type="checkbox" id="c" aria-readonly="true" aria-labelledby="c-label c-meta" aria-describedby="c-message" class="g-checkbox__input"><svg class="g-icon g-checkbox__mark g-checkbox__check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg><svg class="g-icon g-checkbox__mark g-checkbox__dash" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M5 12h14"></path></svg></span>
           <!--v-if--><span class="g-checkbox__text"><span id="c-label" class="g-checkbox__label"><!--v-if-->Express<!--v-if--></span>
           <!--v-if--></span><span id="c-meta" class="g-checkbox__meta">5 €</span>
         </label>
@@ -308,7 +308,7 @@ describe('GCheckbox · field (#262)', () => {
     expect(input(w).attributes('aria-describedby')).toBeUndefined()
     // El resto sigue igual: nombre, modelo, tamaño propio
     expect(input(w).attributes('aria-labelledby')).toBe('f-label')
-    expect(root(w).classes()).toEqual(expect.arrayContaining(['g-checkbox', 'g-checkbox--size-md', 'g-checkbox--density-default']))
+    expect(root(w).classes()).toEqual(expect.arrayContaining(['g-checkbox', 'g-checkbox--size-md']))
   })
 
   it('con field: false sigue el v-model, el indeterminado, disabled y readonly propios', async () => {
@@ -365,7 +365,7 @@ describe('GCheckbox · field (#262)', () => {
     expect(el.attributes('aria-readonly')).toBeUndefined()
     expect(el.attributes('disabled')).toBeUndefined()
     expect(el.attributes('aria-invalid')).toBeUndefined()
-    expect(w.find('.g-checkbox').classes()).toContain('g-checkbox--density-default')
+    expect(w.find('.g-checkbox').classes().some((c) => c.includes('--density-')), 'sin prop: sin clase de densidad (#975)').toBe(false)
     expect(w.find('.g-checkbox').classes()).not.toContain('is-readonly')
     expect(w.find('.g-checkbox__message').exists()).toBe(false)
     await el.setValue(true)

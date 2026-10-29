@@ -35,7 +35,7 @@ export default defineComponent({
     maxRows: { type: Number, default: 4, validator: (v) => Number.isInteger(v) && v >= 1 && v <= 6 },
     presets: { type: Array, default: () => DEFAULT_PRESETS },
     labels: { type: Object, default: () => ({}) },
-    density: { type: String, default: 'default', validator: oneOf(['default', 'comfortable', 'compact']) }
+    density: { type: String, default: undefined, validator: oneOf(['default', 'comfortable', 'compact']) }
   },
   emits: ['update:modelValue', 'change', 'remove-request'],
   setup(props, { emit, slots, expose }) {
@@ -422,7 +422,9 @@ export default defineComponent({
       return h('div', {
         ...rest,
         ref: rootEl,
-        class: cls('g-widget-grid', `g-widget-grid--density-${props.density}`, props.editable && 'is-editing', klass)
+        // La prop es la región de la rejilla (#975)
+        ...(props.density && { 'data-g-density': props.density }),
+        class: cls('g-widget-grid', props.density && `g-widget-grid--density-${props.density}`, props.editable && 'is-editing', klass)
       }, [
         layout.length
           ? h('ul', { ref: listEl, class: 'g-widget-grid__list', role: 'list', 'aria-label': props.label || attrs['aria-label'], style: { '--_cols': cols.value } }, items)

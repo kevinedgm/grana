@@ -7,6 +7,7 @@
 // Pista de solo icono (#435): motor de GTooltip en modo visual (utils/visualTip.js, tooltip.md §«Modo visual»).
 import { computed, defineComponent, h, inject, mergeProps, nextTick, onBeforeUnmount, onMounted, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
+import { useDensityEpoch } from '../../utils/density.js'
 import GIcon from '../GIcon/GLibIcon.js'
 import GAppIcon from '../GIcon/GIcon.vue'
 import { layoutKey, messageIcon, useFormField } from '../GForm/formContext.js'
@@ -121,7 +122,6 @@ const ff = isField ? useFormField({
   control: tabTarget,
   root: rootEl
 }) : {
-  density: computed(() => props.density ?? 'default'),
   readonly: computed(() => props.readonly ?? false),
   disabled: computed(() => props.disabled ?? false),
   message: NONE,
@@ -135,7 +135,6 @@ const ff = isField ? useFormField({
   live: computed(() => undefined),
   handlers: {}
 }
-const density = ff.density
 const isReadonly = ff.readonly
 const isDisabled = ff.disabled
 const message = ff.message
@@ -230,8 +229,9 @@ onMounted(() => {
     document.fonts.addEventListener?.('loadingdone', onFonts)
   }
 })
-// Al cambiar opciones, labelMode, size, density o appearance se mide de nuevo (tras el parche del DOM)
-watch(() => [props.options, props.labelMode, props.size, density.value, props.appearance], () => {
+// Al cambiar opciones, labelMode, size, density o appearance se mide de nuevo (tras el parche del DOM); la densidad de la
+// región, por la época como fuente separada (density.md §7)
+watch([() => [props.options, props.labelMode, props.size, props.density, props.appearance], useDensityEpoch()], () => {
   if (unmounted) return
   refit()
   watchSize()
@@ -306,7 +306,8 @@ const classes = computed(() => [
   'g-radio-group',
   `g-radio-group--appearance-${props.appearance}`,
   `g-radio-group--size-${props.size}`,
-  `g-radio-group--density-${density.value}`,
+  // La clase sale solo de la prop: lo heredado llega por CSS (#976)
+  props.density && `g-radio-group--density-${props.density}`,
   `g-radio-group--color-${props.color}`,
   {
     'g-radio-group--icon-only': iconMode.value,
@@ -324,6 +325,7 @@ const classes = computed(() => [
 const controlled = computed(() => ({
   id: rootId.value,
   class: classes.value,
+  'data-g-density': props.density || attrs['data-g-density'],
   role: 'radiogroup',
   'aria-labelledby': hasLabel.value ? labelId.value : attrs['aria-labelledby'],
   'aria-describedby': describedBy.value,

@@ -31,7 +31,7 @@ describe('GWidgetGallery · estructura', () => {
   it('es una hoja lateral de GDialog con nombre, clases y cierre', () => {
     const w = mk({}, { attrs: { class: 'mi' } })
     const d = w.find('dialog')
-    expect(d.classes()).toEqual(expect.arrayContaining(['g-dialog', 'g-dialog--placement-end', 'g-dialog--size-sm', 'g-widget-gallery', 'g-widget-gallery--density-default', 'mi']))
+    expect(d.classes()).toEqual(expect.arrayContaining(['g-dialog', 'g-dialog--placement-end', 'g-dialog--size-sm', 'g-widget-gallery', 'mi']))
     expect(w.find('h2.g-dialog__title').text()).toBe('Añadir widget')
     expect(w.find('.g-dialog__close').attributes('aria-label')).toBe('Cerrar')
     expect(d.attributes('open')).toBeDefined()

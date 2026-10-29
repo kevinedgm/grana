@@ -9,6 +9,7 @@ import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, ref, u
 import { formKey, layoutKey, nextFrame, revealKey } from '../GForm/formContext.js'
 import { rowRoots } from '../GFormRow/rowEngine.js'
 import { observeParent, readLater, rowGapOf } from './revealGap.js'
+import { useDensityEpoch } from '../../utils/density.js'
 
 defineOptions({ name: 'GFormReveal' })
 
@@ -26,8 +27,8 @@ const active = computed(() => props.when && (parentReveal ? Boolean(unref(parent
 provide(revealKey, { active, fromReveal: true })
 
 // Pila como GFormLayout (#278): densidad del sub‑contexto de distribución › GForm › default; re‑provee layoutKey
-const density = computed(() => unref(layout?.density) ?? unref(form?.density) ?? 'default')
-provide(layoutKey, { block: true, density, stack: layout?.stack, readonly: layout?.readonly, disabled: layout?.disabled })
+// Re‑provee la densidad de fuera tal cual, sin resolverla a 'default' (#976): useFormField() la resuelve igual
+provide(layoutKey, { block: true, density: computed(() => unref(layout?.density) ?? unref(form?.density)), stack: layout?.stack, readonly: layout?.readonly, disabled: layout?.disabled })
 
 const root = ref(null)
 const animating = ref(false)
@@ -139,6 +140,8 @@ onMounted(() => {
   nextFrame(() => nextFrame(() => { ready.value = true }))
   try { if (process.env.NODE_ENV !== 'production') check(el) } catch {}
 })
+// La separación sigue a la región: un cambio de data-g-density no cambia el tamaño del padre (density.md §7)
+watch(useDensityEpoch(), () => readLater(readGap))
 onBeforeUnmount(() => {
   stopObserve?.()
   clearTimeout(timer)
@@ -146,7 +149,6 @@ onBeforeUnmount(() => {
 
 const classes = computed(() => [
   'g-form-reveal',
-  `g-form-reveal--density-${density.value}`,
   { 'is-open': props.when, 'is-animating': animating.value, 'is-ready': ready.value }
 ])
 const style = computed(() => (gap.value === null ? undefined : { '--_reveal-gap': `${gap.value}px` }))

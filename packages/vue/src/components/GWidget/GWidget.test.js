@@ -24,7 +24,7 @@ describe('GWidget · estructura', () => {
   it('<article> con nombre por su título (h3 por defecto) y clases de nivel, forma y estado', () => {
     const w = mk()
     expect(w.element.tagName).toBe('ARTICLE')
-    expect(w.classes()).toEqual(expect.arrayContaining(['g-widget', 'g-widget--level-m', 'g-widget--shape-square', 'g-widget--state-populated', 'g-widget--density-default']))
+    expect(w.classes()).toEqual(expect.arrayContaining(['g-widget', 'g-widget--level-m', 'g-widget--shape-square', 'g-widget--state-populated']))
     const t = w.find('h3.g-widget__title')
     expect(t.text()).toBe('Ingresos')
     expect(w.attributes('aria-labelledby')).toBe(t.attributes('id'))

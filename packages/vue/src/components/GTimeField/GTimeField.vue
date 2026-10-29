@@ -7,6 +7,7 @@
 // El motor es la utilidad interna utils/timeInput.js (sin estado ni DOM, en segundos).
 import { computed, inject, mergeProps, nextTick, onBeforeUnmount, onMounted, provide, ref, unref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
+import { useDensityEpoch } from '../../utils/density.js'
 import { DAY, canonical, filterTyped, formatTime, fromCanonical, isValidLocale, localeInfo, parseTime, period, stepTime, valueText } from '../../utils/timeInput.js'
 import { observeSize } from '../../utils/sizeObserver.js'
 import GInput from '../GInput/GInput.vue'
@@ -563,7 +564,8 @@ function scheduleMeasure() {
   }))
 }
 watch(
-  () => [canPublish.value, fitOn.value, referenceText.value, info.value?.cycle, props.prefix, props.suffix, props.prefixLabel, props.suffixLabel, props.output, props.size, props.density, unref(layout?.density), unref(form?.density), isReadonly.value],
+  // La densidad de la región, por la época como fuente separada (density.md §7)
+  [() => [canPublish.value, fitOn.value, referenceText.value, info.value?.cycle, props.prefix, props.suffix, props.prefixLabel, props.suffixLabel, props.output, props.size, props.density, unref(layout?.density), unref(form?.density), isReadonly.value], useDensityEpoch()],
   () => scheduleMeasure()
 )
 let offMeasure = null

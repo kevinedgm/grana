@@ -5,7 +5,8 @@ import { computed, inject, provide, ref, unref } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import { formKey, layoutKey } from '../GForm/formContext.js'
 import { useAdaptiveLayout } from './useAdaptiveLayout.js'
-defineOptions({ name: 'GAdaptiveLayout' })
+// Atributos a mano para que el data-g-density de la prop gane (#975)
+defineOptions({ name: 'GAdaptiveLayout', inheritAttrs: false })
 const props = defineProps({
   // Lógico (#359): en RTL, start es la derecha
   horizontal: { type: String, default: 'start', validator: oneOf(['start', 'center', 'end']) },
@@ -21,8 +22,8 @@ const context = { density, stack: parent?.stack, parentSchedule: parent?.adaptiv
 const { refresh, schedule, setIntrinsicMin } = useAdaptiveLayout(root, props, context)
 provide(layoutKey, { block: true, density, stack: parent?.stack, readonly: parent?.readonly, disabled: parent?.disabled, setIntrinsicMin, adaptiveSchedule: schedule })
 defineExpose({ refresh })
-const classes = computed(() => ['g-adaptive-layout', `g-adaptive-layout--horizontal-${props.horizontal}`, `g-adaptive-layout--vertical-${props.vertical}`, `g-adaptive-layout--gap-${props.gap}`, `g-adaptive-layout--density-${density.value}`])
+const classes = computed(() => ['g-adaptive-layout', `g-adaptive-layout--horizontal-${props.horizontal}`, `g-adaptive-layout--vertical-${props.vertical}`, `g-adaptive-layout--gap-${props.gap}`, props.density && `g-adaptive-layout--density-${props.density}`])
 </script>
 <template>
-  <div ref="root" :class="classes"><slot /></div>
+  <div ref="root" :class="classes" v-bind="$attrs" :data-g-density="props.density || $attrs['data-g-density']"><slot /></div>
 </template>

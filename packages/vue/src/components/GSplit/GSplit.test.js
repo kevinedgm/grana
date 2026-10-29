@@ -12,7 +12,7 @@ describe('GSplit · render y clases', () => {
   it('es un div con los defaults y dos regiones', () => {
     const w = mount(GSplit, { slots: two })
     expect(w.element.tagName).toBe('DIV')
-    expect(w.classes()).toEqual(['g-split', 'g-split--ratio-3-2', 'g-split--collapse-md', 'g-split--gap-md', 'g-split--density-default', 'g-split--align-start'])
+    expect(w.classes()).toEqual(['g-split', 'g-split--ratio-3-2', 'g-split--collapse-md', 'g-split--gap-md', 'g-split--align-start'])
     const regions = w.findAll('.g-split__region')
     expect(regions).toHaveLength(2)
     expect(regions[0].classes()).toContain('g-split__region--start')
@@ -27,7 +27,8 @@ describe('GSplit · render y clases', () => {
 
   it('las props siguen a las clases, con ":" convertido en "-"', () => {
     const w = mount(GSplit, { props: { ratio: '2:1', collapse: 'lg', gap: 'none', density: 'compact', align: 'stretch' }, slots: two })
-    expect(w.classes()).toEqual(['g-split', 'g-split--ratio-2-1', 'g-split--collapse-lg', 'g-split--gap-none', 'g-split--density-compact', 'g-split--align-stretch'])
+    expect(w.classes()).toEqual(['g-split', 'g-split--ratio-2-1', 'g-split--collapse-lg', 'g-split--gap-none', 'g-split--align-stretch', 'g-split--density-compact'])
+    expect(w.attributes('data-g-density'), 'la prop es la región (#975)').toBe('compact')
     for (const r of ['1:1', '3:2', '2:1', '2:3', '1:2']) {
       expect(mount(GSplit, { props: { ratio: r }, slots: two }).classes()).toContain(`g-split--ratio-${r.replace(':', '-')}`)
     }
@@ -58,12 +59,21 @@ describe('GSplit · valores fuera de lista (aviso 1)', () => {
     expect(spy).toHaveBeenCalledTimes(4)
   })
 
-  it.each([['ratio', '5:5', 'g-split--ratio-3-2'], ['collapse', 'xl', 'g-split--collapse-md'], ['gap', 'xl', 'g-split--gap-md'], ['density', 'tight', 'g-split--density-default'], ['align', 'center', 'g-split--align-start']])('%s=%s cae al default y avisa con prop y valor', (name, value, cls) => {
+  it.each([['ratio', '5:5', 'g-split--ratio-3-2'], ['collapse', 'xl', 'g-split--collapse-md'], ['gap', 'xl', 'g-split--gap-md'], ['align', 'center', 'g-split--align-start']])('%s=%s cae al default y avisa con prop y valor', (name, value, cls) => {
     const spy = warns()
     const w = mount(GSplit, { props: { [name]: value }, slots: two })
     expect(w.classes()).toContain(cls)
     expect(spy).toHaveBeenCalledTimes(1)
     expect(spy.mock.calls[0][0]).toContain(`${name}="${value}"`)
+  })
+
+  it('density=tight avisa y no pinta clase ni atributo (sin prop válida, sigue la región, #975)', () => {
+    const spy = warns()
+    const w = mount(GSplit, { props: { density: 'tight' }, slots: two })
+    expect(w.classes().some((c) => c.includes('--density-'))).toBe(false)
+    expect(w.attributes('data-g-density')).toBeUndefined()
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(spy.mock.calls[0][0]).toContain('density="tight"')
   })
 
   it('sin valores raros no avisa', () => {

@@ -11,7 +11,7 @@ describe('GStack · render y clases', () => {
   it('es un div vertical md por defecto, sin h, v ni divided', () => {
     const w = mount(GStack, { slots: { default: '<p>a</p><p>b</p>' } })
     expect(w.element.tagName).toBe('DIV')
-    expect(w.classes()).toEqual(['g-stack', 'g-stack--orientation-vertical', 'g-stack--gap-md', 'g-stack--density-default'])
+    expect(w.classes()).toEqual(['g-stack', 'g-stack--orientation-vertical', 'g-stack--gap-md'])
     expect(w.findAll('p')).toHaveLength(2)
   })
 
@@ -49,7 +49,7 @@ describe('GStack · render y clases', () => {
   it('los valores fuera de lista caen al default', () => {
     warns()
     const w = mount(GStack, { props: { orientation: 'diag', gap: 'xl', density: 'tiny', horizontal: 'left' } })
-    expect(w.classes()).toEqual(['g-stack', 'g-stack--orientation-vertical', 'g-stack--gap-md', 'g-stack--density-default'])
+    expect(w.classes()).toEqual(['g-stack', 'g-stack--orientation-vertical', 'g-stack--gap-md'])
   })
 
   it('el slot admite hijos de componente y no añade envoltorios', () => {

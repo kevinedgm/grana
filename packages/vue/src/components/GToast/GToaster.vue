@@ -483,12 +483,15 @@ onBeforeUnmount(() => {
   removals.forEach((h) => clearTimeout(h))
   frames.forEach((h) => caf(h))
 })
+// La raíz lleva data-g-density="default" fijo (density.md §5.1, #977): vive en body y se muda al modal superior; no
+// sigue la región ni la página (Δ0). Seguir la de la página queda reservado (R3).
 </script>
 
 <template>
   <Teleport v-if="active && host" :to="host">
     <div
       v-bind="attrs"
+      data-g-density="default"
       :id="rootId"
       ref="rootEl"
       :class="rootClasses"

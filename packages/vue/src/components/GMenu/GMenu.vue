@@ -31,7 +31,7 @@ export default defineComponent({
     align: { type: String, default: 'start', validator: oneOf(['start', 'end']) },
     side: { type: String, default: 'auto', validator: oneOf(['auto', 'bottom', 'top']) },
     closeOnSelect: { type: String, default: 'auto', validator: oneOf(['auto', 'always', 'never']) },
-    density: { type: String, default: 'default', validator: oneOf(['default', 'comfortable', 'compact']) },
+    density: { type: String, default: undefined, validator: oneOf(['default', 'comfortable', 'compact']) },
     labels: { type: Object, default: () => ({}) },
     id: { type: String, default: undefined }
   },
@@ -697,7 +697,9 @@ export default defineComponent({
           ...attrs,
           ref: listRef,
           id: listId,
-          class: cls('g-menu__list', `g-menu__list--density-${props.density}`, attrs.class),
+          class: cls('g-menu__list', props.density && `g-menu__list--density-${props.density}`, attrs.class),
+          // La prop es la región de la lista y de sus submenús (#975); sin prop, la del disparador por herencia
+          ...(props.density && { 'data-g-density': props.density }),
           role: 'menu',
           popover: 'manual',
           inert: isOpen ? undefined : true,

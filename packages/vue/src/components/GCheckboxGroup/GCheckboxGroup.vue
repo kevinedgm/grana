@@ -136,6 +136,8 @@ const describedBy = computed(() => {
 const classes = computed(() => [
   'g-checkbox-group',
   `g-checkbox-group--layout-${props.layout}`,
+  // La prop es la región del grupo (#976): clase y atributo juntos (la clase es lo que P2 reconoce, #978)
+  props.density && `g-checkbox-group--density-${props.density}`,
   {
     'is-disabled': isDisabled.value,
     'is-invalid': ff.invalid.value,
@@ -146,7 +148,7 @@ const classes = computed(() => [
   }
 ])
 // Los manejadores del contexto van PRIMERO; el resto de atributos y escuchas del consumidor, al <fieldset>
-const rootBindings = computed(() => mergeProps(ff.handlers, attrs))
+const rootBindings = computed(() => mergeProps(ff.handlers, attrs, props.density && { 'data-g-density': props.density }))
 
 // Avisos solo en desarrollo. `process` puede no existir (UMD en navegador): se comprueba antes de leerlo.
 try {
@@ -169,7 +171,7 @@ try {
         <GCheckbox
           layout="default"
           :size="size"
-          :density="density"
+          :density="props.density"
           :color="color"
           :model-value="allChecked"
           :indeterminate="someChecked"

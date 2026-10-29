@@ -21,7 +21,7 @@ const props = defineProps({
   title: { type: String, default: undefined },
   description: { type: String, default: undefined },
   size: { type: String, default: 'md', validator: oneOf(['sm', 'md', 'lg']) },
-  density: { type: String, default: 'default', validator: oneOf(['default', 'comfortable', 'compact']) },
+  density: { type: String, default: undefined, validator: oneOf(['default', 'comfortable', 'compact']) },
   inset: { type: Boolean, default: true },
   fullscreen: Boolean,
   bare: Boolean,
@@ -438,7 +438,7 @@ onBeforeUnmount(() => {
 const classes = computed(() => [
   'g-dialog',
   `g-dialog--size-${props.size}`,
-  `g-dialog--density-${props.density}`,
+  props.density && `g-dialog--density-${props.density}`,
   `g-dialog--placement-${props.placement}`,
   `g-dialog--mobile-${props.mobile}`,
   {
@@ -541,6 +541,7 @@ defineExpose({ push, back, backTo })
     ref="dialog"
     :id="rootId"
     :class="classes"
+    :data-g-density="density || attrs['data-g-density']"
     :style="dynStyle"
     :role="roleAttr"
     :aria-label="bareLabel"

@@ -55,7 +55,8 @@ describe('Precedencia: prop explícita › contexto › default de siempre (form
     ['GSwitch', GSwitch, 'g-switch', { label: 'L' }],
     ['GDatePicker', GDatePicker, 'g-datepicker', { label: 'L' }]
   ]
-  const OLD = { GInput: { density: 'default', block: false, disabled: false, readonly: false }, GTextarea: { density: 'default', block: false, disabled: false, readonly: false }, GSelect: { density: 'default', block: false, disabled: false, readonly: false }, GCheckbox: { disabled: false, readonly: false }, GCheckboxGroup: { density: 'default', disabled: false }, GSwitch: { density: 'default', disabled: false, readonly: false }, GDatePicker: { density: 'default', block: false, disabled: false, readonly: false } }
+  // Sin density (#975): con la prop explícita, también 'default', la raíz es una región (clase y data-g-density)
+  const OLD = { GInput: { block: false, disabled: false, readonly: false }, GTextarea: { block: false, disabled: false, readonly: false }, GSelect: { block: false, disabled: false, readonly: false }, GCheckbox: { disabled: false, readonly: false }, GCheckboxGroup: { disabled: false }, GSwitch: { disabled: false, readonly: false }, GDatePicker: { block: false, disabled: false, readonly: false } }
 
   for (const [name, comp, , props] of FIELDS) {
     it(`${name}: fuera de GForm el marcado es idéntico al de los defaults de siempre`, () => {
@@ -64,18 +65,24 @@ describe('Precedencia: prop explícita › contexto › default de siempre (form
       expect(a.html()).toBe(b.html())
       expect(a.html()).not.toContain('is-readonly')
       expect(a.html()).not.toContain('--block')
+      expect(a.html(), 'sin prop: ni clase ni atributo de densidad').not.toMatch(/--density-|data-g-density/)
     })
   }
 
   for (const [name, , cls, props] of FIELDS) {
     if (name === 'GCheckboxGroup') continue
-    it(`${name}: dentro de GForm hereda densidad, solo lectura y deshabilitado; la prop explícita (también false) gana`, () => {
+    it(`${name}: dentro de GForm la densidad llega por CSS (#976); hereda solo lectura y deshabilitado; la prop explícita (también false) gana`, () => {
       const tag = name === 'GDatePicker' ? 'GDatePicker' : name
       const p = Object.entries(props).map(([k, v]) => (typeof v === 'string' ? `${k}="${v}"` : `:${k}='${JSON.stringify(v)}'`)).join(' ')
       const w = make(`<GForm density="compact" readonly disabled><${tag} ${p} /><${tag} ${p} density="comfortable" :readonly="false" :disabled="false" /></GForm>`)
       const [inh, own] = w.findAll(`.${cls}`).filter((x) => x.classes().includes(cls))
-      expect(inh.classes()).toEqual(expect.arrayContaining([`${cls}--density-compact`, 'is-readonly', 'is-disabled']))
+      expect(w.find('form').attributes('data-g-density'), 'el GForm con prop es la región').toBe('compact')
+      expect(w.find('form').classes()).toContain('g-form--density-compact')
+      expect(inh.classes()).toEqual(expect.arrayContaining(['is-readonly', 'is-disabled']))
+      expect(inh.classes().some((c) => c.includes('--density-')), 'el campo saca su clase solo de su prop').toBe(false)
+      expect(inh.attributes('data-g-density')).toBeUndefined()
       expect(own.classes()).toContain(`${cls}--density-comfortable`)
+      expect(own.attributes('data-g-density')).toBe('comfortable')
       expect(own.classes()).not.toContain('is-readonly')
       expect(own.classes()).not.toContain('is-disabled')
     })
@@ -282,10 +289,11 @@ describe('GForm · envío (#157)', () => {
 
   it('un GForm dentro de otro avisa y pinta <div>, pero sigue proveyendo su contexto', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const w = make('<GForm><GForm density="compact"><GInput label="A" /></GForm></GForm>')
+    const w = make('<GForm><GForm density="compact" readonly><GInput label="A" /></GForm></GForm>')
     expect(w.findAll('form')).toHaveLength(1)
     expect(w.find('form div.g-form').exists()).toBe(true)
-    expect(w.find('.g-input').classes()).toContain('g-input--density-compact')
+    expect(w.find('form div.g-form').attributes('data-g-density'), 'su prop es la región (#976)').toBe('compact')
+    expect(w.find('.g-input').classes()).toContain('is-readonly')
     expect(warn.mock.calls.some((c) => /otro GForm/.test(c[0]))).toBe(true)
   })
 

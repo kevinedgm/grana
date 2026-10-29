@@ -27,7 +27,7 @@ describe('GStepper · estructura y clases', () => {
 
   it('clases por defecto y por props', () => {
     const w = mk()
-    expect(w.classes()).toEqual(expect.arrayContaining(['g-stepper', 'g-stepper--horizontal', 'g-stepper--indicator-number', 'g-stepper--color-brand', 'g-stepper--size-md', 'g-stepper--density-default']))
+    expect(w.classes()).toEqual(expect.arrayContaining(['g-stepper', 'g-stepper--horizontal', 'g-stepper--indicator-number', 'g-stepper--color-brand', 'g-stepper--size-md']))
     expect(w.classes()).not.toContain('g-stepper--navigable')
     const v = mk({ orientation: 'vertical', indicator: 'segment', color: 'accent', size: 'lg', density: 'compact', navigation: 'back', disabled: true })
     expect(v.classes()).toEqual(expect.arrayContaining(['g-stepper--vertical', 'g-stepper--indicator-segment', 'g-stepper--color-accent', 'g-stepper--size-lg', 'g-stepper--density-compact', 'is-disabled']))

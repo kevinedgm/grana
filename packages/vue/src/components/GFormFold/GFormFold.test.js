@@ -123,7 +123,7 @@ describe('GFormFold · estructura y estado', () => {
     expect(r.getAttribute('aria-describedby')).toBe('fold-desc')
     expect(r.style.getPropertyValue('--_d')).toBe('1')
     expect(r.classList.contains('g-form-fold')).toBe(true)
-    expect(r.classList.contains('g-form-fold--density-default')).toBe(true)
+    expect([...r.classList].some((c) => c.includes('--density-')), 'sin clase de densidad (#976)').toBe(false)
     expect(r.classList.contains('is-open')).toBe(true)
     const body = r.querySelector('fieldset.g-form-fold__body')
     expect(body.getAttribute('role')).toBe('none')

@@ -393,7 +393,7 @@ describe('GTranscript · casillas sin región ni contexto de GForm (#262)', () =
     for (const b of boxes) {
       expect(b.classList.contains('is-readonly')).toBe(false)
       expect(b.classList.contains('is-disabled')).toBe(false)
-      expect(b.classList.contains('g-checkbox--density-default')).toBe(true)
+      expect([...b.classList].some((c) => c.includes('--density-')), 'sin prop: sin clase de densidad (#975)').toBe(false)
       expect(b.querySelector('input').hasAttribute('aria-readonly')).toBe(false)
       expect(b.querySelector('input').disabled).toBe(false)
     }

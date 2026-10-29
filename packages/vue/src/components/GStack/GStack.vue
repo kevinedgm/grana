@@ -3,7 +3,7 @@
 // Contrato: design/contracts/stack.md (DECISIONS.md #717, #719, #723) · Estilo: GStack.css (coco)
 // Puro (#444): sin estado, medidas ni eventos. Las clases son el contrato con el CSS:
 //   h-* actúa en los dos ejes, v-* solo en horizontal, divided solo en vertical, sin clase si no hay valor.
-import { defineComponent, h, onBeforeUpdate } from 'vue'
+import { defineComponent, h, mergeProps, onBeforeUpdate } from 'vue'
 
 const ORIENTATIONS = ['vertical', 'horizontal']
 const GAPS = ['none', 'sm', 'md', 'lg']
@@ -14,17 +14,18 @@ const NOT_STACK = ['a', 'button', 'input', 'select', 'textarea', 'summary', 'lab
 
 export default defineComponent({
   name: 'GStack',
+  inheritAttrs: false,
   // Sin validator: los valores fuera de lista los avisa el componente (aviso 2) y caen al default
   props: {
     as: { type: String, default: 'div' },
     orientation: { type: String, default: 'vertical' },
     gap: { type: String, default: 'md' },
-    density: { type: String, default: 'default' },
+    density: { type: String, default: undefined },
     horizontal: { type: String, default: undefined },
     vertical: { type: String, default: undefined },
     divided: Boolean
   },
-  setup(props, { slots }) {
+  setup(props, { slots, attrs: given }) {
     const warned = new Set()
     const warn = (key, text) => {
       try {
@@ -53,7 +54,10 @@ export default defineComponent({
     return () => {
       const row = props.orientation === 'horizontal'
       const pick = (v, list, d) => (list.includes(v) ? v : d)
-      const cls = ['g-stack', `g-stack--orientation-${row ? 'horizontal' : 'vertical'}`, `g-stack--gap-${pick(props.gap, GAPS, 'md')}`, `g-stack--density-${pick(props.density, DENSITIES, 'default')}`]
+      const cls = ['g-stack', `g-stack--orientation-${row ? 'horizontal' : 'vertical'}`, `g-stack--gap-${pick(props.gap, GAPS, 'md')}`]
+      // La prop es la región de la pila (#975): clase y atributo solo con un valor de la lista; sin prop, nada
+      const d = DENSITIES.includes(props.density) && props.density
+      if (d) cls.push(`g-stack--density-${d}`)
       if (H.includes(props.horizontal)) cls.push(`g-stack--h-${props.horizontal}`)
       if (row && V.includes(props.vertical)) cls.push(`g-stack--v-${props.vertical}`)
       if (!row && props.divided) cls.push('g-stack--divided')
@@ -61,7 +65,7 @@ export default defineComponent({
       const tag = String(props.as).toLowerCase()
       const attrs = { class: cls }
       if (tag === 'ul' || tag === 'ol') attrs.role = 'list'
-      return h(props.as, attrs, slots.default ? slots.default() : undefined)
+      return h(props.as, mergeProps(attrs, given, d && { 'data-g-density': d }), slots.default ? slots.default() : undefined)
     }
   }
 })

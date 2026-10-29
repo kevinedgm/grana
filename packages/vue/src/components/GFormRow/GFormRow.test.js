@@ -122,7 +122,7 @@ describe('GFormRow · componente', () => {
   it('antes de medir no escribe nada (uno por línea por CSS); tras medir, en el cuadro siguiente, variables y data-*', async () => {
     const w = make('<GFormRow id="r"><GInput class="g-form-w-lg" label="Calle" /><GInput class="g-form-w-xs" label="Ext." /><GInput class="g-form-w-xs" label="Int." /></GFormRow>')
     const row = w.find('#r')
-    expect(row.classes()).toEqual(['g-form-row', 'g-form-row--density-default'])
+    expect(row.classes()).toEqual(['g-form-row'])
     expect(row.attributes('data-lines')).toBeUndefined()
     expect(row.attributes('style')).toBeUndefined()
     const kids = row.element.children
@@ -202,15 +202,20 @@ describe('GFormRow · componente', () => {
     expect(row.dataset.lines).toBe(cs.trim() === '50' ? '2' : '1')
   })
 
-  it('densidad: la propia, la del layout o la de GForm; los campos de la fila llenan su sitio (block)', () => {
+  it('densidad: solo la propia hace región (clase y atributo, #976); lo heredado llega por CSS; los campos de la fila llenan su sitio (block)', () => {
     const w = make('<GForm density="compact"><GFormLayout><GFormRow id="a"><GInput label="A" /></GFormRow></GFormLayout><GFormLayout density="comfortable"><GFormRow id="b"><GInput label="B" /></GFormRow><GFormRow id="c" density="default"><GInput label="C" :block="false" /></GFormRow></GFormLayout></GForm>')
-    expect(w.find('#a').classes()).toContain('g-form-row--density-compact')
-    expect(w.find('#b').classes()).toContain('g-form-row--density-comfortable')
+    const dens = (el) => [...el.classList].filter((c) => c.includes('--density-'))
+    expect(dens(w.find('#a').element)).toEqual([])
+    expect(w.find('#a').attributes('data-g-density')).toBeUndefined()
+    expect(dens(w.find('#b').element)).toEqual([])
     expect(w.find('#c').classes()).toContain('g-form-row--density-default')
+    expect(w.find('#c').attributes('data-g-density')).toBe('default')
     const ins = w.findAll('.g-input')
-    expect(ins[0].classes()).toEqual(expect.arrayContaining(['g-input--block', 'g-input--density-compact']))
+    expect(ins[0].classes()).toContain('g-input--block')
+    expect(dens(ins[0].element)).toEqual([])
     expect(ins[2].classes()).not.toContain('g-input--block')
     expect(w.findAll('.g-form-layout')[1].classes()).toContain('g-form-layout--density-comfortable')
+    expect(w.findAll('.g-form-layout')[1].attributes('data-g-density')).toBe('comfortable')
   })
 
   it('sin ResizeObserver: uno por línea, sin data-lines ni errores', async () => {
@@ -245,7 +250,7 @@ describe('GFormLayout', () => {
     FakeRO.all = []
     vi.stubGlobal('ResizeObserver', FakeRO)
     const w = make('<GFormLayout><GInput label="A" /><GTextarea label="B" /></GFormLayout>')
-    expect(w.find('.g-form-layout').classes()).toEqual(['g-form-layout', 'g-form-layout--density-default'])
+    expect(w.find('.g-form-layout').classes()).toEqual(['g-form-layout'])
     expect(FakeRO.all.some((o) => o.els.includes(w.find('.g-form-layout').element))).toBe(false)
   })
 

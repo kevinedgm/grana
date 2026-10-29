@@ -734,11 +734,13 @@ describe('GSlider · GForm', () => {
     expect(w.find('.g-slider').classes()).not.toContain('is-rejected')
   })
 
-  it('hereda densidad, readonly y disabled del contexto; la prop gana', async () => {
+  it('hereda readonly y disabled del contexto y la densidad por CSS (#976); la prop gana', async () => {
     const w = host('<GForm density="compact" readonly><GSlider id="a" name="a" label="A" :model-value="1" locale="es" /><GSlider id="b" name="b" label="B" :model-value="1" density="default" :readonly="false" locale="es" /></GForm>')
     const [a, b] = w.findAll('.g-slider')
-    expect(a.classes()).toEqual(expect.arrayContaining(['g-slider--density-compact', 'is-readonly']))
+    expect(a.classes()).toContain('is-readonly')
+    expect(a.classes().some((c) => c.includes('--density-'))).toBe(false)
     expect(b.classes()).toContain('g-slider--density-default')
+    expect(b.attributes('data-g-density')).toBe('default')
     expect(b.classes()).not.toContain('is-readonly')
   })
 })

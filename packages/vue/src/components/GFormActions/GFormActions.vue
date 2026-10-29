@@ -4,12 +4,13 @@
 // En el DOM: secundarias antes y la primaria al final. En estrecho (ancho propio < space × 104) se apilan con la
 // primaria arriba (data-stacked + g-form-actions--stacked). Con `sticky`, publica su altura en GForm
 // (--g-form-actions-size) para que el foco nunca quede debajo (WCAG 2.4.11).
-import { Comment, Fragment, computed, inject, onBeforeUnmount, onMounted, ref, unref, useSlots } from 'vue'
+import { Comment, Fragment, computed, inject, onBeforeUnmount, onMounted, ref, useSlots } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import GBtn from '../GBtn/GBtn.vue'
 import { formKey, nextFrame, spaceUnit } from '../GForm/formContext.js'
 
-defineOptions({ name: 'GFormActions' })
+// Atributos a mano para que el data-g-density de la prop gane (#975)
+defineOptions({ name: 'GFormActions', inheritAttrs: false })
 
 const NARROW = 104
 
@@ -21,7 +22,6 @@ const props = defineProps({
 
 const slots = useSlots()
 const form = inject(formKey, null)
-const density = computed(() => props.density ?? unref(form?.density) ?? 'default')
 
 const root = ref(null)
 const stacked = ref(false)
@@ -91,13 +91,14 @@ function checkButtons() {
 
 const classes = computed(() => [
   'g-form-actions',
-  `g-form-actions--density-${density.value}`,
+  // La prop es la región del pie (#976); sin prop, la del formulario o la región por CSS
+  props.density && `g-form-actions--density-${props.density}`,
   { 'g-form-actions--sticky': props.sticky, 'g-form-actions--stacked': stacked.value }
 ])
 </script>
 
 <template>
-  <div ref="root" :class="classes" :data-stacked="stacked ? '' : undefined">
+  <div ref="root" :class="classes" :data-stacked="stacked ? '' : undefined" v-bind="$attrs" :data-g-density="props.density || $attrs['data-g-density']">
     <div class="g-form-actions__status" role="status"><slot name="status"><template v-if="status">{{ status }}</template></slot></div>
     <div class="g-form-actions__buttons"><slot /></div>
     <template v-if="checkButtons()" />

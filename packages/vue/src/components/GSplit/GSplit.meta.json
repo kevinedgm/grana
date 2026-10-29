@@ -41,9 +41,15 @@
     {
       "name": "density",
       "type": "String",
-      "default": "default",
-      "values": ["default", "comfortable", "compact"],
-      "description": "Multiplica la separación 1 · 0,875 · 0,75. No se hereda de ningún contexto. Fuera de lista: aviso 1 y default."
+      "default": null,
+      "values": [
+        "default",
+        "comfortable",
+        "compact"
+      ],
+      "resolvedDefault": "default",
+      "description": "Multiplica la separación 1 · 0,875 · 0,75. No se hereda de ningún contexto. Fuera de lista: aviso 1 y default.",
+      "note": "Sin valor: la región más cercana (data-g-density) › <html data-g-density> › clave density del tema › default (density.md §1)"
     },
     {
       "name": "align",

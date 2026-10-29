@@ -30,7 +30,7 @@ describe('GDialog · render y clases', () => {
     const w = mountOpen()
     expect(w.find('dialog').exists()).toBe(true)
     expect(w.find('dialog').classes()).toEqual(expect.arrayContaining([
-      'g-dialog', 'g-dialog--size-md', 'g-dialog--density-default', 'g-dialog--mobile-sheet', 'g-dialog--inset'
+      'g-dialog', 'g-dialog--size-md', 'g-dialog--mobile-sheet', 'g-dialog--inset'
     ]))
     w.unmount()
   })

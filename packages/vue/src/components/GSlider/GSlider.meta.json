@@ -191,7 +191,8 @@
         "comfortable",
         "compact"
       ],
-      "note": "El alto del área es el de la caja de GInput md con la misma densidad; sin valor, contexto o default"
+      "resolvedDefault": "default",
+      "note": "Sin valor: la región más cercana (data-g-density) › <html data-g-density> › clave density del tema › default (density.md §1)"
     },
     {
       "name": "color",

@@ -80,7 +80,6 @@ const ff = useFormField({
   root: rootEl
 })
 if (own && typeof own.connect === 'function') own.connect({ revealOwn: ff.revealOwn })
-const density = ff.density
 const isDisabled = ff.disabled
 const isReadonly = ff.readonly
 const message = ff.message
@@ -108,7 +107,8 @@ const classes = computed(() => [
   'g-input',
   `g-input--variant-${props.variant}`,
   `g-input--size-${props.size}`,
-  `g-input--density-${density.value}`,
+  // La clase sale solo de la prop: lo heredado (región, GForm con prop) llega por CSS (#976)
+  props.density && `g-input--density-${props.density}`,
   props.color && `g-input--color-${props.color}`,
   props.rounded && `g-input--rounded-${props.rounded}`,
   {
@@ -205,7 +205,7 @@ try {
 </script>
 
 <template>
-  <div ref="rootEl" v-bind="rootAttrs" :class="classes" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd">
+  <div ref="rootEl" v-bind="rootAttrs" :class="classes" :data-g-density="props.density" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd">
     <label v-if="hasLabel" :id="`${inputId}-label`" class="g-input__label" :for="inputId"><slot name="label">{{ label }}</slot><template v-if="ff.mark.value === 'optional' && ff.markText.value">{{ ' ' }}<span class="g-input__optional">{{ ff.markText.value }}</span></template><span v-if="ff.mark.value === 'required'" class="g-input__required" aria-hidden="true">*</span></label>
     <div class="g-input__row">
       <div class="g-input__control" data-g-tooltip-box>
@@ -234,7 +234,7 @@ try {
         <slot name="end" :readonly="isReadonly" :disabled="isDisabled" />
       </div>
       <div v-if="hasAction" class="g-input__action">
-        <slot name="action" :size="size" :density="density" :disabled="isDisabled" />
+        <slot name="action" :size="size" :density="props.density" :disabled="isDisabled" />
       </div>
     </div>
     <div class="g-input__support">

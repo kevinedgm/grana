@@ -47,13 +47,14 @@ afterEach(() => {
 
 // ---------------------------------------------------------------------------------------------------------------
 describe('GFormReveal · estructura (form.md §14, #275)', () => {
-  it('raíz <div> sin rol; hijo directo y único fieldset.g-form-reveal__body role="none" sin <legend>; clase de densidad', () => {
+  it('raíz <div> sin rol; hijo directo y único fieldset.g-form-reveal__body role="none" sin <legend>; sin clase de densidad (#976)', () => {
     const w = make('<GFormLayout><GInput label="P" /><GFormReveal id="rv" data-x="1" class="mia" :when="true"><GInput label="A" name="a" /></GFormReveal></GFormLayout>')
     const r = w.find('#rv')
     expect(r.element.tagName).toBe('DIV')
     expect(r.attributes('role')).toBeUndefined()
     expect(r.attributes('data-x')).toBe('1')
-    expect(r.classes()).toEqual(expect.arrayContaining(['g-form-reveal', 'g-form-reveal--density-default', 'is-open', 'mia']))
+    expect(r.classes()).toEqual(expect.arrayContaining(['g-form-reveal', 'is-open', 'mia']))
+    expect(r.classes().some((c) => c.includes('--density-'))).toBe(false)
     expect(r.element.children).toHaveLength(1)
     const body = r.element.firstElementChild
     expect(body.tagName).toBe('FIELDSET')
@@ -259,17 +260,20 @@ describe('GFormReveal · --_reveal-gap desde el row-gap del padre (#278)', () =>
 
 // ---------------------------------------------------------------------------------------------------------------
 describe('GFormReveal · sub‑contexto de distribución (#278)', () => {
-  it('fuera de GFormLayout sus campos llenan su sitio (block) y siguen la densidad de GForm; dentro, la del layout', () => {
+  it('fuera de GFormLayout sus campos llenan su sitio (block); la densidad les llega por CSS de la región (#976)', () => {
     const w = make(`<GForm density="compact"><GInput label="P" />
       <GFormReveal id="r1" :when="true"><GInput id="a" label="A" /><GFormRow><GInput id="b" label="B" /></GFormRow></GFormReveal>
       <GFormLayout density="comfortable"><GInput label="Q" /><GFormReveal id="r2" :when="true"><GInput id="c" label="C" /></GFormReveal></GFormLayout></GForm>`)
-    expect(w.find('#r1').classes()).toContain('g-form-reveal--density-compact')
+    const noDensity = (el) => ![...el.classList].some((c) => c.includes('--density-')) && !el.hasAttribute('data-g-density')
+    expect(w.find('form').attributes('data-g-density')).toBe('compact')
+    expect(noDensity(w.find('#r1').element)).toBe(true)
     const box = (id) => w.find(`#${id}`).element.closest('.g-input')
     expect(box('a').classList.contains('g-input--block')).toBe(true)
-    expect(box('a').classList.contains('g-input--density-compact')).toBe(true)
+    expect(noDensity(box('a'))).toBe(true)
     expect(box('b').classList.contains('g-input--block')).toBe(true)
-    expect(w.find('#r2').classes()).toContain('g-form-reveal--density-comfortable')
-    expect(box('c').classList.contains('g-input--density-comfortable')).toBe(true)
+    expect(w.find('.g-form-layout').attributes('data-g-density')).toBe('comfortable')
+    expect(noDensity(w.find('#r2').element)).toBe(true)
+    expect(noDensity(box('c'))).toBe(true)
   })
 
   it('stack, readonly y disabled del sub‑contexto padre pasan; la prop explícita del campo gana', () => {

@@ -18,7 +18,7 @@ describe('SSR · GFileField', () => {
     expect(typeof document).toBe('undefined')
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const html = await render({ id: 'ff', name: 'fotos', hint: 'PNG', multiple: true })
-    expect(html).toContain('class="g-file-field g-file-field--size-md g-file-field--variant-outline g-file-field--density-default is-multiple"')
+    expect(html).toContain('class="g-file-field g-file-field--size-md g-file-field--variant-outline is-multiple"')
     expect(html).toMatch(/<input class="g-file-field__input"[^>]*id="ff"[^>]*type="file"[^>]*name="fotos"[^>]*multiple[^>]*aria-labelledby="ff-label ff-action"/)
     expect(html).toContain('<span id="ff-action" class="g-file-field__action">Adjuntar archivos</span>')
     expect(html).toMatch(/<span class="g-file-field__add-hint" aria-hidden="true">(<!--\[-->)?PNG(<!--\]-->)?<\/span>/)

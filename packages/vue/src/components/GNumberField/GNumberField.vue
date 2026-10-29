@@ -6,6 +6,7 @@
 // utilidad interna utils/numberInput.js (sin estado ni DOM).
 import { computed, inject, mergeProps, nextTick, onBeforeUnmount, onMounted, ref, unref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
+import { useDensityEpoch } from '../../utils/density.js'
 import {
   canonical, decimalsOf, filterTyped, formatNumber, formatRaw, isValidLocale, localeInfo, parsePasted, roundTo,
   stepValue, textMatches
@@ -610,7 +611,8 @@ function scheduleMeasure() {
   }))
 }
 watch(
-  () => [canPublish.value, referenceTexts.value.join('|'), affix.value.prefix, affix.value.suffix, affix.value.prefixLabel, affix.value.suffixLabel, props.output, props.size, props.density, unref(layout?.density), unref(form?.density), isReadonly.value, showSteppers.value],
+  // La densidad de la región, por la época como fuente separada (density.md §7)
+  [() => [canPublish.value, referenceTexts.value.join('|'), affix.value.prefix, affix.value.suffix, affix.value.prefixLabel, affix.value.suffixLabel, props.output, props.size, props.density, unref(layout?.density), unref(form?.density), isReadonly.value, showSteppers.value], useDensityEpoch()],
   () => scheduleMeasure()
 )
 let offMeasure = null

@@ -37,7 +37,7 @@ export default defineComponent({
     search: Boolean,
     closeOnNavigate: { type: Boolean, default: true },
     color: { type: String, default: 'brand', validator: oneOf(COLORS) },
-    density: { type: String, default: 'default', validator: oneOf(['default', 'comfortable', 'compact']) },
+    density: { type: String, default: undefined, validator: oneOf(['default', 'comfortable', 'compact']) },
     labels: { type: Object, default: () => ({}) }
   },
   // Solo estos eventos se declaran: el resto llega a la raíz por $attrs.
@@ -606,9 +606,12 @@ export default defineComponent({
       `g-sidebar--mode-${mode}`,
       `g-sidebar--variant-${props.variant}`,
       `g-sidebar--color-${props.color}`,
-      `g-sidebar--density-${props.density}`,
+      props.density && `g-sidebar--density-${props.density}`,
       overlayOn.value && mode === 'expanded' ? 'g-sidebar--overlay' : null
     ]
+
+    // La prop es la región del sidebar (#975): el atributo va con la clase, después de $attrs, también en el cajón
+    const region = () => props.density && { 'data-g-density': props.density }
 
     const renderSide = (kind) => {
       // kind: 'side' (en línea: expandida o riel) | 'drawer' (siempre expandida dentro del <dialog>)
@@ -649,7 +652,7 @@ export default defineComponent({
         for (const g of model.value) for (const item of g.items) children.push(tips.node(itemTip(item), item.label))
       }
       const own = kind === 'side' ? { ref: rootEl, ...rootAttrs() } : {}
-      return h('div', { ...own, class: cls(...modeClasses(mode), ready.value && 'is-ready', kind === 'side' && expanding.value && 'is-expanding', kind === 'side' ? attrs.class : null), 'data-mode': mode }, children)
+      return h('div', { ...own, class: cls(...modeClasses(mode), ready.value && 'is-ready', kind === 'side' && expanding.value && 'is-expanding', kind === 'side' ? attrs.class : null), 'data-mode': mode, ...region() }, children)
     }
 
     const renderNavbar = () => {
@@ -699,7 +702,8 @@ export default defineComponent({
         ...rootAttrs(),
         class: cls(...modeClasses('navbar'), props.contained && 'g-sidebar--contained', ready.value && 'is-ready', entering.value && 'is-entering', attrs.class),
         'aria-label': props.label || attrs['aria-label'],
-        'data-mode': 'navbar'
+        'data-mode': 'navbar',
+        ...region()
       }, [h('ul', { class: 'g-sidebar__bar', role: 'list', onKeydown: onBarKeydown }, li)])
     }
 

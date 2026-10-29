@@ -67,7 +67,7 @@ describe('GRadioGroup · estructura (#268, #269)', () => {
 
   it('clases de raíz siempre (también list por defecto) y validadores de las props enumeradas', () => {
     const w = make()
-    expect(root(w).classes()).toEqual(['g-radio-group', 'g-radio-group--appearance-list', 'g-radio-group--size-md', 'g-radio-group--density-default', 'g-radio-group--color-brand'])
+    expect(root(w).classes()).toEqual(['g-radio-group', 'g-radio-group--appearance-list', 'g-radio-group--size-md', 'g-radio-group--color-brand'])
     const v = make({ id: 'v', appearance: 'card', size: 'xl', density: 'compact', color: 'danger' })
     expect(root(v).classes()).toEqual(expect.arrayContaining(['g-radio-group--appearance-card', 'g-radio-group--size-xl', 'g-radio-group--density-compact', 'g-radio-group--color-danger']))
     for (const name of ['appearance', 'labelMode', 'size', 'density', 'color']) expect(GRadioGroup.props[name].validator('valor-invalido')).toBe(false)
@@ -445,7 +445,7 @@ describe('GRadioGroup · field: false (#262)', () => {
   it('no lee el contexto de GForm: ni readonly, ni disabled, ni densidad, ni errores', () => {
     const w = makeT('<GForm readonly disabled density="compact" :errors="{ v: \'Mal\' }"><GRadioGroup id="g" name="v" label="Vista" :options="opts" :field="false" /></GForm>', () => ({ opts: SEXO }))
     const r = w.find('.g-radio-group')
-    expect(r.classes()).toEqual(expect.arrayContaining(['g-radio-group--density-default']))
+    expect(r.classes().some((c) => c.includes('--density-'))).toBe(false)
     expect(r.classes()).not.toContain('is-readonly')
     expect(r.classes()).not.toContain('is-disabled')
   })
@@ -507,10 +507,12 @@ describe('GRadioGroup · dentro de GForm (form.md §2; trigger change, control, 
     expect(onInvalid.mock.calls.at(-1)[0].errors[0].id).toBe('g-2')
   })
 
-  it('hereda densidad y disabled del contexto; la prop explícita gana', () => {
+  it('hereda disabled del contexto y la densidad por CSS (#976); la prop explícita gana', () => {
     const w = makeT('<GForm density="compact" disabled><GRadioGroup id="a" name="a" label="A" :options="opts" /><GRadioGroup id="b" name="b" label="B" :options="opts" density="default" :disabled="false" /></GForm>', () => ({ opts: SEXO }))
-    expect(w.find('#a').classes()).toEqual(expect.arrayContaining(['g-radio-group--density-compact', 'is-disabled']))
+    expect(w.find('#a').classes()).toContain('is-disabled')
+    expect(w.find('#a').classes().some((c) => c.includes('--density-'))).toBe(false)
     expect(w.find('#b').classes()).toContain('g-radio-group--density-default')
+    expect(w.find('#b').attributes('data-g-density')).toBe('default')
     expect(w.find('#b').classes()).not.toContain('is-disabled')
   })
 

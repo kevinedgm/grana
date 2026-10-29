@@ -13,7 +13,7 @@ describe('GBtn · render y clases', () => {
     expect(el.element.tagName).toBe('BUTTON')
     expect(el.attributes('type')).toBe('button')
     expect(el.classes()).toEqual(expect.arrayContaining([
-      'g-btn', 'g-btn--color-brand', 'g-btn--variant-solid', 'g-btn--size-md', 'g-btn--density-default'
+      'g-btn', 'g-btn--color-brand', 'g-btn--variant-solid', 'g-btn--size-md'
     ]))
     expect(el.classes().some((c) => c.startsWith('g-btn--rounded-'))).toBe(false)
     expect(el.find('.g-btn__label').text()).toBe('Guardar')

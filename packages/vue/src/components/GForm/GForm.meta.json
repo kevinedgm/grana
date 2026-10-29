@@ -13,7 +13,7 @@
     { "name": "warnings", "type": "Object", "default": "{}", "note": "Como errors, sin bloquear" },
     { "name": "showErrorsOn", "type": "String", "default": "blur", "values": ["blur", "submit"] },
     { "name": "marks", "type": "String", "default": "optional", "values": ["optional", "required"] },
-    { "name": "density", "type": "String", "default": "default", "values": ["default", "comfortable", "compact"] },
+    { "name": "density", "type": "String", "default": null, "values": ["default", "comfortable", "compact"], "resolvedDefault": "default", "note": "Sin valor: la región más cercana (data-g-density) › <html data-g-density> › clave density del tema › default (density.md §1)" },
     { "name": "readonly", "type": "Boolean", "default": false },
     { "name": "disabled", "type": "Boolean", "default": false },
     { "name": "headingLevel", "type": "Number", "default": 3, "values": [2, 3, 4, 5, 6] },

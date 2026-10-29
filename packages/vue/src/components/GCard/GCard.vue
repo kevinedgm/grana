@@ -6,6 +6,7 @@
 // Presenta y emite intención: `modelValue` es el estado y la tarjeta no lo cambia sin emitir. Mide su propio ancho (#130).
 import { Comment, Fragment, Text, computed, defineComponent, getCurrentInstance, h, inject, nextTick, onBeforeUnmount, onBeforeUpdate, onMounted, provide, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
+import { readDensity, useDensityEpoch } from '../../utils/density.js'
 import { cardGroupKey } from '../../utils/cardGroup.js'
 import { useKeyFocus } from '../../utils/keyFocus.js'
 import GSurface from '../GSurface/GSurface.vue'
@@ -43,7 +44,7 @@ export default defineComponent({
     level: { type: String, default: 'outlined', validator: oneOf(['flat', 'outlined', 'raised', 'inset']) },
     padding: { type: String, default: 'md', validator: oneOf(['xs', 'sm', 'md', 'lg']) },
     rounded: { type: String, default: undefined, validator: oneOf(['none', 'xs', 'sm', 'md', 'lg', 'xl', 'pill']) },
-    density: { type: String, default: 'default', validator: oneOf(['default', 'comfortable', 'compact']) },
+    density: { type: String, default: undefined, validator: oneOf(['default', 'comfortable', 'compact']) },
     color: { type: String, default: 'brand', validator: oneOf(['brand', 'accent', 'neutral']) },
     orientation: { type: String, default: 'vertical', validator: oneOf(['vertical', 'horizontal', 'auto']) },
     mediaPosition: { type: String, default: 'top', validator: oneOf(['top', 'start', 'end', 'background', 'inline']) },
@@ -403,8 +404,14 @@ export default defineComponent({
 
     // ---------- Render ----------
     const scope = () => ({ size: size.value, layout: layout.value })
+    // La meta de prioridad baja se oculta con la densidad que rige en la tarjeta (prop o región, también P2): antes de
+    // montar, la de la prop; después, la leída (density.md §7, #980; límite SSR aceptado: se quita al hidratar)
+    const readD = ref(null)
+    const readMeta = () => { readD.value = readDensity(el()) }
+    onMounted(readMeta)
+    watch(useDensityEpoch(), readMeta)
     const metaItems = computed(() => props.meta.filter((m) => m && m.label != null && m.label !== '' && m.value != null && m.value !== '')
-      .filter((m) => !(props.density === 'compact' && m.priority === 'low')))
+      .filter((m) => !((readD.value ?? props.density) === 'compact' && m.priority === 'low')))
     const hasDescription = () => Boolean(props.description || slots.description)
     const hasTitle = () => Boolean(props.title || slots.title)
 

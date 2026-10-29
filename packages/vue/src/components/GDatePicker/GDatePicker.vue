@@ -741,7 +741,8 @@ const classes = computed(() => [
   `g-datepicker--mode-${props.mode}`,
   `g-datepicker--variant-${props.variant}`,
   `g-datepicker--size-${props.size}`,
-  `g-datepicker--density-${ff.density.value}`,
+  // La clase sale solo de la prop: lo heredado (región, contenedor con prop) llega por CSS (#976)
+  props.density && `g-datepicker--density-${props.density}`,
   `g-datepicker--color-${props.color}`,
   props.rounded && `g-datepicker--rounded-${props.rounded}`,
   {
@@ -873,7 +874,7 @@ defineExpose({
 </script>
 
 <template>
-  <div ref="root" v-bind="rootAttrs" :class="classes" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd">
+  <div ref="root" v-bind="rootAttrs" :class="classes" :data-g-density="props.density || rootAttrs['data-g-density']" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd">
     <template v-if="!inline">
       <slot v-if="hasTriggerSlot" name="trigger" v-bind="slotScope" />
       <template v-else>

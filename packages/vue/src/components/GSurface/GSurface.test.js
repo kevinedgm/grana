@@ -9,7 +9,7 @@ describe('GSurface · render y clases', () => {
   it('es un <div> con las clases por defecto', () => {
     const w = mount(GSurface)
     expect(w.element.tagName).toBe('DIV')
-    expect(w.classes()).toEqual(['g-surface', 'g-surface--level-outlined', 'g-surface--tone-surface', 'g-surface--padding-md', 'g-surface--density-default'])
+    expect(w.classes()).toEqual(['g-surface', 'g-surface--level-outlined', 'g-surface--tone-surface', 'g-surface--padding-md'])
   })
 
   it('las clases siguen a las props', () => {

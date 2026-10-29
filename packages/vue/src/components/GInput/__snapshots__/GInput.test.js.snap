@@ -1,7 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`GInput · slots internos (N1–N3) > N1: la etiqueta lleva id="{id}-label"; sin slots internos la estructura es la de siempre (instantánea) 1`] = `
-"<div class="g-input g-input--variant-outline g-input--size-md g-input--density-default g-input--has-suffix"><label id="c-label" class="g-input__label" for="c">Correo
+"<div class="g-input g-input--variant-outline g-input--size-md g-input--has-suffix"><label id="c-label" class="g-input__label" for="c">Correo
     <!--v-if--><span class="g-input__required" aria-hidden="true">*</span>
   </label>
   <div class="g-input__row">

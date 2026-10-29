@@ -3,6 +3,7 @@
 // Contrato: design/contracts/textarea.md · Estructura: design/lab/textarea/r01/ · Estilo: GTextarea.css (coco)
 import { computed, mergeProps, nextTick, onBeforeUnmount, onMounted, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
+import { useDensityEpoch } from '../../utils/density.js'
 import GIcon from '../GIcon/GLibIcon.js'
 import { messageIcon, nextFrame, useFormField } from '../GForm/formContext.js'
 
@@ -65,7 +66,6 @@ const ff = useFormField({
   control: field,
   root: rootEl
 })
-const density = ff.density
 const message = ff.message
 const invalid = ff.invalid
 const hasLabel = computed(() => Boolean(props.label || slots.label))
@@ -125,7 +125,7 @@ onMounted(() => {
   }
 })
 onBeforeUnmount(() => resizeObserver?.disconnect())
-watch([() => props.modelValue, () => props.autosize, () => props.rows, () => props.maxRows, () => props.size, () => density.value], () => nextTick(measure), { flush: 'post' })
+watch([() => props.modelValue, () => props.autosize, () => props.rows, () => props.maxRows, () => props.size, () => props.density, useDensityEpoch()], () => nextTick(measure), { flush: 'post' })
 watch(() => props.autosize, (on) => {
   if (!on) {
     autoH.value = null
@@ -159,7 +159,8 @@ const classes = computed(() => [
   'g-textarea',
   `g-textarea--variant-${props.variant}`,
   `g-textarea--size-${props.size}`,
-  `g-textarea--density-${density.value}`,
+  // La clase sale solo de la prop: lo heredado (región, contenedor con prop) llega por CSS (#976)
+  props.density && `g-textarea--density-${props.density}`,
   props.color && `g-textarea--color-${props.color}`,
   props.rounded && `g-textarea--rounded-${props.rounded}`,
   `g-textarea--resize-${resizeEff.value}`,
@@ -229,7 +230,7 @@ try {
 </script>
 
 <template>
-  <div ref="rootEl" v-bind="rootAttrs" :class="classes" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd">
+  <div ref="rootEl" v-bind="rootAttrs" :class="classes" :data-g-density="props.density" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd">
     <label v-if="hasLabel" class="g-textarea__label" :for="fieldId"><slot name="label">{{ label }}</slot><template v-if="ff.mark.value === 'optional' && ff.markText.value">{{ ' ' }}<span class="g-textarea__optional">{{ ff.markText.value }}</span></template><span v-if="ff.mark.value === 'required'" class="g-textarea__required" aria-hidden="true">*</span></label>
     <div class="g-textarea__control" data-g-tooltip-box>
       <textarea ref="field" v-bind="fieldBindings" class="g-textarea__field" :style="autosize && autoH !== null ? { '--_autoh': `${autoH}px` } : undefined" />

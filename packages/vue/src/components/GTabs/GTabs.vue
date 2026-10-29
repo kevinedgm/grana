@@ -6,6 +6,7 @@
 // Pista de solo icono (#434): motor de GTooltip en modo visual (utils/visualTip.js, tooltip.md §«Modo visual»).
 import { computed, defineComponent, h, inject, mergeProps, nextTick, onBeforeUnmount, onMounted, onUpdated, provide, reactive, ref, useId, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
+import { useDensityEpoch } from '../../utils/density.js'
 import { fill } from '../../utils/template.js'
 import { TABS_NEST, hasFocusable, isRtl, panelDomId, tabDomId } from '../../utils/tabs.js'
 import { useVisualTips } from '../../utils/visualTip.js'
@@ -30,7 +31,7 @@ export default defineComponent({
     appearance: { type: String, default: 'underline', validator: oneOf(['underline', 'pill', 'segmented', 'contained']) },
     orientation: { type: String, default: 'horizontal', validator: oneOf(['horizontal', 'vertical']) },
     color: { type: String, default: 'brand', validator: oneOf(['brand', 'accent', 'neutral']) },
-    density: { type: String, default: 'default', validator: oneOf(['default', 'comfortable', 'compact']) },
+    density: { type: String, default: undefined, validator: oneOf(['default', 'comfortable', 'compact']) },
     align: { type: String, default: 'start', validator: oneOf(['start', 'center', 'distribute', 'fill']) },
     activation: { type: String, default: 'auto', validator: oneOf(['auto', 'manual']) },
     overflow: { type: String, default: 'scroll', validator: oneOf(['scroll', 'arrows', 'more']) },
@@ -474,14 +475,15 @@ export default defineComponent({
       if (typeof document !== 'undefined') document.fonts?.removeEventListener?.('loadingdone', fit)
     })
 
-    // Cambios que obligan a medir de nuevo
+    // Cambios que obligan a medir de nuevo (la densidad de la región, por la época: density.md §7)
+    const epoch = useDensityEpoch()
     const layoutSig = computed(() => JSON.stringify([
       entries.value.map((e) => [e.id, e.label, e.disabled, e.count, e.badge, e.status, tabHasIcon(e)]),
-      props.density, props.appearance, props.orientation, props.overflow, props.labelMode, props.responsive, props.align, props.labels?.more, activeId.value
+      props.density, epoch(), props.appearance, props.orientation, props.overflow, props.labelMode, props.responsive, props.align, props.labels?.more, activeId.value
     ]))
     watch(layoutSig, () => fit(), { flush: 'post' })
     // Sin animar el cambio de apariencia, densidad u orientación: la marca salta y vuelve a animar
-    watch([() => props.appearance, () => props.density, orientation], () => {
+    watch([() => props.appearance, () => props.density, epoch, orientation], () => {
       ready.value = false
       readyScheduled = false
       nextTick(() => { refreshMark(); scheduleReady() })
@@ -713,7 +715,7 @@ export default defineComponent({
         `g-tabs--appearance-${props.appearance}`,
         `g-tabs--orientation-${o}`,
         `g-tabs--color-${props.color}`,
-        `g-tabs--density-${props.density}`,
+        props.density && `g-tabs--density-${props.density}`,
         `g-tabs--align-${alignMode.value}`,
         `g-tabs--overflow-${overflowMode.value}`,
         anyIconOnly.value && 'g-tabs--icon-only',
@@ -731,6 +733,8 @@ export default defineComponent({
         'data-direction': direction.value,
         // Orientación real del diseño (#306): la de `aria-orientation`; GTabPanel la copia al activarse
         'data-orientation': o,
+        // La prop es la región de las pestañas (#975)
+        ...(props.density && { 'data-g-density': props.density }),
         style: { '--_mark-x': px(m.x), '--_mark-y': px(m.y), '--_mark-w': px(m.w), '--_mark-h': px(m.h) }
       })
 

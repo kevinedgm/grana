@@ -31,7 +31,7 @@ const foot = (w, text) => footBtns(w).find((b) => b.text() === text)
 describe('GWidgetConfig · estructura', () => {
   it('hoja lateral de GDialog con nombre, clases y formulario sin validación nativa', () => {
     const w = mk({}, { attrs: { class: 'mi' } })
-    expect(w.find('dialog').classes()).toEqual(expect.arrayContaining(['g-dialog', 'g-dialog--placement-end', 'g-widget-config', 'g-widget-config--density-default', 'mi']))
+    expect(w.find('dialog').classes()).toEqual(expect.arrayContaining(['g-dialog', 'g-dialog--placement-end', 'g-widget-config', 'mi']))
     expect(w.find('h2.g-dialog__title').text()).toBe('Configurar Ingresos')
     expect(w.find('.g-dialog__close').attributes('aria-label')).toBe('Cerrar sin aplicar')
     expect(w.find('form.g-widget-config__form').attributes('novalidate')).toBeDefined()

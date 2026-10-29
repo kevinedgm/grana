@@ -16,6 +16,7 @@ import { firstFocusable, focusChain, land, resolveFrom, resolveTarget, usable } 
 import { acquirePageLive, announcePage } from '../../utils/liveRegion.js'
 import { fill } from '../../utils/template.js'
 import { observeParent, rowGapOf } from '../GFormReveal/revealGap.js'
+import { useDensityEpoch } from '../../utils/density.js'
 
 defineOptions({ name: 'GFormFold', inheritAttrs: false })
 
@@ -55,7 +56,8 @@ const level = computed(() => {
   const base = parentFold ? unref(parentFold.level) + 1 : unref(outer?.headingLevel) ?? 3
   return Math.min(6, Math.max(2, base))
 })
-const density = computed(() => unref(outerLayout?.density) ?? unref(outer?.density) ?? 'default')
+// La densidad de fuera tal cual, sin resolverla a 'default' (#976): useFormField() la resuelve igual
+const density = computed(() => unref(outerLayout?.density) ?? unref(outer?.density))
 
 // ---------- Avisos de desarrollo ----------
 const warned = new Set()
@@ -81,6 +83,8 @@ function readGap() {
   if (gap.value !== g) gap.value = g
 }
 let stopGap = null
+// La separación sigue a la región: un cambio de data-g-density no cambia el tamaño del padre (density.md §7)
+watch(useDensityEpoch(), () => readGap())
 const bodyEl = ref(null)
 const mounted = ref(props.open) // contenido montado: abierto o durante la salida
 const expanded = ref(props.open) // is-open (la rejilla 0fr → 1fr de coco)
@@ -331,7 +335,6 @@ defineExpose({ confirm, close, cancel })
 // ---------- Marcado ----------
 const classes = computed(() => [
   'g-form-fold',
-  `g-form-fold--density-${density.value}`,
   { 'is-open': expanded.value, 'is-animating': collapse.animating.value, 'is-ready': collapse.ready.value }
 ])
 const rootAttrs = computed(() => {

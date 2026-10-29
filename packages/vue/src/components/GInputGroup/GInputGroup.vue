@@ -10,7 +10,8 @@ import GIcon from '../GIcon/GLibIcon.js'
 import { byDocument, layoutKey, messageIcon, useCompositeField, useFormField } from '../GForm/formContext.js'
 import { inputGroupKey } from './inputGroupContext.js'
 
-defineOptions({ name: 'GInputGroup' })
+// Atributos a mano (después de los propios, como el paso de siempre) para que el data-g-density de la prop gane (#975)
+defineOptions({ name: 'GInputGroup', inheritAttrs: false })
 
 const props = defineProps({
   label: { type: String, default: undefined },
@@ -106,7 +107,8 @@ const classes = computed(() => [
   'g-input-group',
   `g-input-group--size-${props.size}`,
   `g-input-group--variant-${props.variant}`,
-  `g-input-group--density-${ff.density.value}`,
+  // La prop es la región del grupo (#976); sin prop, nada: lo heredado llega por CSS
+  props.density && `g-input-group--density-${props.density}`,
   {
     'g-input-group--block': ff.block.value,
     'is-disabled': ff.disabled.value,
@@ -139,7 +141,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div ref="root" :class="classes" role="group" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd" :aria-labelledby="hasLabel ? labelId : undefined" :id="props.id">
+  <div ref="root" :class="classes" role="group" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd" :aria-labelledby="hasLabel ? labelId : undefined" :id="props.id" v-bind="$attrs" :data-g-density="props.density || $attrs['data-g-density']">
     <label v-if="hasLabel" :id="labelId" class="g-input-group__label" :for="principalId"><slot name="label">{{ label }}</slot><template v-if="ff.mark.value === 'optional' && ff.markText.value">{{ ' ' }}<span class="g-input-group__optional">{{ ff.markText.value }}</span></template><span v-if="ff.mark.value === 'required'" class="g-input-group__required" aria-hidden="true">*</span></label>
     <div class="g-input-group__box"><slot /></div>
     <div class="g-input-group__support">

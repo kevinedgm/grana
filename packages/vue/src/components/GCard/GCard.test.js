@@ -44,7 +44,7 @@ describe('GCard · raíz y regiones', () => {
     expect(w.findAllComponents(GSurface)).toHaveLength(1)
     expect(w.element.tagName).toBe('ARTICLE')
     expect(w.classes()).toEqual(expect.arrayContaining([
-      'g-card', 'g-surface', 'g-surface--level-outlined', 'g-surface--padding-md', 'g-surface--density-default',
+      'g-card', 'g-surface', 'g-surface--level-outlined', 'g-surface--padding-md',
       'g-card--orientation-vertical', 'g-card--color-brand', 'g-card--interaction-none', 'g-card--size-medium', 'g-card--layout-column'
     ]))
     expect(w.attributes('data-size')).toBe('medium')

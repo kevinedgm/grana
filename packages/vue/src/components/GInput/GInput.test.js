@@ -13,7 +13,7 @@ describe('GInput · render y clases', () => {
   it('renderiza las clases por defecto y un <input type="text">', () => {
     const w = mount(GInput, { props: { label: 'Nombre' } })
     expect(root(w).classes()).toEqual(expect.arrayContaining([
-      'g-input', 'g-input--variant-outline', 'g-input--size-md', 'g-input--density-default'
+      'g-input', 'g-input--variant-outline', 'g-input--size-md'
     ]))
     expect(root(w).classes().some((c) => c.startsWith('g-input--color-') || c.startsWith('g-input--rounded-'))).toBe(false)
     expect(field(w).attributes('type')).toBe('text')

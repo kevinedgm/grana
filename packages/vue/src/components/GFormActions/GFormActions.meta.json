@@ -11,7 +11,7 @@
   "props": [
     { "name": "sticky", "type": "Boolean", "default": false },
     { "name": "status", "type": "String", "default": null },
-    { "name": "density", "type": "String", "default": null, "values": ["default", "comfortable", "compact"], "note": "Por defecto la de GForm o default" }
+    { "name": "density", "type": "String", "default": null, "values": ["default", "comfortable", "compact"], "resolvedDefault": "default", "note": "Sin valor: la región más cercana (data-g-density) › <html data-g-density> › clave density del tema › default (density.md §1)" }
   ],
   "events": [],
   "slots": [

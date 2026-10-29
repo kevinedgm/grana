@@ -7,7 +7,8 @@ import { oneOf } from '../../utils/oneOf.js'
 import { formKey, layoutKey } from '../GForm/formContext.js'
 import { rowRoots } from '../GFormRow/rowEngine.js'
 
-defineOptions({ name: 'GFormLayout' })
+// Atributos a mano para que el data-g-density de la prop gane (#975)
+defineOptions({ name: 'GFormLayout', inheritAttrs: false })
 
 const props = defineProps({
   stack: Boolean,
@@ -55,9 +56,9 @@ function check(el) {
 
 onMounted(() => { try { if (process.env.NODE_ENV !== 'production' && root.value) check(root.value) } catch {} })
 
-const classes = computed(() => ['g-form-layout', `g-form-layout--density-${density.value}`, { 'g-form-layout--stack': props.stack }])
+const classes = computed(() => ['g-form-layout', props.density && `g-form-layout--density-${props.density}`, { 'g-form-layout--stack': props.stack }])
 </script>
 
 <template>
-  <div ref="root" :class="classes"><slot /></div>
+  <div ref="root" :class="classes" v-bind="$attrs" :data-g-density="props.density || $attrs['data-g-density']"><slot /></div>
 </template>

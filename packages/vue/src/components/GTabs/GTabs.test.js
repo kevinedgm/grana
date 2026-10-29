@@ -50,7 +50,7 @@ function stubLayout({ tabW = 100, headerW = 350, rootW = headerW, moreW = 40 } =
 describe('GTabs · estructura y apariencias', () => {
   it('raíz con las clases del contrato y sin tablist vacío', () => {
     const w = mk()
-    expect(w.classes()).toEqual(expect.arrayContaining(['g-tabs', 'g-tabs--appearance-underline', 'g-tabs--orientation-horizontal', 'g-tabs--color-brand', 'g-tabs--density-default', 'g-tabs--align-start', 'g-tabs--overflow-scroll']))
+    expect(w.classes()).toEqual(expect.arrayContaining(['g-tabs', 'g-tabs--appearance-underline', 'g-tabs--orientation-horizontal', 'g-tabs--color-brand', 'g-tabs--align-start', 'g-tabs--overflow-scroll']))
     expect(w.attributes('id')).toBe('t')
     expect(w.find('.g-tabs__live').attributes('role')).toBe('status')
     expect(w.find('.g-tabs__mark').attributes('aria-hidden')).toBe('true')

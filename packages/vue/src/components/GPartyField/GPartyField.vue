@@ -182,7 +182,8 @@ const classes = computed(() => [
   `g-party-field--mode-${props.mode}`,
   `g-party-field--size-${props.size}`,
   `g-party-field--variant-${props.variant}`,
-  `g-party-field--density-${ff.density.value}`,
+  // La clase sale solo de la prop: lo heredado (región, contenedor con prop) llega por CSS (#976)
+  props.density && `g-party-field--density-${props.density}`,
   props.rounded && `g-party-field--rounded-${props.rounded}`,
   attrs.class,
   {
@@ -240,7 +241,7 @@ defineExpose({ open: () => panel.show(triggerEl.value), close: () => panel.hide(
 </script>
 
 <template>
-  <div ref="rootEl" :class="classes" :style="attrs.style" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd" @focusout="ff.handlers.onFocusout">
+  <div ref="rootEl" :class="classes" :data-g-density="props.density" :style="attrs.style" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd" @focusout="ff.handlers.onFocusout">
     <template v-if="mode === 'inline'">
       <span v-if="label" :id="labelId" class="g-party-field__label">{{ label }}</span>
       <div ref="rowsEl" class="g-party-field__rows" role="group" :aria-labelledby="label ? labelId : attrs['aria-labelledby']" :aria-label="label ? undefined : attrs['aria-label']" :aria-describedby="describedBy">

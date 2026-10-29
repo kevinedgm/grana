@@ -4,7 +4,7 @@
 // Un solo elemento sin rol ni estructura; la profundidad (inset relativa al padre, radio concéntrico) la resuelve el CSS.
 // Zona de marca (surface.md §«Zona de marca», tokens.md §44, DECISIONS.md #620 a #625): `zone="brand"` pone
 // `data-g-zone="brand"` y `g-surface--zone-brand` en la raíz; el bloque de la zona de defaults.css hace el resto.
-import { defineComponent, h, onBeforeUpdate } from 'vue'
+import { defineComponent, h, mergeProps, onBeforeUpdate } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 
 const INTERACTIVE = ['a', 'button', 'input', 'select', 'textarea', 'summary', 'label']
@@ -12,12 +12,13 @@ const ZONES = ['none', 'brand']
 
 export default defineComponent({
   name: 'GSurface',
+  inheritAttrs: false,
   props: {
     level: { type: String, default: 'outlined', validator: oneOf(['flat', 'outlined', 'raised', 'floating', 'inset']) },
     tone: { type: String, default: 'surface', validator: oneOf(['surface', 'sunken']) },
     padding: { type: String, default: 'md', validator: oneOf(['none', 'xs', 'sm', 'md', 'lg']) },
     rounded: { type: String, default: undefined, validator: oneOf(['none', 'xs', 'sm', 'md', 'lg', 'xl', 'pill']) },
-    density: { type: String, default: 'default', validator: oneOf(['default', 'comfortable', 'compact']) },
+    density: { type: String, default: undefined, validator: oneOf(['default', 'comfortable', 'compact']) },
     as: { type: String, default: 'div' },
     // Sin validator: un valor desconocido (también `inverse`, reservado) cae en el aviso W1 y se queda sin zona
     zone: { type: String, default: 'none' }
@@ -65,12 +66,13 @@ export default defineComponent({
         `g-surface--level-${props.level}`,
         // Con la zona, tone se ignora (W3): el fondo es la marca
         `g-surface--tone-${brand ? 'surface' : props.tone}`,
-        `g-surface--padding-${props.padding}`,
-        `g-surface--density-${props.density}`
+        `g-surface--padding-${props.padding}`
       ]
+      if (props.density) classes.push(`g-surface--density-${props.density}`)
       if (props.rounded) classes.push(`g-surface--rounded-${props.rounded}`)
       if (brand) classes.push('g-surface--zone-brand')
-      return h(props.as, { class: classes, 'data-g-zone': brand ? 'brand' : undefined }, slots.default ? slots.default() : undefined)
+      // La prop es la región de la superficie (#975): el atributo va después de $attrs y les gana
+      return h(props.as, mergeProps({ class: classes, 'data-g-zone': brand ? 'brand' : undefined }, attrs, props.density && { 'data-g-density': props.density }), slots.default ? slots.default() : undefined)
     }
   }
 })

@@ -14,7 +14,7 @@
     { "name": "for", "type": "String", "default": null, "values": "id de un <textarea> o un <input> text, search, url o tel; obligatorio en dictado (aviso si falta, no existe o es de otro tipo: password, email, number…)" },
     { "name": "targetLabel", "type": "String", "default": null, "values": "nombre del campo para {target}; por defecto el texto de el.labels[0] (al montar y al iniciar); sin nombre: aviso y {target} vacío" },
     { "name": "size", "type": "String", "default": "md", "values": ["xs", "sm", "md", "lg", "xl"] },
-    { "name": "density", "type": "String", "default": "default", "values": ["default", "comfortable", "compact"] },
+    { "name": "density", "type": "String", "default": null, "values": ["default", "comfortable", "compact"], "resolvedDefault": "default", "note": "Sin valor: la región más cercana (data-g-density) › <html data-g-density> › clave density del tema › default (density.md §1)" },
     { "name": "disabled", "type": "Boolean", "default": false },
     { "name": "speech", "type": "Object", "default": null, "values": "gestor de createSpeech; por defecto, el inyectado" }
   ],

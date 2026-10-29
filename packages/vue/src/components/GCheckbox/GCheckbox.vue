@@ -79,7 +79,6 @@ const ff = isField ? useFormField({
   control: input,
   root: rootEl
 }) : {
-  density: computed(() => props.density ?? group?.density.value ?? 'default'),
   readonly: computed(() => props.readonly ?? false),
   disabled: computed(() => props.disabled ?? group?.disabled.value ?? false),
   message: NO_MESSAGE,
@@ -92,7 +91,6 @@ const ff = isField ? useFormField({
   live: computed(() => undefined),
   handlers: {}
 }
-const density = ff.density
 const isDisabled = ff.disabled
 const isReadonly = ff.readonly
 const message = ff.message
@@ -130,7 +128,8 @@ const classes = computed(() => [
   'g-checkbox',
   `g-checkbox--layout-${layout.value}`,
   `g-checkbox--size-${size.value}`,
-  `g-checkbox--density-${density.value}`,
+  // La clase sale solo de la prop: lo heredado (región, contenedor con prop) llega por CSS (#976)
+  props.density && `g-checkbox--density-${props.density}`,
   `g-checkbox--color-${color.value}`,
   {
     'is-disabled': isDisabled.value,
@@ -228,7 +227,7 @@ try {
 </script>
 
 <template>
-  <div ref="rootEl" v-bind="rootAttrs" :class="classes" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd">
+  <div ref="rootEl" v-bind="rootAttrs" :class="classes" :data-g-density="props.density" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd">
     <label class="g-checkbox__row" :for="inputId">
       <span class="g-checkbox__box">
         <input ref="input" type="checkbox" v-bind="fieldBindings" class="g-checkbox__input">

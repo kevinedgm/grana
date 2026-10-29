@@ -12,7 +12,7 @@
     { "name": "modelValue", "type": "String", "default": "" },
     { "name": "variant", "type": "String", "default": "outline", "values": ["outline", "soft"] },
     { "name": "size", "type": "String", "default": "md", "values": ["xs", "sm", "md", "lg", "xl"] },
-    { "name": "density", "type": "String", "default": null, "values": ["default", "comfortable", "compact"], "resolvedDefault": "default", "note": "Sin valor: prop explícita › contexto de GForm › default de siempre (form.md §2)" },
+    { "name": "density", "type": "String", "default": null, "values": ["default", "comfortable", "compact"], "resolvedDefault": "default", "note": "Sin valor: la región más cercana (data-g-density) › <html data-g-density> › clave density del tema › default (density.md §1)" },
     { "name": "color", "type": "String", "default": null, "values": ["brand", "accent", "neutral", "success", "warning", "danger", "info"] },
     { "name": "rounded", "type": "String", "default": null, "values": ["none", "xs", "sm", "md", "lg", "xl", "pill"] },
     { "name": "block", "type": "Boolean", "default": null, "resolvedDefault": false, "note": "Sin valor: prop explícita › contexto de GForm › default de siempre (form.md §2)" },

@@ -57,7 +57,7 @@ describe('GInputGroup · estructura y nombres (form.md §13)', () => {
     expect(root.attributes('aria-labelledby')).toBe('tel-label')
     expect(root.attributes('aria-describedby')).toBeUndefined()
     expect(root.attributes('style')).toContain('--g-form-min: 50')
-    expect(root.classes()).toEqual(expect.arrayContaining(['g-input-group', 'g-input-group--size-md', 'g-input-group--variant-outline', 'g-input-group--density-default', 'g-form-w-md']))
+    expect(root.classes()).toEqual(expect.arrayContaining(['g-input-group', 'g-input-group--size-md', 'g-input-group--variant-outline', 'g-form-w-md']))
     expect([...root.element.children].map((c) => c.className)).toEqual(['g-input-group__label', 'g-input-group__box', 'g-input-group__support'])
     expect(w.find('label').attributes('for')).toBe('num')
     expect(w.find('label').attributes('id')).toBe('tel-label')

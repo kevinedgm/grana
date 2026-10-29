@@ -775,7 +775,8 @@ const classes = computed(() => [
   'g-file-field',
   `g-file-field--size-${props.size}`,
   `g-file-field--variant-${props.variant}`,
-  `g-file-field--density-${ff.density.value}`,
+  // La clase sale solo de la prop: lo heredado (región, contenedor con prop) llega por CSS (#976)
+  props.density && `g-file-field--density-${props.density}`,
   props.rounded && `g-file-field--rounded-${props.rounded}`,
   {
     'g-file-field--block': ff.block.value,
@@ -864,6 +865,7 @@ defineExpose({
     ref="rootEl"
     v-bind="rootAttrs"
     :class="classes"
+    :data-g-density="props.density"
     @animationend="onAnimation"
     @animationcancel="onAnimation"
     @focusout="onFocusout"

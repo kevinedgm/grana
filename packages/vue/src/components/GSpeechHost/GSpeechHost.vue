@@ -473,12 +473,15 @@ onBeforeUnmount(() => {
   clearEdgeReserve(owner)
   if (sheet.value && sheet.value.open) { try { sheet.value.close() } catch { /* sin efecto */ } }
 })
+// La raíz lleva data-g-density="default" fijo (density.md §5.1, #977): vive en body y se muda al modal superior; no
+// sigue la región ni la página (Δ0). Seguir la de la página queda reservado (R3).
 </script>
 
 <template>
   <Teleport v-if="active && target" :to="target">
     <div
       v-bind="attrs"
+      data-g-density="default"
       :id="rootId"
       ref="rootEl"
       class="g-speech-host"
@@ -506,6 +509,7 @@ onBeforeUnmount(() => {
       :id="reviewId"
       v-model="reviewOpen"
       class="g-speech-review"
+      data-g-density="default"
       size="lg"
       mobile="fullscreen"
       :title="api.t('review.title')"

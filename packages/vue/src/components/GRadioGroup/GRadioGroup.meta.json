@@ -129,7 +129,7 @@
         "compact"
       ],
       "resolvedDefault": "default",
-      "note": "Prop › contexto › default"
+      "note": "Sin valor: la región más cercana (data-g-density) › <html data-g-density> › clave density del tema › default (density.md §1)"
     },
     {
       "name": "color",

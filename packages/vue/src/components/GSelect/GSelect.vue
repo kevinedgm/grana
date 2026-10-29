@@ -375,7 +375,8 @@ const classes = computed(() => [
   'g-select',
   `g-select--variant-${props.variant}`,
   `g-select--size-${props.size}`,
-  `g-select--density-${ff.density.value}`,
+  // La clase sale solo de la prop: lo heredado (región, contenedor con prop) llega por CSS (#976)
+  props.density && `g-select--density-${props.density}`,
   props.color && `g-select--color-${props.color}`,
   props.rounded && `g-select--rounded-${props.rounded}`,
   {
@@ -441,7 +442,7 @@ try {
 </script>
 
 <template>
-  <div ref="rootEl" v-bind="rootAttrs" :class="classes" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd">
+  <div ref="rootEl" v-bind="rootAttrs" :class="classes" :data-g-density="props.density" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd">
     <label v-if="hasLabel" :id="labelId" class="g-select__label" :for="buttonId"><slot name="label">{{ label }}</slot><template v-if="ff.mark.value === 'optional' && ff.markText.value">{{ ' ' }}<span class="g-select__optional">{{ ff.markText.value }}</span></template><span v-if="ff.mark.value === 'required'" class="g-select__required" aria-hidden="true">*</span></label>
     <div ref="control" class="g-select__control" data-g-tooltip-box>
       <button ref="button" v-bind="buttonBindings" class="g-select__button">

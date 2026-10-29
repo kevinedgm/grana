@@ -20,7 +20,7 @@ const props = defineProps({
   resettable: Boolean,
   applying: Boolean,
   size: { type: String, default: 'sm', validator: oneOf(['sm', 'md', 'lg']) },
-  density: { type: String, default: 'default', validator: oneOf(['default', 'comfortable', 'compact']) },
+  density: { type: String, default: undefined, validator: oneOf(['default', 'comfortable', 'compact']) },
   labels: { type: Object, default: () => ({}) },
   id: { type: String, default: undefined }
 })
@@ -140,7 +140,7 @@ const announce = (text) => {
 }
 defineExpose({ announce })
 
-const classes = computed(() => ['g-widget-config', `g-widget-config--density-${props.density}`, { 'is-applying': props.applying }])
+const classes = computed(() => ['g-widget-config', props.density && `g-widget-config--density-${props.density}`, { 'is-applying': props.applying }])
 </script>
 
 <template>

@@ -18,7 +18,7 @@ const props = defineProps({
   for: { type: String, default: undefined },
   targetLabel: { type: String, default: undefined },
   size: { type: String, default: 'md', validator: oneOf(['xs', 'sm', 'md', 'lg', 'xl']) },
-  density: { type: String, default: 'default', validator: oneOf(['default', 'comfortable', 'compact']) },
+  density: { type: String, default: undefined, validator: oneOf(['default', 'comfortable', 'compact']) },
   disabled: Boolean,
   // Gestor; por defecto, el provisto con app.use(speech)
   speech: { type: Object, default: undefined }

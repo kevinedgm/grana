@@ -14,7 +14,7 @@ describe('GSwitch · render y clases', () => {
     expect(input(w).attributes('type')).toBe('checkbox')
     expect(input(w).attributes('role')).toBe('switch')
     expect(root(w).classes()).toEqual(expect.arrayContaining([
-      'g-switch', 'g-switch--size-md', 'g-switch--density-default', 'g-switch--color-brand', 'g-switch--label-end'
+      'g-switch', 'g-switch--size-md', 'g-switch--color-brand', 'g-switch--label-end'
     ]))
     expect(w.find('.g-switch__row').element.tagName).toBe('LABEL')
     expect(w.find('.g-switch__row').attributes('for')).toBe(input(w).attributes('id'))

@@ -80,7 +80,8 @@ const inputAttrs = computed(() => {
 const classes = computed(() => [
   'g-switch',
   `g-switch--size-${props.size}`,
-  `g-switch--density-${ff.density.value}`,
+  // La clase sale solo de la prop: lo heredado (región, contenedor con prop) llega por CSS (#976)
+  props.density && `g-switch--density-${props.density}`,
   `g-switch--color-${props.color}`,
   `g-switch--label-${props.labelPosition}`,
   {
@@ -138,7 +139,7 @@ try {
 </script>
 
 <template>
-  <div ref="rootEl" v-bind="rootAttrs" :class="classes" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd">
+  <div ref="rootEl" v-bind="rootAttrs" :class="classes" :data-g-density="props.density" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd">
     <label class="g-switch__row" :for="inputId">
       <span class="g-switch__control">
         <input ref="input" v-bind="fieldBindings" class="g-switch__input" type="checkbox">

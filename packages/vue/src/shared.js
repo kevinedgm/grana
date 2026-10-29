@@ -82,6 +82,7 @@ import { EDGE_ORDER, clearEdgeReserve, edgeReserve, setEdgeReserve } from './uti
 import { acquirePageLive, announcePage, createLiveWriter } from './utils/liveRegion.js'
 import { createLoadPhase, loadRegionKey, rememberFocus, restoreFocus } from './utils/loadPhase.js'
 import { observeSize } from './utils/sizeObserver.js'
+import { useDensityEpoch } from './utils/density.js'
 import { useKeyFocus } from './utils/keyFocus.js'
 import { fold, parts, tokens } from './utils/match.js'
 import { oneOf } from './utils/oneOf.js'
@@ -131,6 +132,8 @@ export const shared = {
   'utils/loadPhase.js': { createLoadPhase, loadRegionKey, rememberFocus, restoreFocus },
   'utils/match.js': { fold, parts, tokens },
   'utils/sizeObserver.js': { observeSize },
+  // La época de densidad (#980): un solo MutationObserver por documento, también desde las entradas propias
+  'utils/density.js': { useDensityEpoch },
   'utils/keyFocus.js': { useKeyFocus },
   'utils/oneOf.js': { oneOf },
   'utils/dates.js': { addDays, daysBetween, isISO, parseISO, todayISO },

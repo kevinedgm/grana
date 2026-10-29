@@ -20,7 +20,7 @@ const props = defineProps({
   title: { type: String, default: undefined },
   description: { type: String, default: undefined },
   size: { type: String, default: 'sm', validator: oneOf(['sm', 'md', 'lg']) },
-  density: { type: String, default: 'default', validator: oneOf(['default', 'comfortable', 'compact']) },
+  density: { type: String, default: undefined, validator: oneOf(['default', 'comfortable', 'compact']) },
   labels: { type: Object, default: () => ({}) },
   id: { type: String, default: undefined }
 })
@@ -124,7 +124,7 @@ function onAdd(item) {
 
 defineExpose({ announce })
 
-const classes = computed(() => ['g-widget-gallery', `g-widget-gallery--density-${props.density}`])
+const classes = computed(() => ['g-widget-gallery', props.density && `g-widget-gallery--density-${props.density}`])
 const cardId = (item, part) => `${rootId.value}-${String(item.id)}-${part}`
 </script>
 

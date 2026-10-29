@@ -60,7 +60,7 @@ export default defineComponent({
     total: { type: Number, default: undefined },
     responsive: { type: String, default: 'auto', validator: oneOf(['auto', 'table', 'cards']) },
     appearance: { type: String, default: 'lines', validator: oneOf(['lines', 'surface']) },
-    density: { type: String, default: 'default', validator: oneOf(['default', 'comfortable', 'compact']) },
+    density: { type: String, default: undefined, validator: oneOf(['default', 'comfortable', 'compact']) },
     maxHeight: { type: String, default: undefined },
     loading: Boolean,
     loadingRows: { type: Number, default: 3, validator: (v) => v >= 1 },
@@ -900,8 +900,10 @@ export default defineComponent({
     return () => h('div', {
       ...rootAttrs(),
       ref: root,
+      // La prop es la región de la tabla, su barra y sus menús (#975); sin prop, la región de fuera
+      ...(props.density && { 'data-g-density': props.density }),
       style: [attrs.style, docked.value && dockSize.value ? { '--_dock-size': `${dockSize.value}px` } : null],
-      class: [attrs.class, 'g-table', `g-table--mode-${mode.value}`, `g-table--appearance-${props.appearance}`, `g-table--density-${props.density}`, {
+      class: [attrs.class, 'g-table', `g-table--mode-${mode.value}`, `g-table--appearance-${props.appearance}`, props.density && `g-table--density-${props.density}`, {
         'has-door': !slots.detail && Boolean(props.rowHref || props.activatable),
         'has-detail': Boolean(slots.detail),
         'has-row-status': Boolean(props.rowStatus),

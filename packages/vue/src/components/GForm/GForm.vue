@@ -14,7 +14,7 @@ const props = defineProps({
   warnings: { type: Object, default: () => ({}) },
   showErrorsOn: { type: String, default: 'blur', validator: oneOf(['blur', 'submit']) },
   marks: { type: String, default: 'optional', validator: oneOf(['optional', 'required']) },
-  density: { type: String, default: 'default', validator: oneOf(['default', 'comfortable', 'compact']) },
+  density: { type: String, default: undefined, validator: oneOf(['default', 'comfortable', 'compact']) },
   readonly: Boolean,
   disabled: Boolean,
   headingLevel: { type: Number, default: 3, validator: (v) => Number.isInteger(v) && v >= 2 && v <= 6 },
@@ -204,7 +204,7 @@ try { if (process.env.NODE_ENV !== 'production' && props.marks === 'required' &&
 // ---------- Marcado ----------
 const classes = computed(() => [
   'g-form',
-  `g-form--density-${props.density}`,
+  props.density && `g-form--density-${props.density}`,
   `g-form--marks-${props.marks}`,
   {
     'g-form--readonly': props.readonly,
@@ -219,6 +219,8 @@ const rootBindings = computed(() => {
     rest,
     {
       class: [classes.value, cls],
+      // La prop es la región del formulario (#975, #976): sin prop, nada (un GForm en una región la sigue)
+      'data-g-density': props.density || rest['data-g-density'],
       style: [style, actionsSize.value !== null ? { '--g-form-actions-size': `${actionsSize.value}px` } : null]
     }
   )

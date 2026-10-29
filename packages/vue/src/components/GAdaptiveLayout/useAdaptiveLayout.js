@@ -1,5 +1,5 @@
 import { onBeforeUnmount, onMounted, ref, unref, watch } from 'vue'
-import {  } from '../GForm/formContext.js'
+import { useDensityEpoch } from '../../utils/density.js'
 import { knownWidth, observeRow, scheduleRow } from '../GFormRow/rowEngine.js'
 import { EXACT_LIMIT, aggregateProfiles, placeAdaptive, planAdaptive } from './adaptivePlan.js'
 import { adaptiveGroups, classify, createTextMeasurer, effectiveHints, hintKey, measureProfile, readHints, visibleChild } from './adaptiveProfiles.js'
@@ -309,7 +309,8 @@ export function useAdaptiveLayout(root, props, context) {
   })
   // horizontal and vertical only move lines (placement and CSS): re-plan with the cached profiles
   watch([() => props.horizontal, () => props.vertical], schedule)
-  watch([() => props.gap, () => unref(context.density), () => unref(context.stack)], invalidate)
+  // density: the region's, by the epoch as a separate source (density.md §7)
+  watch([() => props.gap, () => unref(context.density), () => unref(context.stack), useDensityEpoch()], invalidate)
   onBeforeUnmount(() => {
     mounted = false; stop?.(); mutation?.disconnect(); ancestorMutation?.disconnect(); externalLabels?.disconnect(); unwatchSheets?.()
     const el = root.value

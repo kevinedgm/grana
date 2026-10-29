@@ -24,7 +24,8 @@
         "comfortable",
         "compact"
       ],
-      "note": "Por defecto la de GForm o default"
+      "resolvedDefault": "default",
+      "note": "Sin valor: la región más cercana (data-g-density) › <html data-g-density> › clave density del tema › default (density.md §1)"
     }
   ],
   "events": [],

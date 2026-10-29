@@ -3,7 +3,7 @@
 // Contrato: design/contracts/stepper.md · Estilo: GStepper.css (coco) · Estructura: design/lab/stepper/r01/.
 // Función de render: la lista de pasos se dibuja dos veces (completa y desplegada en el compacto), con el mismo código.
 // La lista completa existe siempre (en compacto, oculta por el CSS) para poder medir su ancho natural (DECISIONS.md #151).
-import { defineComponent, h, ref, computed, watch, nextTick, onMounted, onBeforeUpdate, onUpdated, onBeforeUnmount, useId } from 'vue'
+import { defineComponent, h, mergeProps, ref, computed, watch, nextTick, onMounted, onBeforeUpdate, onUpdated, onBeforeUnmount, useId } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GLibIcon.js'
 
@@ -15,6 +15,7 @@ const MEASURE = 'g-stepper--measure'
 
 export default defineComponent({
   name: 'GStepper',
+  inheritAttrs: false,
   props: {
     steps: { type: Array, default: () => [] },
     modelValue: { type: [String, Number], default: undefined },
@@ -24,7 +25,7 @@ export default defineComponent({
     responsive: { type: String, default: 'auto', validator: oneOf(['auto', 'never', 'compact']) },
     color: { type: String, default: 'brand', validator: oneOf(COLORS) },
     size: { type: String, default: 'md', validator: oneOf(['sm', 'md', 'lg']) },
-    density: { type: String, default: 'default', validator: oneOf(['default', 'comfortable', 'compact']) },
+    density: { type: String, default: undefined, validator: oneOf(['default', 'comfortable', 'compact']) },
     disabled: Boolean,
     expandAll: Boolean,
     labels: { type: Object, default: () => ({}) }
@@ -322,15 +323,16 @@ export default defineComponent({
         `g-stepper--${props.orientation}`,
         `g-stepper--indicator-${props.indicator}`,
         `g-stepper--color-${props.color}`,
-        `g-stepper--size-${props.size}`,
-        `g-stepper--density-${props.density}`
+        `g-stepper--size-${props.size}`
       ]
+      if (props.density) classes.push(`g-stepper--density-${props.density}`)
       if (props.navigation !== 'none' && !props.disabled) classes.push('g-stepper--navigable')
       if (TIER_CLASS[tier.value]) classes.push(TIER_CLASS[tier.value])
       if (props.disabled) classes.push('is-disabled')
       if (ready.value) classes.push('is-ready')
       // La lista completa va siempre (en compacto la oculta el CSS y sirve para medir); el resumen, solo en compacto
-      return h('nav', { ref: root, class: classes }, [
+      // La prop es la región del indicador (#975): el atributo va después de $attrs y les gana
+      return h('nav', mergeProps({ ref: root, class: classes }, attrs, props.density && { 'data-g-density': props.density }), [
         isCompact.value ? renderCompact() : null,
         renderList({ withContent: props.orientation === 'vertical' && !isCompact.value })
       ])

@@ -13,7 +13,7 @@ describe('GTextarea · render y clases', () => {
     const w = mount(GTextarea, { props: { label: 'Comentario' } })
     expect(field(w).element.tagName).toBe('TEXTAREA')
     expect(root(w).classes()).toEqual(expect.arrayContaining([
-      'g-textarea', 'g-textarea--variant-outline', 'g-textarea--size-md', 'g-textarea--density-default', 'g-textarea--resize-vertical'
+      'g-textarea', 'g-textarea--variant-outline', 'g-textarea--size-md', 'g-textarea--resize-vertical'
     ]))
     expect(w.find('.g-textarea__label').attributes('for')).toBe(field(w).attributes('id'))
     expect(field(w).attributes('rows')).toBe('3')

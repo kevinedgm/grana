@@ -12,7 +12,7 @@ const props = defineProps({
   color: { type: String, default: 'brand', validator: oneOf(['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info']) },
   variant: { type: String, default: 'solid', validator: oneOf(['solid', 'soft', 'outline', 'ghost', 'link']) },
   size: { type: String, default: 'md', validator: oneOf(['xs', 'sm', 'md', 'lg', 'xl']) },
-  density: { type: String, default: 'default', validator: oneOf(['default', 'comfortable', 'compact']) },
+  density: { type: String, default: undefined, validator: oneOf(['default', 'comfortable', 'compact']) },
   rounded: { type: String, default: undefined, validator: oneOf(['none', 'xs', 'sm', 'md', 'lg', 'xl', 'pill']) },
   block: Boolean,
   disabled: Boolean,
@@ -40,7 +40,7 @@ const classes = computed(() => [
   `g-btn--color-${props.color}`,
   `g-btn--variant-${props.variant}`,
   `g-btn--size-${props.size}`,
-  `g-btn--density-${props.density}`,
+  props.density && `g-btn--density-${props.density}`,
   props.rounded && `g-btn--rounded-${props.rounded}`,
   {
     'g-btn--block': props.block,
@@ -70,7 +70,9 @@ const controlled = computed(() => {
   }
 })
 
-const rootBindings = computed(() => ({ ...attrs, ...controlled.value }))
+// La prop density es la región del botón (#975): atributo y clase solo con valor explícito; el atributo va después de
+// $attrs y gana, y sin prop se respeta el de la aplicación
+const rootBindings = computed(() => ({ ...attrs, ...controlled.value, ...(props.density && { 'data-g-density': props.density }) }))
 
 // Región de estado (#257, acota #14): solo existe mientras `loadingText` tenga valor. Si la región ya existía, el texto
 // se escribe al entrar en `loading`; si se monta a la vez que `loading` (los dos en el mismo cambio, o al montar con

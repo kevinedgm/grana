@@ -45,11 +45,17 @@ describe('GCheckboxGroup · modelo', () => {
     expect(w.emitted('update:modelValue')[1]).toEqual([[]])
   })
 
-  it('las hijas heredan size, density, color y layout del grupo; una hija puede sobrescribir', async () => {
-    const w = await make({ size: 'lg', density: 'compact', color: 'accent', layout: 'card' }, [['a'], ['b', { size: 'xs', color: 'danger' }]])
+  it('las hijas heredan size, color y layout del grupo y la densidad por CSS (el grupo con prop es una región, #976); una hija puede sobrescribir', async () => {
+    const w = await make({ size: 'lg', density: 'compact', color: 'accent', layout: 'card' }, [['a'], ['b', { size: 'xs', color: 'danger', density: 'default' }]])
+    const root = w.find('.g-checkbox-group')
+    expect(root.attributes('data-g-density')).toBe('compact')
+    expect(root.classes()).toContain('g-checkbox-group--density-compact')
     const [a, b] = w.findAll('.g-checkbox-group__list .g-checkbox')
-    expect(a.classes()).toEqual(expect.arrayContaining(['g-checkbox--size-lg', 'g-checkbox--density-compact', 'g-checkbox--color-accent', 'g-checkbox--layout-card']))
-    expect(b.classes()).toEqual(expect.arrayContaining(['g-checkbox--size-xs', 'g-checkbox--color-danger', 'g-checkbox--density-compact']))
+    expect(a.classes()).toEqual(expect.arrayContaining(['g-checkbox--size-lg', 'g-checkbox--color-accent', 'g-checkbox--layout-card']))
+    expect(a.classes().some((c) => c.includes('--density-'))).toBe(false)
+    expect(a.attributes('data-g-density')).toBeUndefined()
+    expect(b.classes()).toEqual(expect.arrayContaining(['g-checkbox--size-xs', 'g-checkbox--color-danger', 'g-checkbox--density-default']))
+    expect(b.attributes('data-g-density')).toBe('default')
   })
 
   it('disabled del grupo se propaga a las hijas', async () => {

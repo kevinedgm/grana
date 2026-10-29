@@ -33,7 +33,7 @@ const settle = async () => { for (let i = 0; i < 4; i++) await nextTick() }
 describe('GWidgetGrid · estructura', () => {
   it('raíz, lista con nombre y celdas con span de columnas y filas, y order', () => {
     const w = mk()
-    expect(w.classes()).toEqual(expect.arrayContaining(['g-widget-grid', 'g-widget-grid--density-default', 'is-editing']))
+    expect(w.classes()).toEqual(expect.arrayContaining(['g-widget-grid', 'is-editing']))
     const ul = w.find('ul.g-widget-grid__list')
     expect(ul.attributes('role')).toBe('list')
     expect(ul.attributes('aria-label')).toBe('Panel')
