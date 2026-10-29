@@ -1,0 +1,35 @@
+/* Salida real de @grana/cli (CLI · fontSize 14, typeScale 1.2) SIN reglas de región: demuestra por qué el CLI debe emitirlas */
+/* Generado por @grana/cli a partir de /tmp/grana-dt-4siuWF/cfg-v31y3jz7ox9.json. No editar a mano: vuelve a ejecutar «grana theme». */
+/* Sin @layer: el tema del usuario gana siempre sobre grana.defaults (DECISIONS.md #4). */
+:root {
+  --g-text-caption-size: 0.75rem;
+  --g-text-caption-line: 1rem;
+  --g-text-caption-tracking: 0;
+  --g-text-caption-weight: 500;
+  --g-text-body-sm-size: 0.7656rem;
+  --g-text-body-sm-line: 1rem;
+  --g-text-body-sm-tracking: 0;
+  --g-text-body-sm-weight: 400;
+  --g-text-body-size: 0.875rem;
+  --g-text-body-line: 1.25rem;
+  --g-text-body-tracking: 0;
+  --g-text-body-weight: 400;
+  --g-text-title-sm-size: 1.05rem;
+  --g-text-title-sm-line: 1.5rem;
+  --g-text-title-sm-tracking: -0.004em;
+  --g-text-title-sm-weight: 600;
+  --g-text-title-size: 1.26rem;
+  --g-text-title-line: 1.75rem;
+  --g-text-title-tracking: -0.008em;
+  --g-text-title-weight: 600;
+  --g-text-title-lg-size: 1.512rem;
+  --g-text-title-lg-line: 2rem;
+  --g-text-title-lg-tracking: -0.014em;
+  --g-text-title-lg-weight: 600;
+  --g-text-display-size: 1.8144rem;
+  --g-text-display-line: 2.25rem;
+  --g-text-display-tracking: -0.022em;
+  --g-text-display-weight: 600;
+  --g-hero-title-max: 2.6127rem;
+}
+

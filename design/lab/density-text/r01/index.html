@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Texto con densidad</title>
+<!-- Ronda r01 de kiwi · pieza 3 (el texto sigue la densidad, #966). Componentes reales de packages/vue/dist/ con el tema
+     por defecto + proto/texto-defecto.css (reglas de texto por región en la capa grana.defaults, generadas por gen-proto.mjs
+     desde los valores del CLI real). No hay shim de componentes: la pieza 2 ya está construida en dist/.
+     Servir desde la raíz del repo: python3 -m http.server 4212 -d /home/user/grana
+     Parámetros: ?tema=t14|t18 (tema real del CLI + sus reglas de región, M1) · ?solo=1 (con tema: sin las reglas del CLI,
+     demuestra el fallo) · ?root=compact|comfortable|default (atributo en <html>) · ?clave=compact (clave density del CLI)
+     · ?dark=1 · ?sin=1 (sin las reglas de texto: el dist de hoy, para comparar)
+     Verificación: verificar.mjs (ver su cabecera). -->
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<script>
+  (function () {
+    const q = new URLSearchParams(location.search)
+    const add = (href, id) => { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href; l.id = id; document.head.appendChild(l) }
+    if (q.get('sin') !== '1') add('./proto/texto-defecto.css', 'dt-defaults')
+    const tema = q.get('tema')
+    if (tema === 't14' || tema === 't18') add(`./proto/tema-${tema}${q.get('solo') === '1' ? '-solo' : ''}.css`, 'dt-cli')
+    if (q.get('clave') === 'compact') add('./proto/clave-compact.css', 'dt-cli')
+    const root = q.get('root')
+    if (root) document.documentElement.setAttribute('data-g-density', root)
+    if (q.get('dark') === '1') document.documentElement.setAttribute('data-theme', 'dark')
+  })()
+</script>
+<style>
+  /* Maquetación de la página de prueba (no es CSS de componente) */
+  body { margin: 0; background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui);
+    font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); }
+  .dt-page { max-inline-size: 1480px; margin-inline: auto; padding: var(--g-space-8) var(--g-space-4) var(--g-space-16); display: grid; gap: var(--g-space-12); }
+  .dt-head h1 { font-size: var(--g-text-title-size); line-height: var(--g-text-title-line); margin: 0 0 var(--g-space-2); }
+  .dt-head p, .dt-sec > p { margin: 0; color: var(--g-color-text-muted); max-inline-size: 80ch; }
+  .dt-switch { display: flex; flex-wrap: wrap; gap: var(--g-space-2) var(--g-space-4); margin-block-start: var(--g-space-4); }
+  .dt-switch a { color: var(--g-color-accent-text); }
+  .dt-switch a[aria-current="true"] { font-weight: 600; color: var(--g-color-text); text-decoration: none; }
+  .dt-sec { display: grid; gap: var(--g-space-4); }
+  .dt-sec > h2 { font-size: var(--g-text-title-sm-size); line-height: var(--g-text-title-sm-line); margin: 0; }
+  .dt-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); gap: var(--g-space-6); align-items: start; }
+  .dt-col { display: grid; gap: var(--g-space-2); min-inline-size: 0; }
+  .dt-col > .dt-label { margin: 0; font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); font-weight: 500; color: var(--g-color-text-muted); }
+  .dt-col > .dt-label code { color: var(--g-color-text); }
+  .dt-region { border: var(--g-border-width) solid var(--g-color-border); border-radius: var(--g-radius-lg); background: var(--g-color-bg);
+    padding: calc(var(--g-space-4) * var(--g-density)); display: grid; gap: calc(var(--g-space-4) * var(--g-density)); min-inline-size: 0; }
+  .dt-row { display: flex; flex-wrap: wrap; align-items: end; gap: calc(var(--g-space-2) * var(--g-density)); }
+  .dt-grow { flex: 1 1 10rem; min-inline-size: 0; }
+  .dt-para { margin: 0; max-inline-size: 60ch; font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); color: var(--g-color-text-muted); }
+  .dt-table { inline-size: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  .dt-table th, .dt-table td { text-align: start; padding: var(--g-space-1) var(--g-space-2); border-block-end: var(--g-border-width) solid var(--g-color-border); white-space: nowrap; }
+  .dt-table td:nth-child(n+2), .dt-table th:nth-child(n+2) { text-align: end; }
+  .dt-scroll { overflow-x: auto; }
+  .dt-mini { display: grid; gap: var(--g-space-3); grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); }
+  .dt-ruler { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--g-space-4);
+    background-image: repeating-linear-gradient(to bottom, transparent 0 calc(var(--g-space-1) * 5 - var(--g-border-width)), var(--g-color-border) calc(var(--g-space-1) * 5 - var(--g-border-width)) calc(var(--g-space-1) * 5)); }
+</style>
+<script src="../../lucide-icons.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<script src="../../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script>
+(function () {
+  const q = new URLSearchParams(location.search)
+  const { createApp, ref, onMounted, nextTick } = Vue
+  const icon = (n) => (window.lucide ? window.lucide(n) : '')
+
+  const lotes = [
+    ['L-2041', 'Espadín · tina 3', 'Fermentando', '1 240'], ['L-2042', 'Tobalá · tina 1', 'Reposo', '380'],
+    ['L-2043', 'Cuishe · tina 5', 'Destilado', '612']
+  ].map(([id, sub, estado, litros]) => ({ id, titulo: id, sub, estado, litros }))
+  const columns = [
+    { key: 'lote', label: 'Lote', title: 'titulo', subtitle: 'sub' },
+    { key: 'estado', label: 'Estado' },
+    { key: 'litros', label: 'Litros', align: 'end' }
+  ]
+  const tLabels = { results: '{count} lotes', empty: 'Sin lotes.', loading: 'Cargando lotes…', rowActions: 'Acciones de {title}', actionsHeader: 'Acciones' }
+  const menuItems = [{ id: 'exp', label: 'Exportar' }, { id: 'dup', label: 'Duplicar' }, { id: 'arch', label: 'Archivar' }]
+  const tabs = [{ id: 'proc', label: 'En proceso' }, { id: 'rep', label: 'Reposo' }, { id: 'env', label: 'Envasado' }]
+  const opciones = [{ value: 'esp', label: 'Espadín' }, { value: 'tob', label: 'Tobalá' }, { value: 'cui', label: 'Cuishe' }]
+
+  // La misma pantalla, escrita una vez: cada columna la pinta dentro de su región
+  const Pantalla = {
+    props: { k: String },
+    setup () {
+      return { lotes, columns, tLabels, menuItems, tabs, opciones, icon,
+        menu: ref(false), dlg: ref(false), tab: ref('proc'), nombre: ref('Espadín · tina 3'), agave: ref('esp'), busca: ref('') }
+    },
+    template: `
+<div class="dt-mini">
+  <g-card eyebrow="Destilería" title="Lote L-2041" description="Fermentación en tina 3. El reposo empieza cuando la densidad baja de 1,000." :data-probe="k + '-card'">
+    <template #actions><g-btn variant="outline" :data-probe="k + '-card-btn'">Ver lote</g-btn></template>
+  </g-card>
+  <g-widget title="Litros del mes" eyebrow="Producción" description="Cierre al día 28" :data-probe="k + '-widget'">
+    <g-metric label="Destilado" value="4 812" unit="L" :data-probe="k + '-metric'"></g-metric>
+  </g-widget>
+</div>
+<g-tabs v-model="tab" :items="tabs" label="Estados del lote" :data-probe="k + '-tabs'"></g-tabs>
+<g-table :columns="columns" :rows="lotes" caption="Lotes en proceso" :labels="tLabels" responsive="table" :data-probe="k + '-table'">
+  <template #toolbar>
+    <div class="dt-row" style="inline-size:100%">
+      <g-input class="dt-grow" v-model="busca" label="Buscar lotes" :data-probe="k + '-search'"></g-input>
+      <g-btn :data-probe="k + '-btn'"><template #prepend><span v-html="icon('plus')"></span></template>Nuevo lote</g-btn>
+      <g-menu v-model="menu" :items="menuItems" label="Más acciones">
+        <template #trigger="{ attrs }"><g-btn v-bind="attrs" variant="outline" :data-probe="k + '-menu-trigger'">Más</g-btn></template>
+      </g-menu>
+      <g-btn variant="ghost" @click="dlg = true" :data-probe="k + '-dialog-trigger'">Editar</g-btn>
+    </div>
+  </template>
+</g-table>
+<g-form @submit.prevent>
+  <g-form-section title="Datos del lote" description="Lo que se imprime en la etiqueta del envase." :data-probe="k + '-section'">
+    <g-form-layout>
+      <g-form-row>
+        <g-input v-model="nombre" label="Nombre del lote" hint="Máximo 40 caracteres" :data-probe="k + '-input'"></g-input>
+        <g-select v-model="agave" :options="opciones" label="Agave" :data-probe="k + '-select'"></g-select>
+      </g-form-row>
+    </g-form-layout>
+  </g-form-section>
+</g-form>
+<p class="dt-para" :data-probe="k + '-para'">Texto propio de la aplicación que lee <code>--g-text-body-sm-*</code>: sigue la región porque el token se reasigna en el elemento de la región, no en el componente. Dos líneas para medir el paso entre renglones.</p>
+<g-dialog v-model="dlg" title="Editar lote" description="Los cambios se guardan en la bitácora del lote." close-label="Cerrar" :data-probe="k + '-dialog'">
+  <g-input v-model="nombre" label="Nombre del lote" :data-probe="k + '-dialog-input'"></g-input>
+  <template #footer><g-btn @click="dlg = false" :data-probe="k + '-dialog-btn'">Guardar</g-btn></template>
+</g-dialog>`
+  }
+
+  function fmt (n) { return (Math.round(n * 100) / 100).toString().replace('.', ',') }
+  function meter () {
+    const rows = [...document.querySelectorAll('[data-probe]')].map((el) => {
+      const cs = getComputedStyle(el)
+      const b = el.getBoundingClientRect()
+      return `<tr><td>${el.dataset.probe}</td><td>${el.closest('[data-g-density]')?.getAttribute('data-g-density') ?? '(tema)'}</td><td>${cs.getPropertyValue('--g-density').trim()}</td><td>${fmt(parseFloat(cs.fontSize))}</td><td>${fmt(parseFloat(cs.lineHeight) || 0)}</td><td>${fmt(b.height)}</td></tr>`
+    })
+    const out = document.getElementById('dt-meter-body')
+    if (out) out.innerHTML = rows.join('')
+  }
+  window.dtMeter = meter
+
+  const App = {
+    components: { Pantalla },
+    setup () {
+      const escala = ref([])
+      onMounted(async () => {
+        try { escala.value = await (await fetch('./proto/escala.json')).json() } catch (e) { escala.value = [] }
+        await nextTick(); meter()
+      })
+      const roles = ['caption', 'body-sm', 'body', 'title-sm', 'title', 'title-lg', 'display']
+      return { escala, roles, fmt, meter,
+        href: (k, v) => { const u = new URLSearchParams(location.search); if (v == null) u.delete(k); else u.set(k, v); return '?' + u.toString() },
+        cur: (k, v) => ((q.get(k) ?? null) === v ? 'true' : undefined) }
+    },
+    template: `
+<main class="dt-page">
+  <header class="dt-head">
+    <h1>El texto sigue la densidad</h1>
+    <p>La misma pantalla en las tres regiones. Componentes reales de <code>dist/</code>; lo único añadido son las reglas de texto por región que propone esta ronda (escala B, «Hermano menor»), en la capa <code>grana.defaults</code>.</p>
+    <nav class="dt-switch" aria-label="Variantes">
+      <a :href="href('tema', null)" :aria-current="cur('tema', null)">Tema por defecto</a>
+      <a :href="href('tema', 't14')" :aria-current="cur('tema', 't14')">Tema del CLI: 14 / 1,2</a>
+      <a :href="href('tema', 't18')" :aria-current="cur('tema', 't18')">Tema del CLI: 18 / 1,333</a>
+      <a :href="href('root', 'compact')" :aria-current="cur('root', 'compact')">Preferencia: &lt;html data-g-density="compact"&gt;</a>
+      <a :href="href('sin', '1')" :aria-current="cur('sin', '1')">Sin reglas de texto (dist de hoy)</a>
+      <a :href="href('dark', '1')" :aria-current="cur('dark', '1')">Oscuro</a>
+      <a href="?">Restablecer</a>
+    </nav>
+  </header>
+
+  <section class="dt-sec" aria-labelledby="dt-s1">
+    <h2 id="dt-s1">La misma pantalla en los tres pasos</h2>
+    <p>En <code>compact</code> la caja baja un 25 % y el texto un escalón de la escala B (−6,25 %, nunca por debajo de 12). <code>comfortable</code> aprieta la caja un 12,5 % y deja el texto del paso normal.</p>
+    <div class="dt-cols">
+      <div class="dt-col"><p class="dt-label"><code>data-g-density="default"</code></p>
+        <div class="dt-region" data-g-density="default" id="dt-default"><pantalla k="def"></pantalla></div></div>
+      <div class="dt-col"><p class="dt-label"><code>data-g-density="comfortable"</code></p>
+        <div class="dt-region" data-g-density="comfortable" id="dt-comfortable"><pantalla k="comf"></pantalla></div></div>
+      <div class="dt-col"><p class="dt-label"><code>data-g-density="compact"</code> · B · Hermano menor</p>
+        <div class="dt-region" data-g-density="compact" id="dt-compact"><pantalla k="cb"></pantalla></div></div>
+    </div>
+  </section>
+
+  <section class="dt-sec" aria-labelledby="dt-s2">
+    <h2 id="dt-s2">Compacto: A · Peldaño frente a B · Hermano menor</h2>
+    <p>A baja cada rol al de abajo (tamaño e interlineado; <code>body-sm</code> toma el punto medio para no caer sobre <code>caption</code>). B recalcula la misma escala con un cuerpo 1/16 menor. En los controles casi no se distinguen (13 frente a 13,13); la diferencia está en los títulos y en <code>body</code>.</p>
+    <div class="dt-cols">
+      <div class="dt-col"><p class="dt-label"><code>compact</code> · A · Peldaño</p>
+        <div class="dt-region" data-g-density="compact" data-dt-escala="a" id="dt-compact-a"><pantalla k="ca"></pantalla></div></div>
+      <div class="dt-col"><p class="dt-label"><code>compact</code> · B · Hermano menor</p>
+        <div class="dt-region" data-g-density="compact" id="dt-compact-b2"><pantalla k="cb2"></pantalla></div></div>
+    </div>
+  </section>
+
+  <section class="dt-sec" aria-labelledby="dt-s3">
+    <h2 id="dt-s3">Región más cercana, prop y ritmo</h2>
+    <p>Una región <code>default</code> dentro de una compacta vuelve al paso 1; un botón con <code>density="default"</code> gana a la región; un botón con <code>density="compact"</code> en una región normal aprieta su caja y su texto. A la derecha, el mismo párrafo en <code>default</code> y en <code>compact</code> sobre una rejilla de 20 px: con B el renglón no cambia de paso.</p>
+    <div class="dt-cols">
+      <div class="dt-region" data-g-density="compact" id="dt-nest-outer">
+        <div class="dt-row"><g-btn data-probe="nest-outer-btn">Compacta</g-btn><g-btn density="default" data-probe="nest-prop-default">Prop default</g-btn></div>
+        <div class="dt-region" data-g-density="default" id="dt-nest-inner"><div class="dt-row"><g-btn data-probe="nest-inner-btn">Default dentro</g-btn><g-input label="Correo" data-probe="nest-inner-input" model-value="ana@ejemplo.mx"></g-input></div></div>
+        <div class="dt-region" data-g-density="default" id="dt-island"><p class="dt-para" data-probe="island-text">Raíz fija en <code>default</code> (avisos, isla y voz, #977): Δ0.</p></div>
+      </div>
+      <div class="dt-region" id="dt-page-prop">
+        <div class="dt-row"><g-btn data-probe="page-btn">Página</g-btn><g-btn density="compact" data-probe="page-prop-compact">Prop compact</g-btn><g-input density="compact" label="Lote" data-probe="page-prop-compact-input" model-value="L-2041"></g-input></div>
+        <div class="dt-ruler">
+          <p class="dt-para" data-g-density="default" data-probe="rhythm-default">El mismo párrafo en el paso normal. El renglón mide 20 px: la caja de la línea cae en la rejilla de 4 px de Grana y comparte paso con la columna vecina.</p>
+          <p class="dt-para" data-g-density="compact" data-probe="rhythm-compact">El mismo párrafo en el paso compacto. El renglón mide 20 px: la caja de la línea cae en la rejilla de 4 px de Grana y comparte paso con la columna vecina.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="dt-sec" aria-labelledby="dt-s4">
+    <h2 id="dt-s4">Escala por tema (valores del CLI real)</h2>
+    <p>Tamaño / interlineado en px. B: misma escala con <code>fontSize × 15/16</code>, mismas razones y mismo redondeo a 4 px (§5), piso 12. A: rol de abajo; <code>body-sm</code> en el punto medio.</p>
+    <div class="dt-cols">
+      <div class="dt-col dt-scroll" v-for="t in escala" :key="t.id">
+        <table class="dt-table">
+          <caption style="text-align:start; font-weight:600; padding-block-end: var(--g-space-2)">{{ t.name }}</caption>
+          <thead><tr><th scope="col">Rol</th><th scope="col">Default</th><th scope="col">B · compacto</th><th scope="col">A · compacto</th></tr></thead>
+          <tbody><tr v-for="r in roles" :key="r"><th scope="row"><code>{{ r }}</code></th>
+            <td>{{ fmt(t.base[r].size) }}/{{ fmt(t.base[r].line) }}</td><td>{{ fmt(t.B[r].size) }}/{{ fmt(t.B[r].line) }}</td><td>{{ fmt(t.A[r].size) }}/{{ fmt(t.A[r].line) }}</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="dt-sec" aria-labelledby="dt-s5">
+    <h2 id="dt-s5">Medidas</h2>
+    <p><g-btn size="sm" variant="ghost" @click="meter()">Volver a medir</g-btn> Región más cercana, <code>--g-density</code>, tamaño de letra, interlineado y alto de cada sonda (px).</p>
+    <div class="dt-scroll"><table class="dt-table">
+      <thead><tr><th scope="col">Sonda</th><th scope="col">Región</th><th scope="col">--g-density</th><th scope="col">Letra</th><th scope="col">Renglón</th><th scope="col">Alto</th></tr></thead>
+      <tbody id="dt-meter-body"></tbody>
+    </table></div>
+  </section>
+</main>`
+  }
+  const app = createApp(App)
+  app.use(Grana)
+  app.mount('#app')
+})()
+</script>
+</body>
+</html>

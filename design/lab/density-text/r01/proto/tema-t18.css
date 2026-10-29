@@ -1,0 +1,43 @@
+/* Salida real de @grana/cli (CLI · fontSize 18, typeScale 1.333) + reglas de texto por región que emitiría el CLI (M1, sin capa) */
+/* Generado por @grana/cli a partir de /tmp/grana-dt-4siuWF/cfg-x71qfc9okqh.json. No editar a mano: vuelve a ejecutar «grana theme». */
+/* Sin @layer: el tema del usuario gana siempre sobre grana.defaults (DECISIONS.md #4). */
+:root {
+  --g-text-caption-size: 0.8438rem;
+  --g-text-caption-line: 1rem;
+  --g-text-caption-tracking: 0;
+  --g-text-caption-weight: 500;
+  --g-text-body-sm-size: 0.9844rem;
+  --g-text-body-sm-line: 1.5rem;
+  --g-text-body-sm-tracking: 0;
+  --g-text-body-sm-weight: 400;
+  --g-text-body-size: 1.125rem;
+  --g-text-body-line: 1.75rem;
+  --g-text-body-tracking: 0;
+  --g-text-body-weight: 400;
+  --g-text-title-sm-size: 1.4996rem;
+  --g-text-title-sm-line: 2rem;
+  --g-text-title-sm-tracking: -0.004em;
+  --g-text-title-sm-weight: 600;
+  --g-text-title-size: 1.999rem;
+  --g-text-title-line: 3rem;
+  --g-text-title-tracking: -0.008em;
+  --g-text-title-weight: 600;
+  --g-text-title-lg-size: 2.6647rem;
+  --g-text-title-lg-line: 3.5rem;
+  --g-text-title-lg-tracking: -0.014em;
+  --g-text-title-lg-weight: 600;
+  --g-text-display-size: 3.552rem;
+  --g-text-display-line: 4.25rem;
+  --g-text-display-tracking: -0.022em;
+  --g-text-display-weight: 600;
+  --g-hero-title-max: 6.3115rem;
+}
+
+[data-g-density="compact"] { --g-text-caption-size: 0.791rem; --g-text-body-sm-size: 0.9229rem; --g-text-body-sm-line: 1.25rem; --g-text-body-size: 1.0547rem; --g-text-body-line: 1.5rem; --g-text-title-sm-size: 1.4059rem; --g-text-title-size: 1.8741rem; --g-text-title-line: 2.75rem; --g-text-title-lg-size: 2.4981rem; --g-text-title-lg-line: 3.25rem; --g-text-display-size: 3.33rem; --g-text-display-line: 4rem; }
+[data-g-density="default"], [data-g-density="comfortable"] { --g-text-caption-size: 0.8438rem; --g-text-body-sm-size: 0.9844rem; --g-text-body-sm-line: 1.5rem; --g-text-body-size: 1.125rem; --g-text-body-line: 1.75rem; --g-text-title-sm-size: 1.4996rem; --g-text-title-size: 1.999rem; --g-text-title-line: 3rem; --g-text-title-lg-size: 2.6647rem; --g-text-title-lg-line: 3.5rem; --g-text-display-size: 3.552rem; --g-text-display-line: 4.25rem; }
+@media (pointer: coarse) {
+  [data-g-density] { --g-text-caption-size: 0.8438rem; --g-text-body-sm-size: 0.9844rem; --g-text-body-sm-line: 1.5rem; --g-text-body-size: 1.125rem; --g-text-body-line: 1.75rem; --g-text-title-sm-size: 1.4996rem; --g-text-title-size: 1.999rem; --g-text-title-line: 3rem; --g-text-title-lg-size: 2.6647rem; --g-text-title-lg-line: 3.5rem; --g-text-display-size: 3.552rem; --g-text-display-line: 4.25rem; }
+  [data-g-density="compact"][class*="--density-compact"] { --g-text-caption-size: 0.791rem; --g-text-body-sm-size: 0.9229rem; --g-text-body-sm-line: 1.25rem; --g-text-body-size: 1.0547rem; --g-text-body-line: 1.5rem; --g-text-title-sm-size: 1.4059rem; --g-text-title-size: 1.8741rem; --g-text-title-line: 2.75rem; --g-text-title-lg-size: 2.4981rem; --g-text-title-lg-line: 3.25rem; --g-text-display-size: 3.33rem; --g-text-display-line: 4rem; }
+}
+/* Solo para comparar A en la misma página (no es contrato) */
+[data-g-density="compact"][data-dt-escala="a"] { --g-text-body-sm-size: 0.9141rem; --g-text-body-sm-line: 1.25rem; --g-text-body-size: 0.9844rem; --g-text-body-line: 1.5rem; --g-text-title-sm-size: 1.125rem; --g-text-title-sm-line: 1.75rem; --g-text-title-size: 1.4996rem; --g-text-title-line: 2rem; --g-text-title-lg-size: 1.999rem; --g-text-title-lg-line: 3rem; --g-text-display-size: 2.6647rem; --g-text-display-line: 3.5rem; }

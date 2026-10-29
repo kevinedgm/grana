@@ -1,0 +1,284 @@
+[
+  {
+    "id": "defecto",
+    "name": "Tema por defecto (fontSize 16, typeScale 1.25; idéntico a defaults.css)",
+    "base": {
+      "caption": {
+        "size": 12,
+        "line": 16
+      },
+      "body-sm": {
+        "size": 14,
+        "line": 20
+      },
+      "body": {
+        "size": 16,
+        "line": 24
+      },
+      "title-sm": {
+        "size": 20,
+        "line": 28
+      },
+      "title": {
+        "size": 25,
+        "line": 36
+      },
+      "title-lg": {
+        "size": 31.25,
+        "line": 40
+      },
+      "display": {
+        "size": 39.062,
+        "line": 48
+      }
+    },
+    "A": {
+      "caption": {
+        "size": 12,
+        "line": 16
+      },
+      "body-sm": {
+        "size": 13,
+        "line": 20
+      },
+      "body": {
+        "size": 14,
+        "line": 20
+      },
+      "title-sm": {
+        "size": 16,
+        "line": 24
+      },
+      "title": {
+        "size": 20,
+        "line": 28
+      },
+      "title-lg": {
+        "size": 25,
+        "line": 36
+      },
+      "display": {
+        "size": 31.25,
+        "line": 40
+      }
+    },
+    "B": {
+      "caption": {
+        "size": 12,
+        "line": 16
+      },
+      "body-sm": {
+        "size": 13.125,
+        "line": 20
+      },
+      "body": {
+        "size": 15,
+        "line": 24
+      },
+      "title-sm": {
+        "size": 18.75,
+        "line": 28
+      },
+      "title": {
+        "size": 23.4375,
+        "line": 32
+      },
+      "title-lg": {
+        "size": 29.296875,
+        "line": 36
+      },
+      "display": {
+        "size": 36.62109375,
+        "line": 44
+      }
+    }
+  },
+  {
+    "id": "t14",
+    "name": "CLI · fontSize 14, typeScale 1.2",
+    "base": {
+      "caption": {
+        "size": 12,
+        "line": 16
+      },
+      "body-sm": {
+        "size": 12.25,
+        "line": 16
+      },
+      "body": {
+        "size": 14,
+        "line": 20
+      },
+      "title-sm": {
+        "size": 16.8,
+        "line": 24
+      },
+      "title": {
+        "size": 20.16,
+        "line": 28
+      },
+      "title-lg": {
+        "size": 24.192,
+        "line": 32
+      },
+      "display": {
+        "size": 29.03,
+        "line": 36
+      }
+    },
+    "A": {
+      "caption": {
+        "size": 12,
+        "line": 16
+      },
+      "body-sm": {
+        "size": 12.125,
+        "line": 16
+      },
+      "body": {
+        "size": 12.25,
+        "line": 16
+      },
+      "title-sm": {
+        "size": 14,
+        "line": 20
+      },
+      "title": {
+        "size": 16.8,
+        "line": 24
+      },
+      "title-lg": {
+        "size": 20.16,
+        "line": 28
+      },
+      "display": {
+        "size": 24.192,
+        "line": 32
+      }
+    },
+    "B": {
+      "caption": {
+        "size": 12,
+        "line": 16
+      },
+      "body-sm": {
+        "size": 12,
+        "line": 16
+      },
+      "body": {
+        "size": 13.125,
+        "line": 20
+      },
+      "title-sm": {
+        "size": 15.75,
+        "line": 24
+      },
+      "title": {
+        "size": 18.9,
+        "line": 28
+      },
+      "title-lg": {
+        "size": 22.679999999999996,
+        "line": 28
+      },
+      "display": {
+        "size": 27.215999999999998,
+        "line": 32
+      }
+    }
+  },
+  {
+    "id": "t18",
+    "name": "CLI · fontSize 18, typeScale 1.333",
+    "base": {
+      "caption": {
+        "size": 13.501,
+        "line": 16
+      },
+      "body-sm": {
+        "size": 15.75,
+        "line": 24
+      },
+      "body": {
+        "size": 18,
+        "line": 28
+      },
+      "title-sm": {
+        "size": 23.994,
+        "line": 32
+      },
+      "title": {
+        "size": 31.984,
+        "line": 48
+      },
+      "title-lg": {
+        "size": 42.635,
+        "line": 56
+      },
+      "display": {
+        "size": 56.832,
+        "line": 68
+      }
+    },
+    "A": {
+      "caption": {
+        "size": 13.501,
+        "line": 16
+      },
+      "body-sm": {
+        "size": 14.625499999999999,
+        "line": 20
+      },
+      "body": {
+        "size": 15.75,
+        "line": 24
+      },
+      "title-sm": {
+        "size": 18,
+        "line": 28
+      },
+      "title": {
+        "size": 23.994,
+        "line": 32
+      },
+      "title-lg": {
+        "size": 31.984,
+        "line": 48
+      },
+      "display": {
+        "size": 42.635,
+        "line": 56
+      }
+    },
+    "B": {
+      "caption": {
+        "size": 12.65625,
+        "line": 16
+      },
+      "body-sm": {
+        "size": 14.765625,
+        "line": 20
+      },
+      "body": {
+        "size": 16.875,
+        "line": 24
+      },
+      "title-sm": {
+        "size": 22.494374999999998,
+        "line": 32
+      },
+      "title": {
+        "size": 29.985001875,
+        "line": 44
+      },
+      "title-lg": {
+        "size": 39.970007499374994,
+        "line": 52
+      },
+      "display": {
+        "size": 53.280019996666866,
+        "line": 64
+      }
+    }
+  }
+]

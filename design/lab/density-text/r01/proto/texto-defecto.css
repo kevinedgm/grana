@@ -1,0 +1,12 @@
+@layer grana.defaults, grana.components, grana.blocks, grana.utilities;
+/* Prototipo de kiwi (r01): reglas de texto por región, tema por defecto, escala B. Capa grana.defaults como defaults.css */
+@layer grana.defaults {
+[data-g-density="compact"] { --g-text-body-sm-size: 0.8203rem; --g-text-body-size: 0.9375rem; --g-text-title-sm-size: 1.1719rem; --g-text-title-size: 1.4648rem; --g-text-title-line: 2rem; --g-text-title-lg-size: 1.8311rem; --g-text-title-lg-line: 2.25rem; --g-text-display-size: 2.2888rem; --g-text-display-line: 2.75rem; }
+[data-g-density="default"], [data-g-density="comfortable"] { --g-text-body-sm-size: 0.875rem; --g-text-body-size: 1rem; --g-text-title-sm-size: 1.25rem; --g-text-title-size: 1.5625rem; --g-text-title-line: 2.25rem; --g-text-title-lg-size: 1.9531rem; --g-text-title-lg-line: 2.5rem; --g-text-display-size: 2.4414rem; --g-text-display-line: 3rem; }
+@media (pointer: coarse) {
+  [data-g-density] { --g-text-body-sm-size: 0.875rem; --g-text-body-size: 1rem; --g-text-title-sm-size: 1.25rem; --g-text-title-size: 1.5625rem; --g-text-title-line: 2.25rem; --g-text-title-lg-size: 1.9531rem; --g-text-title-lg-line: 2.5rem; --g-text-display-size: 2.4414rem; --g-text-display-line: 3rem; }
+  [data-g-density="compact"][class*="--density-compact"] { --g-text-body-sm-size: 0.8203rem; --g-text-body-size: 0.9375rem; --g-text-title-sm-size: 1.1719rem; --g-text-title-size: 1.4648rem; --g-text-title-line: 2rem; --g-text-title-lg-size: 1.8311rem; --g-text-title-lg-line: 2.25rem; --g-text-display-size: 2.2888rem; --g-text-display-line: 2.75rem; }
+}
+/* Solo para comparar A en la misma página (no es contrato) */
+[data-g-density="compact"][data-dt-escala="a"] { --g-text-body-sm-size: 0.8125rem; --g-text-body-size: 0.875rem; --g-text-body-line: 1.25rem; --g-text-title-sm-size: 1rem; --g-text-title-sm-line: 1.5rem; --g-text-title-size: 1.25rem; --g-text-title-line: 1.75rem; --g-text-title-lg-size: 1.5625rem; --g-text-title-lg-line: 2.25rem; --g-text-display-size: 1.9531rem; --g-text-display-line: 2.5rem; }
+}
