@@ -159,7 +159,7 @@ function propType(meta, p, overrides) {
     const extra = base.split(' | ').filter((t) => t === 'null' || (t === 'boolean' && !literals.some((l) => l === 'true' || l === 'false')) || t === 'Element' || t === 'Date')
     type = union([...literals, ...extra])
   }
-  if ((p.default === null || p.default === 'null') && !p.required && !type.split(' | ').includes('null')) type += ' | null'
+  if ((p.default === null || p.default === 'null') && p.resolvedDefault === undefined && !p.required && !type.split(' | ').includes('null')) type += ' | null'
   return type
 }
 
