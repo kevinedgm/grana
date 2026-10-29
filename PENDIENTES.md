@@ -92,7 +92,8 @@ Recuperación tras cerrar la aplicación, contrato y kit de pruebas del audio te
 
 | Qué | Dueño |
 | --- | --- |
-| **`<select>` de orden de `GTable` en `mode="cards"` a 30 px de alto también en táctil**, por debajo de los 44 px de `tokens.md` §7 (hallado por coco en la pieza 1, 7470b94; no se tocó porque #972 exige altura Δ0). | coco / bruno |
+| **`<select>` de orden de `GTable` en `mode="cards"` a 30 px de alto también en táctil**, por debajo de los 44 px de `tokens.md` §7 (hallado por coco en la pieza 1, 7470b94; no se tocó porque #972 exige altura Δ0; el README de `GTable` lo deja dicho y su frase «controles de 44px» en táctil queda contradicha hasta corregirlo). | coco / bruno |
+| **`GPartyField` sin README** (visto al documentar la pieza 1, d7a90e6). | mora-docs |
 | **Pieza 1 (texto editable ≥ 16 px táctil, #970 a #972):** verificada solo en Chromium con emulación; faltan WebKit, la ampliación real en iPhone con Safari, RTL del fantasma y espejos, y las cifras de mínimos de `GFormRow` en táctil. | bruno / coco |
 | **«Una sola luz», reservados (#961):** navbar de `GSidebar` en el eje x, columnas fijas de `GTable` (`data-highlight` en el `tr`), T3 de `GTabs` (luz de hover compartida) y rejillas. Firefox, WebKit, lector de pantalla y `forced-colors` real sin verificar (solo Chromium en el entorno del 2026-10-29). | kiwi / bruno |
 | **H2, `personalidad-menu-links.spec.mjs:108`** falla 3/3: la región viva recibe «Panel actualizado.» del `GLoadRegion` del playground (`index.html:4292`) en vez del anuncio del menú. Fallaba ya antes del lote «una sola luz» (`dist/` de 3109911). | bruno |
