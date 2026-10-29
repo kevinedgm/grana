@@ -37,9 +37,9 @@ Pieza de mecanismo, sin forma nueva: la densidad aprieta, no reordena; no toca c
 | 15 Meta de `GCard` | Cumple | `low` oculta en región compact tras montar y con prop compact; visible en default y comfortable; vuelve al cambiar la región en marcha; en táctil visible en región compact (P2) y oculta con prop compact |
 | 16 Rejilla y mínimos | Cumple | Con `--g-space-1` 4,375 y 3,75 px, alto × 2 entero en botones, cajas de campo y pestañas de los cinco juegos; ningún `GBtn` < 24, ningún texto < 12; en táctil, texto editable ≥ 16 en todos los juegos; en oscuro, región = prop |
 | 17 Grep | Cumple | Ninguna hoja declara `--g-density`; ninguna lee `.g-form--density-*` desde un descendiente; no queda regla `--density-*` de solo multiplicador (salvo `GCalendar`); 34 alias de raíz con `var(--g-density)`; `16px`, `24px`, `44px` con los mismos usos que en 08ffaa8 |
-| 18 Blocks | Cumple (visual) | `GbConfirmation03` (`GCard compact`): sus botones pasan de 36 a 27 y los `sm` de 28 a 24; se ven coherentes con la tarjeta, que ya era compacta (capturas antes/después). `GbProductCard03`: su acción mide 40 antes y después (el block fija su tamaño). Líneas de `GbCart` (`GCard compact`): «Quitar» 22 antes y después. `GResourceList` no verificable: aún sin `.vue`. Peso de `dist/blocks.js`: de bruno |
+| 18 Blocks | Cumple con una regresión táctil | Ver «Auditoría visual de los blocks» abajo (`auditoria-blocks.mjs`, antes/después sobre el `dist/` de 08ffaa8): sin regresión en escritorio; en teléfono, `GbConfirmation03` y `GbProductCard03` pierden altura visible de botón por la prop explícita (P2 no cede) |
 
-**Nota 10.13 (tareas largas, 500 filas):** el cambio de `<html>` da tareas de ~50–80 ms en este entorno compartido (load ≈ 1,5), **lo mismo** que el control (el mismo reflujo con un token puro, `--g-space-1`, sin atributo ni observador): 79 frente a 74 ms de mediana. Es el coste de estilo y maquetación de 500 filas en Chromium headless, no del mecanismo. El umbral absoluto de 50 ms queda **sin verificar** (#965: se exige sin vecinos).
+**Nota 10.13 (tareas largas, 500 filas):** segunda medida con el `dist/` final de bruno (load 1,13, un worker): cambio de densidad 72 ms, control con un token puro 80 ms (3 pasadas: 72/71/81 y 72/80/80). El cambio de `<html>` cuesta lo mismo que el control (mismo reflujo sin atributo ni observador), así que es el coste de estilo y maquetación de 500 filas en Chromium headless, no del mecanismo. **Los 79 ms de la primera medida se reproducen en orden de magnitud (72 a 80 ms) pero con la misma cifra en el control; bruno no los reprodujo con su spec (0 tareas > 50 ms con 500 filas, un worker): son metodologías distintas (su spec cuenta las tareas largas; la mía, el tiempo del cambio hasta el cuadro) y no se contradicen en lo que atribuyen.** Punto cerrado como «no atribuible a la densidad»; el umbral absoluto de 50 ms sigue **sin verificar** sin vecinos (#965).
 
 ## Rúbrica de movimiento (`rubrica-movimiento.md`)
 
@@ -56,15 +56,32 @@ Pieza de mecanismo, sin forma nueva: la densidad aprieta, no reordena; no toca c
 
 Jerarquía y alineación: en compact y comfortable los juegos conservan su estructura; etiquetas, campos y acciones siguen alineados (captura del banco). Espaciado: separaciones × 0,875 · × 0,75 coherentes entre campos, formulario, pila y tabla, sin huecos compactos entre dianas de 44 en táctil (P2). Contraste: sin cambio (no se toca color; en oscuro, región = prop). Estados, carga, vacío y error: sin cambio. Consistencia: un solo token; el patrón de la zona de marca. Consola limpia en el banco.
 
-## Peso (`density.md` §11, gzip -9, `dist/` de 08ffaa8 frente a f401a9b + e33b57e)
+## Peso (`density.md` §11, gzip -9, `dist/` de 08ffaa8 frente a ec848d9)
 
 | Salida | Antes | Después | Δ | Tope |
 | --- | --- | --- | --- | --- |
-| `grana.css` | 103 785 | 103 046 | **−739** | ≤ +256 (bajó, lo esperado) |
-| `grana.js` (bruno) | 223 285 | 224 518 | **+1 233** | ≤ +768: **lo supera** |
+| `grana.css` | 103 785 | 103 046 | **−739** | ≤ +256 (bajó, lo esperado; re-medido) |
+| `grana.js` (bruno, final ec848d9) | 223 285 | 223 871 | **+586** | ≤ +768: **dentro** (antes de la reducción de bruno medí +1 233) |
 | `time-field.js` · `slider.js` · `file-field.js` | | | +95 · +134 · +80 | ≤ +256 |
 | `speech.js` · `status.js` · `form-fold.js` | | | +19 · +15 · +14 | ≤ +256 |
 | resto de entradas, `utilities.css` | | | 0 | |
+
+## Auditoría visual de los blocks (criterio 18; `node design/lab/density/auditoria-blocks.mjs`, antes/después del banco `packages/blocks/playground`)
+
+Misma página y mismos datos con el `dist/` de 08ffaa8 y con el actual (el `dist/` de blocks no cambió). Escritorio 1280 con puntero fino; teléfono 390 con puntero grueso (`isMobile`, `hasTouch`). Letra mínima 12 o más en todos, antes y después; sin errores de consola.
+
+| Block (variante) | Escritorio | Teléfono | Veredicto |
+| --- | --- | --- | --- |
+| `GbProductCard03` | alto 473,1 → 473,1; control mínimo 40 → 40 (el block fija el tamaño) | alto 461,3 → 457,3; «Elegir opciones» 28 → 24 visibles (área 44 por `::after`) | Coherente en escritorio. **Regresión leve en teléfono** (28 → 24 por la prop explícita) |
+| `GbConfirmation03` | alto 436,4 → 411,4; botones de contacto 36 → 27, `sm` 28 → 24 | alto 544,4 → 507,4; contacto 36 → 27, «Añadir al calendario» y «Compartir» 28 → 24 | Escritorio coherente (el block quería ser compacto). **Regresión en teléfono**: son las acciones principales (WhatsApp, llamar, correo) y bajan un 25 % de caja visible; cumplen 24 pero no cedieron al dedo |
+| `GbCart` 01 y 02 (líneas `GCard compact`) | alto 877 → 873 y 1321 → 1317 | 1768 → 1768 | Coherente: −4 px de reflujo. «Quitar» (`link` `sm`) mide **22 antes y después**; su `::after` da 24 en escritorio y 44 en teléfono (medido), así que el objetivo cumple; la caja visible de 22 es previa y ajena a la pieza |
+| `GbCart` 03 (cajón) | no medible: cerrado hasta el disparador | idem | **No verificado** |
+| `GbOfferList03` | 530 → 530; «Ver N fotos» 22 → 22 | 1056 → 1052; 42 → 42 | Coherente (el `GBtn` ya era compacto por su tamaño) |
+| `GbOrderHistory03` | 980 → 980; 24 → 24 | 1064 → 1064; 24 → 24 | Coherente, sin cambio |
+| `GbTrust01` | 280 → 280; enlace 22 → 22 | 664 → 664 | Coherente, sin cambio (enlace de 22 previo; su `::after` no medido) |
+| `GbCategoryPreviews02` y `03` | 296 → 296 y 623 → 623; 36 → 36 | 786 → 786 y 703 → 703 | Coherente, sin cambio |
+
+**Regresiones y corrección propuesta.** Las dos son del mismo mecanismo (L6, ya aceptado como límite): la prop `density` de `GCard` es una región que **no cede al dedo**. Medido quitando la clase de la prop y dejando `data-g-density="compact"` como región: `GbConfirmation03` en teléfono vuelve a botones 36/28 (alto del block 558 frente a 544 antes) y en escritorio queda igual (27/24, 411). Propuesta para **bruno** (dueño de los `.vue` de blocks): en `GbConfirmation03` y `GbProductCard03` pasar `data-g-density="compact"` a la raíz del `GCard` **en lugar de `density="compact"`**, para que cedan al puntero grueso. Alternativa si se quiere compacto también en táctil: dejarlo y aceptar 24 de caja visible con área de 44 (cumple los mínimos del proyecto). No es defecto bloqueante: 24/44/12 se cumplen.
 
 ## Correcciones de esta auditoría
 
@@ -78,8 +95,8 @@ Jerarquía y alineación: en compact y comfortable los juegos conservan su estru
 
 **Pendientes:**
 - **bruno (no bloqueante):** los bordes de la marca de `GTabs` se deslizan 160 ms cuando la densidad cambia el ancho de las pestañas. Propuesta: en la medida que dispara `densityEpoch`, recolocar la marca sin transición (como `flashInstant` de `utils/glide.js`).
-- **bruno / lima:** `grana.js` +1 233 B gzip frente al tope de +768 (§11): vuelve a lima y decide el usuario si no baja.
+- **Cerrado:** `grana.js` +586 B gzip tras el cierre de bruno, dentro del tope de +768; los 79 ms de 10.13 no son atribuibles a la densidad (véase la nota).
 - **bruno:** `tests/density.spec.mjs` (sin commit): el criterio 6 mide el item del menú durante la entrada con escala (26,49/25,92; medido quieto da 27 = 27); el 13 importa `@vue/server-renderer/index.mjs`, que no existe (usar `import { renderToString } from '@vue/server-renderer'`). El CLI emite la regla de densidad antes del bloque de color y no «después del `:root` de tokens que no son de color» (§6): da igual para la cascada, pero no es el orden del contrato.
-- **Límite L6 (aceptado) visto en blocks:** `GbConfirmation03` pasa `density="compact"` explícito a su `GCard`, así que en un teléfono sus botones `sm` siguen visibles de 24 px (área 44): P2 no cede con la prop. Si el block quiere ceder al dedo, que use una región (`data-g-density`) en vez de la prop.
+- **bruno (blocks, no bloqueante):** `GbConfirmation03` y `GbProductCard03` pasan `density="compact"` explícito a su `GCard`: en teléfono sus botones bajan de 36/28 a 27/24 visibles (área 44) porque P2 no cede con la prop. Medido: con `data-g-density="compact"` (región) vuelven a 36/28 en teléfono y quedan igual en escritorio.
 - **Fuera de la pieza:** «Quitar» de las líneas de `GbCart` mide 22 px de alto antes y después (no es de esta pieza; para el dueño del block).
 - **No verificado:** Firefox y WebKit (solo hay Chromium), tareas largas sin vecinos, SSR de una aplicación real, tableta que cambia de puntero en caliente, lector de pantalla, `GResourceList` (sin `.vue`).
