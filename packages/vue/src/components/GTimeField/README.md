@@ -199,6 +199,8 @@ El campo comparte línea con `GInput`, `GDatePicker` y `GSelect` en una [`GFormR
 
 Con otro tema y otra fuente cambia (la auditoría midió 180 y 62 px con `space` 3 y Georgia, y 197 y 73 px con `space` 5 y borde de 2 px): el valor se **mide en vivo**; las cifras son orientativas. El mínimo efectivo de la fila es el mayor entre el de la clase de tamaño, `--g-form-min` y este. Las referencias 186 y 66 px de `estilo.md` se midieron sin la fuente servida.
 
+**Las cifras de esta sección son de escritorio** (puntero fino). Con puntero grueso el texto sube a 16px (#970 a #972) y el mínimo medido crece con él; ese mínimo en táctil **no está medido**.
+
 **Fuera de una fila (DECISIONS #416).** Sin fila y sin `block`, la caja de `GInput` mide `min(100%, space × 60)` (240 px) y no crece con el texto. Con el texto al 200 % (zoom de solo texto), un campo de 12 h no cabía en esos 240 px y recortaba la hora a «8:0…». Ahora el campo usa **su mínimo medido** como suelo del ancho de su raíz, acotado al 100 % del contenedor: **con el texto normal no cambia nada** (la raíz sigue en 240 px, igual que un `GInput` vecino) y solo crece cuando el texto lo exige. Con `block` o dentro de una fila no interviene. Mecanismo interno: la raíz lleva el atributo `data-fit` y la variable en línea `--_min-inline` mientras haga falta; **no son API** y no hay que escribirlas. Medido en la auditoría: a texto normal 240 px exactos; al 200 % de texto, 12 h **302 px** (mínimo por posiciones calculado aparte: 302) con la hora entera. Un `inline-size` tuyo menor que el mínimo pierde frente al mínimo, salvo que el contenedor sea más estrecho (manda el 100 %).
 
 ## Fecha, hora y zona
@@ -316,6 +318,7 @@ Con otro tema y otra fuente cambia (la auditoría midió 180 y 62 px con `space`
 - **La lectura en palabras es `aria-hidden`:** ya está en `aria-valuetext`; repetirla en la descripción la diría dos veces.
 - **Descripción:** `aria-describedby` = sufijo accesible, ayuda y mensaje (los de `GInput`).
 - **Área táctil:** a. m./p. m. y las lecturas de **24 px o más** y, con puntero grueso, **44 × 44 px** (52 en `xl`), medido en la auditoría con táctil emulado.
+- **Texto con puntero grueso (#970 a #972):** con `pointer: coarse` (táctil) el texto que se escribe sube a `max(16px, su rol)` para que iOS Safari no amplíe la página al enfocar el campo; en escritorio no cambia nada. La altura de la caja no cambia. Sube la línea del valor entera (la hora dicha, a. m./p. m., las dos lecturas y el espejo); etiqueta, ayuda, mensajes y listas se quedan en su rol. Grana no toca el viewport: no añadas `maximum-scale=1` (bloquea el pellizco, WCAG 1.4.4). `medido` en Chromium con emulación táctil (2007/2007, [`auditoria.md`](../../../../../design/lab/campo-tactil/auditoria.md)).
 - **Movimiento reducido:** con `prefers-reduced-motion: reduce` nada se mueve (medido: 0 animaciones).
 
 ### Límite de Chromium: la franja en palabras no llega al lector
@@ -449,6 +452,8 @@ Nombres y formas apartados para entregas siguientes; **hoy no existen**.
 - **Navegadores:** el campo usa `Intl.DateTimeFormat` con `dayPeriod`, `:has()` (en el CSS del par de lecturas) y `ResizeObserver`. No se midió ningún navegador anterior a los tres motores de Playwright (Chromium, Firefox, WebKit).
 
 - **Hueco del cursor de 2 px (cerrado, DECISIONS #679):** `GTimeField.vue` publica `textW + 2` y el CSS deja 2 px; en WebKit los campos desplazados pasan de 7 a 0 de 41 (Chromium y Firefox 0); mínimos con la fuente servida 181 px (12 h) y 66 px (24 h); fuera de fila el 12 h con el tema de auditoría mide 181 px frente a los 180 de su `GInput` vecino porque manda el mínimo (#416). `design/lab/time-field/auditoria-verificar.mjs` con el barrido de los 41 campos: 5665/5665 en Chromium tras ajustar esa comprobación (Firefox y WebKit 16 891/16 894 antes del ajuste, los 3 fallos eran esa comprobación). El `GDatePicker` vacío de 37 px lo cerró coco en `GDatePicker.css` (42 px al 200 %).
+
+- **Texto de 16px con puntero grueso (#970 a #972):** `medido` solo en Chromium con emulación táctil: `node design/lab/campo-tactil/verificar.mjs` 2007/2007 ([`auditoria.md`](../../../../../design/lab/campo-tactil/auditoria.md)) y `tests/campo-tactil.spec.mjs` 15/15. **Sin verificar:** WebKit (el motor de iOS), Firefox y un iPhone real con Safari, que es donde se comprueba que ya no amplía.
 
 - **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 

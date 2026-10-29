@@ -62,6 +62,7 @@ Evento `update:filters` al aplicar, quitar o limpiar. Para aplicar los filtros f
 - Barra `role="group"` con nombre; el chip aplicado son **dos botones** con nombre completo («Editar filtro: …», «Quitar filtro: …»).
 - Editor: diálogo no modal con nombre («Filtrar por Total»); campos con nombre; error visible y anunciado, con `aria-invalid`.
 - Foco visible del tema; controles de 44px con `pointer: coarse`.
+- **Texto con puntero grueso (#970 a #972):** con `pointer: coarse` (táctil) el texto que se escribe sube a `max(16px, su rol)` para que iOS Safari no amplíe la página al enfocar el campo; en escritorio no cambia nada. La altura de la caja no cambia. Sube la línea del valor entera (el campo de la regla y los de valor, salvo las casillas; el popover pasa de 14 a 16px y la hoja ya usaba 16); etiqueta, ayuda, mensajes y listas se quedan en su rol. Grana no toca el viewport: no añadas `maximum-scale=1` (bloquea el pellizco, WCAG 1.4.4). `medido` en Chromium con emulación táctil (2007/2007, [`auditoria.md`](../../../../../design/lab/campo-tactil/auditoria.md)).
 - La casilla nativa del editor usa `accent-color: --g-color-primary-text` (DECISIONS #431 y #432): sin cambio visible con el tema por defecto; **4.21:1 o más** contra la superficie (medido por coco, [`design/lab/contraste-marcado/estilo.md`](../../../../../design/lab/contraste-marcado/estilo.md), tres motores) en el tema por defecto, lustre, spotify y uno con clave `primary` propia, claro y oscuro.
 
 ## Alcance
@@ -72,6 +73,8 @@ Evento `update:filters` al aplicar, quitar o limpiar. Para aplicar los filtros f
 
 - **Medido en Chromium, Firefox y WebKit:** el editor anclado conserva lado, alto y `--_max` en el vaivén y se cierra al salir el ancla (`design/lab/theme-playground/tests/panel-estable.spec.mjs`, 16/16 por motor, 2026-10-18).
 - **Sin verificar:** lector de pantalla real y Safari real.
+- **Texto de 16px con puntero grueso (#970 a #972):** `medido` solo en Chromium con emulación táctil: `node design/lab/campo-tactil/verificar.mjs` 2007/2007 ([`auditoria.md`](../../../../../design/lab/campo-tactil/auditoria.md)) y `tests/campo-tactil.spec.mjs` 15/15. **Sin verificar:** WebKit (el motor de iOS), Firefox y un iPhone real con Safari, que es donde se comprueba que ya no amplía.
+
 - **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 Fuentes: [`GFilterBar.meta.json`](./GFilterBar.meta.json) · Contrato: [`design/contracts/filter-bar.md`](../../../../../design/contracts/filter-bar.md) · Prototipo: [`design/lab/table/r02/`](../../../../../design/lab/table/r02/)
