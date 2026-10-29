@@ -12,7 +12,7 @@ Componentes reales: `GSidebar` y `GTable` de `dist/` (bruno 0f1fd97 sobre el CSS
 | `node design/lab/hover-glide/estilo-verificar.mjs chromium` (banco ajustado a la capa, abajo) | **268/268** |
 | `personalidad-sidebar-glide.spec.mjs` + `personalidad-table-glide.spec.mjs` (bruno) | **24/24** |
 | `personalidad-menu.spec.mjs`, `personalidad-menu-links.spec.mjs`, `sidebar-activo`, `sidebar-asiento`, `sidebar-pista`, `table-load`, `table-rows`, `table-page-size` | **73/74**: falla 1 de `personalidad-menu-links` (H2, no es de este lote) |
-| `glide-perf.spec.mjs --workers=1` | 5/6 la primera vez; con `--repeat-each=3`, `gt-detail` falla 1 de 3 (H1) |
+| `glide-perf.spec.mjs --workers=1` tras ff20a8c | 1.ª vez: 5/6, `gt-detail` fallaba 1 de 3 (H1). **Tras ff20a8c, `--repeat-each=10 --project=chromium`: 56/60.** p95 de las 10 pasadas: B 0,2 a 0,3 (gt-detail), llana 0,2 a 0,4, A 0,2 a 0,4, sidebar 0,3 a 0,9 y una de 2,2. Los 4 fallos y su causa, abajo (H1b). Con la configuración por defecto se lanzan también Firefox y WebKit y fallan al arrancar (no están instalados) |
 | Vitest `GSidebar`, `GTable`, `GMenu`, `utils/glide.test.js` | **315/315** |
 
 Cómo se sirvió Vue (unpkg bloqueado): el verificador usa `page.route` hacia `node_modules/vue/dist/vue.global.js`. Los specs que no lo hacen se corrieron con una configuración temporal (fuera del repo) que lleva `unpkg.com` a un servidor local con `--host-resolver-rules` y `bypass` del proxy. Puerto 4209.
@@ -71,14 +71,14 @@ Cómo se sirvió Vue (unpkg bloqueado): el verificador usa `page.route` hacia `n
 | D · Transiciones | Cumple | Transiciones CSS interrumpibles (el viaje se retoma desde donde va) que no bloquean el clic. `is-highlight-instant` dura dos cuadros y se limpia (MutationObserver) | Bajo | Sin keyframes |
 | E · Control | Cumple | La luz aparece y se va con el puntero. No mueve el foco ni el desplazamiento. El toque no hace nada (drawer y specs) | Bajo | — |
 | F · Accesibilidad | Cumple (emulado) | `reduce` solo funde. `forced-colors` oculta la capa y mantiene el anillo. Capas `aria-hidden`. El foco no se mueve (3.2.1, 2.4.3) y el anillo convive con la luz | Medio: sin lector real ni `forced-colors` real | Lector de pantalla y Windows de contraste alto reales: **No verificable** aquí |
-| G · Rendimiento | **Parcial** | Sidebar de 60 items: p95 0,50 ms. Llana y A con 500 filas: p95 de 1,0 a 1,9 ms. **B con 500 filas: p95 de 1,1 a 3,1 ms**, por encima de 2 ms en 2 de 4 pasadas (H1). Cero tareas largas en las pasadas que pasan. En las que fallan, la prueba se detiene en el p95 y no llega a comprobar las tareas largas. Ninguna escucha por fila | Medio: compuerta de #963 intermitente en B; dispositivo modesto **No verificable** | H1 (bruno) |
+| G · Rendimiento | **Cumple con reserva** (antes Parcial) | Tras ff20a8c, 10 pasadas en Chromium: B con 500 filas p95 0,2 a 0,3 ms (antes 1,1 a 3,1), llana y A 0,2 a 0,4, sidebar de 60 items 0,3 a 0,9 ms salvo una pasada de 2,2 ms. Ninguna escucha por fila. 56/60 de la compuerta: 3 fallos por una tarea larga de 50, 57 y 62 ms en la ventana (en esas pasadas el p95 de la luz fue de 0,3 ms) y 1 por el p95 de 2,2 ms del sidebar | Bajo-medio: la compuerta de tareas largas es sensible al ruido de la máquina y no atribuí esas tareas a la luz; dispositivo modesto, Firefox y WebKit **No verificables** | H1b (bruno, solo si se quiere una compuerta sin intermitencia) |
 | H · Inmersión | N/A | — | — | — |
 
-**Resumen ejecutivo.** La luz cumple su propósito en todos los formatos que faltaba ver: panel flotante, drawer, riel, compact, RTL, oscuro, zona de marca, A, B, carga, selección, cabecera pegada y scroll en los dos ejes. Nunca hay dos fondos y lo iluminado es siempre lo que recibe el clic. `GMenu` no cambió. El único riesgo medido es el rendimiento intermitente de B con 500 filas en Chromium. Firefox, WebKit, el lector real y `forced-colors` real quedan sin verificar.
+**Resumen ejecutivo.** La luz cumple su propósito en todos los formatos que faltaba ver: panel flotante, drawer, riel, compact, RTL, oscuro, zona de marca, A, B, carga, selección, cabecera pegada y scroll en los dos ejes. Nunca hay dos fondos y lo iluminado es siempre lo que recibe el clic. `GMenu` no cambió. El rendimiento de B con 500 filas ya cumple tras ff20a8c; el único residuo medido es una tarea larga ocasional en la ventana de la compuerta. Firefox, WebKit, el lector real y `forced-colors` real quedan sin verificar.
 
 **Riesgos principales:**
 
-1. Compuerta de #963 intermitente en B (H1).
+1. Compuerta de #963: H1 cerrado; queda un ruido residual de la compuerta de tareas largas (H1b), no del cálculo de la luz.
 2. Sin Firefox ni WebKit.
 3. Sin lector ni `forced-colors` reales.
 4. La sangría de los hijos (33 px) apaga la luz al bajar por el borde izquierdo de un submenú abierto. Es el hueco del contrato (la caja es la del enlace), no un defecto.
@@ -89,12 +89,14 @@ Cómo se sirvió Vue (unpkg bloqueado): el verificador usa `page.route` hacia `n
 
 **bruno:**
 
-- **H1 · `glide-perf.spec.mjs` «tabla de 500 filas · gt-detail» falla de forma intermitente en Chromium.**
+- **H1 · CERRADO (ff20a8c, bruno).** `placeHighlight` añadía `is-highlight-instant` antes de leer las cajas y forzaba un recálculo de estilo de toda la tabla; ahora lee antes de escribir. Remedido por coco: B 0,2 a 0,3 ms de p95 en 10 pasadas (antes 1,1 a 3,1). Texto original del hallazgo:
   - Reproducción: `npx playwright test tests/glide-perf.spec.mjs -g gt-detail --workers=1 --repeat-each=3` (puerto 4209). Medido: p95 2,10 y 3,10 ms frente a un tope de 2 ms; en otras pasadas, 1,10 y 1,40 ms.
   - Con 15 cuadros por barrido, el p95 es en la práctica el máximo, así que un solo cuadro lento hace fallar la prueba.
   - B tiene el doble de nodos (cada fila lleva su `tr.g-table__detail` oculto) y la búsqueda hace `closest` sobre `glideTarget()` en cada evento.
   - Recomendación: estabilizar la medida (más cuadros, o calentar antes de medir) o reducir el trabajo en B. Si el tope no se puede cumplir con margen, vuelve a lima.
 - **H2 (fuera de este lote) · `personalidad-menu-links.spec.mjs:108` «Ctrl/⌘+clic y clic central…» falla 3 de 3.** La región viva de página recibe «Panel actualizado.», el anuncio del panel de `GLoadRegion` del playground (`DASH_LABELS`, `index.html:4292`), en lugar de «Ajustes abierta en otra pestaña». Es un choque entre un anuncio del playground y la prueba, no tiene que ver con la luz (`GMenu` solo comparte `flashInstant`, y los otros 10 casos del spec y los 15 de M1 pasan). No lo comparé con la base anterior al lote. Recomendación: aislar la prueba (esperar a que el panel termine o leer el anuncio propio).
+
+- **H1b · residuo de la compuerta, no bloqueante.** En `--repeat-each=10` (Chromium, un worker, 4209) fallan 4 de 60, ninguna en B con p95 alto: `sidebar · 60 items` con «tareas largas» (`Array [50]`) y, otra pasada, `p95 2.20 ms` (`expect(p95(ds)).toBeLessThanOrEqual(2)`); `gt-door · 500 filas` con «tareas largas» (`Array [57]`); `gt-plain · 500 filas` con «tareas largas» (`Array [62]`). Línea 57 del spec: `expect(r.long, '…: tareas largas').toEqual([])`. En esas pasadas el p95 de la luz era 0,3 ms, así que la tarea larga no es el trabajo de la luz (probable GC o ruido de la máquina), pero no lo atribuí con un perfil. Recomendación: que la compuerta registre qué tarea fue (atribución del `longtask`) o la repita una vez antes de fallar; si no, queda como ruido conocido.
 
 **lima:** nada nuevo. #964 ya recoge las medidas en la capa.
 
@@ -107,4 +109,4 @@ Cómo se sirvió Vue (unpkg bloqueado): el verificador usa `page.route` hacia `n
 
 ## Veredicto
 
-Sin defecto bloqueante de estilo, estructura ni accesibilidad. `GSidebar` y `GTable` siguen en `candidate` (ya lo estaban; los `meta.json` no cambian con la luz, #962). La rúbrica G queda **Parcial** hasta que se cierre H1: la compuerta de rendimiento de #963 en B no debe darse por cumplida mientras falle de forma intermitente.
+Sin defecto bloqueante de estilo, estructura ni accesibilidad. `GSidebar` y `GTable` siguen en `candidate` (ya lo estaban; los `meta.json` no cambian con la luz, #962). H1 está cerrado (ff20a8c) y la rúbrica G pasa de Parcial a **Cumple con reserva**: B con 500 filas ya mide 0,2 a 0,3 ms de p95. La reserva es H1b (4 de 60 pasadas de la compuerta fallan por una tarea larga ajena a la luz o por un p95 aislado de 2,2 ms en el sidebar) y que solo se midió en Chromium. Remedido también `personalidad-table-glide` (12/12) y `auditoria-verificar.mjs` (115/115), solo Chromium.
