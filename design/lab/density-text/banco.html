@@ -112,9 +112,9 @@
       <div v-for="r in regs" :key="r[0]" class="dt-region" :id="'r-' + r[0]" :data-g-density="r[1]" ><span class="dt-cap">{{ r[3] }}</span><kit :id="r[0]" :d="r[2]"></kit></div>
       <div class="dt-region" id="r-n1" data-g-density="compact"><span class="dt-cap">default dentro de compact</span><div data-g-density="default"><kit id="n1"></kit></div></div>
       <div class="dt-region" id="r-n2" data-g-density="comfortable"><span class="dt-cap">compact dentro de comfortable</span><div data-g-density="compact"><kit id="n2"></kit></div></div>
-      <div class="dt-region" id="r-n3" data-g-density="compact"><span class="dt-cap">compact › comfortable › compact</span>
+      <div class="dt-region" id="r-n3" data-g-density="compact"><span class="dt-cap">compact &gt; comfortable &gt; compact</span>
         <div data-g-density="comfortable"><div data-g-density="compact"><kit id="n3"></kit></div></div></div>
-      <div class="dt-region" id="r-n4" data-g-density="compact"><span class="dt-cap">compact › comfortable › compact › default</span>
+      <div class="dt-region" id="r-n4" data-g-density="compact"><span class="dt-cap">compact &gt; comfortable &gt; compact &gt; default</span>
         <div data-g-density="comfortable"><div data-g-density="compact"><div data-g-density="default"><kit id="n4"></kit></div></div></div></div>
       <div class="dt-region" id="r-bad" data-g-density="tiny"><span class="dt-cap">Valor fuera de contrato</span><kit id="bad"></kit></div>
     </div>
