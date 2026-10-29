@@ -14,7 +14,7 @@ Todas opcionales. Lo que no se define conserva el valor por defecto de Grana.
 | `radius` | número (px) | `20` | Paso `md` de la escala de radios |
 | `shape` | `"rounded"` \| `"pill"` | `"pill"` | Con `pill`, botones, chips e insignias usan `radius-pill` |
 | `space` | número (px) | `4` | Unidad de espaciado |
-| `density` | `"default"` \| `"comfortable"` \| `"compact"` | `"compact"` | Densidad global del producto (§58, DECISIONS.md #981): emite `--g-density` con `:root:where(:not([data-g-density]))` (#561), que cede ante `<html data-g-density>`, ante las regiones y, con puntero grueso, ante el dedo (#978). Por defecto `default` (no emite nada). `--g-density` no se admite en `overrides` |
+| `density` | `"default"` \| `"comfortable"` \| `"compact"` | `"default"` | Densidad global del producto (§58, DECISIONS.md #981): emite `--g-density` con `:root:where(:not([data-g-density]))` (#561), que cede ante `<html data-g-density>`, ante las regiones y, con puntero grueso, ante el dedo (#978). Por defecto `default` (no emite nada). `--g-density` no se admite en `overrides` |
 | `font` | familia CSS | `"Instrument Sans"` | Toda la interfaz |
 | `fontDisplay` | familia CSS | `"Instrument Serif"` | Rol `display` y clase `g-font-display`. Sin valor: igual a `font` |
 | `fontSize` | número (px) | `16` | Tamaño `body` |
