@@ -22,7 +22,10 @@ const instrumentFrames = (page) => page.evaluate(() => {
   const raf = window.requestAnimationFrame.bind(window)
   window.__frames = []
   window.__long = []
-  try { new PerformanceObserver((l) => { for (const e of l.getEntries()) window.__long.push(e.duration) }).observe({ type: 'longtask', buffered: false }) } catch {}
+  // Cada tarea larga con su duración y su inicio relativo al barrido (`at` < 0: empezó antes del primer pointermove),
+  // para atribuirla sin otro perfil (H1b de design/lab/hover-glide/auditoria.md); el criterio sigue siendo «ninguna»
+  window.__t0 = performance.now()
+  try { new PerformanceObserver((l) => { for (const e of l.getEntries()) window.__long.push({ ms: Math.round(e.duration), at: Math.round(e.startTime - window.__t0) }) }).observe({ type: 'longtask', buffered: false }) } catch {}
   window.requestAnimationFrame = (fn) => raf((t) => {
     const e0 = c.efp, g0 = c.gbcr, s = performance.now()
     fn(t)
@@ -38,7 +41,7 @@ async function warm(page, rowsSel, xOf) {
 }
 async function sweepPerf(page, rowsSel, xOf) {
   await warm(page, rowsSel, xOf)
-  await page.evaluate(() => { window.__frames.length = 0; window.__long.length = 0 })
+  await page.evaluate(() => { window.__frames.length = 0; window.__long.length = 0; window.__t0 = performance.now() })
   const bx = await page.$$eval(rowsSel, (els) => els.slice(0, 40).map((e) => { const b = e.getBoundingClientRect(); return { x: b.x, y: b.y, w: b.width, h: b.height } }).filter((b) => b.y > 0 && b.y + b.h < innerHeight))
   const x = xOf(bx[0])
   const y0 = bx[0].y + 2
