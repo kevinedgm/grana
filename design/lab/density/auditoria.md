@@ -47,7 +47,7 @@ Pieza de mecanismo, sin forma nueva: la densidad aprieta, no reordena; no toca c
 | --- | --- | --- |
 | Propósito | No aplica | El cambio de densidad no se anima (density.md §9) |
 | Comodidad visual | Cumple (corregido) | **Antes:** la marca de `GTabs` transicionaba su eje cruzado (`block-size` en horizontal, `inline-size` en vertical) 160 ms: al cambiar la densidad el grosor del subrayado o el alto de la píldora se deslizaba mientras todo lo demás saltaba (medido: 2,02 px a mitad de 3 → 2). **Ahora:** solo los bordes `--_tabs-s/-e` (estiramiento T1). En una fila las pestañas comparten alto, así que cambiar de pestaña no cambiaba ese tamaño: no se pierde nada (21/21 de las specs de personalidad de pestañas) |
-| Estabilidad | Cumple con límite | El contenido se reordena en el mismo cuadro; el foco no se pierde. Riesgo residual: los **bordes** de la marca de `GTabs` siguen deslizándose 160 ms cuando un cambio de densidad cambia el ancho de las pestañas (comportamiento previo ante cualquier reflujo) → pendiente de bruno (abajo) |
+| Estabilidad | Cumple | El contenido se reordena en el mismo cuadro; el foco no se pierde |
 | Interrumpible / control | No aplica | Sin animación |
 | Accesibilidad | Cumple | `prefers-reduced-motion` da el mismo resultado; 44/16 px intactos; P2 en táctil |
 | Rendimiento | Cumple con límite | Un observador; el coste medido es el del reflujo (nota 10.13) |
@@ -72,10 +72,11 @@ Misma página y mismos datos con el `dist/` de 08ffaa8 y con el actual (el `dist
 
 | Block (variante) | Escritorio | Teléfono | Veredicto |
 | --- | --- | --- | --- |
-| `GbProductCard03` | alto 473,1 → 473,1; control mínimo 40 → 40 (el block fija el tamaño) | alto 461,3 → 457,3; «Elegir opciones» 28 → 24 visibles (área 44 por `::after`) | Coherente en escritorio. **Regresión leve en teléfono** (28 → 24 por la prop explícita) |
-| `GbConfirmation03` | alto 436,4 → 411,4; botones de contacto 36 → 27, `sm` 28 → 24 | alto 544,4 → 507,4; contacto 36 → 27, «Añadir al calendario» y «Compartir» 28 → 24 | Escritorio coherente (el block quería ser compacto). **Regresión en teléfono**: son las acciones principales (WhatsApp, llamar, correo) y bajan un 25 % de caja visible; cumplen 24 pero no cedieron al dedo |
+| `GbProductCard03` | alto 473,1 → 473,1; control mínimo 40 → 40 (el block fija el tamaño) | alto 461,3 → 457,3; «Elegir opciones» 28 → 24 visibles (área 44 por `::after`) | Coherente en escritorio. **Regresión leve en teléfono** (28 → 24 por la prop explícita). Corregido (b9f1b95): región `data-g-density="compact"` en lugar de la prop; en teléfono vuelve a 36/28 px, escritorio sin cambio |
+| `GbConfirmation03` | alto 436,4 → 411,4; botones de contacto 36 → 27, `sm` 28 → 24 | alto 544,4 → 507,4; contacto 36 → 27, «Añadir al calendario» y «Compartir» 28 → 24 | Escritorio coherente (el block quería ser compacto). **Regresión en teléfono**: son las acciones principales (WhatsApp, llamar, correo) y bajan un 25 % de caja visible; cumplen 24 pero no cedieron al dedo. Corregido (b9f1b95): región `data-g-density="compact"` en lugar de la prop; en teléfono vuelve a 36/28 px, escritorio sin cambio |
 | `GbCart` 01 y 02 (líneas `GCard compact`) | alto 877 → 873 y 1321 → 1317 | 1768 → 1768 | Coherente: −4 px de reflujo. «Quitar» (`link` `sm`) mide **22 antes y después**; su `::after` da 24 en escritorio y 44 en teléfono (medido), así que el objetivo cumple; la caja visible de 22 es previa y ajena a la pieza |
 | `GbCart` 03 (cajón) | no medible: cerrado hasta el disparador | idem | **No verificado** |
+| `GbProductGrid02` | Región `data-g-density="compact"` (b9f1b95): sin cambio | Región `data-g-density="compact"` (b9f1b95): vuelve a 36/28 px | Sin cifras antes/después en esta tabla; el cambio es de región, no de prop |
 | `GbOfferList03` | 530 → 530; «Ver N fotos» 22 → 22 | 1056 → 1052; 42 → 42 | Coherente (el `GBtn` ya era compacto por su tamaño) |
 | `GbOrderHistory03` | 980 → 980; 24 → 24 | 1064 → 1064; 24 → 24 | Coherente, sin cambio |
 | `GbTrust01` | 280 → 280; enlace 22 → 22 | 664 → 664 | Coherente, sin cambio (enlace de 22 previo; su `::after` no medido) |
@@ -94,7 +95,7 @@ Misma página y mismos datos con el `dist/` de 08ffaa8 y con el actual (el `dist
 **Correcciones:** la marca de `GTabs` animaba el cambio de densidad (corregido).
 
 **Pendientes:**
-- **bruno (no bloqueante):** los bordes de la marca de `GTabs` se deslizan 160 ms cuando la densidad cambia el ancho de las pestañas. Propuesta: en la medida que dispara `densityEpoch`, recolocar la marca sin transición (como `flashInstant` de `utils/glide.js`).
+- **Cerrado (bruno, medición directa en Chromium):** la marca de `GTabs` ya no desliza sus bordes 160 ms al cambiar la densidad. Resuelto en b9f1b95 / ec848d9: la época sube en una microtarea; en la microtarea del cambio la marca ya coincide con la pestaña en x y ancho, se mantiene en los cuadros 1 a 5 y a los 700 ms; `document.getAnimations()` sobre la marca da `[]`. Control: cambiar de pestaña sí crea transiciones.
 - **Cerrado:** `grana.js` +586 B gzip tras el cierre de bruno, dentro del tope de +768; los 79 ms de 10.13 no son atribuibles a la densidad (véase la nota).
 - **bruno:** `tests/density.spec.mjs` (sin commit): el criterio 6 mide el item del menú durante la entrada con escala (26,49/25,92; medido quieto da 27 = 27); el 13 importa `@vue/server-renderer/index.mjs`, que no existe (usar `import { renderToString } from '@vue/server-renderer'`). El CLI emite la regla de densidad antes del bloque de color y no «después del `:root` de tokens que no son de color» (§6): da igual para la cascada, pero no es el orden del contrato.
 - **bruno (blocks, no bloqueante):** `GbConfirmation03` y `GbProductCard03` pasan `density="compact"` explícito a su `GCard`: en teléfono sus botones bajan de 36/28 a 27/24 visibles (área 44) porque P2 no cede con la prop. Medido: con `data-g-density="compact"` (región) vuelven a 36/28 en teléfono y quedan igual en escritorio.
