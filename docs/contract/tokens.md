@@ -14,7 +14,7 @@ Todas opcionales. Lo que no se define conserva el valor por defecto de Grana.
 | `radius` | número (px) | `20` | Paso `md` de la escala de radios |
 | `shape` | `"rounded"` \| `"pill"` | `"pill"` | Con `pill`, botones, chips e insignias usan `radius-pill` |
 | `space` | número (px) | `4` | Unidad de espaciado |
-| `density` | `"default"` \| `"comfortable"` \| `"compact"` | `"default"` | Densidad global del producto (§58, DECISIONS.md #981): emite `--g-density` con `:root:where(:not([data-g-density]))` (#561), que cede ante `<html data-g-density>`, ante las regiones y, con puntero grueso, ante el dedo (#978). Por defecto `default` (no emite nada). `--g-density` no se admite en `overrides` |
+| `density` | `"default"` \| `"comfortable"` \| `"compact"` | `"default"` | Densidad global del producto (§58, DECISIONS.md #981): emite `--g-density` con `:root:where(:not([data-g-density]))` (#561), que cede ante `<html data-g-density>`, ante las regiones y, con puntero grueso, ante el dedo (#978). Por defecto `default` (no emite nada). Con `compact`, la misma regla lleva también el texto compacto (§5.1, #991). `--g-density` no se admite en `overrides` |
 | `font` | familia CSS | `"Instrument Sans"` | Toda la interfaz |
 | `fontDisplay` | familia CSS | `"Instrument Serif"` | Rol `display` y clase `g-font-display`. Sin valor: igual a `font` |
 | `fontSize` | número (px) | `16` | Tamaño `body` |
@@ -88,7 +88,7 @@ Alturas de control por tamaño: `xs` 6, `sm` 7, `md` 9, `lg` 11, `xl` 13 unidade
 
 **Selector (`GSelect`):** la caja mide lo mismo que la de `GInput` del mismo `size` y `density`. La **opción** de la lista mide como esa caja, con piso de 24px y 44px reales con `pointer: coarse` (§7). La lista flotante tiene un alto máximo de unas 8 opciones (derivado de esa altura) y nunca más del 60% del visor. No son tokens nuevos. (Agregado con el contrato de `GSelect`.)
 
-El prop `density` multiplica localmente **la altura, el padding y la separación** (1×, 0.875×, 0.75×), sin cambiar la tipografía (**enmendado por #966:** en `compact` el texto bajará un escalón con piso de 12px; se contrata en la pieza 3 de la configuración global, #969, y hasta entonces esta frase describe lo construido). La altura resultante tiene piso de 24px. **Rejilla de medio píxel (#667 en `GBtn`, generalizada por #682):** toda altura de caja o de fila objetivo de toque de un control derivada de `--g-space-1` se redondea a 0,5px con `round()` y luego recibe el piso (24px, y 44px con `pointer: coarse`); regla, alcance y exclusiones en §7. `space` es global; `density` es local **o de región**: desde la pieza 2 (#974 a #982) el multiplicador es el token heredable `--g-density`, que reasignan el atributo `data-g-density` (en cualquier elemento, `<html>` incluido) y la prop `density` de un componente (que es la región de ese componente, #975); §58 y `density.md`. (Precisado tras la ronda r01 de `GBtn`.)
+El prop `density` multiplica localmente **la altura, el padding y la separación** (1×, 0.875×, 0.75×), y, **en `compact`, el texto** (enmienda de #15 por #966, contratada en la pieza 3, #986 a #995): los roles toman la escala compacta de §5.1 (la misma escala con `fontSize × 15/16`, piso de 12px); `comfortable` conserva el texto de `default` (#988). La altura resultante tiene piso de 24px. **Rejilla de medio píxel (#667 en `GBtn`, generalizada por #682):** toda altura de caja o de fila objetivo de toque de un control derivada de `--g-space-1` se redondea a 0,5px con `round()` y luego recibe el piso (24px, y 44px con `pointer: coarse`); regla, alcance y exclusiones en §7. `space` es global; `density` es local **o de región**: desde la pieza 2 (#974 a #982) el multiplicador es el token heredable `--g-density`, que reasignan el atributo `data-g-density` (en cualquier elemento, `<html>` incluido) y la prop `density` de un componente (que es la región de ese componente, #975); §58 y `density.md`. (Precisado tras la ronda r01 de `GBtn`.)
 
 ## 5. Tipografía
 
@@ -111,6 +111,34 @@ El prop `density` multiplica localmente **la altura, el padding y la separación
 - `fontDisplay` por defecto es igual a `font`: sin segunda descarga.
 - Si el usuario solo da un nombre de familia, Grana agrega la pila del sistema sans; para respaldo serif, escribir la pila completa.
 - Qué rol usa cada título, subtítulo, etiqueta y eyebrow de los componentes, y la regla de uso: §23.
+
+### 5.1 Escala compacta (pieza 3 de la configuración global; DECISIONS.md #986 a #995; `density.md` §16)
+
+En una región `compact` (y con `<html data-g-density="compact">` o la clave `density: "compact"` del CLI) los roles toman **la misma escala calculada con `fontSize × 15/16`** («hermano menor», B; decisión del usuario, #986). Se deriva **rol a rol desde el valor del paso 1 ya resuelto** (con `overrides` incluidos), lo que da exactamente la escala B y vale también para un rol sobrescrito:
+
+| Qué | Regla |
+| --- | --- |
+| Tamaño compacto | `min(paso1, max(12px, paso1 × 15/16))`: baja un 6,25 % en todos los roles; nunca bajo 12px (§7) y nunca por encima del paso 1 |
+| Interlineado compacto | `min(línea paso1, max(4px, round(tamaño compacto × razón del rol / 4) × 4))`, con las razones de §5 (sin regla nueva) |
+| Tracking y peso | **Sin cambio** (los títulos conservan 600 y su tracking, #989) |
+| `comfortable` | **Sin cambio de texto**: usa el paso 1 (#988) |
+
+**Tema por defecto** (tamaño/interlineado en px; en negrita lo que cambia, 9 tokens):
+
+| Rol | `default` y `comfortable` | `compact` |
+| --- | --- | --- |
+| `caption` | 12/16 | 12/16 |
+| `body-sm` | 14/20 | **13,125**/20 |
+| `body` | 16/24 | **15**/24 |
+| `title-sm` | 20/28 | **18,75**/28 |
+| `title` | 25/36 | **23,4375/32** |
+| `title-lg` | 31,25/40 | **29,297/36** |
+| `display` | 39,06/48 | **36,621/44** |
+
+Temas de prueba de la ronda (`design/lab/density-text/r01/escala.mjs`): `fontSize` 14 / `typeScale` 1,2 → `body-sm` 12,25 → **12** (piso; igual que `caption`, choque que ya trae el tema) y `body` 14/20 → 13,125/20; `fontSize` 18 / 1,333 → todo −6,25 %, `caption` incluido (13,5 → 12,66), y `body-sm` y `body` bajan un renglón (24 → 20, 28 → 24).
+
+- **Dónde se escribe:** en el elemento de la región, reasignando los tokens públicos con valores literales (M1, #990): `defaults.css` con el tema por defecto y el `tokens.css` del CLI con los valores de su tema (#991). Los componentes no cambian.
+- **Mínimos (§7):** 12px por construcción; el 16px del texto editable con puntero grueso (#970) va después y gana siempre.
 
 ## 6. Nombres en CSS
 
@@ -633,7 +661,7 @@ Duración y curva de la marca y de la entrada del contenido: los existentes (`--
 
 **Solo documenta lo que hay** en los `G<Nombre>.css` (coco) con la escala de `defaults.css` (§5, fontSize 16, typeScale 1.25). No agrega tokens ni cambia valores. Sirve para que quien compone una pantalla sepa qué tamaño tendrá cada título sin leer los CSS. Si un CSS cambia, esta tabla se actualiza (lima).
 
-**Escala por defecto** (tamaño/interlineado en px, peso): `caption` 12/16 w500 · `body-sm` 14/20 w400 · `body` 16/24 w400 · `title-sm` 20/28 w600 · `title` 25/36 w600 · `title-lg` 31/40 w600 · `display` 39/48 w600. Peso de acción (`--g-text-action-weight`): 500.
+**Escala por defecto** (tamaño/interlineado en px, peso): `caption` 12/16 w500 · `body-sm` 14/20 w400 · `body` 16/24 w400 · `title-sm` 20/28 w600 · `title` 25/36 w600 · `title-lg` 31/40 w600 · `display` 39/48 w600. Peso de acción (`--g-text-action-weight`): 500. **En una región `compact`** (§5.1, #986): `caption` 12/16 · `body-sm` 13,13/20 · `body` 15/24 · `title-sm` 18,75/28 · `title` 23,44/32 · `title-lg` 29,3/36 · `display` 36,62/44, con los mismos pesos; cada fila de las tablas de abajo baja con su rol (los valores escritos son los del paso 1).
 
 **Cómo leer la tabla.** «body 16/600» = tamaño e interlineado del rol `body` con el peso (y el tracking) de un título (`--g-text-title-sm-weight` o `--g-text-title-weight`, ambos 600). Color: `text` = `--g-color-text`; `muted` = `--g-color-text-muted`; `subtle` = `--g-color-text-subtle`. El nivel del encabezado (`h2`…`h6`, prop `headingLevel`) es semántico y **no** cambia el tamaño.
 
@@ -685,7 +713,7 @@ Un **rótulo de grupo** (caption 12) clasifica elementos de una lista; **no** es
 - **El título lo decide el contenedor**, no quien lo usa: `GDialog` title-sm 20; `GFormSection`, `GCard`, `GErrorSummary` body 16; `GWidget`, `GToast` body-sm 14. Se pasa por props (`title`, `description`) o slots del componente; no hay primitiva `Heading` ni subcomponentes de título (#196). **Enmienda #854 (#841):** existe **`GText`** solo para el **texto corrido** que no va en una prop de componente (`design/contracts/text.md`): roles `body`, `body-sm` y `caption`, nunca un título ni un tamaño fuera de esos tres; `GHeading` sigue descartada.
 - **El subtítulo o descripción de un contenedor con encabezado es body-sm atenuado** (`GDialog`, `GFormSection`, `GCard`, `GToast`). Excepción de los densos, que bajan un rol: `GWidget __sub`, `GTable __subtitle` y `GStepper __description` son caption 12/16 `muted`.
 - **Un solo recurso de jerarquía:** tamaño + peso del título. Sin cambiar de familia, sin mayúsculas forzadas, sin color de acento en el título y sin líneas ni fondos añadidos para «marcar» un título.
-- **Nunca un título por debajo de body-sm (14).** Los rótulos de grupo a 12 no son títulos.
+- **Nunca un título por debajo del `body-sm` de su paso** (14 en `default` y `comfortable`, 13,13 en `compact` con el tema por defecto; relativa desde #989, antes «14» absoluto). El motivo no cambia: un título queda siempre por encima de los rótulos y ayudas de `caption`. Los rótulos de grupo a 12 no son títulos.
 
 **Cadena de un diálogo con formulario** (valores por defecto):
 
@@ -695,6 +723,8 @@ Un **rótulo de grupo** (caption 12) clasifica elementos de una lista; **no** es
 | 2 | `GFormSection __title` | body 16/24, 600, `text` |
 | 3 | etiqueta de campo (`GInput __label`, etc.) | body-sm 14/20, 500, `text` |
 | 4 | ayuda de campo | caption 12/16, 400, `muted` |
+
+En `compact` (§5.1): 18,75/28 › 15/24 › 13,13/20 › 12/16; los cuatro niveles siguen distintos (#989).
 
 La descripción del diálogo y la de la sección (body-sm 14, `muted`) van entre su título y el nivel siguiente.
 
@@ -1342,7 +1372,9 @@ Consume además (lista exacta de `GHero.css`, #759): `--g-color-bg`, `--g-color-
 - **Precedencia:** prop › región más cercana › `<html>` › CLI › `default`; con `pointer: coarse`, regiones, `<html>` y CLI valen 1 y la prop explícita no cede (#978).
 - **Valores por paso que no son multiplicador** (p. ej. `--g-tabs-mark-*`, §18): se interpolan exactamente desde `--g-density` (pesos de Lagrange, `density.md` §8); **no** hay tokens «resueltos» por paso.
 - **Mínimos (§7):** sin cambio. `24px`, `44px` y `16px` van después del multiplicador y ganan siempre.
-- **Pieza 3** (#966): los tokens de texto compactos se reasignarán **en el elemento de la región**, como la zona de marca (§44) redeclara el color; nunca con selectores descendientes.
+- **Texto (pieza 3, #986 a #995; `density.md` §16):** en `compact` los `--g-text-{rol}-size|line` se reasignan **en el elemento de la región** a la escala de §5.1, como la zona de marca (§44) redeclara el color; nunca con selectores descendientes. Los escriben `defaults.css` (capa) y, cuando el tema fija tipografía o `density: "compact"`, el CLI (sin capa, con los valores de su tema). `comfortable` no cambia el texto. Ningún token nuevo.
+- **Límite H4 (#993):** `--g-hero-title-max` se resuelve en `:root` desde `--g-text-display-size` y **no** sigue la región (el héroe es de página). Regla para tokens futuros: un token derivado de un rol de texto que deba seguir la región no se declara con `var()` en `:root`.
+- **Límite H5 (#993):** un `tokens.css` escrito a mano (o un `style.setProperty`) que cambie `--g-text-*` en `:root` solo vale **fuera** de los elementos con `data-g-density`: dentro de una región, de una raíz con prop explícita (también `density="default"`) y de las raíces fijadas de avisos, isla y voz, las reglas de región lo reasignan con los valores del tema. Para cambiar el texto: las claves `fontSize`/`typeScale` u `overrides` del CLI, que emiten también sus reglas de región.
 - **Límite:** el token en `:root` desde un `tokens.css` propio o un `style.setProperty` queda fuera de contrato (taparía `<html data-g-density>` y el observador no lo ve).
 
 La siguiente sección nueva es la 59.

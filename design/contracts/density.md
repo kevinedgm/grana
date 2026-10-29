@@ -1,6 +1,6 @@
-# Contrato · densidad global y por región (pieza 2 de la configuración global)
+# Contrato · densidad global y por región (piezas 2 y 3 de la configuración global)
 
-**Dueño:** lima · **Estado:** contratado (2026-10-29), pendiente de coco y de bruno (complejo: los dos en Opus) · **Basado en:** `design/lab/density/r01/` (kiwi, c7f42d1: `declaracion.md` D1 a D9, P1, P2, G1 a G6, L1 a L6; prototipo y `verificar.mjs` 36/36 en Chromium) · **Decisiones:** #974 a #982 (`DECISIONS.md`) · **Antecedentes que no se reabren:** #15 (multiplicador 1 · 0,875 · 0,75 y piso de 24 px), #561 (forma de emisión del CLI), #566 (el diálogo corta el contexto de formulario), #682 (rejilla de 0,5 px), #966 (el texto baja con `compact`: pieza 3), #967 (tres pasos), #969 (orden y mecanismo D), #970 a #973 (16 px editable en táctil), `tokens.md` §7 (44 px táctil).
+**Dueño:** lima · **Estado:** pieza 2 construida y auditada (#985); **pieza 3 (el texto sigue la densidad, §16, #986 a #995) contratada el 2026-10-29, pendiente de coco y de bruno** · **Basado en:** `design/lab/density/r01/` (kiwi, c7f42d1: `declaracion.md` D1 a D9, P1, P2, G1 a G6, L1 a L6; prototipo y `verificar.mjs` 36/36 en Chromium) · **Decisiones:** #974 a #982 (`DECISIONS.md`) · **Antecedentes que no se reabren:** #15 (multiplicador 1 · 0,875 · 0,75 y piso de 24 px), #561 (forma de emisión del CLI), #566 (el diálogo corta el contexto de formulario), #682 (rejilla de 0,5 px), #966 (el texto baja con `compact`: pieza 3), #967 (tres pasos), #969 (orden y mecanismo D), #970 a #973 (16 px editable en táctil), `tokens.md` §7 (44 px táctil).
 
 **Regla en una línea.** La densidad viaja por CSS: un token heredable, `--g-density`, que reasigna el atributo `data-g-density` en cualquier elemento; la prop `density` de un componente **es la región de ese componente**; el JS solo lee la densidad donde hay lógica que mide.
 
@@ -164,7 +164,7 @@ Con puntero grueso, un `GBtn density="compact"` **se ve** de 27 px (su 44 px es 
   `--_mark-t: calc((var(--g-density) - 0.875) * (var(--g-density) - 0.75) * 32 * var(--g-tabs-mark-default) - (var(--g-density) - 1) * (var(--g-density) - 0.75) * 64 * var(--g-tabs-mark-comfortable) + (var(--g-density) - 1) * (var(--g-density) - 0.875) * 32 * var(--g-tabs-mark-compact))`.
   Da el token exacto en 1, 0,875 y 0,75 (los tres son binarios exactos). Coco puede escribir una forma equivalente; el criterio 14 mide el resultado.
 - **Superficies de página:** `GStatusIsland.css` y `GSpeechPill.css` leen `--_density` por dentro; con la raíz fijada a `default` (§5.1) quedan en Δ0.
-- **Pieza 3 (texto)** se escribirá reasignando los tokens de texto **en el elemento de la región** (`[data-g-density="compact"] { --g-text-…: … }`, como la zona de marca redeclara el color), nunca con selectores descendientes del tipo `[data-g-density="compact"] .g-btn`, que no respetan «la más cercana». B deja preparado eso: el atributo está en toda raíz con prop.
+- **Pieza 3 (texto)**: contratada en §16. Reasigna los tokens de texto **en el elemento de la región** (`[data-g-density="compact"] { --g-text-…: … }`, como la zona de marca redeclara el color), nunca con selectores descendientes del tipo `[data-g-density="compact"] .g-btn`, que no respetan «la más cercana». Ninguna hoja de componente cambia.
 - **Literales:** ninguno nuevo; `0.75`/`0.875`/`1` viven solo en `defaults.css` (y los pesos numéricos de la interpolación, que no son medidas).
 
 ## 9. Movimiento (rúbrica `docs/documentacion/rubrica-movimiento.md`)
@@ -227,7 +227,7 @@ Tema por defecto (`space` 4: `md` = 9 unidades = 36 px → 31,5 en `comfortable`
 | 3 | **coco** | Auditoría posterior (`auditoria-visual.md` y rúbrica de movimiento) con los criterios de §10; banco `design/lab/density/` | `design/lab/density/auditoria.md` |
 | 4 | **mora-docs** | README: la fila `density` de cada componente («sin valor: la región»), la regla de §3.3 y una sección común | READMEs |
 
-**Fuera de esta pieza:** el texto que baja con `compact` (pieza 3, #966; B deja el atributo en cada raíz con prop para escribirla una vez por región), la densidad de `GPagination`, `GTag`/`GTagGroup`, `GBadge`, `GAccordion`, `GFilterBar`, `GBreadcrumbs` y la alineación de `GCalendar` (pieza 4, #967): **hasta entonces no siguen la región** (en una barra compacta quedan en el paso 1; límite visible aceptado por el orden de #969).
+**Fuera de esta pieza:** el texto que baja con `compact` (pieza 3, contratada en §16), la densidad de `GPagination`, `GTag`/`GTagGroup`, `GBadge`, `GAccordion`, `GFilterBar`, `GBreadcrumbs` y la alineación de `GCalendar` (pieza 4, #967): **hasta entonces no siguen la región** (en una barra compacta quedan en el paso 1; límite visible aceptado por el orden de #969).
 
 ## 13. Riesgos
 
@@ -253,3 +253,137 @@ Tema por defecto (`space` 4: `md` = 9 unidades = 36 px → 31,5 en `comfortable`
 ## 15. Auditoría visual previa (`docs/documentacion/auditoria-visual.md`)
 
 Pieza de mecanismo, sin forma nueva. Estructura y jerarquía: no cambian (la densidad aprieta, no reordena). Contraste y delimitación: sin cambio de color; las regiones las delimita la aplicación. Espaciado: deriva de los tres pasos de #15 y de la herencia; P2 impide huecos compactos entre dianas de 44 px. Controles, tablas y formularios: alturas comunes por paso (criterio 2, Δ0 frente a la prop). Estados de interfaz: sin cambio. Consistencia: reutiliza el patrón de la zona de marca (`data-g-zone`) y la forma de #561; ningún componente ni clave de contexto nuevos; un solo token global. **Sin decoración y sin movimiento.**
+
+---
+
+## 16. Pieza 3 · el texto sigue la densidad (#986 a #995)
+
+**Basado en:** `design/lab/density-text/r01/` (kiwi, 4e7502c: `declaracion.md` §1 a §10, H1 a H6; `escala.mjs`, `proto/escala.json`, prototipo con `dist/` real y `verificar.mjs` 74/74 en Chromium). **Decisiones del usuario (2026-10-29):** P1 · escala **B «Hermano menor»**; P2 · **sí**, el texto de lectura de una región compacta también baja. **Enmienda** la frase «sin cambiar la tipografía» de #15 (`tokens.md` §4, `api.md` fila `density`), como anunció #966.
+
+**Regla en una línea.** En `compact`, el tema reasigna **en el elemento de la región** los tokens públicos `--g-text-{rol}-size|line` a la misma escala calculada con `fontSize × 15/16`; los componentes no cambian, y todo lo que lee un rol dentro de la región baja con ella.
+
+### 16.1 La escala (B, #986)
+
+Fórmula y tabla en `tokens.md` §5.1. Resumen: **tamaño compacto = `min(paso1, max(12px, paso1 × 15/16))`** e **interlineado = `min(línea paso1, max(4px, round(tamaño × razón del rol / 4) × 4))`** con las razones de §5; tracking y peso sin cambio. Con el tema por defecto cambian 9 tokens: `caption` 12/16 · `body-sm` 13,13/20 · `body` 15/24 · `title-sm` 18,75/28 · `title` 23,44/32 · `title-lg` 29,3/36 · `display` 36,62/44.
+
+- **Honestidad sobre #966.** #966 decía «un escalón». B es una lectura **más suave**: baja un 6,25 % en todos los roles, no el rol de abajo. La eligió el usuario con la comparativa A/B a la vista (`index.html` §2). **A · Peldaño** (cada rol toma el de abajo, con `body-sm` en el punto medio para no chocar con `caption`) queda **descartada**: los títulos caían del 20 al 25 % según la `typeScale` del tema, la bajada dependía del tema y necesitaba un parche en el piso. **A0** (peldaño puro) ponía cinco roles de etiqueta y título a 12. **× 0,875** dejaba `body-sm` a 0,25 px de `caption` y bajaba los títulos un 12,5 %.
+- **Piso:** 12px (§7) por construcción, también en temas de `fontSize` bajo (14/1,2: `body-sm` 12,25 → 12 = `caption`; el choque lo trae el tema, no la escala).
+- **Nunca sube:** el `min(paso1, …)` evita que un rol ya por debajo de 12 en el paso 1 (fuera de contrato, el CLI lo rechaza con `font-size`) suba en compacto.
+
+### 16.2 Pasos y títulos (#988, #989)
+
+- **`comfortable` no cambia el texto.** En Grana es el paso intermedio (caja × 0,875, entre `default` y `compact`); subir el texto invertiría la escalera y medio escalón de B serían 0,4 px. Comparte la regla de vuelta con `default`.
+- **Los títulos bajan con la escala** y conservan peso (600) y tracking. `tokens.md` §23.4 pasa a relativa: **«nunca un título por debajo del `body-sm` de su paso»** (14 en `default`/`comfortable`, 13,13 en `compact` con el tema por defecto). Cadena del diálogo en compacto: 18,75/28 › 15/24 › 13,13/20 (500) › 12/16, cuatro niveles distintos.
+- **Interlineado:** la regla de §5, sin regla nueva. Con el tema por defecto, `caption`, `body-sm`, `body` y `title-sm` conservan su renglón en los tres pasos; `title`, `title-lg` y `display` bajan 4 px.
+
+### 16.3 Alcance (P2, #987)
+
+**Sigue la región todo texto que lee un rol dentro de ella**, porque el token se reasigna en la región y no en el componente: controles, filas, etiquetas, ayudas, mensajes, celdas, opciones, títulos de contenedor (`GDialog`, `GSection`, `GCard`, `GFormSection`, `GWidget`, `<caption>` de `GTable`), el valor de `GMetric`, `GText` y **la prosa propia de la aplicación que lea `--g-text-*`** (decisión del usuario: una región es una región; sin tokens fuente ni excepción para la lectura). Lo que se abre en su sitio (menús, `GDialog` escrito en la región) hereda como en §5.1.
+
+- **Iconos medidos desde el texto** (`GBtn`: `--_icon = --_fs × 1,15`) bajan con él (`md` 16,1 → 15,1), sin regla nueva.
+- **No lo siguen:** `GToaster`, `GStatusIsland`, `GSpeechHost` y `g-speech-review` (su raíz fija `data-g-density="default"`: la regla de vuelta les da el paso 1, Δ0); el texto de la aplicación que no lee tokens; `--g-hero-title-max` (límite H4, §16.7).
+- **Pieza 1 intacta:** con puntero grueso el texto editable sigue en `max(16px, rol)` (#970), también con prop `compact` explícita.
+
+### 16.4 Mecanismo M1 (#990): reglas de región en el tema
+
+Forma de contrato (`K` = las claves que se escriben, §16.5; `C` = sus valores compactos; `D` = sus valores del paso 1):
+
+```css
+[data-g-density="compact"] { C }
+[data-g-density="default"], [data-g-density="comfortable"] { D }   /* vuelta dentro de una región compacta */
+@media (pointer: coarse) {                                         /* P2 (#978) */
+  [data-g-density] { D }
+  [data-g-density="compact"][class*="--density-compact"] { C }   /* la prop explícita no cede */
+}
+```
+
+- **`defaults.css` (coco, capa `grana.defaults`):** estas cuatro reglas con los valores del tema por defecto y `K` = los 9 tokens que cambian (§16.1). **Después** del bloque `:root` de tokens (mismo peso 0,1,0 sobre `<html data-g-density>`: manda el orden) y junto a las reglas de `--g-density` de §2.1; texto exacto a criterio de coco. `sync-defaults.mjs` no las copia a `DEFAULTS` (solo el bloque `:root`, como §2.1).
+- **`tokens.css` del CLI (bruno, sin capa):** las mismas reglas con los valores de su tema (§16.5). Sin ellas, el `:root` sin capa del tema ganaría a la regla en capa sobre `<html data-g-density="compact">` y una región compacta tomaría los valores **del tema por defecto** (medido por kiwi: 4.t14 y 4.t18 «solo defaults»).
+- **Descartados:** **M2** (fuentes `…-default`/`…-compact` y resolutor en `defaults.css`): obliga al CLI a dejar de emitir los nombres públicos y añade 28 tokens de tema. **M3** (`calc()` en CSS): un token no puede derivarse de sí mismo (ciclo) y el redondeo a 4 px copiaría en CSS las razones de §5.
+- **Nunca** selectores descendientes (`[data-g-density="compact"] .g-btn`): no respetan «la más cercana».
+
+### 16.5 Contrato del CLI (`@grana/cli`, bruno) (#991)
+
+| Aspecto | Contrato |
+| --- | --- |
+| **Cuándo «el tema fija texto» (T)** | `fontSize` o `typeScale` en la configuración, **o** algún `--g-text-*-size` / `--g-text-*-line` en `overrides` |
+| **Valores** | `D` = el valor final del paso 1 de cada clave (generado y con `overrides` aplicados; si el tema no la toca, el de `DEFAULTS`). `C` = la función de §16.1 aplicada a `D`, en `rem` con el redondeo de `scales.js` (`r4`). Una sola función, compartida con `typography()` (no una segunda tabla) |
+| **Claves `K`** (hallazgo H7 de lima) | **Unión** de: (a) las que cambian en el tema (C ≠ D); (b) las que escribe `defaults.css`, calculadas aplicando la misma función a `DEFAULTS` (hoy las 9 de §16.1; no una lista fija); (c) las sobrescritas en `overrides`. Sin (b), un tema donde una clave no cambia dejaría pasar el valor compacto del tema por defecto: con 14/1,2, `--g-text-title-line` quedaría en 32 px (2rem) dentro de una región en vez de los 28 del tema. El prototipo de kiwi solo escribía (a) |
+| **Valor no derivable** | Si el valor final de una clave de `K` no es una longitud en `rem` o `px` (p. ej. `clamp(…)`, `var(…)`), se escribe **igual** en `C` y en `D` (no sigue la densidad) y el CLI añade la nota **`text-density`**: «`--g-text-…` no es una longitud en rem o px: se queda igual en los tres pasos de densidad.» |
+| **Sin T y sin `density: "compact"`** | **Nada** de texto (Δ0 bytes en `tokens.css`): mandan las reglas de `defaults.css` |
+| **Con T** | Las cuatro reglas de §16.4 con `K`, `C` y `D` |
+| **Con `density: "compact"`** (con o sin T) | El texto compacto va **en la misma regla de la clave** de §6 (sin selector nuevo): `:root:where(:not([data-g-density])) { --g-density: 0.75; C }` y, en su consulta táctil, `{ --g-density: 1; D }`. Sin T, `K`, `C` y `D` salen de `DEFAULTS` (el `:root` del CLI no toca el texto y la regla en capa no ve un `<html>` sin atributo). Con `comfortable`, la regla de §6 sin texto |
+| **Orden** | Bloque `:root` de tokens que no son de color › regla de la clave (§6) › reglas de región de texto › bloques de color, oscuro y zona (sin cambio). Todas (0,1,0) salvo la de la prop explícita (0,2,0); un segundo tema cargado después gana por orden, como #561 |
+| **`dark.overrides`** | El texto no depende del esquema: `--g-text-*` en `dark.overrides` queda fuera de contrato y no entra en `K` |
+| **`tokens.json` (`--doc`)** | Sin cambio en este lote (documentar los valores compactos queda reservado, R5) |
+| **Validación** | El mínimo de 12 px (`font-size`) ya lo cumple la función; la prueba lo comprueba en una malla de `fontSize` 12 a 20 y `typeScale` 1,067 a 1,618 |
+
+**Corrección H1 (en este lote):** con `grana theme … --stdout`, los avisos (`formatIssues`) y las notas (`ℹ …`) salen hoy por la **misma salida** que el CSS (`cli.js`: `(result.ok ? out : err)(…)` y `out(notes)`); al redirigir a un archivo, la primera regla queda inválida y el tema se pierde sin aviso. **Contrato:** en `theme` y en `check` sin `--json`, **avisos y notas van siempre por `stderr`**; por `stdout` solo el CSS (con `--stdout`) o las líneas de resumen `✔` (sin él). `check --json` no cambia. **Los códigos de salida no cambian.** Las pruebas que esperaban los avisos en `out` se actualizan; el README del CLI lo dice (mora-docs).
+
+### 16.6 Criterios de aceptación (spec de bruno `tests/density-text.spec.mjs`, pruebas del CLI en `packages/cli/test/`, auditoría de coco)
+
+Tres motores salvo donde se dice. «Temas generados» = `fontSize` 14 / `typeScale` 1,2 y `fontSize` 18 / 1,333 con el CLI real; los valores esperados los calcula la prueba con la función del CLI, no con una tabla copiada.
+
+1. **Tabla por rol.** `font-size` y `line-height` calculados de un elemento por rol (siete roles) dentro de `default`, `comfortable` y `compact`: tema por defecto = `tokens.md` §5.1 (± 0,01 px); temas generados = función de §16.1 sobre sus valores.
+2. **Piso de 12.** Ningún elemento con texto de las secciones del playground mide menos de 12 px en `compact`, en los tres temas.
+3. **Cajas Δ0.** Las alturas de la pieza 2 (criterio 2 de §10: `md` 36 / 31,5 / 27, fila de `GTable`, item de `GSidebar` y de `GMenu`) no cambian en ningún paso ni tema; en `GBtn` `xs` a `xl` compacto, el texto queda centrado (≤ 1 px) y sin desbordar (`scrollHeight ≤ clientHeight`) en `GBtn`, `GInput`, `GSelect` y el item de `GMenu`.
+4. **Anidación y prop.** `default` dentro de `compact` → `body-sm` 14; `compact` dentro de `comfortable` → 13,13; tres niveles alternos; `GBtn density="default"` en una región compacta → 14 y caja 36; `GBtn density="compact"` en la página → 13,13 y 27.
+5. **Heredados.** `GMenu` abierto desde una región compacta: texto del item = texto del disparador (13,13). `GDialog` sin prop escrito en una región compacta: cadena 18,75 › 15 › 13,13 › 12; con `density="default"`, 20 › 16 › 14 › 12.
+6. **`<html>` y clave del CLI.** `<html data-g-density="compact">` sin tema → valores de §5.1; con un tema generado con tipografía → **los del tema** (y la prueba negativa del CLI: sin sus reglas de región, `<html>` compacta da los del `:root` del tema). Clave `compact`: página compacta; `<html data-g-density="default">` sobre la clave → paso 1; una región `comfortable` dentro → paso 1. Clave `compact` sin tipografía → valores de §5.1.
+7. **Unión de claves (H7).** Tema 14/1,2 en una región compacta: `--g-text-title-line` = 28 px (el del tema), no 32.
+8. **Overrides.** `overrides: { "--g-text-body-size": "1.125rem" }`: región `default` dentro de una compacta → 18; región compacta → 16,875. Un valor `clamp(…)` → igual en los tres pasos y nota `text-density` en `stderr`.
+9. **P2 táctil** (Chromium y WebKit con `hasTouch`/`isMobile`; precondición `matchMedia('(pointer: coarse)')`). Región `compact`, `<html compact>` y clave `compact` → texto del paso 1. `GBtn density="compact"` → 13,13. `GInput density="compact"` → texto editable 16 y caja 44 (pieza 1).
+10. **Superficies fijadas Δ0.** Con `<html data-g-density="compact">`, con la clave `compact` y con `GToaster`/`GStatusIsland` trasladados a un `GDialog density="compact"`: su texto mide lo mismo que en el `dist/` anterior.
+11. **Ritmo compartido.** Tema por defecto: el interlineado de `caption`, `body-sm`, `body` y `title-sm` es el mismo en los tres pasos (16/20/24/28); un párrafo `body` de cinco líneas en una región compacta y otro en `default`, lado a lado, tienen el mismo paso de renglón.
+12. **Prosa y `GMetric` (P2).** Un `<p>` de la aplicación con `font: var(--g-text-body-size)/var(--g-text-body-line) …` y un `GText` `body` en una región compacta → 15/24; el valor de `GMetric` baja con su rol.
+13. **Icono de `GBtn`.** `md` compacto: icono 15,1 px (± 0,1), antes 16,1.
+14. **Δ0 sin regiones.** Página sin atributos, sin prop y sin clave: `font-size`, `line-height` y cajas de todos los elementos del playground iguales al `dist/` anterior; `tokens.css` Δ0 bytes sin T y sin `compact`.
+15. **Cambio en marcha.** Cambiar el atributo de `<html>` y el de una región: el texto cambia en el siguiente cuadro; `document.getAnimations()` sin `CSSTransition` sobre `font-size`, `line-height` ni `letter-spacing`; los medidores de §7 (y `GSummary`, `GBreadcrumbs`, que miden texto) se reajustan en ≤ 2 cuadros.
+16. **`--stdout` (H1).** `grana theme cfg.json --stdout > t.css` con una configuración que da avisos y notas: `t.css` empieza por el comentario del CLI y su primera regla es `:root {`, sin `ℹ` ni `⚠`; los avisos están en `stderr`; el código de salida es el de antes.
+17. **CLI, forma.** Δ0 bytes sin T ni `compact`; con T, cuatro reglas en el orden de §16.5; con `compact`, el texto dentro de la regla de la clave (sin selector nuevo); `sync-defaults` deja fuera las reglas de región; ningún valor compacto < 12 en la malla de §16.5.
+18. **Grep.** Ninguna hoja de `components/` cambia por esta pieza; ningún selector `[data-g-density…]` con descendiente en `defaults.css`; `16px`, `24px` y `44px` como hoy.
+
+**No verificable aquí:** lectura real con lector de pantalla (sin cambio semántico esperado), Safari real de iPhone para la pieza 1 en región compacta, y la impresión de lectura del 6,25 % en pantallas reales de baja densidad de píxeles.
+
+### 16.7 Límites
+
+- **H3 · G5 y `GCalendar`, a medias hasta la pieza 4.** `GPagination`, `GTag`/`GTagGroup`, `GBadge`, `GAccordion`, `GFilterBar`, `GBreadcrumbs` y `GCalendar` leen los roles y su **texto baja** en una región compacta, pero su **caja no** (p. ej. 13,13 en una caja de 36). Inofensivo y transitorio; se corrige con la pieza 4 (#969).
+- **H4 · `--g-hero-title-max`** se resuelve en `:root` con `var(--g-text-display-size)` y **no** sigue la región (el héroe es de página). Aceptado. Regla para tokens futuros: un token derivado de un rol que deba seguir la región no se declara con `var()` en `:root`.
+- **H5 · `tokens.css` a mano.** Un `--g-text-*` escrito a mano en `:root` (o con `style.setProperty`) solo vale fuera de los elementos con `data-g-density`; dentro de una región, de una raíz con prop explícita (también `density="default"`) y de las raíces fijadas de avisos, isla y voz, las reglas del tema lo reasignan. Para el texto: claves del CLI (`fontSize`, `typeScale`, `overrides`), que emiten también sus reglas. Lo documenta mora-docs.
+- **Ritmo compartido según el tema.** Los renglones iguales en los tres pasos son exactos con el tema por defecto y con 14/1,2 en `caption`…`title-sm`; con 18/1,333 `body-sm` y `body` bajan un renglón (24 → 20, 28 → 24) por el redondeo a 4 px. Es la regla de §5, no un defecto.
+- **Falso positivo de P2** como en §5.2.
+
+### 16.8 Movimiento (rúbrica `rubrica-movimiento.md`)
+
+**El cambio de densidad no se anima** (§9): el texto cambia en el mismo cuadro que la caja. Propósito, interrumpible y control: no aplican. Comodidad visual y estabilidad: el texto de varias líneas se reparte en horizontal y, con el tema por defecto, no cambia de paso vertical en los roles de lectura (criterio 11); el reflujo de una región grande es el de la pieza 2. Accesibilidad: sin movimiento, 12/16/24/44 intactos. Rendimiento: solo CSS, sin observador nuevo (criterio 15). Riesgo: una `transition` sobre `font-size` o `line-height` en una hoja; lo vigila el criterio 15.
+
+### 16.9 Peso (lote propio fuera de #506; con más, vuelve a lima y decide el usuario)
+
+| Salida | Tope (gzip -9, copia aislada antes y después; bruno lo registra en `CHANGELOG.md`) |
+| --- | --- |
+| `dist/grana.css` | **≤ +384 B** (kiwi midió +272 B para las reglas solas) |
+| `tokens.css` sin T y sin `compact` | **Δ0 bytes** |
+| `tokens.css` con `compact` sin T | **≤ +256 B** (texto dentro de la regla de la clave; medido aparte ≈ 226 B) |
+| `tokens.css` con T | **≤ +384 B** (medido 267 a 311 B con la unión de claves) |
+| `tokens.css` con T y `compact` | **≤ +448 B** (medido 300 a 348 B) |
+| `dist/grana.js`, entradas propias, `dist/blocks.js` | **Δ0** esperado. Solo si el criterio 15 obliga a añadir `densityEpoch` a `GSummary` o `GBreadcrumbs`: ≤ +128 B en total, con su porqué en `CHANGELOG.md` |
+
+### 16.10 Reparto y orden
+
+| Paso | Quién | Qué | Archivos |
+| --- | --- | --- | --- |
+| 1 (en paralelo) | **coco** | Reglas de §16.4 en `defaults.css` con el tema por defecto; comprobar que ningún banco ni playground escribe `--g-text-*` a mano en `:root` (H5) y, si alguno lo hace, anotarlo a su dueño | `packages/vue/src/styles/defaults.css` |
+| 1 (en paralelo) | **bruno** | CLI de §16.5 (función compacta compartida con `typography()`, unión de claves, `overrides`, nota `text-density`, texto en la regla de la clave, orden); H1 en `cli.js`; pruebas del CLI; `sync-defaults` sin las reglas; spec `tests/density-text.spec.mjs` (criterios 1 a 16) con bancos en el playground si hacen falta; pesos en `CHANGELOG.md`. Ningún `.vue` salvo el caso del criterio 15 | `packages/cli/src/theme.js`, `scales.js`, `cli.js`, `index.js` (+ pruebas), `scripts/` si hace falta, `design/lab/theme-playground/tests/density-text.spec.mjs`, playground |
+| 2 | **coco** | Auditoría posterior (`auditoria-visual.md` y rúbrica de movimiento) con los criterios de §16.6, en el banco de kiwi o uno propio | `design/lab/density-text/auditoria.md` |
+| 3 | **mora-docs** | Guía de densidad del README raíz (el texto baja en `compact`; P2; H5), README del CLI (`--stdout`: avisos por `stderr`), límite H3 en los README de G5 y `GCalendar` | READMEs |
+
+Modelos: bruno en Opus (la unión de claves y los `overrides` son criterio delicado); coco en Sonnet basta (cuatro reglas y una auditoría con criterios cerrados).
+
+### 16.11 Auditoría visual previa (`docs/documentacion/auditoria-visual.md`)
+
+Pieza de mecanismo, sin forma nueva. **Estructura y jerarquía:** no cambian; la cadena del diálogo conserva cuatro niveles y los títulos ganan presencia relativa (la caja baja un 25 %, el texto un 6,25 %). **Contraste:** sin cambio de color; el umbral de 4,5:1 no depende del tamaño por encima de 12. **Espaciado y controles:** cajas de la pieza 2 sin cambio (criterio 3); el renglón cabe en la caja compacta (`md` 27 = 3,5 + 20 + 3,5). **Tablas y formularios:** siguen la región entera, texto incluido; G5 y `GCalendar` a medias hasta la pieza 4 (H3). **Estados de interfaz:** sin cambio. **Consistencia:** solo reasigna tokens existentes, con el patrón de la zona de marca; ningún token, componente ni prop nuevos. **Mínimos:** 12 px por construcción, 16 px editable táctil, 24 y 44 px intactos. **Sin decoración y sin movimiento.**
+
+### 16.12 Reservado
+
+- **R5 · `tokens.json` con los valores compactos** de cada rol (transparencia del motor, §17.13): solo si se pide.
+- **R6 · `comfortable` con texto propio:** solo si un día `comfortable` deja de ser el paso intermedio.
