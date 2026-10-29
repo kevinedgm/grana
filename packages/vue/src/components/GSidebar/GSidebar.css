@@ -1,13 +1,17 @@
+@layer grana.defaults, grana.components, grana.blocks, grana.utilities;
+
 /*
   GSidebar · estilo del esqueleto
   Dueño: coco. Contrato: design/contracts/sidebar.md. Estructura: design/lab/sidebar/r01/.
-  Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
+  Reglas: solo var(--g-*) y alias locales var(--_*); la primera línea solo declara el orden de las cuatro capas (#806;
+  dentro de la capa del registro no añade nada); las reglas van sin @layer (lo aplica el registro);
   únicos literales de medida: 24px y 44px (área táctil), 0px en max(), 1px del texto oculto.
   No hay consultas de medios de ancho: el formato lo decide bruno por el ancho del contenedor
   (DECISIONS.md #69) y llega como clase g-sidebar--mode-*. Una sola superficie vertical continua
   (expandida y riel), un navbar flotante con «píldora activa» y un drawer (<dialog>).
   Bruno da la posición del panel flotante y de la pista con variables CSS dinámicas
-  (--_x, --_top, --_bottom, --_notch).
+  (--_x, --_top, --_bottom, --_notch), y la luz de hover de cada lista con --_highlight-x/-y/-w/-h, has-highlight e
+  is-highlight-instant en el anfitrión (§«Una sola luz», DECISIONS #957 a #963).
 */
 
 /* ---------- Esqueleto ---------- */
@@ -35,6 +39,9 @@
   --_gap: var(--g-space-3);
   --_radius: var(--g-radius-md);
   --_focus: var(--g-color-focus);
+  /* Junta entre filas (#958): el hueco de medio paso que separaba los items pasa a ser área de clic de cada uno (un cuarto
+     de paso por lado) y la luz se recorta lo mismo por dentro: se ve igual que el hover de antes y el paso no cambia */
+  --_seam: calc(var(--g-space-1) * 0.5);
 
   interpolate-size: allow-keywords;
 
@@ -247,9 +254,10 @@
   padding: 0;
 }
 .g-sidebar__list {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: calc(var(--g-space-1) * 0.5);
+  gap: 0;
 }
 /* Título de grupo: menos peso que los items; en riel se oculta visualmente y sigue en el DOM */
 .g-sidebar__group-title {
@@ -272,7 +280,7 @@
   align-items: center;
   gap: var(--_gap);
   inline-size: 100%;
-  min-block-size: var(--_item);
+  min-block-size: calc(var(--_item) + var(--_seam));
   margin: 0;
   padding-block: 0;
   padding-inline: var(--_px);
@@ -286,7 +294,6 @@
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition:
-    background-color var(--g-duration-fast) var(--g-ease-standard),
     color var(--g-duration-fast) var(--g-ease-standard),
     scale var(--g-duration-fast) var(--g-ease-out);
 }
@@ -294,12 +301,50 @@
 .g-sidebar__link:active:not([aria-disabled="true"]) {
   scale: 0.98;
 }
-/* El hover genérico no toca al actual ni a su representante del riel (#564, ampliada en #616): pintan su propia marca y
-   un hover de 0,3,0 se la quitaría. La rama hueca (`is-branch` sin `is-rep`) sí recibe hover */
+/* Hover: ningún item pinta fondo propio (lo marca la luz de su lista, abajo; #957, #959); la etiqueta pasa a `text`, solo
+   color. La exclusión del actual de #564/#616 queda sin objeto: ya no hay fondo que quitarle a su marca */
 @media (hover: hover) {
-  .g-sidebar__link:hover:not([aria-disabled="true"], [aria-current="page"], .is-active, .is-rep) {
-    background: var(--g-color-border);
+  .g-sidebar__link:hover:not([aria-disabled="true"]) {
     color: var(--g-color-text);
+  }
+}
+
+/* ---------- Una sola luz (sidebar.md §«Una sola luz», DECISIONS #957 a #963) ----------
+   Una capa por lista (li.g-sidebar__highlight, primer hijo de cada g-sidebar__list y de g-sidebar__fly-list) bajo los items,
+   que pintan encima por orden del árbol. Se desliza al enlace bajo el puntero: es la caja del enlace que bruno escribe en el
+   anfitrión, en px FÍSICOS (anclaje left/top también en RTL: la medida es getBoundingClientRect), recortada por dentro con
+   la junta (--_seam) para que se vea como el hover de antes. Mismo token que ese hover (`border` sobre la carcasa, #959).
+   Pasa por detrás del asiento del actual sin tocarlo */
+.g-sidebar__highlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  inline-size: var(--_highlight-w);
+  block-size: calc(var(--_highlight-h) - var(--_seam));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  translate: var(--_highlight-x) calc(var(--_highlight-y) + var(--_seam) / 2);
+  border-radius: var(--_radius);
+  background: var(--g-color-border);
+  opacity: 0;
+  pointer-events: none;
+}
+.has-highlight > .g-sidebar__highlight { opacity: 1; }
+/* Movimiento de M1 (#305) sin muelle (#299): posición y tamaño con press + ease-out, aparición con fundido. La primera
+   colocación de cada entrada y toda recolocación sin gesto (scroll, submenú, expandir) solo se funden: aparece donde
+   aterriza. Transición CSS: un barrido rápido se retoma desde donde va y nunca bloquea el clic */
+@media (prefers-reduced-motion: no-preference) {
+  .g-sidebar__highlight {
+    transition:
+      translate var(--g-duration-press) var(--g-ease-out),
+      inline-size var(--g-duration-press) var(--g-ease-out),
+      block-size var(--g-duration-press) var(--g-ease-out),
+      opacity var(--g-duration-fast) var(--g-ease-standard);
+  }
+  .is-highlight-instant > .g-sidebar__highlight {
+    transition: opacity var(--g-duration-fast) var(--g-ease-standard);
   }
 }
 /* Actual, representante y rama: la FILA no se rellena (#612; enmienda #89 y #239 para GSidebar: sin superficie inset, sin
@@ -495,7 +540,7 @@
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: calc(var(--g-space-1) * 0.5);
+  gap: 0;
   /* La línea de conexión cae en el eje del asiento del padre (--_axis) y deja sitio (--_reach) para el nodo con su aro
      dentro de la caja (que recorta: overflow hidden para animar la altura). Los hijos quedan donde estaban (space × 5 +
      borde + space × 3 desde el inicio de la lista) */
@@ -559,7 +604,6 @@
 }
 .g-sidebar__sub.is-open {
   block-size: auto;
-  margin-block: var(--g-space-1);
   opacity: 1;
   visibility: visible;
 }
@@ -567,20 +611,21 @@
   .g-sidebar__sub {
     transition:
       block-size var(--g-duration-slow) var(--g-ease-out),
-      margin-block var(--g-duration-slow) var(--g-ease-out),
       opacity var(--_t) var(--g-ease-out),
       visibility 0s linear var(--g-duration-slow);
   }
   .g-sidebar__sub.is-open {
     transition:
       block-size var(--g-duration-slow) var(--g-ease-out),
-      margin-block var(--g-duration-slow) var(--g-ease-out),
       opacity var(--_t) var(--g-ease-out) calc(var(--_stagger)),
       visibility 0s;
   }
 }
+/* Los hijos son de la lista del padre (#958): el submenú abierto no deja margen entre el padre y su primer hijo (sería un
+   hueco que apaga la luz al cruzar). El aire lo da la junta: entre la luz del padre y la del hijo queda medio paso, como
+   entre dos items; la sangría y la línea de conexión dicen la jerarquía */
 .g-sidebar__sub .g-sidebar__link {
-  min-block-size: var(--_sub);
+  min-block-size: calc(var(--_sub) + var(--_seam));
 }
 
 /* ---------- Pie (el contenido es de la aplicación) ---------- */
@@ -617,7 +662,8 @@
 }
 .g-sidebar--mode-rail .g-sidebar__nav .g-sidebar__link {
   inline-size: max(44px, var(--_item));
-  block-size: max(44px, var(--_item));
+  /* La celda crece la junta (el hueco que la separaba de la siguiente): el paso no cambia y la luz recortada es cuadrada */
+  block-size: calc(max(44px, var(--_item)) + var(--_seam));
   margin-inline: auto;
   padding: 0;
   justify-content: center;
@@ -707,15 +753,16 @@
   color: var(--g-color-text-subtle);
 }
 .g-sidebar__fly ul {
+  position: relative;
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: calc(var(--g-space-1) * 0.5);
+  gap: 0;
 }
 .g-sidebar__fly .g-sidebar__link {
-  min-block-size: var(--_sub);
+  min-block-size: calc(var(--_sub) + var(--_seam));
   padding-inline: var(--g-space-3);
   /* Hueco del nodo al inicio de cada fila (todas, para que las etiquetas queden alineadas) */
   padding-inline-start: calc(var(--g-space-2) * 2 + var(--_node) + var(--_ring) * 2);
@@ -818,10 +865,17 @@
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
+/* El navbar no lleva luz (#961: celdas con hueco real que cambian de ancho con la píldora): hover por celda que ENTRA con
+   fundido y SALE al instante, así nunca hay dos celdas con fondo a la vez. La transición va en el estado de destino: la de
+   entrada en :hover, la de salida (ninguna) en la celda. El fundido se queda con movimiento reducido */
 @media (hover: hover) {
   .g-sidebar__bar > li:not(.is-current) > .g-sidebar__tab:hover {
     background: var(--g-color-surface-sunken);
     color: var(--g-color-text);
+    transition:
+      background-color var(--g-duration-fast) var(--g-ease-standard),
+      color var(--g-duration-fast) var(--g-ease-standard),
+      scale var(--g-duration-fast) var(--g-ease-out);
   }
 }
 .g-sidebar__tab .g-sidebar__icon {
@@ -898,13 +952,11 @@
   }
   .g-sidebar__tab {
     transition:
-      background-color var(--_t) var(--g-ease-standard),
       color var(--g-duration-fast) var(--g-ease-standard),
       scale var(--g-duration-fast) var(--g-ease-out);
   }
   .g-sidebar__bar > li.is-current .g-sidebar__tab {
     transition:
-      background-color var(--_t) var(--g-ease-standard),
       color var(--g-duration-fast) var(--g-ease-standard) calc(var(--g-duration-slow) * 0.4),
       scale var(--g-duration-fast) var(--g-ease-out);
   }
@@ -1046,7 +1098,11 @@
   }
   .g-sidebar__link,
   .g-sidebar__tab {
-    transition: background-color var(--g-duration-fast) var(--g-ease-standard), color var(--g-duration-fast) var(--g-ease-standard);
+    transition: color var(--g-duration-fast) var(--g-ease-standard);
+  }
+  /* La luz: solo fundido, sin viaje (patrón único de #299) */
+  .g-sidebar__highlight {
+    transition: opacity var(--g-duration-fast) linear;
   }
   .g-sidebar__link:active,
   .g-sidebar__tab:active {
@@ -1100,6 +1156,10 @@
 @media (forced-colors: active) {
   .g-sidebar {
     border-color: CanvasText;
+  }
+  /* La luz se oculta y manda el sistema (como antes: sin fondo de hover) */
+  .g-sidebar__highlight {
+    display: none;
   }
   /* Asiento, nodo y píldora (#617): relleno Highlight, tinta HighlightText, aros CanvasText (el aro conserva lleno / hueco
      sin color); ruta Highlight. `forced-color-adjust: none` solo en esas formas; la etiqueta de la fila sigue en CanvasText */
