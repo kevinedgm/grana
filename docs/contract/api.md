@@ -182,7 +182,7 @@ Contrato: `design/contracts/utilities.md`; lista canónica `design/contracts/uti
 
 **Por qué.** iOS Safari amplía la página al enfocar un campo cuyo texto calculado mide menos de **16px CSS**, y el usuario tiene que deshacer el zoom a mano. La salida habitual, `maximum-scale=1` en el `<meta viewport>`, bloquea el pellizco en otros navegadores (WCAG 1.4.4): **Grana no toca el viewport** y la aplicación no debe añadirla.
 
-**Regla (mínimo de plataforma, `tokens.md` §7).** Dentro de `@media (pointer: coarse)` —la misma consulta del 44px—, el tamaño de letra del texto editable es **`max(16px, <rol>)`**, donde `<rol>` es el `--g-text-*-size` que el campo usa hoy por `size`. Fuera de la consulta no cambia nada (`md`: `body-sm`, 14px con el tema por defecto). Con un tema o una letra del navegador mayores, el rol supera 16 y manda el rol. `16px` es literal (no token: un `tokens.css` no debe poder bajarlo) y solo se escribe ahí.
+**Regla (mínimo de plataforma, `tokens.md` §7).** Dentro de `@media (pointer: coarse)` —la misma consulta del 44px—, el tamaño de letra del texto editable es **`max(16px, <rol>)`**, donde `<rol>` es el `--g-text-*-size` que el campo usa hoy por `size`. Fuera de la consulta no cambia nada (`md`: `body-sm`, 14px con el tema por defecto). Con un rol mayor que 16 (p. ej. `fontSize` 20 → `md` 17,5; con 18, `body-sm` = 15,75 y `md` sigue en 16) manda el rol (#973). `16px` es literal (no token: un `tokens.css` no debe poder bajarlo) y solo se escribe ahí.
 
 - **Interlineado:** el del rol, con piso `max(<línea del rol>, var(--g-text-body-sm-line))` dentro de la misma consulta (con el tema por defecto solo cambia `xs`, 16→20).
 - **Altura:** sin cambio; con puntero grueso ya rige `max(44px, …)`. Única excepción aceptada: `GTextarea xs` con `rows` ≥ 3 crece 4px por fila extra (el piso de interlineado).
@@ -206,10 +206,10 @@ Contrato: `design/contracts/utilities.md`; lista canónica `design/contracts/uti
 
 1. `font-size` calculado ≥ 16px en cada control de A y B, en los cinco `size` y en `default` y `compact`.
 2. Sin emulación: Δ0 frente al `dist/` anterior (`xs` 12, `sm`/`md` 14, `lg`/`xl` 16 con el tema por defecto).
-3. Con `fontSize` 18 en el tema, en táctil manda el rol (> 16).
+3. Con `fontSize` 18 en el tema, `body-sm` = 15,75px (`packages/cli/src/scales.js`): en táctil `md` queda en 16 (manda el piso) y solo `lg`/`xl` suben a 18; con `fontSize` 20, `md` = 17,5 y manda el rol (#973).
 4. Alto de la caja en táctil: Δ0 frente al `dist/` anterior en táctil, salvo la excepción de `GTextarea xs`.
 5. Cada acompañante de la línea del valor: mismo `font-size` calculado que su control; etiqueta, ayuda, mensaje, contador y opciones de `GSelect`: su rol.
-6. Fantasma de `GCombobox` y espejo de `GNumberField`/`GTimeField` alineados con el texto real (Δ ≤ 0,5px al final de lo tecleado).
+6. Fantasma de `GCombobox` (solo existe en táctil de tableta: en teléfono `GCombobox` abre una hoja y no hay fantasma, #973) y espejo de `GNumberField`/`GTimeField` alineados con el texto real (Δ ≤ 0,5px al final de lo tecleado).
 7. A 320px de visor, `compact` y `default`, dos campos en una `GFormRow` y cada campo suelto: sin desplazamiento horizontal ni desborde de la caja; la hora dicha sigue «todo o nada».
 8. `16px` solo dentro de `@media (pointer: coarse)` y en `font-size` o su alias (grep sobre `components/*/*.css`); los verificadores de coco que listan literales lo admiten solo ahí.
 

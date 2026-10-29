@@ -526,6 +526,7 @@ Con `selectable` y `labels.selectedCount`, el recuento `g-table__count` (`role="
 
 ## Límites conocidos
 
+- **Fuera de la pieza 1 (#973):** los `<select>` de orden de `GTable` en `mode="cards"` miden 30 px de alto también en táctil, por debajo de los 44 px de `tokens.md` §7 (defecto previo hallado por coco; no se tocó porque #972 exige Δ0 de altura). Seguimiento en `PENDIENTES.md` §6.
 - ~~**Sin estado de error** (#327)~~: **contratado por #540** («Carga, vacío y error con el motor común»). Mientras bruno no lo implemente, sigue el límite de #327: el fallo es de la isla y la región anuncia «0 resultados» junto a su error.
 - **Esqueleto frente a fila compuesta (#543, #558):** con celdas compuestas con avatar, el esqueleto mide **44 px frente a 60 de la fila** (medido en la auditoría, tema de `space 3` y letra 18): la tabla encoge durante la carga y vuelve a crecer; en la tabla simple, 44 = 44 (Δ0). Lo cierra el molde de `GTable` desde una muestra de filas, reservado; mientras, va al README.
 - **Columnas fijas (si llegan):** una celda pegada con fondo opaco taparía la luz; regla reservada en #961 (la celda pinta la luz ella misma con `data-highlight` en el `tr` encendido).
