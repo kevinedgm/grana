@@ -1,0 +1,494 @@
+{
+ "misc": {
+  "default": {
+   "tableSort": [
+    14,
+    14
+   ],
+   "filterEditor": [
+    14,
+    14
+   ],
+   "calendarResource": [
+    14
+   ],
+   "gallerySearch": [
+    14
+   ],
+   "gallerySize": [
+    14,
+    14
+   ],
+   "transcriptEditor": [
+    14
+   ]
+  },
+  "compact": {
+   "tableSort": [
+    14,
+    14
+   ],
+   "filterEditor": [
+    14,
+    14
+   ],
+   "calendarResource": [
+    14
+   ],
+   "gallerySearch": [
+    14
+   ],
+   "gallerySize": [
+    14,
+    14
+   ],
+   "transcriptEditor": [
+    14
+   ]
+  }
+ },
+ "default": {
+  "xs|input": {
+   "boxH": 44,
+   "h": 42
+  },
+  "xs|input-ph": {
+   "boxH": 44,
+   "h": 42
+  },
+  "xs|textarea": {
+   "boxH": 56,
+   "h": 54
+  },
+  "xs|textarea-r1": {
+   "boxH": 44,
+   "h": 42
+  },
+  "xs|select": {
+   "boxH": 44,
+   "h": 42
+  },
+  "xs|date": {
+   "boxH": 44,
+   "h": 44
+  },
+  "xs|party": {
+   "boxH": 44,
+   "h": 44
+  },
+  "xs|number": {
+   "boxH": 44,
+   "h": 42
+  },
+  "xs|time": {
+   "boxH": 44,
+   "h": 42
+  },
+  "xs|combobox": {
+   "boxH": 44,
+   "h": 42
+  },
+  "xs|group": {
+   "boxH": 44,
+   "h": 42
+  },
+  "sm|input": {
+   "boxH": 44,
+   "h": 42
+  },
+  "sm|input-ph": {
+   "boxH": 44,
+   "h": 42
+  },
+  "sm|textarea": {
+   "boxH": 68,
+   "h": 66
+  },
+  "sm|textarea-r1": {
+   "boxH": 44,
+   "h": 42
+  },
+  "sm|select": {
+   "boxH": 44,
+   "h": 42
+  },
+  "sm|date": {
+   "boxH": 44,
+   "h": 44
+  },
+  "sm|party": {
+   "boxH": 44,
+   "h": 44
+  },
+  "sm|number": {
+   "boxH": 44,
+   "h": 42
+  },
+  "sm|time": {
+   "boxH": 44,
+   "h": 42
+  },
+  "sm|combobox": {
+   "boxH": 44,
+   "h": 42
+  },
+  "sm|group": {
+   "boxH": 44,
+   "h": 42
+  },
+  "md|input": {
+   "boxH": 44,
+   "h": 42
+  },
+  "md|input-ph": {
+   "boxH": 44,
+   "h": 42
+  },
+  "md|textarea": {
+   "boxH": 76,
+   "h": 74
+  },
+  "md|textarea-r1": {
+   "boxH": 44,
+   "h": 42
+  },
+  "md|select": {
+   "boxH": 44,
+   "h": 42
+  },
+  "md|date": {
+   "boxH": 44,
+   "h": 44
+  },
+  "md|party": {
+   "boxH": 44,
+   "h": 44
+  },
+  "md|number": {
+   "boxH": 44,
+   "h": 42
+  },
+  "md|time": {
+   "boxH": 44,
+   "h": 42
+  },
+  "md|combobox": {
+   "boxH": 44,
+   "h": 42
+  },
+  "md|group": {
+   "boxH": 44,
+   "h": 42
+  },
+  "lg|input": {
+   "boxH": 44,
+   "h": 42
+  },
+  "lg|input-ph": {
+   "boxH": 44,
+   "h": 42
+  },
+  "lg|textarea": {
+   "boxH": 92,
+   "h": 90
+  },
+  "lg|textarea-r1": {
+   "boxH": 44,
+   "h": 42
+  },
+  "lg|select": {
+   "boxH": 44,
+   "h": 42
+  },
+  "lg|date": {
+   "boxH": 44,
+   "h": 44
+  },
+  "lg|party": {
+   "boxH": 44,
+   "h": 44
+  },
+  "lg|number": {
+   "boxH": 44,
+   "h": 42
+  },
+  "lg|time": {
+   "boxH": 44,
+   "h": 42
+  },
+  "lg|combobox": {
+   "boxH": 44,
+   "h": 42
+  },
+  "lg|group": {
+   "boxH": 44,
+   "h": 42
+  },
+  "xl|input": {
+   "boxH": 52,
+   "h": 50
+  },
+  "xl|input-ph": {
+   "boxH": 52,
+   "h": 50
+  },
+  "xl|textarea": {
+   "boxH": 100,
+   "h": 98
+  },
+  "xl|textarea-r1": {
+   "boxH": 52,
+   "h": 50
+  },
+  "xl|select": {
+   "boxH": 52,
+   "h": 50
+  },
+  "xl|date": {
+   "boxH": 52,
+   "h": 52
+  },
+  "xl|party": {
+   "boxH": 52,
+   "h": 52
+  },
+  "xl|number": {
+   "boxH": 52,
+   "h": 50
+  },
+  "xl|time": {
+   "boxH": 52,
+   "h": 50
+  },
+  "xl|combobox": {
+   "boxH": 52,
+   "h": 50
+  },
+  "xl|group": {
+   "boxH": 52,
+   "h": 50
+  }
+ },
+ "compact": {
+  "xs|input": {
+   "boxH": 44,
+   "h": 42
+  },
+  "xs|input-ph": {
+   "boxH": 44,
+   "h": 42
+  },
+  "xs|textarea": {
+   "boxH": 56,
+   "h": 54
+  },
+  "xs|textarea-r1": {
+   "boxH": 44,
+   "h": 42
+  },
+  "xs|select": {
+   "boxH": 44,
+   "h": 42
+  },
+  "xs|date": {
+   "boxH": 44,
+   "h": 44
+  },
+  "xs|party": {
+   "boxH": 44,
+   "h": 44
+  },
+  "xs|number": {
+   "boxH": 44,
+   "h": 42
+  },
+  "xs|time": {
+   "boxH": 44,
+   "h": 42
+  },
+  "xs|combobox": {
+   "boxH": 44,
+   "h": 42
+  },
+  "xs|group": {
+   "boxH": 44,
+   "h": 42
+  },
+  "sm|input": {
+   "boxH": 44,
+   "h": 42
+  },
+  "sm|input-ph": {
+   "boxH": 44,
+   "h": 42
+  },
+  "sm|textarea": {
+   "boxH": 64,
+   "h": 62
+  },
+  "sm|textarea-r1": {
+   "boxH": 44,
+   "h": 42
+  },
+  "sm|select": {
+   "boxH": 44,
+   "h": 42
+  },
+  "sm|date": {
+   "boxH": 44,
+   "h": 44
+  },
+  "sm|party": {
+   "boxH": 44,
+   "h": 44
+  },
+  "sm|number": {
+   "boxH": 44,
+   "h": 42
+  },
+  "sm|time": {
+   "boxH": 44,
+   "h": 42
+  },
+  "sm|combobox": {
+   "boxH": 44,
+   "h": 42
+  },
+  "sm|group": {
+   "boxH": 44,
+   "h": 42
+  },
+  "md|input": {
+   "boxH": 44,
+   "h": 42
+  },
+  "md|input-ph": {
+   "boxH": 44,
+   "h": 42
+  },
+  "md|textarea": {
+   "boxH": 67,
+   "h": 65
+  },
+  "md|textarea-r1": {
+   "boxH": 44,
+   "h": 42
+  },
+  "md|select": {
+   "boxH": 44,
+   "h": 42
+  },
+  "md|date": {
+   "boxH": 44,
+   "h": 44
+  },
+  "md|party": {
+   "boxH": 44,
+   "h": 44
+  },
+  "md|number": {
+   "boxH": 44,
+   "h": 42
+  },
+  "md|time": {
+   "boxH": 44,
+   "h": 42
+  },
+  "md|combobox": {
+   "boxH": 44,
+   "h": 42
+  },
+  "md|group": {
+   "boxH": 44,
+   "h": 42
+  },
+  "lg|input": {
+   "boxH": 44,
+   "h": 42
+  },
+  "lg|input-ph": {
+   "boxH": 44,
+   "h": 42
+  },
+  "lg|textarea": {
+   "boxH": 81,
+   "h": 79
+  },
+  "lg|textarea-r1": {
+   "boxH": 44,
+   "h": 42
+  },
+  "lg|select": {
+   "boxH": 44,
+   "h": 42
+  },
+  "lg|date": {
+   "boxH": 44,
+   "h": 44
+  },
+  "lg|party": {
+   "boxH": 44,
+   "h": 44
+  },
+  "lg|number": {
+   "boxH": 44,
+   "h": 42
+  },
+  "lg|time": {
+   "boxH": 44,
+   "h": 42
+  },
+  "lg|combobox": {
+   "boxH": 44,
+   "h": 42
+  },
+  "lg|group": {
+   "boxH": 44,
+   "h": 42
+  },
+  "xl|input": {
+   "boxH": 44,
+   "h": 42
+  },
+  "xl|input-ph": {
+   "boxH": 44,
+   "h": 42
+  },
+  "xl|textarea": {
+   "boxH": 87,
+   "h": 85
+  },
+  "xl|textarea-r1": {
+   "boxH": 44,
+   "h": 42
+  },
+  "xl|select": {
+   "boxH": 44,
+   "h": 42
+  },
+  "xl|date": {
+   "boxH": 44,
+   "h": 44
+  },
+  "xl|party": {
+   "boxH": 44,
+   "h": 44
+  },
+  "xl|number": {
+   "boxH": 44,
+   "h": 42
+  },
+  "xl|time": {
+   "boxH": 44,
+   "h": 42
+  },
+  "xl|combobox": {
+   "boxH": 44,
+   "h": 42
+  },
+  "xl|group": {
+   "boxH": 44,
+   "h": 42
+  }
+ }
+}
