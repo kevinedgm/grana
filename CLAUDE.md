@@ -59,7 +59,7 @@ Antes de crear, modificar o implementar cualquier vista de gestión (CRUD, dashb
 
 ## Reglas que no se rompen
 
-- Los componentes solo leen `var(--g-*)` y alias locales `var(--_*)`. **Sin valores de respaldo** y sin literales de tema. Únicas medidas literales permitidas: `24px`, `44px` (área táctil) y el patrón de texto oculto accesible.
+- Los componentes solo leen `var(--g-*)` y alias locales `var(--_*)`. **Sin valores de respaldo** y sin literales de tema. Únicas medidas literales permitidas: `24px`, `44px` (área táctil), `16px` solo dentro de `@media (pointer: coarse)` como `max(16px, <rol>)` para el texto editable (umbral de ampliación de iOS, #970) y el patrón de texto oculto accesible.
 - Valores por defecto solo en `packages/vue/src/styles/defaults.css` (capa `grana.defaults`). El tema del usuario va sin capa y siempre gana.
 - Cuatro capas, siempre en este orden y declaradas en la primera línea de cada hoja de Grana: `grana.defaults, grana.components, grana.blocks, grana.utilities` (#806). Las clases utilitarias (`utilities.css`) solo nacen en `design/contracts/utilities.json`; sin `!important`.
 - Mínimos de accesibilidad fuera del tema: área táctil ≥ 24px (≥ 44px táctil), texto ≥ 12px, contraste ≥ 4.5:1 (controles 3:1), foco siempre visible.
