@@ -89,6 +89,25 @@ describe('glide · placeHighlight', () => {
     expect(host.classList.contains('has-highlight')).toBe(true)
     expect(layer.classList.length).toBe(0)
   })
+  it('lee todas las cajas antes de la primera escritura (sin recálculo forzado del anfitrión; H1, #963)', () => {
+    const { host, rows } = list()
+    const log = []
+    const read = (el, name) => {
+      const g = el.getBoundingClientRect
+      el.getBoundingClientRect = () => { log.push(`read ${name}`); return g() }
+    }
+    read(host, 'host')
+    read(rows[1], 'row')
+    for (const k of ['clientLeft', 'clientTop', 'scrollLeft', 'scrollTop']) Object.defineProperty(host, k, { get: () => { log.push(`read ${k}`); return 0 }, configurable: true })
+    const add = host.classList.add.bind(host.classList)
+    host.classList.add = (...c) => { log.push('write class'); add(...c) }
+    const set = host.style.setProperty.bind(host.style)
+    host.style.setProperty = (...a) => { log.push('write var'); set(...a) }
+    glide.placeHighlight(host, rows[1], { instant: true })
+    const firstWrite = log.findIndex((e) => e.startsWith('write'))
+    expect(firstWrite).toBeGreaterThan(0)
+    expect(log.slice(firstWrite).some((e) => e.startsWith('read'))).toBe(false)
+  })
   it('escribe cada dato solo si cambia', () => {
     const { host, rows } = list()
     glide.placeHighlight(host, rows[1])

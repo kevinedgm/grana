@@ -25,7 +25,8 @@ export function flashInstant(host) {
 /**
  * Coloca la luz de `host` sobre la caja de `el` (null la apaga). La primera colocación (sin `has-highlight`) y toda
  * colocación con `instant` llevan `is-highlight-instant` durante dos cuadros: aparece donde está, sin viajar.
- * Dos lecturas de caja; escribe cada medida solo si cambia, en `layer` o, sin ella, en `host`.
+ * Dos lecturas de caja, todas antes de la primera escritura; escribe cada medida solo si cambia, en `layer` o, sin
+ * ella, en `host`.
  */
 export function placeHighlight(host, el, { instant, layer } = {}) {
   const cl = host.classList
@@ -34,10 +35,12 @@ export function placeHighlight(host, el, { instant, layer } = {}) {
     if (!first) cl.remove('has-highlight')
     return
   }
-  if (first || instant) flashInstant(host)
+  // Leer todo antes de escribir: la clase de flashInstant, escrita antes de medir, obligaba a recalcular en el acto el
+  // estilo de todo el anfitrión (≈ 2 ms con 500 filas de B, la compuerta de #963; H1 de la auditoría de coco)
   const b = el.getBoundingClientRect()
   const o = host.getBoundingClientRect()
   const v = { x: b.left - o.left - host.clientLeft + host.scrollLeft, y: b.top - o.top - host.clientTop + host.scrollTop, w: b.width, h: b.height }
+  if (first || instant) flashInstant(host)
   for (const k in v) setVar(layer || host, `--_highlight-${k}`, `${Math.round(v[k])}px`)
   if (first) cl.add('has-highlight')
 }
