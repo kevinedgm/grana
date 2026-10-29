@@ -57,7 +57,7 @@ import { GSection } from '@grana/vue'
 </template>
 ```
 
-**Por qué:** una receta con `GStack` y un `hN` obliga a cada pantalla a contar niveles, que es justo donde se saltan (WCAG 1.3.1, técnica H42). Con `GSection` la primera es `h2`, una anidada `h3`, otra `h4` (tope). El tamaño baja con la profundidad: `title-sm` (20/28 con la escala por defecto) → `body` (16/24) → `body-sm` (14/20, el suelo: nunca menos de 14). Úsala para las partes de una página.
+**Por qué:** una receta con `GStack` y un `hN` obliga a cada pantalla a contar niveles, que es justo donde se saltan (WCAG 1.3.1, técnica H42). Con `GSection` la primera es `h2`, una anidada `h3`, otra `h4` (tope). El tamaño baja con la profundidad: `title-sm` (20/28 con la escala por defecto) → `body` (16/24) → `body-sm` (14/20, el suelo: nunca menos que el `body-sm` de su paso; en una región `compact` baja con la escala, 13,13 con el tema por defecto). Úsala para las partes de una página.
 
 ### e2 · Fijar el nivel sin cambiar el tamaño (`headingLevel`)
 
@@ -116,7 +116,7 @@ import { GSection } from '@grana/vue'
 
 a. Raíz `section`. Sin `landmark` y sin nombre no es punto de referencia (HTML-AAM); con `landmark` es `region` con el nombre del título. Medido con el árbol de accesibilidad: una sola `region`, la que pide `landmark` (`medido`, 668/668 en los tres motores, auditoría de coco 2026-10-21).
 
-b. Esquema: bajo el único `h1` (de `GPageHeader`), `h2 → h3 → h4 → h4` por anidación, sin saltos. Tamaño estrictamente decreciente con suelo en 14 px, peso 600 y `dir="auto"` en el título (`medido`).
+b. Esquema: bajo el único `h1` (de `GPageHeader`), `h2 → h3 → h4 → h4` por anidación, sin saltos. Tamaño estrictamente decreciente con suelo en el `body-sm` de su paso (14 px en `default`, 13,13 px en `compact` con el tema por defecto; relativo desde #989), peso 600 y `dir="auto"` en el título (`medido`).
 
 c. Acciones en `role="group"` con `aria-label` = `labels.actions`; a 320 px bajan bajo el título sin desbordar, en LTR y RTL; un título largo se parte en varias líneas sin recortarse (`medido`).
 
@@ -132,7 +132,7 @@ g. `forced-colors`: título y descripción con colores del sistema distintos del
 
 ## Personalidad
 
-**El encabezado sabe dónde está:** el nivel lo pone el documento (una sección dentro de otra baja un nivel sola, nunca se salta uno) y el tamaño lo pone la anidación (cada nivel un rol menos, con suelo en 14 px). La región con nombre es opcional, así una página con seis secciones no llena de puntos de referencia la lista del lector.
+**El encabezado sabe dónde está:** el nivel lo pone el documento (una sección dentro de otra baja un nivel sola, nunca se salta uno) y el tamaño lo pone la anidación (cada nivel un rol menos, con suelo en el `body-sm` de su paso). La región con nombre es opcional, así una página con seis secciones no llena de puntos de referencia la lista del lector.
 
 **Familia de los títulos (#753):** solo la profundidad 1 lleva `--g-font-title`; las anidadas, `--g-font-ui`. Con un tema de títulos serif, el `h1` de `GPageHeader` y el `h2` de la sección salen serif y `h3`/`h4` en la de interfaz, igual que los títulos de `GCard` y `GFormSection`. Sin movimiento.
 

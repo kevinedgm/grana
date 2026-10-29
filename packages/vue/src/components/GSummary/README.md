@@ -339,7 +339,7 @@ La medida escribe **atributos** (no clases, que el siguiente parche de Vue borra
 
 ## Medida y rendimiento
 
-CSS intrínseco; el JavaScript solo cuenta. Un `ResizeObserver` compartido mide **por lotes** (se lee todo y se escribe después): todas las fichas que lo piden en el mismo turno se miden juntas, con tres pasadas como máximo (`data-terse`, luego «+N», luego `data-tight`). No hay estado reactivo por dato. Se mide al montar (antes del primer pintado), al cambiar de tamaño, al cambiar el contenido y en `document.fonts.ready`; **no** con `loading` ni en `stack`. Las fichas a más de un visor de distancia se aplazan hasta acercarse. Sin `ResizeObserver` (SSR, antes de montar) la ficha **ya está bien por CSS**: cede y recorta; solo faltan «+N», el silencio de rótulos y el estado apretado.
+CSS intrínseco; el JavaScript solo cuenta. Un `ResizeObserver` compartido mide **por lotes** (se lee todo y se escribe después): todas las fichas que lo piden en el mismo turno se miden juntas, con tres pasadas como máximo (`data-terse`, luego «+N», luego `data-tight`). No hay estado reactivo por dato. Se mide al montar (antes del primer pintado), al cambiar de tamaño, al cambiar el contenido, en `document.fonts.ready` y al cambiar la densidad (`data-g-density` o la clave del tema: el ancho de la ficha no cambia pero el de su texto sí; se vuelve a medir sin «entrar»); **no** con `loading` ni en `stack`. Las fichas a más de un visor de distancia se aplazan hasta acercarse. Sin `ResizeObserver` (SSR, antes de montar) la ficha **ya está bien por CSS**: cede y recorta; solo faltan «+N», el silencio de rótulos y el estado apretado.
 
 Cifras medidas con 500 fichas en una rejilla (`summary.spec.mjs`, contrato: < 150 ms):
 

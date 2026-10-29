@@ -267,7 +267,7 @@ Reglas y límites: [`docs/contract/tokens.md` §15](docs/contract/tokens.md). Ve
 
 ### Densidad global y por región
 
-La densidad aprieta o afloja **la altura, el relleno y la separación** de los controles en tres pasos: `default` (×1), `comfortable` (×0,875) y `compact` (×0,75). Con `space` 4, una caja `md` mide 36, 31,5 y 27 px. Los mínimos no bajan nunca: 24 px de área táctil, 44 px con puntero grueso y 16 px de texto editable con puntero grueso. Por ahora **no cambia la tipografía**: el texto que baja con `compact` es la pieza 3 ([#966](DECISIONS.md)), todavía sin construir.
+La densidad aprieta o afloja **la altura, el relleno y la separación** de los controles en tres pasos: `default` (×1), `comfortable` (×0,875) y `compact` (×0,75). Con `space` 4, una caja `md` mide 36, 31,5 y 27 px. Los mínimos no bajan nunca: 24 px de área táctil, 44 px con puntero grueso, 12 px de texto y 16 px de texto editable con puntero grueso. **En `compact` el texto también baja** (pieza 3, [#986 a #995](DECISIONS.md)); mira «El texto en `compact`» más abajo.
 
 Viaja por CSS: el atributo `data-g-density` en **cualquier elemento** crea una región y todo lo que hay dentro la sigue.
 
@@ -307,9 +307,37 @@ Viaja por CSS: el atributo `data-g-density` en **cualquier elemento** crea una r
 - **Sin JavaScript funciona:** es CSS; el servidor puede pintar `<html data-g-density="compact">` y la página llega ya apretada.
 - **Se cambia con el atributo, no con el token.** `style.setProperty('--g-density', …)` o `--g-density` en tu `tokens.css` están fuera de contrato (el CLI lo rechaza en `overrides`).
 - **`useFormField().density`** no ve la región: sigue resolviendo prop › formulario › `default`. Para medir o pintar, lee `var(--g-density)`.
-- **`GCalendar`** conserva su escala propia (`compact` · `comfortable` · `spacious`) y no sigue la región; `GPagination`, `GTag`, `GBadge`, `GAccordion`, `GFilterBar` y `GBreadcrumbs` tampoco, hasta la pieza 4 ([#967](DECISIONS.md)): en una barra compacta quedan en su paso normal.
+- **`GCalendar`** conserva su escala propia (`compact` · `comfortable` · `spacious`) y no sigue la región; `GPagination`, `GTag`, `GBadge`, `GAccordion`, `GFilterBar` y `GBreadcrumbs` tampoco **en su caja**, hasta la pieza 4 ([#967](DECISIONS.md)): en una barra compacta quedan en su paso normal. Su **texto sí baja** con la región (13,13 px dentro de una caja de 36): es un desajuste transitorio y conocido (H3 de `density.md` §16.7).
 
-**Verificación** (estado: `candidate`; contrato [`design/contracts/density.md`](design/contracts/density.md), decisiones #974 a #985): **medido en Chromium** con la verificación propia de la auditoría de coco ([`design/lab/density/auditoria.md`](design/lab/density/auditoria.md), 142/142) y el spec `tests/density.spec.mjs` (17/17). **Sin verificar:** Firefox y WebKit (solo hay Chromium), una aplicación con SSR real (se aproxima con `renderToString` y sin JavaScript), una tableta que cambia de puntero en caliente y lectores de pantalla (sin cambio semántico esperado). Con una tabla de 500 filas, cambiar la densidad de toda la página tarda ≈ 72–80 ms: es el reflujo del navegador, igual que cambiar un control, y no está verificado sin vecinos ([#965](DECISIONS.md)).
+#### El texto en `compact`
+
+En una región `compact` (también con `<html data-g-density="compact">` o la clave `density: "compact"`) el texto baja **≈ 6,25 %** en todos los roles, con su interlineado y un piso de 12 px. Con el tema por defecto:
+
+| Rol | `default` | `compact` |
+| --- | --- | --- |
+| `caption` | 12 / 16 | 12 / 16 |
+| `body-sm` | 14 / 20 | 13,13 / 20 |
+| `body` | 16 / 24 | 15 / 24 |
+| `title-sm` | 20 / 28 | 18,75 / 28 |
+| `title` | 25 / 36 | 23,44 / 32 |
+| `title-lg` | 31,25 / 40 | 29,3 / 36 |
+| `display` | 39,06 / 48 | 36,62 / 44 |
+
+- **Qué baja:** todo lo que lee un rol `--g-text-*` dentro de la región: controles, etiquetas, ayudas, celdas, títulos de contenedor, `GText`, el valor de `GMetric` y **tu propia prosa si usa `var(--g-text-*)`**. El icono de `GBtn`, que se mide desde su texto, baja con él (15,1 px en `md`). Un texto tuyo con un tamaño fijo no baja.
+- **Qué no:** `comfortable` conserva el texto del paso normal. Avisos, isla de estado y captura de voz tampoco bajan. Los títulos bajan conservando su peso.
+- **El interlineado** sigue su regla: con el tema por defecto, `caption`, `body-sm`, `body` y `title-sm` mantienen su renglón en los tres pasos (un párrafo no cambia de ritmo vertical); `title`, `title-lg` y `display` bajan 4 px.
+- **Táctil:** con puntero grueso el texto vuelve a `default`, salvo en un componente con `density="compact"` explícito. El texto editable mantiene `max(16px, rol)` aun así.
+- **Los títulos nunca quedan por debajo del `body-sm` de su paso** ([`tokens.md` §23.4](docs/contract/tokens.md)): 14 px en `default` y `comfortable`, 13,13 px en `compact` con el tema por defecto.
+- **Con tema generado por el CLI,** las reglas de región llevan los valores de tu tipografía (`fontSize`, `typeScale`, `overrides`); [cómo, en el README del CLI](packages/cli/README.md#densidad-y-texto).
+
+**Límites que conviene saber:**
+
+- **Tu `tokens.css` escrito a mano (H5).** Un `--g-text-*` que sobrescribes en `:root` solo vale **fuera** de los elementos con `data-g-density`, incluidas las raíces de componentes con `density` explícita (también `"default"`) y las de avisos, isla y voz: dentro, las reglas del tema lo reasignan. Genera el tema con el CLI para que lo cubra.
+- **`--g-hero-title-max` no sigue la región (H4):** el héroe es de la página.
+- **`GCalendar` y los controles que aún no siguen la densidad (H3):** su texto baja pero no su caja, hasta la pieza 4.
+- **El ritmo compartido solo es exacto con el tema por defecto.** Con otras tipografías el redondeo a 4 px puede bajar un renglón (con `fontSize` 18 y `typeScale` 1,333, `body-sm` pasa de 24 a 20).
+
+**Verificación** (estado: `candidate`; contrato [`design/contracts/density.md`](design/contracts/density.md), decisiones #974 a #985): **medido en Chromium** con la verificación propia de la auditoría de coco ([`design/lab/density/auditoria.md`](design/lab/density/auditoria.md), 142/142) y el spec `tests/density.spec.mjs` (17/17). **El texto** (pieza 3): la auditoría de coco ([`design/lab/density-text/auditoria.md`](design/lab/density-text/auditoria.md)) da 172/172 en Chromium y el spec `tests/density-text.spec.mjs` de bruno, 13/13 según su informe (no se volvió a ejecutar al documentar); el CLI, sus pruebas `packages/cli/test/density-text.test.js`. **Sin verificar:** Firefox y WebKit (solo hay Chromium; el texto de `compact` también está medido solo en Chromium), una aplicación con SSR real (se aproxima con `renderToString` y sin JavaScript), una tableta que cambia de puntero en caliente y lectores de pantalla (sin cambio semántico esperado). Con una tabla de 500 filas, cambiar la densidad de toda la página tarda ≈ 72–80 ms: es el reflujo del navegador, igual que cambiar un control, y no está verificado sin vecinos ([#965](DECISIONS.md)).
 
 ## Componentes
 

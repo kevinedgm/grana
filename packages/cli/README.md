@@ -87,6 +87,28 @@ Todo token de color que cambies en el claro (por ejemplo `overrides` de `--g-col
 
 **Códigos de salida:** `0` correcto (los avisos no cuentan) · `1` el tema rompe un mínimo · `2` uso o configuración inválidos.
 
+**Avisos y notas salen siempre por `stderr`** (`theme` y `check` sin `--json`). Por `stdout` solo va el CSS (con `--stdout`) o las líneas de resumen `✔`; por eso `grana theme grana.config.json --stdout > tokens.css` produce CSS válido aunque haya avisos. `check --json` no cambia.
+
+## Densidad y texto
+
+La clave `density` (`"default"`, `"comfortable"` o `"compact"`; otro valor es un error) fija la densidad de todo el producto; `default` no emite nada. Con `comfortable` o `compact` el CLI escribe `--g-density` en una regla `:root:where(:not([data-g-density]))`, que cede ante `<html data-g-density>`, ante las regiones y, con puntero grueso, ante el dedo. Reglas de precedencia y de uso: [README principal](https://github.com/kevinedgm/grana#densidad-global-y-por-región).
+
+**El texto baja con `compact`** (contrato `design/contracts/density.md` §16, decisiones #986 a #995): cada rol toma `min(paso normal, max(12px, paso normal × 15/16))`, con su interlineado por la regla de `tokens.md` §5.1. `comfortable` no cambia el texto. El CLI calcula esa escala **sobre tu tipografía**, con la misma función con la que genera `fontSize` y `typeScale`.
+
+| Tu configuración | Qué emite para el texto |
+| --- | --- |
+| Sin `fontSize`, `typeScale` ni `--g-text-*` en `overrides`, y sin `density: "compact"` | Nada de texto (`tokens.css` sin cambio): mandan los valores de `grana.defaults` |
+| Fija tipografía (`fontSize`, `typeScale` o algún `--g-text-*-size`/`-line` en `overrides`) | Cuatro reglas **sin capa** con los valores de tu tema: `[data-g-density="compact"]`, `[data-g-density="default"], [data-g-density="comfortable"]` (la vuelta dentro de una región compacta) y, con `@media (pointer: coarse)`, `[data-g-density]` y la prop explícita `compact` de un componente |
+| `density: "compact"` | El texto compacto va **dentro de la misma regla de la clave**, y su valor de paso normal en la consulta táctil; sin selector nuevo |
+
+Sin esas reglas, el `:root` sin capa de tu tema ganaría a la regla en capa de los defaults y una región compacta recibiría la escala **del tema por defecto**, no la tuya. Solo se escriben los roles que cambian, más los que cambia el tema por defecto, para que ninguno herede su valor compacto; `--g-text-*` en `dark.overrides` no entra (el texto no depende del esquema).
+
+**Nota `text-density`.** Si un `--g-text-*` de `overrides` no es una longitud en `rem` o `px` (por ejemplo `clamp(…)` o `var(…)`), el CLI no puede derivar su paso compacto: se queda **igual en los tres pasos** y avisa con la nota «`--g-text-…` no es una longitud en rem o px: se queda igual en los tres pasos de densidad.» (por `stderr`).
+
+**Un `tokens.css` escrito a mano no sigue la región (H5).** Un `--g-text-*` que sobrescribas en `:root` fuera del CLI solo vale fuera de los elementos con `data-g-density` (también de las raíces con `density` explícita en un componente): dentro, las reglas del tema lo reasignan. Para cambiar el texto, usa `fontSize`, `typeScale` u `overrides`, que emiten también sus reglas de región. `--g-hero-title-max` no sigue la región (H4).
+
+**Evidencia:** pruebas del CLI en `packages/cli/test/density-text.test.js` (incluida una malla de `fontSize` 12 a 20 y `typeScale` 1,067 a 1,618 sin ningún valor compacto por debajo de 12 px) y comprobación a mano al documentar: con un tema `fontSize` 14, `typeScale` 1,2 y un `clamp(…)` en `--g-text-body-size`, `--stdout > archivo` deja `:root {` como primera regla, las cuatro reglas de región con la nota `text-density` y los avisos solo en `stderr`; con `{ "density": "compact" }` sale el texto en la regla de la clave y su vuelta táctil. Auditoría del CSS por defecto: [`design/lab/density-text/auditoria.md`](https://github.com/kevinedgm/grana/blob/main/design/lab/density-text/auditoria.md) (172/172 en Chromium). Los temas generados en un navegador **no están verificados** con Firefox ni WebKit.
+
 ## Qué valida (contrato §7 y §12)
 
 **En los dos esquemas (claro y oscuro):** foco ≥ 2px · contraste de texto ≥ 4.5:1 y de bordes de control ≥ 3:1 · texto ≥ 12px · pares `on-*`/`*-text` ≥ 4.5:1 · cristal: opacidad ≥ 0.55 y velo ≥ 4.5:1 sobre negro. Avisa (sin bloquear) de tokens desconocidos, colores que no puede medir y `space` < 4.
