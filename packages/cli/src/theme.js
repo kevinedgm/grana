@@ -3,7 +3,7 @@ import { DENSITY_VALUES } from './config.js'
 import { deriveColor, deriveDarkColor } from './derive.js'
 import { DEFAULTS, DARK } from './defaults.js'
 import { isColorGroup, splitColorGroup } from './scheme.js'
-import { fontStack, radii, spacing, typography, heroTitleMax } from './scales.js'
+import { fontStack, radii, spacing, typography, heroTitleMax, textDensity, TEXT_DENSITY_KEYS } from './scales.js'
 import { categoryBases, semanticAdjustments, tintedNeutralBase, tintedNeutrals } from './palette.js'
 import { applyZone } from './zone.js'
 import { sidebarCurrentDark } from './sidebarCurrent.js'
@@ -135,14 +135,31 @@ export const generateTheme = (config = {}) => {
     generated['--g-hero-title-max'] = heroTitleMax(config.fontSize ?? 16, config.typeScale ?? 1.25)
   }
   Object.assign(generated, overrides)
+  const text = textRules(config, { ...DEFAULTS, ...generated })
   // Zona de marca (tokens.md §44): las fuentes se derivan del claro ya resuelto y valen lo mismo en los dos esquemas
-  return applyZone({ generated, tokens: { ...DEFAULTS, ...generated }, dark: generateDark(config, generated, derived), derived }, config)
+  return { ...applyZone({ generated, tokens: { ...DEFAULTS, ...generated }, dark: generateDark(config, generated, derived), derived }, config), text }
+}
+
+// El texto sigue la densidad (density.md §16.5, #991). «El tema fija texto» (T): fontSize o typeScale, o algún
+// --g-text-*-size/-line en overrides. Claves K (H7): unión de las que cambian en el tema, las que reasigna defaults.css
+// (la misma función sobre DEFAULTS, no una lista fija) y las sobrescritas; sin las de defaults.css, la regla en capa del
+// tema por defecto dejaría pasar su valor compacto donde este tema no cambia. Sin T y sin `compact`: null (Δ0 bytes).
+const DEFAULT_TEXT = textDensity(DEFAULTS)
+const textRules = (config, values) => {
+  const overrides = config.overrides ?? {}
+  const overridden = TEXT_DENSITY_KEYS.filter((k) => k in overrides)
+  const fixesText = config.fontSize !== undefined || config.typeScale !== undefined || overridden.length > 0
+  if (!fixesText && config.density !== 'compact') return null
+  const { C, D, fixed } = fixesText ? textDensity(values) : DEFAULT_TEXT
+  const keys = TEXT_DENSITY_KEYS.filter((k) => C[k] !== D[k] || DEFAULT_TEXT.C[k] !== DEFAULT_TEXT.D[k] || overridden.includes(k))
+  const pick = (o) => Object.fromEntries(keys.map((k) => [k, o[k]]))
+  return { regions: fixesText, keys, C: pick(C), D: pick(D), fixed: fixed.filter((k) => keys.includes(k)) }
 }
 
 // Especificidad: los dos selectores de la consulta oscura valen (0,1,0), igual que `:root, [data-theme="light"]`, para que
 // un segundo tema cargado después (cambio en caliente) gane por orden; con `:not()` pasarían a (0,2,0) y el primero ganaría siempre.
 /** tokens.css: sin capa (el tema del usuario gana siempre, contrato §8). Con tema oscuro, tres bloques (contrato §15). */
-export const toCss = (generated, { source = 'grana.config.json', dark = { enabled: true, generated: {} }, zone = null, density } = {}) => {
+export const toCss = (generated, { source = 'grana.config.json', dark = { enabled: true, generated: {} }, zone = null, density, text = null } = {}) => {
   const decls = (o, indent = '  ') => Object.entries(o).map(([k, v]) => `${indent}${k}: ${v};`)
   const { color, other } = splitColorGroup(generated)
   const out = [
@@ -153,11 +170,29 @@ export const toCss = (generated, { source = 'grana.config.json', dark = { enable
   // Clave density (density.md §6, #981): el valor del producto, solo con comfortable o compact (con default o sin clave,
   // nada: Δ0 bytes). (0,1,0) como #561: un segundo tema cargado después gana; <html data-g-density> gana porque el selector
   // deja de coincidir. Su propio restablecimiento táctil (P2, #978): sin capa ganaría a la regla de grana.defaults
+  // Con compact, el texto compacto va en la misma regla (density.md §16.5): sin selector nuevo
+  const inline = (o) => Object.entries(o).map(([k, v]) => ` ${k}: ${v};`).join('')
+  const textC = text && density === 'compact' ? inline(text.C) : ''
+  const textD = text && density === 'compact' ? inline(text.D) : ''
   if (density && density !== 'default') {
     out.push(
-      `:root:where(:not([data-g-density])) { --g-density: ${DENSITY_VALUES[density]}; }`,
+      `:root:where(:not([data-g-density])) { --g-density: ${DENSITY_VALUES[density]};${textC} }`,
       '@media (pointer: coarse) {',
-      '  :root:where(:not([data-g-density])) { --g-density: 1; }',
+      `  :root:where(:not([data-g-density])) { --g-density: 1;${textD} }`,
+      '}'
+    )
+  }
+  // Reglas de región del texto (M1, density.md §16.4, #990): sin capa, con los valores de este tema. Sin ellas el :root
+  // sin capa ganaría a la regla en capa sobre <html data-g-density> y una región tomaría los del tema por defecto
+  if (text?.regions && text.keys.length) {
+    const c = inline(text.C)
+    const d = inline(text.D)
+    out.push(
+      `[data-g-density="compact"] {${c} }`,
+      `[data-g-density="default"], [data-g-density="comfortable"] {${d} }`,
+      '@media (pointer: coarse) {',
+      `  [data-g-density] {${d} }`,
+      `  [data-g-density="compact"][class*="--density-compact"] {${c} }`,
       '}'
     )
   }

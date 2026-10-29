@@ -6,13 +6,14 @@
 // data-clipped, data-terse, data-tight, title en lo cortado y data-enter. Esos estados se escriben en el DOM fuera del
 // render (sin estado reactivo por dato). Todo es contenido de frase (span, mark): válido dentro de option, button, a y td.
 // Sin eventos, sin teclado, sin textos propios.
-import { Comment, Fragment, Text, computed, defineComponent, h, onBeforeUnmount, onMounted, onUpdated, useId } from 'vue'
+import { Comment, Fragment, Text, computed, defineComponent, h, onBeforeUnmount, onMounted, onUpdated, useId, watch } from 'vue'
 import GAvatar from '../GAvatar/GAvatar.vue'
 import GBadge from '../GBadge/GBadge.vue'
 import GAppIcon from '../GIcon/GIcon.vue' // prop `icon`: nombre de la aplicación (registro más cercano → librería, #202)
 import { oneOf } from '../../utils/oneOf.js'
 import { parts } from '../../utils/match.js'
 import { attach, detach, touch } from './measure.js'
+import { useDensityEpoch } from '../../utils/density.js'
 
 const LAYOUTS = ['inline', 'row', 'stack']
 const SIZES = ['xs', 'sm', 'md', 'lg', 'xl']
@@ -140,6 +141,9 @@ export default defineComponent({
       else { rec.multi = multi.value; touch(rec) }
     })
     onBeforeUnmount(() => { if (rec) { detach(rec, false); rec = null } })
+    // El texto sigue la densidad (density.md §16, criterio 15): con otro paso el ancho de la ficha no cambia pero el de su
+    // texto sí; se vuelve a medir como tras un render (sin «entrar»)
+    watch(useDensityEpoch(), () => { if (rec) touch(rec) })
 
     return () => {
       const L = layout.value

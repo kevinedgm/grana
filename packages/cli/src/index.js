@@ -10,6 +10,7 @@ import { MIN_DISTANCE, anchorLabel } from './palette.js'
 
 export { readConfig, KEYS, DENSITY_VALUES } from './config.js'
 export { generateTheme, toCss } from './theme.js'
+export { textDensity, compactSize, compactLine, lengthPx, TEXT_DENSITY_KEYS } from './scales.js'
 export { validateTheme, COLOR_NAMES } from './validate.js'
 export { deriveColor, deriveDarkColor } from './derive.js'
 export { buildDoc, activeContrast } from './doc.js'
@@ -30,7 +31,7 @@ export const buildTheme = (raw, { source } = {}) => {
   if (errors.length) {
     return { ok: false, css: null, generated: {}, tokens: {}, notes: [], diagnostics: [], issues: errors.map((e) => ({ severity: 'error', kind: 'config', why: 'La configuración no es válida: corrígela y vuelve a ejecutar.', ...e })) }
   }
-  const { generated, tokens, dark, derived, zone, zoneBlock } = generateTheme(config)
+  const { generated, tokens, dark, derived, zone, zoneBlock, text } = generateTheme(config)
   // Sin `accent` del usuario, el acento se deriva de la marca: los avisos lo dicen (tokens.md §17.12)
   const accentDerived = config.accent === undefined && config.brand !== undefined
   const issues = validateTheme(tokens, { generated: config.overrides ?? {}, accentDerived })
@@ -72,6 +73,8 @@ export const buildTheme = (raw, { source } = {}) => {
   // Ranuras del item actual de GSidebar (tokens.md §43, #614): informativo, y la derivación del oscuro si la hubo
   diagnostics.push(...sidebarCurrentDiagnostics(config, tokens, dark))
   diagnostics.push(...zoneDiagnostics(zone, { overrides: config.overrides ?? {} }))
+  // Texto que no sigue la densidad (density.md §16.5): un valor que no es una longitud en rem o px se queda en los tres pasos
+  for (const k of text?.fixed ?? []) diagnostics.push({ code: 'text-density', cssVar: k, source: 'overrides', value: tokens[k], status: 'fixed', message: `\`${k}\` no es una longitud en rem o px: se queda igual en los tres pasos de densidad.` })
   if (derived.categories.length) diagnostics.push({ code: 'categories', source: 'brand', status: 'derived', message: `${derived.categories.length} categorías (--g-color-cat-1 a cat-${derived.categories.length}): mismo L y C, tonos cada ${Math.round(360 / derived.categories.length)}°. Son colores categóricos de interfaz, no una paleta de gráficas.` })
   // Las colisiones sin aplicar llegan al usuario como aviso (con la alternativa); el resto, como nota
   for (const d of diagnostics) {
@@ -81,5 +84,5 @@ export const buildTheme = (raw, { source } = {}) => {
   const notes = diagnostics.filter((d) => d.code !== 'semantic-close' && d.code !== 'override')
   const collisions = diagnostics.filter((d) => d.code === 'semantic-close').map(({ cssVar, recommended, distance, message }) => ({ code: 'semantic-close', cssVar, token: cssVar.replace('--g-color-', ''), distance, recommended, message }))
   const doc = ok ? buildDoc({ name: config.name, density: config.density, light: tokens, dark: dark.enabled ? dark.tokens : null, source, generated, overrides: config.overrides ?? {}, derived, collisions, zone }) : null
-  return { ok, css: ok ? toCss(generated, { source, dark, zone: zoneBlock, density: config.density }) : null, doc, generated, tokens, dark, derived, zone, zoneBlock, notes, diagnostics, issues }
+  return { ok, css: ok ? toCss(generated, { source, dark, zone: zoneBlock, density: config.density, text }) : null, doc, generated, tokens, dark, derived, zone, zoneBlock, text, notes, diagnostics, issues }
 }

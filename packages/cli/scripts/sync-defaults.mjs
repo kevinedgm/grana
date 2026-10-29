@@ -7,9 +7,12 @@ import { dirname, resolve } from 'node:path'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const raw = readFileSync(resolve(here, '../../vue/src/styles/defaults.css'), 'utf8')
+// Las reglas de región (`[data-g-density…]`: --g-density y el texto compacto, density.md §2.1 y §16.4) no son el paso 1:
+// viven tras la marca OSCURO y, si alguna quedara antes, tampoco se copian
+const REGION_RULE = /[^{};]*\[data-g-density[^{}]*\{[^{}]*\}/g
 const parse = (text) => {
   const tokens = {}
-  for (const m of text.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/(--g-[a-z0-9-]+)\s*:\s*([^;]+);/g)) tokens[m[1]] = m[2].trim().replace(/\s+/g, ' ')
+  for (const m of text.replace(/\/\*[\s\S]*?\*\//g, '').replace(REGION_RULE, '').matchAll(/(--g-[a-z0-9-]+)\s*:\s*([^;]+);/g)) tokens[m[1]] = m[2].trim().replace(/\s+/g, ' ')
   return tokens
 }
 const [light, darkPart] = raw.split('/* === OSCURO')

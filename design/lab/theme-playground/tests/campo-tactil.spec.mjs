@@ -30,6 +30,9 @@ const V = !!process.env.VERBOSE
 const SIZES = ['xs', 'sm', 'md', 'lg', 'xl']
 const DENS = ['default', 'compact']
 const DESKTOP_PX = { xs: 12, sm: 14, md: 14, lg: 16, xl: 16 }
+// Pieza 3 (density.md §16, #986): en compact el texto baja con la escala B (12 · 13,125 · 15); la prop explícita no cede en táctil
+const DESKTOP = { default: DESKTOP_PX, compact: { xs: 12, sm: 13.125, md: 13.125, lg: 15, xl: 15 } }
+const cli = await import(fileURLToPath(new URL('../../../../packages/cli/src/index.js', import.meta.url)))
 
 // ---------------------------------------------------------------------------------------------------- la página
 const SCRIPTS = ['grana', 'combobox', 'time-field', 'booking', 'speech']
@@ -173,15 +176,15 @@ for (const dens of DENS) {
       results[dens] = { touch: touchData, desk: deskData }
     })
 
-    test('escritorio (2): el tamaño de letra no cambia (Δ0)', async () => {
+    test('escritorio (2): el tamaño de letra no cambia (Δ0; en compact, la escala B de la pieza 3)', async () => {
       test.skip(WRITE_BASE, 'regenerando la línea base')
       for (const z of SIZES) {
         for (const [c, m] of Object.entries(deskData).filter(([k]) => k.startsWith(z + '|'))) {
           const spec = SPEC[c.split('|')[1]]
           if (m?.main == null) { expect.soft(m, `${c}: control sin montar`).not.toBeNull(); continue }
           if (c.endsWith('group')) continue // la parte de texto fija su propio tamaño en escritorio (se compara con el control en táctil)
-          expect.soft(m.main, `${dens} ${c}`).toBe(DESKTOP_PX[z])
-          for (const k of COMPANIONS) if (m[k] != null && spec[k]) expect.soft(m[k], `${dens} ${c} ${k}`).toBe(DESKTOP_PX[z])
+          expect.soft(m.main, `${dens} ${c}`).toBeCloseTo(DESKTOP[dens][z], 2)
+          for (const k of COMPANIONS) if (m[k] != null && spec[k]) expect.soft(m[k], `${dens} ${c} ${k}`).toBeCloseTo(DESKTOP[dens][z], 2)
         }
       }
     })
@@ -190,7 +193,7 @@ for (const dens of DENS) {
       test.skip(WRITE_BASE, 'regenerando la línea base')
       test.skip(!touchData, `${browserName}: sin pointer: coarse emulado (se omite y se anota)`)
       for (const z of SIZES) {
-        const want = Math.max(16, DESKTOP_PX[z])
+        const want = Math.max(16, DESKTOP[dens][z])
         for (const [c, m] of Object.entries(touchData).filter(([k]) => k.startsWith(z + '|'))) {
           if (!m) { expect.soft(m, `${c}: sin montar`).not.toBeNull(); continue }
           expect.soft(m.main, `${dens} ${c} main`).toBeGreaterThanOrEqual(16)
@@ -332,7 +335,14 @@ for (const dens of DENS) {
       expect.soft(vals.length, `${dens} ${k}: el control existe en táctil`).toBeGreaterThan(0)
       expect.soft(D[k].length, `${dens} ${k}: el control existe en escritorio`).toBeGreaterThan(0)
       for (const v of vals) expect.soft(v, `${dens} ${k} táctil ≥ 16`).toBeGreaterThanOrEqual(16)
-      if (base?.misc?.[dens]?.[k]) expect.soft(D[k], `${dens} ${k} escritorio Δ0`).toEqual(base.misc[dens][k])
+      // Escritorio Δ0 frente al dist/ anterior; en compact, cada rol de entonces con la escala B de la pieza 3 (#986)
+      if (base?.misc?.[dens]?.[k]) {
+        // GCalendar y GTranscript no llevan `density` y aquí no están en una región: su texto no cambia (Δ0)
+        const follows = dens === 'compact' && !['calendarResource', 'transcriptEditor'].includes(k)
+        const want = follows ? base.misc[dens][k].map((v) => (v == null ? v : cli.compactSize(v))) : base.misc[dens][k]
+        expect.soft(D[k].length, `${dens} ${k} escritorio: mismos controles`).toBe(want.length)
+        D[k].forEach((v, i) => expect.soft(Math.abs(v - want[i]) <= 0.01, `${dens} ${k}[${i}] escritorio ${v} = ${want[i]}`).toBe(true))
+      }
     }
   })
 }
@@ -350,11 +360,13 @@ async function touchPage(browser, browserName, { css, viewport } = {}) {
 const coarse = (page) => page.evaluate(() => matchMedia('(pointer: coarse)').matches)
 
 // ============================================================ 3 · con un tema de letra mayor manda el rol
+// Temas del CLI real (H5 de la pieza 3, density.md §16.7): un --g-text-* escrito a mano en :root no vale dentro de una raíz
+// con prop explícita (la matriz pasa density="default"); el tema de texto se hace con las claves del CLI, que emiten sus reglas
 const THEMES = [
   // fontSize 18 según scales.js: caption max(12, 18×0,75), body-sm 18×0,875, body 18
-  { name: 'fontSize 18', css: ':root{--g-text-caption-size:13.5px;--g-text-caption-line:18px;--g-text-body-sm-size:15.75px;--g-text-body-sm-line:22px;--g-text-body-size:18px;--g-text-body-line:27px}', roles: { xs: 13.5, sm: 15.75, md: 15.75, lg: 18, xl: 18 } },
+  { name: 'fontSize 18', css: cli.buildTheme({ fontSize: 18 }).css, roles: { xs: 13.5, sm: 15.75, md: 15.75, lg: 18, xl: 18 } },
   // fontSize 20: el rol de md (17,5) ya supera 16 (lo que #972 criterio 3 llama «fontSize 18»: con 18, body-sm da 15,75)
-  { name: 'fontSize 20', css: ':root{--g-text-caption-size:15px;--g-text-caption-line:20px;--g-text-body-sm-size:17.5px;--g-text-body-sm-line:25px;--g-text-body-size:20px;--g-text-body-line:30px}', roles: { xs: 15, sm: 17.5, md: 17.5, lg: 20, xl: 20 } }
+  { name: 'fontSize 20', css: cli.buildTheme({ fontSize: 20 }).css, roles: { xs: 15, sm: 17.5, md: 17.5, lg: 20, xl: 20 } }
 ]
 for (const th of THEMES) {
   test(`tema ${th.name} (3): en táctil manda el rol (max(16, rol)) en el control y su línea del valor`, async ({ browser, browserName }) => {
@@ -366,8 +378,8 @@ for (const th of THEMES) {
     for (const z of SIZES) {
       const want = Math.max(16, th.roles[z])
       for (const [c, v] of Object.entries(m).filter(([k]) => k.startsWith(z + '|'))) {
-        expect.soft(v.main, `${th.name} ${c} main`).toBe(want)
-        for (const k of COMPANIONS) if (v[k] != null) expect.soft(v[k], `${th.name} ${c} ${k}`).toBe(want)
+        expect.soft(v.main, `${th.name} ${c} main`).toBeCloseTo(want, 2)
+        for (const k of COMPANIONS) if (v[k] != null) expect.soft(v[k], `${th.name} ${c} ${k}`).toBeCloseTo(want, 2)
       }
     }
     // en escritorio con ese tema el rol sigue mandando sin piso (Δ0 respecto del rol)
@@ -377,7 +389,7 @@ for (const th of THEMES) {
     const dp = await desk.newPage()
     await mount(dp, matrixTemplate('default'))
     const dm = await measure(dp, SPEC)
-    for (const z of SIZES) for (const [c, v] of Object.entries(dm).filter(([k]) => k.startsWith(z + '|') && !k.endsWith('group'))) expect.soft(v.main, `${th.name} escritorio ${c}`).toBe(th.roles[z])
+    for (const z of SIZES) for (const [c, v] of Object.entries(dm).filter(([k]) => k.startsWith(z + '|') && !k.endsWith('group'))) expect.soft(v.main, `${th.name} escritorio ${c}`).toBeCloseTo(th.roles[z], 2)
     await desk.close()
   })
 }

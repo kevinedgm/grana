@@ -15,6 +15,7 @@ import { anchorGone, followFrame, placeBlock, px, setVar, stickySide } from '../
 import { observeSize } from '../../utils/sizeObserver.js'
 import { fill } from '../../utils/template.js'
 import { useVisualTips } from '../../utils/visualTip.js'
+import { useDensityEpoch } from '../../utils/density.js'
 import { nextFrame, spaceUnit } from '../GForm/formContext.js'
 
 const B = 'g-breadcrumbs'
@@ -399,6 +400,8 @@ export default defineComponent({
     // en cada render del padre) forzaría hasta tres layouts del documento por render
     const measureKey = computed(() => model.value.levels.map((l) => [l.label, l.href ? 1 : 0, hasIcon(l) ? 1 : 0, l.children.length].join('\u0001')).join('\u0000'))
     watch(measureKey, () => measure(), { flush: 'post' })
+    // El texto sigue la densidad (density.md §16, criterio 15): el ancho del nav no cambia, el de los nombres sí
+    watch(useDensityEpoch(), () => measure(), { flush: 'post' })
     const onFonts = () => nextFrame(measure)
 
     // ---------- Subir o bajar (L13, #500): entra el último o sale una copia inerte ----------

@@ -71,7 +71,9 @@ export const run = (argv, { cwd = process.cwd(), out = (s) => process.stdout.wri
     out(`${JSON.stringify({ ok: result.ok, errors: errors.length, warnings: warnings.length, issues: result.issues }, null, 2)}\n`)
     return result.ok ? 0 : configInvalid ? 2 : 1
   }
-  if (result.issues.length) (result.ok ? out : err)(`${formatIssues(result.issues)}\n`)
+  // Avisos y notas siempre por stderr (density.md §16.5, H1, #992): con --stdout redirigido a un archivo, por stdout
+  // rompían la primera regla del CSS. Por stdout solo el CSS (--stdout) o las líneas de resumen ✔. Los códigos no cambian
+  if (result.issues.length) err(`${formatIssues(result.issues)}\n`)
   if (configInvalid) {
     err(`\nLa configuración no es válida (${errors.length} ${errors.length === 1 ? 'error' : 'errores'}). No se escribió nada.\n`)
     return 2
@@ -85,7 +87,7 @@ export const run = (argv, { cwd = process.cwd(), out = (s) => process.stdout.wri
     out(`✔ El tema cumple los mínimos de accesibilidad (${count} ${count === 1 ? 'token' : 'tokens'} generados, ${warnings.length} ${warnings.length === 1 ? 'aviso' : 'avisos'}).\n`)
     return 0
   }
-  if (result.notes.length) out(`${result.notes.map((n) => `ℹ ${n.message}`).join('\n')}\n`)
+  if (result.notes.length) err(`${result.notes.map((n) => `ℹ ${n.message}`).join('\n')}\n`)
   if (args.flags.stdout) { out(result.css); return 0 }
   const target = resolve(cwd, args.flags.out ?? 'tokens.css')
   writeFileSync(target, result.css)

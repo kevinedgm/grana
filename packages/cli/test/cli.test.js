@@ -87,7 +87,63 @@ describe('grana check', () => {
     cfg({ space: 3 })
     const r = exec(['check', 'grana.config.json'])
     expect(r.code).toBe(0)
-    expect(r.out).toContain('space-small')
+    // Avisos por stderr (density.md §16.5, H1, #992); por stdout solo el resumen ✔
+    expect(r.err).toContain('space-small')
+    expect(r.out).not.toContain('space-small')
+    expect(r.out).toContain('cumple los mínimos')
+  })
+})
+
+describe('H1 · avisos y notas por stderr (density.md §16.5, #992)', () => {
+  // Una configuración con avisos (space-small) y notas (neutros teñidos, categorías, text-density)
+  const noisy = { brand: '#7A1F5C', categories: 3, space: 3, fontSize: 15, overrides: { '--g-text-display-size': 'clamp(2rem, 5vw, 3rem)' } }
+
+  it('theme --stdout: por stdout solo el CSS; avisos y notas en stderr; código 0 como antes', () => {
+    cfg(noisy)
+    const r = exec(['theme', 'grana.config.json', '--stdout'])
+    expect(r.code).toBe(0)
+    expect(r.out.startsWith('/* Generado por @grana/cli')).toBe(true)
+    expect(r.out).not.toMatch(/[ℹ⚠✖✔]/)
+    expect(r.err).toContain('⚠ aviso [space-small]')
+    expect(r.err).toContain('ℹ ')
+    expect(r.err).toContain('`--g-text-display-size` no es una longitud en rem o px: se queda igual en los tres pasos de densidad.')
+  })
+
+  it('theme sin --stdout: avisos y notas en stderr, el resumen ✔ en stdout', () => {
+    cfg(noisy)
+    const r = exec(['theme', 'grana.config.json'])
+    expect(r.code).toBe(0)
+    expect(r.out).toMatch(/^✔ tokens\.css: /)
+    expect(r.out).not.toMatch(/[ℹ⚠]/)
+    expect(r.err).toContain('space-small')
+  })
+
+  it('check --json no cambia: el informe entero por stdout', () => {
+    cfg(noisy)
+    const r = exec(['check', 'grana.config.json', '--json'])
+    expect(r.code).toBe(0)
+    expect(JSON.parse(r.out).warnings).toBeGreaterThan(0)
+    expect(r.err).toBe('')
+  })
+
+  it('binario real: --stdout redirigido a un archivo da CSS válido con avisos presentes', () => {
+    cfg(noisy)
+    const bin = fileURLToPath(new URL('../bin/grana.mjs', import.meta.url))
+    const p = spawnSync('node', [bin, 'theme', 'grana.config.json', '--stdout'], { cwd: dir, encoding: 'utf8' })
+    expect(p.status).toBe(0)
+    writeFileSync(join(dir, 't.css'), p.stdout)
+    const css = readFileSync(join(dir, 't.css'), 'utf8')
+    expect(css.startsWith('/* Generado por @grana/cli')).toBe(true)
+    // La primera regla es `:root {` (tras los dos comentarios del CLI), sin ℹ ni ⚠ en el archivo
+    expect(css.replace(/\/\*[\s\S]*?\*\//g, '').trimStart().startsWith(':root {')).toBe(true)
+    expect(css).not.toMatch(/[ℹ⚠✖✔]/)
+    // Llaves equilibradas: el archivo es CSS válido de principio a fin
+    expect((css.match(/\{/g) ?? []).length).toBe((css.match(/\}/g) ?? []).length)
+    expect(p.stderr).toContain('space-small')
+    expect(p.stderr).toContain('ℹ ')
+    // El código de salida de un tema inválido no cambia
+    cfg({ overrides: { '--g-focus-width': '1px' } }, 'malo.json')
+    expect(spawnSync('node', [bin, 'theme', 'malo.json', '--stdout'], { cwd: dir, encoding: 'utf8' }).status).toBe(1)
   })
 })
 

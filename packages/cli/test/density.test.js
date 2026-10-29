@@ -5,8 +5,8 @@ import { fileURLToPath } from 'node:url'
 import { buildTheme, readConfig, KEYS, DENSITY_VALUES } from '../src/index.js'
 import { DEFAULTS } from '../src/defaults.js'
 
-const RULE = (v) => `:root:where(:not([data-g-density])) { --g-density: ${v}; }`
-const TOUCH = '@media (pointer: coarse) {\n  :root:where(:not([data-g-density])) { --g-density: 1; }\n}'
+const RULE = (v) => `:root:where(:not([data-g-density])) { --g-density: ${v};`
+const TOUCH = '@media (pointer: coarse) {\n  :root:where(:not([data-g-density])) { --g-density: 1;'
 
 describe('density · lectura', () => {
   it('es una clave conocida con tres valores de cadena', () => {
