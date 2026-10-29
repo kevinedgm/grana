@@ -9,7 +9,7 @@
 */
 
 .g-widget-config {
-  --_d: 1;
+  --_d: var(--g-density);
   --_ctl: max(24px, calc(var(--g-space-1) * 9));
   --_ring: var(--g-focus-width);
 }

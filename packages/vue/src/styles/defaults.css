@@ -226,6 +226,10 @@
      Se hereda: la anfitriona que conoce su relleno e icono lo redefine en su elemento. No escala con densidad */
   --g-divider-inset: calc(var(--g-space-1) * 2);
 
+  /* Densidad (tokens.md §58, density.md, #974): multiplicador heredable de altura, relleno y separación (#15:
+     1 · 0,875 · 0,75). Número, no palabra: lo leen los calc() de cada raíz. Se cambia con data-g-density, no aquí */
+  --g-density: 1;
+
   /* Espaciado · space 4 */
   --g-space-1: 4px;
   --g-space-2: 8px;
@@ -679,4 +683,22 @@
   /* Pinta: un data-g-zone suelto nunca deja tinta sobre la página */
   background-color: var(--g-color-bg);
   color: var(--g-color-text);
+}
+
+/* === DENSIDAD POR REGIÓN (density.md §2.1, DECISIONS.md #974 a #978) ===
+   data-g-density en cualquier elemento (<html> incluido, o la raíz de un componente con prop: la prop es su región, #975)
+   reasigna el token; manda la región más cercana por herencia, también en el top layer. Otro valor no hace nada.
+   Después del :root para ganarle en <html> con la misma especificidad; al final del archivo, tras la marca OSCURO, para que
+   sync-defaults del CLI solo copie --g-density: 1 del :root */
+[data-g-density="default"] { --g-density: 1; }
+[data-g-density="comfortable"] { --g-density: 0.875; }
+[data-g-density="compact"] { --g-density: 0.75; }
+
+/* P2 · «cede al dedo» (#978): con puntero grueso las regiones, <html> y la clave del CLI (que emite su propio
+   restablecimiento, sin capa) vuelven a 1; la prop explícita no cede. Solo la raíz con prop lleva a la vez el atributo y
+   una clase que contiene --density-X (0,2,0 frente a 0,1,0). 44 y 16 px van después del multiplicador: no se tocan */
+@media (pointer: coarse) {
+  :root, [data-g-density] { --g-density: 1; }
+  [data-g-density="comfortable"][class*="--density-comfortable"] { --g-density: 0.875; }
+  [data-g-density="compact"][class*="--density-compact"] { --g-density: 0.75; }
 }

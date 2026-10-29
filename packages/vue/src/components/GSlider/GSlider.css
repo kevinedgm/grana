@@ -23,7 +23,7 @@
      píldora, space × 7 con la misma densidad. Piso de 24px en las dos (área táctil mínima). Las dos crecen con su texto
      como la caja de GInput (una línea de body-sm + los dos bordes): con un espacio pequeño y texto grande, o con el
      texto al 200 %, la píldora no se desborda de su asa y el área sigue a la caja vecina (auditoría, hallazgo 2) */
-  --_density: 1;
+  --_density: var(--g-density);
   --_text-box: calc(var(--g-text-body-sm-line) + var(--g-border-width) * 2);
   --_h: max(24px, calc(var(--g-space-1) * 9 * var(--_density)), var(--_text-box));
   --_ph: max(24px, calc(var(--g-space-1) * 7 * var(--_density)), var(--_text-box));

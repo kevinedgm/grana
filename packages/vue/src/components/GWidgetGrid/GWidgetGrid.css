@@ -7,7 +7,7 @@
 */
 .g-widget-grid {
   --_focus: var(--g-color-focus);
-  --_density: 1;
+  --_density: var(--g-density);
   --_gap: calc(var(--g-widget-gap) * var(--_density));
   --_handle: max(24px, calc(var(--g-space-1) * 7));
 

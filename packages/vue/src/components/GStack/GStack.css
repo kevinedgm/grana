@@ -6,7 +6,7 @@
   de la aplicación sin capa gana, #516). Todos los selectores de hijos ignoran el nodo hermano de GTooltip (#383).
 */
 .g-stack {
-  --_d: 1;
+  --_d: var(--g-density);
   --_gap: calc(var(--g-space-1) * 6 * var(--_d));
   display: flex;
   flex-direction: column;

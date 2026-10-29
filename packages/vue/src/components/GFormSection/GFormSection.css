@@ -34,7 +34,7 @@
 
 .g-form-section {
   /* La sección no tiene densidad propia: sigue la del GForm que la contiene (por defecto, 1) */
-  --_d: 1;
+  --_d: var(--g-density);
   /* Encabezado → campos: algo menos que una fila, para que el título pertenezca a sus campos. Lo comparte el panel
      plegado (margen negativo: no deja hueco) */
   --_gap: calc(var(--g-space-4) * var(--_d));

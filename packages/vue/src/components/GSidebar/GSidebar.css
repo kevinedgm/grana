@@ -31,7 +31,7 @@
   --_text: var(--g-color-primary-text);
 
   /* Medidas (se reasignan por --density-*) */
-  --_density: 1;
+  --_density: var(--g-density);
   --_item: max(24px, calc(var(--g-space-1) * 10 * var(--_density)));
   --_sub: max(24px, calc(var(--g-space-1) * 9 * var(--_density)));
   --_ico: calc(var(--g-space-1) * 5);

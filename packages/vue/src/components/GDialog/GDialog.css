@@ -15,7 +15,7 @@
 /* ---------- Carcasa ---------- */
 .g-dialog {
   /* Medidas (se reasignan por --size-*, --density-* y consultas de medios) */
-  --_d: 1;
+  --_d: var(--g-density);
   --_w: calc(var(--g-space-1) * 140);
   --_pad-units: 5;
   --_gap: calc(var(--g-surface-gap) * var(--_d));

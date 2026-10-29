@@ -21,7 +21,7 @@
 
   /* Medidas (se reasignan por --size-* y --density-*); por defecto: md. Las mismas unidades que GInput */
   --_units: 9;
-  --_density: 1;
+  --_density: var(--g-density);
   --_px: var(--g-space-3);
   --_gap: var(--g-space-2);
   /* Rol por --size-* (alias base) y lo que mide la línea del valor (--_fs/--_lh): iguales salvo con puntero grueso,

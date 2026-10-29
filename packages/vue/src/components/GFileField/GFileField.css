@@ -23,7 +23,7 @@
 
   /* Medidas (las de GInput: se reasignan por --size-* y --density-*); por defecto: md */
   --_units: 9;
-  --_density: 1;
+  --_density: var(--g-density);
   --_px: var(--g-space-3);
   --_fs: var(--g-text-body-sm-size);
   --_lh: var(--g-text-body-sm-line);

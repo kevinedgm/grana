@@ -11,7 +11,7 @@
 
 /* ---------- Esqueleto ---------- */
 .g-surface {
-  --_density: 1;
+  --_density: var(--g-density);
   --_pad: calc(var(--g-space-1) * 4 * var(--_density));
   --_tone: var(--g-color-surface);
   --_border: transparent;

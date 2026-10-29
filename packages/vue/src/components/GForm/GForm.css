@@ -13,7 +13,7 @@
   --g-form-actions-size: 0px;
 
   /* Densidad (se reasigna por --density-*) */
-  --_density: 1;
+  --_density: var(--g-density);
 
   display: flex;
   flex-direction: column;

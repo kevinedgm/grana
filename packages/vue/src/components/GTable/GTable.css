@@ -15,7 +15,7 @@
 
 /* ---------- Raíz ---------- */
 .g-table {
-  --_density: 1;
+  --_density: var(--g-density);
   --_pad-block: calc(var(--g-space-1) * 3 * var(--_density));
   --_pad-inline: calc(var(--g-space-1) * 3);
   --_lead: calc(var(--g-space-1) * 8);

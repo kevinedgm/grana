@@ -28,7 +28,7 @@
   /* Medidas (se reasignan por --size-* y --density-*); por defecto: md */
   --_units: 6;
   --_dot: calc(var(--g-space-1) * 3);
-  --_density: 1;
+  --_density: var(--g-density);
   --_fs: var(--g-text-body-sm-size);
   --_lh: var(--g-text-body-sm-line);
   --_ind: calc(var(--g-space-1) * var(--_units));

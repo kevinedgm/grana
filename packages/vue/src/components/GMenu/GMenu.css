@@ -11,7 +11,7 @@
 
 /* ---------- Lista (y submenús) ---------- */
 .g-menu__list {
-  --_d: 1;
+  --_d: var(--g-density);
   --_ctl: max(24px, calc(var(--g-space-1) * 9 * var(--_d)));
   --_mark: calc(var(--g-space-1) * 4.5);
   /* Hueco del icono: _mark; space × 5 en una lista con algún GAvatar (abajo). Se declara en cada lista para que un

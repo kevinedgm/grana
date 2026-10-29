@@ -22,7 +22,7 @@
   --_th-units: 6;
   --_tw-units: 11;
   --_row-units: 6;
-  --_density: 1;
+  --_density: var(--g-density);
   --_gap: var(--g-space-3);
   --_fs: var(--g-text-body-sm-size);
   --_lh: var(--g-text-body-sm-line);

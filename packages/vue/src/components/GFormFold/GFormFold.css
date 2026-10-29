@@ -29,7 +29,7 @@
 
 .g-form-fold {
   --_fold-gap: 0px;
-  --_density: 1;
+  --_density: var(--g-density);
   /* Movimiento grande (altura, margen) y fundido corto */
   --_t: var(--g-duration-slow);
   --_t-fade: var(--g-duration-fast);

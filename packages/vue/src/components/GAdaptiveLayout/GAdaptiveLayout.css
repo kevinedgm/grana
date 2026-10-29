@@ -31,7 +31,7 @@
 @property --_adaptive-rows { syntax: "*"; inherits: false; }
 
 .g-adaptive-layout {
-  --_adaptive-density: 1;
+  --_adaptive-density: var(--g-density);
   --_adaptive-gap-factor: 1;
   --_adaptive-rows: none;
   --_adaptive-column-gap: calc(var(--g-form-column-gap) * var(--_adaptive-density) * var(--_adaptive-gap-factor));

@@ -14,7 +14,7 @@
   .g-split {
     /* Separación: el vocabulario de GStack (#719): base de página space × 6; factor 0 · 0,5 · 1 · 2; densidad 1 · 0,875 · 0,75 */
     --_gf: 1;
-    --_df: 1;
+    --_df: var(--g-density);
     --_gap: calc(var(--g-space-1) * 6 * var(--_gf) * var(--_df));
     /* collapse = ancho mínimo del lado estrecho: max(space × 64 · 80 · 96, cuerpo × 16 · 20 · 24); con el texto al 200 %
        el término de texto se dobla y la pareja se apila antes (regla 4) */

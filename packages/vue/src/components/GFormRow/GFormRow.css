@@ -26,7 +26,7 @@
 }
 
 .g-form-row {
-  --_density: 1;
+  --_density: var(--g-density);
 
   /* Separaciones: entre campos de una línea, y entre líneas (la de las filas: una fila partida se lee como dos filas) */
   --_form-row-gap: calc(var(--g-form-column-gap) * var(--_density));
