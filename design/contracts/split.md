@@ -67,7 +67,7 @@ Los envoltorios son **de Grana**: las reglas de flex van en sus `div`, nunca en 
 | `ratio` | String | `1:1` `3:2` `2:1` `2:3` `1:2` | `3:2` | Proporción `start:end` al lado (a = `start`, b = `end`). **`3:2` por defecto** (S-L2, punto 12 de kiwi; corrige el `2:1` de #933): dos de los cuatro casos lo piden (Cart, Checkout) y con `2:1` el resumen del carrito se apila a 1024 dentro del contenedor por defecto (caja 942 < umbral 1008), mientras que `3:2` lo deja a 358 px |
 | `collapse` | String | `sm` `md` `lg` | `md` | **El ancho mínimo del lado estrecho**, no un punto de corte: `max(space × 64 · 80 · 96, --g-text-body-size × 16 · 20 · 24)` (256 · 320 · 384 px con el tema por defecto, regla 2). El README lo explica con esas palabras |
 | `gap` | String | `none` `sm` `md` `lg` | `md` | Vocabulario de `GStack` (#719): factor 0 · 0,5 · 1 · 2 sobre la base de página `space × 6` = 0 · 12 · 24 · 48 px con `space` 4. **La misma en los dos ejes** (al lado y apiladas, K7). Entra en el umbral. Los bloques piden `lg` |
-| `density` | String | `default` `comfortable` `compact` | `default` | Compartida (`api.md`): multiplica la separación 1 · 0,875 · 0,75 (medido: `compact` = 18 px con `gap="md"`). Solo toca el umbral a través de la separación. **No se hereda** de `GForm` ni de otro contexto (como `GStack`) |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | Compartida (`api.md`): multiplica la separación 1 · 0,875 · 0,75 (medido: `compact` = 18 px con `gap="md"`). Solo toca el umbral a través de la separación. Sin valor **sigue la región** (CSS) y no lee ningún contexto de formulario; con valor **es una región** y aprieta también las dos regiones de dentro (#975) |
 | `align` | String | `start` `stretch` | `start` | Alineación de bloque de las dos regiones **al lado**: `start` (el resumen no se estira con la lista) o `stretch` (alturas iguales, p. ej. dos tarjetas). Apiladas no actúa |
 
 **No existen** (y por qué): `order`, `reverse` y cualquier «la segunda primero al apilar» (1.3.2, 2.4.3; regla 7); `breakpoint` o anchos de visor (la decisión es de la caja, regla 3); `ratio` numérico o libre (la lista cerrada es la que se puede verificar exacta); `padding`, `background`, `border` (`GSurface`); tres o más regiones (`GAdaptiveLayout`). **Reservados** (§«Reservados»): `sticky`, `ratio="auto"` y `align="center"`.
@@ -148,7 +148,7 @@ Con la guarda canónica de #653 (`api.md` «Avisos de desarrollo») escrita en e
 | `g-split--ratio-{1-1\|3-2\|2-1\|2-3\|1-2}` | Según `ratio` (siempre una; `:` → `-`) |
 | `g-split--collapse-{sm\|md\|lg}` | Según `collapse` (siempre una) |
 | `g-split--gap-{none\|sm\|md\|lg}` | Según `gap` (siempre una) |
-| `g-split--density-{default\|comfortable\|compact}` | Según `density` (siempre una) |
+| `g-split--density-{default\|comfortable\|compact}` | Con la prop explícita, junto a `data-g-density` (#975) |
 | `g-split--align-{start\|stretch}` | Según `align` (siempre una) |
 | `g-split__region`, `g-split__region--start`, `g-split__region--end` | En cada envoltorio pintado |
 

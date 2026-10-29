@@ -18,7 +18,7 @@ Campo de texto de varias líneas con la misma anatomía y el mismo lenguaje que 
 | `modelValue` | String | | `''` | compartida |
 | `variant` | String | `outline` `soft` | `outline` | compartida (subconjunto, como `GInput`: DECISIONS.md #28) |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` | compartida |
-| `density` | String | `default` `comfortable` `compact` | `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | sin valor: usa `--g-color-focus` | compartida (solo el foco) |
 | `rounded` | String | `none` `xs` `sm` `md` `lg` `xl` `pill` | sin valor: `sm` (campo, `tokens.md` §3) | compartida |
 | `block` | Boolean | | `false` | compartida |
@@ -126,7 +126,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `g-textarea` | Raíz (`div`) | Siempre |
 | `g-textarea--variant-{variant}` | Raíz | Siempre |
 | `g-textarea--size-{size}` | Raíz | Siempre |
-| `g-textarea--density-{density}` | Raíz | Siempre |
+| `g-textarea--density-{density}` | Raíz | Con la prop explícita, junto a `data-g-density` (#975) |
 | `g-textarea--color-{color}` | Raíz | Solo si el prop tiene valor |
 | `g-textarea--rounded-{rounded}` | Raíz | Solo si el prop tiene valor |
 | `g-textarea--block` | Raíz | `block` |

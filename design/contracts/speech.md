@@ -613,7 +613,7 @@ Opcional: sin ella, solo existe la flotante. **Una por gestor**: una segunda `GS
 | `for` | String | `id` de un `<textarea>` o un `<input>` de tipo `text`, `search`, `url` o `tel` | sin valor | **Obligatorio en dictado** (aviso si falta). Otros tipos (incluido `password`, por privacidad, y `email`/`number`, que no admiten `setRangeText`): aviso y no inicia sesión |
 | `targetLabel` | String | texto de la app | el nombre visible del campo (`el.labels[0]` al iniciar) | Rellena `{target}` (nombre del disparador, modo, anuncios). Si no se puede resolver: aviso y `{target}` vacío |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` | El del `GBtn` (`api.md`) |
-| `density` | String | `default` `comfortable` `compact` | `default` | Ídem |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | Ídem |
 | `disabled` | Boolean | | `false` | `disabled` nativo |
 | `speech` | Object (gestor) | | el inyectado | |
 
@@ -1571,3 +1571,7 @@ Mismo prefijo y reglas que §15 (`[Grana Speech]`, una vez por causa, **nunca co
 ## Texto con puntero grueso (DECISIONS.md #970 a #972)
 
 Regla común en `docs/contract/api.md` «Texto editable con puntero grueso» y mínimo en `tokens.md` §7: con `@media (pointer: coarse)`, `font-size: max(16px, <rol>)`; interlineado del rol con piso `--g-text-body-sm-line`; altura sin cambio; en escritorio, sin cambio. Aquí: solo el editor en la celda de `GTranscript` (`g-transcript__field`, `<textarea>` nativo) sube; el original, la pista y la rejilla se quedan en su rol. El resto de la captura de voz no tiene campos propios.
+
+## Densidad (pieza 2, #977)
+
+La raíz del anfitrión (`GSpeechHost`, y el diálogo de revisión `g-speech-review`, que va a `body`) lleva **`data-g-density="default"` fijo**, sin clase: vive en `body` y se muda al modal superior, y si heredara la región, un aviso cambiaría de tamaño al abrirse un diálogo compacto. No sigue `<html data-g-density>` ni la clave `density` del tema (Δ0 frente a hoy). Seguir la densidad de la página queda reservado (R3 de `density.md`).

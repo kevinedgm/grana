@@ -12,7 +12,7 @@ Campo completo de una línea: etiqueta, ayuda, error, iconos, contador y (en `pa
 | `modelValue` | String | | `''` | compartida |
 | `variant` | String | `outline` `soft` | `outline` | compartida (subconjunto: DECISIONS.md #28) |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` | compartida |
-| `density` | String | `default` `comfortable` `compact` | `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | sin valor: usa `--g-color-focus` | compartida (ver "Reglas") |
 | `rounded` | String | `none` `xs` `sm` `md` `lg` `xl` `pill` | sin valor: `sm` (campo, `tokens.md` §3) | compartida |
 | `block` | Boolean | | `false` | compartida |
@@ -156,7 +156,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `g-input` | Raíz (`div`) | Siempre |
 | `g-input--variant-{variant}` | Raíz | Siempre (incluido el defecto) |
 | `g-input--size-{size}` | Raíz | Siempre |
-| `g-input--density-{density}` | Raíz | Siempre |
+| `g-input--density-{density}` | Raíz | Con la prop explícita, junto a `data-g-density` (#975) |
 | `g-input--color-{color}` | Raíz | Solo si el prop tiene valor |
 | `g-input--rounded-{rounded}` | Raíz | Solo si el prop tiene valor |
 | `g-input--block` | Raíz | `block` |

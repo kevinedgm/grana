@@ -46,7 +46,7 @@ Sin forma visible propia, la regla de kiwi «conceptos antes que caja» no aplic
 | `horizontal` | String | `start` `center` `end` | `start` | propia; valores lógicos (#359) |
 | `vertical` | String | `top` `center` `bottom` | `top` | propia; eje de bloque (como `position` de los avisos, #145) |
 | `gap` | String | `none` `sm` `md` `lg` | `md` | propia; factor 0 · 0,5 · 1 · 2 (#360) |
-| `density` | String | `default` `comfortable` `compact` | `undefined`: la del sub‑contexto de distribución › `GForm` › `default` | compartida (`api.md`) |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida (`api.md`) |
 
 **No hay prop `hints`** (retirada por #364): las pistas de un hijo van en el hijo («Pistas por hijo»).
 

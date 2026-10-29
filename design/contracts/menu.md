@@ -23,7 +23,7 @@ Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Men
 | `align` | String | `start` `end` (borde del disparador con el que se alinea) | `start` | propia |
 | `side` | String | `auto` `bottom` `top` | `auto` | propia |
 | `closeOnSelect` | String | `auto` `always` `never` | `auto` | propia |
-| `density` | String | `default` `comfortable` `compact` | `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 | `labels` | Object | textos de los elementos-enlace (§«Elementos-enlace», «Textos»), `cancel` de la confirmación en el sitio (#790) y `findHint`, `matches`, `matchesOne`, `none` de buscar al escribir (#797) | `{}` | compartida (sin valores por defecto, #226) |
 | `id` | String | | generado | propia |
 
@@ -34,7 +34,7 @@ Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Men
 - **`align`:** `start` alinea la lista con el borde de **inicio** del disparador (izquierdo en LTR, derecho en RTL); `end`, con el borde final.
 - **`side`:** `auto` abre **debajo** y, si no cabe y hay más espacio arriba, **arriba**; `bottom` y `top` fijan el lado (siempre con ajuste al visor).
 - **`closeOnSelect`:** `auto` (por defecto): las **acciones cierran** el menú y las **casillas y opciones no**; `always`, todo cierra; `never`, nada cierra (la aplicación cierra con `modelValue`).
-- **`density`:** multiplica el alto y el relleno de los elementos (1×, 0.875×, 0.75×), con piso de 24px.
+- **`density`:** multiplica el alto y el relleno de los elementos (1×, 0.875×, 0.75×), con piso de 24px. Sin prop, la lista sigue la región de su disparador (el `popover` vive en su sitio; `density.md` §5.1); con prop, `data-g-density` y la clase van en `g-menu__list` (#975).
 - **Resto de atributos:** `class`, `style` y `data-*` van a la **lista** (el `ul` del menú).
 
 ## Elementos (`items`)
@@ -185,7 +185,7 @@ Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Men
 
 | Clase | Elemento | Cuándo |
 | --- | --- | --- |
-| `g-menu__list` (+ `--density-*`) | Lista y submenús (`ul`) | Siempre |
+| `g-menu__list` (+ `--density-*`) | Lista y submenús (`ul`) | Siempre (`--density-*` solo con la prop explícita, junto a `data-g-density`; #975) |
 | `g-menu__item` (+ `--danger`, `is-expanded`) | Elemento | Siempre (`is-expanded` en un padre con el submenú abierto) |
 | `g-menu__icon`, `__label`, `__shortcut` | Partes del elemento | Según el elemento |
 | `g-menu__mark` | Marca de casilla u opción | En `checkbox` y `radio` |

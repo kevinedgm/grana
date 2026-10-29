@@ -23,7 +23,7 @@ Superficie visual genérica sobre la que vive cualquier contenido. **No tiene si
 | `tone` | String | `surface` `sunken` | `surface` | propia |
 | `padding` | String | `none` `xs` `sm` `md` `lg` | `md` | propia |
 | `rounded` | String | `none` `xs` `sm` `md` `lg` `xl` `pill` | según `level` | compartida |
-| `density` | String | `default` `comfortable` `compact` | `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 | `as` | String | etiqueta HTML | `div` | propia |
 | `zone` | String | `none` `brand` | `none` | propia (§«Zona de marca») |
 
@@ -87,7 +87,7 @@ Existentes: `--g-color-surface`, `--g-color-surface-sunken`, `--g-surface-shell`
 | `g-surface--level-{flat\|outlined\|raised\|floating\|inset}` | Raíz | Siempre |
 | `g-surface--tone-{surface\|sunken}` | Raíz | Siempre (en `inset` no tiene efecto) |
 | `g-surface--padding-{none\|xs\|sm\|md\|lg}` | Raíz | Siempre |
-| `g-surface--density-{default\|comfortable\|compact}` | Raíz | Siempre |
+| `g-surface--density-{default\|comfortable\|compact}` | Raíz | Con la prop explícita, junto a `data-g-density` (#975) |
 | `g-surface--rounded-*` | Raíz | Solo con `rounded` |
 
 Los alias con los que una superficie **publica** a sus descendientes (tono contrario, sombra y radio concéntrico) son internos de `GSurface.css` (`--_*`). **Regla para coco:** una `inset` lee esos alias y **no** los redeclara con el mismo nombre (si lo hiciera, se leería a sí misma; hallazgo de kiwi).

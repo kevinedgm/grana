@@ -50,7 +50,7 @@ Una **pregunta con una sola respuesta** dentro de un formulario (Sí/No, sexo, m
 | `readonly` | Boolean | | `undefined` → `false` | compartida |
 | `disabled` | Boolean | | `undefined` → `false` | compartida |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` | compartida |
-| `density` | String | `default` `comfortable` `compact` | `undefined` → contexto o `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | `brand` | compartida |
 | `field` | Boolean | | `true` | propia (#262) |
 | `id` | String | | generado | propia |
@@ -330,7 +330,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras. Elegida, foco y hover se 
 | --- | --- | --- |
 | `g-radio-group` | Raíz (`div` o `fieldset`) | Siempre |
 | `g-radio-group--appearance-{list\|inline\|segmented\|chip\|card}` | Raíz | Siempre (incluido el defecto) |
-| `g-radio-group--size-{s}`, `--density-{d}`, `--color-{c}` | Raíz | Siempre |
+| `g-radio-group--size-{s}`, `--density-{d}`, `--color-{c}` | Raíz | Siempre (`--density-*` solo con la prop explícita, junto a `data-g-density`; #975) |
 | `g-radio-group--icon-only` | Raíz | `labelMode="icon"` efectivo (`segmented`/`chip`) |
 | `g-radio-group--measure` | Raíz | Solo durante la medida síncrona del segmentado (interna; si bruno la usa) |
 | `is-disabled`, `is-readonly`, `is-invalid`, `is-warning`, `is-valid` | Raíz | Estado |

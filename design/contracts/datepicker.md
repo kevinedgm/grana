@@ -41,7 +41,7 @@ Selector de **una fecha o de un rango de fechas** (patrón *date picker dialog* 
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | `brand` | compartida (color de la selección) |
 | `variant` | String | `outline` `soft` | `outline` | compartida (subconjunto, como `GInput`; solo el campo) |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` | compartida (solo el campo) |
-| `density` | String | `default` `comfortable` `compact` | `default` | compartida (solo el campo) |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida (solo el campo) |
 | `rounded` | String | `none` `xs` `sm` `md` `lg` `xl` `pill` | sin valor: `sm` | compartida (solo el campo) |
 | `block` | Boolean | | `false` | compartida (solo el campo) |
 | `disabled` | Boolean | | `false` | compartida |

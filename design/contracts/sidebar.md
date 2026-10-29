@@ -34,7 +34,7 @@ Navegación lateral (principal o secundaria) que **se transforma con un solo sis
 | `search` | Boolean | | `false` | propia |
 | `closeOnNavigate` | Boolean | | `true` | propia (drawer) |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | `brand` | compartida (contadores y puntos; **ya no** la píldora, #615) |
-| `density` | String | `default` `comfortable` `compact` | `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 | `labels` | Object | ver «Textos (`labels`)» | `{}` | propia |
 
 ### Reglas de props

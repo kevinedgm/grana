@@ -90,7 +90,7 @@ app.use(Combobox)            // registra <g-combobox>; o: components: { GCombobo
 | `disabled` | Boolean | | `undefined` → `false` | compartida |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` | compartida |
 | `variant` | String | `outline` `soft` | `outline` | compartida (subconjunto, como `GInput`) |
-| `density` | String | `default` `comfortable` `compact` | `undefined` → contexto o `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | sin valor (`--g-color-focus`) | compartida (solo el foco) |
 | `rounded` | String | `none` `xs` `sm` `md` `lg` `xl` `pill` | sin valor (`sm`) | compartida |
 | `block` | Boolean | | `undefined` → `false` (dentro del layout, `true`) | compartida |

@@ -403,3 +403,7 @@ En producción no hay avisos ni comprobaciones extra.
 - **Contenido enriquecido** (#139): enlaces en la descripción, avatar, slots, `component`, varias acciones.
 - **`<GToast>` declarativo**, instancia global de Grana, avisos anclados a un elemento, barra de cuenta atrás, sonido o vibración, Notification API del sistema, teclado virtual (`visualViewport`), posición por aviso.
 - **Preguntas de producto abiertas: ninguna** (las dos de kiwi las resolvió el usuario por delegación: #138 y #139).
+
+## Densidad (pieza 2, #977)
+
+La raíz del anfitrión (`GToaster`) lleva **`data-g-density="default"` fijo**, sin clase: vive en `body` y se muda al modal superior, y si heredara la región, un aviso cambiaría de tamaño al abrirse un diálogo compacto. No sigue `<html data-g-density>` ni la clave `density` del tema (Δ0 frente a hoy). Seguir la densidad de la página queda reservado (R3 de `density.md`).

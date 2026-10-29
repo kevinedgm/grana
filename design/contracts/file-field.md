@@ -91,7 +91,7 @@ app.use(FileField)            // registra <g-file-field>; o: components: { GFile
 | `disabled` | Boolean | | `undefined` → `false` | compartida |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` | compartida (la altura de la caja vacía, como `GInput`) |
 | `variant` | String | `outline` `soft` | `outline` | compartida (subconjunto, como `GInput`) |
-| `density` | String | `default` `comfortable` `compact` | `undefined` → contexto o `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 | `rounded` | String | `none` `xs` `sm` `md` `lg` `xl` `pill` | sin valor (`sm`) | compartida |
 | `block` | Boolean | | `undefined` → `false` (dentro del layout, `true`) | compartida |
 | `id` | String | | generado | propia |

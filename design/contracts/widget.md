@@ -33,7 +33,7 @@
 | `href` | String | URL del detalle | sin valor | propia |
 | `drilldownLabel` | String | texto libre | sin valor | propia |
 | `updatedText` | String | texto libre («Actualizado hace 5 min») | sin valor | propia |
-| `density` | String | `default` `comfortable` `compact` | `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 | `headless` | Boolean | | `false` | propia (sin encabezado; el contenido lo pone todo) |
 | `labels` | Object | ver «Textos (`labels`)» | `{}` | propia |
 | `id` | String | | generado | propia |
@@ -242,7 +242,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | Clase | Elemento | Cuándo |
 | --- | --- | --- |
 | `g-widget` | Raíz (`article`) | Siempre |
-| `g-widget--level-{s\|m\|l}`, `--shape-{square\|wide\|tall}`, `--state-{…}`, `--density-*`, `--headless`, `is-editing` | Raíz | Siempre (`is-editing` dentro de una rejilla en edición) |
+| `g-widget--level-{s\|m\|l}`, `--shape-{square\|wide\|tall}`, `--state-{…}`, `--density-*`, `--headless`, `is-editing` | Raíz | Siempre (`--density-*` solo con la prop explícita, junto a `data-g-density`, #975; `is-editing` dentro de una rejilla en edición) |
 | `g-widget__head`, `__icon`, `__titles`, `__eyebrow`, `__title`, `__sub`, `__badge` (+ `--color-{color}`) | Encabezado | Según nivel y props (el color del badge sale de `badgeColor`) |
 | `g-widget__menu` | Botón del menú de acciones (el resto de clases del menú son de `g-menu__*`) | Con acciones |
 | `g-widget__body`, `__state`, `__stale`, `__skeleton`, `__line`, `__block`, `__sr` | Cuerpo y estados | Según estado |

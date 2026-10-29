@@ -27,7 +27,7 @@
 | `resettable` | Boolean | muestra «Restablecer» | `false` | propia |
 | `applying` | Boolean | se está aplicando | `false` | compartida (`loading` precisada, ver abajo) |
 | `size` | String | `sm` `md` `lg` | `sm` | compartida (subconjunto) |
-| `density` | String | `default` `comfortable` `compact` | `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 | `labels` | Object | ver «Textos (`labels`)» | `{}` | propia |
 | `id` | String | | generado | propia |
 
@@ -138,7 +138,7 @@ Los de `GDialog` y los controles (como `GWidgetGallery`); **sin tokens nuevos**.
 
 | Clase | Elemento | Cuándo |
 | --- | --- | --- |
-| `g-widget-config` (+ `--density-*`, `is-applying`) | Raíz (`<dialog>`, junto a `g-dialog`) | Siempre |
+| `g-widget-config` (+ `--density-*`, `is-applying`) | Raíz (`<dialog>`, junto a `g-dialog`) | Siempre (`--density-*` solo con la prop explícita, junto a `data-g-density`; #975) |
 | `g-widget-config__form`, `__preview`, `__summary`, `__tabs`, `__panel`, `__mark`, `__sr` | Partes | Según el estado |
 | `g-widget-config__confirm` | Confirmación de descarte en el pie | Con `dirty` y cierre pedido |
 | `g-widget-config__btn` (+ `--primary`, `--reset`) | Botones propios (Restablecer, Cancelar, Aplicar, Seguir editando, Descartar) | Siempre |

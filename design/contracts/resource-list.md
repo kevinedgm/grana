@@ -123,7 +123,7 @@ main                                              ← de la aplicación; el cont
 | `total` | Number | ≥ 0 | sin valor | `GTable` (modo servidor siempre: `sortMode`/`filterMode` `external`, kiwi §3.5) |
 | `rowStatus` | Function | `(row) => { status, text, key? } \| null` | sin valor | `GTable` (#600) |
 | `rowHref` | Function | `(row) => string \| null` | sin valor | `GTable`: puerta de la fila a la ficha de la aplicación; re-emitida como `open` |
-| `density` | String | `default` `comfortable` `compact` | `default` | `GTable` |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | `GTable` |
 | `pageSizes` | Array | enteros ≥ 1 | sin valor | `GTable` **solo fuera de estrecho** (#788) |
 | `loading` | Boolean | | `false` | `GTable` |
 | `error` | Boolean | | `false` | `GTable` (#540) |

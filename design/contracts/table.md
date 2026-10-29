@@ -35,7 +35,7 @@ Tabla de datos con **personalidad** (celdas ricas, filas como superficie, densid
 | `total` | Number | ≥ 0 | sin valor | propia |
 | `responsive` | String | `auto` `table` `cards` | `auto` | propia |
 | `appearance` | String | `lines` `surface` | `lines` | propia |
-| `density` | String | `default` `comfortable` `compact` | `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 | `maxHeight` | String | longitud CSS | sin valor | propia |
 | `loading` | Boolean | | `false` | compartida |
 | `loadingRows` | Number | ≥ 1 | `3` | propia (en la primera carga; al refrescar, las filas que había a la vista, #540) |
@@ -229,7 +229,7 @@ Existentes: `--g-color-surface`, `--g-color-surface-sunken`, `--g-color-text`, `
 | --- | --- | --- |
 | `g-table` | Raíz | Siempre |
 | `g-table--mode-{table\|cards}` | Raíz | Medido o por `responsive` |
-| `g-table--appearance-{lines\|surface}`, `--density-*` | Raíz | Siempre |
+| `g-table--appearance-{lines\|surface}`, `--density-*` | Raíz | Siempre (`--density-*` solo con la prop explícita, junto a `data-g-density`; #975) |
 | `is-loading` | Raíz | Con `loading` |
 | `is-pending`, `is-slow`, `is-failed` | Raíz | Dentro del retraso (filas esqueleto invisibles) · desde 5 s · barra de fallo a la vista (#540, #546) |
 | `g-table__bar`, `__scroll`, `__table`, `__caption`, `__sr` | Partes | Siempre |

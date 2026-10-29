@@ -20,7 +20,7 @@ Selector de una opción con lista propia (patrón *select-only combobox* de WAI-
 | `options` | Array | ver "Opciones" | `[]` | propia |
 | `variant` | String | `outline` `soft` | `outline` | compartida (subconjunto, como `GInput`: DECISIONS.md #28) |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` | compartida |
-| `density` | String | `default` `comfortable` `compact` | `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | sin valor: usa `--g-color-focus` | compartida (solo el foco) |
 | `rounded` | String | `none` `xs` `sm` `md` `lg` `xl` `pill` | sin valor: `sm` | compartida |
 | `block` | Boolean | | `false` | compartida |
@@ -207,7 +207,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `g-select` | Raíz (`div`) | Siempre |
 | `g-select--variant-{variant}` | Raíz | Siempre |
 | `g-select--size-{size}` | Raíz | Siempre |
-| `g-select--density-{density}` | Raíz | Siempre |
+| `g-select--density-{density}` | Raíz | Con la prop explícita, junto a `data-g-density` (#975) |
 | `g-select--color-{color}` | Raíz | Solo si el prop tiene valor |
 | `g-select--rounded-{rounded}` | Raíz | Solo si el prop tiene valor |
 | `g-select--block` | Raíz | `block` |

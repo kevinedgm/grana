@@ -25,7 +25,7 @@ Galería para **añadir widgets a un panel**: una hoja lateral modal con búsque
 | `title` | String | título de la hoja | sin valor | propia |
 | `description` | String | descripción de la hoja | sin valor | propia |
 | `size` | String | `sm` `md` `lg` (ancho de la hoja) | `sm` | compartida (subconjunto) |
-| `density` | String | `default` `comfortable` `compact` | `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 | `labels` | Object | ver «Textos (`labels`)» | `{}` | propia |
 | `id` | String | | generado | propia |
 
@@ -144,7 +144,7 @@ Los de `GDialog` y los de los controles: `--g-color-surface`, `--g-color-surface
 
 | Clase | Elemento | Cuándo |
 | --- | --- | --- |
-| `g-widget-gallery` (+ `--density-*`) | Raíz (`<dialog>`, junto a `g-dialog`) | Siempre |
+| `g-widget-gallery` (+ `--density-*`) | Raíz (`<dialog>`, junto a `g-dialog`) | Siempre (`--density-*` solo con la prop explícita, junto a `data-g-density`; #975) |
 | `g-widget-gallery__search`, `__cats`, `__cat`, `__status`, `__list`, `__empty`, `__sr` | Búsqueda, categorías, contador, lista, estado vacío y texto oculto | Según el estado |
 | `g-widget-gallery__card`, `__category`, `__tag`, `__preview`, `__row` | Tarjeta y sus partes | Por widget |
 | `g-widget-gallery__btn` (+ `--primary`) | Botones propios (Añadir, Cerrar) | Siempre |

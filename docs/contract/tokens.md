@@ -14,6 +14,7 @@ Todas opcionales. Lo que no se define conserva el valor por defecto de Grana.
 | `radius` | número (px) | `20` | Paso `md` de la escala de radios |
 | `shape` | `"rounded"` \| `"pill"` | `"pill"` | Con `pill`, botones, chips e insignias usan `radius-pill` |
 | `space` | número (px) | `4` | Unidad de espaciado |
+| `density` | `"default"` \| `"comfortable"` \| `"compact"` | `"compact"` | Densidad global del producto (§58, DECISIONS.md #981): emite `--g-density` con `:root:where(:not([data-g-density]))` (#561), que cede ante `<html data-g-density>`, ante las regiones y, con puntero grueso, ante el dedo (#978). Por defecto `default` (no emite nada). `--g-density` no se admite en `overrides` |
 | `font` | familia CSS | `"Instrument Sans"` | Toda la interfaz |
 | `fontDisplay` | familia CSS | `"Instrument Serif"` | Rol `display` y clase `g-font-display`. Sin valor: igual a `font` |
 | `fontSize` | número (px) | `16` | Tamaño `body` |
@@ -87,7 +88,7 @@ Alturas de control por tamaño: `xs` 6, `sm` 7, `md` 9, `lg` 11, `xl` 13 unidade
 
 **Selector (`GSelect`):** la caja mide lo mismo que la de `GInput` del mismo `size` y `density`. La **opción** de la lista mide como esa caja, con piso de 24px y 44px reales con `pointer: coarse` (§7). La lista flotante tiene un alto máximo de unas 8 opciones (derivado de esa altura) y nunca más del 60% del visor. No son tokens nuevos. (Agregado con el contrato de `GSelect`.)
 
-El prop `density` multiplica localmente **la altura, el padding y la separación** (1×, 0.875×, 0.75×), sin cambiar la tipografía (**enmendado por #966:** en `compact` el texto bajará un escalón con piso de 12px; se contrata en la pieza 3 de la configuración global, #969, y hasta entonces esta frase describe lo construido). La altura resultante tiene piso de 24px. **Rejilla de medio píxel (#667 en `GBtn`, generalizada por #682):** toda altura de caja o de fila objetivo de toque de un control derivada de `--g-space-1` se redondea a 0,5px con `round()` y luego recibe el piso (24px, y 44px con `pointer: coarse`); regla, alcance y exclusiones en §7. `space` es global; `density` es local. (Precisado tras la ronda r01 de `GBtn`.)
+El prop `density` multiplica localmente **la altura, el padding y la separación** (1×, 0.875×, 0.75×), sin cambiar la tipografía (**enmendado por #966:** en `compact` el texto bajará un escalón con piso de 12px; se contrata en la pieza 3 de la configuración global, #969, y hasta entonces esta frase describe lo construido). La altura resultante tiene piso de 24px. **Rejilla de medio píxel (#667 en `GBtn`, generalizada por #682):** toda altura de caja o de fila objetivo de toque de un control derivada de `--g-space-1` se redondea a 0,5px con `round()` y luego recibe el piso (24px, y 44px con `pointer: coarse`); regla, alcance y exclusiones en §7. `space` es global; `density` es local **o de región**: desde la pieza 2 (#974 a #982) el multiplicador es el token heredable `--g-density`, que reasignan el atributo `data-g-density` (en cualquier elemento, `<html>` incluido) y la prop `density` de un componente (que es la región de ese componente, #975); §58 y `density.md`. (Precisado tras la ronda r01 de `GBtn`.)
 
 ## 5. Tipografía
 
@@ -120,6 +121,7 @@ El prop `density` multiplica localmente **la altura, el padding y la separación
 --g-color-brand-zone · --g-color-on-brand-{zone|muted|accent|veil|accent-veil|success|warning|danger|info} · --g-color-zone-edge   (zona de marca, §44)
 --g-radius-{none|xs|sm|md|lg|xl|pill}
 --g-space-{1|2|3|4|5|6|8|12|16}
+--g-density   (multiplicador de densidad heredable, §58)
 --g-font-{ui|title|display}
 --g-text-{caption|body-sm|body|title-sm|title|title-lg|display}-{size|line|tracking|weight}
 --g-shadow-{1|2|3}
@@ -143,6 +145,7 @@ El contrato original no cubría bordes, foco ni movimiento, y sin ellos el CSS d
 | Token | Defecto | Para qué |
 | --- | --- | --- |
 | `--g-radius-shape` | `var(--g-radius-md)` | Radio de botón, chip e insignia. El CLI lo pone en `var(--g-radius-pill)` si el tema tiene `shape: "pill"` |
+| `--g-density` | `1` (`[data-g-density="comfortable"]` 0.875, `[data-g-density="compact"]` 0.75; valores de #15) | Multiplicador de densidad **heredable** (§58, DECISIONS.md #974). Número, no palabra. Lo escriben solo `defaults.css` y el CLI (clave `density`); los componentes lo leen en su alias de raíz. Se cambia con el atributo `data-g-density`, no sobrescribiendo el token |
 | `--g-border-width` | 1px | Grosor de bordes de controles |
 | `--g-focus-width` / `--g-focus-offset` | 2px / 2px | Anillo de foco |
 | `--g-duration-fast` | 120ms | Cambios de estado (hover, activo) |
@@ -1329,4 +1332,17 @@ Consume además (lista exacta de `GHero.css`, #759): `--g-color-bg`, `--g-color-
 - **Separación:** la de `GStack` (§49): base `space × 6`, factores 0 · 0,5 · 1 · 2, densidad 1 · 0,875 · 0,75, igual en los dos ejes.
 - ¿Token `--g-split-*`? **No**: el umbral sigue a `space` y al cuerpo, como las alturas de §4; un token dejaría que un tema desacompasara la pareja del texto que contiene. Sin literales de unidad nuevos (`min()` de números sin unidad dentro de `calc()`, los tres motores).
 
-La siguiente sección nueva es la 58.
+## 58. Densidad global y por región (`--g-density`, `data-g-density`; un token global nuevo, ninguno de componente)
+
+**Contrato completo:** `design/contracts/density.md` (DECISIONS.md #974 a #982; ronda `design/lab/density/r01/`). Regla común: `api.md` «Densidad por región».
+
+- **Token:** `--g-density`, grupo de estructura (§6), **heredable**, número. Valores: `1` · `0.875` · `0.75` (los tres pasos de #15 y #967; ningún otro es contrato). Sin registrar (`@property`) y sin valor de respaldo en los componentes.
+- **Quién lo escribe:** `defaults.css` (capa `grana.defaults`): `:root` en 1, una regla por valor de `[data-g-density]`, y la consulta táctil de P2 (`density.md` §2.1). El CLI, con la clave `density` (§1): `:root:where(:not([data-g-density]))` y su restablecimiento táctil, sin capa (#561). **Nadie más**: las hojas de componente lo leen en su alias de raíz (`--_density: var(--g-density)`) y quitan las reglas de clase que solo reasignaban el multiplicador.
+- **Atributo público** `data-g-density="default|comfortable|compact"`: en cualquier elemento propio de la aplicación y en `<html>`; la raíz de un componente con prop explícita lo escribe ella misma (§4, #975).
+- **Precedencia:** prop › región más cercana › `<html>` › CLI › `default`; con `pointer: coarse`, regiones, `<html>` y CLI valen 1 y la prop explícita no cede (#978).
+- **Valores por paso que no son multiplicador** (p. ej. `--g-tabs-mark-*`, §18): se interpolan exactamente desde `--g-density` (pesos de Lagrange, `density.md` §8); **no** hay tokens «resueltos» por paso.
+- **Mínimos (§7):** sin cambio. `24px`, `44px` y `16px` van después del multiplicador y ganan siempre.
+- **Pieza 3** (#966): los tokens de texto compactos se reasignarán **en el elemento de la región**, como la zona de marca (§44) redeclara el color; nunca con selectores descendientes.
+- **Límite:** el token en `:root` desde un `tokens.css` propio o un `style.setProperty` queda fuera de contrato (taparía `<html data-g-density>` y el observador no lo ve).
+
+La siguiente sección nueva es la 59.
