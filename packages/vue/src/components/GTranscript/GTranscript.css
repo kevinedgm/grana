@@ -3,7 +3,8 @@
   Dueño: coco. Contrato: design/contracts/speech.md §22, §23, §24, §28 y §29. Estructura: design/lab/speech/r02/.
   Notas y medidas: design/lab/speech/estilo.md («Fase 2»). Banco: design/lab/speech/estilo-banco-f2.html.
   Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin tokens nuevos (tokens.md §24).
-  Únicos literales: 24px y 44px (área táctil) y el patrón de texto oculto accesible.
+  Únicos literales: 24px y 44px (área táctil), 16 px en max() del texto editable con puntero grueso (#970) y el patrón
+  de texto oculto accesible.
   Excepción nombrada (levels.test.js, CAT_FAMILY_READERS; tokens.md §16.3, #247): la familia condicional de categorías
   --g-color-cat-k / --g-color-on-cat-k-soft, que solo existe si el tema declara `categories` y que bruno solo pide con
   data-cat="k" cuando k ≤ speakerColors (sin valores de respaldo).
@@ -449,6 +450,14 @@
   .g-transcript__field {
     outline: var(--g-focus-width) solid transparent;
     outline-offset: calc(var(--g-border-width) * -1);
+  }
+}
+/* Puntero grueso (#970 a #972; speech.md «Texto con puntero grueso»): un <textarea> nativo que iOS ampliaría por debajo
+   de 16 px. El texto mide max(16 px, body-sm); el interlineado ya es body-sm (su piso), así que la caja no cambia.
+   El original, la pista y la rejilla se quedan en su rol */
+@media (pointer: coarse) {
+  .g-transcript__field {
+    font-size: max(16px, var(--g-text-body-sm-size));
   }
 }
 @media (hover: hover) {

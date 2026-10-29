@@ -4,7 +4,8 @@
   GTable · estilo del esqueleto
   Dueño: coco. Contrato: design/contracts/table.md. Estructura: design/lab/table/r01/ y r02/.
   Reglas: solo var(--g-*) y alias locales; la primera línea solo declara el orden de las cuatro capas (#806); las reglas
-  van sin @layer (lo aplica el registro); únicos literales: 24px, 44px y el patrón de texto oculto.
+  van sin @layer (lo aplica el registro); únicos literales: 24px, 44px, 16 px en max() del texto con puntero
+  grueso (#970) y el patrón de texto oculto.
   Bruno da: g-table--mode-{table|cards} (medido) y --_max-height (en línea, opcional); carga (#540): is-loading,
   is-pending, is-slow, is-failed en la raíz; p.g-table__slow último hijo de __scroll; div.g-table__failed antes de
   __scroll con __failed-icon y __failed-text; GEmpty en td.g-table__empty. Luz de hover (#957 a #963):
@@ -84,6 +85,18 @@
 }
 /* Controles que solo existen en tarjetas (la cabecera no se ve) */
 .g-table__bar .g-table__bar-cards { display: none; }
+
+/* Puntero grueso (#970 a #972; table.md «Texto con puntero grueso»): los dos <select> nativos de orden de la barra de
+   tarjetas, que iOS ampliaría por debajo de 16 px, miden max(16 px, body-sm) (heredan el body-sm de la tabla) */
+@media (pointer: coarse) {
+  .g-table__bar .g-table__bar-cards select {
+    font-size: max(16px, var(--g-text-body-sm-size));
+    /* El alto de un <select> sigue a las métricas de la fuente, no al interlineado: se fija el de antes (línea body-sm
+       + relleno + borde) para que la barra no crezca (#972, criterio 4) */
+    box-sizing: border-box;
+    block-size: calc(var(--g-text-body-sm-line) + var(--g-space-1) * 2 + var(--g-border-width) * 2);
+  }
+}
 
 /* ---------- Área desplazable y tabla ---------- */
 .g-table__scroll {

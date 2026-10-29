@@ -3,7 +3,7 @@
   Dueño: coco. Contrato: design/contracts/booking-bar.md «GPartyField» (DECISIONS.md #738; tokens.md §53). Estructura:
   design/lab/booking-bar/r01/ (kiwi). Estética, medidas y encargos: design/lab/booking-bar/estilo.md.
   Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro); sin respaldos. Literales: 24px y
-  44px (área táctil), 0px en max() y el patrón de texto oculto.
+  44px (área táctil), 16 px en max() del texto con puntero grueso (#970), 0px en max() y el patrón de texto oculto.
 
   Carácter: un campo de Grana, no un contador de agencia. El disparador es la caja de GSelect (mismas medidas, foco,
   variantes y estados, para que comparta fila con ellos) y dice el grupo en palabras («2 adultos · 1 niño · 1
@@ -33,8 +33,11 @@
   --_density: 1;
   --_px: var(--g-space-3);
   --_gap: var(--g-space-2);
-  --_fs: var(--g-text-body-sm-size);
-  --_lh: var(--g-text-body-sm-line);
+  /* Rol por --size-* (alias base) y lo que mide la línea del valor (--_fs/--_lh): iguales salvo con puntero grueso (#970) */
+  --_fs-role: var(--g-text-body-sm-size);
+  --_lh-role: var(--g-text-body-sm-line);
+  --_fs: var(--_fs-role);
+  --_lh: var(--_lh-role);
   --_h: max(24px, calc(var(--g-space-1) * var(--_units) * var(--_density)));
   --_radius: var(--g-radius-sm);
 
@@ -244,11 +247,21 @@
 }
 
 /* ---------- Tamaño, densidad, forma, variante (los de GSelect) ---------- */
-.g-party-field--size-xs { --_units: 6;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs: var(--g-text-caption-size); --_lh: var(--g-text-caption-line); }
-.g-party-field--size-sm { --_units: 7;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
-.g-party-field--size-md { --_units: 9;  --_px: var(--g-space-3); --_gap: var(--g-space-2); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
-.g-party-field--size-lg { --_units: 11; --_px: var(--g-space-4); --_gap: var(--g-space-2); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
-.g-party-field--size-xl { --_units: 13; --_px: var(--g-space-5); --_gap: var(--g-space-3); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
+.g-party-field--size-xs { --_units: 6;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs-role: var(--g-text-caption-size); --_lh-role: var(--g-text-caption-line); }
+.g-party-field--size-sm { --_units: 7;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs-role: var(--g-text-body-sm-size); --_lh-role: var(--g-text-body-sm-line); }
+.g-party-field--size-md { --_units: 9;  --_px: var(--g-space-3); --_gap: var(--g-space-2); --_fs-role: var(--g-text-body-sm-size); --_lh-role: var(--g-text-body-sm-line); }
+.g-party-field--size-lg { --_units: 11; --_px: var(--g-space-4); --_gap: var(--g-space-2); --_fs-role: var(--g-text-body-size); --_lh-role: var(--g-text-body-line); }
+.g-party-field--size-xl { --_units: 13; --_px: var(--g-space-5); --_gap: var(--g-space-3); --_fs-role: var(--g-text-body-size); --_lh-role: var(--g-text-body-line); }
+/* Texto con puntero grueso (#970 a #972; booking-bar.md «Texto con puntero grueso», grupo B): el disparador es la caja
+   de GSelect y comparte fila con campos que iOS amplía; su texto, icono y flecha miden max(16 px, rol). El panel se
+   queda en su rol (sus GNumberField siguen su propia regla). La altura no cambia */
+@media (pointer: coarse) {
+  .g-party-field {
+    --_fs: max(16px, var(--_fs-role));
+    --_lh: max(var(--_lh-role), var(--g-text-body-sm-line));
+  }
+}
+
 .g-party-field--density-default { --_density: 1; }
 .g-party-field--density-comfortable { --_density: 0.875; }
 .g-party-field--density-compact { --_density: 0.75; }

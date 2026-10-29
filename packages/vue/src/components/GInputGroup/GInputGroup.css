@@ -2,7 +2,7 @@
   GInputGroup · campo fusionado: una caja, una etiqueta, varias partes (r02)
   Dueño: coco. Contrato: design/contracts/form.md §13 (DECISIONS.md #177, #178). Estructura: design/lab/form/r02/.
   Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
-  únicos literales de medida: 24px y 44px (área táctil), 0px en max() y el patrón de texto oculto accesible.
+  únicos literales de medida: 24px y 44px (área táctil), 16 px en max() del texto con puntero grueso (#970), 0px en max() y el patrón de texto oculto accesible.
   Mismo lenguaje que GInput (caja, alturas por `size`, densidad, variantes, estados, solo lectura). Lo propio:
   - las partes (GInputGroupInput, GInputGroupSelect con <select> nativo, GInputGroupText) viven DENTRO de una sola caja,
     sin borde propio, separadas por una línea fina entre dos partes que son controles;
@@ -31,8 +31,11 @@
   --_density: 1;
   --_px: var(--g-space-3);
   --_gap: var(--g-space-2);
-  --_fs: var(--g-text-body-sm-size);
-  --_lh: var(--g-text-body-sm-line);
+  /* Rol por --size-* (alias base) y lo que mide la línea del valor (--_fs/--_lh): iguales salvo con puntero grueso (#970) */
+  --_fs-role: var(--g-text-body-sm-size);
+  --_lh-role: var(--g-text-body-sm-line);
+  --_fs: var(--_fs-role);
+  --_lh: var(--_lh-role);
   --_h: max(24px, calc(var(--g-space-1) * var(--_units) * var(--_density)));
   --_radius: var(--g-radius-sm);
   /* Radio interior (anillo de una parte): concéntrico con la caja */
@@ -293,11 +296,21 @@ select.g-input-group__control {
 }
 
 /* ---------- Tamaño ---------- */
-.g-input-group--size-xs { --_units: 6;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs: var(--g-text-caption-size); --_lh: var(--g-text-caption-line); }
-.g-input-group--size-sm { --_units: 7;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
-.g-input-group--size-md { --_units: 9;  --_px: var(--g-space-3); --_gap: var(--g-space-2); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
-.g-input-group--size-lg { --_units: 11; --_px: var(--g-space-4); --_gap: var(--g-space-2); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
-.g-input-group--size-xl { --_units: 13; --_px: var(--g-space-5); --_gap: var(--g-space-3); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
+.g-input-group--size-xs { --_units: 6;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs-role: var(--g-text-caption-size); --_lh-role: var(--g-text-caption-line); }
+.g-input-group--size-sm { --_units: 7;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs-role: var(--g-text-body-sm-size); --_lh-role: var(--g-text-body-sm-line); }
+.g-input-group--size-md { --_units: 9;  --_px: var(--g-space-3); --_gap: var(--g-space-2); --_fs-role: var(--g-text-body-sm-size); --_lh-role: var(--g-text-body-sm-line); }
+.g-input-group--size-lg { --_units: 11; --_px: var(--g-space-4); --_gap: var(--g-space-2); --_fs-role: var(--g-text-body-size); --_lh-role: var(--g-text-body-line); }
+.g-input-group--size-xl { --_units: 13; --_px: var(--g-space-5); --_gap: var(--g-space-3); --_fs-role: var(--g-text-body-size); --_lh-role: var(--g-text-body-line); }
+
+/* ---------- Texto editable con puntero grueso (#970 a #972; form.md «Texto con puntero grueso») ---------- */
+/* La parte de texto, la de elección (<select> nativo, que iOS también amplía), su <input readonly> y la parte de texto
+   fijo comparten la línea del valor: miden max(16 px, rol). Etiqueta, ayuda y mensaje del grupo, en su rol */
+@media (pointer: coarse) {
+  .g-input-group {
+    --_fs: max(16px, var(--_fs-role));
+    --_lh: max(var(--_lh-role), var(--g-text-body-sm-line));
+  }
+}
 
 /* ---------- Densidad ---------- */
 .g-input-group--density-default { --_density: 1; }

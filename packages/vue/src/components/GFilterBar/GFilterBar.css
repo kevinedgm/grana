@@ -1,7 +1,8 @@
 /*
   GFilterBar · estilo del esqueleto
   Dueño: coco. Contrato: design/contracts/filter-bar.md. Estructura: design/lab/table/r02/.
-  Reglas: solo var(--g-*) y alias locales; sin @layer; únicos literales: 24px y 44px.
+  Reglas: solo var(--g-*) y alias locales; sin @layer; únicos literales: 24px y 44px, y 16 px en max() del
+  texto editable con puntero grueso (#970).
   Bruno da --_x, --_y, --_max en el editor (popover), como en GHelper.
 */
 .g-filter-bar {
@@ -172,6 +173,18 @@
     /* El editor puede vivir fuera de la barra (en hoja lo estiliza GDialog): el campo declara su propio paso */
     --_snap: 0.5px;
     min-block-size: max(24px, round(calc(var(--g-space-1) * 9), var(--_snap)));
+  }
+}
+/* Puntero grueso (#970 a #972; filter-bar.md «Texto con puntero grueso»): el <select> de la regla y los <input> del valor
+   (no las casillas) son campos que iOS ampliaría por debajo de 16 px. Miden max(16 px, rol): body-sm en el popover y
+   body en la hoja (hereda la de GDialog). El interlineado heredado ya es ≥ body-sm; la altura no cambia */
+@media (pointer: coarse) {
+  .g-filter-bar__rule,
+  .g-filter-bar__value input:not([type="checkbox"]) {
+    font-size: max(16px, var(--g-text-body-sm-size));
+  }
+  .g-filter-bar__sheet :is(.g-filter-bar__rule, .g-filter-bar__value input:not([type="checkbox"])) {
+    font-size: max(16px, var(--g-text-body-size));
   }
 }
 .g-filter-bar__value {

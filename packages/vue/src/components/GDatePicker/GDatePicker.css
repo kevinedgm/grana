@@ -2,7 +2,8 @@
   GDatePicker · estilo del esqueleto
   Dueño: coco. Contrato: design/contracts/datepicker.md. Estructura: design/lab/datepicker/r01/.
   Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
-  únicos literales de medida: 24px y 44px (área táctil), 0px en max(), 1px del texto oculto y el
+  únicos literales de medida: 24px y 44px (área táctil), 16 px en max() del texto con puntero grueso (#970), 0px en
+  max(), 1px del texto oculto y el
   umbral de consulta de medios del visor móvil (~520px, excepción DECISIONS.md #42, #56 y #65).
   Campo: mismo lenguaje que GSelect y GInput. Superficie: uno o dos meses (bruno decide cuántos por
   la medida real de la celda), con el rango como franja detrás de botones circulares. El popover
@@ -33,8 +34,11 @@
   --_density: 1;
   --_px: var(--g-space-3);
   --_gap: var(--g-space-2);
-  --_fs: var(--g-text-body-sm-size);
-  --_lh: var(--g-text-body-sm-line);
+  /* Rol por --size-* (alias base) y lo que mide el texto del campo (--_fs/--_lh): iguales salvo con puntero grueso (#970) */
+  --_fs-role: var(--g-text-body-sm-size);
+  --_lh-role: var(--g-text-body-sm-line);
+  --_fs: var(--_fs-role);
+  --_lh: var(--_lh-role);
   --_h: max(24px, calc(var(--g-space-1) * var(--_units) * var(--_density)));
   --_radius: var(--g-radius-sm);
 
@@ -768,11 +772,21 @@
 }
 
 /* ---------- Tamaño del campo ---------- */
-.g-datepicker--size-xs { --_units: 6;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs: var(--g-text-caption-size); --_lh: var(--g-text-caption-line); }
-.g-datepicker--size-sm { --_units: 7;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
-.g-datepicker--size-md { --_units: 9;  --_px: var(--g-space-3); --_gap: var(--g-space-2); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
-.g-datepicker--size-lg { --_units: 11; --_px: var(--g-space-4); --_gap: var(--g-space-2); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
-.g-datepicker--size-xl { --_units: 13; --_px: var(--g-space-5); --_gap: var(--g-space-3); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
+.g-datepicker--size-xs { --_units: 6;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs-role: var(--g-text-caption-size); --_lh-role: var(--g-text-caption-line); }
+.g-datepicker--size-sm { --_units: 7;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs-role: var(--g-text-body-sm-size); --_lh-role: var(--g-text-body-sm-line); }
+.g-datepicker--size-md { --_units: 9;  --_px: var(--g-space-3); --_gap: var(--g-space-2); --_fs-role: var(--g-text-body-sm-size); --_lh-role: var(--g-text-body-sm-line); }
+.g-datepicker--size-lg { --_units: 11; --_px: var(--g-space-4); --_gap: var(--g-space-2); --_fs-role: var(--g-text-body-size); --_lh-role: var(--g-text-body-line); }
+.g-datepicker--size-xl { --_units: 13; --_px: var(--g-space-5); --_gap: var(--g-space-3); --_fs-role: var(--g-text-body-size); --_lh-role: var(--g-text-body-line); }
+
+/* ---------- Texto del campo con puntero grueso (#970 a #972; grupo B, coherencia de fila) ---------- */
+/* Los campos son botones y no amplían la página, pero comparten GFormRow con GInput: la fecha, el marcador y `output`
+   miden max(16 px, rol). El calendario del panel no lee --_fs: se queda en su rol. La altura no cambia */
+@media (pointer: coarse) {
+  .g-datepicker {
+    --_fs: max(16px, var(--_fs-role));
+    --_lh: max(var(--_lh-role), var(--g-text-body-sm-line));
+  }
+}
 
 /* ---------- Densidad del campo ---------- */
 .g-datepicker--density-default { --_density: 1; }

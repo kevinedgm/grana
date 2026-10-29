@@ -2,8 +2,8 @@
   GCalendar · estilo del esqueleto
   Dueño: coco. Contrato: design/contracts/calendar.md. Estructura: design/lab/calendar/r01/.
   Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
-  únicos literales de medida: 24px y 44px (área táctil), el patrón de texto oculto accesible y
-  los dos umbrales de ancho de contenedor (~700px y ~520px: excepción de DECISIONS.md #34 y #39).
+  únicos literales de medida: 24px y 44px (área táctil), 16 px en max() del texto con puntero grueso (#970),
+  el patrón de texto oculto accesible y los dos umbrales de ancho de contenedor (~700px y ~520px: excepción de DECISIONS.md #34 y #39).
 
   El componente pasa los datos de posición como VARIABLES DINÁMICAS sin unidad (minutos), nunca como
   píxeles; el CSS los convierte con la escala de la densidad:
@@ -158,6 +158,13 @@
 @media (pointer: coarse) {
   .g-calendar__resource-select select {
     min-block-size: 44px;
+  }
+}
+/* Puntero grueso (#970 a #972; calendar.md «Texto con puntero grueso»): el <select> nativo de recurso, que iOS
+   ampliaría por debajo de 16 px, mide max(16 px, body-sm) (hereda el body-sm del calendario) */
+@media (pointer: coarse) {
+  .g-calendar__resource-select select {
+    font-size: max(16px, var(--g-text-body-sm-size));
   }
 }
 .g-calendar__resource-select select:focus-visible {

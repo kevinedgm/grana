@@ -2,8 +2,8 @@
   GWidgetGallery · estilo
   Dueño: coco. Contrato: design/contracts/widget-gallery.md. Estructura: design/lab/widget/r02/.
   Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
-  únicos literales de medida: 24px y 44px (área táctil) y el 1px del texto oculto. Sin consultas de
-  medios de ancho: la hoja (y su versión inferior en móvil) es de GDialog (placement="end").
+  únicos literales de medida: 24px y 44px (área táctil), 16 px en max() del texto con puntero grueso (#970) y
+  el 1px del texto oculto. Sin consultas de medios de ancho: la hoja (y su versión inferior en móvil) es de GDialog (placement="end").
   Va dentro del cuerpo de GDialog: hereda su superficie y su relleno. Controles propios (sin importar
   GInput, GSelect ni GBtn: un componente no importa a otro).
 */
@@ -55,6 +55,14 @@
   color: var(--g-color-text);
   font: inherit;
   font-size: var(--g-text-body-sm-size);
+}
+/* Puntero grueso (#970 a #972; widget-gallery.md «Texto con puntero grueso»): la búsqueda y el <select> de tamaño,
+   que iOS ampliaría por debajo de 16 px, miden max(16 px, body-sm); etiquetas y tarjetas se quedan en su rol */
+@media (pointer: coarse) {
+  .g-widget-gallery__search input,
+  .g-widget-gallery__row select {
+    font-size: max(16px, var(--g-text-body-sm-size));
+  }
 }
 .g-widget-gallery__search input:focus-visible,
 .g-widget-gallery__row select:focus-visible,
