@@ -258,7 +258,7 @@ Existentes: `--g-color-surface`, `--g-color-surface-sunken`, `--g-color-text`, `
 
 Atributo: `tabindex="-1"` en el `<table>` (foco por programa, #534; el anillo se dibuja por dentro).
 
-Variables en línea: `--_highlight-x`, `--_highlight-y`, `--_highlight-w`, `--_highlight-h` (px físicos, en `g-table__scroll`, las escribe `utils/glide.js`; #962); `--_max-height`; `--_dock-size` (alto medido del pie acoplado, en la raíz, solo con `g-pagination--dock`; #595).
+Variables en línea: `--_highlight-x`, `--_highlight-y`, `--_highlight-w`, `--_highlight-h` (px físicos, en la capa `g-table__highlight`, las escribe `utils/glide.js`; #962 enmendado); `--_max-height`; `--_dock-size` (alto medido del pie acoplado, en la raíz, solo con `g-pagination--dock`; #595).
 
 ## Filas por página y la fila ancla (#592 a #596)
 
@@ -373,7 +373,7 @@ Decisión del usuario del 2026-10-29: el resaltado de hover **se desliza de fila
 ### Dónde vive la capa
 
 - **`div.g-table__highlight[aria-hidden="true"]`, primer hijo de `div.g-table__scroll`, antes del `<table>`** (un `div` no cabe en `tbody` ni en `tr`). La pone bruno en el vnode. `g-table__scroll` es el **anfitrión** (lleva los datos y el único manejador) y pasa a `position: relative`; el `<table>` pasa a `position: relative` **sin** `z-index` para pintar encima por orden del árbol. Las celdas siguen transparentes.
-- **Datos en `g-table__scroll`** (bruno, `utils/glide.js`, #962): `--_highlight-x`, `--_highlight-y`, `--_highlight-w`, `--_highlight-h` (px **físicos** respecto de la caja de relleno del contenedor desplazable, más su scroll; también en RTL), `has-highlight`, `is-highlight-instant` (primera colocación y recolocación sin gesto; dos cuadros). Coco pinta en `GTable.css`.
+- **Datos** (bruno, `utils/glide.js`, #962): en `g-table__scroll` (el anfitrión), `has-highlight` e `is-highlight-instant` (primera colocación y recolocación sin gesto; dos cuadros); **en la capa `g-table__highlight`**, `--_highlight-x`, `--_highlight-y`, `--_highlight-w`, `--_highlight-h` (px **físicos** respecto de la caja de relleno del contenedor desplazable, más su scroll; también en RTL). Las medidas van en la capa y no en el anfitrión por rendimiento (enmienda de #962, `api.md`): en el anfitrión se heredan y recalculaban el estilo de las 500 filas. Coco pinta en `GTable.css` y las lee solo en la regla de la capa.
 - **Sobrevive sin código extra:** se desplaza con las filas en los dos ejes (en una fila entera x = 0 y w = ancho de la fila, que puede superar el visor); el `th` pegado (fondo `surface`, `z-index: 1`) la **tapa** al pasar una fila por debajo; la seleccionada pinta `primary-soft` en su `td` **encima** de la capa (#564 intacta: la luz pasa por debajo); `is-here`, `is-new`, el lomo de `rowStatus` y la espera larga (`g-table__slow`) se pintan encima y no se tocan.
 
 ### Qué se registra (destino de clic)
@@ -463,7 +463,7 @@ No es API de `GTable`: la tabla no sabe qué significan las métricas. El servid
 
 Todo esto amplía **componentes que ya están en el principal** (`GTable`, `GPagination`); no entra ningún componente nuevo ni ninguna dependencia nueva (`utils/collapse.js` y `GBadge` ya están en el principal). No se abre una entrada propia: sacar `GTable` o `GPagination` del principal rompería las importaciones de hoy. **Presupuesto del lote: +5,75 KiB (5 888 B) gzip** sobre el `grana.js` actual (#650, que enmienda los +3 KiB de #602 tras la medida de bruno: +5 507 B el lote completo, +752 B solo `GPagination`; el despliegue B pesa ≈ 1,3 KiB y sin él tampoco cabían 3 KiB) (selector, ancla, acople, anuncio del rango, puerta, rastro, despliegue y estado, juntos); bruno mide `grana.js` gzip antes y después y lo que pesa importar **solo** `GTable` y **solo** `GPagination` (componentes puros, #444), y lo registra en `CHANGELOG.md`. Si supera el tope nuevo, **no se sube otra vez**: vuelve a lima y la salida es una decisión de producto del usuario (B como complemento registrado), no un tope mayor. La importación diferida de B está descartada (no ahorra en el UMD).
 
-**La luz (#963)** es un lote aparte, compartido con `GSidebar`: `utils/glide.js` + la capa y su sesión en `GTable.vue` y `GSidebar.vue`, **≤ +1 280 B gzip de `dist/grana.js`** y **≤ +512 B gzip de `dist/grana.css`**; no cuenta en el tope de #650.
+**La luz (#963)** es un lote aparte, compartido con `GSidebar`: `utils/glide.js` + la capa y su sesión en `GTable.vue` y `GSidebar.vue`, **≤ +1 280 B gzip de `dist/grana.js`** y **≤ +512 B gzip de `dist/grana.css`**; no cuenta en el tope de #650. **Medido (bruno, `gzip -9`):** `grana.js` +1 432 B (exceso de 152 B: `glide.js` ≈ 910 B, `GTable` ≈ 340 B, `GSidebar` ≈ 182 B) y `grana.css` +401 B (dentro). **El usuario acepta el exceso (2026-10-29, #964)** como cargo único fuera de #506; nueva base de `grana.js`: 223 284 B gzip. La regla de #963 sigue: con más, decide el usuario.
 
 ## Pruebas (bruno)
 

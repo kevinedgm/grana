@@ -425,7 +425,7 @@ Decisión del usuario del 2026-10-29: el resaltado de hover **se desliza de item
 | Pieza | Quién | Qué es |
 | --- | --- | --- |
 | `li.g-sidebar__highlight[role="none"][aria-hidden="true"]` | bruno, en el vnode (como `g-menu__highlight`) | La capa, **primer hijo** de cada `g-sidebar__list` y de `g-sidebar__fly-list`. No cambia la cuenta de items que anuncia el lector |
-| `--_highlight-x`, `--_highlight-y`, `--_highlight-w`, `--_highlight-h` | bruno (`utils/glide.js`, #962) | px **físicos**, en el anfitrión: izquierda y arriba de la caja del enlace respecto de la caja de relleno de la lista, más su scroll; ancho y alto del enlace. Físicos a propósito (la medida es `getBoundingClientRect`): la capa se ancla con `left`/`top` físicos también en RTL (medido por kiwi: con `inset-inline-start` caía 296px fuera) |
+| `--_highlight-x`, `--_highlight-y`, `--_highlight-w`, `--_highlight-h` | bruno (`utils/glide.js`, #962) | px **físicos**, **en la capa `g-sidebar__highlight`** (no en la lista: enmienda de #962 por rendimiento, `api.md`; coco las lee solo en la regla de la capa): izquierda y arriba de la caja del enlace respecto de la caja de relleno de la lista, más su scroll; ancho y alto del enlace. Físicos a propósito (la medida es `getBoundingClientRect`): la capa se ancla con `left`/`top` físicos también en RTL (medido por kiwi: con `inset-inline-start` caía 296px fuera) |
 | `has-highlight` | bruno | En el anfitrión: hay destino bajo el puntero |
 | `is-highlight-instant` | bruno | En el anfitrión: primera colocación de cada entrada del puntero y toda recolocación sin gesto (scroll, cambio de tamaño); se quita a los dos cuadros |
 | Posición, color, radio, recorte, transición | coco | `GSidebar.css` |
@@ -464,7 +464,7 @@ Decisión del usuario del 2026-10-29: el resaltado de hover **se desliza de item
 - El de M1 sin cambios: `translate`, `inline-size` y `block-size` con `--g-duration-press` + `--g-ease-out`; `opacity` con `--g-duration-fast` + `--g-ease-standard`. Con `is-highlight-instant`, solo la opacidad. **Sin `--g-ease-spring` ni `--g-ease-bounce`** (#299: una luz que se pasa de la fila diría que el destino es otro).
 - **`prefers-reduced-motion: reduce`:** solo fundido (`--g-duration-fast`), sin viaje.
 - Interrumpible (transición CSS que se retoma desde donde va); nunca bloquea un clic.
-- Rúbrica completa y criterio de rendimiento: `api.md` «Una sola luz» y #963.
+- Rúbrica completa y criterio de rendimiento: `api.md` «Una sola luz» y #963. Peso: tope de #963 (+1 280 B gzip de `grana.js`) superado en +152 B por decisión del usuario, #964; el lote midió +1 432 B.
 
 ### Verificación (criterio de hecho)
 
@@ -508,7 +508,8 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `g-sidebar__foot` | Pie | Con el slot `user` |
 | `g-sidebar__fly`, `__fly-title`, **`__fly-list`** | Panel flotante | Solo riel (`__fly-list`: el `ul` de los hijos, anfitrión de su luz; #962) |
 | **`g-sidebar__highlight`** (`li[role=none][aria-hidden]`, primer hijo de cada `g-sidebar__list` y de `g-sidebar__fly-list`) | Capa de la luz | Siempre en expandida, drawer y riel; no en navbar (#957, #962) |
-| **`has-highlight`**, **`is-highlight-instant`** + `--_highlight-x/-y/-w/-h` | `g-sidebar__list`, `g-sidebar__fly-list` | Hay destino bajo el puntero · primera colocación o recolocación sin gesto (dos cuadros) · geometría en px físicos (#962) |
+| **`has-highlight`**, **`is-highlight-instant`** | `g-sidebar__list`, `g-sidebar__fly-list` | Hay destino bajo el puntero · primera colocación o recolocación sin gesto (dos cuadros) (#962) |
+| `--_highlight-x/-y/-w/-h` | `g-sidebar__highlight` (la capa) | Geometría en px físicos (#962, enmendado) |
 | `g-tooltip` (`aria-hidden`, modo visual; `tooltip.md` §«Modo visual») | Pista de cada control del riel | Siempre presentes; activas solo en riel (#436). **`g-sidebar__tip` desaparece** |
 | `g-sidebar__bar`, `__tab` (+ `is-current` en el `li`), `__more`, `g-sidebar__label--hidden` | Navbar | Solo navbar |
 | `g-sidebar__drawer` | `<dialog>` | Drawer |
