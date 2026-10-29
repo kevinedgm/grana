@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Una sola luz · r01 (kiwi)</title>
+<!-- Ronda r01 «una sola luz» en GSidebar y GTable (kiwi, 2026-10-29). Prototipo con los COMPONENTES REALES de
+     packages/vue/dist y el tema por defecto; la luz la simula hg.js (lo que sería utils/glide.js) y hg.css (lo que coco
+     escribiría en GSidebar.css y GTable.css). Solo var(--g-*); iconos Lucide de design/lab/lucide-icons.js.
+     Parámetros: ?glide=0 (hoy, sin la luz: se ve la estela) · ?glide=1 (propuesta, por defecto) · ?dark=1 · ?dir=rtl
+     Ver: python3 -m http.server 4212 -d <raíz del repo> → /design/lab/hover-glide/r01/index.html
+     Verificación: node design/lab/hover-glide/r01/verificar.mjs (puerto 4212; ver cabecera del script). -->
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="./hg.css">
+<script src="../../lucide-icons.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<script src="../../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script src="./hg.js"></script>
+<script>
+(function () {
+  const q = new URLSearchParams(location.search)
+  const on = q.get('glide') !== '0'
+  document.body.classList.toggle('hg-on', on)
+  if (q.get('dark') === '1') document.documentElement.setAttribute('data-theme', 'dark')
+  if (q.get('dir') === 'rtl') document.documentElement.setAttribute('dir', 'rtl')
+  const { createApp, ref, onMounted, nextTick } = Vue
+
+  const sbItems = [
+    { label: 'Principal', items: [
+      { id: 'home', label: 'Inicio', href: '#home', icon: 'house' },
+      { id: 'inbox', label: 'Bandeja', href: '#inbox', icon: 'inbox', badge: 12, badgeLabel: '12 sin leer' },
+      { id: 'msg', label: 'Mensajes', href: '#msg', icon: 'message-circle' },
+      { id: 'cal', label: 'Calendario', href: '#cal', icon: 'calendar' }
+    ] },
+    { label: 'Espacio de trabajo', items: [
+      { id: 'proj', label: 'Proyectos', icon: 'folder', children: [
+        { id: 'p1', label: 'Todos', href: '#p1' }, { id: 'p2', label: 'Archivados', href: '#p2' }, { id: 'p3', label: 'Plantillas', href: '#p3' }
+      ] },
+      { id: 'team', label: 'Equipo', href: '#team', icon: 'users' },
+      { id: 'bill', label: 'Facturación', icon: 'credit-card', disabled: true },
+      { id: 'rep', label: 'Reportes', href: '#rep', icon: 'chart-column' }
+    ] },
+    { label: 'Ajustes', items: [{ id: 'set', label: 'Ajustes', href: '#set', icon: 'settings' }] }
+  ]
+  const sbLabels = { collapse: 'Contraer la barra lateral', expand: 'Expandir la barra lateral', more: 'Más', moreActive: 'contiene la página actual', drawer: 'Navegación', close: 'Cerrar', search: 'Buscar', searchHint: '⌘K' }
+
+  const lotes = [
+    ['L-2041', 'Espadín · tina 3', 'Fermentando', '1 240'], ['L-2042', 'Tobalá · tina 1', 'Reposo', '380'],
+    ['L-2043', 'Cuishe · tina 5', 'Destilado', '612'], ['L-2044', 'Espadín · tina 2', 'Fermentando', '1 105'],
+    ['L-2045', 'Arroqueño · tina 4', 'Envasado', '290'], ['L-2046', 'Madrecuixe · tina 6', 'Reposo', '455'],
+    ['L-2047', 'Espadín · tina 7', 'Destilado', '980'], ['L-2048', 'Tepeztate · tina 8', 'Fermentando', '210']
+  ].map(([id, sub, estado, litros]) => ({ id, titulo: id, sub, estado, litros }))
+  const columns = [
+    { key: 'lote', label: 'Lote', title: 'titulo', subtitle: 'sub' },
+    { key: 'estado', label: 'Estado' },
+    { key: 'litros', label: 'Litros', align: 'end' }
+  ]
+  const tLabels = { selectAll: 'Seleccionar todo', selectRow: 'Seleccionar {title}', rowActions: 'Acciones de {title}', actionsHeader: 'Acciones', selectedCount: '{count} seleccionados', results: '{count} lotes', loading: 'Cargando lotes…', empty: 'Sin lotes.', detail: 'Lote {title}' }
+
+  const App = {
+    setup () {
+      const current = ref('team')
+      const selected = ref(['L-2043'])
+      const expanded = ref([])
+      const sb = ref(null), t1 = ref(null), t2 = ref(null), t3 = ref(null)
+      onMounted(async () => {
+        await nextTick()
+        if (!on) { HG.meter(); return }
+        HG.mountSidebar(document.querySelector('.hg-sidebar-box .g-sidebar'))
+        document.querySelectorAll('.hg-table > .g-table').forEach((t) => HG.mountTable(t))
+        HG.meter()
+      })
+      return { on, sbItems, sbLabels, current, lotes, columns, tLabels, selected, expanded, sb, t1, t2, t3, lucide: (n) => window.lucide(n) }
+    },
+    template: `
+<main class="hg-page">
+  <header class="hg-head">
+    <h1>Una sola luz · GSidebar y GTable</h1>
+    <p>Un único resaltado por lista que se desliza a la fila bajo el puntero (M1 de GMenu, #305). Sigue al puntero, no al foco: el anillo de teclado no cambia. Pasa el ratón por las listas y compara con «Hoy».</p>
+    <nav class="hg-switch" aria-label="Versión">
+      <a :href="'?glide=0'" :aria-current="!on ? 'true' : undefined">Hoy (estela y apagones)</a>
+      <a :href="'?glide=1'" :aria-current="on ? 'true' : undefined">Propuesta (una sola luz)</a>
+      <a href="?glide=1&dark=1">Oscuro</a>
+      <a href="?glide=1&dir=rtl">RTL</a>
+    </nav>
+  </header>
+  <p id="hg-meter" class="hg-meter" aria-live="off"></p>
+
+  <section class="hg-sec" aria-labelledby="hg-s1">
+    <h2 id="hg-s1">GSidebar · una luz por grupo; los hijos viajan con su padre</h2>
+    <p>Las filas se tocan (el hueco de 2 px pasa a ser área de clic). El título de grupo separa listas: entre grupos la luz se apaga y aparece donde aterriza. La luz pasa también por el item actual (su asiento no cambia) y no se posa en «Facturación» (deshabilitado).</p>
+    <div class="hg-row">
+      <div class="hg-sidebar-box">
+        <g-sidebar id="hg-sidebar" ref="sb" v-model="current" :items="sbItems" label="Secciones" :labels="sbLabels" mode="expanded" contained>
+          <template #icon="{ item }"><span v-html="lucide(item.icon)"></span></template>
+        </g-sidebar>
+      </div>
+    </div>
+  </section>
+
+  <section class="hg-sec" aria-labelledby="hg-s2">
+    <h2 id="hg-s2">GTable · la luz vive en el contenedor desplazable, bajo el &lt;table&gt;</h2>
+    <p>Tabla llana: la fila entera (regla de lectura). A · La puerta: solo la celda principal, que es lo que abre. B · Despliegue: la fila entera, porque el clic de fila se reenvía. La seleccionada conserva su fondo (la luz pasa por debajo, #564); la cabecera pegada la tapa.</p>
+    <div class="hg-row">
+      <div class="hg-table"><g-table id="hg-t1" ref="t1" :columns="columns" :rows="lotes" caption="Lotes · tabla llana" selectable v-model:selected="selected" :labels="tLabels" responsive="table"></g-table></div>
+      <div class="hg-table"><g-table id="hg-t2" ref="t2" :columns="columns" :rows="lotes" caption="Lotes · A, la puerta" :row-href="(r) => '#' + r.id" :labels="tLabels" responsive="table"></g-table></div>
+      <div class="hg-table"><g-table id="hg-t3" ref="t3" :columns="columns" :rows="lotes" caption="Lotes · B, despliegue" v-model:expanded="expanded" :labels="tLabels" responsive="table">
+        <template #detail="{ row }"><p style="margin:0">Ficha de {{ row.titulo }}: {{ row.sub }}, {{ row.litros }} L.</p></template>
+      </g-table></div>
+    </div>
+  </section>
+</main>`
+  }
+  const app = createApp(App)
+  app.use(Grana)
+  app.mount('#app')
+})()
+</script>
+</body>
+</html>
