@@ -1,9 +1,9 @@
-# Contrato común · Bloques estructurales: Marketing P0 (`@grana/blocks/marketing`), Booking (`@grana/blocks/booking`) y Ecommerce (`@grana/blocks/ecommerce`)
+# Contrato común · Bloques estructurales: Marketing P0 (`@grana/blocks/marketing`), Booking (`@grana/blocks/booking`), Ecommerce (`@grana/blocks/ecommerce`) y SaaS (`@grana/blocks/saas`)
 
 **Dueño:** lima · **Estado:** contratado (DECISIONS.md #814 a #826, 2026-10-22; remates tras la construcción #827 a #844, §13; decisión del usuario del 2026-10-22: «Vale #780: los bloques van en `packages/blocks/` como paquete `@grana/blocks` aparte. Que lima enmiende #765 y arranca el lote 2 (Marketing P0) ahí») · **Plan:** `design/lab/blocks/plan.md` §2, §4.1, §5 (lote 2), §6 · **Flujo:** reducido (#766): lima → bruno → coco (solo auditoría) → mora-docs
 **Paquete:** `@grana/blocks`, entrada **`@grana/blocks/marketing`** (`dist/marketing.js`, #815) · **Avisos:** `[Grana Gb<Sección><NN>]` · **Usuario final de referencia:** el viajero en el teléfono del inventario `design/lab/marketing/r01/brief.md` (hotel boutique, restaurante, tour; inglés además de español, conexión lenta, sol de frente)
 
-Este archivo fija lo que comparten las nueve secciones del lote 2 (§1 a §13) y, desde el lote 3, las once secciones de Booking (**§14 a §24**, #860 a #877; las reglas de §1 a §5 valen también para Booking salvo donde §15 las amplía) y, desde el lote 4, las doce de Ecommerce (**§26 a §38**, #909 a #926; §1 a §5 y lo que §27 toma de §15). Cada sección tiene su contrato corto con el mismo esqueleto:
+Este archivo fija lo que comparten las nueve secciones del lote 2 (§1 a §13) y, desde el lote 3, las once secciones de Booking (**§14 a §24**, #860 a #877; las reglas de §1 a §5 valen también para Booking salvo donde §15 las amplía) y, desde el lote 4, las doce de Ecommerce (**§26 a §38**, #909 a #926; §1 a §5 y lo que §27 toma de §15) y, desde el lote 4c, las doce de SaaS (**Parte D, §41 a §54**, #957 a #974; §1 a §5 y lo que §42 toma de §15 y §27). Cada sección tiene su contrato corto con el mismo esqueleto:
 
 | Sección (plan §4.1) | Contrato | Variantes |
 | --- | --- | --- |
@@ -942,3 +942,417 @@ El usuario aprobó `GSplit` («Sí, GSplit»); contrato en `split.md`, ronda de 
 **Reglas para la recomposición:** los envoltorios `div class="g-adapt-*"` desaparecen (las pistas de `GAdaptiveLayout` no significan nada en `GSplit`); el orden del DOM no cambia (lo que era primero va en `#start`); ningún CSS ni utilidad en el bloque (§1); `collapse` solo donde la tabla lo dice; ninguna verificación pide el «al lado» por debajo del umbral (`split.md` «Umbrales»). Los topes de peso no suben (§32 y §34; `booking.js` #907).
 
 **Encargos a bruno** (después de construir `GSplit`, `split.md` «Encargos»): (1) recomponer las cuatro variantes con la tabla; (2) sus pruebas de Vitest (estructura: `g-split` con las clases pedidas y las dos regiones en orden) y los casos de `tests/blocks-ecommerce.spec.mjs` y del spec de Booking (al lado a 1440 y apilado a 768 y 390, proporción, orden de Tab, sin desplazamiento horizontal, la secuencia 768 → 1440 sin quedarse apilado en Checkout 03); (3) medir los pesos (`ecommerce.js`, las tres variantes, `booking.js`) y registrar; (4) `meta.json` de Product overview, Cart y Checkout a `candidate` **solo** cuando la auditoría de coco lo confirme. **coco:** medir las cuatro recomposiciones con dos temas del CLI y anotar el resultado en `design/lab/blocks/ecommerce/auditoria.md` y `design/lab/blocks/booking/auditoria.md` (addendum), más S-L11 (a). **mora-docs:** los cuatro README de sección.
+
+---
+
+# Parte D · SaaS (`@grana/blocks/saas`, lote 4c)
+
+**Estado:** contratado (DECISIONS.md **#957 a #974**, 2026-10-29; decisión del usuario del 2026-10-29: «vamos con 4c·0», sobre el plan `design/lab/blocks/plan.md` §4.5 y las fases pequeñas de §5.1) · **Flujo:** reducido (#766), **por fases** (§54): 4c·1 → 4c·2 → 4c·3, cada una bruno → coco (auditoría) → remates → README, **un solo agente a la vez** · **Usuario final:** quien **administra la cuenta** de un producto SaaS: la dueña de un taller que paga el plan, invita a su equipo y conecta su tienda; entra pocas veces, con prisa y a menudo desde el teléfono, y **lo que más teme es una sorpresa**: un cobro que no esperaba, alguien que pierde el acceso sin saberlo, una clave que deja de funcionar en producción. A veces con lector de pantalla, gestor de contraseñas o zoom. Plantilla: **«Milpa»**, el programa de inventario y pedidos que usa el taller **Barro y Agave** (el mismo de Ecommerce), con su espacio de trabajo, su equipo y sus planes en pesos (§49).
+
+## 41. Secciones del lote
+
+| Sección (plan §4.5) | Contrato | Variantes | Fase (§54) | Compleja (coco y bruno en Opus) |
+| --- | --- | --- | --- | --- |
+| S1 Auth | `auth.md` | `GbAuth01` Tarjeta · `02` Dividida con marca · `03` Un paso por pantalla | 4c·1 | **Sí** (formulario por pasos, credenciales, gestores de contraseñas) |
+| S2 Onboarding | `onboarding.md` | `GbOnboarding01` Uno abierto · `02` Lista con progreso · `03` Tarjetas de bienvenida | 4c·1 | — |
+| S4 Profile | `profile.md` | `GbProfile01` En secciones · `02` Con vista previa · `03` Compacto | 4c·1 | — |
+| S3 Settings layout | `settings-layout.md` | `GbSettingsLayout01` Índice al lado · `02` Pestañas · `03` Una página con índice | 4c·1 | **Sí** (navegación y paneles; `GTabs` con teclado compuesto) |
+| S7 Usage & limits | `usage.md` | `GbUsage01` Barras · `02` Cifras · `03` Lo que se acerca | 4c·2 | — |
+| S8 Team & roles | `team.md` | `GbTeam01` Tabla · `02` Tarjetas · `03` Invitar arriba | 4c·2 | **Sí** (tabla, diálogos, formulario de invitación, confirmaciones) |
+| S11 Notification preferences | `notification-preferences.md` | `GbNotificationPreferences01` Matriz · `02` Por aviso · `03` Por canal | 4c·2 | — |
+| S10 Integrations | `integrations.md` | `GbIntegrations01` Galería · `02` Renglones · `03` Con permisos a la vista | 4c·2 | — |
+| S5 Plans & upgrade | `plans.md` | `GbPlans01` Tarjetas · `02` Comparar y elegir · `03` Propuesta al límite | 4c·3 | **Sí** (precios por periodo, consecuencias, confirmación) |
+| S6 Billing | `billing.md` | `GbBilling01` Resumen completo · `02` Facturas · `03` Próximo cobro | 4c·3 | **Sí** (tabla, diálogo de cancelación, estado de cobro) |
+| S9 API keys & tokens | `api-keys.md` | `GbApiKeys01` Tabla · `02` Tarjetas · `03` Crear arriba | 4c·3 | **Sí** (secreto de una vez, diálogos) |
+| S12 Changelog & audit log | `changelog.md` | `GbChangelog01` Novedades · `02` Registro filtrable · `03` Qué hay de nuevo | 4c·3 | — |
+
+Tags `gb-auth-01`, `gb-settings-layout-02`, `gb-notification-preferences-03`… (#764). **36 variantes.**
+
+## 42. Reglas comunes de SaaS (amplían §1 a §5 y toman de §15 y §27 lo que se nombra)
+
+1. **Todo lo de §1** (cero CSS y utilidades, solo API pública, una `interface Props`, primitivas, listas reales, encabezados por anidación con `useSectionLevel()`, texto suelto en `GText`, enlaces = `GBtn`/`GCard`/`GTag`, nada se mueve solo, sin `fetch` ni región viva propia, `labels` sin valores por defecto, raíz con `data-gb`, SSR) y la jerarquía de acciones de §3. De §15 y §27 valen tal cual: **precios solo con `GPrice`** y **una `GPriceScope` por región** (obligatoria con más de un precio: EC1), **pasos directos de `labels`** (`form`, `errorSummary`, `price`, `table`, `tabs`, `dialog`, `tags`, `pagination`), **fechas en `<time datetime>`** con `Intl` y **sin relativas** («hace 3 días» cambia con la caché; la última actividad de una clave o de un miembro se dice con su fecha), **lo no disponible se dice, no se esconde**, **estado de vista sí, de negocio no** (#913 regla 9), **una pregunta que no es un campo no lleva `name`** (#934) y **escuchas de la raíz** (#940). **Ningún bloque de SaaS pinta `h1`** (§53 SA-L2: `GCard` y `GSection` no admiten nivel 1; el de la página es de la aplicación).
+2. **Entradas *peer* que compone** (todas públicas, #792): `@grana/vue` (principal: `GSection`, `GStack`, `GContainer`, `GAdaptiveLayout`, `GSplit`, `GSurface`, `GCard`, `GText`, `GBtn`, `GIcon`, `GBadge`, `GAvatar`, `GSummary`, `GMetric`, `GProgress`, `GAccordion`, `GTabs`, `GTable`, `GDialog`, `GDivider`, `GForm` y campos —`GInput`, `GTextarea`, `GSelect`, `GCheckbox`, `GCheckboxGroup`, `GRadioGroup`, `GSwitch`—, `GFormSection`, `GFormLayout`, `GFormRow`, `GFieldGroup`, `GErrorSummary`, `GFormActions`, `GEmpty`, `useSectionLevel`), **`@grana/vue/price`** (`GPrice`, `GPriceScope`, `formatPrice`; Plans, Billing, Team, Usage) y **`@grana/vue/tag`** (`GTag`; Changelog, Integrations). **No** compone `@grana/vue/booking`, `/gallery`, `/combobox`, `/file-field`, `/status` ni `/load-region` (§52). El README de cada sección dice qué entradas carga la aplicación.
+3. **La cuenta nunca te sorprende** (personalidad de familia, §43, #958).
+4. **Seguridad por construcción** (§44, #959).
+5. **Intenciones con objeto, después de decir la consecuencia** (§46): la carga lleva **el dato entero** (`member`, `key`, `plan`, `integration`, `invoice`) y lo elegido (`role`, `period`, `scopes`), para que la aplicación haga su llamada sin volver a buscar nada. Una intención destructiva o que cuesta se emite **solo tras decir lo que cambia** (§43). Nada guarda, cobra, invita ni revoca por su cuenta.
+6. **Un dato de cuenta llega dicho por la aplicación.** Los estados de negocio (`statusText` de una suscripción, una factura, un miembro o una integración), los importes ya calculados (prorrateos, próximo cobro), las cifras de consumo (`valueText`) y los permisos los da la aplicación **en texto**; el bloque formatea solo fechas ISO (`Intl`), importes (`GPrice`) y cuentas (`Intl.NumberFormat`). **Grana no calcula prorrateos, impuestos ni consumos** (como #769 y #911).
+7. **Identidad obligatoria** (`id: string`) en todo lo que se puede accionar: `Plan`, `Member`, `Invite`, `Role`, `ApiKey`, `Scope`, `Integration`, `NotifEvent`, `NotifChannel`, `SettingsSection`, `OnboardingStep`, `LogEntry`, `Invoice` (aviso SA5).
+
+## 43. «La cuenta nunca te sorprende» (personalidad de familia, #958)
+
+Lo que distingue a la familia: **cada acción con consecuencia dice antes, junto al botón, qué cambia, cuánto cuesta, desde cuándo y qué se pierde**, en palabras y no solo en color; y **lo pendiente se ve donde se decide**, no solo en un correo. Sirve a quien administra la cuenta: decide con la información delante, en el mismo sitio donde pulsa, y nada se hace a medias en silencio.
+
+### 43.1 `Consequence`: lo que cambia, dicho antes
+
+Tipo común (§45). Lo **da la aplicación** (sabe el prorrateo, a quién afecta y si se deshace); el bloque solo lo dice:
+
+| Campo | Se pinta | Componente |
+| --- | --- | --- |
+| `changes` (obligatorio) | La frase de lo que cambia («Luis Mendoza dejará de ver los pedidos de Barro y Agave») | `GText size="body-sm"` |
+| `cost` | Lo que cuesta o se deja de pagar, con su periodo («+ $199 al mes») | `GPrice size="sm"` con `lead` = `labels.consequence.cost`, dentro de la `GPriceScope` del bloque |
+| `when` | Desde cuándo (ISO) | `<time datetime>` con `labels.consequence.when` («Desde el 1 de diciembre») |
+| `loses` | Lo que se pierde, en lista | `GText as="div" size="body-sm"` › `labels.consequence.loses` + `ul` |
+| `reversible` | `true` → `labels.consequence.reversible`; `false` → `labels.consequence.irreversible`; String → ese texto («Puedes volver a invitarlo cuando quieras») | `GText size="caption" tone="muted"` |
+
+El conjunto lleva un `id` y es la **descripción accesible** (`aria-describedby`) del botón que confirma: quien usa lector oye la consecuencia al llegar al botón, antes de pulsarlo (como `assurance` de CTA, #838). Una `Consequence` sin `changes` no se pinta (aviso SA1).
+
+### 43.2 Dos formas de decirla
+
+1. **En el sitio, antes de pulsar** (una acción principal por vista: elegir un plan, enviar una invitación, conectar una integración, saltar un paso, ampliar el plan al límite, crear la cuenta). La consecuencia va **justo antes del botón**, a la vista, como dato de la sección (`Plan.change`, `invite.consequence`, `Integration.permissions`, `OnboardingStep.skip`, `UsageItem.atLimit`, `consequence` de Auth).
+2. **Confirmación en el sitio, al pulsar** (acciones **destructivas** sobre un elemento de una lista o sobre la cuenta: quitar un miembro o una invitación, cambiar un rol, revocar una clave, desconectar una integración, cancelar la suscripción, bajar de plan). El bloque abre **su propio `GDialog role="alertdialog"`** (pieza común `common/ConfirmDialog`, una por bloque, montada solo al abrir):
+   - `title` = `labels.confirm.<acción>.title` (plantilla o función con el nombre del elemento: «¿Quitar a Luis Mendoza del espacio?»); `size="sm"`; `from` = el disparador (el foco vuelve a él al cerrar, #583).
+   - Cuerpo: la `Consequence` del elemento (`item.consequences?.[acción]`, §45) con 43.1.
+   - Pie: **«Mantener»** (`labels.keep`, `GBtn variant="outline"`, con `autofocus`: el foco inicial va a lo que no destruye, APG *Alert Dialog*) y la confirmación (`labels.confirm.<acción>.action`, «Quitar a Luis», `GBtn color="danger"`, con `aria-describedby` a la consecuencia). Esc y «Mantener» cierran sin emitir.
+   - **La intención se emite al confirmar**, con el evento del clic del botón de confirmación (§46). El diálogo se cierra en el mismo gesto; el resultado lo cuenta la aplicación (`GToast` o el dato que cambia).
+   - **El foco nunca cae en `body`** (#913): si el elemento confirmado desaparece de la lista al actualizarse los datos y su disparador ya no existe, el bloque lleva el foco al control principal del elemento que ocupa su sitio (el siguiente, o el anterior si era el último) y, sin elementos, al primer control de la sección. Lo resuelve con los `id` de **sus propios** controles (generados con `useId()`), nunca con el DOM interno de un componente.
+   - Sin `Consequence` para una acción destructiva: el diálogo se abre igual con la pregunta sola y avisa **SA1** (la pregunta no basta para no sorprender, pero sin ella el gesto sería peor).
+
+**No hay dos pasos para lo que no destruye ni cuesta** (guardar el perfil, marcar un aviso, reenviar una invitación, copiar): se hace al pulsar.
+
+### 43.3 `Attention`: lo pendiente, donde se decide
+
+Tipo común (§45): `{ tone: 'info' | 'warning' | 'error'; text: string }`. Un pago fallido, una invitación caducada, un método de pago que vence, un límite cerca, una integración con error: **siempre en texto**, con el componente del sitio donde se toma la decisión:
+
+| Sitio | Cómo |
+| --- | --- |
+| Índice de ajustes (Settings layout) | `badge` de la `GCard` del índice o de la pestaña (`GTabs` `badge`), con `badgeColor` por `tone` (`info` → `info`, `warning` → `warning`, `error` → `danger`): «Pago fallido» junto a «Facturación» |
+| Tarjeta de un dato (suscripción, método, uso, integración) | `GCard status` (`info`/`warning`/`error`) con `statusText` = `text` |
+| Fila de una tabla (miembro, invitación, factura, clave) | `rowStatus` de `GTable` (#600) con `text` |
+
+**Lo pendiente no anima, no parpadea y no habla solo** (sin región viva propia, #792): está a la vista cuando la persona llega. Si la aplicación quiere anunciarlo al cambiar, usa `GToast` o la isla.
+
+## 44. Seguridad por construcción (#959)
+
+1. **El bloque no guarda contraseñas, códigos, tokens ni secretos.** Un campo de contraseña o de código **no tiene `v-model` en el bloque**, **no entra en `values`**, en `update:values` ni en ninguna otra carga de evento: viaja **solo** en el `FormData` de `submit` (el que construye `GForm`). Cambiar de `mode` o de paso desmonta el campo y su valor se pierde con él. Ningún secreto se escribe en `console`, en un atributo `data-*`, en la URL ni en el título de la página.
+2. **Ningún campo de pago** (EC6, #922): ningún bloque SaaS pinta un campo con `autocomplete` `cc-*` ni un `name` que empiece por `card`; si llega en datos (`AuthField`, `ProfileField`), **no se pinta** (aviso SA2). El método de pago es un **texto de la aplicación** (`MaskedCard`, §45: «Visa terminada en 4242»), nunca el número; cambiarlo es la intención `change-method` (la pasarela es de la aplicación).
+3. **Un secreto se pinta completo una sola vez** (`OnceSecret`, §45): API keys lo enseña en un campo de solo lectura con «Copiar» y «Ya la guardé» (`api-keys.md`); al cerrar, emite `update:created` con `null` y **recuerda el `keyId`** (no el valor) durante la vida de la instancia: si la aplicación vuelve a pasar el mismo `keyId`, no lo pinta (aviso SA3). **Solo en el cliente**: en el render del servidor no se pinta (un HTML con el secreto podría quedar en una caché); se pinta al montar (aviso SA4 si llega en SSR). Después, la clave se ve solo **enmascarada** (`ApiKey.masked`, texto de la aplicación).
+4. **`autocomplete` correcto** (1.3.5; WCAG 3.3.8 *Autenticación accesible*): identidad `username` (con `type="email"` o `text`), contraseña de entrada `current-password`, contraseña nueva `new-password`, código `one-time-code` (`inputmode="numeric"`), nombre `name`, correo del perfil `email`. **Nunca se bloquea pegar** ni el gestor de contraseñas; sin pruebas cognitivas; el código es un solo campo (no una casilla por cifra). En los pasos que piden la contraseña (03 de Auth, `new-password`, `verify`), la identidad está **en el mismo formulario** como campo de solo lectura con `autocomplete="username"` (el gestor asocia la contraseña a la cuenta correcta).
+5. **Sin red, sin almacenamiento, sin pago real** (#780, #922): nada de `fetch`, `XMLHttpRequest`, `sendBeacon`, `WebSocket`, `EventSource`, `localStorage`, `sessionStorage`, `indexedDB` ni `document.cookie` (compuertas de §50 y prueba de §49). El portapapeles lo usa **la aplicación** en su escucha de `copy` (síncrona, en el gesto; EC-L6 sigue reservada: §53 SA-L3).
+6. **Sin región viva propia** (#792): «Copiado», «Invitación enviada», «Clave revocada» los dice la aplicación (`GToast`) o el componente (`output`/`valid` de un campo, `status` de `GFormActions`).
+7. **Los errores de credenciales los redacta la aplicación** (`error` de Auth): el contrato recomienda en el README no revelar si la cuenta existe («Correo o contraseña incorrectos»; en `reset`, el mismo `done` exista o no la cuenta). El bloque no distingue.
+
+## 45. Tipos compartidos de SaaS (#957, #960)
+
+En **`packages/blocks/types/saas.d.ts`** (a mano, bruno), reexportados desde `dist/saas.d.ts`; sin `[key: string]: unknown` (§2). **`Plan`, `PlanFeature`, `PlanLimit` y `BillingPeriod` van a `types/common.d.ts`** desde el primer día: los usa SaaS (S5) y los usará Marketing M6 Pricing (no construido), con el mismo nombre y la misma forma (§51). Reutilizan `Media`, `Action`, `NavLink` (§2), `PriceSpec`, `PriceRegion`, `Consent`, `GuestField` (§16/§28, `types/common.d.ts`) y los tipos de `@grana/vue/price`.
+
+**Nombres sin choque (#960):** un nombre, una forma en todo el paquete. `Member` es el de SaaS (§ abajo): el `Member` **reservado** de Marketing (§2, M9 Team, sin construir ni usar) pasa a llamarse **`Person`** con la misma forma (encargo a bruno en 4c·1). El canal de avisos se llama **`NotifChannel`**, porque `Channel` ya es el canal de contacto de Booking (§16, construido).
+
+```ts
+// ── De otras familias y de @grana/vue (no se redefinen) ──
+type Money = import('@grana/vue/price').Money
+type PriceLabels = import('@grana/vue/price').PriceLabels
+// Media, Action, NavLink: §2 · PriceSpec, PriceRegion, Consent, GuestField: types/common.d.ts
+
+// ── Personalidad (§43) ──
+type Consequence = {
+  changes: string                       // lo que cambia, en una frase de la aplicación
+  cost?: PriceSpec                      // lo que cuesta o se deja de pagar (value negativo = se deja de pagar; GPrice pinta U+2212)
+  when?: string                         // ISO: desde cuándo
+  loses?: string[]                      // lo que se pierde
+  reversible?: boolean | string         // true/false: labels.consequence.reversible / irreversible; String: cómo se deshace
+}
+type Consequences<A extends string> = Partial<Record<A, Consequence>>
+type Attention = { tone: 'info' | 'warning' | 'error'; text: string }
+/** Textos de una confirmación (§43.2): plantilla con {name} o función del nombre del elemento. */
+type ConfirmLabels = { title: string | ((name: string) => string); action: string | ((name: string) => string) }
+type ConsequenceLabels = { cost?: string; when?: string | ((date: string) => string); loses?: string; reversible?: string; irreversible?: string }
+
+// ── S1 Auth ──
+type AuthMode = 'sign-in' | 'sign-up' | 'reset' | 'new-password' | 'verify'
+/** Otra forma de entrar. Sin logo: Grana solo dibuja Lucide, que no tiene marcas; el logo lo pone la aplicación en el slot `provider`. */
+type Provider = { id: string; label: string }   // «Continuar con Arrecife»
+type PasswordRule = { id?: string; label: string; test?: (value: string) => boolean }   // dicha antes de escribir; test opcional marca «cumplida»
+/** Un campo extra de alta (empresa, teléfono). Lista cerrada sin contraseña ni pago (§44). */
+type AuthField = Omit<GuestField, 'type'> & { type?: 'text' | 'email' | 'tel' | 'select' }
+type AuthFields = {
+  identifier: { label: string; type?: 'email' | 'text'; hint?: string }   // correo o usuario (autocomplete="username")
+  password?: { label: string; hint?: string; rules?: PasswordRule[] }      // current-password o new-password según el modo
+  name?: { label: string; hint?: string; required?: boolean }              // solo sign-up (autocomplete="name")
+  code?: { label: string; hint?: string; length?: number }                 // solo verify (one-time-code)
+  extra?: AuthField[]                                                      // solo sign-up
+}
+
+// ── S2 Onboarding ──
+type OnboardingStep = {
+  id: string; title: string; description?: string
+  status: 'todo' | 'done' | 'skipped'
+  optional?: boolean                    // se puede saltar
+  manual?: boolean                      // se puede marcar a mano («Ya lo hice»)
+  estimate?: string                     // «2 min» (texto de la aplicación)
+  why?: string                          // por qué importa
+  action?: Action                       // lo que lleva a hacerlo
+  skip?: Consequence                    // qué se pierde al saltarlo (§43.2 forma 1)
+  media?: Media                         // 03
+}
+
+// ── S3 Settings layout ──
+type SettingsSection = { id: string; title: string; description?: string; icon?: string; href?: string; group?: string; attention?: Attention }
+
+// ── S4 Profile ──
+type Profile = { name: string; email?: string; avatar?: string; meta?: string }   // lo guardado: la vista previa y el avatar
+type ProfileField = Omit<GuestField, 'type'> & {
+  type?: 'text' | 'email' | 'tel' | 'url' | 'textarea' | 'select' | 'switch'
+  change?: string                       // qué pasa si cambia («Te enviaremos un enlace al correo nuevo…»): a la vista en cuanto el valor difiere de `saved`
+  pending?: string                      // algo a medias («Pendiente de confirmar: ana.r@…»): advertencia del campo
+  readonly?: boolean | string           // String: por qué no se puede cambiar
+}
+
+// ── S5 Plans (types/common.d.ts: también Marketing M6) ──
+type BillingPeriod = 'month' | 'year'
+type PlanFeature = { id?: string; label: string; included: boolean | string; group?: string; hint?: string }   // String: «Hasta 5»
+type PlanLimit = { id?: string; label: string; value: string }          // «Miembros» · «Hasta 10»
+type Plan = {
+  id: string; name: string; summary?: string
+  badge?: string                        // «El más elegido»: texto, nunca solo color
+  prices: Partial<Record<BillingPeriod, PriceSpec>>   // con unit/unitLabel («/ mes», «al mes»)
+  note?: Partial<Record<BillingPeriod, string>>       // «2 meses gratis al pagar el año»
+  features: PlanFeature[]
+  limits?: PlanLimit[]
+  available?: boolean | string
+  contact?: Action                      // «Hablar con ventas»: sin precio ni cambio directo
+  change?: Partial<Record<BillingPeriod, Consequence>>   // SaaS: relativo al plan actual, de la aplicación. Marketing lo ignora
+}
+
+// ── S6 Billing ──
+type MaskedCard = { label: string; detail?: string; attention?: Attention }   // «Visa terminada en 4242» · «Vence 12/2027»: texto, nunca el número
+type Subscription = {
+  plan: string                          // nombre del plan («Taller»)
+  status: 'trialing' | 'active' | 'past-due' | 'canceling' | 'canceled' | 'paused'
+  statusText: string
+  period: BillingPeriod
+  price: PriceSpec
+  next?: { date: string; amount: PriceSpec; note?: string }   // próximo cobro, ya calculado
+  endsAt?: string                       // ISO: fin de la prueba o de la cancelación
+  seats?: { used: number; total: number | null }
+  attention?: Attention                 // «El cobro del 1 de noviembre falló»
+  consequences?: Consequences<'cancel'>
+}
+type Invoice = {
+  id: string; reference: string; date: string
+  amount: Money | Money[]
+  status: 'paid' | 'open' | 'failed' | 'refunded' | 'void'; statusText: string
+  period?: { from: string; to: string }
+  href?: string                         // la factura (la fila es puerta)
+  download?: NavLink                    // el PDF
+}
+
+// ── S7 Usage ──
+type UsageItem = {
+  id: string; label: string
+  used: number; limit: number | null    // null: sin límite (labels.unlimited)
+  valueText: string                     // «8,2 de 10 GB» (de la aplicación)
+  warnAt?: number                       // fracción 0..1; por defecto 0.8
+  resets?: string                       // ISO: cuándo vuelve a cero
+  trend?: { value: string; direction: 'up' | 'down' | 'flat'; text?: string }   // a GMetric
+  atLimit?: Consequence                 // qué pasa al llegar al límite (§43.2 forma 1)
+}
+
+// ── S8 Team ──
+type Role = { id: string; label: string; description: string; assignable?: boolean }   // description: lo que puede hacer
+type Member = {
+  id: string; name: string; email: string; avatar?: string
+  role: string                          // Role.id
+  statusText?: string; attention?: Attention
+  you?: boolean                         // labels.you
+  locked?: string                       // por qué no se puede quitar ni cambiar («Es la dueña del espacio»)
+  lastActive?: string                   // ISO
+  consequences?: Consequences<'remove' | 'change-role'>
+}
+type Invite = { id: string; email: string; role: string; sentAt: string; expiresAt?: string; attention?: Attention; consequences?: Consequences<'remove'> }
+type Seats = { used: number; total: number | null; price?: PriceSpec }
+
+// ── S9 API keys ──
+type Scope = { id: string; label: string; description?: string; group?: string; danger?: boolean }   // danger: escritura o borrado
+type ApiKey = {
+  id: string; name: string; masked: string   // «mlp_live_…4f2a» (de la aplicación)
+  scopes: string[]                      // Scope.id
+  createdAt: string; lastUsed?: string | null; expiresAt?: string | null
+  statusText?: string; attention?: Attention
+  consequences?: Consequences<'revoke'>
+}
+type OnceSecret = { keyId: string; value: string }   // se pinta completo una sola vez (§44 regla 3)
+
+// ── S10 Integrations ──
+type Integration = {
+  id: string; name: string; summary?: string; category?: string
+  logo?: Media                          // imagen de la aplicación (Lucide no tiene marcas)
+  status: 'available' | 'connected' | 'error' | 'unavailable'; statusText: string
+  connectedAs?: string                  // «tienda@barroyagave.mx»
+  permissions?: string[]                // lo que podrá hacer, dicho antes de conectar
+  href?: string                         // la ficha de la integración
+  configure?: { href?: string }         // ajustes de una conectada
+  attention?: Attention
+  consequences?: Consequences<'disconnect'>
+}
+
+// ── S11 Notification preferences ──
+type NotifChannel = { id: string; label: string; detail?: string; icon?: string; available?: boolean | string }   // detail: «ana@…»; String: «Agrega un teléfono»
+type NotifEvent = { id: string; label: string; description?: string; group?: string; channels?: string[]; required?: Record<string, string> }   // required: canal → motivo (siempre encendido)
+type NotifValue = Record<string, string[]>   // NotifEvent.id → NotifChannel.id[]
+
+// ── S12 Changelog & audit log ──
+type LogEntry = {
+  id: string; date: string; title: string; summary?: string; body?: string
+  lang?: string
+  kind?: string                         // id de `kinds` («new», «fixed», «security»…)
+  tags?: string[]
+  href?: string; external?: boolean
+  media?: Media
+  actor?: { name: string; avatar?: string }   // registro: quién
+  target?: string                             // registro: sobre qué
+}
+type LogKind = { id: string; label: string }
+```
+
+**Identidad y orden:** `id` obligatorio en lo que se acciona (§42 regla 7; ausente: SA5, se usa el índice o, si no puede funcionar sin él, el elemento se omite). Un `id` que cita otro que no existe (un `Member.role` sin `Role`, un `scope` sin `Scope`, `current` sin `Plan`, un canal sin `NotifChannel`): aviso **SA6** y se pinta lo que se pueda (el rol con su `id` en crudo no: sin rol a la vista y el `GSelect` sin valor).
+
+## 46. Eventos de intención de SaaS (además de §4)
+
+**Carga común:** `{ event, … }`; `event` es `Event | null` (#936) cuando el componente compuesto no entrega un evento del DOM. En una intención **confirmada** (§43.2), `event` es el clic del botón de confirmación.
+
+| Evento | Carga | Secciones | Cuándo |
+| --- | --- | --- | --- |
+| `submit` | **Auth:** `{ event, mode, step, data: FormData, values, consents, final, preventDefault(), defaultPrevented }` (`values` sin contraseña ni código, §44) · **Profile:** `{ event, data, values, changed: string[] }` · **Notifications:** `{ event, value, muted }` | S1, S4, S11 | Envío válido. En Auth, **síncrono y cancelable** (como Checkout, #922): en 03, sin `preventDefault()` el paso de identidad pasa al de la contraseña; con él, espera a que la aplicación cambie `step` (p. ej. lleva a un SSO) |
+| `provider` | `{ event, provider, mode }` | S1 | «Continuar con…» |
+| `switch` | `{ event, to: AuthMode }` | S1 | Cambiar de modo («Crear cuenta», «¿Olvidaste tu contraseña?»). Con `routes[to]`, es un enlace y sigue la guarda de `navigate` (#505): `preventDefault()` deja la ruta al router |
+| `complete` · `skip` | `{ event, step }` · `{ event, step: OnboardingStep \| null }` | S2 | «Ya lo hice» (paso `manual`) · saltar un paso `optional`, o la guía entera con `step: null` |
+| `avatar` | `{ event, action: 'change' \| 'remove' }` | S4 | «Cambiar foto» / «Quitar foto» (el selector y el recorte son de la aplicación, §52) |
+| `upgrade` | `{ event, plan, period, direction: 'up' \| 'down' \| 'period' }` (S5) · `{ event, item: UsageItem \| null }` (S7) | S5, S7 | Cambiar de plan (`down`, tras confirmar) · «Ampliar plan» de un consumo. El nombre del plan (§4.5) se conserva para cualquier cambio; `direction` dice cuál |
+| `cancel` · `resume` | `{ event, subscription }` | S6 | Cancelar (tras confirmar) · reanudar una suscripción `canceling` |
+| `change-method` | `{ event }` | S6 | «Cambiar método de pago» (la pasarela es de la aplicación) |
+| `open` | `{ event, invoice }` · `{ event, entry }` | S6, S12 | Abrir una factura o una entrada **sin** `href` (con `href`, `navigate`) |
+| `invite` | `{ event, emails: string[], role: string }` | S8 | Invitación válida |
+| `change-role` | `{ event, member, role }` | S8 | Tras confirmar (`role` = el nuevo `Role`) |
+| `remove` | `{ event, member }` · `{ event, invite }` | S8 | Tras confirmar |
+| `resend` | `{ event, invite }` | S8 | «Reenviar» |
+| `create` | `{ event, name, scopes: string[], expires: string \| null }` | S9 | Clave nueva válida |
+| `revoke` | `{ event, key }` | S9 | Tras confirmar |
+| `copy` | `{ event, keyId }` | S9 | «Copiar» del secreto: la aplicación lo copia en su escucha (síncrona, en el gesto) |
+| `connect` · `disconnect` · `configure` | `{ event, integration }` | S10 | Conectar (la autorización es de la aplicación) · desconectar (tras confirmar) · ajustes sin `configure.href` |
+| `update:step` · `update:current` · `update:values` · `update:period` · `update:value` · `update:muted` · `update:created` · `update:page` · `update:filters` · `update:since` | el valor | S1 · S2, S3 · S4 · S5 · S11 · S11 · S9 · S6, S12 · S12 · S12 | Estado de vista (§42)¹ |
+| `retry` | `{ event: null }` | S6, S12 | «Reintentar» de la tabla que falló |
+
+¹ **No existe `update:mode`:** el modo de Auth cambia por `switch` (suele ser una ruta). Los nombres `page` y `filter` del plan son `update:page` y `update:filters` (como Ecommerce, #914).
+
+`navigate` y `activate` siguen §4 (enlaces y `Action` sin `href`). **Una activación por gesto** (#661) en lo que abre algo (confirmación, invitación, crear clave): la cumplen `GDialog` y `GBtn`; el bloque no añade otra.
+
+## 47. Avisos comunes de SaaS (`[Grana Gb<Sección><NN>]`, guarda de #653)
+
+Los de §5 (C1 a C8), **K3** y **K4** de §18 (precio sin `value`; `available` que no es Boolean ni String), **EC1** de §31 (precios sin `prices`) y además:
+
+| # | Motivo | Qué pasa |
+| --- | --- | --- |
+| SA1 | Una acción destructiva o que cuesta sin su `Consequence` (o una `Consequence` sin `changes`) | Se confirma solo con la pregunta (§43.2) o el botón va sin consecuencia |
+| SA2 | Un campo de datos con `autocomplete` `cc-*`, `name` que empieza por `card`, o un tipo de contraseña en `AuthField`/`ProfileField` (§44 reglas 1 y 2) | El campo **no se pinta** |
+| SA3 | Un `OnceSecret` con un `keyId` ya mostrado y cerrado en esta instancia | No se pinta otra vez |
+| SA4 | `created` (secreto) presente en el render del servidor | No se pinta hasta montar en el cliente |
+| SA5 | Falta el `id` obligatorio (§42 regla 7) | Se usa el índice; si la acción depende de él, el elemento se pinta sin acciones |
+| SA6 | Un `id` que cita algo que no existe (rol, alcance, plan actual, canal, sección actual) | Se pinta lo que se pueda; el control queda sin valor |
+| SA7 | Sin escucha de la intención principal de la sección (`submit`, `invite`, `create`, `upgrade`, `connect`) | Se pinta igual (nada puede hacerse) |
+| SA8 | `Attention` sin `text` o con `tone` fuera de lista | No se pinta la atención |
+| SA9 | Falta un texto de `labels.confirm.<acción>` o `labels.keep` cuando el bloque va a confirmar | La acción **no se ofrece** (sin pregunta no hay confirmación posible) |
+
+## 48. Archivos, `meta.json`, tipos, paquete y peso (#957; encargo a bruno, 4c·1)
+
+```
+packages/blocks/src/blocks/Gb<Sección>/        ← como §6: props.js, 01..03.vue, meta.json, test, banco, README
+packages/blocks/src/blocks/common/             ← se reutiliza; lo nuevo de SaaS aquí: Consequence (pintar 43.1), ConfirmDialog (43.2, en 4c·2), Attention → badge/status/rowStatus, campos de credencial
+packages/blocks/src/saas.js                    ← índice: las 36 variantes (puras) y el plugin `saas`
+packages/blocks/types/saas.d.ts                ← §45, a mano
+packages/blocks/types/common.d.ts              ← + Plan, PlanFeature, PlanLimit, BillingPeriod (§45)
+packages/blocks/src/blocks/bank/saas.js        ← la empresa común (§49)
+```
+
+- **`meta.json`:** la forma de §6 con `family: "saas"`, `bundle.entry: "@grana/blocks/saas"` y `complex: true` en las seis complejas (§41). `build-types.mjs` escribe `dist/saas.d.ts` por `family` (§19), reexporta `types/common.d.ts`, `types/saas.d.ts` y los de §2, y amplía `GlobalComponents`; se detiene ante una variante sin exportar o una exportación sin `meta.json`. Las secciones se añaden **por fases**: el índice y el generador aceptan una entrada con solo las secciones construidas (4 en 4c·1, 8 en 4c·2, 12 en 4c·3).
+- **`package.json`:** `exports` gana `"./saas"` (`types`/`import`/`default`) y `typesVersions` `saas`; `vite.config.js` gana la entrada; externos: `vue`, `@grana/vue`, `@grana/vue/price`, `@grana/vue/tag`.
+- **Código común:** el motor de campos de Checkout (`common/fields.js`, #941) sirve a Auth y Profile **si** no sube `dist/ecommerce.js` ni `dist/booking.js` (topes que no se vuelven a subir, #907, #932); si los sube, SaaS lleva su copia y la prueba de paridad la cubre (como #941).
+- **Peso (tope tras la medida, como Booking #879):** **sin tope en 4c·1 y 4c·2**; referencias: **una variante importada sola ≤ 7 KiB (7 168 B)** y, para las complejas que llevan formulario y diálogo (Auth, Team, API keys, Billing), **≤ 9,5 KiB (9 728 B)**; la entrada se mide en cada fase y se anota en los `meta.json` (`bundle.measured`) y en `CHANGELOG.md`. **lima fija los topes al cerrar 4c·3** con las 36 medidas. Una variante que pase su referencia vuelve a lima con su medida. **`dist/marketing.js`, `dist/booking.js`, `dist/ecommerce.js` y `dist/blocks.js` no suben** por SaaS (compuertas de §50).
+
+## 49. Banco común y verificación de SaaS
+
+- **Banco común** (`bank/saas.js`, bruno): **Milpa**, programa de inventario y pedidos para talleres; el espacio **Barro y Agave** (Oaxaca). `prices` `{ currency: 'MXN', taxes: 'IVA incluido' }`. **Planes:** Semilla (gratis, 1 miembro, 100 productos), **Taller** (actual; $249 al mes o $2,490 al año, «2 meses gratis», 10 miembros, 2 000 productos), Cooperativa ($899 al mes o $8,990 al año, miembros sin límite, `badge` «Para varios talleres»), Empresa (`contact` «Hablar con ventas»). **Equipo:** Ana Ruiz (dueña, `you`, `locked`), Luis Mendoza (Edición), Rosa Hernández (Lectura, `attention` «No ha entrado en 60 días»), una invitación pendiente y una caducada; roles Dueña, Administración, Edición, Lectura; asientos 4 de 10 a $49 al mes cada uno. **Consumo:** productos 1 840 de 2 000 (cerca), almacenamiento 8,2 de 10 GB, pedidos del mes 312 sin límite. **Facturación:** suscripción activa anual, próximo cobro $2,490 el 1 de diciembre, `MaskedCard` «Visa terminada en 4242 · Vence 12/2027», seis facturas (una `failed`, una `refunded`, una en USD aproximada). **Claves:** dos activas, una caducada; alcances de lectura y escritura (`danger`) de pedidos, productos e inventario. **Integraciones** (nombres inventados, sin marcas reales): «Paquetería del Sur» (conectada), «Cobros Lince» (error), «Hoja de Cálculo Abierta» (disponible), «Tienda Nopal» (no disponible con motivo). **Avisos:** eventos de pedidos, inventario, equipo y seguridad (este con `required` por correo); canales correo, SMS (no disponible: «Agrega un teléfono») y en la aplicación. **Novedades y registro:** ocho entradas, una en inglés con `lang="en"`. Además de §7: texto largo con palabra sin espacios, un enlace externo, un elemento mínimo. Ninguna variante avisa con el banco.
+- **Vitest** (lo de §8 en las variantes de la fase y además): (1) **ningún secreto persiste** (prueba de §50): con el banco completo pasando por todas las variantes construidas, espías en `fetch`, `XMLHttpRequest.prototype.open`, `navigator.sendBeacon`, `Storage.prototype.setItem`, el `setter` de `document.cookie` y `console.*` que **nadie llama** con un valor de contraseña, código o `OnceSecret`; la contraseña y el código no aparecen en ninguna carga de evento salvo en `data` de `submit`; tras «Ya la guardé» el valor del secreto no está en el DOM; (2) `autocomplete` exacto por modo (§44 regla 4); (3) ningún campo `cc-*` ni `card*` (SA2); (4) cada intención destructiva abre el `alertdialog` con la consecuencia como `aria-describedby` del botón y **solo** emite al confirmar; «Mantener» y Esc no emiten y devuelven el foco al disparador; (5) un solo `GPriceScope` por región y ningún precio fuera de `GPrice`; (6) toda fecha visible en `<time datetime>`; (7) `Attention` siempre en texto (badge, `statusText` o `rowStatus.text`); (8) avisos SA1 a SA9 y los propios, una vez; (9) SSR de las variantes sin `window` y sin el secreto en el HTML.
+- **Playwright, Chromium** (`packages/blocks/playground/saas/<seccion>.html`, spec `tests/blocks-saas.spec.mjs`, **puerto propio 4223**, **`--workers=1`**, plan §5.1): lo de §8 (320, 390, 1440; zoom 200 %; Tab con foco visible; reducido; oscuro; consola limpia; tema por defecto y dos del CLI) y la «Verificación propia» de cada sección. **Firefox y WebKit una vez al cerrar cada fase**, un motor tras otro y solo sobre los specs de esa fase; la pasada completa de SaaS, al cerrar 4c·3.
+
+## 50. Compuertas de SaaS (bruno, en el script del paquete y en `gates.sh`)
+
+Las de §9 sobre los `Gb*` y además:
+
+```bash
+test -f packages/blocks/dist/saas.js && test -f packages/blocks/dist/saas.d.ts
+! grep -q "createApp" packages/blocks/dist/saas.js
+! grep -q "__shared" packages/blocks/dist/saas.js
+! grep -qE "g-[a-z-]+__[a-z]" packages/blocks/dist/saas.js           # ninguna clase interna de un componente
+! grep -qE "fetch\(|XMLHttpRequest|sendBeacon|WebSocket|EventSource" packages/blocks/dist/saas.js
+! grep -qE "localStorage|sessionStorage|indexedDB|document\.cookie" packages/blocks/dist/saas.js   # el bloque no persiste nada (§44)
+! grep -rqE "cc-(name|number|csc|exp|type)" packages/blocks/src/blocks/Gb*/                       # ningún campo de pago (amplía la de §34 a todo el bloque)
+! grep -qE "describeQuery|cartTotals" packages/blocks/dist/saas.js     # SaaS no carga Booking ni Ecommerce
+! grep -qE "GbAuth01|GbTeam01" packages/blocks/dist/marketing.js packages/blocks/dist/booking.js packages/blocks/dist/ecommerce.js packages/blocks/dist/blocks.js
+! grep -qE "GbHero01|GbOfferList01|GbProductCard01" packages/blocks/dist/saas.js
+test "$(gzip -c packages/blocks/dist/marketing.js | wc -c)" -le 18432
+test "$(gzip -c packages/blocks/dist/booking.js | wc -c)" -le 37888
+test "$(gzip -c packages/blocks/dist/ecommerce.js | wc -c)" -le 51200
+# saas.js y por variante: sin tope hasta 4c·3 (§48); measure-partial.mjs mide y anota
+```
+
+Y la **prueba de que ningún bloque SaaS persiste un secreto** (§49 Vitest punto 1) es compuerta: corre en `npm test` y en el job `verify` de `ci.yml`.
+
+## 51. Alcance: lo que se reutiliza y lo que queda fuera (#957)
+
+- **`Plan` sirve a Marketing M6 Pricing** (sin construir): el tipo vive en `types/common.d.ts` y M6, cuando se contrate, lo usará tal cual; `change` es solo de SaaS (Marketing lo ignora, como una variante ignora lo que no usa). **No se reexporta `GbPlans` desde Marketing** (una sección, una entrada): la página pública de precios será M6 con sus variantes.
+- **Políticas, opiniones, consentimientos:** `Consent` de `types/common.d.ts` (Auth); para los términos completos, `GbPolicies` de Booking (receta).
+- **Fuera del lote:** pago y pasarela (la aplicación; `change-method`), autorización OAuth de proveedores e integraciones (la aplicación), verificación en dos pasos completa (solo el campo del código, `verify`; los códigos de respaldo son un `OnceSecret` de la aplicación: receta con `GbApiKeys` no, con el patrón de §44 regla 3 en el README de Auth), borrar la cuenta o el espacio (receta: `GbSettingsLayout` con una sección «Zona de peligro» y una confirmación de la aplicación), sesiones y dispositivos activos, facturación por consumo con gráfica (`GChart` reservado), recorte de la foto de perfil, sugerencias de personas al invitar (§53 SA-L7), barra «qué hay de nuevo» flotante.
+
+## 52. Correcciones al plan §4.5 (#961)
+
+| Plan | Contrato | Por qué |
+| --- | --- | --- |
+| Settings layout 01 con `GSidebar` | 01 **Índice al lado**: `GSplit` con un `nav` de `GCard interaction="link" current` (la lista maestro-detalle de `card.md`) | `GSidebar` es **la** navegación de la aplicación: fija al visor, con barra inferior en el teléfono; una segunda en la página pondría dos barras inferiores (`sidebar.md` `contained`, `mode`) |
+| Plans 01 y Integrations 01 con `GCardGroup` | `GAdaptiveLayout role="list"` (§1 regla 5) | `GCardGroup` es una barra de tarjetas que filtran (`role="toolbar"`, #603), no una rejilla (#816, #914) |
+| Usage 03 y Billing con `GStatus` | `GCard status` + `statusText` (§43.3) | `GStatus` es la isla de la aplicación (servicio imperativo, `draft` en su rediseño): un bloque no empuja mensajes ni tiene región viva (#792) |
+| Changelog con `GDataList` | 01 `GStack as="ol"` de `GCard`; 02 `GTable` con filtros de columna | `GDataList` es una lista de pares etiqueta–valor de widget (`widget.md`), sin título, cuerpo ni fecha |
+| Changelog 02 con `GFilterBar` suelto | Los filtros de columna de `GTable` (`columns[].filter`, que ya componen `GFilterBar`) con `filterMode="external"` | Un registro de actividad **es** una tabla de datos; el editor de reglas va con sus columnas |
+| Onboarding 01 con `GStepper` | 01 **Uno abierto**: `GAccordion` de pasos | `GStepper` deriva el estado del índice (`i < actual` = completo, `stepper.md`): una guía que se hace en cualquier orden mentiría |
+| Onboarding con `GCheckbox` por paso | `GBtn` «Ya lo hice» en los pasos `manual` (`complete`) | Una casilla que se desmarca pediría «des-completar» un paso; la intención es de un solo sentido |
+| Profile con `GFileField` para el avatar | `GBtn` «Cambiar foto» / «Quitar foto» (`avatar`) | El recorte y la vista previa son de la aplicación; `GFileField` sube archivos con un adaptador (12 KB *peer*) y no recorta |
+| Team con `GCombobox` para invitar | `GTextarea` «un correo por línea o separados por comas», validado con el `ValidityState` de `type="email"` (`team.md`) | Sin sugerencias de personas conocidas no hace falta la búsqueda (21,7 KB *peer*); SA-L7 |
+| Integrations 02 «lista con interruptor» | 02 **Renglones** con botones «Conectar» / «Desconectar» | Conectar abre la autorización de otro sitio (cambio de contexto, 3.2.2) y desconectar destruye: un interruptor promete un cambio inmediato y reversible |
+| S12 `page`, `filter`; S3 `update:current` | `update:page`, `update:filters`, `update:current` | Mismo vocabulario que Ecommerce (#914) |
+| S5 «aviso de límite» y S7 03 «aviso» con `GStatus`/`GBtn` | `GCard status="warning"` con la consecuencia del límite y la propuesta | Ídem; la consecuencia (§43) es el contenido |
+| S1 «`fields`» libre | `fields` con las claves de credencial que pinta el bloque (`identifier`, `password`, `name`, `code`) + `extra` cerrado | El `autocomplete` de las credenciales no puede depender del dato (§44 regla 4) |
+
+## 53. Hallazgos para lima (no bloquean; en `PENDIENTES.md` §3)
+
+- **SA-L1 · `GProgress` como medidor (EC-L2, ahora con dos casos más).** El consumo de un recurso y la ocupación de asientos son **medidas** de un rango conocido, no el avance de una tarea: `role="progressbar"` mentiría. Mientras, Usage y Team pintan la barra **decorativa** (envoltorio `aria-hidden`) con el texto al lado (como Reviews, #914). Recomendación al usuario: contratar `GProgress role="meter"` antes de 4c·2 (cambio de la v1, peso pequeño; pregunta 1 de #974).
+- **SA-L2 · `h1` de la página de entrada** (con EC-L1). Una página de entrada es solo Auth; `GCard` y `GSection` no admiten nivel 1. Mientras, el título va a `useSectionLevel()` (h2 en la raíz) y la aplicación pone el `h1` (su `GPageHeader` o el nombre del producto). Pregunta 2 de #974.
+- **SA-L3 · Copiar con acuse en el sitio** (con EC-L6, #643): el secreto se copia en la escucha de `copy` de la aplicación y el acuse lo da ella (`GToast`); «Copiado» en el propio botón llegará con el patrón de acciones con acuse cuando un componente lo ofrezca.
+- **SA-L4 · `aria-current="page"` en `GCard`.** El índice de Settings 01 usa `current` de `GCard`, que pone `aria-current="true"` (maestro-detalle). Cuando cada sección es una ruta, `page` sería más exacto; reservado (`current` con valor de `aria-current`, cambio de la v1).
+- **SA-L5 · Consecuencia en tiempo real.** El prorrateo de un cambio de plan o de asientos depende del servidor; hoy la aplicación lo pone en el dato antes de pintar. Si una plantilla necesita pedirlo al abrir la confirmación (asíncrono), el diálogo necesitará un estado `loading` con su texto: reservado.
+- **SA-L6 · Índice que sigue al desplazamiento** (Settings 03). Nada se mueve solo y el bloque no observa el desplazamiento: el índice no marca la sección a la vista. Reservado (2.2.2 no lo prohíbe, pero añade estado y observadores).
+- **SA-L7 · Invitar con sugerencias** (`GTagInput`, #338 y #473, o `GCombobox multiple` con texto libre): reservado hasta que una plantilla tenga directorio de personas.
+- **SA-L8 · Rejilla de casillas** (Notifications 01). La matriz canal × aviso usa `GTable` con `GCheckbox field: false` en celdas; en tarjetas (`responsive`) cada casilla lleva el nombre completo («Correo · Pedido nuevo»). Una rejilla de casillas con flechas (APG *Grid*) queda reservada.
+
+## 54. Reparto por fases y encargos (plan §5.1, #974)
+
+Reglas de ejecución en todas las fases: **un solo agente a la vez**; Playwright **`--workers=1`**, un motor tras otro; **verificación por niveles** (en la fase, solo sus secciones y en Chromium; los tres motores una vez al cerrar la fase y solo sobre sus specs; la pasada completa de SaaS al cerrar 4c·3); cada fase cierra con push y una línea en Notion antes de la siguiente.
+
+| Fase | Secciones | bruno | coco (auditoría) | mora-docs |
+| --- | --- | --- | --- | --- |
+| **4c·0** | Contratos (este documento y los doce `*.md`) | — | — | — |
+| **4c·1** | S1 Auth, S2 Onboarding, S4 Profile, S3 Settings layout + **infraestructura** | **Opus** (Auth y Settings layout complejas; la infraestructura) | **Opus** (Auth, Settings layout) | README de las cuatro |
+| **4c·2** | S7 Usage, S8 Team, S11 Notification preferences, S10 Integrations + `common/ConfirmDialog` | **Opus** (Team; la confirmación común) | **Opus** en Team, Sonnet en el resto | README de las cuatro |
+| **4c·3** | S5 Plans, S6 Billing, S9 API keys, S12 Changelog + **topes de peso** (lima) | **Opus** (Plans, Billing, API keys) | **Opus** en las tres complejas | README de las cuatro, recetas de la familia y sitio |
+
+**Encargos a bruno · 4c·1 (en este orden):**
+
+1. **Infraestructura de la entrada** `@grana/blocks/saas` (§48): `src/saas.js` y plugin `saas`; `exports`, `typesVersions`, `vite.config.js` y externos; `build-types.mjs` por `family: "saas"` (acepta una entrada con solo las secciones construidas); `types/saas.d.ts` con **todo** §45 (también lo de 4c·2 y 4c·3, para que los tipos no cambien de forma); `Plan`, `PlanFeature`, `PlanLimit`, `BillingPeriod` en `types/common.d.ts`; **`Member` reservado de `types/marketing.d.ts` → `Person`** (#960, misma forma; prueba de tipos verde).
+2. **`common/` de SaaS:** pintar una `Consequence` (§43.1: `GText`, `GPrice` en la región, `<time>`, lista de pérdidas, `reversible`; `id` para `aria-describedby`); `Attention` → `badge`/`badgeColor`, `status`/`statusText` y `rowStatus` (§43.3); **campos de credencial** (§44 regla 4: identidad, contraseña con `rules`, nombre, código; sin `v-model` en contraseña y código); filtro SA2 de campos de datos. Valorar el motor de `common/fields.js` (§48 «Código común»).
+3. **`bank/saas.js`** (§49) con todo el banco (también lo de fases siguientes: los tipos ya existen).
+4. **Compuertas de §50** en el script del paquete y en `gates.sh`, y la **prueba de no persistencia** (§49 Vitest 1) como prueba del paquete.
+5. **Secciones** Auth (`auth.md`), Onboarding (`onboarding.md`), Profile (`profile.md`), Settings layout (`settings-layout.md`): `props.js`, tres variantes, `meta.json` (`status: "draft"`, `complex` donde toca), banco por sección, pruebas, playground `packages/blocks/playground/saas/` y casos en `tests/blocks-saas.spec.mjs` (puerto **4223**, `--workers=1`, solo Chromium dentro de la fase).
+6. **Medida de peso** (`dist/saas.js` con sus trozos y las 12 parciales) anotada en `meta.json` y `CHANGELOG.md`; comprobar que Marketing, Booking, Ecommerce y Gestión no suben.
+7. **Al cerrar la fase:** Firefox y WebKit **una vez**, un motor tras otro, solo sobre los casos de 4c·1.
+
+**Preguntas al usuario (no bloquean 4c·1; #974):** (1) contratar `GProgress role="meter"` antes de 4c·2 (SA-L1; recomendado: sí, ronda corta y cambio pequeño de la v1); (2) `h1` en Auth cuando es la página entera (SA-L2; recomendado: esperar y decidirlo junto a EC-L1); (3) oferta de retención al cancelar en Billing (recomendado: no; ningún patrón oscuro en el bloque, la aplicación puede ponerla en su propia página).
+
+**coco · 4c·1:** solo auditoría (`auditoria-visual.md` previa y posterior, dos temas del CLI, rúbrica de movimiento sobre lo compuesto: `GAccordion` de Onboarding 01, `GTabs` de Settings 02, la sacudida de `GForm` y el revelado de la contraseña en Auth); resultado en `design/lab/blocks/saas/auditoria.md`; lo que pida CSS vuelve a lima. **mora-docs · 4c·1:** README de las cuatro y la receta «Entrar con gestor de contraseñas» (§44 regla 4).
