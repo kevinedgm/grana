@@ -92,6 +92,8 @@ Recuperación tras cerrar la aplicación, contrato y kit de pruebas del audio te
 
 | Qué | Dueño |
 | --- | --- |
+| **Densidad por región (pieza 2, #974 a #985):** solo Chromium; faltan Firefox, WebKit (táctil, criterio 12), SSR real, tableta que cambia de puntero en caliente, lector de pantalla y tareas largas sin vecinos (≈ 72–80 ms al cambiar con 500 filas, igual que un control de token puro, #965). Reservados R1 a R4 de `density.md`; límite SSR de la meta de `GCard` (se quita al hidratar); `GCalendar`, `GPagination`, `GTag`, `GBadge`, `GAccordion`, `GFilterBar` y `GBreadcrumbs` no siguen la región hasta la pieza 4. | bruno / coco |
+| **Blocks con `GCard density="compact"` como prop** (`GbOfferList03`, `GbOrderHistory03`, `GbTrust01`, `GbCategoryPreviews02/03`): coherentes según la auditoría de coco, pero la prop no cede al dedo en el teléfono; decidir si pasan a región `data-g-density` como `GbConfirmation03` y `GbProductCard03` (b9f1b95). | bruno |
 | **`<select>` de orden de `GTable` en `mode="cards"` a 30 px de alto también en táctil**, por debajo de los 44 px de `tokens.md` §7 (hallado por coco en la pieza 1, 7470b94; no se tocó porque #972 exige altura Δ0; el README de `GTable` lo deja dicho y su frase «controles de 44px» en táctil queda contradicha hasta corregirlo). | coco / bruno |
 | **`GPartyField` sin README** (visto al documentar la pieza 1, d7a90e6). | mora-docs |
 | **Pieza 1 (texto editable ≥ 16 px táctil, #970 a #972):** verificada solo en Chromium con emulación; faltan WebKit, la ampliación real en iPhone con Safari, RTL del fantasma y espejos, y las cifras de mínimos de `GFormRow` en táctil. | bruno / coco |
