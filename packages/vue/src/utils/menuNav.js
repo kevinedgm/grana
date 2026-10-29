@@ -8,11 +8,10 @@
 // M1 (el puntero mueve el foco y el puntero quieto no hace nada, #305 y #358 regla 4) con los datos del resaltado que viaja
 // (--_active-y/h, has-highlight, is-highlight-instant), y la guarda de una activación por gesto (#661).
 import { setVar } from './anchor.js'
+import { flashInstant } from './glide.js'
 
 /** Búfer de la letra (constante neutra, #187) */
 export const TYPE_MS = 500
-
-const raf = (fn) => (typeof requestAnimationFrame === 'function' ? requestAnimationFrame(fn) : setTimeout(fn, 16))
 
 /**
  * Una activación por gesto (#661, api.md): el segundo clic de una ráfaga (`click` con `detail > 1`) e Intro o Espacio
@@ -92,7 +91,6 @@ export function createPointer() {
  * `highlight(menu, el)`; con `el` nulo, sin activo.
  */
 export function createHighlight() {
-  const turns = new WeakMap()
   const offsetIn = (el, menu) => {
     let y = 0
     for (let n = el; n && n !== menu; n = n.offsetParent) {
@@ -108,12 +106,8 @@ export function createHighlight() {
     const cl = menu.classList
     if (!el) { if (cl.contains('has-highlight')) cl.remove('has-highlight'); return }
     const first = !cl.contains('has-highlight')
-    if (first) {
-      const turn = (turns.get(menu) || 0) + 1
-      turns.set(menu, turn)
-      cl.add('is-highlight-instant')
-      raf(() => raf(() => { if (turns.get(menu) === turn) menu.classList.remove('is-highlight-instant') }))
-    }
+    // Primera colocación sin viaje durante dos cuadros: el mismo ayudante que la luz de GSidebar y GTable (utils/glide.js)
+    if (first) flashInstant(menu)
     setVar(menu, '--_active-y', `${Math.round(offsetIn(el, menu))}px`)
     setVar(menu, '--_active-h', `${el.offsetHeight}px`)
     if (first) cl.add('has-highlight')

@@ -10,6 +10,7 @@ import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GLibIcon.js'
 import GAppIcon from '../GIcon/GIcon.vue'
 import { useVisualTips } from '../../utils/visualTip.js'
+import { createPointerGlide } from '../../utils/glide.js'
 // Activación primaria de un enlace (#505): botón principal, sin modificadores y sin cancelar (Intro llega como clic primario)
 const primaryActivation = (e) => e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey && !e.defaultPrevented
 
@@ -461,6 +462,21 @@ export default defineComponent({
       }
     } catch {}
 
+    // ---------- Una sola luz (sidebar.md «Una sola luz», #957 a #959) ----------
+    // Un anfitrión por lista (cada g-sidebar__list con los hijos de su submenú abierto, y la del panel flotante): una capa
+    // primera hija y una sesión del puntero (utils/glide.js), que vive con el elemento (ganchos del vnode: se quita al
+    // desmontar la lista o el componente). La luz sigue al puntero y no mueve el foco; registra todo enlace habilitado
+    // (también el actual, el representante y la rama); lo deshabilitado la apaga y lo inerte (submenú cerrado) no recibe
+    // el puntero. Las medidas van en la capa:
+    // escritas en la lista, su herencia restilaría todas las filas (#963)
+    const glideHost = {
+      onVnodeMounted: ({ el }) => {
+        el._glide = createPointerGlide(el, { target: '.g-sidebar__link', accept: (a) => a.getAttribute('aria-disabled') !== 'true' })
+      },
+      onVnodeBeforeUnmount: ({ el }) => el._glide?.destroy()
+    }
+    const highlight = () => h('li', { class: 'g-sidebar__highlight', role: 'none', 'aria-hidden': 'true' })
+
     // ---------- Render ----------
     const cls = (...a) => a.filter(Boolean).join(' ')
     // Con slot `icon`, manda el slot; sin él, un `icon` cadena dibuja GIcon con ese nombre (#202; solo primer nivel)
@@ -538,7 +554,7 @@ export default defineComponent({
 
     const renderGroups = (kind) => model.value.map((g) => {
       const titleId = `${baseId}-${kind}-${g.key}`
-      const list = h('ul', { class: 'g-sidebar__list', 'aria-labelledby': g.label ? titleId : undefined }, g.items.map((item) => {
+      const list = h('ul', { class: 'g-sidebar__list', 'aria-labelledby': g.label ? titleId : undefined, ...glideHost }, [highlight(), ...g.items.map((item) => {
         const children = item.children.length
           ? h('ul', {
               class: cls('g-sidebar__sub', kind === 'side' && format.value === 'rail' ? '' : openSet.value.has(item.id) && 'is-open', isBranch(item) && 'has-current'),
@@ -547,7 +563,7 @@ export default defineComponent({
             }, item.children.map((c) => h('li', { key: c.id }, [renderLink(c, 1, kind)])))
           : null
         return h('li', { class: 'g-sidebar__item', key: item.id }, [renderLink(item, 0, kind), children])
-      }))
+      })])
       return h('li', { class: 'g-sidebar__group', role: 'presentation', key: g.key }, [
         g.label ? h('span', { class: 'g-sidebar__group-title', id: titleId }, g.label) : null,
         list
@@ -621,7 +637,7 @@ export default defineComponent({
           }, flyItem.value
             ? [
                 h('div', { class: 'g-sidebar__fly-title' }, flyItem.value.label),
-                h('ul', {}, flyItem.value.children.map((c) => h('li', { key: c.id }, [renderLink(c, 1, 'fly')])))
+                h('ul', { class: 'g-sidebar__fly-list', key: flyItem.value.id, ...glideHost }, [highlight(), ...flyItem.value.children.map((c) => h('li', { key: c.id }, [renderLink(c, 1, 'fly')]))])
               ]
             : [])
         )
