@@ -464,7 +464,7 @@ Decisión del usuario del 2026-10-29: el resaltado de hover **se desliza de item
 - El de M1 sin cambios: `translate`, `inline-size` y `block-size` con `--g-duration-press` + `--g-ease-out`; `opacity` con `--g-duration-fast` + `--g-ease-standard`. Con `is-highlight-instant`, solo la opacidad. **Sin `--g-ease-spring` ni `--g-ease-bounce`** (#299: una luz que se pasa de la fila diría que el destino es otro).
 - **`prefers-reduced-motion: reduce`:** solo fundido (`--g-duration-fast`), sin viaje.
 - Interrumpible (transición CSS que se retoma desde donde va); nunca bloquea un clic.
-- Rúbrica completa y criterio de rendimiento: `api.md` «Una sola luz» y #963. Peso: tope de #963 (+1 280 B gzip de `grana.js`) superado en +152 B por decisión del usuario, #964; el lote midió +1 432 B.
+- Rúbrica completa y criterio de rendimiento: `api.md` «Una sola luz» y #963. Peso: tope de #963 (+1 280 B gzip de `grana.js`) superado en +152 B por decisión del usuario, #964; el lote midió +1 432 B. **Rendimiento (#965):** el criterio de #963 (0 tareas largas, p95) se exige en un entorno sin vecinos (integración continua de GitHub o máquina del usuario); en una VM compartida con `steal`, una tarea larga aislada en mitad del barrido, con p95 bajo y sin trabajo nuestro atribuible en el trace, se registra como ruido conocido, sin reintentos ni cambio de umbral.
 
 ### Verificación (criterio de hecho)
 
