@@ -265,6 +265,52 @@ Grana trae un tema oscuro por defecto (gris casi negro; lo elevado es más claro
 
 Reglas y límites: [`docs/contract/tokens.md` §15](docs/contract/tokens.md). Verificación: [`design/lab/tema-oscuro/auditoria.md`](design/lab/tema-oscuro/auditoria.md). Una opción de presencia del color en oscuro (Dark Color Presence) está investigada pero **no adoptada**.
 
+### Densidad global y por región
+
+La densidad aprieta o afloja **la altura, el relleno y la separación** de los controles en tres pasos: `default` (×1), `comfortable` (×0,875) y `compact` (×0,75). Con `space` 4, una caja `md` mide 36, 31,5 y 27 px. Los mínimos no bajan nunca: 24 px de área táctil, 44 px con puntero grueso y 16 px de texto editable con puntero grueso. Por ahora **no cambia la tipografía**: el texto que baja con `compact` es la pieza 3 ([#966](DECISIONS.md)), todavía sin construir.
+
+Viaja por CSS: el atributo `data-g-density` en **cualquier elemento** crea una región y todo lo que hay dentro la sigue.
+
+```html
+<html data-g-density="comfortable">          <!-- preferencia de quien usa la app: «vista amplia / normal / compacta» -->
+<section data-g-density="compact">…</section> <!-- una región: una barra de herramientas, una tabla densa -->
+```
+
+```vue
+<!-- Fragmento: `abierto` e `items` son de tu aplicación -->
+<section data-g-density="compact">
+  <GBtn variant="outline">Filtrar</GBtn>
+  <GMenu v-model="abierto" :items="items" label="Acciones de la lista">
+    <template #trigger="{ attrs }"><GBtn v-bind="attrs" variant="outline">Acciones</GBtn></template>
+  </GMenu>
+</section>
+```
+
+**Por qué:** una barra apretada junto a un formulario holgado no obliga a pasar `density` a cada botón. El menú se abre en el sitio, hereda la región de su botón y sus filas miden lo mismo que él.
+
+**Quién gana, de más a menos fuerte:**
+
+1. La prop `density` del componente.
+2. La región más cercana: el ancestro con `data-g-density` (`default` dentro de una región apretada vuelve al paso normal; para heredar no escribas nada).
+3. `<html data-g-density>`.
+4. La clave `density` de `grana.config.json` (`"default"`, `"comfortable"` o `"compact"`; otro valor, número incluido, es un error del CLI).
+5. `default`.
+
+**Reglas que conviene saber:**
+
+- **La prop de un componente es su región.** `<GTable density="compact">` aprieta también los botones de su barra y el menú que abren; `GCard`, `GDialog`, `GForm`, `GStack`, `GSplit`, `GSurface` y `GSidebar` hacen lo mismo con lo que llevan dentro. Para salir de ella, `density` en el hijo (`<GBtn density="default">`) o un elemento tuyo con `data-g-density` alrededor.
+- **En un campo, usa la prop, no el atributo.** `GInput`, `GSelect`, `GTextarea` y el resto de campos mandan los atributos al control nativo: un `data-g-density` en `<GInput>` acabaría en el `<input>` y no apretaría nada. En un componente que **no** tiene `density`, el atributo en su raíz sí vale.
+- **Lo que se abre en su sitio hereda** la región de donde está escrito: menús, listas de `GSelect`, calendarios, ayudas y `GDialog`. Para que un diálogo no la siga, ponle `density`.
+- **Avisos, isla de estado y captura de voz no la siguen**: se pintan siempre en `default`, para no cambiar de tamaño cuando se mudan a un diálogo compacto.
+- **Con puntero grueso (táctil) ceden al dedo:** las regiones, `<html data-g-density>` y la clave del tema valen `default`. La prop explícita de un componente no cede: si pides `compact` en un botón, lo tendrás (con su área táctil de 44 px, pero la caja visible será la compacta).
+- **El cambio no se anima.** Al cambiar el atributo en marcha, todo se recoloca en el siguiente cuadro y el foco no se pierde.
+- **Sin JavaScript funciona:** es CSS; el servidor puede pintar `<html data-g-density="compact">` y la página llega ya apretada.
+- **Se cambia con el atributo, no con el token.** `style.setProperty('--g-density', …)` o `--g-density` en tu `tokens.css` están fuera de contrato (el CLI lo rechaza en `overrides`).
+- **`useFormField().density`** no ve la región: sigue resolviendo prop › formulario › `default`. Para medir o pintar, lee `var(--g-density)`.
+- **`GCalendar`** conserva su escala propia (`compact` · `comfortable` · `spacious`) y no sigue la región; `GPagination`, `GTag`, `GBadge`, `GAccordion`, `GFilterBar` y `GBreadcrumbs` tampoco, hasta la pieza 4 ([#967](DECISIONS.md)): en una barra compacta quedan en su paso normal.
+
+**Verificación** (estado: `candidate`; contrato [`design/contracts/density.md`](design/contracts/density.md), decisiones #974 a #985): **medido en Chromium** con la verificación propia de la auditoría de coco ([`design/lab/density/auditoria.md`](design/lab/density/auditoria.md), 142/142) y el spec `tests/density.spec.mjs` (17/17). **Sin verificar:** Firefox y WebKit (solo hay Chromium), una aplicación con SSR real (se aproxima con `renderToString` y sin JavaScript), una tableta que cambia de puntero en caliente y lectores de pantalla (sin cambio semántico esperado). Con una tabla de 500 filas, cambiar la densidad de toda la página tarda ≈ 72–80 ms: es el reflujo del navegador, igual que cambiar un control, y no está verificado sin vecinos ([#965](DECISIONS.md)).
+
 ## Componentes
 
 Todos están en **`candidate`**: ver [Estado](#estado-010-beta). «Propia» indica que se importa de su entrada propia ([Entradas propias](#entradas-propias)). El enlace lleva al README del componente, con su API completa, teclado, accesibilidad medida y límites.

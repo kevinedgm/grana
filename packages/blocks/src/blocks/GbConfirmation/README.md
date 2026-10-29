@@ -22,7 +22,9 @@ Las tres reciben la misma `interface Props` (`GbConfirmationProps`, el mismo obj
 | --- | --- | --- | --- |
 | `GbConfirmation01` | Tarjeta: la confirmación en una tarjeta con la ficha, el total y las acciones | `GCard as="section"` (raíz; título al nivel de `useSectionLevel()`, `badge` = estado, `media` = `offer.photos[0]` si hay) > código, ficha, total, canales y acciones | `next` |
 | `GbConfirmation02` | Lo que sigue: la confirmación y, debajo, los pasos siguientes como un camino que ya empezó | `GSection` > `GStack gap="lg"` > [el estado en un `GText`, la anatomía común sin la foto, las acciones] + una `GSection` anidada (`labels.next`) > `GStepper orientation="vertical" navigation="none"` con `next` | — |
-| `GbConfirmation03` | Captura: todo lo necesario en una sola tarjeta compacta que cabe en una pantalla de teléfono | `GCard as="section" density="compact" level="outlined"` sin `media` > código, consulta, total y canales; acciones solo si caben dos | `next`, `offer.photos`, `totals.lines` (solo el total) |
+| `GbConfirmation03` | Captura: todo lo necesario en una sola tarjeta compacta que cabe en una pantalla de teléfono | `GCard as="section" data-g-density="compact" level="outlined"` sin `media` > código, consulta, total y canales; acciones solo si caben dos | `next`, `offer.photos`, `totals.lines` (solo el total) |
+
+**Densidad de `GbConfirmation03`:** la tarjeta es una región `data-g-density="compact"`: aprieta sus botones y canales en escritorio y **cede al dedo en el teléfono** (puntero grueso), donde los canales de contacto vuelven a su caja normal. Con la prop `density` de `GCard` no cedería ([Densidad](../../../../../README.md#densidad-global-y-por-región), #978).
 
 **Anatomía de lo confirmado (común):**
 

@@ -73,7 +73,7 @@ Alto de fila y separación: `--g-widget-row` y `--g-widget-gap` (derivan de `spa
 | `maxRows` | Number | `1` a `6` | `4` |
 | `presets` | Array | `[{ id, w, h }]` | `s` 1×1, `m` 2×1, `l` 2×2, `wide` 4×1, `tall` 1×2 |
 | `labels` | Object | ver «Textos» | `{}` |
-| `density` | String | `default` `comfortable` `compact` | `default` |
+| `density` | String | `default` `comfortable` `compact` | sin valor: sigue la región ([Densidad](../../../../../README.md#densidad-global-y-por-región)); con valor, es la región de lo que lleva dentro. Pasa la prop, no `data-g-density` |
 
 Un valor fuera de su lista avisa en desarrollo. **`class`, `style` y `data-*` van a la raíz.**
 

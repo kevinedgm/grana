@@ -94,7 +94,7 @@ Con el slot `trigger` no se renderizan `label`, `hint`, `error`, `name` ni `spli
 | `closeOnSelect` | Boolean | ver «Cierre» | sin valor |
 | `anchor` | String \| Element | selector CSS o elemento | el campo |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | `brand` (color de la selección) |
-| `variant`, `size`, `density`, `rounded`, `block` | | como `GSelect` (solo el **campo**) | `outline`, `md`, `default` |
+| `variant`, `size`, `density`, `rounded`, `block` | | como `GSelect` (solo el **campo**) | `outline`, `md`; `density`: sin valor, sigue la región (fuera de `inline`) |
 | `disabled`, `readonly` | Boolean | | `false` |
 | `label`, `hint`, `error`, `placeholder`, `required`, `name`, `id` | | como `GSelect` (campo) | sin valor |
 | `warning`, `valid` | String | como `GInput`: mensaje único bajo el campo (`error` → `warning` → `valid`); la advertencia no bloquea ni pone `aria-invalid` | sin valor |
@@ -106,7 +106,7 @@ Un valor de prop fuera de su lista avisa en desarrollo. `loading` **no aplica**.
 
 - **`modelValue` inválido** (formato, `2026-02-30`, `start` posterior a `end`, o un tipo que no corresponde al `mode`) se trata como vacío y avisa **una vez** en desarrollo. El componente **no recorta** un valor fuera de `min`/`max`: lo muestra tal cual.
 - **`months="auto"`:** dos meses si el ancho disponible los deja con celdas cómodas, uno si no. El umbral **no es un número fijo**: sale de la **celda medida** (`--g-space-1 × 10`, o 44px con puntero táctil): con el tema por defecto, unos 648px (unos 812px con `space` 5). El ancho disponible es el del contenedor (en línea) o el de la ventana (popover), o el del `anchor` si lo das. En móvil es siempre un mes.
-- **`inline`:** ignora las props de campo (`label`, `hint`, `error`, `placeholder`, `required`, `name`, `split`, `size`, `density`, `rounded`, `block`, `variant`) y avisa una vez en desarrollo.
+- **`inline`:** no escribe `data-g-density` ni clase de densidad (ignora la prop) pero **sigue la región** por CSS (#983). Ignora las props de campo (`label`, `hint`, `error`, `placeholder`, `required`, `name`, `split`, `size`, `density`, `rounded`, `block`, `variant`) y avisa una vez en desarrollo.
 - **`name`:** `single` renderiza un `<input type="hidden" name>` con el ISO; `range` renderiza **dos**: `name-start` y `name-end`. Un campo oculto no participa en la validación nativa: valida tú y usa `error`.
 - **`error`:** deja el campo inválido (`aria-invalid`, mensaje visible con región viva siempre presente). **El componente no valida.**
 - **`readonly`:** el campo se enfoca pero no abre; en `inline`, navega sin elegir. **`disabled`:** sin foco ni envío.
@@ -262,7 +262,7 @@ Con un `GForm` alrededor el campo lee su contexto: densidad, solo lectura, desha
 
 ## Clases
 
-Las emite el componente y las estiliza `GDatePicker.css`: `g-datepicker` (con `--mode-*`, `--variant-*`, `--size-*`, `--density-*`, `--color-*`, `--rounded-*`, `--block`, `--inline`, `--split`, `is-open`, `is-disabled`, `is-readonly`, `is-invalid`), `__label`, `__field`, `__value`, `__pop`, `__surface`, `__months`, `__month`, `__title`, `__nav`, `__grid`, `__day` (con `is-selected`, `is-today`, `is-disabled`, `is-outside`, `is-inactive`), las celdas de la franja (`is-in-range`, `is-range-start`, `is-range-end`, `is-preview`, `is-cap-start`, `is-cap-end`), `__chip`, `__summary`, `__action`, `__sr`. Con rango de noches: `is-checkout-only` en el día «solo salida». Con el slot `trigger`: `g-datepicker--trigger`.
+Las emite el componente y las estiliza `GDatePicker.css`: `g-datepicker` (con `--mode-*`, `--variant-*`, `--size-*`, `--density-*` (solo con la prop), `--color-*`, `--rounded-*`, `--block`, `--inline`, `--split`, `is-open`, `is-disabled`, `is-readonly`, `is-invalid`), `__label`, `__field`, `__value`, `__pop`, `__surface`, `__months`, `__month`, `__title`, `__nav`, `__grid`, `__day` (con `is-selected`, `is-today`, `is-disabled`, `is-outside`, `is-inactive`), las celdas de la franja (`is-in-range`, `is-range-start`, `is-range-end`, `is-preview`, `is-cap-start`, `is-cap-end`), `__chip`, `__summary`, `__action`, `__sr`. Con rango de noches: `is-checkout-only` en el día «solo salida». Con el slot `trigger`: `g-datepicker--trigger`.
 
 ## Alcance
 

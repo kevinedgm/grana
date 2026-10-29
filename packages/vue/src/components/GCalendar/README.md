@@ -75,7 +75,7 @@ Disponibilidad, bloqueos y eventos son **capas separadas**: la disponibilidad se
 | `startHour` / `endHour` | Number | | `7` / `22` |
 | `gridInterval` | Number | minutos | `30` |
 | `snapInterval` | Number | minutos | `5` |
-| `density` | String | `compact` `comfortable` `spacious` | `comfortable` |
+| `density` | String | `compact` `comfortable` `spacious` | `comfortable`; escala propia: **no sigue la región** `data-g-density` hasta la pieza 4 (#967) |
 | `editable` / `draggable` / `resizable` | Boolean | | `false` / heredan de `editable` |
 | `readonly` | Boolean | | `false` |
 | `disabled` | Boolean | | `false` |

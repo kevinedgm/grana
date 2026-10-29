@@ -33,7 +33,7 @@ También se puede importar solo el componente: `import { GBtn } from '@grana/vue
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | `brand` |
 | `variant` | String | `solid` `soft` `outline` `ghost` `link` | `solid` |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` |
-| `density` | String | `default` `comfortable` `compact` | `default` |
+| `density` | String | `default` `comfortable` `compact` | sin valor: sigue la región ([Densidad](../../../../../README.md#densidad-global-y-por-región)). Pasa la prop, no `data-g-density` (iría al control nativo) |
 | `rounded` | String | `none` `xs` `sm` `md` `lg` `xl` `pill` | sin valor: lo decide el tema (`--g-radius-shape`) |
 | `block` | Boolean | | `false` |
 | `disabled` | Boolean | | `false` |
@@ -174,7 +174,7 @@ Tokens que consume: `--g-color-{color}` (y `-strong`, `-soft`, `-text`), `--g-co
 
 ## Clases
 
-Las emite el componente y las estiliza `GBtn.css`: `g-btn`, `g-btn--color-*`, `g-btn--variant-*`, `g-btn--size-*`, `g-btn--density-*`, `g-btn--rounded-*` (solo si se pasa `rounded`), `g-btn--block`, `g-btn--icon`, `is-disabled`, `is-loading`, y los elementos `g-btn__prepend`, `g-btn__label`, `g-btn__append`, `g-btn__loader` y `g-btn__status`.
+Las emite el componente y las estiliza `GBtn.css`: `g-btn`, `g-btn--color-*`, `g-btn--variant-*`, `g-btn--size-*`, `g-btn--density-*` (solo con la prop `density`), `g-btn--rounded-*` (solo si se pasa `rounded`), `g-btn--block`, `g-btn--icon`, `is-disabled`, `is-loading`, y los elementos `g-btn__prepend`, `g-btn__label`, `g-btn__append`, `g-btn__loader` y `g-btn__status`.
 
 ## Altura y densidad
 

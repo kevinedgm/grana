@@ -36,7 +36,7 @@ Un interruptor **aplica el cambio al instante** (un ajuste, una función). Si la
 | `modelValue` (`v-model`) | Boolean | | `false` |
 | `labelPosition` | String | `end` `start` | `end` |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` |
-| `density` | String | `default` `comfortable` `compact` | `default` |
+| `density` | String | `default` `comfortable` `compact` | sin valor: sigue la región ([Densidad](../../../../../README.md#densidad-global-y-por-región)). Pasa la prop, no `data-g-density` (iría al control nativo) |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | `brand` |
 | `disabled` | Boolean | | `false` |
 | `readonly` | Boolean | | `false` |
@@ -145,7 +145,7 @@ Con un `GForm` alrededor el campo lee su contexto: densidad, solo lectura, desha
 
 ## Clases
 
-Las emite el componente y las estiliza `GSwitch.css`: `g-switch`, `g-switch--size-*`, `g-switch--density-*`, `g-switch--color-*`, `g-switch--label-*`, `g-switch--icons`, `is-disabled`, `is-readonly`, `is-invalid`, `is-loading`, y los elementos `g-switch__row`, `g-switch__control`, `g-switch__input`, `g-switch__icon` (con `--on` y `--off`), `g-switch__text`, `g-switch__label`, `g-switch__hint` y `g-switch__message`. El estado encendido se estiliza con `:checked`, sin clase propia.
+Las emite el componente y las estiliza `GSwitch.css`: `g-switch`, `g-switch--size-*`, `g-switch--density-*` (solo con la prop), `g-switch--color-*`, `g-switch--label-*`, `g-switch--icons`, `is-disabled`, `is-readonly`, `is-invalid`, `is-loading`, y los elementos `g-switch__row`, `g-switch__control`, `g-switch__input`, `g-switch__icon` (con `--on` y `--off`), `g-switch__text`, `g-switch__label`, `g-switch__hint` y `g-switch__message`. El estado encendido se estiliza con `:checked`, sin clase propia.
 
 ## Alcance
 

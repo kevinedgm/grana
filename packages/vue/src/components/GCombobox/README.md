@@ -285,7 +285,7 @@ Lo que esto da en la lista:
 | `disabled` | Boolean | | sin valor, equivale a `false` |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` |
 | `variant` | String | `outline` `soft` | `outline` |
-| `density` | String | `default` `comfortable` `compact` | contexto de `GForm` o `default` |
+| `density` | String | `default` `comfortable` `compact` | sin valor: sigue la región ([Densidad](../../../../../README.md#densidad-global-y-por-región)). Pasa la prop, no `data-g-density` (iría al control nativo) |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | sin valor (el color de foco del tema) |
 | `rounded` | String | `none` `xs` `sm` `md` `lg` `xl` `pill` | sin valor (`sm`) |
 | `block` | Boolean | | sin valor, equivale a `false` (dentro del layout de formulario, `true`) |

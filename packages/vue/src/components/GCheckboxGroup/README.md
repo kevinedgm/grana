@@ -40,7 +40,7 @@ Grupo de casillas con modelo de arreglo, **casilla maestra** ("seleccionar todas
 | `selectAllLabel` | String | | sin valor |
 | `countText` | Function | `(seleccionadas, total) => string` | sin valor |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` |
-| `density` | String | `default` `comfortable` `compact` | `default` |
+| `density` | String | `default` `comfortable` `compact` | sin valor: sigue la región ([Densidad](../../../../../README.md#densidad-global-y-por-región)); con valor, es la región de lo que lleva dentro. Pasa la prop, no `data-g-density` |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | `brand` |
 | `layout` | String | `default` `card` `chip` | `default` |
 | `disabled` | Boolean | | `false` |

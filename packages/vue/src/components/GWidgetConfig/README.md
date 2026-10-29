@@ -87,7 +87,7 @@ const aplicar = () => {                                  // la validación es tu
 | `resettable` | Boolean | muestra «Restablecer» | `false` |
 | `applying` | Boolean | se está aplicando | `false` |
 | `size` | String | `sm` `md` `lg` | `sm` |
-| `density` | String | `default` `comfortable` `compact` | `default` |
+| `density` | String | `default` `comfortable` `compact` | sin valor: sigue la región ([Densidad](../../../../../README.md#densidad-global-y-por-región)); con valor, es la región de lo que lleva dentro. Pasa la prop, no `data-g-density` |
 | `labels` | Object | ver «Textos» | `{}` |
 | `id` | String | | generado |
 

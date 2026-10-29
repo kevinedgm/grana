@@ -33,7 +33,7 @@ Los atributos nativos (`name`, `placeholder`, `maxlength`, `autocomplete`, `inpu
 | `modelValue` (`v-model`) | String | | `''` |
 | `variant` | String | `outline` `soft` | `outline` |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` |
-| `density` | String | `default` `comfortable` `compact` | sin valor: la de `GForm`; fuera de un formulario, `default` |
+| `density` | String | `default` `comfortable` `compact` | sin valor: sigue la región ([Densidad](../../../../../README.md#densidad-global-y-por-región)). Pasa la prop, no `data-g-density` (iría al control nativo) |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | sin valor: foco del tema |
 | `rounded` | String | `none` `xs` `sm` `md` `lg` `xl` `pill` | sin valor: radio `sm` del tema |
 | `block` | Boolean | | sin valor: dentro de `GFormLayout`, `GFormRow` o `GFieldGroup`, `true`; fuera, `false` |
@@ -115,7 +115,7 @@ Los iconos son de [Lucide](https://lucide.dev) con [`GIcon`](../GIcon/README.md)
 
 ### Botón de acción (`action`)
 
-Un slot con alcance: recibe `size`, `density` y `disabled` del campo, para que el botón tenga la misma altura y se deshabilite con él. Pon **un** `GBtn`.
+Un slot con alcance: recibe `size`, `density` (`undefined` si el campo no tiene la prop: el botón sigue la región) y `disabled` del campo, para que el botón tenga la misma altura y se deshabilite con él. Pon **un** `GBtn`.
 
 ```vue
 <!-- Fragmento: `suscribir` y `correo` son de tu aplicación -->
@@ -220,7 +220,7 @@ Con un `GForm` alrededor el campo lee su contexto: densidad, solo lectura, desha
 
 ## Clases
 
-Las emite el componente y las estiliza `GInput.css`: `g-input`, `g-input--variant-*`, `g-input--size-*`, `g-input--density-*`, `g-input--color-*` y `g-input--rounded-*` (solo si se pasan), `g-input--block`, `g-input--has-action`, `is-disabled`, `is-readonly`, `is-invalid`, `is-loading`, `is-ready` (tras el primer pintado), `is-rejected` (la pone `GForm`; ver [Personalidad](#personalidad)), y los elementos `g-input__label`, `g-input__required`, `g-input__row`, `g-input__control`, `g-input__prepend`, `g-input__field`, `g-input__append`, `g-input__loader`, `g-input__toggle`, `g-input__action`, `g-input__messages`, `g-input__hint`, `g-input__counter` y `g-input__support`, `g-input__message`.
+Las emite el componente y las estiliza `GInput.css`: `g-input`, `g-input--variant-*`, `g-input--size-*`, `g-input--density-*` (solo con la prop), `g-input--color-*` y `g-input--rounded-*` (solo si se pasan), `g-input--block`, `g-input--has-action`, `is-disabled`, `is-readonly`, `is-invalid`, `is-loading`, `is-ready` (tras el primer pintado), `is-rejected` (la pone `GForm`; ver [Personalidad](#personalidad)), y los elementos `g-input__label`, `g-input__required`, `g-input__row`, `g-input__control`, `g-input__prepend`, `g-input__field`, `g-input__append`, `g-input__loader`, `g-input__toggle`, `g-input__action`, `g-input__messages`, `g-input__hint`, `g-input__counter` y `g-input__support`, `g-input__message`.
 
 ## Alcance
 

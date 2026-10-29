@@ -101,7 +101,7 @@ El componente no empuja tu contenido. Hasta que se mide el contenedor (el primer
 | `search` | Boolean | muestra el disparador de búsqueda | `false` |
 | `closeOnNavigate` | Boolean | el drawer se cierra al elegir un destino | `true` |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` (relleno de la píldora y de los indicadores) | `brand` |
-| `density` | String | `default` `comfortable` `compact` | `default` |
+| `density` | String | `default` `comfortable` `compact` | sin valor: sigue la región ([Densidad](../../../../../README.md#densidad-global-y-por-región)); con valor, es la región de lo que lleva dentro. Pasa la prop, no `data-g-density` |
 | `labels` | Object | ver «Textos» | `{}` |
 
 Un valor de prop fuera de su lista avisa en desarrollo. **`class`, `style` y `data-*` van a la raíz** (en el navbar, al `<nav>`).
@@ -290,7 +290,7 @@ Sin definir, el tema por defecto usa `--g-surface-inset` con contorno `--g-color
 
 ## Clases
 
-Las emite el componente y las estiliza `GSidebar.css`: `g-sidebar` (con `--mode-{expanded|rail|navbar}`, `--variant-*`, `--color-*`, `--density-*`, `--overlay`, `--contained`, `is-entering`), `__head`, `__top`, `__logo`, `__toggle`, `__search`, `__hint`, `__nav`, `__groups`, `__group`, `__group-title`, `__list`, `__item`, `__link` (con `is-active`, `is-branch`), `__parent`, `__sub` (con `is-open`), `__chevron`, `__icon`, `__label`, `__badge` (y `__badge--dot`), `__sr`, `__foot`, `__fly`, `__fly-title`, `__bar`, `__tab`, `__more`, `__label--hidden`, `__drawer`, `__highlight` (la luz, `li[role="none"][aria-hidden="true"]`, primer hijo de cada lista) y `__fly-list` (la lista del panel flotante). Los nodos de la pista del riel son `g-tooltip` (con `aria-hidden`), hijos de la raíz; `__tip` e `is-instant` ya no existen.
+Las emite el componente y las estiliza `GSidebar.css`: `g-sidebar` (con `--mode-{expanded|rail|navbar}`, `--variant-*`, `--color-*`, `--density-*` (solo con la prop), `--overlay`, `--contained`, `is-entering`), `__head`, `__top`, `__logo`, `__toggle`, `__search`, `__hint`, `__nav`, `__groups`, `__group`, `__group-title`, `__list`, `__item`, `__link` (con `is-active`, `is-branch`), `__parent`, `__sub` (con `is-open`), `__chevron`, `__icon`, `__label`, `__badge` (y `__badge--dot`), `__sr`, `__foot`, `__fly`, `__fly-title`, `__bar`, `__tab`, `__more`, `__label--hidden`, `__drawer`, `__highlight` (la luz, `li[role="none"][aria-hidden="true"]`, primer hijo de cada lista) y `__fly-list` (la lista del panel flotante). Los nodos de la pista del riel son `g-tooltip` (con `aria-hidden`), hijos de la raíz; `__tip` e `is-instant` ya no existen.
 
 ## Alcance
 

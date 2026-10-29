@@ -188,7 +188,7 @@ Con un router, liga `modelValue` a un parámetro o a la ruta, haz `router.push` 
 | `appearance` | String | `underline` `pill` `segmented` `contained` | `underline` |
 | `orientation` | String | `horizontal` `vertical` | `horizontal` |
 | `color` | String | `brand` `accent` `neutral` | `brand` |
-| `density` | String | `default` `comfortable` `compact` | `default` |
+| `density` | String | `default` `comfortable` `compact` | sin valor: sigue la región ([Densidad](../../../../../README.md#densidad-global-y-por-región)); con valor, es la región de lo que lleva dentro. Pasa la prop, no `data-g-density` |
 | `align` | String | `start` `center` `distribute` `fill` | `start` |
 | `activation` | String | `auto` `manual` | `auto` |
 | `overflow` | String | `scroll` `arrows` `more` | `scroll` |
@@ -389,7 +389,7 @@ La marca lee el rol `-text` de la familia (`primary-text`, `accent-text`, `neutr
 
 Las emite el componente y las estiliza `GTabs.css` (que cubre también `GTabPanel`):
 
-- **Raíz:** `g-tabs`, `g-tabs--appearance-*`, `--orientation-*`, `--color-*`, `--density-*`, `--align-*`, `--overflow-*`, `--icon-only`, `is-ready`, `is-scrollable-start|end` e `is-disabled`; atributos `data-direction` y `data-orientation` (ver [Personalidad](#personalidad)), que `GTabPanel` copia en su raíz.
+- **Raíz:** `g-tabs`, `g-tabs--appearance-*`, `--orientation-*`, `--color-*`, `--density-*` (solo con la prop), `--align-*`, `--overflow-*`, `--icon-only`, `is-ready`, `is-scrollable-start|end` e `is-disabled`; atributos `data-direction` y `data-orientation` (ver [Personalidad](#personalidad)), que `GTabPanel` copia en su raíz.
 - **Elementos:** `__header`, `__scroller`, `__list`, `__tab` (con `is-active`, `is-attention`, `is-loading`), `__icon`, `__label` (con `data-text`), `__status`, `__sr`, `__mark`, `__edge` (`--prev`, `--next`), `__more`, `__panels`, `__panel` y `__live`; los nodos de la pista de solo icono son `g-tooltip` (con `aria-hidden`) y van al final de `__header`.
 - **Diálogo:** `.g-dialog__tabs` (en `GDialog.css`).
 

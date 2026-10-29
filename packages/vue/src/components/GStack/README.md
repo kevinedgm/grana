@@ -88,7 +88,7 @@ import { GStack } from '@grana/vue'
 | `as` | `String` | etiqueta HTML no interactiva | `'div'` | `div`, `section`, `article`, `aside`, `nav`, `header`, `footer`, `ul`, `ol`, `form`, `fieldset`… La pila no añade roles; con `ul`/`ol` pones tú los `li`. Con `a`, `button`, `input`, `select`, `textarea`, `summary`, `label` o `main`, aviso 1 (se pinta igual) |
 | `orientation` | `String` | `'vertical'` `'horizontal'` | `'vertical'` | Eje de la pila |
 | `gap` | `String` | `'none'` `'sm'` `'md'` `'lg'` | `'md'` | Factor 0 · 0,5 · 1 · 2 sobre la base de página `space × 6` (0 · 12 · 24 · 48 px con `space` 4); la misma separación en los dos ejes |
-| `density` | `String` | `'default'` `'comfortable'` `'compact'` | `'default'` | Multiplica la separación 1 · 0,875 · 0,75 |
+| `density` | `String` | `'default'` `'comfortable'` `'compact'` | sin valor: sigue la región | Multiplica la separación 1 · 0,875 · 0,75. Con valor, el `GStack` es la región de lo que lleva dentro, no solo de su separación ([Densidad](../../../../../README.md#densidad-global-y-por-región)). Pasa la prop, no `data-g-density` |
 | `horizontal` | `String` | `'start'` `'center'` `'end'` | sin valor | Eje en línea, lógico. En vertical, el ancho de los hijos (sin valor, estirar); en horizontal, dónde va la fila (sin valor, `start`) |
 | `vertical` | `String` | `'top'` `'center'` `'bottom'` | sin valor | Eje de bloque; **solo en horizontal** (sin valor, `center`). En vertical no actúa (aviso 3) |
 | `divided` | `Boolean` | | `false` | Línea entre hijos visibles; solo en vertical (en horizontal, aviso 3 y no se pinta) |

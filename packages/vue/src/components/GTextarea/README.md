@@ -33,7 +33,7 @@ Los atributos nativos (`name`, `placeholder`, `maxlength`, `minlength`, `autocom
 | `modelValue` (`v-model`) | String | | `''` |
 | `variant` | String | `outline` `soft` | `outline` |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` |
-| `density` | String | `default` `comfortable` `compact` | `default` |
+| `density` | String | `default` `comfortable` `compact` | sin valor: sigue la región ([Densidad](../../../../../README.md#densidad-global-y-por-región)). Pasa la prop, no `data-g-density` (iría al control nativo) |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | sin valor (usa `--g-color-focus`) |
 | `rounded` | String | `none` `xs` `sm` `md` `lg` `xl` `pill` | sin valor (`sm`) |
 | `block` | Boolean | | `false` |
@@ -148,7 +148,7 @@ Con un `GForm` alrededor el campo lee su contexto: densidad, solo lectura, desha
 
 ## Clases
 
-Las emite el componente y las estiliza `GTextarea.css`: `g-textarea`, `g-textarea--variant-*`, `g-textarea--size-*`, `g-textarea--density-*`, `g-textarea--color-*` y `--rounded-*` (solo si el prop tiene valor), `g-textarea--block`, `g-textarea--autosize`, `g-textarea--resize-*`, `is-capped`, `is-disabled`, `is-readonly`, `is-invalid`, `is-loading`, y los elementos `g-textarea__label`, `__required`, `__control`, `__field`, `__loader`, `__messages`, `__hint`, `__counter`, `__count-live` y `__support`, `__message`.
+Las emite el componente y las estiliza `GTextarea.css`: `g-textarea`, `g-textarea--variant-*`, `g-textarea--size-*`, `g-textarea--density-*` (solo con la prop), `g-textarea--color-*` y `--rounded-*` (solo si el prop tiene valor), `g-textarea--block`, `g-textarea--autosize`, `g-textarea--resize-*`, `is-capped`, `is-disabled`, `is-readonly`, `is-invalid`, `is-loading`, y los elementos `g-textarea__label`, `__required`, `__control`, `__field`, `__loader`, `__messages`, `__hint`, `__counter`, `__count-live` y `__support`, `__message`.
 
 ## Alcance
 

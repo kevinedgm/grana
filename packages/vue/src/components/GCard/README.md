@@ -185,7 +185,7 @@ Con `loading` los datos no existen: el esqueleto se **deriva de lo que la tarjet
 | `level` | String | `flat` `outlined` `raised` `inset` | `outlined` |
 | `padding` | String | `xs` `sm` `md` `lg` | `md` |
 | `rounded` | String | `none` `xs` `sm` `md` `lg` `xl` `pill` | según `level` (de `GSurface`) |
-| `density` | String | `default` `comfortable` `compact` | `default` |
+| `density` | String | `default` `comfortable` `compact` | sin valor: sigue la región ([Densidad](../../../../../README.md#densidad-global-y-por-región)); con valor, es la región de lo que lleva dentro. Pasa la prop, no `data-g-density` |
 | `color` | String | `brand` `accent` `neutral` | `brand` |
 | `orientation` | String | `vertical` `horizontal` `auto` | `vertical` |
 | `mediaPosition` | String | `top` `start` `end` `background` `inline` | `top` |

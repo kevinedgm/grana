@@ -78,7 +78,7 @@ Los estados **no cambian el tamaño** del widget. El estado es un prop: no hay `
 | `href` | String | URL del detalle | sin valor |
 | `drilldownLabel` | String | texto del enlace de detalle | sin valor |
 | `updatedText` | String | texto del pie («Actualizado hace 5 min») | sin valor |
-| `density` | String | `default` `comfortable` `compact` | `default` |
+| `density` | String | `default` `comfortable` `compact` | sin valor: sigue la región ([Densidad](../../../../../README.md#densidad-global-y-por-región)); con valor, es la región de lo que lleva dentro. Pasa la prop, no `data-g-density` |
 | `headless` | Boolean | sin encabezado (el nombre accesible sigue saliendo de `title`) | `false` |
 | `labels` | Object | ver «Textos» | `{}` |
 | `id` | String | | generado |

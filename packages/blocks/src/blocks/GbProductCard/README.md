@@ -24,7 +24,9 @@ Las tres reciben la misma `interface Props` (`GbProductCardProps`, el mismo obje
 | --- | --- | --- | --- |
 | `GbProductCard01` | Foto arriba: la tarjeta de escaparate, la foto domina y el nombre y el precio van debajo | `[GPriceScope as="div"]` > `GCard as="article" mediaPosition="top"` | `busy`, `labels.add`, `labels.choose`, `labels.busy`; los `facts` más allá de dos |
 | `GbProductCard02` | Horizontal: foto al lado y todo el detalle a la vista, para listas y resultados | `[GPriceScope as="div"]` > `GCard as="article" orientation="auto" mediaPosition="start"` (`summary` como descripción y hasta 4 `facts`) | `busy`, `labels.add`, `labels.choose`, `labels.busy` |
-| `GbProductCard03` | Compacta con acción rápida: mucho producto en poco sitio y «Añadir» sin salir de la lista | `[GPriceScope as="div"]` > `GCard as="article" density="compact" mediaPosition="top"` + una acción rápida `outline` en `actions` | `summary`, `optionsSummary` y `facts` |
+| `GbProductCard03` | Compacta con acción rápida: mucho producto en poco sitio y «Añadir» sin salir de la lista | `[GPriceScope as="div"]` > `GCard as="article" data-g-density="compact" mediaPosition="top"` + una acción rápida `outline` en `actions` | `summary`, `optionsSummary` y `facts` |
+
+**Densidad de `GbProductCard03` (y de la tarjeta compacta de `GbProductGrid02`):** la tarjeta es una región `data-g-density="compact"`, no una prop: todo lo de dentro (la acción rápida incluida) se aprieta, y **en el teléfono, con puntero grueso, cede al dedo** y vuelve al paso normal. Con la prop `density="compact"` de `GCard` no cedería ([Densidad](../../../../../README.md#densidad-global-y-por-región), #978).
 
 **La tarjeta (común):** `eyebrow` = `product.maker`, `title` = `product.name` (un nivel por debajo de la sección en la que esté, sin abrir una propia), `subtitle` = `product.optionsSummary`, `badge` = `product.badge` (texto, nunca solo color), `facts` (hasta dos; todos hasta cuatro en 02), el `GPrice` del `PriceSpec` tal cual y la calificación en `GText`. La portada es decorativa en una tarjeta-enlace: el nombre ya lo dice.
 

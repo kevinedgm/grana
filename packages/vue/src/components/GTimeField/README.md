@@ -235,7 +235,7 @@ Con otro tema y otra fuente cambia (la auditoría midió 180 y 62 px con `space`
 | `disabled` | Boolean | `disabled` en el campo, los botones y el oculto (no se envía) | sin valor, equivale a `false` (contexto de `GForm`) |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` |
 | `variant` | String | `outline` `soft` | `outline` |
-| `density` | String | `default` `comfortable` `compact` | contexto de `GForm` o `default` |
+| `density` | String | `default` `comfortable` `compact` | sin valor: sigue la región ([Densidad](../../../../../README.md#densidad-global-y-por-región)). Pasa la prop, no `data-g-density` (iría al control nativo) |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info`; solo el color del foco, como `GInput` | sin valor (`--g-color-focus`) |
 | `rounded` | String | `none` `xs` `sm` `md` `lg` `xl` `pill` | sin valor (`sm`) |
 | `block` | Boolean | | sin valor, equivale a `false` (dentro del layout de formulario, `true`) |

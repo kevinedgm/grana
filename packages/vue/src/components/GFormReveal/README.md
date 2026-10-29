@@ -151,7 +151,7 @@ Si las partes del bloque forman **una pregunta** con título propio, es un `GFie
 - **Sin `indent`:** la sangría es una sola convención visual.
 - **Sin `label`:** no tiene nombre; lo dan sus campos y el orden.
 - **Sin `focus`:** mover el foco al elegir es un cambio de contexto (WCAG 3.2.2) y con radios rompería las flechas.
-- **Sin `density`:** la densidad es la del contexto (ver [Colocación](#colocación)).
+- **Sin `density`:** sigue la región (`data-g-density` del ancestro más cercano o `<html>`; [Densidad](../../../../../README.md#densidad-global-y-por-región)). Ya no emite `g-form-reveal--density-*`.
 
 ### Eventos
 
@@ -278,7 +278,7 @@ La altura y el margen se animan con `--g-duration-slow` y `--g-ease-out`; el fun
 - **Inmediatamente después de la pregunta** que lo condiciona, como hermano en la misma pila: un `GFormLayout` (dentro de una sección, el `GFormLayout` de su cuerpo; el cuerpo de `GFormSection` **no** es una pila, #283) o el cuerpo de otro `GFormReveal`. En un contenedor propio tuyo, la separación es su `row-gap`; con `row-gap: normal` vale 0px y el bloque queda pegado a la pregunta.
 - **Nunca dentro de una `GFormRow`.** Un bloque ocupa su propia fila y **contiene** filas: «Otro → Especifique» va debajo de la pregunta, no al lado. Un bloque dentro de una fila reserva una columna vacía aun cerrado y cambia el reparto de la línea del disparador al abrir (medido por kiwi).
 - **Nunca `GFormSection` dentro del bloque.** Un título del nivel de la sección de la pregunta, dentro de un bloque sangrado, contradice la jerarquía de encabezados (WCAG 1.3.1).
-- **Con o sin `GFormLayout`.** El cuerpo **re-provee** el sub-contexto de distribución: sus campos se comportan igual dentro y fuera de un `GFormLayout` (ocupan su sitio, `block`) y la densidad sale del sub-contexto de distribución, luego de `GForm` y, sin ninguno, `default`. `stack`, `readonly` y `disabled` del sub-contexto padre pasan al interior. Los avisos de `GFormLayout` no se aplican a los hijos del cuerpo.
+- **Con o sin `GFormLayout`.** El cuerpo **re-provee** el sub-contexto de distribución: sus campos se comportan igual dentro y fuera de un `GFormLayout` (ocupan su sitio, `block`). La densidad no viaja por ese contexto: es la de la región (`useFormField().density` no la ve). `stack`, `readonly` y `disabled` del sub-contexto padre pasan al interior. Los avisos de `GFormLayout` no se aplican a los hijos del cuerpo.
 
 ## Avisos de desarrollo
 
@@ -327,7 +327,6 @@ Como la barra usa `--g-color-border-control`, cambiar ese token cambia también 
 | Clase | Elemento | Cuándo |
 | --- | --- | --- |
 | `g-form-reveal` | Raíz `div` | Siempre |
-| `g-form-reveal--density-{default\|comfortable\|compact}` | Raíz | Siempre |
 | `is-open` | Raíz | `when` verdadero (en el acto) |
 | `is-animating` | Raíz | Desde un cambio de `when` hasta asentarse |
 | `is-ready` | Raíz | Tras el primer pintado (sin ella, sin transiciones) |

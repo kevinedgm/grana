@@ -34,7 +34,7 @@ Los atributos nativos (`name`, `form`, `aria-*`, `data-*`, escuchas como `@chang
 | `indeterminate` | Boolean | | `false` |
 | `layout` | String | `default` `card` `chip` | `default` |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` |
-| `density` | String | `default` `comfortable` `compact` | `default` |
+| `density` | String | `default` `comfortable` `compact` | sin valor: sigue la región ([Densidad](../../../../../README.md#densidad-global-y-por-región)). Pasa la prop, no `data-g-density` (iría al control nativo) |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | `brand` |
 | `disabled` | Boolean | | `false` |
 | `readonly` | Boolean | | `false` |
@@ -154,7 +154,7 @@ Con un `GForm` alrededor el campo lee su contexto (salvo con `:field="false"`, q
 
 ## Clases
 
-Las emite el componente y las estiliza `GCheckbox.css`: `g-checkbox`, `g-checkbox--layout-*`, `g-checkbox--size-*`, `g-checkbox--density-*`, `g-checkbox--color-*`, `is-disabled`, `is-readonly`, `is-invalid`, y los elementos `g-checkbox__row`, `g-checkbox__input`, `g-checkbox__icon`, `g-checkbox__text`, `g-checkbox__label`, `g-checkbox__required`, `g-checkbox__hint`, `g-checkbox__meta` y `g-checkbox__message`. Marcada y mixta se estilizan con `:checked` e `:indeterminate`, sin clases propias.
+Las emite el componente y las estiliza `GCheckbox.css`: `g-checkbox`, `g-checkbox--layout-*`, `g-checkbox--size-*`, `g-checkbox--density-*` (solo con la prop), `g-checkbox--color-*`, `is-disabled`, `is-readonly`, `is-invalid`, y los elementos `g-checkbox__row`, `g-checkbox__input`, `g-checkbox__icon`, `g-checkbox__text`, `g-checkbox__label`, `g-checkbox__required`, `g-checkbox__hint`, `g-checkbox__meta` y `g-checkbox__message`. Marcada y mixta se estilizan con `:checked` e `:indeterminate`, sin clases propias.
 
 ## Alcance
 

@@ -242,7 +242,7 @@ WebKit (Safari sin «Pulsar Tab para resaltar cada elemento») **salta el `range
 | `mark` | Boolean | `false`: sin marca de obligatorio ni de opcional | sin valor |
 | `readonly` | Boolean | `aria-readonly` en cada nativo; enfocable; nada cambia el valor; **se envía** | sin valor, equivale a `false` (contexto de `GForm`) |
 | `disabled` | Boolean | `disabled` en cada nativo y en los ocultos (no se envía) | sin valor, equivale a `false` (contexto de `GForm`) |
-| `density` | String | `default` `comfortable` `compact` | contexto de `GForm` o `default` |
+| `density` | String | `default` `comfortable` `compact` | sin valor: sigue la región ([Densidad](../../../../../README.md#densidad-global-y-por-región)). Pasa la prop, no `data-g-density` (iría al control nativo) |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info`: familia de la píldora y del tramo; `brand` lee el rol `primary` | `brand` |
 | `id` | String | `id` del primer nativo (el del inicio en un rango); el del fin lleva `id-end` | generado |
 
@@ -296,7 +296,7 @@ Medido en la auditoría con la fuente servida (Instrument Sans), `md` y `space` 
 Valor único:
 
 ```html
-<div class="g-slider g-slider--color-brand g-slider--density-default is-ready" style="--_pill-w: 52px">
+<div class="g-slider g-slider--color-brand is-ready" style="--_pill-w: 52px">
   <div class="g-slider__head">
     <label class="g-slider__label" id="ID-label" for="ID">Volumen de los avisos</label>
   </div>
@@ -417,7 +417,7 @@ Prefijo `[Grana GSlider]`; una vez por instancia; solo fuera de producción.
 
 ## Clases
 
-- **Raíz:** `g-slider`, `g-slider--color-{color}`, `g-slider--density-{density}`, `g-slider--range`, y los estados `is-empty`, `is-readonly`, `is-disabled`, `is-invalid`, `is-warning`, `is-valid`, `is-rejected`, `is-ready`, `is-dragging`, `is-jumping`, `is-merged`; `data-bump="up|down"`; variables `--_pill-w` y `--_mid`.
+- **Raíz:** `g-slider`, `g-slider--color-{color}`, `g-slider--density-{density}` (solo con la prop), `g-slider--range`, y los estados `is-empty`, `is-readonly`, `is-disabled`, `is-invalid`, `is-warning`, `is-valid`, `is-rejected`, `is-ready`, `is-dragging`, `is-jumping`, `is-merged`; `data-bump="up|down"`; variables `--_pill-w` y `--_mid`.
 - **Cabecera:** `g-slider__head`, `__label`, `__optional`, `__required`, `__value` (solo con `is-empty`).
 - **Fila y área:** `__row`, `__area`, `__track`, `__fill` (con `--_from` y `--_to`), `__thumb` (con `data-thumb`, `--_at` e `is-typing`), `__pill`, `__pill-text`, `__pill-ref`, `__native`, `__thumb-name` (con `range`).
 - **Marcas:** `__marks`, `__mark` (con `has-label`, `data-value` y `--_at`), `__mark-label`.

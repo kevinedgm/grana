@@ -1,6 +1,6 @@
 # GFormLayout
 
-Pila vertical de filas de un formulario: cada hijo directo (una `GFormRow`, un campo suelto, un `GFieldGroup`, casillas, interruptores) ocupa el ancho entero, separado por `--g-form-gap`. No mide nada; provee `block`, densidad y `stack` a lo que contiene. Sustituye a `GFormGrid` (Fase 1).
+Pila vertical de filas de un formulario: cada hijo directo (una `GFormRow`, un campo suelto, un `GFieldGroup`, casillas, interruptores) ocupa el ancho entero, separado por `--g-form-gap`. No mide nada; provee `block` y `stack` a lo que contiene; con `density` es la región de lo que contiene, y sin ella sigue la región ([Densidad](../../../../../README.md#densidad-global-y-por-región)). Sustituye a `GFormGrid` (Fase 1).
 
 **Etiqueta:** `<g-form-layout>` · **Estado:** `candidate` (auditoría de coco r02 aprobada; ver [`design/lab/form/auditoria.md`](../../../../../design/lab/form/auditoria.md)) · **Desde:** 0.1.0
 

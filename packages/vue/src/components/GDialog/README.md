@@ -57,7 +57,7 @@ La profundidad viene de diferencias mínimas de fondo, bordes finos y sombras su
 | `title` | String | | sin valor |
 | `description` | String | | sin valor |
 | `size` | String | `sm` `md` `lg` | `md` |
-| `density` | String | `default` `comfortable` `compact` | `default` |
+| `density` | String | `default` `comfortable` `compact` | sin valor: sigue la región donde está escrito el diálogo ([Densidad](../../../../../README.md#densidad-global-y-por-región)); con valor, es la región de su contenido. Pasa la prop, no `data-g-density` |
 | `inset` | Boolean | | `true` |
 | `fullscreen` | Boolean | | `false` |
 | `bare` | Boolean | visor a pantalla completa, sin carcasa | `false` |
@@ -512,7 +512,7 @@ El componente solo lee tokens `--g-*`. La superficie inset forma parte de un sis
 
 ## Clases
 
-Las emite el componente y las estiliza `GDialog.css`: `g-dialog`, `g-dialog--size-*`, `g-dialog--density-*`, `g-dialog--placement-*`, `g-dialog--mobile-*`, `g-dialog--inset`, `g-dialog--fullscreen`, `g-dialog--bare`, `g-dialog--alert`, `is-loading`, y los elementos `g-dialog__header`, `__titles`, `__title`, `__description`, `__icon`, `__close`, `__inset`, `__body` (con `is-scrollable`), `__footer` e `is-scrolled` (en la inset, o en la raíz sin inset), más `has-origin` e `is-pinned` (ver [Personalidad](#personalidad)) e `is-stacked` (se abrió con otro modal debajo: su `::backdrop` es transparente). Con pasos: `g-dialog--steps`, `is-forward` / `is-back` (mientras dura el cambio), `is-resizing` (con `--_step-from-h` y `--_step-to-h`), `has-sheet-hold` (con `--_sheet-hold`), `g-dialog__back`, el hilo (`g-dialog__trail`, `__trail-list`, `__trail-item`, `__trail-step`, `__trail-number`, `__trail-title`, con `is-parent` e `is-current` en el `li`), `g-dialog__step` (con `is-current` e `is-entering`) y `g-dialog__sr` (texto oculto del `summary`). El atributo `data-g-landed` es interno. Las utilitarias `g-dialog__section` y `g-dialog__well` las pones tú.
+Las emite el componente y las estiliza `GDialog.css`: `g-dialog`, `g-dialog--size-*`, `g-dialog--density-*` (solo con la prop), `g-dialog--placement-*`, `g-dialog--mobile-*`, `g-dialog--inset`, `g-dialog--fullscreen`, `g-dialog--bare`, `g-dialog--alert`, `is-loading`, y los elementos `g-dialog__header`, `__titles`, `__title`, `__description`, `__icon`, `__close`, `__inset`, `__body` (con `is-scrollable`), `__footer` e `is-scrolled` (en la inset, o en la raíz sin inset), más `has-origin` e `is-pinned` (ver [Personalidad](#personalidad)) e `is-stacked` (se abrió con otro modal debajo: su `::backdrop` es transparente). Con pasos: `g-dialog--steps`, `is-forward` / `is-back` (mientras dura el cambio), `is-resizing` (con `--_step-from-h` y `--_step-to-h`), `has-sheet-hold` (con `--_sheet-hold`), `g-dialog__back`, el hilo (`g-dialog__trail`, `__trail-list`, `__trail-item`, `__trail-step`, `__trail-number`, `__trail-title`, con `is-parent` e `is-current` en el `li`), `g-dialog__step` (con `is-current` e `is-entering`) y `g-dialog__sr` (texto oculto del `summary`). El atributo `data-g-landed` es interno. Las utilitarias `g-dialog__section` y `g-dialog__well` las pones tú.
 
 ## Alcance
 

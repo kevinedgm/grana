@@ -284,7 +284,7 @@ Con `uploader`, **dentro de un `GForm` el campo bloquea el envío por sí mismo*
 | `disabled` | Boolean | | sin valor, equivale a `false` (contexto de `GForm`) |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` |
 | `variant` | String | `outline` `soft` | `outline` |
-| `density` | String | `default` `comfortable` `compact` | contexto de `GForm` o `default` |
+| `density` | String | `default` `comfortable` `compact` | sin valor: sigue la región ([Densidad](../../../../../README.md#densidad-global-y-por-región)). Pasa la prop, no `data-g-density` (iría al control nativo) |
 | `rounded` | String | `none` `xs` `sm` `md` `lg` `xl` `pill` | sin valor (`sm`) |
 | `block` | Boolean | | sin valor, equivale a `false` (dentro del layout de formulario, `true`) |
 | `id` | String | | generado |
@@ -545,7 +545,7 @@ Prefijo `[Grana GFileField]`; una vez por instancia y motivo; solo fuera de prod
 
 ## Clases
 
-- **Raíz:** `g-file-field`, `--size-{xs|sm|md|lg|xl}`, `--variant-{outline|soft}`, `--density-*`, `--rounded-*`, `--block`; estados `is-ready`, `has-files`, `is-multiple`, `is-full`, `is-readonly`, `is-disabled`, `is-invalid`, `is-warning`, `is-valid`, `is-rejected`, `is-awake`, `is-awake-ok`, `is-awake-no`, `is-over`.
+- **Raíz:** `g-file-field`, `--size-{xs|sm|md|lg|xl}`, `--variant-{outline|soft}`, `--density-*` (solo con la prop), `--rounded-*`, `--block`; estados `is-ready`, `has-files`, `is-multiple`, `is-full`, `is-readonly`, `is-disabled`, `is-invalid`, `is-warning`, `is-valid`, `is-rejected`, `is-awake`, `is-awake-ok`, `is-awake-no`, `is-over`.
 - **Etiqueta y caja:** `g-file-field__label` (`__optional`, `__required`), `__box`, `__list` (`role="list"`).
 - **Ficha:** `g-file-field__chip` con `data-state` (`ready` `queued` `uploading` `done` `error`), `data-stored` (atributo vacío en los guardados) e `is-landing`; dentro, una `g-summary--layout-inline`, `__progress` (el `GProgress`), `__error` (oculto), `__retry` y `__remove`.
 - **«Adjuntar»:** `__add`, `__input` (el `<input type="file">`), `__add-icon`, `__action`, `__add-hint`.

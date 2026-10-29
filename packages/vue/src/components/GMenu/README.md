@@ -95,7 +95,7 @@ Un elemento sin `label`, sin `id` (cuando lo necesita) o de tipo desconocido se 
 | `align` | String | `start` `end` (borde del disparador con el que se alinea) | `start` |
 | `side` | String | `auto` `bottom` `top` | `auto` |
 | `closeOnSelect` | String | `auto` `always` `never` | `auto` |
-| `density` | String | `default` `comfortable` `compact` | `default` |
+| `density` | String | `default` `comfortable` `compact` | sin valor: sigue la región del disparador ([Densidad](../../../../../README.md#densidad-global-y-por-región)); con valor, la lista y sus submenús son la región. Pasa la prop, no `data-g-density` |
 | `labels` | Object | ver «Textos de los elementos-enlace» | `{}` |
 | `id` | String | | generado |
 

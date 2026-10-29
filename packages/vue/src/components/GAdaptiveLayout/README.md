@@ -68,14 +68,14 @@ A 460 px, con el tema por defecto, Calle ocupa la primera línea y los dos núme
 | `horizontal` | String | `start` `center` `end` | `start` |
 | `vertical` | String | `top` `center` `bottom` | `top` |
 | `gap` | String | `none` `sm` `md` `lg` | `md` |
-| `density` | String | `default` `comfortable` `compact` | la del contexto de distribución, la de `GForm` o `default` |
+| `density` | String | `default` `comfortable` `compact` | sin valor: sigue la región ([Densidad](../../../../../README.md#densidad-global-y-por-región)); con valor, es la región de lo que lleva dentro. Pasa la prop, no `data-g-density` |
 
 Un valor fuera de la lista muestra la advertencia de Vue. Los valores anteriores (`left`, `right`, `default`, `small`, `large`) **ya no existen**, y tampoco la prop `hints`: no hay alias de compatibilidad.
 
 - **`horizontal`** coloca la línea cuando sus hijos no la llenan (todos saturan en su máximo). Es **lógico**: en RTL, `start` es la derecha y `end` la izquierda. Nunca cambia el orden del DOM ni el de lectura.
 - **`vertical`** alinea los hijos genéricos dentro de su línea y, si el contenedor tiene alto sobrante, coloca el conjunto de líneas arriba, al centro o abajo. Sin alto sobrante no inventa alto. Con alto fijo menor que el contenido, `center` y `bottom` no dejan contenido inalcanzable (`safe center`, `safe end`; hallazgo 2 de la auditoría). En campos con pistas compartidas (ver «Alineación de compañeros») manda la alineación de cajas, no el centrado de cada raíz.
 - **`gap`** multiplica las dos separaciones de formulario (en línea y entre líneas), después de la densidad: `none` 0, `sm` 0,5, `md` 1, `lg` 2.
-- **`density`** aplica 1 · 0,875 · 0,75 a las separaciones y se **re-provee** a los campos de dentro, como `GFormLayout`.
+- **`density`** aplica 1 · 0,875 · 0,75 a las separaciones. Con valor, el `GAdaptiveLayout` es la región de los campos de dentro; sin valor, sigue la región ([Densidad](../../../../../README.md#densidad-global-y-por-región)).
 
 Los atributos (`id`, `class`, `style`, `lang`, `dir`, `aria-*`) van a la raíz.
 
@@ -257,7 +257,7 @@ Las fuentes que se miden son las **reales** de cada elemento (estilo calculado),
 
 ## Clases, atributos y alias
 
-`g-adaptive-layout`, `g-adaptive-layout--horizontal-{start|center|end}`, `--vertical-{top|center|bottom}`, `--gap-{none|sm|md|lg}`, `--density-{default|comfortable|compact}`; `is-ready` solo tras una medida útil; `has-shared-tracks` (interna). En la raíz, `data-lines` y `data-strategy` (`optimal` o `linear`); en cada hijo planificado, `data-line`. Los alias `--_adaptive-*` (`line`, `track`, `width`, `start`, `rows`) son geometría interna, no API de tema; se limpian al cambiar los hijos y al desmontar. Antes de medir, sin `ResizeObserver` y en SSR, el layout es una pila legible con los mismos nodos y el mismo marcado que el primer render de cliente (cubierto por una prueba de SSR sin globals del navegador).
+`g-adaptive-layout`, `g-adaptive-layout--horizontal-{start|center|end}`, `--vertical-{top|center|bottom}`, `--gap-{none|sm|md|lg}`, `--density-{default|comfortable|compact}` (solo con la prop); `is-ready` solo tras una medida útil; `has-shared-tracks` (interna). En la raíz, `data-lines` y `data-strategy` (`optimal` o `linear`); en cada hijo planificado, `data-line`. Los alias `--_adaptive-*` (`line`, `track`, `width`, `start`, `rows`) son geometría interna, no API de tema; se limpian al cambiar los hijos y al desmontar. Antes de medir, sin `ResizeObserver` y en SSR, el layout es una pila legible con los mismos nodos y el mismo marcado que el primer render de cliente (cubierto por una prueba de SSR sin globals del navegador).
 
 ## Avisos de desarrollo
 

@@ -107,7 +107,7 @@ La raíz recibe `lang`, `dir`, `id`, `aria-labelledby` (con `as="section"`), `cl
 | `ratio` | `String` | `'1:1'` `'3:2'` `'2:1'` `'2:3'` `'1:2'` | `'3:2'` | Proporción `start:end` al lado. Fuera de lista: aviso y `3:2` |
 | `collapse` | `String` | `'sm'` `'md'` `'lg'` | `'md'` | **El ancho mínimo del lado estrecho**, no un punto de corte: `max(space × 64 · 80 · 96, cuerpo × 16 · 20 · 24)`. Fuera de lista: aviso y `md` |
 | `gap` | `String` | `'none'` `'sm'` `'md'` `'lg'` | `'md'` | Separación, **la misma en los dos ejes**: `space × 6 × 0 · 0,5 · 1 · 2` (0, 12, 24 y 48 px con `space` 4). Entra en el umbral. Fuera de lista: aviso y `md` |
-| `density` | `String` | `'default'` `'comfortable'` `'compact'` | `'default'` | Multiplica la separación 1 · 0,875 · 0,75 (`compact` con `gap="md"` mide 18 px). No se hereda de ningún contexto. Fuera de lista: aviso y `default` |
+| `density` | `String` | `'default'` `'comfortable'` `'compact'` | sin valor: sigue la región | Multiplica la separación 1 · 0,875 · 0,75 (`compact` con `gap="md"` mide 18 px). Sin valor la separación sigue la región; con valor, el `GSplit` es la región de lo que lleva dentro ([Densidad](../../../../../README.md#densidad-global-y-por-región)). Pasa la prop, no `data-g-density`. Fuera de lista: aviso y se ignora |
 | `align` | `String` | `'start'` `'stretch'` | `'start'` | Alineación de bloque de las dos regiones **al lado**: `start` (el resumen no se estira con la lista) o `stretch` (alturas iguales). Apiladas no actúa. Fuera de lista: aviso y `start` |
 
 **No existen** (y por qué): `order` y `reverse` (ningún orden visual distinto del DOM: 1.3.2 y 2.4.3); `breakpoint` o anchos de visor (decide la caja); un `ratio` numérico o libre (la lista cerrada es la que se puede verificar exacta); `padding`, `background`, `border` (`GSurface`); tres o más regiones (`GAdaptiveLayout`).
@@ -204,7 +204,7 @@ Ningún token nuevo ni de color, borde, radio, sombra, fuente o duración. Las c
 
 ### Clases
 
-`g-split`, `g-split--ratio-{1-1|3-2|2-1|2-3|1-2}`, `g-split--collapse-{sm|md|lg}`, `g-split--gap-{none|sm|md|lg}`, `g-split--density-{default|comfortable|compact}` y `g-split--align-{start|stretch}` (siempre una de cada); las regiones, `g-split__region` con `g-split__region--start` o `g-split__region--end`. Una región sola se detecta en CSS con `:only-child`: no hay clase para eso.
+`g-split`, `g-split--ratio-{1-1|3-2|2-1|2-3|1-2}`, `g-split--collapse-{sm|md|lg}`, `g-split--gap-{none|sm|md|lg}`, `g-split--density-{default|comfortable|compact}` (solo con la prop) y `g-split--align-{start|stretch}` (siempre una de cada); las regiones, `g-split__region` con `g-split__region--start` o `g-split__region--end`. Una región sola se detecta en CSS con `:only-child`: no hay clase para eso.
 
 ## Alcance
 

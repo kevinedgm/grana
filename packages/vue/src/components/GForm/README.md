@@ -429,7 +429,7 @@ const f = useFormField({ name: () => props.name, error: () => props.error, requi
 | `warnings` | Object | `{}` | Igual, sin bloquear ni entrar en el resumen |
 | `showErrorsOn` | String | `blur` | `blur` · `submit` |
 | `marks` | String | `optional` | `optional` · `required` |
-| `density` | String | `default` | `default` · `comfortable` · `compact`; la heredan campos, filas, secciones y pie sin densidad propia |
+| `density` | String | sin valor: sigue la región | `default` · `comfortable` · `compact`. Con valor, el formulario es la región de todo lo que lleva dentro: campos, filas, secciones y botones del pie ([Densidad](../../../../../README.md#densidad-global-y-por-región)). Pasa la prop, no `data-g-density` |
 | `readonly` | Boolean | `false` | Modo vista; también el atributo del [bloqueo con interruptor](#bloqueo-con-interruptor) |
 | `disabled` | Boolean | `false` | Todos los campos deshabilitados (no se envían). No sirve para bloquear un formulario ya capturado: usa `readonly` |
 | `headingLevel` | Number | `3` | Nivel de títulos de secciones y resumen (2 a 6) |
@@ -464,7 +464,7 @@ const f = useFormField({ name: () => props.name, error: () => props.error, requi
 | Prop | Tipo | Por defecto | Qué es |
 | --- | --- | --- | --- |
 | `stack` | Boolean | `false` | Un campo por línea en todas las filas interiores, salvo `keep` |
-| `density` | String | la de `GForm` | |
+| `density` | String | sin valor: sigue la región | Con valor, es la región de lo que lleva dentro |
 
 Slot por defecto: filas y campos sueltos. No mide nada. Avisa de compactos sueltos, de `g-form-w-*` fuera de una fila, de restos de la Fase 1 (`g-form-break`, `g-form-w-full`, `g-form-part-*`, `div.g-form-row`) y de hijos con `order`.
 
@@ -473,7 +473,7 @@ Slot por defecto: filas y campos sueltos. No mide nada. Avisa de compactos suelt
 | Prop | Tipo | Por defecto | Qué es |
 | --- | --- | --- | --- |
 | `keep` | Boolean | `false` | La fila nunca se parte |
-| `density` | String | la del contexto | |
+| `density` | String | sin valor: sigue la región | Con valor, es la región de lo que lleva dentro |
 
 Hijos con `g-form-w-xs|sm|md|lg` y, opcionalmente, `--g-form-min`. Emite `data-lines` (raíz) y `data-line` (hijos) tras medir. Sin rol propio: si una fila necesita nombre, ponle `role="group"` y `aria-label`. Avisa con más de 6 hijos, `order`, dos clases de tamaño o una desconocida, un hijo que va en su propia fila, una fila de un solo compacto y un `--g-form-min` no válido.
 
@@ -490,7 +490,7 @@ Hijos con `g-form-w-xs|sm|md|lg` y, opcionalmente, `--g-form-min`. Emite `data-l
 | `readonly` · `disabled` | Boolean | del contexto | |
 | `size` | String | `md` | `xs` · `sm` · `md` · `lg` · `xl` (como `GInput`) |
 | `variant` | String | `outline` | `outline` · `soft` |
-| `density` | String | del contexto | |
+| `density` | String | sin valor: sigue la región | Con valor, es la región de lo que lleva dentro |
 | `block` | Boolean | `true` en un layout | |
 | `id` | String | generado | Id del grupo y base de los ids internos (etiqueta, ayuda, mensaje) |
 
@@ -521,7 +521,7 @@ Hijos con `g-form-w-xs|sm|md|lg` y, opcionalmente, `--g-form-min`. Emite `data-l
 | `required` | Boolean | `false` | Marca de la pregunta |
 | `keep` | Boolean | `false` | Las partes nunca se parten |
 | `disabled` · `readonly` | Boolean | del contexto | |
-| `density` | String | del contexto | |
+| `density` | String | sin valor: sigue la región | Con valor, es la región de lo que lleva dentro |
 | `id` | String | generado | Id del `fieldset` y base de los ids internos |
 
 ### `GFormSection`
@@ -541,7 +541,7 @@ Slots `title`, `description`, `actions` (acciones secundarias de la sección), `
 | --- | --- | --- | --- |
 | `sticky` | Boolean | `false` | Fijo al borde inferior sin tapar el foco |
 | `status` | String | | Texto de estado (o slot `status`) |
-| `density` | String | la de `GForm` | |
+| `density` | String | sin valor: sigue la región | Con valor, es la región de lo que lleva dentro |
 
 Avisa con más de una primaria, una primaria que no es el último botón y dos pies fijos en un formulario.
 
@@ -589,12 +589,12 @@ Tres tokens propios (valores de `defaults.css`, × densidad): `--g-form-gap` (en
 
 ## Clases
 
-- **`GForm`:** `g-form`, `--density-*`, `--marks-optional|required`, `--readonly`, `--disabled`, `--sticky-actions`; `g-form__required-hint`. En la raíz de cada campo que bloquea, `is-rejected` (la pone `GForm`; ver [Personalidad](#personalidad-rechazo-al-enviar)).
-- **`GFormLayout` / `GFormRow`:** `g-form-layout`, `--stack`, `--density-*`; `g-form-row`, `--keep`, `--density-*`; tamaños `g-form-w-xs|sm|md|lg`.
-- **`GInputGroup`:** `g-input-group`, `--size-*`, `--variant-*`, `--density-*`, `--block`, `is-disabled|readonly|invalid|warning|valid`; `__label`, `__optional`, `__required`, `__box`, `__part` (`--input`, `--select`, `--text`, `--chars`; `is-invalid` en la que falla), `__part-name`, `__control`, `__select-icon`, `__text-label`, `__support`, `__hint`, `__message`, `__message-icon`, `__message-type`.
-- **`GFieldGroup`:** `g-field-group`, `--density-*`, `is-*`; `__label`, `__optional`, `__required`, `__parts`, `__support`, `__hint`, `__message`.
+- **`GForm`:** `g-form`, `--density-*` (solo con la prop), `--marks-optional|required`, `--readonly`, `--disabled`, `--sticky-actions`; `g-form__required-hint`. En la raíz de cada campo que bloquea, `is-rejected` (la pone `GForm`; ver [Personalidad](#personalidad-rechazo-al-enviar)).
+- **`GFormLayout` / `GFormRow`:** `g-form-layout`, `--stack`, `--density-*` (solo con la prop); `g-form-row`, `--keep`, `--density-*` (solo con la prop); tamaños `g-form-w-xs|sm|md|lg`.
+- **`GInputGroup`:** `g-input-group`, `--size-*`, `--variant-*`, `--density-*` (solo con la prop), `--block`, `is-disabled|readonly|invalid|warning|valid`; `__label`, `__optional`, `__required`, `__box`, `__part` (`--input`, `--select`, `--text`, `--chars`; `is-invalid` en la que falla), `__part-name`, `__control`, `__select-icon`, `__text-label`, `__support`, `__hint`, `__message`, `__message-icon`, `__message-type`.
+- **`GFieldGroup`:** `g-field-group`, `--density-*` (solo con la prop), `is-*`; `__label`, `__optional`, `__required`, `__parts`, `__support`, `__hint`, `__message`.
 - **`GFormSection`:** `g-form-section`, `--optional`; `__header`, `__heading`, `__title`, `__description`, `__actions`, `__help`, `__body`.
-- **`GFormActions`:** `g-form-actions`, `--sticky`, `--stacked` (y `data-stacked`), `--density-*`; `__status`, `__buttons`.
+- **`GFormActions`:** `g-form-actions`, `--sticky`, `--stacked` (y `data-stacked`), `--density-*` (solo con la prop); `__status`, `__buttons`.
 - **`GErrorSummary`:** `g-error-summary`; `__title`, `__icon`, `__list`, `__link`, `__item`.
 
 ## Alcance

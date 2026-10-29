@@ -73,7 +73,7 @@ const actual = ref('cuenta')
 | `responsive` | String | `auto` `never` `compact` | `auto` |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | `brand` |
 | `size` | String | `sm` `md` `lg` | `md` |
-| `density` | String | `default` `comfortable` `compact` | `default` |
+| `density` | String | `default` `comfortable` `compact` | sin valor: sigue la región ([Densidad](../../../../../README.md#densidad-global-y-por-región)); con valor, es la región de lo que lleva dentro. Pasa la prop, no `data-g-density` |
 | `disabled` | Boolean | | `false` |
 | `expandAll` | Boolean | | `false` |
 | `labels` | Object | ver abajo | `{}` |
@@ -196,7 +196,7 @@ Consume también las familias `--g-color-{accent|neutral|success|warning|danger|
 
 Las emite el componente y las estiliza `GStepper.css`:
 
-- **Raíz:** `g-stepper`, `g-stepper--{horizontal|vertical}`, `--indicator-*`, `--color-*`, `--size-*`, `--density-*`, `--navigable`, `--condensed`, `--current-only`, `--is-compact` e `is-disabled` (y `--measure`, interna, solo durante una lectura síncrona del ancho).
+- **Raíz:** `g-stepper`, `g-stepper--{horizontal|vertical}`, `--indicator-*`, `--color-*`, `--size-*`, `--density-*` (solo con la prop), `--navigable`, `--condensed`, `--current-only`, `--is-compact` e `is-disabled` (y `--measure`, interna, solo durante una lectura síncrona del ancho).
 - **Paso:** `g-stepper__step` con `is-complete|is-current|is-pending` y las marcas `is-error`, `is-warning`, `is-disabled` e `is-optional`.
 - **Elementos del paso:** `__hit`, `__indicator`, `__text`, `__label`, `__optional`, `__description`, `__status`, `__connector` y `__content`.
 - **Conectores y tramos:** `is-done`, `is-toward` (saliente del actual) o `is-pending`.

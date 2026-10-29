@@ -49,7 +49,7 @@ Los atributos nativos (`aria-*`, `data-*`, escuchas como `@focus`) van al **bot�
 | `options` | Array | opciones y grupos | `[]` |
 | `variant` | String | `outline` `soft` | `outline` |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` |
-| `density` | String | `default` `comfortable` `compact` | `default` |
+| `density` | String | `default` `comfortable` `compact` | sin valor: sigue la región ([Densidad](../../../../../README.md#densidad-global-y-por-región)). Pasa la prop, no `data-g-density` (iría al control nativo) |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | sin valor (usa `--g-color-focus`) |
 | `rounded` | String | `none` `xs` `sm` `md` `lg` `xl` `pill` | sin valor (`sm`) |
 | `block` | Boolean | | `false` |
@@ -187,7 +187,7 @@ Con un `GForm` alrededor el campo lee su contexto: densidad, solo lectura, desha
 
 ## Clases
 
-Las emite el componente y las estiliza `GSelect.css`: `g-select`, `g-select--variant-*`, `--size-*`, `--density-*`, `--color-*` y `--rounded-*` (solo con valor), `g-select--block`, `is-open`, `is-disabled`, `is-readonly`, `is-invalid`, `is-loading`, y los elementos `g-select__label`, `__required`, `__control`, `__button`, `__prepend`, `__value` (con `--placeholder`), `__icon`, `__arrow`, `__clear`, `__loader`, `__list` (con `is-up`), `__option` (con `is-active`), `__create`, `__group`, `__group-label`, `__empty`, `__hint` y `__support`, `__message`. Elegida y deshabilitada se estilizan con `aria-selected` y `aria-disabled`.
+Las emite el componente y las estiliza `GSelect.css`: `g-select`, `g-select--variant-*`, `--size-*`, `--density-*` (solo con la prop), `--color-*` y `--rounded-*` (solo con valor), `g-select--block`, `is-open`, `is-disabled`, `is-readonly`, `is-invalid`, `is-loading`, y los elementos `g-select__label`, `__required`, `__control`, `__button`, `__prepend`, `__value` (con `--placeholder`), `__icon`, `__arrow`, `__clear`, `__loader`, `__list` (con `is-up`), `__option` (con `is-active`), `__create`, `__group`, `__group-label`, `__empty`, `__hint` y `__support`, `__message`. Elegida y deshabilitada se estilizan con `aria-selected` y `aria-disabled`.
 
 ## Alcance
 

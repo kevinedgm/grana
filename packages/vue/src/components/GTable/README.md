@@ -203,7 +203,7 @@ El pie se acopla al borde inferior del contenedor visible cuando el pie de pagin
 | `rowStatus` | Function | `(row) => { status, text, key? } \| null`: estado de la fila (ver «Estado de fila») | `null` |
 | `responsive` | String | `auto` `table` `cards` | `auto` |
 | `appearance` | String | `lines` `surface` | `lines` |
-| `density` | String | `default` `comfortable` `compact` | `default` |
+| `density` | String | `default` `comfortable` `compact` | sin valor: sigue la región ([Densidad](../../../../../README.md#densidad-global-y-por-región)); con valor, es la región de lo que lleva dentro. Pasa la prop, no `data-g-density` |
 | `maxHeight` | String | longitud CSS (cabecera pegajosa) | sin valor |
 | `loading`, `loadingRows` | Boolean, Number | carga con el motor común (ver «Carga, error y vacío»); `loadingRows`: filas esqueleto de la **primera** carga | `false`, `3` |
 | `error` | Boolean | el resultado de la última carga fue un fallo; se aplica **al terminar** la carga | `false` |

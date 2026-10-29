@@ -20,7 +20,7 @@ Disparador de la captura de voz: **dictado** a un campo (botón de solo icono, c
 | `for` | String | `id` de un `<textarea>` o un `<input>` `text`, `search`, `url` o `tel` | sin valor | Campo del dictado (obligatorio en dictado; `password`, `email` y `number` no se admiten) |
 | `targetLabel` | String | | la etiqueta del campo | Nombre del campo en «Dictar en {target}» y en los anuncios |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` | El de `GBtn` |
-| `density` | String | `default` `comfortable` `compact` | `default` | El de `GBtn` |
+| `density` | String | `default` `comfortable` `compact` | sin valor: sigue la región ([Densidad](../../../../../README.md#densidad-global-y-por-región)) | El de `GBtn`. Pasa la prop, no `data-g-density` |
 | `disabled` | Boolean | | `false` | `disabled` nativo |
 | `speech` | Object | | el gestor provisto | Gestor de `createSpeech` |
 

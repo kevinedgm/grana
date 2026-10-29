@@ -114,7 +114,7 @@ Tamaños recomendados (guía, no regla): un Sí/No `inline` con `g-form-w-xs` o 
 | `readonly` | Boolean | | sin valor → contexto o `false` |
 | `disabled` | Boolean | | sin valor → contexto o `false` |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` |
-| `density` | String | `default` `comfortable` `compact` | sin valor → contexto o `default` |
+| `density` | String | `default` `comfortable` `compact` | sin valor: sigue la región ([Densidad](../../../../../README.md#densidad-global-y-por-región)); con valor, es la región de lo que lleva dentro. Pasa la prop, no `data-g-density` |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | `brand` |
 | `field` | Boolean | | `true` |
 | `id` | String | | generado |
@@ -318,7 +318,7 @@ La misma regla que en este componente se aplicó a `GCheckbox` (DECISIONS #270):
 
 Las emite el componente y las estiliza `GRadioGroup.css`:
 
-- **Raíz:** `g-radio-group`, `g-radio-group--appearance-*` (siempre, también `list`), `--size-*`, `--density-*`, `--color-*`, `--icon-only`, `--measure` (interna: solo durante la medida síncrona del segmentado), `is-disabled`, `is-readonly`, `is-invalid`, `is-warning`, `is-valid` e `is-stacked`.
+- **Raíz:** `g-radio-group`, `g-radio-group--appearance-*` (siempre, también `list`), `--size-*`, `--density-*` (solo con la prop), `--color-*`, `--icon-only`, `--measure` (interna: solo durante la medida síncrona del segmentado), `is-disabled`, `is-readonly`, `is-invalid`, `is-warning`, `is-valid` e `is-stacked`.
 - **Elementos:** `__label` (con `__required` u `__optional`), `__options`, `__option` (con `is-disabled` e `is-icon-only`), `__input`, `__segment` (solo `segmented`), `__icon`, `__text`, `__option-label`, `__description` (solo `list` y `card`), `__support`, `__hint`, `__message`, `__message-icon` y `__message-type`.
 
 Elegida, foco y hover se estilizan con `:checked`, `:focus-visible` y `:has()`, sin clases propias. Datos internos que no son API: `data-g-key-focus` en `g-radio-group__input` (foco por teclado, #441) y, en solo icono, `data-g-tooltip` en el radio, `data-g-tooltip-box` en la `__option` y los nodos `g-tooltip` (con `aria-hidden`) al final de `__options`.

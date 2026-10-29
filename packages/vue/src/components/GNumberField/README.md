@@ -91,7 +91,7 @@ Grana no valida (DECISIONS #157). Lo escrito o pegado fuera de `min`/`max` **no 
 | `disabled` | Boolean | | sin valor: `GForm` o `false` |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` |
 | `variant` | String | `outline` `soft` | `outline` |
-| `density` | String | `default` `comfortable` `compact` | sin valor: `GForm` o `default` |
+| `density` | String | `default` `comfortable` `compact` | sin valor: sigue la región ([Densidad](../../../../../README.md#densidad-global-y-por-región)). Pasa la prop, no `data-g-density` (iría al control nativo) |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | sin valor: foco del tema |
 | `rounded` | String | `none` `xs` `sm` `md` `lg` `xl` `pill` | sin valor: radio `sm` del tema |
 | `block` | Boolean | | sin valor: `false` (dentro del layout de `GForm`, `true`) |

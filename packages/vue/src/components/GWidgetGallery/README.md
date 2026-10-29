@@ -69,7 +69,7 @@ const labels = { search: 'Buscar widgets', all: 'Todas', categories: 'Categoría
 | `title` | String | título de la hoja (**obligatorio**) | sin valor |
 | `description` | String | descripción de la hoja | sin valor |
 | `size` | String | `sm` `md` `lg` (ancho de la hoja) | `sm` |
-| `density` | String | `default` `comfortable` `compact` | `default` |
+| `density` | String | `default` `comfortable` `compact` | sin valor: sigue la región ([Densidad](../../../../../README.md#densidad-global-y-por-región)); con valor, es la región de lo que lleva dentro. Pasa la prop, no `data-g-density` |
 | `labels` | Object | ver «Textos» | `{}` |
 | `id` | String | | generado |
 

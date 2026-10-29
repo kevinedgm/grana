@@ -67,7 +67,7 @@ Una `inset` **no necesita saber quién es su padre**: la superficie más cercana
 | `tone` | String | `surface` `sunken` | `surface` |
 | `padding` | String | `none` `xs` `sm` `md` `lg` | `md` |
 | `rounded` | String | `none` `xs` `sm` `md` `lg` `xl` `pill` | según `level` |
-| `density` | String | `default` `comfortable` `compact` | `default` |
+| `density` | String | `default` `comfortable` `compact` | sin valor: sigue la región ([Densidad](../../../../../README.md#densidad-global-y-por-región)); con valor, es la región de lo que lleva dentro. Pasa la prop, no `data-g-density` |
 | `as` | String | etiqueta HTML | `div` |
 | `zone` | String | `none` `brand` | `none` |
 
@@ -140,7 +140,7 @@ Consume también `--g-color-text`, `--g-radius-{none|xs|sm|md|lg|xl|pill}`, `--g
 
 ## Clases
 
-Las emite el componente y las estiliza `GSurface.css`: `g-surface`, `g-surface--level-*`, `g-surface--tone-*`, `g-surface--padding-*`, `g-surface--density-*` y, solo con `rounded`, `g-surface--rounded-*`. Con `zone="brand"`: `g-surface--zone-brand` (para CSS propio de la superficie) y el atributo `data-g-zone="brand"` (mecanismo público de la zona).
+Las emite el componente y las estiliza `GSurface.css`: `g-surface`, `g-surface--level-*`, `g-surface--tone-*`, `g-surface--padding-*`, `g-surface--density-*` (solo con la prop) y, solo con `rounded`, `g-surface--rounded-*`. Con `zone="brand"`: `g-surface--zone-brand` (para CSS propio de la superficie) y el atributo `data-g-zone="brand"` (mecanismo público de la zona).
 
 ## Alcance
 
