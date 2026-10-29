@@ -10,8 +10,8 @@
   (DECISIONS.md #69) y llega como clase g-sidebar--mode-*. Una sola superficie vertical continua
   (expandida y riel), un navbar flotante con «píldora activa» y un drawer (<dialog>).
   Bruno da la posición del panel flotante y de la pista con variables CSS dinámicas
-  (--_x, --_top, --_bottom, --_notch), y la luz de hover de cada lista con --_highlight-x/-y/-w/-h, has-highlight e
-  is-highlight-instant en el anfitrión (§«Una sola luz», DECISIONS #957 a #963).
+  (--_x, --_top, --_bottom, --_notch), y la luz de hover de cada lista con has-highlight e is-highlight-instant en el
+  anfitrión (la lista) y --_highlight-x/-y/-w/-h en la capa g-sidebar__highlight (§«Una sola luz», #957 a #964).
 */
 
 /* ---------- Esqueleto ---------- */
@@ -311,8 +311,8 @@
 
 /* ---------- Una sola luz (sidebar.md §«Una sola luz», DECISIONS #957 a #963) ----------
    Una capa por lista (li.g-sidebar__highlight, primer hijo de cada g-sidebar__list y de g-sidebar__fly-list) bajo los items,
-   que pintan encima por orden del árbol. Se desliza al enlace bajo el puntero: es la caja del enlace que bruno escribe en el
-   anfitrión, en px FÍSICOS (anclaje left/top también en RTL: la medida es getBoundingClientRect), recortada por dentro con
+   que pintan encima por orden del árbol. Se desliza al enlace bajo el puntero: es la caja del enlace que bruno escribe en la
+   propia capa (#964), en px FÍSICOS (anclaje left/top también en RTL: la medida es getBoundingClientRect), recortada por dentro con
    la junta (--_seam) para que se vea como el hover de antes. Mismo token que ese hover (`border` sobre la carcasa, #959).
    Pasa por detrás del asiento del actual sin tocarlo */
 .g-sidebar__highlight {

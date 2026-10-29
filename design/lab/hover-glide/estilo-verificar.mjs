@@ -1,6 +1,6 @@
 // Verificación de estilo de coco para «una sola luz» (#957 a #963) en GSidebar.css y GTable.css (CSS FUENTE).
-// Banco: design/lab/hover-glide/estilo-banco.html (componentes de dist/ + src/styles/grana.css + el motor de laboratorio de
-// kiwi r01/hg.js, hasta que bruno pinte las capas en el vnode). Mide: caja de la luz = caja del destino (recortada por la
+// Banco: design/lab/hover-glide/estilo-banco.html (componentes de dist/ con las capas y el motor real de bruno +
+// src/styles/grana.css; las medidas --_highlight-* van en la CAPA, #964). Mide: motor real y medidas en la capa, caja de la luz = caja del destino (recortada por la
 // junta en el sidebar), ≤ 1 luz por lista y 0 fondos propios en un barrido, paso de las filas igual que con el CSS de dist/
 // (HEAD 3109911, servido por page.route), piso de 24 px en compact, transiciones (M1 sin muelle; instantánea; reduce = solo opacidad), forced-colors
 // (capa oculta), navbar/surface/cards (entrada con fundido, salida instantánea), seleccionada encima, RTL y contraste del
@@ -70,7 +70,7 @@ for (const name of list) {
     const { p, ctx, errs } = await open()
     const tk = await tokens(p)
     const seam = tk.s1 * 0.5
-    console.log(name, 'motor de la luz:', await p.evaluate(() => window.hgEngine))
+    ok((await p.evaluate(() => window.hgEngine)) === 'real', 'banco: motor real (capas del vnode)')
     await p.locator('#sb-default .g-sidebar__parent').first().click()
     await p.mouse.move(2, 2)
     await p.waitForTimeout(500)
@@ -96,6 +96,9 @@ for (const name of list) {
       const L = await light(p, host, '.g-sidebar__highlight')
       ok(L && L.on && L.op === 1, 'sidebar: luz encendida sobre ' + l.i, L)
       ok(L && near(L.x, l.x) && near(L.w, l.w) && near(L.y, l.y + seam / 2) && near(L.h, l.h - seam), 'sidebar: caja = enlace recortado por la junta ' + l.i, { L, l })
+      // #964: las medidas viven en la capa (en línea) y el anfitrión no las declara
+      const at = await p.evaluate((h) => { const u = document.querySelector(h); return [u.style.getPropertyValue('--_highlight-y'), u.firstElementChild.style.getPropertyValue('--_highlight-y')] }, host)
+      ok(at[0] === '' && /px$/.test(at[1]), 'sidebar: --_highlight-* en la capa, no en el anfitrión ' + l.i, at)
     }
     const L0 = await light(p, '#sb-default .g-sidebar__list', '.g-sidebar__highlight')
     const linkBorder = await p.evaluate(() => { const s = document.createElement('i'); s.style.color = 'var(--g-color-border)'; document.querySelector('#sb-default').append(s); const c = getComputedStyle(s).color; s.remove(); return c })

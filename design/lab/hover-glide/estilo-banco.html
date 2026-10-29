@@ -1,9 +1,10 @@
 <!doctype html>
 <html lang="es-MX">
-<!-- Banco de estilo de coco para «una sola luz» (#957 a #963): los componentes reales de dist/ (JS) con el CSS FUENTE de
-     src/styles/ y el motor de laboratorio de kiwi (r01/hg.js) hasta que bruno pinte las capas en el vnode.
-     ?dark=1 · ?dir=rtl · ?theme=<nombre de tema-oscuro/dark-color-presence/generated/> · ?glide=0 (sin motor de kiwi).
-     Si el vnode ya pinta las capas (bruno), usa el motor real y no monta el de kiwi (window.hgEngine)
+<!-- Banco de estilo de coco para «una sola luz» (#957 a #964): los componentes reales de dist/ (JS, con las capas y la
+     sesión del puntero de bruno, utils/glide.js) con el CSS FUENTE de src/styles/. Las medidas --_highlight-x/-y/-w/-h van
+     en la CAPA (#964) y has-highlight / is-highlight-instant en el anfitrión; el motor de laboratorio de kiwi (r01/hg.js),
+     que las escribía en el anfitrión, ya no se monta (window.hgEngine = 'real' o 'missing' si el dist/ no trae las capas).
+     ?dark=1 · ?dir=rtl · ?theme=<nombre de tema-oscuro/dark-color-presence/generated/>.
      Ver: python3 -m http.server 4209 -d <raíz del repo> → /design/lab/hover-glide/estilo-banco.html
      Verificación: node design/lab/hover-glide/estilo-verificar.mjs (ver cabecera). -->
 <head>
@@ -16,9 +17,8 @@
 <link rel="stylesheet" href="../../../packages/vue/src/styles/grana.css">
 <link id="theme" rel="stylesheet">
 <style>
-/* Banco de coco sobre la ronda r01 «una sola luz» en GSidebar y GTable (kiwi). Capa de LABORATORIO sobre los componentes reales de dist/:
-   simula lo que coco escribiría en GSidebar.css y GTable.css. Solo var(--g-*) y alias locales del componente (--_*).
-   Sin capa: gana a grana.components a propósito (es un prototipo). Se activa con .hg-on en <body> (?glide=1, defecto). */
+/* Banco de coco sobre la ronda r01 «una sola luz» en GSidebar y GTable (kiwi). Solo estilos de la página del banco: la luz es el CSS
+   fuente de GSidebar.css y GTable.css. Solo var(--g-*). */
 
 /* ---------- Página del banco (no es Grana) ---------- */
 body { margin: 0; background: var(--g-color-surface-sunken); color: var(--g-color-text); font-family: var(--g-font-ui); }
@@ -47,12 +47,9 @@ body { margin: 0; background: var(--g-color-surface-sunken); color: var(--g-colo
 <div id="app"></div>
 <script src="../../../node_modules/vue/dist/vue.global.js"></script>
 <script src="../../../packages/vue/dist/grana.umd.js"></script>
-<script src="./r01/hg.js"></script>
 <script>
 (function () {
   const q = new URLSearchParams(location.search)
-  const on = q.get('glide') !== '0'
-  document.body.classList.toggle('hg-on', on)
   if (q.get('dark') === '1') document.documentElement.setAttribute('data-theme', 'dark')
   if (q.get('dir') === 'rtl') document.documentElement.setAttribute('dir', 'rtl')
   if (q.get('theme')) document.getElementById('theme').href = '../tema-oscuro/dark-color-presence/generated/' + q.get('theme') + '.css'
@@ -99,13 +96,8 @@ body { margin: 0; background: var(--g-color-surface-sunken); color: var(--g-colo
       onMounted(async () => {
         await nextTick()
         await new Promise((r) => setTimeout(r, 300))
-        window.hgMount = () => {
-          document.querySelectorAll('.g-sidebar:not(.g-sidebar--mode-navbar)').forEach((s) => HG.mountSidebar(s))
-          document.querySelectorAll('.hg-table > .g-table').forEach((t) => HG.mountTable(t))
-        }
-        // Si el vnode ya pinta las capas (GSidebar.vue / GTable.vue de bruno con utils/glide.js), manda el motor real
-        window.hgEngine = document.querySelector('.g-sidebar__highlight, .g-table__highlight') ? 'real' : 'kiwi'
-        if (on && window.hgEngine === 'kiwi') window.hgMount()
+        // Solo el motor real: las capas las pinta el vnode (GSidebar.vue / GTable.vue con utils/glide.js)
+        window.hgEngine = document.querySelector('.g-sidebar__highlight, .g-table__highlight') ? 'real' : 'missing'
         window.hgReady = true
       })
       return { sbItems, sbLabels, current, lotes, columns, tLabels, selected, expanded, lucide: (n) => window.lucide(n) }
@@ -113,7 +105,7 @@ body { margin: 0; background: var(--g-color-surface-sunken); color: var(--g-colo
     template: `
 <main class="hg-page">
   <header class="hg-head"><h1>Banco de la luz · GSidebar y GTable</h1>
-    <p>CSS fuente de coco sobre los componentes de dist/ y el motor de laboratorio de kiwi.</p></header>
+    <p>CSS fuente de coco sobre los componentes de dist/ (capas y motor de la luz de bruno).</p></header>
   <section class="hg-sec"><h2>GSidebar</h2>
     <div class="hg-row">
       <div class="hg-sidebar-box"><g-sidebar id="sb-default" v-model="current" :items="sbItems" label="Secciones" :labels="sbLabels" mode="expanded" contained>

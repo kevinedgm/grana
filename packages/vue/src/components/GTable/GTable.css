@@ -8,7 +8,8 @@
   Bruno da: g-table--mode-{table|cards} (medido) y --_max-height (en línea, opcional); carga (#540): is-loading,
   is-pending, is-slow, is-failed en la raíz; p.g-table__slow último hijo de __scroll; div.g-table__failed antes de
   __scroll con __failed-icon y __failed-text; GEmpty en td.g-table__empty. Luz de hover (#957 a #963):
-  div.g-table__highlight primer hijo de __scroll, y en __scroll --_highlight-x/-y/-w/-h, has-highlight, is-highlight-instant.
+  div.g-table__highlight primer hijo de __scroll, con --_highlight-x/-y/-w/-h en la propia capa (#964), y has-highlight e
+  is-highlight-instant en __scroll.
 */
 
 /* ---------- Raíz ---------- */
