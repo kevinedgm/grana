@@ -1,6 +1,6 @@
 # Contrato · Usage & limits (`GbUsage01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #957 a #961 y #968, 2026-10-29) · **Plan:** S7 (§4.5) · **Entrada:** `@grana/blocks/saas` · **Común:** `_comun.md` §1 a §5 y §41 a §54 · **Compone:** `GSection`, `GStack`, `GProgress` (decorativa, SA-L1), `GAdaptiveLayout`, `GMetric`, `GCard`, `GBtn`, `GText` · **Fase:** 4c·2 · **No compleja** (Sonnet)
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #983 a #987 y #994, 2026-10-29) · **Plan:** S7 (§4.5) · **Entrada:** `@grana/blocks/saas` · **Común:** `_comun.md` §1 a §5 y §41 a §54 · **Compone:** `GSection`, `GStack`, `GProgress` (decorativa, SA-L1), `GAdaptiveLayout`, `GMetric`, `GCard`, `GBtn`, `GText` · **Fase:** 4c·2 · **No compleja** (Sonnet)
 
 ## Promesa
 
@@ -62,7 +62,7 @@ interface GbUsageProps {
 
 `GSection` (01, 02) o `GCard` (03) con título; los recursos en lista; cada uno con nombre, cifra, estado y consecuencia **en texto**; la barra fuera del árbol de accesibilidad (`aria-hidden`, SA-L1); fechas en `<time>`; sin región viva (el consumo no habla al cambiar).
 
-## Qué lo hace distinto (#968)
+## Qué lo hace distinto (#994)
 
 **El límite se dice antes de llegar, con lo que pasará.** En lugar de una barra que se pone roja cuando ya es tarde, cada recurso cerca del límite dice **qué dejará de funcionar** («no podrás dar de alta productos nuevos; los que tienes siguen a la venta») y **cuándo vuelve a cero**, y 03 aparece solo cuando hace falta, con el camino para evitarlo al lado. Sin alarmas ni porcentajes que asustan: frases.
 

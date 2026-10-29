@@ -169,6 +169,7 @@ Un clic fuera cierra sin cambiar; el clic en una opción deshabilitada no elige 
 - **El estado no depende solo del color:** la elegida lleva un icono `check` de Lucide y más peso, la activa un contorno, la deshabilitada opacidad y tachado, el error engrosa el contorno y lleva un icono `triangle-alert`.
 - **Foco:** anillo fino y pegado al borde de la caja, con transición de color.
 - **Área táctil:** con `pointer: coarse`, la caja, las opciones, la fila crear y el botón de limpiar miden al menos 44px.
+- **Texto con puntero grueso (#970 a #972):** con `pointer: coarse` (táctil) el texto que se escribe sube a `max(16px, su rol)` para que iOS Safari no amplíe la página al enfocar el campo; en escritorio no cambia nada. La altura de la caja no cambia. Sube la línea del valor entera (valor y marcador del botón; las opciones, la fila «Agregar nuevo…» y la lista siguen en su rol); etiqueta, ayuda, mensajes y listas se quedan en su rol. Grana no toca el viewport: no añadas `maximum-scale=1` (bloquea el pellizco, WCAG 1.4.4). `medido` en Chromium con emulación táctil (2007/2007, [`auditoria.md`](../../../../../design/lab/campo-tactil/auditoria.md)).
 - **Contraste:** con el tema por defecto, el borde y el contorno de la lista llegan a 3.45:1 y el texto a 4.5:1 o más; con el tema de prueba de la auditoría, 4.86:1.
 
 ## Tema
@@ -207,6 +208,8 @@ Las emite el componente y las estiliza `GSelect.css`: `g-select`, `g-select--var
 - **Sin verificar:** un lector de pantalla real (incluido cómo anuncia la fila «Agregar nuevo…» y los iconos), la hoja inferior con el teclado virtual, un dispositivo táctil real, `forced-colors` real de Windows (solo emulado en Chromium) y Safari real. El `popover` (abrir, elegir, cerrar) está medido en Chromium, Firefox y WebKit (`tests/library.spec.mjs` y `tests/panel-estable.spec.mjs`); `prefers-reduced-motion` está medido con la preferencia emulada en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`, 18/18 el 2026-10-18: con `reduce` ningún elemento conserva transiciones ni animaciones de movimiento).
 
 - **Contención en línea (#563 cerrado por #686) y altura vacío (cerrados 2026-10-18, coco):** la raíz lleva `contain: inline-size` y `contain-intrinsic-inline-size: space × 60` (`contain: none` en `GFormRow`): en un padre que se ajusta al contenido mide 240 px en vez de ~200 (`design/lab/contencion/verificar.mjs` 336/336 en los tres motores). Vacío mide lo mismo que con valor (antes 36 px en `md` y 30 en `sm`; `.g-select__value` con `min-block-size`; `design/lab/datepicker/altura-verificar.mjs` 186/186).
+
+- **Texto de 16px con puntero grueso (#970 a #972):** `medido` solo en Chromium con emulación táctil: `node design/lab/campo-tactil/verificar.mjs` 2007/2007 ([`auditoria.md`](../../../../../design/lab/campo-tactil/auditoria.md)) y `tests/campo-tactil.spec.mjs` 15/15. **Sin verificar:** WebKit (el motor de iOS), Firefox y un iPhone real con Safari, que es donde se comprueba que ya no amplía.
 
 - **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 

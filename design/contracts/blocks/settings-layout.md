@@ -1,6 +1,6 @@
 # Contrato · Settings layout (`GbSettingsLayout01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #957 a #961 y #964, 2026-10-29) · **Plan:** S3 (§4.5) · **Entrada:** `@grana/blocks/saas` · **Común:** `_comun.md` §1 a §5 y §41 a §54 · **Compone:** `GSplit` + `GCard interaction="link"` (01), `GTabs` (02), `GSection`, `GStack`, `GBtn`, `GBadge`, `GText` · **Fase:** 4c·1 · **Compleja: coco y bruno en Opus** (navegación con estado actual, paneles, `GTabs` con teclado compuesto)
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #983 a #987 y #990, 2026-10-29) · **Plan:** S3 (§4.5) · **Entrada:** `@grana/blocks/saas` · **Común:** `_comun.md` §1 a §5 y §41 a §54 · **Compone:** `GSplit` + `GCard interaction="link"` (01), `GTabs` (02), `GSection`, `GStack`, `GBtn`, `GBadge`, `GText` · **Fase:** 4c·1 · **Compleja: coco y bruno en Opus** (navegación con estado actual, paneles, `GTabs` con teclado compuesto)
 
 ## Promesa
 
@@ -57,7 +57,7 @@ interface GbSettingsLayoutProps {
 
 Sin `h1` (el de la aplicación). El índice es un `nav` con nombre (`labels.nav`) y una lista; la sección actual se dice con `aria-current` (01: `true` por `GCard`, SA-L4; 03: sin marca de actual); en 02, el patrón *Tabs* de `GTabs` (flechas, Inicio/Fin). El panel es un `GSection` con el título de la sección, al nivel que le toca. La atención de cada sección es texto en el índice y al principio del panel, nunca solo color (1.4.1).
 
-## Qué lo hace distinto (#964)
+## Qué lo hace distinto (#990)
 
 **Lo pendiente se ve en el índice, no al abrir la sección.** Un pago fallido, una invitación caducada o una integración con error se dicen **junto al nombre de su sección** en el índice («Facturación · Pago fallido»), en texto y con el tono del tema, así que quien entra a cambiar su foto ve también que el cobro falló, sin abrir pestaña por pestaña. Y elegir en el índice no saca a nadie de su sitio: el foco se queda donde pulsó y el panel cambia al lado.
 

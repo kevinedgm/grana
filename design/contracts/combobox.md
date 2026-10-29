@@ -90,7 +90,7 @@ app.use(Combobox)            // registra <g-combobox>; o: components: { GCombobo
 | `disabled` | Boolean | | `undefined` → `false` | compartida |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` | compartida |
 | `variant` | String | `outline` `soft` | `outline` | compartida (subconjunto, como `GInput`) |
-| `density` | String | `default` `comfortable` `compact` | `undefined` → contexto o `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | sin valor (`--g-color-focus`) | compartida (solo el foco) |
 | `rounded` | String | `none` `xs` `sm` `md` `lg` `xl` `pill` | sin valor (`sm`) | compartida |
 | `block` | Boolean | | `undefined` → `false` (dentro del layout, `true`) | compartida |
@@ -1041,3 +1041,7 @@ Lector de pantalla (VoiceOver, NVDA, TalkBack): eco de escritura con la primera 
 | Editor de valor de `GFilterBar` | — | Ronda de `GFilterBar`; revisar la entrada del paquete |
 | `autoHighlight: false` | Prop `autoHighlight` | Solo si la verificación con lector real lo pide |
 | Semillas descartadas por kiwi (r02) | Fichas navegables en rejilla 2D (APG *grid popup*); Tab que acepta siempre | Motivo nuevo |
+
+## Texto con puntero grueso (DECISIONS.md #970 a #972)
+
+Regla común en `docs/contract/api.md` «Texto editable con puntero grueso» y mínimo en `tokens.md` §7: con `@media (pointer: coarse)`, `font-size: max(16px, <rol>)`; interlineado del rol con piso `--g-text-body-sm-line`; altura sin cambio; en escritorio, sin cambio. Aquí (por el `GInput` que compone, en `field` y en `palette`): suben el texto tecleado, el marcador, `__ghost` (tiene que medir lo mismo que el texto real: Δ ≤ 0,5px, criterio 6), `__token` (la ficha) y `__sentence` de `multiple`; la lista, la paleta y sus opciones se quedan en su rol. **El fantasma solo existe en táctil de tableta:** en teléfono `GCombobox` abre una hoja y no hay fantasma (#973).

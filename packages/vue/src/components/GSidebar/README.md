@@ -235,6 +235,7 @@ El slot no trae marcado propio: tú pones **un botón de ancho completo** con el
 
 ## Accesibilidad
 
+- **Luz de hover** (coco, [`design/lab/hover-glide/auditoria.md`](../../../../../design/lab/hover-glide/auditoria.md)): la capa es `aria-hidden` y no cambia la cuenta de items que anuncia el lector; el puntero no mueve el foco. Contraste del texto sobre la luz **13,43:1** (etiqueta, claro), **13,17:1** (oscuro) y **8,59:1** (zona de marca); `medido` en Chromium (115/115 y 268/268).
 - **`<nav aria-label>` con solo enlaces y botones de submenú**; cabecera y pie van fuera de la región. Cada grupo es una lista con su título como nombre (también en el riel: el título se oculta visualmente y queda en el DOM).
 - **El nombre accesible es texto real**, no `aria-label` ni tooltip: las etiquetas del riel y de los items inactivos de la píldora se ocultan visualmente y siguen ahí; los indicadores visibles son `aria-hidden` y su texto es `badgeLabel`.
 - **`aria-current="page"`** solo en el destino real; `aria-expanded`/`aria-controls` en los padres (`aria-haspopup` en el riel); el submenú cerrado es `inert` (sin foco ni lectura).
@@ -245,7 +246,21 @@ El slot no trae marcado propio: tú pones **un botón de ancho completo** con el
 
 ## Movimiento
 
-Solo transiciones (se interrumpen y se revierten) con `--g-duration-*` y `--g-ease-*`, todas por debajo de los 300ms: el ancho al contraer y expandir (las etiquetas entran un instante después), el submenú (altura y opacidad), el fundido del item activo, la pulsación, el panel flotante y el drawer (**también al cerrar**), la pista (instantánea tras otra reciente), la entrada del navbar y el crecimiento de la píldora. **El sidebar no se reconstruye** al contraer, expandir, navegar o abrir un submenú: es la misma raíz por formato (así corren las transiciones). El hover de un item es solo color.
+Solo transiciones (se interrumpen y se revierten) con `--g-duration-*` y `--g-ease-*`, todas por debajo de los 300ms: el ancho al contraer y expandir (las etiquetas entran un instante después), el submenú (altura y opacidad), el fundido del item activo, la pulsación, el panel flotante y el drawer (**también al cerrar**), la pista (instantánea tras otra reciente), la entrada del navbar y el crecimiento de la píldora. **El sidebar no se reconstruye** al contraer, expandir, navegar o abrir un submenú: es la misma raíz por formato (así corren las transiciones). El hover de un item ya no es un fondo propio: lo pinta la luz de su lista (ver más abajo).
+
+### Una sola luz
+
+El resaltado de hover es **un único fondo por lista** que se desliza de enlace en enlace bajo el puntero, como en [`GMenu`](../GMenu/README.md), en vez de que cada enlace funda su propio fondo (DECISIONS #957 a #964; contrato [`sidebar.md`](../../../../../design/contracts/sidebar.md) «Una sola luz» y [`api.md`](../../../../../docs/contract/api.md) «Una sola luz»). **No hay props, slots ni eventos nuevos.**
+
+- **La luz es del puntero y el anillo es del teclado.** El puntero **no mueve el foco**: pasar el ratón por la navegación no te saca del campo en el que escribes (WCAG 3.2.1 y 2.4.3). Si el puntero y el teclado están en enlaces distintos, se ven los dos a la vez. El teclado no enciende la luz.
+- **Solo ratón y lápiz.** Con el toque no se enciende nada.
+- **Pasa también por el item actual:** la luz va por detrás de su asiento (relleno, tinta y filo) y no lo cambia.
+- **Solo ilumina lo que recibe un clic.** Un item deshabilitado, el título de un grupo, el margen entre grupos y el pie la apagan; la búsqueda, contraer y el usuario conservan su propio hover.
+- **Cada lista tiene su luz:** cada grupo de la expandida y del drawer (los hijos de un submenú abierto son de la lista de su padre), el riel y el **panel flotante** del riel, que lleva la suya (la del riel se apaga al pasar a él). El **navbar no lleva capa**: su hover por celda entra con un fundido y sale al instante, para que nunca haya dos a la vez.
+- **Cambios de medida que verás al actualizar:** los enlaces miden **2 px más** (40 → 42 en `default`, 30 → 32 en `compact`, 44 → 46 en el riel): la junta de antes entre items pasa a ser área de clic, la luz se recorta por dentro y se ve del tamaño de siempre; el paso entre filas no cambia. El **submenú abierto ya no lleva margen** entre el padre y sus hijos y mide **8 px menos**.
+- **Movimiento:** posición y tamaño con `--g-duration-press` y `--g-ease-out`, aparición con `--g-duration-fast`; sin muelle. La primera colocación al entrar y las recolocaciones sin gesto (desplazamiento, expandir, abrir un submenú) no viajan, solo se funden.
+- **`prefers-reduced-motion: reduce`:** la luz aparece en su sitio sin viajar (solo fundido). **`forced-colors`:** la luz se oculta y manda el foco del sistema.
+- **Tema:** sin tokens nuevos; la luz usa `--g-color-border` (el hover de siempre sobre la carcasa; dentro de una zona de marca, el de la zona).
 
 ## Tema
 
@@ -275,7 +290,7 @@ Sin definir, el tema por defecto usa `--g-surface-inset` con contorno `--g-color
 
 ## Clases
 
-Las emite el componente y las estiliza `GSidebar.css`: `g-sidebar` (con `--mode-{expanded|rail|navbar}`, `--variant-*`, `--color-*`, `--density-*`, `--overlay`, `--contained`, `is-entering`), `__head`, `__top`, `__logo`, `__toggle`, `__search`, `__hint`, `__nav`, `__groups`, `__group`, `__group-title`, `__list`, `__item`, `__link` (con `is-active`, `is-branch`), `__parent`, `__sub` (con `is-open`), `__chevron`, `__icon`, `__label`, `__badge` (y `__badge--dot`), `__sr`, `__foot`, `__fly`, `__fly-title`, `__bar`, `__tab`, `__more`, `__label--hidden` y `__drawer`. Los nodos de la pista del riel son `g-tooltip` (con `aria-hidden`), hijos de la raíz; `__tip` e `is-instant` ya no existen.
+Las emite el componente y las estiliza `GSidebar.css`: `g-sidebar` (con `--mode-{expanded|rail|navbar}`, `--variant-*`, `--color-*`, `--density-*`, `--overlay`, `--contained`, `is-entering`), `__head`, `__top`, `__logo`, `__toggle`, `__search`, `__hint`, `__nav`, `__groups`, `__group`, `__group-title`, `__list`, `__item`, `__link` (con `is-active`, `is-branch`), `__parent`, `__sub` (con `is-open`), `__chevron`, `__icon`, `__label`, `__badge` (y `__badge--dot`), `__sr`, `__foot`, `__fly`, `__fly-title`, `__bar`, `__tab`, `__more`, `__label--hidden`, `__drawer`, `__highlight` (la luz, `li[role="none"][aria-hidden="true"]`, primer hijo de cada lista) y `__fly-list` (la lista del panel flotante). Los nodos de la pista del riel son `g-tooltip` (con `aria-hidden`), hijos de la raíz; `__tip` e `is-instant` ya no existen.
 
 ## Alcance
 
@@ -297,10 +312,12 @@ Las emite el componente y las estiliza `GSidebar.css`: `g-sidebar` (con `--mode-
 
 - **Tema oscuro:** `grana.css` ya trae el esquema oscuro por defecto (`defaults.css`): sigue `prefers-color-scheme` y se fuerza con `data-theme="dark"` o `data-theme="light"` en cualquier elemento (ver [«Tema oscuro» del README raíz](../../../../../README.md#tema-oscuro)). Al documentar no se repitieron en oscuro las cifras de contraste de este README.
 
+- **Luz de hover (Una sola luz), solo Chromium:** `node design/lab/hover-glide/auditoria-verificar.mjs chromium` 115/115 (sidebar, riel, panel flotante, drawer, navbar, RTL, claro, oscuro y zona de marca), `estilo-verificar.mjs chromium` 268/268 y `personalidad-sidebar-glide.spec.mjs` con la de la tabla 24/24. **Sin verificar en Firefox, WebKit, con lector de pantalla real ni con `forced-colors` real** (emulado en Chromium). **Rendimiento (`medido` en Chromium, con reserva):** con un sidebar de 60 items el p95 de la luz es de 0,3 a 0,9 ms tras ff20a8c; una pasada dio 2,2 ms y no se trazó. Las tareas largas del barrido son ruido de la VM compartida (H1b); por DECISIONS #965 el criterio «0 tareas largas» se exige en un entorno sin vecinos (integración continua o la máquina del usuario), donde aún no se ha comprobado. Firefox y WebKit sin medir (fila G de [`auditoria.md`](../../../../../design/lab/hover-glide/auditoria.md)).
+
 - **Sin verificar:** un lector de pantalla real (riel, ramas, contadores, panel, píldora, drawer), Safari real, el navbar y el drawer en un dispositivo táctil real y con el teclado virtual, RTL con un idioma RTL real, cientos de items y `forced-colors` real de Windows (solo emulado en Chromium). Los cortes de adaptación, el asiento, `is-rep` y la pista del riel están medidos en Chromium, Firefox y WebKit (`tests/sidebar-asiento.spec.mjs`, `sidebar-activo.spec.mjs`, `sidebar-pista.spec.mjs`); `prefers-reduced-motion` está medido con la preferencia emulada en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`, 18/18 el 2026-10-18: con `reduce` ningún elemento conserva transiciones ni animaciones de movimiento).
 
 - **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 
-- API: [`GSidebar.meta.json`](./GSidebar.meta.json) · Contrato: [`design/contracts/sidebar.md`](../../../../../design/contracts/sidebar.md) · Prototipo: [`design/lab/sidebar/r01/`](../../../../../design/lab/sidebar/r01/) · Auditoría: [`design/lab/sidebar/auditoria.md`](../../../../../design/lab/sidebar/auditoria.md)
+- API: [`GSidebar.meta.json`](./GSidebar.meta.json) · Contrato: [`design/contracts/sidebar.md`](../../../../../design/contracts/sidebar.md) · Prototipo: [`design/lab/sidebar/r01/`](../../../../../design/lab/sidebar/r01/) · Auditoría: [`design/lab/sidebar/auditoria.md`](../../../../../design/lab/sidebar/auditoria.md) · Una sola luz (DECISIONS #957 a #964): [`api.md`](../../../../../docs/contract/api.md), [`estilo.md`](../../../../../design/lab/hover-glide/estilo.md), [`auditoria.md`](../../../../../design/lab/hover-glide/auditoria.md)

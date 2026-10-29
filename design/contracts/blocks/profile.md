@@ -1,6 +1,6 @@
 # Contrato · Profile (`GbProfile01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #957 a #961 y #965, 2026-10-29) · **Plan:** S4 (§4.5) · **Entrada:** `@grana/blocks/saas` · **Común:** `_comun.md` §1 a §5 y §41 a §54; el motor de campos de `guest-form.md` · **Compone:** `GForm`, `GFormSection`, `GFormLayout`, `GFormRow`, `GInput`, `GTextarea`, `GSelect`, `GSwitch`, `GErrorSummary`, `GFormActions`, `GAvatar`, `GBtn`, `GCard`, `GSummary`, `GSplit` (02), `GText` · **Fase:** 4c·1 · **No compleja** (Sonnet)
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #983 a #987 y #991, 2026-10-29) · **Plan:** S4 (§4.5) · **Entrada:** `@grana/blocks/saas` · **Común:** `_comun.md` §1 a §5 y §41 a §54; el motor de campos de `guest-form.md` · **Compone:** `GForm`, `GFormSection`, `GFormLayout`, `GFormRow`, `GInput`, `GTextarea`, `GSelect`, `GSwitch`, `GErrorSummary`, `GFormActions`, `GAvatar`, `GBtn`, `GCard`, `GSummary`, `GSplit` (02), `GText` · **Fase:** 4c·1 · **No compleja** (Sonnet)
 
 ## Promesa
 
@@ -79,7 +79,7 @@ GForm [data-gb] (labels.form; errors; v-model de cada campo ↔ values)
 
 `GSection` con título (sin `h1`); un solo `form` con su resumen de errores; la foto es decorativa (el nombre está escrito al lado) y sus botones tienen texto; `change`, `pending` y el motivo de `readonly` son descripción o mensaje **del campo** (se oyen al llegar a él); los cambios sin guardar, en el `status` del pie. Autocompletar: `name`, `email`, `tel`, `url`, `language` (1.3.5; G2 de Guest form para correo y teléfono).
 
-## Qué lo hace distinto (#965)
+## Qué lo hace distinto (#991)
 
 **Antes de guardar, te dice lo que va a pasar.** Cambiar el correo no es como cambiar el nombre: el campo lo dice en cuanto lo tocas («Te enviaremos un enlace al correo nuevo; hasta confirmarlo seguirás entrando con el actual»), lo que quedó a medias se ve en su campo («Pendiente de confirmar»), y en 02 ves **cómo te verán los demás** mientras escribes. El pie dice «Tienes cambios sin guardar» mientras los tengas, y el envío lleva solo lo que cambió.
 

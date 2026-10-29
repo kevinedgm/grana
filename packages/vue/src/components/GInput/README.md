@@ -144,6 +144,7 @@ Un slot con alcance: recibe `size`, `density` y `disabled` del campo, para que e
 - **Teclado:** Tab y Shift+Tab recorren campo → botón mostrar → acción. Sin manejadores propios: escritura, selección y portapapeles son los del `<input>`.
 - **Foco:** anillo de `--g-focus-width` pegado al borde (sin hueco), con transición de color. Con botón de acción, un solo anillo rodea caja y botón cuando el foco está en el campo; el botón enfocado tiene el suyo. El botón mostrar tiene el suyo.
 - **Área táctil:** con `pointer: coarse`, la caja y el botón de acción miden al menos 44px.
+- **Texto con puntero grueso (#970 a #972):** con `pointer: coarse` (táctil) el texto que se escribe sube a `max(16px, su rol)` para que iOS Safari no amplíe la página al enfocar el campo; en escritorio no cambia nada. La altura de la caja no cambia. Sube la línea del valor entera (marcador de posición, prefijo, sufijo, `output` e indicador de carga); etiqueta, ayuda, mensajes y listas se quedan en su rol. Grana no toca el viewport: no añadas `maximum-scale=1` (bloquea el pellizco, WCAG 1.4.4). `medido` en Chromium con emulación táctil (2007/2007, [`auditoria.md`](../../../../../design/lab/campo-tactil/auditoria.md)).
 - **Contraste:** con el tema por defecto y con el tema de prueba de la auditoría, texto, ayuda, error, `placeholder` y botones llegan a 4.5:1 o más; el borde de la caja, a 3:1 o más (3.45:1 con el tema por defecto).
 
 ## Movimiento
@@ -227,8 +228,6 @@ Las emite el componente y las estiliza `GInput.css`: `g-input`, `g-input--varian
 
 - **Botón mostrar/ocultar con texto largo.** Con "Mostrar contraseña" mide unos 129px y en el ancho por defecto (240px) deja unos 77px al campo. Si traduces a un texto más largo, considera `block` o un texto más corto. No hay icono ni slot para sustituirlo.
 
-- **Texto de 14px en táctil.** El texto sigue el tamaño del tema (`body-sm`, 14px por defecto); iOS Safari amplía la página al enfocar un campo con menos de 16px. Sube `fontSize` del tema a 16 o más, o usa `size="lg"` o `"xl"`.
-
 - **Un solo botón de acción,** sin menús ni botón a la izquierda; sin variante separada del campo. Un campo con partes (prefijo, selector, varios campos fusionados) es [`GInputGroup`](../GInputGroup/README.md).
 
 - **Umbral de apilado** de ~300px: es una constante de diseño (DECISIONS.md #34), no se cambia desde el tema.
@@ -238,6 +237,8 @@ Las emite el componente y las estiliza `GInput.css`: `g-input`, `g-input--varian
 - **Tema oscuro:** `grana.css` ya trae el esquema oscuro por defecto (`defaults.css`): sigue `prefers-color-scheme` y se fuerza con `data-theme="dark"` o `data-theme="light"` en cualquier elemento (ver [«Tema oscuro» del README raíz](../../../../../README.md#tema-oscuro)). Al documentar no se repitieron en oscuro las cifras de contraste de este README.
 
 - **Sin verificar:** un lector de pantalla real (si la región viva junto a `aria-describedby` duplica el anuncio del error, y cómo se anuncia el conjunto con acción), `forced-colors` real de Windows (solo emulado en Chromium), el zoom al 200%, un dispositivo táctil real, y el autocompletado con gestores de contraseñas. `prefers-reduced-motion` está medido con la preferencia emulada en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`, 18/18 el 2026-10-18: con `reduce` ningún elemento conserva transiciones ni animaciones de movimiento).
+
+- **Texto de 16px con puntero grueso (#970 a #972):** `medido` solo en Chromium con emulación táctil: `node design/lab/campo-tactil/verificar.mjs` 2007/2007 ([`auditoria.md`](../../../../../design/lab/campo-tactil/auditoria.md)) y `tests/campo-tactil.spec.mjs` 15/15. **Sin verificar:** WebKit (el motor de iOS), Firefox y un iPhone real con Safari, que es donde se comprueba que ya no amplía.
 
 - **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 

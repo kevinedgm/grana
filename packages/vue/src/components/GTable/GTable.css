@@ -1,10 +1,16 @@
+@layer grana.defaults, grana.components, grana.blocks, grana.utilities;
+
 /*
   GTable · estilo del esqueleto
   Dueño: coco. Contrato: design/contracts/table.md. Estructura: design/lab/table/r01/ y r02/.
-  Reglas: solo var(--g-*) y alias locales; sin @layer; únicos literales: 24px, 44px y el patrón de texto oculto.
+  Reglas: solo var(--g-*) y alias locales; la primera línea solo declara el orden de las cuatro capas (#806); las reglas
+  van sin @layer (lo aplica el registro); únicos literales: 24px, 44px, 16 px en max() del texto con puntero
+  grueso (#970) y el patrón de texto oculto.
   Bruno da: g-table--mode-{table|cards} (medido) y --_max-height (en línea, opcional); carga (#540): is-loading,
   is-pending, is-slow, is-failed en la raíz; p.g-table__slow último hijo de __scroll; div.g-table__failed antes de
-  __scroll con __failed-icon y __failed-text; GEmpty en td.g-table__empty.
+  __scroll con __failed-icon y __failed-text; GEmpty en td.g-table__empty. Luz de hover (#957 a #963):
+  div.g-table__highlight primer hijo de __scroll, con --_highlight-x/-y/-w/-h en la propia capa (#964), y has-highlight e
+  is-highlight-instant en __scroll.
 */
 
 /* ---------- Raíz ---------- */
@@ -80,12 +86,28 @@
 /* Controles que solo existen en tarjetas (la cabecera no se ve) */
 .g-table__bar .g-table__bar-cards { display: none; }
 
+/* Puntero grueso (#970 a #972; table.md «Texto con puntero grueso»): los dos <select> nativos de orden de la barra de
+   tarjetas, que iOS ampliaría por debajo de 16 px, miden max(16 px, body-sm) (heredan el body-sm de la tabla) */
+@media (pointer: coarse) {
+  .g-table__bar .g-table__bar-cards select {
+    font-size: max(16px, var(--g-text-body-sm-size));
+    /* El alto de un <select> sigue a las métricas de la fuente, no al interlineado: se fija el de antes (línea body-sm
+       + relleno + borde) para que la barra no crezca (#972, criterio 4) */
+    box-sizing: border-box;
+    block-size: calc(var(--g-text-body-sm-line) + var(--g-space-1) * 2 + var(--g-border-width) * 2);
+  }
+}
+
 /* ---------- Área desplazable y tabla ---------- */
 .g-table__scroll {
+  position: relative;
   max-block-size: var(--_max-height);
   overflow: auto;
 }
+/* Posicionado SIN z-index: pinta por encima de la luz (que va antes en el árbol) sin crear un contexto de apilamiento,
+   así el th pegado (z-index 1) sigue tapando la luz al pasar una fila por debajo */
 .g-table__table {
+  position: relative;
   inline-size: 100%;
   border-collapse: separate;
   border-spacing: 0;
@@ -118,7 +140,6 @@
   padding: var(--_pad-block) var(--_pad-inline);
   border-block-end: var(--g-border-width) solid var(--g-color-border);
   vertical-align: middle;
-  transition: background-color var(--g-duration-fast) var(--g-ease-standard);
 }
 .g-table__table th.g-table__cell--end,
 .g-table__cell--end {
@@ -166,13 +187,59 @@ th[aria-sort] .g-table__sort .g-icon { opacity: 1; }
   outline-offset: var(--g-focus-offset);
 }
 
-/* Filas */
+/* Filas. La seleccionada pinta primary-soft en su td, ENCIMA de la luz (#564 intacta: la luz pasa por debajo) */
 .g-table__row.is-selected > td { background: var(--g-color-primary-soft); }
 @media (hover: hover) {
-  /* El hover excluye en el propio selector la seleccionada (#564: conserva su superficie) y la fila esqueleto (no es una
-     fila). Con puertas (A, #597) la fila no se pulsa: el fondo va solo a la celda principal y a la casilla, más abajo */
-  .g-table:not(.has-door, .has-detail) .g-table__row:not(.is-selected, :has(> td > .g-table__skeleton)):hover > td { background: var(--g-color-surface-sunken); }
   .g-table__sort:hover { color: var(--g-color-text); }
+}
+
+/* ---------- Una sola luz (table.md §«Una sola luz», DECISIONS #957 a #963) ----------
+   Ninguna celda pinta fondo de hover en `lines` (llana, A y B): lo pinta una capa en el contenedor desplazable, bajo el
+   <table>, que se desliza a lo que abre un clic. Llana y B: la fila entera (en la llana hace de regla de lectura); A: solo la
+   celda de la puerta. Se desplaza con las filas en los dos ejes; el th pegado la tapa; las celdas siguen transparentes y el
+   lomo, «aquí estabas», las filas nuevas y la espera larga se pintan encima. Px FÍSICOS (anclaje left/top también en RTL:
+   la medida es getBoundingClientRect). Mismo token que el hover de antes (`surface-sunken` sobre `surface`, #960) */
+.g-table__highlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  inline-size: var(--_highlight-w);
+  block-size: var(--_highlight-h);
+  translate: var(--_highlight-x) var(--_highlight-y);
+  background: var(--g-color-surface-sunken);
+  opacity: 0;
+  pointer-events: none;
+}
+.g-table__scroll.has-highlight > .g-table__highlight { opacity: 1; }
+/* Formas sin luz (#961): filas como superficies separadas por un hueco real; nada se registra y la capa no se pinta */
+.g-table:is(.g-table--appearance-surface, .g-table--mode-cards) .g-table__highlight { display: none; }
+/* Movimiento de M1 (#305) sin muelle (#299). En la tabla la anchura no cambia (fila entera o la misma columna): se transiciona
+   igual, inocuo. Primera colocación y recolocación sin gesto (scroll, desplegar la ficha): solo fundido */
+@media (prefers-reduced-motion: no-preference) {
+  .g-table__highlight {
+    transition:
+      translate var(--g-duration-press) var(--g-ease-out),
+      inline-size var(--g-duration-press) var(--g-ease-out),
+      block-size var(--g-duration-press) var(--g-ease-out),
+      opacity var(--g-duration-fast) var(--g-ease-standard);
+  }
+  .g-table__scroll.is-highlight-instant > .g-table__highlight {
+    transition: opacity var(--g-duration-fast) var(--g-ease-standard);
+  }
+}
+
+/* Sin luz, `appearance="surface"` y `mode="cards"` (#961): el hover de siempre por fila (en A, por la celda de la puerta),
+   que ENTRA con fundido y SALE al instante: la transición va solo en el estado :hover, así nunca hay dos a la vez. El
+   fundido se queda con movimiento reducido. Excluye la seleccionada (#564) y la fila esqueleto */
+@media (hover: hover) {
+  .g-table--appearance-surface:not(.g-table--mode-cards, .has-door) .g-table__row:not(.is-selected, :has(> td > .g-table__skeleton)):hover > td,
+  .g-table--appearance-surface.has-detail:not(.g-table--mode-cards) .g-table__row:not(.is-selected, :has(> td > .g-table__skeleton)):hover > td,
+  .g-table--appearance-surface.has-door:not(.g-table--mode-cards, .has-detail) .g-table__row:not(.is-selected, :has(> td > .g-table__skeleton)):hover > td.g-table__cell--primary,
+  .g-table--mode-cards.has-door:not(.has-detail) .g-table__row:not(.is-selected, :has(> td > .g-table__skeleton)):hover > td.g-table__cell--primary,
+  .g-table--mode-cards:not(.has-door:not(.has-detail)) .g-table__row:not(.is-selected, :has(> td > .g-table__skeleton)):hover {
+    background: var(--g-color-surface-sunken);
+    transition: background-color var(--g-duration-fast) var(--g-ease-standard);
+  }
 }
 
 /* ---------- Columna compuesta ---------- */
@@ -430,19 +497,14 @@ th[aria-sort] .g-table__sort .g-icon { opacity: 1; }
     translate: 0 0;
     color: var(--g-color-text);
   }
-  /* Solo la celda principal y la casilla reaccionan: la fila no promete lo que no hace (excluye la seleccionada, #564) */
-  .g-table.has-door:not(.has-detail) .g-table__row:not(.is-selected, :has(> td > .g-table__skeleton)):hover > td:is(.g-table__cell--primary, .g-table__select) {
-    background: var(--g-color-surface-sunken);
-  }
+  /* El fondo de la puerta es la luz (arriba): solo la celda principal, nunca la casilla (#960) */
 }
 
 /* B · despliegue: la puerta es un botón de divulgación con un chevron que gira hacia la ficha; la fila entera reenvía el
    clic a la puerta (cursor de puntero), salvo la casilla y las acciones, que son suyas */
 .g-table.has-detail .g-table__row:not(:has(> td > .g-table__skeleton)) { cursor: pointer; }
 .g-table.has-detail .g-table__row > :is(.g-table__select, .g-table__actions) { cursor: auto; }
-@media (hover: hover) {
-  .g-table.has-detail .g-table__row:not(.is-selected, :has(> td > .g-table__skeleton)):hover > td { background: var(--g-color-surface-sunken); }
-}
+/* El fondo de la fila de B es la luz (arriba) */
 .g-table__door-chevron {
   flex: none;
   display: inline-block;
@@ -698,6 +760,8 @@ th[aria-sort] .g-table__sort .g-icon { opacity: 1; }
 
 /* ---------- Colores forzados ---------- */
 @media (forced-colors: active) {
+  /* La luz se oculta y manda el sistema (como antes: sin fondo de hover) */
+  .g-table__highlight { display: none; }
   .g-table__table th { border-color: CanvasText; }
   .g-table__table td { border-color: GrayText; }
   .g-table__row.is-selected > td { outline: var(--g-focus-width) solid Highlight; outline-offset: calc(var(--g-focus-width) * -1); }
@@ -737,7 +801,8 @@ th[aria-sort] .g-table__sort .g-icon { opacity: 1; }
 /* ---------- Movimiento reducido: la flecha aparece sin desplazarse, el chevron y la ficha sin transición, «aquí estabas»
    quieta (se quita sin fundido) y las filas nuevas sin fundido ---------- */
 @media (prefers-reduced-motion: reduce) {
-  .g-table__table td { transition: none; }
+  /* La luz: solo fundido, sin viaje (patrón único de #299) */
+  .g-table__highlight { transition: opacity var(--g-duration-fast) linear; }
   .g-table__door-arrow,
   .g-table__door-arrow:dir(rtl) {
     translate: 0 0;

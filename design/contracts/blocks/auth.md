@@ -1,6 +1,6 @@
 # Contrato · Auth (`GbAuth01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #957 a #962, 2026-10-29) · **Plan:** S1 (§4.5) · **Entrada:** `@grana/blocks/saas` · **Común:** `_comun.md` §1 a §5 y §41 a §54 (sobre todo §44, seguridad) · **Compone:** `GCard`, `GForm`, `GInput` (`type` `email`/`text`/`password`/`tel`), `GSelect`, `GCheckbox`, `GFieldGroup`, `GErrorSummary`, `GFormLayout`, `GFormRow`, `GBtn`, `GDivider`, `GSummary`, `GText`, `GSplit` + `GSurface zone="brand"` (02), `GContainer` · **Fase:** 4c·1 · **Compleja: coco y bruno en Opus** (formulario por pasos, credenciales, gestores de contraseñas)
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #983 a #988, 2026-10-29) · **Plan:** S1 (§4.5) · **Entrada:** `@grana/blocks/saas` · **Común:** `_comun.md` §1 a §5 y §41 a §54 (sobre todo §44, seguridad) · **Compone:** `GCard`, `GForm`, `GInput` (`type` `email`/`text`/`password`/`tel`), `GSelect`, `GCheckbox`, `GFieldGroup`, `GErrorSummary`, `GFormLayout`, `GFormRow`, `GBtn`, `GDivider`, `GSummary`, `GText`, `GSplit` + `GSurface zone="brand"` (02), `GContainer` · **Fase:** 4c·1 · **Compleja: coco y bruno en Opus** (formulario por pasos, credenciales, gestores de contraseñas)
 
 ## Promesa
 
@@ -94,7 +94,7 @@ interface GbAuthProps {
 
 Un solo `form` (`GForm`, `aria-labelledby` al título de la tarjeta) con su `GErrorSummary`; **sin `h1`** (§42 regla 1, §53 SA-L2: la aplicación pone el de la página). Proveedores en un grupo con nombre, antes del formulario; el separador «o» es `GDivider` con texto. Requisitos como descripción del campo de contraseña. La consecuencia es descripción del botón de envío. Los cambios de modo son enlaces o botones con su texto completo. En 02, la zona de marca va **después** del formulario en el DOM (se lee después; `GSplit` no reordena) y su imagen es informativa con `alt` o `decorative`. WCAG 3.3.8: sin bloquear pegar, con gestor de contraseñas y sin pruebas cognitivas.
 
-## Qué lo hace distinto (#962)
+## Qué lo hace distinto (#988)
 
 **Te dice antes lo que va a pasar, y el gestor de contraseñas nunca se pierde.** Los requisitos de la contraseña están a la vista **antes** de escribir (no aparecen como error al enviar) y se marcan al cumplirse sin hablar en cada tecla; lo que pasa al enviar («Te enviaremos un correo para confirmar») está junto al botón y se oye al llegar a él; en el flujo de un paso por pantalla la identidad sigue a la vista con «Cambiar», que no borra nada. Y lo que casi ningún formulario cuida: **cada campo con su `autocomplete` exacto**, la identidad presente en el formulario de la contraseña y el código en un solo campo, para que el gestor y el teléfono rellenen solos.
 

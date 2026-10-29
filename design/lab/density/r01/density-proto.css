@@ -1,0 +1,26 @@
+/*
+  Ronda r01 · densidad global y por región (kiwi). SHIM DE PROTOTIPO, no es CSS de componente.
+  Emula sobre el dist/ real lo que coco y bruno escribirían si se adopta la estructura de declaracion.md:
+    1. el token --g-density en grana.defaults, reasignado por [data-g-density] (en cualquier elemento, también <html>);
+    2. la raíz de cada componente lee var(--g-density) cuando NO hay prop explícita (hoy el dist emite siempre
+       la clase --density-default; aquí «sin prop» = sin el marcador data-proto-explicit).
+  La clave global del CLI se emula en index.html (?cli=…) con una regla SIN capa, la misma forma que emitiría el CLI.
+  Solo cubre los componentes del prototipo: GBtn, GInput, GTable, GMenu (lista) y GDialog.
+*/
+
+@layer grana.defaults {
+  :root { --g-density: 1; }
+  [data-g-density="default"] { --g-density: 1; }
+  [data-g-density="comfortable"] { --g-density: 0.875; }
+  [data-g-density="compact"] { --g-density: 0.75; }
+}
+
+/* En grana.blocks solo para ganar a grana.components sin tocar el dist/ (en la construcción real va en la raíz de
+   cada hoja, en grana.components, sustituyendo el `1` literal del alias local). */
+@layer grana.blocks {
+  .g-btn:not([data-proto-explicit]),
+  .g-input:not([data-proto-explicit]),
+  .g-table:not([data-proto-explicit]) { --_density: var(--g-density); }
+  .g-menu__list:not([data-proto-explicit]),
+  .g-dialog:not([data-proto-explicit]) { --_d: var(--g-density); }
+}

@@ -118,6 +118,7 @@ Sin prefijo, sufijo ni acción en v0.1. No pongas botones, enlaces ni campos den
 - **El error no depende solo del color:** contorno de doble trazo y un icono `triangle-alert` de Lucide que los lectores no leen.
 - **Foco:** anillo fino y pegado al borde de la caja, del grosor de `--g-focus-width`, con transición de color.
 - **Área táctil:** con `pointer: coarse`, la caja mide al menos 44px reales aunque `rows` sea 1.
+- **Texto con puntero grueso (#970 a #972):** con `pointer: coarse` (táctil) el texto que se escribe sube a `max(16px, su rol)` para que iOS Safari no amplíe la página al enfocar el campo; en escritorio no cambia nada. La altura de la caja no cambia (única excepción: con `size="xs"` y `rows` de 3 o más, la caja crece 4px por cada fila extra sobre una; con una o dos filas no cambia). Sube la línea del valor entera (marcador de posición y el valor); etiqueta, ayuda, mensajes y listas se quedan en su rol. Grana no toca el viewport: no añadas `maximum-scale=1` (bloquea el pellizco, WCAG 1.4.4). `medido` en Chromium con emulación táctil (2007/2007, [`auditoria.md`](../../../../../design/lab/campo-tactil/auditoria.md)).
 - **Contraste:** con el tema por defecto, el borde llega a 3.45:1 y el texto, a 4.5:1 o más; con el tema de prueba de la auditoría, 4.86:1 y 4.5:1 o más.
 - **Texto largo:** la etiqueta, la ayuda, el error y el valor saltan de línea, incluso una palabra larguísima sin espacios.
 
@@ -151,8 +152,6 @@ Las emite el componente y las estiliza `GTextarea.css`: `g-textarea`, `g-textare
 
 ## Alcance
 
-- **Táctil y tamaño de texto:** con `pointer: coarse` la caja mide 44px, pero el texto conserva el tamaño del tema (14px por defecto); iOS Safari amplía la página al enfocar un campo con texto menor de 16px. `lg` y `xl` ya usan 16px.
-
 - **Textos muy largos:** `autosize` mide en cada cambio; con miles de líneas puede notarse. Sin medir en v0.1.
 
 - **Sin barra inferior, prefijo, sufijo ni acción**, y sin texto enriquecido.
@@ -166,6 +165,8 @@ Las emite el componente y las estiliza `GTextarea.css`: `g-textarea`, `g-textare
 - **Sin verificar:** un lector de pantalla real (etiqueta, ayuda, error y el aviso del contador), `forced-colors` real de Windows (solo emulado en Chromium), Safari real y un dispositivo táctil real. El tirador (`resize`) y el anillo del control por `:has()` están medidos en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`); `prefers-reduced-motion` está medido con la preferencia emulada en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`, 18/18 el 2026-10-18: con `reduce` ningún elemento conserva transiciones ni animaciones de movimiento).
 
 - **Contención en línea (#563 cerrado por #686, coco):** la raíz lleva `contain: inline-size` y `contain-intrinsic-inline-size: space × 60` (`contain: none` en `GFormRow`): en un padre que se ajusta al contenido mide 240 px en vez de 202 (`design/lab/contencion/verificar.mjs` 336/336 en los tres motores).
+
+- **Texto de 16px con puntero grueso (#970 a #972):** `medido` solo en Chromium con emulación táctil: `node design/lab/campo-tactil/verificar.mjs` 2007/2007 ([`auditoria.md`](../../../../../design/lab/campo-tactil/auditoria.md)) y `tests/campo-tactil.spec.mjs` 15/15. **Sin verificar:** WebKit (el motor de iOS), Firefox y un iPhone real con Safari, que es donde se comprueba que ya no amplía.
 
 - **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 

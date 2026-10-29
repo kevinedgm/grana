@@ -3,7 +3,7 @@
 **Dueño:** lima · **Estado:** contratado (DECISIONS.md #814 a #826, 2026-10-22; remates tras la construcción #827 a #844, §13; decisión del usuario del 2026-10-22: «Vale #780: los bloques van en `packages/blocks/` como paquete `@grana/blocks` aparte. Que lima enmiende #765 y arranca el lote 2 (Marketing P0) ahí») · **Plan:** `design/lab/blocks/plan.md` §2, §4.1, §5 (lote 2), §6 · **Flujo:** reducido (#766): lima → bruno → coco (solo auditoría) → mora-docs
 **Paquete:** `@grana/blocks`, entrada **`@grana/blocks/marketing`** (`dist/marketing.js`, #815) · **Avisos:** `[Grana Gb<Sección><NN>]` · **Usuario final de referencia:** el viajero en el teléfono del inventario `design/lab/marketing/r01/brief.md` (hotel boutique, restaurante, tour; inglés además de español, conexión lenta, sol de frente)
 
-Este archivo fija lo que comparten las nueve secciones del lote 2 (§1 a §13) y, desde el lote 3, las once secciones de Booking (**§14 a §24**, #860 a #877; las reglas de §1 a §5 valen también para Booking salvo donde §15 las amplía) y, desde el lote 4, las doce de Ecommerce (**§26 a §38**, #909 a #926; §1 a §5 y lo que §27 toma de §15) y, desde el lote 4c, las doce de SaaS (**Parte D, §41 a §54**, #957 a #974; §1 a §5 y lo que §42 toma de §15 y §27). Cada sección tiene su contrato corto con el mismo esqueleto:
+Este archivo fija lo que comparten las nueve secciones del lote 2 (§1 a §13) y, desde el lote 3, las once secciones de Booking (**§14 a §24**, #860 a #877; las reglas de §1 a §5 valen también para Booking salvo donde §15 las amplía) y, desde el lote 4, las doce de Ecommerce (**§26 a §38**, #909 a #926; §1 a §5 y lo que §27 toma de §15) y, desde el lote 4c, las doce de SaaS (**Parte D, §41 a §54**, #983 a #1000; §1 a §5 y lo que §42 toma de §15 y §27). Cada sección tiene su contrato corto con el mismo esqueleto:
 
 | Sección (plan §4.1) | Contrato | Variantes |
 | --- | --- | --- |
@@ -947,7 +947,7 @@ El usuario aprobó `GSplit` («Sí, GSplit»); contrato en `split.md`, ronda de 
 
 # Parte D · SaaS (`@grana/blocks/saas`, lote 4c)
 
-**Estado:** contratado (DECISIONS.md **#957 a #974**, 2026-10-29; decisión del usuario del 2026-10-29: «vamos con 4c·0», sobre el plan `design/lab/blocks/plan.md` §4.5 y las fases pequeñas de §5.1) · **Flujo:** reducido (#766), **por fases** (§54): 4c·1 → 4c·2 → 4c·3, cada una bruno → coco (auditoría) → remates → README, **un solo agente a la vez** · **Usuario final:** quien **administra la cuenta** de un producto SaaS: la dueña de un taller que paga el plan, invita a su equipo y conecta su tienda; entra pocas veces, con prisa y a menudo desde el teléfono, y **lo que más teme es una sorpresa**: un cobro que no esperaba, alguien que pierde el acceso sin saberlo, una clave que deja de funcionar en producción. A veces con lector de pantalla, gestor de contraseñas o zoom. Plantilla: **«Milpa»**, el programa de inventario y pedidos que usa el taller **Barro y Agave** (el mismo de Ecommerce), con su espacio de trabajo, su equipo y sus planes en pesos (§49).
+**Estado:** contratado (DECISIONS.md **#983 a #1000**, 2026-10-29; decisión del usuario del 2026-10-29: «vamos con 4c·0», sobre el plan `design/lab/blocks/plan.md` §4.5 y las fases pequeñas de §5.1) · **Flujo:** reducido (#766), **por fases** (§54): 4c·1 → 4c·2 → 4c·3, cada una bruno → coco (auditoría) → remates → README, **un solo agente a la vez** · **Usuario final:** quien **administra la cuenta** de un producto SaaS: la dueña de un taller que paga el plan, invita a su equipo y conecta su tienda; entra pocas veces, con prisa y a menudo desde el teléfono, y **lo que más teme es una sorpresa**: un cobro que no esperaba, alguien que pierde el acceso sin saberlo, una clave que deja de funcionar en producción. A veces con lector de pantalla, gestor de contraseñas o zoom. Plantilla: **«Milpa»**, el programa de inventario y pedidos que usa el taller **Barro y Agave** (el mismo de Ecommerce), con su espacio de trabajo, su equipo y sus planes en pesos (§49).
 
 ## 41. Secciones del lote
 
@@ -972,13 +972,13 @@ Tags `gb-auth-01`, `gb-settings-layout-02`, `gb-notification-preferences-03`… 
 
 1. **Todo lo de §1** (cero CSS y utilidades, solo API pública, una `interface Props`, primitivas, listas reales, encabezados por anidación con `useSectionLevel()`, texto suelto en `GText`, enlaces = `GBtn`/`GCard`/`GTag`, nada se mueve solo, sin `fetch` ni región viva propia, `labels` sin valores por defecto, raíz con `data-gb`, SSR) y la jerarquía de acciones de §3. De §15 y §27 valen tal cual: **precios solo con `GPrice`** y **una `GPriceScope` por región** (obligatoria con más de un precio: EC1), **pasos directos de `labels`** (`form`, `errorSummary`, `price`, `table`, `tabs`, `dialog`, `tags`, `pagination`), **fechas en `<time datetime>`** con `Intl` y **sin relativas** («hace 3 días» cambia con la caché; la última actividad de una clave o de un miembro se dice con su fecha), **lo no disponible se dice, no se esconde**, **estado de vista sí, de negocio no** (#913 regla 9), **una pregunta que no es un campo no lleva `name`** (#934) y **escuchas de la raíz** (#940). **Ningún bloque de SaaS pinta `h1`** (§53 SA-L2: `GCard` y `GSection` no admiten nivel 1; el de la página es de la aplicación).
 2. **Entradas *peer* que compone** (todas públicas, #792): `@grana/vue` (principal: `GSection`, `GStack`, `GContainer`, `GAdaptiveLayout`, `GSplit`, `GSurface`, `GCard`, `GText`, `GBtn`, `GIcon`, `GBadge`, `GAvatar`, `GSummary`, `GMetric`, `GProgress`, `GAccordion`, `GTabs`, `GTable`, `GDialog`, `GDivider`, `GForm` y campos —`GInput`, `GTextarea`, `GSelect`, `GCheckbox`, `GCheckboxGroup`, `GRadioGroup`, `GSwitch`—, `GFormSection`, `GFormLayout`, `GFormRow`, `GFieldGroup`, `GErrorSummary`, `GFormActions`, `GEmpty`, `useSectionLevel`), **`@grana/vue/price`** (`GPrice`, `GPriceScope`, `formatPrice`; Plans, Billing, Team, Usage) y **`@grana/vue/tag`** (`GTag`; Changelog, Integrations). **No** compone `@grana/vue/booking`, `/gallery`, `/combobox`, `/file-field`, `/status` ni `/load-region` (§52). El README de cada sección dice qué entradas carga la aplicación.
-3. **La cuenta nunca te sorprende** (personalidad de familia, §43, #958).
-4. **Seguridad por construcción** (§44, #959).
+3. **La cuenta nunca te sorprende** (personalidad de familia, §43, #984).
+4. **Seguridad por construcción** (§44, #985).
 5. **Intenciones con objeto, después de decir la consecuencia** (§46): la carga lleva **el dato entero** (`member`, `key`, `plan`, `integration`, `invoice`) y lo elegido (`role`, `period`, `scopes`), para que la aplicación haga su llamada sin volver a buscar nada. Una intención destructiva o que cuesta se emite **solo tras decir lo que cambia** (§43). Nada guarda, cobra, invita ni revoca por su cuenta.
 6. **Un dato de cuenta llega dicho por la aplicación.** Los estados de negocio (`statusText` de una suscripción, una factura, un miembro o una integración), los importes ya calculados (prorrateos, próximo cobro), las cifras de consumo (`valueText`) y los permisos los da la aplicación **en texto**; el bloque formatea solo fechas ISO (`Intl`), importes (`GPrice`) y cuentas (`Intl.NumberFormat`). **Grana no calcula prorrateos, impuestos ni consumos** (como #769 y #911).
 7. **Identidad obligatoria** (`id: string`) en todo lo que se puede accionar: `Plan`, `Member`, `Invite`, `Role`, `ApiKey`, `Scope`, `Integration`, `NotifEvent`, `NotifChannel`, `SettingsSection`, `OnboardingStep`, `LogEntry`, `Invoice` (aviso SA5).
 
-## 43. «La cuenta nunca te sorprende» (personalidad de familia, #958)
+## 43. «La cuenta nunca te sorprende» (personalidad de familia, #984)
 
 Lo que distingue a la familia: **cada acción con consecuencia dice antes, junto al botón, qué cambia, cuánto cuesta, desde cuándo y qué se pierde**, en palabras y no solo en color; y **lo pendiente se ve donde se decide**, no solo en un correo. Sirve a quien administra la cuenta: decide con la información delante, en el mismo sitio donde pulsa, y nada se hace a medias en silencio.
 
@@ -1021,7 +1021,7 @@ Tipo común (§45): `{ tone: 'info' | 'warning' | 'error'; text: string }`. Un p
 
 **Lo pendiente no anima, no parpadea y no habla solo** (sin región viva propia, #792): está a la vista cuando la persona llega. Si la aplicación quiere anunciarlo al cambiar, usa `GToast` o la isla.
 
-## 44. Seguridad por construcción (#959)
+## 44. Seguridad por construcción (#985)
 
 1. **El bloque no guarda contraseñas, códigos, tokens ni secretos.** Un campo de contraseña o de código **no tiene `v-model` en el bloque**, **no entra en `values`**, en `update:values` ni en ninguna otra carga de evento: viaja **solo** en el `FormData` de `submit` (el que construye `GForm`). Cambiar de `mode` o de paso desmonta el campo y su valor se pierde con él. Ningún secreto se escribe en `console`, en un atributo `data-*`, en la URL ni en el título de la página.
 2. **Ningún campo de pago** (EC6, #922): ningún bloque SaaS pinta un campo con `autocomplete` `cc-*` ni un `name` que empiece por `card`; si llega en datos (`AuthField`, `ProfileField`), **no se pinta** (aviso SA2). El método de pago es un **texto de la aplicación** (`MaskedCard`, §45: «Visa terminada en 4242»), nunca el número; cambiarlo es la intención `change-method` (la pasarela es de la aplicación).
@@ -1031,11 +1031,11 @@ Tipo común (§45): `{ tone: 'info' | 'warning' | 'error'; text: string }`. Un p
 6. **Sin región viva propia** (#792): «Copiado», «Invitación enviada», «Clave revocada» los dice la aplicación (`GToast`) o el componente (`output`/`valid` de un campo, `status` de `GFormActions`).
 7. **Los errores de credenciales los redacta la aplicación** (`error` de Auth): el contrato recomienda en el README no revelar si la cuenta existe («Correo o contraseña incorrectos»; en `reset`, el mismo `done` exista o no la cuenta). El bloque no distingue.
 
-## 45. Tipos compartidos de SaaS (#957, #960)
+## 45. Tipos compartidos de SaaS (#983, #986)
 
 En **`packages/blocks/types/saas.d.ts`** (a mano, bruno), reexportados desde `dist/saas.d.ts`; sin `[key: string]: unknown` (§2). **`Plan`, `PlanFeature`, `PlanLimit` y `BillingPeriod` van a `types/common.d.ts`** desde el primer día: los usa SaaS (S5) y los usará Marketing M6 Pricing (no construido), con el mismo nombre y la misma forma (§51). Reutilizan `Media`, `Action`, `NavLink` (§2), `PriceSpec`, `PriceRegion`, `Consent`, `GuestField` (§16/§28, `types/common.d.ts`) y los tipos de `@grana/vue/price`.
 
-**Nombres sin choque (#960):** un nombre, una forma en todo el paquete. `Member` es el de SaaS (§ abajo): el `Member` **reservado** de Marketing (§2, M9 Team, sin construir ni usar) pasa a llamarse **`Person`** con la misma forma (encargo a bruno en 4c·1). El canal de avisos se llama **`NotifChannel`**, porque `Channel` ya es el canal de contacto de Booking (§16, construido).
+**Nombres sin choque (#986):** un nombre, una forma en todo el paquete. `Member` es el de SaaS (§ abajo): el `Member` **reservado** de Marketing (§2, M9 Team, sin construir ni usar) pasa a llamarse **`Person`** con la misma forma (encargo a bruno en 4c·1). El canal de avisos se llama **`NotifChannel`**, porque `Channel` ya es el canal de contacto de Booking (§16, construido).
 
 ```ts
 // ── De otras familias y de @grana/vue (no se redefinen) ──
@@ -1252,7 +1252,7 @@ Los de §5 (C1 a C8), **K3** y **K4** de §18 (precio sin `value`; `available` q
 | SA8 | `Attention` sin `text` o con `tone` fuera de lista | No se pinta la atención |
 | SA9 | Falta un texto de `labels.confirm.<acción>` o `labels.keep` cuando el bloque va a confirmar | La acción **no se ofrece** (sin pregunta no hay confirmación posible) |
 
-## 48. Archivos, `meta.json`, tipos, paquete y peso (#957; encargo a bruno, 4c·1)
+## 48. Archivos, `meta.json`, tipos, paquete y peso (#983; encargo a bruno, 4c·1)
 
 ```
 packages/blocks/src/blocks/Gb<Sección>/        ← como §6: props.js, 01..03.vue, meta.json, test, banco, README
@@ -1297,13 +1297,13 @@ test "$(gzip -c packages/blocks/dist/ecommerce.js | wc -c)" -le 51200
 
 Y la **prueba de que ningún bloque SaaS persiste un secreto** (§49 Vitest punto 1) es compuerta: corre en `npm test` y en el job `verify` de `ci.yml`.
 
-## 51. Alcance: lo que se reutiliza y lo que queda fuera (#957)
+## 51. Alcance: lo que se reutiliza y lo que queda fuera (#983)
 
 - **`Plan` sirve a Marketing M6 Pricing** (sin construir): el tipo vive en `types/common.d.ts` y M6, cuando se contrate, lo usará tal cual; `change` es solo de SaaS (Marketing lo ignora, como una variante ignora lo que no usa). **No se reexporta `GbPlans` desde Marketing** (una sección, una entrada): la página pública de precios será M6 con sus variantes.
 - **Políticas, opiniones, consentimientos:** `Consent` de `types/common.d.ts` (Auth); para los términos completos, `GbPolicies` de Booking (receta).
 - **Fuera del lote:** pago y pasarela (la aplicación; `change-method`), autorización OAuth de proveedores e integraciones (la aplicación), verificación en dos pasos completa (solo el campo del código, `verify`; los códigos de respaldo son un `OnceSecret` de la aplicación: receta con `GbApiKeys` no, con el patrón de §44 regla 3 en el README de Auth), borrar la cuenta o el espacio (receta: `GbSettingsLayout` con una sección «Zona de peligro» y una confirmación de la aplicación), sesiones y dispositivos activos, facturación por consumo con gráfica (`GChart` reservado), recorte de la foto de perfil, sugerencias de personas al invitar (§53 SA-L7), barra «qué hay de nuevo» flotante.
 
-## 52. Correcciones al plan §4.5 (#961)
+## 52. Correcciones al plan §4.5 (#987)
 
 | Plan | Contrato | Por qué |
 | --- | --- | --- |
@@ -1323,8 +1323,8 @@ Y la **prueba de que ningún bloque SaaS persiste un secreto** (§49 Vitest punt
 
 ## 53. Hallazgos para lima (no bloquean; en `PENDIENTES.md` §3)
 
-- **SA-L1 · `GProgress` como medidor (EC-L2, ahora con dos casos más).** El consumo de un recurso y la ocupación de asientos son **medidas** de un rango conocido, no el avance de una tarea: `role="progressbar"` mentiría. Mientras, Usage y Team pintan la barra **decorativa** (envoltorio `aria-hidden`) con el texto al lado (como Reviews, #914). Recomendación al usuario: contratar `GProgress role="meter"` antes de 4c·2 (cambio de la v1, peso pequeño; pregunta 1 de #974).
-- **SA-L2 · `h1` de la página de entrada** (con EC-L1). Una página de entrada es solo Auth; `GCard` y `GSection` no admiten nivel 1. Mientras, el título va a `useSectionLevel()` (h2 en la raíz) y la aplicación pone el `h1` (su `GPageHeader` o el nombre del producto). Pregunta 2 de #974.
+- **SA-L1 · `GProgress` como medidor (EC-L2, ahora con dos casos más).** El consumo de un recurso y la ocupación de asientos son **medidas** de un rango conocido, no el avance de una tarea: `role="progressbar"` mentiría. Mientras, Usage y Team pintan la barra **decorativa** (envoltorio `aria-hidden`) con el texto al lado (como Reviews, #914). Recomendación al usuario: contratar `GProgress role="meter"` antes de 4c·2 (cambio de la v1, peso pequeño; pregunta 1 de #1000).
+- **SA-L2 · `h1` de la página de entrada** (con EC-L1). Una página de entrada es solo Auth; `GCard` y `GSection` no admiten nivel 1. Mientras, el título va a `useSectionLevel()` (h2 en la raíz) y la aplicación pone el `h1` (su `GPageHeader` o el nombre del producto). Pregunta 2 de #1000.
 - **SA-L3 · Copiar con acuse en el sitio** (con EC-L6, #643): el secreto se copia en la escucha de `copy` de la aplicación y el acuse lo da ella (`GToast`); «Copiado» en el propio botón llegará con el patrón de acciones con acuse cuando un componente lo ofrezca.
 - **SA-L4 · `aria-current="page"` en `GCard`.** El índice de Settings 01 usa `current` de `GCard`, que pone `aria-current="true"` (maestro-detalle). Cuando cada sección es una ruta, `page` sería más exacto; reservado (`current` con valor de `aria-current`, cambio de la v1).
 - **SA-L5 · Consecuencia en tiempo real.** El prorrateo de un cambio de plan o de asientos depende del servidor; hoy la aplicación lo pone en el dato antes de pintar. Si una plantilla necesita pedirlo al abrir la confirmación (asíncrono), el diálogo necesitará un estado `loading` con su texto: reservado.
@@ -1332,7 +1332,7 @@ Y la **prueba de que ningún bloque SaaS persiste un secreto** (§49 Vitest punt
 - **SA-L7 · Invitar con sugerencias** (`GTagInput`, #338 y #473, o `GCombobox multiple` con texto libre): reservado hasta que una plantilla tenga directorio de personas.
 - **SA-L8 · Rejilla de casillas** (Notifications 01). La matriz canal × aviso usa `GTable` con `GCheckbox field: false` en celdas; en tarjetas (`responsive`) cada casilla lleva el nombre completo («Correo · Pedido nuevo»). Una rejilla de casillas con flechas (APG *Grid*) queda reservada.
 
-## 54. Reparto por fases y encargos (plan §5.1, #974)
+## 54. Reparto por fases y encargos (plan §5.1, #1000)
 
 Reglas de ejecución en todas las fases: **un solo agente a la vez**; Playwright **`--workers=1`**, un motor tras otro; **verificación por niveles** (en la fase, solo sus secciones y en Chromium; los tres motores una vez al cerrar la fase y solo sobre sus specs; la pasada completa de SaaS al cerrar 4c·3); cada fase cierra con push y una línea en Notion antes de la siguiente.
 
@@ -1345,7 +1345,7 @@ Reglas de ejecución en todas las fases: **un solo agente a la vez**; Playwright
 
 **Encargos a bruno · 4c·1 (en este orden):**
 
-1. **Infraestructura de la entrada** `@grana/blocks/saas` (§48): `src/saas.js` y plugin `saas`; `exports`, `typesVersions`, `vite.config.js` y externos; `build-types.mjs` por `family: "saas"` (acepta una entrada con solo las secciones construidas); `types/saas.d.ts` con **todo** §45 (también lo de 4c·2 y 4c·3, para que los tipos no cambien de forma); `Plan`, `PlanFeature`, `PlanLimit`, `BillingPeriod` en `types/common.d.ts`; **`Member` reservado de `types/marketing.d.ts` → `Person`** (#960, misma forma; prueba de tipos verde).
+1. **Infraestructura de la entrada** `@grana/blocks/saas` (§48): `src/saas.js` y plugin `saas`; `exports`, `typesVersions`, `vite.config.js` y externos; `build-types.mjs` por `family: "saas"` (acepta una entrada con solo las secciones construidas); `types/saas.d.ts` con **todo** §45 (también lo de 4c·2 y 4c·3, para que los tipos no cambien de forma); `Plan`, `PlanFeature`, `PlanLimit`, `BillingPeriod` en `types/common.d.ts`; **`Member` reservado de `types/marketing.d.ts` → `Person`** (#986, misma forma; prueba de tipos verde).
 2. **`common/` de SaaS:** pintar una `Consequence` (§43.1: `GText`, `GPrice` en la región, `<time>`, lista de pérdidas, `reversible`; `id` para `aria-describedby`); `Attention` → `badge`/`badgeColor`, `status`/`statusText` y `rowStatus` (§43.3); **campos de credencial** (§44 regla 4: identidad, contraseña con `rules`, nombre, código; sin `v-model` en contraseña y código); filtro SA2 de campos de datos. Valorar el motor de `common/fields.js` (§48 «Código común»).
 3. **`bank/saas.js`** (§49) con todo el banco (también lo de fases siguientes: los tipos ya existen).
 4. **Compuertas de §50** en el script del paquete y en `gates.sh`, y la **prueba de no persistencia** (§49 Vitest 1) como prueba del paquete.
@@ -1353,6 +1353,6 @@ Reglas de ejecución en todas las fases: **un solo agente a la vez**; Playwright
 6. **Medida de peso** (`dist/saas.js` con sus trozos y las 12 parciales) anotada en `meta.json` y `CHANGELOG.md`; comprobar que Marketing, Booking, Ecommerce y Gestión no suben.
 7. **Al cerrar la fase:** Firefox y WebKit **una vez**, un motor tras otro, solo sobre los casos de 4c·1.
 
-**Preguntas al usuario (no bloquean 4c·1; #974):** (1) contratar `GProgress role="meter"` antes de 4c·2 (SA-L1; recomendado: sí, ronda corta y cambio pequeño de la v1); (2) `h1` en Auth cuando es la página entera (SA-L2; recomendado: esperar y decidirlo junto a EC-L1); (3) oferta de retención al cancelar en Billing (recomendado: no; ningún patrón oscuro en el bloque, la aplicación puede ponerla en su propia página).
+**Preguntas al usuario (no bloquean 4c·1; #1000):** (1) contratar `GProgress role="meter"` antes de 4c·2 (SA-L1; recomendado: sí, ronda corta y cambio pequeño de la v1); (2) `h1` en Auth cuando es la página entera (SA-L2; recomendado: esperar y decidirlo junto a EC-L1); (3) oferta de retención al cancelar en Billing (recomendado: no; ningún patrón oscuro en el bloque, la aplicación puede ponerla en su propia página).
 
 **coco · 4c·1:** solo auditoría (`auditoria-visual.md` previa y posterior, dos temas del CLI, rúbrica de movimiento sobre lo compuesto: `GAccordion` de Onboarding 01, `GTabs` de Settings 02, la sacudida de `GForm` y el revelado de la contraseña en Auth); resultado en `design/lab/blocks/saas/auditoria.md`; lo que pida CSS vuelve a lima. **mora-docs · 4c·1:** README de las cuatro y la receta «Entrar con gestor de contraseñas» (§44 regla 4).

@@ -430,3 +430,7 @@ Adopción de `design/contracts/load-region.md`, contratada el 2026-10-08 y **pen
 - **Botones de vista con `aria-pressed="true"`** (barra y tira): relleno `--g-color-primary` y texto `--g-color-on-primary` sin cambio; **contorno `--g-color-primary-text`** (borde en la barra; trazo interior en la tira, que no tiene borde; el anillo de foco no cambia).
 - **Hoy** (cabecera y celda de Mes, rellenos `primary`): trazo interior `--g-color-primary-text`. Hoy también lleva `aria-current="date"`.
 - Sin cambio en el tema por defecto. Pendiente de **coco** (encargo único en `checkbox.md` §«Contraste de lo marcado»).
+
+## Texto con puntero grueso (DECISIONS.md #970 a #972)
+
+Regla común en `docs/contract/api.md` «Texto editable con puntero grueso» y mínimo en `tokens.md` §7: con `@media (pointer: coarse)`, `font-size: max(16px, <rol>)`; interlineado del rol con piso `--g-text-body-sm-line`; altura sin cambio; en escritorio, sin cambio. Aquí: solo el `<select>` nativo de recurso (`__resource-select`), que iOS amplía; la rejilla, los eventos y la barra no cambian.

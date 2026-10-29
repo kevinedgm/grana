@@ -1,6 +1,6 @@
 # Contrato · Team & roles (`GbTeam01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #957 a #961 y #969, 2026-10-29) · **Plan:** S8 (§4.5) · **Entrada:** `@grana/blocks/saas` · **Común:** `_comun.md` §1 a §5 y §41 a §54 · **Compone:** `GSection`, `GStack`, `GTable` (01), `GAdaptiveLayout` + `GCard` (02, 03), `GAvatar`, `GSelect`, `GBadge`, `GBtn`, `GDialog` (invitar en 01 y 02), `GForm`, `GTextarea`, `GFormLayout`, `GFormRow`, `GFormActions`, `GPriceScope` + `GPrice`, `GProgress` (decorativa, SA-L1), `GText` y la confirmación común (§43.2) · **Fase:** 4c·2 · **Compleja: coco y bruno en Opus** (tabla, diálogos, formulario de invitación, confirmaciones)
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #983 a #987 y #995, 2026-10-29) · **Plan:** S8 (§4.5) · **Entrada:** `@grana/blocks/saas` · **Común:** `_comun.md` §1 a §5 y §41 a §54 · **Compone:** `GSection`, `GStack`, `GTable` (01), `GAdaptiveLayout` + `GCard` (02, 03), `GAvatar`, `GSelect`, `GBadge`, `GBtn`, `GDialog` (invitar en 01 y 02), `GForm`, `GTextarea`, `GFormLayout`, `GFormRow`, `GFormActions`, `GPriceScope` + `GPrice`, `GProgress` (decorativa, SA-L1), `GText` y la confirmación común (§43.2) · **Fase:** 4c·2 · **Compleja: coco y bruno en Opus** (tabla, diálogos, formulario de invitación, confirmaciones)
 
 ## Promesa
 
@@ -102,7 +102,7 @@ interface GbTeamProps {
 
 `GSection` con título (sin `h1`); tablas con `caption` (01) o listas (02, 03); cada selector de rol con el nombre de la persona; el rol bloqueado es texto con su motivo; «Quitar a {nombre}», «Reenviar a {correo}»: nombres completos en el control; estado y atención en texto (`rowStatus`, `statusText`); el diálogo de invitar con título y cierre; las confirmaciones son `alertdialog` con el foco en «Mantener». El formulario de invitar dice la consecuencia y la cuenta antes del botón.
 
-## Qué lo hace distinto (#969)
+## Qué lo hace distinto (#995)
 
 **Nadie pierde el acceso ni paga un asiento sin saberlo.** Invitar dice lo que cuesta **antes** de enviar y cuántas personas van («Invitar a 3 · Cada persona ocupa un asiento: + $49 al mes»); cambiar un rol enseña **lo que podrá hacer** con el nuevo antes de aplicarlo; quitar dice qué deja de ver y qué se conserva. Y las invitaciones que nadie aceptó o que caducaron **están en la misma pantalla** que el equipo, con «Reenviar» al lado: lo pendiente no se queda en un correo perdido.
 

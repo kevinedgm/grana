@@ -132,6 +132,7 @@ Ninguno tiene valor por defecto. Marcadores: `{title}`, `{count}`.
 - **Contorno de la categoría elegida** (DECISIONS #431 y #432): conserva su relleno y su texto, y su **contorno** pasa a `--g-color-primary-text`. Sin cambio visible con el tema por defecto; **4.21:1 o más** contra la superficie (medido por coco, [`design/lab/contraste-marcado/estilo.md`](../../../../../design/lab/contraste-marcado/estilo.md), tres motores) en el tema por defecto, lustre, spotify y uno con clave `primary` propia, claro y oscuro.
 - Cada tarjeta es un `<article>` con nombre y descripción; el botón lleva el título como texto oculto.
 - Campos nativos con etiqueta visible; controles de 36px (44px con puntero táctil).
+- **Texto con puntero grueso (#970 a #972):** con `pointer: coarse` (táctil) el texto que se escribe sube a `max(16px, su rol)` para que iOS Safari no amplíe la página al enfocar el campo; en escritorio no cambia nada. La altura de la caja no cambia. Sube la línea del valor entera (la búsqueda y el `<select>` de tamaño; la etiqueta de tamaño se queda en su rol); etiqueta, ayuda, mensajes y listas se quedan en su rol. Grana no toca el viewport: no añadas `maximum-scale=1` (bloquea el pellizco, WCAG 1.4.4). `medido` en Chromium con emulación táctil (2007/2007, [`auditoria.md`](../../../../../design/lab/campo-tactil/auditoria.md)).
 
 ## Tema
 
@@ -139,7 +140,7 @@ Solo lee `var(--g-*)`; **sin tokens nuevos**. El ancho de la hoja sale de `size`
 
 ## Sin verificar
 
-Lector de pantalla real (resultados y anuncios); Firefox y Safari (`<dialog>`, `inert`; en Safari el foco puede no volver al botón que abrió la hoja, porque no enfoca los botones al hacer clic); `forced-colors`, `pointer: coarse` y `prefers-reduced-motion` reales; catálogos de cientos de widgets (sin virtualización ni búsqueda en servidor).
+Lector de pantalla real (resultados y anuncios); texto de 16px con puntero grueso (#970 a #972): `medido` solo en Chromium con emulación táctil (2007/2007, [`auditoria.md`](../../../../../design/lab/campo-tactil/auditoria.md)), sin WebKit, Firefox ni iPhone real; Firefox y Safari (`<dialog>`, `inert`; en Safari el foco puede no volver al botón que abrió la hoja, porque no enfoca los botones al hacer clic); `forced-colors`, `pointer: coarse` y `prefers-reduced-motion` reales; catálogos de cientos de widgets (sin virtualización ni búsqueda en servidor).
 
 ## Fuentes
 

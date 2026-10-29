@@ -57,7 +57,7 @@ Un campo para **una hora del reloj** (una cita, una toma, el inicio de un turno)
 | `disabled` | Boolean | | `undefined` → `false` | compartida |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` | compartida |
 | `variant` | String | `outline` `soft` | `outline` | compartida (subconjunto, como `GInput`) |
-| `density` | String | `default` `comfortable` `compact` | `undefined` → contexto o `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | sin valor (`--g-color-focus`) | compartida (como `GInput`: solo el foco) |
 | `rounded` | String | `none` `xs` `sm` `md` `lg` `xl` `pill` | sin valor (`sm`) | compartida |
 | `block` | Boolean | | `undefined` → `false` (dentro del layout, `true`) | compartida |
@@ -535,3 +535,7 @@ Lector de pantalla (VoiceOver, NVDA, TalkBack): un `spinbutton` cuyo `valuetext`
 3. **`GInput.vue`**: añadido interno **N4** (`input.md`): recibe del componente que lo compone `ownError`, `ownTarget` y `ownReveal` para su `useFormField`, sin prop, slot ni evento públicos; sin consumidor, nada cambia (instantánea de `GInput` igual).
 4. `packages/vue/src/components/GTimeField/GTimeField.vue` (compone `GInput` con `field` y `end`; A completo; error propio con `setCustomValidity` fuera de `GForm`; mínimo publicado #410), `GTimeField.test.js`, `GTimeField.meta.json` (`status: "draft"` hasta la auditoría), registro del CSS en `components.css` y **entrada propia `@grana/vue/time-field`** (#415: `src/time-field.js`, `vite.time-field.config.js`, global `GranaTimeField`; `useFormField`, `GInput` y las claves de contexto por `src/shared.js`; `GTimeField` fuera de `src/index.js`), compuertas `grep -q "g-time-field__reading" packages/vue/dist/grana.css`, `! grep -q "GTimeField" packages/vue/dist/grana.js` y `test -f packages/vue/dist/time-field.js`; peso de la entrada en `GTimeField.meta.json`.
 5. Playground: sección del campo de hora (12 h `es-MX`, 24 h `es`, `ar-EG`, arco 22:00–06:00, error propio, `?now=HH:mm` para fijar la hora: solo con ese formato, sustituye `Date` en la página) y la receta «Fecha y hora» (`form.md` §8) dentro de esa misma sección `#sec-time`; specs de Playwright de «Verificación».
+
+## Texto con puntero grueso (DECISIONS.md #970 a #972)
+
+Regla común en `docs/contract/api.md` «Texto editable con puntero grueso» y mínimo en `tokens.md` §7: con `@media (pointer: coarse)`, `font-size: max(16px, <rol>)`; interlineado del rol con piso `--g-text-body-sm-line`; altura sin cambio; en escritorio, sin cambio. Aquí (por el `GInput` que compone): suben el texto, `__reading` (la hora dicha, que sigue «todo o nada» a 320px, criterio 7), a. m./p. m., las dos lecturas y `__measure`; el mínimo publicado (#410) y `--_min-inline` (#416) siguen al medidor.

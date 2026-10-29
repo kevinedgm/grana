@@ -1,6 +1,6 @@
 # Contrato · Integrations (`GbIntegrations01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #957 a #961 y #971, 2026-10-29) · **Plan:** S10 (§4.5) · **Entrada:** `@grana/blocks/saas` · **Común:** `_comun.md` §1 a §5 y §41 a §54 · **Compone:** `GSection`, `GStack`, `GAdaptiveLayout` + `GCard` (01), `GCard` horizontal (02), `GAccordion` + `GAccordionItem` (03), `GBadge`, `GBtn`, `GText`, `GTag` (`@grana/vue/tag`, categoría) y la confirmación común (§43.2) · **Fase:** 4c·2 · **No compleja** (Sonnet; la confirmación es la pieza común de 4c·2)
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #983 a #987 y #997, 2026-10-29) · **Plan:** S10 (§4.5) · **Entrada:** `@grana/blocks/saas` · **Común:** `_comun.md` §1 a §5 y §41 a §54 · **Compone:** `GSection`, `GStack`, `GAdaptiveLayout` + `GCard` (01), `GCard` horizontal (02), `GAccordion` + `GAccordionItem` (03), `GBadge`, `GBtn`, `GText`, `GTag` (`@grana/vue/tag`, categoría) y la confirmación común (§43.2) · **Fase:** 4c·2 · **No compleja** (Sonnet; la confirmación es la pieza común de 4c·2)
 
 ## Promesa
 
@@ -70,7 +70,7 @@ interface GbIntegrationsProps {
 
 `GSection` con título (sin `h1`); categorías como secciones anidadas; integraciones en lista (rejilla `role="list"`, `ul` o la lista del acordeón); estado en texto; permisos como descripción del botón de conectar; «Conectar {nombre}», «Desconectar {nombre}»: nombres completos; el logo decorativo; desconectar es `alertdialog` con el foco en «Mantener». Conectar suele abrir otra página (la autorización): el botón no lleva `aria-pressed` ni es un interruptor (§52).
 
-## Qué lo hace distinto (#971)
+## Qué lo hace distinto (#997)
 
 **Antes de conectar, lo que podrá hacer.** Cada servicio dice **qué permisos pide** junto al botón de conectar —no en la pantalla del otro sitio, cuando ya se ha decidido—; conectada, dice **como quién** («tienda@barroyagave.mx») y lo que puede; y desconectar dice qué deja de pasar y qué se conserva. Un servicio con error o no disponible sigue a la vista con su motivo y el camino para arreglarlo.
 

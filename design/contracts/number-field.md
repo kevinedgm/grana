@@ -63,7 +63,7 @@ Un campo para **un número que la persona escribe** (edad, peso, temperatura, po
 | `disabled` | Boolean | | `undefined` → `false` | compartida |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` | compartida |
 | `variant` | String | `outline` `soft` | `outline` | compartida (subconjunto, como `GInput`) |
-| `density` | String | `default` `comfortable` `compact` | `undefined` → contexto o `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | sin valor (`--g-color-focus`) | compartida (como `GInput`: solo el foco) |
 | `rounded` | String | `none` `xs` `sm` `md` `lg` `xl` `pill` | sin valor (`sm`) | compartida |
 | `block` | Boolean | | `undefined` → `false` (dentro del layout, `true`) | compartida |
@@ -385,3 +385,7 @@ Solo `var(--g-*)` y `--_*` más las constantes de §29.6/§7; P1/P2/P3 medidos e
 ### No verificado (entorno real)
 
 Lector de pantalla (VoiceOver, NVDA, TalkBack: `spinbutton` editable, `valuetext`, el recorte de `valuenow`, solo lectura, −/+ fuera del Tab, ajuste por gestos en iOS); móvil y teclados virtuales reales (separador por región, «-» en iOS, −/+ sin abrir el teclado, doble toque sin zoom); IME real; pegado real en Firefox; `forced-colors` real; zoom 200/400 %.
+
+## Texto con puntero grueso (DECISIONS.md #970 a #972)
+
+Regla común en `docs/contract/api.md` «Texto editable con puntero grueso» y mínimo en `tokens.md` §7: con `@media (pointer: coarse)`, `font-size: max(16px, <rol>)`; interlineado del rol con piso `--g-text-body-sm-line`; altura sin cambio; en escritorio, sin cambio. Aquí (por el `GInput` que compone): suben el texto, la unidad pegada (P1), `__mirror`, `__measure`, `__roll` (P2) y los −/+; el espejo y el medidor tienen que medir lo mismo que el texto (criterio 6), y el mínimo publicado a `GFormRow` (#312) sube solo en táctil. El hueco de `2px` del cursor no cambia.

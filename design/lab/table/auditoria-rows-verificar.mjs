@@ -443,7 +443,9 @@ async function forcedPass(page) {
 async function staticPass() {
   // Sin comentarios ni bloques del patrón de texto oculto (los únicos con 1px permitido)
   const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/[^{}]*\{[^{}]*clip-path:\s*inset\(50%\)[^{}]*\}/g, '')
-  const css = strip(await readFile(join(ROOT, 'packages/vue/src/components/GTable/GTable.css'), 'utf8'))
+  // 16px solo como piso de max() en font-size dentro de @media (pointer: coarse) (#970, tokens.md §7): se descuenta ahí
+  const allow16 = (s) => s.replace(/@media \(pointer: coarse\) \{((?:[^{}]*\{[^{}]*\})*[^{}]*)\}/g, (m) => m.replace(/((?:font-size|--_fs)\s*:\s*max\()16px,/g, '$1'))
+  const css = allow16(strip(await readFile(join(ROOT, 'packages/vue/src/components/GTable/GTable.css'), 'utf8')))
   const pag = strip(await readFile(join(ROOT, 'packages/vue/src/components/GPagination/GPagination.css'), 'utf8'))
   // #682: la condición de @supports (round(1px, 1px)) y el paso --_snap: 0.5px no son medidas de diseño
   for (const [name, src] of [['GTable.css', css], ['GPagination.css', pag.replace(/@supports \(inline-size: round\(1px, 1px\)\)/g, '').replace(/--_snap: 0\.5px;/g, '')]]) {

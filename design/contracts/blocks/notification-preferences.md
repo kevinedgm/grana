@@ -1,6 +1,6 @@
 # Contrato · Notification preferences (`GbNotificationPreferences01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #957 a #961 y #972, 2026-10-29) · **Plan:** S11 (§4.5) · **Entrada:** `@grana/blocks/saas` · **Común:** `_comun.md` §1 a §5 y §41 a §54 · **Compone:** `GSection`, `GTable` + `GCheckbox field: false` (01), `GFieldGroup` + `GCheckbox` (02), `GFormSection mode="collapsible"` (03), `GSwitch`, `GForm`, `GFormActions`, `GBtn`, `GText` · **Fase:** 4c·2 · **No compleja** (Sonnet)
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #983 a #987 y #998, 2026-10-29) · **Plan:** S11 (§4.5) · **Entrada:** `@grana/blocks/saas` · **Común:** `_comun.md` §1 a §5 y §41 a §54 · **Compone:** `GSection`, `GTable` + `GCheckbox field: false` (01), `GFieldGroup` + `GCheckbox` (02), `GFormSection mode="collapsible"` (03), `GSwitch`, `GForm`, `GFormActions`, `GBtn`, `GText` · **Fase:** 4c·2 · **No compleja** (Sonnet)
 
 ## Promesa
 
@@ -71,7 +71,7 @@ En 02 y 03, fuera de un `GForm` (sin `action`), `GFieldGroup` y `GFormSection` s
 
 `GSection` con título (sin `h1`); el interruptor de pausa antes de las casillas, con su consecuencia como descripción; 01 tabla con `caption`, encabezados de fila (avisos) y de columna (canales) y cada casilla con nombre completo; 02 `fieldset` por aviso; 03 secciones plegables con su resumen; lo que no se apaga y lo no disponible, `readonly` con su motivo (nunca escondido ni `disabled`).
 
-## Qué lo hace distinto (#972)
+## Qué lo hace distinto (#998)
 
 **Lo que no se puede apagar se dice, y pausar no borra.** Los avisos de seguridad siguen marcados con su motivo al lado, en vez de desaparecer de la lista; un canal sin configurar dice qué falta («Agrega un teléfono»); y «Pausar todos los avisos» explica **antes** de encenderlo que la configuración se conserva y qué seguirá llegando. Al volver, todo está como lo dejaste.
 

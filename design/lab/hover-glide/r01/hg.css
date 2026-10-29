@@ -1,0 +1,95 @@
+/* Ronda r01 «una sola luz» en GSidebar y GTable (kiwi). Capa de LABORATORIO sobre los componentes reales de dist/:
+   simula lo que coco escribiría en GSidebar.css y GTable.css. Solo var(--g-*) y alias locales del componente (--_*).
+   Sin capa: gana a grana.components a propósito (es un prototipo). Se activa con .hg-on en <body> (?glide=1, defecto). */
+
+/* ---------- Página del banco (no es Grana) ---------- */
+body { margin: 0; background: var(--g-color-surface-sunken); color: var(--g-color-text); font-family: var(--g-font-ui); }
+.hg-page { box-sizing: border-box; max-inline-size: calc(var(--g-space-1) * 300); margin-inline: auto; padding: var(--g-space-6) var(--g-space-4); display: grid; gap: var(--g-space-6); }
+.hg-head h1 { margin: 0 0 var(--g-space-2); font-size: var(--g-text-title-size); line-height: var(--g-text-title-line); font-weight: var(--g-text-title-weight); }
+.hg-head p { margin: 0; max-inline-size: 72ch; color: var(--g-color-text-muted); font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); }
+.hg-switch { display: flex; flex-wrap: wrap; gap: var(--g-space-2); align-items: center; margin-block-start: var(--g-space-3); font-size: var(--g-text-body-sm-size); }
+.hg-switch a { color: var(--g-color-text); padding: var(--g-space-1) var(--g-space-3); border: var(--g-border-width) solid var(--g-color-border); border-radius: var(--g-radius-pill); text-decoration: none; background: var(--g-color-surface); }
+.hg-switch a[aria-current="true"] { border-color: var(--g-color-primary-text); font-weight: var(--g-text-action-weight); }
+.hg-switch a:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset); }
+.hg-sec { display: grid; gap: var(--g-space-3); padding: var(--g-space-5); background: var(--g-color-surface); border: var(--g-border-width) solid var(--g-color-border); border-radius: var(--g-radius-lg); }
+.hg-sec h2 { margin: 0; font-size: var(--g-text-body-size); line-height: var(--g-text-body-line); font-weight: var(--g-text-title-weight); }
+.hg-sec > p { margin: 0; color: var(--g-color-text-muted); font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); max-inline-size: 80ch; }
+.hg-row { display: flex; flex-wrap: wrap; gap: var(--g-space-5); align-items: flex-start; }
+.hg-sidebar-box { block-size: calc(var(--g-space-1) * 140); display: flex; border: var(--g-border-width) solid var(--g-color-border); border-radius: var(--g-radius-md); overflow: hidden; }
+.hg-meter { margin: 0; font-family: var(--g-font-ui); font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); color: var(--g-color-text-muted); font-variant-numeric: tabular-nums; }
+.hg-meter b { color: var(--g-color-text); font-weight: var(--g-text-action-weight); }
+.hg-table { min-inline-size: 0; flex: 1 1 calc(var(--g-space-1) * 120); }
+.hg-sr { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* =====================================================================================================================
+   GSidebar · la luz de cada lista (propuesta para coco)
+   ===================================================================================================================== */
+/* Las filas se tocan: el hueco de 2px pasa a formar parte de cada enlace (área de clic contigua); el dibujo de la luz se
+   recorta la mitad del hueco por cada lado, así se ve igual que el hover de hoy */
+.hg-on .g-sidebar--mode-expanded .g-sidebar__list,
+.hg-on .g-sidebar--mode-expanded .g-sidebar__sub { gap: 0; }
+.hg-on .g-sidebar--mode-expanded .g-sidebar__list > .g-sidebar__item > .g-sidebar__link { min-block-size: calc(var(--_item) + var(--g-space-1) * 0.5); }
+.hg-on .g-sidebar--mode-expanded .g-sidebar__sub .g-sidebar__link { min-block-size: calc(var(--_sub) + var(--g-space-1) * 0.5); }
+/* Los hijos son de la lista del padre: el submenú abierto no deja margen entre el padre y su primer hijo (sería un hueco
+   que apaga la luz al cruzar). Cómo recuperar ese aire sin hueco (relleno de las filas extremas) lo decide coco */
+.hg-on .g-sidebar--mode-expanded .g-sidebar__sub.is-open { margin-block: 0; }
+/* Ningún enlace pinta fondo propio al pasar el puntero (la estela que se corrige); el color de la etiqueta sí sigue */
+.hg-on .g-sidebar__link:hover { background: transparent; }
+.hg-on .g-sidebar__list { position: relative; }
+.hg-on .g-sidebar__highlight {
+  position: absolute;
+  /* Físico a propósito: --_highlight-x se mide con getBoundingClientRect (izquierda física), también en RTL */
+  top: 0;
+  left: 0;
+  inline-size: var(--_highlight-w);
+  block-size: calc(var(--_highlight-h) - var(--g-space-1) * 0.5);
+  translate: var(--_highlight-x) calc(var(--_highlight-y) + var(--g-space-1) * 0.25);
+  border-radius: var(--_radius);
+  background: var(--g-color-border);
+  opacity: 0;
+  pointer-events: none;
+  list-style: none;
+}
+.hg-on .has-highlight > .g-sidebar__highlight { opacity: 1; }
+
+/* =====================================================================================================================
+   GTable · una luz en el contenedor desplazable, bajo el <table> (propuesta para coco)
+   ===================================================================================================================== */
+.hg-on .g-table__scroll { position: relative; }
+/* El <table> se posiciona (sin z-index) para pintar por encima de la capa, que va antes en el árbol */
+.hg-on .g-table__table { position: relative; }
+.hg-on .g-table__table td { transition: none; }
+.hg-on .g-table__row:not(.is-selected):hover > td { background: transparent; }
+.hg-on .g-table__highlight {
+  position: absolute;
+  /* Físico a propósito: --_highlight-x se mide con getBoundingClientRect (izquierda física), también en RTL */
+  top: 0;
+  left: 0;
+  inline-size: var(--_highlight-w);
+  block-size: var(--_highlight-h);
+  translate: var(--_highlight-x) var(--_highlight-y);
+  background: var(--g-color-surface-sunken);
+  opacity: 0;
+  pointer-events: none;
+}
+.hg-on .g-table__scroll.has-highlight > .g-table__highlight { opacity: 1; }
+
+/* ---------- Movimiento: el de M1 (#305), sin muelle ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .hg-on :is(.g-sidebar__highlight, .g-table__highlight) {
+    transition:
+      translate var(--g-duration-press) var(--g-ease-out),
+      inline-size var(--g-duration-press) var(--g-ease-out),
+      block-size var(--g-duration-press) var(--g-ease-out),
+      opacity var(--g-duration-fast) var(--g-ease-standard);
+  }
+  .hg-on .is-highlight-instant > :is(.g-sidebar__highlight, .g-table__highlight) {
+    transition: opacity var(--g-duration-fast) var(--g-ease-standard);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hg-on :is(.g-sidebar__highlight, .g-table__highlight) { transition: opacity var(--g-duration-fast) linear; }
+}
+@media (forced-colors: active) {
+  .hg-on :is(.g-sidebar__highlight, .g-table__highlight) { display: none; }
+}

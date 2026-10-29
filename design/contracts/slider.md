@@ -58,7 +58,7 @@ Un control para **un valor acotado donde manda la posición relativa** (el volum
 | `mark` | Boolean | | `undefined` | propia (form.md §2) |
 | `readonly` | Boolean | | `undefined` → contexto o `false` | compartida |
 | `disabled` | Boolean | | `undefined` → contexto o `false` | compartida |
-| `density` | String | `default` `comfortable` `compact` | `undefined` → contexto o `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | `brand` | compartida (familia de la píldora y del tramo) |
 | `id` | String | | generado | propia |
 
@@ -391,7 +391,7 @@ El deslizador **publica su mínimo intrínseco** a la fila con `setIntrinsicMin(
 | `g-slider--color-{color}` | Raíz | Siempre (`brand` por defecto) |
 | `g-slider--range` | Raíz | Con `range` |
 | `is-empty` | Raíz | Valor único `null` |
-| `g-slider--density-{default\|comfortable\|compact}` | Raíz | Siempre (densidad resuelta con el contexto; alto del área y de la píldora, #507) |
+| `g-slider--density-{default\|comfortable\|compact}` | Raíz | Siempre (`--density-*` solo con la prop explícita, junto a `data-g-density`, #975; densidad resuelta con el contexto; alto del área y de la píldora, #507) |
 | `is-readonly`, `is-disabled`, `is-invalid`, `is-warning`, `is-valid` | Raíz | Estado resuelto con el contexto (`is-warning` e `is-valid` con `warning`/`valid`, como `GInput`) |
 | `is-rejected` | Raíz | I2 de `GForm` (sacudida `g-reject…` de `GInput`, #304; la mueve coco sobre `g-slider__row`) |
 | `is-ready` | Raíz | Tras montar (las transiciones solo bajo él, #299 (4)) |

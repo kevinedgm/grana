@@ -52,7 +52,7 @@ La separación **es una relación, no una cifra**: `sm` «va con lo anterior», 
 | `as` | String | etiqueta HTML no interactiva | `div` | Como `GSurface` (`surface.md`): `div`, `section`, `article`, `aside`, `nav`, `header`, `footer`, `ul`, `ol`, `form`, `fieldset`… La pila no añade roles **salvo** con `ul`/`ol`: ahí quita las marcas del navegador y repone `role="list"` (regla 6, #827); la aplicación pone los `li`. Con una etiqueta interactiva (`a`, `button`, `input`, `select`, `textarea`, `summary`, `label`) o `main`, aviso 1 (se pinta igual) |
 | `orientation` | String | `vertical` `horizontal` | `vertical` | Nombre compartido (`GDivider`, `GTabs`) |
 | `gap` | String | `none` `sm` `md` `lg` | `md` | Factor 0 · 0,5 · 1 · 2 (como #360) sobre la **base de página `space × 6`**: 0 · 12 · 24 · 48 px con `space` 4. Misma separación en los dos ejes (en línea, también entre filas) |
-| `density` | String | `default` `comfortable` `compact` | `default` | Compartida (`api.md`): multiplica la separación 1 · 0,875 · 0,75. Medido: `compact` = 18 px |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | Compartida (`api.md`): multiplica la separación 1 · 0,875 · 0,75. Medido: `compact` = 18 px. **Desde #975 la prop es una región:** aprieta también lo de dentro; sin valor, la pila sigue su región |
 | `horizontal` | String | `start` `center` `end` | sin valor | Eje en línea, lógico (nombre de `GAdaptiveLayout`, #339, #359). En vertical: ancho de los hijos (sin valor = **estirar**). En horizontal: dónde va la fila (sin valor = `start`) |
 | `vertical` | String | `top` `center` `bottom` | sin valor | Eje de bloque; **solo en horizontal** (sin valor = `center`). En vertical no actúa (aviso 3) |
 | `divided` | Boolean | | `false` | Una línea `--g-color-border` entre hijos visibles, con el aire repartido a los dos lados de la línea (la distancia entre dos hijos es `2 × gap`); nunca antes del primero ni tras el último. **Solo en vertical** (en horizontal, aviso 3 y no se pinta) |
@@ -99,7 +99,7 @@ Con la guarda canónica de #653 (`api.md` «Avisos de desarrollo»), al montar y
 | `g-stack` | Siempre |
 | `g-stack--orientation-vertical`, `g-stack--orientation-horizontal` | Según `orientation` |
 | `g-stack--gap-{none\|sm\|md\|lg}` | Según `gap` |
-| `g-stack--density-{default\|comfortable\|compact}` | Según `density` |
+| `g-stack--density-{default\|comfortable\|compact}` | Con la prop explícita, junto a `data-g-density` (#975): aprieta la separación **y lo de dentro** |
 | `g-stack--h-{start\|center\|end}` | Con `horizontal` |
 | `g-stack--v-{top\|center\|bottom}` | Con `vertical` en horizontal |
 | `g-stack--divided` | Con `divided` en vertical |

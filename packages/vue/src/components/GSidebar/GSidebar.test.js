@@ -400,7 +400,7 @@ describe('GSidebar · adaptación automática por el ancho del contenedor', () =
     await nextTick()
     return w
   }
-  const resize = async (w) => { observers.forEach((o) => o.cb()); await nextTick(); await nextTick() }
+  const resize = async (w) => { observers.forEach((o) => o.cb([])); await nextTick(); await nextTick() }
 
   it('≥ space×240 expandida, ≥ space×150 riel, menos: navbar (por defecto)', async () => {
     const w = await auto()
@@ -889,7 +889,7 @@ describe('GSidebar · cortes de adaptación (breakpoints, #618)', () => {
     await nextTick()
     return w
   }
-  const resize = async (w) => { observers.forEach((o) => o.cb()); await nextTick(); await nextTick() }
+  const resize = async (w) => { observers.forEach((o) => o.cb([])); await nextTick(); await nextTick() }
   // El formato en línea es la raíz div.g-sidebar fuera del <dialog>; en drawer, la raíz es un span oculto y solo queda el <dialog>
   const fmt = (w) => {
     if (w.find('nav.g-sidebar--mode-navbar').exists()) return 'navbar'
@@ -1079,5 +1079,50 @@ describe('GSidebar · item actual: asiento (r02, #616)', () => {
     const w = mk({ mode: 'navbar', modelValue: 'p1' })
     expect(w.find('.g-sidebar__bar').findAll('.is-rep')).toHaveLength(0)
     expect(w.find('.g-sidebar__bar').findAll('.has-current')).toHaveLength(0)
+  })
+})
+
+describe('GSidebar · una sola luz (#957 a #962)', () => {
+  it('capa li[role=none][aria-hidden] primera hija de cada g-sidebar__list; no toca foco ni aria de los enlaces', () => {
+    const w = mk()
+    const lists = w.findAll('.g-sidebar__list')
+    expect(lists.length).toBeGreaterThan(1)
+    for (const l of lists) {
+      const first = l.element.firstElementChild
+      expect(first.tagName).toBe('LI')
+      expect(first.className).toBe('g-sidebar__highlight')
+      expect(first.getAttribute('role')).toBe('none')
+      expect(first.getAttribute('aria-hidden')).toBe('true')
+      expect(l.element.querySelectorAll(':scope > .g-sidebar__highlight')).toHaveLength(1)
+    }
+    expect(w.findAll('.g-sidebar__sub > .g-sidebar__highlight')).toHaveLength(0)
+  })
+  it('el panel flotante del riel lleva g-sidebar__fly-list con su capa', async () => {
+    const w = mk({ mode: 'rail' })
+    await w.find('[data-id="proj"]').trigger('click'); await nextTick(); await nextTick()
+    const ul = w.find('.g-sidebar__fly .g-sidebar__fly-list')
+    expect(ul.exists()).toBe(true)
+    expect(ul.element.firstElementChild.className).toBe('g-sidebar__highlight')
+    expect(ul.findAll('.g-sidebar__link').length).toBe(3)
+  })
+  it('navbar: sin capa (#961)', () => {
+    const w = mk({ mode: 'navbar' })
+    expect(w.find('nav.g-sidebar--mode-navbar .g-sidebar__highlight').exists()).toBe(false)
+  })
+  it('el puntero sobre un enlace no mueve el foco ni cambia aria-*', async () => {
+    const frames = []
+    vi.stubGlobal('requestAnimationFrame', (f) => { frames.push(f); return frames.length })
+    const w = mk()
+    const link = w.find('[data-id="inbox"]').element
+    const host = link.closest('.g-sidebar__list')
+    document.elementFromPoint = () => link.firstElementChild
+    const before = link.outerHTML
+    const ev = Object.assign(new Event('pointermove', { bubbles: true }), { pointerType: 'mouse', clientX: 10, clientY: 10 })
+    link.dispatchEvent(ev)
+    frames.splice(0).forEach((f) => f())
+    expect(host.classList.contains('has-highlight')).toBe(true)
+    expect(document.activeElement).toBe(document.body)
+    expect(link.outerHTML).toBe(before)
+    vi.unstubAllGlobals()
   })
 })

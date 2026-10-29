@@ -25,7 +25,7 @@ Rejilla adaptable para dashboards: coloca widgets de distintos tamaños (columna
 | `maxRows` | Number | 1 a 6 | `4` | propia |
 | `presets` | Array | `[{ id, w, h }]` | los cinco por defecto | propia |
 | `labels` | Object | ver «Textos (`labels`)» | `{}` | propia |
-| `density` | String | `default` `comfortable` `compact` | `default` | compartida (separación) |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida (separación) |
 
 ### Reglas de props
 
@@ -167,7 +167,7 @@ Sin los `announce*` recomendados, la rejilla **no anuncia** ese paso (los nombre
 
 | Clase | Elemento | Cuándo |
 | --- | --- | --- |
-| `g-widget-grid` (+ `--density-*`, `is-editing`) | Raíz | Siempre |
+| `g-widget-grid` (+ `--density-*`, `is-editing`) | Raíz | Siempre (`--density-*` solo con la prop explícita, junto a `data-g-density`; #975) |
 | `g-widget-grid__list` | Lista | Siempre |
 | `g-widget-grid__item` (+ `is-grabbed`, `is-dragging`) | Celda `<li>` | Siempre |
 | `g-widget-grid__controls`, `__grab`, `__resize` | Asas | Con `editable` |

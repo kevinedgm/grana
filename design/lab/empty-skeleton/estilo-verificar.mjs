@@ -88,7 +88,9 @@ const near = (a, b, t = 0.5) => Math.abs(a - b) <= t
   const pxOf = (css) => [...css.matchAll(/(-?\d*\.?\d+)px\b/g)].map((m) => m[0])
   ok(pxOf(files.region).every((p) => ['1px', '-1px'].includes(p)), 'GLoadRegion: medidas en px fuera del texto oculto del canal ' + pxOf(files.region))
   ok(pxOf(files.empty).every((p) => ['1px', '-1px', '24px', '44px'].includes(p)), 'GEmpty: medidas en px fuera del texto oculto y del área táctil ' + pxOf(files.empty))
-  ok(pxOf(files.table).every((p) => ['24px', '44px', '1px', '-1px'].includes(p)), 'GTable: medidas en px no permitidas ' + pxOf(files.table))
+  // 16px solo como piso de max() en font-size dentro de @media (pointer: coarse) (#970, tokens.md §7): se descuenta ahí
+  const allow16 = (s) => s.replace(/@media \(pointer: coarse\) \{((?:[^{}]*\{[^{}]*\})*[^{}]*)\}/g, (m) => m.replace(/((?:font-size|--_fs)\s*:\s*max\()16px,/g, '$1'))
+  ok(pxOf(allow16(files.table)).every((p) => ['24px', '44px', '1px', '-1px'].includes(p)), 'GTable: medidas en px no permitidas ' + pxOf(allow16(files.table)))
   const tr = [...files.region.matchAll(/transition(?:-property)?:\s*([^;]+);/g)].map((m) => m[1])
   const props = tr.flatMap((t) => t.split(',').map((x) => x.trim().split(/\s+/)[0]))
   ok(props.length && props.every((p) => ['color', 'text-decoration-color', 'background-color', 'border-color', 'outline-color', 'box-shadow', 'filter'].includes(p)), 'GLoadRegion: transición de una propiedad que no es de color: ' + props)

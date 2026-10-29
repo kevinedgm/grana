@@ -18,7 +18,7 @@ Casilla de verificación con tres estructuras (`layout`: `default`, `card`, `chi
 | `indeterminate` | Boolean | | `false` | propia |
 | `layout` | String | `default` `card` `chip` | `default` | propia |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` | compartida |
-| `density` | String | `default` `comfortable` `compact` | `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | `brand` | compartida |
 | `disabled` | Boolean | | `false` | compartida |
 | `readonly` | Boolean | | `false` | compartida (precisada en `api.md`) |
@@ -123,7 +123,7 @@ Agrupa casillas, mantiene un modelo de arreglo, y opcionalmente muestra una **ca
 | `selectAllLabel` | String | texto libre | sin valor | propia |
 | `countText` | Function | `(seleccionadas: number, total: number) => string` | sin valor | propia |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` | compartida |
-| `density` | String | `default` `comfortable` `compact` | `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | `brand` | compartida |
 | `layout` | String | `default` `card` `chip` | `default` | propia |
 | `disabled` | Boolean | | `false` | compartida |
@@ -133,7 +133,7 @@ Agrupa casillas, mantiene un modelo de arreglo, y opcionalmente muestra una **ca
 
 - **Elemento:** `<fieldset>` con `<legend>` para `label`: es el agrupamiento nativo, con rol `group` y nombre accesible. `disabled` pone el atributo nativo del `<fieldset>`, que deshabilita a todas las hijas.
 - **`label`:** el grupo necesita nombre. Sin `label`, sin slot `label` y sin `aria-label` ni `aria-labelledby`, en desarrollo se emite `console.warn`.
-- **Propagación:** `size`, `density`, `color`, `layout` y `disabled` del grupo pasan a las hijas por `provide/inject`; una hija puede sobrescribirlos. Con `layout="chip"`, las hijas se disponen en fila que salta de línea; con `card`, en cuadrícula (coco decide el detalle).
+- **Propagación:** `size`, `color`, `layout` y `disabled` del grupo pasan a las hijas por `provide/inject`; **`density` llega por CSS desde #976** (el grupo con prop es una región, `density.md` §4); una hija puede sobrescribirlos. Con `layout="chip"`, las hijas se disponen en fila que salta de línea; con `card`, en cuadrícula (coco decide el detalle).
 - **Frontera con `GTag`** (#461): si la elección **se envía con el formulario**, es esta apariencia chip; un filtro de la vista que actúa en el acto y no se envía es una `GTag` de alternar (`tag.md`).
 - **`selectAll` y `selectAllLabel`:** con `selectAll`, se renderiza una casilla maestra arriba de la lista. **`selectAllLabel` no tiene valor por defecto** (Grana es internacional; mismo criterio que `loadingText`). Sin ella, en desarrollo se emite `console.warn` y la maestra no se muestra.
 - **Estado de la maestra (derivado):** solo considera las hijas **habilitadas**. Todas marcadas → marcada; ninguna → sin marcar; algunas → **mixta** (`indeterminate`). Al activarla, marca todas las habilitadas (si estaba sin marcar o mixta) o desmarca todas (si estaba marcada). Las hijas deshabilitadas no cambian.
@@ -215,7 +215,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras. Los estados marcada e ind
 | `g-checkbox` | Raíz (`div`) | Siempre |
 | `g-checkbox--layout-{layout}` | Raíz | Siempre (incluido el defecto) |
 | `g-checkbox--size-{size}` | Raíz | Siempre |
-| `g-checkbox--density-{density}` | Raíz | Siempre |
+| `g-checkbox--density-{density}` | Raíz | Con la prop explícita, junto a `data-g-density` (#975) |
 | `g-checkbox--color-{color}` | Raíz | Siempre (incluido `brand`) |
 | `is-disabled` | Raíz | `disabled` |
 | `is-readonly` | Raíz | `readonly` |

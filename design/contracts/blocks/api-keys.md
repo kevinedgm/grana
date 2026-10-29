@@ -1,6 +1,6 @@
 # Contrato · API keys & tokens (`GbApiKeys01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #957 a #961 y #970, 2026-10-29) · **Plan:** S9 (§4.5) · **Entrada:** `@grana/blocks/saas` · **Común:** `_comun.md` §1 a §5 y §41 a §54 (sobre todo §44 regla 3: el secreto de una vez) · **Compone:** `GSection`, `GStack`, `GTable` (01), `GAdaptiveLayout` + `GCard` (02, 03), `GBadge`, `GBtn`, `GIcon`, `GDialog` (crear y enseñar el secreto en 01 y 02), `GForm`, `GInput`, `GCheckboxGroup`, `GSelect`, `GFormLayout`, `GFormActions`, `GText` y la confirmación común (§43.2) · **Fase:** 4c·3 · **Compleja: coco y bruno en Opus** (secreto de una vez, diálogos, confirmación)
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #983 a #987 y #996, 2026-10-29) · **Plan:** S9 (§4.5) · **Entrada:** `@grana/blocks/saas` · **Común:** `_comun.md` §1 a §5 y §41 a §54 (sobre todo §44 regla 3: el secreto de una vez) · **Compone:** `GSection`, `GStack`, `GTable` (01), `GAdaptiveLayout` + `GCard` (02, 03), `GBadge`, `GBtn`, `GIcon`, `GDialog` (crear y enseñar el secreto en 01 y 02), `GForm`, `GInput`, `GCheckboxGroup`, `GSelect`, `GFormLayout`, `GFormActions`, `GText` y la confirmación común (§43.2) · **Fase:** 4c·3 · **Compleja: coco y bruno en Opus** (secreto de una vez, diálogos, confirmación)
 
 ## Promesa
 
@@ -82,7 +82,7 @@ interface GbApiKeysProps {
 
 `GSection` con título (sin `h1`); tabla con `caption` o lista; «Revocar {nombre}» con el nombre en el control; permisos y su peligro en texto; fechas en `<time>`; el secreto en un campo de solo lectura con etiqueta, su advertencia en texto antes del campo y el foco en él al aparecer; la revocación es `alertdialog` con el foco en «Mantener». Sin región viva: «Copiado» lo dice la aplicación (`GToast`).
 
-## Qué lo hace distinto (#970)
+## Qué lo hace distinto (#996)
 
 **Una sola vez, y nunca a ciegas.** El secreto se enseña completo **una vez**, con la advertencia antes del campo y el foco en él, y al cerrar se olvida (el bloque no lo guarda en ningún sitio y no lo vuelve a pintar aunque se lo pasen otra vez). Cada clave dice **cuándo se usó por última vez** —«Nunca se ha usado» es una señal para revocarla— y revocar dice antes **qué dejará de funcionar y que no se deshace**. Crear empieza sin permisos marcados y nombra los que pueden borrar.
 

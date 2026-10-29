@@ -1,6 +1,6 @@
 # Contrato · Onboarding (`GbOnboarding01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #957 a #961 y #963, 2026-10-29) · **Plan:** S2 (§4.5) · **Entrada:** `@grana/blocks/saas` · **Común:** `_comun.md` §1 a §5 y §41 a §54 · **Compone:** `GSection`, `GStack`, `GAccordion` + `GAccordionItem` (01), `GProgress` (02), `GCard`, `GAdaptiveLayout` (03), `GBtn`, `GBadge`, `GText` · **Fase:** 4c·1 · **No compleja** (Sonnet)
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #983 a #987 y #989, 2026-10-29) · **Plan:** S2 (§4.5) · **Entrada:** `@grana/blocks/saas` · **Común:** `_comun.md` §1 a §5 y §41 a §54 · **Compone:** `GSection`, `GStack`, `GAccordion` + `GAccordionItem` (01), `GProgress` (02), `GCard`, `GAdaptiveLayout` (03), `GBtn`, `GBadge`, `GText` · **Fase:** 4c·1 · **No compleja** (Sonnet)
 
 ## Promesa
 
@@ -65,7 +65,7 @@ interface GbOnboardingProps {
 
 `GSection` con título (sin `h1`); los pasos en lista ordenada (`ol` en 02; la lista del acordeón en 01; rejilla `role="list"` en 03); estado de cada paso **en texto** (nunca solo el color de `GBadge`); la consecuencia de saltar es descripción del botón de saltar; el avance es texto (y en 02, `progressbar` con `valueText`).
 
-## Qué lo hace distinto (#963)
+## Qué lo hace distinto (#989)
 
 **Una guía que respeta tu orden y tu tiempo.** No obliga a ir del 1 al 5 (por eso no es un `GStepper`, §52): cada paso dice cuánto lleva («2 min») y por qué importa antes de pedirlo, lo hecho queda hecho aunque cierres la sesión (lo guarda la aplicación), y **saltar dice antes qué te pierdes** («Sin tu dirección de envío, las etiquetas de paquetería salen en blanco»), junto al botón: saltar no castiga ni se esconde, pero tampoco sorprende.
 

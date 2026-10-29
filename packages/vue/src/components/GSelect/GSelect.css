@@ -2,8 +2,8 @@
   GSelect · estilo del esqueleto
   Dueño: coco. Contrato: design/contracts/select.md. Estructura: design/lab/select/r01/.
   Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
-  únicos literales de medida: 24px y 44px (área táctil), 0px en max() y el umbral de consulta de
-  medios del visor móvil (~520px, excepción DECISIONS.md #42 y #56; @media no admite var()).
+  únicos literales de medida: 24px y 44px (área táctil), 16 px en max() del texto con puntero grueso (#970), 0px en
+  max() y el umbral de consulta de medios del visor móvil (~520px, excepción DECISIONS.md #42 y #56; @media no admite var()).
   Mismo lenguaje que GInput (caja, foco, variantes, error). La lista es un popover en la capa
   superior; bruno la coloca con variables CSS dinámicas (--_x, --_top, --_bottom, --_min, --_max).
   En móvil pasa a hoja inferior con las superficies de GDialog (--g-surface-*).
@@ -24,8 +24,12 @@
   --_density: 1;
   --_px: var(--g-space-3);
   --_gap: var(--g-space-2);
-  --_fs: var(--g-text-body-sm-size);
-  --_lh: var(--g-text-body-sm-line);
+  /* Rol por --size-* (alias base) y lo que mide la línea del valor (--_fs/--_lh): iguales salvo con puntero grueso,
+     donde el valor tiene piso de 16 px por coherencia de fila con GInput (#970, #971, grupo B). La lista lee el rol */
+  --_fs-role: var(--g-text-body-sm-size);
+  --_lh-role: var(--g-text-body-sm-line);
+  --_fs: var(--_fs-role);
+  --_lh: var(--_lh-role);
   --_h: max(24px, calc(var(--g-space-1) * var(--_units) * var(--_density)));
   --_radius: var(--g-radius-sm);
   /* Opción: como la caja, con piso de 24px (44px con puntero grueso) */
@@ -278,6 +282,10 @@
   background: var(--g-color-surface);
   color: var(--g-color-text);
   font-family: var(--g-font-ui);
+  /* Las opciones no son la línea del valor: se quedan en el rol también con puntero grueso (#971). Se reasignan aquí
+     para que la marca, el icono de «Agregar nuevo…» y su sangría, que leen --_fs, sigan al texto de la opción */
+  --_fs: var(--_fs-role);
+  --_lh: var(--_lh-role);
   font-size: var(--_fs);
   line-height: var(--_lh);
   box-shadow: var(--g-shadow-2);
@@ -439,11 +447,21 @@
 }
 
 /* ---------- Tamaño ---------- */
-.g-select--size-xs { --_units: 6;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs: var(--g-text-caption-size); --_lh: var(--g-text-caption-line); }
-.g-select--size-sm { --_units: 7;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
-.g-select--size-md { --_units: 9;  --_px: var(--g-space-3); --_gap: var(--g-space-2); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
-.g-select--size-lg { --_units: 11; --_px: var(--g-space-4); --_gap: var(--g-space-2); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
-.g-select--size-xl { --_units: 13; --_px: var(--g-space-5); --_gap: var(--g-space-3); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
+.g-select--size-xs { --_units: 6;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs-role: var(--g-text-caption-size); --_lh-role: var(--g-text-caption-line); }
+.g-select--size-sm { --_units: 7;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs-role: var(--g-text-body-sm-size); --_lh-role: var(--g-text-body-sm-line); }
+.g-select--size-md { --_units: 9;  --_px: var(--g-space-3); --_gap: var(--g-space-2); --_fs-role: var(--g-text-body-sm-size); --_lh-role: var(--g-text-body-sm-line); }
+.g-select--size-lg { --_units: 11; --_px: var(--g-space-4); --_gap: var(--g-space-2); --_fs-role: var(--g-text-body-size); --_lh-role: var(--g-text-body-line); }
+.g-select--size-xl { --_units: 13; --_px: var(--g-space-5); --_gap: var(--g-space-3); --_fs-role: var(--g-text-body-size); --_lh-role: var(--g-text-body-line); }
+
+/* ---------- Texto con puntero grueso (#970 a #972; grupo B, coherencia de fila) ---------- */
+/* El botón no amplía la página, pero comparte GFormRow con campos que sí: su valor, marcador, icono, flecha, limpiar y
+   carga miden max(16 px, rol) como el texto de GInput. La altura no cambia (ya rige max(44px, …)) */
+@media (pointer: coarse) {
+  .g-select {
+    --_fs: max(16px, var(--_fs-role));
+    --_lh: max(var(--_lh-role), var(--g-text-body-sm-line));
+  }
+}
 
 /* ---------- Densidad ---------- */
 .g-select--density-default { --_density: 1; }

@@ -75,7 +75,9 @@ let fieldFalse = false
   }
   // GTranscript.css: solo var(--g-*) y alias; las únicas medidas literales permitidas
   // (sin el patrón de texto oculto accesible, la única excepción permitida con 1px)
-  const c = (await readFile(join(ROOT, `${TX_DIR}/GTranscript.css`), 'utf8')).replace(/\/\*[\s\S]*?\*\//g, '').replace(/[^{}]*\{[^}]*clip-path: inset\(50%\)[^}]*\}/g, '')
+  // y 16px solo como piso de max() en font-size dentro de @media (pointer: coarse) (#970, tokens.md §7): se descuenta ahí
+  const allow16 = (s) => s.replace(/@media \(pointer: coarse\) \{((?:[^{}]*\{[^{}]*\})*[^{}]*)\}/g, (m) => m.replace(/((?:font-size|--_fs)\s*:\s*max\()16px,/g, '$1'))
+  const c = allow16((await readFile(join(ROOT, `${TX_DIR}/GTranscript.css`), 'utf8')).replace(/\/\*[\s\S]*?\*\//g, '').replace(/[^{}]*\{[^}]*clip-path: inset\(50%\)[^}]*\}/g, ''))
   const bad = c.match(/#[0-9a-fA-F]{3,8}\b|\brgba?\(|\boklch\(|var\(--[\w-]+\s*,|(?<![\w-])(?!24px|44px)\d+(\.\d+)?(px|rem|em)\b/g)
   ok(!bad, `GTranscript.css: literales o respaldos ${JSON.stringify(bad)}`)
 }

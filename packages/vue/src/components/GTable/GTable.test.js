@@ -1297,3 +1297,65 @@ describe('GTable · avisos de desarrollo de filas por página y activación', ()
     w.unmount()
   })
 })
+
+describe('GTable · una sola luz (#960 a #962)', () => {
+  it('div.g-table__highlight[aria-hidden] primer hijo de g-table__scroll, antes del <table>', () => {
+    const w = mk()
+    const sc = w.find('.g-table__scroll').element
+    expect(sc.firstElementChild.className).toBe('g-table__highlight')
+    expect(sc.firstElementChild.tagName).toBe('DIV')
+    expect(sc.firstElementChild.getAttribute('aria-hidden')).toBe('true')
+    expect(sc.firstElementChild.nextElementSibling.tagName).toBe('TABLE')
+  })
+  it('sin capa en appearance="surface" ni en mode="cards" (#961)', () => {
+    expect(mk({ appearance: 'surface' }).find('.g-table__highlight').exists()).toBe(false)
+    expect(mk({ responsive: 'cards' }).find('.g-table__highlight').exists()).toBe(false)
+  })
+  const setup = (props = {}) => {
+    const frames = []
+    vi.stubGlobal('requestAnimationFrame', (f) => { frames.push(f); return frames.length })
+    const w = mk(props)
+    const run = () => frames.splice(0).forEach((f) => f())
+    const host = w.find('.g-table__scroll').element
+    const move = (el) => {
+      document.elementFromPoint = () => el
+      el.dispatchEvent(Object.assign(new Event('pointermove', { bubbles: true }), { pointerType: 'mouse', clientX: 5, clientY: 5 }))
+      run()
+    }
+    return { w, host, move, run }
+  }
+  it('llana: la fila entera; la cabecera apaga; el puntero no mueve el foco', () => {
+    const { w, host, move } = setup()
+    move(w.findAll('tbody td')[2].element)
+    expect(host.classList.contains('has-highlight')).toBe(true)
+    move(w.find('thead th').element)
+    expect(host.classList.contains('has-highlight')).toBe(false)
+    expect(document.activeElement).toBe(document.body)
+  })
+  it('A · La puerta: solo la celda principal de una fila con puerta', () => {
+    const { w, host, move } = setup({ rowHref: (r) => `/c/${r.id}` })
+    move(w.findAll('tbody tr')[0].findAll('td')[1].element)
+    expect(host.classList.contains('has-highlight')).toBe(false)
+    move(w.find('tbody td.g-table__cell--primary .g-table__door').element)
+    expect(host.classList.contains('has-highlight')).toBe(true)
+  })
+  it('cargando: apagada y nada se registra; al cambiar las filas se apaga hasta el siguiente movimiento', async () => {
+    const { w, host, move } = setup()
+    move(w.findAll('tbody td')[1].element)
+    expect(host.classList.contains('has-highlight')).toBe(true)
+    await w.setProps({ rows: [...rows].reverse() })
+    await flush()
+    expect(host.classList.contains('has-highlight')).toBe(false)
+    await w.setProps({ loading: true })
+    await flush()
+    move(w.findAll('tbody td')[1].element)
+    expect(host.classList.contains('has-highlight')).toBe(false)
+  })
+  it('un render del padre con las mismas filas en línea no apaga la luz', async () => {
+    const { w, host, move } = setup()
+    move(w.findAll('tbody td')[1].element)
+    await w.setProps({ rows: rows.map((r) => ({ ...r })) })
+    await flush()
+    expect(host.classList.contains('has-highlight')).toBe(true)
+  })
+})

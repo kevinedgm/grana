@@ -1,6 +1,6 @@
 # Contrato · Changelog & audit log (`GbChangelog01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #957 a #961 y #973, 2026-10-29) · **Plan:** S12 (§4.5; incluye el registro de auditoría) · **Entrada:** `@grana/blocks/saas` · **Común:** `_comun.md` §1 a §5 y §41 a §54 · **Compone:** `GSection`, `GStack`, `GCard` (01, 03), `GTable` con filtros de columna y paginación (02), `GTag` (`@grana/vue/tag`), `GBadge`, `GAvatar`, `GBtn`, `GText` · **Fase:** 4c·3 · **No compleja** (Sonnet)
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #983 a #987 y #999, 2026-10-29) · **Plan:** S12 (§4.5; incluye el registro de auditoría) · **Entrada:** `@grana/blocks/saas` · **Común:** `_comun.md` §1 a §5 y §41 a §54 · **Compone:** `GSection`, `GStack`, `GCard` (01, 03), `GTable` con filtros de columna y paginación (02), `GTag` (`@grana/vue/tag`), `GBadge`, `GAvatar`, `GBtn`, `GText` · **Fase:** 4c·3 · **No compleja** (Sonnet)
 
 ## Promesa
 
@@ -73,7 +73,7 @@ interface GbChangelogProps {
 
 `GSection` (01, 02) o `GCard` (03) con título (sin `h1`); 01 lista ordenada de entradas con encabezado y fecha en `<time>`; 02 tabla de datos con `caption`, filtros y paginación de `GTable` (su recuento y anuncios, #569, #596), la puerta por fila y la fecha en `<time>`; «Nuevo» en texto; el `lang` de una entrada en su raíz (3.1.2). Sin región viva propia.
 
-## Qué lo hace distinto (#973)
+## Qué lo hace distinto (#999)
 
 **Lo nuevo desde tu última visita, con su fecha de verdad.** Ninguna entrada dice «hace 2 días» (cambia con la caché y miente en una captura): todas dicen el día, y en el registro, la hora. 03 aparece con **cuántas novedades hay desde la última vez** y cuáles, y «Marcar como visto» guarda la fecha de la última entrada, no la del reloj del teléfono. El registro de actividad dice **quién, qué, sobre qué y cuándo** en una tabla que filtra el servidor: lo que cambió en la cuenta no sorprende a nadie.
 

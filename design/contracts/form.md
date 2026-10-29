@@ -74,7 +74,7 @@ Bruno las registra en `src/index.js`; los estilos entran en `components.css`. **
 | `warnings` | Object | `{ [name]: String }` | `{}` (función) | propia |
 | `showErrorsOn` | String | `blur` `submit` | `blur` | propia |
 | `marks` | String | `optional` `required` | `optional` | propia (#153) |
-| `density` | String | `default` `comfortable` `compact` | `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 | `readonly` | Boolean | | `false` | compartida |
 | `disabled` | Boolean | | `false` | compartida |
 | `headingLevel` | Number | 2 a 6 | `3` | propia (como `GCard`, `GWidget`) |
@@ -87,7 +87,7 @@ Bruno las registra en `src/index.js`; los estilos entran en `components.css`. **
 - **`warnings`:** igual que `errors` pero **no bloquea** el envío ni entra en el resumen; sigue el mismo momento de aparición que los errores. Un campo con error y advertencia muestra el error.
 - **`showErrorsOn`:** momento en que un error de `errors` se hace visible (ver «Momento de los errores»). Se llama así y no `validateOn` (como proponía kiwi) porque `GForm` **no valida**: solo enseña.
 - **`marks`:** convención de marcas de **todo** el formulario (#153). `optional` (por defecto): los campos no obligatorios llevan «(opcional)» (`labels.optional`) en su etiqueta y los obligatorios **no** llevan asterisco. `required`: los obligatorios llevan el asterisco (`aria-hidden`) y los opcionales nada; `GForm` pinta `labels.requiredHint` al principio del formulario. **Nunca se mezclan**: un campo no puede elegir la otra convención (sí puede ocultar su marca con `mark: false`).
-- **`density`:** se comparte con todos los campos, layouts, filas, secciones y pie que **no** traen la suya. Multiplica separaciones y alturas como siempre (#15, #114); no toca tipografía ni mínimos táctiles. El `spacious` del brief es `default`.
+- **`density`:** **desde #976, `GForm` con prop es una región** (`data-g-density` en el `<form>`, `density.md` §4): todo lo de dentro la sigue por CSS (campos, layouts, filas, secciones, pie y también los `GBtn` de `GFormActions`), salvo lo que trae la suya o una región más cercana; sin prop no impone nada y sigue a su región. El contexto la conserva solo para `useFormField()`. Antes: se comparte con todos los campos, layouts, filas, secciones y pie que **no** traen la suya. Multiplica separaciones y alturas como siempre (#15, #114); no toca tipografía ni mínimos táctiles. El `spacious` del brief es `default`.
 - **`readonly`:** «modo vista» del formulario entero: todos los campos sin `readonly` propio pasan a solo lectura (aspecto unificado, #165). No oculta acciones: la aplicación decide qué pie muestra. Es también el atributo del **bloqueo con interruptor** (§8, «Patrón: bloqueo con interruptor», #266).
 - **`disabled`:** todos los campos sin `disabled` propio pasan a deshabilitados (no se envían). Para un bloque que no aplica: `GFormReveal` (§14). **No** sirve para bloquear un formulario ya capturado: eso es `readonly` (#266).
 - **`headingLevel`:** nivel de los títulos de `GFormSection` y de `GErrorSummary` dentro del formulario (su prop propia gana). Dentro de `GDialog` (título `h2`) el valor por defecto 3 ya es correcto; en una página cuyo formulario cuelga de un `h1`, se pasa `2`.
@@ -181,7 +181,7 @@ Los textos del resumen son de `GErrorSummary` (su propia `labels`).
 | Clase | Elemento | Cuándo |
 | --- | --- | --- |
 | `g-form` | `<form>` | Siempre |
-| `g-form--density-{density}` | Raíz | Siempre |
+| `g-form--density-{density}` | Raíz | Con la prop explícita, junto a `data-g-density` (#975) |
 | `g-form--marks-{optional\|required}` | Raíz | Siempre |
 | `g-form--readonly`, `g-form--disabled` | Raíz | Según props |
 | `g-form--sticky-actions` | Raíz | Con un `GFormActions sticky` montado |
@@ -210,6 +210,8 @@ Estado reactivo de solo lectura para los campos: `density`, `marks`, `readonly`,
 ### Precedencia (regla única)
 
 `valor = prop explícita del campo ?? contexto ?? default de siempre`.
+
+**Densidad (#976):** la clase y el atributo de densidad de un campo salen **solo de su prop**; lo heredado le llega por CSS (la región). La precedencia de esta sección sigue valiendo para lo que devuelve `useFormField().density` (lógica), que no ve la región (`density.md` §4; sin `densityExplicit`: un campo propio que compone un `GInput` le pasa su propia prop).
 
 Para que «explícita» se distinga del default, **las props que leen el contexto pasan a default `undefined`** en los seis campos: `density`, `readonly`, `disabled`, `block` (Boolean con `default: undefined`: Vue no las convierte a `false` si declaran default) y `error`. El valor resuelto fuera de `GForm` es exactamente el de hoy (`'default'`, `false`, `false`, `false`, sin error). Bruno lo prueba en cada campo.
 
@@ -678,7 +680,7 @@ Sustituye por completo a la rejilla de la Fase 1 (`GFormGrid`, clases `g-form-w-
 | Prop | Tipo | Valores | Default | Origen |
 | --- | --- | --- | --- | --- |
 | `stack` | Boolean | | `false` | propia: cada `GFormRow` interior pone un campo por línea (salvo `keep`) |
-| `density` | String | `default` `comfortable` `compact` | la de `GForm` o `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 
 - **Elemento:** `<div class="g-form-layout">`, columna de hijos separados por `--g-form-gap` × densidad. **Cada hijo directo ocupa el ancho entero** (campo suelto, `GFormRow`, `GFormReveal` (§14), `GFieldGroup`, `GCheckboxGroup`, casilla, interruptor, área de texto). **No mide** nada (no tiene `ResizeObserver`): quien mide es cada `GFormRow`.
 - **Sub‑contexto:** provee `block: true` (los campos llenan su sitio; la prop explícita gana), `density` y `stack`.
@@ -699,7 +701,7 @@ Sustituye por completo a la rejilla de la Fase 1 (`GFormGrid`, clases `g-form-w-
 | Prop | Tipo | Valores | Default | Origen |
 | --- | --- | --- | --- | --- |
 | `keep` | Boolean | | `false` | propia: la fila **nunca** se parte (Día · Mes · Año; partes de una pregunta) |
-| `density` | String | `default` `comfortable` `compact` | la del contexto o `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 
 Slot por defecto: los campos. **Hijos** = los elementos hijos directos del DOM, en su orden (los nodos de texto y comentarios no cuentan; un `v-if` falso no existe). Atributos (`id`, `role`, `aria-label`…) van a la raíz `<div>`, que **no** lleva rol propio (el título de la sección ya nombra el grupo; si una fila necesita nombre, el consumidor pone `role="group"` y `aria-label`).
 
@@ -777,7 +779,7 @@ Resultado verificado por kiwi en el formulario mediano (`r02/declaracion.md` §6
 | `keep` | Boolean | | `false` | propia (r02): las partes nunca se parten en líneas (Día · Mes · Año) |
 | `disabled` | Boolean | | `undefined` → `false` | compartida (nativo del `fieldset`; la prop explícita gana al contexto, #170) |
 | `readonly` | Boolean | | `undefined` → `false` | compartida (se propaga a las partes; la prop explícita gana al contexto, #170) |
-| `density` | String | | la de `GForm` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 
 **`joined` deja de estar reservada** (#160, #168): los campos fusionados son `GInputGroup` (§13).
 
@@ -825,7 +827,7 @@ Pie de acciones con jerarquía, estado y, opcionalmente, fijo.
 | --- | --- | --- | --- | --- |
 | `sticky` | Boolean | | `false` | propia |
 | `status` | String | texto libre | sin valor | propia |
-| `density` | String | | la de `GForm` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 
 ### Reglas
 
@@ -1224,7 +1226,7 @@ Solo estas cuatro piezas son hijos válidos; `GInput`, `GSelect` u otros campos 
 | `readonly`, `disabled` | Boolean | | `undefined` → `false` | compartida (contexto; la prop explícita gana) |
 | `size` | String | los de `GInput` | `md` | compartida (altura de la caja; `api.md`) |
 | `variant` | String | `outline` `soft` | `outline` | compartida (como `GInput`) |
-| `density` | String | `default` `comfortable` `compact` | la del contexto o `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 | `block` | Boolean | | `undefined` → `false` (dentro del layout, `true`) | compartida |
 
 Atributos (`id`, `class`, `style` con `--g-form-min`…) van a la raíz. El tamaño en una fila se da con `g-form-w-*` como en cualquier campo; su mínimo propio, con `--g-form-min` (valores de referencia: teléfono `50`, presión `38`, copago y folio `38`, rango `43`; kiwi r02).
@@ -1441,7 +1443,7 @@ Tres hijos directos (etiqueta, caja, pie): comparte pistas en una `GFormRow` com
 | Clase | Elemento | Cuándo |
 | --- | --- | --- |
 | `g-form-reveal` | Raíz `div` | Siempre |
-| `g-form-reveal--density-{default\|comfortable\|compact}` | Raíz | Siempre |
+| ~~`g-form-reveal--density-{d}`~~ | — | **Ya no se emite** (#976): reflejaba el valor del contexto; el CSS lee `var(--g-density)` heredado |
 | `is-open` | Raíz | `when` verdadero (en el acto) |
 | `is-animating` | Raíz | Desde un cambio de `when` hasta asentarse |
 | `is-ready` | Raíz | Tras el primer pintado (sin ella, sin transiciones) |
@@ -1590,7 +1592,7 @@ Comparte con `GFormReveal` el **motor de plegado** (`utils/collapse.js`), la reg
 | Clase | Elemento | Cuándo |
 | --- | --- | --- |
 | `g-form-fold` | Raíz | Siempre |
-| `g-form-fold--density-{default\|comfortable\|compact}` | Raíz | Siempre (la heredada) |
+| ~~`g-form-fold--density-{d}`~~ | — | **Ya no se emite** (#976): reflejaba el valor del contexto; el CSS lee `var(--g-density)` heredado |
 | `is-open` · `is-animating` · `is-ready` | Raíz | Como `GFormReveal` |
 | `g-form-fold__panel`, `__head`, `__title`, `__description`, `__body`, `__actions` | Partes | Abierto o cerrándose |
 
@@ -1721,3 +1723,6 @@ La librería está en `draft`: se cambia **sin capa de compatibilidad**; `GFormL
 | L11 | Buscar en la página | **No entra** en esta fase: límite documentado en el README; `hidden="until-found"` queda pendiente no bloqueante (ronda corta si un caso real lo pide) | #291 |
 | L12 | `GFormNav` | Anotado en «Fases siguientes»: lee `id`, título, `open`, recuento y `summary`; ir a una sección enfoca su botón sin abrirla; ir a un campo abre por `OPEN_REQUEST` | #291 |
 
+## Texto con puntero grueso (DECISIONS.md #970 a #972)
+
+Regla común en `docs/contract/api.md` «Texto editable con puntero grueso» y mínimo en `tokens.md` §7: con `@media (pointer: coarse)`, `font-size: max(16px, <rol>)`; interlineado del rol con piso `--g-text-body-sm-line`; altura sin cambio; en escritorio, sin cambio. Aquí, en `GInputGroup`: suben la parte de texto (`GInputGroupInput`), la parte de elección (`<select>` nativo, que iOS también amplía) y su `<input readonly>`, y la parte `GInputGroupText` (comparte la línea). Etiqueta, ayuda y mensaje del grupo, en su rol. `GForm`, `GFormRow` y `GFormLayout` no cambian; los mínimos publicados siguen a sus medidores.

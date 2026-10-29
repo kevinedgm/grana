@@ -23,7 +23,7 @@ Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Men
 | `align` | String | `start` `end` (borde del disparador con el que se alinea) | `start` | propia |
 | `side` | String | `auto` `bottom` `top` | `auto` | propia |
 | `closeOnSelect` | String | `auto` `always` `never` | `auto` | propia |
-| `density` | String | `default` `comfortable` `compact` | `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 | `labels` | Object | textos de los elementos-enlace (§«Elementos-enlace», «Textos»), `cancel` de la confirmación en el sitio (#790) y `findHint`, `matches`, `matchesOne`, `none` de buscar al escribir (#797) | `{}` | compartida (sin valores por defecto, #226) |
 | `id` | String | | generado | propia |
 
@@ -34,7 +34,7 @@ Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Men
 - **`align`:** `start` alinea la lista con el borde de **inicio** del disparador (izquierdo en LTR, derecho en RTL); `end`, con el borde final.
 - **`side`:** `auto` abre **debajo** y, si no cabe y hay más espacio arriba, **arriba**; `bottom` y `top` fijan el lado (siempre con ajuste al visor).
 - **`closeOnSelect`:** `auto` (por defecto): las **acciones cierran** el menú y las **casillas y opciones no**; `always`, todo cierra; `never`, nada cierra (la aplicación cierra con `modelValue`).
-- **`density`:** multiplica el alto y el relleno de los elementos (1×, 0.875×, 0.75×), con piso de 24px.
+- **`density`:** multiplica el alto y el relleno de los elementos (1×, 0.875×, 0.75×), con piso de 24px. Sin prop, la lista sigue la región de su disparador (el `popover` vive en su sitio; `density.md` §5.1); con prop, `data-g-density` y la clase van en `g-menu__list` (#975).
 - **Resto de atributos:** `class`, `style` y `data-*` van a la **lista** (el `ul` del menú).
 
 ## Elementos (`items`)
@@ -185,7 +185,7 @@ Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Men
 
 | Clase | Elemento | Cuándo |
 | --- | --- | --- |
-| `g-menu__list` (+ `--density-*`) | Lista y submenús (`ul`) | Siempre |
+| `g-menu__list` (+ `--density-*`) | Lista y submenús (`ul`) | Siempre (`--density-*` solo con la prop explícita, junto a `data-g-density`; #975) |
 | `g-menu__item` (+ `--danger`, `is-expanded`) | Elemento | Siempre (`is-expanded` en un padre con el submenú abierto) |
 | `g-menu__icon`, `__label`, `__shortcut` | Partes del elemento | Según el elemento |
 | `g-menu__mark` | Marca de casilla u opción | En `checkbox` y `radio` |
@@ -212,6 +212,7 @@ Ronda de kiwi `design/lab/personalidad/r01/` §8 (M1 prototipada sobre el compon
 - **Datos** (bruno, `GMenu.vue`), en cada `g-menu__list`: **`--_active-y`** y **`--_active-h`** (px: `offsetTop` y `offsetHeight` del activo respecto de su lista; el resaltado se desplaza con el contenido si la lista tiene scroll), **`has-highlight`** mientras haya activo, e **`is-highlight-instant`** en la primera colocación tras abrir o tras no tener activo (aparece en su sitio sin viajar desde 0; se quita a los dos cuadros). Escrituras solo si cambian. **`is-highlight-instant` solo en la primera colocación** (#308): cuando el puntero entra desde fuera con la lista ya abierta y con el foco en otro elemento (p. ej. el primero, abierta por teclado o por clic), el resaltado **viaja desde el elemento que tenía el foco hasta el del puntero**: es el comportamiento buscado (una sola luz que viaja, y el foco **sí** estaba allí); no hay una segunda «primera colocación» por entrar el puntero.
 - El **anillo de foco** de cada elemento no cambia. En **`forced-colors`**, el resaltado se oculta y manda el estilo de foco del sistema (como hoy).
 - Movimiento: `--g-duration-press`, `--g-ease-out` para posición y alto; fundido `--g-duration-fast`. Nunca `--g-ease-spring` ni `--g-ease-bounce` (#299).
+- **`GMenu` no cambia con «una sola luz» de `GSidebar` y `GTable`** (#957 a #963, `api.md` «Una sola luz»): allí la luz sigue al **puntero** y el puntero no mueve el foco, porque esas listas viven en la secuencia de Tab de la página; aquí la lista es un compuesto que ya tiene el foco dentro mientras está abierto, así que la luz sigue al **foco** y el puntero mueve el foco, como hasta ahora. Comparten el movimiento (mismos tokens, sin muelle) y la utilidad de geometría solo si bruno hace que `createHighlight` delegue en `placeHighlight` de `utils/glide.js` **sin cambiar** los datos de `GMenu` (`--_active-y`, `--_active-h`, `has-highlight`, `is-highlight-instant`) y con `GMenu.test.js` y `tests/personalidad-menu*.spec.mjs` en verde **sin tocarlos** (#962); si no, conviven. Una prueba de que `GMenu` no cambia va con el lote.
 - **Cambia una nota de estilo de coco** (`design/lab/menu/estilo.md`, fila «Elemento»: «el activo (foco, ratón o submenú abierto) en `--g-color-surface-sunken`» pasa a la capa única con ese mismo color).
 
 ### M4 · Submenú con intención

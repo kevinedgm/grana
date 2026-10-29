@@ -657,3 +657,7 @@ Las resoluciones de r01 y r02 siguen vigentes salvo lo que sustituyen #693 a #70
 ## Fuera de v0.1
 
 Historial; persistir lo visto; `icon` por condición; varias acciones; contenido rico; agrupar condiciones repetidas; **«Fijar»** (reservado, #696); `duration` por condición; conceptos **A** (hilo desde la marca), **B** (punto que habla) y **C** (titular con cifras) de r03, y **D2** (mazo) y **D3** (repisa) de r04, prototipados y descartados (#695); la sesión de voz como aviso de la isla.
+
+## Densidad (pieza 2, #977)
+
+La raíz del anfitrión (`GStatusIsland`) lleva **`data-g-density="default"` fijo**, sin clase: vive en `body` y se muda al modal superior, y si heredara la región, un aviso cambiaría de tamaño al abrirse un diálogo compacto. No sigue `<html data-g-density>` ni la clave `density` del tema (Δ0 frente a hoy). Seguir la densidad de la página queda reservado (R3 de `density.md`).

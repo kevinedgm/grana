@@ -1,6 +1,6 @@
 # Contrato · Billing (`GbBilling01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #957 a #961 y #967, 2026-10-29) · **Plan:** S6 (§4.5) · **Entrada:** `@grana/blocks/saas` · **Común:** `_comun.md` §1 a §5 y §41 a §54 (sobre todo §44 regla 2: sin datos de tarjeta) · **Compone:** `GSection`, `GPriceScope` + `GPrice`, `GSplit` (01), `GCard`, `GSummary`, `GTable`, `GBadge`, `GBtn`, `GText` y la confirmación común (§43.2) · **Fase:** 4c·3 · **Compleja: coco y bruno en Opus** (tabla con puerta, diálogo de cancelación, estado de cobro)
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #983 a #987 y #993, 2026-10-29) · **Plan:** S6 (§4.5) · **Entrada:** `@grana/blocks/saas` · **Común:** `_comun.md` §1 a §5 y §41 a §54 (sobre todo §44 regla 2: sin datos de tarjeta) · **Compone:** `GSection`, `GPriceScope` + `GPrice`, `GSplit` (01), `GCard`, `GSummary`, `GTable`, `GBadge`, `GBtn`, `GText` y la confirmación común (§43.2) · **Fase:** 4c·3 · **Compleja: coco y bruno en Opus** (tabla con puerta, diálogo de cancelación, estado de cobro)
 
 ## Promesa
 
@@ -83,7 +83,7 @@ interface GbBillingProps {
 
 `GSection` con título (sin `h1`); la atención en texto al principio (sin región viva: está a la vista al llegar); el plan y el método con su encabezado; la tabla con `caption`, puerta por fila (#598) y el estado en texto (`rowStatus` para lo que pide atención, #600); importes con la frase de `GPrice`; «Descargar F-0042» con la referencia en el nombre; la cancelación es `alertdialog` con el foco en «Mantener».
 
-## Qué lo hace distinto (#967)
+## Qué lo hace distinto (#993)
 
 **Lo que falla está arriba y se arregla ahí.** Un cobro rechazado o una tarjeta que vence no se esconden en un correo ni en una fila roja: abren el bloque con su frase («El cobro del 1 de noviembre falló: actualiza tu método de pago») y el botón que lo arregla al lado. El próximo cobro se dice **con importe, fecha y tarjeta** en una línea, y cancelar dice antes, junto al botón que confirma, desde cuándo y qué se pierde. Nunca un número de tarjeta: la tarjeta es «Visa terminada en 4242», texto de la aplicación.
 

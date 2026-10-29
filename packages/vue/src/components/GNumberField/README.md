@@ -268,6 +268,7 @@ Con el foco en el campo, un paso deja el cursor **al final** del texto. Las flec
 
 ## Accesibilidad
 
+- **Texto con puntero grueso (#970 a #972):** con `pointer: coarse` (táctil) el texto que se escribe sube a `max(16px, su rol)` para que iOS Safari no amplíe la página al enfocar el campo; en escritorio no cambia nada. La altura de la caja no cambia. Sube la línea del valor entera (prefijo, sufijo, unidad pegada, cifras que ruedan, `output` y −/+); etiqueta, ayuda, mensajes y listas se quedan en su rol. Grana no toca el viewport: no añadas `maximum-scale=1` (bloquea el pellizco, WCAG 1.4.4). `medido` en Chromium con emulación táctil (2007/2007, [`auditoria.md`](../../../../../design/lab/campo-tactil/auditoria.md)).
 - **Semántica:** `<input type="text" role="spinbutton">` con `aria-valuenow` (con valor), **`aria-valuetext` siempre que hay valor** (el número en el formato del idioma, con miles y `precision`, sin unidad ni marcas bidi) y `aria-valuemin`/`aria-valuemax` solo con `min`/`max`. Vacío: sin `aria-valuenow` ni `aria-valuetext`. Por qué `valuetext` siempre: `valuenow` no tiene idioma y **Chromium lo recorta al rango** (150 con `max` 120 expone 120), mientras `valuetext` conserva «150». **Sin `min`/`max`, Chromium expone igualmente `aria-valuemin` 0 y `aria-valuemax` 0** (el valor por defecto del rol; no hay forma ARIA de evitarlo): con `aria-valuetext` el lector dice el valor correcto.
 - **Obligatorio:** `required` pone la marca de la convención de `GForm` y **`aria-required="true"`**, y **nunca el atributo nativo `required`** (DECISIONS #311): el `<input>` visible no es el que se envía, así que una restricción nativa sobre él no tendría sentido. Consecuencia: un `<form>` nativo sin `GForm` no bloquea el envío de un campo vacío; valida tú y usa `error`.
 - **Solo lectura:** `readonly` nativo **y** `aria-readonly="true"`. Es enfocable, seleccionable y se envía. Chromium no expone ninguno de los dos en un `spinbutton`; se ponen para el resto de motores y lectores.
@@ -295,11 +296,13 @@ Su raíz es la de `GInput` (tres hijos: etiqueta, caja y pie), así que comparte
 | Contexto | Mínimo |
 | --- | --- |
 | `md`, `space` 4, puntero fino (defecto; Chromium, Firefox y WebKit) | unos **110px** (111px medidos) |
-| `md`, puntero grueso (Chromium y WebKit) | unos **130px** (127px medidos) |
+| `md`, puntero grueso (Chromium y WebKit) | unos **130px** (127px medidos), **antes** del texto de 16px |
 | «Tema de prueba» (`space` 5, borde 2px, Georgia) | 129px |
 | Tema de la auditoría (`space` 5, texto de 17px) | 135px |
 
 Depende de la fuente, por eso se mide y no se tabula: la cifra de referencia de un banco sin la fuente servida daba 112px. Barrido de un campo con −/+ junto a un `GInput`, de 420 a 140px de 1 en 1: mientras comparten línea, **«99» cabe entero**; la fila se parte antes de que deje de caber y, en el último ancho de una línea, el campo mide lo que necesita (±2px). `--g-form-min` sigue disponible para subirlo.
+
+**Con puntero grueso, desde #970 a #972, el texto sube a 16px y el mínimo crece con él.** La fila «puntero grueso» de la tabla es de antes de ese cambio y ya no vale; las demás son de puntero fino y no cambian. El mínimo en táctil con el texto nuevo **no está medido**. El campo lo sigue solo: el mínimo se mide en vivo.
 
 - **Solo con `steppers` y sus dos textos.** Sin −/+ el campo no publica nada y se comporta como `GInput` (clase de tamaño y `--g-form-min`), así que la distribución de una fila de campos sin −/+ no cambia.
 - **Bloquear y desbloquear no reparte la fila** (DECISIONS #266, [receta del bloqueo con interruptor](../GForm/README.md#bloqueo-con-interruptor)): en `readonly` −/+ no se pintan pero **cuentan** en el mínimo. Fila «Producto · Cantidad · Presentación» de 900 a 260px cada 20px: con y sin `readonly` la misma distribución, la misma caja (alto, `top`, ancho ±0,5px).
@@ -443,6 +446,8 @@ Las emite el componente y las estiliza `GNumberField.css`, después de `GInput.c
   - el **zoom real** del navegador al 200 % y 400 % (se aproximó con un visor a la mitad y DPR 2).
 
 - **Hueco del cursor de 2 px (cerrado, DECISIONS #679):** el espejo y el medidor dejan 2 px al final; en WebKit los campos que se desplazaban 1 px pasan de 27 a 0 de 63 (Chromium y Firefox 0 antes y después); el mínimo publicado sube 1 px solo («99» en `md`: 111 → 112 px medido; referencia del banco de estilo 113 px). `design/lab/number-field/auditoria-verificar.mjs` 20 795/20 795 en los tres motores.
+
+- **Texto de 16px con puntero grueso (#970 a #972):** `medido` solo en Chromium con emulación táctil: `node design/lab/campo-tactil/verificar.mjs` 2007/2007 ([`auditoria.md`](../../../../../design/lab/campo-tactil/auditoria.md)) y `tests/campo-tactil.spec.mjs` 15/15. **Sin verificar:** WebKit (el motor de iOS), Firefox y un iPhone real con Safari, que es donde se comprueba que ya no amplía.
 
 - **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 

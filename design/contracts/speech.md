@@ -613,7 +613,7 @@ Opcional: sin ella, solo existe la flotante. **Una por gestor**: una segunda `GS
 | `for` | String | `id` de un `<textarea>` o un `<input>` de tipo `text`, `search`, `url` o `tel` | sin valor | **Obligatorio en dictado** (aviso si falta). Otros tipos (incluido `password`, por privacidad, y `email`/`number`, que no admiten `setRangeText`): aviso y no inicia sesión |
 | `targetLabel` | String | texto de la app | el nombre visible del campo (`el.labels[0]` al iniciar) | Rellena `{target}` (nombre del disparador, modo, anuncios). Si no se puede resolver: aviso y `{target}` vacío |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` | El del `GBtn` (`api.md`) |
-| `density` | String | `default` `comfortable` `compact` | `default` | Ídem |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | Ídem |
 | `disabled` | Boolean | | `false` | `disabled` nativo |
 | `speech` | Object (gestor) | | el inyectado | |
 
@@ -1567,3 +1567,11 @@ Mismo prefijo y reglas que §15 (`[Grana Speech]`, una vez por causa, **nunca co
 **Pendiente para bruno (#262):** `GCheckbox` gana `field` (Boolean, `true`): con `false`, sin `g-checkbox__message`, sin `useFormField` (ni registro ni herencia de `density`/`readonly`/`disabled`/errores/marcas) y aviso si llegan `error`/`warning`/`valid`/`required`/`mark`; todas las `GCheckbox` de `GTranscript` (fila, «Seleccionar todo», «Con hablantes») con `:field="false"`; `flip-rtl` en el `undo-2` de «Deshacer inserción»; `selectionBatch` en `TRANSCRIPT_LIMITS`; compuerta de rendimiento de §31 (Firefox < 100 ms, WebKit < 200 ms). Pruebas: `GCheckbox.test.js` (sin región ni `aria-live` con `field: false`; dentro de un `GForm` `readonly` sigue operable y no se registra; avisos), `GTranscript.test.js` (ninguna `g-checkbox__message` ni región viva en la vista salvo la propia sin anfitrión) y la prueba de navegador. Metas: `GCheckbox.meta.json` (prop `field`) y `GTranscript.meta.json` (quitar los dos pendientes de lima; desviaciones remitidas a #263). README de `GCheckbox`: mora-docs.
 
 **Pendientes para bruno (construcción, hecho):** **primero `GBtn` (#257)**; después construir según §20 a §30 (modelo, vista, destinos, cambios del anfitrión) con el marcado de `estilo.md` «Fase 2» («Marcado que el CSS espera», 1 a 11), registrar `GTranscript.css` (§31), `GTranscript.meta.json`, los 12 iconos en la lista `library` de `icons.json` antes de usarlos, `TRANSCRIPT_LIMITS`, las pruebas de §31 y la compuerta de rendimiento; reflejar en `GSpeechHost.meta.json` las acciones nuevas del panel.
+
+## Texto con puntero grueso (DECISIONS.md #970 a #972)
+
+Regla común en `docs/contract/api.md` «Texto editable con puntero grueso» y mínimo en `tokens.md` §7: con `@media (pointer: coarse)`, `font-size: max(16px, <rol>)`; interlineado del rol con piso `--g-text-body-sm-line`; altura sin cambio; en escritorio, sin cambio. Aquí: solo el editor en la celda de `GTranscript` (`g-transcript__field`, `<textarea>` nativo) sube; el original, la pista y la rejilla se quedan en su rol. El resto de la captura de voz no tiene campos propios.
+
+## Densidad (pieza 2, #977)
+
+La raíz del anfitrión (`GSpeechHost`, y el diálogo de revisión `g-speech-review`, que va a `body`) lleva **`data-g-density="default"` fijo**, sin clase: vive en `body` y se muda al modal superior, y si heredara la región, un aviso cambiaría de tamaño al abrirse un diálogo compacto. No sigue `<html data-g-density>` ni la clave `density` del tema (Δ0 frente a hoy). Seguir la densidad de la página queda reservado (R3 de `density.md`).

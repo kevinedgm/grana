@@ -18,7 +18,7 @@ Interruptor de efecto inmediato: activa o desactiva una opción. Alcance decidid
 | `modelValue` | Boolean | | `false` | compartida |
 | `labelPosition` | String | `end` `start` | `end` | propia |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` | compartida |
-| `density` | String | `default` `comfortable` `compact` | `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | `brand` | compartida |
 | `disabled` | Boolean | | `false` | compartida |
 | `readonly` | Boolean | | `false` | compartida (precisada en `api.md`) |
@@ -132,7 +132,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras. El estado encendido se es
 | --- | --- | --- |
 | `g-switch` | Raíz (`div`) | Siempre |
 | `g-switch--size-{size}` | Raíz | Siempre |
-| `g-switch--density-{density}` | Raíz | Siempre |
+| `g-switch--density-{density}` | Raíz | Con la prop explícita, junto a `data-g-density` (#975) |
 | `g-switch--color-{color}` | Raíz | Siempre (incluido `brand`) |
 | `g-switch--label-{end\|start}` | Raíz | Siempre |
 | `g-switch--icons` | Raíz | Con `icon-on` o `icon-off` |

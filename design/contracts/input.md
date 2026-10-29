@@ -12,7 +12,7 @@ Campo completo de una línea: etiqueta, ayuda, error, iconos, contador y (en `pa
 | `modelValue` | String | | `''` | compartida |
 | `variant` | String | `outline` `soft` | `outline` | compartida (subconjunto: DECISIONS.md #28) |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` | compartida |
-| `density` | String | `default` `comfortable` `compact` | `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | sin valor: usa `--g-color-focus` | compartida (ver "Reglas") |
 | `rounded` | String | `none` `xs` `sm` `md` `lg` `xl` `pill` | sin valor: `sm` (campo, `tokens.md` §3) | compartida |
 | `block` | Boolean | | `false` | compartida |
@@ -156,7 +156,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `g-input` | Raíz (`div`) | Siempre |
 | `g-input--variant-{variant}` | Raíz | Siempre (incluido el defecto) |
 | `g-input--size-{size}` | Raíz | Siempre |
-| `g-input--density-{density}` | Raíz | Siempre |
+| `g-input--density-{density}` | Raíz | Con la prop explícita, junto a `data-g-density` (#975) |
 | `g-input--color-{color}` | Raíz | Solo si el prop tiene valor |
 | `g-input--rounded-{rounded}` | Raíz | Solo si el prop tiene valor |
 | `g-input--block` | Raíz | `block` |
@@ -330,3 +330,7 @@ I1: solo fundido, sin desplazamiento. I2: **no existe** (el error ya es borde, i
 - **Por qué no el slot `hint`:** lo de la ayuda es descripción del campo (`aria-describedby`); una lista con botones no puede serlo. **Por qué no un cuarto hijo:** rompería las tres pistas compartidas de `GFormRow` (`form.md` §4, C10).
 - **Coco:** nada en `GInput.css`; lo propio (`g-combobox__chosen`, `__rows`) va en `GCombobox.css`.
 - **Pruebas (bruno):** `GInput` sin N5 se renderiza igual (instantánea); con N5, el contenido es el último hijo de `g-input__support`, después del mensaje, sin `aria-hidden`, fuera de `aria-describedby`, y recibe `readonly` y `disabled` resueltos.
+
+## Texto con puntero grueso (DECISIONS.md #970 a #972)
+
+Regla común en `docs/contract/api.md` «Texto editable con puntero grueso» y mínimo en `tokens.md` §7: con `@media (pointer: coarse)`, `font-size: max(16px, <rol>)`; interlineado del rol con piso `--g-text-body-sm-line`; altura sin cambio; en escritorio, sin cambio. Aquí: `__field` y su marcador de posición, `__prefix`, `__suffix`, `__output` y `__loader` suben con el campo (la línea del valor); `__label`, ayuda, `__message` y contador se quedan en su rol. Lo heredan `GNumberField`, `GTimeField` y `GCombobox`.

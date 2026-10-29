@@ -2,7 +2,8 @@
   GTextarea · estilo del esqueleto
   Dueño: coco. Contrato: design/contracts/textarea.md. Estructura: design/lab/textarea/r01/.
   Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
-  únicos literales de medida: 24px y 44px (área táctil), 0px en max() y el patrón de texto oculto
+  únicos literales de medida: 24px y 44px (área táctil), 16 px en max() del texto con puntero grueso (#970), 0px en
+  max() y el patrón de texto oculto
   accesible (1px, -1px, clip-path).
   Mismo lenguaje que GInput: con `rows` 1, la altura iguala la de un GInput del mismo tamaño y densidad.
   `--_autoh` (variable CSS dinámica que pone bruno con `autosize`) es la altura medida del campo.
@@ -24,8 +25,11 @@
   --_density: 1;
   --_px: var(--g-space-3);
   --_gap: var(--g-space-2);
-  --_fs: var(--g-text-body-sm-size);
-  --_lh: var(--g-text-body-sm-line);
+  /* Rol por --size-* (alias base) y lo que mide el texto (--_fs/--_lh): iguales salvo con puntero grueso (#970) */
+  --_fs-role: var(--g-text-body-sm-size);
+  --_lh-role: var(--g-text-body-sm-line);
+  --_fs: var(--_fs-role);
+  --_lh: var(--_lh-role);
   --_h: max(24px, calc(var(--g-space-1) * var(--_units) * var(--_density)));
   /* Relleno vertical: reparte lo que sobra de la altura de una fila alrededor del interlineado */
   --_padv: max(0px, calc((var(--_h) - var(--g-border-width) * 2 - var(--_lh)) / 2));
@@ -247,11 +251,23 @@
 }
 
 /* ---------- Tamaño ---------- */
-.g-textarea--size-xs { --_units: 6;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs: var(--g-text-caption-size); --_lh: var(--g-text-caption-line); }
-.g-textarea--size-sm { --_units: 7;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
-.g-textarea--size-md { --_units: 9;  --_px: var(--g-space-3); --_gap: var(--g-space-2); --_fs: var(--g-text-body-sm-size); --_lh: var(--g-text-body-sm-line); }
-.g-textarea--size-lg { --_units: 11; --_px: var(--g-space-4); --_gap: var(--g-space-2); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
-.g-textarea--size-xl { --_units: 13; --_px: var(--g-space-5); --_gap: var(--g-space-3); --_fs: var(--g-text-body-size); --_lh: var(--g-text-body-line); }
+.g-textarea--size-xs { --_units: 6;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs-role: var(--g-text-caption-size); --_lh-role: var(--g-text-caption-line); }
+.g-textarea--size-sm { --_units: 7;  --_px: var(--g-space-2); --_gap: var(--g-space-1); --_fs-role: var(--g-text-body-sm-size); --_lh-role: var(--g-text-body-sm-line); }
+.g-textarea--size-md { --_units: 9;  --_px: var(--g-space-3); --_gap: var(--g-space-2); --_fs-role: var(--g-text-body-sm-size); --_lh-role: var(--g-text-body-sm-line); }
+.g-textarea--size-lg { --_units: 11; --_px: var(--g-space-4); --_gap: var(--g-space-2); --_fs-role: var(--g-text-body-size); --_lh-role: var(--g-text-body-line); }
+.g-textarea--size-xl { --_units: 13; --_px: var(--g-space-5); --_gap: var(--g-space-3); --_fs-role: var(--g-text-body-size); --_lh-role: var(--g-text-body-line); }
+
+/* ---------- Texto editable con puntero grueso (#970 a #972; api.md «Texto editable con puntero grueso») ---------- */
+/* El texto escrito, su marcador y el indicador de carga miden max(16 px, rol); manda el rol si es mayor. Interlineado
+   con piso body-sm: el relleno vertical (--_padv) lo descuenta, así con una o dos filas la caja no cambia; con xs y
+   rows ≥ 3 crece 4 px por fila extra (única altura que cambia, aceptada en #972). Etiqueta, ayuda, mensaje y contador,
+   en su rol */
+@media (pointer: coarse) {
+  .g-textarea {
+    --_fs: max(16px, var(--_fs-role));
+    --_lh: max(var(--_lh-role), var(--g-text-body-sm-line));
+  }
+}
 
 /* ---------- Densidad ---------- */
 .g-textarea--density-default { --_density: 1; }

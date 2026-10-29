@@ -20,7 +20,7 @@ Selector de una opción con lista propia (patrón *select-only combobox* de WAI-
 | `options` | Array | ver "Opciones" | `[]` | propia |
 | `variant` | String | `outline` `soft` | `outline` | compartida (subconjunto, como `GInput`: DECISIONS.md #28) |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` | compartida |
-| `density` | String | `default` `comfortable` `compact` | `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | sin valor: usa `--g-color-focus` | compartida (solo el foco) |
 | `rounded` | String | `none` `xs` `sm` `md` `lg` `xl` `pill` | sin valor: `sm` | compartida |
 | `block` | Boolean | | `false` | compartida |
@@ -207,7 +207,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `g-select` | Raíz (`div`) | Siempre |
 | `g-select--variant-{variant}` | Raíz | Siempre |
 | `g-select--size-{size}` | Raíz | Siempre |
-| `g-select--density-{density}` | Raíz | Siempre |
+| `g-select--density-{density}` | Raíz | Con la prop explícita, junto a `data-g-density` (#975) |
 | `g-select--color-{color}` | Raíz | Solo si el prop tiene valor |
 | `g-select--rounded-{rounded}` | Raíz | Solo si el prop tiene valor |
 | `g-select--block` | Raíz | `block` |
@@ -304,3 +304,7 @@ El estado elegida y deshabilitada de una opción se estiliza con `aria-selected`
 **Clases nuevas** (contrato bruno–coco): `g-select__support` (r02), `g-select__optional`, `g-select__message`, `__message-icon`, `__message-type`, `is-warning`, `is-valid` (`g-select__error` desaparece).
 
 **Marca fuera de `GForm` (#170):** sin contexto, el asterisco con `required` se pinta como antes aunque el campo sea `readonly` o `disabled`; la regla «solo campos editables llevan marca» rige solo dentro de `GForm`.
+
+## Texto con puntero grueso (DECISIONS.md #970 a #972)
+
+Regla común en `docs/contract/api.md` «Texto editable con puntero grueso» y mínimo en `tokens.md` §7: con `@media (pointer: coarse)`, `font-size: max(16px, <rol>)`; interlineado del rol con piso `--g-text-body-sm-line`; altura sin cambio; en escritorio, sin cambio. Aquí (grupo B, coherencia de fila: el control es un botón y no amplía): el valor de `__button` y su icono suben; **las opciones de la lista se quedan en el rol** aunque hoy lean `--_fs` (se fijan al alias base). Etiqueta, ayuda y mensaje, en su rol.

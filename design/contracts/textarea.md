@@ -18,7 +18,7 @@ Campo de texto de varias líneas con la misma anatomía y el mismo lenguaje que 
 | `modelValue` | String | | `''` | compartida |
 | `variant` | String | `outline` `soft` | `outline` | compartida (subconjunto, como `GInput`: DECISIONS.md #28) |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` | compartida |
-| `density` | String | `default` `comfortable` `compact` | `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | sin valor: usa `--g-color-focus` | compartida (solo el foco) |
 | `rounded` | String | `none` `xs` `sm` `md` `lg` `xl` `pill` | sin valor: `sm` (campo, `tokens.md` §3) | compartida |
 | `block` | Boolean | | `false` | compartida |
@@ -126,7 +126,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `g-textarea` | Raíz (`div`) | Siempre |
 | `g-textarea--variant-{variant}` | Raíz | Siempre |
 | `g-textarea--size-{size}` | Raíz | Siempre |
-| `g-textarea--density-{density}` | Raíz | Siempre |
+| `g-textarea--density-{density}` | Raíz | Con la prop explícita, junto a `data-g-density` (#975) |
 | `g-textarea--color-{color}` | Raíz | Solo si el prop tiene valor |
 | `g-textarea--rounded-{rounded}` | Raíz | Solo si el prop tiene valor |
 | `g-textarea--block` | Raíz | `block` |
@@ -193,3 +193,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 **Clases nuevas** (contrato bruno–coco): `g-textarea__support` (r02), `g-textarea__optional`, `g-textarea__message`, `__message-icon`, `__message-type`, `is-warning`, `is-valid` (`g-textarea__error` desaparece). Sin prefijo ni sufijo (#50).
 
 **Marca fuera de `GForm` (#170):** sin contexto, el asterisco con `required` se pinta como antes aunque el campo sea `readonly` o `disabled`; la regla «solo campos editables llevan marca» rige solo dentro de `GForm`.
+
+## Texto con puntero grueso (DECISIONS.md #970 a #972)
+
+Regla común en `docs/contract/api.md` «Texto editable con puntero grueso» y mínimo en `tokens.md` §7: con `@media (pointer: coarse)`, `font-size: max(16px, <rol>)`; interlineado del rol con piso `--g-text-body-sm-line`; altura sin cambio; en escritorio, sin cambio. Aquí: `__field` y su marcador de posición suben; etiqueta, ayuda, mensaje y contador se quedan. Con `xs` el piso de interlineado (16→20 con el tema por defecto) hace crecer 4px cada fila extra cuando `rows` ≥ 3: es la única altura que cambia y está aceptada (#972, criterio 4).

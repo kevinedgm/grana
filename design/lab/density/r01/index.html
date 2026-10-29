@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Densidad por región</title>
+<!-- Ronda r01 de kiwi · pieza 2 (densidad global y por región, #969). Componentes reales de packages/vue/dist/ con el
+     tema por defecto + density-proto.css (shim que emula el token --g-density y la lectura «sin prop»).
+     Servir desde la raíz del repo: python3 -m http.server 4212 -d /home/user/grana
+     Parámetros: ?mode=a|b (prop local o prop = región) · ?root=compact|comfortable|default (atributo en <html>)
+     · ?cli=compact|comfortable (emula la clave density del CLI, regla sin capa) · ?dark=1
+     Verificación: design/lab/density/r01/verificar.mjs (ver su cabecera). -->
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="./density-proto.css">
+<script>
+  // Antes del primer pintado (como haría una aplicación con SSR): preferencia del usuario y clave del CLI
+  (function () {
+    const q = new URLSearchParams(location.search)
+    const root = q.get('root'), cli = q.get('cli')
+    if (root) document.documentElement.setAttribute('data-g-density', root)
+    if (q.get('dark') === '1') document.documentElement.setAttribute('data-theme', 'dark')
+    if (cli) {
+      const n = { compact: 0.75, comfortable: 0.875, default: 1 }[cli]
+      const s = document.createElement('style')
+      s.id = 'cli-theme'
+      // Forma que emitiría @grana/cli (precedente #561): sin capa, y cede ante <html data-g-density>
+      s.textContent = `:root:where(:not([data-g-density])) { --g-density: ${n}; }`
+      document.head.appendChild(s)
+    }
+  })()
+</script>
+<style>
+  /* Maquetación de la página de prueba (no es CSS de componente) */
+  body { margin: 0; background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui);
+    font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); }
+  .dp-page { max-inline-size: 1120px; margin-inline: auto; padding: var(--g-space-8) var(--g-space-4) var(--g-space-16);
+    display: grid; gap: var(--g-space-8); }
+  .dp-head h1 { font-size: var(--g-text-title-size); line-height: var(--g-text-title-line); margin: 0 0 var(--g-space-2); }
+  .dp-head p { margin: 0; color: var(--g-color-text-muted); max-inline-size: 72ch; }
+  .dp-switch { display: flex; flex-wrap: wrap; gap: var(--g-space-2) var(--g-space-4); margin-block-start: var(--g-space-4); }
+  .dp-switch a { color: var(--g-color-accent-text); }
+  .dp-switch a[aria-current="true"] { font-weight: 600; color: var(--g-color-text); text-decoration: none; }
+  .dp-sec { display: grid; gap: var(--g-space-3); }
+  .dp-sec > h2 { font-size: var(--g-text-title-sm-size); line-height: var(--g-text-title-sm-line); margin: 0; }
+  .dp-sec > p { margin: 0; color: var(--g-color-text-muted); max-inline-size: 80ch; }
+  .dp-region { position: relative; border: var(--g-border-width) solid var(--g-color-border); border-radius: var(--g-radius-lg);
+    padding: var(--g-space-5) var(--g-space-4) var(--g-space-4); background: var(--g-color-surface); display: grid; gap: var(--g-space-4); min-inline-size: 0; }
+  .dp-tag { position: absolute; inset-block-start: calc(var(--g-space-3) * -1); inset-inline-start: var(--g-space-3);
+    background: var(--g-color-surface); padding-inline: var(--g-space-2); color: var(--g-color-text-muted);
+    font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); font-weight: 500; }
+  .dp-tag code { color: var(--g-color-text); }
+  .dp-row { display: flex; flex-wrap: wrap; align-items: end; gap: calc(var(--g-space-2) * var(--g-density)); }
+  .dp-grow { flex: 1 1 16rem; min-inline-size: 0; }
+  .dp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: var(--g-space-6); }
+  .dp-meter { inline-size: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  .dp-meter th, .dp-meter td { text-align: start; padding: var(--g-space-1) var(--g-space-2); border-block-end: var(--g-border-width) solid var(--g-color-border); }
+  .dp-meter td:nth-child(n+3) { text-align: end; }
+  .dp-sr { position: absolute; inline-size: 1px; block-size: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .dp-static { display: flex; gap: var(--g-space-2); }
+</style>
+<script src="../../lucide-icons.js"></script>
+</head>
+<body>
+<div id="app"></div>
+
+<!-- Marcado estático (lo que entregaría un SSR) fuera de Vue: con JavaScript apagado la región basta para el tamaño -->
+<div class="dp-page" style="padding-block: 0 var(--g-space-16)">
+  <section class="dp-sec" aria-labelledby="dp-s6">
+    <h2 id="dp-s6">Sin JavaScript (marcado de servidor)</h2>
+    <p>Dos botones con el marcado que pinta GBtn sin prop <code>density</code>. Uno dentro de una región compacta. Con JavaScript apagado el CSS ya resuelve la región.</p>
+    <div class="dp-static">
+      <button type="button" class="g-btn g-btn--color-brand g-btn--variant-outline g-btn--size-md" data-probe="ssr-page"><span class="g-btn__label">Página</span></button>
+      <div data-g-density="compact"><button type="button" class="g-btn g-btn--color-brand g-btn--variant-outline g-btn--size-md" data-probe="ssr-compact"><span class="g-btn__label">Región compacta</span></button></div>
+    </div>
+  </section>
+</div>
+
+<script src="../../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script>
+(function () {
+  const q = new URLSearchParams(location.search)
+  const modeB = q.get('mode') === 'b'
+  const { createApp, ref, onMounted, nextTick } = Vue
+  const icon = (n) => window.lucide ? window.lucide(n) : ''
+
+  const lotes = [
+    ['L-2041', 'Espadín · tina 3', 'Fermentando', '1 240'], ['L-2042', 'Tobalá · tina 1', 'Reposo', '380'],
+    ['L-2043', 'Cuishe · tina 5', 'Destilado', '612'], ['L-2044', 'Espadín · tina 2', 'Fermentando', '1 105'],
+    ['L-2045', 'Arroqueño · tina 4', 'Envasado', '290']
+  ].map(([id, sub, estado, litros]) => ({ id, titulo: id, sub, estado, litros }))
+  const columns = [
+    { key: 'lote', label: 'Lote', title: 'titulo', subtitle: 'sub' },
+    { key: 'estado', label: 'Estado' },
+    { key: 'litros', label: 'Litros', align: 'end' }
+  ]
+  const tLabels = { results: '{count} lotes', empty: 'Sin lotes.', loading: 'Cargando lotes…', rowActions: 'Acciones de {title}', actionsHeader: 'Acciones' }
+  const menuItems = [{ id: 'exp', label: 'Exportar' }, { id: 'dup', label: 'Duplicar' }, { id: 'arch', label: 'Archivar' }]
+
+  // Medidor: lee la caja real y el valor efectivo de --g-density en cada sonda
+  function meter () {
+    const rows = [...document.querySelectorAll('[data-probe]')].map((el) => {
+      const b = el.getBoundingClientRect()
+      const d = getComputedStyle(el).getPropertyValue('--g-density').trim()
+      const own = getComputedStyle(el).getPropertyValue('--_density').trim() || getComputedStyle(el).getPropertyValue('--_d').trim()
+      return `<tr><td>${el.dataset.probe}</td><td>${el.closest('[data-g-density]')?.getAttribute('data-g-density') ?? '(tema)'}</td><td>${d}</td><td>${own}</td><td>${Math.round(b.height * 10) / 10}</td></tr>`
+    })
+    const out = document.getElementById('dp-meter-body')
+    if (out) out.innerHTML = rows.join('')
+  }
+  window.dpMeter = meter
+
+  const App = {
+    setup () {
+      const menuOpen = ref(false), menuOpen2 = ref(false)
+      const dlg = ref(false)
+      const nombre = ref('Espadín · tina 3')
+      const busca = ref(''), busca2 = ref('')
+      const correo = ref('ana@ejemplo.mx'), equipo = ref('Destilería')
+      onMounted(async () => { await nextTick(); meter() })
+      return { modeB, lotes, columns, tLabels, menuItems, menuOpen, menuOpen2, dlg, nombre, busca, busca2, correo, equipo, icon, meter,
+        href: (k, v) => { const u = new URLSearchParams(location.search); if (v == null) u.delete(k); else u.set(k, v); return '?' + u.toString() },
+        cur: (k, v) => (q.get(k) ?? null) === v ? 'true' : undefined }
+    },
+    template: `
+<main class="dp-page">
+  <header class="dp-head">
+    <h1>Densidad por región</h1>
+    <p>Una página en <code>default</code> con una región <code>compact</code> (barra, tabla y un menú abierto desde ella) y otra <code>comfortable</code>. Los componentes son los reales de <code>dist/</code>; un shim emula el token <code>--g-density</code> y la lectura «sin prop».</p>
+    <nav class="dp-switch" aria-label="Variantes">
+      <a :href="href('mode', null)" :aria-current="!modeB ? 'true' : undefined">A · la prop es del componente</a>
+      <a :href="href('mode', 'b')" :aria-current="modeB ? 'true' : undefined">B · la prop es una región</a>
+      <a :href="href('root', 'compact')" :aria-current="cur('root', 'compact')">Preferencia del usuario: &lt;html data-g-density="compact"&gt;</a>
+      <a :href="href('cli', 'compact')" :aria-current="cur('cli', 'compact')">Tema del CLI: density compact</a>
+      <a href="?">Restablecer</a>
+      <a :href="href('dark', '1')">Oscuro</a>
+    </nav>
+  </header>
+
+  <section class="dp-sec" aria-labelledby="dp-s1">
+    <h2 id="dp-s1">Página (sin región)</h2>
+    <p>Sin atributo, cada componente lee la densidad del tema: <code>default</code> salvo que el CLI o el atributo en &lt;html&gt; digan otra cosa.</p>
+    <div class="dp-row">
+      <g-input class="dp-grow" v-model="busca2" label="Buscar en la página" data-probe="page-input"></g-input>
+      <g-btn data-probe="page-btn">Guardar</g-btn>
+    </div>
+  </section>
+
+  <section class="dp-sec" aria-labelledby="dp-s2">
+    <h2 id="dp-s2">Región compacta: barra + tabla + menú + diálogo</h2>
+    <p>El atributo va en un elemento de la aplicación. La barra, la tabla, el menú que se abre en la capa superior y el diálogo escrito dentro siguen la región. El botón «Ver todo» lleva <code>density="default"</code> explícito: la prop gana.</p>
+    <div class="dp-region" data-g-density="compact" id="dp-compact">
+      <span class="dp-tag" aria-hidden="true"><code>data-g-density="compact"</code></span>
+      <g-table :columns="columns" :rows="lotes" caption="Lotes en proceso" :labels="tLabels" responsive="table" data-probe="compact-table">
+        <template #toolbar>
+          <div class="dp-row" style="inline-size:100%">
+            <g-input class="dp-grow" v-model="busca" label="Buscar lotes" data-probe="compact-input"></g-input>
+            <g-btn data-probe="compact-btn"><template #prepend><span v-html="icon('plus')"></span></template>Nuevo lote</g-btn>
+            <g-menu v-model="menuOpen" :items="menuItems" label="Más acciones" data-probe="compact-menu">
+              <template #trigger="{ attrs }"><g-btn v-bind="attrs" variant="outline" data-probe="compact-menu-trigger">Más</g-btn></template>
+            </g-menu>
+            <g-btn variant="ghost" @click="dlg = true" data-probe="compact-dialog-trigger"><template #prepend><span v-html="icon('pencil')"></span></template>Editar</g-btn>
+            <g-btn variant="ghost" density="default" data-proto-explicit :data-g-density="modeB ? 'default' : null" data-probe="compact-explicit-default">Ver todo</g-btn>
+          </div>
+        </template>
+      </g-table>
+      <g-dialog v-model="dlg" title="Editar lote" close-label="Cerrar" data-probe="compact-dialog">
+        <g-input v-model="nombre" label="Nombre del lote" data-probe="dialog-input"></g-input>
+        <template #footer><g-btn @click="dlg = false" data-probe="dialog-btn">Guardar</g-btn></template>
+      </g-dialog>
+    </div>
+  </section>
+
+  <div class="dp-grid">
+    <section class="dp-sec" aria-labelledby="dp-s3">
+      <h2 id="dp-s3">Región cómoda, con una compacta dentro</h2>
+      <p>Anidación: manda la región más cercana.</p>
+      <div class="dp-region" data-g-density="comfortable" id="dp-comfortable">
+        <span class="dp-tag" aria-hidden="true"><code>data-g-density="comfortable"</code></span>
+        <div class="dp-row">
+          <g-input class="dp-grow" v-model="correo" label="Correo" data-probe="comf-input"></g-input>
+          <g-btn data-probe="comf-btn">Invitar</g-btn>
+        </div>
+        <div class="dp-region" data-g-density="compact" id="dp-nested">
+          <span class="dp-tag" aria-hidden="true"><code>compact</code> dentro</span>
+          <div class="dp-row">
+            <g-input class="dp-grow" v-model="equipo" label="Equipo" data-probe="nested-input"></g-input>
+            <g-btn variant="outline" data-probe="nested-btn">Cambiar</g-btn>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="dp-sec" aria-labelledby="dp-s4">
+      <h2 id="dp-s4">A frente a B: una tabla con <code>density="compact"</code> y sin región</h2>
+      <p v-if="!modeB">A · La prop es local: la tabla aprieta sus celdas; los botones de su barra y su menú siguen a la página.</p>
+      <p v-else>B · La prop es una región: la tabla pone <code>data-g-density</code> en su raíz y todo lo de dentro la sigue.</p>
+      <div class="dp-region">
+        <g-table :columns="columns" :rows="lotes.slice(0, 2)" caption="Lotes · prop explícita" :labels="tLabels" responsive="table"
+          density="compact" data-proto-explicit :data-g-density="modeB ? 'compact' : null" data-probe="ab-table">
+          <template #toolbar>
+            <div class="dp-row">
+              <g-btn variant="outline" data-probe="ab-btn">Filtrar</g-btn>
+              <g-menu v-model="menuOpen2" :items="menuItems" label="Acciones de la tabla" data-probe="ab-menu">
+                <template #trigger="{ attrs }"><g-btn v-bind="attrs" variant="outline" data-probe="ab-menu-trigger">Más</g-btn></template>
+              </g-menu>
+            </div>
+          </template>
+        </g-table>
+      </div>
+    </section>
+  </div>
+
+  <section class="dp-sec" aria-labelledby="dp-s5">
+    <h2 id="dp-s5">Medidas</h2>
+    <p><g-btn size="sm" variant="ghost" density="default" data-proto-explicit @click="meter()">Volver a medir</g-btn> Región más cercana, valor de <code>--g-density</code>, alias local y alto en px.</p>
+    <table class="dp-meter">
+      <thead><tr><th scope="col">Sonda</th><th scope="col">Región</th><th scope="col">--g-density</th><th scope="col">Alias</th><th scope="col">Alto</th></tr></thead>
+      <tbody id="dp-meter-body"></tbody>
+    </table>
+  </section>
+</main>`
+  }
+  const app = createApp(App)
+  app.use(Grana)
+  app.mount('#app')
+})()
+</script>
+</body>
+</html>

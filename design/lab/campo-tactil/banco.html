@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Campo táctil · banco</title>
+<!--
+  Banco de coco para la pieza 1 de configuración global: texto editable ≥ 16px con puntero grueso (DECISIONS.md #970 a
+  #972, api.md «Texto editable con puntero grueso»). Monta los COMPONENTES REALES (dist/ UMD) de la lista A y B en los
+  cinco `size` × `default`/`compact`, con sus acompañantes de la línea del valor, más los controles sueltos (GTable
+  cards, GCalendar recurso, GWidgetGallery, GFilterBar). El editor en la celda de GTranscript va como fixture con su
+  clase real (abrirlo exige la entrada de voz; la regla es de clase y se mide igual).
+  Se sirve desde la raíz del repo: el verificador (verificar.mjs, puerto 4209) intercepta /__grana.css para servir el
+  CSS de antes o el de después, y /__vue.js con node_modules/vue/dist/vue.global.js (unpkg bloqueado).
+  ?theme=18 | 20 carga el tema del CLI con ese fontSize (tema-18.css, tema-20.css). ?only=<clave>[,<clave>] monta solo esos grupos.
+-->
+<link rel="stylesheet" href="/packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="/__grana.css">
+<style>
+  :root { color-scheme: light; }
+  body { margin: 0; padding: 16px; background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui); }
+  h2 { font-size: var(--g-text-body-size); margin: var(--g-space-6) 0 var(--g-space-2); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: var(--g-space-4); align-items: start; }
+  .cell { min-inline-size: 0; }
+  .cell > small { display: block; color: var(--g-color-text-muted); font-size: var(--g-text-caption-size); margin-block-end: var(--g-space-1); }
+  .narrow { max-inline-size: 100%; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="/__vue.js"></script>
+<script src="/packages/vue/dist/grana.umd.js"></script>
+<script src="/packages/vue/dist/combobox.umd.js"></script>
+<script src="/packages/vue/dist/time-field.umd.js"></script>
+<script src="/packages/vue/dist/booking.umd.js"></script>
+<script>
+const q = new URLSearchParams(location.search)
+if (q.get('theme')) {
+  const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = `tema-${q.get('theme')}.css`; document.head.append(l)
+}
+const ONLY = q.get('only')
+const SIZES = ['xs', 'sm', 'md', 'lg', 'xl']
+const DENS = ['default', 'compact']
+const CB_LABELS = { clear: 'Limpiar', close: 'Cerrar', loading: 'Buscando…', noResults: 'Sin resultados para «{text}»', minChars: 'Escribe al menos {count} caracteres', results: (n) => `${n} resultados`, partial: '{count} de {total} resultados', more: 'Mostrar más ({shown} de {total})', retry: 'Reintentar', useCustom: 'Usar «{text}» como texto libre', custom: 'Texto libre', create: 'Agregar «{text}»…', preview: 'Vista previa', previewEmpty: 'Recorre la lista', surfaceTitle: 'Buscar' }
+const DX = [
+  { value: 'E10.9', code: 'E10.9', label: 'Diabetes mellitus tipo 1', description: 'Endocrinas' },
+  { value: 'E11.9', code: 'E11.9', label: 'Diabetes mellitus tipo 2', description: 'Endocrinas' },
+  { value: 'I10', code: 'I10', label: 'Hipertensión esencial', description: 'Circulatorio' },
+  { value: 'R51', code: 'R51', label: 'Cefalea' }
+]
+const PAISES = [{ value: '+52', label: '+52' }, { value: '+34', label: '+34' }]
+const OPTS = [{ value: 'a', label: 'Primera opción' }, { value: 'b', label: 'Segunda opción' }, { value: 'c', label: 'Tercera opción' }]
+const PARTY_ROWS = [
+  { key: 'adults', label: 'Adultos', min: 1, default: 2, unit: (n) => `${n} ${n === 1 ? 'adulto' : 'adultos'}`, decrementLabel: 'Quitar adulto', incrementLabel: 'Añadir adulto' },
+  { key: 'rooms', label: 'Habitaciones', min: 1, unit: '{count} hab.', decrementLabel: 'Quitar habitación', incrementLabel: 'Añadir habitación' }
+]
+const FB_LABELS = { group: 'Filtros', add: 'Agregar filtro', clear: 'Limpiar filtros', filterBy: 'Filtrar por {label}', edit: 'Editar filtro: {summary}', remove: 'Quitar filtro: {summary}', apply: 'Aplicar', cancel: 'Cancelar', required: 'Indica un valor', range: 'Desde debe ser menor', rule: 'Regla', value: 'Valor', from: 'Desde', to: 'Hasta', and: 'y', days: '{n} días', results: '{count} resultados', ops: { contains: 'contiene', is: 'es', starts: 'empieza por', gt: 'mayor que', lt: 'menor que', eq: 'igual a', between: 'entre', in: 'es cualquiera de' } }
+const FB_FIELDS = [
+  { key: 'cliente', label: 'Cliente', filter: { type: 'text' } },
+  { key: 'total', label: 'Total', filter: { type: 'number', unit: '$', suggest: true } }
+]
+const CAL_LABELS = {
+  calendar: 'Calendario', previous: 'Anterior', next: 'Siguiente', today: 'Hoy', views: 'Vista', day: 'Día', week: 'Semana', month: 'Mes', timeline: 'Timeline',
+  resources: 'Recursos', allDay: 'Día completo', now: 'ahora', noEvents: 'No hay eventos para este periodo.', loading: 'Cargando', retry: 'Reintentar', close: 'Cerrar',
+  tooManyResources: 'Demasiados recursos: usa Timeline.', moreEvents: (n) => `+${n} más`, unavailable: (a, b, why) => `No disponible, ${a} a ${b}, ${why}`,
+  createEvent: (r, d, t) => `Crear evento en ${r ? r.title : ''}, ${d}, ${t}`, monthDay: (d, n) => `día, ${n} eventos`,
+  eventName: (e, r, a, b, st) => `${e.title}, ${a}${b ? ' a ' + b : ''}`,
+  conflict: { overlap: 'Traslape', blockedTime: 'Tiempo bloqueado', outsideAvailability: 'Fuera de disponibilidad', invalidDuration: 'Duración no válida', resourceConflict: 'Conflicto de recurso' },
+  resourceStatus: { busyUntil: (h) => `Ocupado hasta ${h}`, available: 'Disponible', availableNext: (h) => `Disponible · próximo evento ${h}`, blocked: 'Bloqueado', activeEvent: 'Ocupado · evento activo' }
+}
+const WG_LABELS = { search: 'Buscar widgets', all: 'Todas', categories: 'Categoría', add: 'Añadir', size: 'Tamaño inicial', results: '{count} widgets', empty: 'Ningún widget coincide', added: 'Ya añadido', addedCount: 'En el panel: {count}', addedShort: 'Añadido', addedToPanel: '{title} añadido', alreadyAdded: '{title} ya está en el panel', close: 'Cerrar', list: 'Widgets disponibles' }
+const WG_SIZES = [{ id: 's', label: 'Pequeño (1×1)' }, { id: 'm', label: 'Mediano (2×1)' }]
+const WG_ITEMS = [{ id: 'tasks', title: 'Tareas abiertas', category: 'Equipo', description: 'Tareas por persona', sizes: ['s', 'm'] }]
+
+const matrix = []
+for (const s of SIZES) for (const d of DENS) matrix.push({ s, d, k: `${s}|${d}` })
+
+const app = Vue.createApp({
+  data: () => ({ matrix, ONLY, show: (g) => !ONLY || ONLY.split(',').includes(g), gallery: true, cb: 'E11.9', cbMulti: ['E10.9', 'E11.9', 'I10'],
+    table: { columns: [{ key: 'n', label: 'Nombre', sortable: true }, { key: 't', label: 'Total', sortable: true }], rows: [{ id: 1, n: 'Ana', t: 3 }, { id: 2, n: 'Luis', t: 5 }] } }),
+  template: `
+  <main>
+    <template v-if="show('input')"><h2>GInput</h2><div class="grid">
+      <div v-for="m in matrix" class="cell" data-g="input" :data-k="m.k"><small>{{ m.k }}</small>
+        <GInput :size="m.s" :density="m.d" label="Monto" hint="Ayuda" error="Revisa el monto" placeholder="0.00" prefix="$" suffix="MXN" output="= 1 200" loading model-value="" />
+      </div></div></template>
+
+    <template v-if="show('textarea')"><h2>GTextarea</h2><div class="grid">
+      <div v-for="m in matrix" class="cell" data-g="textarea" :data-k="m.k"><small>{{ m.k }}</small>
+        <GTextarea :size="m.s" :density="m.d" label="Notas" hint="Ayuda" :maxlength="80" counter :rows="1" placeholder="Escribe" loading model-value="" />
+        <GTextarea class="t3" :size="m.s" :density="m.d" label="Notas 3" :rows="3" placeholder="Tres filas" model-value="" />
+      </div></div></template>
+
+    <template v-if="show('select')"><h2>GSelect</h2><div class="grid">
+      <div v-for="m in matrix" class="cell" data-g="select" :data-k="m.k"><small>{{ m.k }}</small>
+        <GSelect :size="m.s" :density="m.d" label="Opción" hint="Ayuda" :options="opts()" model-value="a" clearable loading />
+      </div></div></template>
+
+    <template v-if="show('datepicker')"><h2>GDatePicker</h2><div class="grid">
+      <div v-for="m in matrix" class="cell" data-g="datepicker" :data-k="m.k"><small>{{ m.k }}</small>
+        <GDatePicker :size="m.s" :density="m.d" label="Fecha" hint="Ayuda" model-value="1990-05-12" output="36 años" locale="es-MX" />
+      </div></div></template>
+
+    <template v-if="show('party')"><h2>GPartyField</h2><div class="grid">
+      <div v-for="m in matrix" class="cell" data-g="party" :data-k="m.k"><small>{{ m.k }}</small>
+        <GPartyField :size="m.s" :density="m.d" label="Huéspedes" hint="Ayuda" :rows="partyRows()" :labels="{ done: 'Listo', separator: ' · ' }" locale="es" />
+      </div></div></template>
+
+    <template v-if="show('number')"><h2>GNumberField</h2><div class="grid">
+      <div v-for="m in matrix" class="cell" data-g="number" :data-k="m.k"><small>{{ m.k }}</small>
+        <GNumberField :size="m.s" :density="m.d" label="Peso" hint="Ayuda" :model-value="12" suffix="kg" :min="0" :max="999" steppers decrement-label="Menos" increment-label="Más" locale="es-MX" />
+      </div></div></template>
+
+    <template v-if="show('time')"><h2>GTimeField</h2><div class="grid">
+      <div v-for="m in matrix" class="cell" data-g="time" :data-k="m.k"><small>{{ m.k }}</small>
+        <GTimeField :size="m.s" :density="m.d" label="Hora" hint="Ayuda" model-value="14:30" locale="es-MX" />
+      </div></div></template>
+
+    <template v-if="show('combobox')"><h2>GCombobox</h2><div class="grid">
+      <div v-for="m in matrix" class="cell" data-g="combobox" :data-k="m.k"><small>{{ m.k }}</small>
+        <GCombobox class="cb-field" :size="m.s" :density="m.d" label="Diagnóstico" hint="Ayuda" :options="dx()" :labels="cbl()" :delay="0" />
+        <GCombobox class="cb-token" :size="m.s" :density="m.d" label="Con valor" :options="dx()" :labels="cbl()" :delay="0" v-model="cb" />
+        <GCombobox class="cb-multi" :size="m.s" :density="m.d" label="Varios" multiple :options="dx()" :labels="cbl()" :delay="0" v-model="cbMulti" />
+        <GCombobox class="cb-palette" appearance="palette" :size="m.s" :density="m.d" label="Paleta" :options="dx()" :labels="cbl()" :delay="0" />
+      </div></div></template>
+
+    <template v-if="show('group')"><h2>GInputGroup</h2><div class="grid">
+      <div v-for="m in matrix" class="cell" data-g="group" :data-k="m.k"><small>{{ m.k }}</small>
+        <GInputGroup class="ig" :size="m.s" :density="m.d" label="Teléfono" hint="Ayuda">
+          <GInputGroupSelect model-value="+52" part-label="País" :options="paises()" />
+          <GInputGroupInput model-value="" principal type="tel" part-label="Número" placeholder="55 1234 5678" />
+          <GInputGroupText>ext.</GInputGroupText>
+        </GInputGroup>
+        <GInputGroup class="ig-ro" readonly :size="m.s" :density="m.d" label="Solo lectura">
+          <GInputGroupSelect model-value="+52" part-label="País" :options="paises()" />
+          <GInputGroupInput model-value="5512345678" principal part-label="Número" />
+        </GInputGroup>
+      </div></div></template>
+
+    <template v-if="show('row')"><h2>GFormRow a 320px</h2>
+      <div class="cell" data-g="row" v-for="d in ['default','compact']" :data-k="d">
+        <GFormLayout :density="d"><GFormRow>
+          <GNumberField label="Cantidad" :model-value="3" :min="1" :max="99" steppers decrement-label="Menos" increment-label="Más" />
+          <GTimeField label="Hora" model-value="14:30" locale="es-MX" />
+        </GFormRow>
+        <GFormRow>
+          <GInput label="Nombre" model-value="Ana" />
+          <GSelect label="Tipo" :options="opts()" model-value="a" />
+        </GFormRow>
+        <GFormRow>
+          <GDatePicker label="Fecha" model-value="1990-05-12" locale="es-MX" />
+          <GCombobox label="Dx" :options="dx()" :labels="cbl()" :delay="0" />
+        </GFormRow></GFormLayout>
+      </div></template>
+
+    <template v-if="show('loose')"><h2>Controles sueltos</h2>
+      <div class="cell" data-g="table"><GTable responsive="cards" :columns="table.columns" :rows="table.rows" row-key="id" caption="Personas" :labels="{ sortBy: 'Ordenar por', ascending: 'Ascendente', descending: 'Descendente' }" /></div>
+      <div class="cell" data-g="calendar"><GCalendar view="week" date="2026-09-29" timezone="America/Mexico_City" locale="es-MX" :labels="cal()" label="Agenda" :events="[]" :resources="[{ id: 'a', title: 'Sala A' }, { id: 'b', title: 'Sala B' }]" /></div>
+      <div class="cell" data-g="filter"><GFilterBar :fields="fb()" :labels="fbl()" /></div>
+      <div class="cell" data-g="transcript"><div class="g-transcript"><div class="g-transcript__editor"><textarea class="g-transcript__field">Texto de la celda</textarea></div></div></div>
+      <div class="cell" data-g="gallery"><GWidgetGallery v-model="gallery" title="Añadir widget" :items="wgItems()" :sizes="wgSizes()" :labels="wgl()" /></div>
+    </template>
+  </main>`,
+  methods: {
+    opts: () => OPTS, dx: () => DX, cbl: () => CB_LABELS, paises: () => PAISES, partyRows: () => PARTY_ROWS,
+    fb: () => FB_FIELDS, fbl: () => FB_LABELS, cal: () => CAL_LABELS, wgl: () => WG_LABELS, wgSizes: () => WG_SIZES, wgItems: () => WG_ITEMS
+  }
+})
+for (const [k, v] of Object.entries(Grana)) if (/^G[A-Z]/.test(k)) app.component(k, v)
+for (const lib of [GranaCombobox, GranaTimeField, GranaBooking]) for (const [k, v] of Object.entries(lib)) if (/^G[A-Z]/.test(k)) app.component(k, v)
+app.mount('#app')
+window.__ready = true
+</script>
+</body>
+</html>

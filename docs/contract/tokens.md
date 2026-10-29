@@ -14,6 +14,7 @@ Todas opcionales. Lo que no se define conserva el valor por defecto de Grana.
 | `radius` | número (px) | `20` | Paso `md` de la escala de radios |
 | `shape` | `"rounded"` \| `"pill"` | `"pill"` | Con `pill`, botones, chips e insignias usan `radius-pill` |
 | `space` | número (px) | `4` | Unidad de espaciado |
+| `density` | `"default"` \| `"comfortable"` \| `"compact"` | `"compact"` | Densidad global del producto (§58, DECISIONS.md #981): emite `--g-density` con `:root:where(:not([data-g-density]))` (#561), que cede ante `<html data-g-density>`, ante las regiones y, con puntero grueso, ante el dedo (#978). Por defecto `default` (no emite nada). `--g-density` no se admite en `overrides` |
 | `font` | familia CSS | `"Instrument Sans"` | Toda la interfaz |
 | `fontDisplay` | familia CSS | `"Instrument Serif"` | Rol `display` y clase `g-font-display`. Sin valor: igual a `font` |
 | `fontSize` | número (px) | `16` | Tamaño `body` |
@@ -87,7 +88,7 @@ Alturas de control por tamaño: `xs` 6, `sm` 7, `md` 9, `lg` 11, `xl` 13 unidade
 
 **Selector (`GSelect`):** la caja mide lo mismo que la de `GInput` del mismo `size` y `density`. La **opción** de la lista mide como esa caja, con piso de 24px y 44px reales con `pointer: coarse` (§7). La lista flotante tiene un alto máximo de unas 8 opciones (derivado de esa altura) y nunca más del 60% del visor. No son tokens nuevos. (Agregado con el contrato de `GSelect`.)
 
-El prop `density` multiplica localmente **la altura, el padding y la separación** (1×, 0.875×, 0.75×), sin cambiar la tipografía. La altura resultante tiene piso de 24px. **Rejilla de medio píxel (#667 en `GBtn`, generalizada por #682):** toda altura de caja o de fila objetivo de toque de un control derivada de `--g-space-1` se redondea a 0,5px con `round()` y luego recibe el piso (24px, y 44px con `pointer: coarse`); regla, alcance y exclusiones en §7. `space` es global; `density` es local. (Precisado tras la ronda r01 de `GBtn`.)
+El prop `density` multiplica localmente **la altura, el padding y la separación** (1×, 0.875×, 0.75×), sin cambiar la tipografía (**enmendado por #966:** en `compact` el texto bajará un escalón con piso de 12px; se contrata en la pieza 3 de la configuración global, #969, y hasta entonces esta frase describe lo construido). La altura resultante tiene piso de 24px. **Rejilla de medio píxel (#667 en `GBtn`, generalizada por #682):** toda altura de caja o de fila objetivo de toque de un control derivada de `--g-space-1` se redondea a 0,5px con `round()` y luego recibe el piso (24px, y 44px con `pointer: coarse`); regla, alcance y exclusiones en §7. `space` es global; `density` es local **o de región**: desde la pieza 2 (#974 a #982) el multiplicador es el token heredable `--g-density`, que reasignan el atributo `data-g-density` (en cualquier elemento, `<html>` incluido) y la prop `density` de un componente (que es la región de ese componente, #975); §58 y `density.md`. (Precisado tras la ronda r01 de `GBtn`.)
 
 ## 5. Tipografía
 
@@ -120,6 +121,7 @@ El prop `density` multiplica localmente **la altura, el padding y la separación
 --g-color-brand-zone · --g-color-on-brand-{zone|muted|accent|veil|accent-veil|success|warning|danger|info} · --g-color-zone-edge   (zona de marca, §44)
 --g-radius-{none|xs|sm|md|lg|xl|pill}
 --g-space-{1|2|3|4|5|6|8|12|16}
+--g-density   (multiplicador de densidad heredable, §58)
 --g-font-{ui|title|display}
 --g-text-{caption|body-sm|body|title-sm|title|title-lg|display}-{size|line|tracking|weight}
 --g-shadow-{1|2|3}
@@ -143,6 +145,7 @@ El contrato original no cubría bordes, foco ni movimiento, y sin ellos el CSS d
 | Token | Defecto | Para qué |
 | --- | --- | --- |
 | `--g-radius-shape` | `var(--g-radius-md)` | Radio de botón, chip e insignia. El CLI lo pone en `var(--g-radius-pill)` si el tema tiene `shape: "pill"` |
+| `--g-density` | `1` (`[data-g-density="comfortable"]` 0.875, `[data-g-density="compact"]` 0.75; valores de #15) | Multiplicador de densidad **heredable** (§58, DECISIONS.md #974). Número, no palabra. Lo escriben solo `defaults.css` y el CLI (clave `density`); los componentes lo leen en su alias de raíz. Se cambia con el atributo `data-g-density`, no sobrescribiendo el token |
 | `--g-border-width` | 1px | Grosor de bordes de controles |
 | `--g-focus-width` / `--g-focus-offset` | 2px / 2px | Anillo de foco |
 | `--g-duration-fast` | 120ms | Cambios de estado (hover, activo) |
@@ -176,6 +179,7 @@ Tokens de componente (`--g-btn-radius`) solo cuando un caso real lo justifique, 
 | --- | --- |
 | Área táctil | ≥ 24px; ≥ 44px con `pointer: coarse`, sin importar `density` |
 | Texto | ≥ 12px |
+| Texto editable con `pointer: coarse` | ≥ 16px: `max(16px, <rol>)` en el `font-size` de los campos de texto y `<select>` nativos (y de su línea de valor), sin importar `size` ni `density` (#970 a #972; lista cerrada en `api.md` «Texto editable con puntero grueso») |
 | Contraste de texto | ≥ 4.5:1 |
 | Contraste de controles | ≥ 3:1 |
 | Foco | Siempre visible |
@@ -184,7 +188,7 @@ El CLI rechaza un tema que no los cumpla.
 
 **Excepción documentada (DECISIONS.md #34):** las consultas de contenedor no admiten `var()`, así que el **umbral de ancho** con que un componente cambia de disposición (hoy solo `GInput` con el slot `action`, ~300px) se escribe como constante literal en el CSS del componente. Es una constante de diseño, no un valor de tema: el CLI no la valida ni el usuario la sobrescribe. Cada uso nuevo se anota aquí antes de escribirlo. **Literales de unidad** (DECISIONS.md #187): `1ch` en `GInputGroup.css` (factor que convierte el entero `--_input-group-chars` en longitud) y `left: 50%` en el área táctil de `GBtn` (centrado simétrico, también en RTL) no son medidas de tema ni de diseño: son unidades de conversión o posición relativa, como `100%` o `1fr`; no se tematizan ni las valida el CLI; **ampliado en #298:** la constante geométrica `50% - 50%/sqrt(2)` de `GBadge.css` (punto a 45° del contorno de un círculo), el factor `0.5` del icono de respaldo de `GAvatar` respecto del lado y el `1.06` de su asentamiento (constante de coreografía, como las de #106). **Ampliado en #299** (lenguaje de movimiento, §29): la fracción `0.25` del vector de origen de `GDialog`, los multiplicadores `× 8` (tope de ese vector), `× 4` (panel de `GTabs`) y `× 1` (etiqueta de `GBtn`, mensaje de `GInput`) de `--g-space-1`, y las amplitudes `1 · 0.75 · 0.5 · 0.25` de `--g-space-1` con sus instantes `16 · 36 · 56 · 76 %` de la sacudida de un campo rechazado. `GDialog` agrega consultas de medios sobre el visor (§11). **Ampliado en #313** (`GNumberField`; `GTimeField` lo comparte): el **`2px`** del hueco del cursor al final del espejo de P1 y del medidor (1px de cursor del sistema + 1px de redondeo del ancho del texto en WebKit; `1px` hasta **#679**; no tema) y el `1ch` de ancho mínimo del espejo (unidad, como el de `GInputGroup`). **Ampliado en #501:** `20ch`, `3ch` y `8ch` en `GBreadcrumbs.css` (tope del nombre de un nivel, nombre mínimo de una pastilla y suelo del actual), que siguen al texto, no al tema. **Ampliado en #717** (chasis, pila, sección y contenedor; §48 a §50): `100svh` (presupuesto del cuarto de `GAppShell`, el visor pequeño, estable aunque se recoja la barra del navegador), `100dvh` (alto mínimo del chasis y del sidebar fijo), `cqi` (`100cqi`, `2cqi`, `4cqi`, `6cqi`: la caja de `GContainer` y las pendientes de su margen) y `66ch` (medida de lectura de `GContainer` y de la descripción de `GSection`); siguen al visor, a la caja o al texto, no al tema. **Ampliado en #707:** `1ms` en `GStatusIsland.css` (unidad que convierte el número `--_run-ms` en tiempo, como `1ch` en `GInputGroup.css`) y `0px`/`0` como `initial-value` de sus propiedades registradas (valor neutro que exige `@property`). `GAvatarMotion` escribe literales sus **constantes de coreografía** (duraciones, distancias y ángulos en unidades de su `viewBox`), que son parte del dibujo y no tema (DECISIONS.md #106).
 
-Como no son tema, **no son tokens**: si fueran variables, un `tokens.css` sin capa podría sobrescribirlos. El CSS de los componentes los escribe como constantes literales, y son los **únicos** literales de medida permitidos fuera de `defaults.css`: `24px` y `44px` (área táctil). También se permite el patrón estándar de texto oculto para lectores de pantalla (`1px`, `-1px`, `clip-path: inset(50%)`), que es una técnica de accesibilidad y no un valor estético. Ejemplo: `min-block-size: max(24px, calc(var(--g-space-1) * 9 * var(--_density)))`. **Excepción (#667, generalizada por #682): `--_snap: 0.5px`**, la unidad de redondeo de las alturas; no es medida de tema ni token (un `tokens.css` sin capa no debe poder cambiarla), así que cada componente la declara como alias local en su raíz.
+Como no son tema, **no son tokens**: si fueran variables, un `tokens.css` sin capa podría sobrescribirlos. El CSS de los componentes los escribe como constantes literales, y son los **únicos** literales de medida permitidos fuera de `defaults.css`: `24px` y `44px` (área táctil) y **`16px`** (texto editable con puntero grueso, #970: **solo** dentro de `@media (pointer: coarse)` y **solo** en `max(16px, …)` del tamaño de letra o del alias local que lo lleva; es el umbral en px calculados con que iOS Safari amplía la página al enfocar un campo, un mínimo de plataforma que un `tokens.css` no debe poder bajar). También se permite el patrón estándar de texto oculto para lectores de pantalla (`1px`, `-1px`, `clip-path: inset(50%)`), que es una técnica de accesibilidad y no un valor estético. Ejemplo: `min-block-size: max(24px, calc(var(--g-space-1) * 9 * var(--_density)))`. **Excepción (#667, generalizada por #682): `--_snap: 0.5px`**, la unidad de redondeo de las alturas; no es medida de tema ni token (un `tokens.css` sin capa no debe poder cambiarla), así que cada componente la declara como alias local en su raíz.
 
 **Regla de la rejilla de medio píxel (#682), para una sola pasada de coco:**
 
@@ -1328,4 +1332,17 @@ Consume además (lista exacta de `GHero.css`, #759): `--g-color-bg`, `--g-color-
 - **Separación:** la de `GStack` (§49): base `space × 6`, factores 0 · 0,5 · 1 · 2, densidad 1 · 0,875 · 0,75, igual en los dos ejes.
 - ¿Token `--g-split-*`? **No**: el umbral sigue a `space` y al cuerpo, como las alturas de §4; un token dejaría que un tema desacompasara la pareja del texto que contiene. Sin literales de unidad nuevos (`min()` de números sin unidad dentro de `calc()`, los tres motores).
 
-La siguiente sección nueva es la 58.
+## 58. Densidad global y por región (`--g-density`, `data-g-density`; un token global nuevo, ninguno de componente)
+
+**Contrato completo:** `design/contracts/density.md` (DECISIONS.md #974 a #982; ronda `design/lab/density/r01/`). Regla común: `api.md` «Densidad por región».
+
+- **Token:** `--g-density`, grupo de estructura (§6), **heredable**, número. Valores: `1` · `0.875` · `0.75` (los tres pasos de #15 y #967; ningún otro es contrato). Sin registrar (`@property`) y sin valor de respaldo en los componentes.
+- **Quién lo escribe:** `defaults.css` (capa `grana.defaults`): `:root` en 1, una regla por valor de `[data-g-density]`, y la consulta táctil de P2 (`density.md` §2.1). El CLI, con la clave `density` (§1): `:root:where(:not([data-g-density]))` y su restablecimiento táctil, sin capa (#561). **Nadie más**: las hojas de componente lo leen en su alias de raíz (`--_density: var(--g-density)`) y quitan las reglas de clase que solo reasignaban el multiplicador.
+- **Atributo público** `data-g-density="default|comfortable|compact"`: en cualquier elemento propio de la aplicación y en `<html>`; la raíz de un componente con prop explícita lo escribe ella misma (§4, #975).
+- **Precedencia:** prop › región más cercana › `<html>` › CLI › `default`; con `pointer: coarse`, regiones, `<html>` y CLI valen 1 y la prop explícita no cede (#978).
+- **Valores por paso que no son multiplicador** (p. ej. `--g-tabs-mark-*`, §18): se interpolan exactamente desde `--g-density` (pesos de Lagrange, `density.md` §8); **no** hay tokens «resueltos» por paso.
+- **Mínimos (§7):** sin cambio. `24px`, `44px` y `16px` van después del multiplicador y ganan siempre.
+- **Pieza 3** (#966): los tokens de texto compactos se reasignarán **en el elemento de la región**, como la zona de marca (§44) redeclara el color; nunca con selectores descendientes.
+- **Límite:** el token en `:root` desde un `tokens.css` propio o un `style.setProperty` queda fuera de contrato (taparía `<html data-g-density>` y el observador no lo ve).
+
+La siguiente sección nueva es la 59.

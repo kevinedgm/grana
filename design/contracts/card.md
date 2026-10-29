@@ -39,7 +39,7 @@ Una **superficie de contenido contenida**, con regiones opcionales combinables (
 | `level` | String | `flat` `outlined` `raised` `inset` | `outlined` | propia (subconjunto de `GSurface`) |
 | `padding` | String | `xs` `sm` `md` `lg` | `md` | propia (la de `GSurface`, sin `none`) |
 | `rounded` | String | `none` `xs` `sm` `md` `lg` `xl` `pill` | según `level` | compartida |
-| `density` | String | `default` `comfortable` `compact` | `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 | `color` | String | `brand` `accent` `neutral` | `brand` | compartida (subconjunto) |
 | `orientation` | String | `vertical` `horizontal` `auto` | `vertical` | propia |
 | `mediaPosition` | String | `top` `start` `end` `background` `inline` | `top` | propia |
@@ -92,7 +92,7 @@ Cada prop enumerada declara `validator` con su lista (`api.md`).
 - **`titleLines` / `descriptionLines`:** limitan las líneas con recorte (`line-clamp`); **el texto completo sigue en el DOM**. Valores `1` a `4` o `none`. El título por defecto limita a `2`; la descripción, no. Un título de 120 caracteres con `1` pierde información visible: es decisión del consumidor.
 - **`expandable`:** con `descriptionLines` distinto de `none`, añade el botón «Mostrar más»/«Mostrar menos» (`labels.expand`/`labels.collapse`, `aria-expanded`, `aria-controls`) **solo si realmente hay recorte** (medido por bruno con `ResizeObserver`; sin recorte no se renderiza). Emite `expand`. El título no se expande.
 - **`badge`:** texto o número corto, con forma y texto (`GBadge`, `size="sm"`, `variant="soft"`); no solo color. El slot `badge` lo sustituye.
-- **`meta`:** `[{ label, value, priority? }]` (`label` y `value` obligatorios; `priority`: `high` por defecto, `low`). Se renderiza como lista de descripción (`<dl>`). Con `density="compact"`, los de `priority: 'low'` **no se renderizan**. El slot `meta` lo sustituye (el consumidor mantiene la semántica).
+- **`meta`:** `[{ label, value, priority? }]` (`label` y `value` obligatorios; `priority`: `high` por defecto, `low`). Se renderiza como lista de descripción (`<dl>`). Con densidad `compact` —la prop o, desde #980, la región que lee `readDensity(root)` al montar y en cada cambio de `data-g-density` (`density.md` §7; con puntero grueso la región cede y se renderizan)—, los de `priority: 'low'` **no se renderizan**. Límite SSR: en una región compacta sin prop se pintan en el servidor y se quitan al hidratar, una vez y sin animación. El slot `meta` lo sustituye (el consumidor mantiene la semántica).
 - **`menu`:** el **menú de acciones** del encabezado, con `GMenu` (`menu.md`; #129): los `items` de `GMenu`. Sin valor no hay botón. Disparador: botón de la tarjeta con `GIcon` `ellipsis-vertical` y nombre `labels.menu` + título (ver «ARIA»). **No hay menú de clic derecho** (`GMenu` no lo cubre y no es accesible por sí solo; si algún día entra, **duplicará** este). La lista vive en la capa superior (`popover`): el `overflow` de la tarjeta no la recorta. Cada elemento activado emite `action` con `{ id }` (y `checked` en casillas y opciones); **la tarjeta no guarda el estado** del menú.
 - **`status` y `statusText`:** un **aviso de contenido de la tarjeta** (no de un campo) en el cuerpo: icono + texto + marca de borde de inicio de distinta forma por valor (sólido/discontinuo; no solo color). Valores `info` `success` `warning` `error`, que leen `--g-color-info|success|warning|danger` (`-soft`/`-text`): el nombre `error` es el del brief y el de `GWidget`; el color es `danger` (`api.md`). **`statusText` es obligatorio con `status`** (aviso en desarrollo si falta; el icono es decorativo). `status="error"` es `role="alert"` **solo cuando aparece después de montar** (al montar ya con él, `role="status"`: no se interrumpe al usuario por un estado que ya existía); los demás, `role="status"`. Con `retryable`, el aviso `error` añade un `GBtn` con `labels.retry` que emite `retry` (carga fallida); **sin `labels.retry` no se dibuja el botón** y solo avisa en desarrollo. `status` no cambia `loading`, `empty` ni la acción principal.
 - **`empty`:** el área de contenido muestra el slot `empty` (o, sin slot, `labels.empty`; sin ninguno de los dos avisa en desarrollo y no dibuja nada); **el encabezado se conserva**. Una `GMetric` sin datos deja su sitio al vacío sin cambiar el encabezado. No todas las tarjetas lo necesitan.
@@ -396,7 +396,7 @@ Del hallazgo 10 de kiwi **no** son tokens (reglas o alias locales `--_*`; `token
 
 | Clase | Elemento | Cuándo |
 | --- | --- | --- |
-| `g-card` (con las de `g-surface`) | Raíz | Siempre (la raíz es una `GSurface`: `g-surface--level-*`, `--padding-*`, `--density-*`, `--rounded-*`) |
+| `g-card` (con las de `g-surface`) | Raíz | Siempre (`--density-*` solo con la prop explícita, junto a `data-g-density`, #975; la raíz es una `GSurface`: `g-surface--level-*`, `--padding-*`, `--density-*`, `--rounded-*`) |
 | `g-card--orientation-{vertical\|horizontal\|auto}` | Raíz | Siempre |
 | `g-card--color-{brand\|accent\|neutral}` | Raíz | Siempre |
 | `g-card--media-{top\|start\|end\|background\|inline}` | Raíz | Con slot `media` |

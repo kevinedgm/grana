@@ -27,7 +27,7 @@ Indicador de avance para procesos de **pasos discretos y conocidos** (formulario
 | `responsive` | String | `auto` `never` `compact` | `auto` | propia |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | `brand` | compartida |
 | `size` | String | `sm` `md` `lg` | `md` | compartida (subconjunto) |
-| `density` | String | `default` `comfortable` `compact` | `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 | `disabled` | Boolean | | `false` | compartida |
 | `expandAll` | Boolean | | `false` | propia |
 | `labels` | Object | ver abajo | `{}` (función) | propia |
@@ -171,7 +171,7 @@ Derivaciones propuestas para coco (no son tokens): indicador = `space × 6` en `
 | `g-stepper` | Raíz (`<nav>`) | Siempre |
 | `g-stepper--{horizontal\|vertical}` | Raíz | Siempre |
 | `g-stepper--indicator-{number\|dot\|icon\|segment\|line}` | Raíz | Siempre |
-| `g-stepper--color-*`, `--size-*`, `--density-*` | Raíz | Siempre |
+| `g-stepper--color-*`, `--size-*`, `--density-*` | Raíz | Siempre (`--density-*` solo con la prop explícita, junto a `data-g-density`; #975) |
 | `g-stepper--navigable` | Raíz | Con `navigation` ≠ `none` y sin `disabled` |
 | `g-stepper--condensed` | Raíz | Medido: sin descripciones |
 | `g-stepper--current-only` | Raíz | Medido: solo el paso actual con texto visible |

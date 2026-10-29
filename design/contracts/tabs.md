@@ -26,7 +26,7 @@ Navegación **entre vistas del mismo nivel dentro de una misma vista**, con el p
 | `appearance` | String | `underline` `pill` `segmented` `contained` | `underline` | propia |
 | `orientation` | String | `horizontal` `vertical` | `horizontal` | propia |
 | `color` | String | `brand` `accent` `neutral` | `brand` | compartida (subconjunto) |
-| `density` | String | `default` `comfortable` `compact` | `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 | `align` | String | `start` `center` `distribute` `fill` | `start` | propia |
 | `activation` | String | `auto` `manual` | `auto` | propia |
 | `overflow` | String | `scroll` `arrows` `more` | `scroll` | propia |
@@ -80,7 +80,7 @@ Campos **reservados y no publicados en v0.1** (`closable`, `closeLabel`) y el ev
 - **`orientation`:** `vertical` para configuración, paneles laterales y layouts con ancho. El eje `aria-orientation` sigue siempre al diseño **real** (cambia si `responsive` lo pasa a horizontal). En vertical el desbordamiento es **scroll vertical** limitado por el alto del consumidor (`overflow` no aplica).
 - **`responsive`:** `auto` pasa `vertical` a `horizontal` cuando el ancho del **contenedor** (medido por bruno con `ResizeObserver`) es menor que `--g-space-1 × 120` (480px con `space` 4; derivado de `space`, como `GSidebar`, sin literales ni consultas de medios nuevas); `never` lo mantiene siempre vertical. Sin medición (SSR), se renderiza como se pidió.
 - **`color`:** familia de la **marca de selección** y de la superficie de la activa en `pill`; la tipografía y el resto son neutros. `brand` lee `--g-color-primary*` (DECISIONS.md #95). `attention` usa siempre `warning` y `loading`, neutro, sea cual sea `color`.
-- **`density`:** la prop compartida. **Equivalencia con el brief** (`compact` · `comfortable` · `spacious`): `compact` = `compact` (0.75×), `comfortable` = `comfortable` (0.875×), **`spacious` = `default` (1×)**: mismo orden, de menor a mayor. Multiplica altura, relleno horizontal, separación y **grosor de la marca** (tokens por densidad, `tokens.md` §18); no cambia la tipografía ni la lógica. Piso de 24px; con `pointer: coarse`, 44px reales **sin importar la densidad** (`tokens.md` §7).
+- **`density`:** la prop compartida; sin valor sigue la región (`density.md`). El grosor de la marca (`--g-tabs-mark-{paso}`) se interpola exactamente desde `--g-density` (pesos de Lagrange, `density.md` §8, #980), sin clase. **Equivalencia con el brief** (`compact` · `comfortable` · `spacious`): `compact` = `compact` (0.75×), `comfortable` = `comfortable` (0.875×), **`spacious` = `default` (1×)**: mismo orden, de menor a mayor. Multiplica altura, relleno horizontal, separación y **grosor de la marca** (tokens por densidad, `tokens.md` §18); no cambia la tipografía ni la lógica. Piso de 24px; con `pointer: coarse`, 44px reales **sin importar la densidad** (`tokens.md` §7).
 - **`align`:** `start` (por defecto), `center`, `distribute` (huecos iguales) y `fill` (columnas iguales). Con desbordamiento, `center`, `distribute` y `fill` **degradan a `start`**: no sobra espacio. En vertical solo tiene efecto `fill`.
 - **`activation`:** `auto` (APG, por defecto): enfocar con flechas activa. `manual`: enfocar no activa; Enter o Espacio sí. Usar `manual` cuando activar es costoso (carga de red por pestaña).
 - **`overflow`** (solo horizontal; v0.1: tres estrategias):
@@ -339,7 +339,7 @@ Derivaciones propuestas para coco (no son tokens): alto de pestaña = `space × 
 | `g-tabs` | Raíz | Siempre |
 | `g-tabs--appearance-{underline\|pill\|segmented\|contained}` | Raíz | Siempre |
 | `g-tabs--orientation-{horizontal\|vertical}` | Raíz | Siempre (la **efectiva**, tras `responsive`, `segmented` y `contained`) |
-| `g-tabs--color-*`, `--density-*`, `--align-*`, `--overflow-*` | Raíz | Siempre (`--align-*` y `--overflow-*` ya degradados) |
+| `g-tabs--color-*`, `--density-*`, `--align-*`, `--overflow-*` | Raíz | Siempre (`--density-*` solo con la prop explícita, junto a `data-g-density`, #975; `--align-*` y `--overflow-*` ya degradados) |
 | `g-tabs--icon-only` | Raíz | Con `labelMode="icon"` o `auto` reducido |
 | `g-tabs--snap` | Raíz | Con `snap` |
 | `is-ready` | Raíz | Tras el primer posicionamiento de la marca |

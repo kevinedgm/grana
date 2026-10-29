@@ -21,6 +21,7 @@ import { createLoadPhase, rememberFocus, restoreFocus } from '../../utils/loadPh
 import { pagerKey, pageSizeList } from '../../utils/tablePager.js'
 import { transitionMs } from '../../utils/motion.js'
 import { nextFrame } from '../GForm/formContext.js'
+import { createPointerGlide } from '../../utils/glide.js'
 
 const toPx = (value) => {
   const n = parseFloat(value)
@@ -672,6 +673,25 @@ export default defineComponent({
     })
     onBeforeUnmount(() => { if (observer) observer.disconnect(); if (frame) caf(frame) })
 
+    // ---- Una sola luz (table.md «Una sola luz», #960, #961) ----
+    // Anfitrión g-table__scroll con la capa g-table__highlight como primer hijo (antes del <table>; sin capa en surface y
+    // cards). La luz sigue al puntero y no mueve el foco. A · La puerta: solo la celda principal de una fila con puerta;
+    // B y llana: la fila entera (la ficha de B, el esqueleto, el vacío y la cabecera apagan); sin luz en surface, cards y
+    // carga. Al cambiar las filas o la forma sin gesto se apaga hasta el siguiente movimiento. Las medidas van en la
+    // capa: escritas en g-table__scroll, su herencia restilaría todas las filas en cada cambio (#963)
+    const glideOff = () => mode.value === 'cards' || props.appearance === 'surface' || props.loading || ph.busy
+    const glideTarget = () => (!slots.detail && (props.rowHref || props.activatable) ? 'td.g-table__cell--primary' : 'tr.g-table__row')
+    const glideAccept = (el) => {
+      const tr = el.closest('tr')
+      return !tr.hasAttribute('aria-hidden') && el.closest('.g-table__scroll') === scrollEl.value && (el === tr || el.querySelector('.g-table__door'))
+    }
+    const glideHost = {
+      onVnodeMounted: ({ el }) => { el._glide = createPointerGlide(el, { target: glideTarget, accept: glideAccept, off: glideOff }) },
+      onVnodeBeforeUnmount: ({ el }) => el._glide.destroy()
+    }
+    const rowsSig = computed(() => visible.value.map(keyOf).join('\u0001'))
+    watch([rowsSig, glideOff], () => scrollEl.value?._glide?.clear())
+
     // ---- Render ----
     const L = () => props.labels
     // La puerta de la fila (A enlace, botón, o B divulgación) con el título como nombre; null sin puerta
@@ -902,7 +922,8 @@ export default defineComponent({
         h('p', { class: 'g-table__failed-text' }, L().failed),
         h(GBtn, { size: 'sm', variant: 'soft', color: 'neutral', onClick: retry }, () => L().retry)
       ]) : null,
-      h('div', { ref: scrollEl, class: 'g-table__scroll', style: props.maxHeight ? { '--_max-height': props.maxHeight } : undefined }, [
+      h('div', { ref: scrollEl, class: 'g-table__scroll', style: props.maxHeight ? { '--_max-height': props.maxHeight } : undefined, ...glideHost }, [
+        mode.value !== 'cards' && props.appearance !== 'surface' ? h('div', { class: 'g-table__highlight', 'aria-hidden': 'true' }) : null,
         h('table', { ref: tableEl, class: 'g-table__table', role: 'table', tabindex: '-1', 'aria-busy': ph.busy || props.loading ? 'true' : 'false', ...tableAttrs() }, [
           props.caption ? h('caption', { class: 'g-table__caption' }, props.caption) : null,
           header(),

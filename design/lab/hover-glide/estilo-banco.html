@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="es-MX">
+<!-- Banco de estilo de coco para «una sola luz» (#957 a #964): los componentes reales de dist/ (JS, con las capas y la
+     sesión del puntero de bruno, utils/glide.js) con el CSS FUENTE de src/styles/. Las medidas --_highlight-x/-y/-w/-h van
+     en la CAPA (#964) y has-highlight / is-highlight-instant en el anfitrión; el motor de laboratorio de kiwi (r01/hg.js),
+     que las escribía en el anfitrión, ya no se monta (window.hgEngine = 'real' o 'missing' si el dist/ no trae las capas).
+     ?dark=1 · ?dir=rtl · ?theme=<nombre de tema-oscuro/dark-color-presence/generated/>.
+     Ver: python3 -m http.server 4209 -d <raíz del repo> → /design/lab/hover-glide/estilo-banco.html
+     Verificación: node design/lab/hover-glide/estilo-verificar.mjs (ver cabecera). -->
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Banco de la luz</title>
+
+<link rel="stylesheet" href="../../../packages/vue/dist/fonts.css">
+<!-- CSS FUENTE (src/styles/grana.css, con GSidebar.css y GTable.css de coco); el tema opcional va sin capa y gana -->
+<link rel="stylesheet" href="../../../packages/vue/src/styles/grana.css">
+<link id="theme" rel="stylesheet">
+<style>
+/* Banco de coco sobre la ronda r01 «una sola luz» en GSidebar y GTable (kiwi). Solo estilos de la página del banco: la luz es el CSS
+   fuente de GSidebar.css y GTable.css. Solo var(--g-*). */
+
+/* ---------- Página del banco (no es Grana) ---------- */
+body { margin: 0; background: var(--g-color-surface-sunken); color: var(--g-color-text); font-family: var(--g-font-ui); }
+.hg-page { box-sizing: border-box; max-inline-size: calc(var(--g-space-1) * 300); margin-inline: auto; padding: var(--g-space-6) var(--g-space-4); display: grid; gap: var(--g-space-6); }
+.hg-head h1 { margin: 0 0 var(--g-space-2); font-size: var(--g-text-title-size); line-height: var(--g-text-title-line); font-weight: var(--g-text-title-weight); }
+.hg-head p { margin: 0; max-inline-size: 72ch; color: var(--g-color-text-muted); font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); }
+.hg-switch { display: flex; flex-wrap: wrap; gap: var(--g-space-2); align-items: center; margin-block-start: var(--g-space-3); font-size: var(--g-text-body-sm-size); }
+.hg-switch a { color: var(--g-color-text); padding: var(--g-space-1) var(--g-space-3); border: var(--g-border-width) solid var(--g-color-border); border-radius: var(--g-radius-pill); text-decoration: none; background: var(--g-color-surface); }
+.hg-switch a[aria-current="true"] { border-color: var(--g-color-primary-text); font-weight: var(--g-text-action-weight); }
+.hg-switch a:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset); }
+.hg-sec { display: grid; gap: var(--g-space-3); padding: var(--g-space-5); background: var(--g-color-surface); border: var(--g-border-width) solid var(--g-color-border); border-radius: var(--g-radius-lg); }
+.hg-sec h2 { margin: 0; font-size: var(--g-text-body-size); line-height: var(--g-text-body-line); font-weight: var(--g-text-title-weight); }
+.hg-sec > p { margin: 0; color: var(--g-color-text-muted); font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); max-inline-size: 80ch; }
+.hg-row { display: flex; flex-wrap: wrap; gap: var(--g-space-5); align-items: flex-start; }
+.hg-sidebar-box { block-size: calc(var(--g-space-1) * 140); display: flex; border: var(--g-border-width) solid var(--g-color-border); border-radius: var(--g-radius-md); overflow: hidden; }
+.hg-meter { margin: 0; font-family: var(--g-font-ui); font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); color: var(--g-color-text-muted); font-variant-numeric: tabular-nums; }
+.hg-meter b { color: var(--g-color-text); font-weight: var(--g-text-action-weight); }
+.hg-table { min-inline-size: 0; flex: 1 1 calc(var(--g-space-1) * 120); }
+.hg-sr { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.hg-box-narrow { inline-size: calc(var(--g-space-1) * 16); }
+.hg-nav-box { position: relative; inline-size: calc(var(--g-space-1) * 100); block-size: calc(var(--g-space-1) * 30); border: var(--g-border-width) solid var(--g-color-border); border-radius: var(--g-radius-md); overflow: hidden; }
+</style>
+<script src="../lucide-icons.js"></script>
+</head>
+<body>
+<div id="app"></div>
+<script src="../../../node_modules/vue/dist/vue.global.js"></script>
+<script src="../../../packages/vue/dist/grana.umd.js"></script>
+<script>
+(function () {
+  const q = new URLSearchParams(location.search)
+  if (q.get('dark') === '1') document.documentElement.setAttribute('data-theme', 'dark')
+  if (q.get('dir') === 'rtl') document.documentElement.setAttribute('dir', 'rtl')
+  if (q.get('theme')) document.getElementById('theme').href = '../tema-oscuro/dark-color-presence/generated/' + q.get('theme') + '.css'
+  const { createApp, ref, onMounted, nextTick } = Vue
+
+  const sbItems = [
+    { label: 'Principal', items: [
+      { id: 'home', label: 'Inicio', href: '#home', icon: 'house' },
+      { id: 'inbox', label: 'Bandeja', href: '#inbox', icon: 'inbox', badge: 12, badgeLabel: '12 sin leer' },
+      { id: 'msg', label: 'Mensajes', href: '#msg', icon: 'message-circle' },
+      { id: 'cal', label: 'Calendario', href: '#cal', icon: 'calendar' }
+    ] },
+    { label: 'Espacio de trabajo', items: [
+      { id: 'proj', label: 'Proyectos', icon: 'folder', children: [
+        { id: 'p1', label: 'Todos', href: '#p1' }, { id: 'p2', label: 'Archivados', href: '#p2' }, { id: 'p3', label: 'Plantillas', href: '#p3' }
+      ] },
+      { id: 'team', label: 'Equipo', href: '#team', icon: 'users' },
+      { id: 'bill', label: 'Facturación', icon: 'credit-card', disabled: true },
+      { id: 'rep', label: 'Reportes', href: '#rep', icon: 'chart-column' }
+    ] },
+    { label: 'Ajustes', items: [{ id: 'set', label: 'Ajustes', href: '#set', icon: 'settings' }] }
+  ]
+  const sbLabels = { collapse: 'Contraer la barra lateral', expand: 'Expandir la barra lateral', more: 'Más', moreActive: 'contiene la página actual', drawer: 'Navegación', close: 'Cerrar', search: 'Buscar', searchHint: '⌘K' }
+
+  const lotes = [
+    ['L-2041', 'Espadín · tina 3', 'Fermentando', '1 240'], ['L-2042', 'Tobalá · tina 1', 'Reposo', '380'],
+    ['L-2043', 'Cuishe · tina 5', 'Destilado', '612'], ['L-2044', 'Espadín · tina 2', 'Fermentando', '1 105'],
+    ['L-2045', 'Arroqueño · tina 4', 'Envasado', '290'], ['L-2046', 'Madrecuixe · tina 6', 'Reposo', '455'],
+    ['L-2047', 'Espadín · tina 7', 'Destilado', '980'], ['L-2048', 'Tepeztate · tina 8', 'Fermentando', '210']
+  ].map(([id, sub, estado, litros]) => ({ id, titulo: id, sub, estado, litros }))
+  const columns = [
+    { key: 'lote', label: 'Lote', title: 'titulo', subtitle: 'sub' },
+    { key: 'estado', label: 'Estado' },
+    { key: 'litros', label: 'Litros', align: 'end' }
+  ]
+  const tLabels = { selectAll: 'Seleccionar todo', selectRow: 'Seleccionar {title}', rowActions: 'Acciones de {title}', actionsHeader: 'Acciones', selectedCount: '{count} seleccionados', results: '{count} lotes', loading: 'Cargando lotes…', empty: 'Sin lotes.', detail: 'Lote {title}' }
+
+  
+  const App = {
+    setup () {
+      const current = ref('team')
+      const selected = ref(['L-2043'])
+      const expanded = ref([])
+      onMounted(async () => {
+        await nextTick()
+        await new Promise((r) => setTimeout(r, 300))
+        // Solo el motor real: las capas las pinta el vnode (GSidebar.vue / GTable.vue con utils/glide.js)
+        window.hgEngine = document.querySelector('.g-sidebar__highlight, .g-table__highlight') ? 'real' : 'missing'
+        window.hgReady = true
+      })
+      return { sbItems, sbLabels, current, lotes, columns, tLabels, selected, expanded, lucide: (n) => window.lucide(n) }
+    },
+    template: `
+<main class="hg-page">
+  <header class="hg-head"><h1>Banco de la luz · GSidebar y GTable</h1>
+    <p>CSS fuente de coco sobre los componentes de dist/ (capas y motor de la luz de bruno).</p></header>
+  <section class="hg-sec"><h2>GSidebar</h2>
+    <div class="hg-row">
+      <div class="hg-sidebar-box"><g-sidebar id="sb-default" v-model="current" :items="sbItems" label="Secciones" :labels="sbLabels" mode="expanded" contained>
+        <template #icon="{ item }"><span v-html="lucide(item.icon)"></span></template></g-sidebar></div>
+      <div class="hg-sidebar-box"><g-sidebar id="sb-compact" v-model="current" :items="sbItems" label="Secciones compactas" :labels="sbLabels" mode="expanded" density="compact" contained>
+        <template #icon="{ item }"><span v-html="lucide(item.icon)"></span></template></g-sidebar></div>
+      <div class="hg-sidebar-box"><g-sidebar id="sb-rail" v-model="current" :items="sbItems" label="Secciones riel" :labels="sbLabels" mode="rail" contained>
+        <template #icon="{ item }"><span v-html="lucide(item.icon)"></span></template></g-sidebar></div>
+      <div class="hg-sidebar-box"><g-sidebar id="sb-zone" data-g-zone="brand" v-model="current" :items="sbItems" label="Secciones marca" :labels="sbLabels" mode="expanded" contained>
+        <template #icon="{ item }"><span v-html="lucide(item.icon)"></span></template></g-sidebar></div>
+      <div class="hg-nav-box"><g-sidebar id="sb-nav" v-model="current" :items="sbItems[0].items" label="Secciones barra" :labels="sbLabels" mode="navbar" contained>
+        <template #icon="{ item }"><span v-html="lucide(item.icon)"></span></template></g-sidebar></div>
+    </div>
+  </section>
+  <section class="hg-sec"><h2>GTable</h2>
+    <div class="hg-row">
+      <div class="hg-table"><g-table id="t-plain" :columns="columns" :rows="lotes" caption="Llana" selectable v-model:selected="selected" :labels="tLabels" responsive="table"></g-table></div>
+      <div class="hg-table"><g-table id="t-door" :columns="columns" :rows="lotes" caption="A · la puerta" selectable :row-href="(r) => '#' + r.id" :labels="tLabels" responsive="table"></g-table></div>
+      <div class="hg-table"><g-table id="t-detail" :columns="columns" :rows="lotes" caption="B · despliegue" v-model:expanded="expanded" :labels="tLabels" responsive="table">
+        <template #detail="{ row }"><p style="margin:0">Ficha de {{ row.titulo }}.</p></template></g-table></div>
+      <div class="hg-table"><g-table id="t-surface" :columns="columns" :rows="lotes" caption="Superficie" appearance="surface" :labels="tLabels" responsive="table"></g-table></div>
+      <div class="hg-table"><g-table id="t-cards" :columns="columns" :rows="lotes" caption="Tarjetas" :labels="tLabels" responsive="cards"></g-table></div>
+      <div class="hg-table"><g-table id="t-zone" data-g-zone="brand" :columns="columns" :rows="lotes" caption="Zona de marca" :labels="tLabels" responsive="table"></g-table></div>
+    </div>
+  </section>
+</main>`
+  }
+  const app = createApp(App)
+  app.use(Grana)
+  app.mount('#app')
+})()
+</script>
+</body>
+</html>

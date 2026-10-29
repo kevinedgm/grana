@@ -10,7 +10,7 @@
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | `brand` | compartida |
 | `variant` | String | `solid` `soft` `outline` `ghost` `link` | `solid` | compartida |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` | compartida |
-| `density` | String | `default` `comfortable` `compact` | `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 | `rounded` | String | `none` `xs` `sm` `md` `lg` `xl` `pill` | sin valor: `md`, o `pill` si el tema tiene `shape: "pill"` | compartida |
 | `block` | Boolean | | `false` | compartida |
 | `disabled` | Boolean | | `false` | compartida |
@@ -130,7 +130,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `g-btn--color-{color}` | Raíz | Siempre (valor del prop, incluido el defecto) |
 | `g-btn--variant-{variant}` | Raíz | Siempre |
 | `g-btn--size-{size}` | Raíz | Siempre |
-| `g-btn--density-{density}` | Raíz | Siempre |
+| `g-btn--density-{density}` | Raíz | Con la prop explícita, junto a `data-g-density` (#975) |
 | `g-btn--rounded-{rounded}` | Raíz | Solo si el prop tiene valor; si no, rige `--g-radius-shape` |
 | `g-btn--block` | Raíz | `block` |
 | `g-btn--icon` | Raíz | `icon` |
@@ -188,6 +188,11 @@ Además de los de «Tokens consumidos»: **`--g-duration-slow`** y **`--g-ease-b
 | B1 | Pulsado: escala 0,970; tras soltar, pico **≈ 1,006** (kiwi: 1,0060) y asentado en 1 antes de `--g-duration-slow`; hoy, máximo 1,0000. Con `reduce`: escala 1 siempre. Tres motores |
 | B2 | Cuadros intermedios (kiwi: 5) en etiqueta e indicador; ancho Δ 0px (128,67 → 128,67); etiqueta a −`space × 1` en carga; nombre accesible en carga = la etiqueta (Chromium, árbol AX; la prueba `btn-loading-name.spec.mjs` sigue en verde). Con `reduce`: sin desplazamiento |
 | Reservadas | B3 (relleno desde el punto de pulsación) y B4 (confirmación breve tras la carga, prop nueva): fuera de esta tanda |
+
+## Densidad por región (pieza 2; `density.md`, #974 a #982)
+
+- Sin `density`, el botón sigue la región (`data-g-density` más cercano › `<html>` › tema › `default`); con `density`, su raíz lleva `data-g-density` y la clase. Dentro de `GTable`, `GCard`, `GDialog`, `GForm`, `GStack`… con prop, el botón la sigue (B, #975): para salir, `density` en el botón.
+- **Límite (L6, #978):** con puntero grueso, una región o el valor global **ceden** a `default` (el botón visible mide 36 con el tema por defecto). Con la **prop explícita** `compact` no cede: el botón **se ve** de 27 px (su 44 px táctil es el área `::after`, invisible) junto a un campo de 44 px en la misma barra. Es deliberado (la instancia lo pidió); para una barra coherente en táctil, usar región y no prop.
 
 ## Resolución de hallazgos de r01
 

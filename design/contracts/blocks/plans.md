@@ -1,6 +1,6 @@
 # Contrato · Plans & upgrade (`GbPlans01` · `02` · `03`)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #957 a #961 y #966, 2026-10-29) · **Plan:** S5 (§4.5) · **Entrada:** `@grana/blocks/saas` · **Tipo `Plan`:** `types/common.d.ts` (lo reutilizará Marketing M6, §51) · **Común:** `_comun.md` §1 a §5 y §41 a §54 · **Compone:** `GSection`, `GPriceScope` + `GPrice`, `GRadioGroup` (`segmented` para el periodo, `card` en 02), `GAdaptiveLayout`, `GCard`, `GTable` (02), `GBadge`, `GBtn`, `GIcon`, `GText`, `GProgress` (03, decorativa, SA-L1) y la confirmación común (§43.2) · **Fase:** 4c·3 · **Compleja: coco y bruno en Opus** (precios por periodo, consecuencias, confirmación)
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #983 a #987 y #992, 2026-10-29) · **Plan:** S5 (§4.5) · **Entrada:** `@grana/blocks/saas` · **Tipo `Plan`:** `types/common.d.ts` (lo reutilizará Marketing M6, §51) · **Común:** `_comun.md` §1 a §5 y §41 a §54 · **Compone:** `GSection`, `GPriceScope` + `GPrice`, `GRadioGroup` (`segmented` para el periodo, `card` en 02), `GAdaptiveLayout`, `GCard`, `GTable` (02), `GBadge`, `GBtn`, `GIcon`, `GText`, `GProgress` (03, decorativa, SA-L1) y la confirmación común (§43.2) · **Fase:** 4c·3 · **Compleja: coco y bruno en Opus** (precios por periodo, consecuencias, confirmación)
 
 ## Promesa
 
@@ -74,7 +74,7 @@ interface GbPlansProps {
 
 `GSection` con título (sin `h1`); la región de precios con su leyenda; el periodo es un grupo de radios con nombre; cada plan en 01 es un elemento de lista con su encabezado; la tabla de 02 con `caption`, encabezados de columna (los planes) y de fila (las funciones); «incluido / no incluido» **en texto** (1.4.1); la consecuencia es descripción del botón; la confirmación de bajar es `alertdialog` con el foco inicial en «Mantener».
 
-## Qué lo hace distinto (#966)
+## Qué lo hace distinto (#992)
 
 **El precio del cambio, dicho antes y con fecha.** Ninguna tarjeta dice solo «$899/mes»: el botón de cada plan lleva delante **lo que cambia para ti** —«Desde el 1 de diciembre pagarás $899 al mes; hoy se cobran $412 por los días que quedan»— y bajar de plan **pregunta antes de quitar** diciendo qué se pierde («Tus 3 tableros privados pasan a solo lectura»). En 03 el plan aparece **cuando hace falta y por qué**: el consumo que se acerca al límite, lo que pasará al llegar y lo que cuesta evitarlo, sin cuentas atrás ni rojo que asuste.
 

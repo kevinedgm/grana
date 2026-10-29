@@ -22,7 +22,7 @@ Diálogo modal genérico con una **carcasa** exterior y una **superficie inset**
 | `title` | String | texto libre | sin valor | propia |
 | `description` | String | texto libre | sin valor | propia |
 | `size` | String | `sm` `md` `lg` | `md` | compartida (subconjunto) |
-| `density` | String | `default` `comfortable` `compact` | `default` | compartida |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
 | `inset` | Boolean | | `true` | propia |
 | `fullscreen` | Boolean | | `false` | propia |
 | `bare` | Boolean | | `false` | propia (#732): sin encabezado, relleno ni inset; §«Visor a pantalla completa» |
@@ -43,7 +43,7 @@ Diálogo modal genérico con una **carcasa** exterior y una **superficie inset**
 - **`title`:** nombre accesible del diálogo (`aria-labelledby`). Sin `title`, sin slot `title` ni `header` y sin `aria-label` ni `aria-labelledby` (en `$attrs`), en desarrollo se emite `console.warn`.
 - **`description`:** descripción accesible (`aria-describedby`); solo se renderiza si hay texto o slot.
 - **`size`:** ancho de la carcasa en escritorio, derivado de `space` (con `space` 4: 400, 560 y 760px), siempre menor que el visor menos 8 unidades de `space`. `sm` y `lg` aplican en escritorio y tableta. `size` no usa `xs`…`xl`: ese conjunto es de controles (ver `api.md`).
-- **`density`:** multiplica relleno y separación de la carcasa y la inset (1×, 0.875×, 0.75×). La tipografía no cambia.
+- **`density`:** multiplica relleno y separación de la carcasa y la inset (1×, 0.875×, 0.75×). La tipografía no cambia. **Desde #977 (decisión del usuario), sin prop el diálogo hereda la región donde está escrito** (el `<dialog>` vive en su sitio; #566 corta el contexto de formulario, no la apariencia); con prop es una región para su contenido (#975).
 - **`inset`:** con `true`, cuerpo y pie viven en la superficie inset. Con `false`, en la carcasa (diálogo simple).
 - **`fullscreen`:** ocupa todo el visor, en todos los anchos, sin esquinas redondeadas exteriores; conserva las dos superficies.
 - **`placement`:** dónde se ancla la carcasa en escritorio y tableta. `center` (por defecto), centrada. **`end`: hoja lateral** pegada al borde final (derecha en LTR, izquierda en RTL), **de alto completo** del visor, con el ancho de `size` (sin esquinas exteriores del lado del borde) y una entrada deslizando desde ese borde; cuerpo desplazable y pie fijo. En móvil (≤ ~520px) **actúa `mobile`** (hoja inferior por defecto): `placement` no cambia nada. Con `fullscreen`, gana `fullscreen`. Lo usan `GWidgetGallery` y `GWidgetConfig` (DECISIONS.md #77).
@@ -165,7 +165,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | --- | --- | --- |
 | `g-dialog` | Raíz (`<dialog>`) | Siempre |
 | `g-dialog--size-{sm\|md\|lg}` | Raíz | Siempre |
-| `g-dialog--density-{default\|comfortable\|compact}` | Raíz | Siempre |
+| `g-dialog--density-{default\|comfortable\|compact}` | Raíz | Con la prop explícita, junto a `data-g-density` (#975) |
 | `g-dialog--inset` | Raíz | Con `inset` |
 | `g-dialog--fullscreen` | Raíz | Con `fullscreen` |
 | `g-dialog--placement-{center\|end}` | Raíz | Siempre |

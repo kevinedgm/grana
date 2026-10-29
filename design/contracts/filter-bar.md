@@ -91,3 +91,7 @@ Sin grupos Y/O anidados (constructor de reglas: ronda posterior), sin filtros gu
 ## Contraste de las casillas del editor (`tokens.md` §7.1; DECISIONS.md #431 y #432)
 
 Las casillas nativas de valores (`.g-filter-bar__value input[type="checkbox"]`) pasan a `accent-color: var(--g-color-primary-text)` (antes `primary`). Sin cambio en el tema por defecto. Pendiente de **coco** (encargo único en `checkbox.md` §«Contraste de lo marcado»).
+
+## Texto con puntero grueso (DECISIONS.md #970 a #972)
+
+Regla común en `docs/contract/api.md` «Texto editable con puntero grueso» y mínimo en `tokens.md` §7: con `@media (pointer: coarse)`, `font-size: max(16px, <rol>)`; interlineado del rol con piso `--g-text-body-sm-line`; altura sin cambio; en escritorio, sin cambio. Aquí: en el editor, `__rule` (`<select>` nativo) y los `<input>` de `__value` (texto, número y fecha; no las casillas) suben a `max(16px, body-sm)`; la barra, las píldoras y el título del editor se quedan.
