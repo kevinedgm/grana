@@ -774,10 +774,10 @@ onBeforeUnmount(() => {
 })
 
 // ---------- Clases y datos (contrato bruno ↔ coco) ----------
+// La clase sale solo de la prop: lo heredado (región, contenedor con prop) llega por CSS (#976)
 const classes = computed(() => [
   'g-slider',
   `g-slider--color-${COLORS.includes(props.color) ? props.color : 'brand'}`,
-  // La clase sale solo de la prop: lo heredado (región, contenedor con prop) llega por CSS (#976)
   props.density && `g-slider--density-${props.density}`,
   attrs.class,
   {

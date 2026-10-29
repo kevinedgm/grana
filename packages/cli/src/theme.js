@@ -1,4 +1,5 @@
 // Generación del tema: entradas → tokens (color en OKLCH, escalas), con los valores por defecto para lo demás.
+import { DENSITY_VALUES } from './config.js'
 import { deriveColor, deriveDarkColor } from './derive.js'
 import { DEFAULTS, DARK } from './defaults.js'
 import { isColorGroup, splitColorGroup } from './scheme.js'
@@ -141,7 +142,7 @@ export const generateTheme = (config = {}) => {
 // Especificidad: los dos selectores de la consulta oscura valen (0,1,0), igual que `:root, [data-theme="light"]`, para que
 // un segundo tema cargado después (cambio en caliente) gane por orden; con `:not()` pasarían a (0,2,0) y el primero ganaría siempre.
 /** tokens.css: sin capa (el tema del usuario gana siempre, contrato §8). Con tema oscuro, tres bloques (contrato §15). */
-export const toCss = (generated, { source = 'grana.config.json', dark = { enabled: true, generated: {} }, zone = null } = {}) => {
+export const toCss = (generated, { source = 'grana.config.json', dark = { enabled: true, generated: {} }, zone = null, density } = {}) => {
   const decls = (o, indent = '  ') => Object.entries(o).map(([k, v]) => `${indent}${k}: ${v};`)
   const { color, other } = splitColorGroup(generated)
   const out = [
@@ -149,6 +150,17 @@ export const toCss = (generated, { source = 'grana.config.json', dark = { enable
     '/* Sin @layer: el tema del usuario gana siempre sobre grana.defaults (DECISIONS.md #4). */'
   ]
   if (Object.keys(other).length) out.push(':root {', ...decls(other), '}')
+  // Clave density (density.md §6, #981): el valor del producto, solo con comfortable o compact (con default o sin clave,
+  // nada: Δ0 bytes). (0,1,0) como #561: un segundo tema cargado después gana; <html data-g-density> gana porque el selector
+  // deja de coincidir. Su propio restablecimiento táctil (P2, #978): sin capa ganaría a la regla de grana.defaults
+  if (density && density !== 'default') {
+    out.push(
+      `:root:where(:not([data-g-density])) { --g-density: ${DENSITY_VALUES[density]}; }`,
+      '@media (pointer: coarse) {',
+      '  :root:where(:not([data-g-density])) { --g-density: 1; }',
+      '}'
+    )
+  }
   if (Object.keys(color).length) out.push(':root,', '[data-theme="light"] {', ...decls(color), '}')
   if (dark.enabled) {
     if (Object.keys(dark.generated).length) {

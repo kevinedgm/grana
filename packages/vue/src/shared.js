@@ -101,6 +101,7 @@ import { warnMissingCategory } from './utils/categoryToken.js'
 import { BIDI, currencyCode, currencyDigits, currencyName, isShared, nf } from './utils/currency.js'
 
 // Literal de objetos sin llamadas: quien importa @grana/vue sin usar la captura lo poda entero.
+// La época de densidad (#980): un solo MutationObserver por documento, también desde las entradas propias
 export const shared = {
   'components/GBtn/GBtn.vue': { default: GBtn },
   'components/GSelect/GSelect.vue': { default: GSelect },
@@ -132,7 +133,6 @@ export const shared = {
   'utils/loadPhase.js': { createLoadPhase, loadRegionKey, rememberFocus, restoreFocus },
   'utils/match.js': { fold, parts, tokens },
   'utils/sizeObserver.js': { observeSize },
-  // La época de densidad (#980): un solo MutationObserver por documento, también desde las entradas propias
   'utils/density.js': { useDensityEpoch },
   'utils/keyFocus.js': { useKeyFocus },
   'utils/oneOf.js': { oneOf },

@@ -771,11 +771,11 @@ const sent = computed(() => {
 
 // ---------- Clases (contrato bruno ↔ coco) ----------
 const ready = ref(false)
+// La clase sale solo de la prop: lo heredado (región, contenedor con prop) llega por CSS (#976)
 const classes = computed(() => [
   'g-file-field',
   `g-file-field--size-${props.size}`,
   `g-file-field--variant-${props.variant}`,
-  // La clase sale solo de la prop: lo heredado (región, contenedor con prop) llega por CSS (#976)
   props.density && `g-file-field--density-${props.density}`,
   props.rounded && `g-file-field--rounded-${props.rounded}`,
   {

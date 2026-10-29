@@ -1,7 +1,10 @@
 // Lectura y validación de la configuración (docs/contract/tokens.md §1): 9 claves opcionales + `overrides` + `dark`.
 import { parseHex } from './color.js'
 
-export const KEYS = ['name', 'brand', 'accent', 'primary', 'neutrals', 'neutralsHue', 'semanticCollision', 'categories', 'radius', 'shape', 'space', 'font', 'fontDisplay', 'fontSize', 'typeScale', 'overrides', 'dark']
+export const KEYS = ['name', 'brand', 'accent', 'primary', 'neutrals', 'neutralsHue', 'semanticCollision', 'categories', 'radius', 'shape', 'space', 'font', 'fontDisplay', 'fontSize', 'typeScale', 'density', 'overrides', 'dark']
+
+/** Valor de --g-density por paso de la clave `density` (density.md §2; #15, #967) */
+export const DENSITY_VALUES = { default: '1', comfortable: '0.875', compact: '0.75' }
 
 /** Devuelve { config, errors }. Rechaza claves desconocidas y tipos incorrectos, con el motivo. */
 export const readConfig = (raw) => {
@@ -59,12 +62,19 @@ export const readConfig = (raw) => {
     if (raw.shape !== 'rounded' && raw.shape !== 'pill') err('bad-shape', `«shape» debe ser "rounded" o "pill"; se recibió ${JSON.stringify(raw.shape)}.`)
     else config.shape = raw.shape
   }
+  // density (density.md §6, #981): el valor del producto; sin valor o "default", nada en la salida
+  if (raw.density !== undefined) {
+    if (!['default', 'comfortable', 'compact'].includes(raw.density)) err('bad-density', `\`density\` debe ser "default", "comfortable" o "compact"; se recibió ${JSON.stringify(raw.density)}.`)
+    else config.density = raw.density
+  }
   // { "--g-token": "valor" } de tokens «--g-*»
   const readOverrides = (value, label) => {
     if (value === null || typeof value !== 'object' || Array.isArray(value)) { err('bad-overrides', `«${label}» debe ser un objeto { "--g-token": "valor" }.`); return undefined }
     const o = {}
     for (const [k, v] of Object.entries(value)) {
       if (!/^--g-[a-z0-9-]+$/.test(k)) err('bad-override', `«${label}» solo admite tokens «--g-*»; «${k}» no lo es.`)
+      // Se cambia con el atributo o con la clave, nunca con el token: sin capa en :root taparía <html data-g-density> (#981)
+      else if (k === '--g-density') err('density-override', '`--g-density` no se sobrescribe: usa la clave `density` (density.md §6).')
       else if (typeof v !== 'string' || !v.trim()) err('bad-override', `El valor de «${k}» en «${label}» debe ser un texto no vacío.`)
       else o[k] = v.trim()
     }

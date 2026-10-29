@@ -86,7 +86,7 @@ describe('useDensityEpoch', () => {
     again.unmount()
   })
 
-  it('sube una vez por cuadro con varios cambios de data-g-density, también en <html>; otros atributos no cuentan', async () => {
+  it('varios cambios de data-g-density en la misma tarea suben una vez, también en <html>; otros atributos no cuentan', async () => {
     const seen = vi.fn()
     const w = mount(Probe, { props: { onEpoch: seen }, attachTo: document.body })
     const region = document.createElement('section')
@@ -108,6 +108,27 @@ describe('useDensityEpoch', () => {
     flush()
     await nextTick()
     expect(seen).toHaveBeenCalledTimes(2)
+    w.unmount()
+  })
+
+  it('flanco inicial en la microtarea del cambio y uno final en el cuadro si llegaron más cambios mientras tanto', async () => {
+    const seen = vi.fn()
+    const w = mount(Probe, { props: { onEpoch: seen }, attachTo: document.body })
+    const a = document.createElement('section')
+    document.body.append(a)
+    await Promise.resolve()
+    a.setAttribute('data-g-density', 'compact')
+    await Promise.resolve()
+    expect(mod.densityEpoch.value, 'sube antes del cuadro (antes de calcular el estilo)').toBe(1)
+    a.setAttribute('data-g-density', 'comfortable')
+    await Promise.resolve()
+    a.setAttribute('data-g-density', 'default')
+    await Promise.resolve()
+    expect(mod.densityEpoch.value, 'los cambios siguientes del mismo cuadro esperan al cuadro').toBe(1)
+    flush()
+    expect(mod.densityEpoch.value, 'uno final por todos ellos').toBe(2)
+    flush()
+    expect(mod.densityEpoch.value).toBe(2)
     w.unmount()
   })
 

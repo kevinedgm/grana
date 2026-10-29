@@ -692,13 +692,13 @@ export default defineComponent({
       const out = []
       if (slots.trigger) out.push(...[].concat(slots.trigger({ open: isOpen, attrs: triggerAttrs })))
       else try { if (process.env.NODE_ENV !== 'production') warnOnce('trigger', 'necesita el slot `trigger` (el botón que abre el menú).') } catch {}
+      // La prop es la región de la lista y de sus submenús (#975); sin prop, la del disparador por herencia
       if (isOpen || leaving.value) {
         out.push(h('ul', {
           ...attrs,
           ref: listRef,
           id: listId,
           class: cls('g-menu__list', props.density && `g-menu__list--density-${props.density}`, attrs.class),
-          // La prop es la región de la lista y de sus submenús (#975); sin prop, la del disparador por herencia
           ...(props.density && { 'data-g-density': props.density }),
           role: 'menu',
           popover: 'manual',

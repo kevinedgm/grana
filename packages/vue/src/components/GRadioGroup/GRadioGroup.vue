@@ -302,11 +302,11 @@ const describedBy = computed(() => {
   const ids = [attrs['aria-describedby'], hasHint.value && hintId.value, message.value && ff.messageId.value].filter(Boolean)
   return ids.length ? ids.join(' ') : undefined
 })
+// La clase sale solo de la prop: lo heredado llega por CSS (#976)
 const classes = computed(() => [
   'g-radio-group',
   `g-radio-group--appearance-${props.appearance}`,
   `g-radio-group--size-${props.size}`,
-  // La clase sale solo de la prop: lo heredado llega por CSS (#976)
   props.density && `g-radio-group--density-${props.density}`,
   `g-radio-group--color-${props.color}`,
   {

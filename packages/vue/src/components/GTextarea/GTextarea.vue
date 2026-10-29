@@ -155,11 +155,11 @@ let unmounted = false
 onMounted(() => nextFrame(() => nextFrame(() => { if (!unmounted) ready.value = true })))
 onBeforeUnmount(() => { unmounted = true })
 
+// La clase sale solo de la prop: lo heredado (región, contenedor con prop) llega por CSS (#976)
 const classes = computed(() => [
   'g-textarea',
   `g-textarea--variant-${props.variant}`,
   `g-textarea--size-${props.size}`,
-  // La clase sale solo de la prop: lo heredado (región, contenedor con prop) llega por CSS (#976)
   props.density && `g-textarea--density-${props.density}`,
   props.color && `g-textarea--color-${props.color}`,
   props.rounded && `g-textarea--rounded-${props.rounded}`,

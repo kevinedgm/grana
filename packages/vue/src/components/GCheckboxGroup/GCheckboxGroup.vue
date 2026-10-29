@@ -133,10 +133,10 @@ const describedBy = computed(() => {
   return ids.length ? ids.join(' ') : undefined
 })
 
+// La prop es la región del grupo (#976): clase y atributo juntos (la clase es lo que P2 reconoce, #978)
 const classes = computed(() => [
   'g-checkbox-group',
   `g-checkbox-group--layout-${props.layout}`,
-  // La prop es la región del grupo (#976): clase y atributo juntos (la clase es lo que P2 reconoce, #978)
   props.density && `g-checkbox-group--density-${props.density}`,
   {
     'is-disabled': isDisabled.value,

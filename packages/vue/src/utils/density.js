@@ -17,12 +17,16 @@ export function readDensity(el) {
   }
 }
 
-/** Sube una vez por cuadro cuando cambia cualquier data-g-density del documento. Fuente separada de un `watch`. */
+/**
+ * Sube cuando cambia cualquier data-g-density del documento: en la microtarea del cambio y, si llegan más cambios antes
+ * del cuadro siguiente, una vez más en él (como mucho dos por cuadro). Fuente separada de un `watch`.
+ */
 export const densityEpoch = shallowRef(0)
 
 let observer = null
 let users = 0
 let frame = 0
+let pending = false
 
 /**
  * Suscribe el componente a densityEpoch mientras está montado y devuelve un getter de la época, para usarlo como fuente
@@ -32,9 +36,16 @@ let frame = 0
 export function useDensityEpoch() {
   onMounted(() => {
     if (users++ || typeof MutationObserver === 'undefined') return
-    // Agrupado por cuadro: el rAF corre antes del estilo y la pintura, así que lo que se vuelve a medir ya sale en él
+    // Agrupado por cuadro con flanco inicial: sube ya, en la microtarea del cambio (antes de que el navegador calcule el
+    // estilo nuevo: GTabs quita is-ready a tiempo y la marca no se anima), y como mucho una vez más en el cuadro siguiente
+    // si llegaron más cambios mientras tanto. Medido: con solo el rAF, Chromium calculaba el estilo antes (density.spec.mjs)
     observer = new MutationObserver(() => {
-      frame ||= requestAnimationFrame(() => { frame = 0; densityEpoch.value++ })
+      if (frame) { pending = true; return }
+      densityEpoch.value++
+      frame = requestAnimationFrame(() => {
+        frame = 0
+        if (pending) { pending = false; densityEpoch.value++ }
+      })
     })
     observer.observe(document.documentElement, { subtree: true, attributes: true, attributeFilter: ['data-g-density'] })
   })
@@ -44,6 +55,7 @@ export function useDensityEpoch() {
     observer = null
     if (frame) cancelAnimationFrame(frame)
     frame = 0
+    pending = false
   })
   return () => densityEpoch.value
 }

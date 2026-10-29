@@ -371,11 +371,11 @@ let unmounted = false
 onMounted(() => nextFrame(() => nextFrame(() => { if (!unmounted) ready.value = true })))
 onBeforeUnmount(() => { unmounted = true })
 
+// La clase sale solo de la prop: lo heredado (región, contenedor con prop) llega por CSS (#976)
 const classes = computed(() => [
   'g-select',
   `g-select--variant-${props.variant}`,
   `g-select--size-${props.size}`,
-  // La clase sale solo de la prop: lo heredado (región, contenedor con prop) llega por CSS (#976)
   props.density && `g-select--density-${props.density}`,
   props.color && `g-select--color-${props.color}`,
   props.rounded && `g-select--rounded-${props.rounded}`,

@@ -177,12 +177,12 @@ watch(() => [props.rows, props.labels, props.label, props.mode, props.modelValue
   } catch {}
 }, { immediate: true, deep: true })
 
+// La clase sale solo de la prop: lo heredado (región, contenedor con prop) llega por CSS (#976)
 const classes = computed(() => [
   'g-party-field',
   `g-party-field--mode-${props.mode}`,
   `g-party-field--size-${props.size}`,
   `g-party-field--variant-${props.variant}`,
-  // La clase sale solo de la prop: lo heredado (región, contenedor con prop) llega por CSS (#976)
   props.density && `g-party-field--density-${props.density}`,
   props.rounded && `g-party-field--rounded-${props.rounded}`,
   attrs.class,

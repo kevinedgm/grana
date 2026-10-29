@@ -103,11 +103,11 @@ provide(inputGroupKey, {
 // Las partes heredan el estado del campo (disabled, readonly, densidad)
 provide(layoutKey, { block: true, density: ff.density, readonly: ff.readonly, disabled: ff.disabled })
 
+// La prop es la región del grupo (#976); sin prop, nada: lo heredado llega por CSS
 const classes = computed(() => [
   'g-input-group',
   `g-input-group--size-${props.size}`,
   `g-input-group--variant-${props.variant}`,
-  // La prop es la región del grupo (#976); sin prop, nada: lo heredado llega por CSS
   props.density && `g-input-group--density-${props.density}`,
   {
     'g-input-group--block': ff.block.value,

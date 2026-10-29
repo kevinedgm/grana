@@ -74,9 +74,9 @@ onMounted(() => {
   } catch {}
 })
 
+// La prop es la región del grupo (#976); sin prop, nada: lo heredado llega por CSS
 const classes = computed(() => [
   'g-field-group',
-  // La prop es la región del grupo (#976); sin prop, nada: lo heredado llega por CSS
   props.density && `g-field-group--density-${props.density}`,
   {
     'is-disabled': ff.disabled.value,

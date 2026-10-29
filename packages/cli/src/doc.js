@@ -2,6 +2,7 @@
 // Contrato: docs/contract/tokens.md §16 y §17 (nivel, origen y estado de cada token).
 import { contrast, parseHex } from './color.js'
 import { DEFAULTS } from './defaults.js'
+import { DENSITY_VALUES } from './config.js'
 import { SEMANTIC } from './palette.js'
 import { usageOf } from './usage.js'
 import { zoneDiagnostics, zoneDocToken } from './zone.js'
@@ -76,7 +77,7 @@ const sourceOf = (name, { tinted, hue = 'brand', primaryOwn = false }) => {
  *   light/dark: tema completo (defaults + generado); `dark` es null con `dark: false` (entonces el oscuro repite el claro).
  *   generated: lo que la configuración cambió (estado «derived»); overrides: «override»; derived/collisions: de la derivación de paleta.
  */
-export const buildDoc = ({ name = 'Grana', light, dark, source = 'grana.config.json', generated = {}, overrides = {}, derived = null, collisions = [], zone = null }) => {
+export const buildDoc = ({ name = 'Grana', density = 'default', light, dark, source = 'grana.config.json', generated = {}, overrides = {}, derived = null, collisions = [], zone = null }) => {
   const dk = dark ?? light
   const adjusted = new Set(Object.keys(derived?.applied ?? {}).flatMap((n) => Object.keys(light).filter((k) => family(k.slice('--g-color-'.length)) === n && k.startsWith('--g-color-'))))
   const tinted = Boolean(derived?.neutralsBrand)
@@ -112,6 +113,8 @@ export const buildDoc = ({ name = 'Grana', light, dark, source = 'grana.config.j
     color: { themes: [{ id: 'light', name: 'Claro' }, { id: 'dark', name: 'Oscuro' }], tokens: color },
     radius: { tokens: scale('--g-radius-').filter((t) => /-(xs|sm|md|lg|xl|shape)$/.test(t.cssVar)) },
     spacing: { tokens: scale('--g-space-') },
+    // density.md §6 (#981): el valor que emite la clave density (o el de grana.defaults); no depende del esquema
+    density: { tokens: [{ name: 'density', cssVar: '--g-density', value: DENSITY_VALUES[density], step: density, usage: 'Multiplicador de densidad (1 · 0.875 · 0.75): altura, relleno y separación de los controles. Se cambia con data-g-density en una región o en <html>; la clave density fija el valor del producto. Con puntero grueso, regiones, <html> y la clave vuelven a 1.' }] },
     diagnostics: [...collisions.map(({ message, ...d }) => ({ ...d, message })), ...[activeContrast(light, dark)].filter(Boolean), ...zoneDiagnostics(zone, { overrides })],
     meta: { source: '@grana/cli', generatedFrom: source, categories: 'Los colores cat-* son colores categóricos de interfaz (iconos, etiquetas), no una paleta de visualización de datos.' }
   }

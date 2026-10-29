@@ -736,12 +736,12 @@ const fieldAttrs = computed(() => {
   const { class: _c, style: _s, ...rest } = attrs
   return rest
 })
+// La clase sale solo de la prop: lo heredado (región, contenedor con prop) llega por CSS (#976)
 const classes = computed(() => [
   'g-datepicker',
   `g-datepicker--mode-${props.mode}`,
   `g-datepicker--variant-${props.variant}`,
   `g-datepicker--size-${props.size}`,
-  // La clase sale solo de la prop: lo heredado (región, contenedor con prop) llega por CSS (#976)
   props.density && `g-datepicker--density-${props.density}`,
   `g-datepicker--color-${props.color}`,
   props.rounded && `g-datepicker--rounded-${props.rounded}`,

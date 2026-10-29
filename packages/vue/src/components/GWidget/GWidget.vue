@@ -272,6 +272,7 @@ export default defineComponent({
       const { class: klass, ...rest } = attrs
       const body = renderBody()
       const disabled = st === 'disabled'
+      // La prop es la región del widget (#975)
       return h('article', {
         ...rest,
         ref: rootEl,
@@ -279,7 +280,6 @@ export default defineComponent({
         class: cls('g-widget', `g-widget--level-${level.value}`, `g-widget--shape-${shape.value}`, `g-widget--state-${st}`, props.density && `g-widget--density-${props.density}`, props.headless && 'g-widget--headless', editing.value && 'is-editing', klass),
         'data-level': level.value,
         'data-shape': shape.value,
-        // La prop es la región del widget (#975)
         ...(props.density && { 'data-g-density': props.density }),
         'aria-labelledby': props.headless ? (attrs['aria-labelledby'] || undefined) : titleId.value,
         'aria-label': props.headless ? (attrs['aria-label'] || props.title) : undefined,

@@ -89,9 +89,9 @@ function checkButtons() {
   return false
 }
 
+// La prop es la región del pie (#976); sin prop, la del formulario o la región por CSS
 const classes = computed(() => [
   'g-form-actions',
-  // La prop es la región del pie (#976); sin prop, la del formulario o la región por CSS
   props.density && `g-form-actions--density-${props.density}`,
   { 'g-form-actions--sticky': props.sticky, 'g-form-actions--stacked': stacked.value }
 ])

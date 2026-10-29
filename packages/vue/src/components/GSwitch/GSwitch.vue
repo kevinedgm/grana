@@ -77,10 +77,10 @@ const inputAttrs = computed(() => {
   return rest
 })
 
+// La clase sale solo de la prop: lo heredado (región, contenedor con prop) llega por CSS (#976)
 const classes = computed(() => [
   'g-switch',
   `g-switch--size-${props.size}`,
-  // La clase sale solo de la prop: lo heredado (región, contenedor con prop) llega por CSS (#976)
   props.density && `g-switch--density-${props.density}`,
   `g-switch--color-${props.color}`,
   `g-switch--label-${props.labelPosition}`,

@@ -610,8 +610,8 @@ function scheduleMeasure() {
     measure()
   }))
 }
+// La densidad de la región, por la época como fuente separada (density.md §7)
 watch(
-  // La densidad de la región, por la época como fuente separada (density.md §7)
   [() => [canPublish.value, referenceTexts.value.join('|'), affix.value.prefix, affix.value.suffix, affix.value.prefixLabel, affix.value.suffixLabel, props.output, props.size, props.density, unref(layout?.density), unref(form?.density), isReadonly.value, showSteppers.value], useDensityEpoch()],
   () => scheduleMeasure()
 )

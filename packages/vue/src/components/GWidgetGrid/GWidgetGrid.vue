@@ -419,10 +419,10 @@ export default defineComponent({
           ...controls
         ])
       })
+      // La prop es la región de la rejilla (#975)
       return h('div', {
         ...rest,
         ref: rootEl,
-        // La prop es la región de la rejilla (#975)
         ...(props.density && { 'data-g-density': props.density }),
         class: cls('g-widget-grid', props.density && `g-widget-grid--density-${props.density}`, props.editable && 'is-editing', klass)
       }, [

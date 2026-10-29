@@ -214,12 +214,12 @@ const classes = computed(() => [
 ])
 const rootBindings = computed(() => {
   const { action: _a, method: _m, class: cls, style, ...rest } = attrs
+  // La prop es la región del formulario (#975, #976): sin prop, nada (un GForm en una región la sigue)
   return mergeProps(
     { onSubmit, onReset, onInput: markDirty, onChange: markDirty, onFocusin },
     rest,
     {
       class: [classes.value, cls],
-      // La prop es la región del formulario (#975, #976): sin prop, nada (un GForm en una región la sigue)
       'data-g-density': props.density || rest['data-g-density'],
       style: [style, actionsSize.value !== null ? { '--g-form-actions-size': `${actionsSize.value}px` } : null]
     }

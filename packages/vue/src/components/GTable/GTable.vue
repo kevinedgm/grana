@@ -897,10 +897,10 @@ export default defineComponent({
     const tableAttrs = () => ({ 'aria-label': attrs['aria-label'], 'aria-labelledby': attrs['aria-labelledby'], 'aria-describedby': attrs['aria-describedby'] })
     const rootAttrs = () => Object.fromEntries(Object.entries(attrs).filter(([k]) => !['aria-label', 'aria-labelledby', 'aria-describedby'].includes(k)))
 
+    // La prop es la región de la tabla, su barra y sus menús (#975); sin prop, la región de fuera
     return () => h('div', {
       ...rootAttrs(),
       ref: root,
-      // La prop es la región de la tabla, su barra y sus menús (#975); sin prop, la región de fuera
       ...(props.density && { 'data-g-density': props.density }),
       style: [attrs.style, docked.value && dockSize.value ? { '--_dock-size': `${dockSize.value}px` } : null],
       class: [attrs.class, 'g-table', `g-table--mode-${mode.value}`, `g-table--appearance-${props.appearance}`, props.density && `g-table--density-${props.density}`, {

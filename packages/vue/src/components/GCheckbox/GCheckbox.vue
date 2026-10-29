@@ -124,11 +124,11 @@ const inputAttrs = computed(() => {
   return rest
 })
 
+// La clase sale solo de la prop: lo heredado (región, contenedor con prop) llega por CSS (#976)
 const classes = computed(() => [
   'g-checkbox',
   `g-checkbox--layout-${layout.value}`,
   `g-checkbox--size-${size.value}`,
-  // La clase sale solo de la prop: lo heredado (región, contenedor con prop) llega por CSS (#976)
   props.density && `g-checkbox--density-${props.density}`,
   `g-checkbox--color-${color.value}`,
   {

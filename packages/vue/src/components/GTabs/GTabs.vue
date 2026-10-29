@@ -726,6 +726,7 @@ export default defineComponent({
         canEnd.value && 'is-scrollable-end'
       )
       const m = mark.value
+      // La prop es la región de las pestañas (#975)
       const rootProps = mergeProps(attrs, {
         ref: (el) => { rootEl.value = el },
         id: rootId.value,
@@ -733,7 +734,6 @@ export default defineComponent({
         'data-direction': direction.value,
         // Orientación real del diseño (#306): la de `aria-orientation`; GTabPanel la copia al activarse
         'data-orientation': o,
-        // La prop es la región de las pestañas (#975)
         ...(props.density && { 'data-g-density': props.density }),
         style: { '--_mark-x': px(m.x), '--_mark-y': px(m.y), '--_mark-w': px(m.w), '--_mark-h': px(m.h) }
       })

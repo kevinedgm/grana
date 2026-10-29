@@ -8,7 +8,7 @@ import { sidebarCurrentDiagnostics } from './sidebarCurrent.js'
 import { DEFAULTS } from './defaults.js'
 import { MIN_DISTANCE, anchorLabel } from './palette.js'
 
-export { readConfig, KEYS } from './config.js'
+export { readConfig, KEYS, DENSITY_VALUES } from './config.js'
 export { generateTheme, toCss } from './theme.js'
 export { validateTheme, COLOR_NAMES } from './validate.js'
 export { deriveColor, deriveDarkColor } from './derive.js'
@@ -80,6 +80,6 @@ export const buildTheme = (raw, { source } = {}) => {
   }
   const notes = diagnostics.filter((d) => d.code !== 'semantic-close' && d.code !== 'override')
   const collisions = diagnostics.filter((d) => d.code === 'semantic-close').map(({ cssVar, recommended, distance, message }) => ({ code: 'semantic-close', cssVar, token: cssVar.replace('--g-color-', ''), distance, recommended, message }))
-  const doc = ok ? buildDoc({ name: config.name, light: tokens, dark: dark.enabled ? dark.tokens : null, source, generated, overrides: config.overrides ?? {}, derived, collisions, zone }) : null
-  return { ok, css: ok ? toCss(generated, { source, dark, zone: zoneBlock }) : null, doc, generated, tokens, dark, derived, zone, zoneBlock, notes, diagnostics, issues }
+  const doc = ok ? buildDoc({ name: config.name, density: config.density, light: tokens, dark: dark.enabled ? dark.tokens : null, source, generated, overrides: config.overrides ?? {}, derived, collisions, zone }) : null
+  return { ok, css: ok ? toCss(generated, { source, dark, zone: zoneBlock, density: config.density }) : null, doc, generated, tokens, dark, derived, zone, zoneBlock, notes, diagnostics, issues }
 }
