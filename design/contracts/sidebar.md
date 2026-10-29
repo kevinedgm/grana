@@ -147,13 +147,14 @@ El sidebar se anima con **transiciones** (no keyframes) allí donde el usuario p
 | Pulsación | Encogimiento mínimo (`scale`) de items y celdas del navbar | Suelta más rápido que aprieta |
 | Panel flotante | Nace de la muesca (`transform-origin`), con opacidad, escala y un desplazamiento corto; **también se anima al cerrar** | Persistente; sin `scale(0)` |
 | Pista | La de `GTooltip` (#436): fundido; relevo sin entrada tras otra reciente; **viaje** entre items de la navegación con `--g-duration-press` + `--g-ease-out` | Con movimiento reducido, el viaje salta |
+| Luz de hover (#957) | **Una sola luz por lista** que se desliza al enlace bajo el puntero (posición y tamaño); aparece y se va con un fundido (§«Una sola luz») | Sigue al puntero, no al foco; con movimiento reducido, solo el fundido |
 | Navbar | La barra **sube desde el borde** al pasar a este formato (`is-entering`); la celda actual **crece** y la etiqueta entra tras ella | La píldora se anima cambiando `is-current` en el mismo `<li>` |
 | Drawer | El panel **se desliza desde su borde de origen** (su propio ancho, sin píxeles; espejado en RTL) con el fondo fundiéndose; **también se anima al cerrar**; los grupos entran escalonados (~30ms) | `<dialog>` con `allow-discrete` |
 | Indicadores | Aparecen con un pequeño crecimiento | |
 
 - **Duraciones:** de 120ms (color, pista) a 160ms (panel, chevrón, etiquetas) y 240ms (ancho, altura, píldora, drawer); ninguna supera los 300ms.
 - **Movimiento reducido:** se conservan los **fundidos** y se quitan los desplazamientos, las escalas y los escalonados (menos y más suave, no cero).
-- **Frecuencia:** el hover de un item es solo color (sin movimiento); nada anima al navegar con el teclado más allá del cambio de estado.
+- **Frecuencia:** el hover de un item **ya no pinta fondo propio**: lo marca la luz de su lista (§«Una sola luz», #957; enmienda de «el hover es solo color»), que viaja `--g-duration-press` sin muelle; la etiqueta sigue tomando `text` con `:hover` (solo color). Nada anima al navegar con el teclado más allá del cambio de estado: **el teclado no enciende la luz**.
 
 ## Item actual: el asiento (r02 hallazgos 2 y 11; DECISIONS.md #612 a #617 y #619)
 
@@ -198,7 +199,7 @@ El sidebar se anima con **transiciones** (no keyframes) allí donde el usuario p
 | Actual (`aria-current="page"`, `is-active`) | Asiento **lleno** + aro; icono `on-current`; etiqueta `text` con peso | Asiento lleno + aro | Píldora (el asiento crecido) |
 | Hijo actual | Nodo + ruta encendida; etiqueta `text` con peso | El hijo vive en el panel: nodo al abrirlo | — (el padre o «Más» es la píldora) |
 | Rama (`is-branch`: padre con hijo actual) | Asiento **hueco** (solo aro); etiqueta `text` con peso; sin `aria-current` | El padre **representa** al actual: `is-branch` **+ `is-rep`** = asiento **lleno**, sin `aria-current` | Píldora en el padre o en «Más» (#68, como hoy) |
-| Hover | Solo en las filas que no son el actual ni su representante: `:not([aria-current="page"], .is-active, .is-rep)` (#564 ampliada en #616); la rama hueca sí recibe hover | Igual | Sin cambio |
+| Hover | **La luz de la lista pasa por todas las filas habilitadas, también el actual y su representante** (#959, enmienda de #564/#616): es una capa aparte bajo el contenido y el asiento no cambia. Ningún enlace pinta fondo de hover; la etiqueta toma `text` (solo color). Deshabilitado: apaga la luz | Igual, en celdas de 44px | Sin luz (reservado, #961): hover por celda con salida instantánea |
 | Foco | Anillo `--g-color-focus` **fuera** de la fila, con `--g-focus-offset` de carcasa entre anillo y asiento (no depende del relleno) | Igual | Igual |
 | Pulsado | El encogimiento de siempre | Igual | Igual |
 | Deshabilitado | Nunca es actual ni rama | | |
@@ -394,6 +395,81 @@ La aplicación reserva el espacio del sidebar en su diseño; el componente no em
 
 `mode-change` avisa cuándo cambia. Los tres son **tokens de estructura** (ver «Tokens nuevos»), derivados de `--g-space-1`.
 
+## Una sola luz (DECISIONS.md #957 a #963; ronda `design/lab/hover-glide/r01/`)
+
+Decisión del usuario del 2026-10-29: el resaltado de hover **se desliza de item en item** como en `GMenu` (M1, #305). Reglas comunes, utilidad y rúbrica de movimiento en `api.md` «Una sola luz». Aquí, lo propio de `GSidebar`. **Ninguna prop, slot, evento ni token del tema nuevo: `GSidebar.meta.json` no cambia.**
+
+### Personalidad (#957)
+
+- **La luz sigue al puntero y el puntero no mueve el foco** (a diferencia de `GMenu`, #305). El sidebar vive en la secuencia de Tab de la página: si el puntero moviera el foco, pasar el ratón por la navegación sacaría al usuario del campo en el que escribe (en móvil se cierra el teclado; en escritorio salta un `blur` con validación, #326), el lector anunciaría items que nadie eligió y en el riel se abrirían pistas por foco (#436). Choca con WCAG 3.2.1 y 2.4.3.
+- **Dos canales:** la luz en el item del puntero, el anillo en el del teclado; si son distintos, se ven los dos. **El teclado no enciende la luz.** Solo `pointerType` `mouse` o `pen`; con el toque, nada.
+- **«Dónde estás» y «adónde irías» conviven:** la luz pasa por detrás del asiento del actual sin apagarlo ni moverlo.
+
+### Listas (anfitriones de la luz)
+
+| Formato | Anfitrión (una luz cada uno) | Filas que forman parte | Qué la separa |
+| --- | --- | --- | --- |
+| Expandida y drawer | **cada** `ul.g-sidebar__list` (un grupo, o el de los items sin grupo) | sus `.g-sidebar__link` **y los de su `g-sidebar__sub` abierto** (los hijos son de la lista del padre) | título y margen del grupo |
+| Riel | igual (mismo DOM, #138) | celdas de 44px | igual |
+| Panel flotante del riel | su `ul`, que pasa a llevar la clase **`g-sidebar__fly-list`** | sus hijos | es otra superficie; la luz del riel se apaga al salir de su lista |
+| Navbar | **sin luz** (reservado, #961) | — | — |
+
+### Qué se registra (destinos de clic)
+
+- **Sí:** todo `.g-sidebar__link` habilitado: enlace, botón de acción, padre (abierto o no), hijo, **actual (`aria-current`, `is-active`), representante (`is-rep`) y rama (`is-branch`)** (#959).
+- **No:** `aria-disabled="true"` (el puntero encima **apaga** la luz, no la deja en el anterior); lo que está dentro de `[inert]` (submenú cerrado); búsqueda, contraer y pie (controles sueltos, no alternativas de una lista: conservan su hover propio).
+- **La caja es la del enlace, no la de su `<li>`** (un submenú abierto daría al padre la altura de sus hijos). El hijo sangrado cambia x y ancho.
+
+### Anatomía y datos (bruno escribe, coco pinta)
+
+| Pieza | Quién | Qué es |
+| --- | --- | --- |
+| `li.g-sidebar__highlight[role="none"][aria-hidden="true"]` | bruno, en el vnode (como `g-menu__highlight`) | La capa, **primer hijo** de cada `g-sidebar__list` y de `g-sidebar__fly-list`. No cambia la cuenta de items que anuncia el lector |
+| `--_highlight-x`, `--_highlight-y`, `--_highlight-w`, `--_highlight-h` | bruno (`utils/glide.js`, #962) | px **físicos**, en el anfitrión: izquierda y arriba de la caja del enlace respecto de la caja de relleno de la lista, más su scroll; ancho y alto del enlace. Físicos a propósito (la medida es `getBoundingClientRect`): la capa se ancla con `left`/`top` físicos también en RTL (medido por kiwi: con `inset-inline-start` caía 296px fuera) |
+| `has-highlight` | bruno | En el anfitrión: hay destino bajo el puntero |
+| `is-highlight-instant` | bruno | En el anfitrión: primera colocación de cada entrada del puntero y toda recolocación sin gesto (scroll, cambio de tamaño); se quita a los dos cuadros |
+| Posición, color, radio, recorte, transición | coco | `GSidebar.css` |
+
+- **Las filas se tocan** (#958): `gap` 0 en `.g-sidebar__list` y `.g-sidebar__sub`, y el submenú abierto **sin** margen de bloque entre el padre y su primer hijo; el área de clic de cada enlace crece la mitad del hueco anterior por cada lado y la luz se recorta otro tanto por dentro (se ve como el hover de hoy). Coco decide cómo recuperar el aire del submenú sin hueco y mide `compact` con el piso de 24px; la altura total de la lista puede crecer como mucho lo que sumaban esos huecos (lo mide coco).
+- `g-sidebar__list` (y `g-sidebar__fly-list`) pasa a `position: relative`; los `.g-sidebar__item` ya lo son y pintan encima por orden del árbol.
+- **Ningún `.g-sidebar__link` pinta fondo de hover** ni transiciona `background-color`; la etiqueta sigue tomando `text` con `:hover` (solo color). La exclusión de #564/#616 en el selector de hover queda **sin objeto** porque ese fondo desaparece; la regla general de #564 sigue para todo CSS nuevo.
+
+### Token de la luz (#959)
+
+**`--g-color-border`, el mismo que el hover de hoy.** Deriva de la coherencia con lo existente, no de identidad: la carcasa del sidebar es `--g-surface-shell`, que vale `surface-sunken` en el tema por defecto (`tokens.md`), así que una luz en `surface-sunken` como la de `GMenu` (que vive sobre `surface`) sería **Δ0, invisible**. El contrato fija el **rol** «el hover de hoy en su superficie»: `GMenu` y `GTable` (sobre `surface`) usan `surface-sunken`, `GSidebar` (sobre `shell`) usa `border`; el panel flotante, sobre `surface-inset`, usa el mismo `border` que hoy. Los contrastes **no cambian** respecto del hover actual (la etiqueta `text` y el icono `text-muted` ya se pintan sobre `border`); coco lo confirma en oscuro y en la zona de marca, que redeclara `--g-color-border` (#620), sin token nuevo.
+
+### Estados
+
+| Estado | Luz | Asiento / marca | Foco |
+| --- | --- | --- | --- |
+| Reposo | apagada | — | — |
+| Puntero sobre un enlace | encendida en su caja | sin cambio | sin cambio |
+| Actual, representante, rama | **encendida**; pasa por detrás | asiento intacto (lleno o hueco) | — |
+| Padre con submenú abierto | encendida; baja a los hijos sin apagarse | — | — |
+| Hijo | con la caja del hijo (sangría incluida) | nodo y ruta intactos | — |
+| Submenú abriéndose o cerrándose, expandir y contraer | se recoloca **sin viajar** si cambia la caja | — | — |
+| Deshabilitado, título de grupo, margen entre grupos, cabecera, pie | **apagada** | — | — |
+| Foco de teclado en otro item | luz en el del puntero, anillo en el del foco | — | anillo de siempre, encima de la capa |
+| Pulsado | se queda en lo pulsado hasta soltar | encogimiento de siempre | — |
+| Riel | igual, en celdas de 44px; la pista (`visualTip`) viaja aparte (dos canales: nombre y destino) | asiento | — |
+| Panel flotante | su propia luz | nodo del hijo actual | — |
+| Drawer | igual que expandida, con ratón | — | — |
+| Zona de marca | `--g-color-border` de la zona | — | — |
+| `forced-colors` | capa oculta (como hoy, sin fondo de hover) | la de siempre | `Highlight` |
+| Toque | nada | — | — |
+| Navbar | sin luz (#961): hover por celda con entrada en fundido y **salida instantánea** | píldora | — |
+
+### Movimiento
+
+- El de M1 sin cambios: `translate`, `inline-size` y `block-size` con `--g-duration-press` + `--g-ease-out`; `opacity` con `--g-duration-fast` + `--g-ease-standard`. Con `is-highlight-instant`, solo la opacidad. **Sin `--g-ease-spring` ni `--g-ease-bounce`** (#299: una luz que se pasa de la fila diría que el destino es otro).
+- **`prefers-reduced-motion: reduce`:** solo fundido (`--g-duration-fast`), sin viaje.
+- Interrumpible (transición CSS que se retoma desde donde va); nunca bloquea un clic.
+- Rúbrica completa y criterio de rendimiento: `api.md` «Una sola luz» y #963.
+
+### Verificación (criterio de hecho)
+
+`tests/personalidad-sidebar-glide.spec.mjs` (bruno, tres motores), trasladado de `design/lab/hover-glide/r01/verificar.mjs`: barrido a 1px por una lista con submenú abierto y actual: **0** enlaces con fondo propio, **≤ 1** luz por lista y **0** muestras sin luz dentro de los enlaces; viaje entre items con ≥ 3 cuadros intermedios y final exacto (±1px); entrar desde fuera aparece en su sitio; deshabilitado y título de grupo apagan; el actual se ilumina y su asiento no cambia (Δ0 de caja y color); **el puntero no mueve el foco** (`document.activeElement` igual); pulsado se queda y al soltar va; scroll con el puntero quieto sigue al de debajo; `reduce` solo opacidad; `forced-colors` oculta; toque nada; RTL sobre su enlace; riel, panel flotante y drawer (no medidos por kiwi); consola limpia. Más la compuerta de rendimiento de #963.
+
 ## Tokens consumidos
 
 | Token | Para qué |
@@ -410,6 +486,7 @@ La aplicación reserva el espacio del sidebar en su diseño; el componente no em
 | `--g-border-width`, `--g-focus-width`, `--g-focus-offset` | Bordes y foco |
 | `--g-duration-fast`, `--g-duration-press`, `--g-ease-standard`, `--g-ease-out` | Transiciones cortas (ancho, etiquetas, panel, píldora, drawer) |
 | `--g-duration-slow`, `--g-ease-spring` | Llenado del asiento (#617) |
+| `--g-color-border`, `--g-duration-press`, `--g-duration-fast`, `--g-ease-out`, `--g-ease-standard`, `--_radius` | La luz de cada lista (#959; ya listados: sin token nuevo) |
 | `--g-glass-*` | **No** se usan |
 
 **Tokens nuevos** (`tokens.md` §13): `--g-sidebar-width`, `--g-sidebar-rail`, `--g-sidebar-bar`; r02 (`tokens.md` §43): `--g-sidebar-current`, `--g-sidebar-on-current`, `--g-sidebar-current-edge`. **Reservado:** `--g-sidebar-icon-size` (sin valor ni uso, #619). **Dejan de leerse para el actual:** `--g-surface-inset`, `--g-color-border-strong` y `--g-color-accent-text` (barra de #89/#239) en `.g-sidebar__link[aria-current]`.
@@ -429,7 +506,9 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `g-sidebar__link` (+ `is-active`, `is-branch`, **`is-rep`**), `__parent`, `__sub` (+ **`has-current`**), `__chevron` | Enlace y submenú | Según item. `is-rep`: padre de la rama **solo en `rail`**; `has-current`: el `<ul>` de hijos que contiene al actual (ruta encendida); r02 |
 | `g-sidebar__icon`, `__label`, `__badge`, `__sr` | Partes del item | Según item |
 | `g-sidebar__foot` | Pie | Con el slot `user` |
-| `g-sidebar__fly`, `__fly-title` | Panel flotante | Solo riel |
+| `g-sidebar__fly`, `__fly-title`, **`__fly-list`** | Panel flotante | Solo riel (`__fly-list`: el `ul` de los hijos, anfitrión de su luz; #962) |
+| **`g-sidebar__highlight`** (`li[role=none][aria-hidden]`, primer hijo de cada `g-sidebar__list` y de `g-sidebar__fly-list`) | Capa de la luz | Siempre en expandida, drawer y riel; no en navbar (#957, #962) |
+| **`has-highlight`**, **`is-highlight-instant`** + `--_highlight-x/-y/-w/-h` | `g-sidebar__list`, `g-sidebar__fly-list` | Hay destino bajo el puntero · primera colocación o recolocación sin gesto (dos cuadros) · geometría en px físicos (#962) |
 | `g-tooltip` (`aria-hidden`, modo visual; `tooltip.md` §«Modo visual») | Pista de cada control del riel | Siempre presentes; activas solo en riel (#436). **`g-sidebar__tip` desaparece** |
 | `g-sidebar__bar`, `__tab` (+ `is-current` en el `li`), `__more`, `g-sidebar__label--hidden` | Navbar | Solo navbar |
 | `g-sidebar__drawer` | `<dialog>` | Drawer |
@@ -496,7 +575,8 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 - **Un solo nivel de hijos**; sin árboles profundos, arrastrar ni anclar favoritos.
 - **Sin buscador propio** ni filtro de items: la aplicación decide qué abre `search`.
 - **Sin menú contextual del usuario** (será `GMenu`): el slot `user` lo pone la aplicación.
-- **Slot `item`:** sin asiento; la marca del actual es de la aplicación (r02).
+- **Slot `item`:** sin asiento; la marca del actual es de la aplicación (r02). La luz sí lo cubre (es el `.g-sidebar__link`).
+- **La luz no se apaga desde la aplicación:** no hay prop (#962); se oculta con `forced-colors` y no viaja con `reduce`. Navbar sin luz (#961).
 - **`breakpoints` en px:** no siguen a `space` (r02, #618).
 - **En la píldora activa, los items inactivos no muestran su nombre:** un usuario nuevo no lo ve (el nombre existe para lectores). Etiquetas de la píldora **cortas**.
 - **La adaptación mide el contenedor**: si la aplicación no da un `container` razonable (el padre es del ancho del visor), decide por el ancho del padre.

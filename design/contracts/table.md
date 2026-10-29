@@ -219,6 +219,8 @@ Existentes: `--g-color-surface`, `--g-color-surface-sunken`, `--g-color-text`, `
 
 **Desde #594, #595 y #597 a #600** (sin tokens nuevos): `--g-color-accent-soft` (marca «aquí estabas» y rastro), `--g-color-{danger|warning|info|success}-text` (lomo y filo del sello), `--g-color-{danger|warning|info|success}-soft`/`on-*-soft` por `GBadge`, `--g-duration-slow`, `--g-ease-out`, `--g-ease-spring` (despliegue, por `utils/collapse.js`), `--g-shadow-1` y `--g-color-border` (pie acoplado, por `GPagination`). Iconos: `arrow-right` (**nuevo en la lista de la librería**, `icons.md` v0.10, #602), `chevron-right` (ya en la lista), `circle-alert`, `triangle-alert`, `info`, `circle-check` (ya en la lista, por `GBadge`).
 
+**Desde #957** (la luz, sin tokens nuevos): `--g-color-surface-sunken`, `--g-duration-press`, `--g-duration-fast`, `--g-ease-out`, `--g-ease-standard`.
+
 **Desde #540:** `--g-color-mold` (tono del esqueleto, en lugar de `--g-color-surface-sunken`; `tokens.md` §42), `--g-color-danger-soft` / `--g-color-on-danger-soft` (barra de fallo) y los de `GEmpty` y `GBtn` por composición. Sin tokens nuevos de componente. La barra de fallo usa además `--g-font-ui`, `--g-radius-md` y `--g-text-body-sm-*` (#547).
 
 ## Clases (contrato entre bruno y coco)
@@ -250,11 +252,13 @@ Existentes: `--g-color-surface`, `--g-color-surface-sunken`, `--g-color-text`, `
 | `g-table__detail`, `g-table__detail-cell`, `g-table__detail-body`, `g-table__detail-content` | `tr` de la ficha · su `td colspan` · el `div role="group"` · el `div` interno del plegado 0fr → 1fr (#650) | B (#599) |
 | `data-status="{info\|success\|warning\|error}"` | `tr` (y la celda de la causa) | Con `rowStatus` (#600) |
 | `g-table__status` | Envoltorio de la `GBadge` del estado | Junto al título o en la celda de la causa |
+| **`g-table__highlight`** | `div[aria-hidden]`, **primer hijo de `g-table__scroll`**, antes del `<table>` | Siempre en `mode="table"` con `appearance="lines"`; no en `surface` ni en `cards` (#960, #961, #962) |
+| **`has-highlight`**, **`is-highlight-instant`** | `g-table__scroll` | Hay destino bajo el puntero · primera colocación o recolocación sin gesto (dos cuadros) (#962) |
 | `g-table__cell--cause` | `td` de la columna `key` del estado | Con `rowStatus` y `key` (sello en la causa) |
 
 Atributo: `tabindex="-1"` en el `<table>` (foco por programa, #534; el anillo se dibuja por dentro).
 
-Variables en línea: `--_max-height`; `--_dock-size` (alto medido del pie acoplado, en la raíz, solo con `g-pagination--dock`; #595).
+Variables en línea: `--_highlight-x`, `--_highlight-y`, `--_highlight-w`, `--_highlight-h` (px físicos, en `g-table__scroll`, las escribe `utils/glide.js`; #962); `--_max-height`; `--_dock-size` (alto medido del pie acoplado, en la raíz, solo con `g-pagination--dock`; #595).
 
 ## Filas por página y la fila ancla (#592 a #596)
 
@@ -329,7 +333,7 @@ Forma elegida por el usuario: **A · «La puerta» por defecto** (`design/lab/ta
 ### A · La puerta (por defecto)
 
 - **La celda principal entera es la puerta:** la puerta cubre su celda con un pseudo-elemento (`::after` con `inset: 0`; la celda es el contenedor posicionado; coco). Clic central, «copiar dirección» y arrastrar a otra pestaña funcionan en **toda la celda**.
-- **Sin clic de fila delegado:** el resto de la fila es texto para leer, seleccionar y copiar (doble clic en otra celda selecciona una palabra). La fila no promete lo que no hace: el `hover` es **solo de la celda principal** (y de la casilla), notas para coco.
+- **Sin clic de fila delegado:** el resto de la fila es texto para leer, seleccionar y copiar (doble clic en otra celda selecciona una palabra). La fila no promete lo que no hace: **la luz es la celda principal** y la casilla no tiene fondo de hover (§«Una sola luz», #960, enmienda de «solo de la celda principal (y de la casilla)»).
 - **Se delata** al pasar o con el foco dentro de la fila: subrayado del título y la flecha `g-table__door-arrow` (`arrow-right`, `flip-rtl`, decorativa) que asoma desde dentro (`--g-duration-fast`, `--g-ease-out`; sin desplazamiento con movimiento reducido). El **anillo de foco rodea la celda** (el área real de la puerta), no solo el texto.
 - **El rastro** (`lastOpened`, `v-model:lastOpened`): al emitir `navigate` o `activate`, la tabla guarda la clave como rastro y emite `update:lastOpened` (también si la aplicación cancela la navegación). La fila del rastro lleva **`is-last-opened`** (su flecha queda a la vista: «la última que abriste»). **Se ilumina y se asienta** (`is-here`, la misma marca que «aquí estabas» de #594) cuando **vuelve**: al montar la tabla con `lastOpened` y esa fila a la vista (vuelta de una ruta: la aplicación guarda la clave con `v-model:lastOpened` en su estado o historial) o cuando el foco vuelve a su puerta desde fuera de la tabla (cierre de un diálogo de detalle). Sin `v-model`, el rastro vive mientras la tabla esté montada. La tabla **no desplaza** hasta el rastro (la posición de la página es de la aplicación). Una clave que no está en las filas no marca nada, sin aviso.
 
@@ -356,6 +360,68 @@ Con el slot **`detail`**, activar una fila **no saca de la lista**: su ficha se 
 ### Reservado: C · Lente (#601)
 
 Nombres que no se usan para otra cosa: **`v-model:current`** (clave de la fila apuntada; `aria-current="true"` en su puerta, `is-current`), **`labels.current`** (`{title}`, anuncio en la región de #265), el **inspector** (de la aplicación: `GCard`, `GSidebar`, una hoja) con «Anterior» y «Siguiente» que cruzan páginas, y el **recuento de avisos de la página con saltos**. También **`rowClick`** (`none`/`door`: el clic de fila reenviado de B en una tabla sin despliegue) y **`rowAttrs`** (`(row) => { 'data-*': … }`, solo atributos `data-*`). A `PENDIENTES.md`.
+
+## Una sola luz (DECISIONS.md #957 a #963; ronda `design/lab/hover-glide/r01/`)
+
+Decisión del usuario del 2026-10-29: el resaltado de hover **se desliza de fila en fila** como en `GMenu` (M1, #305). Reglas comunes, utilidad y rúbrica de movimiento en `api.md` «Una sola luz». Aquí, lo propio de `GTable`. **Ninguna prop, slot, evento ni token del tema nuevo: `GTable.meta.json` no cambia.**
+
+### Personalidad (#957, #960)
+
+- **La luz sigue al puntero y el puntero no mueve el foco** (la tabla vive en la secuencia de Tab; WCAG 3.2.1 y 2.4.3). El foco tiene su anillo y, en A, su `:focus-within` (subrayado y flecha, #597), que no cambian. **El teclado no enciende la luz.** Solo `pointerType` `mouse` o `pen`.
+- **La luz dice la verdad:** cubre exactamente lo que abre un clic. En A, **solo la celda de la puerta**; en B, la fila (que reenvía el clic); en las celdas que no hacen nada, nada.
+
+### Dónde vive la capa
+
+- **`div.g-table__highlight[aria-hidden="true"]`, primer hijo de `div.g-table__scroll`, antes del `<table>`** (un `div` no cabe en `tbody` ni en `tr`). La pone bruno en el vnode. `g-table__scroll` es el **anfitrión** (lleva los datos y el único manejador) y pasa a `position: relative`; el `<table>` pasa a `position: relative` **sin** `z-index` para pintar encima por orden del árbol. Las celdas siguen transparentes.
+- **Datos en `g-table__scroll`** (bruno, `utils/glide.js`, #962): `--_highlight-x`, `--_highlight-y`, `--_highlight-w`, `--_highlight-h` (px **físicos** respecto de la caja de relleno del contenedor desplazable, más su scroll; también en RTL), `has-highlight`, `is-highlight-instant` (primera colocación y recolocación sin gesto; dos cuadros). Coco pinta en `GTable.css`.
+- **Sobrevive sin código extra:** se desplaza con las filas en los dos ejes (en una fila entera x = 0 y w = ancho de la fila, que puede superar el visor); el `th` pegado (fondo `surface`, `z-index: 1`) la **tapa** al pasar una fila por debajo; la seleccionada pinta `primary-soft` en su `td` **encima** de la capa (#564 intacta: la luz pasa por debajo); `is-here`, `is-new`, el lomo de `rowStatus` y la espera larga (`g-table__slow`) se pintan encima y no se tocan.
+
+### Qué se registra (destino de clic)
+
+| Forma | Destino que lleva la luz | No se registra |
+| --- | --- | --- |
+| Llana (sin `has-door` ni `has-detail`) | la **fila** `tr.g-table__row` entera: excepción razonada de «solo destinos de clic», hace de **regla de lectura** (como el hover de hoy); **sin** cursor de mano | filas esqueleto, fila de vacío o error, cabecera, pie |
+| **A · La puerta** (`has-door` sin `has-detail`) | **solo** `td.g-table__cell--primary` de una fila **con** puerta (`.g-table__door`): el área real de la puerta (`::after` con `inset: 0`) | el resto de la fila; las filas sin puerta; la casilla |
+| **B · Despliegue** (`has-detail`) | la **fila** entera (reenvía el clic a la puerta, #599) | la ficha `tr.g-table__detail` (contenido, no destino: el puntero encima **apaga**), filas esqueleto |
+
+### A · La puerta (enmienda de «el hover es solo de la celda principal (y de la casilla)»)
+
+- **La luz es la puerta:** con el puntero en otra celda de la fila, **nada** se ilumina (la fila no promete lo que no hace, #597). El subrayado del título y la flecha `g-table__door-arrow`, que se delatan con `:hover` y `:focus-within` **de la fila**, **no cambian**.
+- **La casilla deja de tener fondo de hover** (hoy lo comparte con la celda principal): serían dos luces en una fila. La casilla nativa conserva su propio hover y su anillo.
+
+### Estados
+
+| Estado | Llana | A · puerta | B · despliegue |
+| --- | --- | --- | --- |
+| Puntero sobre una fila | luz en la fila | luz **solo** en la celda principal si la fila tiene puerta | luz en la fila |
+| Puntero en otra celda, casilla o acciones | luz en la fila | **ninguna** (la flecha asoma, como hoy) | luz en la fila |
+| Seleccionada | la luz pasa por debajo; manda `primary-soft` | igual | igual |
+| Rastro (`is-last-opened`) / `is-here` / `is-new` | se pintan encima | flecha visible; «aquí estabas» encima | igual |
+| `rowStatus` | lomo y etiqueta intactos | igual | igual |
+| Ficha desplegada | — | — | **apagada** sobre la ficha |
+| Desplegar o plegar (`--g-ease-spring`, `utils/collapse.js`) | — | — | se recoloca **sin viajar** (cambio de tamaño); la fila bajo el puntero sigue siendo la misma |
+| Cabecera pegada | apagada; tapa la luz | igual | igual |
+| Cargando (`is-loading`, `is-pending`, `aria-busy`) / esqueleto | **apagada, nada se registra**; al llegar los datos nada se enciende hasta mover el puntero | igual | igual |
+| Cambio de filas sin gesto (página, tamaño, orden, filtros, carga) | se apaga; vuelve con el siguiente movimiento (sin destello junto al «aquí estabas» de #594 y #598) | igual | igual |
+| Foco en otra fila | luz en la del puntero; anillo en la del foco | anillo en la celda de la puerta | igual |
+| Pulsado | se queda en lo pulsado hasta soltar (arrastrar para copiar no la arrastra; B tolera 5px, #599) | igual | igual |
+| Scroll con el puntero quieto | salta **al instante** a la fila bajo el puntero | igual | igual |
+| Zona de marca | `--g-color-surface-sunken` de la zona | igual | igual |
+| `forced-colors` | capa oculta (como hoy, sin fondo de hover) | igual | igual |
+| Toque | nada | nada | nada |
+
+### Sin luz: `appearance="surface"` y `mode="cards"` (#961)
+
+Cada fila es su propia superficie separada por un **hueco real** (`border-spacing: 0 space-2`, `margin-block-end: space-2`): la luz se apagaría en cada cruce y equivaldría al hover por fila. **Se queda el hover por fila** (el de hoy) con **fundido de entrada y salida instantánea** (coco), para que **nunca haya dos a la vez**. Nada se registra en esas formas (`off`), también si la tabla pasa a `cards` por `responsive` con el puntero dentro.
+
+### Token y movimiento
+
+- **Luz: `--g-color-surface-sunken`**, el mismo que el hover de hoy y que la luz de `GMenu` (la tabla vive sobre `surface`). La zona de marca lo redeclara (#620). Sin token nuevo. Los contrastes no cambian respecto del hover de hoy; coco lo confirma en oscuro y en la zona.
+- El de M1: `translate` y `block-size` con `--g-duration-press` + `--g-ease-out` (en la tabla la anchura no cambia: fila entera o la misma columna; si coco transiciona también `inline-size`, es inocuo), `opacity` con `--g-duration-fast`; con `is-highlight-instant`, solo opacidad; **sin muelle**. `reduce`: solo fundido. Coco quita la transición de `background-color` de los `td` (hoy `GTable.css`) en `lines`.
+
+### Verificación (criterio de hecho)
+
+`tests/personalidad-table-glide.spec.mjs` (bruno, tres motores), trasladado de `design/lab/hover-glide/r01/verificar.mjs`: barrido a 1px en llana, A (columna principal) y B: **0** filas con fondo propio, **≤ 1** luz, **0** muestras sin luz dentro de los destinos; viaje con ≥ 3 cuadros intermedios y final exacto (±1px); entrar desde fuera aparece en su sitio; A en otra celda: ninguna luz; cabecera: ninguna; seleccionada conserva su fondo; la ficha de B apaga; carga apaga; **el puntero no mueve el foco**; pulsado se queda; scroll con el puntero quieto sigue a la fila de debajo; `reduce` solo opacidad; `forced-colors` oculta; toque nada; RTL; `surface` y `cards`: como mucho una fila con fondo en cada instante del barrido; consola limpia. Más la compuerta de rendimiento de #963 (500 filas).
 
 ## Estado de fila: `rowStatus` (#600)
 
@@ -385,7 +451,7 @@ No es API de `GTable`: la tabla no sabe qué significan las métricas. El servid
 
 ## Notas para coco (CSS)
 
-- **A:** con `has-door`, el `hover` de fondo de la fila pasa **solo a la celda principal y a la casilla**; la seleccionada no lo pierde (excluirla en el propio selector con `:not(.is-selected)`, regla de #564). La celda principal es el contenedor posicionado y la puerta la cubre con `::after`; el anillo de foco de la puerta se dibuja **en la celda** (`td:has(> * .g-table__door:focus-visible)` o equivalente) y no en el texto. Subrayado del título y `g-table__door-arrow` con `hover`/foco y en `is-last-opened`; la flecha se espeja en RTL por `flip-rtl` (no con `scale`). La puerta **conserva el color del título** (no `--g-color-link`): lo que la delata es el subrayado, la flecha y el área.
+- **A:** con `has-door`, **ninguna celda pinta fondo de hover**: lo pinta la capa `g-table__highlight` sobre la celda principal de una fila con puerta (§«Una sola luz», #960); la casilla pierde su fondo de hover; la seleccionada conserva el suyo encima de la capa (#564). La celda principal es el contenedor posicionado y la puerta la cubre con `::after`; el anillo de foco de la puerta se dibuja **en la celda** (`td:has(> * .g-table__door:focus-visible)` o equivalente) y no en el texto. Subrayado del título y `g-table__door-arrow` con `hover`/foco y en `is-last-opened`; la flecha se espeja en RTL por `flip-rtl` (no con `scale`). La puerta **conserva el color del título** (no `--g-color-link`): lo que la delata es el subrayado, la flecha y el área.
 - **El recorte del foco de `g-table__title`** (`overflow: hidden` con elipsis) ya lo está corrigiendo coco (`overflow: clip` + `overflow-clip-margin`); con A el anillo va en la celda, pero B y el botón lo siguen necesitando en el título.
 - **Lomo:** borde de inicio del primer `<td>` reservado (transparente) en todas las filas con `has-row-status`, también en el `<th>` de la cabecera; en tarjetas, en el borde de la tarjeta; ancho derivado de `space` (kiwi: `space × 1`; con `double` hace falta ≥ 3px visibles); forma por valor medida en claro, oscuro y `forced-colors`. **Sello en la causa:** filo inferior `{color}-text` en la celda, sin teñir la fila.
 - **B:** `g-table__door-chevron` gira 90° con `aria-expanded="true"` (−90° en RTL); la fila con `is-expanded` pierde su separador inferior; la ficha va pegada a su fila (también en tarjetas: la ficha forma parte visual de su tarjeta).
@@ -396,6 +462,8 @@ No es API de `GTable`: la tabla no sabe qué significan las métricas. El servid
 ## Peso (#506, #550; #602)
 
 Todo esto amplía **componentes que ya están en el principal** (`GTable`, `GPagination`); no entra ningún componente nuevo ni ninguna dependencia nueva (`utils/collapse.js` y `GBadge` ya están en el principal). No se abre una entrada propia: sacar `GTable` o `GPagination` del principal rompería las importaciones de hoy. **Presupuesto del lote: +5,75 KiB (5 888 B) gzip** sobre el `grana.js` actual (#650, que enmienda los +3 KiB de #602 tras la medida de bruno: +5 507 B el lote completo, +752 B solo `GPagination`; el despliegue B pesa ≈ 1,3 KiB y sin él tampoco cabían 3 KiB) (selector, ancla, acople, anuncio del rango, puerta, rastro, despliegue y estado, juntos); bruno mide `grana.js` gzip antes y después y lo que pesa importar **solo** `GTable` y **solo** `GPagination` (componentes puros, #444), y lo registra en `CHANGELOG.md`. Si supera el tope nuevo, **no se sube otra vez**: vuelve a lima y la salida es una decisión de producto del usuario (B como complemento registrado), no un tope mayor. La importación diferida de B está descartada (no ahorra en el UMD).
+
+**La luz (#963)** es un lote aparte, compartido con `GSidebar`: `utils/glide.js` + la capa y su sesión en `GTable.vue` y `GSidebar.vue`, **≤ +1 280 B gzip de `dist/grana.js`** y **≤ +512 B gzip de `dist/grana.css`**; no cuenta en el tope de #650.
 
 ## Pruebas (bruno)
 
@@ -460,6 +528,7 @@ Con `selectable` y `labels.selectedCount`, el recuento `g-table__count` (`role="
 
 - ~~**Sin estado de error** (#327)~~: **contratado por #540** («Carga, vacío y error con el motor común»). Mientras bruno no lo implemente, sigue el límite de #327: el fallo es de la isla y la región anuncia «0 resultados» junto a su error.
 - **Esqueleto frente a fila compuesta (#543, #558):** con celdas compuestas con avatar, el esqueleto mide **44 px frente a 60 de la fila** (medido en la auditoría, tema de `space 3` y letra 18): la tabla encoge durante la carga y vuelve a crecer; en la tabla simple, 44 = 44 (Δ0). Lo cierra el molde de `GTable` desde una muestra de filas, reservado; mientras, va al README.
+- **Columnas fijas (si llegan):** una celda pegada con fondo opaco taparía la luz; regla reservada en #961 (la celda pinta la luz ella misma con `data-highlight` en el `tr` encendido).
 - Sin selección de **todas** las páginas, sin columnas fijas ni desplazamiento horizontal, sin virtualización (cientos de filas), sin edición en celda, sin redimensionar ni reordenar columnas.
 - Lector de pantalla real en tarjetas: por verificar (VoiceOver con `display: grid` en filas).
 - **Ficha desplegada (B):** es una fila más para el lector («fila 3 de 11» con una sola celda); por verificar en VoiceOver y NVDA. Ctrl+F no encuentra lo plegado (un `<tr>` no admite `hidden="until-found"`).
