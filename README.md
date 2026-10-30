@@ -57,6 +57,20 @@ Esta es una **beta**. Qué significa:
 
 ## Instalación
 
+### Con el instalador (Vite + Vue 3)
+
+```bash
+npx @grana/cli init
+```
+
+Detecta tu proyecto, te hace cuatro preguntas (color de marca, forma, densidad, modo oscuro), valida el contraste del tema antes de tocar nada, te enseña el diff de cada archivo y, al confirmar, instala `@grana/vue` y `@grana/cli`, crea `grana.config.json` y añade el plugin de Vite y las importaciones de `style.css` y `fonts.css`. Por defecto no registra los componentes globalmente: importas cada uno donde lo usas (`import { GBtn } from '@grana/vue'`), que pesa unas 17 veces menos. Es idempotente y tiene `--dry-run`. Opciones, códigos de salida y qué edita: [`@grana/cli`](packages/cli/README.md#init-instalar-grana-en-un-proyecto-vite--vue-3). Nuxt no está soportado todavía.
+
+> **Aviso:** `@grana/vue` y `@grana/cli` aún no están publicados en npm, así que hoy el instalador necesita `--from <dir>` con los `.tgz` de `npm pack` ([cómo](packages/cli/README.md#paquetes-sin-publicar---from)). Sin eso, la instalación falla con código 4.
+
+### Instalación manual
+
+Para otra configuración (Nuxt, sin Vite, o si prefieres editar tú):
+
 ```bash
 npm i @grana/vue
 ```
