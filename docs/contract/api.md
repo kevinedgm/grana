@@ -321,6 +321,19 @@ Sin chasis, la receta de arriba sigue vigente.
   4. Las compuertas de peso siguen midiendo el `grana.js` gzip, que conserva los textos (#653: es lo que pagan el CDN y el ESM sin empaquetar, y no depende de la versión del empaquetador de nadie). Lo que paga la aplicación en producción, medido con el banco, se registra en `CHANGELOG.md` como cifra informativa. Si cambia la medida de las compuertas, lo decide lima.
   5. **Peso de la regla (#653):** el +1 407 B gzip de `grana.js` al aplicarla (213 872 → 215 279 B) es un cargo único de la regla, fuera de #506 y de todo presupuesto de lote; **215 279 B es la base** desde la que se miden los presupuestos siguientes. Las guardas que traiga un componente o un lote nuevo cuentan dentro de su propio presupuesto, sin exención.
 
+## Instalador `grana init` (#996 a #1003; `design/contracts/cli-init.md`)
+
+Contrato completo en `design/contracts/cli-init.md` (manda si difieren). Decisión del usuario del 2026-10-30; lo construye bruno en `packages/cli`.
+
+- **Orden:** `npx @grana/cli init [dir]` (no `npx grana init`: `grana` en el registro no es nuestro). Solo **Vite + Vue 3**; Nuxt, `npm create grana`, `grana add` y el CSS por componente quedan **reservados**.
+- **Detección antes de tocar nada:** `package.json`, Vue mayor 3 (aviso bajo 3.5), `vite`, Nuxt (rechazo), entrada por `index.html` o `src/main.{ts,js,mts,mjs}`, `vite.config.{ts,mts,js,mjs}`, gestor por archivo de bloqueo (npm, pnpm, yarn, bun; `--pm` manda).
+- **Preguntas** (cuatro, sin biblioteca de prompts: `node:readline/promises`): marca (`--brand`), forma (`--shape rounded|pill`), densidad (`--density default|comfortable|compact`), oscuro (`--dark`/`--no-dark`); validadas con `readConfig` + `buildTheme`, las mismas reglas que `grana.config.json`. Sin TTY hace falta `--yes`.
+- **Por defecto:** tema por el **plugin `@grana/cli/vite`** (una fuente de verdad, recarga, validación en cada build; `--theme file` escribe `src/grana-tokens.css`); registro **por nombre** (`GBtn` solo ≈ 10,9 KB gzip frente a ≈ 219 KiB de `grana.js` con `app.use`; `--register global` lo cambia); ejemplo solo con `--example` y sin editar `App.vue`.
+- **Seguridad:** planificar → confirmar (diff unificado por archivo, la orden de instalación) → aplicar (instalar primero; si falla, ningún archivo); `--dry-run`; idempotente; `grana.config.json` existente nunca se sobrescribe sin preguntar; edición por texto con formas estrictas y, si no encaja, ese archivo no se toca y se dan las líneas exactas («pasos a mano»).
+- **Versión:** instala la versión exacta del CLI que corre; `--from <dir>` instala los `.tgz` de `npm pack` (no carpetas: duplicarían Vue).
+- **Salida:** diffs, preguntas y resumen por stdout; errores, avisos y pasos a mano por stderr (#992). **Códigos:** 0 hecho o nada que hacer · 1 tema bajo un mínimo · 2 uso o configuración · 3 proyecto no compatible · 4 falló el gestor o faltan tarballs · 5 cancelado · 6 hecho con pasos a mano.
+- **Peso:** sin dependencias de producción nuevas; `init` se carga con `import()` solo para ese comando; el `.tgz` de `@grana/cli` crece ≤ 12 KiB. `@grana/cli` publica `src/vite.d.ts` (`exports["./vite"].types`) para que el build TS de la plantilla de Vite pase.
+
 ## Dinero y precio (#769, #770; `price.md`)
 
 Regla común para todo componente o receta que **muestra o captura dinero**:
