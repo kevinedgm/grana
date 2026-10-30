@@ -1,8 +1,10 @@
-// Línea de comandos: grana theme | check. Códigos de salida: 0 correcto, 1 tema inválido, 2 uso o configuración ilegible.
+// Línea de comandos: grana theme | check | init (este, con import() y códigos 3 a 6: cli-init.md §1, §8).
 import { readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { buildTheme } from './index.js'
 
+// Códigos de init (cli-init.md §8): los comparten esta ayuda y la de init
+export const INIT_CODES = 'Solo init: 3 proyecto no compatible · 4 falló el gestor o faltan los .tgz · 5 cancelado · 6 hecho con pasos a mano.'
 export const HELP = `grana · genera y valida el tema de Grana
 
 Uso:
@@ -11,9 +13,13 @@ Uso:
       Con --doc[=archivo] escribe también tokens.json: cada token con su valor claro y oscuro, su uso y el contraste medido.
   grana check <configuración.json> [--json]
       Solo valida: no escribe nada. Con --json, imprime el informe como JSON.
+  npx @grana/cli init [directorio] [opciones]
+      Instala Grana en un proyecto Vite + Vue 3: paquetes, grana.config.json, el plugin del tema y las hojas.
+      Ver «grana init --help».
   grana --help | --version
 
 Códigos de salida: 0 correcto · 1 el tema rompe un mínimo de accesibilidad · 2 uso o configuración ilegible o inválida.
+${INIT_CODES}
 Los avisos (warning) no cambian el código de salida.
 `
 
@@ -34,7 +40,7 @@ const parseArgs = (argv) => {
   return args
 }
 
-const formatIssues = (issues) =>
+export const formatIssues = (issues) =>
   issues
     .map((i) => `${i.severity === 'error' ? '✖ error' : '⚠ aviso'} [${i.id}] ${i.message}\n    Por qué: ${i.why}`)
     .join('\n')
@@ -42,9 +48,12 @@ const formatIssues = (issues) =>
 /**
  * @param {string[]} argv argumentos sin `node` ni el script
  * @param {{ cwd?: string, out?: (s: string) => void, err?: (s: string) => void, version?: string }} [io]
- * @returns {number} código de salida
+ * @returns {number | Promise<number>} código de salida (una promesa solo con `init`)
  */
-export const run = (argv, { cwd = process.cwd(), out = (s) => process.stdout.write(s), err = (s) => process.stderr.write(s), version = '0.0.0' } = {}) => {
+export const run = (argv, io = {}) => {
+  // init tiene sus propias opciones (cli-init.md §1): se carga aparte y no pasa por parseArgs
+  if (argv[0] === 'init') return import('./init/index.js').then((m) => m.init(argv.slice(1), io))
+  const { cwd = process.cwd(), out = (s) => process.stdout.write(s), err = (s) => process.stderr.write(s), version = '0.0.0' } = io
   const args = parseArgs(argv)
   if (args.flags.version) { out(`${version}\n`); return 0 }
   if (args.flags.help || args.positional.length === 0) { out(HELP); return args.flags.help ? 0 : 2 }

@@ -168,6 +168,9 @@ export const tintedNeutrals = (brandHex, { dark = false, hueHex = brandHex } = {
   return out
 }
 
+// border-control también sobre neutral-soft (#186, cli-init.md §15)
+export const readonlyBorder = (borderHex, backgroundsHex) => toHex(ensure(parseHex(borderHex), backgroundsHex.map(parseHex), 3))
+
 /** Base de `neutral` (gris de insignias y estados sin significado) teñida con el tono de la marca; null si no se tiñe. */
 export const tintedNeutralBase = (brandHex, { dark = false, hueHex = brandHex } = {}) => {
   const chroma = tintChroma(brandHex)

@@ -4,7 +4,7 @@ import { deriveColor, deriveDarkColor } from './derive.js'
 import { DEFAULTS, DARK } from './defaults.js'
 import { isColorGroup, splitColorGroup } from './scheme.js'
 import { fontStack, radii, spacing, typography, heroTitleMax, textDensity, TEXT_DENSITY_KEYS } from './scales.js'
-import { categoryBases, semanticAdjustments, tintedNeutralBase, tintedNeutrals } from './palette.js'
+import { categoryBases, readonlyBorder, semanticAdjustments, tintedNeutralBase, tintedNeutrals } from './palette.js'
 import { applyZone } from './zone.js'
 import { sidebarCurrentDark } from './sidebarCurrent.js'
 
@@ -116,6 +116,7 @@ export const generateTheme = (config = {}) => {
     Object.assign(generated, tintedNeutrals(config.brand, { hueHex: derived.neutralsHueHex }))
     const nb = tintedNeutralBase(config.brand, { hueHex: derived.neutralsHueHex })
     if (nb) Object.assign(generated, colorTokens('neutral', nb, surface))
+    if (nb) generated['--g-color-border-control'] = readonlyBorder(generated['--g-color-border-control'], [DEFAULTS['--g-color-surface'], generated['--g-color-surface-sunken'], generated['--g-color-neutral-soft']])
   }
   if (config.categories > 0) {
     derived.categories = categoryBases(config.categories, config.brand)

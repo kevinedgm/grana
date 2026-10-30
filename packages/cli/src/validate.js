@@ -34,6 +34,8 @@ const lengthPx = (v) => {
   return m ? parseFloat(m[1]) * (m[2] === 'rem' ? 16 : 1) : null
 }
 const fmt = (n) => (Math.round(n * 100) / 100).toString()
+// Contraste que no llega: truncado, nunca redondeado hacia el mínimo (cli-init.md §15)
+export const below = (n) => Math.floor(n * 100 + 1e-9) / 100
 
 /** @param {Record<string,string>} tokens tema completo (defaults + generado + overrides) */
 export const validateTheme = (tokens, { generated = {}, scheme = 'light', accentDerived = false } = {}) => {
@@ -48,7 +50,7 @@ export const validateTheme = (tokens, { generated = {}, scheme = 'light', accent
     if (!fg) return unreadable(fgName)
     const ratio = contrast(fg, bg)
     if (ratio + 1e-9 < min) {
-      add(id, 'error', `${fgName} sobre ${bgName}: contraste ${fmt(ratio)}:1, mínimo ${min}:1.`, why, { tokens: [fgName, bgName], ratio: +ratio.toFixed(2), min })
+      add(id, 'error', `${fgName} sobre ${bgName}: contraste ${below(ratio)}:1, mínimo ${min}:1.`, why, { tokens: [fgName, bgName], ratio: below(ratio), min })
     }
   }
 
@@ -104,7 +106,7 @@ export const validateTheme = (tokens, { generated = {}, scheme = 'light', accent
       }
       if (failing.length) {
         const worst = failing.reduce((a, b) => (b.ratio < a.ratio ? b : a))
-        add('glass-contrast', 'error', `Texto sobre cristal (opacidad ${fmt(opacity)}) sobre un fondo ${dark ? 'blanco' : 'negro'}: contraste ${fmt(worst.ratio)}:1 en el peor velo (${worst.v}, compuesto ${toHex(worst.composite)}); mínimo 4.5:1. Fallan ${failing.length} de ${veils.length} velos: ${failing.map((f) => f.v).join(', ')}.`, 'WCAG 1.4.3: el cristal deja pasar el fondo; el peor caso es el negro. Sube --g-glass-opacity o usa un velo más claro / un texto más oscuro.', { tokens: ['--g-glass-opacity', '--g-color-text', ...failing.map((f) => f.v)], ratio: +worst.ratio.toFixed(2), min: 4.5 })
+        add('glass-contrast', 'error', `Texto sobre cristal (opacidad ${fmt(opacity)}) sobre un fondo ${dark ? 'blanco' : 'negro'}: contraste ${below(worst.ratio)}:1 en el peor velo (${worst.v}, compuesto ${toHex(worst.composite)}); mínimo 4.5:1. Fallan ${failing.length} de ${veils.length} velos: ${failing.map((f) => f.v).join(', ')}.`, 'WCAG 1.4.3: el cristal deja pasar el fondo; el peor caso es el negro. Sube --g-glass-opacity o usa un velo más claro / un texto más oscuro.', { tokens: ['--g-glass-opacity', '--g-color-text', ...failing.map((f) => f.v)], ratio: below(worst.ratio), min: 4.5 })
       }
     } else unreadable('--g-color-text')
   } else add('unverifiable', 'warning', `No se pudo leer --g-glass-opacity («${tokens['--g-glass-opacity']}»).`, 'Debe ser un número entre 0 y 1.', { tokens: ['--g-glass-opacity'] })
@@ -121,7 +123,7 @@ export const validateTheme = (tokens, { generated = {}, scheme = 'light', accent
     else {
       const glass = over(body, STATUS_GLASS.body, WHITE)
       const ratio = contrast(ink, glass)
-      if (ratio + 1e-9 < 4.5) add('status-glass-ink', 'error', `Isla de estado en claro: --g-color-surface sobre --g-color-text al ${STATUS_GLASS.body * 100} % (compuesto sobre blanco, ${toHex(glass)}): contraste ${fmt(ratio)}:1, mínimo 4.5:1.`, 'WCAG 1.4.3: la isla es cristal grafito en claro; su texto es la superficie sobre el texto translúcido, y el peor fondo es el blanco. Oscurece --g-color-text o aclara --g-color-surface.', { tokens: ['--g-color-text', '--g-color-surface'], ratio: +ratio.toFixed(2), min: 4.5 })
+      if (ratio + 1e-9 < 4.5) add('status-glass-ink', 'error', `Isla de estado en claro: --g-color-surface sobre --g-color-text al ${STATUS_GLASS.body * 100} % (compuesto sobre blanco, ${toHex(glass)}): contraste ${below(ratio)}:1, mínimo 4.5:1.`, 'WCAG 1.4.3: la isla es cristal grafito en claro; su texto es la superficie sobre el texto translúcido, y el peor fondo es el blanco. Oscurece --g-color-text o aclara --g-color-surface.', { tokens: ['--g-color-text', '--g-color-surface'], ratio: below(ratio), min: 4.5 })
       const failing = []
       for (const t of ['info', 'success', 'warning', 'danger']) {
         const c = colorOf(tokens, `--g-color-${t}`)
@@ -132,7 +134,7 @@ export const validateTheme = (tokens, { generated = {}, scheme = 'light', accent
       }
       if (failing.length) {
         const worst = failing.reduce((a, b) => (b.r < a.r ? b : a))
-        add('status-glass-badge', 'error', `Isla de estado en claro: el glifo (--g-color-surface) sobre el disco de --g-color-${worst.t} al ${STATUS_GLASS.disc * 100} % (${toHex(worst.disc)}): contraste ${fmt(worst.r)}:1, mínimo 3:1. Fallan: ${failing.map((f) => f.t).join(', ')}.`, 'WCAG 1.4.11: el icono de la insignia dice el tipo del aviso (junto con el texto oculto); necesita 3:1 sobre su disco. Usa un color de tipo más profundo o un --g-color-text más oscuro.', { tokens: ['--g-color-surface', '--g-color-text', ...failing.map((f) => `--g-color-${f.t}`)], ratio: +worst.r.toFixed(2), min: 3 })
+        add('status-glass-badge', 'error', `Isla de estado en claro: el glifo (--g-color-surface) sobre el disco de --g-color-${worst.t} al ${STATUS_GLASS.disc * 100} % (${toHex(worst.disc)}): contraste ${below(worst.r)}:1, mínimo 3:1. Fallan: ${failing.map((f) => f.t).join(', ')}.`, 'WCAG 1.4.11: el icono de la insignia dice el tipo del aviso (junto con el texto oculto); necesita 3:1 sobre su disco. Usa un color de tipo más profundo o un --g-color-text más oscuro.', { tokens: ['--g-color-surface', '--g-color-text', ...failing.map((f) => `--g-color-${f.t}`)], ratio: below(worst.r), min: 3 })
       }
     }
   }

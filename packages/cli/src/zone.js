@@ -182,19 +182,19 @@ export const validateZone = (tokens, { scheme = 'light' } = {}) => {
   }
   const Z = read[v('brand-zone')], I = read[v('on-brand-zone')], H = sunkenMax(Z, I)
   const err = (id, message, why, extra) => issues.push({ id, severity: 'error', message: tag + message, why, ...extra })
-  const fmt = (n) => (Math.round(n * 100) / 100).toString()
+  const below = (n) => Math.floor(n * 100 + 1e-9) / 100
   const share = sunkenOf(Z, I).share
   const against = [[v('brand-zone'), Z], [`el hundido máximo de la zona (marca con un ${share} % de tinta)`, H]]
   for (const n of ['on-brand-zone', 'on-brand-muted', ...GUARDED.map((g) => `on-brand-${g}`)]) {
     const name = v(n)
     for (const [label, bg] of against) {
       const r = ratio(read[name], bg)
-      if (!meets(r)) err('zone-contrast', `${name} sobre ${label}: contraste ${fmt(r)}:1, mínimo ${MIN}:1.`, 'WCAG 1.4.3: dentro de la zona de marca este color se pinta como texto sobre la marca y sobre su superficie hundida (tokens.md §44.7).', { tokens: [name, v('brand-zone')], ratio: +r.toFixed(2), min: MIN })
+      if (!meets(r)) err('zone-contrast', `${name} sobre ${label}: contraste ${below(r)}:1, mínimo ${MIN}:1.`, 'WCAG 1.4.3: dentro de la zona de marca este color se pinta como texto sobre la marca y sobre su superficie hundida (tokens.md §44.7).', { tokens: [name, v('brand-zone')], ratio: below(r), min: MIN })
     }
   }
   for (const n of ['on-brand-veil', 'on-brand-accent-veil']) {
     const r = ratio(I, read[v(n)])
-    if (!meets(r)) err('zone-contrast', `--g-color-on-brand-zone sobre ${v(n)}: contraste ${fmt(r)}:1, mínimo ${MIN}:1.`, 'WCAG 1.4.3: la tinta de la zona se pinta encima de sus velos (botones soft, selección; tokens.md §44.4).', { tokens: [v('on-brand-zone'), v(n)], ratio: +r.toFixed(2), min: MIN })
+    if (!meets(r)) err('zone-contrast', `--g-color-on-brand-zone sobre ${v(n)}: contraste ${below(r)}:1, mínimo ${MIN}:1.`, 'WCAG 1.4.3: la tinta de la zona se pinta encima de sus velos (botones soft, selección; tokens.md §44.4).', { tokens: [v('on-brand-zone'), v(n)], ratio: below(r), min: MIN })
   }
   for (const g of GUARDED) {
     const name = v(`on-brand-${g}`)

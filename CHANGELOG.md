@@ -12,6 +12,8 @@ Fase C del plan de v1: seis componentes nuevos, la carga común y varias reglas 
 
 ### Añadido
 
+- **`grana init` en `@grana/cli` (#996 a #1003, `design/contracts/cli-init.md`):** `npx @grana/cli init [dir]` instala Grana en un proyecto Vite + Vue 3 existente: detección (códigos 0 a 6), cuatro preguntas con `node:readline/promises`, validación con el motor real antes de tocar nada, plan → diff unificado → confirmar → aplicar (instalación primero, escrituras atómicas), idempotente, `--dry-run`, tema por el plugin `@grana/cli/vite` y registro por nombre por defecto, `--from <dir>` con los `.tgz` de `npm pack`. `@grana/cli` publica `src/vite.d.ts` (`exports["./vite"].types`). Sin dependencias nuevas; el `.tgz` de `@grana/cli` pasa de 43 829 B a 56 085 B (+12 256 B, tope +12 288 B). De paso (§15): el borde de control se aleja también de `neutral-soft` cuando no llega a 3:1 (47 de 2004 temas del corpus cambian solo `--g-color-border-control`; el tema por defecto, 0 tokens) y un contraste que no llega se muestra truncado (2.99:1, nunca «3:1»).
+
 #### Componentes nuevos
 
 - **`@grana/blocks/booking` · parte A (#860 a #877, `draft`):** entrada nueva con `Search` (La frase, La barra, La que acompaña), `Offer list` (Tarjetas, Renglones, Rejilla compacta), `Guest form` (Una página, Por pasos, Con lo pedido a la vista) y `Confirmation` (Tarjeta, Lo que sigue, Captura); la consulta (`BookingQuery`) es el hilo y todas la dicen con **`describeQuery`**, exportada desde `@grana/vue/booking` (#862). Tipos de Booking a mano (`types/booking.d.ts`) y generador de tipos por familia (`scripts/section-types.mjs`). `Testimonial.source` pasa a obligatoria en el tipo (#865).

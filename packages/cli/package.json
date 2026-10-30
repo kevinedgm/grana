@@ -30,7 +30,10 @@
   },
   "exports": {
     ".": "./src/index.js",
-    "./vite": "./src/vite.js",
+    "./vite": {
+      "types": "./src/vite.d.ts",
+      "default": "./src/vite.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [
