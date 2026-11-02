@@ -70,7 +70,7 @@
   },
   "peerDependencies": {
     "@grana/vue": ">=0.1.0-beta.0 <1.0.0",
-    "vue": "^3.5.0"
+    "vue": "^3.5.44"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.0",
@@ -78,6 +78,6 @@
     "jsdom": "^25.0.0",
     "vite": "^6.0.0",
     "vitest": "^4.1.11",
-    "vue": "^3.5.0"
+    "vue": "^3.5.44"
   }
 }
