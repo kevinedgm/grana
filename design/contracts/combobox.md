@@ -23,7 +23,7 @@ Un campo para **elegir una opción de un catálogo grande escribiendo**: pacient
 | --- | --- | --- | --- |
 | **A** | **El campo se abre** (`appearance="field"`, por defecto) | No hay panel flotante aparte: abierto, contorno, anillo de foco y sombra abrazan campo y lista como **una sola forma**. La primera coincidencia por prefijo se completa en el propio campo como texto fantasma | En un formulario denso nadie tiene que relacionar un menú con su campo; «diab» + Tab es un diagnóstico entero sin mirar la lista |
 | **B** | **Paleta con vista previa** (`appearance="palette"`, elegible por campo) | El campo se eleva a una superficie modal con su propio campo, los resultados y la **ficha de la opción activa**. Es la misma estructura de la hoja móvil | Entre cuatro «María García López» hay que ver a la persona antes de elegirla: la ficha convierte la elección en una comprobación |
-| **C** | **El valor es un objeto** (siempre, en A y en B) | En reposo el campo enseña avatar + nombre + línea secundaria, o código + descripción, o la marca de texto libre; los resultados son fichas y la elegida viaja al campo, sin cambiar su alto | El formulario en reposo dice a quién y qué, verificable de un vistazo, en una captura o impreso; y distingue catálogo de texto tecleado |
+| **C** | **El valor es un objeto** (siempre, en A y en B) | En reposo el campo enseña avatar + nombre + línea secundaria, o código + descripción, o la marca de texto libre; los resultados son fichas y la elegida aparece en el campo, sin cambiar su alto (el viaje se retiró en #1018) | El formulario en reposo dice a quién y qué, verificable de un vistazo, en una captura o impreso; y distingue catálogo de texto tecleado |
 
 Las tres reglas de seguridad de la base (Tab, Intro, lista que no parpadea) son parte de la identidad: no se reabren sin motivo nuevo.
 
@@ -194,7 +194,7 @@ app.use(Combobox)            // registra <g-combobox>; o: components: { GCombobo
         <span class="g-combobox__ghost" aria-hidden="true">                                   <!-- solo A, con texto fantasma -->
           <span class="g-combobox__ghost-typed">mar</span><span class="g-combobox__ghost-rest">ía García López</span>
         </span>
-        <span class="g-combobox__token [is-arriving]" aria-hidden="true">                     <!-- C: con valor y sin editar -->
+        <span class="g-combobox__token [is-landing]" aria-hidden="true">                     <!-- C: con valor y sin editar -->
           <span class="g-summary g-summary--layout-inline g-summary--size-xs">…</span>          <!-- #356: GSummary inline (summary.md) -->
         </span>
         <span class="g-combobox__about" id="ID-about">Exp. 001000 · 22 años</span>            <!-- texto oculto accesible -->
@@ -437,15 +437,15 @@ Con `prefers-reduced-motion: reduce` **ninguno se mueve** (#299 (3)); los fundid
 | A · salida (#1002, #1005) | `g-combobox__popup` se funde al cerrar, sin desplazamiento ni plegado, con `overlay` y `display` discretos. En Firefox y WebKit, en el acto (D2 · A). Hoy es instantáneo en los tres | `--g-duration-fast`, `--g-ease-out`; con reducido, `linear` |
 | A · apertura con reducido (#1002) | El despliegue se va y queda un fundido del panel. Hoy abre sin fundido | `--g-duration-fast`, `linear` |
 | B · entrada | La de `GDialog` desde su disparador (D1, #301), sin cambios: el disparador es el campo | La de `GDialog` |
-| C · la ficha llega | Al elegir desde la lista de `field`, la ficha viaja de su fila a su sitio. Bruno escribe el vector en `--_travel-x` / `--_travel-y` (px) y pone **`is-arriving`** en `g-combobox__token`; coco anima con keyframes **`g-combobox-arrive…`**; bruno retira la clase en `animationend`/`animationcancel` de ese nombre, o en el acto si no hay animación calculada (patrón de `GNumberField`, #313) | `--g-duration-slow`, **`--g-ease-spring`** dentro de `@supports`; fuera, `--g-ease-out`. **Cuarto uso aprobado del muelle**: un desplazamiento que llega |
+| C · la ficha entra (#1018) | Al elegir desde la lista de `field`, la ficha **entra en su sitio**, sin viajar, mientras el panel sale con su fundido: fundido y `--g-space-1 × 1` desde el lado del panel (abajo; con `is-up`, arriba). Bruno pone **`is-landing`** en `g-combobox__token`; coco anima con keyframes **`g-combobox-land…`**; bruno retira la clase en `animationend`/`animationcancel` de ese prefijo, o en el acto si no hay animación calculada (patrón de #313) | `--g-duration-press`, `--g-ease-out`. Con reducido, solo fundido: `--g-duration-fast`, `linear`. **Sin muelle** |
 | Recorrer las opciones | **Una sola luz**, la de `GSelect` (§«Una sola luz», #1017) | Viaja `--g-duration-press`, `--g-ease-out`; aparece con fundido `--g-duration-fast` |
 | Hover, fantasma | Color y fondo | `--g-duration-fast`, `--g-ease-standard` |
 | Indicador de carga | Giro | `--g-duration-spin` |
 
 - **Salida de A, bruno (#1005):** `hidePopover()` no se retrasa y `aria-expanded` cambia en el acto, pero el panel conserva su contenido, `is-empty`, `up` y su colocación hasta acabar la salida (`api.md` «Paneles anclados»); hoy `close` los limpia en el acto y el panel saltaría de lado o se vaciaría mientras se funde. Reabrir a mitad cancela la limpieza.
 - **Salida de A, coco:** comprobar que la junta entre campo y panel no parpadea al recuperar el campo su forma (el caso anotado en `GCombobox.css`, en las esquinas de la caja). La paleta no cambia: es la de `GDialog`.
-- La ficha **no viaja** al elegir desde la superficie (el campo está detrás del modal), al cargar con valor, ni al cambiar `modelValue` desde la aplicación.
-- **Para coco:** medir el rebase de la llegada con la fila más lejana (3,8 % de la distancia); si pasa de `--g-space-1 × 2`, acotar el vector en CSS con `clamp` y anotarlo en `estilo.md` (alias local, §29.7; no cambia el contrato).
+- La ficha **no se anima** al elegir desde la superficie (el campo está detrás del modal), al cargar con valor, ni al cambiar `modelValue` desde la aplicación.
+- **Por qué no viaja (#1018):** el usuario lo rechazó: «se da una transición muy fea. O sea, no se ve fluida, suave, sutil. Se ve muy brusca». Medido en Chromium, fila 3 de 5: 137 px en unos 100 ms mientras el panel se funde, y 5 px de rebase por encima del campo. Dos movimientos a la vez, y uno largo y rápido.
 
 ### Una sola luz (`api.md` «Una sola luz», regla 1, tercer caso; #1017)
 
@@ -463,7 +463,7 @@ Decisión del usuario del 2026-11-07: «Yo lo que quiero son transiciones suaves
 | Vista previa | Sin cambios: sigue a la activa en el acto, sin esperar a la luz. Sin activa, `previewEmpty` |
 | `is-armed` (Retroceso) | Conserva su fondo `--g-color-selection`, que tapa la luz si es la activa: es un estado, no el recorrido |
 | Renglones de `selection="list"` y cesta | Sin luz: no son el `listbox` |
-| Ficha que llega, casilla que salta, renglón nuevo | Sin cambios |
+| Ficha que entra, casilla que salta, renglón nuevo | Sin cambios por la luz |
 
 **Bruno (`GCombobox.vue`):**
 
@@ -502,6 +502,14 @@ Decisión del usuario del 2026-11-07: «Yo lo que quiero son transiciones suaves
 
 **Peso (#1017):** lote propio, ≤ +64 B `grana.js`, ≤ +256 B `grana.css`, ≤ +448 B `combobox.js`, netos, con `gzip -9`.
 
+### La ficha entra en su sitio: reparto (#1018)
+
+**Coco (`GCombobox.css`):** quitar `g-combobox-arrive`, `--_cb-tx`, `--_cb-ty`, las cotas `space × 2 / 0.038` y los tres usos de `--g-ease-spring`, también `.g-combobox__row.is-arriving.is-entering`. Añadir `g-combobox-land` (`opacity` y `translate` desde `--g-space-1 × 1`, con el lado por alias local) y su variante de solo fundido con reducido. El bloque `@supports` deja de hacer falta.
+
+**Bruno (`GCombobox.vue`):** `is-landing` sustituye a `is-arriving`, y `LAND_PREFIX` a `ARRIVE_PREFIX`. **Se retira toda la medida:** `from`, `arriveRow` con su vector, `arriving` como `{ x, y }`, `tokenStyle` y `e.arrive` como coordenadas: pasan a un booleano. Sigue cancelándose si se edita la ficha o se reabre. Actualizar `GCombobox.test.js`, `personalidad-combobox.spec.mjs` y `personalidad-combobox-multiple.spec.mjs`.
+
+**Se verifica:** primer cuadro a ≤ `space × 1` de su sitio; nunca rebasa; sin clases ni `--_travel` al terminar; un solo desplazamiento visible a la vez. **Peso:** debe bajar o quedar neutro.
+
 ## Tokens consumidos (#336)
 
 **Tokens nuevos: ninguno** (`tokens.md` §32). Además de los de `GInput` (caja, texto, foco, mensajes, solo lectura, `is-rejected`) y los de `GDialog` (la superficie):
@@ -538,7 +546,7 @@ Las de `GInput` siguen siendo de `GInput`. Bruno emite estas; coco las estiliza.
 | `g-combobox__value`, `__field` | Celda; `<input>` visible | Siempre |
 | `g-combobox__ghost`, `__ghost-typed`, `__ghost-rest` | Capa fantasma | Con texto fantasma |
 | `g-combobox__token` | Ficha en reposo: contiene la `g-summary` del valor (partes `g-summary__*`, `summary.md`) | Con `is-token` |
-| `is-arriving` + `--_travel-x`, `--_travel-y` | `__token` | Mientras llega |
+| `is-landing` | `__token` | Mientras entra (#1018) |
 | `g-combobox__about`, `__clear-text` | Textos ocultos accesibles | Con valor; con limpiar |
 | `g-combobox__clear`, `__arrow` | Limpiar; flecha | `clearable` con valor; editable |
 | `g-combobox__live` | Región viva | Siempre (y otra en la superficie abierta) |
@@ -609,7 +617,7 @@ Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production
 | --- | --- | --- | --- | --- |
 | **A** | **La frase** (por defecto) | `multiple` (`selection="inline"`, con `appearance="field"`) | Lo elegido se escribe **en la línea del campo** como una frase de `Intl.ListFormat` («Penicilina, Látex y 3 más»), sin fichas ni ×; cede **por texto**, no con una insignia; al abrir, el grupo **«Elegidas»** va arriba. **El campo nunca crece** | Formularios densos sin saltos (Δ0 medido de 2 a 8 en una `GFormRow`); lo elegido se lee en reposo, impreso o en una captura; ningún objetivo diminuto junto a otro |
 | **B** | **La receta** (opción) | `selection="list"` | La caja es solo la búsqueda; los elegidos van **debajo**, como renglones completos (`GSummary row`) en orden, numerados con `numbered`; lo agregado en la pasada dice «Nueva» y quitar deja un **rastro con «Deshacer» en el mismo sitio** | Diagnósticos, medicamentos, órdenes: cada elegido se verifica **entero**; quitar por error no mueve ni pierde nada; quien revisa ve qué cambió |
-| **C** | **La cesta** | `appearance="palette"` + `multiple` | La paleta de la Fase 1 con **los resultados a un lado y la cesta de lo elegido al otro**, en el sitio de la vista previa; lo marcado **viaja** a la cesta; quitar deja rastro con «Deshacer»; en reposo, la frase de A (o la receta, con `list`) | Revisar y quitar **mientras se busca**; entre homónimos, `summaryDiff` compara en resultados y cesta: se comprueba que quedó la persona correcta |
+| **C** | **La cesta** | `appearance="palette"` + `multiple` | La paleta de la Fase 1 con **los resultados a un lado y la cesta de lo elegido al otro**, en el sitio de la vista previa; lo marcado **entra** en la cesta (#1018); quitar deja rastro con «Deshacer»; en reposo, la frase de A (o la receta, con `list`) | Revisar y quitar **mientras se busca**; entre homónimos, `summaryDiff` compara en resultados y cesta: se comprueba que quedó la persona correcta |
 
 **En los tres, quitar nunca es irreversible ni accidental** (la identidad de la base): Intro no borra lo que ya está, Retroceso sostenido no se lleva nada, quitar con Retroceso pide una segunda pulsación y todo quitar se deshace (**Ctrl/⌘+Z en los tres; rastro visible con «Deshacer» en B y C**, decisión del usuario 3). Ninguna regla añade pasos al camino normal: escribir, Intro, escribir, Intro.
 
@@ -867,7 +875,7 @@ Mismas reglas de la Fase 1 (`fill`, cifras con `Intl.NumberFormat` del `lang`). 
 | **La casilla salta** | La marca `check` de `__box` al **marcar** por un gesto: bruno pone **`is-ticking`**, keyframes **`g-combobox-tick…`**, escala desde **0,4** (constante de §29.6), retirada como arriba. Desmarcar: la marca se funde | `--g-duration-slow` + **`--g-ease-bounce`** dentro de `@supports`; fuera, `--g-ease-out`. **Segundo uso aprobado del rebote** (§29.1). El fundido, `--g-duration-fast` |
 | **B · el renglón nuevo** | `is-entering`: crece desde la línea anterior (`grid-template-rows` 0fr → 1fr, keyframes `g-combobox-row…`), retirada como arriba | `--g-duration-slow` + `--g-ease-out` |
 | **B · el rastro** | Aparece con un fundido; al plegarse en la pasada siguiente (`is-leaving`) encoge como crece el nuevo y bruno retira el nodo en `animationend` o en el acto | Fundido `--g-duration-fast`; pliegue `--g-duration-slow` + `--g-ease-out` |
-| **C · lo marcado viaja a la cesta** | El renglón nuevo de la cesta llega desde la fila marcada: bruno escribe `--_travel-x`/`--_travel-y` (px) y pone `is-arriving` en `g-combobox__row`; keyframes `g-combobox-arrive…` (los de la ficha de la Fase 1) | `--g-duration-slow` + `--g-ease-spring` dentro de `@supports`: **el mismo uso de #336** (algo elegido que llega), no uno nuevo |
+| **C · lo marcado entra en la cesta** (#1018) | El renglón nuevo entra en su sitio, sin viajar desde la fila marcada: `is-landing` en `g-combobox__row` y los keyframes `g-combobox-land…` de la ficha, con `--g-space-1 × 1` desde abajo | `--g-duration-press` + `--g-ease-out`; con reducido, fundido `--g-duration-fast` `linear`. Sin muelle |
 | Despliegue de A, entrada de la paleta | Sin cambios (Fase 1) | |
 
 - **Solo tras un gesto:** nada se anima al montar, al abrir, al cambiar el texto ni cuando la aplicación cambia el modelo (#336; medido por kiwi).
@@ -906,7 +914,7 @@ Mismas reglas de la Fase 1 (`fill`, cifras con `Intl.NumberFormat` del `lang`). 
 | `g-combobox__option.is-armed` | Fila de «Elegidas» marcada para quitar | Retroceso |
 | `g-combobox__status--max` | Estado del tope | `is-full` con el panel abierto |
 | `g-combobox__chosen`, `__rows`, `__rows-all` | Receta (B) y su «Ver los N» | `selection="list"` con elegidos o rastros |
-| `g-combobox__row` (`is-fresh`, `is-trace`, `is-armed`, `is-custom`, `is-entering`, `is-leaving`, `is-arriving` + `--_travel-x`, `--_travel-y`; en el rastro, **`--_row-h`**) | Renglón (B y C) | Por elemento |
+| `g-combobox__row` (`is-fresh`, `is-trace`, `is-armed`, `is-custom`, `is-entering`, `is-leaving`, `is-landing`; en el rastro, **`--_row-h`**) | Renglón (B y C) | Por elemento |
 | `g-combobox__row-number`, `__row-fresh`, `__remove`, `__trace`, `__undo` | Partes del renglón | Con `numbered`; nuevo; editable; rastro |
 | `g-combobox__surface-body.has-basket`, `g-combobox__basket`, `__basket-title`, `__basket-tally`, `__basket-empty` | Cesta (C) | `palette` con `multiple`, por encima de 520px |
 | `g-combobox__foot`, `__foot-tally`, `__done` | Pie de la superficie («Listo» es un `GBtn` con esa clase) | Superficie con `multiple` |
@@ -1023,7 +1031,7 @@ Lector de pantalla (VoiceOver, NVDA, TalkBack): si `aria-selected` se anuncia al
 | L22 | C · texto libre | Marca `labels.custom` (visible y en la descripción accesible), icono `pencil`, clase `is-custom` | #331, #335 |
 | L23 | C · `forced-colors` | Retirar la ficha y mostrar el texto del `<input>`: encargo a coco **con medida** | «Para coco» |
 | L24 | Personalidad | A + B + C registradas con su «Qué lo hace distinto»; nada queda descartado: semillas y reservas a `PENDIENTES.md` | #329, #338 |
-| L25 | Tokens | Ninguno nuevo. El muelle solo en la llegada de la ficha (cuarto uso); el despliegue de A y la entrada de B, sin muelle | #336 |
+| L25 | Tokens | Ninguno nuevo. El despliegue de A y la entrada de B, sin muelle. La llegada de la ficha con muelle se retiró (#1018) | #336 |
 
 ### r03 (`design/lab/combobox/r03/declaracion.md`, Fase 2)
 
@@ -1075,14 +1083,14 @@ Lector de pantalla (VoiceOver, NVDA, TalkBack): si `aria-selected` se anuncia al
 - **Semántica:** atributos del patrón en reposo y abierto; `aria-expanded` falso sin panel; `aria-required` sin `required`; `readonly` + `aria-readonly` (no abre, sin limpiar ni flecha, se envía); `disabled`; ocultos (`name`, `customName`, `form`, `disabled`) y **visible sin `name`**; `FormData`; registro en `GForm` por `name`, `errors[name]`, `notifyChange` al elegir, limpiar y confirmar; manejadores primero (prueba de orden); `ID-about` con la línea secundaria o `labels.custom`; nombre de «Limpiar».
 - **Superficie:** `GDialog` real con sus props; el disparador (`aria-haspopup="dialog"`, `inputmode="none"`, la primera tecla como texto inicial); `dismiss` cierra sin elegir; vista previa por defecto y slot; región viva de dentro; `g-dialog__body` sin `tabindex`; cruce del umbral cierra.
 - **Anuncios:** uno por búsqueda asentada, a los 600 ms; `partial` / `results` (función) / `noResults` / `loadError`; nada al cerrar.
-- **Movimiento:** `is-arriving` y vector solo al elegir desde la lista de `field`; retirada por `animationend` `g-combobox-arrive…` y en el acto sin animación calculada.
+- **Movimiento:** `is-landing` solo al elegir desde la lista de `field`; retirada por `animationend` `g-combobox-land…` y en el acto sin animación calculada.
 - **SSR** (`renderToString` con y sin valor, sin acceso a `window`); **avisos** 1 a 11; **empaquetado**: `__shared` sin duplicados, las tres compuertas, peso gzip anotado en el `meta.json`; `GInput` sin cambios (sus pruebas en verde).
 
 ### Playwright (Chromium, Firefox, WebKit; `design/lab/theme-playground/`)
 
 - `tests/combobox.spec.mjs`: la batería de r01 sobre el componente real (semántica, foco por Tab sin abrir, Δ0, capa superior, activa siempre a la vista sin mover la página, grupos, 500 opciones < 150 ms, `GFormRow` de tres y sin huecos, dentro de `GDialog` con Esc que no lo cierra y anuncio dentro, móvil 375 y 320 sin desborde con opciones ≥ 44px y foco de vuelta, RTL, contraste, consola limpia).
 - `tests/combobox-forma.spec.mjs`: lo propio de r02. **A:** una sola forma (Δ < 1px, costura < 1.5px, también hacia arriba), el campo usable bajo la forma, fantasma y su contraste, Tab con homónimas y con etiqueta única. **B:** primera tecla, vista previa que cambia con ↓, `:modal`, Tab no sale, Esc y fondo, sobre `GDialog`, luz de la activa (#1017). **C:** ficha (avatar, código, texto libre), Δ0 de alto, edición sobre la ficha y Esc × 2, fichas con rótulo en la lista. La fila se parte antes de 240px (`--g-form-min`) y respeta el valor del consumidor.
-- `tests/personalidad-combobox.spec.mjs`: despliegue de A (≥ 2 alturas intermedias, solo al abrir), llegada de la ficha (≥ 2 posiciones intermedias, termina en 0 y retira la clase; rebase medido), entrada de B; con `reduce`, nada se mueve y no quedan clases.
+- `tests/personalidad-combobox.spec.mjs`: despliegue de A (≥ 2 alturas intermedias, solo al abrir), entrada de la ficha (desplazamiento máximo `space × 1`, nunca rebasa su sitio, retira la clase; #1018), entrada de B; con `reduce`, nada se mueve y no quedan clases.
 - Prueba obligatoria de distribución (`tests/form-distribution.spec.mjs`, #184): sigue pasando.
 
 ### coco (CSS y auditoría)

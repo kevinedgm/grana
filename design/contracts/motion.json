@@ -215,7 +215,6 @@
     "spring": {
       "GTabs.css": { "count": 2, "use": "Borde de atrás de la marca", "decisions": ["#302"] },
       "GStatusIsland.css": { "count": 4, "use": "Cambio de tamaño de la cápsula al crecer", "decisions": ["#324", "#701"] },
-      "GCombobox.css": { "count": 3, "use": "La ficha elegida que llega al campo; el renglón que llega a la cesta", "decisions": ["#336", "#427"] },
       "GBreadcrumbs.css": { "count": 1, "use": "El nivel que llega al bajar, solo translate", "decisions": ["#500"] },
       "GSidebar.css": { "count": 2, "use": "El asiento del item actual que se llena desde el centro", "decisions": ["#617", "#635"] },
       "GPageHeader.css": { "count": 1, "use": "Entrada del muelle de acciones en estrecho, solo translate", "decisions": ["#632", "#635"] },
@@ -269,7 +268,7 @@
   },
 
   "exceptions": [
-    { "id": "combobox-campo-se-abre", "piece": "GCombobox A, «el campo se abre»", "does": "Despliegue de slow + ease-out que continúa el campo; al cerrar, fundido fast (#1005)", "decisions": ["#336"] },
+    { "id": "combobox-campo-se-abre", "piece": "GCombobox A, «el campo se abre»", "does": "Despliegue de slow + ease-out que continúa el campo; al cerrar, fundido fast (#1005). La ficha elegida entra en su sitio (#1018)", "decisions": ["#336"] },
     { "id": "tooltip-pestana", "piece": "GTooltip", "does": "Pestaña que viaja entre controles", "decisions": ["#388"] },
     { "id": "fab-pila", "piece": "GFab", "does": "Pila que crece", "decisions": ["#655"] },
     { "id": "tabs-marca", "piece": "GTabs", "does": "Marca que se estira, con muelle", "decisions": ["#302"] },
@@ -309,6 +308,11 @@
     "dist/grana.js": 512,
     "dist/grana.css": 512,
     "dist/combobox.js": 192
+  },
+  "weightComboboxLanding": {
+    "$comment": "#1018: retirar el viaje debe bajar o quedar neutro. Si se construye junto a #1017, una sola medida contra los topes de weightComboboxLight.",
+    "dist/grana.css": 0,
+    "dist/combobox.js": 0
   },
   "weightComboboxLight": {
     "$comment": "#1017, lote propio pedido por el usuario, aparte de `weight`. Mismo método. Son crecimientos netos: se resta lo que coco retira de la ficha levantada y la activa invertida.",
