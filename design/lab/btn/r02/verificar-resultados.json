@@ -1,0 +1,38 @@
+{
+ "chromium": {
+  "pass": 84,
+  "total": 84,
+  "fails": [],
+  "notes": [
+   "c: alto visible de «Deshacer» 22.0 px (la diana mide ≥ 24 por ::after)",
+   "pestaña claro: 17.40:1",
+   "pestaña ?theme=dark: 15.22:1"
+  ]
+ },
+ "firefox": {
+  "pass": 84,
+  "total": 84,
+  "fails": [],
+  "notes": [
+   "c: alto visible de «Deshacer» 22.0 px (la diana mide ≥ 24 por ::after)",
+   "pestaña claro: 17.40:1",
+   "pestaña ?theme=dark: 15.22:1"
+  ]
+ },
+ "webkit": {
+  "pass": 84,
+  "total": 84,
+  "fails": [],
+  "notes": [
+   "c: alto visible de «Deshacer» 22.0 px (la diana mide ≥ 24 por ::after)",
+   "pestaña claro: 17.40:1",
+   "pestaña ?theme=dark: 15.22:1"
+  ]
+ },
+ "pesoCssGzip": {
+  "base": 482,
+  "A": 192,
+  "B": 448,
+  "C": 252
+ }
+}

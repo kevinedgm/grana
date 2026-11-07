@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GBtn real · banco de medida (r02)</title>
+<!-- Banco de medida de la ronda r02: el GBtn REAL de dist, sin capa de propuesta. Solo lo usa medir-actual.mjs. -->
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<style>body { margin: 48px; background: var(--g-color-bg); }</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="../../../../node_modules/vue/dist/vue.global.prod.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script>
+const { createApp, h, reactive } = Vue
+window.s = reactive({ loading: false, clicks: 0 })
+createApp({
+  render: () => h('div', { style: 'display:flex;gap:24px;align-items:center' }, [
+    h(Grana.GBtn, { id: 'b', loading: s.loading, loadingText: 'Guardando', onClick: () => s.clicks++ }, () => 'Guardar cambios'),
+    h(Grana.GBtn, { id: 'a', href: '#x', loading: s.loading }, () => 'Abrir ficha')
+  ])
+}).mount('#app')
+window.__ready = true
+</script>
+</body>
+</html>

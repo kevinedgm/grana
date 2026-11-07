@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GBtn · estados y éxito · r02</title>
+<!-- Ronda r02 de GBtn (kiwi): microinteracciones de estados, carga y éxito. B4 de personalidad/r01, reservada para ronda propia.
+     Tokens y CSS reales de packages/vue/dist/grana.css y anatomía del contrato (design/contracts/btn.md). Encima, la capa
+     @layer grana.propuesta modela lo que coco escribiría en GBtn.css si el usuario elige. No toca GBtn.vue ni GBtn.css.
+     El andamio de la página (.k-*) no es propuesta. Abrir por file:// o con el servidor grana-lab.
+     Parámetros: ?theme=dark · ?dir=rtl · ?motion=reduce. Verificación: node design/lab/btn/r02/verificar.mjs -->
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<style>
+@layer grana.defaults, grana.components, grana.blocks, grana.utilities, grana.propuesta;
+
+@layer grana.propuesta {
+/* peso:base */
+/* F1 · lo inerte no responde al puntero: en carga, ni hover ni activo cambian el fondo */
+.c-base .g-btn.is-loading:hover,
+.c-base .g-btn.is-loading:active {
+  color: var(--_fg);
+  background: var(--_bg);
+  border-color: var(--_border);
+}
+/* F2 · retraso del motor: hasta DELAY la etiqueta sigue ahí; el acuse inmediato es el relleno de hover, sin movimiento,
+   que llega también con Enter y con movimiento reducido */
+.c-base .g-btn.is-loading:not(.is-shown),
+.c-base .g-btn.is-loading:not(.is-shown):hover,
+.c-base .g-btn.is-loading:not(.is-shown):active {
+  color: var(--_fg-hover);
+  background: var(--_bg-hover);
+  border-color: var(--_border-hover);
+}
+.c-base .g-btn.is-loading:not(.is-shown) .g-btn__label,
+.c-base .g-btn.is-loading:not(.is-shown) .g-btn__prepend,
+.c-base .g-btn.is-loading:not(.is-shown) .g-btn__append {
+  opacity: 1;
+  translate: 0 0;
+  visibility: visible;
+}
+.c-base .g-btn.is-loading:not(.is-shown) .g-btn__loader {
+  opacity: 0;
+  visibility: hidden;
+  animation-play-state: paused;
+}
+/* F3 · el giro sigue mientras se funde: se detenía de golpe en el primer cuadro de la salida */
+.c-base .g-btn.is-leaving .g-btn__loader { animation-play-state: running; }
+/* Marca de hecho: `check` de Lucide, en el sitio del indicador y con su tamaño */
+.g-btn__done {
+  display: block;
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  inline-size: var(--_icon);
+  block-size: var(--_icon);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--g-duration-fast) var(--g-ease-standard),
+    visibility var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-btn.is-done > .g-btn__done { opacity: 1; visibility: visible; }
+.g-btn.is-done > .g-btn__label,
+.g-btn.is-done > .g-btn__prepend,
+.g-btn.is-done > .g-btn__append { opacity: 0; }
+/* El trazo se dibuja desde el extremo corto, como se hace a mano. Es el check de Lucide sin cambios: solo se anima su guion */
+.g-btn__done path { stroke-dasharray: 1 1; stroke-dashoffset: -1; }
+.g-btn.is-done > .g-btn__done path {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset var(--g-duration-slow) var(--g-ease-out);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .c-base .g-btn.is-loading:not(.is-shown) .g-btn__loader { translate: 0 var(--g-space-1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .g-btn__done path, .g-btn.is-done > .g-btn__done path { stroke-dashoffset: 0; transition: none; }
+}
+/* fin:base */
+
+/* peso:A */
+/* A · Retén: la pulsación y el final son un mismo gesto. La ida es la de :active; la vuelta, la regla base de GBtn (B1) */
+.c-a .g-btn.is-loading:not(.g-btn--variant-link) {
+  transform: scale(var(--g-press-scale));
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    border-color var(--g-duration-fast) var(--g-ease-standard),
+    color var(--g-duration-fast) var(--g-ease-standard),
+    transform var(--g-duration-fast) var(--g-ease-out);
+}
+@media (prefers-reduced-motion: reduce) {
+  .c-a .g-btn.is-loading:not(.g-btn--variant-link) {
+    transform: none;
+    transition:
+      background-color var(--g-duration-fast) var(--g-ease-standard),
+      border-color var(--g-duration-fast) var(--g-ease-standard),
+      color var(--g-duration-fast) var(--g-ease-standard);
+  }
+}
+/* fin:A */
+
+/* peso:B */
+/* B · Rodillo: dos textos en la misma celda (el más ancho manda, Δ ancho 0 entre estados); los estados solo suben */
+.c-b .g-btn:not(.g-btn--icon) > .g-btn__label,
+.c-b .g-btn.is-loading:not(.g-btn--icon) > .g-btn__label,
+.c-b .g-btn.is-done:not(.g-btn--icon) > .g-btn__label {
+  display: inline-grid;
+  opacity: 1;
+  translate: 0 0;
+  user-select: auto;
+}
+.c-b .g-btn:not(.g-btn--icon).is-done > .g-btn__done { opacity: 0; visibility: hidden; }
+.g-btn__now,
+.g-btn__after { grid-area: 1 / 1; }
+.g-btn__now {
+  transition:
+    opacity var(--g-duration-fast) var(--g-ease-standard),
+    translate var(--g-duration-press) var(--g-ease-out);
+}
+.g-btn__after {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--g-space-1);
+  opacity: 0;
+  transition: opacity var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-btn__after > svg { inline-size: var(--_icon); block-size: var(--_icon); flex: none; }
+.g-btn.is-shown > .g-btn__label > .g-btn__now,
+.g-btn.is-done > .g-btn__label > .g-btn__now { opacity: 0; }
+.g-btn.is-done > .g-btn__label > .g-btn__after { opacity: 1; }
+.g-btn.is-rolling > .g-btn__label > .g-btn__after { opacity: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .g-btn__after { translate: 0 var(--g-space-1); }
+  .g-btn.is-shown > .g-btn__label > .g-btn__now { translate: 0 calc(var(--g-space-1) * -1); }
+  /* Tras fundirse, la etiqueta salta abajo sin verse: al volver llega desde abajo, nunca retrocede */
+  .g-btn.is-done > .g-btn__label > .g-btn__now {
+    translate: 0 var(--g-space-1);
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-standard),
+      translate 0s linear var(--g-duration-fast);
+  }
+  .g-btn.is-done > .g-btn__label > .g-btn__after {
+    translate: 0 0;
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-standard),
+      translate var(--g-duration-press) var(--g-ease-out);
+  }
+  .g-btn.is-rolling > .g-btn__label > .g-btn__after {
+    translate: 0 calc(var(--g-space-1) * -1);
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-standard),
+      translate var(--g-duration-press) var(--g-ease-out);
+  }
+}
+/* fin:B */
+
+/* peso:C */
+/* C · Pestaña: el botón no cambia; el acuse es el nodo real de GTooltip (g-tooltip), con su pestaña y sus transiciones */
+.c-c .g-btn.is-done > .g-btn__label,
+.c-c .g-btn.is-done > .g-btn__prepend,
+.c-c .g-btn.is-done > .g-btn__append { opacity: 1; }
+.c-c .g-btn.is-done > .g-btn__done { opacity: 0; visibility: hidden; }
+.g-btn-receipt .g-tooltip__body { align-items: center; }
+.g-btn-receipt .g-tooltip__mark { inline-size: var(--g-text-body-sm-size); block-size: var(--g-text-body-sm-size); flex: none; align-self: center; }
+.g-btn-receipt .g-tooltip__text { display: inline-flex; align-items: center; gap: var(--g-space-1); }
+/* «Deshacer» sobre la superficie inversa: se reapunta como cualquier anfitrión de GBtn (tokens.md §7.1 «Sobre otra superficie») */
+.g-btn-receipt .g-btn {
+  --_fg: var(--g-color-surface);
+  --_fg-hover: var(--g-color-surface);
+}
+/* fin:C */
+
+/* Solo para ?motion=reduce: la media real se comprueba en verificar.mjs con la emulación del navegador */
+:root[data-motion="reduce"] .g-btn,
+:root[data-motion="reduce"] .g-btn * { transform: none !important; translate: 0 0 !important; }
+:root[data-motion="reduce"] .g-btn__done path { stroke-dashoffset: 0 !important; transition: none !important; }
+}
+
+/* ---------- Andamio de la página (no es propuesta) ---------- */
+html { background: var(--g-color-bg); }
+body {
+  margin: 0;
+  background: var(--g-color-bg);
+  color: var(--g-color-text);
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-size);
+  line-height: var(--g-text-body-line);
+}
+.k-page { box-sizing: border-box; max-inline-size: 60rem; margin-inline: auto; padding: var(--g-space-8) var(--g-space-4) var(--g-space-16); }
+.k-page h1 { font-size: var(--g-text-title-lg-size, 1.75rem); line-height: 1.2; margin: 0 0 var(--g-space-2); }
+.k-page h2 { font-size: 1.25rem; line-height: 1.3; margin: 0; }
+.k-lead { color: var(--g-color-text-muted); margin: 0 0 var(--g-space-4); max-inline-size: 44rem; }
+.k-links { display: flex; flex-wrap: wrap; gap: var(--g-space-4); font-size: var(--g-text-body-sm-size); margin-block-end: var(--g-space-6); }
+.k-links a { color: var(--g-color-accent-text); }
+.k-bar {
+  position: sticky; inset-block-start: 0; z-index: 2;
+  display: flex; flex-wrap: wrap; gap: var(--g-space-2) var(--g-space-6); align-items: center;
+  padding: var(--g-space-3) var(--g-space-4); margin-block-end: var(--g-space-6);
+  background: var(--g-color-surface-sunken); border-radius: var(--g-radius-md);
+  font-size: var(--g-text-body-sm-size);
+}
+.k-bar fieldset { display: flex; flex-wrap: wrap; gap: var(--g-space-3); align-items: center; border: 0; margin: 0; padding: 0; }
+.k-bar legend { float: inline-start; padding: 0; margin-inline-end: var(--g-space-2); color: var(--g-color-text-muted); }
+.k-bar label { display: inline-flex; gap: var(--g-space-1); align-items: center; min-block-size: 24px; }
+.k-card { padding: var(--g-space-5); margin-block-end: var(--g-space-5); background: var(--g-color-surface); border: var(--g-border-width) solid var(--g-color-border); border-radius: var(--g-radius-lg); }
+.k-card > p { margin: var(--g-space-2) 0 0; color: var(--g-color-text-muted); font-size: var(--g-text-body-sm-size); max-inline-size: 46rem; }
+.k-demo { display: flex; flex-wrap: wrap; gap: var(--g-space-4) var(--g-space-3); align-items: center; padding-block: var(--g-space-5) var(--g-space-6); }
+.k-slot { display: contents; }
+.k-log { min-block-size: 1.5em; margin: 0; font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); color: var(--g-color-text-muted); }
+.k-msg { min-block-size: 1.5em; margin: var(--g-space-1) 0 0; font-size: var(--g-text-body-sm-size); color: var(--g-color-danger-text); }
+.k-tags { display: flex; flex-wrap: wrap; gap: var(--g-space-2) var(--g-space-5); margin-block-start: var(--g-space-3); font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); color: var(--g-color-text-muted); }
+.k-tags b { color: var(--g-color-text); font-weight: var(--g-text-action-weight); }
+.k-scroll { overflow-x: auto; }
+.k-table { border-collapse: collapse; inline-size: 100%; min-inline-size: 40rem; font-size: var(--g-text-body-sm-size); }
+.k-table th, .k-table td { text-align: start; vertical-align: top; padding: var(--g-space-2) var(--g-space-3); border-block-end: var(--g-border-width) solid var(--g-color-border); }
+.k-table thead th { color: var(--g-color-text-muted); font-weight: var(--g-text-action-weight); }
+.k-table tbody th { font-weight: var(--g-text-action-weight); }
+.k-ask { font-weight: var(--g-text-action-weight); margin: var(--g-space-4) 0 0; }
+</style>
+</head>
+<body>
+<main class="k-page">
+  <h1>GBtn: estados, carga y éxito</h1>
+  <p class="k-lead">Hoy el botón termina en silencio: la carga acaba y vuelve la etiqueta, sin decir si salió bien. Pulsa cada botón y compara. Ningún concepto se pone verde solo: el color es el del botón y el éxito lo afirma siempre la aplicación.</p>
+  <div class="k-links">
+    <a href="./declaracion.md">Declaración y rúbrica</a>
+    <a id="l-dark" href="?theme=dark">Tema oscuro</a>
+    <a id="l-rtl" href="?dir=rtl">RTL</a>
+    <a id="l-motion" href="?motion=reduce">Movimiento reducido</a>
+  </div>
+
+  <div class="k-bar">
+    <fieldset>
+      <legend>La operación tarda</legend>
+      <label><input type="radio" name="ms" value="100"> 100 ms</label>
+      <label><input type="radio" name="ms" value="1200" checked> 1,2 s</label>
+      <label><input type="radio" name="ms" value="6000"> 6 s</label>
+    </fieldset>
+    <fieldset>
+      <legend>Y termina</legend>
+      <label><input type="radio" name="ok" value="1" checked> bien</label>
+      <label><input type="radio" name="ok" value="0"> mal</label>
+    </fieldset>
+    <button id="play-all" class="g-btn g-btn--color-neutral g-btn--variant-soft g-btn--size-sm" type="button"><span class="g-btn__label">Reproducir los cuatro</span></button>
+  </div>
+
+  <section class="k-card c-hoy" data-concept="hoy">
+    <h2>Hoy</h2>
+    <p>El botón real, sin cambios. Con 100 ms se ve el parpadeo; con el puntero encima, el fondo sigue reaccionando durante la carga; al terminar no queda rastro.</p>
+    <div class="k-demo"></div>
+    <p class="k-log" data-log></p>
+    <p class="k-msg" data-msg></p>
+  </section>
+
+  <section class="k-card c-base c-a" data-concept="a">
+    <h2>A · Retén</h2>
+    <p>Un botón mecánico que se queda abajo mientras trabaja. Al pulsar se hunde y no sube hasta que la operación termina; sube con el mismo rebote de siempre y el trazo del <code>check</code> ocupa el sitio del indicador durante menos de un segundo. El final es la segunda mitad de tu propio gesto.</p>
+    <div class="k-demo"></div>
+    <p class="k-log" data-log></p>
+    <p class="k-msg" data-msg></p>
+    <div class="k-tags"><span><b>El resultado vive en</b> el gesto</span><span><b>Dura</b> 960 ms</span><span><b>Texto visible</b> ninguno</span><span><b>Solo icono</b> sí</span></div>
+  </section>
+
+  <section class="k-card c-base c-b" data-concept="b">
+    <h2>B · Rodillo</h2>
+    <p>La etiqueta se conjuga. Los estados pasan como un rodillo que solo gira hacia arriba: Guardar sube, llega el giro, sube y llega Guardado. Al volver, Guardar entra otra vez desde abajo: el tiempo nunca retrocede. Lo hecho se lee en palabras donde ya estabas mirando.</p>
+    <div class="k-demo"></div>
+    <p class="k-log" data-log></p>
+    <p class="k-msg" data-msg></p>
+    <div class="k-tags"><span><b>El resultado vive en</b> la etiqueta</span><span><b>Dura</b> 4 s</span><span><b>Texto visible</b> sí, y el botón reserva su ancho</span><span><b>Solo icono</b> cae a la marca de A</span></div>
+  </section>
+
+  <section class="k-card c-base c-c" data-concept="c">
+    <h2>C · Pestaña</h2>
+    <p>El botón vuelve a reposo al instante y nunca entra en otro modo. El acuse cuelga de él con la pestaña de <code>GTooltip</code>, la forma que ya es de Grana, y tiene sitio para texto largo y para «Deshacer». Se pausa con el puntero o el foco encima y se aparta si el foco se va a otro sitio.</p>
+    <div class="k-demo"></div>
+    <p class="k-log" data-log></p>
+    <p class="k-msg" data-msg></p>
+    <div class="k-tags"><span><b>El resultado vive en</b> una pestaña fuera del botón</span><span><b>Dura</b> 4 s, con pausa</span><span><b>Texto visible</b> sí, sin límite de ancho</span><span><b>Solo icono</b> sí, y con texto</span></div>
+  </section>
+
+  <section class="k-card">
+    <h2>Comparativa</h2>
+    <div class="k-scroll" tabindex="-1">
+      <table class="k-table">
+        <thead><tr><th scope="col"></th><th scope="col">A · Retén</th><th scope="col">B · Rodillo</th><th scope="col">C · Pestaña</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Mejor para</th><td>Acciones frecuentes y repetibles: guardar, copiar, aplicar</td><td>Acciones con un resultado que se nombra: publicar, enviar</td><td>Acciones que merecen detalle o se pueden deshacer: archivar, eliminar</td></tr>
+          <tr><th scope="row">Acuse inmediato</th><td>Se hunde en 120 ms, también con Enter</td><td>Relleno de hover; sin movimiento hasta 200 ms</td><td>Relleno de hover; sin movimiento hasta 200 ms</td></tr>
+          <tr><th scope="row">Quien mira a otro lado</th><td>Puede perderlo: dura menos de un segundo</td><td>Lo lee durante 4 s</td><td>Lo lee durante 4 s y puede pausarlo</td></tr>
+          <tr><th scope="row">Cambia el aspecto en reposo</th><td>No</td><td>Sí: el botón mide lo que el texto más ancho</td><td>No</td></tr>
+          <tr><th scope="row">Riesgo principal</th><td>El acuse es breve y sin texto visible</td><td>Dice «Guardado» y pulsarlo vuelve a guardar; el nombre accesible cambia</td><td>Tapa lo que hay debajo; pieza más grande</td></tr>
+          <tr><th scope="row">API nueva</th><td><code>done</code>, <code>doneText</code></td><td><code>done</code>, <code>doneText</code> (obligatorio con texto)</td><td><code>done</code>, <code>doneText</code>, <code>undo</code> o slot</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="k-ask">¿Qué concepto quieres para el éxito de GBtn? Recomendación de kiwi: A por defecto y C como opción para lo que se puede deshacer.</p>
+  </section>
+</main>
+
+<script src="../../lucide-icons.js"></script>
+<script>
+const url = new URLSearchParams(location.search)
+const root = document.documentElement
+if (url.get('theme')) root.dataset.theme = url.get('theme')
+if (url.get('dir')) root.dir = url.get('dir')
+if (url.get('motion')) root.dataset.motion = url.get('motion')
+const reduced = () => root.dataset.motion === 'reduce' || matchMedia('(prefers-reduced-motion: reduce)').matches
+const toggle = (id, key, value) => {
+  const q = new URLSearchParams(location.search)
+  if (q.get(key) === value) q.delete(key); else q.set(key, value)
+  document.getElementById(id).href = '?' + q
+}
+toggle('l-dark', 'theme', 'dark'); toggle('l-rtl', 'dir', 'rtl'); toggle('l-motion', 'motion', 'reduce')
+
+// Constantes: las del motor de carga (utils/loadPhase.js, #532), RECEIPT_MS (#643) y la derivada de --g-duration-slow
+const DELAY = 200, MINIMUM = 400, RECEIPT_MS = 4000
+const probe = (token) => {
+  const el = document.createElement('i')
+  el.style.transitionDuration = `var(${token})`
+  document.body.append(el)
+  const ms = parseFloat(getComputedStyle(el).transitionDuration) * 1000
+  el.remove()
+  return ms
+}
+const SLOW = probe('--g-duration-slow'), FAST = probe('--g-duration-fast'), PRESS = probe('--g-duration-press')
+const HOLD = { a: SLOW * 4, b: RECEIPT_MS, c: RECEIPT_MS }
+
+const icon = (name, cls) => {
+  const s = `<svg class="${cls}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${LUCIDE_ICONS[name]}</svg>`
+  const t = document.createElement('template'); t.innerHTML = s
+  const svg = t.content.firstChild
+  if (name === 'check') svg.querySelector('path').setAttribute('pathLength', '1')
+  return svg
+}
+
+window.__op = { ms: 1200, ok: true }
+document.querySelectorAll('[name=ms]').forEach((r) => r.addEventListener('change', () => { __op.ms = +r.value }))
+document.querySelectorAll('[name=ok]').forEach((r) => r.addEventListener('change', () => { __op.ok = r.value === '1' }))
+
+const DEMOS = [
+  { label: 'Guardar cambios', doneText: 'Guardado', busy: 'Guardando', color: 'brand', variant: 'solid', undo: false },
+  { label: 'Eliminar', doneText: 'Eliminado', busy: 'Eliminando', color: 'danger', variant: 'solid', undo: true },
+  { label: 'Publicar', doneText: 'Publicado', busy: 'Publicando', color: 'accent', variant: 'soft', undo: false },
+  { label: 'Enviar', doneText: 'Enviado', busy: 'Enviando', color: 'neutral', variant: 'outline', undo: false },
+  { label: 'Reenviar', doneText: 'Reenviado', busy: 'Reenviando', color: 'brand', variant: 'ghost', undo: false },
+  { label: 'Copiar enlace', doneText: 'Enlace copiado', busy: 'Copiando', color: 'accent', variant: 'outline', icon: 'copy', undo: false }
+]
+
+// Máquina del prototipo: lo que haría GBtn.vue. reposo → pendiente → a la vista → (hecho) → reposo
+function setup(section) {
+  const concept = section.dataset.concept
+  const demo = section.querySelector('.k-demo'), log = section.querySelector('[data-log]'), msg = section.querySelector('[data-msg]')
+  DEMOS.forEach((d, i) => {
+    const slot = document.createElement('span'); slot.className = 'k-slot'
+    const b = document.createElement('button')
+    b.type = 'button'; b.id = `${concept}-${i}`
+    b.className = `g-btn g-btn--color-${d.color} g-btn--variant-${d.variant} g-btn--size-md g-btn--density-default${d.icon ? ' g-btn--icon' : ''}`
+    const label = document.createElement('span'); label.className = 'g-btn__label'
+    let now = null, after = null
+    if (d.icon) { label.append(icon(d.icon, '')); b.setAttribute('aria-label', d.label) }
+    else if (concept === 'b') {
+      now = document.createElement('span'); now.className = 'g-btn__now'; now.textContent = d.label
+      after = document.createElement('span'); after.className = 'g-btn__after'; after.setAttribute('aria-hidden', 'true')
+      after.append(icon('check', ''), d.doneText)
+      after.querySelector('path').removeAttribute('pathLength')
+      label.append(now, after)
+    } else label.textContent = d.label
+    b.append(label, icon('loader-circle', 'g-btn__loader'))
+    if (concept !== 'hoy') b.append(icon('check', 'g-btn__done'))
+    const status = document.createElement('span'); status.className = 'g-btn__status'; status.setAttribute('role', 'status')
+    slot.append(b, status)
+    demo.append(slot)
+
+    const s = { phase: 'rest', shownAt: 0, t: [] }
+    const later = (fn, ms) => { const id = setTimeout(fn, ms); s.t.push(id); return id }
+    const clear = () => { s.t.forEach(clearTimeout); s.t = [] }
+    const say = (t) => { log.textContent = `${d.label}: ${t}` }
+
+    // Pestaña de C: el nodo real de GTooltip, hermano del botón (el Tab llega a «Deshacer» justo después)
+    let tip = null, closeT = 0, remaining = 0, startedAt = 0
+    const closeTip = () => {
+      clearTimeout(closeT)
+      if (tip) { const n = tip; tip = null; n.hidePopover(); setTimeout(() => n.remove(), FAST + 40) }
+    }
+    const arm = (ms) => { remaining = ms; startedAt = performance.now(); clearTimeout(closeT); closeT = setTimeout(toRest, ms) }
+    const pause = () => { if (s.phase === 'done' && tip) { clearTimeout(closeT); remaining -= performance.now() - startedAt } }
+    const resume = () => { if (s.phase === 'done' && tip && !tip.matches(':hover') && !tip.contains(document.activeElement)) arm(Math.max(remaining, 1000)) }
+    const openTip = () => {
+      const gap = parseFloat(getComputedStyle(root).getPropertyValue('--g-space-1')) * 1.5 || 6
+      const r = b.getBoundingClientRect()
+      tip = document.createElement('div')
+      tip.className = 'g-tooltip g-btn-receipt'; tip.setAttribute('popover', 'manual'); tip.dataset.side = 'bottom'
+      const body = document.createElement('span'); body.className = 'g-tooltip__body'
+      const text = document.createElement('span'); text.className = 'g-tooltip__text'; text.dir = 'auto'
+      text.append(icon('check', 'g-tooltip__mark'), d.doneText)
+      text.querySelector('path').removeAttribute('pathLength')
+      const tab = document.createElement('span'); tab.className = 'g-tooltip__tab'
+      body.append(text)
+      if (d.undo) {
+        const u = document.createElement('button')
+        u.type = 'button'; u.className = 'g-btn g-btn--color-neutral g-btn--variant-link g-btn--size-sm'
+        u.innerHTML = '<span class="g-btn__label">Deshacer</span>'
+        u.addEventListener('click', () => { say('deshecho por la aplicación'); status.textContent = 'Deshecho'; toRest(); b.focus() })
+        body.append(u)
+      }
+      tip.append(tab, body)
+      tip.style.cssText = `--_x:${r.left}px;--_y:${r.bottom + gap}px;--_tooltip-ax:0px;--_tooltip-ay:${-(r.height + gap)}px;--_tooltip-aw:${r.width}px;--_tooltip-ah:${r.height}px;--_tooltip-ar1:${parseFloat(getComputedStyle(b).borderBottomLeftRadius)}px;--_tooltip-ar2:${parseFloat(getComputedStyle(b).borderBottomRightRadius)}px`
+      tip.addEventListener('pointerenter', pause); tip.addEventListener('pointerleave', resume)
+      tip.addEventListener('focusin', pause); tip.addEventListener('focusout', () => setTimeout(resume))
+      slot.insertBefore(tip, status)
+      tip.showPopover()
+      arm(HOLD.c)
+    }
+
+    function toRest() {
+      clear(); closeTip()
+      const wasDone = s.phase === 'done'
+      s.phase = 'rest'
+      b.classList.remove('is-done', 'is-loading', 'is-shown')
+      b.removeAttribute('aria-disabled'); b.removeAttribute('aria-busy')
+      if (wasDone) status.textContent = ''
+      if (now) {
+        now.removeAttribute('aria-hidden'); after.setAttribute('aria-hidden', 'true')
+        if (wasDone) { b.classList.add('is-rolling'); later(() => b.classList.remove('is-rolling'), PRESS) }
+      }
+    }
+    function stopLoading() {
+      b.classList.remove('is-loading', 'is-shown')
+      b.removeAttribute('aria-disabled'); b.removeAttribute('aria-busy')
+      b.classList.add('is-leaving')
+      setTimeout(() => b.classList.remove('is-leaving'), FAST)
+    }
+    function finish(ok) {
+      stopLoading()
+      status.textContent = ''
+      if (concept === 'hoy') { s.phase = 'rest'; say('fin de la carga, sin rastro'); if (!ok) msg.textContent = 'No se pudo completar. Lo dice la aplicación.'; return }
+      if (!ok) { s.phase = 'rest'; say('fallo: reposo sin marca'); msg.textContent = 'No se pudo completar. Lo dice la aplicación, en su canal.'; return }
+      s.phase = 'done'
+      b.classList.add('is-done')
+      if (now) { now.setAttribute('aria-hidden', 'true'); after.removeAttribute('aria-hidden') }
+      // Región ya presente: el texto se escribe tras vaciarla, en el ciclo del canal (50 ms)
+      later(() => { status.textContent = d.doneText }, 50)
+      say(`hecho (${d.doneText})`)
+      if (concept === 'c') openTip()
+      else later(toRest, HOLD[concept])
+    }
+    function start() {
+      const { ms, ok } = window.__op
+      msg.textContent = ''
+      s.phase = 'pending'
+      b.classList.add('is-loading')
+      b.setAttribute('aria-disabled', 'true'); b.setAttribute('aria-busy', 'true')
+      say('en curso')
+      const t0 = performance.now()
+      const show = () => {
+        s.phase = 'shown'; s.shownAt = performance.now()
+        b.classList.add('is-shown')
+        status.textContent = d.busy
+        say('giro a la vista')
+      }
+      if (concept === 'hoy') { show(); later(() => finish(ok), ms); return }
+      const tShow = later(show, DELAY)
+      later(() => {
+        clearTimeout(tShow)
+        // Mínimo a la vista: una carga que llegó a verse dura al menos MINIMUM
+        const wait = s.phase === 'shown' ? Math.max(0, MINIMUM - (performance.now() - s.shownAt)) : 0
+        later(() => finish(ok), wait)
+      }, ms)
+    }
+    b.addEventListener('click', () => {
+      if (s.phase === 'pending' || s.phase === 'shown') { say('clic ignorado durante la carga'); window.__ignored = (window.__ignored || 0) + 1; return }
+      // Sin modos: durante el acuse el botón sigue siendo el botón. El clic cierra el acuse y actúa
+      if (s.phase === 'done') toRest()
+      window.__clicks = (window.__clicks || 0) + 1
+      start()
+    })
+    if (concept === 'c') {
+      b.addEventListener('pointerenter', pause); b.addEventListener('pointerleave', resume)
+      document.addEventListener('focusin', (e) => {
+        if (s.phase === 'done' && tip && e.target !== b && !tip.contains(e.target)) toRest()
+      })
+      addEventListener('scroll', () => { if (s.phase === 'done' && tip) toRest() }, { passive: true })
+      addEventListener('keydown', (e) => { if (e.key === 'Escape' && s.phase === 'done' && tip) toRest() })
+    }
+  })
+}
+document.querySelectorAll('[data-concept]').forEach(setup)
+document.getElementById('play-all').addEventListener('click', () => {
+  ['hoy', 'a', 'b', 'c'].forEach((c) => document.getElementById(`${c}-0`).click())
+})
+window.__ready = true
+</script>
+</body>
+</html>

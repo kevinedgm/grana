@@ -1,0 +1,146 @@
+{
+ "chromium": {
+  "raton0ms": {
+   "min": 1,
+   "max": 1
+  },
+  "raton60ms": {
+   "min": 0.9706,
+   "max": 1.0058
+  },
+  "raton100ms": {
+   "min": 0.9702,
+   "max": 1.0059
+  },
+  "raton150ms": {
+   "min": 0.97,
+   "max": 1.006
+  },
+  "enter": {
+   "min": 1,
+   "max": 1
+  },
+  "espacio": {
+   "min": 1,
+   "max": 1
+  },
+  "espacio120": {
+   "min": 0.97,
+   "max": 1.006
+  },
+  "fondoReposo": "rgb(31, 31, 31)",
+  "fondoHover": "rgb(51, 51, 51)",
+  "fondoCarga": "rgb(31, 31, 31)",
+  "fondoCargaHover": "rgb(51, 51, 51)",
+  "cursorCarga": "progress",
+  "focoBotonEnCarga": "b",
+  "focoEnlaceEnCarga": "a",
+  "anilloEnlaceEnCarga": {
+   "foco": true,
+   "outline": "solid"
+  },
+  "cargaCorta100": {
+   "etiquetaMinima": 0,
+   "indicadorMaximo": 1,
+   "cuadrosConEtiquetaBajo50": 7
+  },
+  "regionDuranteCarga": "Guardando",
+  "regionAlTerminar": ""
+ },
+ "firefox": {
+  "raton0ms": {
+   "min": 1,
+   "max": 1
+  },
+  "raton60ms": {
+   "min": 0.9703,
+   "max": 1.0059
+  },
+  "raton100ms": {
+   "min": 0.97,
+   "max": 1.006
+  },
+  "raton150ms": {
+   "min": 0.97,
+   "max": 1.006
+  },
+  "enter": {
+   "min": 1,
+   "max": 1
+  },
+  "espacio": {
+   "min": 1,
+   "max": 1
+  },
+  "espacio120": {
+   "min": 1,
+   "max": 1
+  },
+  "fondoReposo": "rgb(31, 31, 31)",
+  "fondoHover": "rgb(51, 51, 51)",
+  "fondoCarga": "rgb(31, 31, 31)",
+  "fondoCargaHover": "rgb(51, 51, 51)",
+  "cursorCarga": "progress",
+  "focoBotonEnCarga": "b",
+  "focoEnlaceEnCarga": "a",
+  "anilloEnlaceEnCarga": {
+   "foco": false,
+   "outline": "none"
+  },
+  "cargaCorta100": {
+   "etiquetaMinima": 0,
+   "indicadorMaximo": 1,
+   "cuadrosConEtiquetaBajo50": 6
+  },
+  "regionDuranteCarga": "Guardando",
+  "regionAlTerminar": ""
+ },
+ "webkit": {
+  "raton0ms": {
+   "min": 1,
+   "max": 1
+  },
+  "raton60ms": {
+   "min": 0.9719,
+   "max": 1.0055
+  },
+  "raton100ms": {
+   "min": 0.97,
+   "max": 1.006
+  },
+  "raton150ms": {
+   "min": 0.97,
+   "max": 1.006
+  },
+  "enter": {
+   "min": 1,
+   "max": 1
+  },
+  "espacio": {
+   "min": 1,
+   "max": 1
+  },
+  "espacio120": {
+   "min": 0.97,
+   "max": 1.006
+  },
+  "fondoReposo": "rgb(31, 31, 31)",
+  "fondoHover": "rgb(51, 51, 51)",
+  "fondoCarga": "rgb(31, 31, 31)",
+  "fondoCargaHover": "rgb(51, 51, 51)",
+  "cursorCarga": "progress",
+  "focoBotonEnCarga": "b",
+  "focoEnlaceEnCarga": "a",
+  "anilloEnlaceEnCarga": {
+   "foco": true,
+   "outline": "solid"
+  },
+  "cargaCorta100": {
+   "etiquetaMinima": 0.037,
+   "indicadorMaximo": 0.963,
+   "cuadrosConEtiquetaBajo50": 6
+  },
+  "regionDuranteCarga": "Guardando",
+  "regionAlTerminar": ""
+ }
+}
