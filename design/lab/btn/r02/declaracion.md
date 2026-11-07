@@ -176,6 +176,8 @@ Escala de `rubrica-movimiento.md`. H (inmersión) no aplica a ninguno. Contexto:
 
 **Respuesta del usuario (2026-11-07): solo A · Retén.** Y sobre la marca con `disabled`: **se queda como está** (regla 6: `disabled` cierra el acuse y `doneText` se anuncia igual; la receta del README es mantener el botón habilitado hasta `update:done`).
 
+**`block` con carga larga (2026-11-07, el usuario lo delegó en kiwi): se hunde igual.** Un solo gesto para todos los botones y sin excepción que contratar; el coste (35,5 px más estrecho a 1280 px mientras carga) es visual, no mueve la maquetación y ya consta en «Alcance» del README.
+
 **¿Qué concepto quieres para el éxito de `GBtn`?**
 
 - **A · Retén** solo.
