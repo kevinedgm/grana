@@ -57,19 +57,20 @@ Selector de una opción con lista propia (patrón *select-only combobox* de WAI-
 
 ### Reglas de props
 
-- **`modelValue`:** el `value` de la opción elegida, comparado con `===`. `null`, `undefined` o un valor sin opción correspondiente muestra el `placeholder`. **Sin `multiple`.**
+- **`modelValue`:** el `value` de la opción elegida, comparado con `===`. `null`, `undefined` o un valor sin opción correspondiente muestra el `placeholder`. Un valor sin opción **sigue siendo el valor**: no se borra, no se emite nada y se envía (ver `name`; #1001). Aviso de desarrollo, una vez por valor, cuando hay un valor sin opción, `loading` es falso y hay opciones cargadas (con `loading` o sin opciones, el catálogo aún no ha llegado). **Sin `multiple`.**
 - **`variant`, `color`, `rounded`, `block`:** exactamente como `GInput`. `color` solo colorea el anillo de foco; el error usa siempre `danger`.
 - **`placeholder`:** texto del selector sin valor. Sin él, el selector sin valor queda vacío (la etiqueta lo nombra igualmente).
-- **`clearable`:** con valor, muestra un botón aparte para borrar (`null`). **Solo se renderiza si se da `clearLabel`** (su nombre accesible; sin valor por defecto) y, en desarrollo, `clearable` sin `clearLabel` emite `console.warn`. Con `readonly` o `disabled`, no se muestra activo.
-- **`emptyText`:** mensaje de la lista sin opciones. Sin él, una lista vacía no muestra nada.
+- **`clearable`:** con valor, muestra un botón aparte para borrar (`null`). **Solo se renderiza si se da `clearLabel`** (su nombre accesible; sin valor por defecto) y, en desarrollo, `clearable` sin `clearLabel` emite `console.warn`. Con `readonly` o `disabled`, no se muestra activo. «Con valor» es con opción elegida: un valor sin opción no muestra el botón, porque lo visible no cambia (#1001). **Con la lista abierta, limpiar borra y cierra:** `update:modelValue` con `null`, `close` y foco al selector (#1001).
+- **`emptyText`:** mensaje de la lista sin opciones; no se muestra con `loading` (#1001). Sin él y sin slot `empty`, una lista sin opciones no tiene filas y no abre. Se recomienda darlo: sin mensaje, un selector sin opciones no responde al clic.
 - **`createLabel`:** con texto, la lista termina con una **fila de acción** «Agregar nuevo…» (ver "Fila de agregar"). **Sin valor por defecto** (Grana es internacional); sin él no hay fila. Se recomienda un texto explícito («Agregar nuevo país…»): un lector de pantalla la anuncia como una opción más. Con `readonly` o `disabled` no hay lista, luego no hay fila.
 - **`label`:** el selector exige nombre accesible. Sin `label`, sin slot `label` y sin `aria-label` ni `aria-labelledby` (en `$attrs`), en desarrollo se emite `console.warn`.
 - **`error`:** con valor, el selector está inválido (`aria-invalid="true"`, clase `is-invalid`, mensaje visible). **El componente no valida.**
 - **`required`:** `aria-required="true"` y una marca visual `aria-hidden`. **Límite:** el `<input type="hidden">` no participa en la validación nativa de un `<form>` (los navegadores no validan campos ocultos); quien necesite bloquear el envío lo valida y usa `error`.
-- **`name`:** con `name`, el componente renderiza un `<input type="hidden" name>` con el valor (`String(value)`, o `''` sin valor), para formularios nativos. Con `disabled`, el campo oculto también.
+- **`name`:** con `name`, el componente renderiza un `<input type="hidden" name>` con `String(modelValue)`, para formularios nativos, **aunque no haya opción correspondiente**: un envío con el catálogo aún sin llegar no borra el dato (#1001). Solo `null` y `undefined` envían `''`. Con `disabled`, el campo oculto también.
 - **`readonly`:** `aria-readonly="true"`; el selector es enfocable pero **no abre** (ni con clic ni con teclado). El valor se envía.
 - **`disabled`:** atributo nativo del botón; sin foco, sin envío.
-- **`loading`:** `aria-busy="true"` y un anillo. **No bloquea** la apertura ni la elección.
+- **`loading`:** `aria-busy="true"` y un anillo. **No bloquea** la apertura ni la elección, salvo que la lista no tenga filas. **No afirma el vacío:** con `loading`, `emptyText` y el slot `empty` no se muestran (#1001).
+- **Lista sin filas (#1001):** es fila una opción válida (también deshabilitada), el mensaje de vacío (`emptyText` o slot `empty`, sin `loading`) o la fila «Agregar nuevo…»; un encabezado de grupo no cuenta. Sin filas, el selector **no abre** por ninguna vía (clic, teclado, escritura rápida), no emite `open` y `aria-expanded` sigue en `false`. Si la lista está abierta y se queda sin filas (también porque `loading` retira el mensaje de vacío), se cierra y emite `close`; no se reabre sola.
 - **`id`:** si no se da, se genera uno estable (`useId`); de él derivan los ids de etiqueta, selector, lista, opciones, ayuda y error.
 - **Resto de atributos** (`aria-*`, `data-*`, escuchas de eventos): van al **botón** (`role="combobox"`). `class` y `style` van a la raíz (`inheritAttrs: false`).
 
@@ -100,7 +101,7 @@ Selector de una opción con lista propia (patrón *select-only combobox* de WAI-
       <li class="g-select__group-label" id="ID-grp-0" role="presentation">Europa</li>
       <li class="g-select__option" id="ID-opt-1" role="option" aria-selected="false">España</li>
     </ul></li>
-    <li class="g-select__empty" role="presentation">No hay opciones.</li>                 <!-- sin opciones y con emptyText -->
+    <li class="g-select__empty" role="presentation">No hay opciones.</li>                 <!-- sin opciones, sin loading y con emptyText -->
     <li class="g-select__option g-select__create" id="ID-opt-create" role="option" aria-selected="false">Agregar nuevo país…</li>   <!-- solo con createLabel; siempre la última -->
   </ul>
   <div class="g-select__hint" id="ID-hint">…</div>
@@ -109,7 +110,7 @@ Selector de una opción con lista propia (patrón *select-only combobox* de WAI-
 ```
 
 - **Nombre accesible del selector:** `aria-labelledby` lista el id de la etiqueta y **el propio botón**, de modo que se anuncia "País, México" (etiqueta y valor mostrado; WCAG 2.5.3).
-- **Etiqueta:** `for` apunta al botón, de modo que un clic en ella lo enfoca.
+- **Etiqueta:** `for` apunta al botón. Un clic en ella **solo enfoca**, como en un `<select>` nativo: se cancela la activación nativa del `<label for>`, que abriría la lista (#1001). Con la lista abierta, la cierra sin reabrirla y el foco queda en el botón. Con `readonly` enfoca; con `disabled`, nada.
 - **Lista:** `popover="manual"`, siempre en el DOM (oculta cuando está cerrada). Cada opción lleva `aria-selected` (`true` solo en la elegida) y, si no es elegible, `aria-disabled="true"`. La opción activa lleva la clase `is-active` (además de ser el `aria-activedescendant` del botón).
 - **`aria-describedby`** lista `ID-hint` si hay ayuda e `ID-error` solo mientras hay error.
 - La región `ID-error` (`aria-live="polite"`) **se renderiza siempre**, vacía mientras no hay error (WCAG 4.1.3), con señal no cromática (marca ⚠ que un lector no lee), como `GInput`.
@@ -124,23 +125,23 @@ Para catálogos cerrados pero incompletos: la lista termina con una fila de acci
 - **Navegación:** es la última fila **navegable**: ↓ llega a ella desde la última opción habilitada, Fin va a ella y Av Pág la cuenta como una opción más. Se resalta con `is-active`.
 - **Activarla** (Enter, Espacio o clic): cierra la lista, **no cambia el valor**, devuelve el foco al botón del selector y **emite `create`** (en ese orden: el foco vuelve **antes** de emitir, así una `GDialog` que la aplicación abra desde `create` restaura el foco al selector al cerrarse). La aplicación agrega la opción a `options` y, si quiere, actualiza `modelValue`.
 - **Tab** con la fila activa cierra **sin crear** (una acción no se dispara por pasar de largo); **Esc** cierra sin hacer nada.
-- **Con la lista vacía**, la fila sigue visible: se muestra `emptyText` (si hay) y **debajo** la fila, activa por defecto. Con `readonly` o `disabled` no hay lista, luego no hay fila.
+- **Con la lista vacía**, la fila sigue visible: se muestra `emptyText` (si hay y sin `loading`) y **debajo** la fila, activa por defecto. Con `readonly` o `disabled` no hay lista, luego no hay fila.
 - **Visual (lo decide coco):** línea superior de separación, un «+» dibujado con bordes y peso de acción; en la hoja inferior, 44px.
 
 ## Posición y capa superior
 
 - La lista se muestra con `showPopover()` (y se oculta con `hidePopover()`), anclada al selector con su **ancho mínimo** (el ancho de la caja) y **debajo**; si no cabe debajo y hay más sitio arriba, se abre **hacia arriba** (clase `is-up` en la lista). Con scroll interno, la opción activa siempre se ve.
-- Bruno calcula la posición y la entrega con **variables CSS dinámicas** sobre la lista (`--_x`, `--_top`, `--_bottom`, `--_min` y `--_max`; única excepción a "sin estilos en línea"), y las recalcula al redimensionar la ventana y al abrir; **al desplazarse cualquier ancestro solo sigue al ancla** (lado con histéresis, `--_max` fijo, cierre sin devolver el foco si el ancla sale de la vista; el puntero quieto no desplaza la lista).
+- Bruno calcula la posición y la entrega con **variables CSS dinámicas** sobre la lista (`--_x`, `--_top`, `--_bottom`, `--_min` y `--_max`; única excepción a "sin estilos en línea"). **`--_x` es la distancia desde el borde inicial del visor**, porque el CSS usa `inset-inline-start`: `r.left` en LTR y `documentElement.clientWidth − r.right` en RTL, según la `direction` calculada de la lista (#1001). Las recalcula al redimensionar la ventana y al abrir; **al desplazarse cualquier ancestro solo sigue al ancla** (lado con histéresis, `--_max` fijo, cierre sin devolver el foco si el ancla sale de la vista; el puntero quieto no desplaza la lista).
 - Reglas comunes de los paneles anclados: `docs/contract/api.md` «Paneles anclados» (#358).
-- **Móvil (≤ ~520px de ancho del visor):** la lista es una **hoja inferior** pegada abajo y de ancho completo, con fondo (`::backdrop`); el CSS ignora las variables de posición. Umbral literal de consulta de medios (excepción documentada: DECISIONS.md #42; ver #56).
-- **Cierre por clic fuera:** un `pointerdown` fuera del selector y de la lista cierra; en la hoja, el fondo cuenta como fuera.
+- **Móvil (≤ ~520px de ancho del visor):** la lista es una **hoja inferior** pegada abajo y de ancho completo, con fondo (`::backdrop`); el CSS ignora las variables de posición. Umbral literal de consulta de medios (excepción documentada: DECISIONS.md #42; ver #56). **Es modal:** con la hoja abierta, la página de detrás no se desplaza y conserva su posición al cerrar (CSS de coco, como `GDialog`; #1001).
+- **Cierre por clic fuera:** un `pointerdown` fuera del selector y del **rectángulo** de la lista cierra. Se decide por coordenadas, no por `event.target`: el relleno y la barra de desplazamiento son de la lista y no cierran. En la hoja, solo el fondo cuenta como fuera: el `::backdrop` llega con la lista como destino, pero fuera de su rectángulo (#1001).
 
 ## Eventos
 
 | Evento | Payload | Cuándo |
 | --- | --- | --- |
 | `update:modelValue` | `String \| Number \| null` | El usuario elige una opción distinta, o borra con `clearable` (`null`) |
-| `open` | | La lista se abre |
+| `open` | | La lista se abre. Sin filas no abre y no se emite (#1001) |
 | `close` | | La lista se cierra, por el motivo que sea |
 | `create` | | El usuario activa la fila «Agregar nuevo…» (`createLabel`). No cambia el valor; el foco ya volvió al selector |
 
@@ -151,17 +152,26 @@ Para catálogos cerrados pero incompletos: la lista termina con una fila de acci
 | Tecla | Acción |
 | --- | --- |
 | Tab / Shift+Tab | Entra y sale en el orden del documento: botón → botón de limpiar. Con la lista abierta, **elige la opción activa**, cierra y sigue el orden (sobre la fila «Agregar nuevo…», cierra **sin crear**) |
-| Enter / Espacio / ↓ / ↑ / Alt+↓ | Con la lista cerrada: abre, con la elegida (o la primera habilitada) activa |
+| Enter / Espacio / ↓ / ↑ / Alt+↓ | Con la lista cerrada y con filas: abre, con la elegida (o la primera habilitada) activa |
 | ↓ / ↑ | Con la lista abierta: siguiente o anterior opción **habilitada** (no cicla; saltan encabezados y deshabilitadas). La fila «Agregar nuevo…» cuenta como la última |
 | Inicio / Fin | Primera o última fila habilitada (con `createLabel`, Fin va a la fila «Agregar nuevo…») |
 | Re Pág / Av Pág | Diez opciones habilitadas hacia atrás o adelante |
 | Enter | Con la lista abierta: elige la activa, cierra y devuelve el foco al selector. Sobre la fila «Agregar nuevo…»: cierra, devuelve el foco y emite `create` (sin cambiar el valor) |
 | Espacio | Con la lista abierta: elige, salvo que se esté escribiendo un prefijo (entonces es un carácter más) |
 | Esc | Cierra **sin cambiar**; el foco sigue en el selector |
-| Carácter imprimible | Abre la lista si estaba cerrada y activa la siguiente opción cuyo texto empieza así; varios seguidos (< ~500ms) forman el prefijo; sin coincidencia, no cambia. **No considera la fila «Agregar nuevo…»** |
-| Enter / Espacio en el botón de limpiar | Borra el valor y devuelve el foco al selector |
+| Carácter imprimible | Abre la lista si estaba cerrada y tiene filas, y activa según «Escritura rápida»; sin coincidencia, no cambia. **No considera la fila «Agregar nuevo…»** |
+| Enter / Espacio en el botón de limpiar | Borra el valor, cierra la lista si está abierta y devuelve el foco al selector |
 
 El foco **nunca** sale del selector mientras la lista está abierta. Sin manejadores de teclado propios en las opciones.
+
+**Una activación por gesto:** `GSelect` aplica `api.md` «Una activación por gesto» (#661) con `repeatGesture` de `utils/menuNav.js`: el segundo clic de una ráfaga en el botón no cierra lo que acaba de abrir, e Intro o Espacio con `repeat` no abren, no cierran y no eligen (#1001).
+
+### Escritura rápida (#1001)
+
+- **Comparación:** el inicio de `label` de las opciones habilitadas con `fold` de `utils/match.js`, sin acentos ni mayúsculas (misma regla que `GCombobox`, #335). Varias letras seguidas (< ~500ms) forman el búfer.
+- **Una letra:** busca desde la siguiente a la activa, con vuelta al principio. Si la activa es solo la de partida (no es la elegida y la persona no la ha movido con teclas, puntero o letras), empieza en ella: «b» con Banana, Bolivia cae en Banana.
+- **Varias letras:** el búfer entero, empezando en la activa, para no abandonar una opción que sigue coincidiendo.
+- **La misma letra repetida:** si ninguna opción empieza por el búfer entero, recorre las que empiezan por esa letra desde la siguiente a la activa, con vuelta (patrón APG): «b», «b» con Banana, Bolivia va de Banana a Bolivia.
 
 ## Slots
 
@@ -172,7 +182,7 @@ El foco **nunca** sale del selector mientras la lista está abierta. Sin manejad
 | `error` | Mensaje de error con contenido rico | | Solo con `error`; conserva el `id` y la región viva |
 | `option` | Contenido de una opción | `{ option, selected, active }` | Dentro del `<li role="option">`; nunca interactivos; el texto sigue siendo `option.label` para el typeahead |
 | `value` | Contenido del valor mostrado | `{ option }` | Solo con una opción elegida; dentro de `g-select__value`; sin interactivos |
-| `empty` | Contenido de la lista vacía | | Sustituye a `emptyText` |
+| `empty` | Contenido de la lista vacía | | Sustituye a `emptyText`; no se muestra con `loading` |
 | `prepend` | Icono antes del valor | | Decorativo: el componente lo envuelve en `g-select__prepend` (`aria-hidden`), **dentro del botón**, antes del valor. Con una opción elegida que tenga icono, este último **sustituye al prefijo** (una sola posición inicial) |
 | `icon` | Icono de una opción; también un **avatar** (`GAvatar size="xs"` sin `label`, para elegir personas) | `{ option }` | Decorativo: se envuelve en `g-select__icon` (`aria-hidden`) y se usa **antes del texto de cada opción** y **junto al valor mostrado**. El `span` solo se renderiza si el slot devuelve contenido para esa opción (una opción sin icono no reserva espacio). Si se usa el slot `option` (o `value`), este reemplaza el contenido completo y el `icon` no se usa en esa zona. **Con un hijo directo `.g-avatar`, el hueco mide `space × 5`** (no `1.25em`) y el avatar se **centra en la línea de texto**, en la lista y junto al valor; el alto del control no cambia (#295, `avatar.md`) |
 
@@ -229,7 +239,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `g-select__option` | Opción (`li`) | Por cada opción |
 | `is-active` | Opción | Opción activa |
 | `g-select__group`, `g-select__group-label` | Grupo y su encabezado | Por cada grupo |
-| `g-select__empty` | Mensaje de lista vacía | Sin opciones y con `emptyText` o slot `empty` |
+| `g-select__empty` | Mensaje de lista vacía | Sin opciones, sin `loading` y con `emptyText` o slot `empty` |
 | `g-select__create` | La fila «Agregar nuevo…» (además de `g-select__option`; también lleva `is-active` cuando está activa) | Con `createLabel` |
 | `g-select__hint`, `g-select__error` | Ayuda; región viva del error | Si hay ayuda; siempre |
 
@@ -279,6 +289,7 @@ El estado elegida y deshabilitada de una opción se estiliza con `aria-selected`
 ## Abierto (no bloquea el paso siguiente)
 
 - Valores estéticos (lista, sombra, opción activa, hoja móvil, flecha): los decide coco con los tokens listados.
+- Fuera de #1001, sin cambio: que Tab elija (#54, pendiente de decisión del usuario), el título de la hoja móvil (necesita ronda de kiwi), Alt+↑ y el valor recortado sin forma de leerlo.
 
 ## Cambio por el sistema de formularios (Fase 1)
 
@@ -308,3 +319,20 @@ El estado elegida y deshabilitada de una opción se estiliza con `aria-selected`
 ## Texto con puntero grueso (DECISIONS.md #970 a #972)
 
 Regla común en `docs/contract/api.md` «Texto editable con puntero grueso» y mínimo en `tokens.md` §7: con `@media (pointer: coarse)`, `font-size: max(16px, <rol>)`; interlineado del rol con piso `--g-text-body-sm-line`; altura sin cambio; en escritorio, sin cambio. Aquí (grupo B, coherencia de fila: el control es un botón y no amplía): el valor de `__button` y su icono suben; **las opciones de la lista se quedan en el rol** aunque hoy lean `--_fs` (se fijan al alias base). Etiqueta, ayuda y mensaje, en su rol.
+
+## Correcciones tras la evaluación heurística (DECISIONS.md #1001)
+
+Evaluación medida en Chromium, Firefox y WebKit; el usuario aprobó corregir los defectos claros. **Sin props, eventos, slots, clases ni tokens nuevos**; `loadingText` queda reservado. Las reglas están en el cuerpo; aquí, el defecto y su prueba. Bruno: 1 a 9; coco: 10.
+
+| # | Regla | Defecto medido | Se verifica |
+| --- | --- | --- | --- |
+| 1 | Lista sin filas no abre | Tira en blanco de 10 px con `aria-expanded="true"` | Clic y teclado sin filas: sin `open`, `false`; abierta y sin filas: `close` |
+| 2 | `loading` no afirma el vacío | «No hay opciones» con el anillo girando | Con `loading`, sin `g-select__empty`; al terminar, aparece |
+| 3 | Un valor sin opción se conserva | El oculto enviaba `''` y borraba el dato | `FormData` con `String(modelValue)` y marcador visible; `null` envía `''`; aviso solo con opciones cargadas y sin `loading` |
+| 4 | Escritura rápida | «b» con Banana, Bolivia caía en Bolivia | Partida, elegida, repetición, acentos y mayúsculas |
+| 5 | `--_x` desde el borde inicial | En RTL, la lista a 512 px del campo | Con `dir="rtl"`, borde inicial de lista y caja a ≤ 1 px, en los tres motores |
+| 6 | Una activación por gesto | Doble clic e Intro mantenido abrían y cerraban | Doble clic e Intro con `repeat` dejan la lista abierta, con una prueba que falle antes |
+| 7 | El borde de la lista no es «fuera» | El relleno y la barra de desplazamiento cerraban | `pointerdown` en el relleno no cierra; en el fondo de la hoja, sí |
+| 8 | La etiqueta solo enfoca | Abría, por la activación nativa del `<label for>` | Cerrada: foco sin `open`; abierta: un solo `close`, sin reabrir |
+| 9 | Limpiar con la lista abierta cierra | Borraba y dejaba la lista abierta | Orden `update:modelValue`, `close`; foco en el botón |
+| 10 | Hoja móvil modal | La página de detrás se desplazaba | Rueda y toque sobre el fondo no cambian `scrollY`, igual al cerrar; iOS real, por verificar |
