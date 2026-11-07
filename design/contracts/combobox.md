@@ -898,7 +898,7 @@ Mismas reglas de la Fase 1 (`fill`, cifras con `Intl.NumberFormat` del `lang`). 
 | `--g-color-border` | Separación entre renglones y contorno de la receta y la cesta |
 | `--g-ease-bounce`, `--g-ease-spring`, `--g-ease-out`, `--g-duration-fast`, `--g-duration-press`, `--g-duration-slow` | «Movimiento» |
 
-**No son tokens:** **12** (filas de «Elegidas» y de la cesta antes de «Ver las N») y **6** (renglones de la receta en reposo), constantes de diseño de JS; **`0.4`**, escala de partida de la marca de la casilla (`tokens.md` §29.6, #427); la proporción frase/texto con el foco (coco, `estilo.md`); `--_travel-x`/`--_travel-y` (ya en §32).
+**No son tokens:** **12** (filas de «Elegidas» y de la cesta antes de «Ver las N») y **6** (renglones de la receta en reposo), constantes de diseño de JS; **`0.4`**, escala de partida de la marca de la casilla (`tokens.md` §29.6, #427); la proporción frase/texto con el foco (coco, `estilo.md`). `--_travel-x`/`--_travel-y` se retiraron (#1018).
 
 ### Clases y datos (Fase 2; contrato bruno ↔ coco)
 
