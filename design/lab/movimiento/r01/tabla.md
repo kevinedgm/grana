@@ -1,6 +1,6 @@
 # Tabla única de movimiento · propuesta r01
 
-**Estado:** propuesta para aprobar. No cambia ningún componente ni contrato.
+**Estado:** aprobada por el usuario el 2026-11-07, con D1 · A y D2 · A. Construcción según §6.
 **Origen:** pregunta del usuario del 2026-11-07: ¿hay un solo gobierno de las animaciones?
 **Respuesta corta:** los valores sí (tokens y `tokens.md` §29); los comportamientos no. Esta tabla los fija por tipo de pieza.
 **Evidencia:** `medir.mjs` sobre el `dist/` real, en Chromium, Firefox y WebKit, con y sin movimiento reducido (`medir.json`, `medir-reducido.json`).
@@ -69,6 +69,8 @@ Elegidas por el usuario o con decisión propia. Quedan listadas para que la exce
 | `GAvatarMotion` | Tiempos y curvas propios: es ilustración, no control | Fuera de la tabla; lima lo registra |
 
 ## 4. Decisiones del usuario
+
+**Resueltas el 2026-11-07:** D1 · A (todos los paneles anclados entran con desplazamiento; `GMenu` pierde la escala) y D2 · A (la salida solo se funde donde hay `overlay`; se acepta y se escribe).
 
 **D1 · ¿Cómo entra un panel anclado?**
 - **A (recomendada): todos con desplazamiento de `space × 1`.** `GMenu` pierde su escala y todo panel se siente igual.
