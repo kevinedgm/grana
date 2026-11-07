@@ -891,7 +891,7 @@ Aprobada por el usuario el 2026-11-07 con D1 · A y D2 · A (`design/lab/movimie
 | --- | --- | --- | --- |
 | **Hover de un control** | Botones, campos, enlaces | Color y borde con `fast` + `standard`. Sin escala. Solo con `@media (hover: hover)` | Igual: es color |
 | **Pulsar** | `GBtn` y lo que lo compone | Aprieta `fast` + `ease-out` a `--g-press-scale`; suelta `slow` + `ease-bounce`. Con carga se queda apretado y suelta a la llegada (retén, #1013) | Sin escala |
-| **Foco** | Todo | **Abierta (#1008):** la tabla dice «nunca se anima: el anillo aparece en el acto», pero #35 da al anillo de `GInput` una transición de color. Hasta que decida el usuario, el código sigue como está y la compuerta no lo vigila | Igual |
+| **Foco** | Todo | El anillo funde su color con `fast` + `standard`, sin retardo: empieza a aparecer en el acto (#35, #1008). Excepción: en `GCheckbox`, `GRadioGroup`, `GSwitch` y las casillas de `GTranscript` el anillo además se abre (`outline-offset`, `press` + `ease-out`) | El fundido de color puede quedarse; el anillo que se abre, no |
 | **Recorrer una lista con filas que se tocan** | `GMenu`, `GSidebar`, `GTable`, `GSelect` | Una sola luz (`api.md`): viaja `press` + `ease-out`; la primera colocación aparece sin viajar; aparece con fundido `fast` | Solo fundido, sin viaje |
 | **Recorrer una lista con huecos o una rejilla** | `GCombobox` (fichas), `GDatePicker` (días), navbar | Una marca por elemento, nunca dos a la vez; salida instantánea (`api.md` «Una sola luz», regla 9) | Igual |
 | **Marcar o elegir** | Casillas, radios, interruptores, opción elegida | Color, relleno y marca que aparece con `fast`. Lo que se traza o se desplaza (trazo de la casilla, pulgar) es respuesta: `press` + `ease-out` (#1007) | Sin escala |
@@ -900,7 +900,7 @@ Aprobada por el usuario el 2026-11-07 con D1 · A y D2 · A (`design/lab/movimie
 
 **Límite aceptado (D2 · A): el fundido de salida solo existe donde hay `overlay`.** Un elemento en la capa superior solo sigue pintándose durante la salida con `overlay` y `display` discretos, y hoy eso es Chromium: en Firefox y WebKit `GMenu`, `GSelect` y `GDatePicker` desaparecen en el acto al cerrar (medido, `medir.json`). Hojas y diálogos usan el mismo mecanismo y se espera lo mismo, sin medir aún. Se acepta porque son 120 ms, sin código que retrase el cierre y con el margen de peso agotado (#506, #550). No se reabre sin motivo nuevo, y un `hidePopover()` nunca se retrasa para igualar los motores. Lo que sí hace falta es que el panel no se vacíe mientras se funde (`api.md` «Paneles anclados», #1005).
 
-**Excepciones que se conservan** (lista completa en `motion.json`, `exceptions`): `GCombobox` A, «el campo se abre» (#336) y su recorrido sin fundido (#1007); `GTooltip`, pestaña que viaja (#388); `GFab`, pila que crece (#655); `GTabs`, marca que se estira (#302); los usos de §29.1. **`GAvatarMotion` queda fuera de la tabla:** es ilustración, no control, y lleva tiempos y curvas propios (#1007). Sigue obligado a `prefers-reduced-motion`.
+**Excepciones que se conservan** (lista completa en `motion.json`, `exceptions`): `GCombobox` A, «el campo se abre» (#336) y su recorrido sin fundido (#1007); `GTooltip`, pestaña que viaja (#388); `GFab`, pila que crece (#655); `GTabs`, marca que se estira (#302); los usos de §29.1; el anillo que se abre (#1008). **`GAvatarMotion` queda fuera de la tabla:** es ilustración, no control, y lleva tiempos y curvas propios (#1007). Sigue obligado a `prefers-reduced-motion`.
 
 ### 29.10 Transición y señal de llegada (DECISIONS.md #1003)
 

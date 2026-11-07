@@ -72,12 +72,17 @@
     "foco": {
       "label": "Foco",
       "where": "Todo",
-      "rule": "Nunca se anima: el anillo aparece en el acto",
-      "reduced": "igual",
-      "status": "abierta",
-      "enforced": false,
-      "conflict": "Choca con #35 (anillo de GInput «con transición de color», comentario del usuario) y con el «anillo que se abre» de design/lab/checkbox/estilo.md y design/lab/switch/estilo.md. Decide el usuario (#1008). Hasta entonces, ni compuerta ni cambio en el CSS.",
-      "code": ["GCheckbox.css", "GDatePicker.css", "GFileField.css", "GInput.css", "GInputGroup.css", "GPartyField.css", "GRadioGroup.css", "GSelect.css", "GSwitch.css", "GTextarea.css", "GTranscript.css"]
+      "rule": { "ring": "funde su color", "duration": "fast", "curve": "standard", "delay": false, "note": "El anillo empieza a aparecer en el acto: nunca lleva retardo ni se espera a otra cosa" },
+      "reduced": "el fundido de color puede quedarse (§29.3); el anillo que se abre, no",
+      "status": "cerrada",
+      "enforced": true,
+      "decisions": ["#35", "#1008"],
+      "ringTransitions": {
+        "$comment": "Propiedad de contorno → valor exacto tras ella en una lista de transición → archivos. Cualquier otra transición de outline, outline-width u outline-style falla.",
+        "outline-color": { "var(--g-duration-fast) var(--g-ease-standard)": "*", "var(--g-duration-slow) var(--g-ease-out)": ["GLoadRegion.css"] },
+        "outline-offset": { "var(--g-duration-press) var(--g-ease-out)": ["GCheckbox.css", "GRadioGroup.css", "GSwitch.css", "GTranscript.css"] }
+      },
+      "ringPattern": "(?<![\\w-])(outline(?:-color|-offset|-width|-style)?)\\s+((?:var\\(--g-duration|var\\(--_t|\\d)[^,;]*)"
     },
     "recorrerFilas": {
       "label": "Recorrer una lista con filas que se tocan",
@@ -132,7 +137,7 @@
     "GCalendar": { "pieces": [] },
     "GCard": { "pieces": [], "own": "#303" },
     "GCardGroup": { "pieces": [], "own": "card-group.md" },
-    "GCheckbox": { "pieces": [] },
+    "GCheckbox": { "pieces": [], "exceptions": ["anillo-que-se-abre"] },
     "GCheckboxGroup": { "pieces": [] },
     "GCombobox": { "pieces": ["dialogo"], "own": "#336", "exceptions": ["combobox-campo-se-abre", "combobox-recorrer"] },
     "GContainer": { "pieces": [] },
@@ -162,7 +167,7 @@
     "GIcon": { "pieces": [] },
     "GInput": { "pieces": [], "own": "#304" },
     "GInputGroup": { "pieces": [] },
-    "GLoadRegion": { "pieces": [], "own": "load-region.md" },
+    "GLoadRegion": { "pieces": [], "own": "load-region.md", "exceptions": ["load-region-revelado"] },
     "GMenu": { "pieces": ["panelAnclado"], "own": "#305" },
     "GMetric": { "pieces": [] },
     "GNumberField": { "pieces": [], "own": "#313" },
@@ -172,7 +177,7 @@
     "GPrice": { "pieces": [], "own": "price.md" },
     "GPriceScope": { "pieces": [] },
     "GProgress": { "pieces": [] },
-    "GRadioGroup": { "pieces": [] },
+    "GRadioGroup": { "pieces": [], "exceptions": ["anillo-que-se-abre"] },
     "GSection": { "pieces": [] },
     "GSelect": { "pieces": ["panelAnclado", "hojaMovil"] },
     "GSidebar": { "pieces": ["plegado"], "own": "#617", "exceptions": ["sidebar-panel-flotante", "sidebar-submenu-contenido"] },
@@ -188,7 +193,7 @@
     "GStepper": { "pieces": [], "own": "stepper.md" },
     "GSummary": { "pieces": [], "own": "summary.md" },
     "GSurface": { "pieces": [] },
-    "GSwitch": { "pieces": [] },
+    "GSwitch": { "pieces": [], "exceptions": ["anillo-que-se-abre"] },
     "GTable": { "pieces": ["plegado"], "own": "#957" },
     "GTabs": { "pieces": [], "own": "#302", "exceptions": ["tabs-marca"] },
     "GTag": { "pieces": [], "own": "tag.md" },
@@ -198,7 +203,7 @@
     "GTimeField": { "pieces": [], "own": "#407" },
     "GToast": { "pieces": ["avisoFlotante"] },
     "GTooltip": { "pieces": [], "own": "#388", "exceptions": ["tooltip-pestana"] },
-    "GTranscript": { "pieces": [], "own": "speech.md" },
+    "GTranscript": { "pieces": [], "own": "speech.md", "exceptions": ["anillo-que-se-abre"] },
     "GWidget": { "pieces": [] },
     "GWidgetConfig": { "pieces": [] },
     "GWidgetGallery": { "pieces": [] },
@@ -272,6 +277,8 @@
     { "id": "curvas-aprobadas", "piece": "Usos de --g-ease-spring y --g-ease-bounce", "does": "Lista cerrada de easeUses", "decisions": ["#299"] },
     { "id": "avatar-motion", "piece": "GAvatarMotion", "does": "Tiempos y curvas propios: es ilustración, no control. Fuera de la tabla y de la compuerta; sigue obligado a prefers-reduced-motion", "decisions": ["#1007"] },
     { "id": "marca-que-se-traza", "piece": "Trazo de GCheckbox, pulgar de GSwitch, escala de GCheckbox y GRadioGroup", "does": "press + ease-out, no fast: es respuesta (§29.2), y la tabla no pide cambiarlo (§2)", "decisions": ["#1007"] },
+    { "id": "anillo-que-se-abre", "piece": "Anillo de foco de GCheckbox, GRadioGroup, GSwitch y las casillas de GTranscript", "does": "outline-offset de 0 a --g-focus-offset en press + ease-out, además del fundido. Se conserva: el usuario decidió sobre el fundido, no sobre esto, y son controles sueltos con anillo separado. Sin retardo; se va con movimiento reducido", "decisions": ["#1008"] },
+    { "id": "load-region-revelado", "piece": "Revelado de GLoadRegion", "does": "outline-color en slow + ease-out: no es el anillo de foco, es el color de lo que llega al molde", "decisions": ["#545", "#1008"] },
     { "id": "sidebar-panel-flotante", "piece": "Panel flotante del riel de GSidebar (g-sidebar__fly)", "does": "press en las dos direcciones, escala 0.96 y space × 1,5; la tabla deja GSidebar sin cambios (§2)", "decisions": ["#1007"] },
     { "id": "sidebar-submenu-contenido", "piece": "Contenido del submenú de GSidebar", "does": "Fundido press, no fast; la altura sí es la de plegado", "decisions": ["#1007"] }
   ],
@@ -285,10 +292,10 @@
       { "id": "literal-curve", "does": "Todo acierto de literals.curvePattern debe estar en literals.curves para ese archivo. Ignora los aciertos pegados a un nombre de token (--g-ease-out). Salta literals.excludedFiles." },
       { "id": "ease-use", "does": "--g-ease-spring y --g-ease-bounce solo en los archivos de easeUses, y con exactamente `count` apariciones." },
       { "id": "multiplier", "does": "Toda función calc() que contenga una duración (durations o durationAliases de ese archivo) y un * o un / debe coincidir con un expr de durationMultipliers, con espacios normalizados, y con ese archivo en files. Salta literals.excludedFiles." },
+      { "id": "focus-ring", "does": "Todo acierto de moments.foco.ringPattern debe tener su propiedad y su valor (espacios normalizados) en moments.foco.ringTransitions para ese archivo. Un retardo cambia el valor y falla." },
       { "id": "component-declared", "does": "Todo directorio de componentDirs tiene clave en components, y toda clave de components tiene directorio." },
       { "id": "pieces-known", "does": "Todo valor de components[*].pieces existe en pieces y todo components[*].exceptions existe en exceptions (por id)." }
-    ],
-    "notEnforced": ["moments.foco (#1008)"]
+    ]
   },
 
   "behaviour": {

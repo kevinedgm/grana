@@ -23,7 +23,7 @@ Duraciones: `fast` 120 ms, `press` 160 ms, `slow` 240 ms. La columna «Reducido�
 | --- | --- | --- | --- |
 | **Hover de un control** | Botones, campos, enlaces | Color y borde con `fast` + `standard`. Sin escala. Solo con `@media (hover: hover)` | Igual: es color |
 | **Pulsar** | `GBtn` y lo que lo compone | Aprieta `fast` + `ease-out` a `--g-press-scale`; suelta `slow` + `ease-bounce` | Sin escala |
-| **Foco** | Todo | Nunca se anima: el anillo aparece en el acto | Igual |
+| **Foco** | Todo | El anillo funde su color con `fast` + `standard`, sin retardo. Cambiada por decisión del usuario (#1008; antes: «nunca se anima»). Excepción: el anillo que se abre de `GCheckbox`, `GRadioGroup`, `GSwitch` y `GTranscript` | El fundido de color puede quedarse; el anillo que se abre, no |
 | **Recorrer una lista con filas que se tocan** | `GMenu`, `GSidebar`, `GTable`, **`GSelect`** | Una sola luz: viaja `press` + `ease-out`; la primera colocación aparece sin viajar; aparece con fundido `fast` | Solo fundido, sin viaje |
 | **Recorrer una lista con huecos o una rejilla** | `GCombobox` (fichas), `GDatePicker` (días), navbar | Una marca por elemento, nunca dos a la vez; salida instantánea | Igual |
 | **Marcar o elegir** | Casillas, radios, interruptores, opción elegida | Color y marca con `fast` | Sin escala |
@@ -70,7 +70,7 @@ Elegidas por el usuario o con decisión propia. Quedan listadas para que la exce
 
 ## 4. Decisiones del usuario
 
-**Resueltas el 2026-11-07:** D1 · A (todos los paneles anclados entran con desplazamiento; `GMenu` pierde la escala) y D2 · A (la salida solo se funde donde hay `overlay`; se acepta y se escribe).
+**Resueltas el 2026-11-07:** D1 · A (todos los paneles anclados entran con desplazamiento; `GMenu` pierde la escala) y D2 · A (la salida solo se funde donde hay `overlay`; se acepta y se escribe). Al contratar apareció un choque con #35 y el usuario decidió «Conserva el fundido» (#1008): la fila «Foco» se corrigió. Nota de lima, a petición del agente principal.
 
 **D1 · ¿Cómo entra un panel anclado?**
 - **A (recomendada): todos con desplazamiento de `space × 1`.** `GMenu` pierde su escala y todo panel se siente igual.
