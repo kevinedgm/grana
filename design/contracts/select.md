@@ -152,7 +152,7 @@ Para catálogos cerrados pero incompletos: la lista termina con una fila de acci
 
 | Tecla | Acción |
 | --- | --- |
-| Tab / Shift+Tab | Entra y sale en el orden del documento: botón → botón de limpiar. Con la lista abierta, **elige la opción activa**, cierra y sigue el orden (sobre la fila «Agregar nuevo…», cierra **sin crear**) |
+| Tab / Shift+Tab | Entra y sale en el orden del documento: botón → botón de limpiar. Con la lista abierta, cierra y sigue el orden; **elige la activa solo si la persona la movió con teclas** en esta apertura, y si no, no cambia el valor («Cuándo elige Tab», #1016). Sobre la fila «Agregar nuevo…», cierra **sin crear** |
 | Enter / Espacio / ↓ / ↑ / Alt+↓ | Con la lista cerrada y con filas: abre, con la elegida (o la primera habilitada) activa |
 | ↓ / ↑ | Con la lista abierta: siguiente o anterior opción **habilitada** (no cicla; saltan encabezados y deshabilitadas). La fila «Agregar nuevo…» cuenta como la última |
 | Inicio / Fin | Primera o última fila habilitada (con `createLabel`, Fin va a la fila «Agregar nuevo…») |
@@ -173,6 +173,46 @@ El foco **nunca** sale del selector mientras la lista está abierta. Sin manejad
 - **Una letra:** busca desde la siguiente a la activa, con vuelta al principio. Si la activa es solo la de partida (no es la elegida y la persona no la ha movido con teclas, puntero o letras), empieza en ella: «b» con Banana, Bolivia cae en Banana.
 - **Varias letras:** el búfer entero, empezando en la activa, para no abandonar una opción que sigue coincidiendo.
 - **La misma letra repetida:** si ninguna opción empieza por el búfer entero, recorre las que empiezan por esa letra desde la siguiente a la activa, con vuelta (patrón APG): «b», «b» con Banana, Bolivia va de Banana a Bolivia.
+
+### Cuándo elige Tab (#1016)
+
+Decisión del usuario del 2026-11-07, enmienda de #54. **Tab o Shift+Tab eligen la activa solo si la persona la movió con el teclado durante esta apertura.** Si no, cierran sin cambiar el valor y siguen el orden del documento. Pasar de largo no es elegir.
+
+| Durante esta apertura | ¿Tab elige? |
+| --- | --- |
+| ↑, ↓, Inicio, Fin, Re Pág o Av Pág **cambian** la activa | Sí |
+| La tecla no la cambia porque ya está en el tope | No: no la ha movido |
+| Escritura rápida **con coincidencia**, también si cae en la fila de partida o si esa letra abrió la lista | Sí: la persona la ha señalado |
+| Escritura rápida sin coincidencia | No |
+| Solo se abrió (Enter, Espacio, ↓, ↑, Alt+↓ o clic) | No, aunque la tecla de abrir sea una flecha: esa activa la puso el componente |
+| El puntero movió la activa | No. **El último que la mueve manda:** si el puntero la cambia después de las teclas, deja de contar, y una tecla posterior que la mueva vuelve a contar |
+| El puntero pasa por la activa sin cambiarla, o está quieto (#358, regla 4) | No cambia lo anterior |
+
+- **Se reinicia en cada apertura.** Cerrar y abrir vuelve a «sin mover».
+- **Enter, Espacio y clic no cambian:** eligen la activa, sea cual sea su origen. Son gestos de elegir; Tab es un gesto de salir.
+- **La fila «Agregar nuevo…» sigue sin crear con Tab,** aunque se haya llegado a ella con flechas.
+- **Elegir por Tab** sigue siendo como hasta ahora: `update:modelValue` si el valor es distinto, sin devolver el foco al botón ni cancelar el Tab.
+- **Sin elegir,** solo se emite `close`. Un valor sin opción (#1001) tampoco se pierde al pasar por la lista.
+
+**Nota para bruno:** la marca es propia y no reutiliza dos estados parecidos. `moved` también la pone el puntero, porque responde a otra pregunta (si la activa sigue siendo la de partida, en «Escritura rápida»), y `is-keyed` se pone también al abrir con teclado. El anillo a la vista, por tanto, **no** significa que Tab vaya a elegir. Sin props, eventos, slots, clases, tokens ni cambios de ARIA.
+
+**Se verifica** (`GSelect.test.js`, y Playwright en los tres motores para lo marcado con \*):
+
+| Caso | Resultado |
+| --- | --- |
+| Sin valor, abrir y Tab\* (también con ↓ como tecla de abrir, y con Shift+Tab) | Sin `update:modelValue`, `close` emitido, el valor sigue en `null`, el foco sigue el orden del documento |
+| Con `required` en `GForm`, abrir y Tab | El campo sigue vacío, sin `notifyChange()` ni `dirty`, y el envío lo rechaza |
+| Con un valor, abrir y Tab | Sin cambio |
+| Valor sin opción, abrir y Tab | `FormData` sigue con `String(modelValue)` |
+| ↓ a otra opción y Tab\* (y con Inicio, Fin, Re Pág, Av Pág) | Elige, sin cancelar el Tab |
+| ↑ en la primera fila, sin valor, y Tab | No elige |
+| Letra con coincidencia y Tab, con la lista cerrada y abierta; también la fila de partida | Elige |
+| Letra sin coincidencia y Tab | No elige |
+| Ratón sobre una opción y Tab\* | No elige; el mismo caso con Enter sí elige |
+| ↓, ratón a otra opción y Tab | No elige; con otra ↓ después, sí |
+| ↓ con el puntero quieto sobre la lista y Tab | Elige |
+| ↓, Esc, abrir y Tab | No elige |
+| ↓ o Fin hasta «Agregar nuevo…» y Tab | Sin `create` y sin cambio de valor |
 
 ## Slots
 
@@ -327,7 +367,7 @@ Corrige dos defectos medidos en los tres motores: recorrer era un salto sin tran
 ## Límites conocidos
 
 - **Sin selección múltiple ni búsqueda** en v0.1 (otro patrón ARIA: combobox editable / listbox múltiple). Tampoco se crea una opción escribiendo: solo se **pide** con «Agregar nuevo…».
-- **Frontera con `GCombobox`** (`design/contracts/combobox.md`, #329 a #338): `GSelect` es para una lista **conocida y corta** (hasta unas decenas) que se elige sin escribir; cientos o miles de opciones, resultados del servidor o texto libre son de `GCombobox` (hasta 7 visibles, `GRadioGroup`). Dos diferencias deliberadas: en `GSelect` **Tab elige** la opción activa (la puso la persona con las flechas) y en `GCombobox` no (#333); la fila «Agregar nuevo…» de `GSelect` no lleva texto (`createLabel`, evento `create` sin datos) y la de `GCombobox` lleva el texto tecleado (`creatable` + `labels.create`, `create(texto)`).
+- **Frontera con `GCombobox`** (`design/contracts/combobox.md`, #329 a #338): `GSelect` es para una lista **conocida y corta** (hasta unas decenas) que se elige sin escribir; cientos o miles de opciones, resultados del servidor o texto libre son de `GCombobox` (hasta 7 visibles, `GRadioGroup`). Dos diferencias deliberadas: en `GSelect` **Tab elige** la activa solo si la persona la movió con teclas en esta apertura (#1016) y en `GCombobox` no elige, salvo su excepción del texto fantasma (#333); la fila «Agregar nuevo…» de `GSelect` no lleva texto (`createLabel`, evento `create` sin datos) y la de `GCombobox` lleva el texto tecleado (`creatable` + `labels.create`, `create(texto)`).
 - **La fila «Agregar nuevo…» se anuncia como una opción más** («…, opción 7 de 7»); el texto de `createLabel` debe ser explícito. Por verificar con lectores reales.
 - **Sin sufijo** antes de la flecha en v0.1.
 - **Sin validación nativa de `required`** (el campo oculto no se valida).
@@ -339,7 +379,8 @@ Corrige dos defectos medidos en los tres motores: recorrer era un salto sin tran
 ## Abierto (no bloquea el paso siguiente)
 
 - Valores estéticos (lista, sombra, opción activa, hoja móvil, flecha): los decide coco con los tokens listados.
-- Fuera de #1001, sin cambio: que Tab elija (#54, pendiente de decisión del usuario), el título de la hoja móvil (necesita ronda de kiwi), Alt+↑ y el valor recortado sin forma de leerlo.
+- Fuera de #1001, sin cambio: el título de la hoja móvil (necesita ronda de kiwi), Alt+↑ y el valor recortado sin forma de leerlo.
+- `activeIndex` es una posición y no sigue a la opción: si `options` cambia con la lista abierta, Enter y Tab actúan sobre lo que haya quedado en esa fila. Sin medir; fuera de #1016.
 
 ## Cambio por el sistema de formularios (Fase 1)
 

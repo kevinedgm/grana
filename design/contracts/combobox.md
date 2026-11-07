@@ -406,7 +406,7 @@ Las cifras de `{count}`, `{shown}` y `{total}` se formatean con `Intl.NumberForm
 | Tab | Sale; aplica «Al salir del campo» | Cierra y sale. **No elige**, salvo la excepción de abajo. Sobre una fila de acción, no la ejecuta |
 
 - **Enfocar no abre.** Abren: escribir, ↓, ↑, Alt+↓ y el clic en la caja. Al entrar con valor, y tras elegir, **el texto queda seleccionado**: lo siguiente que se teclea lo reemplaza. Con ficha (C), el foco la pinta seleccionada entera; escribir la reemplaza, Retroceso la vacía.
-- **Tab no elige** (difiere de `GSelect` a propósito): allí la activa la puso la persona con flechas; aquí la puso el componente. Elegir un paciente por pasar de largo es un cambio de contexto inesperado (WCAG 3.2.2).
+- **Tab no elige** (difiere de `GSelect` a propósito): allí elige solo si la persona movió la activa con teclas (#1016); aquí no elige ni así, porque la activa también la pone el componente. Elegir un paciente por pasar de largo es un cambio de contexto inesperado (WCAG 3.2.2).
 - **Única excepción (A):** Tab elige la opción del **texto fantasma** cuando, además de las condiciones del fantasma, su etiqueta es **única** entre las opciones a la vista (sin acentos ni mayúsculas) **y no quedan resultados sin pintar** (no hay fila «Mostrar más»). Con homónimas, o con más resultados de los pintados, el campo completa el nombre pero Tab no elige. Es lo que la persona ve escrito en el campo, no una fila que no miró.
 - **Intro y resultados obsoletos:** «pendiente» es el de «Datos». Una opción activada por la persona (flechas, puntero, →) sí se elige con Intro.
 - **Composición (IME):** ninguna tecla de lista actúa mientras `isComposing`; no hay texto fantasma durante la composición.
