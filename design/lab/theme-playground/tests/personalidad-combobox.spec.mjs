@@ -1,7 +1,7 @@
 // GCombobox · movimiento (combobox.md «Movimiento», DECISIONS.md #336) sobre el COMPONENTE REAL del playground, en
 // Chromium, Firefox y WebKit. Con movimiento: A · despliegue de la lista desde la línea del campo (≥ 2 alturas
 // intermedias, solo al abrir), C · la ficha llega desde su fila (≥ 2 posiciones intermedias, termina en su sitio y
-// retira is-arriving; rebase medido) y B · la entrada de GDialog desde su disparador (el campo). Con
+// retira is-landing, a ≤ space × 1 de su sitio) y B · la entrada de GDialog desde su disparador (el campo). Con
 // prefers-reduced-motion: reduce, nada se mueve y no quedan clases.
 import { test, expect } from '@playwright/test'
 import { frames, open, out, st, type, watchConsole } from './combobox-helpers.mjs'
@@ -46,25 +46,23 @@ test.describe('GCombobox · personalidad con movimiento', () => {
     expect(errs, errs.join('\n')).toEqual([])
   })
 
-  test('C · la ficha llega desde su fila: ≥ 2 posiciones intermedias, termina en su sitio y retira is-arriving; rebase acotado', async ({ page }) => {
+  test('C · la ficha entra en su sitio (#1018): a ≤ space × 1, desde abajo, nunca rebasa y sin rastro al terminar', async ({ page }) => {
     const errs = await watchConsole(page)
     await open(page, { motion: 'no-preference' })
     await page.focus('#cb-dx')
     await page.keyboard.press('ArrowDown')
     await page.waitForTimeout(500)
-    for (let i = 0; i < 5; i++) await page.keyboard.press('ArrowDown') // una fila lejana: el viaje se ve
+    for (let i = 0; i < 5; i++) await page.keyboard.press('ArrowDown') // una fila lejana: la ficha no sale de allí
     await frames(page)
-    const from = await page.evaluate(() => { const r = document.querySelector('#cb-dx-list .is-active .g-summary').getBoundingClientRect(); return { x: r.left, y: r.top } }) // el origen es la ficha de la fila (#356)
-    // La trayectoria, sin depender de los cuadros: WebKit sin cabeza pinta a ~15–30 cuadros/s y su primer cuadro tras Intro
-    // llega con la animación de 240 ms ya en ~90 ms, pasado su sitio por el muelle (ni el arranque ni ≥ 2 intermedias se
-    // ven). Al aparecer is-arriving, se pausa la animación real, se recorre su tiempo en 60 pasos leyendo la posición y se
-    // devuelve a donde estaba; los cuadros reales siguen probando que corre, termina en su sitio y retira la clase.
+    const space = await page.evaluate(() => { const e = document.body.appendChild(document.createElement('i')); e.style.cssText = 'position:absolute;inline-size:var(--g-space-1)'; const w = e.getBoundingClientRect().width; e.remove(); return w })
+    // La trayectoria, sin depender de los cuadros (WebKit sin cabeza pinta a ~15–30 cuadros/s): al aparecer is-landing se pausa
+    // la animación real, se recorre su tiempo en 60 pasos leyendo la posición y se devuelve a donde estaba
     await page.evaluate(() => {
       window.__cbPath = null
       const root = document.getElementById('cb-dx').closest('.g-combobox')
       const mo = new MutationObserver(() => {
-        const t = root.querySelector('.g-combobox__token.is-arriving')
-        const a = t && t.getAnimations().find((x) => /arrive/.test(x.animationName || ''))
+        const t = root.querySelector('.g-combobox__token.is-landing')
+        const a = t && t.getAnimations().find((x) => /^g-combobox-land/.test(x.animationName || ''))
         if (!a) return
         mo.disconnect()
         const d = a.effect.getComputedTiming().duration
@@ -76,40 +74,27 @@ test.describe('GCombobox · personalidad con movimiento', () => {
         a.play()
         window.__cbPath = { d, path }
       })
-      mo.observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: ['class', 'style'] })
+      mo.observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] })
     })
     const run = sample(page, () => {
       const t = document.getElementById('cb-dx').closest('.g-combobox').querySelector('.g-combobox__token')
       if (!t) return null
       const r = t.getBoundingClientRect()
-      return { x: r.left, y: r.top, arriving: t.classList.contains('is-arriving'), vars: t.style.getPropertyValue('--_travel-y') }
+      return { x: r.left, y: r.top, landing: t.classList.contains('is-landing'), style: t.getAttribute('style') }
     }, 70)
     await page.keyboard.press('Enter')
-    const all = await run
-    const ps = all.filter(Boolean)
+    const ps = (await run).filter(Boolean)
     expect(ps.length).toBeGreaterThan(10)
     const end = ps[ps.length - 1]
-    expect(end.arriving, 'la clase se retira').toBe(false)
-    expect(end.vars, 'y el vector también').toBe('')
-    expect(ps.some((p) => p.arriving), 'la animación corre en cuadros reales').toBe(true)
-    const travelY = from.y - end.y
-    expect(Math.abs(travelY), 'la fila estaba lejos del campo').toBeGreaterThan(60)
+    expect(end.landing, 'la clase se retira').toBe(false)
+    expect(ps.every((p) => !p.style), 'ninguna medida en línea, tampoco --_travel').toBe(true)
+    expect(ps.some((p) => p.landing), 'la entrada corre en cuadros reales').toBe(true)
+    expect(distinct(ps.map((p) => p.x)).length, 'no se mueve en horizontal').toBe(1)
     const { d, path } = await page.evaluate(() => window.__cbPath)
-    expect(d, 'duración de la llegada').toBeGreaterThan(0)
-    const mid = distinct(path.filter((y) => Math.abs(y - end.y) > 1 && Math.abs(y - from.y) > 1))
-    expect(mid.length, `posiciones intermedias ${mid.join(', ')}`).toBeGreaterThanOrEqual(2)
-    // Empieza hacia su fila (acotado por coco) y termina exactamente en su sitio
-    expect(Math.sign(path[0] - end.y), `arranque ${path[0]} frente a ${end.y}`).toBe(Math.sign(travelY))
-    expect(Math.abs(path[path.length - 1] - end.y)).toBeLessThan(0.5)
-    const rest = await page.evaluate(() => { const t = document.getElementById('cb-dx').closest('.g-combobox').querySelector('.g-combobox__token'); const r = t.getBoundingClientRect(); return { x: r.left, y: r.top, anim: t.getAnimations().length } })
-    expect(Math.abs(rest.y - end.y) + Math.abs(rest.x - end.x)).toBeLessThan(0.5)
-    expect(rest.anim).toBe(0)
-    // Rebase del muelle: lo que pasa de largo al otro lado de su sitio; cota de coco, space × 2 (8px con space 4)
-    const over = Math.max(0, ...path.map((y) => (end.y - y) * Math.sign(travelY)), ...ps.map((p) => (end.y - p.y) * Math.sign(travelY)))
-    test.info().annotations.push({ type: 'rebase', description: `${over.toFixed(2)}px en un viaje de ${Math.abs(travelY).toFixed(0)}px` })
-    expect(over, `rebase ${over.toFixed(2)}px`).toBeLessThanOrEqual(8.5)
-    expect(await out(page, 'cb-out-dx')).toMatch(/^dx: [A-Z]/)
-    expect((await st(page, 'cb-dx')).focus).toBe('cb-dx')
+    expect(d, 'duración de la entrada').toBeGreaterThan(0)
+    expect(path[0] - end.y, 'sale de abajo').toBeGreaterThan(0)
+    expect(path[0] - end.y, 'el primer cuadro a ≤ space × 1').toBeLessThanOrEqual(space + 0.5)
+    expect(path.every((y) => y >= end.y - 0.5), 'nunca rebasa').toBe(true)
     expect(errs, errs.join('\n')).toEqual([])
   })
 
@@ -169,19 +154,18 @@ test.describe('GCombobox · personalidad con prefers-reduced-motion: reduce', ()
     await page.keyboard.press('ArrowDown')
     const hs = distinct(await run)
     expect(hs.length, `alturas ${hs.join(', ')}`).toBeLessThanOrEqual(2)
-    // C: la ficha aparece en su sitio, sin is-arriving en ningún cuadro
+    // C: la ficha aparece en su sitio; con reducido, is-landing es solo un fundido
     for (let i = 0; i < 5; i++) await page.keyboard.press('ArrowDown')
     const run2 = sample(page, () => {
       const t = document.getElementById('cb-dx').closest('.g-combobox').querySelector('.g-combobox__token')
       if (!t) return null
       const r = t.getBoundingClientRect()
-      return { y: r.top, x: r.left, arriving: t.classList.contains('is-arriving'), vars: t.getAttribute('style') || '' }
+      return { y: r.top, x: r.left, vars: t.getAttribute('style') || '' }
     }, 40)
     await page.keyboard.press('Enter')
     const ps = (await run2).filter(Boolean)
     expect(ps.length).toBeGreaterThan(5)
-    expect(ps.some((p) => p.arriving)).toBe(false)
-    expect(ps.some((p) => p.vars.includes('--_travel'))).toBe(false)
+    expect(ps.some((p) => p.vars)).toBe(false)
     expect(distinct(ps.map((p) => p.y)).length).toBe(1)
     expect(distinct(ps.map((p) => p.x)).length).toBe(1)
     // B: la superficie aparece en su sitio

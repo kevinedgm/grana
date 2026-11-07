@@ -112,6 +112,11 @@ describe('@grana/vue/combobox · lo compartido llega del paquete principal (src/
     }
   }
 
+  it('la luz (#1017) llega de utils/glide.js por __shared, solo con placeHighlight y aimed', () => {
+    expect(imports.find((i) => i.key === 'utils/glide.js').names.sort()).toEqual(['aimed', 'placeHighlight'])
+    expect(Object.keys(shared['utils/glide.js']).sort()).toEqual(['aimed', 'placeHighlight'])
+  })
+
   it('importa del principal solo lo que src/shared.js expone, nombre por nombre', () => {
     expect(imports.length).toBeGreaterThan(0)
     for (const { from, key, names } of imports) {

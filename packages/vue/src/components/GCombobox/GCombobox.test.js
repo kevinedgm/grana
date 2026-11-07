@@ -88,10 +88,12 @@ async function key(w, k, init = {}, target = field(w)) {
   await flush()
   return ev
 }
+// jsdom no tiene PointerEvent: un MouseEvent con el tipo de puntero que filtra `aimed` (#1017)
+const pmove = (init, pointerType = 'mouse') => Object.assign(new MouseEvent('pointermove', { bubbles: true, ...init }), { pointerType })
 // Un movimiento real del puntero sobre una fila: el primer evento solo anota la posición; el segundo activa
-const pointerOver = (el) => {
-  el.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 5, clientY: 5 }))
-  el.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 6, clientY: 6 }))
+const pointerOver = (el, pointerType) => {
+  el.dispatchEvent(pmove({ clientX: 5, clientY: 5 }, pointerType))
+  el.dispatchEvent(pmove({ clientX: 6, clientY: 6 }, pointerType))
 }
 const mobile = (matches = true) => {
   const listeners = []
@@ -650,13 +652,13 @@ describe('GCombobox · teclado (#333)', () => {
     const w = await mk()
     await key(w, 'ArrowDown')
     const li = rows(w)[2].element
-    li.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 3, clientY: 9 }))
+    li.dispatchEvent(pmove({ clientX: 3, clientY: 9 }))
     await flush()
     expect(activeEl(w), 'el primer evento tras abrir solo anota la posición').not.toBe(li)
-    li.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 3, clientY: 9 }))
+    li.dispatchEvent(pmove({ clientX: 3, clientY: 9 }))
     await flush()
     expect(activeEl(w), 'sin desplazamiento real no activa').not.toBe(li)
-    li.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 4, clientY: 9 }))
+    li.dispatchEvent(pmove({ clientX: 4, clientY: 9 }))
     await flush()
     expect(activeEl(w)).toBe(li)
     const down = new MouseEvent('pointerdown', { bubbles: true, cancelable: true })
@@ -1494,13 +1496,13 @@ describe('GCombobox · anuncios (región viva educada)', () => {
   })
 })
 
-describe('GCombobox · movimiento: la ficha llega (#336)', () => {
+describe('GCombobox · movimiento: la ficha entra en su sitio (#1018)', () => {
   function fakeAnimation() {
     const real = window.getComputedStyle
     vi.spyOn(window, 'getComputedStyle').mockImplementation((el, ...rest) => {
       const cs = real.call(window, el, ...rest)
-      if (el.classList && el.classList.contains('is-arriving')) {
-        return new Proxy(cs, { get: (t, k) => (k === 'animationName' ? 'g-combobox-arrive' : k === 'animationDuration' ? '0.3s' : t[k]) })
+      if (el.classList && el.classList.contains('is-landing')) {
+        return new Proxy(cs, { get: (t, k) => (k === 'animationName' ? 'g-combobox-land' : k === 'animationDuration' ? '0.3s' : t[k]) })
       }
       return cs
     })
@@ -1518,46 +1520,156 @@ describe('GCombobox · movimiento: la ficha llega (#336)', () => {
     await pickFirst(st, w)
     expect(st.v).toBe('R51')
     expect(w.find('.g-combobox__token').exists()).toBe(true)
-    expect(w.find('.g-combobox__token').classes()).not.toContain('is-arriving')
-    expect(w.find('.g-combobox__token').attributes('style') || '').not.toContain('--_travel')
+    expect(w.find('.g-combobox__token').classes()).not.toContain('is-landing')
+    expect(w.find('.g-combobox__token').attributes('style')).toBeUndefined()
   })
 
-  it('con animación: is-arriving y el vector --_travel-x/y; se retira en animationend de g-combobox-arrive…', async () => {
+  it('con animación: is-landing sin ninguna medida; se retira en animationend de g-combobox-land…', async () => {
     fakeAnimation()
     const st = reactive({ v: null })
     const w = await host('<GCombobox id="c" label="Dx" v-model="st.v" :labels="L" :options="DX" :delay="0" />', () => ({ st, L: LABELS, DX }))
     await pickFirst(st, w)
     const t = w.find('.g-combobox__token')
-    expect(t.classes()).toContain('is-arriving')
-    expect(t.attributes('style')).toMatch(/--_travel-x: -?[\d.]+px; --_travel-y: -?[\d.]+px/)
+    expect(t.classes()).toContain('is-landing')
+    expect(t.attributes('style')).toBeUndefined()
     const other = new Event('animationend', { bubbles: true })
     other.animationName = 'otra'
     t.element.dispatchEvent(other)
     await flush()
-    expect(t.classes()).toContain('is-arriving')
+    expect(t.classes()).toContain('is-landing')
     const end = new Event('animationend', { bubbles: true })
-    end.animationName = 'g-combobox-arrive-spring'
+    end.animationName = 'g-combobox-land'
     t.element.dispatchEvent(end)
     await flush()
-    expect(w.find('.g-combobox__token').classes()).not.toContain('is-arriving')
-    expect(w.find('.g-combobox__token').attributes('style') || '').not.toContain('--_travel')
+    expect(w.find('.g-combobox__token').classes()).not.toContain('is-landing')
   })
 
-  it('no viaja al cargar con valor, al cambiar modelValue desde la aplicación ni al elegir desde la superficie', async () => {
+  it('reabrir a mitad de la entrada la cancela: al volver la ficha, no se repite', async () => {
+    fakeAnimation()
+    const st = reactive({ v: null })
+    const w = await host('<GCombobox id="c" label="Dx" v-model="st.v" :labels="L" :options="DX" :delay="0" />', () => ({ st, L: LABELS, DX }))
+    await pickFirst(st, w)
+    expect(w.find('.g-combobox__token').classes()).toContain('is-landing')
+    await key(w, 'ArrowDown')
+    expect(w.find('.g-combobox__token').exists()).toBe(false)
+    await key(w, 'Escape')
+    await flush()
+    expect(w.find('.g-combobox__token').classes()).not.toContain('is-landing')
+  })
+
+  it('no entra al cargar con valor, al cambiar modelValue desde la aplicación ni al elegir desde la superficie', async () => {
     fakeAnimation()
     const st = reactive({ v: 'I10', ap: 'field' })
     const w = await host('<GCombobox id="c" label="Dx" v-model="st.v" :appearance="st.ap" :labels="L" :options="DX" :delay="0" />', () => ({ st, L: LABELS, DX }))
-    expect(w.find('.g-combobox__token').classes()).not.toContain('is-arriving')
+    expect(w.find('.g-combobox__token').classes()).not.toContain('is-landing')
     st.v = 'R51'
     await flush()
-    expect(w.find('.g-combobox__token').classes()).not.toContain('is-arriving')
+    expect(w.find('.g-combobox__token').classes()).not.toContain('is-landing')
     st.ap = 'palette'
     await flush()
     await key(w, 'd')
     await key(w, 'Enter', {}, w.find('.g-combobox__search-field'))
     await flush()
     expect(st.v).toBe('E10.9')
-    expect(w.find('.g-combobox__token').classes()).not.toContain('is-arriving')
+    expect(w.find('.g-combobox__token').classes()).not.toContain('is-landing')
+  })
+})
+
+describe('GCombobox · una sola luz (#1017)', () => {
+  const panel = (w) => w.find('.g-combobox__panel').element
+  const spy = () => {
+    const seen = []
+    const real = HTMLElement.prototype.getBoundingClientRect
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function () {
+      if (this.matches('.g-combobox__option')) {
+        const i = Number(this.dataset.index)
+        seen.push(i)
+        return { left: 4, top: 10 + i * 40, width: 200, height: 36 }
+      }
+      return real.call(this)
+    })
+    return seen
+  }
+
+  it('la capa es el primer hijo del panel, fuera del listbox; has-highlight sigue a la activa y sobrevive a los renders', async () => {
+    const w = await mk()
+    expect(panel(w).firstElementChild.className).toBe('g-combobox__highlight')
+    expect(panel(w).firstElementChild.getAttribute('aria-hidden')).toBe('true')
+    expect(panel(w).querySelector('[role="listbox"] .g-combobox__highlight')).toBe(null)
+    await key(w, 'ArrowDown')
+    await key(w, 'ArrowDown')
+    expect(panel(w).classList.contains('has-highlight')).toBe(true)
+    await typeText(w, 'zzzz')
+    expect(activeEl(w)).toBeFalsy()
+    expect(panel(w).classList.contains('has-highlight'), 'sin activa se apaga').toBe(false)
+  })
+
+  it('cambiar solo la activa viaja; abrir y cambiar las filas colocan sin viaje, con su medida', async () => {
+    spy()
+    const w = await mk()
+    await key(w, 'ArrowDown')
+    await key(w, 'ArrowDown')
+    const p = panel(w)
+    p.classList.remove('is-highlight-instant')
+    await key(w, 'ArrowDown')
+    expect(p.classList.contains('is-highlight-instant'), 'cambia solo la activa').toBe(false)
+    const y = p.firstElementChild.style.getPropertyValue('--_highlight-y')
+    expect(y).toMatch(/px$/)
+    await typeText(w, 'a')
+    expect(p.classList.contains('is-highlight-instant'), 'cambian las filas').toBe(true)
+  })
+
+  it('cerrar no apaga la luz durante la salida', async () => {
+    const w = await mk()
+    await key(w, 'ArrowDown')
+    await key(w, 'ArrowDown')
+    const p = panel(w)
+    expect(p.classList.contains('has-highlight')).toBe(true)
+    await key(w, 'Escape')
+    expect(p.classList.contains('has-highlight')).toBe(true)
+  })
+
+  it('is-keyed: cualquier tecla que no sea modificador, también escribir; lo quitan el ratón real y pointerdown', async () => {
+    const w = await mk()
+    await key(w, 'ArrowDown')
+    const p = panel(w)
+    const has = () => p.classList.contains('is-keyed')
+    expect(has()).toBe(true)
+    pointerOver(rows(w)[1].element)
+    await flush()
+    expect(has(), 'un movimiento real por una opción lo quita').toBe(false)
+    await key(w, 'Shift')
+    expect(has(), 'un modificador no cuenta').toBe(false)
+    await key(w, 'a')
+    expect(has(), 'escribir también cuenta').toBe(true)
+    rows(w)[1].element.dispatchEvent(pmove({ clientX: 6, clientY: 6 }))
+    await flush()
+    expect(has(), 'el puntero quieto no lo quita').toBe(true)
+    p.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, cancelable: true }))
+    expect(has()).toBe(false)
+  })
+
+  it('onPanelMove filtra con aimed: el toque no mueve la activa', async () => {
+    const w = await mk()
+    await key(w, 'ArrowDown')
+    const before = activeEl(w)
+    const li = rows(w)[2].element
+    pointerOver(li, 'touch')
+    await flush()
+    expect(activeEl(w)).toBe(before)
+    pointerOver(li, 'pen')
+    await flush()
+    expect(activeEl(w)).toBe(li)
+  })
+
+  it('en la superficie: is-keyed de la tecla que abrió llega al panel recién montado, y tiene luz', async () => {
+    const w = await mk({ appearance: 'palette' })
+    await key(w, 'ArrowDown')
+    await flush()
+    const search = w.find('.g-combobox__search-field')
+    await key(w, 'ArrowDown', {}, search)
+    expect(panel(w).classList.contains('is-keyed')).toBe(true)
+    expect(panel(w).classList.contains('has-highlight')).toBe(true)
   })
 })
 
@@ -1594,8 +1706,8 @@ describe('GCombobox · la lista no salta ni cambia de lado (reporte del usuario)
     await typeText(w, 'mar')
     expect(activeEl(w).textContent).toContain('001000')
     const other = rows(w)[2].element
-    other.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 50, clientY: 250 })) // sintético, sin movimiento
-    other.dispatchEvent(new MouseEvent('pointermove', { bubbles: true, clientX: 50, clientY: 250 }))
+    other.dispatchEvent(pmove({ clientX: 50, clientY: 250 })) // sintético, sin movimiento
+    other.dispatchEvent(pmove({ clientX: 50, clientY: 250 }))
     await flush()
     expect(activeEl(w).textContent).toContain('001000')
     await key(w, 'Enter')

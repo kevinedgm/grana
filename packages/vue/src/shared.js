@@ -4,7 +4,7 @@
 // borde (edgeReserve), un solo seguimiento del modal superior (topModal), la misma lista de iconos de la librería y los
 // mismos GBtn, GSelect, GCheckbox y GProgress. La isla de estado (`@grana/vue/status`, #328) usa el mismo mecanismo
 // (vite.status.config.js; src/status.test.js comprueba sus importaciones), y también la entrada `@grana/vue/combobox`
-// (#337: vite.combobox.config.js y src/combobox.test.js), que toma de aquí GInput, GAvatar, GDialog y los dos GIcon. La ficha de resumen (GSummary, summaryDiff y
+// (#337: vite.combobox.config.js y src/combobox.test.js), que toma de aquí GInput, GAvatar, GDialog, los dos GIcon y la luz de utils/glide.js (#1017). La ficha de resumen (GSummary, summaryDiff y
 // utils/match.js; summary.md, #350) vive en el principal y las entradas secundarias la reciben por aquí, sin copia. El campo de
 // archivos (`@grana/vue/file-field`, #367: vite.file-field.config.js y src/file-field.test.js) toma de aquí GSummary,
 // GProgress, GBtn, el GIcon interno y useFormField con las claves de contexto (formKey, revealKey…): una copia propia de
@@ -95,6 +95,7 @@ import { cardGroupKey } from './utils/cardGroup.js'
 import { appShellKey } from './utils/appShell.js'
 import { sectionKey as gSectionKey } from './utils/sectionKey.js'
 import { transitionMs } from './utils/motion.js'
+import { aimed, placeHighlight } from './utils/glide.js'
 import { createHighlight, createPointer, createTypeahead, focusItem, repeatGesture, stepTo } from './utils/menuNav.js'
 import { warnMissingCategory } from './utils/categoryToken.js'
 import { BIDI, currencyCode, currencyDigits, currencyName, isShared, nf } from './utils/currency.js'
@@ -143,6 +144,7 @@ export const shared = {
   'utils/appShell.js': { appShellKey },
   'utils/sectionKey.js': { sectionKey: gSectionKey },
   'utils/motion.js': { transitionMs },
+  'utils/glide.js': { aimed, placeHighlight },
   'utils/menuNav.js': { createHighlight, createPointer, createTypeahead, focusItem, repeatGesture, stepTo },
   'utils/categoryToken.js': { warnMissingCategory },
   'utils/currency.js': { BIDI, currencyCode, currencyDigits, currencyName, isShared, nf }

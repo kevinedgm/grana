@@ -1,7 +1,7 @@
 // GCombobox multiple · movimiento (design/contracts/combobox.md «Fase 2 · Movimiento», DECISIONS.md #427) sobre el
 // COMPONENTE REAL del playground (#sec-combobox-multiple), en Chromium, Firefox y WebKit. Solo tras un gesto: las cifras
 // ruedan (is-rolling), la casilla salta al marcar (is-ticking), B · el renglón nuevo crece (is-entering) y el rastro se
-// pliega en la pasada siguiente (is-leaving), C · lo marcado viaja a la cesta (is-arriving + --_travel-x/y). Nada se
+// pliega en la pasada siguiente (is-leaving), C · lo marcado entra en la cesta (is-landing). Nada se
 // anima al montar ni al abrir; con prefers-reduced-motion: reduce nada se desplaza, crece ni escala y no quedan clases.
 // Porta el punto 17 de design/lab/combobox/r03/verificar.mjs (kiwi).
 import { test, expect } from '@playwright/test'
@@ -124,7 +124,7 @@ test.describe('GCombobox multiple · personalidad con movimiento', () => {
     expect(errs, errs.join('\n')).toEqual([])
   })
 
-  test('C · lo marcado viaja a la cesta: ≥ 2 posiciones intermedias, termina en su sitio y retira is-arriving y el vector', async ({ page, browserName }) => {
+  test('C · lo marcado entra en la cesta (#1018): sin viajar, a ≤ space × 1 de su sitio y sin rastro al terminar', async ({ page, browserName }) => {
     const errs = await watchConsole(page)
     await load(page, 'no-preference')
     await page.locator('#cm-resp').scrollIntoViewIfNeeded()
@@ -133,30 +133,23 @@ test.describe('GCombobox multiple · personalidad con movimiento', () => {
     await page.waitForTimeout(500)
     await page.keyboard.type('lucía')
     await page.waitForTimeout(250)
-    const from = await page.evaluate(() => { const r = document.querySelector('#cm-resp-list .is-active .g-summary').getBoundingClientRect(); return { x: r.left, y: r.top } })
+    const space = await page.evaluate(() => { const e = document.body.appendChild(document.createElement('i')); e.style.cssText = 'position:absolute;inline-size:var(--g-space-1)'; const w = e.getBoundingClientRect().width; e.remove(); return w })
     const run = sample(page, () => {
       const r = document.querySelector('#cm-resp-surface .g-combobox__basket .g-combobox__row')
       if (!r) return null
       const s = r.querySelector('.g-summary').getBoundingClientRect()
-      return { x: s.left, y: s.top, arriving: r.classList.contains('is-arriving'), vars: r.style.getPropertyValue('--_travel-x') }
+      return { x: s.left, y: s.top, landing: r.classList.contains('is-landing'), style: r.getAttribute('style') }
     }, 50)
     await page.keyboard.press('Enter')
     const ps = (await run).filter(Boolean)
     expect(ps.length).toBeGreaterThan(10)
-    expect(ps.some((p) => p.arriving), 'is-arriving mientras viaja').toBe(true)
     const end = ps[ps.length - 1]
-    expect(end.arriving, 'la clase se retira').toBe(false)
-    expect(end.vars, 'y el vector también').toBe('')
-    const dx = from.x - end.x
-    expect(Math.abs(dx), 'la fila está a un lado de la cesta').toBeGreaterThan(60)
-    const mid = distinct(ps.map((p) => p.x).filter((x) => Math.abs(x - end.x) > 1 && Math.abs(x - from.x) > 1))
-    expect(ps.some((p) => p.arriving && p.vars), 'el vector se escribe mientras viaja').toBe(true)
-    // WebKit sin cabeza pierde el cuadro del gesto y pinta a ~20 cuadros/s: el viaje (240 ms, con muelle) cabe en uno o dos
-    // cuadros, a veces ya en el rebase; allí basta con la clase, el vector y el final en su sitio
-    if (browserName !== 'webkit') {
-      expect(mid.length, `posiciones intermedias ${mid.join(', ')}`).toBeGreaterThanOrEqual(2)
-      expect(ps.filter((p) => p.arriving).some((p) => Math.sign(p.x - end.x) === Math.sign(dx)), 'sale desde el lado de la fila').toBe(true)
-    }
+    expect(end.landing, 'la clase se retira').toBe(false)
+    expect(ps.every((p) => !p.style), 'ninguna medida en línea').toBe(true)
+    expect(distinct(ps.map((p) => p.x)).length, 'no viaja en horizontal').toBe(1)
+    expect(ps.every((p) => p.y >= end.y - 0.5 && p.y - end.y <= space + 0.5), `a ≤ space × 1 y sin rebasar: ${distinct(ps.map((p) => p.y)).join(', ')}`).toBe(true)
+    // WebKit sin cabeza pierde el cuadro del gesto: la entrada de 160 ms puede caber entre dos muestras
+    if (browserName !== 'webkit') expect(ps.some((p) => p.landing), 'is-landing mientras entra').toBe(true)
     expect(errs, errs.join('\n')).toEqual([])
   })
 })
@@ -165,7 +158,7 @@ test.describe('GCombobox multiple · personalidad con prefers-reduced-motion: re
   test('nada se desplaza, crece ni escala y no quedan clases: marcar (A), renglón nuevo y pasada (B), cesta (C)', async ({ page }) => {
     const errs = await watchConsole(page)
     await load(page, 'reduce')
-    const CLS = '.g-combobox--multiple :is(.is-rolling, .is-ticking, .is-entering, .is-leaving, .is-arriving), .g-combobox-surface :is(.is-rolling, .is-ticking, .is-arriving)'
+    const CLS = '.g-combobox--multiple :is(.is-rolling, .is-ticking, .is-entering, .is-leaving), .g-combobox-surface :is(.is-rolling, .is-ticking)'
     const watchCls = () => sample(page, new Function(`return () => document.querySelectorAll(${JSON.stringify(CLS)}).length`)(), 25)
     // A: marcar
     await page.locator('#cm-alg').scrollIntoViewIfNeeded()
@@ -201,11 +194,14 @@ test.describe('GCombobox multiple · personalidad con prefers-reduced-motion: re
     await page.waitForTimeout(300)
     await page.keyboard.type('lucía')
     await page.waitForTimeout(200)
-    run = watchCls()
+    // Con reducido, is-landing es solo un fundido: lo que no debe haber es desplazamiento
+    run = sample(page, () => { const r = document.querySelector('#cm-resp-surface .g-combobox__basket .g-combobox__row .g-summary'); return r ? r.getBoundingClientRect().top : null }, 25)
     await page.keyboard.press('Enter')
-    expect(Math.max(...(await run)), 'C: el renglón aparece en su sitio').toBe(0)
+    expect(distinct((await run).filter((y) => y !== null)).length, 'C: el renglón aparece en su sitio').toBe(1)
     expect(await page.locator('#cm-resp-surface .g-combobox__basket .g-combobox__row').count()).toBe(1)
+    await page.waitForTimeout(250)
     expect(await running(page, '.g-combobox--multiple, .g-combobox-surface')).toEqual([])
+    expect(await page.locator('.g-combobox-surface .is-landing').count()).toBe(0)
     expect(errs, errs.join('\n')).toEqual([])
   })
 })

@@ -20,6 +20,7 @@ import { oneOf } from '../../utils/oneOf.js'
 import { fill } from '../../utils/template.js'
 import { placeBlock } from '../../utils/anchor.js'
 import { transitionMs } from '../../utils/motion.js'
+import { aimed, placeHighlight } from '../../utils/glide.js'
 import { createLiveWriter } from '../../utils/liveRegion.js'
 import { fold, tokens } from '../../utils/match.js'
 import GInput from '../GInput/GInput.vue'
@@ -98,7 +99,7 @@ const EDGE = 8            // margen con el visor
 const SIDE_MIN_SPACES = 40  // el lado elegido deja de ser útil por debajo de space × 40…
 const SIDE_FLIP_SPACES = 12 // …y solo se cambia si el otro ofrece al menos space × 12 más (histéresis)
 const PHONE_QUERY = '(max-width: 520px)' // umbral literal de #42 y #56
-const ARRIVE_PREFIX = 'g-combobox-arrive'
+const LAND_PREFIX = 'g-combobox-land'
 const PIN_CAP = 12          // filas de «Elegidas» y renglones de la cesta antes de «Ver las N» (constante de diseño, #425)
 const ROWS_CAP = 6          // renglones de la receta en reposo antes de «Ver los N» (#426)
 
@@ -220,7 +221,6 @@ let annTimer = null
 
 const fieldEl = ref(null)
 const valueEl = ref(null)
-const tokenEl = ref(null)
 const popupEl = ref(null)
 const host = shallowRef(null)         // raíz de GInput: destino del Teleport
 const domLang = ref(null)
@@ -519,7 +519,7 @@ function commitMulti(v, c, added, removed) {
   nextTick(() => { ledger.value = reconcile(ledger.value, chosen.value, newEntry) }) // si la aplicación no aceptó el cambio
   return true
 }
-function addItem(it, from) {
+function addItem(it) {
   if (isChosen(it)) return
   if (isFull.value) return say(tx('max', 'anuncio del tope', { max: nf(maxN.value) }, maxN.value))
   if (it.option) known.set(it.value, it.option)
@@ -527,8 +527,8 @@ function addItem(it, from) {
   const c = customs.value.slice()
   if (it.text != null) c.push(it.text)
   else v.push(it.value)
-  // El renglón nuevo: «Nueva» y crece en la receta; en la cesta, viaja desde la fila marcada (#427)
-  fresh.set(it.key, { from })
+  // El renglón nuevo: «Nueva» y crece en la receta; en la cesta, entra en su sitio (#1018)
+  fresh.add(it.key)
   if (commitMulti(v, c, [it], [])) {
     const n = count.value + 1
     say(tx('added', 'anuncio al agregar', { label: nameOf(it), count: nf(n) }, nameOf(it), n))
@@ -581,15 +581,12 @@ function restore(memo, all = false) {
   return true
 }
 /** Marca o desmarca una fila (Intro o clic): la lista sigue abierta, la activa no se mueve y el texto queda seleccionado */
-function toggleRow(row, el) {
+function toggleRow(row) {
   setActive(row, false, false)
   if (row.blocked) say(tx('max', 'anuncio del tope', { max: nf(maxN.value) }, maxN.value))
   else if (row.selected) removeItems([row.item || itemOf(row.o)])
   else {
-    let from = null
-    const src = el || (typeof document !== 'undefined' ? document.getElementById(row.id) : null)
-    if (src && basketShown.value) from = (src.querySelector('.g-summary') || src).getBoundingClientRect()
-    addItem(row.item || itemOf(row.o), from)
+    addItem(row.item || itemOf(row.o))
     ticking.value = row.k
     afterAnim('.g-combobox__box.is-ticking', 'g-combobox-tick', () => { ticking.value = null })
   }
@@ -629,20 +626,19 @@ function multiKey(e) {
 }
 
 // ---------- Fase 2 · renglones de la receta (B) y de la cesta (C) con rastro (#419, #426) ----------
-const ledger = shallowRef([])   // { key, item, uid, trace, fresh, enter, leave, arrive }
+const ledger = shallowRef([])   // { key, item, uid, trace, fresh, enter, leave, land }
 let rowUid = 0
-const fresh = new Map()          // clave → { from }: lo que acaba de agregar un gesto
+const fresh = new Set()          // claves que acaba de agregar un gesto
 const rowsOpen = ref(false)      // «Ver los N» de la receta
 const basketOpen = ref(false)    // «Ver las N» de la cesta
 const basketShown = computed(() => M && surfaceOpen.value && props.appearance === 'palette' && !narrow.value)
 const tracing = computed(() => Boolean(L.value.undo && L.value.trace) && (props.selection === 'list' || basketShown.value))
 function newEntry(it) {
-  const f = fresh.get(it.key)
-  fresh.delete(it.key)
-  const e = reactive({ key: it.key, item: it, uid: ++rowUid, trace: null, fresh: false, enter: false, leave: false, arrive: null, rowH: null })
-  if (f) {
+  const e = reactive({ key: it.key, item: it, uid: ++rowUid, trace: null, fresh: false, enter: false, leave: false, land: false, rowH: null })
+  if (fresh.delete(it.key)) {
     if (basketShown.value) {
-      if (f.from) arriveRow(e, f.from)
+      e.land = true
+      afterAnim('.g-combobox__row.is-landing', LAND_PREFIX, () => { e.land = false })
     } else if (props.selection === 'list') {
       e.fresh = true
       e.enter = true
@@ -659,16 +655,6 @@ function afterAnim(sel, prefix, done) {
     const els = host.value ? host.value.querySelectorAll(sel) : []
     for (const el of els) if (computedAnimations(el, prefix)) return
     done()
-  })
-}
-/** C · lo marcado viaja a la cesta (#427): vector desde la ficha de la fila marcada hasta la del renglón nuevo */
-function arriveRow(e, from) {
-  nextTick(() => {
-    const el = host.value && host.value.querySelector(`.g-combobox__basket [data-uid="${e.uid}"]`)
-    if (!el) return
-    const to = (el.querySelector('.g-summary') || el).getBoundingClientRect()
-    e.arrive = { x: px(from.left - to.left), y: px(from.top - to.top) }
-    afterAnim('.g-combobox__row.is-arriving', ARRIVE_PREFIX, () => { e.arrive = null })
   })
 }
 /** Pasada nueva (B, #419): al volver a escribir tras salir del componente, los rastros se pliegan y «Nueva» se retira */
@@ -691,7 +677,7 @@ function onAnimEnd(e) {
   if (!ent || !n.startsWith('g-combobox-')) return
   if (ent.leave) dropLeaving()
   else if (n.startsWith('g-combobox-row')) ent.enter = false
-  else if (n.startsWith(ARRIVE_PREFIX)) ent.arrive = null
+  else if (n.startsWith(LAND_PREFIX)) ent.land = false
 }
 function onRootFocusOut(e) {
   const to = e.relatedTarget
@@ -1035,6 +1021,49 @@ function settledView(sc, now) {
   return Math.max(now, Math.min(sc.scrollHeight, Number.isFinite(cap) ? cap : Infinity))
 }
 watch(activeRow, (r) => { if (r && revealActive) nextTick(scrollActive) }, { flush: 'post' })
+
+// ---------- Una sola luz (combobox.md, #1017) ----------
+// Sigue a la activa, también en la superficie. Cerrando no se toca: la luz se queda durante la salida (#1005). Al desplazar
+// no hay nada que escribir: la capa va con el contenido. Las clases del panel van por classList, como en GSelect.
+const panelEl = ref(null)
+let keyed = false
+let settling = false
+const setKeyed = (on) => {
+  keyed = on
+  panelEl.value?.classList.toggle('is-keyed', on)
+}
+const keyMark = (e) => { if (!/^(Shift|Control|Alt|AltGraph|Meta|CapsLock)$/.test(e.key)) setKeyed(true) }
+function light(instant) {
+  const p = panelEl.value
+  if (!p || !opened.value) return
+  const r = activeRow.value
+  // GDialog entra con `scale`: lo que se mide ahora sale encogido, y se vuelve a medir cuando se asienta
+  const moving = surface.value && !settling && p.closest('dialog')?.getAnimations?.()
+  if (moving?.length) {
+    settling = true
+    Promise.allSettled(moving.map((a) => a.finished)).then(() => {
+      settling = false
+      light(true)
+    })
+  }
+  // Por índice y en su panel: useId se repite entre aplicaciones
+  placeHighlight(p, r && p.querySelector(`[data-index="${r.index}"]`), { instant, layer: p.firstElementChild })
+  p.classList.toggle('is-keyed', keyed)
+}
+// Cerrado no se lee `rows`, que filtraría. Si cambia algo más que la activa (abrir, filas, estado, el panel), sin viaje
+const whileOpen = (c) => () => opened.value && c.value
+watch([whileOpen(activeRow), whileOpen(rows), whileOpen(status), panelEl], ([, ...now], [, ...was]) => light(now.some((v, i) => v !== was[i])), { flush: 'post' })
+// Solo el ancho recoloca las filas; el alto cambia en cada cuadro del despliegue de A
+watch(panelEl, (el, _, onClean) => {
+  if (!el) return
+  let w = el.clientWidth
+  onClean(observeSize(el, () => {
+    if (el.clientWidth !== w) {
+      w = el.clientWidth
+      light(true)
+    }
+  }))
+})
 watch(() => (opened.value && !surface.value ? [hasPanel.value, rows.value.all.length, status.value?.kind].join('|') : ''), (v) => { if (v) nextTick(place) }, { flush: 'post' })
 
 // ---------- Abrir y cerrar ----------
@@ -1140,9 +1169,8 @@ function commitText() {
   syncSoon()
 }
 
-// ---------- C · la ficha llega (#336) ----------
-const arriving = ref(null) // { x, y } en px mientras llega
-let arriveToken = 0
+// ---------- C · la ficha entra en su sitio (#1018) ----------
+const landing = ref(false)
 const parseTime = (x) => {
   const n = parseFloat(x)
   return Number.isFinite(n) ? (String(x).trim().endsWith('ms') ? n : n * 1000) : 0
@@ -1162,46 +1190,20 @@ function computedAnimations(root, prefix) {
   }
   return n
 }
-function endArrive() {
-  arriveToken++
-  if (arriving.value) arriving.value = null
-}
-function startArrive(from) {
-  endArrive()
-  if (!from) return
-  const token = ++arriveToken
-  nextTick(() => {
-    if (token !== arriveToken) return
-    const el = tokenEl.value
-    if (!el) return
-    const to = el.getBoundingClientRect()
-    arriving.value = { x: px(from.left - to.left), y: px(from.top - to.top) }
-    nextTick(() => {
-      if (token !== arriveToken) return
-      if (!computedAnimations(tokenEl.value, ARRIVE_PREFIX)) endArrive()
-    })
-  })
-}
+const endLand = () => { landing.value = false }
 function onTokenAnimationEnd(e) {
-  const name = typeof e.animationName === 'string' ? e.animationName : ''
-  if (name.startsWith(ARRIVE_PREFIX) && arriving.value) endArrive()
+  if (String(e.animationName).startsWith(LAND_PREFIX)) endLand()
 }
-const tokenStyle = computed(() => (arriving.value ? { '--_travel-x': arriving.value.x, '--_travel-y': arriving.value.y } : undefined))
+// Editar la ficha o reabrir la retira: al volver, no se repite
+watch(showToken, (v) => { if (!v) endLand() })
 
 // ---------- Elegir ----------
-function pick(row, { el = null, leaving = false } = {}) {
+function pick(row, { leaving = false } = {}) {
   if (!row || row.disabled || !editable.value) return
   if (row.kind === 'action') return runAction(row)
-  if (M) return toggleRow(row, el)
+  if (M) return toggleRow(row)
   const o = row.o
   const wasSurface = surface.value
-  let from = null
-  if (!wasSurface && typeof document !== 'undefined') {
-    // El origen del viaje es la ficha de la fila elegida (#356); con el slot `option`, la fila entera
-    const rowEl = el || document.getElementById(row.id)
-    const src = rowEl && (rowEl.querySelector('.g-summary') || rowEl)
-    if (src && src.getBoundingClientRect) from = src.getBoundingClientRect()
-  }
   known.set(o.value, o)
   typed.value = false
   writeText(o.label)
@@ -1210,7 +1212,8 @@ function pick(row, { el = null, leaving = false } = {}) {
   syncSoon()
   if (!wasSurface) {
     if (!leaving) nextTick(selectAll) // como al entrar: lo siguiente que se teclee reemplaza
-    startArrive(from)
+    landing.value = true
+    afterAnim('.g-combobox__token.is-landing', LAND_PREFIX, endLand)
   }
 }
 function runAction(row) {
@@ -1370,6 +1373,7 @@ function listKey(e) {
   return true
 }
 function onKeydown(e) {
+  keyMark(e)
   if (!editable.value || composing.value || e.isComposing) return
   if (M && multiKey(e)) return
   const k = e.key
@@ -1458,6 +1462,7 @@ function onClick(e) {
 }
 // Pulsar el área vacía de la caja (prefijo, hueco) enfoca el campo y abre
 function onBoxDown(e) {
+  setKeyed(false)
   if (e.button !== 0 || isDisabled.value) return
   const el = fieldEl.value
   const t = e.target
@@ -1545,6 +1550,7 @@ function onSearchCompositionend(e) {
   afterType()
 }
 function onSearchKeydown(e) {
+  keyMark(e)
   if (composing.value || e.isComposing) return
   if (M && multiKey(e)) return
   listKey(e) // Esc lo trata GDialog (un nivel: no llega al anfitrión, que ve defaultPrevented); Tab se mueve dentro
@@ -1554,17 +1560,17 @@ function onSearchKeydown(e) {
 function rowFromEvent(e) {
   const li = e.target.closest?.('[role="option"]')
   if (!li) return null
-  const row = rows.value.all[Number(li.dataset.index)]
-  return row ? { row, el: li } : null
+  return rows.value.all[Number(li.dataset.index)] || null
 }
 // Una opción: con toque o lápiz, al soltar sin desplazarse (elegir al bajar impediría desplazar la lista); con ratón, con
 // su clic, solo si el gesto empezó en una opción del panel (el click que sigue a abrir con la flecha no elige lo de debajo)
 let mouseDownInPanel = false
 const pickFrom = (e) => {
-  const hit = rowFromEvent(e)
-  if (hit) pick(hit.row, { el: hit.el })
+  const row = rowFromEvent(e)
+  if (row) pick(row)
 }
 function onPanelDown(e) {
+  setKeyed(false)
   const onRow = Boolean(rowFromEvent(e))
   const mouse = downOn(e, pickFrom) // siempre: preventDefault (el foco sigue en el campo) aunque no sea sobre una opción
   if (!onRow) gesture = null
@@ -1580,13 +1586,16 @@ let lastY = null
 function onPanelMove(e) {
   // Solo un movimiento REAL del puntero activa: el primer evento tras abrir solo anota dónde está (un resultado que
   // aparece bajo el puntero quieto no roba la activa al teclado) y uno sin desplazamiento se ignora (la lista que se
-  // mueve bajo el puntero). La activación por puntero nunca desplaza la lista.
+  // mueve bajo el puntero). La activación por puntero nunca desplaza la lista. Solo ratón y lápiz (#1017)
+  if (!aimed(e)) return
   const still = lastX === null || (e.clientX === lastX && e.clientY === lastY)
   lastX = e.clientX
   lastY = e.clientY
   if (still) return
-  const hit = rowFromEvent(e)
-  if (hit && !hit.row.disabled && activeRow.value !== hit.row) setActive(hit.row, false, false)
+  const row = rowFromEvent(e)
+  if (!row || row.disabled) return
+  setKeyed(false)
+  if (activeRow.value !== row) setActive(row, false, false)
 }
 
 // ---------- Piezas de pintado: la ficha (GSummary, #356) ----------
@@ -1669,7 +1678,8 @@ const Panel = () => {
   // Cerrado no se pinta ninguna fila (ni se filtra): el listbox existe, vacío, para que aria-controls apunte a algo
   const r = opened.value ? rows.value : leaving.value ? leaving.value.r : NO_ROWS
   const s = opened.value ? status.value : leaving.value && leaving.value.s
-  return h('div', { class: 'g-combobox__panel', onPointerdown: onPanelDown, onTouchend: onGestureTouchend, onPointerup: onGesturePointerup, onPointercancel: onGestureCancel, onMousedown: keep, onClick: onPanelClick, onPointermove: onPanelMove }, [
+  return h('div', { ref: panelEl, class: 'g-combobox__panel', onPointerdown: onPanelDown, onTouchend: onGestureTouchend, onPointerup: onGesturePointerup, onPointercancel: onGestureCancel, onMousedown: keep, onClick: onPanelClick, onPointermove: onPanelMove }, [
+    h('div', { class: 'g-combobox__highlight', 'aria-hidden': 'true' }),
     s
       ? h('p', { class: ['g-combobox__status', `g-combobox__status--${s.kind}`], id: sub('status') }, [h(GIcon, { name: s.icon, key: s.icon }), h('span', null, statusContent(s))])
       : null,
@@ -1724,8 +1734,7 @@ function rowLi(e, n, basket, dm) {
   const removeLabel = editable.value ? need('remove', '«Quitar» de un renglón') : ''
   return h('li', {
     key: e.uid, 'data-uid': e.uid,
-    class: ['g-combobox__row', { 'is-fresh': !basket && e.fresh, 'is-armed': armed.value === e.key, 'is-custom': custom, 'is-entering': !basket && e.enter, 'is-arriving': basket && Boolean(e.arrive) }],
-    style: basket && e.arrive ? { '--_travel-x': e.arrive.x, '--_travel-y': e.arrive.y } : undefined
+    class: ['g-combobox__row', { 'is-fresh': !basket && e.fresh, 'is-armed': armed.value === e.key, 'is-custom': custom, 'is-entering': !basket && e.enter, 'is-landing': basket && e.land }]
   }, [
     props.numbered ? h('span', { class: 'g-combobox__row-number' }, nf(n)) : null,
     slots.chosen
@@ -1945,7 +1954,6 @@ onBeforeUnmount(() => {
   clearTimeout(annTimer)
   writer.dispose()
   listen(false)
-  endArrive()
   mq?.removeEventListener?.('change', onMq)
   boxEl?.removeEventListener('pointerdown', onBoxDown)
   boxEl = null
@@ -2051,9 +2059,7 @@ try {
         <span v-if="ghost" class="g-combobox__ghost" aria-hidden="true"><span class="g-combobox__ghost-typed">{{ text }}</span><span class="g-combobox__ghost-rest">{{ ghost.rest }}</span></span>
         <span
           v-if="showToken"
-          ref="tokenEl"
-          :class="['g-combobox__token', { 'is-arriving': Boolean(arriving) }]"
-          :style="tokenStyle"
+          :class="['g-combobox__token', { 'is-landing': landing }]"
           aria-hidden="true"
           @animationend="onTokenAnimationEnd"
           @animationcancel="onTokenAnimationEnd"

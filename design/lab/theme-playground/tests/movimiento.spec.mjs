@@ -5,7 +5,7 @@
 // D2 · A (#1002): el fundido de salida solo existe donde hay `overlay`. En Firefox y WebKit la salida de lo que vive en la
 // capa superior es instantánea, y ESO NO ES UN FALLO: estas pruebas lo esperan (`behaviour.exitWithoutOverlay`).
 //
-// También: «una sola luz» de GSelect (select.md, #1004), incluida la marca visible de la opción activa, y que el panel no se
+// También: «una sola luz» de GSelect (select.md, #1004) y de GCombobox (combobox.md, #1017), incluida la marca visible de la opción activa, y que el panel no se
 // vacía mientras se funde (#1005; solo Chromium, donde se ve). GSidebar y GTable: personalidad-{sidebar,table}-glide.spec.mjs.
 // El rendimiento se exige solo con un worker (`--workers=1`, criterio de #965).
 import { test, expect } from '@playwright/test'
@@ -24,7 +24,7 @@ async function mountExtras(page) {
   await page.evaluate(() => {
     const { createApp, h, reactive } = Vue
     const G = Grana
-    const st = reactive({ groups: 'b', long: null, free: null, filters: [], dlg: false })
+    const st = reactive({ groups: 'b', long: null, free: null, filters: [], dlg: false, cb: {} })
     const el = document.createElement('div')
     el.id = 'extras'
     el.style.cssText = 'display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap;margin-block-start:40px'
@@ -36,6 +36,13 @@ async function mountExtras(page) {
     const labels = { group: 'Filtros', add: 'Agregar', clear: 'Limpiar', filterBy: 'Filtrar por {label}', edit: 'Editar {summary}', remove: 'Quitar {summary}', apply: 'Aplicar', cancel: 'Cancelar', required: 'Indica', rule: 'Regla', value: 'Valor', from: 'Desde', to: 'Hasta', ops: {} }
     const fields = [{ key: 'estado', label: 'Estado', filter: { type: 'enum', options: ['activo', 'pausado'], suggest: true } }, { key: 'total', label: 'Total', filter: { type: 'number', suggest: true } }]
     const wrap = (id, kid) => h('div', { id, style: 'width:220px' }, [kid])
+    const cbLabels = { close: 'Cerrar', preview: 'Vista previa', previewEmpty: 'Nada', noResults: 'Sin resultados para {text}', selected: '{count} elegidas', chosen: 'Elegidas', done: 'Listo', rest: 'y {count} más', basketEmpty: 'Nada', undo: 'Deshacer', trace: 'Quitada' }
+    const cbs = [
+      ['c-long', { options: opt(30) }],
+      ['c-groups', { options: [{ value: 'a', label: 'Alfa' }, { value: 'x', label: 'Fuera', disabled: true }, { label: 'Grupo', options: [{ value: 'b', label: 'Beta' }, { value: 'c', label: 'Gamma' }] }] }],
+      ['c-pal', { appearance: 'palette', options: opt(12) }],
+      ['c-multi', { multiple: true, options: opt(8), start: ['Opción1', 'Opción2'] }]
+    ]
     createApp({
       render: () => [
         wrap('s-groups', h(G.GSelect, { label: 'Con grupos', options: grouped, createLabel: 'Agregar nuevo', modelValue: st.groups, 'onUpdate:modelValue': (v) => { st.groups = v } })),
@@ -45,6 +52,7 @@ async function mountExtras(page) {
         h('div', { id: 'acc', style: 'width:320px' }, [h(G.GAccordion, null, () => [h(G.GAccordionItem, { title: 'Plegado', value: 'uno' }, () => h('p', { style: 'block-size:160px;margin:0' }, 'Contenido'))])]),
         h('button', { id: 'd-open', onClick: () => { st.dlg = true } }, 'Diálogo'),
         h(G.GDialog, { id: 'd-x', modelValue: st.dlg, title: 'Diálogo', closeLabel: 'Cerrar', 'onUpdate:modelValue': (v) => { st.dlg = v } }, () => h('p', 'Contenido')),
+        ...cbs.map(([id, props]) => wrap(id, h(GranaCombobox.GCombobox, { label: id, labels: cbLabels, delay: 0, modelValue: st.cb[id] ?? props.start ?? null, 'onUpdate:modelValue': (v) => { st.cb[id] = v }, ...props }))),
         h(G.GToaster)
       ]
     }).use(toaster).mount(el)
@@ -241,6 +249,7 @@ for (const reduced of [false, true]) {
       const a = await rows.nth(1).boundingBox()
       const z = await rows.nth(3).boundingBox()
       await page.mouse.move(a.x + 20, a.y + 8)
+      await page.mouse.move(a.x + 22, a.y + 8) // GCombobox: el primer evento tras abrir solo anota dónde está
       await page.waitForTimeout(WAIT)
       await page.evaluate(({ rowSel, probe }) => {
         window.__fr = []
@@ -260,7 +269,8 @@ for (const reduced of [false, true]) {
 
     for (const [name, c] of Object.entries({
       GSelect: { open: (p) => p.click('.g-select__control'), rowSel: '.g-select__list >> nth=0 >> .g-select__option', probe: TRANSLATE('.g-select__highlight') },
-      GMenu: { open: (p) => p.click('.m-trigger'), rowSel: '.g-menu__list [role^="menuitem"]', probe: TRANSLATE('.g-menu__highlight') }
+      GMenu: { open: (p) => p.click('.m-trigger'), rowSel: '.g-menu__list [role^="menuitem"]', probe: TRANSLATE('.g-menu__highlight') },
+      GCombobox: { open: (p) => p.click('.g-combobox input'), rowSel: '.g-combobox__option', probe: TRANSLATE('.g-combobox__highlight') }
     })) {
       test(`recorrer filas que se tocan · ${name}`, async ({ page }) => {
         await bench(page)
@@ -276,17 +286,6 @@ for (const reduced of [false, true]) {
         }
       })
     }
-
-    test('recorrer con huecos · GCombobox: una marca por elemento, salida instantánea', async ({ page }) => {
-      await bench(page)
-      const w = await walk(page, {
-        open: () => page.click('.g-combobox input'),
-        rowSel: '.g-combobox__option',
-        probe: "return [...document.querySelectorAll(rowSel)].map((e) => e.classList.contains('is-active') ? 1 : 0).join('')"
-      })
-      expect(w.frames.every((f) => (f.v.match(/1/g) || []).length <= motion.moments.recorrerHuecos.rule.maxLit), 'nunca dos a la vez').toBe(true)
-      expect(w.ms, 'sin fundido').toBeLessThanOrEqual(TOL)
-    })
   })
 }
 
@@ -501,6 +500,270 @@ test.describe('GSelect · una sola luz (select.md, #1004)', () => {
       await openSel(page, '#s-long')
       expect(await page.evaluate((s) => getComputedStyle(document.querySelector(`${s} .g-select__highlight`)).display, '#s-long')).toBe('none')
       expect(await ring(page, '#s-long')).toBe('solid')
+    })
+  })
+})
+
+// ---------- GCombobox · una sola luz ----------
+const cbPanel = (s) => `${s} .g-combobox__panel`
+const cbGap = (page, scope) => page.evaluate((s) => {
+  const P = [...document.querySelectorAll(`${s} .g-combobox__panel`)].at(-1)
+  const a = P.querySelector('.is-active').getBoundingClientRect()
+  const y = P.querySelector('.g-combobox__highlight').getBoundingClientRect()
+  return Math.max(Math.abs(a.left - y.left), Math.abs(a.top - y.top), Math.abs(a.width - y.width), Math.abs(a.height - y.height))
+}, scope)
+const cbRing = (page, scope) => page.evaluate((s) => getComputedStyle(document.querySelector(`${s} .g-combobox__panel .is-active`)).outlineStyle, scope)
+const cbInput = (s) => `${s} input[role="combobox"]`
+async function openCb(page, scope) {
+  await page.locator(cbInput(scope)).scrollIntoViewIfNeeded()
+  await page.click(cbInput(scope))
+  await page.waitForTimeout(WAIT)
+}
+const cbRows = (page, scope) => page.evaluate((s) => [...document.querySelectorAll(`${s} .g-combobox__option`)].map((e) => { const r = e.getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height } }), scope)
+const cbAt = (page, scope) => page.evaluate((s) => getComputedStyle(document.querySelector(`${s} .g-combobox__highlight`)).translate, scope)
+function watchLight(page, scope) {
+  return page.evaluate((s) => {
+    const y = document.querySelector(`${s} .g-combobox__highlight`)
+    window.__f = []
+    window.__on = true
+    ;(function f() { window.__f.push(getComputedStyle(y).translate); if (window.__on) requestAnimationFrame(f) })()
+  }, scope)
+}
+const endLight = (page) => page.evaluate(() => { window.__on = false; return window.__f })
+
+test.describe('GCombobox · una sola luz (combobox.md, #1017)', () => {
+  test('puntero: cuadros intermedios, acaba sobre la activa sin contorno y sin fondo propio; el foco sigue en el campo', async ({ page }) => {
+    const errs = watchConsole(page)
+    await bench(page)
+    await openCb(page, '#c-long')
+    const rows = await cbRows(page, '#c-long')
+    await page.mouse.move(rows[0].x + 20, rows[0].y + 8)
+    await page.mouse.move(rows[0].x + 22, rows[0].y + 8)
+    await page.waitForTimeout(WAIT)
+    await page.evaluate((s) => {
+      const P = document.querySelector(`${s} .g-combobox__panel`)
+      const y = P.querySelector('.g-combobox__highlight')
+      const os = [...P.querySelectorAll('.g-combobox__option')]
+      const paint = (e) => { const c = getComputedStyle(e); return c.backgroundColor !== 'rgba(0, 0, 0, 0)' || c.boxShadow !== 'none' }
+      window.__f = []
+      window.__on = true
+      ;(function f() { window.__f.push(`${getComputedStyle(y).translate}|${os.filter(paint).length}`); if (window.__on) requestAnimationFrame(f) })()
+    }, '#c-long')
+    await page.mouse.move(rows[3].x + 20, rows[3].y + 8)
+    await page.waitForTimeout(WAIT)
+    const fr = await endLight(page)
+    expect(new Set(fr).size, 'cuadros intermedios').toBeGreaterThanOrEqual(4)
+    expect(fr.every((x) => x.endsWith('|0')), 'ninguna opción pinta fondo ni sombra propios').toBe(true)
+    expect(await cbGap(page, '#c-long')).toBeLessThanOrEqual(1)
+    expect(await page.evaluate((s) => document.activeElement === document.querySelector(s), cbInput('#c-long'))).toBe(true)
+    expect(await cbRing(page, '#c-long')).toBe('none')
+    expect(errs).toEqual([])
+  })
+
+  test('teclado: ↓ mueve la luz y pinta el contorno; escribir también; mover el ratón lo quita', async ({ page }) => {
+    await bench(page)
+    await openCb(page, '#c-long')
+    await page.keyboard.press('ArrowDown')
+    await page.keyboard.press('ArrowDown')
+    await page.waitForTimeout(WAIT)
+    expect(await cbRing(page, '#c-long')).toBe('solid')
+    expect(await cbGap(page, '#c-long')).toBeLessThanOrEqual(1)
+    const rows = await cbRows(page, '#c-long')
+    await page.mouse.move(rows[3].x + 20, rows[3].y + 8)
+    await page.mouse.move(rows[3].x + 24, rows[3].y + 8)
+    await page.waitForTimeout(WAIT)
+    expect(await cbRing(page, '#c-long')).toBe('none')
+    await page.keyboard.type('op')
+    await page.waitForTimeout(WAIT)
+    expect(await cbRing(page, '#c-long'), 'Intro elegirá la activa: hay que verla').toBe('solid')
+  })
+
+  test('resultados: al cambiar las filas, la luz no viaja', async ({ page }) => {
+    await bench(page)
+    await openCb(page, '#c-long')
+    await page.keyboard.press('ArrowDown')
+    await page.keyboard.press('ArrowDown')
+    await page.keyboard.press('ArrowDown')
+    await page.keyboard.press('ArrowDown')
+    await page.waitForTimeout(WAIT)
+    await watchLight(page, '#c-long')
+    await page.keyboard.type('opción 1')
+    await page.waitForTimeout(WAIT)
+    const t = await endLight(page)
+    expect(new Set(t).size, `posiciones ${[...new Set(t)].join(' · ')}`).toBeLessThanOrEqual(3) // la de antes, la de cada letra que cambia filas se coloca sin pasos
+    expect(await cbGap(page, '#c-long')).toBeLessThanOrEqual(1)
+  })
+
+  test('huecos: sobre un título, una deshabilitada o fuera del panel, la luz no cambia', async ({ page }) => {
+    await bench(page)
+    await openCb(page, '#c-groups')
+    await page.keyboard.press('ArrowDown')
+    await page.waitForTimeout(WAIT)
+    const before = await cbAt(page, '#c-groups')
+    const label = await page.locator('#c-groups .g-combobox__group-label').boundingBox()
+    const off = await page.locator('#c-groups [role="option"][aria-disabled="true"]').boundingBox()
+    for (const [x, y] of [[label.x + 20, label.y + 6], [off.x + 20, off.y + 6], [2, 2]]) {
+      await page.mouse.move(x, y)
+      await page.mouse.move(x + 3, y)
+      await page.waitForTimeout(220)
+      expect(await cbAt(page, '#c-groups')).toBe(before)
+    }
+    expect(await cbGap(page, '#c-groups')).toBeLessThanOrEqual(1)
+  })
+
+  test('apertura y cierre: no se apaga durante la salida; al reabrir no viaja desde donde estaba', async ({ page }) => {
+    await bench(page)
+    await openCb(page, '#c-long')
+    for (let k = 0; k < 4; k++) await page.keyboard.press('ArrowDown')
+    await page.waitForTimeout(WAIT)
+    const lit = await page.evaluate((s) => {
+      const P = document.querySelector(`${s} .g-combobox__panel`)
+      document.querySelector(`${s} input[role="combobox"]`).dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }))
+      return { cls: P.classList.contains('has-highlight'), o: getComputedStyle(P.querySelector('.g-combobox__highlight')).opacity }
+    }, '#c-long')
+    expect(lit).toEqual({ cls: true, o: '1' })
+    await page.waitForTimeout(WAIT)
+    await watchLight(page, '#c-long')
+    await page.keyboard.press('ArrowDown') // abre y activa la primera: una segunda flecha ya sería un viaje legítimo
+    await page.waitForTimeout(WAIT)
+    const t = await endLight(page)
+    expect(await cbGap(page, '#c-long')).toBeLessThanOrEqual(1)
+    expect(new Set(t).size, 'dos valores: el de cierre y el de llegada').toBeLessThanOrEqual(2)
+  })
+
+  test('formas: hacia arriba, lista desplazada y al desplazar va con su opción', async ({ page }) => {
+    await bench(page)
+    await openCb(page, '#c-long')
+    for (let k = 0; k < 22; k++) await page.keyboard.press('ArrowDown')
+    await page.waitForTimeout(WAIT)
+    expect(await page.evaluate((s) => document.querySelector(s).scrollTop, cbPanel('#c-long'))).toBeGreaterThan(0)
+    expect(await cbGap(page, '#c-long')).toBeLessThanOrEqual(1)
+    await page.evaluate((s) => { document.querySelector(s).scrollTop -= 40 }, cbPanel('#c-long'))
+    await page.waitForTimeout(60)
+    expect(await cbGap(page, '#c-long')).toBeLessThanOrEqual(1)
+    await esc(page)
+    await page.waitForTimeout(WAIT)
+    await page.evaluate(() => { const c = document.querySelector('#c-long'); c.style.position = 'fixed'; c.style.insetBlockEnd = '24px'; c.style.insetInlineStart = '24px' })
+    await page.click(cbInput('#c-long'))
+    await page.waitForTimeout(WAIT)
+    expect(await page.evaluate(() => document.querySelector('#c-long .g-combobox').classList.contains('is-up'))).toBe(true)
+    await page.keyboard.press('ArrowDown')
+    await page.keyboard.press('ArrowDown')
+    await page.waitForTimeout(WAIT)
+    expect(await cbGap(page, '#c-long')).toBeLessThanOrEqual(1)
+  })
+
+  test('forma: paleta, también lo medido mientras entra el diálogo', async ({ page }) => {
+    await bench(page)
+    await page.locator(cbInput('#c-pal')).scrollIntoViewIfNeeded()
+    await page.focus(cbInput('#c-pal'))
+    await page.keyboard.press('Enter')
+    await page.keyboard.press('ArrowDown') // en plena entrada: GDialog aún tiene `scale`
+    await page.waitForTimeout(WAIT)
+    expect(await cbGap(page, '#c-pal')).toBeLessThanOrEqual(1)
+    expect(await cbRing(page, '#c-pal')).toBe('solid')
+    await page.keyboard.press('ArrowDown')
+    await page.keyboard.press('ArrowDown')
+    await page.waitForTimeout(WAIT)
+    expect(await cbGap(page, '#c-pal')).toBeLessThanOrEqual(1)
+  })
+
+  test('forma: multiple con «Elegidas» y con la lista desplazada', async ({ page }) => {
+    await bench(page)
+    await openCb(page, '#c-multi')
+    await page.keyboard.press('ArrowDown')
+    await page.waitForTimeout(WAIT)
+    expect(await cbGap(page, '#c-multi')).toBeLessThanOrEqual(1)
+    for (let k = 0; k < 5; k++) await page.keyboard.press('ArrowDown')
+    await page.waitForTimeout(WAIT)
+    expect(await cbGap(page, '#c-multi')).toBeLessThanOrEqual(1)
+  })
+
+  test('forma: RTL', async ({ page }) => {
+    await bench(page, { dir: 'rtl' })
+    await openCb(page, '#c-long')
+    await page.keyboard.press('ArrowDown')
+    await page.keyboard.press('ArrowDown')
+    await page.waitForTimeout(WAIT)
+    expect(await cbGap(page, '#c-long')).toBeLessThanOrEqual(1)
+  })
+
+  test('forma: hoja móvil', async ({ page }) => {
+    await bench(page, { viewport: { width: 400, height: 760 } })
+    await page.evaluate((s) => { const e = document.querySelector(s); e.scrollIntoView(); e.focus() }, cbInput('#c-long'))
+    await page.keyboard.press('Enter')
+    await page.keyboard.press('ArrowDown')
+    await page.waitForTimeout(WAIT)
+    expect(await page.evaluate(() => Boolean(document.querySelector('#c-long .g-combobox-surface--sheet')))).toBe(true)
+    expect(await cbGap(page, '#c-long')).toBeLessThanOrEqual(1)
+  })
+
+  test('sin salto: la fila no cambia de color, borde ni sombra al pasar a activa; ARIA intacta y la capa fuera del listbox', async ({ page }) => {
+    await bench(page)
+    await openCb(page, '#c-long')
+    await page.keyboard.press('ArrowDown')
+    await page.waitForTimeout(WAIT)
+    const look = () => page.evaluate((s) => {
+      const e = document.querySelectorAll(`${s} .g-combobox__option`)[1]
+      const c = getComputedStyle(e)
+      const t = getComputedStyle(e.querySelector('.g-summary__title') || e)
+      return [c.backgroundColor, c.borderTopColor, c.boxShadow, t.color].join('|')
+    }, '#c-long')
+    const off = await look()
+    await page.keyboard.press('ArrowDown')
+    await page.waitForTimeout(WAIT)
+    expect(await look()).toBe(off)
+    const a = await page.evaluate((s) => {
+      const i = document.querySelector(`${s} input[role="combobox"]`)
+      const P = document.querySelector(`${s} .g-combobox__panel`)
+      return { first: P.firstElementChild.className, hidden: P.firstElementChild.getAttribute('aria-hidden'), inList: Boolean(P.querySelector('[role="listbox"] .g-combobox__highlight')), active: P.querySelector(`[id="${i.getAttribute('aria-activedescendant')}"]`)?.classList.contains('is-active'), focus: document.activeElement === i }
+    }, '#c-long')
+    expect(a).toEqual({ first: 'g-combobox__highlight', hidden: 'true', inList: false, active: true, focus: true })
+  })
+
+  test('rendimiento: con la flecha mantenida, 0 tareas largas (--workers=1, #965)', async ({ page, browserName }, info) => {
+    test.skip(browserName !== 'chromium', 'longtask solo existe en Chromium')
+    test.skip(info.config.workers > 1, 'compuerta de rendimiento: con --workers=1 (#965)')
+    await bench(page)
+    await openCb(page, '#c-long')
+    const long = await page.evaluate(async (s) => {
+      const b = document.querySelector(`${s} input[role="combobox"]`)
+      const seen = []
+      const po = new PerformanceObserver((l) => seen.push(...l.getEntries().map((e) => Math.round(e.duration))))
+      po.observe({ type: 'longtask' })
+      for (let i = 0; i < 60; i++) {
+        b.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, repeat: true }))
+        await new Promise(requestAnimationFrame)
+        await new Promise(requestAnimationFrame)
+      }
+      po.disconnect()
+      return seen
+    }, '#c-long')
+    expect(long).toEqual([])
+  })
+
+  test.describe('movimiento reducido', () => {
+    test.use({ contextOptions: { reducedMotion: 'reduce' } })
+    test('sin viaje, con fundido', async ({ page }) => {
+      await bench(page)
+      await openCb(page, '#c-long')
+      const tp = await page.evaluate((s) => { const c = getComputedStyle(document.querySelector(`${s} .g-combobox__highlight`)); return [c.transitionProperty, c.transitionTimingFunction] }, '#c-long')
+      expect(tp).toEqual(['opacity', 'linear'])
+    })
+  })
+
+  test.describe('forced-colors', () => {
+    test.use({ contextOptions: { forcedColors: 'active' } })
+    test('sin capa; la activa con contorno tras usar el puntero', async ({ page, browserName }) => {
+      test.skip(browserName !== 'chromium', 'emulación de forced-colors solo verificada en Chromium')
+      await bench(page)
+      await openCb(page, '#c-long')
+      const rows = await cbRows(page, '#c-long')
+      await page.mouse.move(rows[2].x + 20, rows[2].y + 8)
+      await page.mouse.move(rows[2].x + 24, rows[2].y + 8)
+      await page.waitForTimeout(WAIT)
+      expect(await page.evaluate((s) => getComputedStyle(document.querySelector(`${s} .g-combobox__highlight`)).display, '#c-long')).toBe('none')
+      expect(await cbRing(page, '#c-long')).toBe('solid')
     })
   })
 })

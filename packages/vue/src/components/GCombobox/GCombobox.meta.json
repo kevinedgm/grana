@@ -56,7 +56,7 @@
     "value": "GSummary layout=inline size=xs dentro de g-combobox__token; con texto libre: title = el texto, subtitle = labels.custom, lápiz en lead",
     "preview": "GSummary layout=stack size=lg con key por opción; el mismo diff de la opción; sin highlight",
     "mapping": "label → title; description → subtitle solo sin facts (sigue alimentando ID-about); code, facts (priority, short, bare opcionales), avatar e icon tal cual; slot lead ({ option }) → slot lead de la ficha; value, disabled y campos de más no llegan",
-    "arrive": "el origen del viaje is-arriving es la .g-summary de la fila elegida (con slot option, la fila)"
+    "land": "la ficha entra en su sitio con is-landing, sin medida ni origen (#1018)"
   },
   "props": [
     {
@@ -469,7 +469,7 @@
     "g-combobox__ghost-typed",
     "g-combobox__ghost-rest",
     "g-combobox__token (contiene una g-summary--layout-inline)",
-    "is-arriving (+ --_travel-x, --_travel-y)",
+    "is-landing (__token y __row)",
     "g-combobox__about",
     "g-combobox__clear",
     "g-combobox__clear-text",
@@ -478,7 +478,8 @@
     "g-combobox__popup (+ --_x, --_top, --_bottom, --_w, --_max, --_field-h)",
     "g-combobox__popup-body",
     "is-empty",
-    "g-combobox__panel",
+    "g-combobox__panel (has-highlight, is-highlight-instant, is-keyed; por classList)",
+    "g-combobox__highlight (+ --_highlight-x, --_highlight-y, --_highlight-w, --_highlight-h)",
     "g-combobox__status",
     "g-combobox__status--{hint|loading|empty|error}",
     "g-combobox__list",
@@ -546,7 +547,6 @@
     "--g-duration-spin",
     "--g-ease-bounce",
     "--g-ease-out",
-    "--g-ease-spring",
     "--g-ease-standard",
     "--g-focus-offset",
     "--g-focus-width",
@@ -629,12 +629,12 @@
     "concepts": {
       "A": "La frase (selection=inline): g-combobox__sentence con Intl.ListFormat#formatToParts del lang del ancestro; elemento = code o label; cede por el final con labels.rest («y N más», cifra en __num), medida por lotes (lienzo calibrado con el ancho real pintado; ResizeObserver de la celda y de la frase, foco, apertura, lo elegido, lang y document.fonts.ready); grupo «Elegidas» como instantánea al abrir con el texto vacío (ids ID-opt-c{n}, tope 12 + «Ver las N», no se repiten en el catálogo)",
       "B": "La receta (selection=list): GInput N5 (slot interno below) → g-combobox__chosen > ul.g-combobox__rows; renglón con número, GSummary o slot chosen, «Nueva» en la pasada, «Quitar»; quitar deja rastro del mismo alto (--_row-h medido, #429) con el foco en «Deshacer»; pasada nueva al volver a escribir tras salir; tope 6 + «Ver los N» / «Ver menos»",
-      "C": "La cesta (appearance=palette): section.g-combobox__basket en el sitio de la vista previa (has-basket), renglones de B sin «Nueva», rastros hasta cerrar, tope 12, viaje is-arriving + --_travel-x/y desde la fila marcada; pie g-combobox__foot (último hijo de g-dialog__body) con recuento y «Listo» (GBtn del size)"
+      "C": "La cesta (appearance=palette): section.g-combobox__basket en el sitio de la vista previa (has-basket), renglones de B sin «Nueva», rastros hasta cerrar, tope 12, el renglón nuevo entra en su sitio con is-landing (#1018); pie g-combobox__foot (último hijo de g-dialog__body) con recuento y «Listo» (GBtn del size)"
     },
     "keyboard": "Intro alterna y la lista sigue con el texto seleccionado; Intro sobre una elegida activa sola no la quita (labels.already); con búsqueda pendiente nada; Tab nunca elige; salir descarta; Retroceso con el campo vacío en dos tiempos (is-armed; repeat no hace nada; otra tecla, puntero, salir, cerrar o un cambio del modelo desarman); Ctrl/⌘+Z de un nivel (caduca al escribir, con otro gesto o con un cambio de la aplicación; respeta max); Espacio escribe; IME sin teclas",
     "announcements": "added, removed, restored, clearedAll, restoredAll, armed, already, max: en el acto, uno por gesto (sustituye al recuento de resultados pendiente y a un anuncio anterior del mismo ciclo)",
     "submit": "Un <input type=hidden> por valor (name) y por texto libre (customName), en orden; sin elegidos, ninguno; form a todos; disabled no se envía, readonly sí",
-    "motion": "is-rolling (__num), is-ticking (__box), is-entering / is-leaving / is-arriving (renglón): solo tras un gesto; se retiran en animationend del prefijo (g-combobox-roll, -tick, -row-in/-row-out, -arrive) o en el acto sin animación calculada",
+    "motion": "is-rolling (__num), is-ticking (__box), is-entering / is-leaving / is-landing (renglón): solo tras un gesto; se retiran en animationend del prefijo (g-combobox-roll, -tick, -row-in/-row-out, -land) o en el acto sin animación calculada",
     "constants": "PIN_CAP 12 («Elegidas» y cesta), ROWS_CAP 6 (receta): constantes de diseño de JS (#425, #426)",
     "performance": "Compuerta #428 (tests/combobox-multiple-perf.spec.mjs, --workers=1, banco packages/vue/playground/combobox-multiple.html), mediana de tres aperturas, 2026-10-06: A «Elegidas» Chromium 36 · Firefox 58 · WebKit 69 ms; C la cesta Chromium 49 · Firefox 73 · WebKit 169 ms (umbral 150/150/200). En el playground completo la cesta mide 167/288/404 ms: el 57 % es showModal recalculando el estilo de miles de elementos de las demás secciones (cifra de la página, no del componente)",
     "audit": "Auditada por coco (paso 5, 2026-10-06): design/lab/combobox/auditoria-multiple.md, verificación propia node design/lab/combobox/auditoria-multiple-verificar.mjs 2656/2656 (Chromium 1398, Firefox 610, WebKit 628; temas por defecto, de auditoría y con primary propia, claro y oscuro; 28 configuraciones en Chromium; forced-colors emulado). Sin defectos bloqueantes; corregido el rastro con --_row-h en GCombobox.css (hallazgo 1). Compuertas con un worker: multiple WebKit A 71 · C 133 ms; Fase 1 «quinientas opciones» WebKit 97 a 120 ms",

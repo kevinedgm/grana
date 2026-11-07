@@ -76,7 +76,7 @@ describe('SSR · GCombobox multiple (combobox.md «Fase 2 · SSR y RTL»)', () =
     expect(html).not.toContain('g-combobox__sentence-rest')
     expect(html).toMatch(/id="m-about"[^>]*>3: I10 Hipertensión esencial, Ana Ruiz,? \S+ Gota \(texto libre\)</)
     expect(html).toContain('g-combobox--multiple g-combobox--selection-inline has-chosen')
-    expect(html).not.toMatch(/is-(rolling|ticking|entering|arriving)/)
+    expect(html).not.toMatch(/is-(rolling|ticking|entering|landing)/)
     expect(warn.mock.calls.filter((c) => String(c[0]).includes('[Grana GCombobox]'))).toEqual([])
   })
   it('la receta (B) se pinta en el servidor, dentro de g-input__support', async () => {
