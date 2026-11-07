@@ -1,6 +1,6 @@
 # Contrato · GDatePicker
 
-**Dueño:** lima · **Estado:** aprobado · **Basado en:** `design/lab/datepicker/r01/` (kiwi)
+**Dueño:** lima · **Estado:** aprobado · **Basado en:** `design/lab/datepicker/r01/` (kiwi) · **Enmienda r02** (`design/lab/datepicker/r02/`, e626f047; DECISIONS.md #1020 a #1029, 2026-11-07): un mes por defecto, salto a mes y año (A · Zoom de escala), compacto con `density` y la franja que sigue; ver §«Un mes por defecto y salto a mes y año (r02)», que **manda** donde choque con lo anterior
 **Tag:** `g-datepicker` (Vue lo resuelve como `GDatepicker`: el registro incluye ese alias además de `GDatePicker`) · **Categoría:** entradas
 
 Selector de **una fecha o de un rango de fechas** (patrón *date picker dialog* de WAI-ARIA APG). Un solo componente con dos formas: **con campo(s)** (un botón que abre la superficie en un popover, o en una hoja inferior en móvil) y **`inline`** (solo la superficie, para un Dialog o una página). Muestra uno o dos meses según el ancho disponible. Alcance decidido por el usuario (DECISIONS.md #63): un componente con campo + popover + superficie en línea, valor como cadena ISO `YYYY-MM-DD` y hoja inferior con un mes en móvil. **Distinto de `GCalendar`** (planificador de eventos).
@@ -30,7 +30,7 @@ Selector de **una fecha o de un rango de fechas** (patrón *date picker dialog* 
 | `minNights` | Number | entero ≥ 1 | sin valor | propia (solo `range`; #739) |
 | `maxNights` | Number | entero ≥ `minNights` | sin valor | propia (solo `range`; #739) |
 | `dayDescription` | Function | `(iso: string) => string` | sin valor | propia (§«Precio y otros datos del día», #778) |
-| `months` | String \| Number | `auto` `1` `2` | `auto` | propia |
+| `months` | String \| Number | `auto` `1` `2` | **`1`** (antes `auto`; #1021) | propia |
 | `locale` | String | etiqueta BCP 47 | la de `<html lang>` (o `navigator.language`) | propia |
 | `firstDay` | Number | 0 (domingo) a 6 | el del `locale` (`Intl.Locale`), si no, 1 | propia |
 | `labels` | Object | ver "Textos (`labels`)" | `{}` | propia |
@@ -41,7 +41,7 @@ Selector de **una fecha o de un rango de fechas** (patrón *date picker dialog* 
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | `brand` | compartida (color de la selección) |
 | `variant` | String | `outline` `soft` | `outline` | compartida (subconjunto, como `GInput`; solo el campo) |
 | `size` | String | `xs` `sm` `md` `lg` `xl` | `md` | compartida (solo el campo) |
-| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida (solo el campo) |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida (el campo **y la superficie**, también con `inline`; #1022) |
 | `rounded` | String | `none` `xs` `sm` `md` `lg` `xl` `pill` | sin valor: `sm` | compartida (solo el campo) |
 | `block` | Boolean | | `false` | compartida (solo el campo) |
 | `disabled` | Boolean | | `false` | compartida |
@@ -63,10 +63,10 @@ Selector de **una fecha o de un rango de fechas** (patrón *date picker dialog* 
 
 - **`modelValue`:** en `single`, `String` ISO o `null`. En `range`, `{ start, end }` con ambos ISO, o `null`. Un valor con formato inválido (o con `end` anterior a `start`, o un objeto en `single`) se trata como `null` y avisa **una vez** en desarrollo. El componente **no recorta** un valor fuera de `min`/`max`: lo muestra tal cual (la aplicación valida).
 - **`mode`:** cambiar `mode` con un valor del otro tipo lo trata como inválido (`null`).
-- **`inline`:** solo la superficie (sin campo, sin popover, sin `open`); ignora las props de campo (`label`, `hint`, `error`, `placeholder`, `required`, `name`, `split`, `size`, `density`, `rounded`, `block`, `variant`) y avisa en desarrollo una vez si se pasan. **Dentro de un `GDialog` se usa `inline`**: nunca se abre un popover ni otro Dialog.
+- **`inline`:** solo la superficie (sin campo, sin popover, sin `open`); ignora las props de campo (`label`, `hint`, `error`, `placeholder`, `required`, `name`, `split`, `size`, `rounded`, `block`, `variant`) y avisa (`density` **ya no** está en la lista: aprieta la superficie, #1022) en desarrollo una vez si se pasan. **Dentro de un `GDialog` se usa `inline`**: nunca se abre un popover ni otro Dialog.
 - **`open`:** controla el popover con `update:open`; sin `inline`. Abrir y cerrar por el usuario emite `update:open`, `open` y `close`.
 - **`min`, `max`, `disabledDates`:** un día fuera de `[min, max]` o para el que `disabledDates(iso)` devuelve `true` es **no disponible** (Disabled): no elegible, con `aria-disabled="true"`, y sigue en el orden de las flechas (no se salta). Un rango puede **contener** días no disponibles en medio; el componente no lo impide (la aplicación decide con `change`).
-- **`months`:** `auto` decide por la **medida real** (ver "Uno o dos meses"); `1` o `2` lo fijan.
+- **`months`:** sin valor es **`1`** (#1021); `auto` decide por la **medida real** (ver "Uno o dos meses"); `1` o `2` lo fijan.
 - **`locale`, `firstDay`:** los meses, los días, el orden y el formato salen de `Intl.DateTimeFormat(locale)`. `firstDay` sin valor sigue al idioma.
 - **`proximity`:** cada entrada `{ days, label, ariaLabel? }`: `days` entero ≥ 1 (cuántos días se agregan **a cada lado**), `label` el texto visible del chip («± 3 días»: la aplicación decide el texto), `ariaLabel` el nombre accesible (sin él, el nombre es `label`; si se da, **debe contener** el texto visible, WCAG 2.5.3). Vacío por defecto = sin chips. Con `mode="single"` se ignora. Los chips están **deshabilitados** sin rango completo. Ampliar respeta `min` y `max` (recorta al límite).
 - **`summary`:** muestra bajo la superficie las fechas elegidas **formateadas por `Intl`** («28 oct – 3 nov 2026»), sin palabras. Para agregar texto («7 días», «elige la fecha final»), la aplicación usa el slot `summary`.
@@ -93,12 +93,19 @@ Selector de **una fecha o de un rango de fechas** (patrón *date picker dialog* 
 | `clear`, `done` | Textos de «Limpiar» y «Listo». **Cada acción solo se renderiza si tiene texto** (como `clearLabel` en `GSelect`); `Listo` se necesita en la hoja móvil y con `proximity` | No |
 | `proximityGroup` | Nombre del grupo de chips | No (recomendado con `proximity`) |
 | `announceStart`, `announceEnd`, `announceDate`, `announceWiden`, `announceClear` | Mensajes de la región viva con marcadores `{date}`, `{start}`, `{end}`, `{days}` | No |
+| `chooseMonth`, `chooseYear` | Sufijo del nombre de los botones del título: «noviembre, elegir mes», «2026, elegir año» (r02, #1025) | **Sí** |
+| `prevYear`, `nextYear` | Nombre de las flechas en la vista de meses (año anterior / siguiente) | **Sí** |
+| `prevYears`, `nextYears` | Nombre de las flechas en la vista de años (doce años antes / después) | **Sí** |
+| `viewMonths`, `viewYears` | Nombre de la rejilla de meses («Meses de {year}») y de años («Años de {from} a {to}») y anuncio al cambiar de año o de página dentro de la vista | No (recomendados) |
+| `typeYear` | Pista visible de la vista de años («Escribe un año») | No |
+| `current`, `hasValue` | Sufijos del nombre de un mes o un año: «…, actual», «…, contiene lo elegido» | No (recomendados) |
 
 - **Marcadores:** `{date}`, `{start}`, `{end}` se sustituyen por la fecha completa («miércoles, 28 de octubre de 2026»); `{days}` por el número de días **inclusivos** del rango. Los textos son cadenas (serializables), no funciones.
 - Sin `announce*`, el componente **no anuncia** pasos (los nombres de los días y el resumen siguen ahí).
 
 ## Uno o dos meses
 
+- **Sin `months`, un mes** (#1021). Lo que sigue vale solo con `months="auto"`, que hay que escribir.
 - Con `months="auto"`: **dos** meses si el ancho disponible los deja con celdas cómodas, **uno** si no. El umbral **no es un número literal**: es `2 × (7 × celda + relleno) + separación + relleno de la superficie`, con la **celda medida** (`--g-space-1 × 10`, y `44px` con `pointer: coarse`). Con `space` 4 son ≈ 648px (≈ 704px táctil). El ancho disponible es el del contenedor (en línea); en el popover, **el del visor menos el margen**, o el del ancla **solo si se da `anchor`** (una barra de búsqueda); en la hoja móvil, el del visor menos el margen.
 - Se recalcula al redimensionar (observador de tamaño); **cambiar el número de meses no pierde el foco ni la selección**.
 - Es preferible **un mes bien resuelto** a dos comprimidos: la celda **nunca** baja de `24px` (mínimo del contrato) y con puntero táctil de `44px`.
@@ -222,7 +229,9 @@ Selector de **una fecha o de un rango de fechas** (patrón *date picker dialog* 
 | Re Pág / Av Pág | Mes anterior / siguiente (mismo día, o el último si no existe) |
 | Mayús + Re Pág / Av Pág | Año anterior / siguiente |
 | Enter / Espacio | Elige el día con foco |
-| Esc | Cierra el popover y devuelve el foco al campo; descarta un inicio pendiente |
+| Esc | Cierra el popover y devuelve el foco al campo; descarta un inicio pendiente. **En la vista de meses o de años, antes sube un nivel** (r02, §«Teclado de las vistas») |
+
+Teclado de los botones del título y de las rejillas de meses y años: §«Un mes por defecto y salto a mes y año (r02)», «Teclado de las vistas».
 
 Si la fecha con foco sale de los meses visibles, **se desplazan los meses** para mostrarla, sin perder el foco. Los días no disponibles **reciben foco** (no se saltan) pero no se eligen.
 
@@ -298,12 +307,15 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `g-datepicker--day-content` | Raíz | Con el slot `day` (#778) |
 | `is-day-content-hidden` | Raíz | Con el slot `day`, cuando su contenido no cabe en alguna celda (#952) |
 | `g-datepicker__day-readout` | Lectura del día bajo la cuadrícula (`aria-hidden`) | Con el slot `day`; visible solo con `is-day-content-hidden` (#952) |
+| Clases de la r02 (vistas, título, rejillas de meses y años, franja que sigue) | | §«Un mes por defecto y salto a mes y año (r02)», «Clases nuevas» |
 
 ## Movimiento (`tokens.md` §29.9, #1002)
 
 **Panel anclado** en escritorio y **hoja móvil** por debajo de 520 px, sin cambios sobre lo que hay. El fundido de salida solo existe donde hay `overlay` (D2 · A); con `inline` no hay panel.
 
-**Recorrer los días** es una rejilla: una marca por elemento y **salida instantánea** (`api.md` «Una sola luz», regla 9). Hoy la celda que sale se funde en `fast` y puede haber dos encendidas. **Coco:** la transición de `background-color` deja la regla base de `.g-datepicker__day` y pasa a los estados que **llegan** (hover y elegido): al entrar funde `--g-duration-fast`, al salir se apaga en el acto. Se verifica barriendo la rejilla: como máximo un día con fondo de hover por cuadro.
+**Recorrer los días** es una rejilla: una marca por elemento y **salida instantánea** (`api.md` «Una sola luz», regla 9). Hoy la celda que sale se funde en `fast` y puede haber dos encendidas. **Coco:** la transición de `background-color` deja la regla base de `.g-datepicker__day` y pasa a los estados que **llegan** (hover y elegido): al entrar funde `--g-duration-fast`, al salir se apaga en el acto. Se verifica barriendo la rejilla: como máximo un día con fondo de hover por cuadro. **Lo mismo en las rejillas de meses y años** (r02).
+
+**Cambiar de nivel** (días · meses · años) es un momento de control nuevo de la tabla, `cambiarNivel` (#1023): §«Un mes por defecto y salto a mes y año (r02)», «Movimiento del cambio de nivel».
 
 ## Resolución de hallazgos de r01
 
@@ -326,7 +338,8 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 
 ## Límites conocidos
 
-- **Sin escritura manual** de fechas, sin selección múltiple (varias fechas sueltas), sin hora, sin vista de años ni de meses.
+- **Sin escritura manual** de fechas (en la vista de años sí se escribe el año, r02), sin selección múltiple (varias fechas sueltas), sin hora. ~~Sin vista de años ni de meses~~: la r02 las añade (#1020); la frase se retira de este límite **cuando bruno lo construya** y la verifique (L7).
+- **Meses y años no ven `disabledDates`** (r02): un mes con todos sus días deshabilitados por la función sigue siendo elegible en la vista de meses (solo `min` y `max` deshabilitan meses y años).
 - **Sin textos por defecto:** una aplicación que no pasa `labels` obtiene botones sin nombre (`prev`, `next`) y avisos en desarrollo, y días sin sufijos.
 - **`Intl.Locale.weekInfo`** no está en todos los navegadores: sin él, `firstDay` es 1 (lunes) salvo que se dé.
 - **Popover cierra al salir el foco:** no atrapa el foco (un diálogo modal sí lo haría); en la hoja móvil el fondo lo tapa y el clic fuera cierra.
@@ -428,3 +441,234 @@ El día elegido (fecha única, inicio y fin; `is-selected`) conserva el círculo
 ## Texto con puntero grueso (DECISIONS.md #970 a #972)
 
 Regla común en `docs/contract/api.md` «Texto editable con puntero grueso» y mínimo en `tokens.md` §7: con `@media (pointer: coarse)`, `font-size: max(16px, <rol>)`; interlineado del rol con piso `--g-text-body-sm-line`; altura sin cambio; en escritorio, sin cambio. Aquí (grupo B, coherencia de fila: los campos son botones y no amplían): el texto de `__field` y `output` suben; el calendario del panel se queda en su rol.
+
+## Un mes por defecto y salto a mes y año (r02; DECISIONS.md #1020 a #1029, 2026-11-07)
+
+**Origen:** pedido del usuario («La versión que sale es de 2 calendarios, de 2 meses. Tenemos que tener un date picker de 1 mes, y además una versión más compacta, no tan grande, con poder seleccionar un año diferente o un mes diferente») y ronda r02 de kiwi (`design/lab/datepicker/r02/`, e626f047; `verificar.mjs` 384/384 en tres motores sobre el prototipo, no sobre el componente). **Decisiones del usuario (2026-11-07):** (1) concepto **A · Zoom de escala**, con las cifras del año dentro de la rejilla de años y la «franja que sigue» en rango; sobre el movimiento: «cuidado con las animaciones y transiciones, deben ser sutiles y suaves, no bruscas»; (2) **`months` vale `1` por defecto** en `single` y en `range`; (3) **lo compacto se activa con `density="compact"`**: la superficie sigue `density`, sin prop nueva; (4) **el salto a mes y año va en todos los tamaños**. Lo que no deriva de estas cuatro respuestas deriva de APG (*date picker dialog*, *grid*), WCAG 2.2 AA y contratos vigentes (#358, #792, #975, #977, #1002, #1019).
+
+**Estado:** contratado; pendiente de **coco** (CSS) y **bruno** (`.vue`, pruebas, `meta.json`, `GBookingBar`); después auditoría de coco y README de mora-docs. B y C de la ronda quedan **reservados** (#1020).
+
+### 1. Un mes por defecto (#1021)
+
+- `months` sin valor = **`1`**, en `single` y en `range`. `auto` (la medida de §«Uno o dos meses») y `2` siguen y hay que escribirlos.
+- **Consumidores internos** (bruno; Δ 0 donde la forma de dos meses se eligió a propósito):
+
+| Consumidor | Hoy | Desde r02 |
+| --- | --- | --- |
+| `GBookingBar`: hueco de la frase (`GBookingBar.vue` ~495), campos `split` de estancia (~583) y campo de fecha (~590) | `auto` por defecto | **`months="auto"` explícito** (enmienda en `booking-bar.md`, #1021): la reserva sigue viendo dos meses donde caben |
+| `GBookingBar`, hoja (`inline`, ~618 y ~619) | `:months="1"` | Sin cambio |
+| `GbAvailability01` (`AvailabilityCalendar.js`) | `months: 'auto'` | Sin cambio |
+| Campos de fecha de `@grana/blocks` (`common/fields.js`, `GbGuestForm/GuestForm.js`: Guest form y Checkout) | `auto` por defecto | **Pasan a un mes a propósito** (fecha de un formulario: es el caso del pedido); sin cambio de código. Si alguna prueba o banco contaba dos meses, se actualiza |
+| Playground (`#sec-datepicker`) y bancos | Varios | bruno revisa: donde una sección enseñe dos meses a propósito, `months="auto"` |
+
+- **`CHANGELOG.md`** (lo escribe bruno en «Sin publicar › Cambiado», texto de contrato): «**`GDatePicker`: un mes por defecto (#1021).** `months` pasa de `auto` a `1` en `single` y en `range`: el selector ya no abre dos meses en escritorio salvo que se pida. Para recuperar lo de antes, `months="auto"` (dos meses si caben) o `months="2"`. `GBookingBar` fija `months="auto"` y no cambia. Además: salto a mes y año desde el título en todos los tamaños (#1020) y superficie compacta con `density="compact"` (#1022).»
+
+### 2. Vistas: días, meses y años (A · Zoom de escala; #1020, #1024)
+
+La superficie tiene una **vista** interna: `days` (la de siempre), `months` o `years`. **No es prop ni evento** (reservado: `view`/`update:view` si un caso lo pide). Al montar y **cada vez que se abre** el popover, la vista es `days`.
+
+**El escenario.** La caja que ocupan las rejillas de días (encabezado de columnas + 6 filas) es **`g-datepicker__stage`**. Las rejillas de meses y de años la **ocupan entera** (3 columnas × 4 filas que se estiran a su ancho y su alto): **el panel no cambia de tamaño al cambiar de vista (Δ 0, #358)** y no se recalcula su posición. Con dos meses (`auto` o `2`), la vista de meses o de años ocupa **la caja de los dos meses** con **una sola cabecera**; al elegir un mes, vuelve a la columna desde cuyo título se abrió (abierto desde el segundo, el elegido queda segundo).
+
+**Cabecera por vista** (mismo alto en las tres; las flechas conservan su hueco):
+
+| Vista | Inicio | Título (`h3.g-datepicker__title`) | Fin |
+| --- | --- | --- | --- |
+| `days` | Mes anterior (`labels.prev`) | **Dos botones**: `g-datepicker__title-part--month` («noviembre» + `chevron-down`) y `g-datepicker__title-part--year` («2026» + `chevron-down`) | Mes siguiente (`labels.next`) |
+| `months` | Año anterior (`labels.prevYear`) | Un botón: el año (`--year`), que abre los años | Año siguiente (`labels.nextYear`) |
+| `years` | Doce años antes (`labels.prevYears`) | Texto, sin botón: el tramo con `Intl.DateTimeFormat(locale, { year: 'numeric' }).formatRange` («2022–2033») | Doce años después (`labels.nextYears`) |
+
+- **Nombre de los botones del título:** texto visible + «, » + `labels.chooseMonth` / `labels.chooseYear` («noviembre, elegir mes»): contiene el texto visible (WCAG 2.5.3). Sin `aria-expanded` ni `aria-haspopup`: no abren un panel, cambian la vista en su sitio y llevan el foco dentro.
+- **El `h3` deja de ser región viva** (una región viva con botones dentro lee mal y repetiría «elegir mes»). El cambio de mes se anuncia en un nodo oculto nuevo, **`g-datepicker__title-live`** (`g-datepicker__sr`, `aria-live="polite"`, dentro de la cabecera), con «noviembre 2026» (`Intl`, `month: 'long', year: 'numeric'`). La rejilla de días pasa a nombrarse con `aria-labelledby` a ese nodo (antes, al `h3`). Sustituye a lo que dice §«Estructura accesible» sobre el título vivo; el espacio entre mes y año (r01) se conserva.
+- **Celdas de meses y de años:** `<td role="gridcell">` con un `<button type="button" class="g-datepicker__pick">` dentro (como los días). Texto visible: mes corto de `Intl` (`month: 'short'`) o el año (`year: 'numeric'`). Nombre (`aria-label`): mes y año largos de `Intl` («noviembre de 2026») o el año, más sufijos en este orden: `labels.current`; `labels.selected` o `labels.hasValue`; `labels.unavailable`. Solo un `tabindex="0"` por rejilla (§«Teclado de las vistas»).
+- **Rejillas:** `<table class="g-datepicker__grid g-datepicker__grid--months|--years" role="grid">` sin `thead`, nombradas con `aria-label` = `labels.viewMonths` (`{year}`) o `labels.viewYears` (`{from}`, `{to}`) rellenado; sin esas claves, el año o el tramo solos. La de años lleva `aria-describedby` a su pista (§4).
+- **Página de años:** 12 años; al abrir la vista, la página empieza en **año mostrado − 4** (el año queda en la segunda fila, centro), como en el prototipo. Las flechas y RePág/AvPág la mueven de 12 en 12.
+
+**Marcas** (mismo lenguaje que los días; ninguna solo por color, WCAG 1.4.1):
+
+| Clase (en `__pick`) | Cuándo | Forma | `aria-selected` de la celda |
+| --- | --- | --- | --- |
+| `is-current` | El mes o el año de hoy | Aro (como «hoy») | — |
+| `is-selected` | `single`: el mes (del año a la vista) o el año que contiene el valor | Relleno `{color}` con trazo `{color}-text` (§«Contraste del día elegido») | `true` |
+| `is-in-value` | `range`: los meses o años que tocan el rango, **incluido el inicio pendiente** | Punto (`GLibIcon` `circle` relleno o forma de coco; nunca un carácter, #85) | `false` |
+| `is-disabled` | Mes o año **entero** fuera de `[min, max]` (§3) | Tachado, como el día | — |
+
+**Elegir no cambia el valor:** las vistas solo navegan. Elegir un año baja a sus meses (foco en el mismo mes); elegir un mes baja a sus días: ese mes queda a la vista y el foco va al **mismo número de día** que tenía la parada de Tab, recortado al último del mes (31 → 28). Al volver a `days` con otro primer mes visible se emite **`navigate`** (mismo payload `{ month }`); recorrer meses o años sin bajar no emite.
+
+**Botón del título → vista:** el foco va dentro de la rejilla nueva, a la celda del mes o del año mostrado (también con puntero: el foco se mueve porque cambia lo que hay en la caja; WCAG 2.4.3).
+
+**Hoja móvil:** el deslizamiento horizontal hace en cada vista lo mismo que sus flechas (mes, año, página de 12).
+
+**`readonly` / `disabled`:** con `readonly` (en `inline`) se navega por las tres vistas; con `disabled`, los botones del título y las flechas de todas las vistas llevan `disabled` (con el defecto B-L6 resuelto).
+
+### 3. `min` y `max` en meses y años (#1026)
+
+- Un **mes** es no disponible si su último día es anterior a `min` o su primer día posterior a `max`; un **año**, igual con el 31 de diciembre y el 1 de enero. **`disabledDates` y `disabledNights` no cuentan** (serían hasta 366 llamadas por año para pintar 12 celdas; límite documentado).
+- No disponibles: `is-disabled`, `aria-disabled="true"`, sufijo `labels.unavailable`, **reciben foco** (no se saltan) y **no se eligen** (Intro, Espacio y clic no hacen nada).
+- **Bordes:** no se pasa a un año (vista de meses) ni a una página (vista de años) **entera** fuera de `[min, max]`: la flecha correspondiente lleva `aria-disabled="true"` (conserva el foco si lo tenía; no `disabled`) y no hace nada; las flechas del teclado se paran en la última celda alcanzable. Sin `min`/`max`, los años van de 1 a 9999 (ISO).
+
+### 4. Teclado de las vistas (#1024)
+
+**Un tabstop por rejilla** (APG *grid*). En `days`, el orden de Tab es el del documento: flecha, mes, año, flecha, rejilla, pie.
+
+| Tecla | Meses | Años |
+| --- | --- | --- |
+| ← / → | Mes anterior / siguiente; **cruza de año** (la vista pasa al año vecino). Invierten en RTL | Año ± 1; al salir de la página, la página ± 12 |
+| ↑ / ↓ | ± 3 meses (cruza de año) | ± 3 años |
+| Inicio / Fin | Primero / último de la fila | Primero / último de la fila |
+| Ctrl + Inicio / Fin | Enero / diciembre | Primero / último de la página |
+| Re Pág / Av Pág | Año anterior / siguiente (mismo mes) | Página anterior / siguiente (± 12) |
+| Intro / Espacio | Baja a los días de ese mes | Baja a los meses de ese año |
+| Cifras (0–9 y cualquier `\p{Nd}`) | — | Escriben el año (§5) |
+| Retroceso | — | Borra la última cifra escrita |
+| Esc | Sube: vuelve a la vista anterior **sin elegir**, foco en el botón del título que abrió el nivel | Primero vacía las cifras escritas; si no hay, sube como en meses |
+
+- **Esc sube un nivel antes de cerrar** (APG: cierra lo de arriba primero): años → vista de la que se vino → … → `days` → (popover u hoja) cerrar. La pila es la de los gestos: desde `days` con el botón del año, Esc vuelve a `days`. **Cuando el componente consume Esc** (cifras, vista distinta de `days`, o cierre de su popover) hace `preventDefault()` y `stopPropagation()`: un `inline` dentro de un `GDialog` no cierra el diálogo al subir de nivel.
+- **Volver con Esc no navega:** el mes visible en `days` es el de antes de abrir la vista, aunque se hayan recorrido otros años.
+- Tab desde la rejilla sale al siguiente control; sin trampa de foco (el popover sigue cerrándose al salir el foco, §«Cierre y foco»).
+
+### 5. Escribir el año (#1024)
+
+- Solo con el foco en la rejilla de años. Cada cifra (`\p{Nd}`, convertida a su valor) se añade a un búfer de **hasta 4 cifras**; con **4**, el foco salta a ese año (la página se recoloca con el año − 4 al principio), **recortado** a `[min, max]` y a 1–9999. El nombre de la celda enfocada dice dónde se llegó; no hay anuncio aparte.
+- **Constante de JS `YEAR_TYPE_MS = 1500`** (no es token, §29.6 como `HOVER_MS`): sin cifra nueva en ese tiempo, el búfer se vacía sin moverse.
+- **A la vista:** bajo la rejilla, dentro del escenario (sin alto propio: no cambia el panel), `g-datepicker__years-hint` con `labels.typeYear` (si existe) y `g-datepicker__typed` (`aria-hidden="true"`) con **cuatro** `g-datepicker__typed-digit`: las escritas llevan la cifra y las vacías van vacías y las dibuja coco (sin caracteres de relleno como «·»). La rejilla de años apunta a la pista con `aria-describedby`. Sin `typeYear`, la pista no se pinta y escribir sigue funcionando.
+- Fuera de la vista de años, una cifra no hace nada nuevo (C «empezar a escribir desde los días» queda reservada, #1020).
+
+### 6. Anuncios (#1024; sin región viva nueva, #792)
+
+| Momento | Quién lo dice |
+| --- | --- |
+| Cambia el mes en `days` | `g-datepicker__title-live` (polite) |
+| Se entra en meses o años | **El foco**: nombre de la rejilla + nombre de la celda. Sin anuncio en la región `status` (no se dice dos veces) |
+| Cambia el año dentro de meses o la página dentro de años (flechas de cabecera, RePág/AvPág, flechas que cruzan) | La región `status` existente (`g-datepicker__sr`) con `labels.viewMonths` / `labels.viewYears`; sin esas claves, nada (el nombre de la celda enfocada sigue diciendo el año) |
+
+### 7. La franja que sigue (#1027)
+
+- Si el rango (o la vista previa de un rango pendiente) **continúa fuera de lo que se ve**, su extremo en el borde visible **no se redondea**: la celda lleva **`is-open-end`** (en la última celda pintada) o **`is-open-start`** (en la primera) **en lugar de** `is-cap-end` / `is-cap-start`, y coco la abre hasta el borde y la desvanece (con forma: sin extremo redondo; WCAG 1.4.1). Los extremos que caen en un salto de semana dentro de lo visible siguen como hoy.
+- **Borde visible:** en un mes, la primera y la última celda **pintadas** de la rejilla (incluidas las de fuera del mes, que en un mes se ven y son elegibles); en dos meses, el primer día del primer mes y el último del segundo (el corte entre los dos meses sigue redondeado, como hoy). Kiwi la proponía solo con un mes; se extiende a los extremos de dos meses porque el motivo es el mismo.
+- No cambia nombres ni `aria-selected`: los días dentro siguen diciendo «dentro del rango» y el resumen dice las dos fechas.
+- `forced-colors`: conserva borde superior e inferior, como la franja; el desvanecido puede perderse (el extremo sin redondear sigue).
+
+### 8. Densidad: la superficie compacta (#1022)
+
+- **`density` aprieta también la superficie** (la prop es la región del componente, #975; el popover en su sitio sigue la región de su disparador, #977): con la prop, con una región de la aplicación o con `<html data-g-density>`. **También con `inline`**. Sin prop nueva. Consecuencia aceptada: en una región `compact`, el calendario también se compacta.
+- **Mecanismo:** la superficie mide con el alias de densidad de la raíz (`--_density`). Cuando se construya `density.md` (hoy ninguna hoja lee `var(--g-density)` y `defaults.css` no lo declara), ese alias pasa a `var(--g-density)`; mientras tanto lo dan las clases `g-datepicker--density-*` de la raíz, y el panel, que va dentro de la raíz, lo hereda. El contrato es el mismo en los dos casos.
+
+| Medida | Fórmula (`d` = densidad: 1 · 0,875 · 0,75) | Tema por defecto (`space` 4), `compact` |
+| --- | --- | --- |
+| Celda (día, mes, año) | `max(24px, space × 10 × d)` (redondeo a 0,5 px de #682 a criterio de coco); **44px con `pointer: coarse`** | 30 px |
+| Flechas y botones del título (alto) | `max(24px, space × 8 × d)`; 44px táctil | 24 px |
+| Relleno de la superficie | `space × 5 · 6 · 4` (arriba · lados · abajo) `× d` | 15 · 18 · 12 px |
+| Separación bajo la cabecera | `space × 2 × d` | 6 px |
+| Separación entre dos meses | `space × 10 × d` | 30 px |
+| Chips y acciones del pie (alto) | `max(24px, space × 8 × d)`; 44px táctil | 24 px |
+| Título | Baja **un escalón** en `compact`: `body` → `body-sm` (#966, piso 12 px) | `body-sm` |
+| Días, meses y años | `body-sm` en todas (≥ 12 px) | `body-sm` |
+| Encabezado de columnas | `caption` (12 px, ya en el piso) | `caption` |
+
+- `comfortable` usa las mismas fórmulas con 0,875. Ancho de un mes compacto ≈ 7 × 30 + 2 × 18 = 246 px frente a ≈ 328 px en `default` (kiwi midió 236 px con relleno `space × 3`; con la fórmula común son 10 px más, a cambio de no tener un número propio).
+- El umbral de `months="auto"` usa la **celda medida**: en compacto caben dos meses antes.
+- **Puntero grueso:** la celda es de 44 px siempre (D3 de `density.md`); las regiones ceden a 1 (P2, #978) y la prop explícita no.
+- **Hoja a 320 px (hallazgo de kiwi):** hoy el relleno lateral de la superficie en la hoja es `space × 4` y 7 × 44 + 2 × 16 = 340 > 320. **Regla:** en la hoja (≤ 520 px) el relleno lateral de la superficie es **`min(space × 4, (ancho de la hoja − 7 × 44px − bordes) / 2)`**, que las funciones matemáticas recortan a 0 si fuera negativo; con 320 px quedan ≈ 6 px por lado y nada desborda. Literal permitido: `44px`. coco lo escribe (con `100%` del bloque contenedor o la unidad que mida bien en los tres motores) y lo mide a 320 y 375 px con puntero grueso emulado.
+
+### 9. Movimiento del cambio de nivel (#1023; `tokens.md` §29.9, `motion.json` `moments.cambiarNivel`)
+
+**Palabras del usuario:** «cuidado con las animaciones y transiciones, deben ser sutiles y suaves, no bruscas». **La escala de kiwi se reduce:** el prototipo iba de `scale(0.25)` a 1 al bajar y de `scale(2.4)` a 1 al subir (un 75 % y un 140 % del tamaño: brusco y lejos de «sutil»); el contrato la deja en **≈ 3 %**.
+
+| | Regla |
+| --- | --- |
+| **Bajar** (año → meses, mes → días: acercarse) | La vista nueva entra con **fundido** de 0 a 1 y **escala de `--g-press-scale` a 1** (0,97 con el tema por defecto), con origen en la **celda elegida** |
+| **Subir** (días → meses o años, meses → años: alejarse) | Fundido de 0 a 1 y escala de **`calc(2 - var(--g-press-scale))` a 1** (1,03), con origen en la **celda de la que se viene** en la rejilla nueva (el mes o el año mostrado) |
+| **Duración y curva** | **`--g-duration-press` + `--g-ease-out`** (la de entrada de la tabla). **Sin rebote:** ni `--g-ease-spring` ni `--g-ease-bounce`; sin retardos ni escalonado de celdas |
+| **Salida** | **Instantánea:** la vista anterior se retira en el acto. Nunca hay dos vistas a la vez (ni fundido cruzado ni dos rejillas con foco) |
+| **Tamaño** | **Δ 0:** el escenario y el panel no cambian de tamaño ni de sitio. Sin recorte: el 3 % de más al subir (≈ 4 px por lado en una rejilla de 280 px) cabe en el relleno de la superficie también en compacto (12 px), así que no hace falta `overflow` y los anillos de foco de las celdas del borde no se cortan |
+| **Interrumpible** | Un cambio de vista durante otro retira la vista en curso y la nueva **empieza desde su estado inicial**; el foco y el teclado nunca esperan a la animación (no se bloquea nada «mientras dura») |
+| **Qué no se anima** | Cambiar de mes en `days` (flechas, RePág), de año en meses o de página en años: **sin movimiento**, como hoy. La franja que sigue es estática. Abrir el popover con la vista `days` no lleva zoom (solo la entrada de panel anclado) |
+| **Reducido** | **Solo fundido `--g-duration-fast` + `linear`, sin escala** (patrón único, `tokens.md` §29.3, #1019) |
+
+**Cómo (bruno + coco):** la vista nueva es un elemento nuevo (`:key` por vista), así que su animación CSS empieza al montarse y una interrupción la reinicia sola; sin WAAPI ni temporizadores. La raíz de la vista, **`g-datepicker__view`**, lleva `data-zoom="in"` (bajar) u `data-zoom="out"` (subir) **solo** cuando nace de un cambio de nivel (no al abrir ni al montar), y el origen en **`--_zoom-x` / `--_zoom-y` escritos en ese mismo elemento** (regla de #964), en **porcentaje calculado por índice** de la celda en la rejilla de 3 × 4 (`(col + 0,5) / 3`, `(fila + 0,5) / 4`) o, al bajar a los días, por la posición de la celda del mes en la rejilla que se va (mismo escenario, mismas proporciones): **sin leer cajas** (lección de bd888df). Las `@keyframes` (`g-datepicker-zoom-in`, `g-datepicker-zoom-out`) son de coco; solo `transform` y `opacity`.
+
+**Rúbrica de movimiento** (`docs/documentacion/rubrica-movimiento.md`; al contratar, sin componente que medir):
+
+| Dimensión | Estado | Evidencia | Riesgo | Recomendación |
+| --- | --- | --- | --- | --- |
+| A · Propósito | Cumple (por contrato) | El origen en la celda dice de dónde vienes y a dónde bajas en la jerarquía día · mes · año; no es decorativo. Saltar es poco frecuente (no se repite en cada pulsación) | Bajo | coco mide que el origen cae en la celda correcta en LTR y RTL |
+| B · Comodidad visual | Cumple (por contrato) | Escala ≈ 3 %, sin desenfoque ni sombra que cambie; brillo constante | Bajo | — |
+| C · Estabilidad | Cumple (por contrato) | Δ 0 del panel; la cabecera, el pie y el campo quedan quietos (referencia estacionaria); nada pasa del relleno | Bajo | Verificar Δ 0 de la caja del panel y de la cabecera durante el zoom |
+| D · Transiciones | Cumple (por contrato) | 160 ms, interrumpible por un elemento nuevo, sin estado temporal que limpiar | Bajo | Prueba de interrupción: dos cambios en < 160 ms terminan en la vista correcta con el foco en su celda |
+| E · Control | Cumple | Solo cambia de nivel quien pulsa; Esc sube sin elegir | Bajo | — |
+| F · Accesibilidad | Cumple (por contrato) | El nivel lo dicen el foco, el nombre de la rejilla y el título; reducido = fundido | Bajo | Verificar `prefers-reduced-motion` en tres motores |
+| G · Rendimiento | Cumple (por contrato) | Solo `transform` y `opacity` sobre 12 o 42 celdas; sin lecturas de caja | Bajo | Prueba con props en línea: ninguna medida por render del padre |
+| H · Inmersión | N/A | — | — | — |
+
+**Resumen:** el zoom de kiwi se conserva como idea (bajar acerca, subir aleja, con origen en la pieza) pero con la amplitud de la pulsación de `GBtn` y del diálogo, la duración de entrada de la tabla y sin rebote. **Límite:** sin lector de pantalla ni dispositivo real, «sutil» se valida con la auditoría de coco a ojo y por medida.
+
+### 10. Clases nuevas (contrato bruno ↔ coco)
+
+| Clase | Elemento | Cuándo |
+| --- | --- | --- |
+| `g-datepicker__stage` | Caja de las rejillas (días, meses o años) | Siempre |
+| `g-datepicker__view`, `g-datepicker__view--days\|--months\|--years`, `data-zoom="in\|out"`, `--_zoom-x`, `--_zoom-y` | Raíz de la vista dentro del escenario | Siempre; `data-zoom` y el origen solo al nacer de un cambio de nivel |
+| `g-datepicker__title-part`, `__title-part--month`, `__title-part--year` | Botones del título | `days` (los dos) y `months` (el año) |
+| `g-datepicker__title-live` | Nodo oculto vivo con «mes año» que nombra la rejilla de días | Con la vista `days` |
+| `g-datepicker__nav--year`, `__nav--years` | Flechas de la cabecera en meses (± 1 año) y en años (± 12) | Según la vista; sin una clase de estado nueva: `aria-disabled` en el borde |
+| `g-datepicker__grid--months`, `__grid--years` | Rejillas de meses y de años (además de `g-datepicker__grid`) | Según la vista |
+| `g-datepicker__pick` + `is-current`, `is-selected`, `is-in-value`, `is-disabled` | Botón de mes o de año | Según estado |
+| `g-datepicker__years-hint`, `__typed`, `__typed-digit` | Pista de la vista de años y búfer de cifras (`aria-hidden`) | Vista de años |
+| `is-open-start`, `is-open-end` | Celda `td` de día (franja) | §7; en lugar de `is-cap-*` en el borde visible |
+| `g-datepicker--density-{d}` | Raíz | Ya existía; desde r02 también aprieta la superficie |
+
+### 11. Eventos, slots y tokens
+
+- **Eventos:** ninguno nuevo. `navigate` también al bajar a `days` con otro primer mes (§2).
+- **Slots:** ninguno nuevo. El slot `day` no aplica a meses ni años; la lectura del día (#952) solo mide en `days`.
+- **Tokens nuevos: ninguno.** Consume además `--g-press-scale` (escala del zoom), `--g-duration-press`, `--g-duration-fast`, `--g-ease-out` y los mismos colores de los días para las marcas de meses y años. El desvanecido de la franja usa la franja (`{color}-soft`) hacia transparente: transparencia, no color de tema (coco decide si con degradado o con máscara).
+
+### 12. Avisos de desarrollo (guarda canónica de #653, en el sitio de cada texto)
+
+- **`labels` incompleto:** al aviso de claves requeridas que falten (una vez por instancia) se añaden **`chooseMonth`, `chooseYear`, `prevYear`, `nextYear`, `prevYears`, `nextYears`**: el salto existe en todos los tamaños, así que se piden siempre (con o sin `inline`). Un solo aviso con todas las que falten.
+- Ninguno más: `months` con un valor fuera de `auto`/`1`/`2` sigue con su aviso de siempre (si lo tiene), y `density` en `inline` **deja de avisar**.
+- **Consumidores internos que deben ganar las claves:** los textos de `GDatePicker` de `@grana/blocks` (`bank/booking.js` `datePicker`, y los `L.datePicker` de `common/fields.js` y `GbGuestForm`), el playground y los bancos; `GBookingBar` las pasa tal cual (`labels.datePicker`, #761), sin cambio de contrato.
+
+### 13. `meta.json` (bruno; contrato de tipos, #443)
+
+- `months`: `"default": 1` (Number; antes `"auto"`), `values` sin cambio (`"auto"`, `1`, `2`), nota «#1021: un mes por defecto; `auto` mide y pone dos si caben».
+- `density`: nota nueva «El campo y la superficie, también con `inline` (#1022); sin valor: la región (density.md §1)». Tipo y valores sin cambio.
+- `labels`: la descripción lista las claves nuevas (`chooseMonth`, `chooseYear`, `prevYear`, `nextYear`, `prevYears`, `nextYears` requeridas; `viewMonths` `{year}`, `viewYears` `{from}` `{to}`, `typeYear`, `current`, `hasValue`). Si el `.d.ts` de `labels` enumera claves, añadirlas (opcionales en el tipo; el aviso es de desarrollo).
+- `events`: `navigate` con la nota «también al bajar desde la vista de meses».
+- `contract`: sin cambio; añadir `"prototype"`: `design/lab/datepicker/r02/` a lo que haya (o lista). `status` vuelve a **`draft`** mientras se construye la r02 y a `candidate` tras la auditoría de coco.
+
+### 14. Peso (#1028)
+
+Ampliación de un componente que ya está en el principal (no es un componente nuevo: no abre #506 ni #550 y no puede salir a una entrada), con **lote propio** medido por bruno con `gzip -9`, copia aislada, antes y después, anotado en `CHANGELOG.md`:
+
+- **`dist/grana.js` ≤ +2048 B (2 KiB)** gzip: dos rejillas, su teclado, el búfer del año, los marcadores, las clases de la franja y los avisos.
+- **`dist/grana.css` ≤ +1024 B (1 KiB)** gzip: vistas, partes del título, marcas, franja que sigue, densidad de la superficie, regla de la hoja a 320 y las dos `@keyframes`.
+- Se registra también lo que pesa importar **solo** `GDatePicker`.
+- Con más, **vuelve a lima y decide el usuario**; el tope no se sube (regla de #963 y #964). No cuenta en los lotes de #1009, #1017 o #1019.
+
+### 15. Verificación
+
+- **vitest (bruno):** `months` sin valor pinta un mes en `single` y en `range` a cualquier ancho; `auto` sigue midiendo; las tres vistas y sus cabeceras; nombres de botones y celdas con sufijos en orden; `aria-selected` solo en `is-selected`; marcas en `single` y `range` (con inicio pendiente); `min`/`max` en meses y años (foco sí, elegir no, bordes con `aria-disabled`); teclado de las dos rejillas (cruces de año y de página, Ctrl+Inicio/Fin, RePág/AvPág, RTL); cifras (4 → salto recortado, Retroceso, `YEAR_TYPE_MS` con temporizadores falsos, Esc vacía primero); pila de Esc y `stopPropagation`; `navigate` al bajar y no al recorrer; foco al bajar en el mismo día recortado; `is-open-start`/`is-open-end` en uno y dos meses (y no en el corte entre meses); `data-zoom` solo al cambiar de nivel y origen por índice; aviso de las seis claves; `density` en `inline` sin aviso.
+- **Playwright (bruno, tres motores):** Δ 0 de la caja del panel y de la cabecera al cambiar de vista y durante el zoom; la animación dura `press` con `ease-out` y escala entre 0,97 y 1,03 (con el tema por defecto), y con reducido solo fundido `fast` `linear`; interrupción (dos cambios seguidos) termina en la vista correcta con el foco; una marca de hover por cuadro también en meses y años; compacto: celda 30 px con puntero fino, 44 px con grueso, texto ≥ 12 px, objetivos ≥ 24 px; **hoja a 320 px con puntero grueso sin desborde** (7 × 44 caben) y a 375 px; un `inline` dentro de `GDialog`: Esc en meses sube y no cierra el diálogo; `GBookingBar` sigue con dos meses donde caben; consola limpia; prueba de rendimiento con props en línea (ninguna medida por render del padre).
+- **Auditoría de coco** con un tema distinto del por defecto (otra `space`, otro `--g-press-scale`), tres motores, claro y oscuro, RTL, `forced-colors`, rúbrica de movimiento sobre el componente real.
+- **No verificable aquí:** lector de pantalla real (título con dos botones, nodo vivo, rejillas de meses y años), táctil real, teléfono real.
+
+### 16. Resolución de los hallazgos de kiwi (L1 a L9)
+
+| # | Resolución |
+| --- | --- |
+| L1 | `months` = `1` por defecto (#1021); `months="auto"` explícito en los tres `GDatePicker` con campo de `GBookingBar` (`booking-bar.md`); `CHANGELOG` (§1) |
+| L2 | Vistas, cabeceras, clases y `navigate` (§2, §10, §11; #1020, #1024) |
+| L3 | `density` aprieta la superficie con las fórmulas de §8; hoja a 320 px resuelta con el relleno acotado (#1022) |
+| L4 | Claves de A (§«Textos», §12; #1025); las de B (`laneYear`, `laneMonth`) y C (`goTo`, `goHint`) **no** se contratan (reservados) |
+| L5 | `is-open-start`/`is-open-end`, extendidas a los extremos de dos meses (§7; #1027) |
+| L6 | §3 (#1026); sin regla de B |
+| L7 | La frase se retira de «Límites conocidos» cuando esté construido (anotado allí) |
+| L8 | Fila nueva `cambiarNivel` en la tabla y en `motion.json`, con la escala reducida (§9; #1023) |
+| L9 | Lote propio ≤ +2 KiB JS y ≤ +1 KiB CSS (§14; #1028); sin intérprete de C |
+
+### 17. Encargos
+
+- **coco (Sonnet; Opus si lo pide el criterio del zoom):** `GDatePicker.css`: escenario y vistas; cabecera por vista con alto constante; botones del título (`chevron-down` de Lucide, foco, hover con la regla de la tabla, 24/44 px); rejillas de meses y años de 3 × 4 que llenan el escenario; marcas `is-current`/`is-selected`/`is-in-value`/`is-disabled` con los pares de los días (`{color}-text` en el trazo, §7.1) y contraste medido (texto 4,5:1, marcas 3:1); pista y búfer de cifras (huecos vacíos dibujados, sin caracteres); `is-open-start`/`is-open-end` (desvanecido, RTL, `forced-colors`); densidad de la superficie con las fórmulas de §8 (y el título un escalón abajo en `compact`); regla de la hoja a 320 px; `@keyframes g-datepicker-zoom-in`/`-out` con `--_zoom-x/-y`, `--g-press-scale` y su inverso, `press` + `ease-out`, reducido `fast` + `linear` sin escala; una marca de hover por cuadro en meses y años. Mide el peso CSS con bruno.
+- **bruno (Opus: motor de vistas, teclado y pruebas):** `GDatePicker.vue` (vista interna y su pila, cabeceras, rejillas, teclado de §4, cifras de §5 con `YEAR_TYPE_MS`, anuncios de §6, nodo `__title-live` y `aria-labelledby` de la rejilla, `min`/`max` de §3, franja que sigue de §7, `data-zoom` y origen por índice, Esc con `stopPropagation`, `navigate`, `months` = 1, `density` en `inline` sin aviso, aviso de las seis claves); `GDatePicker.meta.json` (§13); `GBookingBar.vue` (`months="auto"` en los tres `GDatePicker` con campo); textos de `@grana/blocks` y playground (§12); `motion.json` lo lee `check-motion.mjs` sin regla nueva (la fila es de comportamiento) y `tests/movimiento.spec.mjs` gana `cambiarNivel`; pruebas de §15; `CHANGELOG.md` (§1 y peso de §14).
+- **Después:** auditoría de coco (`design/lab/datepicker/auditoria-r02.md`) y README de mora-docs.

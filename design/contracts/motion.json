@@ -1,7 +1,7 @@
 {
   "$comment": "Tabla única de movimiento de Grana: lista canónica (dueño: lima; DECISIONS #1002 a #1009; tokens.md §29.9 y §29.10). Origen: design/lab/movimiento/r01/tabla.md, aprobada por el usuario el 2026-11-07 con D1 · A y D2 · A. Si este archivo y una tabla de los contratos difieren, manda este archivo. Lo lee packages/vue/scripts/check-motion.mjs (bruno): las reglas de `gate` se aplican tal cual, sin decidir nada. Un uso nuevo de una curva, un multiplicador nuevo o salirse de la fila de su tipo de pieza es una decisión con número.",
   "version": "0.1",
-  "decisions": ["#1002", "#1003", "#1004", "#1005", "#1006", "#1007", "#1008", "#1009"],
+  "decisions": ["#1002", "#1003", "#1004", "#1005", "#1006", "#1007", "#1008", "#1009", "#1023"],
 
   "durations": {
     "fast": "--g-duration-fast",
@@ -92,10 +92,26 @@
     },
     "recorrerHuecos": {
       "label": "Recorrer una lista con huecos y sin opción activa, o una rejilla",
-      "where": ["GDatePicker (días)", "GSidebar (navbar)"],
+      "where": ["GDatePicker (días, meses y años)", "GSidebar (navbar)"],
       "rule": { "model": "una marca por elemento (api.md «Una sola luz», regla 9)", "maxLit": 1, "exit": "instantánea" },
       "reduced": "igual",
       "verify": { "where": "tests/movimiento.spec.mjs", "does": "Barrer los días de GDatePicker y los items del navbar de GSidebar: como máximo un elemento con fondo de hover por cuadro, y al salir el fondo se apaga sin transición. Tres motores, con y sin reducido. Solo por comportamiento: no hay regla estática", "decisions": ["#1019"] }
+    },
+    "cambiarNivel": {
+      "label": "Cambiar de nivel dentro de un panel",
+      "where": ["GDatePicker (días · meses · años)"],
+      "rule": {
+        "enter": { "duration": "press", "curve": "out", "fade": true, "offset": null, "scale": { "down": "--g-press-scale → 1", "up": "calc(2 - var(--g-press-scale)) → 1" }, "origin": "la pieza: la celda elegida al bajar, la celda de la que se viene al subir (por índice, sin leer cajas)" },
+        "exit": "instantánea: la vista anterior se retira en el acto; nunca dos vistas a la vez",
+        "panelSize": "Δ 0",
+        "interruptible": "una vista nueva retira la que está en curso y empieza desde su estado inicial; foco y teclado no esperan",
+        "spring": false,
+        "bounce": false,
+        "notAnimated": "cambiar de mes, de año o de página dentro de una vista; abrir el panel"
+      },
+      "reduced": "solo fundido fast + linear, sin escala",
+      "verify": { "where": "tests/movimiento.spec.mjs", "does": "Cambiar de vista en GDatePicker: Δ 0 de la caja del panel y de la cabecera, duración press con ease-out, escala entre --g-press-scale y su inverso, con reducido solo fundido fast linear; dos cambios seguidos terminan en la vista correcta con el foco. Tres motores. Solo por comportamiento: no hay regla estática nueva" },
+      "decisions": ["#1020", "#1023"]
     },
     "marcar": {
       "label": "Marcar o elegir",
@@ -143,7 +159,7 @@
     "GCombobox": { "pieces": ["dialogo"], "own": "#336", "exceptions": ["combobox-campo-se-abre"] },
     "GContainer": { "pieces": [] },
     "GDataList": { "pieces": [] },
-    "GDatePicker": { "pieces": ["panelAnclado", "hojaMovil"] },
+    "GDatePicker": { "pieces": ["panelAnclado", "hojaMovil"], "own": "datepicker.md r02 §9 (#1023)", "moments": ["cambiarNivel"] },
     "GDialog": { "pieces": ["dialogo", "hojaMovil"], "own": "#301" },
     "GDialogStep": { "pieces": [], "own": "dialog.md" },
     "GDivider": { "pieces": [] },
