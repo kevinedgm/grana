@@ -1,0 +1,891 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GDatePicker · un mes y salto · r02</title>
+<!-- Ronda r02 de GDatePicker (kiwi): un mes por defecto y variante compacta con salto a mes y año.
+     Tokens y CSS reales de packages/vue/dist/grana.css (tema por defecto) y marcado del contrato (design/contracts/datepicker.md).
+     Encima, la capa @layer grana.propuesta modela lo que coco escribiría si el usuario elige. No toca GDatePicker.vue ni .css.
+     El andamio de la página (.k-*) no es propuesta. Parámetros: ?theme=dark · ?motion=reduce · ?lang=en · ?dir=rtl.
+     Servir desde la raíz del repo: python3 -m http.server 4231 → /design/lab/datepicker/r02/
+     Verificación: node design/lab/datepicker/r02/verificar.mjs -->
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<script src="../../lucide-icons.js"></script>
+<style>
+@layer grana.defaults, grana.components, grana.blocks, grana.utilities, grana.propuesta, k;
+
+/* ===================== Andamio de la página (no es propuesta) ===================== */
+@layer k {
+  body { margin: 0; background: var(--g-color-surface-sunken); color: var(--g-color-text); font-family: var(--g-font-ui); }
+  .k-page { max-inline-size: calc(var(--g-space-1) * 290); margin-inline: auto; padding: var(--g-space-6) var(--g-space-4) calc(var(--g-space-1) * 20); }
+  .k-page h1 { font-size: var(--g-text-title-size); line-height: var(--g-text-title-line); margin: 0 0 var(--g-space-2); }
+  .k-page h2 { font-size: var(--g-text-title-sm-size); line-height: var(--g-text-title-sm-line); margin: 0 0 var(--g-space-1); }
+  .k-lead, .k-note { color: var(--g-color-text-muted); font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); max-inline-size: 72ch; }
+  .k-note { margin: var(--g-space-1) 0 var(--g-space-3); }
+  .k-bar { display: flex; flex-wrap: wrap; gap: var(--g-space-2) var(--g-space-4); align-items: center; margin-block: var(--g-space-4) var(--g-space-6); font-size: var(--g-text-body-sm-size); }
+  .k-bar label, .k-ctl label { display: inline-flex; align-items: center; gap: var(--g-space-1); min-block-size: 24px; }
+  .k-sec { background: var(--g-color-surface); border: var(--g-border-width) solid var(--g-color-border); border-radius: var(--g-surface-radius); padding: var(--g-space-5); margin-block-end: var(--g-space-6); }
+  .k-sec > header { margin-block-end: var(--g-space-4); }
+  .k-tag { display: inline-block; font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); font-weight: var(--g-text-action-weight); color: var(--g-color-text-muted); text-transform: uppercase; letter-spacing: .04em; }
+  .k-row { display: flex; flex-wrap: wrap; gap: var(--g-space-6); align-items: flex-start; }
+  .k-demo { display: grid; gap: var(--g-space-2); align-content: start; min-inline-size: 0; }
+  .k-ctl { display: flex; flex-wrap: wrap; gap: var(--g-space-1) var(--g-space-3); font-size: var(--g-text-caption-size); color: var(--g-color-text-muted); }
+  .k-ctl select { font: inherit; }
+  .k-host { display: inline-block; max-inline-size: 100%; }
+  .k-host.is-narrow { inline-size: 320px; display: block; outline: var(--g-border-width) dashed var(--g-color-border); outline-offset: var(--g-space-1); }
+  .k-host.is-wide { display: block; inline-size: min(100%, calc(var(--g-space-1) * 180)); overflow-x: auto; }
+  /* Como el popover real (inline-size: max-content): la superficie mide sus meses */
+  .k-host:not(.is-wide) > .g-datepicker { inline-size: max-content; max-inline-size: 100%; }
+  /* Mes sin compactar: el ancho de un mes del CSS real (8,5 celdas + relleno), como en un contenedor que le da ese sitio */
+  .k-host.is-month { display: block; inline-size: min(100%, calc(var(--g-space-1) * 10 * 8.5 + var(--g-space-6) * 2 + var(--g-border-width) * 2)); }
+  .k-host.is-month > .g-datepicker { inline-size: 100%; }
+  .k-measure { font-size: var(--g-text-caption-size); color: var(--g-color-text-muted); font-variant-numeric: tabular-nums; }
+  .k-list { margin: 0; padding-inline-start: var(--g-space-5); font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); max-inline-size: 60ch; }
+  .k-list li + li { margin-block-start: var(--g-space-1); }
+  .k-table { border-collapse: collapse; font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); inline-size: 100%; }
+  .k-table th, .k-table td { text-align: start; vertical-align: top; padding: var(--g-space-2); border-block-end: var(--g-border-width) solid var(--g-color-border); }
+  .k-table th { color: var(--g-color-text-muted); font-weight: var(--g-text-action-weight); }
+  .k-scroll { overflow-x: auto; }
+}
+
+/* ===================== Propuesta (lo que escribiría coco si se elige) ===================== */
+@layer grana.propuesta {
+/* ---- Base · compacto: la superficie sigue la densidad (0,75 de la celda), con mínimos fuera del tema ---- */
+.g-datepicker.k-compact {
+  --_cell: max(24px, calc(var(--g-space-1) * 10 * 0.75));
+  --_btn: var(--_cell);
+}
+.g-datepicker.k-touch { --_cell: 44px; --_btn: 44px; }
+/* Táctil compacto: 7 × 44 = 308 px; con el relleno de space × 3 no cabe en 320. El relleno lateral baja a space × 1 */
+.k-compact.k-touch .g-datepicker__surface { padding-inline: var(--g-space-1); }
+.k-compact .g-datepicker__surface { padding: var(--g-space-3); }
+.k-compact .g-datepicker__head { margin-block-end: var(--g-space-1); min-block-size: var(--_btn); }
+.k-compact .g-datepicker__title { font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); }
+.k-compact .g-datepicker__grid th { padding: 0 0 var(--g-space-1); }
+.k-compact .g-datepicker__month { max-inline-size: calc(var(--_cell) * 7); }
+.k-compact .g-datepicker__foot { margin-block-start: var(--g-space-2); padding-block-start: 0; }
+.k-compact .g-datepicker__nav > .g-icon { inline-size: calc(var(--g-space-1) * 4); block-size: calc(var(--g-space-1) * 4); }
+
+/* El escenario: los días, los meses o los años ocupan la misma caja (el panel no cambia de tamaño, #358) */
+.k-stage { position: relative; block-size: var(--_stage-h, auto); }
+.k-stage > * { will-change: auto; }
+
+/* ---- Base · un mes: la franja que sigue fuera de la vista se abre en el borde, sin redondear ---- */
+.g-datepicker__grid td.k-open-end::before {
+  inset-inline-end: calc(var(--g-space-1) * -1);
+  border-start-end-radius: 0; border-end-end-radius: 0;
+  mask-image: linear-gradient(to right, #000 40%, transparent);
+}
+.g-datepicker__grid td.k-open-start::before {
+  inset-inline-start: calc(var(--g-space-1) * -1);
+  border-start-start-radius: 0; border-end-start-radius: 0;
+  mask-image: linear-gradient(to left, #000 40%, transparent);
+}
+[dir="rtl"] .g-datepicker__grid td.k-open-end::before { mask-image: linear-gradient(to left, #000 40%, transparent); }
+[dir="rtl"] .g-datepicker__grid td.k-open-start::before { mask-image: linear-gradient(to right, #000 40%, transparent); }
+
+/* ---- Piezas comunes de mes y año: un control del tamaño de la celda, píldora, con las marcas de los días ---- */
+.k-pick {
+  position: relative;
+  display: grid; place-items: center;
+  box-sizing: border-box;
+  inline-size: 100%; block-size: 100%;
+  min-block-size: var(--_cell);
+  margin: 0; padding: 0 var(--g-space-1);
+  border: 0; border-radius: var(--g-radius-pill);
+  background: transparent; color: var(--g-color-text);
+  font: inherit; font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line);
+  font-variant-numeric: tabular-nums;
+  text-transform: capitalize;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.k-pick:focus-visible { outline: var(--g-focus-width) solid var(--_focus); outline-offset: var(--g-focus-offset); }
+@media (hover: hover) {
+  .k-pick:hover:not(.is-disabled):not(.is-selected) { background: var(--g-color-surface-sunken); transition: background-color var(--g-duration-fast) var(--g-ease-standard); }
+}
+.k-pick.is-current { font-weight: var(--g-text-action-weight); box-shadow: inset 0 0 0 calc(var(--g-border-width) * 2) var(--g-color-text-muted); }
+.k-pick.is-selected { background: var(--_color); color: var(--_on); font-weight: var(--g-text-action-weight); box-shadow: inset 0 0 0 var(--g-border-width) var(--_text); }
+.k-pick.is-selected.is-current { box-shadow: inset 0 0 0 calc(var(--g-border-width) * 2) var(--_on); }
+.k-pick.is-disabled { color: var(--g-color-text-subtle); text-decoration: line-through; cursor: not-allowed; }
+/* Marca «aquí está lo elegido» cuando lo elegido no es esta pieza pero está dentro (un mes con la fecha de otro año, etc.) */
+.k-pick > .k-dot { position: absolute; inset-block-end: calc(var(--g-space-1) * 0.5); inline-size: calc(var(--g-space-1) * 1.25); block-size: calc(var(--g-space-1) * 1.25); }
+
+/* ===================== A · Zoom de escala ===================== */
+.k-c-A .g-datepicker__title { display: flex; justify-content: center; gap: 0; }
+.pa-part {
+  display: inline-flex; align-items: center; gap: calc(var(--g-space-1) * 0.5);
+  min-block-size: var(--_btn); padding-inline: var(--g-space-2);
+  border: 0; border-radius: var(--g-radius-pill);
+  background: transparent; color: inherit; font: inherit; cursor: pointer;
+  text-transform: capitalize; font-variant-numeric: tabular-nums;
+}
+.pa-part--month { font-weight: var(--g-text-title-sm-weight); }
+.pa-part > .g-icon { inline-size: .9em; block-size: .9em; color: var(--g-color-text-muted); }
+.pa-part:focus-visible { outline: var(--g-focus-width) solid var(--_focus); outline-offset: calc(var(--g-focus-width) * -1); }
+@media (hover: hover) { .pa-part:hover { background: var(--g-color-surface-sunken); } }
+.pa-range { font-variant-numeric: tabular-nums; }
+.pa-grid { inline-size: 100%; block-size: 100%; border-collapse: separate; border-spacing: calc(var(--g-space-1) * 0.5); table-layout: fixed; }
+.pa-grid td { padding: 0; }
+.pa-wrap { display: grid; grid-template-rows: 1fr auto; block-size: 100%; }
+.pa-typed {
+  display: flex; align-items: center; justify-content: center; gap: var(--g-space-1);
+  min-block-size: var(--g-text-caption-line);
+  font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); color: var(--g-color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.pa-typed b { color: var(--g-color-text); font-weight: var(--g-text-action-weight); letter-spacing: .08em; }
+
+/* ===================== B · Regla del tiempo ===================== */
+.pb-lanes { display: grid; gap: calc(var(--g-space-1) * 0.5); margin-block-end: var(--g-space-2); }
+.pb-row { display: flex; align-items: center; gap: calc(var(--g-space-1) * 0.5); min-inline-size: 0; }
+.pb-lane {
+  flex: 1 1 auto; min-inline-size: 0;
+  display: flex; align-items: center;
+  overflow-x: auto; overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory; scrollbar-width: none;
+  padding-block: calc(var(--g-space-1) * 0.5);
+  padding-inline: calc(50% - var(--_cell));
+  mask-image: linear-gradient(to right, transparent, #000 var(--g-space-6), #000 calc(100% - var(--g-space-6)), transparent);
+}
+.pb-lane::-webkit-scrollbar { display: none; }
+.pb-lane:focus-within { mask-image: none; }
+.pb-lane .k-pick { flex: none; inline-size: auto; min-inline-size: calc(var(--_cell) * 1.25); scroll-snap-align: center; }
+.pb-lane--y .k-pick { font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); color: var(--g-color-text-muted); min-block-size: max(24px, calc(var(--_cell) * 0.8)); }
+.pb-lane--y .k-pick.is-selected { color: var(--_on); }
+.pb-lane--m { gap: 0; }
+/* La franja del rango también en la regla: el rango se ve entero aunque cruce meses (minimapa) */
+.pb-lane--m .k-pick.is-band { border-radius: 0; background: var(--_soft); color: var(--_on-soft); box-shadow: inset 0 var(--g-border-width) 0 var(--g-color-border-control), inset 0 calc(var(--g-border-width) * -1) 0 var(--g-color-border-control); }
+.pb-lane--m .k-pick.is-band.is-band-start { border-start-start-radius: var(--g-radius-pill); border-end-start-radius: var(--g-radius-pill); }
+.pb-lane--m .k-pick.is-band.is-band-end { border-start-end-radius: var(--g-radius-pill); border-end-end-radius: var(--g-radius-pill); }
+.pb-lane--m .k-pick.is-band.is-selected { background: var(--_color); color: var(--_on); }
+.k-c-B .g-datepicker__nav { flex: none; }
+/* Marca del año en la regla de meses: el cambio de año se lee sin salir de la regla */
+.pb-yr { flex: none; align-self: flex-start; padding-inline: var(--g-space-1); font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); font-weight: var(--g-text-action-weight); color: var(--g-color-text-muted); font-variant-numeric: tabular-nums; border-inline-start: var(--g-border-width) solid var(--g-color-border); }
+
+/* ===================== C · El salto dicho ===================== */
+.pc-wrap { flex: 1 1 auto; min-inline-size: 0; display: grid; justify-items: center; }
+.pc-input {
+  box-sizing: border-box; inline-size: 100%; min-block-size: var(--_btn);
+  margin: 0; padding: 0 var(--g-space-1);
+  border: 0; border-block-end: var(--g-border-width) dashed var(--g-color-border-control); border-radius: 0;
+  background: transparent; color: var(--g-color-text);
+  font: inherit; font-size: var(--g-text-body-size); line-height: var(--g-text-body-line); font-weight: var(--g-text-title-sm-weight);
+  text-align: center; text-transform: capitalize;
+}
+.k-compact .pc-input { font-size: var(--g-text-body-sm-size); line-height: var(--g-text-body-sm-line); }
+.pc-input:focus-visible { outline: var(--g-focus-width) solid var(--_focus); outline-offset: 0; border-radius: var(--g-radius-sm); border-block-end-style: solid; text-transform: none; }
+.pc-input::selection { background: var(--_soft); color: var(--_on-soft); }
+.pc-reading {
+  display: flex; align-items: center; justify-content: center; gap: var(--g-space-1);
+  min-block-size: var(--g-text-caption-line);
+  font-size: var(--g-text-caption-size); line-height: var(--g-text-caption-line); color: var(--g-color-text-muted);
+  text-transform: none;
+}
+.pc-reading .g-icon { inline-size: 1em; block-size: 1em; }
+.pc-reading.is-idle { color: var(--g-color-text-subtle); }
+.k-c-C.is-previewing .g-datepicker__grid tbody { opacity: .72; }
+}
+</style>
+</head>
+<body>
+<main class="k-page">
+  <span class="k-tag">GDatePicker · kiwi · r02</span>
+  <h1>Un mes y salto a mes y año</h1>
+  <p class="k-lead">Tokens y CSS reales del tema por defecto (<code>dist/grana.css</code>); lo nuevo va en una capa de propuesta. Pruébalo con el teclado: un tabstop por rejilla, flechas, RePág/AvPág, Esc sube un nivel. Hoy es el 7 de noviembre de 2026.</p>
+
+  <div class="k-bar" role="group" aria-label="Opciones de la página">
+    <label><input type="checkbox" id="opt-dark"> Tema oscuro</label>
+    <label><input type="checkbox" id="opt-reduce"> Movimiento reducido</label>
+    <label>Idioma <select id="opt-lang"><option value="es">español</option><option value="en">English</option><option value="de">Deutsch</option></select></label>
+  </div>
+
+  <section class="k-sec" id="sec-base" aria-labelledby="h-base">
+    <header>
+      <span class="k-tag">Base · 1</span>
+      <h2 id="h-base">Un mes como forma principal</h2>
+      <p class="k-note">A la izquierda, lo que sale hoy con <code>months="auto"</code> en un escritorio. A la derecha, la propuesta: un mes, también en rango. Cuando el rango sigue fuera del mes visible, la franja no se cierra: se abre en el borde y se desvanece (la «franja que sigue»), y el resumen dice las dos fechas.</p>
+    </header>
+    <div class="k-row">
+      <div class="k-demo" data-demo="base2">
+        <span class="k-tag">Hoy · auto → dos meses</span>
+        <div class="k-host is-wide"></div>
+        <output class="k-measure"></output>
+      </div>
+      <div class="k-demo" data-demo="base1">
+        <span class="k-tag">Propuesta · un mes</span>
+        <div class="k-ctl">
+          <label>Modo <select data-opt="mode"><option value="range">rango</option><option value="single">una fecha</option></select></label>
+          <label><input type="checkbox" data-opt="compact"> Compacto</label>
+        </div>
+        <div class="k-host"></div>
+        <output class="k-measure"></output>
+      </div>
+    </div>
+  </section>
+
+  <section class="k-sec" id="sec-A" aria-labelledby="h-A">
+    <header>
+      <span class="k-tag">Concepto A</span>
+      <h2 id="h-A">Zoom de escala</h2>
+      <p class="k-note">El título son dos botones: el mes y el año. El mes abre los doce meses <em>en la misma caja</em>; el año abre doce años. Bajar de nivel es acercarse: el mes que eliges se abre en sus días desde su sitio; subir es alejarse hacia la pieza de la que vienes. El panel nunca cambia de tamaño. En los años, escribir cuatro cifras salta al año (1985). Esc sube un nivel.</p>
+    </header>
+    <div class="k-demo" data-demo="A">
+      <div class="k-ctl">
+        <label>Modo <select data-opt="mode"><option value="single">una fecha</option><option value="range">rango</option></select></label>
+        <label><input type="checkbox" data-opt="compact" checked> Compacto</label>
+        <label><input type="checkbox" data-opt="touch"> Táctil (44 px)</label>
+        <label><input type="checkbox" data-opt="narrow"> 320 px</label>
+      </div>
+      <div class="k-host"></div>
+      <output class="k-measure"></output>
+    </div>
+  </section>
+
+  <section class="k-sec" id="sec-B" aria-labelledby="h-B">
+    <header>
+      <span class="k-tag">Concepto B</span>
+      <h2 id="h-B">Regla del tiempo</h2>
+      <p class="k-note">Sin título: dos reglas que se deslizan, años arriba y meses abajo. Un toque (o una flecha) cambia el mes y la rejilla lo sigue al momento; arrastrar la regla recorre los meses como hojear. Lo elegido se ve en las reglas aunque esté lejos: un punto en su año y la franja del rango pintada sobre los meses que cruza. Tres paradas de Tab: año, mes, días.</p>
+    </header>
+    <div class="k-demo" data-demo="B">
+      <div class="k-ctl">
+        <label>Modo <select data-opt="mode"><option value="range">rango</option><option value="single">una fecha</option></select></label>
+        <label><input type="checkbox" data-opt="compact" checked> Compacto</label>
+        <label><input type="checkbox" data-opt="touch"> Táctil (44 px)</label>
+        <label><input type="checkbox" data-opt="narrow"> 320 px</label>
+      </div>
+      <div class="k-host"></div>
+      <output class="k-measure"></output>
+    </div>
+  </section>
+
+  <section class="k-sec" id="sec-C" aria-labelledby="h-C">
+    <header>
+      <span class="k-tag">Concepto C</span>
+      <h2 id="h-C">El salto dicho</h2>
+      <p class="k-note">El título es un campo: se escribe a dónde ir, como se diría. «marzo», «mar 27», «3/2031», «1985», «dic». La rejilla enseña el mes mientras escribes y una línea dice cómo se ha leído; Intro confirma y deja el foco en el mismo día del mes nuevo. Desde los días basta con <em>empezar a escribir</em>: la primera letra o cifra salta al título. ↑/↓ en el título mueven un mes; RePág/AvPág, un año.</p>
+    </header>
+    <div class="k-demo" data-demo="C">
+      <div class="k-ctl">
+        <label>Modo <select data-opt="mode"><option value="single">una fecha</option><option value="range">rango</option></select></label>
+        <label><input type="checkbox" data-opt="compact" checked> Compacto</label>
+        <label><input type="checkbox" data-opt="touch"> Táctil (44 px)</label>
+        <label><input type="checkbox" data-opt="narrow"> 320 px</label>
+      </div>
+      <div class="k-host"></div>
+      <output class="k-measure"></output>
+    </div>
+  </section>
+
+  <section class="k-sec" id="sec-cmp" aria-labelledby="h-cmp">
+    <header><span class="k-tag">Comparativa</span><h2 id="h-cmp">A, B o C</h2></header>
+    <div class="k-scroll">
+    <table class="k-table">
+      <thead><tr><th scope="col"></th><th scope="col">A · Zoom de escala</th><th scope="col">B · Regla del tiempo</th><th scope="col">C · El salto dicho</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Ir a otro mes del año</th><td>2 gestos (mes → mes)</td><td>1 gesto (toque en la regla)</td><td>Escribir 1 a 3 letras + Intro</td></tr>
+        <tr><th scope="row">Ir a 1985 desde 2026</th><td>Año → escribir «1985» → mes → día</td><td>Arrastrar la regla de años o RePág ×4 + flechas</td><td>Escribir «1985» + Intro</td></tr>
+        <tr><th scope="row">Tamaño del panel</th><td>Igual que el mes compacto (Δ 0)</td><td>+ dos filas de regla</td><td>+ una línea de lectura</td></tr>
+        <tr><th scope="row">Tabstops</th><td>Título (2) + días</td><td>Año + mes + días</td><td>Título + días</td></tr>
+        <tr><th scope="row">Táctil</th><td>Bueno (rejillas de 44 px)</td><td>El mejor (deslizar es natural)</td><td>Flojo: abre el teclado del sistema y tapa la hoja</td></tr>
+        <tr><th scope="row">Lector de pantalla</th><td>Patrón conocido (rejilla); cambio de vista anunciado</td><td>Dos <code>radiogroup</code>; selección que sigue al foco</td><td>Un campo de texto con lectura viva</td></tr>
+        <tr><th scope="row">Descubrible</th><td>Alto (el título parece pulsable)</td><td>Muy alto (se ve todo)</td><td>Bajo sin pista (hay que saber que se escribe)</td></tr>
+        <tr><th scope="row">Rango que cruza meses</th><td>Franja que sigue</td><td>Franja en la regla (minimapa)</td><td>Franja que sigue</td></tr>
+        <tr><th scope="row">Coste</th><td>Medio (dos rejillas más, animación con origen)</td><td>Medio-alto (desplazamiento, ajuste, regla de años)</td><td>Medio (intérprete por idioma; reutiliza el de <code>GTimeField</code>)</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+'use strict'
+const qs = new URLSearchParams(location.search)
+const html = document.documentElement
+if (qs.get('dir') === 'rtl') html.dir = 'rtl'
+const optDark = document.getElementById('opt-dark')
+const optReduce = document.getElementById('opt-reduce')
+const optLang = document.getElementById('opt-lang')
+if (qs.get('theme') === 'dark') { html.dataset.theme = 'dark'; optDark.checked = true }
+let REDUCED = qs.get('motion') === 'reduce' || matchMedia('(prefers-reduced-motion: reduce)').matches
+optReduce.checked = REDUCED
+let LOCALE = qs.get('lang') || 'es'
+optLang.value = LOCALE
+html.lang = LOCALE
+const TODAY = '2026-11-07'
+const FIRST = 1 // lunes
+
+// ---------- Fechas (ISO sin zona) ----------
+const isoOf = (y, m, d) => new Date(Date.UTC(y, m, d)).toISOString().slice(0, 10)
+const parts = (iso) => { const [y, m, d] = iso.split('-').map(Number); return { y, m: m - 1, d } }
+const addDays = (iso, n) => { const p = parts(iso); return isoOf(p.y, p.m, p.d + n) }
+const dim = (y, m) => new Date(Date.UTC(y, m + 1, 0)).getUTCDate()
+const addMonths = (iso, n) => { const p = parts(iso); const t = new Date(Date.UTC(p.y, p.m + n, 1)); const y = t.getUTCFullYear(); const m = t.getUTCMonth(); return isoOf(y, m, Math.min(p.d, dim(y, m))) }
+const dow = (iso) => new Date(iso + 'T00:00:00Z').getUTCDay()
+const fmt = (iso, o) => new Intl.DateTimeFormat(LOCALE, { timeZone: 'UTC', ...o }).format(new Date(iso + 'T00:00:00Z'))
+const cap = (s) => s.charAt(0).toLocaleUpperCase(LOCALE) + s.slice(1)
+const monthName = (m, style = 'long') => fmt(isoOf(2026, m, 1), { month: style }).replace(/\.$/, '')
+const monthYear = (y, m) => fmt(isoOf(y, m, 1), { month: 'long', year: 'numeric' })
+const fullDay = (iso) => cap(fmt(iso, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }))
+const shortDay = (iso) => fmt(iso, { day: 'numeric', month: 'short', year: 'numeric' })
+const TP = parts(TODAY)
+
+// ---------- Textos de la aplicación (labels): ninguno por defecto en el componente ----------
+const LABELS = {
+  es: { prev: 'Mes anterior', next: 'Mes siguiente', prevYear: 'Año anterior', nextYear: 'Año siguiente', prevYears: 'Doce años antes', nextYears: 'Doce años después', chooseMonth: 'elegir mes', chooseYear: 'elegir año', laneYear: 'Año', laneMonth: 'Mes', goTo: 'Ir a', goHint: 'Escribe un mes o un año', typeYear: 'Escribe un año', today: 'hoy', selected: 'seleccionada', rangeStart: 'inicio del rango', rangeEnd: 'fin del rango', inRange: 'dentro del rango', unavailable: 'no disponible', current: 'actual', hasValue: 'contiene lo elegido', announceStart: 'Inicio del rango: {date}', announceRange: 'Rango de {start} a {end}, {days} días', announceDate: 'Fecha elegida: {date}', viewMonths: 'Meses de {year}', viewYears: 'Años de {from} a {to}' },
+  en: { prev: 'Previous month', next: 'Next month', prevYear: 'Previous year', nextYear: 'Next year', prevYears: 'Twelve years earlier', nextYears: 'Twelve years later', chooseMonth: 'choose month', chooseYear: 'choose year', laneYear: 'Year', laneMonth: 'Month', goTo: 'Go to', goHint: 'Type a month or a year', typeYear: 'Type a year', today: 'today', selected: 'selected', rangeStart: 'range start', rangeEnd: 'range end', inRange: 'in range', unavailable: 'unavailable', current: 'current', hasValue: 'contains the selection', announceStart: 'Range start: {date}', announceRange: 'Range from {start} to {end}, {days} days', announceDate: 'Selected date: {date}', viewMonths: 'Months of {year}', viewYears: 'Years {from} to {to}' },
+  de: { prev: 'Vorheriger Monat', next: 'Nächster Monat', prevYear: 'Vorheriges Jahr', nextYear: 'Nächstes Jahr', prevYears: 'Zwölf Jahre früher', nextYears: 'Zwölf Jahre später', chooseMonth: 'Monat wählen', chooseYear: 'Jahr wählen', laneYear: 'Jahr', laneMonth: 'Monat', goTo: 'Gehe zu', goHint: 'Monat oder Jahr eingeben', typeYear: 'Jahr eingeben', today: 'heute', selected: 'ausgewählt', rangeStart: 'Beginn', rangeEnd: 'Ende', inRange: 'im Zeitraum', unavailable: 'nicht verfügbar', current: 'aktuell', hasValue: 'enthält die Auswahl', announceStart: 'Beginn: {date}', announceRange: 'Zeitraum {start} bis {end}, {days} Tage', announceDate: 'Gewählt: {date}', viewMonths: 'Monate {year}', viewYears: 'Jahre {from} bis {to}' }
+}
+const fill = (t, o) => t.replace(/\{(\w+)\}/g, (_, k) => o[k])
+const icon = (n, cls = '', filled = false) => window.lucide(n, cls, filled)
+
+const cssTime = (name) => { const v = getComputedStyle(html).getPropertyValue(name).trim(); if (!v) return 160; const n = parseFloat(v); return v.endsWith('ms') ? n : n * 1000 }
+const cssVal = (name) => getComputedStyle(html).getPropertyValue(name).trim()
+const dur = (name) => { const v = cssVal(name); if (v.startsWith('calc')) return cssTime('--g-duration-press') * 1.5; return cssTime(name) }
+
+// ---------- Intérprete del concepto C (en el componente: la idea de utils/timeInput.js de GTimeField) ----------
+const norm = (s) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/\./g, '').trim()
+function monthTable () { return Array.from({ length: 12 }, (_, m) => ({ m, long: norm(monthName(m, 'long')), short: norm(monthName(m, 'short')) })) }
+function century (n) { const a = 2000 + n; return a <= TP.y + 20 ? a : 1900 + n }
+function parseJump (txt, cur) {
+  const toks = norm(txt).split(/[\s/\-,]+/).filter(Boolean)
+  if (!toks.length) return null
+  const MT = monthTable()
+  let m = null; let y = null; const nums = []
+  for (const t of toks) {
+    if (/^\d+$/.test(t)) { nums.push(t); continue }
+    const hits = MT.filter((x) => x.long.startsWith(t) || x.short.startsWith(t))
+    if (!hits.length) return null
+    m = hits[0].m
+  }
+  for (const n of nums) {
+    const v = Number(n)
+    if (n.length === 4) y = v
+    else if (n.length === 3) return null
+    else if (m === null && v >= 1 && v <= 12) m = v - 1
+    else if (y === null) y = century(v)
+    else return null
+  }
+  if (m === null && y === null) return null
+  return { y: y ?? cur.y, m: m ?? cur.m }
+}
+
+// ---------- Motor del prototipo ----------
+let UID = 0
+class Picker {
+  constructor (host, o) {
+    this.host = host
+    this.o = { mode: 'single', concept: 'base', compact: true, touch: false, months: 1, value: null, min: null, max: null, ...o }
+    this.id = 'p' + (++UID)
+    const v = this.o.value
+    const anchor = v ? (typeof v === 'string' ? v : v.start) : TODAY
+    this.value = v
+    this.focus = anchor
+    const p = parts(anchor); this.y = p.y; this.m = p.m
+    this.view = 'days'; this.stack = []
+    this.pending = null; this.hover = null
+    this.typed = ''; this.editing = false
+    this.build(); this.render()
+  }
+  get L () { return LABELS[LOCALE] }
+  build () {
+    const o = this.o
+    this.host.innerHTML = ''
+    const root = document.createElement('div')
+    root.className = `g-datepicker g-datepicker--inline g-datepicker--mode-${o.mode} g-datepicker--color-brand k-c-${o.concept}` + (o.compact ? ' k-compact' : '') + (o.touch ? ' k-touch' : '')
+    root.innerHTML = `<div class="g-datepicker__surface"><div class="g-datepicker__months"></div><div class="g-datepicker__foot"><div class="g-datepicker__bar"><div class="g-datepicker__summary"></div></div></div><div class="g-datepicker__sr" role="status" aria-live="polite"></div></div>`
+    this.host.appendChild(root)
+    this.root = root
+    this.monthsEl = root.querySelector('.g-datepicker__months')
+    this.summaryEl = root.querySelector('.g-datepicker__summary')
+    this.srEl = root.querySelector('[role="status"]')
+    root.addEventListener('click', (e) => this.onClick(e))
+    root.addEventListener('keydown', (e) => this.onKey(e))
+    root.addEventListener('pointerover', (e) => { const b = e.target.closest('.g-datepicker__day'); if (b && this.pending && b.dataset.date !== this.hover) { this.hover = b.dataset.date; this.renderStage() } })
+    root.addEventListener('pointerleave', () => { if (this.hover) { this.hover = null; this.renderStage() } })
+  }
+  announce (t) { this.srEl.textContent = ''; requestAnimationFrame(() => { this.srEl.textContent = t }) }
+  disabled (iso) { return (this.o.min && iso < this.o.min) || (this.o.max && iso > this.o.max) }
+  // --- franja ---
+  band () {
+    if (this.o.mode !== 'range') return null
+    if (this.pending) {
+      const h = this.hover || (this.focus !== this.pending ? this.focus : null)
+      if (h && h > this.pending) return { s: this.pending, e: h, preview: true }
+      return { s: this.pending, e: this.pending, preview: false }
+    }
+    if (this.value) return { s: this.value.start, e: this.value.end, preview: false }
+    return null
+  }
+  isSel (iso) {
+    if (this.o.mode === 'single') return iso === this.value
+    if (this.pending) return iso === this.pending
+    return !!this.value && (iso === this.value.start || iso === this.value.end)
+  }
+  valueIn (y, m) { // ¿lo elegido toca este mes? (para marcas en meses y años)
+    const a = isoOf(y, m, 1); const b = isoOf(y, m, dim(y, m))
+    if (this.o.mode === 'single') return !!this.value && this.value >= a && this.value <= b
+    if (!this.value) return false
+    return this.value.start <= b && this.value.end >= a
+  }
+  valueInYear (y) { for (let m = 0; m < 12; m++) if (this.valueIn(y, m)) return true; return false }
+  // --- render ---
+  render () {
+    const keepHead = this.o.concept === 'C' && this.editing
+    const n = this.o.concept === 'base' ? this.o.months : 1
+    if (!keepHead) {
+      const laneScroll = {}
+      this.root.querySelectorAll('.pb-lane').forEach((l) => { laneScroll[l.dataset.lane] = l.scrollLeft })
+      let out = ''
+      for (let i = 0; i < n; i++) {
+        const t = new Date(Date.UTC(this.y, this.m + i, 1)); const y = t.getUTCFullYear(); const m = t.getUTCMonth()
+        out += `<section class="g-datepicker__month" aria-labelledby="${this.id}-t${i}">${this.headHTML(y, m, i, n)}<div class="k-stage"></div></section>`
+      }
+      this.monthsEl.innerHTML = out
+      this.root.querySelectorAll('.pb-lane').forEach((l) => { if (laneScroll[l.dataset.lane] != null) l.scrollLeft = laneScroll[l.dataset.lane] })
+      this.bindHead()
+    }
+    this.renderStage()
+    this.centerLanes()
+  }
+  renderStage () {
+    const n = this.o.concept === 'base' ? this.o.months : 1
+    const stages = this.monthsEl.querySelectorAll('.k-stage')
+    stages.forEach((st, i) => {
+      const t = new Date(Date.UTC(this.y, this.m + i, 1))
+      if (this.view === 'months') st.innerHTML = this.monthsHTML()
+      else if (this.view === 'years') st.innerHTML = this.yearsHTML()
+      else st.innerHTML = this.daysHTML(t.getUTCFullYear(), t.getUTCMonth(), i, n)
+    })
+    if (!this.stageH && this.view === 'days') {
+      const h = stages[0].getBoundingClientRect().height
+      if (h) { this.stageH = h; this.root.style.setProperty('--_stage-h', h + 'px') }
+    }
+    this.renderSummary()
+    if (this.want) { const el = this.root.querySelector(this.want); this.want = null; if (el) el.focus({ preventScroll: true }) }
+  }
+  renderSummary () {
+    let t = ''
+    if (this.o.mode === 'single') t = this.value ? shortDay(this.value) : ''
+    else if (this.pending) t = shortDay(this.pending) + ' – …'
+    else if (this.value) t = shortDay(this.value.start) + ' – ' + shortDay(this.value.end)
+    this.summaryEl.textContent = t
+  }
+  headHTML (y, m, i, n) {
+    const L = this.L; const c = this.o.concept
+    const navPrev = (label, act, hidden) => `<button class="g-datepicker__nav g-datepicker__nav--prev" type="button" data-act="${act}" aria-label="${label}" ${hidden ? 'hidden aria-hidden="true" tabindex="-1"' : ''}>${icon('chevron-left')}</button>`
+    const navNext = (label, act, hidden) => `<button class="g-datepicker__nav g-datepicker__nav--next" type="button" data-act="${act}" aria-label="${label}" ${hidden ? 'hidden aria-hidden="true" tabindex="-1"' : ''}>${icon('chevron-right')}</button>`
+    const tid = `${this.id}-t${i}`
+    if (c === 'A') {
+      if (this.view === 'months') return `<div class="g-datepicker__head">${navPrev(L.prevYear, 'vy-1')}<h3 id="${tid}" class="g-datepicker__title" aria-live="polite"><button type="button" class="pa-part pa-part--year" data-act="to-years" data-k="pa-y" aria-label="${this.vy}, ${L.chooseYear}">${this.vy}${icon('chevron-down')}</button></h3>${navNext(L.nextYear, 'vy+1')}</div>`
+      if (this.view === 'years') return `<div class="g-datepicker__head">${navPrev(L.prevYears, 'ys-12')}<h3 id="${tid}" class="g-datepicker__title pa-range" aria-live="polite">${this.ys} – ${this.ys + 11}</h3>${navNext(L.nextYears, 'ys+12')}</div>`
+      return `<div class="g-datepicker__head">${navPrev(L.prev, 'm-1')}<h3 id="${tid}" class="g-datepicker__title" aria-live="polite"><button type="button" class="pa-part pa-part--month" data-act="to-months" data-k="pa-m" aria-label="${monthName(m)}, ${L.chooseMonth}">${monthName(m)}${icon('chevron-down')}</button><button type="button" class="pa-part pa-part--year" data-act="to-years" data-k="pa-y" aria-label="${y}, ${L.chooseYear}">${y}${icon('chevron-down')}</button></h3>${navNext(L.next, 'm+1')}</div>`
+    }
+    if (c === 'B') {
+      const minY = this.o.min ? parts(this.o.min).y : TP.y - 100
+      const maxY = this.o.max ? parts(this.o.max).y : TP.y + 10
+      let ys = ''
+      for (let yy = minY; yy <= maxY; yy++) {
+        const sel = yy === y; const has = this.valueInYear(yy)
+        ys += `<button type="button" role="radio" class="k-pick${sel ? ' is-selected' : ''}${yy === TP.y ? ' is-current' : ''}" aria-checked="${sel}" tabindex="${sel ? 0 : -1}" data-y="${yy}" aria-label="${yy}${yy === TP.y ? ', ' + L.current : ''}${has ? ', ' + L.hasValue : ''}">${yy}${has && !sel ? icon('circle', 'k-dot', true) : ''}</button>`
+      }
+      const b = this.band()
+      let ms = ''
+      for (let yy = y - 1; yy <= y + 1; yy++) {
+        if (yy !== y - 1) ms += `<span class="pb-yr" aria-hidden="true">${yy}</span>`
+        for (let mm = 0; mm < 12; mm++) {
+          const sel = yy === y && mm === m; const a = isoOf(yy, mm, 1); const z = isoOf(yy, mm, dim(yy, mm))
+          const dis = (this.o.max && a > this.o.max) || (this.o.min && z < this.o.min)
+          let band = ''
+          if (b && b.s !== b.e && b.s <= z && b.e >= a) band = ' is-band' + (b.s >= a ? ' is-band-start' : '') + (b.e <= z ? ' is-band-end' : '')
+          const has = this.valueIn(yy, mm)
+          ms += `<button type="button" role="radio" class="k-pick${sel ? ' is-selected' : ''}${yy === TP.y && mm === TP.m ? ' is-current' : ''}${dis ? ' is-disabled' : ''}${band}" aria-checked="${sel}" tabindex="${sel ? 0 : -1}" data-y="${yy}" data-m="${mm}" ${dis ? 'aria-disabled="true"' : ''} aria-label="${monthName(mm)} ${yy}${has ? ', ' + L.hasValue : ''}">${monthName(mm, 'short')}${has && !sel && !band ? icon('circle', 'k-dot', true) : ''}</button>`
+        }
+      }
+      return `<div class="pb-lanes"><div class="pb-row"><div class="pb-lane pb-lane--y" role="radiogroup" aria-label="${L.laneYear}" data-lane="y">${ys}</div></div><div class="pb-row"><div class="pb-lane pb-lane--m" role="radiogroup" aria-label="${L.laneMonth}" data-lane="m">${ms}</div></div></div><h3 id="${tid}" class="g-datepicker__sr">${monthYear(y, m)}</h3>`
+    }
+    if (c === 'C') {
+      return `<div class="g-datepicker__head">${navPrev(L.prev, 'm-1')}<div class="pc-wrap"><input class="pc-input" type="text" data-k="pc-in" autocomplete="off" spellcheck="false" aria-label="${L.goTo}" aria-describedby="${this.id}-read" value="${monthYear(y, m)}"><div class="pc-reading is-idle" id="${this.id}-read">${L.goHint}</div></div>${navNext(L.next, 'm+1')}</div><h3 id="${tid}" class="g-datepicker__sr" aria-live="polite">${monthYear(y, m)}</h3>`
+    }
+    return `<div class="g-datepicker__head">${navPrev(L.prev, 'm-1', i !== 0)}<h3 id="${tid}" class="g-datepicker__title" aria-live="polite"><span>${monthName(m)}</span> <span>${y}</span></h3>${navNext(L.next, 'm+1', i !== n - 1)}</div>`
+  }
+  daysHTML (y, m, idx, n) {
+    const L = this.L
+    const first = isoOf(y, m, 1)
+    const off = (dow(first) - FIRST + 7) % 7
+    const start = addDays(first, -off)
+    const lastCell = addDays(start, 41)
+    const b = this.band()
+    let head = ''
+    for (let d = 0; d < 7; d++) { const iso = addDays(start, d); head += `<th scope="col"><span aria-hidden="true">${fmt(iso, { weekday: 'narrow' })}</span><span class="g-datepicker__sr">${fmt(iso, { weekday: 'long' })}</span></th>` }
+    let body = ''
+    for (let w = 0; w < 6; w++) {
+      body += '<tr>'
+      for (let d = 0; d < 7; d++) {
+        const iso = addDays(start, w * 7 + d)
+        const p = parts(iso); const outside = p.m !== m
+        if (outside && n > 1) { body += '<td aria-hidden="true"></td>'; continue }
+        const dis = this.disabled(iso)
+        const sel = this.isSel(iso)
+        const inBand = b && b.s !== b.e && iso >= b.s && iso <= b.e
+        const isS = b && iso === b.s && b.s !== b.e; const isE = b && iso === b.e && b.s !== b.e
+        const visFirst = n > 1 ? first : start; const visLast = n > 1 ? isoOf(y, m, dim(y, m)) : lastCell
+        let capS = inBand && (d === 0 || (n > 1 && p.d === 1)); let capE = inBand && (d === 6 || (n > 1 && p.d === dim(y, m)))
+        let openS = false; let openE = false
+        if (inBand && iso === visLast && b.e > iso && n === 1) { openE = true; capE = false }
+        if (inBand && iso === visFirst && b.s < iso && n === 1) { openS = true; capS = false }
+        const tdc = [inBand && !isS && !isE ? 'is-in-range' : '', isS ? 'is-range-start' : '', isE ? 'is-range-end' : '', b && b.preview && inBand ? 'is-preview' : '', capS ? 'is-cap-start' : '', capE ? 'is-cap-end' : '', openE ? 'k-open-end' : '', openS ? 'k-open-start' : ''].filter(Boolean).join(' ')
+        const inactive = this.pending && iso < this.pending
+        const today = iso === TODAY
+        let label = fullDay(iso)
+        if (today) label += ', ' + L.today
+        if (this.o.mode === 'single' && sel) label += ', ' + L.selected
+        if (this.o.mode === 'range' && b && !b.preview) { if (iso === b.s) label += ', ' + L.rangeStart; else if (iso === b.e) label += ', ' + L.rangeEnd; else if (inBand) label += ', ' + L.inRange }
+        if (dis) label += ', ' + L.unavailable
+        const bc = ['g-datepicker__day', sel ? 'is-selected' : '', today ? 'is-today' : '', dis ? 'is-disabled' : '', outside ? 'is-outside' : '', inactive ? 'is-inactive' : ''].filter(Boolean).join(' ')
+        body += `<td role="gridcell" class="${tdc}" aria-selected="${sel}"><button class="${bc}" type="button" data-date="${iso}" tabindex="${iso === this.focus ? 0 : -1}" aria-label="${label}" ${dis ? 'aria-disabled="true"' : ''}>${new Intl.NumberFormat(LOCALE).format(p.d)}${today ? icon('circle', 'g-datepicker__today-dot', true) : ''}</button></td>`
+      }
+      body += '</tr>'
+    }
+    return `<table class="g-datepicker__grid" role="grid" aria-labelledby="${this.id}-t${idx}"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`
+  }
+  monthsHTML () {
+    const L = this.L; let rows = ''
+    for (let r = 0; r < 4; r++) {
+      rows += '<tr>'
+      for (let c = 0; c < 3; c++) {
+        const mm = r * 3 + c; const y = this.vy
+        const a = isoOf(y, mm, 1); const z = isoOf(y, mm, dim(y, mm))
+        const dis = (this.o.max && a > this.o.max) || (this.o.min && z < this.o.min)
+        const has = this.valueIn(y, mm); const cur = y === TP.y && mm === TP.m
+        const sel = this.o.mode === 'single' && has
+        const lab = cap(monthName(mm)) + ' ' + y + (cur ? ', ' + L.current : '') + (has ? ', ' + L.hasValue : '') + (dis ? ', ' + L.unavailable : '')
+        rows += `<td role="gridcell" aria-selected="${sel}"><button type="button" class="k-pick${sel ? ' is-selected' : ''}${cur ? ' is-current' : ''}${dis ? ' is-disabled' : ''}" data-m="${mm}" tabindex="${mm === this.vm ? 0 : -1}" aria-label="${lab}" ${dis ? 'aria-disabled="true"' : ''}>${monthName(mm, 'short')}${has && !sel ? icon('circle', 'k-dot', true) : ''}</button></td>`
+      }
+      rows += '</tr>'
+    }
+    return `<table class="pa-grid" role="grid" aria-label="${fill(L.viewMonths, { year: this.vy })}"><tbody>${rows}</tbody></table>`
+  }
+  yearsHTML () {
+    const L = this.L; let rows = ''
+    for (let r = 0; r < 4; r++) {
+      rows += '<tr>'
+      for (let c = 0; c < 3; c++) {
+        const yy = this.ys + r * 3 + c
+        const dis = (this.o.max && isoOf(yy, 0, 1) > this.o.max) || (this.o.min && isoOf(yy, 11, 31) < this.o.min)
+        const has = this.valueInYear(yy); const cur = yy === TP.y
+        const sel = this.o.mode === 'single' && has
+        const lab = yy + (cur ? ', ' + L.current : '') + (has ? ', ' + L.hasValue : '')
+        rows += `<td role="gridcell" aria-selected="${sel}"><button type="button" class="k-pick${sel ? ' is-selected' : ''}${cur ? ' is-current' : ''}${dis ? ' is-disabled' : ''}" data-y="${yy}" tabindex="${yy === this.vyf ? 0 : -1}" aria-label="${lab}" ${dis ? 'aria-disabled="true"' : ''}>${yy}${has && !sel ? icon('circle', 'k-dot', true) : ''}</button></td>`
+      }
+      rows += '</tr>'
+    }
+    const typed = this.typed ? `<b>${this.typed.padEnd(4, '·')}</b>` : ''
+    return `<div class="pa-wrap"><table class="pa-grid" role="grid" aria-label="${fill(L.viewYears, { from: this.ys, to: this.ys + 11 })}" aria-describedby="${this.id}-ty"><tbody>${rows}</tbody></table><div class="pa-typed" id="${this.id}-ty">${L.typeYear}${typed ? ' ' + typed : ''}</div></div>`
+  }
+  bindHead () {
+    const inp = this.root.querySelector('.pc-input')
+    if (inp) {
+      inp.addEventListener('focus', () => { this.saved = { y: this.y, m: this.m }; inp.select() })
+      inp.addEventListener('input', () => this.onJumpInput(inp))
+      inp.addEventListener('keydown', (e) => this.onJumpKey(e, inp))
+      inp.addEventListener('blur', () => { if (this.editing) this.commitJump(false) })
+    }
+    this.root.querySelectorAll('.pb-lane').forEach((l) => {
+      const mark = () => { this.userScroll = l.dataset.lane }
+      l.addEventListener('pointerdown', mark); l.addEventListener('wheel', mark, { passive: true }); l.addEventListener('touchstart', mark, { passive: true })
+      l.addEventListener('scroll', () => {
+        if (this.userScroll !== l.dataset.lane) return
+        clearTimeout(this.scrubT); this.scrubT = setTimeout(() => this.scrubEnd(l), 140)
+      }, { passive: true })
+    })
+  }
+  centerLanes (smooth) {
+    this.root.querySelectorAll('.pb-lane').forEach((l) => {
+      const it = l.querySelector('[aria-checked="true"]'); if (!it) return
+      const lr = l.getBoundingClientRect(); const ir = it.getBoundingClientRect()
+      const left = l.scrollLeft + (ir.left - lr.left) - (lr.width - ir.width) / 2
+      if (Math.abs(l.scrollLeft - left) < 2) return
+      l.scrollTo({ left, behavior: smooth && !REDUCED ? 'smooth' : 'instant' })
+    })
+  }
+  scrubEnd (l) {
+    this.userScroll = null
+    const c = l.getBoundingClientRect(); const mid = c.left + c.width / 2
+    let best = null; let bd = Infinity
+    l.querySelectorAll('.k-pick:not(.is-disabled)').forEach((b) => { const r = b.getBoundingClientRect(); const d = Math.abs(r.left + r.width / 2 - mid); if (d < bd) { bd = d; best = b } })
+    if (!best || best.getAttribute('aria-checked') === 'true') return
+    const hadFocus = l.contains(document.activeElement)
+    if (l.dataset.lane === 'y') this.setYM(Number(best.dataset.y), this.m)
+    else this.setYM(Number(best.dataset.y), Number(best.dataset.m))
+    if (hadFocus) this.want = `.pb-lane--${l.dataset.lane} [aria-checked="true"]`
+    this.render(); this.centerLanes(true)
+    this.announce(cap(monthYear(this.y, this.m)))
+  }
+  setYM (y, m) { this.y = y; this.m = m; const d = parts(this.focus).d; this.focus = isoOf(y, m, Math.min(d, dim(y, m))) }
+  // --- acciones ---
+  choose (iso) {
+    if (this.disabled(iso)) return
+    const L = this.L
+    if (this.o.mode === 'single') { this.value = iso; this.announce(fill(L.announceDate, { date: fullDay(iso) })) } else if (!this.pending) { this.pending = iso; this.hover = null; this.announce(fill(L.announceStart, { date: fullDay(iso) })) } else if (iso < this.pending) { this.pending = iso; this.announce(fill(L.announceStart, { date: fullDay(iso) })) } else {
+      this.value = { start: this.pending, end: iso }
+      const days = Math.round((Date.parse(iso) - Date.parse(this.pending)) / 864e5) + 1
+      this.pending = null; this.hover = null
+      this.announce(fill(L.announceRange, { start: fullDay(this.value.start), end: fullDay(iso), days }))
+    }
+    this.focus = iso
+    const p = parts(iso)
+    if (this.o.concept !== 'base' || this.o.months === 1) { if (p.y !== this.y || p.m !== this.m) { this.y = p.y; this.m = p.m } }
+    this.want = `[data-date="${iso}"]`
+    this.render()
+  }
+  moveFocus (t) {
+    this.focus = t
+    const p = parts(t); const n = this.o.concept === 'base' ? this.o.months : 1
+    const idx = (p.y - this.y) * 12 + (p.m - this.m)
+    if (idx < 0) { this.y = p.y; this.m = p.m } else if (idx >= n) { const s = new Date(Date.UTC(p.y, p.m - n + 1, 1)); this.y = s.getUTCFullYear(); this.m = s.getUTCMonth() }
+    this.want = `[data-date="${t}"]`
+    if (idx < 0 || idx >= n) this.render(); else this.renderStage()
+  }
+  go (n) {
+    const s = new Date(Date.UTC(this.y, this.m + n, 1)); this.y = s.getUTCFullYear(); this.m = s.getUTCMonth()
+    this.focus = addMonths(this.focus, n)
+    const act = document.activeElement?.dataset?.act
+    if (act) this.want = `[data-act="${act}"]`
+    this.render()
+  }
+  stageOrigin (sel) {
+    const st = this.root.querySelector('.k-stage'); const el = sel && this.root.querySelector(sel)
+    if (!st) return { x: 0, y: 0 }
+    const a = st.getBoundingClientRect()
+    if (!el) return { x: a.width / 2, y: a.height / 2 }
+    const b = el.getBoundingClientRect()
+    return { x: b.left - a.left + b.width / 2, y: b.top - a.top + b.height / 2 }
+  }
+  zoom (dir, origin) {
+    const el = this.root.querySelector('.k-stage > *'); if (!el) return
+    if (this.anim) this.anim.cancel()
+    if (REDUCED) { this.anim = el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: dur('--g-duration-fast'), easing: 'linear' }); return }
+    el.style.transformOrigin = `${origin.x}px ${origin.y}px`
+    const from = dir === 'down' ? 'scale(0.25)' : 'scale(2.4)'
+    this.anim = el.animate([{ transform: from, opacity: 0 }, { transform: 'scale(1)', opacity: 1 }], { duration: dur('--g-duration-press'), easing: cssVal('--g-ease-out') || 'ease-out' })
+  }
+  toMonths (from) {
+    this.stack.push(this.view)
+    this.view = 'months'; this.vy = this.y; this.vm = this.m
+    this.want = `.k-stage [data-m="${this.vm}"]`
+    this.render(); this.zoom('up', this.stageOrigin(`.k-stage [data-m="${this.vm}"]`))
+    this.announce(fill(this.L.viewMonths, { year: this.vy }))
+  }
+  toYears () {
+    const base = this.view === 'months' ? this.vy : this.y
+    this.stack.push(this.view)
+    this.view = 'years'; this.vyf = base; this.ys = base - 4; this.typed = ''
+    if (this.vm == null) this.vm = this.m
+    this.want = `.k-stage [data-y="${this.vyf}"]`
+    this.render(); this.zoom('up', this.stageOrigin(`.k-stage [data-y="${this.vyf}"]`))
+    this.announce(fill(this.L.viewYears, { from: this.ys, to: this.ys + 11 }))
+  }
+  pickYear (yy) {
+    const o = this.stageOrigin(`.k-stage [data-y="${yy}"]`)
+    this.stack = this.stack.filter((v) => v === 'days')
+    this.view = 'months'; this.vy = yy; if (this.vm == null) this.vm = this.m
+    this.want = `.k-stage [data-m="${this.vm}"]`
+    this.stack = ['days']
+    this.render(); this.zoom('down', o)
+    this.announce(fill(this.L.viewMonths, { year: yy }))
+  }
+  pickMonth (mm) {
+    const o = this.stageOrigin(`.k-stage [data-m="${mm}"]`)
+    this.setYM(this.vy, mm)
+    this.view = 'days'; this.stack = []; this.vm = null
+    this.want = `[data-date="${this.focus}"]`
+    this.render(); this.zoom('down', o)
+    this.announce(cap(monthYear(this.y, this.m)))
+  }
+  up () { // Esc: sube al nivel anterior
+    const prev = this.stack.pop() || 'days'
+    const wasMonths = this.view === 'months'
+    this.view = prev
+    if (prev === 'days') { this.vm = null; this.want = wasMonths ? '[data-k="pa-m"]' : '[data-k="pa-y"]' } else if (prev === 'months') this.want = `.k-stage [data-m="${this.vm}"]`
+    this.render()
+  }
+  // --- eventos ---
+  onClick (e) {
+    const t = e.target.closest('button'); if (!t || !this.root.contains(t)) return
+    const act = t.dataset.act
+    if (act === 'm-1') return this.go(-1)
+    if (act === 'm+1') return this.go(1)
+    if (act === 'to-months') return this.toMonths()
+    if (act === 'to-years') return this.toYears()
+    if (act === 'vy-1' || act === 'vy+1') { this.vy += act === 'vy-1' ? -1 : 1; this.want = `[data-act="${act}"]`; this.render(); this.announce(fill(this.L.viewMonths, { year: this.vy })); return }
+    if (act === 'ys-12' || act === 'ys+12') { const d = act === 'ys-12' ? -12 : 12; this.ys += d; this.vyf += d; this.want = `[data-act="${act}"]`; this.render(); this.announce(fill(this.L.viewYears, { from: this.ys, to: this.ys + 11 })); return }
+    if (t.classList.contains('g-datepicker__day')) return this.choose(t.dataset.date)
+    if (t.closest('.pb-lane')) {
+      if (t.classList.contains('is-disabled')) return
+      const lane = t.closest('.pb-lane').dataset.lane
+      if (lane === 'y') this.setYM(Number(t.dataset.y), this.m); else this.setYM(Number(t.dataset.y), Number(t.dataset.m))
+      this.want = `.pb-lane--${lane} [aria-checked="true"]`
+      this.render(); this.centerLanes(true)
+      return
+    }
+    if (this.view === 'months' && t.dataset.m != null) { if (!t.classList.contains('is-disabled')) this.pickMonth(Number(t.dataset.m)); return }
+    if (this.view === 'years' && t.dataset.y != null) { if (!t.classList.contains('is-disabled')) this.pickYear(Number(t.dataset.y)) }
+  }
+  onKey (e) {
+    const k = e.key
+    if (e.target.classList.contains('pc-input')) return
+    if (k === 'Escape' && this.view !== 'days') { e.preventDefault(); e.stopPropagation(); return this.up() }
+    const lane = e.target.closest('.pb-lane')
+    if (lane) return this.onLaneKey(e, lane)
+    if (this.view === 'months' && e.target.closest('.pa-grid')) return this.onMonthsKey(e)
+    if (this.view === 'years' && e.target.closest('.pa-grid')) return this.onYearsKey(e)
+    if (!e.target.classList.contains('g-datepicker__day')) return
+    const f = this.focus; let t = null
+    const rtl = getComputedStyle(this.root).direction === 'rtl'
+    if (k === 'ArrowLeft') t = addDays(f, rtl ? 1 : -1)
+    else if (k === 'ArrowRight') t = addDays(f, rtl ? -1 : 1)
+    else if (k === 'ArrowUp') t = addDays(f, -7)
+    else if (k === 'ArrowDown') t = addDays(f, 7)
+    else if (k === 'Home') t = addDays(f, -((dow(f) - FIRST + 7) % 7))
+    else if (k === 'End') t = addDays(f, 6 - ((dow(f) - FIRST + 7) % 7))
+    else if (k === 'PageUp') t = addMonths(f, e.shiftKey ? -12 : -1)
+    else if (k === 'PageDown') t = addMonths(f, e.shiftKey ? 12 : 1)
+    else if (k === 'Enter' || k === ' ') { e.preventDefault(); return this.choose(f) }
+    else if (this.o.concept === 'C' && k.length === 1 && /[\p{L}\p{N}]/u.test(k) && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); return this.startJump(k) }
+    if (t) { e.preventDefault(); this.moveFocus(t) }
+  }
+  onMonthsKey (e) {
+    const k = e.key; let vm = this.vm; let vy = this.vy
+    const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -3, ArrowDown: 3 }[k]
+    if (step) { vm += step; if (vm < 0) { vm += 12; vy-- } if (vm > 11) { vm -= 12; vy++ } } else if (k === 'Home') vm = vm - (vm % 3)
+    else if (k === 'End') vm = vm - (vm % 3) + 2
+    else if (k === 'PageUp') vy--
+    else if (k === 'PageDown') vy++
+    else if (k === 'Enter' || k === ' ') { e.preventDefault(); const b = e.target; if (!b.classList.contains('is-disabled')) this.pickMonth(vm); return } else return
+    e.preventDefault()
+    const yearChanged = vy !== this.vy
+    this.vm = vm; this.vy = vy; this.want = `.k-stage [data-m="${vm}"]`
+    if (yearChanged) { this.render(); this.announce(fill(this.L.viewMonths, { year: vy })) } else this.renderStage()
+  }
+  onYearsKey (e) {
+    const k = e.key; let f = this.vyf
+    const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -3, ArrowDown: 3 }[k]
+    if (step) f += step
+    else if (k === 'Home') f -= (f - this.ys) % 3
+    else if (k === 'End') f += 2 - ((f - this.ys) % 3)
+    else if (k === 'PageUp') f -= 12
+    else if (k === 'PageDown') f += 12
+    else if (k === 'Enter' || k === ' ') { e.preventDefault(); if (!e.target.classList.contains('is-disabled')) this.pickYear(f); return } else if (/^\d$/.test(k)) {
+      e.preventDefault()
+      clearTimeout(this.typedT)
+      this.typed = (this.typed + k).slice(-4)
+      if (this.typed.length === 4) { f = Number(this.typed); this.typed = ''; this.announce(String(f)) } else { this.typedT = setTimeout(() => { this.typed = ''; this.renderStage() }, 1600); this.want = `.k-stage [data-y="${this.vyf}"]`; this.renderStage(); return }
+    } else if (k === 'Backspace' && this.typed) { e.preventDefault(); this.typed = this.typed.slice(0, -1); this.want = `.k-stage [data-y="${this.vyf}"]`; this.renderStage(); return } else return
+    e.preventDefault()
+    let moved = false
+    while (f < this.ys) { this.ys -= 12; moved = true }
+    while (f > this.ys + 11) { this.ys += 12; moved = true }
+    if (f - this.ys > 11 || f < this.ys) this.ys = f - 4
+    this.vyf = f; this.want = `.k-stage [data-y="${f}"]`
+    if (moved) { this.render(); this.announce(fill(this.L.viewYears, { from: this.ys, to: this.ys + 11 })) } else this.renderStage()
+  }
+  onLaneKey (e, lane) {
+    const k = e.key
+    const items = [...lane.querySelectorAll('.k-pick')]
+    let i = items.findIndex((b) => b.getAttribute('aria-checked') === 'true')
+    const rtl = getComputedStyle(this.root).direction === 'rtl'
+    const move = (d) => { let j = i; do { j += d } while (items[j] && items[j].classList.contains('is-disabled')); if (items[j]) i = j }
+    if (k === 'ArrowLeft') move(rtl ? 1 : -1)
+    else if (k === 'ArrowRight') move(rtl ? -1 : 1)
+    else if (k === 'Home') { i = items.findIndex((b) => !b.classList.contains('is-disabled')) } else if (k === 'End') { for (let j = items.length - 1; j >= 0; j--) if (!items[j].classList.contains('is-disabled')) { i = j; break } } else if ((k === 'PageUp' || k === 'PageDown') && lane.dataset.lane === 'y') i = Math.max(0, Math.min(items.length - 1, i + (k === 'PageUp' ? -10 : 10)))
+    else if (k === 'Enter' || k === ' ') { e.preventDefault(); this.want = `[data-date="${this.focus}"]`; this.renderStage(); return } else return
+    e.preventDefault()
+    const b = items[i]
+    if (lane.dataset.lane === 'y') this.setYM(Number(b.dataset.y), this.m); else this.setYM(Number(b.dataset.y), Number(b.dataset.m))
+    this.want = `.pb-lane--${lane.dataset.lane} [aria-checked="true"]`
+    this.render(); this.centerLanes(true)
+  }
+  // --- C: el salto dicho ---
+  startJump (ch) {
+    const inp = this.root.querySelector('.pc-input'); if (!inp) return
+    this.saved = { y: this.y, m: this.m }
+    this.editing = true; this.root.classList.add('is-previewing')
+    inp.focus(); inp.value = ch; inp.setSelectionRange(1, 1)
+    this.onJumpInput(inp)
+  }
+  onJumpInput (inp) {
+    if (!this.editing) { this.editing = true; this.root.classList.add('is-previewing'); if (!this.saved) this.saved = { y: this.y, m: this.m } }
+    const r = parseJump(inp.value, this.saved)
+    const read = this.root.querySelector('.pc-reading')
+    if (r) { this.y = r.y; this.m = r.m; read.classList.remove('is-idle'); read.innerHTML = icon('arrow-right') + `<span>${monthYear(r.y, r.m)}</span>`; this.okParse = true } else { read.classList.add('is-idle'); read.textContent = this.L.goHint; this.okParse = false }
+    this.renderStage()
+    clearTimeout(this.readT); if (r) this.readT = setTimeout(() => this.announce(cap(monthYear(r.y, r.m))), 600)
+  }
+  onJumpKey (e, inp) {
+    const k = e.key
+    if (k === 'Enter') { e.preventDefault(); return this.commitJump(true) }
+    if (k === 'Escape') { e.preventDefault(); e.stopPropagation(); if (this.saved) { this.y = this.saved.y; this.m = this.saved.m } this.editing = false; this.root.classList.remove('is-previewing'); this.want = `[data-date="${this.focus}"]`; this.render(); return }
+    const step = { ArrowUp: -1, ArrowDown: 1, PageUp: -12, PageDown: 12 }[k]
+    if (step) {
+      e.preventDefault()
+      const s = new Date(Date.UTC(this.y, this.m + step, 1)); this.y = s.getUTCFullYear(); this.m = s.getUTCMonth()
+      this.editing = true; this.root.classList.add('is-previewing')
+      inp.value = monthYear(this.y, this.m); inp.select()
+      const read = this.root.querySelector('.pc-reading'); read.classList.remove('is-idle'); read.innerHTML = icon('arrow-right') + `<span>${monthYear(this.y, this.m)}</span>`
+      this.okParse = true
+      this.renderStage()
+      clearTimeout(this.readT); this.readT = setTimeout(() => this.announce(cap(monthYear(this.y, this.m))), 600)
+    }
+  }
+  commitJump (moveFocus) {
+    if (!this.editing) return
+    this.editing = false; this.root.classList.remove('is-previewing')
+    if (!this.okParse && this.saved) { this.y = this.saved.y; this.m = this.saved.m }
+    this.setYM(this.y, this.m); this.saved = null
+    if (moveFocus) this.want = `[data-date="${this.focus}"]`
+    this.render()
+    this.announce(cap(monthYear(this.y, this.m)))
+  }
+}
+
+// ---------- Página ----------
+const PRESET = { single: '2026-11-18', range: { start: '2026-11-24', end: '2026-12-09' } }
+const DEMOS = {
+  base2: { concept: 'base', months: 2, compact: false, mode: 'range' },
+  base1: { concept: 'base', months: 1, compact: false, mode: 'range' },
+  A: { concept: 'A', mode: 'single' },
+  B: { concept: 'B', mode: 'range' },
+  C: { concept: 'C', mode: 'single' }
+}
+const pickers = {}
+function make (el) {
+  const key = el.dataset.demo
+  const o = { ...DEMOS[key] }
+  el.querySelectorAll('[data-opt]').forEach((c) => { o[c.dataset.opt] = c.type === 'checkbox' ? c.checked : c.value })
+  const host = el.querySelector('.k-host')
+  host.classList.toggle('is-narrow', !!o.narrow)
+  host.classList.toggle('is-month', !o.compact && !host.classList.contains('is-wide'))
+  o.value = o.mode === 'range' ? { ...PRESET.range } : PRESET.single
+  pickers[key] = new Picker(host, o)
+  requestAnimationFrame(() => measure(el))
+}
+function measure (el) {
+  const s = el.querySelector('.g-datepicker__surface'); const out = el.querySelector('.k-measure')
+  if (!s || !out) return
+  const r = s.getBoundingClientRect(); const d = s.querySelector('.g-datepicker__day')?.getBoundingClientRect()
+  out.textContent = `Superficie ${Math.round(r.width)} × ${Math.round(r.height)} px · día ${d ? Math.round(d.width) : '—'} px`
+}
+const demos = [...document.querySelectorAll('[data-demo]')]
+demos.forEach((el) => { make(el); el.querySelectorAll('[data-opt]').forEach((c) => c.addEventListener('change', () => make(el))) })
+optDark.addEventListener('change', () => { if (optDark.checked) html.dataset.theme = 'dark'; else html.dataset.theme = 'light' })
+optReduce.addEventListener('change', () => { REDUCED = optReduce.checked })
+optLang.addEventListener('change', () => { LOCALE = optLang.value; html.lang = LOCALE; demos.forEach(make) })
+window.kiwi = { pickers, parseJump, measure: () => demos.forEach(measure) }
+})()
+</script>
+</body>
+</html>
