@@ -149,7 +149,7 @@ Variable dinámica en línea: `--_offset` (número).
 
 ## Movimiento (`tokens.md` §29.9, #1002 y #1005)
 
-**Panel anclado** en la presentación popover; la hoja es la de `GDialog`. La entrada ya cumple. **Falta la salida** (hoy, cierre instantáneo en los tres motores):
+**Panel anclado** en la presentación popover; la hoja es la de `GDialog`. **Corrección (#1017):** este contrato decía que la entrada ya cumplía, y no era cierto: la primera apertura no se desplazaba y las siguientes usaban el lado de la anterior, porque `GHelper.vue` escribe `data-side` después de abrir. Coco lo corrigió en f749d655 con keyframes que leen el lado en vivo (`tokens.md` §29.4). La salida:
 
 - **Coco:** fundido `--g-duration-fast` + `--g-ease-out` al cerrar, con `overlay` y `display` discretos; con reducido, `--g-duration-fast` `linear`. Sin desplazamiento. En Firefox y WebKit seguirá siendo instantáneo (D2 · A).
 - **Bruno:** `hidePopover()` no se retrasa, pero el contenido se conserva hasta acabar la salida: hoy `isOpen && !sheet ? renderContent() : null` vacía el panel en el acto. Regla común en `api.md` «Paneles anclados». Reabrir a mitad cancela el vaciado.

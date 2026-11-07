@@ -226,7 +226,8 @@ app.use(Combobox)            // registra <g-combobox>; o: components: { GCombobo
 ### El panel (común a lista y superficie)
 
 ```html
-<div class="g-combobox__panel">
+<div class="g-combobox__panel has-highlight is-keyed">
+  <div class="g-combobox__highlight" aria-hidden="true"></div>                            <!-- la luz: siempre el primer hijo, fuera del listbox (#1017) -->
   <p class="g-combobox__status g-combobox__status--hint|--loading|--empty|--error" id="ID-status">[GIcon]<span>…</span></p>
   <ul class="g-combobox__list" id="ID-list" role="listbox" aria-labelledby="ID-label" aria-busy="true" [hidden]>
     <li role="presentation"><ul class="g-combobox__group" role="group" aria-labelledby="ID-grp-0">
@@ -437,7 +438,7 @@ Con `prefers-reduced-motion: reduce` **ninguno se mueve** (#299 (3)); los fundid
 | A · apertura con reducido (#1002) | El despliegue se va y queda un fundido del panel. Hoy abre sin fundido | `--g-duration-fast`, `linear` |
 | B · entrada | La de `GDialog` desde su disparador (D1, #301), sin cambios: el disparador es el campo | La de `GDialog` |
 | C · la ficha llega | Al elegir desde la lista de `field`, la ficha viaja de su fila a su sitio. Bruno escribe el vector en `--_travel-x` / `--_travel-y` (px) y pone **`is-arriving`** en `g-combobox__token`; coco anima con keyframes **`g-combobox-arrive…`**; bruno retira la clase en `animationend`/`animationcancel` de ese nombre, o en el acto si no hay animación calculada (patrón de `GNumberField`, #313) | `--g-duration-slow`, **`--g-ease-spring`** dentro de `@supports`; fuera, `--g-ease-out`. **Cuarto uso aprobado del muelle**: un desplazamiento que llega |
-| Recorrer las opciones | **Salto, sin fundido**, también al entrar: con una transición por fila se leían dos marcos parpadeando (reporte del usuario). Sin luz: las fichas tienen huecos (`api.md` «Una sola luz», regla 9). Excepción de la tabla única (#1007) | Ninguna |
+| Recorrer las opciones | **Una sola luz**, la de `GSelect` (§«Una sola luz», #1017) | Viaja `--g-duration-press`, `--g-ease-out`; aparece con fundido `--g-duration-fast` |
 | Hover, fantasma | Color y fondo | `--g-duration-fast`, `--g-ease-standard` |
 | Indicador de carga | Giro | `--g-duration-spin` |
 
@@ -445,6 +446,61 @@ Con `prefers-reduced-motion: reduce` **ninguno se mueve** (#299 (3)); los fundid
 - **Salida de A, coco:** comprobar que la junta entre campo y panel no parpadea al recuperar el campo su forma (el caso anotado en `GCombobox.css`, en las esquinas de la caja). La paleta no cambia: es la de `GDialog`.
 - La ficha **no viaja** al elegir desde la superficie (el campo está detrás del modal), al cargar con valor, ni al cambiar `modelValue` desde la aplicación.
 - **Para coco:** medir el rebase de la llegada con la fila más lejana (3,8 % de la distancia); si pasa de `--g-space-1 × 2`, acotar el vector en CSS con `clamp` y anotarlo en `estilo.md` (alias local, §29.7; no cambia el contrato).
+
+### Una sola luz (`api.md` «Una sola luz», regla 1, tercer caso; #1017)
+
+Decisión del usuario del 2026-11-07: «Yo lo que quiero son transiciones suaves. Y homogéneas, no quiero ese pivoteo». **Enmienda #1007 y retira la ficha que se levanta y la activa invertida.** Vale para `field`, `palette` y `multiple`, y para las filas de acción. **Sin props, eventos, slots ni tokens nuevos.** `is-active`, `aria-activedescendant`, el slot `option` y su `active` no cambian. La luz es presentación.
+
+**Qué sigue:** a la opción activa, la mueva el puntero, las teclas o un cambio de resultados. Los huecos entre fichas, los títulos, los separadores, las deshabilitadas y salir del panel no la apagan: en el hueco se queda en la última fila. Se apaga solo si no hay activa.
+
+**Lo que deja de pasar:** la activa ya no cambia de color, borde ni sombra. Por eso la paleta pierde la inversión: un texto que se invierte de golpe bajo una luz que viaja volvería a ser el salto del que se quejó el usuario.
+
+**Otros estados:**
+
+| Estado | Con la luz |
+| --- | --- |
+| Elegida | Sin cambios: peso y `check` en `aria-selected`; casilla en `multiple`. Sin fondo propio, como en `GSelect` |
+| Vista previa | Sin cambios: sigue a la activa en el acto, sin esperar a la luz. Sin activa, `previewEmpty` |
+| `is-armed` (Retroceso) | Conserva su fondo `--g-color-selection`, que tapa la luz si es la activa: es un estado, no el recorrido |
+| Renglones de `selection="list"` y cesta | Sin luz: no son el `listbox` |
+| Ficha que llega, casilla que salta, renglón nuevo | Sin cambios |
+
+**Bruno (`GCombobox.vue`):**
+
+1. **El anfitrión es `g-combobox__panel`**, no la lista: es quien se desplaza, en A y en la superficie. La capa es `div.g-combobox__highlight` (`aria-hidden`), su primer hijo, **fuera del `listbox`**, así que no necesita `role`.
+2. Coloca con `placeHighlight(panel, opción, { instant, layer: panel.firstElementChild })`. **`utils/glide.js` entra en `__shared`** con `placeHighlight` y `aimed`, con su prueba como las demás entradas. Sin `createPointerGlide`.
+3. **Cambia solo la activa:** viaja. **Cambian las filas** (resultados, «Ver más», carga) o el tamaño: `instant: true`, también si la activa conserva su clave.
+4. **Apertura:** `instant: true` en cada apertura, tras montar el panel. En la superficie, tras montar el `GDialog`. En A no hay que esperar al despliegue: la posición es relativa al panel.
+5. **Cierre:** `setActive(null)` no apaga la luz mientras dura `leaving` (#1005).
+6. **`is-keyed` en el panel, por `classList`:** se pone con toda tecla que no sea modificador en el campo o en la búsqueda de la superficie, también al escribir, porque Intro elegirá la activa y hay que verla. Se quita al abrir con puntero, en `pointerdown` sobre el panel y cuando un movimiento real de ratón o lápiz pasa por una opción habilitada. El puntero quieto no la quita.
+7. **`onPanelMove` filtra con `aimed`:** solo ratón y lápiz mueven la activa.
+
+**Coco (`GCombobox.css`):**
+
+1. Como `.g-select__highlight`: fondo `--g-color-surface-sunken`, radio de la opción (`--g-radius-md`), px físicos, variables leídas solo en esa regla, `pointer-events: none`, `z-index: -1`.
+2. **`g-combobox__panel` lleva `position: relative` e `isolation: isolate`:** sin contexto propio, la capa se iría detrás de `g-combobox__popup-body`, que es quien tiene el fondo.
+3. **Se retiran:** borde, fondo y sombra de `.is-active`; todo `.g-combobox-surface .is-active`, con sus tonos y la casilla perfilada; el comentario de `.g-combobox__option` sobre la transición por fila. `.g-combobox__option` conserva su borde transparente: nada se mueve.
+4. Contorno en `.g-combobox__panel.is-keyed .g-combobox__option.is-active`, como en `GSelect`: `--g-focus-width` y `--_focus`, por dentro.
+5. Movimiento: `translate`, `inline-size` y `block-size` con `--g-duration-press` + `--g-ease-out`; `opacity` con `--g-duration-fast`; con `is-highlight-instant`, solo la opacidad. **Reducido:** solo el fundido.
+6. **`forced-colors`:** capa oculta y **contorno `Highlight` siempre**, con o sin `is-keyed`. Se retiran el relleno `Highlight` y la inversión de textos y casilla.
+7. **Medir:** texto apagado de la ficha, `<mark>`, casilla marcada y «+N» sobre `--g-color-surface-sunken`, en claro, en oscuro y con un tema distinto; y que el contorno de la activa no se confunda con el anillo de la forma en A.
+
+**Se verifica** (tres motores, `tests/movimiento.spec.mjs` y `GCombobox.test.js`):
+
+| Qué | Medida |
+| --- | --- |
+| Puntero | Al barrer: cuadros intermedios, como máximo una superficie encendida, acaba sobre la activa a ≤ 1 px, sin contorno; el foco sigue en el campo |
+| Huecos | Sobre un hueco, un título o una deshabilitada, la luz no cambia |
+| Teclado | ↓ mueve la luz y pinta el contorno; escribir también lo pinta; mover el ratón lo quita |
+| Resultados | Al cambiar las filas, sin viaje |
+| Formas | `field` hacia abajo y arriba, `palette`, hoja móvil y `multiple` con «Elegidas»; con la lista desplazada y en RTL, luz y fila a ≤ 1 px |
+| Sin salto | Ningún cambio de color, borde o sombra en la fila al pasar a activa |
+| Reducido y `forced-colors` | Sin viaje; sin capa, con contorno tras usar el puntero |
+| Rendimiento | Las compuertas de `combobox-multiple-perf.spec.mjs` siguen en verde; 0 tareas largas con una flecha mantenida (`--workers=1`, #965) |
+
+**No verificable aquí:** contorno solo tras teclado con VoiceOver y NVDA, y comodidad con personas.
+
+**Peso (#1017):** lote propio, ≤ +64 B `grana.js`, ≤ +256 B `grana.css`, ≤ +448 B `combobox.js`, netos, con `gzip -9`.
 
 ## Tokens consumidos (#336)
 
@@ -454,8 +510,8 @@ Con `prefers-reduced-motion: reduce` **ninguno se mueve** (#299 (3)); los fundid
 | --- | --- |
 | `--g-color-surface`, `--g-color-border`, `--g-color-border-control` | Fondo de la lista; costura campo–lista; contorno de la forma abierta |
 | `--g-focus-width`, `--g-focus-offset`, `--g-color-focus` (o el `color` del campo) | Anillo de la forma completa (campo + lista) en A; barra de la opción activa |
-| `--g-shadow-2` / `--g-shadow-3`, `--g-shadow-1` | Elevación de la forma abierta; ficha activa |
-| `--g-color-surface-sunken` | Opción activa; fondo de la vista previa |
+| `--g-shadow-2` / `--g-shadow-3` | Elevación de la forma abierta |
+| `--g-color-surface-sunken` | La luz de la opción activa; fondo de la vista previa |
 | `--g-color-text`, `--g-color-surface` (par inverso, #325) | Opción activa de la paleta |
 | `--g-color-text-muted`, `--g-color-text-subtle` | Línea secundaria, rótulos, encabezado de grupo, texto fantasma (≥ 4.5:1); deshabilitada |
 | `--g-color-selection` | Fondo del resto fantasma y de la ficha «seleccionada» con foco (primer consumidor del rol, `tokens.md` §17.5) |
@@ -489,7 +545,9 @@ Las de `GInput` siguen siendo de `GInput`. Bruno emite estas; coco las estiliza.
 | `g-combobox__popup`, `__popup-body`, `is-empty` | Popover de A y su parte desplegable | `field` |
 | `g-combobox__panel`, `__status`, `__status--{hint\|loading\|empty\|error}`, `__list` | Panel | Lista o superficie |
 | `g-combobox__group`, `__group-label` | Grupo | Por grupo |
-| `g-combobox__option`, `is-active` | Fila | Por opción y fila de acción |
+| `g-combobox__option`, `is-active` | Fila | Por opción y fila de acción. Sin fondo, borde ni sombra propios: lo pinta la luz |
+| `g-combobox__highlight` | Capa de la luz, primer hijo del panel | Siempre con panel (#1017) |
+| `has-highlight`, `is-highlight-instant`, `is-keyed` | `g-combobox__panel` | Como en `GSelect` (§«Una sola luz») |
 | `g-combobox__action`, `__action--{retry\|more\|custom\|create}` | Fila de acción | Según estado |
 | `g-combobox__check` | Marca de la opción elegida (`aria-selected`) | Opción elegida |
 | `g-combobox__lead`, `__main`, `__label` | Partes de las **filas de acción** (icono, columna y texto). Las opciones llevan una `g-summary` (`g-summary__lead`, `__code`, `__title`, `__subtitle`, `__fact*`, `__mark`, `summary.md`) | Filas de acción |
@@ -504,7 +562,7 @@ El estado elegida y deshabilitada de una opción se estiliza con `aria-selected`
 **Para coco:**
 
 - **A, una sola forma:** el contorno, el anillo y la sombra son del `popup` (campo + lista); mientras está abierto y con panel, el borde y el anillo propios de la caja se vuelven transparentes; entre campo y lista, solo una línea fina. Medidas de kiwi a reproducir: Δ izquierda, arriba y ancho entre caja y forma < 1px, costura < 1.5px, también hacia arriba; el punto central del campo devuelve el `<input>`.
-- **Opción activa:** un solo indicador, no solo color, ≥ 3:1. En `field`, sin segundo contorno dentro de la forma (barra al inicio con `--g-focus-width`, reflejada en RTL, o el borde de ficha: lo que mida mejor). En la paleta, invertida (`--g-color-text` / `--g-color-surface`; medido 17.4:1).
+- **Opción activa:** la luz y, tras usar el teclado, un contorno ≥ 3:1 (§«Una sola luz», #1017).
 - **Ficha (C):** sobre la celda, a la altura de siempre (**Δ0 de alto** con y sin ficha); con `is-token` el texto y el cursor del `<input>` son transparentes; el dato secundario **se recorta primero** (elipsis) y la etiqueta conserva sitio; avatar `xs`; texto libre con `pencil`, cursiva y `labels.custom`; con el foco, la ficha se ve seleccionada (`--g-color-selection`).
 - **Recorte de la ficha (C), enmienda #689:** manda la regla de `GSummary` «secundaria entera o nada a medias»: la secundaria se recorta con elipsis hasta 4ch y después salta entera; la etiqueta conserva su sitio y solo lleva elipsis con la secundaria ya retirada. Criterio de `auditoria-verificar.mjs`: (a) secundaria = 0 o ≥ 4ch; (b) etiqueta con elipsis solo si la secundaria está retirada; (c) la ficha no sale de la caja; (d) algún ancho enseña la secundaria con elipsis y la etiqueta intacta.
 - **Texto fantasma:** misma tipografía que el campo, contraste ≥ 4.5:1 (medido 6.56:1), sin puntero.
@@ -513,7 +571,7 @@ El estado elegida y deshabilitada de una opción se estiliza con `aria-selected`
 
 ## RTL
 
-La forma de A se alinea al borde de inicio de la caja; hueco inicial al inicio; la barra de la activa se refleja; la vista previa pasa al otro lado (propiedades lógicas). `--_x` es físico (lo calcula bruno). Los iconos no son direccionales. El texto del campo sigue la dirección del contenido.
+La forma de A se alinea al borde de inicio de la caja; hueco inicial al inicio; la vista previa pasa al otro lado (propiedades lógicas). `--_x` es físico (lo calcula bruno). Los iconos no son direccionales. El texto del campo sigue la dirección del contenido.
 
 ## SSR
 
@@ -822,7 +880,7 @@ Mismas reglas de la Fase 1 (`fill`, cifras con `Intl.NumberFormat` del `lang`). 
 
 | Token | Para qué |
 | --- | --- |
-| `--g-color-border-control`; `--g-color-primary` / `--g-color-on-primary`; `--g-color-text`; `--g-color-surface` | Casilla (borde ≥ 3:1; kiwi midió 3.45:1). **Marcada** (enmiendas #429 y #430): relleno **`primary`** y marca **`on-primary`**, los mismos tokens que la casilla marcada de `GCheckbox` con su `color` por defecto (`tokens.md` §17.2: los componentes no leen `brand`), y **contorno `primary-text`** (regla general de `tokens.md` §7.1, #431 y #432; antes `text`, #429) (`surface` en la opción activa invertida de la paleta); `primary` solo como forma da 1,77 en lustre y 1,92 en spotify (medido con `brand`, que es su valor sin clave `primary`) |
+| `--g-color-border-control`; `--g-color-primary` / `--g-color-on-primary`; `--g-color-text`; `--g-color-surface` | Casilla (borde ≥ 3:1; kiwi midió 3.45:1). **Marcada** (enmiendas #429 y #430): relleno **`primary`** y marca **`on-primary`**, los mismos tokens que la casilla marcada de `GCheckbox` con su `color` por defecto (`tokens.md` §17.2: los componentes no leen `brand`), y **contorno `primary-text`** (regla general de `tokens.md` §7.1, #431 y #432; antes `text`, #429); `primary` solo como forma da 1,77 en lustre y 1,92 en spotify (medido con `brand`, que es su valor sin clave `primary`) |
 | `--g-color-selection` | Elemento o renglón marcado para quitar (con tachado: no solo color) |
 | `--g-color-accent-soft` / `--g-color-on-accent-soft`; `--g-color-accent-text` | «Nueva» (5:1) y su barra en **`accent-text`** (enmienda #429: `accent` como trazo da 1,29 en spotify, 2,14 en amazon y 2,64 en stripe, #228; con `accent-text`, 4,52 mínimo) |
 | `--g-color-warning-soft` / `--g-color-on-warning-soft` | Estado del tope (enmienda #429: `warning-text` sobre `warning-soft` da 4,15:1 en el tema por defecto oscuro; el par del tinte llega a 4,66 mínimo) |

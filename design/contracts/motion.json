@@ -85,14 +85,14 @@
       "ringPattern": "(?<![\\w-])(outline(?:-color|-offset|-width|-style)?)\\s+((?:var\\(--g-duration|var\\(--_t|\\d)[^,;]*)"
     },
     "recorrerFilas": {
-      "label": "Recorrer una lista con filas que se tocan",
-      "where": ["GMenu", "GSidebar", "GTable", "GSelect"],
+      "label": "Recorrer una lista con filas que se tocan o con opción activa",
+      "where": ["GMenu", "GSidebar", "GTable", "GSelect", "GCombobox"],
       "rule": { "model": "una sola luz (api.md)", "travel": { "duration": "press", "curve": "out" }, "firstPlacement": "aparece sin viajar", "appear": { "duration": "fast", "fade": true } },
       "reduced": "solo fundido, sin viaje"
     },
     "recorrerHuecos": {
-      "label": "Recorrer una lista con huecos o una rejilla",
-      "where": ["GCombobox (fichas)", "GDatePicker (días)", "GSidebar (navbar)"],
+      "label": "Recorrer una lista con huecos y sin opción activa, o una rejilla",
+      "where": ["GDatePicker (días)", "GSidebar (navbar)"],
       "rule": { "model": "una marca por elemento (api.md «Una sola luz», regla 9)", "maxLit": 1, "exit": "instantánea" },
       "reduced": "igual"
     },
@@ -120,7 +120,7 @@
 
   "lightOwners": [
     { "case": "foco dentro de la lista", "components": ["GMenu"], "follows": "el foco", "pointerMovesFocus": true, "ring": "el del foco" },
-    { "case": "foco fuera de la lista, con opción activa", "components": ["GSelect"], "follows": "la opción activa, por puntero o teclado", "pointerMovesFocus": false, "ring": "solo tras usar el teclado" },
+    { "case": "foco fuera de la lista, con opción activa", "components": ["GSelect", "GCombobox"], "follows": "la opción activa, por puntero o teclado", "pointerMovesFocus": false, "ring": "solo tras usar el teclado" },
     { "case": "lista en la secuencia de Tab", "components": ["GSidebar", "GTable"], "follows": "el puntero", "pointerMovesFocus": false, "ring": "solo con teclado" }
   ],
 
@@ -139,7 +139,7 @@
     "GCardGroup": { "pieces": [], "own": "card-group.md" },
     "GCheckbox": { "pieces": [], "exceptions": ["anillo-que-se-abre"] },
     "GCheckboxGroup": { "pieces": [] },
-    "GCombobox": { "pieces": ["dialogo"], "own": "#336", "exceptions": ["combobox-campo-se-abre", "combobox-recorrer"] },
+    "GCombobox": { "pieces": ["dialogo"], "own": "#336", "exceptions": ["combobox-campo-se-abre"] },
     "GContainer": { "pieces": [] },
     "GDataList": { "pieces": [] },
     "GDatePicker": { "pieces": ["panelAnclado", "hojaMovil"] },
@@ -270,7 +270,6 @@
 
   "exceptions": [
     { "id": "combobox-campo-se-abre", "piece": "GCombobox A, «el campo se abre»", "does": "Despliegue de slow + ease-out que continúa el campo; al cerrar, fundido fast (#1005)", "decisions": ["#336"] },
-    { "id": "combobox-recorrer", "piece": "GCombobox, recorrer", "does": "Salto sin fundido también al entrar: la transición por fila dio dos marcos parpadeando (reporte del usuario)", "decisions": ["#1007"] },
     { "id": "tooltip-pestana", "piece": "GTooltip", "does": "Pestaña que viaja entre controles", "decisions": ["#388"] },
     { "id": "fab-pila", "piece": "GFab", "does": "Pila que crece", "decisions": ["#655"] },
     { "id": "tabs-marca", "piece": "GTabs", "does": "Marca que se estira, con muelle", "decisions": ["#302"] },
@@ -310,5 +309,11 @@
     "dist/grana.js": 512,
     "dist/grana.css": 512,
     "dist/combobox.js": 192
+  },
+  "weightComboboxLight": {
+    "$comment": "#1017, lote propio pedido por el usuario, aparte de `weight`. Mismo método. Son crecimientos netos: se resta lo que coco retira de la ficha levantada y la activa invertida.",
+    "dist/grana.js": 64,
+    "dist/grana.css": 256,
+    "dist/combobox.js": 448
   }
 }
