@@ -22,13 +22,13 @@ Duraciones: `fast` 120 ms, `press` 160 ms, `slow` 240 ms. La columna «Reducido�
 | Momento de control | Dónde | Regla | Reducido |
 | --- | --- | --- | --- |
 | **Hover de un control** | Botones, campos, enlaces | Color y borde con `fast` + `standard`. Sin escala. Solo con `@media (hover: hover)` | Igual: es color |
-| **Pulsar** | `GBtn` y lo que lo compone | Aprieta `fast` + `ease-out` a `--g-press-scale`; suelta `slow` + `ease-bounce` | Sin escala |
+| **Pulsar** | `GBtn` y lo que lo compone | Aprieta `fast` + `ease-out` a `--g-press-scale`; suelta `slow` + `ease-bounce`. Con carga se queda apretado y suelta a la llegada (#1013) | Sin escala |
 | **Foco** | Todo | El anillo funde su color con `fast` + `standard`, sin retardo. Cambiada por decisión del usuario (#1008; antes: «nunca se anima»). Excepción: el anillo que se abre de `GCheckbox`, `GRadioGroup`, `GSwitch` y `GTranscript` | El fundido de color puede quedarse; el anillo que se abre, no |
 | **Recorrer una lista con filas que se tocan** | `GMenu`, `GSidebar`, `GTable`, **`GSelect`** | Una sola luz: viaja `press` + `ease-out`; la primera colocación aparece sin viajar; aparece con fundido `fast` | Solo fundido, sin viaje |
 | **Recorrer una lista con huecos o una rejilla** | `GCombobox` (fichas), `GDatePicker` (días), navbar | Una marca por elemento, nunca dos a la vez; salida instantánea | Igual |
 | **Marcar o elegir** | Casillas, radios, interruptores, opción elegida | Color y marca con `fast` | Sin escala |
 | **Carga** | Todo giro | `--g-duration-spin`, `linear`; con reducido, × 2,5. Tiempos 200/400/5000 ms de `loadPhase.js` donde aplique | Giro lento |
-| **Señal de llegada** | `data-g-landed`, `is-here` de `GTable` | Decorativa y sin bloquear, hasta `slow × 4` (#589, #594). No es transición: no cuenta para el tope de 240 ms | Fundido corto |
+| **Señal de llegada** | `data-g-landed`, `is-here` de `GTable`, `g-btn__done` (#1012) | Decorativa y sin bloquear, hasta `slow × 4` (#589, #594). No es transición: no cuenta para el tope de 240 ms | Fundido corto |
 
 **Quién mueve la luz** (`api.md`, «Una sola luz», regla 1, ampliada con un tercer caso):
 
