@@ -137,7 +137,7 @@ La presentación se mantiene mientras está abierto. Con `:adaptive="false"`, si
 - **Contenido:** un diálogo **no modal** (`role="dialog"`) con el nombre de `contentLabel`.
 - **Foco visible** con `--g-focus-width`, `--g-focus-offset` y `--g-color-focus`, sin estilo propio. Con `pointer: coarse`, el área del disparador mide 44px.
 - **Contraste medido:** icono del disparador ≥ 7.46:1 y su borde ≥ 3.45:1 (claro); texto del popover ≥ 15.2:1, con el tema por defecto, con un tema de prueba y en oscuro.
-- **Movimiento:** el popover entra con una transición breve solo con `prefers-reduced-motion: no-preference`.
+- **Movimiento:** el popover entra con un fundido y un desplazamiento de `space × 1` desde el lado del disparador (`--g-duration-press`) y sale con un fundido de `--g-duration-fast` en `linear`, conservando su contenido mientras dura (#1002, #1005, #1019); en Firefox y WebKit el cierre es instantáneo (D2 · A, aceptado). Con `prefers-reduced-motion: reduce` no hay desplazamiento: queda solo el fundido.
 
 ## Tema
 
@@ -159,7 +159,7 @@ Sin tokens propios. El disparador por defecto mide `space × 8` (32px) y el popo
 
 ## Verificación
 
-- **Sin verificar:** lector de pantalla real, Safari real, `forced-colors` real, zoom al 200% y táctil real. Abrir en la capa superior, cerrar con Esc y conservar lado y alto en el vaivén está medido en Chromium, Firefox y WebKit (`tests/library.spec.mjs`, `tests/panel-estable.spec.mjs`); la entrada usa `@starting-style` (sin él, aparece sin animación) y `prefers-reduced-motion` está medido con la preferencia emulada en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`, 18/18 el 2026-10-18: con `reduce` ningún elemento conserva transiciones ni animaciones de movimiento).
+- **Sin verificar:** lector de pantalla real, Safari real, `forced-colors` real, zoom al 200% y táctil real. Abrir en la capa superior, cerrar con Esc y conservar lado y alto en el vaivén está medido en Chromium, Firefox y WebKit (`tests/library.spec.mjs`, `tests/panel-estable.spec.mjs`); el fundido de entrada usa `@starting-style` (sin él, aparece sin fundido) y el desplazamiento de `space × 1` va con keyframes (#1002); `prefers-reduced-motion` está medido con la preferencia emulada en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`, 18/18 el 2026-10-18: con `reduce` ningún elemento conserva animaciones de movimiento; esa medida es anterior a #1002, que deja con `reduce` solo el fundido del panel).
 
 - **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 

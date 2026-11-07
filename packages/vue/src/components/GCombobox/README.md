@@ -34,7 +34,7 @@ Tres ideas, elegidas por el usuario mirando los prototipos de kiwi (`design/lab/
 | --- | --- | --- | --- |
 | **A** | **El campo se abre** (`appearance="field"`, por defecto) | No hay un menú flotante aparte: abierto, el contorno, el anillo de foco y la sombra abrazan **campo y lista como una sola forma**. La primera coincidencia por prefijo se completa en el propio campo como **texto fantasma** | En un formulario denso nadie tiene que relacionar un menú con su campo; «diab» y Tab captura un diagnóstico entero sin mirar la lista |
 | **B** | **Paleta con vista previa** (`appearance="palette"`) | El campo se eleva a una superficie modal con su propio campo de búsqueda, los resultados y la **ficha de la opción activa**. Con el visor de 520 px o menos, siempre se usa esta estructura como hoja anclada arriba, sin vista previa | Entre cuatro «María García López» hay que ver a la persona antes de elegirla |
-| **C** | **El valor es un objeto** (en A y en B) | En reposo el campo enseña la ficha de lo elegido (avatar, nombre, datos) o la marca de texto libre; los resultados son fichas; y la elegida **viaja** de su fila al campo sin cambiar su alto | Un combobox pasa casi toda su vida cerrado: el formulario en reposo dice a quién y qué, verificable de un vistazo, y distingue catálogo de texto tecleado |
+| **C** | **El valor es un objeto** (en A y en B) | En reposo el campo enseña la ficha de lo elegido (avatar, nombre, datos) o la marca de texto libre; los resultados son fichas; y la elegida **entra en su sitio** en el campo sin cambiar su alto | Un combobox pasa casi toda su vida cerrado: el formulario en reposo dice a quién y qué, verificable de un vistazo, y distingue catálogo de texto tecleado |
 
 Las reglas de seguridad del teclado (Tab no elige, Intro no elige un resultado obsoleto, la lista no parpadea a vacío; ver «Teclado») son parte de la identidad y no se reabren sin motivo nuevo (#333).
 
@@ -185,7 +185,7 @@ El campo de la página pasa a ser el **disparador** (`aria-haspopup="dialog"`, `
 
 En reposo, con valor y sin texto a medio escribir, el campo enseña la **ficha** de lo elegido sobre el propio campo: la caja conserva su alto (Δ0). Con el foco, la ficha se pinta **seleccionada entera**: lo siguiente que se escribe la reemplaza y Retroceso la vacía. El valor del `<input>` sigue siendo la etiqueta; la ficha es visual (`aria-hidden`, sin puntero).
 
-Al elegir desde la lista de `field`, la ficha **llega**: sale de su fila y se asienta en el campo con el muelle (ver «Personalidad»). No viaja al elegir desde la superficie (el campo está detrás del modal), al cargar con valor ni al cambiar `modelValue` desde la aplicación.
+Al elegir desde la lista de `field`, la ficha **entra en su sitio**: un fundido y un desplazamiento corto desde el lado del panel, sin viajar desde su fila (ver «Personalidad»). No entra así al elegir desde la superficie (el campo está detrás del modal), al cargar con valor ni al cambiar `modelValue` desde la aplicación.
 
 ## Opciones
 
@@ -440,7 +440,7 @@ Los eventos de lista **no actúan mientras hay composición IME** (`isComposing`
 - **Texto con puntero grueso (#970 a #972):** con `pointer: coarse` (táctil) el texto que se escribe sube a `max(16px, su rol)` para que iOS Safari no amplíe la página al enfocar el campo; en escritorio no cambia nada. La altura de la caja no cambia. Sube la línea del valor entera (fantasma, ficha del valor y frase de `multiple`; la lista y la paleta que se abren siguen en su rol); etiqueta, ayuda, mensajes y listas se quedan en su rol. Grana no toca el viewport: no añadas `maximum-scale=1` (bloquea el pellizco, WCAG 1.4.4). `medido` en Chromium con emulación táctil (2007/2007, [`auditoria.md`](../../../../../design/lab/campo-tactil/auditoria.md)).
 - **Mínimos** (auditoría de coco): área táctil de «Limpiar» 24 × 24 px con puntero fino y **44 × 44** con puntero grueso (emulado en Chromium y WebKit); filas y filas de acción de **44 px** con puntero grueso y en la hoja; texto de 12 px o más; foco siempre visible.
 - **Foco al abrir y cerrar rápido:** medido con clics reales en la flecha y teclas (86 cuadros en Chromium, 101 en Firefox, 67 en WebKit): **0 cuadros sin contorno y 0 sin anillo** con el foco puesto. Antes de la corrección del hallazgo 1 de la auditoría había 1 y 2 en Chromium.
-- **Contraste** (compuesto real, 28 configuraciones en Chromium y 8 en Firefox y WebKit: tema por defecto, «Tema de prueba», el de la auditoría —`space` 3, cuerpo de 15— y los once de Dark Color Presence, claro y oscuro). Mínimos medidos: título y valor de la activa en la paleta (invertida) **15,18:1**; rótulo de dato en opción, ficha del valor y activa de `field` **5,05:1**; «+N» **4,51:1**; vista previa, rótulo **4,70:1**; **sobre la selección** (ficha enfocada: rótulo, dato compartido, código y capítulo) **6,49:1** como mínimo (por defecto claro 6,56; oscuro 7,84; tema de la auditoría 6,60 y 7,75); texto fantasma **6,49:1**; error de carga **4,51:1**; contorno de la forma **4,52:1** (se exige 3:1); iniciales del avatar `md` **4,53:1** (color de categoría del tema). Los que rozan 4,5 (error de carga, contorno, iniciales, «+N») vienen del rol del tema, no del componente: si un tema generado bajara de 4,5, el aviso es del motor de tema.
+- **Contraste** (compuesto real, 28 configuraciones en Chromium y 8 en Firefox y WebKit: tema por defecto, «Tema de prueba», el de la auditoría —`space` 3, cuerpo de 15— y los once de Dark Color Presence, claro y oscuro). Mínimos medidos: título y valor de la activa en la paleta: desde #1017 ya no se invierte y se leen sobre la luz (`surface-sunken`); **sin cifra propia en este README**, la comprobación está en `design/lab/combobox/auditoria-verificar.mjs` (2436/2436, 14 temas, `medido`); rótulo de dato en opción, ficha del valor y activa de `field` **5,05:1**; «+N» **4,51:1**; vista previa, rótulo **4,70:1**; **sobre la selección** (ficha enfocada: rótulo, dato compartido, código y capítulo) **6,49:1** como mínimo (por defecto claro 6,56; oscuro 7,84; tema de la auditoría 6,60 y 7,75); texto fantasma **6,49:1**; error de carga **4,51:1**; contorno de la forma **4,52:1** (se exige 3:1); iniciales del avatar `md` **4,53:1** (color de categoría del tema). Los que rozan 4,5 (error de carga, contorno, iniciales, «+N») vienen del rol del tema, no del componente: si un tema generado bajara de 4,5, el aviso es del motor de tema.
 - **`forced-colors`** (emulado en los tres motores): con ficha, la ficha se retira y el `<input>` pinta `FieldText`; forma `CanvasText`, anillo `Highlight`, opción activa `Highlight` / `HighlightText` (también sus datos, incluido el compartido) en A y en la paleta, fantasma `GrayText`, y la coincidencia conserva el subrayado.
 - **RTL:** la forma de A se alinea al borde de inicio de la caja, el hueco inicial va al inicio, la barra de la activa se refleja y el fantasma árabe coincide con la tinta del campo (Δ 0,00 px). `--_x` es físico.
 
@@ -497,7 +497,7 @@ Como en una sola opción, las tres ideas no son opciones sueltas: A y B se piden
 | --- | --- | --- | --- | --- |
 | **A** | **La frase** (por defecto) | `multiple` (`selection="inline"`, `appearance="field"`) | Lo elegido se **escribe en la línea del campo** como una frase de `Intl.ListFormat` («Penicilina, Látex y 3 más»), sin fichas ni ×; cede **por texto**, no con una insignia; al abrir, el grupo **«Elegidas»** va arriba. **El campo nunca crece** | Formularios densos sin saltos (Δ0 medido de 0 a 40 elegidas); lo elegido se lee en reposo, impreso o en una captura; ningún objetivo diminuto junto a otro |
 | **B** | **La receta** | `selection="list"` | La caja es solo la búsqueda; lo elegido va **debajo**, como renglones completos en orden (numerados con `numbered`); lo agregado en la pasada dice «Nueva» y quitar deja un **rastro con «Deshacer» en el mismo sitio** | Diagnósticos, medicamentos, órdenes: cada elegido se verifica **entero**; quitar por error no mueve ni pierde nada; quien revisa ve qué cambió |
-| **C** | **La cesta** | `appearance="palette"` con `multiple` | La paleta con **los resultados a un lado y la cesta de lo elegido al otro**, en el sitio de la vista previa; lo marcado **viaja** a la cesta; quitar deja rastro con «Deshacer». En reposo, la frase de A (o la receta, con `selection="list"`) | Revisar y quitar **mientras se busca**; entre homónimos, la marca de contraste compara en resultados y cesta |
+| **C** | **La cesta** | `appearance="palette"` con `multiple` | La paleta con **los resultados a un lado y la cesta de lo elegido al otro**, en el sitio de la vista previa; lo marcado **entra en su sitio** en la cesta; quitar deja rastro con «Deshacer». En reposo, la frase de A (o la receta, con `selection="list"`) | Revisar y quitar **mientras se busca**; entre homónimos, la marca de contraste compara en resultados y cesta |
 
 Descartado, sin reserva de nombre (#417): fichas con × dentro de una caja que crece (la referencia: +168 px de 2 a 8 elegidas), fichas navegables con ← →, carril con desplazamiento horizontal, «+N» como única cesión, solo el recuento en el campo, borrador con «Aplicar» y Tab que agrega.
 
@@ -802,7 +802,6 @@ Con un slot `chosen` alto (cuatro líneas), el rastro sigue midiendo lo que el r
 | Elemento marcado por Retroceso (frase) / renglón marcado | 14,51:1 / 14,60:1 |
 | Casilla: borde sin marcar (control, ≥ 3:1) | 3,43:1 |
 | Casilla marcada: contorno `primary-text` contra la superficie (#432; medida de `design/lab/contraste-marcado/estilo.md`: tema por defecto, lustre, spotify y `primary` propia, claro y oscuro) / marca `on-primary` sobre `primary` | 4,21:1 / 4,70:1 |
-| Casilla marcada en la activa invertida de la paleta: contorno `surface` contra la fila `text` | 15,18:1 |
 | Estado del tope (y su icono) | 4,66:1 |
 | «Nueva» / su barra | 4,51:1 / 4,52:1 |
 | Rastro / «Deshacer» (también al pasar el puntero y en la cesta) | 6,87:1 / 4,51:1 |
@@ -824,9 +823,9 @@ Cinco gestos, todos con tokens y **sin movimiento con `prefers-reduced-motion: r
 2. **La casilla salta.** Al marcar, la marca entra **desde 0,4 con `--g-ease-bounce`** (segundo uso aprobado del rebote; el pico medido es de 1,12 en Chromium, Firefox y WebKit). Al desmarcar, solo se funde. Es lo único que rebota: un control pequeño que responde con un golpe seco.
 3. **Quitar deja huella.** Retroceso marca antes de quitar con **tachado y selección**; en B y C el renglón se convierte en un **rastro del mismo alto** (Δ 0,00 px) con «Deshacer» como **la única pieza de color**: «Deshacer» es una píldora `accent-soft`, para que se encuentre sin buscarlo.
 4. **B · La receta registra la pasada.** Lo nuevo dice «Nueva» y lleva una **barra de acento al inicio** (en RTL, a la derecha); el renglón nuevo **crece desde la línea anterior** (`grid-template-rows` de 0 a 1, `--g-duration-slow` con `--g-ease-out`) y lo de debajo baja con él, sin salto; en la pasada siguiente los rastros se pliegan al revés. Quien revisa ve qué cambió.
-5. **C · Lo marcado viaja a la cesta.** El renglón llega desde la fila marcada con el muelle de la ficha de una opción (`--g-ease-spring`, el mismo uso aprobado de #336: algo elegido que llega). Con el tema por defecto, el vector parte de 214 px medidos (la cota `space × 2 / 0,038` da 210,5; la diferencia es el redondeo del primer cuadro) y llega a 0; con `space` 3 parte de 162. Esta medida se tomó con la duración dilatada a 1500 ms, porque WebKit sin cabeza pinta cada 40 a 75 ms y con los 300 ms reales apenas dejaba 3 o 4 cuadros.
+5. **C · Lo marcado entra en la cesta (#1018).** El renglón nuevo entra en su sitio, sin viajar desde la fila marcada: `is-landing`, 4 px (`space × 1`) a 0 desde abajo con un fundido de `--g-duration-press` (160 ms) y `--g-ease-out`; con movimiento reducido, solo el fundido. Sin muelle.
 
-Reservado (no adoptado): un resaltado único que viaja entre opciones, como el de `GMenu`.
+Recorrer las opciones usa una sola luz (ver «Personalidad», punto 8).
 
 ### Tema con `multiple`
 
@@ -834,7 +833,7 @@ Reservado (no adoptado): un resaltado único que viaja entre opciones, como el d
 
 | Token | Para qué |
 | --- | --- |
-| `--g-color-border-control`, `--g-color-primary`, `--g-color-on-primary`, `--g-color-primary-text`, `--g-color-surface` | Casilla: borde (≥ 3:1); marcada con relleno `primary`, marca `on-primary` y contorno `primary-text` (`surface` en la activa invertida de la paleta) |
+| `--g-color-border-control`, `--g-color-primary`, `--g-color-on-primary`, `--g-color-primary-text`, `--g-color-surface` | Casilla: borde (≥ 3:1); marcada con relleno `primary`, marca `on-primary` y contorno `primary-text` |
 | `--g-color-selection` | Elemento o renglón marcado para quitar (con tachado) |
 | `--g-color-accent-soft`, `--g-color-on-accent-soft`, `--g-color-accent`, `--g-color-on-accent` | «Deshacer» (píldora; al pasar, `accent` / `on-accent`) y «Nueva» |
 | `--g-color-accent-text`, `--g-focus-width` | Barra de «Nueva» |
@@ -842,7 +841,7 @@ Reservado (no adoptado): un resaltado único que viaja entre opciones, como el d
 | `--g-color-text`, `--g-text-action-weight` | «Ver los N» y «Ver las N» |
 | `--g-color-text-muted` | Frase con el foco, número, rastro, recuentos |
 | `--g-color-border` | Separación entre renglones y contorno de la receta y la cesta |
-| `--g-ease-bounce`, `--g-ease-spring`, `--g-ease-out`, `--g-duration-fast`, `--g-duration-press`, `--g-duration-slow` | Movimiento (`--g-ease-bounce` y `--g-ease-spring` solo dentro de `@supports`; fuera, `--g-ease-out`) |
+| `--g-ease-bounce`, `--g-ease-out`, `--g-duration-fast`, `--g-duration-press`, `--g-duration-slow` | Movimiento (`--g-ease-bounce` solo dentro de `@supports`; fuera, `--g-ease-out`) |
 
 - **La casilla marcada lee `primary`, no `brand`** (#430, y #429): es una selección, no la marca, y sigue al mismo token que `GCheckbox`; con un tema de clave `primary` propia las dos casillas siguen juntas. El **contorno** es `primary-text` (#431 y #432, que enmiendan el `text` de #429): la misma regla de todo control marcado y el mismo contorno que la casilla de `GCheckbox`. Hace falta: `primary` solo como forma da 1,77 en `lustre` y 1,92 en `spotify`, y `primary-text` llega a 4,21 o más; con el tema por defecto `primary-text` = `primary`, sin cambio visible.
 - «Nueva» y «Deshacer» usan el **par del tinte** (`accent-soft` / `on-accent-soft`) porque `accent-text` no está garantizado sobre `surface-sunken`; el tope usa `warning-soft` / `on-warning-soft` porque `warning-text` sobre el tinte da 4,15:1 en el tema por defecto oscuro. Lo mide el motor de tema, no el componente.
@@ -861,7 +860,7 @@ Reservado (no adoptado): un resaltado único que viaja entre opciones, como el d
 | `g-combobox__option.is-armed` | Fila de «Elegidas» marcada para quitar | Retroceso |
 | `g-combobox__status--max` | Estado del tope | `is-full` con el panel abierto |
 | `g-combobox__chosen`, `__rows`, `__rows-all` | Receta (B) y su «Ver los N» | `selection="list"` con elegidos o rastros |
-| `g-combobox__row` (`is-fresh`, `is-trace`, `is-armed`, `is-custom`, `is-entering`, `is-leaving`, `is-arriving`) y `__row-number`, `__row-fresh`, `__remove`, `__trace`, `__undo` | Renglón (B y C) y sus partes | Por elemento |
+| `g-combobox__row` (`is-fresh`, `is-trace`, `is-armed`, `is-custom`, `is-entering`, `is-leaving`, `is-landing`) y `__row-number`, `__row-fresh`, `__remove`, `__trace`, `__undo` | Renglón (B y C) y sus partes | Por elemento |
 | `g-combobox__surface-body.has-basket`, `__basket`, `__basket-title`, `__basket-tally`, `__basket-empty` | Cesta (C) | Paleta con `multiple`, por encima de 520 px |
 | `g-combobox__foot`, `__foot-tally`, `__done` | Pie de la superficie («Listo» es un `GBtn` con esa clase) | Superficie con `multiple` |
 
@@ -935,15 +934,15 @@ Prefijo `[Grana GCombobox]`; una vez por instancia y motivo; solo fuera de produ
 Cuatro gestos de movimiento y una regla de forma; todos con tokens (`--g-duration-*`, `--g-ease-*`), sin constantes de tema nuevas y **con `prefers-reduced-motion: reduce` ninguno se mueve** (nada se anima al montar). Origen: rondas de kiwi `design/lab/combobox/r01/` y `r02/` y comparación de coco con lo aprobado (decisiones #329 y #336; el usuario eligió A, B y C).
 
 1. **A · La forma única.** Abierto, el campo no tiene un menú debajo: *crece*. El panel empieza en el borde superior de la caja (o termina en el inferior, `is-up`), mide lo que ella y su zona alta es transparente y no captura el puntero. Contorno, anillo de foco y sombra son de la forma completa; entre campo y lista queda **una línea fina** que cae sobre el borde de la caja. Medido sobre el componente real: diferencia caja a forma **menor de 1 px** (izquierda, arriba y ancho; también hacia arriba), costura **0,00 px** (WebKit −0,02), anillo de `--g-focus-width` **sin cortes** del campo a la lista, y el punto central del campo devuelve el `<input>`.
-2. **A · El despliegue.** La lista crece desde la línea del campo (`grid-template-rows` de 0 a 1 con `@starting-style`), solo **al abrir**, en `--g-duration-slow` con `--g-ease-out`. No usa el muelle: es una entrada, no un desplazamiento que llega. Cambiar de resultados no anima y cerrar es inmediato. Mientras corre, la opción activa se lleva a la vista midiendo contra el alto final de la lista (ver «Panel estable»).
+2. **A · El despliegue.** La lista crece desde la línea del campo (`grid-template-rows` de 0 a 1 con `@starting-style`), solo **al abrir**, en `--g-duration-slow` con `--g-ease-out`. No usa el muelle: es una entrada, no un desplazamiento que llega. Cambiar de resultados no anima. Al cerrar, el panel se funde (`--g-duration-fast`, `linear`, #1019) y conserva su contenido mientras dura; el cierre y `aria-expanded` no esperan. En Firefox y WebKit el cierre es instantáneo (D2 · A, #1002). Mientras corre, la opción activa se lleva a la vista midiendo contra el alto final de la lista (ver «Panel estable»).
 3. **El texto se completa.** El resto de la primera coincidencia se escribe en el propio campo sobre `--g-color-selection`, en `text-muted`: se lee como «texto propuesto, aceptable de un toque». Entra con un fundido corto.
-4. **C · La ficha llega.** Al elegir desde la lista de `field`, la ficha **viaja** de su fila a su sitio con `--g-ease-spring` (cuarto uso aprobado del muelle: un desplazamiento que llega), opaca todo el trayecto. El vector lo escribe el componente en `--_travel-x` y `--_travel-y` y marca la ficha con `is-arriving`, que retira al terminar. El vector se acota en el CSS para que el rebase del muelle no pase de `space × 2`: medido con la fila más lejana (Δy 309 px) parte de 210,5 px, rebasa **8,00 px** (= `space × 2`) en **240 ms** y termina en 0; con el tema de la auditoría (`space` 3) parte de 157,9 y rebasa 6,00 px.
+4. **C · La ficha entra en su sitio (#1018).** Al elegir desde la lista de `field`, la ficha no viaja: entra en el campo con un fundido y 4 px (`space × 1`) a 0 desde el lado del panel (abajo; arriba con `is-up`), en `--g-duration-press` (160 ms) con `--g-ease-out`, mientras el panel sale con su fundido. El componente marca la ficha con `is-landing` solo tras ese gesto, y la retira al acabar la animación `g-combobox-land`. Sin muelle.
 5. **B · La entrada y la vista previa.** La paleta entra desde el campo con la entrada de `GDialog`, sin cambios. La vista previa **entra desde la lista**: con ↑ y ↓ la ficha se vuelve a crear y entra con un fundido de `--g-duration-fast` y un desplazamiento de `space × 2` desde el lado de la lista (el otro en RTL), como si la fila activa se proyectara en el panel. Con movimiento reducido, solo el fundido.
-6. **La paleta, con la búsqueda protagonista.** El campo de búsqueda ocupa de borde a borde con el foco como línea al pie, y la opción activa se **invierte** (par texto y superficie). Lista y vista previa en proporción 6 : 5, con un cuerpo de alto fijo (`space × 96`, **384 px** con `space` 4): la superficie no salta al cambiar los resultados.
+6. **La paleta, con la búsqueda protagonista.** El campo de búsqueda ocupa de borde a borde con el foco como línea al pie, y la opción activa lleva la luz, como en A (sin inversión de colores). Lista y vista previa en proporción 6 : 5, con un cuerpo de alto fijo (`space × 96`, **384 px** con `space` 4): la superficie no salta al cambiar los resultados.
 7. **La hoja va arriba.** En móvil, para que el teclado virtual no tape la lista; entra desde arriba.
-8. **La activa cambia en el acto.** En A, la opción activa se **levanta** (borde de tinta y sombra), sin transición por fila: dos fichas fundiéndose a la vez parecían dos marcos (reporte del usuario). Medido con puntero real, ida y vuelta por cinco filas, con y sin movimiento reducido: **como máximo 1 superficie resaltada por cuadro**, `scrollTop` constante y la forma quieta.
+8. **Una sola luz (#1017).** En `field`, `palette` y `multiple`, la capa `g-combobox__highlight` (primer hijo del panel) sigue a la opción activa y viaja entre filas (`--g-duration-press`, `--g-ease-out`); la activa ya no cambia de color, borde ni sombra. El puntero mueve la luz y el anillo de contorno solo aparece tras usar el teclado (`is-keyed`). La primera colocación al abrir no viaja. Con movimiento reducido, solo se funde; con `forced-colors`, sin capa y con contorno siempre.
 
-Con movimiento reducido: sin despliegue, la flecha sin giro, la ficha no viaja (la clase se retira en el acto) y los fundidos que quedan son solo de color y opacidad. **Reservada** (idea de coco para lima, no adoptada): un resaltado único que viaja entre opciones, como el de `GMenu`.
+Con movimiento reducido: sin despliegue, la flecha sin giro, la ficha entra solo con fundido y los fundidos que quedan son solo de color y opacidad.
 
 ## Panel estable (#358)
 
@@ -965,9 +964,8 @@ El componente solo lee tokens `--g-*` y alias locales (`--_cb-*` propios; `--_fo
 | `--g-color-surface`, `--g-color-border`, `--g-color-border-control` | Fondo de la lista; costura campo a lista; contorno de la forma abierta |
 | `--g-color-border-strong` | Borde de la marca «Texto libre» |
 | `--g-focus-width`, `--g-focus-offset` (y el color de foco o el `color` del campo) | Anillo de la forma completa; barra de la opción activa; línea de la búsqueda de la paleta |
-| `--g-shadow-1`, `--g-shadow-3` | Ficha activa; elevación de la forma abierta |
-| `--g-color-surface-sunken` | Fondo de la opción activa y de la vista previa |
-| `--g-color-text`, `--g-color-surface` (par inverso) | Opción activa de la paleta |
+| `--g-shadow-3` | Elevación de la forma abierta |
+| `--g-color-surface-sunken` | Fondo de la luz (opción activa) y de la vista previa |
 | `--g-color-text-muted`, `--g-color-text-subtle` | Línea secundaria, rótulos, encabezado de grupo, texto fantasma; deshabilitada |
 | `--g-color-selection` | Fondo del resto del fantasma y de la ficha «seleccionada» con foco |
 | `--g-color-on-accent-soft` | Perfil de «+N» sobre la ficha seleccionada |
@@ -976,7 +974,7 @@ El componente solo lee tokens `--g-*` y alias locales (`--_cb-*` propios; `--_fo
 | `--g-radius-xs`, `--g-radius-sm`, `--g-radius-md`, `--g-surface-radius` | Ficha, marca, filas, remate de la superficie |
 | `--g-space-1` a `--g-space-6`, `--g-border-width` | Rellenos, alturas de fila (la caja del mismo `size` y `density`, con piso de 24 px y 44 px táctil), alto del panel y la superficie, entrada de la hoja |
 | `--g-text-body-*`, `--g-text-body-sm-*`, `--g-text-caption-*`, `--g-text-title-sm-*`, `--g-text-action-weight`, `--g-font-ui` | Tipografía por rol |
-| `--g-duration-fast`, `--g-duration-slow`, `--g-duration-spin`, `--g-ease-standard`, `--g-ease-out`, `--g-ease-spring` | Movimiento |
+| `--g-duration-fast`, `--g-duration-slow`, `--g-duration-spin`, `--g-ease-standard`, `--g-ease-out` | Movimiento |
 
 **Constantes de diseño que no son tema** (`tokens.md` §32): `space × 9` (alto mínimo de fila), `space × 96` (alto máximo de la lista y del cuerpo de la superficie), 6 : 5 (lista a vista previa), `space × 14` (columna de códigos, sobre `g-summary__code`), `space × 12` (campo de búsqueda, piso de 44 px), `space × 2 / 0.038` (cota del vector de la llegada), el literal `520px` del umbral móvil, `--g-form-min: 60`, y en JS los 600 ms del anuncio y las 10 filas de Av Pág.
 
@@ -1019,7 +1017,7 @@ Los avisos 13 a 17 son de `multiple`: ver [«Avisos con `multiple`»](#avisos-co
 Las de `GInput` (raíz, caja, etiqueta, pie, `is-*`, `is-ready`, `is-rejected`) siguen siendo de `GInput`.
 
 - **Raíz:** `g-combobox`, `g-combobox--appearance-{field|palette}`; estados `is-open`, `is-up`, `is-surface`, `is-token`, `is-custom`.
-- **Campo:** `g-combobox__value`, `__field`, `__ghost` (`__ghost-typed`, `__ghost-rest`), `__token` (con `is-arriving` y `--_travel-x`, `--_travel-y`, que contiene una `g-summary--layout-inline`), `__about`, `__clear`, `__clear-text`, `__arrow`, `__live`.
+- **Campo:** `g-combobox__value`, `__field`, `__ghost` (`__ghost-typed`, `__ghost-rest`), `__token` (con `is-landing`, que contiene una `g-summary--layout-inline`), `__about`, `__clear`, `__clear-text`, `__arrow`, `__live`.
 - **Panel de A:** `g-combobox__popup` (con `is-empty` y las variables en línea `--_x`, `--_top`, `--_bottom`, `--_w`, `--_max`, `--_field-h`), `__popup-body`, `__panel`, `__status` (`--hint`, `--loading`, `--empty`, `--error`), `__list`, `__group`, `__group-label`, `__option` (`is-active`), `__check`.
 - **Filas de acción:** `__action--{retry|more|custom|create}` con `__lead`, `__main` y `__label`.
 - **Superficie:** `g-combobox-surface`, `--palette`, `--sheet`, `__search`, `__search-icon`, `__search-field`, `__search-loader`, `__surface-body` (`has-preview`), `__preview` (con una `g-summary--layout-stack`), `__preview-empty`.
