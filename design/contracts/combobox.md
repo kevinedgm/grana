@@ -917,7 +917,7 @@ Las opciones elegidas, deshabilitadas o no elegibles por el tope se estilizan co
 
 **Para coco** (`GCombobox.css`; nada en `GInput.css` ni en `GSummary.css`):
 
-- **Casilla:** forma de control como `GCheckbox` (mismo radio y tamaño relativo), borde `border-control` ≥ 3:1, marcada relleno `primary`, marca `on-primary` (los de `GCheckbox`, #430) y contorno `primary-text` (`surface` en la activa invertida de la paleta; #429, enmendado por #432: un solo contorno para todo control marcado, `tokens.md` §7.1).
+- **Casilla:** forma de control como `GCheckbox` (mismo radio y tamaño relativo), borde `border-control` ≥ 3:1, marcada relleno `primary`, marca `on-primary` (los de `GCheckbox`, #430) y contorno `primary-text` (#429, enmendado por #432: un solo contorno para todo control marcado, `tokens.md` §7.1).
 - **Frase (A):** una línea, sin saltos ni alto nuevo (Δ0); elipsis del primero; `__sentence-rest` con peso de acción; libres en cursiva con `pencil`; con el foco, la proporción frase/texto (anotarla en `estilo.md`) y `text-muted`; **marcada para quitar: tachado + `selection`** (no solo color).
 - **Receta (B):** en la tercera pista de `GFormRow` sin romper el *subgrid*; renglones con `GSummary row` de dos líneas, número, «Nueva» (par `accent-soft` + barra `accent-text` al inicio, reflejada en RTL), «Quitar» ≥ 24px / 44px aislado al final; **rastro del mismo alto** que el renglón (Δ0, medir), tachado en `text-muted` (alto = `--_row-h`), «Deshacer» como píldora `accent-soft`/`on-accent-soft` (al pasar `accent`/`on-accent`); «Ver los N» en `text` con peso de acción, con el chevron girado al desplegar.
 - **Cesta (C):** en el sitio de la vista previa, con su proporción; pie con recuento y «Listo»; estado del tope con el par `warning-soft`/`on-warning-soft`.
@@ -1081,13 +1081,13 @@ Lector de pantalla (VoiceOver, NVDA, TalkBack): si `aria-selected` se anuncia al
 ### Playwright (Chromium, Firefox, WebKit; `design/lab/theme-playground/`)
 
 - `tests/combobox.spec.mjs`: la batería de r01 sobre el componente real (semántica, foco por Tab sin abrir, Δ0, capa superior, activa siempre a la vista sin mover la página, grupos, 500 opciones < 150 ms, `GFormRow` de tres y sin huecos, dentro de `GDialog` con Esc que no lo cierra y anuncio dentro, móvil 375 y 320 sin desborde con opciones ≥ 44px y foco de vuelta, RTL, contraste, consola limpia).
-- `tests/combobox-forma.spec.mjs`: lo propio de r02. **A:** una sola forma (Δ < 1px, costura < 1.5px, también hacia arriba), el campo usable bajo la forma, fantasma y su contraste, Tab con homónimas y con etiqueta única. **B:** primera tecla, vista previa que cambia con ↓, `:modal`, Tab no sale, Esc y fondo, sobre `GDialog`, activa invertida. **C:** ficha (avatar, código, texto libre), Δ0 de alto, edición sobre la ficha y Esc × 2, fichas con rótulo en la lista. La fila se parte antes de 240px (`--g-form-min`) y respeta el valor del consumidor.
+- `tests/combobox-forma.spec.mjs`: lo propio de r02. **A:** una sola forma (Δ < 1px, costura < 1.5px, también hacia arriba), el campo usable bajo la forma, fantasma y su contraste, Tab con homónimas y con etiqueta única. **B:** primera tecla, vista previa que cambia con ↓, `:modal`, Tab no sale, Esc y fondo, sobre `GDialog`, luz de la activa (#1017). **C:** ficha (avatar, código, texto libre), Δ0 de alto, edición sobre la ficha y Esc × 2, fichas con rótulo en la lista. La fila se parte antes de 240px (`--g-form-min`) y respeta el valor del consumidor.
 - `tests/personalidad-combobox.spec.mjs`: despliegue de A (≥ 2 alturas intermedias, solo al abrir), llegada de la ficha (≥ 2 posiciones intermedias, termina en 0 y retira la clase; rebase medido), entrada de B; con `reduce`, nada se mueve y no quedan clases.
 - Prueba obligatoria de distribución (`tests/form-distribution.spec.mjs`, #184): sigue pasando.
 
 ### coco (CSS y auditoría)
 
-Solo `var(--g-*)` y `--_*` más las constantes de `tokens.md` §32 y §7; A, B y C medidos en los tres motores; auditoría con un tema distinto y con el oscuro (forma abierta, ficha, fantasma, activa invertida, vista previa, hoja); **`forced-colors` emulado con medida** (L23). Resultado en `design/lab/combobox/auditoria.md`.
+Solo `var(--g-*)` y `--_*` más las constantes de `tokens.md` §32 y §7; A, B y C medidos en los tres motores; auditoría con un tema distinto y con el oscuro (forma abierta, ficha, fantasma, luz de la activa, vista previa, hoja); **`forced-colors` emulado con medida** (L23). Resultado en `design/lab/combobox/auditoria.md`.
 
 ### No verificado (entorno real)
 
