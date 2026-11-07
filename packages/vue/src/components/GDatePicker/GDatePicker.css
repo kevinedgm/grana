@@ -1,6 +1,7 @@
 /*
   GDatePicker · estilo del esqueleto
-  Dueño: coco. Contrato: design/contracts/datepicker.md. Estructura: design/lab/datepicker/r01/.
+  Dueño: coco. Contrato: design/contracts/datepicker.md (r02: «Un mes por defecto y salto a mes y año»).
+  Estructura: design/lab/datepicker/r01/ y r02/ (A · Zoom de escala). Estilo: design/lab/datepicker/estilo.md.
   Reglas: solo var(--g-*) y alias locales var(--_*); sin @layer (lo aplica el registro);
   únicos literales de medida: 24px y 44px (área táctil), 16 px en max() del texto con puntero grueso (#970), 0px en
   max(), 1px del texto oculto y el
@@ -42,9 +43,19 @@
   --_h: max(24px, calc(var(--g-space-1) * var(--_units) * var(--_density)));
   --_radius: var(--g-radius-sm);
 
-  /* Superficie: la celda deriva de la unidad de espacio; 44px con puntero grueso */
-  --_cell: max(24px, calc(var(--g-space-1) * 10));
-  --_btn: max(24px, calc(var(--g-space-1) * 8));
+  /* Superficie (#1022, r02 §8): la celda y los botones derivan de la unidad de espacio y de la densidad de la raíz
+     (--_density, de g-datepicker--density-*; cuando exista density.md, var(--g-density)); el panel la hereda. 44px con
+     puntero grueso. --_row: una fila de días (el slot day la alarga); --_stage-h: el escenario, encabezado de columnas
+     + 6 filas, la caja que ocupan las tres vistas (Δ 0, #358) */
+  --_cell-raw: calc(var(--g-space-1) * 10 * var(--_density));
+  --_btn-raw: calc(var(--g-space-1) * 8 * var(--_density));
+  --_cell: max(24px, var(--_cell-raw));
+  --_btn: max(24px, var(--_btn-raw));
+  --_row: var(--_cell);
+  --_stage-h: calc(var(--g-space-1) + var(--g-space-2) + var(--g-text-caption-line) + var(--_row) * 6);
+  --_months-gap: calc(var(--g-space-1) * 10 * var(--_density));
+  /* Amplitud del zoom del cambio de nivel (#1023): 0 con movimiento reducido (solo fundido) */
+  --_zoom-amp: 1;
 
   position: relative;
   display: inline-flex;
@@ -65,7 +76,7 @@
 }
 @media (pointer: coarse) {
   .g-datepicker {
-    --_cell: max(44px, calc(var(--g-space-1) * 10));
+    --_cell: max(44px, var(--_cell-raw));
     --_btn: 44px;
   }
 }
@@ -323,7 +334,7 @@
 .g-datepicker__surface {
   box-sizing: border-box;
   display: block;
-  padding: var(--g-space-5) var(--g-space-6) var(--g-space-4);
+  padding: calc(var(--g-space-5) * var(--_density)) calc(var(--g-space-6) * var(--_density)) calc(var(--g-space-4) * var(--_density));
   background: var(--g-color-surface);
   color: var(--g-color-text);
   font-family: var(--g-font-ui);
@@ -341,7 +352,7 @@
 .g-datepicker__months {
   display: flex;
   justify-content: center;
-  gap: calc(var(--g-space-1) * 10);
+  gap: var(--_months-gap);
   touch-action: pan-y;
 }
 .g-datepicker__month {
@@ -349,26 +360,88 @@
   min-inline-size: min(calc(var(--_cell) * 7), 100%);
   max-inline-size: calc(var(--_cell) * 8.5);
 }
+/* Dos meses en la vista de meses o de años (r02 §2): una sola columna ocupa la caja de los dos (Δ 0 del panel). Nombre
+   propuesto por coco, pendiente de contrato: g-datepicker__months--pair en __months cuando se ven dos meses */
+.g-datepicker__months--pair > .g-datepicker__month:only-child {
+  min-inline-size: min(calc(var(--_cell) * 14 + var(--_months-gap)), 100%);
+  max-inline-size: calc(var(--_cell) * 17 + var(--_months-gap));
+}
+/* En el panel el mes mide siete celdas (r02 §8: ≈ 328 px por defecto, ≈ 246 px en compacto; la misma medida con la que
+   bruno decide uno o dos meses). En línea sigue creciendo hasta 8,5 celdas; en la hoja llena el ancho */
+.g-datepicker__pop .g-datepicker__month {
+  inline-size: calc(var(--_cell) * 7);
+}
+.g-datepicker__pop .g-datepicker__months--pair > .g-datepicker__month:only-child {
+  inline-size: calc(var(--_cell) * 14 + var(--_months-gap));
+}
 
-/* ---------- Encabezado del mes ---------- */
+/* ---------- Encabezado: alto constante en las tres vistas (r02 §2); las flechas conservan su hueco ---------- */
 .g-datepicker__head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   min-block-size: var(--_cell);
-  margin-block-end: var(--g-space-2);
+  margin-block-end: calc(var(--g-space-2) * var(--_density));
 }
 .g-datepicker__title {
   flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 0;
   margin: 0;
-  text-align: center;
+  white-space: nowrap;
   font-size: var(--g-text-body-size);
   line-height: var(--g-text-body-line);
   font-weight: var(--g-text-body-weight);
+  font-variant-numeric: tabular-nums;
   text-transform: capitalize;
 }
-.g-datepicker__title > span:first-child {
+/* Compacto: el título baja un escalón (body → body-sm, #966, piso 12 px) */
+.g-datepicker--density-compact .g-datepicker__title {
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+}
+/* Botones del título (mes y año, con chevron-down): bajan a la vista de meses o de años en su sitio. Hover de control
+   (§29.9): color con fast + standard, sin escala */
+.g-datepicker__title-part {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--g-space-1) * 0.5);
+  box-sizing: border-box;
+  min-inline-size: var(--_btn);
+  min-block-size: var(--_btn);
+  margin: 0;
+  padding-block: 0;
+  padding-inline: calc(var(--g-space-2) * var(--_density));
+  border: 0;
+  border-radius: var(--g-radius-pill);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-datepicker__title-part--month {
   font-weight: var(--g-text-title-sm-weight);
+}
+.g-datepicker__title-part > .g-icon {
+  color: var(--g-color-text-muted);
+}
+.g-datepicker__title-part:focus-visible {
+  outline: var(--g-focus-width) solid var(--_focus);
+  outline-offset: calc(var(--g-focus-width) * -1);
+}
+.g-datepicker__title-part:disabled {
+  color: var(--g-color-text-subtle);
+  cursor: not-allowed;
+}
+@media (hover: hover) {
+  .g-datepicker__title-part:hover:not(:disabled) {
+    background: var(--g-color-surface-sunken);
+  }
 }
 .g-datepicker__nav {
   flex: none;
@@ -385,6 +458,12 @@
   color: var(--g-color-text-muted);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--g-duration-fast) var(--g-ease-standard);
+}
+/* En el borde de [min, max] (r02 §3) la flecha lleva aria-disabled (conserva el foco): atenuada, sin hover */
+.g-datepicker__nav:is(:disabled, [aria-disabled="true"]) {
+  color: var(--g-color-text-subtle);
+  cursor: not-allowed;
 }
 /* El botón que no corresponde a este mes conserva su hueco para que el título quede centrado */
 .g-datepicker__nav[hidden] {
@@ -393,8 +472,8 @@
 }
 /* Chevron de Lucide (chevron-left / chevron-right); en RTL se espeja */
 .g-datepicker__nav > .g-icon {
-  inline-size: calc(var(--g-space-1) * 4.5);
-  block-size: calc(var(--g-space-1) * 4.5);
+  inline-size: calc(var(--g-space-1) * 4.5 * var(--_density));
+  block-size: calc(var(--g-space-1) * 4.5 * var(--_density));
 }
 [dir="rtl"] .g-datepicker__nav > .g-icon {
   scale: -1 1;
@@ -404,7 +483,7 @@
   outline-offset: calc(var(--g-focus-width) * -1);
 }
 @media (hover: hover) {
-  .g-datepicker__nav:hover {
+  .g-datepicker__nav:hover:not(:disabled, [aria-disabled="true"]) {
     background: var(--g-color-surface-sunken);
     color: var(--g-color-text);
   }
@@ -475,6 +554,147 @@
 /* Vista previa: la misma franja, más suave */
 .g-datepicker__grid td.is-preview::before {
   opacity: 0.6;
+}
+/* La franja que sigue (r02 §7, #1027): el rango continúa fuera de lo visible. El extremo en el borde no se redondea
+   (forma, no solo color) y se desvanece hacia el borde con una máscara de transparencia (currentColor solo da el alfa) */
+.g-datepicker__grid td.is-open-end::before {
+  mask-image: linear-gradient(to right, currentColor 40%, transparent);
+}
+.g-datepicker__grid td.is-open-start::before {
+  mask-image: linear-gradient(to left, currentColor 40%, transparent);
+}
+.g-datepicker__grid td.is-open-end:dir(rtl)::before {
+  mask-image: linear-gradient(to left, currentColor 40%, transparent);
+}
+.g-datepicker__grid td.is-open-start:dir(rtl)::before {
+  mask-image: linear-gradient(to right, currentColor 40%, transparent);
+}
+
+/* ---------- Escenario y vistas (r02 §2): días, meses o años en la misma caja ---------- */
+/* El escenario mide siempre encabezado de columnas + 6 filas de días: las rejillas de meses y años lo llenan y el panel
+   no cambia de tamaño al cambiar de vista. Una sola vista a la vez (la anterior sale en el acto, #1023) */
+.g-datepicker__stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(var(--_stage-h), auto);
+}
+.g-datepicker__view {
+  grid-area: 1 / 1;
+  min-inline-size: 0;
+}
+.g-datepicker__view--months,
+.g-datepicker__view--years {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+}
+/* Rejillas de 3 × 4 que llenan la caja: cuatro filas iguales */
+.g-datepicker__grid:is(.g-datepicker__grid--months, .g-datepicker__grid--years) {
+  block-size: 100%;
+}
+.g-datepicker__grid:is(.g-datepicker__grid--months, .g-datepicker__grid--years) td {
+  block-size: 25%;
+}
+/* La pieza tiene la altura de un día y hasta dos celdas de ancho, centrada en su celda: la marca pesa como la de un día
+   aunque la rejilla se estire (en dos meses la celda pasa de 180 px) */
+.g-datepicker__pick {
+  position: absolute;
+  inset: 0;
+  inline-size: min(calc(100% - var(--g-space-1)), calc(var(--_cell) * 2));
+  block-size: min(calc(100% - var(--g-space-1)), var(--_cell));
+  margin: auto;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  padding: 0 var(--g-space-1);
+  border: 0;
+  border-radius: var(--g-radius-pill);
+  background: transparent;
+  color: var(--g-color-text);
+  font: inherit;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-variant-numeric: tabular-nums;
+  text-transform: capitalize;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.g-datepicker__pick:focus-visible {
+  z-index: 1;
+  outline: var(--g-focus-width) solid var(--_focus);
+  outline-offset: var(--g-focus-offset);
+}
+/* Una marca por celda y nunca dos a la vez (api.md «Una sola luz», regla 9): el fundido solo en el estado que llega */
+@media (hover: hover) {
+  .g-datepicker__pick:hover:not(.is-disabled):not(.is-selected) {
+    background: var(--g-color-surface-sunken);
+    transition: background-color var(--g-duration-fast) var(--g-ease-standard);
+  }
+}
+/* Marcas: el mismo lenguaje que los días (WCAG 1.4.1). Actual = aro; elegido = relleno con trazo {color}-text (§7.1);
+   en el valor (rango) = punto bajo el texto (GLibIcon circle relleno que emite bruno); no disponible = tachado */
+.g-datepicker__pick.is-current {
+  font-weight: var(--g-text-action-weight);
+  box-shadow: inset 0 0 0 calc(var(--g-border-width) * 2) var(--g-color-text-muted);
+}
+.g-datepicker__pick.is-selected {
+  background: var(--_color);
+  color: var(--_on);
+  font-weight: var(--g-text-action-weight);
+  box-shadow: inset 0 0 0 var(--g-border-width) var(--_text);
+  transition: background-color var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-datepicker__pick.is-selected.is-current {
+  box-shadow: inset 0 0 0 calc(var(--g-border-width) * 2) var(--_on);
+}
+.g-datepicker__pick > .g-icon {
+  position: absolute;
+  inset-block-start: calc(50% + var(--g-text-body-sm-line) / 2);
+  inline-size: calc(var(--g-space-1) * 1.25);
+  block-size: calc(var(--g-space-1) * 1.25);
+}
+.g-datepicker__pick.is-disabled {
+  color: var(--g-color-text-subtle);
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+/* Pista y cifras del año (r02 §5): dentro del escenario, sin alto propio. Cuatro huecos dibujados con su raya (sin
+   caracteres de relleno); la cifra escrita entra con un fundido fast y su raya pasa a texto pleno. El año se escribe
+   siempre de izquierda a derecha, también en RTL */
+.g-datepicker__years-hint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--g-space-2);
+  padding-block-start: calc(var(--g-space-1) * var(--_density));
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+  text-align: center;
+}
+.g-datepicker__typed {
+  display: inline-flex;
+  gap: calc(var(--g-space-1) * 0.5);
+  direction: ltr;
+  unicode-bidi: isolate;
+  font-variant-numeric: tabular-nums;
+}
+.g-datepicker__typed-digit {
+  --_zoom-amp: 0;
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  inline-size: calc(var(--g-space-1) * 2.5);
+  block-size: var(--g-text-caption-line);
+  border-block-end: calc(var(--g-border-width) * 2) solid var(--g-color-border-control);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-text);
+}
+.g-datepicker__typed-digit:not(:empty) {
+  border-block-end-color: var(--g-color-text);
+  animation: g-datepicker-zoom-in var(--g-duration-fast) linear;
 }
 
 /* ---------- Día ---------- */
@@ -585,6 +805,7 @@
    de hoy sube a la esquina para no pisar la segunda línea */
 .g-datepicker--day-content {
   --_day-h: max(var(--_cell), calc(var(--g-text-body-sm-line) + var(--g-text-caption-line) + var(--g-space-1) * 4));
+  --_row: var(--_day-h);
 }
 .g-datepicker--day-content .g-datepicker__grid td {
   block-size: var(--_day-h);
@@ -771,6 +992,9 @@
   .g-datepicker {
     --_snap: 0.5px;
     --_h: max(24px, round(calc(var(--g-space-1) * var(--_units) * var(--_density)), var(--_snap)));
+    /* Celda y botones del panel con densidad (r02 §8): misma rejilla de medio píxel, el piso después */
+    --_cell-raw: round(calc(var(--g-space-1) * 10 * var(--_density)), var(--_snap));
+    --_btn-raw: round(calc(var(--g-space-1) * 8 * var(--_density)), var(--_snap));
   }
 }
 
@@ -957,8 +1181,14 @@
   @starting-style {
     .g-datepicker__pop:popover-open::backdrop { opacity: 0; }
   }
+  /* Relleno lateral acotado (r02 §8): a 320 px con puntero grueso 7 × 44 + 2 × space × 4 no cabe; el relleno cede hasta
+     lo que dejen siete celdas (100% = el ancho de la hoja sin sus bordes) y nunca baja de 0. Sin desplazamiento lateral:
+     el 3 % del zoom no debe asomar una barra en la hoja */
+  .g-datepicker__pop {
+    overflow-x: hidden;
+  }
   .g-datepicker__pop .g-datepicker__surface {
-    padding-inline: var(--g-space-4);
+    padding-inline: max(0px, min(var(--g-space-4), calc((100% - var(--_cell) * 7) / 2)));
     border-radius: 0;
     background: transparent;
   }
@@ -1036,6 +1266,28 @@
   }
 }
 
+/* ---------- Cambio de nivel: zoom con origen en la pieza (r02 §9, #1023, #1029) ---------- */
+/* Bajar acerca (desde --g-press-scale) y subir aleja (desde su inverso), a 1, con fundido: ≈ 3 %, press + ease-out, sin
+   rebote ni retardo. La vista es un elemento nuevo por nivel (bruno, :key), así que una interrupción empieza de cero y
+   nada espera a la animación. data-zoom y el origen (--_zoom-x/-y, por índice desde el inicio en línea) solo al nacer
+   de un cambio de nivel. Solo transform y opacity. Reducido: solo fundido fast + linear (--_zoom-amp 0) */
+.g-datepicker__view[data-zoom] {
+  transform-origin: var(--_zoom-x) var(--_zoom-y);
+  animation: g-datepicker-zoom-in var(--g-duration-press) var(--g-ease-out);
+}
+.g-datepicker__view[data-zoom="out"] {
+  animation-name: g-datepicker-zoom-out;
+}
+.g-datepicker__view[data-zoom]:dir(rtl) {
+  transform-origin: calc(100% - var(--_zoom-x)) var(--_zoom-y);
+}
+@keyframes g-datepicker-zoom-in {
+  from { opacity: 0; transform: scale(calc(1 - (1 - var(--g-press-scale)) * var(--_zoom-amp))); }
+}
+@keyframes g-datepicker-zoom-out {
+  from { opacity: 0; transform: scale(calc(1 + (1 - var(--g-press-scale)) * var(--_zoom-amp))); }
+}
+
 /* ---------- Preferencias del sistema ---------- */
 @media (prefers-reduced-motion: reduce) {
   .g-datepicker__pop,
@@ -1045,6 +1297,13 @@
       overlay var(--g-duration-fast) allow-discrete,
       display var(--g-duration-fast) allow-discrete;
   }
+  .g-datepicker {
+    --_zoom-amp: 0;
+  }
+  .g-datepicker__view[data-zoom] {
+    animation-duration: var(--g-duration-fast);
+    animation-timing-function: linear;
+  }
 }
 @media (forced-colors: active) {
   .g-datepicker__field {
@@ -1052,6 +1311,8 @@
   }
   .g-datepicker__field:focus-visible,
   .g-datepicker__day:focus-visible,
+  .g-datepicker__pick:focus-visible,
+  .g-datepicker__title-part:focus-visible,
   .g-datepicker__nav:focus-visible,
   .g-datepicker__chip:focus-visible,
   .g-datepicker__action:focus-visible {
@@ -1069,16 +1330,27 @@
     background: transparent;
     border-block: var(--g-border-width) solid CanvasText;
   }
-  .g-datepicker__day.is-selected {
+  /* La franja que sigue: sin desvanecido, el extremo sin redondear llega al borde (r02 §7) */
+  .g-datepicker__grid td:is(.is-open-start, .is-open-end)::before {
+    mask-image: none;
+  }
+  :is(.g-datepicker__day, .g-datepicker__pick).is-selected {
     background: Highlight;
     color: HighlightText;
     forced-color-adjust: none;
     border: calc(var(--g-border-width) * 2) solid CanvasText;
   }
-  .g-datepicker__day.is-today {
+  .g-datepicker__day.is-today,
+  .g-datepicker__pick.is-current {
     box-shadow: none;
     border: calc(var(--g-border-width) * 2) solid CanvasText;
   }
+  .g-datepicker__typed-digit {
+    border-block-end-color: CanvasText;
+  }
+  .g-datepicker__nav:is(:disabled, [aria-disabled="true"]),
+  .g-datepicker__title-part:disabled,
+  .g-datepicker__pick.is-disabled,
   .g-datepicker__day.is-disabled,
   .g-datepicker__chip:disabled {
     color: GrayText;

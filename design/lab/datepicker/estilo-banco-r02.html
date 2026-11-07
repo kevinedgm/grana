@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GDatePicker r02 · banco de estilo (coco)</title>
+<!-- Banco de coco para la r02 (design/contracts/datepicker.md §«Un mes por defecto y salto a mes y año»): marcado estático
+     con las clases del contrato y el CSS real. Sin motor: cada escena es un estado fijo. Lo mide estilo-r02-verificar.mjs.
+     Parámetros: ?theme=<nombre de design/lab/tema-oscuro/dark-color-presence/generated/>, ?dark, ?dir=rtl, ?prueba
+     (space 5 y --g-press-scale 0,94). No es documentación. -->
+<link rel="stylesheet" href="../../../packages/vue/src/styles/defaults.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GIcon/GIcon.css">
+<link rel="stylesheet" href="../../../packages/vue/src/components/GDatePicker/GDatePicker.css">
+<script src="../lucide-icons.js"></script>
+<script>
+  const q = new URLSearchParams(location.search)
+  if (q.get('theme')) document.write(`<link rel="stylesheet" href="../tema-oscuro/dark-color-presence/generated/${q.get('theme')}.css">`)
+  if (q.has('dark')) document.documentElement.dataset.theme = 'dark'
+  if (q.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  if (q.has('prueba')) document.write('<style>:root{--g-space-1:5px;--g-space-2:10px;--g-space-3:15px;--g-space-4:20px;--g-space-5:25px;--g-space-6:30px;--g-press-scale:0.94}</style>')
+</script>
+<style>
+  body { margin: 0; padding: 16px; background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui); }
+  .row { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; margin-block-end: 16px; }
+  .scene { inline-size: max-content; }
+  .scene > p { margin: 0 0 4px; font-size: 12px; color: var(--g-color-text-muted); }
+  .scene .g-datepicker--inline { inline-size: max-content; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<button id="openSheet" type="button">Hoja</button>
+<script>
+const L = window.lucide
+const MONTHS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sept', 'oct', 'nov', 'dic']
+const head = (view) => {
+  const navCls = view === 'days' ? '' : view === 'months' ? ' g-datepicker__nav--year' : ' g-datepicker__nav--years'
+  const title = view === 'days'
+    ? `<button type="button" class="g-datepicker__title-part g-datepicker__title-part--month">noviembre${L('chevron-down')}</button><button type="button" class="g-datepicker__title-part g-datepicker__title-part--year">2026${L('chevron-down')}</button>`
+    : view === 'months'
+      ? `<button type="button" class="g-datepicker__title-part g-datepicker__title-part--year">2026${L('chevron-down')}</button>`
+      : '2022–2033'
+  return `<div class="g-datepicker__head"><button type="button" class="g-datepicker__nav g-datepicker__nav--prev${navCls}" aria-label="ant">${L('chevron-left')}</button><h3 class="g-datepicker__title">${title}</h3><button type="button" class="g-datepicker__nav g-datepicker__nav--next${navCls}" aria-label="sig" ${view === 'years' ? 'aria-disabled="true"' : ''}>${L('chevron-right')}</button></div>`
+}
+// noviembre de 2026 empieza en domingo; lunes primero: 6 huecos delante
+function days (opts = {}) {
+  let rows = ''
+  for (let r = 0; r < 6; r++) {
+    rows += '<tr>'
+    for (let c = 0; c < 7; c++) {
+      const i = r * 7 + c - 6
+      const d = new Date(2026, 10, 1 + i)
+      const out = d.getMonth() !== 10
+      const iso = d.getDate()
+      let td = ''; let b = ''
+      if (opts.range) {
+        // rango del 20 de noviembre al 15 de diciembre: sigue fuera de lo visible (última celda pintada 13 dic)
+        const t = d.getTime(); const s = new Date(2026, 10, 20).getTime()
+        if (t === s) { td = 'is-range-start'; b = 'is-selected' } else if (t > s) td = 'is-in-range'
+        if (r === 5 && c === 6) td += ' is-open-end'
+        else if (t > s && c === 6) td += ' is-cap-end'
+        else if (t > s && c === 0) td += ' is-cap-start'
+      }
+      if (!opts.range && iso === 12 && !out) b = 'is-selected'
+      if (iso === 7 && !out) b += ' is-today'
+      if (out) b += ' is-outside'
+      rows += `<td role="gridcell" class="${td}"><button type="button" class="g-datepicker__day ${b}" tabindex="-1">${iso}${/is-today/.test(b) ? L('circle', 'g-datepicker__today-dot', true) : ''}</button></td>`
+    }
+    rows += '</tr>'
+  }
+  const th = ['L', 'M', 'X', 'J', 'V', 'S', 'D'].map((w) => `<th scope="col"><span aria-hidden="true">${w}</span></th>`).join('')
+  return `<div class="g-datepicker__view g-datepicker__view--days"${opts.zoom ? ` data-zoom="${opts.zoom}" style="--_zoom-x: 83.333%; --_zoom-y: 62.5%"` : ''}><table class="g-datepicker__grid" role="grid"><thead><tr>${th}</tr></thead><tbody>${rows}</tbody></table></div>`
+}
+function months (opts = {}) {
+  let rows = ''
+  for (let r = 0; r < 4; r++) {
+    rows += '<tr>'
+    for (let c = 0; c < 3; c++) {
+      const m = r * 3 + c
+      const cls = [m === 10 ? 'is-current' : '', !opts.range && m === 4 ? 'is-selected' : '', opts.range && (m === 10 || m === 11) ? 'is-in-value' : '', m < 2 ? 'is-disabled' : ''].filter(Boolean).join(' ')
+      rows += `<td role="gridcell" aria-selected="${/is-selected/.test(cls)}"><button type="button" class="g-datepicker__pick ${cls}" data-m="${m}" tabindex="${m === 10 ? 0 : -1}">${MONTHS[m]}${/is-in-value/.test(cls) ? L('circle', '', true) : ''}</button></td>`
+    }
+    rows += '</tr>'
+  }
+  return `<div class="g-datepicker__view g-datepicker__view--months"${opts.zoom ? ` data-zoom="${opts.zoom}" style="--_zoom-x: 16.667%; --_zoom-y: 87.5%"` : ''}><table class="g-datepicker__grid g-datepicker__grid--months" role="grid" aria-label="2026"><tbody>${rows}</tbody></table></div>`
+}
+function years (opts = {}) {
+  let rows = ''
+  for (let r = 0; r < 4; r++) {
+    rows += '<tr>'
+    for (let c = 0; c < 3; c++) {
+      const y = 2022 + r * 3 + c
+      const cls = [y === 2026 ? 'is-current' : '', y === 2024 ? 'is-selected' : '', y === 2033 ? 'is-disabled' : ''].filter(Boolean).join(' ')
+      rows += `<td role="gridcell"><button type="button" class="g-datepicker__pick ${cls}" tabindex="-1">${y}</button></td>`
+    }
+    rows += '</tr>'
+  }
+  const typed = (opts.typed || '').padEnd(4, ' ').split('').map((d) => `<span class="g-datepicker__typed-digit">${d.trim()}</span>`).join('')
+  return `<div class="g-datepicker__view g-datepicker__view--years"><table class="g-datepicker__grid g-datepicker__grid--years" role="grid" aria-label="2022–2033"><tbody>${rows}</tbody></table><div class="g-datepicker__years-hint">Escribe el año<span class="g-datepicker__typed" aria-hidden="true">${typed}</span></div></div>`
+}
+const VIEW = { days, months, years }
+function root (id, view, { density = 'default', pair = false, opts = {}, color = 'brand' } = {}) {
+  const month = (v, extra = '') => `<section class="g-datepicker__month"${extra}>${head(v)}<div class="g-datepicker__stage">${VIEW[v](opts)}</div></section>`
+  const body = pair && view === 'days' ? month('days') + month('days') : month(view)
+  return `<div class="scene"><p>${id}</p><div id="${id}" class="g-datepicker g-datepicker--inline g-datepicker--density-${density} g-datepicker--color-${color}"><div class="g-datepicker__surface"><div class="g-datepicker__months${pair ? ' g-datepicker__months--pair' : ''}">${body}</div></div></div></div>`
+}
+let html = ''
+for (const d of ['default', 'comfortable', 'compact']) {
+  html += `<div class="row">${root(`${d}-days`, 'days', { density: d })}${root(`${d}-months`, 'months', { density: d })}${root(`${d}-years`, 'years', { density: d, opts: { typed: '19' } })}</div>`
+}
+html += `<div class="row">${root('range-days', 'days', { opts: { range: true } })}${root('range-months', 'months', { opts: { range: true } })}${root('accent-months', 'months', { color: 'accent' })}</div>`
+html += `<div class="row">${root('pair-days', 'days', { pair: true })}${root('pair-months', 'months', { pair: true })}</div>`
+html += `<div class="row">${root('zoom-in', 'days', { opts: { zoom: 'in' } })}${root('zoom-out', 'months', { opts: { zoom: 'out' } })}</div>`
+// Hoja (≤ 520 px): popover con la superficie dentro de la raíz
+html += `<div id="sheet-root" class="g-datepicker g-datepicker--density-default"><div id="sheet" class="g-datepicker__pop" popover="manual"><div class="g-datepicker__surface"><div class="g-datepicker__months"><section class="g-datepicker__month">${head('days')}<div class="g-datepicker__stage">${days()}</div></section></div></div></div></div>`
+if (q.has('sheet')) html = html.slice(html.indexOf('<div id="sheet-root"'))
+document.getElementById('app').innerHTML = html
+document.getElementById('openSheet').onclick = () => document.getElementById('sheet').showPopover()
+</script>
+</body>
+</html>

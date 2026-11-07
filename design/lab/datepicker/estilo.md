@@ -71,3 +71,40 @@ Regla única de #682 (`docs/contract/tokens.md` §4 y §7; precedente `GBtn`, #6
 ## Recorrer los días (#1002)
 
 Rejilla: una marca por día y nunca dos a la vez (`api.md` «Una sola luz», regla 9). La transición de `background-color` deja la regla base y pasa a los estados que llegan (hover y elegido): entra con fundido `fast` y sale en el acto. Medido al barrer en Chromium: como máximo 1 día con fondo por cuadro (3 con la transición en la regla base).
+
+## r02 · Un mes, salto a mes y año, compacto (#1020 a #1029)
+
+Contrato: `datepicker.md` §«Un mes por defecto y salto a mes y año (r02)». Banco: `estilo-banco-r02.html` (marcado estático con las clases del contrato; `?theme=`, `?dark`, `?dir=rtl`, `?prueba` con `space` 5 y `--g-press-scale` 0,94). Verificación: `GRANA_PW_PORT=4232 node design/lab/datepicker/estilo-r02-verificar.mjs` (1868/1868 en Chromium, Firefox y WebKit; los once temas generados, claro y oscuro, solo en Chromium). Es el banco, **no el componente**: la auditoría sobre el `.vue` de bruno queda para después.
+
+### Qué le da personalidad
+
+- **Bajar acerca, subir aleja, desde la pieza.** La vista nueva entra con fundido y un 3 % de escala (`--g-press-scale` al bajar, su inverso al subir) con origen en la celda elegida o en la que se viene; `press` + `ease-out`, sin rebote, la anterior sale en el acto. Es la amplitud de la pulsación de `GBtn`: se lee «otro nivel», no «otra página», y no marea. Un tema que pone `--g-press-scale: 1` deja solo el fundido. Reducido: fundido `fast` `linear`, sin escala (`--_zoom-amp: 0`).
+- **El año se escribe en sus huecos.** Cuatro rayas dibujadas con borde (`border-control`, 3:1), sin «·» ni caracteres de relleno; la cifra escrita llega con un fundido `fast` y su raya pasa a texto pleno. De izquierda a derecha también en RTL (`direction: ltr` aislado).
+- **La franja que sigue.** El extremo en el borde visible no se redondea y se desvanece hacia el borde con una máscara de alfa (`currentColor` → `transparent`; sin color literal). En `forced-colors` la máscara se quita y queda la franja con sus bordes llegando al borde, sin redondear.
+- **Piezas con el peso de un día.** La rejilla de 3 × 4 llena el escenario, pero la pieza mide la altura de una celda de día y como mucho dos de ancho, centrada: con dos meses la celda pasa de 180 px y la marca sigue siendo una píldora tranquila, no una losa.
+
+### Medidas (tema por defecto)
+
+| Medida | default | comfortable | compact | táctil |
+| --- | --- | --- | --- | --- |
+| Celda (día) | 40 | 35 | 30 | 44 (también compacto) |
+| Flechas y botones del título | 32 | 28 | 24 | 44 |
+| Escenario (encabezado + 6 filas) | 268 | — | 208 | 292 |
+| Filas de años | 62 | — | 47,3 | — |
+| Panel de un mes (con borde) | 330 | — | 248 | — |
+
+- **Δ 0** del escenario, la cabecera y la superficie entre días, meses y años en las tres densidades, en el par de meses (con `g-datepicker__months--pair`) y con el tema de prueba; la rejilla de meses llena el escenario y las cuatro filas de años miden igual; la pista queda dentro.
+- **Panel:** el mes mide siete celdas (`.g-datepicker__pop .g-datepicker__month`), como dice §8 (antes crecía a 8,5 celdas: 388 px por defecto). En línea sigue creciendo hasta 8,5 celdas; en la hoja llena el ancho.
+- **Hoja a 320 px táctil:** relleno lateral `max(0px, min(space × 4, (100% − 7 × celda) / 2))` = 5 px; sin desborde; celda, flechas y título de 44 px. A 375 px, 16 px. La hoja lleva `overflow-x: hidden` para que el 3 % del zoom no asome una barra.
+- **Contraste** (por defecto): texto de pieza 17,40 · elegido 16,48 (acento 5,69) · trazo del elegido 16,48 (acento 5,69) · aro del actual 7,46 · no disponible 5,10 · punto 17,40 · pista 7,46 · raya vacía 3,45 · cifra 17,40 · título 17,40 · chevron 7,46 · flecha en el borde 5,10. Todos ≥ 4,5 (texto) / 3 (marcas) en los once temas, claro y oscuro.
+- **Zoom:** de 0,97 (0,94 con el tema de prueba) y de 1,03 (1,06) a 1, 160 ms, `cubic-bezier(0.23, 1, 0.32, 1)`; origen x en la pieza también en RTL (`calc(100% − --_zoom-x)`); reducido 120 ms `linear`, escala 1.
+- **Una sola luz:** las piezas no tienen transición en reposo; el fundido solo en el hover que llega y en lo elegido.
+
+### Nombres y notas para bruno y lima
+
+- **`g-datepicker__months--pair`** (propuesta de coco, no está en el contrato): en `__months` cuando se ven dos meses. Con la vista de meses o de años la única columna ocupa la caja de los dos (Δ 0). Sin ella, el panel de dos meses se estrecha al cambiar de vista.
+- **Punto de `is-in-value`:** se estiliza `.g-datepicker__pick > .g-icon` (el `circle` relleno que emita bruno, como el punto de hoy); coco no lo dibuja.
+- **`--_zoom-x` / `--_zoom-y`:** porcentajes desde el **inicio en línea** (columna 0 = inicio); el CSS invierte la x en RTL.
+- La pista y las cifras funcionan como hijos de `__view--years` en cualquier orden; si `__typed` va fuera de `__years-hint`, ocupa otra fila del escenario.
+- Densidad: todo lee `--_density` de `g-datepicker--density-*`; las flechas del borde con `aria-disabled` se atenúan y pierden el hover.
+- Sin `@layer` en el archivo (lo pone el registro, regla de la skill de coco y de la mayoría de componentes).
