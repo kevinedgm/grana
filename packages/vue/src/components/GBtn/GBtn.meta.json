@@ -6,7 +6,7 @@
   "since": "0.1.0",
   "description": "Botón de acción; se renderiza como enlace si recibe href.",
   "contract": "design/contracts/btn.md",
-  "prototype": "design/lab/btn/r01/",
+  "prototype": "design/lab/btn/r02/",
   "style": "packages/vue/src/components/GBtn/GBtn.css",
   "props": [
     { "name": "color", "type": "String", "default": "brand", "values": ["brand", "accent", "neutral", "success", "warning", "danger", "info"] },
@@ -21,10 +21,13 @@
     { "name": "href", "type": "String", "default": null },
     { "name": "icon", "type": "Boolean", "default": false },
     { "name": "loadingText", "type": "String", "default": null },
-    { "name": "tooltip", "type": "String", "default": null, "since": "0.1.0", "note": "Atajo de <GTooltip :text> con todo lo demás por defecto (#390). Envuelto por un GTooltip como hijo directo, gana el envoltorio y avisa en desarrollo" }
+    { "name": "tooltip", "type": "String", "default": null, "since": "0.1.0", "note": "Atajo de <GTooltip :text> con todo lo demás por defecto (#390). Envuelto por un GTooltip como hijo directo, gana el envoltorio y avisa en desarrollo" },
+    { "name": "done", "type": "Boolean", "default": false, "note": "v-model:done. La aplicación afirma el éxito: dispara el acuse en su flanco de false a true (#1011). Con carga efectiva espera a la llegada; se ignora con href" },
+    { "name": "doneText", "type": "String", "default": null, "note": "Se anuncia en g-btn__status durante el acuse; no se ve" }
   ],
   "events": [
-    { "name": "click", "payload": "MouseEvent", "trigger": "Activación con puntero o teclado, nunca con disabled o loading" }
+    { "name": "click", "payload": "MouseEvent", "trigger": "Activación con puntero o teclado, nunca con disabled o carga efectiva (loading y su cola del mínimo)" },
+    { "name": "update:done", "payload": "Boolean", "trigger": "Siempre false: al retirarse el acuse por tiempo, clic, loading o disabled, y al montar con done. No sale si la aplicación ya lo puso en false, ni al desmontar" }
   ],
   "slots": [
     { "name": "default", "purpose": "Etiqueta, o el icono si icon" },
@@ -38,7 +41,11 @@
     "--g-text-action-weight", "--g-border-width", "--g-focus-width", "--g-focus-offset",
     "--g-duration-fast", "--g-duration-press", "--g-duration-slow", "--g-duration-spin", "--g-ease-standard", "--g-ease-out", "--g-ease-bounce", "--g-press-scale"
   ],
-  "states": ["default", "hover", "focus-visible", "active", "disabled", "loading"],
-  "live": "span.g-btn__status role=status, hermana del botón, solo mientras loadingText tenga valor (#257): vacía sin carga; con loading recibe loadingText; si loadingText y loading llegan en el mismo cambio (o al montar), la región se monta vacía y el texto se escribe 50 ms después. Sin loadingText no hay región (solo aria-busy)",
+  "states": ["default", "hover", "focus-visible", "active", "disabled", "loading", "loading-shown", "leaving", "done"],
+  "live": "span.g-btn__status role=status, hermana del botón, mientras loadingText o doneText tengan valor (#257, #1014; doneText no cuenta con href): vacía fuera de la carga a la vista y del acuse; con is-shown recibe loadingText, y una carga que no llega a verse no se anuncia; al empezar el acuse se vacía y recibe doneText 50 ms después; con disabled conserva doneText hasta DONE_MS. Montada a la vez que su texto, la región nace vacía. Sin ninguno de los dos no hay región (solo aria-busy)",
+  "bundle": {
+    "measured": "2026-11-07, gzip -9, A · Retén (#1015): grana.js 223 897 → 224 639 B (+742 B, tope +1024 B); entradas propias +0 B; grana.css +182 B (coco, f34b4475; tope +768 B)",
+    "alone": "GBtn importado solo desde dist/grana.js (esbuild, vue externo): 12 462 B gzip -9; ahora arrastra el motor de carga. Sin tope (#1015)"
+  },
   "pending": ["Verificación manual: escala al pulsar, prefers-reduced-motion y forced-colors emulados", "Alturas fraccionarias (round())"]
 }

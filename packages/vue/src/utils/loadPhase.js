@@ -1,6 +1,6 @@
 // Motor de carga (interno; dueño: bruno). design/contracts/load-region.md «Motor compartido», DECISIONS.md #531 a #534.
-// Lo usan GLoadRegion (entrada @grana/vue/load-region, por __shared) y los anfitriones que ya cargan (#540: GTable en la
-// primera entrega). No es API pública: la firma la decide bruno.
+// Lo usan GLoadRegion (entrada @grana/vue/load-region, por __shared), los anfitriones que ya cargan (#540: GTable en la
+// primera entrega) y GBtn (btn.md «Carga y acuse», #1014). No es API pública: la firma la decide bruno.
 //
 // Fases (#532): reposo → pendiente (de `loading: true` a DELAY: nada visible) → a la vista (desde DELAY) → espera larga
 // (desde SLOW, contado desde el inicio) → llegada (`loading: false` y, si se vio, MINIMUM a la vista). Una carga que acaba
@@ -9,11 +9,14 @@
 //
 //   const phase = createLoadPhase({ onShow, onSlow, onArrive })
 //   phase.start({ arm: false })  // en setup, si se monta cargando: estado sin temporizadores (nada en el servidor)
+//   phase.start({ arm: false, shown: true })  // igual, pero entra ya a la vista, sin pendiente (GBtn al montar en carga);
+//                                // el mínimo cuenta desde arm()
 //   phase.arm()                  // en onMounted
 //   watch(() => props.loading, (on) => (on ? phase.start() : phase.stop()))
 //   phase.state                  // reactivo: { busy, pending, shown, slow }
 //   onArrive({ seen })           // la llegada; `seen`: el estado de carga llegó a verse (para el revelado)
 //   phase.dispose()              // al desmontar
+//   createLoadPhase({ slow: false })  // sin espera larga: GBtn no la usa (F5, pendiente)
 //
 // Sin efectos al importar (#444) y sin tocar document ni window salvo en las utilidades de foco (solo en el cliente).
 import { reactive } from 'vue'
@@ -26,7 +29,7 @@ export const SLOW = 5000
 /** Clave de inyección de la región que carga: la comparten GLoadRegion (entrada) y GEmpty (principal) por __shared. */
 export const loadRegionKey = Symbol('g-load-region')
 
-export function createLoadPhase({ onShow, onSlow, onArrive } = {}) {
+export function createLoadPhase({ onShow, onSlow, onArrive, slow = true } = {}) {
   const state = reactive({ busy: false, pending: false, shown: false, slow: false })
   let tDelay = 0
   let tSlow = 0
@@ -62,10 +65,11 @@ export function createLoadPhase({ onShow, onSlow, onArrive } = {}) {
   function arm() {
     if (!state.busy || stopped) return
     if (!state.shown && !tDelay) tDelay = setTimeout(show, DELAY)
-    if (!state.slow && !tSlow) tSlow = setTimeout(slowNow, SLOW)
+    if (state.shown && !shownAt) shownAt = Date.now()
+    if (slow && !state.slow && !tSlow) tSlow = setTimeout(slowNow, SLOW)
   }
   /** Empieza una carga. Devuelve 'new' (empieza de cero) o 'continue' (hereda la fase de la que esperaba su mínimo). */
-  function start({ arm: doArm = true } = {}) {
+  function start({ arm: doArm = true, shown = false } = {}) {
     let kind = 'new'
     if (state.busy) {
       kind = 'continue'
@@ -73,9 +77,10 @@ export function createLoadPhase({ onShow, onSlow, onArrive } = {}) {
       stopped = false
     } else {
       state.busy = true
-      state.pending = true
-      state.shown = false
+      state.pending = !shown
+      state.shown = shown
       state.slow = false
+      shownAt = 0
       stopped = false
     }
     if (doArm) arm()

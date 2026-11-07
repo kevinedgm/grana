@@ -9,11 +9,11 @@ import { test, expect } from '@playwright/test'
 const PAGE = '/packages/vue/playground/index.html'
 
 // Monta un GBtn real con `loading` reactivo: window.__setLoading(true|false) lo cambia.
-const mount = async (page, { loading = false, reduce = false } = {}) => {
+const mount = async (page, { loading = false, reduce = false, props = {} } = {}) => {
   if (reduce) await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto(PAGE)
   await page.waitForSelector('.g-btn')
-  await page.evaluate((loading) => {
+  await page.evaluate(({ loading, props }) => {
     const host = document.createElement('div')
     host.id = 'pb-host'
     host.style.padding = '48px'
@@ -21,7 +21,7 @@ const mount = async (page, { loading = false, reduce = false } = {}) => {
     const { createApp, h, ref } = window.Vue
     const l = ref(loading)
     window.__setLoading = (v) => { l.value = v }
-    createApp({ render: () => h(window.Grana.GBtn, { id: 'pb', loading: l.value }, () => 'Enviar informe') }).mount(host)
+    createApp({ render: () => h(window.Grana.GBtn, { id: 'pb', ...props, loading: l.value }, () => 'Enviar informe') }).mount(host)
     window.__scale = () => { const m = getComputedStyle(document.getElementById('pb')).transform; if (!m || m === 'none') return 1; return +m.slice(m.indexOf('(') + 1).split(',')[0] }
     window.__ty = (el) => { const t = getComputedStyle(el).translate; if (!t || t === 'none') return 0; const [, y = '0px'] = t.split(' '); return parseFloat(y) }
     window.__sample = (fn, ms) => new Promise((res) => {
@@ -30,7 +30,7 @@ const mount = async (page, { loading = false, reduce = false } = {}) => {
     })
     const probe = document.createElement('div'); probe.style.inlineSize = 'var(--g-space-1)'; document.body.appendChild(probe)
     window.__space1 = probe.getBoundingClientRect().width; probe.remove()
-  }, loading)
+  }, { loading, props })
   await page.waitForSelector('#pb')
   await page.waitForTimeout(100)
 }
@@ -100,11 +100,21 @@ test.describe('GBtn · B1 rebote al soltar', () => {
     expect(xs.every((x) => x.v === 1)).toBe(true)
   })
 
-  test('sin rebote en disabled, loading ni link (mismas exclusiones)', async ({ page }) => {
+  for (const [name, props] of [['disabled', { disabled: true }], ['link', { variant: 'link' }]]) {
+    test(`sin rebote en ${name} (mismas exclusiones)`, async ({ page }) => {
+      await mount(page, { props })
+      await press(page)
+      await page.waitForTimeout(200)
+      expect(await page.evaluate(() => window.__scale())).toBe(1)
+      await page.mouse.up()
+    })
+  }
+
+  test('con loading se queda hundido (A · Retén, #1013): 0,970 y apretar no cambia nada', async ({ page }) => {
     await mount(page, { loading: true })
     await press(page)
     await page.waitForTimeout(200)
-    expect(await page.evaluate(() => window.__scale())).toBe(1)
+    expect(await page.evaluate(() => window.__scale())).toBeCloseTo(0.97, 3)
     await page.mouse.up()
   })
 })
@@ -112,17 +122,21 @@ test.describe('GBtn · B1 rebote al soltar', () => {
 const B2_SRC = `() => {
   const b = document.getElementById('pb'); const l = b.querySelector('.g-btn__label'); const ld = b.querySelector('.g-btn__loader')
   const cs = getComputedStyle(l)
-  return { o: +cs.opacity, vis: cs.visibility, ty: window.__ty(l), lo: +getComputedStyle(ld).opacity, lty: window.__ty(ld), lvis: getComputedStyle(ld).visibility, ld: getComputedStyle(ld).display, w: b.getBoundingClientRect().width }
+  return { o: +cs.opacity, vis: cs.visibility, ty: window.__ty(l), lo: +getComputedStyle(ld).opacity, lty: window.__ty(ld), lvis: getComputedStyle(ld).visibility, ld: getComputedStyle(ld).display, w: parseFloat(getComputedStyle(b).inlineSize) }
 }`
 
-// Cambia `loading`, pausa las transiciones reales que nacen y recorre su tiempo cada 10ms (determinista en los tres motores)
+// Cambia `loading`, espera la clase que dispara B2 (is-shown a los 200 ms; al salir, la llegada tras la cola del mínimo), pausa
+// las transiciones reales que nacen y recorre su tiempo cada 10ms (determinista en los tres motores). Resuelve en el microtask
+// de la mutación, antes de pintar: las transiciones se pausan al nacer
 const seekB2 = (page, to) => page.evaluate(async ([to, src]) => {
   const read = new Function('return (' + src + ')()')
-  window.__setLoading(to)
-  await window.Vue.nextTick()
-  read() // fuerza el cálculo de estilo: crea las transiciones
   const b = document.getElementById('pb')
-  const anims = b.getAnimations({ subtree: true }).filter((a) => a.transitionProperty !== undefined)
+  const ready = () => (to ? b.classList.contains('is-shown') : !b.classList.contains('is-loading'))
+  window.__setLoading(to)
+  await new Promise((res) => { const o = new MutationObserver(() => { if (ready()) { o.disconnect(); res() } }); o.observe(b, { attributes: true, attributeFilter: ['class'] }) })
+  read() // fuerza el cálculo de estilo: crea las transiciones
+  // El hundido (transform) y el fondo son del retén: aquí se mide B2
+  const anims = b.getAnimations({ subtree: true }).filter((a) => a.transitionProperty !== undefined && a.effect.target !== b)
   anims.forEach((a) => a.pause())
   const info = anims.map((a) => ({ part: [...a.effect.target.classList].find((c) => c.startsWith('g-btn')), prop: a.transitionProperty, dur: a.effect.getComputedTiming().duration }))
   const xs = []
@@ -138,7 +152,7 @@ test.describe('GBtn · B2 la etiqueta cede el sitio', () => {
     await mount(page)
     const s1 = await page.evaluate(() => window.__space1)
     expect(s1).toBeGreaterThan(0)
-    const w0 = await page.evaluate(() => document.getElementById('pb').getBoundingClientRect().width)
+    const w0 = await page.evaluate(() => parseFloat(getComputedStyle(document.getElementById('pb')).inlineSize))
     const { info, xs, end } = await seekB2(page, true)
     expect(has(info, 'g-btn__label', 'opacity', 120), JSON.stringify(info)).toBe(true)
     expect(has(info, 'g-btn__label', 'translate', 160)).toBe(true)
@@ -163,7 +177,7 @@ test.describe('GBtn · B2 la etiqueta cede el sitio', () => {
   test('entrar en carga en tiempo real: cuadros intermedios en etiqueta e indicador (medida de kiwi, Chromium)', async ({ page, browserName }) => {
     test.skip(browserName !== 'chromium', 'el conteo rAF en tiempo real es inestable con carga en paralelo fuera de Chromium; los tres motores se miden arriba de forma determinista')
     await mount(page)
-    const xs = await during(page, B2_SRC, 320, () => page.evaluate(() => window.__setLoading(true)))
+    const xs = await during(page, B2_SRC, 520, () => page.evaluate(() => window.__setLoading(true)))
     const label = xs.filter((x) => x.v.o > 0.02 && x.v.o < 0.98).length
     const loader = xs.filter((x) => x.v.lo > 0.02 && x.v.lo < 0.98).length
     expect(label).toBeGreaterThanOrEqual(2)
@@ -184,7 +198,7 @@ test.describe('GBtn · B2 la etiqueta cede el sitio', () => {
 
   test('salir de la carga: a la inversa (la etiqueta vuelve, el indicador se va con fundido)', async ({ page }) => {
     await mount(page, { loading: true })
-    const w0 = await page.evaluate(() => document.getElementById('pb').getBoundingClientRect().width)
+    const w0 = await page.evaluate(() => parseFloat(getComputedStyle(document.getElementById('pb')).inlineSize))
     const { info, xs, end } = await seekB2(page, false)
     expect(has(info, 'g-btn__label', 'opacity', 120), JSON.stringify(info)).toBe(true)
     expect(has(info, 'g-btn__loader', 'opacity', 120)).toBe(true)

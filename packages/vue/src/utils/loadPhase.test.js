@@ -15,6 +15,41 @@ describe('loadPhase · constantes y clave', () => {
 })
 
 describe('loadPhase · fases', () => {
+  it('entrada ya a la vista (GBtn al montar en carga): sin pendiente ni onShow; el mínimo cuenta desde arm()', () => {
+    const onShow = vi.fn()
+    const onArrive = vi.fn()
+    const p = createLoadPhase({ onShow, onArrive })
+    p.start({ arm: false, shown: true })
+    expect(snap(p)).toEqual({ busy: true, pending: false, shown: true, slow: false })
+    expect(vi.getTimerCount()).toBe(0)
+    vi.advanceTimersByTime(1000) // el tiempo antes de arm() no cuenta
+    p.arm()
+    vi.advanceTimersByTime(100)
+    p.stop()
+    vi.advanceTimersByTime(299)
+    expect(onArrive).not.toHaveBeenCalled()
+    vi.advanceTimersByTime(1)
+    expect(onArrive).toHaveBeenCalledWith({ seen: true })
+    expect(onShow).not.toHaveBeenCalled()
+    p.dispose()
+  })
+  it('entrada ya a la vista sin arm() (el servidor): llega en el acto', () => {
+    const onArrive = vi.fn()
+    const p = createLoadPhase({ onArrive })
+    p.start({ arm: false, shown: true })
+    p.stop()
+    expect(onArrive).toHaveBeenCalledWith({ seen: true })
+  })
+  it('slow: false no programa la espera larga', () => {
+    const p = createLoadPhase({ slow: false })
+    p.start()
+    vi.advanceTimersByTime(DELAY)
+    expect(p.state.shown).toBe(true)
+    expect(vi.getTimerCount()).toBe(0)
+    vi.advanceTimersByTime(SLOW)
+    expect(p.state.slow).toBe(false)
+    p.dispose()
+  })
   it('a 100 ms pendiente; a 250 a la vista (onShow una vez); a 5000 espera larga (onSlow una vez)', () => {
     const onShow = vi.fn()
     const onSlow = vi.fn()

@@ -32,6 +32,36 @@ test.describe('GBtn loading: nombre accesible', () => {
     })
   }
 
+  test('en pendiente y en is-done el nombre sigue siendo la etiqueta (A · Retén, #1014)', async ({ page }) => {
+    await page.clock.install() // el reloj detenido fija la fase: los 200 ms del pendiente no pasan solos
+    await page.goto(PAGE)
+    await page.waitForSelector('.g-btn')
+    await page.evaluate(() => {
+      const host = document.createElement('div')
+      host.id = 'btn-name-host'
+      document.body.appendChild(host)
+      const { createApp, h, reactive } = window.Vue
+      const s = reactive({ loading: false, done: false, doneText: 'Enviado' })
+      window.__set = async (p) => { Object.assign(s, p); await window.Vue.nextTick() }
+      createApp({ render: () => h(window.Grana.GBtn, { ...s }, () => 'Enviar informe') }).mount(host)
+    })
+    const client = await page.context().newCDPSession(page)
+    const named = async () => {
+      const { nodes } = await client.send('Accessibility.getFullAXTree')
+      return nodes.some((n) => !n.ignored && n.role?.value === 'button' && n.name?.value === 'Enviar informe')
+    }
+    const has = (c) => page.evaluate((c) => document.querySelector('#btn-name-host .g-btn').classList.contains(c), c)
+
+    await page.evaluate(() => window.__set({ loading: true }))
+    expect(await has('is-loading')).toBe(true)
+    expect(await has('is-shown')).toBe(false)
+    expect(await named()).toBe(true)
+
+    await page.evaluate(() => window.__set({ loading: false, done: true }))
+    expect(await has('is-done')).toBe(true)
+    expect(await named()).toBe(true)
+  })
+
   test('con loading: la etiqueta no se ve, no recibe puntero, el ancho no cambia y el spinner sigue centrado', async ({ page }) => {
     await mount(page, { loading: false }, 'Enviar informe')
     const measure = () => page.evaluate(() => {
@@ -39,8 +69,9 @@ test.describe('GBtn loading: nombre accesible', () => {
       const l = b.querySelector('.g-btn__label')
       const s = b.querySelector('.g-btn__loader')
       const br = b.getBoundingClientRect(); const sr = s.getBoundingClientRect()
-      const cs = getComputedStyle(l)
-      return { w: br.width, h: br.height, dx: Math.abs((sr.left + sr.right) / 2 - (br.left + br.right) / 2), dy: Math.abs((sr.top + sr.bottom) / 2 - (br.top + br.bottom) / 2),
+      const cs = getComputedStyle(l); const bs = getComputedStyle(b)
+      // Medida de caja, no del rectángulo: en carga el botón va hundido (A · Retén, #1013) y el rectángulo incluye la escala
+      return { w: parseFloat(bs.inlineSize), h: parseFloat(bs.blockSize), dx: Math.abs((sr.left + sr.right) / 2 - (br.left + br.right) / 2), dy: Math.abs((sr.top + sr.bottom) / 2 - (br.top + br.bottom) / 2),
         vis: cs.visibility, op: cs.opacity, pe: cs.pointerEvents, us: cs.userSelect, loader: getComputedStyle(s).display, ariaHidden: l.closest('[aria-hidden="true"]') !== null, text: l.textContent }
     })
     const before = await measure()
