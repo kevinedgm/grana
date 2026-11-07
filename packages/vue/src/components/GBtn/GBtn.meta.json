@@ -44,7 +44,7 @@
   "states": ["default", "hover", "focus-visible", "active", "disabled", "loading", "loading-shown", "leaving", "done"],
   "live": "span.g-btn__status role=status, hermana del botón, mientras loadingText o doneText tengan valor (#257, #1014; doneText no cuenta con href): vacía fuera de la carga a la vista y del acuse; con is-shown recibe loadingText, y una carga que no llega a verse no se anuncia; al empezar el acuse se vacía y recibe doneText 50 ms después; con disabled conserva doneText hasta DONE_MS. Montada a la vez que su texto, la región nace vacía. Sin ninguno de los dos no hay región (solo aria-busy)",
   "bundle": {
-    "measured": "2026-11-07, gzip -9, A · Retén (#1015): grana.js 223 897 → 224 639 B (+742 B, tope +1024 B); entradas propias +0 B; grana.css +182 B (coco, f34b4475; tope +768 B)",
+    "measured": "2026-11-07, gzip -9, A · Retén (#1015): grana.js 223 897 → 224 715 B (+818 B, tope +1024 B; incluye el reflujo de la reafirmación); entradas propias +0 B; grana.css +182 B (coco, f34b4475; tope +768 B)",
     "alone": "GBtn importado solo desde dist/grana.js (esbuild, vue externo): 12 462 B gzip -9; ahora arrastra el motor de carga. Sin tope (#1015)"
   },
   "pending": ["Verificación manual: escala al pulsar, prefers-reduced-motion y forced-colors emulados", "Alturas fraccionarias (round())"]

@@ -385,6 +385,19 @@ test.describe('V7 · interrupciones y flancos', () => {
     expect(r.ev).toEqual(['done:false', 'click', 'done:false'])
   })
 
+  test('al reafirmar tras un clic el trazo se redibuja (una animación en curso)', async ({ page }) => {
+    await open(page, { props: { doneText: 'Copiado' }, model: true })
+    await page.evaluate(() => { window.__onClick = (s) => { s.done = true } })
+    await ack(page)
+    await page.waitForTimeout(600)
+    const n = await page.evaluate(async () => {
+      __btn().click()
+      await __nextTick(); await __nextTick()
+      return __btn().querySelector('.g-btn__done path').getAnimations().length
+    })
+    expect(n).toBe(1)
+  })
+
   test('loading a true: retira con update:done y empieza la carga', async ({ page }) => {
     await open(page, { props: { doneText: 'Guardado' }, model: true })
     await ack(page)

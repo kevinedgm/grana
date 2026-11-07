@@ -51,6 +51,7 @@ const DONE_MS = 960
 const LEAVE_MS = 120
 const leaving = ref(false) // F3: el giro sigue mientras se funde
 const marked = ref(false) // is-done
+const rootEl = ref(null)
 const hasMark = ref(false) // g-btn__done: nace con el primer acuse y se queda
 let saying = false // la región dice doneText; con `disabled` vive más que la marca
 let awaited = false // `done` llegó con carga efectiva: espera a la llegada
@@ -209,7 +210,14 @@ function onClick(event) {
   emit('click', event)
   // Una acción síncrona que vuelve a afirmar es un acuse nuevo, y Vue no entrega a la prop el false intermedio. Sin nadie que
   // escuche `update:done`, `done` sigue en true y no hay flanco
-  if (closing && instance.vnode.props?.['onUpdate:done']) nextTick(() => { if (props.done && !instance.isUnmounted) affirm() })
+  if (closing && instance.vnode.props?.['onUpdate:done']) {
+    nextTick(() => {
+      if (!props.done || instance.isUnmounted) return
+      // Quitar y poner `is-done` sin recálculo de estilo en medio no reinicia el trazo: un reflujo, solo en la reafirmación
+      void rootEl.value?.offsetWidth
+      affirm()
+    })
+  }
 }
 
 // Aviso solo en desarrollo. `process` puede no existir (UMD en navegador): se comprueba antes de leerlo.
@@ -238,7 +246,7 @@ TooltipWrap.props = ['text']
 </script>
 
 <template>
-  <TooltipWrap :text="ownTooltip"><component :is="isLink ? 'a' : 'button'" v-bind="rootBindings" :class="classes" @click="onClick">
+  <TooltipWrap :text="ownTooltip"><component :is="isLink ? 'a' : 'button'" ref="rootEl" v-bind="rootBindings" :class="classes" @click="onClick">
     <span v-if="slots.prepend" class="g-btn__prepend" aria-hidden="true"><slot name="prepend" /></span>
     <span class="g-btn__label"><slot /></span>
     <span v-if="slots.append" class="g-btn__append" aria-hidden="true"><slot name="append" /></span>
