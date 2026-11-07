@@ -8,6 +8,8 @@ import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GLibIcon.js'
 import { messageIcon, nextFrame, spaceUnit, useFormField } from '../GForm/formContext.js'
 import { anchorGone, followFrame, isPhone, px, setVar, stickySide } from '../../utils/anchor.js'
+import { fold } from '../../utils/match.js'
+import { repeatGesture } from '../../utils/menuNav.js'
 
 defineOptions({ name: 'GSelect', inheritAttrs: false })
 
@@ -128,6 +130,7 @@ const open = ref(false)
 const up = ref(false)
 const activeIndex = ref(-1)
 const activeId = computed(() => (open.value && activeIndex.value >= 0 ? optId(activeIndex.value) : undefined))
+let moved = false // la persona movió la activa (teclas, puntero o letras): la de partida deja de serlo
 let lastX = null // última posición del puntero sobre la lista (o la del clic que la abrió)
 let lastY = null
 
@@ -158,7 +161,9 @@ function place(full = true) {
   } else side = stickySide(side, { below, above, unit: spaceUnit(rootEl.value) })
   const goUp = side === 'top'
   up.value = goUp
-  setVar(el, '--_x', px(r.left))
+  // --_x es la distancia desde el borde INICIAL del visor (la lista usa inset-inline-start): en RTL, desde la derecha
+  const rtl = window.getComputedStyle(el).direction === 'rtl'
+  setVar(el, '--_x', px(rtl ? el.ownerDocument.documentElement.clientWidth - r.right : r.left))
   if (full) setVar(el, '--_min', px(r.width))
   if (full || side !== prev) setVar(el, '--_max', px(Math.max(goUp ? above : below, 0)))
   setVar(el, '--_top', goUp ? 'auto' : px(r.bottom + 4))
@@ -186,8 +191,9 @@ function scrollActive() {
 
 // ---------- Abrir y cerrar ----------
 function show() {
-  if (open.value || isDisabled.value || isReadonly.value) return
+  if (open.value || isDisabled.value || isReadonly.value || !hasRows.value) return
   open.value = true
+  moved = false
   const start = selected.value && !selected.value.disabled ? selected.value : (enabled.value[0] ?? (createVisible.value ? createItem.value : null))
   activeIndex.value = start ? start.index : -1
   nextTick(() => {
@@ -234,6 +240,7 @@ function choose(item, { refocus = true } = {}) {
 
 function clear() {
   emitChange(null)
+  hide()
   button.value?.focus()
 }
 
@@ -243,7 +250,12 @@ function onOutside(event) {
   const box = control.value
   if (!l || !box) return
   if (box.contains(event.target)) return
-  if (l.contains(event.target) && event.target !== l) return
+  if (l.contains(event.target)) {
+    // El ::backdrop de la hoja llega con la lista como destino: dentro de su rectángulo (relleno, barra) no es «fuera»
+    if (event.target !== l) return
+    const r = l.getBoundingClientRect()
+    if (event.clientX >= r.left && event.clientX < r.right && event.clientY >= r.top && event.clientY < r.bottom) return
+  }
   hide()
 }
 watch(() => [isDisabled.value, isReadonly.value], () => hide())
@@ -265,27 +277,42 @@ function moveActive(step) {
   else if (step === 'last') next = list_.length - 1
   else next = Math.max(0, Math.min(list_.length - 1, (cur < 0 ? 0 : cur) + step))
   activeIndex.value = list_[next].index
+  moved = true
   scrollActive()
 }
 
 function typeahead(ch) {
   clearTimeout(typedTimer)
-  typed += ch.toLowerCase()
+  typed += ch
   typedTimer = setTimeout(() => { typed = '' }, 500)
   const list_ = enabled.value
   if (!list_.length) return
+  const q = fold(typed)
   const cur = list_.findIndex((i) => i.index === activeIndex.value)
-  const from = Math.max(0, cur) + (typed.length === 1 ? 1 : 0)
-  const order = [...list_.slice(from), ...list_.slice(0, from)]
-  const hit = order.find((i) => i.label.toLowerCase().startsWith(typed))
+  const find = (from, s) => {
+    const order = [...list_.slice(from), ...list_.slice(0, from)]
+    return order.find((i) => fold(i.label).startsWith(s))
+  }
+  // La activa de partida (ni elegida ni movida) entra en la búsqueda; una letra suelta ya movida busca desde la siguiente
+  const atStart = cur >= 0 && !moved && !(selected.value && selected.value.index === activeIndex.value)
+  let hit
+  if (q.length === 1) hit = find(atStart ? cur : cur + 1, q)
+  else {
+    hit = find(Math.max(cur, 0), q)
+    // La misma letra repetida («b», «b»): recorre las que empiezan por ella (APG)
+    if (!hit && Array.from(q).every((c) => c === q[0])) hit = find(cur + 1, q[0])
+  }
   if (hit) {
     activeIndex.value = hit.index
+    moved = true
     scrollActive()
   }
 }
 
 function onKeydown(event) {
   if (isDisabled.value || isReadonly.value) return
+  // Una activación por gesto (#661): Intro o Espacio mantenidos no abren, no cierran y no eligen
+  if (repeatGesture(event)) { event.preventDefault(); return }
   const k = event.key
   const printable = k.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey
   if (!open.value) {
@@ -295,7 +322,7 @@ function onKeydown(event) {
     } else if (printable) {
       event.preventDefault()
       show()
-      nextTick(() => typeahead(k))
+      nextTick(() => { if (open.value) typeahead(k) })
     }
     return
   }
@@ -321,7 +348,7 @@ function onKeydown(event) {
 }
 
 function onButtonClick(event) {
-  if (isDisabled.value || isReadonly.value) return
+  if (isDisabled.value || isReadonly.value || repeatGesture(event)) return
   if (open.value) hide()
   else {
     // Posición del clic: si la lista aparece bajo el puntero quieto, no le quita la activa al teclado
@@ -354,7 +381,15 @@ function onListPointermove(event) {
   const li = event.target.closest?.('[role="option"]')
   if (!li) return
   const item = itemAt(Number(li.dataset.index))
-  if (item && !item.disabled) activeIndex.value = item.index
+  if (item && !item.disabled) { activeIndex.value = item.index; moved = true }
+}
+
+// La etiqueta solo enfoca, como en un <select> nativo: se cancela la activación nativa del <label for>, que abriría la lista
+function onLabelClick(event) {
+  event.preventDefault()
+  if (isDisabled.value) return
+  button.value?.focus({ preventScroll: true })
+  if (open.value) hide()
 }
 
 // ---------- Marcado ----------
@@ -420,11 +455,24 @@ const controlled = computed(() => ({
 const buttonBindings = computed(() => mergeProps(ff.handlers, { onClick: onButtonClick, onKeydown }, { ...buttonAttrs.value, ...controlled.value }))
 
 const listLabelledBy = computed(() => (hasLabel.value ? labelId.value : attrs['aria-labelledby']))
-const hiddenValue = computed(() => (selected.value ? String(selected.value.value) : ''))
+// Un valor sin opción sigue siendo el valor (el catálogo puede no haber llegado): se envía; solo null y undefined envían ''
+const hiddenValue = computed(() => (props.modelValue === null || props.modelValue === undefined ? '' : String(props.modelValue)))
+// Valor sin opción con el catálogo ya cargado (con `loading` o sin opciones, aún no ha llegado)
+const orphan = computed(() => (props.modelValue !== null && props.modelValue !== undefined && !selected.value && !props.loading && items.value.length > 0 ? String(props.modelValue) : null))
+const warnedOrphans = new Set()
+watch(orphan, (v) => {
+  if (v === null || warnedOrphans.has(v)) return
+  warnedOrphans.add(v)
+  try { if (process.env.NODE_ENV !== 'production') console.warn(`[Grana] <GSelect> tiene un valor (${v}) sin opción correspondiente: se conserva y se envía, pero muestra el placeholder.`) } catch {}
+}, { immediate: true })
 // Un icono solo se pinta si el slot devuelve contenido para esa opción (una opción sin icono no reserva espacio)
 const isEmptyNode = (v) => v.type === Comment || (v.type === Text && !String(v.children ?? '').trim()) || (v.type === Fragment && (!Array.isArray(v.children) || v.children.every(isEmptyNode)))
 const hasIcon = (raw) => Boolean(slots.icon) && slots.icon({ option: raw }).some((v) => !isEmptyNode(v))
-const emptyVisible = computed(() => items.value.length === 0 && Boolean(props.emptyText || slots.empty))
+const emptyVisible = computed(() => items.value.length === 0 && !props.loading && Boolean(props.emptyText || slots.empty))
+// Hay filas: una opción válida (también deshabilitada), el mensaje de vacío o «Agregar nuevo…»; sin ellas no abre
+const hasRows = computed(() => items.value.length > 0 || emptyVisible.value || createVisible.value)
+// Abierta y sin filas (también porque `loading` retira el mensaje de vacío): se cierra
+watch(() => hasRows.value, (v) => { if (!v) hide() })
 // Contenido nuevo con la lista abierta: --_max se vuelve a fijar (el lado se conserva)
 watch(() => [model.value, emptyVisible.value, createVisible.value], () => { if (open.value) nextTick(() => place()) }, { flush: 'post' })
 
@@ -442,7 +490,7 @@ try {
 
 <template>
   <div ref="rootEl" v-bind="rootAttrs" :class="classes" @animationend="ff.onRejectEnd" @animationcancel="ff.onRejectEnd">
-    <label v-if="hasLabel" :id="labelId" class="g-select__label" :for="buttonId"><slot name="label">{{ label }}</slot><template v-if="ff.mark.value === 'optional' && ff.markText.value">{{ ' ' }}<span class="g-select__optional">{{ ff.markText.value }}</span></template><span v-if="ff.mark.value === 'required'" class="g-select__required" aria-hidden="true">*</span></label>
+    <label v-if="hasLabel" :id="labelId" class="g-select__label" :for="buttonId" @click="onLabelClick"><slot name="label">{{ label }}</slot><template v-if="ff.mark.value === 'optional' && ff.markText.value">{{ ' ' }}<span class="g-select__optional">{{ ff.markText.value }}</span></template><span v-if="ff.mark.value === 'required'" class="g-select__required" aria-hidden="true">*</span></label>
     <div ref="control" class="g-select__control" data-g-tooltip-box>
       <button ref="button" v-bind="buttonBindings" class="g-select__button">
         <span v-if="slots.prepend" class="g-select__prepend" aria-hidden="true"><slot name="prepend" /></span>

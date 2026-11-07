@@ -896,3 +896,198 @@ describe('GSelect · panel estable al desplazar la página', () => {
     w.unmount()
   })
 })
+
+// Correcciones tras la evaluación heurística (#1001): reglas 1 a 9 de design/contracts/select.md
+describe('GSelect · correcciones #1001', () => {
+  const FRUTAS = [{ value: 'ba', label: 'Banana' }, { value: 'bo', label: 'Bolivia' }, { value: 'ca', label: 'Cáscara' }, { value: 'ch', label: 'Chile' }]
+  let n = 0
+  const mkf = (props = {}) => mk({ options: FRUTAS, id: `f${++n}`, ...props })
+  const click = (w, detail) => { btn(w).element.dispatchEvent(new MouseEvent('click', { bubbles: true, detail })); return nextTick() }
+  const noWarn = () => vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+  it('1. sin filas no abre (clic, teclado, letra) ni emite open; con mensaje de vacío o fila de crear, sí', async () => {
+    const w = mk({ options: [] })
+    await btn(w).trigger('click')
+    await key(w, 'ArrowDown'); await key(w, 'Enter'); await key(w, 'b')
+    expect(btn(w).attributes('aria-expanded')).toBe('false')
+    expect(w.emitted('open')).toBeUndefined()
+    await w.setProps({ emptyText: 'Nada' })
+    await btn(w).trigger('click')
+    expect(btn(w).attributes('aria-expanded')).toBe('true')
+    w.unmount()
+    const c = mk({ options: [], createLabel: 'Agregar' })
+    await btn(c).trigger('click')
+    expect(btn(c).attributes('aria-expanded')).toBe('true')
+    c.unmount()
+  })
+
+  it('1. una opción solo deshabilitada cuenta como fila; abierta y sin filas, cierra y emite close', async () => {
+    const d = mk({ options: [{ value: 'a', label: 'A', disabled: true }] })
+    await btn(d).trigger('click')
+    expect(btn(d).attributes('aria-expanded')).toBe('true')
+    d.unmount()
+    const w = mk({ options: FRUTAS })
+    await btn(w).trigger('click')
+    await w.setProps({ options: [] })
+    expect(btn(w).attributes('aria-expanded')).toBe('false')
+    expect(w.emitted('close')).toHaveLength(1)
+    w.unmount()
+  })
+
+  it('2. con loading no afirma el vacío; al terminar aparece; abierta, loading cierra', async () => {
+    const w = mk({ options: [], emptyText: 'Nada', loading: true })
+    expect(w.find('.g-select__empty').exists()).toBe(false)
+    await w.setProps({ loading: false })
+    expect(w.find('.g-select__empty').text()).toBe('Nada')
+    await btn(w).trigger('click')
+    expect(btn(w).attributes('aria-expanded')).toBe('true')
+    await w.setProps({ loading: true })
+    expect(btn(w).attributes('aria-expanded')).toBe('false')
+    expect(w.emitted('close')).toHaveLength(1)
+    w.unmount()
+  })
+
+  it('3. un valor sin opción se envía; null envía vacío; avisa una vez y solo con opciones cargadas y sin loading', async () => {
+    const warn = noWarn()
+    const w = mk({ name: 'pais', modelValue: 'zz', loading: true })
+    expect(w.find('input[type="hidden"]').element.value).toBe('zz')
+    expect(w.find('.g-select__value').text()).toBe('Elige')
+    expect(warn).not.toHaveBeenCalled() // cargando: el catálogo aún no ha llegado
+    await w.setProps({ loading: false })
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn.mock.calls[0][0]).toContain('zz')
+    await w.setProps({ options: [...OPTIONS] }) // otro render: sin aviso repetido
+    await w.setProps({ modelValue: 5, options: [] }) // sin opciones: aún no ha llegado
+    expect(warn).toHaveBeenCalledTimes(1)
+    await w.setProps({ modelValue: null })
+    expect(w.find('input[type="hidden"]').element.value).toBe('')
+    w.unmount()
+    const fd = mk({ name: 'p', modelValue: 7 })
+    expect(fd.find('input[type="hidden"]').element.value).toBe('7')
+    fd.unmount()
+  })
+
+  it('4. escritura rápida: la activa de partida entra; la elegida no; repetición; acentos y mayúsculas', async () => {
+    vi.useFakeTimers()
+    const w = mkf()
+    await key(w, 'ArrowDown') // abre con Banana activa (de partida)
+    await key(w, 'b'); expect(activeText(w)).toBe('Banana') // la de partida entra
+    await vi.advanceTimersByTimeAsync(600)
+    await key(w, 'b'); expect(activeText(w)).toBe('Bolivia') // ya movida: desde la siguiente
+    await key(w, 'b'); expect(activeText(w)).toBe('Banana') // «bb»: sin prefijo entero, recorre las de «b» con vuelta
+    await vi.advanceTimersByTimeAsync(600)
+    await key(w, 'C'); expect(activeText(w)).toBe('Cáscara') // mayúscula
+    await key(w, 'a'); await key(w, 's'); expect(activeText(w)).toBe('Cáscara') // acentos: «cas» ~ «Cás»
+    await key(w, 'ArrowUp') // mueve la activa con teclas y cierra el búfer
+    await vi.advanceTimersByTimeAsync(600)
+    w.unmount()
+    const s = mkf({ modelValue: 'ba' })
+    await btn(s).trigger('click')
+    await key(s, 'b'); expect(activeText(s)).toBe('Bolivia') // la elegida no es «de partida»
+    await vi.advanceTimersByTimeAsync(600)
+    vi.useRealTimers()
+    s.unmount()
+  })
+
+  it('4. Espacio con prefijo escrito es un carácter más; sin prefijo, elige', async () => {
+    vi.useFakeTimers()
+    const w = mk({ id: 'cr', options: [{ value: 'a', label: 'Costa Rica' }, { value: 'b', label: 'Chile' }] })
+    await key(w, 'ArrowDown')
+    await key(w, 'c'); await key(w, 'o'); await key(w, 's'); await key(w, 't'); await key(w, 'a'); await key(w, ' ')
+    expect(btn(w).attributes('aria-expanded')).toBe('true')
+    expect(w.emitted('update:modelValue')).toBeUndefined()
+    await vi.advanceTimersByTimeAsync(600)
+    await key(w, ' ')
+    expect(w.emitted('update:modelValue')).toEqual([['a']])
+    vi.useRealTimers()
+    w.unmount()
+  })
+
+  it('5. en RTL, --_x es la distancia desde el borde inicial (ancho útil − right)', async () => {
+    const w = mk()
+    w.find('.g-select__control').element.getBoundingClientRect = () => ({ left: 40, right: 280, top: 100, bottom: 136, width: 240, height: 36 })
+    Object.defineProperty(document.documentElement, 'clientWidth', { configurable: true, value: 1000 })
+    const real = window.getComputedStyle
+    vi.spyOn(window, 'getComputedStyle').mockImplementation((el, p) => {
+      const cs = real.call(window, el, p)
+      return new Proxy(cs, { get: (t, k) => (k === 'direction' ? 'rtl' : typeof t[k] === 'function' ? t[k].bind(t) : t[k]) })
+    })
+    await btn(w).trigger('click')
+    await nextTick(); await nextTick()
+    expect(w.find('.g-select__list').element.style.getPropertyValue('--_x')).toBe('720px')
+    w.unmount()
+    delete document.documentElement.clientWidth
+  })
+
+  it('6. doble clic e Intro/Espacio con repeat no abren ni cierran', async () => {
+    const w = mkf()
+    await click(w, 1)
+    await click(w, 2)
+    expect(btn(w).attributes('aria-expanded')).toBe('true')
+    expect(w.emitted('open')).toHaveLength(1)
+    expect(w.emitted('close')).toBeUndefined()
+    await key(w, 'Enter', { repeat: true })
+    await key(w, ' ', { repeat: true })
+    expect(btn(w).attributes('aria-expanded')).toBe('true')
+    expect(w.emitted('update:modelValue')).toBeUndefined()
+    await key(w, 'Escape')
+    await key(w, 'Enter', { repeat: true })
+    expect(btn(w).attributes('aria-expanded')).toBe('false')
+    await key(w, 'Enter')
+    expect(btn(w).attributes('aria-expanded')).toBe('true')
+    w.unmount()
+  })
+
+  it('7. pointerdown dentro del rectángulo de la lista (relleno) no cierra; en el fondo de la hoja, sí', async () => {
+    const w = mkf()
+    await btn(w).trigger('click')
+    const list = w.find('.g-select__list').element
+    list.getBoundingClientRect = () => ({ left: 10, right: 210, top: 50, bottom: 250, width: 200, height: 200 })
+    const down = (target, x, y) => { const e = new Event('pointerdown', { bubbles: true }); e.clientX = x; e.clientY = y; target.dispatchEvent(e) }
+    down(list, 100, 100) // relleno o barra: destino la propia lista, dentro del rectángulo
+    await nextTick()
+    expect(btn(w).attributes('aria-expanded')).toBe('true')
+    down(list, 100, 400) // ::backdrop: destino la lista, fuera del rectángulo
+    await nextTick()
+    expect(btn(w).attributes('aria-expanded')).toBe('false')
+    w.unmount()
+  })
+
+  it('8. la etiqueta solo enfoca: cerrada no abre; abierta cierra una vez sin reabrir; disabled nada', async () => {
+    const w = mkf()
+    const label = w.find('.g-select__label')
+    const ev = new MouseEvent('click', { bubbles: true, cancelable: true })
+    label.element.dispatchEvent(ev)
+    await nextTick()
+    expect(ev.defaultPrevented).toBe(true)
+    expect(document.activeElement).toBe(btn(w).element)
+    expect(btn(w).attributes('aria-expanded')).toBe('false')
+    expect(w.emitted('open')).toBeUndefined()
+    await btn(w).trigger('click')
+    await label.trigger('click')
+    expect(btn(w).attributes('aria-expanded')).toBe('false')
+    expect(w.emitted('close')).toHaveLength(1)
+    expect(w.emitted('open')).toHaveLength(1)
+    w.unmount()
+    const r = mkf({ readonly: true })
+    await r.find('.g-select__label').trigger('click')
+    expect(document.activeElement).toBe(btn(r).element)
+    expect(btn(r).attributes('aria-expanded')).toBe('false')
+    r.unmount()
+    const d = mkf({ disabled: true })
+    await d.find('.g-select__label').trigger('click')
+    expect(btn(d).attributes('aria-expanded')).toBe('false')
+    d.unmount()
+  })
+
+  it('9. limpiar con la lista abierta: update:modelValue, close y foco en el botón', async () => {
+    const w = mkf({ clearable: true, clearLabel: 'Limpiar', modelValue: 'ba' })
+    await btn(w).trigger('click')
+    await w.find('.g-select__clear').trigger('click')
+    expect(w.emitted('update:modelValue')).toEqual([[null]])
+    expect(btn(w).attributes('aria-expanded')).toBe('false')
+    expect(w.emitted('close')).toHaveLength(1)
+    expect(document.activeElement).toBe(btn(w).element)
+    w.unmount()
+  })
+})
