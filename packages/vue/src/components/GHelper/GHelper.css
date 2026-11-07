@@ -181,15 +181,17 @@
 @starting-style {
   .g-helper__content:popover-open { opacity: 0; }
 }
+/* overlay y display en press: con linear (#1019), transitionMs vaciaba con opacidad 0,03; así llega con el fundido en 0 */
 @media (prefers-reduced-motion: no-preference) {
   .g-helper__content {
     transition:
-      opacity var(--g-duration-fast) var(--g-ease-out),
-      overlay var(--g-duration-fast) allow-discrete,
-      display var(--g-duration-fast) allow-discrete;
+      opacity var(--g-duration-fast) linear,
+      overlay var(--g-duration-press) allow-discrete,
+      display var(--g-duration-press) allow-discrete;
   }
   .g-helper__content:popover-open {
     transition-duration: var(--g-duration-press);
+    transition-timing-function: var(--g-ease-out);
     animation: g-helper-in var(--g-duration-press) var(--g-ease-out);
   }
   @keyframes g-helper-in {
@@ -201,8 +203,8 @@
   .g-helper__content {
     transition:
       opacity var(--g-duration-fast) linear,
-      overlay var(--g-duration-fast) allow-discrete,
-      display var(--g-duration-fast) allow-discrete;
+      overlay var(--g-duration-press) allow-discrete,
+      display var(--g-duration-press) allow-discrete;
   }
 }
 

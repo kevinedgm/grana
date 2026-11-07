@@ -916,7 +916,7 @@
 @media (prefers-reduced-motion: no-preference) {
   .g-datepicker__pop {
     transition:
-      opacity var(--g-duration-fast) var(--g-ease-out),
+      opacity var(--g-duration-fast) linear,
       overlay var(--g-duration-fast) allow-discrete,
       display var(--g-duration-fast) allow-discrete;
   }
@@ -1016,7 +1016,7 @@
   @media (prefers-reduced-motion: no-preference) {
     .g-datepicker__pop::backdrop {
       transition:
-        opacity var(--g-duration-fast) var(--g-ease-out),
+        opacity var(--g-duration-fast) linear,
         overlay var(--g-duration-fast) allow-discrete,
         display var(--g-duration-fast) allow-discrete;
     }

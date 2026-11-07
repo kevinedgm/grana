@@ -282,7 +282,7 @@
   }
   .g-toast[data-state="leaving"] {
     transition:
-      opacity var(--g-duration-fast) var(--g-ease-standard),
+      opacity var(--g-duration-fast) linear,
       translate var(--g-duration-press) var(--g-ease-out);
   }
   .g-toast.is-swiping { transition: none; }

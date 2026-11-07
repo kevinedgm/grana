@@ -615,7 +615,7 @@ button.g-dialog__trail-step:focus-visible {
   .g-dialog {
     scale: var(--g-press-scale);
     transition:
-      opacity var(--g-duration-fast) var(--g-ease-out),
+      opacity var(--g-duration-fast) linear,
       scale var(--g-duration-fast) var(--g-ease-out),
       translate var(--g-duration-fast) var(--g-ease-out),
       overlay var(--g-duration-fast) allow-discrete,
@@ -633,7 +633,7 @@ button.g-dialog__trail-step:focus-visible {
   }
   .g-dialog::backdrop {
     transition:
-      opacity var(--g-duration-fast) var(--g-ease-out),
+      opacity var(--g-duration-fast) linear,
       overlay var(--g-duration-fast) allow-discrete,
       display var(--g-duration-fast) allow-discrete;
   }

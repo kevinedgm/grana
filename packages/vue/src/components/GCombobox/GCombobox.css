@@ -347,7 +347,9 @@
 .g-combobox--appearance-field.is-open:has(.g-combobox__popup:not(.is-empty)) .g-input__control {
   border-image: linear-gradient(transparent, transparent) 1;
 }
-.g-combobox.is-open:has(.g-combobox__field:focus-visible) .g-combobox__popup {
+/* La forma se funde con su anillo: [inert] solo existe en la salida (#1019, H2); el del campo, debajo, no se nota */
+.g-combobox.is-open:has(.g-combobox__field:focus-visible) .g-combobox__popup,
+.g-combobox__popup[inert] {
   border-color: var(--_focus);
   outline: var(--g-focus-width) solid var(--_focus);
   outline-offset: calc(var(--g-border-width) * -1);
@@ -382,17 +384,18 @@
     }
   }
 }
-/* A · salida (combobox.md, #1002 y #1005): solo fundido, fast. En Firefox y WebKit, en el acto (D2 · A). overlay y display
-   solo al cerrar: is-empty con la lista abierta oculta en el acto. Entrar no se funde: es el despliegue. La junta no
+/* A · salida (combobox.md, #1002, #1005 y #1019): solo fundido, fast + linear. En Firefox y WebKit, en el acto (D2 · A).
+   overlay y display en press: con linear, el temporizador de leaving (transitionMs) vaciaba con opacidad 0,03; así llega
+   con el fundido ya en 0. Solo al cerrar: is-empty con la lista abierta oculta en el acto. Entrar no se funde: es el despliegue. La junta no
    parpadea: el campo recupera contorno y anillo en el acto (arriba) y queda debajo mientras la forma se funde */
 .g-combobox__popup:not(:popover-open) .g-combobox__popup-body { pointer-events: none; }
 @media (prefers-reduced-motion: no-preference) {
   .g-combobox__popup { transition: opacity var(--g-duration-fast) var(--g-ease-out); }
   .g-combobox__popup:not(:popover-open) {
     transition:
-      opacity var(--g-duration-fast) var(--g-ease-out),
-      overlay var(--g-duration-fast) allow-discrete,
-      display var(--g-duration-fast) allow-discrete;
+      opacity var(--g-duration-fast) linear,
+      overlay var(--g-duration-press) allow-discrete,
+      display var(--g-duration-press) allow-discrete;
   }
 }
 /* A · movimiento reducido: el despliegue se va y queda un fundido, también al abrir */
@@ -401,8 +404,8 @@
   .g-combobox__popup:not(:popover-open) {
     transition:
       opacity var(--g-duration-fast) linear,
-      overlay var(--g-duration-fast) allow-discrete,
-      display var(--g-duration-fast) allow-discrete;
+      overlay var(--g-duration-press) allow-discrete,
+      display var(--g-duration-press) allow-discrete;
   }
   @starting-style {
     .g-combobox__popup:popover-open { opacity: 0; }

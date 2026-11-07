@@ -366,7 +366,7 @@
 @media (prefers-reduced-motion: no-preference) {
   .g-party-field__panel {
     transition:
-      opacity var(--g-duration-fast) var(--g-ease-out),
+      opacity var(--g-duration-fast) linear,
       overlay var(--g-duration-fast) allow-discrete,
       display var(--g-duration-fast) allow-discrete;
   }

@@ -503,7 +503,7 @@
   .g-breadcrumbs__panel,
   .g-breadcrumbs__stairs {
     transition:
-      opacity var(--g-duration-fast) var(--g-ease-out),
+      opacity var(--g-duration-fast) linear,
       overlay var(--g-duration-fast) allow-discrete,
       display var(--g-duration-fast) allow-discrete;
   }
@@ -533,7 +533,7 @@
   .g-breadcrumbs__panel,
   .g-breadcrumbs__stairs {
     transition:
-      opacity var(--g-duration-fast) var(--g-ease-out),
+      opacity var(--g-duration-fast) linear,
       overlay var(--g-duration-fast) allow-discrete,
       display var(--g-duration-fast) allow-discrete;
   }

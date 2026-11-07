@@ -503,7 +503,7 @@ a.g-menu__item:is(:visited, :hover, :active, :focus) { text-decoration: none; }
   /* Salir: fast, solo fundido (en Firefox y WebKit, en el acto: D2 · A). Entrar: press, fundido y desplazamiento */
   .g-menu__list {
     transition:
-      opacity var(--g-duration-fast) var(--g-ease-out),
+      opacity var(--g-duration-fast) linear,
       overlay var(--g-duration-fast) allow-discrete,
       display var(--g-duration-fast) allow-discrete;
   }
@@ -511,6 +511,7 @@ a.g-menu__item:is(:visited, :hover, :active, :focus) { text-decoration: none; }
      @starting-style usaría el lado de la apertura anterior, o ninguno en la primera. La animación lee --_in en vivo */
   .g-menu__list:popover-open {
     transition-duration: var(--g-duration-press);
+    transition-timing-function: var(--g-ease-out);
     animation: g-menu-in var(--g-duration-press) var(--g-ease-out);
   }
   @keyframes g-menu-in {

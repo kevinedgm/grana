@@ -238,15 +238,17 @@
    press, fundido y space × 1 desde el lado del disparador. Con keyframes y no con @starting-style: el editor se abre, se
    mide y solo entonces se sabe el lado; la animación lee --_in en vivo */
 @starting-style { .g-filter-bar__editor:popover-open { opacity: 0; } }
+/* overlay y display en press: con linear (#1019), transitionMs vaciaba con opacidad 0,03; así llega con el fundido en 0 */
 @media (prefers-reduced-motion: no-preference) {
   .g-filter-bar__editor {
     transition:
-      opacity var(--g-duration-fast) var(--g-ease-out),
-      overlay var(--g-duration-fast) allow-discrete,
-      display var(--g-duration-fast) allow-discrete;
+      opacity var(--g-duration-fast) linear,
+      overlay var(--g-duration-press) allow-discrete,
+      display var(--g-duration-press) allow-discrete;
   }
   .g-filter-bar__editor:popover-open {
     transition-duration: var(--g-duration-press);
+    transition-timing-function: var(--g-ease-out);
     animation: g-filter-bar-in var(--g-duration-press) var(--g-ease-out);
   }
   @keyframes g-filter-bar-in {
@@ -258,8 +260,8 @@
   .g-filter-bar__editor {
     transition:
       opacity var(--g-duration-fast) linear,
-      overlay var(--g-duration-fast) allow-discrete,
-      display var(--g-duration-fast) allow-discrete;
+      overlay var(--g-duration-press) allow-discrete,
+      display var(--g-duration-press) allow-discrete;
   }
 }
 @media (pointer: coarse) {
