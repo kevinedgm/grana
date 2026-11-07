@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Movimiento · banco de medida</title>
+<!-- Banco de la tabla única de movimiento: los componentes REALES de dist, sin ninguna capa de propuesta. Lo usa medir.mjs. -->
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<style>body { margin: 40px; background: var(--g-color-bg); }</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="../../../../node_modules/vue/dist/vue.global.prod.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../../../packages/vue/dist/combobox.umd.js"></script>
+<script>
+const { createApp, h, ref, reactive } = Vue
+const G = Grana
+const opts = ['Uno', 'Dos', 'Tres', 'Cuatro', 'Cinco'].map((label, i) => ({ value: String(i), label }))
+const st = reactive({ sel: null, menu: false, date: null, cb: null, dlg: false })
+window.st = st
+createApp({
+  render: () => h('div', { style: 'display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap' }, [
+    h('div', { style: 'width:220px' }, [h(G.GSelect, { label: 'Campo', options: opts, modelValue: st.sel, 'onUpdate:modelValue': (v) => { st.sel = v } })]),
+    h(G.GMenu, { id: 'menu1', items: opts.map((o) => ({ id: o.value, label: o.label })), modelValue: st.menu, 'onUpdate:modelValue': (v) => { st.menu = v } },
+      { trigger: ({ attrs }) => h('button', { ...attrs, class: 'm-trigger' }, 'Acciones') }),
+    h(G.GHelper, { 'aria-label': 'Ayuda', contentLabel: 'Ayuda', closeLabel: 'Cerrar' }, () => h('p', 'Texto de ayuda')),
+    h('div', { style: 'width:220px' }, [h(G.GDatePicker, { label: 'Fecha', modelValue: st.date, 'onUpdate:modelValue': (v) => { st.date = v } })]),
+    h('div', { style: 'width:260px' }, [h(GranaCombobox.GCombobox, { label: 'Buscar', options: opts, modelValue: st.cb, 'onUpdate:modelValue': (v) => { st.cb = v } })]),
+    h(G.GBtn, { id: 'tip', tooltip: 'Pista de prueba' }, () => 'Con pista'),
+    h(G.GBtn, { id: 'dlgopen', onClick: () => { st.dlg = true } }, () => 'Abrir diálogo'),
+    h(G.GDialog, { modelValue: st.dlg, title: 'Diálogo', 'onUpdate:modelValue': (v) => { st.dlg = v } }, () => h('p', 'Contenido'))
+  ])
+}).mount('#app')
+window.__ready = true
+</script>
+</body>
+</html>
