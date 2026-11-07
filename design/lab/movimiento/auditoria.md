@@ -2,7 +2,7 @@
 
 **Estado auditado:** `bd413f09` (CSS `f749d655`, `.vue`, compuerta y spec de bruno) más la corrección de `GToast.css` de esta auditoría, con un `dist/` propio en un `git worktree` aislado (Node 22), sin `GBtn` a medias ni reconstrucciones a mitad de pasada.
 **Contrato:** `design/contracts/motion.json`, `tokens.md` §29.9 y §29.10, `api.md` «Una sola luz», #1002 a #1009. #1008 está cerrada: el anillo conserva el fundido.
-**Fuera de esta auditoría:** el recorrido y la luz de `GCombobox` (#1017, #1018), que llegaron después de `bd413f09` (`5d29b1a7`, `85083171`). **`GCombobox` queda pendiente de auditar:** lo que sigue describe la versión anterior.
+**Fuera de esta auditoría:** el recorrido y la luz de `GCombobox` (#1017, #1018), que llegaron después de `bd413f09` (`5d29b1a7`, `85083171`). Lo que sigue describe la versión anterior; **`GCombobox` tras #1017, #1018 y #1019 está auditado en el §8 (addendum)**, con H1 y H2 resueltos.
 
 **Resultado:** sin defecto bloqueante en lo auditado. Queda **una decisión abierta para lima y el usuario** (H1: la salida cumple la tabla y aun así se ve brusca) y un hallazgo para quien remata `GCombobox` (H2).
 
@@ -159,3 +159,104 @@ Pieza: la tabla aplicada a paneles, listas, plegados y avisos. Web, ratón, tecl
 - **Jerarquía y delimitación:** lista, hoja y forma del combobox con contorno ≥ 3:1 sin cambios; capturas claro, oscuro y hoja sin nada que flote.
 - **Estados:** hover, foco, activa, elegida y deshabilitada revisados en `GSelect`; carga y vacío sin cambio en este lote.
 - **Consistencia:** solo tokens; `check-motion` 0 fallos.
+
+## 8. Addendum · salida `linear` (#1019) y `GCombobox` tras #1017, #1018 y #1019
+
+**Estado auditado:** `f6321638` (CSS de #1019 y H2 en `311e7f67`, contorno de la activa en `f6321638`), con un `dist/` propio en un `git worktree` aislado (Node 22) y una copia fija de ese `dist/` para los verificadores, sin cambios de otras sesiones (el `GStatusIsland.css` sin confirmar del árbol real queda fuera).
+
+**Resultado:** sin defecto bloqueante. H1 y H2 resueltos; un hallazgo nuevo resuelto en el CSS (la activa perdía el contorno al cerrar) y otro que nace de `linear` resuelto también en el CSS (el temporizador vaciaba el panel con opacidad 0,03).
+
+### 8.1 Qué cambió en el CSS
+
+| Pieza | Antes | Ahora |
+| --- | --- | --- |
+| Salida de panel anclado (`GMenu`, `GHelper`, `GFilterBar`, `GSelect`, `GDatePicker`, `GPartyField`, `GBookingBar`, `GBreadcrumbs`, `GCombobox`) | `fast` + `ease-out` | `fast` + `linear`. La entrada conserva `ease-out`: donde la regla es común (`GMenu`, `GHelper`, `GFilterBar`) se declara en `:popover-open` |
+| Fondo de las hojas de `GSelect` y `GDatePicker`; diálogo y su fondo | `fast` + `ease-out` | Opacidad `linear`; desplazamiento y escala del diálogo siguen en `ease-out` |
+| `GToast` al salir | opacidad `fast` + `standard` | `fast` + `linear` |
+| `GBreadcrumbs` con reducido | panel `fast` + `ease-out` (contra la tabla) | `fast` + `linear` |
+| `GHelper`, `GFilterBar`, `GCombobox`: `overlay` y `display` al cerrar | `fast` | `press`. Con `linear` el último cuadro visible llega a opacidad 0,03 cuando vence el temporizador de `leaving` (`transitionMs`), y el panel se vaciaba en ese cuadro: `movimiento.spec` (#1005) lo detectó en `GHelper` y `GFilterBar`. Con `press`, el temporizador vence con el fundido ya en 0. La opacidad sigue en `fast` |
+| H2 · anillo de la forma de `GCombobox` | se quitaba en el primer cuadro de la salida | `.g-combobox__popup[inert]` lo conserva: forma, anillo y contorno se funden juntos; el del campo, debajo y en su sitio, no se nota |
+| Contorno de la activa de `GCombobox` tras teclado | se caía en el primer cuadro (al cerrar ya no hay activa) | pasa a la luz mientras dura `[inert]` |
+
+**Peso**, `gzip -9` sobre lo medido tras #1018 (`a477a754`): `grana.css` **104 448 → 104 477 B (+29 B; tope +32)**; `grana.js` 225 037 y `combobox.js` 22 015, sin cambios.
+
+**Lo que se ve al cerrar** (Chromium, opacidad por cuadro a 60 Hz): `0,86 · 0,72 · 0,58 · 0,44 · 0,31 · 0,17 · 0,03`, siete cuadros en vez de los cuatro de `ease-out`. Con Esc y con Tab la forma conserva el anillo en los siete, la luz no baja de 1 y el panel sigue lleno; el campo tiene su anillo en todos los cuadros (debajo de la forma y, al acabar, solo). Capturas congeladas a 0, 40, 80 y 110 ms: el borde azul baja con todo lo demás, sin el salto a gris de antes. En Firefox y WebKit la salida sigue siendo instantánea (D2 · A) y el anillo del campo está desde el primer cuadro.
+
+`GDialog` medido aparte: su contenido sigue hasta opacidad 0,03 y no se vacía antes (el diálogo no necesita el cambio de `press`).
+
+### 8.2 `GCombobox` sobre el componente real
+
+`node design/lab/movimiento/auditoria-combobox-verificar.mjs` (nuevo; banco r01 con una segunda aplicación: `field` de 30, `palette`, `multiple` frase, lista y cesta, `density="compact"` y un `GCombobox` dentro de `GDialog`):
+
+| Motor | Comprobaciones |
+| --- | --- |
+| Chromium | **201/201** |
+| Firefox | **191/191** |
+| WebKit | **191/191** |
+
+(Chromium mide además la salida cuadro a cuadro; Firefox y WebKit no tienen fundido de salida.)
+
+| Qué | Resultado, tres motores |
+| --- | --- |
+| Barrido con el puntero, ida y vuelta por 7 filas (85 a 94 cuadros) en `field`, `palette`, `multiple` frase, lista y cesta, compacta y dentro de `GDialog` | 0 fondos por fila, 0 contornos, 1 activa, la luz nunca baja de 1; 61 a 73 posiciones distintas (viaja), acaba sobre la activa (Δ ≤ 1 px) |
+| Teclado, 8 flechas seguidas | Como mucho un contorno por cuadro, ningún fondo propio |
+| Anillo solo tras teclado (`field`, `palette`, `multiple`) | Puntero: no. Flecha: sí. Mover el puntero: lo quita. Otra flecha: vuelve. Escribir: sí. Reabrir con clic tras teclado: no |
+| La ficha entra (`field` con puntero, con Intro y hacia arriba; renglón de la cesta) | `g-combobox-land`, 160 ms: parte de `space × 1` (4 px) del lado del panel (−4 con `is-up`), se acerca sin retroceder ni rebasar, la opacidad solo sube, su sitio y la caja del campo no cambian, y la clase se retira |
+| Cesta | Los renglones anteriores no se mueven; la superficie sigue abierta |
+| `multiple` frase y lista al elegir | Sin segunda marca en ningún cuadro, la luz sigue en su fila, el campo no crece |
+| `palette` y hoja | Sin `is-landing`, como dice el contrato («desde la lista de `field`»): la ficha está en su sitio, opaca y quieta, mientras la superficie se funde; la caja no cambia de alto |
+| Reducido | La luz salta (6 posiciones para 6 filas, solo `opacity` en la transición); la ficha y el renglón de la cesta, `g-combobox-land-fade` en 120 ms sin desplazamiento |
+| `forced-colors` (emulado) | Sin capa; contorno en la activa también con puntero (`field`, `palette`, `multiple`) |
+| Hoja móvil a 375 px (`field`, cesta, lista) | Abre en hoja, filas ≥ 44 px, el toque no pinta contorno, cierra, sin desborde. Toque real en Chromium y WebKit; en Firefox, clic |
+| Dentro de `GDialog` | La lista queda encima; Esc cierra la lista y no el diálogo; la ficha entra igual y el diálogo sigue abierto |
+| Densidad compacta | Filas 38 px (42 por defecto), caja 27 px (36), ≥ 24 px; la luz cubre la fila (Δ ≤ 1 px); la ficha entra igual |
+
+**Verificadores del componente, actualizados a #1017 y #1018** (esperaban `is-arriving`, `g-combobox-arrive`, `--_travel-*`, el borde de la ficha que se levantaba y la activa en `Highlight` con colores forzados):
+
+| Script | Chromium | Firefox | WebKit |
+| --- | --- | --- | --- |
+| `design/lab/combobox/auditoria-verificar.mjs` | **2436/2436, los tres motores juntos** (incluye contraste en 14 temas claro y oscuro, en Chromium: texto de la activa y contorno tras teclado medidos ahora **sobre la luz**) | · | · |
+| `design/lab/combobox/auditoria-multiple-verificar.mjs` | **1401/1401** | **613/613** | **631/631** (más 20/20 estáticas: **2665/2665**; la cesta entra a ≤ 4 px y termina en 0; la casilla marcada de la activa se mide ahora sobre la luz) |
+
+**Specs** (`--workers=2`, `GRANA_PW_PORT=4213`, sobre el estado final): `movimiento`, `combobox`, `combobox-forma`, `combobox-multiple`, `combobox-despliegue`, `personalidad-combobox`, `personalidad-combobox-multiple`, `combobox-multiple-perf`, `panel-estable`, `personalidad-dialog`, `personalidad-menu`: **582 pruebas, 554 pasan, 27 omitidas por diseño, 1 falla**. La que falla es `personalidad-combobox:49` en WebKit («la entrada corre en cuadros reales»): **falla igual sin este lote** (2 de 4 con `--repeat-each=4` sobre `a477a754`; 3 de 4 sobre el final) y en `auditoria-combobox-verificar` WebKit ve 10 u 11 cuadros de la entrada. Es la muestra por cuadros de la spec con WebKit sin cabeza, no el componente (H6). Antes de H2, `movimiento.spec` daba 2 fallos en Chromium (#1005, por `linear`); con `overlay`/`display` en `press`, 53/53.
+
+| Otras | Resultado |
+| --- | --- |
+| `node packages/vue/scripts/check-motion.mjs` | 82 hojas, 83 componentes, 7 reglas, **0 fallos** |
+| `npx vitest run` (`packages/vue`) | **4295/4295**, 157 archivos |
+| `bash .github/scripts/gates.sh` | **159/159** |
+
+### 8.3 Hallazgos
+
+| # | Dueño | Hallazgo | Bloquea |
+| --- | --- | --- | --- |
+| H1 | lima | **Resuelto** por #1019 y este CSS | · |
+| H2 | coco | **Resuelto**: el anillo baja con la forma | · |
+| H5 | lima | `overlay` y `display` en `press` en `GHelper`, `GFilterBar` y `GCombobox`: la tabla no dice nada de las propiedades discretas y la salida visible sigue en `fast`, pero conviene anotarlo en `motion.json` o pedir a bruno lo de abajo y volver a `fast` | No |
+| H6 | bruno | `personalidad-combobox:49` es inestable en WebKit: la muestra por cuadros no siempre ve `is-landing` (también antes de este lote). Pasar la comprobación de «cuadros reales» a la trayectoria pausada que ya mide la propia prueba, o exigirla solo en Chromium | No |
+| H7 | bruno | Raíz de H5: los temporizadores de `leaving` (`transitionMs`) empiezan antes que la transición, que arranca en el cuadro siguiente. Con `linear` eso deja un cuadro a 0,03. Una espera de un cuadro más (`nextFrame`) en `GHelper`, `GFilterBar` y `GCombobox` permitiría devolver `overlay`/`display` a `fast` | No |
+| H8 | bruno | Con un solo `pointermove` sobre la lista recién abierta la opción no se activa (el primero es la línea base de «puntero quieto», #358). Con un ratón real no ocurre; solo lo notan las pruebas que mueven el puntero de un salto | No |
+| H9 | coco | Los bancos `estilo-verificar.mjs`, `estilo-multiple-banco.html` y `estilo-multiple-verificar.mjs` siguen con el viaje (`is-arriving`, `--_travel-*`, la activa invertida). `estilo-banco.html` ya usa `is-landing` y su pie dice «entra en su sitio» | No |
+
+### 8.4 Rúbrica de movimiento (`GCombobox` y la salida)
+
+| Dimensión | Estado | Evidencia | Riesgo | Recomendación |
+| --- | --- | --- | --- | --- |
+| A · Propósito | Cumple | La luz une filas; la ficha entra 4 px desde el panel del que sale, sin recorrido | Bajo | Mantener |
+| B · Comodidad visual | Cumple | Una marca por cuadro en todas las formas; la salida se ve en 7 cuadros, no en 4 | Bajo | Mantener |
+| C · Estabilidad | Cumple | Nada rebasa; la caja del campo y los renglones anteriores no se mueven; la forma no cambia de lado al fundirse | Bajo | Mantener |
+| D · Continuidad | Cumple en Chromium | Forma, anillo, luz y contorno se funden juntos; el panel no se vacía antes de 0. Firefox y WebKit, salida instantánea (D2 · A, aceptado) | Bajo | H7 para quitar el margen de `press` |
+| E · Control | Cumple | Cerrar no se retrasa; el puntero no pinta contorno; Esc dentro de `GDialog` cierra solo la lista | Bajo | Mantener |
+| F · Accesibilidad | Parcial | Reducido sin desplazamiento, medido; `forced-colors` emulado con contorno; contraste sobre la luz ≥ 4,5 y contorno ≥ 3. **No verificable:** lector de pantalla, `forced-colors` real, Safari real | Bajo | Entorno real |
+| G · Rendimiento | Cumple en Chromium | Con un worker (#965), las de rendimiento de `movimiento` y `combobox-multiple-perf`: **5/5**. **No verificable** en Firefox y WebKit (`longtask`) ni en móvil real | Bajo | Medir en móvil real |
+| H · Inmersión | N/A | · | · | · |
+
+**Veredicto:** se puede subir. La salida es suave y homogénea en los paneles, hojas, diálogo y avisos; `GCombobox` recorre, elige y cierra sin saltos en `field`, `palette` y `multiple`.
+
+**Limitaciones:** la suavidad se deduce de la opacidad a 60 Hz y de capturas congeladas, no de una valoración con ojos; `forced-colors` emulado; sin lector de pantalla, Safari real ni dispositivo táctil real (toque emulado en Chromium y WebKit; Firefox con clic); temas solo en Chromium; specs afectados, no la suite entera.
+
+### 8.5 Auditoría visual
+
+- **Jerarquía y delimitación:** la forma abierta y la que se funde conservan contorno y anillo ≥ 3:1; nada queda sin delimitar a mitad de la salida.
+- **Estados:** hover (luz), foco (anillo solo tras teclado), activa, elegida, deshabilitada y la ficha que entra, revisados en las cinco formas.
+- **Consistencia:** solo tokens; `check-motion` 0 fallos; la luz y la salida son las de `GSelect`.

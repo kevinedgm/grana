@@ -9,7 +9,7 @@
 //       rota, el alto del panel constante salvo al cambiar de lado (una vez), cierre al salir del visor.
 // Y busca otros saltos: abrir y cerrar rápido (contorno y anillo nunca ausentes a la vez), escribir mientras llegan los
 // resultados con la red simulada real (la lista no parpadea a vacío ni el panel encoge y vuelve), «Mostrar más» (las filas a
-// la vista no se mueven), llegada de la ficha, reapertura de la paleta durante su salida, hoja móvil al cambiar resultados.
+// la vista no se mueven), entrada de la ficha (#1018), reapertura de la paleta durante su salida, hoja móvil al cambiar resultados.
 // Temas: defecto claro y oscuro, «Tema de prueba» del playground claro y oscuro, el de la auditoría (auditoria-tema.css,
 // @grana/cli: brand #0F5C5C, radius 2, space 3, fontSize 15) claro y oscuro y los once generados de
 // design/lab/tema-oscuro/dark-color-presence/generated/ claro y oscuro (Chromium; Firefox y WebKit: siete).
@@ -97,7 +97,7 @@ if (run('static')) {
   ok(!missing.length, 'CSS: tokens que no existen en defaults.css ' + missing)
   const own = new Set([...css.matchAll(/(--_[\w-]+)\s*:/g)].map((m) => m[1]))
   ok([...own].every((v) => v.startsWith('--_cb-') || v === '--_row-h' || v === '--_snap'), 'CSS: alias propio sin prefijo --_cb-: ' + [...own]) // --_row-h: dato del .vue (#429) con su valor por defecto
-  const allowed = ['--_focus', '--_radius', '--_fs', '--_lh', '--_gap', '--_density', '--_inset-radius', '--_x', '--_top', '--_bottom', '--_w', '--_max', '--_field-h', '--_travel-x', '--_travel-y']
+  const allowed = ['--_focus', '--_radius', '--_fs', '--_lh', '--_gap', '--_density', '--_inset-radius', '--_x', '--_top', '--_bottom', '--_w', '--_max', '--_field-h', '--_highlight-x', '--_highlight-y', '--_highlight-w', '--_highlight-h']
   const strange = [...new Set(vars.filter((v) => v.startsWith('--_') && !own.has(v) && !allowed.includes(v)))]
   ok(!strange.length, 'CSS: alias --_* no previsto: ' + strange)
   const px = [...css.matchAll(/(-?\d*\.?\d+)px/g)].map((m) => m[0])
@@ -240,13 +240,13 @@ for (const engine of ENGINES) {
     const measure = async () => {
       const out = []
       await openWith(page, 'cb-pac', 'mar')
-      out.push(...await page.evaluate(`(() => { const { pair, parse, ratio, bgOf } = ${L}; const pop = document.getElementById('cb-pac-popup'); const rows = [...pop.querySelectorAll('.g-combobox__option')]; const act = pop.querySelector('.g-combobox__option.is-active'); const idle = rows.find((x) => !x.classList.contains('is-active'))
+      out.push(...await page.evaluate(`(() => { const { pair, parse, ratio, bgOf } = ${L}; const pop = document.getElementById('cb-pac-popup'); const rows = [...pop.querySelectorAll('.g-combobox__option')]; const act = pop.querySelector('.g-combobox__option.is-active'); const luz = pop.querySelector('.g-combobox__highlight'); const idle = rows.find((x) => !x.classList.contains('is-active'))
         return [pair('opción: etiqueta', idle.querySelector('.g-summary__title'), 4.5), pair('opción: coincidencia', idle.querySelector('.g-summary__mark'), 4.5), pair('opción: rótulo de dato', idle.querySelector('.g-summary__fact-label'), 4.5), pair('opción: dato', idle.querySelector('.g-summary__fact-value'), 4.5),
           pair('opción: «+N»', idle.querySelector('.g-summary__more:not([hidden])'), 4.5),
           pair('avatar md (iniciales)', idle.querySelector('.g-avatar__initials'), 4.5),
-          act ? pair('activa: etiqueta', act.querySelector('.g-summary__title'), 4.5) : { k: 'activa (no hay)', r: 0, min: 4.5 },
-          act ? pair('activa: rótulo de dato', act.querySelector('.g-summary__fact-label'), 4.5) : { k: 'activa rótulo (no hay)', r: 0, min: 4.5 },
-          act ? { k: 'activa: borde de ficha', r: ratio(parse(getComputedStyle(act).borderTopColor), bgOf(act.parentElement)), min: 3 } : { k: 'activa borde (no hay)', r: 0, min: 3 },
+          act ? pair('activa: etiqueta sobre la luz', act.querySelector('.g-summary__title'), 4.5, luz) : { k: 'activa (no hay)', r: 0, min: 4.5 },
+          act ? pair('activa: rótulo de dato sobre la luz', act.querySelector('.g-summary__fact-label'), 4.5, luz) : { k: 'activa rótulo (no hay)', r: 0, min: 4.5 },
+          act ? { k: 'activa: contorno tras teclado sobre la luz', r: ratio(parse(getComputedStyle(act).outlineColor), bgOf(luz)), min: 3 } : { k: 'activa contorno (no hay)', r: 0, min: 3 },
           { k: 'forma: contorno', r: ratio(parse(getComputedStyle(pop).borderTopColor), bgOf(document.body)), min: 3 },
           pair('fantasma: resto', document.getElementById('cb-pac').closest('.g-combobox').querySelector('.g-combobox__ghost-rest'), 4.5)] })()`))
       await close(page)
@@ -279,8 +279,8 @@ for (const engine of ENGINES) {
       out.push(...await page.evaluate(`(() => { const { pair, root } = ${L}; const t = (s) => root('cb-dx').querySelector(s); return [pair('ficha seleccionada: código', t('.g-combobox__token .g-summary__code'), 4.5), pair('ficha seleccionada: capítulo', t('.g-combobox__token .g-summary__subtitle'), 4.5)] })()`))
       await page.evaluate(() => { document.activeElement.blur(); window.__cb.medLibre = ''; window.__cb.dx = null })
       await center(page, 'cb-pal'); await page.click('#cb-pal'); await settle(page, 400); await page.keyboard.type('mar', { delay: 25 }); await settle(page, 500); await page.keyboard.press('ArrowDown'); await settle(page, 300)
-      out.push(...await page.evaluate(`(() => { const { pair } = ${L}; const d = document.querySelector('dialog[open].g-combobox-surface'); if (!d) return [{ k: 'paleta (no abre)', r: 0, min: 4.5 }]; const act = d.querySelector('.g-combobox__option.is-active')
-        return [pair('paleta activa: etiqueta', act.querySelector('.g-summary__title'), 4.5), pair('paleta activa: rótulo', act.querySelector('.g-summary__fact-label'), 4.5), pair('paleta activa: dato', act.querySelector('.g-summary__fact-value'), 4.5),
+      out.push(...await page.evaluate(`(() => { const { pair } = ${L}; const d = document.querySelector('dialog[open].g-combobox-surface'); if (!d) return [{ k: 'paleta (no abre)', r: 0, min: 4.5 }]; const act = d.querySelector('.g-combobox__option.is-active'), luz = d.querySelector('.g-combobox__highlight')
+        return [pair('paleta activa: etiqueta sobre la luz', act.querySelector('.g-summary__title'), 4.5, luz), pair('paleta activa: rótulo sobre la luz', act.querySelector('.g-summary__fact-label'), 4.5, luz), pair('paleta activa: dato sobre la luz', act.querySelector('.g-summary__fact-value'), 4.5, luz),
           pair('paleta: búsqueda', d.querySelector('.g-combobox__search-field'), 4.5), pair('paleta: título', d.querySelector('.g-dialog__title'), 4.5),
           pair('vista previa: título', d.querySelector('.g-combobox__preview .g-summary__title'), 4.5), pair('vista previa: rótulo', d.querySelector('.g-combobox__preview .g-summary__fact-label'), 4.5), pair('vista previa: dato', d.querySelector('.g-combobox__preview .g-summary__fact-value'), 4.5)] })()`))
       await page.keyboard.press('Escape'); await settle(page, 350)
@@ -636,33 +636,30 @@ for (const engine of ENGINES) {
     await ctx.close()
   }
 
-  /* 12 · Llegada de la ficha desde la fila más lejana (puntero real): vector, rebase ≤ space × 2, termina en 0, se retira */
+  /* 12 · La ficha entra en su sitio (#1018; puntero real, fila más lejana): a ≤ space × 1, sin rebasar, termina en 0, se retira */
   if (run('arrive')) {
     const { ctx, page } = await mk()
     for (const theme of ['', 'audit']) {
       await go(page, { theme })
       await openWith(page, 'cb-pac', 'mar', 600)
       const far = await page.evaluate(() => { const panel = document.querySelector('#cb-pac-popup .g-combobox__panel').getBoundingClientRect(); const rows = [...document.querySelectorAll('#cb-pac-popup .g-combobox__option')].filter((o) => o.getBoundingClientRect().bottom <= panel.bottom); const el = rows[rows.length - 1]; const b = el.getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 } })
-      await page.evaluate(() => { window.__arr = null; const r = document.getElementById('cb-pac').closest('.g-combobox'); const mo = new MutationObserver(() => { const t = r.querySelector('.g-combobox__token.is-arriving'); if (t && !window.__arr) { const a = t.getAnimations().find((x) => x.animationName === 'g-combobox-arrive'); if (a) { a.pause(); window.__arr = a } } }); mo.observe(r, { subtree: true, attributes: true, childList: true }) })
+      await page.evaluate(() => { window.__arr = null; const r = document.getElementById('cb-pac').closest('.g-combobox'); const mo = new MutationObserver(() => { const t = r.querySelector('.g-combobox__token.is-landing'); if (t && !window.__arr) { const a = t.getAnimations().find((x) => x.animationName === 'g-combobox-land'); if (a) { a.pause(); window.__arr = a } } }); mo.observe(r, { subtree: true, attributes: true, childList: true }) })
       await page.mouse.move(far.x, far.y, { steps: 5 }); await page.mouse.click(far.x, far.y)
       await page.waitForFunction(() => window.__arr, null, { timeout: 3000 }).catch(() => {})
       const tr = await page.evaluate(`(() => { const { px } = ${L}; const a = window.__arr; if (!a) return null; const t = document.getElementById('cb-pac').closest('.g-combobox').querySelector('.g-combobox__token'); const dur = a.effect.getComputedTiming().duration; const out = []
-        for (let i = 0; i <= 60; i++) { a.currentTime = dur * i / 60; const v = getComputedStyle(t).translate; const m = v === 'none' ? [0, 0] : v.split(' ').map(parseFloat); out.push([m[0], m[1] ?? 0]) }
-        const vy = parseFloat(t.style.getPropertyValue('--_travel-y')), op = getComputedStyle(t).opacity; a.currentTime = 0; a.play(); return { out, vy, s2: px('--g-space-1') * 2, dur, op } })()`)
-      const t = (x) => tag(`${theme || 'defecto'} llegada: ${x}`)
-      ok(tr, t('no hay animación g-combobox-arrive al elegir con el puntero'))
+        for (let i = 0; i <= 60; i++) { a.currentTime = dur * i / 60; const c = getComputedStyle(t); const v = c.translate; out.push([v === 'none' ? 0 : parseFloat(v.split(' ')[1] ?? 0), +c.opacity]) }
+        a.currentTime = 0; a.play(); return { out, s1: px('--g-space-1'), dur } })()`)
+      const t = (x) => tag(`${theme || 'defecto'} entrada: ${x}`)
+      ok(tr, t('no hay animación g-combobox-land al elegir con el puntero'))
       if (tr) {
-        const ys = tr.out.map((p) => p[1]), sign = Math.sign(tr.vy), want = sign * Math.min(Math.abs(tr.vy), tr.s2 / 0.038)
-        ok(Math.abs(ys[0] - want) < 0.6, t(`no parte de la fila acotada (${ys[0]} ≠ ${want})`))
-        ok(new Set(ys.slice(1, -1).map((v) => Math.round(v))).size >= 2 && Math.abs(ys[ys.length - 1]) < 0.01, t('sin posiciones intermedias o no termina en 0'))
-        const over = Math.max(0, ...ys.map((v) => -sign * v))
-        ok(over <= tr.s2 + 0.1, t(`rebase ${over.toFixed(2)}px > space × 2 (${tr.s2})`))
-        ok(+tr.op === 1, t(`la ficha no viaja opaca (${tr.op})`))
-        note('llegada (puntero real, fila más lejana a la vista)', `${engine} ${theme || 'defecto'}: Δy ${tr.vy.toFixed(1)}px → parte de ${ys[0].toFixed(1)}, rebase ${over.toFixed(2)}px (tope ${tr.s2}px), ${tr.dur}ms`)
+        const ys = tr.out.map((p) => p[0]), os = tr.out.map((p) => p[1])
+        ok(Math.abs(ys[0] - tr.s1) < 0.1, t(`no parte de space × 1 (${ys[0]} ≠ ${tr.s1})`))
+        ok(ys.every((v, i) => v >= -0.01 && (!i || v <= ys[i - 1] + 0.01)) && Math.abs(ys[ys.length - 1]) < 0.01, t('rebasa, retrocede o no termina en 0'))
+        ok(os[0] < 0.01 && os.every((v, i) => !i || v >= os[i - 1] - 0.001), t('la opacidad no sube desde 0'))
+        note('entrada de la ficha (puntero real, fila más lejana a la vista)', `${engine} ${theme || 'defecto'}: parte de ${ys[0].toFixed(1)}px (space × 1 = ${tr.s1}px), ${tr.dur}ms`)
       }
       await page.waitForTimeout(900)
-      ok(await page.evaluate(() => !document.querySelector('#cb-pac') .closest('.g-combobox').querySelector('.g-combobox__token.is-arriving')), t('is-arriving no se retira'))
-      // Ningún vecino se mueve durante la llegada (la ficha va por encima, la caja no cambia)
+      ok(await page.evaluate(() => !document.querySelector('#cb-pac') .closest('.g-combobox').querySelector('.g-combobox__token.is-landing')), t('is-landing no se retira'))
       await page.evaluate(() => { window.__cb.pac.value = null; document.activeElement.blur() })
     }
     await ctx.close()
@@ -685,9 +682,9 @@ for (const engine of ENGINES) {
     await settle(page, 300)
     const row = await page.evaluate(() => { const b = document.querySelectorAll('#cb-pac-popup .g-combobox__option')[2].getBoundingClientRect(); return { x: b.left + 30, y: b.top + 10 } })
     await page.mouse.click(row.x, row.y); await page.waitForTimeout(60)
-    const st = await page.evaluate(() => { const t = document.getElementById('cb-pac').closest('.g-combobox').querySelector('.g-combobox__token'); return t ? { cls: t.classList.contains('is-arriving'), anim: getComputedStyle(t).animationName, tr: getComputedStyle(t).translate } : null })
-    ok(st && !st.cls && st.anim === 'none' && (st.tr === 'none' || st.tr === '0px'), tag(`reduce: la ficha viaja ${JSON.stringify(st)}`))
-    note('movimiento reducido', `${engine}: alturas al abrir ${[...new Set(H.map(Math.round))].join(' → ')}; flecha sin transición de giro; ficha sin viaje`)
+    const st = await page.evaluate(() => { const t = document.getElementById('cb-pac').closest('.g-combobox').querySelector('.g-combobox__token'); return t ? { anim: getComputedStyle(t).animationName, tr: getComputedStyle(t).translate } : null })
+    ok(st && ['none', 'g-combobox-land-fade'].includes(st.anim) && (st.tr === 'none' || st.tr === '0px'), tag(`reduce: la ficha se desplaza ${JSON.stringify(st)}`))
+    note('movimiento reducido', `${engine}: alturas al abrir ${[...new Set(H.map(Math.round))].join(' → ')}; flecha sin transición de giro; ficha con solo fundido`)
     await ctx.close()
   }
 
@@ -767,13 +764,13 @@ for (const engine of ENGINES) {
       ok(f.token === 'none' && f.same, tag(`forced-colors: la ficha no se retira o el texto no se ve ${JSON.stringify(f)}`))
       await openWith(page, 'cb-pac', 'mar', 300)
       const g = await page.evaluate(() => { const r = document.getElementById('cb-pac').closest('.g-combobox'); const sys = (k, p) => { const i = document.createElement('i'); i.style[p] = k; r.querySelector('.g-input__control').append(i); const v = getComputedStyle(i)[p]; i.remove(); return v }; const act = r.querySelector('.g-combobox__option.is-active'); const pop = getComputedStyle(document.getElementById('cb-pac-popup')); const mark = getComputedStyle(r.querySelector('.g-combobox__option:not(.is-active) .g-summary__mark'))
-        return { actBg: act && getComputedStyle(act).backgroundColor === sys('Highlight', 'backgroundColor'), actFg: act && [...act.querySelectorAll('.g-summary__title, .g-summary__fact-label, .g-summary__fact-value')].every((x) => getComputedStyle(x).color === sys('HighlightText', 'color')), border: pop.borderTopColor === sys('CanvasText', 'color'), ring: pop.outlineColor === sys('Highlight', 'color') && pop.outlineStyle === 'solid', ghost: getComputedStyle(r.querySelector('.g-combobox__ghost-rest')).color === sys('GrayText', 'color'), mark: /underline/.test(mark.textDecorationLine) } })
+        return { actRing: act && getComputedStyle(act).outlineStyle === 'solid' && getComputedStyle(act).outlineColor === sys('Highlight', 'color'), sinCapa: getComputedStyle(r.querySelector('.g-combobox__highlight')).display === 'none', border: pop.borderTopColor === sys('CanvasText', 'color'), ring: pop.outlineColor === sys('Highlight', 'color') && pop.outlineStyle === 'solid', ghost: getComputedStyle(r.querySelector('.g-combobox__ghost-rest')).color === sys('GrayText', 'color'), mark: /underline/.test(mark.textDecorationLine) } })
       for (const [k, v] of Object.entries(g)) ok(v, tag(`forced-colors: ${k}`))
       await close(page)
       await center(page, 'cb-pal'); await page.click('#cb-pal'); await settle(page, 400); await page.keyboard.type('mar'); await settle(page, 500); await page.keyboard.press('ArrowDown'); await settle(page, 200)
-      const pg = await page.evaluate(() => { const d = document.querySelector('dialog[open].g-combobox-surface'); const act = d && d.querySelector('.g-combobox__option.is-active'); const i = document.createElement('i'); i.style.backgroundColor = 'Highlight'; d.append(i); const hl = getComputedStyle(i).backgroundColor; i.remove(); return act ? getComputedStyle(act).backgroundColor === hl : null })
-      ok(pg, tag('forced-colors: la activa de la paleta no es Highlight'))
-      note('forced-colors (emulado)', `${engine}: ficha retirada y texto en FieldText; forma CanvasText; anillo Highlight; activa Highlight/HighlightText (A y paleta); fantasma GrayText; marca subrayada`)
+      const pg = await page.evaluate(() => { const d = document.querySelector('dialog[open].g-combobox-surface'); const act = d && d.querySelector('.g-combobox__option.is-active'); const i = document.createElement('i'); i.style.color = 'Highlight'; d.append(i); const hl = getComputedStyle(i).color; i.remove(); return act ? getComputedStyle(act).outlineColor === hl && getComputedStyle(act).outlineStyle === 'solid' : null })
+      ok(pg, tag('forced-colors: la activa de la paleta sin contorno Highlight'))
+      note('forced-colors (emulado)', `${engine}: ficha retirada y texto en FieldText; forma CanvasText; anillo Highlight; activa con contorno Highlight sin capa (A y paleta, #1017); fantasma GrayText; marca subrayada`)
       await page.keyboard.press('Escape')
     }
     await ctx.close()

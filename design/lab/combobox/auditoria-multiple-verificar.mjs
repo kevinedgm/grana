@@ -10,7 +10,7 @@
 //   recipe   · B: renglones numerados, «Nueva» + barra al inicio, Δ0 de caja/etiqueta y lo de debajo baja un renglón,
 //              rastro del mismo alto (--_row-h, también con un slot chosen de cuatro líneas), «Deshacer», tope (max) y
 //              tope 6 con «Ver los N»; áreas 24/44
-//   basket   · C: cesta sin solapes (6 : 5), homónimos, viaje con --g-ease-spring, rastro, pie con «Listo»; hoja 375 y 320
+//   basket   · C: cesta sin solapes (6 : 5), homónimos, renglón que entra en su sitio (#1018), rastro, pie con «Listo»; hoja 375 y 320
 //   deploy   · despliegue de A sin reduced motion y con la duración real: la primera activa visible, el panel no se
 //              desplaza, la forma no se mueve (arreglo de fca3496)
 //   contrast · todo lo nuevo en defecto, auditoría, auditoría con primary propia (claro y oscuro, tres motores) y, en
@@ -77,10 +77,10 @@ if (run('static')) {
   const defined = new Set([...defaults.matchAll(/(--g-[a-z0-9-]+)\s*:/g)].map((m) => m[1]))
   const missing = [...new Set(vars.filter((v) => v.startsWith('--g-') && !defined.has(v)))]
   ok(!missing.length, 'tokens que no existen en defaults.css: ' + missing)
-  // Alias: propios con --_cb-; del .vue (contrato): --_travel-x/y, --_row-h (#429; aquí su valor por defecto); de GInput
+  // Alias: propios con --_cb-; del .vue (contrato): --_row-h (#429; aquí su valor por defecto); de GInput
   const own = new Set([...f2.matchAll(/(--_[\w-]+)\s*:/g)].map((m) => m[1]))
   ok([...own].every((v) => v.startsWith('--_cb-') || v === '--_row-h'), 'alias propio sin prefijo --_cb-: ' + [...own])
-  const allowed = ['--_focus', '--_fs', '--_lh', '--_travel-x', '--_travel-y', '--_row-h']
+  const allowed = ['--_focus', '--_fs', '--_lh', '--_row-h']
   const strange = [...new Set(vars.filter((v) => v.startsWith('--_') && !own.has(v) && !allowed.includes(v)))]
   ok(!strange.length, 'alias --_* no previsto: ' + strange)
   const px = [...f2.matchAll(/(-?\d*\.?\d+)px/g)].map((m) => m[0]).filter((p) => !['24px', '44px'].includes(p))
@@ -353,28 +353,29 @@ for (const engine of ENGINES) {
       await openC(page, 'cm-resp')
       const e0 = await E(page, `const s = document.getElementById('cm-resp-surface'); return { body: Boolean(s.querySelector('.g-combobox__surface-body.has-basket')), empty: s.querySelector('.g-combobox__basket-empty')?.textContent.trim(), title: s.querySelector('.g-combobox__basket-title')?.textContent.trim(), preview: Boolean(s.querySelector('.g-combobox__preview')) }`)
       ok(e0.body && e0.empty && e0.title && !e0.preview, `${name} C: cesta vacía ${JSON.stringify(e0)}`)
-      // Marcar la primera «Ana López Ruiz» con el puntero real y seguir el viaje cuadro a cuadro. La duración se dilata
-      // (--g-duration-slow 1500 ms, tema sin capa) para muestrearla también en WebKit sin cabeza (pinta cada 40–75 ms;
-      // con 300 ms solo se ven 3 o 4 cuadros y el muelle ya llegó)
+      // Marcar la primera «Ana López Ruiz» con el puntero real y seguir la entrada cuadro a cuadro (#1018). La duración se
+      // dilata (--g-duration-press 1500 ms, tema sin capa) para muestrearla también en WebKit sin cabeza (pinta cada 40–75 ms)
       await page.evaluate(() => {
-        const st = document.createElement('style'); st.id = '__slow'; st.textContent = ':root, :root[data-theme] { --g-duration-slow: 1500ms; }'; document.head.append(st)
+        const st = document.createElement('style'); st.id = '__slow'; st.textContent = ':root, :root[data-theme] { --g-duration-press: 1500ms; }'; document.head.append(st)
         window.__trip = []
         const s = document.getElementById('cm-resp-surface'); const t0 = performance.now()
-        const tick = () => { const row = s.querySelector('.g-combobox__basket .g-combobox__row'); if (row) { const b = row.getBoundingClientRect(); const a = row.getAnimations().map((x) => x.animationName); window.__trip.push({ t: performance.now() - t0, x: b.left, y: b.top, arriving: row.classList.contains('is-arriving'), a, ease: getComputedStyle(row).animationTimingFunction }) } if (performance.now() - t0 < 3000) requestAnimationFrame(tick) }
+        const tick = () => { const row = s.querySelector('.g-combobox__basket .g-combobox__row'); if (row) { const b = row.getBoundingClientRect(); const c = getComputedStyle(row); window.__trip.push({ t: performance.now() - t0, x: b.left, y: b.top, landing: row.classList.contains('is-landing'), a: row.getAnimations().map((x) => x.animationName), ty: c.translate === 'none' ? 0 : parseFloat(c.translate.split(' ')[1] ?? 0), ease: c.animationTimingFunction }) } if (performance.now() - t0 < 3000) requestAnimationFrame(tick) }
         requestAnimationFrame(tick)
       })
       await clickOpt(page, '#cm-resp-opt-0')
       await page.waitForTimeout(3100)
+      const s1 = await page.evaluate(() => { const i = document.body.appendChild(document.createElement('i')); i.style.width = 'var(--g-space-1)'; const v = parseFloat(getComputedStyle(i).width); i.remove(); return v })
       await page.evaluate(() => document.getElementById('__slow').remove())
       const trip = await page.evaluate(() => window.__trip)
-      const moving = trip.filter((f) => f.a.includes('g-combobox-arrive'))
+      const moving = trip.filter((f) => f.a.includes('g-combobox-land'))
       const last = trip[trip.length - 1]
-      const spring = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--g-ease-spring').trim())
-      const dist = moving.length ? Math.hypot(moving[0].x - last.x, moving[0].y - last.y) : 0
-      ok(moving.length >= 2 && dist > 8, `${name} C: el renglón no viaja (${moving.length} cuadros, ${r2(dist)}px)`)
-      ok(moving.length && /linear\(/.test(moving[0].ease) && /^linear\(/.test(spring), `${name} C: el viaje no usa --g-ease-spring (${moving[0] && moving[0].ease.slice(0, 40)})`)
-      ok(!last.arriving && !last.a.length, `${name} C: is-arriving o la animación no se retiraron`)
-      note('C · viaje (duración dilatada a 1500 ms)', `${name}: ${moving.length} cuadros, parte a ${r2(dist)}px del sitio final, termina en 0`)
+      const ease = await page.evaluate(() => { const i = document.body.appendChild(document.createElement('i')); i.style.transitionTimingFunction = 'var(--g-ease-out)'; const v = getComputedStyle(i).transitionTimingFunction; i.remove(); return v })
+      const tys = moving.map((f) => f.ty)
+      ok(moving.length >= 2 && Math.max(...tys.map(Math.abs)) <= s1 + 0.05, `${name} C: el renglón no entra a ≤ space × 1 (${moving.length} cuadros, ${tys.slice(0, 4)})`)
+      ok(tys.every((v, i) => v >= -0.05 && (!i || v <= tys[i - 1] + 0.05)), `${name} C: el renglón rebasa o retrocede (${tys.slice(0, 8)})`)
+      ok(moving.length && moving[0].ease === ease, `${name} C: la entrada no usa --g-ease-out (${moving[0] && moving[0].ease.slice(0, 40)})`)
+      ok(!last.landing && !last.a.length, `${name} C: is-landing o la animación no se retiraron`)
+      note('C · entrada (duración dilatada a 1500 ms)', `${name}: ${moving.length} cuadros, parte a ${r2(Math.max(...tys))}px de su sitio, termina en 0`)
       await clickOpt(page, '#cm-resp-opt-1'); await page.waitForTimeout(700)
       const g = await E(page, `const s = document.getElementById('cm-resp-surface'), p = s.querySelector('.g-combobox__surface-body > .g-combobox__panel'), b = s.querySelector('.g-combobox__basket'), rows = [...b.querySelectorAll('.g-combobox__row')]
         const pr = H.rect(p), br = H.rect(b), d = H.rect(s), foot = s.querySelector('.g-combobox__foot'), done = s.querySelector('.g-combobox__done')
@@ -515,14 +516,14 @@ for (const engine of ENGINES) {
         out.push(...await E(page, `return [H.pair('receta: «Deshacer» al pasar', H.root('cm-dx').querySelector('.g-combobox__undo'))]`))
         await page.mouse.move(2, 2)
         out.push(...await E(page, `return [H.pair('receta: «Ver los N»', H.root('cm-big-b').querySelector('.g-combobox__rows-all'))]`))
-        // C: cesta vacía, título, recuento, pie, renglón, rastro y «Deshacer» de la cesta; activa invertida con casilla
+        // C: cesta vacía, título, recuento, pie, renglón, rastro y «Deshacer» de la cesta; activa bajo la luz con casilla (#1017)
         await openC(page, 'cm-resp')
         out.push(...await E(page, `const s = document.getElementById('cm-resp-surface'); return [H.pair('cesta: vacía', s.querySelector('.g-combobox__basket-empty')), H.pair('cesta: título', s.querySelector('.g-combobox__basket-title')), H.pair('pie: recuento', s.querySelector('.g-combobox__foot-tally'))]`))
         await page.keyboard.press('ArrowDown'); await page.keyboard.press('Enter'); await page.waitForTimeout(250)
         await page.keyboard.press('ArrowDown'); await page.keyboard.press('Enter'); await page.waitForTimeout(250)
         out.push(...await E(page, `const s = document.getElementById('cm-resp-surface'), act = s.querySelector('.g-combobox__option.is-active'), b = act.querySelector('.g-combobox__box'), row = s.querySelector('.g-combobox__basket .g-combobox__row')
           return [H.pair('cesta: recuento', s.querySelector('.g-combobox__basket-tally')), H.pair('cesta: renglón', row.querySelector('.g-summary__title')), H.pair('cesta: dato del renglón', row.querySelector('.g-summary__fact-value')),
-            H.vs('paleta: casilla marcada en la activa invertida (contorno)', getComputedStyle(b).borderTopColor, act, 3), H.vs('paleta: marca en la activa invertida', getComputedStyle(b.querySelector('svg')).color, b, 3)]`))
+            H.vs('paleta: casilla marcada bajo la luz (contorno)', getComputedStyle(b).borderTopColor, s.querySelector('.g-combobox__highlight'), 3), H.vs('paleta: marca sobre la casilla', getComputedStyle(b.querySelector('svg')).color, b, 3)]`))
         await clickEl(page, '#cm-resp-surface .g-combobox__basket .g-combobox__row:nth-child(1) .g-combobox__remove'); await page.waitForTimeout(250)
         out.push(...await E(page, `const t = document.querySelector('#cm-resp-surface .g-combobox__basket .g-combobox__row.is-trace'); return [H.pair('cesta: rastro', t.querySelector('.g-combobox__trace')), H.pair('cesta: «Deshacer»', t.querySelector('.g-combobox__undo'))]`))
         await page.keyboard.press('Escape'); await page.waitForTimeout(350)
@@ -584,10 +585,10 @@ for (const engine of ENGINES) {
       await openC(page, 'cm-resp')
       await page.keyboard.press('ArrowDown'); await page.keyboard.press('Enter'); await page.waitForTimeout(700)
       await page.keyboard.press('Escape'); await page.waitForTimeout(400)
-      const r = await page.evaluate(() => ({ seen: [...window.__seen], eases: window.__eases, left: document.querySelectorAll('#sec-combobox-multiple :is(.is-ticking, .is-rolling, .is-entering, .is-leaving, .is-arriving)').length }))
-      if (motion === 'reduce') ok(!r.seen.length && !r.left, `reducido: animaciones ${r.seen} o clases pendientes ${r.left}`)
+      const r = await page.evaluate(() => ({ seen: [...window.__seen], eases: window.__eases, left: document.querySelectorAll('#sec-combobox-multiple :is(.is-ticking, .is-rolling, .is-entering, .is-leaving, .is-landing)').length }))
+      if (motion === 'reduce') ok(r.seen.every((n) => n === 'g-combobox-land-fade') && !r.left, `reducido: animaciones ${r.seen} o clases pendientes ${r.left}`) // solo el fundido de la entrada (#1018)
       else {
-        ok(['g-combobox-tick', 'g-combobox-roll', 'g-combobox-row-in', 'g-combobox-arrive'].every((n) => r.seen.includes(n)), `movimiento: faltan animaciones (${r.seen})`)
+        ok(['g-combobox-tick', 'g-combobox-roll', 'g-combobox-row-in', 'g-combobox-land'].every((n) => r.seen.includes(n)), `movimiento: faltan animaciones (${r.seen})`)
         ok(/linear\(/.test(r.eases['g-combobox-tick'] || ''), `movimiento: la casilla no rebota (${r.eases['g-combobox-tick']})`)
         ok(!r.left, `movimiento: ${r.left} clases sin retirar`)
       }

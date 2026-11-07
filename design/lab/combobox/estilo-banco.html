@@ -9,7 +9,7 @@
      bruno tras GInput, GAvatar y GDialog) y los componentes reales de dist/ (GInput con sus slots internos field y end,
      GAvatar, GDialog, GForm, GFormLayout, GFormRow, GSelect). XCombobox hace lo que hará GCombobox.vue y solo lo que el
      estilo necesita: filtro local por palabras sin acentos, coincidencia marcada, activa, fantasma por prefijo, ficha,
-     llegada (--_travel-x/y + is-arriving, retirada por animationend g-combobox-arrive… o en el acto), colocación del
+     entrada en su sitio (is-landing, retirada por animationend g-combobox-land… o en el acto; #1018), colocación del
      popover (--_x, --_top, --_bottom, --_w, --_max, --_field-h; is-up) y la superficie (GDialog real) en paleta y hoja.
      No es documentación ni la implementación de bruno.
      Requiere `npm run build`. Desde la raíz del repo:  python3 -m http.server 4209  →  /design/lab/combobox/estilo-banco.html
@@ -45,7 +45,7 @@
 <body>
 <main id="app" v-cloak>
 <h1>GCombobox · banco de estilo</h1>
-<p class="cap"><b>coco</b> · A · el campo se abre (una sola forma: contorno, anillo y sombra del popover), con texto fantasma. C · el valor es un objeto (ficha en reposo, fichas en la lista, la elegida llega con el muelle). B · paleta con vista previa (GDialog real) y hoja móvil anclada arriba. Escribe «mar» en Paciente (cuatro homónimas), «diab» en Diagnóstico (Tab elige), algo inexistente en Medicamento (texto libre).</p>
+<p class="cap"><b>coco</b> · A · el campo se abre (una sola forma: contorno, anillo y sombra del popover), con texto fantasma. C · el valor es un objeto (ficha en reposo, fichas en la lista, la elegida entra en su sitio). B · paleta con vista previa (GDialog real) y hoja móvil anclada arriba. Escribe «mar» en Paciente (cuatro homónimas), «diab» en Diagnóstico (Tab elige), algo inexistente en Medicamento (texto libre).</p>
 <div class="tools" role="group" aria-label="Controles del banco">
   <label>Tema <select id="t-theme"><option value="">Por defecto</option></select></label>
   <button type="button" id="t-dark">Oscuro</button>
@@ -321,14 +321,11 @@ const XCombobox = defineComponent({
     function arrive(from) {
       nextTick(() => {
         const t = tokenEl.value; if (!t) return
-        const to = t.getBoundingClientRect()
-        t.style.setProperty('--_travel-x', (from.left - to.left) + 'px')
-        t.style.setProperty('--_travel-y', ((from.top + from.height / 2) - (to.top + to.height / 2)) + 'px')
         arriving.value = true
         nextTick(() => { if (getComputedStyle(t).animationName === 'none') arriving.value = false })
       })
     }
-    const onArriveEnd = (e) => { if (e.animationName.startsWith('g-combobox-arrive')) arriving.value = false }
+    const onArriveEnd = (e) => { if (e.animationName.startsWith('g-combobox-land')) arriving.value = false }
     function onKey(e) {
       if (e.isComposing) return
       const inSurf = e.target === qEl.value
@@ -379,7 +376,7 @@ const XCombobox = defineComponent({
           :inputmode="surface ? 'none' : undefined" autocomplete="off" autocapitalize="none" spellcheck="false"
           @input="onInput" @keydown="onKey" @focus="onFocus" @blur="onBlur" @click="onClick">
         <span v-if="ghost" class="g-combobox__ghost" aria-hidden="true"><span class="g-combobox__ghost-typed">{{ text }}</span><span class="g-combobox__ghost-rest">{{ ghost }}</span></span>
-        <span v-if="isToken" ref="tokenEl" :class="['g-combobox__token', { 'is-arriving': arriving }]" aria-hidden="true" @animationend="onArriveEnd" @animationcancel="onArriveEnd">
+        <span v-if="isToken" ref="tokenEl" :class="['g-combobox__token', { 'is-landing': arriving }]" aria-hidden="true" @animationend="onArriveEnd" @animationcancel="onArriveEnd">
           <span v-if="selOpt && selOpt.avatar" class="g-combobox__lead"><g-avatar :name="selOpt.label" size="xs"></g-avatar></span>
           <span v-else-if="!selOpt" class="g-combobox__lead" v-html="svg('pencil')"></span>
           <span v-else-if="selOpt.icon" class="g-combobox__lead" v-html="svg(selOpt.icon)"></span>
