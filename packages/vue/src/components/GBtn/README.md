@@ -42,6 +42,8 @@ También se puede importar solo el componente: `import { GBtn } from '@grana/vue
 | `href` | String | URL | sin valor |
 | `icon` | Boolean | | `false` |
 | `loadingText` | String | texto libre | sin valor |
+| `done` (`v-model:done`) | Boolean | | `false` |
+| `doneText` | String | texto libre | sin valor |
 | `tooltip` | String | atajo de `<GTooltip :text>` con todo lo demás por defecto ([`GTooltip`](../GTooltip/README.md)); cuenta como nombre accesible de un `icon` | sin valor |
 
 Un valor fuera de la lista muestra una advertencia en desarrollo.
@@ -49,16 +51,19 @@ Un valor fuera de la lista muestra una advertencia en desarrollo.
 - **`type`** se ignora cuando hay `href`.
 - **`density`** reduce la altura: ×1, ×0.875 (`comfortable`) o ×0.75 (`compact`), con un mínimo de 24px.
 - **`icon`** hace el botón cuadrado (ancho = alto) y exige `aria-label` o `aria-labelledby`. En desarrollo, si falta, se emite `console.warn`.
-- **`loading`** conserva el ancho y el color del botón, funde la etiqueta (queda en el árbol con `opacity: 0`, así que el nombre accesible no cambia) y muestra un indicador de giro (ver [Personalidad](#personalidad)). El botón queda en `aria-busy="true"` y `aria-disabled="true"`, pero **no** usa el atributo `disabled`, para no perder el foco.
+- **`loading`** hunde el botón al instante, conserva su ancho y su color, y a los 200 ms funde la etiqueta (queda en el árbol con `opacity: 0`, así que el nombre accesible no cambia) y muestra un indicador de giro (ver [Carga y acuse](#carga-y-acuse-a--retén)). El botón queda en `aria-busy="true"` y `aria-disabled="true"` desde el primer momento, pero **no** usa el atributo `disabled`, para no perder el foco.
+- **`done`** es la afirmación de éxito de **tu aplicación**: al pasar de `false` a `true`, el botón dibuja una marca `check` donde estaba el giro y la retira solo a los 960 ms con `update:done(false)`. Ver [Carga y acuse](#carga-y-acuse-a--retén). Con `href` se ignora.
+- **`doneText`** es el texto que se anuncia a los lectores de pantalla durante el acuse; no se ve. Sin él la marca se ve pero no se anuncia, y en desarrollo sale un aviso.
 - **`tooltip`** envuelve el botón en un `GTooltip` (`kind` automático). Si el padre directo ya es un `GTooltip`, gana el envoltorio, la prop se ignora y avisa en desarrollo; con `icon` evita el aviso de nombre accesible, pero conviene seguir poniendo `aria-label` si el botón no está envuelto por el tooltip en tu plantilla.
-- **`loadingText`** es el texto que se anuncia a lectores de pantalla cuando `loading` pasa a `true`. No tiene valor por defecto porque Grana es internacional: un texto fijo estaría en el idioma equivocado. Sin él, solo queda `aria-busy`.
+- **`loadingText`** es el texto que se anuncia a lectores de pantalla cuando el giro aparece (a los 200 ms de `loading` a `true`, no antes). No tiene valor por defecto porque Grana es internacional: un texto fijo estaría en el idioma equivocado. Sin él, solo queda `aria-busy`.
 - **Pon `loadingText` desde el principio** (fijo, no solo al empezar la carga): el botón pinta su región de anuncio (`g-btn__status`) **solo mientras `loadingText` tiene valor** (DECISIONS #257), y un lector solo anuncia los cambios de una región que **ya existía**. Si `loadingText` y `loading` llegan en el mismo cambio, la región se monta vacía y el texto se escribe en el ciclo siguiente para que se anuncie, pero lo seguro es que la región exista antes de la carga. Sin `loadingText` no hay región: así una vista con cientos de botones (filas de `GTranscript`, por ejemplo) no añade cientos de regiones vivas vacías.
 
 ## Eventos
 
 | Evento | Payload | Cuándo |
 | --- | --- | --- |
-| `click` | `MouseEvent` | Con puntero o teclado. **Nunca** con `disabled` ni `loading`. Con `type="submit"` y `loading`, también se cancela el envío del formulario. |
+| `click` | `MouseEvent` | Con puntero o teclado. **Nunca** con `disabled` ni durante la carga (`loading` y su cola del mínimo de 400 ms). Con `type="submit"` y carga, también se cancela el envío del formulario. Durante el acuse sí sale. |
+| `update:done` | `Boolean` | Siempre `false`: cuando el acuse se retira por tiempo, por clic, por `loading` o por `disabled`, y al montar con `done` en `true`. No sale si la aplicación ya lo puso en `false`, ni al desmontar. |
 
 ## Slots
 
@@ -95,15 +100,77 @@ Los iconos son de [Lucide](https://lucide.dev) con [`GIcon`](../GIcon/README.md)
 
 - Color, fondo y borde cambian en `--g-duration-fast` (120ms).
 - Al pulsar, el botón se encoge a `--g-press-scale` (0.97) en `--g-duration-fast` (120ms) y, al soltar, vuelve a 1 con un rebote mínimo en `--g-duration-slow` (240ms; ver [Personalidad](#personalidad)). No se encogen los botones deshabilitados, en carga ni la variante `link`.
-- Con `prefers-reduced-motion: reduce`, no hay escala ni rebote al pulsar, el cambio a carga es solo un fundido y el indicador de carga sigue girando, 2.5 veces más lento. Los colores siguen transicionando.
+- Con `loading` el botón se queda hundido a `--g-press-scale` mientras dura la carga y sube con el mismo rebote al terminar.
+- Con `prefers-reduced-motion: reduce`, no hay escala ni rebote (tampoco el hundido de la carga), el cambio a carga es solo un fundido y el indicador de carga sigue girando, 2.5 veces más lento. La marca del acuse aparece completa desde el primer cuadro y se retira igual a los 960 ms. Los colores siguen transicionando.
+
+## Carga y acuse: A · Retén
+
+El botón cuenta una acción en dos mitades: se hunde mientras trabaja, sube con el rebote de siempre y, **si tu aplicación lo afirma**, dibuja un `check` donde estaba el giro. Sin verde, sin texto nuevo a la vista y sin modos. Origen: ronda de kiwi [`design/lab/btn/r02/`](../../../../../design/lab/btn/r02/); decisiones #1010 a #1015 en `DECISIONS.md`; contrato en [`design/contracts/btn.md`](../../../../../design/contracts/btn.md) «Carga y acuse: A · Retén».
+
+**Quién afirma el éxito.** Solo la aplicación. `loading` a `false` sin `done` es reposo: el botón sube sin marca, porque el rebote dice «ya no espero», no «salió bien». El fallo lo dice tu aplicación en su canal (`GForm`, `GToast`, la isla): el botón vuelve a reposo sin marca.
+
+```vue
+<!-- Fragmento: `guardar` es de tu aplicación y devuelve una promesa -->
+<script setup>
+import { ref } from 'vue'
+
+const cargando = ref(false)
+const guardado = ref(false)
+
+async function enviar() {
+  cargando.value = true
+  try {
+    await guardar()
+    guardado.value = true // el éxito lo afirma la aplicación
+  } finally {
+    cargando.value = false
+  }
+}
+</script>
+
+<template>
+  <g-btn
+    :loading="cargando"
+    loading-text="Guardando…"
+    v-model:done="guardado"
+    done-text="Guardado"
+    @click="enviar"
+  >Guardar</g-btn>
+</template>
+```
+
+**Fases** (el ancho y el alto no cambian en ninguna):
+
+| Fase | Qué pasa |
+| --- | --- |
+| Pendiente (de `loading` a los 200 ms) | El botón se hunde a `--g-press-scale` al instante, ya es inerte y lleva `aria-busy`. Una carga más corta que 200 ms no enseña el giro **ni se anuncia**. |
+| A la vista (desde los 200 ms) | La etiqueta cede el sitio al giro, `loadingText` se escribe en la región de estado y el fondo es el de reposo, con o sin puntero. |
+| Llegada | El giro, una vez visto, dura **al menos 400 ms**; durante esa cola el botón sigue inerte. Después sube con el rebote de siempre. |
+| Acuse (con `done`) | El `check` se dibuja y `doneText` se anuncia. Dura **960 ms**. |
+
+- **El acuse dura 960 ms** y se retira solo con `update:done(false)`. El tiempo es fijo y no sigue a los tokens de duración: con un tema que apague el movimiento, la marca se ve igual y se retira a los 960 ms.
+- **El botón sigue activable durante el acuse.** Un clic lo retira antes de actuar: salen `update:done(false)` y después `click`. Un `loading` a `true` también lo retira y empieza la carga.
+- **`done` es un flanco, no un estado.** El acuse nace al pasar de `false` a `true`; seguir en `true` no lo repite. **Montar con `done` en `true` no acusa:** es reposo, sin marca ni anuncio, y el botón emite `update:done(false)` para que el modelo no se quede en `true`. Sin `v-model`, devuelve `done` a `false` con `@update:done`.
+- **Con carga efectiva, `done` espera a la llegada:** la marca nunca sale con el giro ni antes de los 400 ms.
+- **`done` sin carga previa** (copiar al portapapeles) hace el acuse directo, sin rebote.
+- **Con `href`, `done` se ignora:** lo que navega no vuelve. Sin marca, sin anuncio, sin `update:done`, y en desarrollo sale un aviso.
+- **Sin `doneText`**, la marca se ve pero no se anuncia, y en desarrollo sale un aviso.
+- **La marca usa `currentColor`:** hereda el color de cada combinación de `color` y `variant` y el de `forced-colors`. Una `danger` «Eliminar» sigue siendo `danger`.
+
+**Receta: mantén el botón habilitado hasta `update:done`.** Si pones `disabled` a `true` durante el acuse (el «Guardar» que se apaga porque ya no quedan cambios), el acuse se cierra y **la marca no se ve**, aunque `doneText` sí se anuncia. Para que la marca se vea, quita `disabled` solo cuando llegue `update:done`.
+
+```vue
+<!-- Fragmento: `hayCambios` y `guardado` son de tu aplicación -->
+<g-btn :disabled="!hayCambios && !guardado" v-model:done="guardado" done-text="Guardado" @click="guardar">Guardar</g-btn>
+```
 
 ## Personalidad
 
-Lo que distingue al botón de Grana es **cómo responde a la mano**: aprieta rápido y vuelve con masa, y al pasar a «esperando» la etiqueta cede el sitio al indicador en lugar de desaparecer de golpe. Son dos detalles **solo de CSS**: sin props, clases ni eventos nuevos. Origen: ronda de kiwi [`design/lab/personalidad/r01/`](../../../../../design/lab/personalidad/r01/); decisiones #299 (lenguaje de movimiento) y #300 en `DECISIONS.md`.
+Lo que distingue al botón de Grana es **cómo responde a la mano**: aprieta rápido y vuelve con masa, y al pasar a «esperando» la etiqueta cede el sitio al indicador en lugar de desaparecer de golpe (a los 200 ms de `loading`, ver [Carga y acuse](#carga-y-acuse-a--retén)). Son dos detalles **solo de CSS**: sin props, clases ni eventos nuevos. Origen: ronda de kiwi [`design/lab/personalidad/r01/`](../../../../../design/lab/personalidad/r01/); decisiones #299 (lenguaje de movimiento) y #300 en `DECISIONS.md`.
 
 **Rebote al soltar.** Al apretar, el botón escala a `--g-press-scale` en `--g-duration-fast` con `--g-ease-out`. Al soltar vuelve a 1 en `--g-duration-slow` con `--g-ease-bounce`: es un muelle de rebase alto, pero aplicado a un cambio de solo el 3 %, así que el pico es **1,006**, algo que se siente más que se ve. Vale lo mismo que la pulsación: nada en `disabled`, en carga ni en `link`. Por qué: el clic «se siente» aunque la acción tarde, y la vuelta con masa distingue al botón de un simple cambio de color. `--g-ease-bounce` es una de las dos curvas con rebase de Grana (la otra, `--g-ease-spring`, es de la marca de `GTabs`) y se aprobó solo para escalas pequeñas como esta.
 
-**La etiqueta cede el sitio.** Al entrar en `loading`, la etiqueta y los iconos de `prepend` y `append` se funden y suben `--g-space-1 × 1` (4px con el espacio por defecto); el indicador entra desde esa misma distancia por debajo. Al salir, a la inversa. **El ancho del botón no cambia**, y la etiqueta se oculta solo con `opacity: 0` (nunca `visibility` ni `display`), por lo que **el nombre accesible sigue siendo la etiqueta** durante la carga. Un botón que **monta ya en carga** no anima nada.
+**La etiqueta cede el sitio.** Cuando el giro aparece (a los 200 ms de `loading`), la etiqueta y los iconos de `prepend` y `append` se funden y suben `--g-space-1 × 1` (4px con el espacio por defecto); el indicador entra desde esa misma distancia por debajo. Al salir, a la inversa. **El ancho del botón no cambia**, y la etiqueta se oculta solo con `opacity: 0` (nunca `visibility` ni `display`), por lo que **el nombre accesible sigue siendo la etiqueta** durante la carga. Un botón que **monta ya en carga** no anima nada.
 
 **Con `prefers-reduced-motion: reduce`:** sin escala ni rebote; el cambio a carga es solo fundido, sin desplazamiento.
 
@@ -174,7 +241,7 @@ Tokens que consume: `--g-color-{color}` (y `-strong`, `-soft`, `-text`), `--g-co
 
 ## Clases
 
-Las emite el componente y las estiliza `GBtn.css`: `g-btn`, `g-btn--color-*`, `g-btn--variant-*`, `g-btn--size-*`, `g-btn--density-*`, `g-btn--rounded-*` (solo si se pasa `rounded`), `g-btn--block`, `g-btn--icon`, `is-disabled`, `is-loading`, y los elementos `g-btn__prepend`, `g-btn__label`, `g-btn__append`, `g-btn__loader` y `g-btn__status`.
+Las emite el componente y las estiliza `GBtn.css`: `g-btn`, `g-btn--color-*`, `g-btn--variant-*`, `g-btn--size-*`, `g-btn--density-*`, `g-btn--rounded-*` (solo si se pasa `rounded`), `g-btn--block`, `g-btn--icon`, `is-disabled`, y los elementos `g-btn__prepend`, `g-btn__label`, `g-btn__append`, `g-btn__loader`, `g-btn__status` y `g-btn__done` (se crea con el primer acuse). Estados: `is-loading`, `is-shown` (el giro a la vista), `is-leaving` (el giro se funde al llegar) e `is-done` (acuse).
 
 ## Altura y densidad
 
@@ -182,6 +249,9 @@ Con soporte de `round()` de CSS, la altura del botón se redondea a **0,5px** (#
 
 ## Alcance
 
+- **El borde se suaviza a 1× durante la carga:** el hundido mantiene el botón a 0,97 mientras dura la espera, y a 1× un trazo de 1px escalado queda repartido en dos filas de píxeles (pico de cobertura 0,58 a 0,61; con 2× queda entero). El texto y el indicador no pierden nitidez, y el color del borde cumple 3:1. Si no lo quieres, `--g-press-scale: 1` quita el hundido y el rebote.
+- **`block` queda más estrecho mientras carga:** con 1184px de ancho el borde entra 17,76px por lado durante la carga y sale 3,53px con el pico de la suelta. Con una carga larga el botón queda 35,5px más estrecho que su contenedor. No hay recorte (en un `GDialog` el pico queda a 12,9px del borde más cercano). Está pendiente de decisión de lima y del usuario.
+- **Un `GTooltip` abierto antes o durante la carga** mide la caja escalada: al volver la caja a 1 la pestaña puede quedar hasta 1,93px dentro del borde, o sobresalir hasta 1,31px por lado. Es cosmético y está derivado a bruno.
 - **Media rejilla:** en pantallas de 1× la altura puede tener medio píxel (paso de 0,5px, decisión del usuario; con 2× cae en píxel entero). Redondear a enteros cambiaría cuatro alturas del tema por defecto en ±0,5px y no se hizo. Desde DECISIONS #682 el redondeo es de todos los controles (banco `design/lab/redondeo/verificar.mjs`).
 
 ## Verificación
@@ -215,8 +285,10 @@ Con soporte de `round()` de CSS, la altura del botón se redondea a **0,5px** (#
 
 - **`round()` en todos los controles (DECISIONS #682, cerrado 2026-10-18):** la altura base de campos, pestañas, etiquetas, insignias, píldora del deslizador, paginación, filtros, items de menú, celdas del calendario, migas, FAB y filas de casilla, radio e interruptor se redondea a `--_snap: 0.5px` como aquí. Banco `design/lab/redondeo/verificar.mjs` 10 135/10 135 en los tres motores: alturas con ×2 no entero con `space` 4,375 y 3,75 px, 504 → 0; filas `GBtn`/`GInput`/`GSelect`/`GDatePicker` con Δ ≠ 0, 12 y 10 de 15 → 0; con el tema por defecto ninguna altura cambia; los 44 px táctiles intactos.
 
+- **A · Retén (medido por coco sobre el `GBtn` real de `dist/`, 124/124 por motor, 372/372 en Chromium, Firefox y WebKit; [auditoría](../../../../../design/lab/btn/auditoria.md), addendum 2026-11-07, verificación propia `node design/lab/btn/auditoria-reten-verificar.mjs`):** hundido a 0,970 sostenido; carga de 100 ms sin giro ni anuncio; el fondo a la vista es el de reposo, con y sin puntero; Δ0 de ancho y alto en todas las fases; reducido real sin escala ni desplazamiento y con la marca completa desde el primer cuadro; contraste de la marca ≥ 4,76:1 (claro) y 4,51:1 (oscuro) en los 35 pares, en reposo y en hover; `forced-colors` verificado en Chromium y Firefox (la marca toma el color del botón). El spec de bruno `btn-reten.spec.mjs` corrió en los tres motores con dos fallos de Firefox por tiempo con la máquina cargada (no del componente; pasan solos). Nivel: `medido`.
+- **No verificado de A · Retén:** el anuncio de `doneText` y de `loadingText` con lector de pantalla real (VoiceOver, NVDA); el toque en dispositivo físico; **`forced-colors` en WebKit** (la emulación activa la consulta pero no cambia los colores: no verificable, hace falta Safari real). Hay una corrección en curso sobre el redibujado del trazo al reafirmar `done`: no se documenta como verificada.
 - **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 
-- API: [`GBtn.meta.json`](./GBtn.meta.json) · Contrato: [`design/contracts/btn.md`](../../../../../design/contracts/btn.md) · Prototipo: [`design/lab/btn/r01/`](../../../../../design/lab/btn/r01/) · Estilo: [`design/lab/btn/estilo.md`](../../../../../design/lab/btn/estilo.md) · Personalidad: [`design/lab/personalidad/r01/`](../../../../../design/lab/personalidad/r01/) · Auditoría: [`design/lab/btn/auditoria.md`](../../../../../design/lab/btn/auditoria.md)
+- API: [`GBtn.meta.json`](./GBtn.meta.json) · Contrato: [`design/contracts/btn.md`](../../../../../design/contracts/btn.md) · Prototipo: [`design/lab/btn/r01/`](../../../../../design/lab/btn/r01/) · Estilo: [`design/lab/btn/estilo.md`](../../../../../design/lab/btn/estilo.md) · Personalidad: [`design/lab/personalidad/r01/`](../../../../../design/lab/personalidad/r01/) · Auditoría: [`design/lab/btn/auditoria.md`](../../../../../design/lab/btn/auditoria.md) · Acuse: [`design/lab/btn/r02/`](../../../../../design/lab/btn/r02/)
