@@ -209,7 +209,7 @@ Ronda de kiwi `design/lab/personalidad/r01/` §8 (M1 prototipada sobre el compon
 **Panel anclado.** Decisión del usuario: `GMenu` pierde su escala y entra como los demás. Hoy abre en `fast` con escala 0,96.
 
 - **Entrar:** `--g-duration-press` + `--g-ease-out`, fundido y **`--g-space-1 × 1`** desde el lado del disparador, **sin escala**. La lista raíz, según `data-side`: `bottom` desde arriba, `top` desde abajo. Un submenú sale de su padre, en el eje de línea, según `data-align`: `left` desde la izquierda, `right` desde la derecha.
-- **Salir:** `--g-duration-fast` + `--g-ease-out`, solo fundido, con `overlay` y `display` discretos. En Firefox y WebKit, en el acto (D2 · A).
+- **Salir:** `--g-duration-fast` + `linear` (#1019), solo fundido, con `overlay` y `display` discretos. En Firefox y WebKit, en el acto (D2 · A).
 - **Reducido:** fundido `--g-duration-fast` `linear` en las dos direcciones.
 - **Coco:** quita `scale` y los `transform-origin` de `GMenu.css`. `data-side` y `data-align` ya existen: **sin cambios en el `.vue`**. El viaje de la luz no cambia, y `GFab` conserva su propio `0.96` (§29.6).
 

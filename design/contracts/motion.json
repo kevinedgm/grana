@@ -26,19 +26,19 @@
     "panelAnclado": {
       "label": "Panel anclado",
       "enter": { "duration": "press", "curve": "out", "fade": true, "offset": "space × 1", "from": "lado del disparador", "scale": false },
-      "exit": { "duration": "fast", "curve": "out", "fade": true, "offset": null, "scale": false, "requires": "overlay" },
+      "exit": { "duration": "fast", "curve": "linear", "fade": true, "offset": null, "scale": false, "requires": "overlay" },
       "reduced": { "enter": { "duration": "fast", "curve": "linear", "fade": true, "offset": null, "scale": false }, "exit": { "duration": "fast", "curve": "linear", "fade": true, "offset": null, "scale": false, "requires": "overlay" } }
     },
     "hojaMovil": {
       "label": "Hoja móvil (≤ 520 px)",
       "enter": { "duration": "press", "curve": "out", "fade": true, "offset": "space × 6", "from": "su borde", "scale": false, "backdrop": { "duration": "press", "fade": true } },
-      "exit": { "duration": "fast", "curve": "out", "fade": true, "offset": null, "scale": false, "backdrop": { "duration": "fast", "fade": true }, "requires": "overlay" },
+      "exit": { "duration": "fast", "curve": "linear", "fade": true, "offset": null, "scale": false, "backdrop": { "duration": "fast", "curve": "linear", "fade": true }, "requires": "overlay" },
       "reduced": { "enter": { "duration": "fast", "curve": "linear", "fade": true, "offset": null, "scale": false }, "exit": { "duration": "fast", "curve": "linear", "fade": true, "offset": null, "scale": false, "requires": "overlay" } }
     },
     "dialogo": {
       "label": "Diálogo",
       "enter": { "duration": "press", "curve": "out", "fade": true, "offset": "D1 de #301", "from": "disparador", "scale": "--g-press-scale" },
-      "exit": { "duration": "fast", "curve": "out", "fade": true, "offset": "D1 de #301", "to": "su origen", "scale": "--g-press-scale", "requires": "overlay" },
+      "exit": { "duration": "fast", "curve": "linear", "moveCurve": "out", "fade": true, "offset": "D1 de #301", "to": "su origen", "scale": "--g-press-scale", "backdrop": { "duration": "fast", "curve": "linear", "fade": true }, "requires": "overlay" },
       "reduced": { "enter": { "duration": "fast", "curve": "linear", "fade": true, "offset": null, "scale": false }, "exit": { "duration": "fast", "curve": "linear", "fade": true, "offset": null, "scale": false, "requires": "overlay" } }
     },
     "plegado": {
@@ -51,7 +51,7 @@
     "avisoFlotante": {
       "label": "Aviso flotante",
       "enter": { "duration": "press", "curve": "out", "fade": true, "contract": "GStatusIsland: la caída de status.md (slow + ease-out, #701)" },
-      "exit": { "duration": "fast", "fade": true, "contract": "GStatusIsland: la subida de status.md" },
+      "exit": { "duration": "fast", "curve": "linear", "fade": true, "contract": "GStatusIsland: la subida de status.md, sin cambios" },
       "reduced": { "enter": { "duration": "fast", "fade": true, "offset": null }, "exit": { "duration": "fast", "fade": true, "offset": null } }
     }
   },
@@ -94,7 +94,8 @@
       "label": "Recorrer una lista con huecos y sin opción activa, o una rejilla",
       "where": ["GDatePicker (días)", "GSidebar (navbar)"],
       "rule": { "model": "una marca por elemento (api.md «Una sola luz», regla 9)", "maxLit": 1, "exit": "instantánea" },
-      "reduced": "igual"
+      "reduced": "igual",
+      "verify": { "where": "tests/movimiento.spec.mjs", "does": "Barrer los días de GDatePicker y los items del navbar de GSidebar: como máximo un elemento con fondo de hover por cuadro, y al salir el fondo se apaga sin transición. Tres motores, con y sin reducido. Solo por comportamiento: no hay regla estática", "decisions": ["#1019"] }
     },
     "marcar": {
       "label": "Marcar o elegir",
@@ -308,6 +309,10 @@
     "dist/grana.js": 512,
     "dist/grana.css": 512,
     "dist/combobox.js": 192
+  },
+  "weightExitLinear": {
+    "$comment": "#1019: cambiar una curva por una palabra; incluye la curva de entrada que hay que conservar donde la regla es común. Base: lo medido tras #1018.",
+    "dist/grana.css": 32
   },
   "weightComboboxLanding": {
     "$comment": "#1018: retirar el viaje debe bajar o quedar neutro. Si se construye junto a #1017, una sola medida contra los topes de weightComboboxLight.",

@@ -434,7 +434,7 @@ Con `prefers-reduced-motion: reduce` **ninguno se mueve** (#299 (3)); los fundid
 | Pieza | Qué | Duración y curva |
 | --- | --- | --- |
 | A · despliegue | `g-combobox__popup-body` crece desde la línea del campo (`grid-template-rows` 0fr → 1fr con `@starting-style`), solo **al abrir**; los cambios de alto entre resultados no se animan. Excepción de identidad de la tabla única (§29.9) | `--g-duration-slow`, **`--g-ease-out`** (no el muelle: es una entrada, `tokens.md` §29.1) |
-| A · salida (#1002, #1005) | `g-combobox__popup` se funde al cerrar, sin desplazamiento ni plegado, con `overlay` y `display` discretos. En Firefox y WebKit, en el acto (D2 · A). Hoy es instantáneo en los tres | `--g-duration-fast`, `--g-ease-out`; con reducido, `linear` |
+| A · salida (#1002, #1005) | `g-combobox__popup` se funde al cerrar, sin desplazamiento ni plegado, con `overlay` y `display` discretos. En Firefox y WebKit, en el acto (D2 · A). Hoy es instantáneo en los tres | `--g-duration-fast`, `linear` (#1019) |
 | A · apertura con reducido (#1002) | El despliegue se va y queda un fundido del panel. Hoy abre sin fundido | `--g-duration-fast`, `linear` |
 | B · entrada | La de `GDialog` desde su disparador (D1, #301), sin cambios: el disparador es el campo | La de `GDialog` |
 | C · la ficha entra (#1018) | Al elegir desde la lista de `field`, la ficha **entra en su sitio**, sin viajar, mientras el panel sale con su fundido: fundido y `--g-space-1 × 1` desde el lado del panel (abajo; con `is-up`, arriba). Bruno pone **`is-landing`** en `g-combobox__token`; coco anima con keyframes **`g-combobox-land…`**; bruno retira la clase en `animationend`/`animationcancel` de ese prefijo, o en el acto si no hay animación calculada (patrón de #313) | `--g-duration-press`, `--g-ease-out`. Con reducido, solo fundido: `--g-duration-fast`, `linear`. **Sin muelle** |
@@ -517,17 +517,16 @@ Decisión del usuario del 2026-11-07: «Yo lo que quiero son transiciones suaves
 | Token | Para qué |
 | --- | --- |
 | `--g-color-surface`, `--g-color-border`, `--g-color-border-control` | Fondo de la lista; costura campo–lista; contorno de la forma abierta |
-| `--g-focus-width`, `--g-focus-offset`, `--g-color-focus` (o el `color` del campo) | Anillo de la forma completa (campo + lista) en A; barra de la opción activa |
+| `--g-focus-width`, `--g-focus-offset`, `--g-color-focus` (o el `color` del campo) | Anillo de la forma completa (campo + lista) en A; contorno de la opción activa tras teclado |
 | `--g-shadow-2` / `--g-shadow-3` | Elevación de la forma abierta |
 | `--g-color-surface-sunken` | La luz de la opción activa; fondo de la vista previa |
-| `--g-color-text`, `--g-color-surface` (par inverso, #325) | Opción activa de la paleta |
 | `--g-color-text-muted`, `--g-color-text-subtle` | Línea secundaria, rótulos, encabezado de grupo, texto fantasma (≥ 4.5:1); deshabilitada |
 | `--g-color-selection` | Fondo del resto fantasma y de la ficha «seleccionada» con foco (primer consumidor del rol, `tokens.md` §17.5) |
 | `--g-color-danger-text` | Estado de error de carga |
 | `--g-radius-xs` … `--g-radius-lg`, `--g-radius-{rounded}` | Forma abierta (el radio de la caja), código, fichas, superficie |
 | `--g-space-1`, `--g-border-width` | Rellenos, separaciones, alturas de fila (la caja del mismo `size` y `density`, piso 24px y 44px táctil) |
 | Roles `body`, `body-sm`, `caption`, `title-sm`, `action` (`tokens.md` §23) | Etiqueta, línea secundaria, código, título de la vista previa, peso de la elegida |
-| `--g-duration-fast`, `--g-duration-slow`, `--g-duration-spin`, `--g-ease-standard`, `--g-ease-out`, `--g-ease-spring` | «Movimiento» |
+| `--g-duration-fast`, `--g-duration-press`, `--g-duration-slow`, `--g-duration-spin`, `--g-ease-standard`, `--g-ease-out` | «Movimiento» |
 
 **No son tokens** (`tokens.md` §32): `delay` 250 ms (prop), **600 ms** del anuncio y **10** filas de Av Pág (constantes de JS), 240px del criterio «abre hacia arriba» (de `placeBlock`), **`--g-form-min: 60`**, el umbral literal 520px (#42), y las medidas de diseño derivadas de `space` que fija coco (alto máximo de la lista, alto del cuerpo de la superficie, proporción lista–vista previa).
 
@@ -896,7 +895,7 @@ Mismas reglas de la Fase 1 (`fill`, cifras con `Intl.NumberFormat` del `lang`). 
 | `--g-color-text` | «Ver las N» y «Ver los N» con peso de acción (como «Mostrar más»; `accent-text` no está garantizado sobre `surface-sunken`, la cesta) |
 | `--g-color-text-muted` | Frase con el foco, número, rastro, recuentos |
 | `--g-color-border` | Separación entre renglones y contorno de la receta y la cesta |
-| `--g-ease-bounce`, `--g-ease-spring`, `--g-ease-out`, `--g-duration-fast`, `--g-duration-press`, `--g-duration-slow` | «Movimiento» |
+| `--g-ease-bounce`, `--g-ease-out`, `--g-duration-fast`, `--g-duration-press`, `--g-duration-slow` | «Movimiento» |
 
 **No son tokens:** **12** (filas de «Elegidas» y de la cesta antes de «Ver las N») y **6** (renglones de la receta en reposo), constantes de diseño de JS; **`0.4`**, escala de partida de la marca de la casilla (`tokens.md` §29.6, #427); la proporción frase/texto con el foco (coco, `estilo.md`). `--_travel-x`/`--_travel-y` se retiraron (#1018).
 

@@ -81,7 +81,7 @@ Barra de filtros **no fijos** al estilo Stripe: chips sugeridos, «Agregar filtr
 **Panel anclado** en la presentación popover; la hoja es la de `GDialog`. Hoy el editor solo funde al entrar, en `press` también con reducido, y no tiene salida.
 
 - **Bruno:** `data-side` (`top` o `bottom`, físico, como `GMenu`) en `g-filter-bar__editor`, escrito desde `r.side` en `placeEditor` antes de mostrarlo y al cambiar de lado. El título y el cuerpo se conservan hasta acabar la salida, igual que ya hace `sheetKey` en la hoja: hoy `editing = null` vacía el editor en el acto (`api.md` «Paneles anclados»). `hidePopover()` no se retrasa, y el foco vuelve al chip en el acto. Durante la salida, ese contenido no aplica nada: el borrador ya está descartado o aplicado.
-- **Coco:** entrada con `--g-duration-press` + `--g-ease-out`, fundido y `--g-space-1 × 1` según `data-side`; salida con `--g-duration-fast` + `--g-ease-out`, solo fundido, con `overlay` y `display` discretos; con reducido, fundido `--g-duration-fast` `linear` en las dos direcciones. El comentario «no es movimiento» de `GFilterBar.css` deja de valer.
+- **Coco:** entrada con `--g-duration-press` + `--g-ease-out`, fundido y `--g-space-1 × 1` según `data-side`; salida con `--g-duration-fast` + `linear` (#1019), solo fundido, con `overlay` y `display` discretos; con reducido, fundido `--g-duration-fast` `linear` en las dos direcciones. El comentario «no es movimiento» de `GFilterBar.css` deja de valer.
 
 Se verifica en Chromium con el editor lleno mientras se funde, y abriendo un chip nada más cerrar otro.
 

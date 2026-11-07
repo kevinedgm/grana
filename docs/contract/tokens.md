@@ -883,11 +883,11 @@ Aprobada por el usuario el 2026-11-07 con D1 · A y D2 · A (`design/lab/movimie
 
 | Tipo de pieza | Componentes | Entrar o abrir | Salir o cerrar | Reducido |
 | --- | --- | --- | --- | --- |
-| **Panel anclado** | `GSelect`, `GDatePicker`, `GMenu`, `GHelper`, editor de `GFilterBar`, panel de `GPartyField`, paneles de `GBookingBar` y `GBreadcrumbs` | `press` + `ease-out`: fundido y `space × 1` desde el lado del disparador, sin escala (D1 · A) | `fast` + `ease-out`: solo fundido | Fundido `fast` `linear` en las dos direcciones |
-| **Hoja móvil** (≤ 520 px) | Las de `GSelect` y `GDatePicker`, y `GDialog` en hoja | `press` + `ease-out`: fundido y `space × 6` desde su borde; fondo con fundido `press` | `fast`: solo fundido, fondo también | Solo fundido |
-| **Diálogo** | `GDialog` | `press` + `ease-out`: fundido, `--g-press-scale`, D1 de #301 | `fast` + `ease-out`, hacia su origen | Solo fundido |
+| **Panel anclado** | `GSelect`, `GDatePicker`, `GMenu`, `GHelper`, editor de `GFilterBar`, panel de `GPartyField`, paneles de `GBookingBar` y `GBreadcrumbs` | `press` + `ease-out`: fundido y `space × 1` desde el lado del disparador, sin escala (D1 · A) | `fast` + `linear`: solo fundido (#1019) | Fundido `fast` `linear` en las dos direcciones |
+| **Hoja móvil** (≤ 520 px) | Las de `GSelect` y `GDatePicker`, y `GDialog` en hoja | `press` + `ease-out`: fundido y `space × 6` desde su borde; fondo con fundido `press` | `fast` + `linear`: solo fundido, fondo también | Solo fundido |
+| **Diálogo** | `GDialog` | `press` + `ease-out`: fundido, `--g-press-scale`, D1 de #301 | `fast`, hacia su origen: fundido y fondo con `linear`, desplazamiento y escala con `ease-out` | Solo fundido |
 | **Plegado** | `GAccordion`, `GFormSection`, `GFormReveal`, `GFormFold`, submenú de `GSidebar`, detalle de `GTable` | `slow` + `ease-out`: altura | `slow` + `ease-out`: altura, contenido con fundido `fast` | Sin transición de altura |
-| **Aviso flotante** | `GToast`, isla de estado | `press` + `ease-out` (la isla, su contrato) | `fast` el fundido | Solo fundido |
+| **Aviso flotante** | `GToast`, isla de estado | `press` + `ease-out` (la isla, su contrato) | `fast` + `linear` el fundido (la isla, su contrato) | Solo fundido |
 
 | Momento de control | Dónde | Regla | Reducido |
 | --- | --- | --- | --- |
@@ -899,6 +899,8 @@ Aprobada por el usuario el 2026-11-07 con D1 · A y D2 · A (`design/lab/movimie
 | **Marcar o elegir** | Casillas, radios, interruptores, opción elegida | Color, relleno y marca que aparece con `fast`. Lo que se traza o se desplaza (trazo de la casilla, pulgar) es respuesta: `press` + `ease-out` (#1007) | Sin escala |
 | **Carga** | Todo giro | `--g-duration-spin`, `linear`; con reducido, × 2,5. Tiempos 200/400/5000 ms de `loadPhase.js` donde aplique | Giro lento |
 | **Señal de llegada** | `data-g-landed`, `is-here` de `GTable`, `g-btn__done` | §29.10 | Fundido corto |
+
+**Por qué `linear` al salir (#1019):** `ease-out` carga casi todo el cambio al principio y 120 ms se ven como unos 50 (4 cuadros visibles; con `linear`, 7, sin alargar el cierre). La entrada sigue en `ease-out`: ahí sí interesa responder pronto.
 
 **Límite aceptado (D2 · A): el fundido de salida solo existe donde hay `overlay`.** Un elemento en la capa superior solo sigue pintándose durante la salida con `overlay` y `display` discretos, y hoy eso es Chromium: en Firefox y WebKit `GMenu`, `GSelect` y `GDatePicker` desaparecen en el acto al cerrar (medido, `medir.json`). Hojas y diálogos usan el mismo mecanismo y se espera lo mismo, sin medir aún. Se acepta porque son 120 ms, sin código que retrase el cierre y con el margen de peso agotado (#506, #550). No se reabre sin motivo nuevo, y un `hidePopover()` nunca se retrasa para igualar los motores. Lo que sí hace falta es que el panel no se vacíe mientras se funde (`api.md` «Paneles anclados», #1005).
 
