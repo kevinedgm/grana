@@ -1,6 +1,6 @@
 # Declaración · GBtn r02 · estados, carga y éxito
 
-> kiwi, 2026-11-07. **Estado: pendiente de la elección del usuario.** Es API nueva e identidad: no hay aprobación autónoma. No se ha tocado `GBtn.vue`, `GBtn.css`, `btn.md` ni `DECISIONS.md`.
+> kiwi, 2026-11-07. **Estado: elegida por el usuario el 2026-11-07: «Solo A · Retén».** B y C quedan descartadas para `GBtn`. F1 a F3 (§3) entran con A: son la base común de cualquier concepto. Siguiente dueño: lima.
 > Prototipo: `index.html`. Medida del componente real: `node design/lab/btn/r02/medir-actual.mjs`. Verificación del prototipo: `node design/lab/btn/r02/verificar.mjs`, **252/252** (84 por motor en Chromium, Firefox y WebKit).
 
 ## 1. Qué hay hoy, medido
@@ -173,6 +173,8 @@ Escala de `rubrica-movimiento.md`. H (inmersión) no aplica a ninguno. Contexto:
 **Recomendación de kiwi:** **A por defecto, C como opción** para lo que se puede deshacer, y B descartada. A hace del final parte del gesto que ya es de Grana, cuesta casi nada y tiene los menores riesgos. C cubre lo que A no puede, pero solo merece su peso con un caso real de «Deshacer», y puede ir en una segunda entrega.
 
 ## 7. Pregunta de elección
+
+**Respuesta del usuario (2026-11-07): solo A · Retén.**
 
 **¿Qué concepto quieres para el éxito de `GBtn`?**
 
