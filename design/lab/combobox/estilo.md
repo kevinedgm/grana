@@ -196,6 +196,8 @@ Regla única de #682 (`docs/contract/tokens.md` §4 y §7; precedente `GBtn`, #6
 
 `g-combobox__popup` se funde al cerrar en `fast` + `linear` (#1019), con el anillo que traía (`[inert]`, H2 de `design/lab/movimiento/auditoria.md`), sin desplazamiento ni plegado; con reducido, `fast` `linear`, y también al abrir, donde el despliegue se va. `overlay` y `display` van en `press` para que el temporizador de `leaving` no vacíe el panel antes de opacidad 0, y solo con `:not(:popover-open)`: `is-empty` con la lista abierta sigue ocultando en el acto. Entrar no se funde: es el despliegue.
 
+**El contorno de la activa también se funde:** al cerrar ya no hay activa (el `.vue` la limpia) y la luz se queda, así que tras teclado el contorno pasa a la luz con `.g-combobox__popup[inert] .is-keyed > .g-combobox__highlight`. Forma, anillo, luz y contorno bajan juntos.
+
 **La junta no parpadea:** al cerrar, el campo recupera contorno y anillo en el acto (`border-image` y `outline-style`, discretos) en el mismo cuadro en que la forma empieza a fundirse, así que el campo queda debajo y siempre hay un contorno. El cuerpo no captura el puntero mientras se funde. Medido en Chromium con el panel vacío, porque hoy `close` lo limpia en el acto: **falta comprobarlo con el contenido conservado** (bruno, #1005).
 
 ## Una sola luz y la ficha que entra (#1017, #1018)

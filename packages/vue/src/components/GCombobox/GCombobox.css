@@ -519,8 +519,10 @@
   pointer-events: none;
 }
 .g-combobox__panel.has-highlight > .g-combobox__highlight { opacity: 1; }
-/* Contorno de la activa solo tras usar el teclado (WCAG 2.4.7: el foco vive en el campo, la activa lo señala) */
-.g-combobox__panel.is-keyed .g-combobox__option.is-active {
+/* Contorno de la activa solo tras usar el teclado (WCAG 2.4.7: el foco vive en el campo, la activa lo señala). Al cerrar
+   ya no hay activa y la luz se queda: el contorno pasa a ella para fundirse con la forma, sin caerse en el primer cuadro */
+.g-combobox__panel.is-keyed .g-combobox__option.is-active,
+.g-combobox__popup[inert] .is-keyed > .g-combobox__highlight {
   outline: var(--g-focus-width) solid var(--_focus);
   outline-offset: calc(var(--g-focus-width) * -1);
 }
