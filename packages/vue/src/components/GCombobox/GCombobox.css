@@ -9,18 +9,17 @@
   Alias propios con prefijo --_cb- (no pisar los de GInput, GAvatar ni GDialog). Lee de GInput (heredados por el DOM,
   también dentro del popover y del diálogo, que son descendientes de la raíz): --_focus, --_radius, --_fs, --_lh,
   --_gap, --_density. Escribe bruno en línea (tokens.md §29.5): --_x, --_top, --_bottom, --_w, --_max, --_field-h
-  (popup) y --_travel-x, --_travel-y (ficha que llega).
+  (popup) y --_highlight-x, -y, -w, -h (la luz, en su capa).
   Literales: 24px y 44px (área táctil), el patrón de texto oculto accesible, 0.5turn (media vuelta de la flecha, como
-  el 1turn del giro de GInput), «/ 2» de geometría (radio de píldora = medio alto; costura centrada) y la cota del
-  vector de llegada «space × 2 / 0.038» (rebase máximo space × 2 con el 3,8 % de --g-ease-spring, tokens.md §29.1;
-  combobox.md «Movimiento»: alias local, sin constante nueva de coreografía).
-  Keyframes: g-combobox-arrive (la ficha llega; con multiple, el renglón que llega a la cesta) y g-combobox-spin (carga).
+  el 1turn del giro de GInput) y «/ 2» de geometría (radio de píldora = medio alto; costura centrada).
+  Keyframes: g-combobox-land y g-combobox-land-fade (la ficha entra en su sitio; con multiple, el renglón que entra en la
+  cesta, #1018) y g-combobox-spin (carga).
   Nunca g-reject…: GInput y GForm retiran is-rejected filtrando por ese prefijo.
   Fase 2 (multiple; combobox.md «Fase 2», #417 a #428; kiwi r03): sección «FASE 2 · VARIAS» al final. Keyframes
   g-combobox-roll (cifras), g-combobox-tick (marca de la casilla, desde 0.4 de tokens.md §29.6, con --g-ease-bounce) y
   g-combobox-row-in / -row-out (renglón que crece y rastro que se pliega). Literales propios: 55% (proporción frase/texto
   con el foco, estilo.md), 0.72 (marca/casilla, la de GCheckbox), 1fr/0fr y 100% (geometría). Alias --_cb-box,
-  --_cb-line, --_cb-rowh. Bruno pone is-rolling, is-ticking, is-entering, is-leaving e is-arriving (+ --_travel-x/y).
+  --_cb-line, --_cb-rowh. Bruno pone is-rolling, is-ticking, is-entering, is-leaving e is-landing.
 */
 
 /* ---------- Raíz ---------- */
@@ -190,27 +189,32 @@
   color: var(--g-color-text-subtle);
 }
 
-/* C · La ficha llega: viaja de su fila al campo con el muelle (cuarto uso, #336). El vector lo escribe bruno (px);
-   se acota a space × 2 / 0.038 por eje para que el rebase del muelle (3,8 % del recorrido) no pase de space × 2 desde la
-   fila más lejana. Opaca todo el viaje: es un objeto que llega, no un fundido. Por encima de los campos vecinos */
-.g-combobox__token.is-arriving {
-  --_cb-tx: clamp(calc(var(--g-space-1) * -2 / 0.038), var(--_travel-x), calc(var(--g-space-1) * 2 / 0.038));
-  --_cb-ty: clamp(calc(var(--g-space-1) * -2 / 0.038), var(--_travel-y), calc(var(--g-space-1) * 2 / 0.038));
-  z-index: 1;
+/* C · La ficha entra en su sitio (#1018): sin viajar, un fundido y space × 1 desde el lado del panel, mientras este se funde.
+   Un solo desplazamiento a la vista, y corto. El renglón de la cesta entra igual, siempre desde abajo */
+.g-combobox__token.is-landing,
+.g-combobox__row.is-landing {
+  --_cb-land: var(--g-space-1);
+}
+.g-combobox.is-up .g-combobox__token.is-landing {
+  --_cb-land: calc(var(--g-space-1) * -1);
 }
 @media (prefers-reduced-motion: no-preference) {
-  .g-combobox__token.is-arriving {
-    animation: g-combobox-arrive var(--g-duration-slow) var(--g-ease-out) both;
-  }
-  @supports (transition-timing-function: linear(0, 1)) {
-    .g-combobox__token.is-arriving {
-      animation-timing-function: var(--g-ease-spring);
-    }
+  .g-combobox__token.is-landing,
+  .g-combobox__row.is-landing {
+    animation: g-combobox-land var(--g-duration-press) var(--g-ease-out) backwards;
   }
 }
-@keyframes g-combobox-arrive {
-  from { translate: var(--_cb-tx) var(--_cb-ty); }
-  to { translate: 0 0; }
+@media (prefers-reduced-motion: reduce) {
+  .g-combobox__token.is-landing,
+  .g-combobox__row.is-landing {
+    animation: g-combobox-land-fade var(--g-duration-fast) linear backwards;
+  }
+}
+@keyframes g-combobox-land {
+  from { opacity: 0; translate: 0 var(--_cb-land); }
+}
+@keyframes g-combobox-land-fade {
+  from { opacity: 0; }
 }
 
 /* ---------- Limpiar y flecha (slot interno end de GInput) ---------- */
@@ -417,6 +421,10 @@
    que pinta título, coincidencia, datos con rótulo, «+N» y contraste entre homónimas; aquí solo la fila y sus estados
    ===================================================================================================================== */
 .g-combobox__panel {
+  /* Anfitrión de la luz: la capa va con el contenido al desplazar. Sin contexto propio, su z-index -1 se iría detrás de
+     g-combobox__popup-body, que es quien lleva el fondo (#1017) */
+  position: relative;
+  isolation: isolate;
   box-sizing: border-box;
   padding: calc(var(--g-space-2) * var(--_density));
   font-size: var(--g-text-body-size);
@@ -488,20 +496,49 @@
   overflow-wrap: anywhere;
   -webkit-tap-highlight-color: transparent;
 }
-/* Sin transición en la fila: la activa cambia en el acto. Con una transición por fila, la que sale se apaga mientras la
-   que entra se enciende y, con fichas altas, se leen dos marcos parpadeando (reporte del usuario). Medido: al recorrer
-   las opciones con el puntero hay como máximo una superficie resaltada por cuadro. Un resaltado único que VIAJA entre
-   opciones (como GMenu, #305) queda anotado para lima en estilo.md */
 .g-combobox__option + .g-combobox__option {
   margin-block-start: var(--g-space-1);
 }
-/* Opción activa en A: la ficha se levanta (borde de texto + sombra 1 sobre la superficie). Una sola señal de forma,
-   sin barra ni segundo anillo; el borde es --g-color-text (≫ 3:1 sobre la superficie). Es lo que vio el usuario en
-   r02 ?c=AC */
-.g-combobox__option.is-active {
-  border-color: var(--g-color-text);
-  background: var(--g-color-surface);
-  box-shadow: var(--g-shadow-1);
+/* Una sola luz (combobox.md, api.md regla 1, tercer caso, #1017), la de GSelect: la activa no cambia de color, borde ni
+   sombra; lo pinta una capa, primer hijo del panel, que la sigue por puntero o teclado. En un hueco, título o fila
+   deshabilitada se queda en la última fila. Px FÍSICOS, también en RTL. --_highlight-* solo se leen en esta regla (#964) */
+.g-combobox__highlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  inline-size: var(--_highlight-w);
+  block-size: var(--_highlight-h);
+  translate: var(--_highlight-x) var(--_highlight-y);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-surface-sunken);
+  opacity: 0;
+  pointer-events: none;
+}
+.g-combobox__panel.has-highlight > .g-combobox__highlight { opacity: 1; }
+/* Contorno de la activa solo tras usar el teclado (WCAG 2.4.7: el foco vive en el campo, la activa lo señala) */
+.g-combobox__panel.is-keyed .g-combobox__option.is-active {
+  outline: var(--g-focus-width) solid var(--_focus);
+  outline-offset: calc(var(--g-focus-width) * -1);
+}
+@media (prefers-reduced-motion: no-preference) {
+  /* Recorrer (motion.json, recorrerFilas): viaja en press con ease-out; aparece con fundido fast. Sin muelle (#299) */
+  .g-combobox__highlight {
+    transition:
+      translate var(--g-duration-press) var(--g-ease-out),
+      inline-size var(--g-duration-press) var(--g-ease-out),
+      block-size var(--g-duration-press) var(--g-ease-out),
+      opacity var(--g-duration-fast) var(--g-ease-standard);
+  }
+  .g-combobox__panel.is-highlight-instant > .g-combobox__highlight {
+    transition: opacity var(--g-duration-fast) var(--g-ease-standard);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* La luz: solo fundido, sin viaje */
+  .g-combobox__highlight {
+    transition: opacity var(--g-duration-fast) linear;
+  }
 }
 .g-combobox__option[aria-disabled="true"] {
   color: var(--g-color-text-subtle);
@@ -659,25 +696,6 @@
   overflow: auto;
   overscroll-behavior: contain;
 }
-/* En la superficie la activa se invierte (par texto/superficie, #325; medido 17.4:1): una ficha en negativo */
-.g-combobox-surface .g-combobox__option.is-active {
-  border-color: var(--g-color-text);
-  background: var(--g-color-text);
-  color: var(--g-color-surface);
-  box-shadow: none;
-}
-/* Los tonos apagados de la ficha (código, línea secundaria, rótulos, valor compartido) y la marca de elegida pasan al
-   texto invertido; los filetes, a currentColor. Lo compartido deja de apagarse aquí: lo único conserva su peso (la señal
-   de #354 no es solo tono). El hueco de icono, «+N» y el avatar llevan su propio fondo: no se tocan */
-.g-combobox-surface .g-combobox__option.is-active :is(.g-summary__code, .g-summary__subtitle, .g-summary__fact-label, .g-summary__fact-value),
-.g-combobox-surface .g-combobox__option.is-active .g-combobox__check,
-.g-combobox-surface .g-combobox__option.is-active > .g-combobox__lead {
-  color: inherit;
-}
-.g-combobox-surface .g-combobox__option.is-active .g-summary__fact::before {
-  border-inline-start-color: currentColor;
-}
-
 /* Vista previa de la opción activa (no es región viva) */
 .g-combobox__preview {
   min-inline-size: 0;
@@ -911,11 +929,6 @@
   border-color: var(--g-color-border);
   background: var(--g-color-surface-sunken);
 }
-/* En la activa invertida de la paleta, la casilla se perfila con el color de la superficie (sobre el fondo de texto,
-   primary puede ser casi el mismo tono: el borde de superficie la mantiene ≥ 3:1) */
-.g-combobox-surface .g-combobox__option.is-active > .g-combobox__box {
-  border-color: var(--g-color-surface);
-}
 @media (prefers-reduced-motion: no-preference) {
   .g-combobox__box.is-ticking > .g-icon {
     animation: g-combobox-tick var(--g-duration-slow) var(--g-ease-out) both;
@@ -943,7 +956,7 @@
   font-weight: var(--g-text-body-sm-weight);
   color: var(--g-color-text-muted);
 }
-/* Fila de «Elegidas» marcada por Retroceso: selección y la ficha tachada (también si es la activa, levantada o invertida) */
+/* Fila de «Elegidas» marcada por Retroceso: selección y la ficha tachada (también si es la activa: su fondo tapa la luz, #1017) */
 .g-combobox .g-combobox__option.is-armed {
   background: var(--g-color-selection);
   color: var(--g-color-text);
@@ -1285,12 +1298,6 @@
 .g-combobox__row:is(.is-entering, .is-leaving) > :not(:where(.g-tooltip)) {
   min-block-size: 0;
 }
-/* C: el renglón llega a la cesta desde la fila marcada (vector de bruno, acotado como la ficha de la Fase 1, #336) */
-.g-combobox__row.is-arriving {
-  --_cb-tx: clamp(calc(var(--g-space-1) * -2 / 0.038), var(--_travel-x), calc(var(--g-space-1) * 2 / 0.038));
-  --_cb-ty: clamp(calc(var(--g-space-1) * -2 / 0.038), var(--_travel-y), calc(var(--g-space-1) * 2 / 0.038));
-  z-index: 1;
-}
 @media (prefers-reduced-motion: no-preference) {
   .g-combobox__num.is-rolling {
     animation: g-combobox-roll var(--g-duration-press) var(--g-ease-out) both;
@@ -1300,22 +1307,6 @@
   }
   .g-combobox__row.is-leaving {
     animation: g-combobox-row-out var(--g-duration-slow) var(--g-ease-out) forwards;
-  }
-  .g-combobox__row.is-arriving {
-    animation: g-combobox-arrive var(--g-duration-slow) var(--g-ease-out) both;
-  }
-  .g-combobox__row.is-arriving.is-entering {
-    animation:
-      g-combobox-row-in var(--g-duration-slow) var(--g-ease-out) backwards,
-      g-combobox-arrive var(--g-duration-slow) var(--g-ease-out) both;
-  }
-  @supports (transition-timing-function: linear(0, 1)) {
-    .g-combobox__row.is-arriving {
-      animation-timing-function: var(--g-ease-spring);
-    }
-    .g-combobox__row.is-arriving.is-entering {
-      animation-timing-function: var(--g-ease-out), var(--g-ease-spring);
-    }
   }
 }
 
@@ -1337,16 +1328,6 @@
   .g-combobox__option[aria-disabled="true"] > .g-combobox__box {
     border-color: GrayText;
     background: Canvas;
-  }
-  /* En la activa (Highlight) la casilla se invierte para no fundirse con la fila */
-  .g-combobox .g-combobox__option.is-active > .g-combobox__box {
-    border-color: HighlightText;
-    background: Highlight;
-  }
-  .g-combobox .g-combobox__option.is-active[aria-selected="true"] > .g-combobox__box {
-    border-color: HighlightText;
-    background: HighlightText;
-    color: Highlight;
   }
   .g-combobox__sentence-item.is-armed,
   .g-combobox .g-combobox__option.is-armed,
@@ -1394,7 +1375,7 @@
   }
 }
 /* Colores forzados (L23, medido): la ficha se retira y vuelve el texto del <input>; forma de A con CanvasText y anillo
-   Highlight; activa con Highlight/HighlightText; fantasma en GrayText; la marca conserva peso y subrayado */
+   Highlight; activa sin capa y con contorno Highlight (#1017); fantasma en GrayText; la marca conserva peso y subrayado */
 @media (forced-colors: active) {
   .g-combobox.is-token .g-combobox__token {
     display: none;
@@ -1425,20 +1406,14 @@
     background: transparent;
     color: GrayText;
   }
-  .g-combobox__option.is-active,
-  .g-combobox-surface .g-combobox__option.is-active {
-    border-color: Highlight;
-    background: Highlight;
-    color: HighlightText;
+  /* Sin capa: el contorno es la única marca de la activa, con o sin teclado (#1017) */
+  .g-combobox__highlight {
+    display: none;
   }
-  .g-combobox__option.is-active *,
-  .g-combobox-surface .g-combobox__option.is-active * {
-    color: HighlightText;
-  }
-  /* Los tonos de la ficha con más especificidad que «*» (el valor compartido, is-same: 0,4,0) también pasan a
-     HighlightText; si no, el sistema los pinta CanvasText sobre Highlight (medido: sin contraste) */
-  .g-combobox .g-combobox__option.is-active .g-summary :is(.g-summary__fact-label, .g-summary__fact-value, .g-summary__code, .g-summary__subtitle) {
-    color: HighlightText;
+  .g-combobox__panel .g-combobox__option.is-active,
+  .g-combobox__panel.is-keyed .g-combobox__option.is-active {
+    outline: var(--g-focus-width) solid Highlight;
+    outline-offset: calc(var(--g-focus-width) * -1);
   }
   .g-combobox .g-combobox__option[aria-disabled="true"] .g-summary :is(.g-summary__fact-label, .g-summary__fact-value, .g-summary__code, .g-summary__subtitle) {
     color: GrayText;

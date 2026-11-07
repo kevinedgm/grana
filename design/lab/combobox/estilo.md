@@ -10,7 +10,7 @@
 2. **El campo se completa (A).** El resto de la primera coincidencia se escribe en el propio campo sobre `--g-color-selection` (primer consumidor del rol), en `text-muted`: se lee como «texto propuesto, aceptable de un toque». Entra con un fundido corto (`@starting-style`, `--g-duration-fast`).
 3. **El valor es un objeto (C).** En reposo, la ficha (`GSummary inline xs`, #356: avatar `xs`, código, título y la corriente de datos con «+N») ocupa la celda sin cambiar la caja. Con el foco se pinta **seleccionada entera** (`--g-color-selection`) como una **banda que cubre la celda**: lo siguiente que se escribe la reemplaza. El texto libre lleva lápiz, cursiva en peso de texto y una **marca «Texto libre»** con borde (`border-strong`, `caption`): una etiqueta, no un adorno; no se recorta (cede el título).
 4. **Las filas son fichas (C).** Una `GSummary row lines 2` por opción: título + una corriente de datos con rótulo, filete y «+N»; con homónimas, lo único pesa y lo compartido se apaga (#354). La activa **se levanta** en A (borde `--g-color-text` + `--g-shadow-1`, la del prototipo `?c=AC`) y **se invierte** en la superficie (par texto/superficie, #325, la del prototipo `?c=B`). La vista previa de la paleta es la misma ficha en `stack lg` y **entra desde la lista** (ver «Fichas con `GSummary`»).
-5. **La ficha llega.** Al elegir en la lista de A, la ficha sale de su fila y aterriza en el campo con `--g-ease-spring` (cuarto uso aprobado, #336). Opaca durante todo el viaje: es un objeto que llega, no un fundido.
+5. **La ficha entra en su sitio (#1018).** Al elegir en la lista de A, la ficha aparece en el campo con un fundido y `space × 1` desde el lado del panel, mientras este se funde: un solo desplazamiento a la vista, corto y sin muelle. El usuario rechazó el viaje desde la fila por brusco; el carácter está en la continuidad, no en el recorrido.
 6. **La paleta (B)** pone el campo de búsqueda como protagonista: `title-sm`, de borde a borde, con el foco como línea de `--g-focus-width` al pie; el título del diálogo baja a rótulo (`body-sm`, `action`, `text-muted`). Lista y ficha de la activa en proporción **6 : 5**, cuerpo de alto fijo (`space × 96`): la superficie no salta al cambiar los resultados.
 7. **La hoja móvil va arriba** (no abajo como la de `GDialog`): el teclado virtual no tapa la lista. Entra desde arriba (`−space × 6`), espejo de la hoja de `GDialog`.
 
@@ -73,7 +73,6 @@ La regla provisional de dos líneas y las reglas de `__description`, `__facts`, 
 ## Constantes y alias (no son tokens)
 
 - `space × 9` (alto mínimo de fila, el de la caja `md`), `space × 8` / `space × 6` (hueco inicial de las filas de acción = el de la ficha `md` / `sm`), `space × 14` (columna de códigos, sobre `g-summary__code`), `space × 2` (entrada de la vista previa desde la lista), `space × 96` (alto máximo de la lista de A y del cuerpo de la superficie), **6 : 5** (lista : vista previa), `space × 12` (campo de búsqueda, piso 44px). Medidas de diseño derivadas de `space` (tokens.md §32).
-- `space × 2 / 0.038`: cota del vector de llegada (rebase máximo `space × 2` con el 3,8 % de `--g-ease-spring`). Alias local `--_cb-tx/ty` (§29.7).
 - `/ 2`: geometría (radio de píldora = medio alto; costura centrada). `0.5turn`: media vuelta de la flecha. `2.5`: giro lento con movimiento reducido (el de `GInput`).
 - Alias propios `--_cb-row`, `--_cb-r`, `--_cb-tx`, `--_cb-ty`. Lee de `GInput` `--_focus`, `--_radius`, `--_fs`, `--_lh`, `--_gap`, `--_density` y de `GDialog` `--_gap`, `--_inset-radius`.
 
@@ -87,8 +86,6 @@ La regla provisional de dos líneas y las reglas de `__description`, `__facts`, 
 
 ## Para lima (ideas, no bloquean)
 
-- **Resaltado único que viaja** entre opciones (como `GMenu`, #305): coherente con la personalidad de Grana y con las fichas altas. Requiere que bruno entregue `--_active-y/h` del panel; hoy la activa cambia en el acto (una superficie por cuadro, medido).
-- La opacidad 0,5 → 1 del prototipo en la llegada, si se quiere recuperar, es una constante de coreografía nueva (§29.6).
 
 ## No verificado
 
@@ -106,7 +103,7 @@ La regla provisional de dos líneas y las reglas de `__description`, `__facts`, 
 2. **La casilla salta.** Cada opción lleva una casilla con forma de control (la señal no cromática de «aquí se eligen varias»). Al marcar por un gesto, la marca entra **desde 0,4 con `--g-ease-bounce`** (segundo uso aprobado, §29.1; rebase medido 1,12 en los tres motores); al desmarcar, solo se funde. Es lo único que rebota: un control pequeño que responde con un golpe seco.
 3. **Quitar deja huella.** Retroceso marca antes de quitar con **tachado + selección** (en la frase, en «Elegidas» y en el renglón): se ve qué se va a ir y no depende del color. En B y C quitar no cierra el hueco: el renglón se convierte en un **rastro del mismo alto** (Δ0 medido) con el nombre tachado y **«Deshacer» como píldora de acento**, lo único con color del rastro, para que se encuentre sin buscarlo.
 4. **B · la receta registra la pasada.** Lo nuevo dice «Nueva» (etiqueta `accent-soft`) y lleva una **barra de acento al inicio** (lógica: a la derecha en RTL); el renglón nuevo **crece desde la línea anterior** (0fr → 1fr, sin medir alturas en JS) y lo de debajo baja con él, sin salto; en la pasada siguiente los rastros **se pliegan** igual, al revés.
-5. **C · lo marcado viaja a la cesta.** El renglón llega desde la fila marcada con el muelle de la ficha de la Fase 1 (el mismo uso de #336, vector acotado igual). La cesta es una columna de tarjetas sobre `surface-sunken` en el sitio de la vista previa (6 : 5); el rastro de la cesta es **el hueco de la tarjeta que se fue** (borde discontinuo).
+5. **C · lo marcado entra en la cesta (#1018).** El renglón entra en su sitio con los mismos keyframes que la ficha, siempre desde abajo.
 
 Todo el movimiento ocurre solo tras un gesto (bruno pone y retira las clases) y desaparece con `prefers-reduced-motion: reduce` (medido: ninguna animación `g-combobox-*` y ninguna clase pendiente; se quedan los fundidos de color y opacidad, como la marca de la casilla y la entrada del rastro).
 
@@ -200,3 +197,28 @@ Regla única de #682 (`docs/contract/tokens.md` §4 y §7; precedente `GBtn`, #6
 `g-combobox__popup` se funde al cerrar en `fast` + `ease-out`, sin desplazamiento ni plegado; con reducido, `fast` `linear`, y también al abrir, donde el despliegue se va. `overlay` y `display` solo van con `:not(:popover-open)`: `is-empty` con la lista abierta sigue ocultando en el acto. Entrar no se funde: es el despliegue.
 
 **La junta no parpadea:** al cerrar, el campo recupera contorno y anillo en el acto (`border-image` y `outline-style`, discretos) en el mismo cuadro en que la forma empieza a fundirse, así que el campo queda debajo y siempre hay un contorno. El cuerpo no captura el puntero mientras se funde. Medido en Chromium con el panel vacío, porque hoy `close` lo limpia en el acto: **falta comprobarlo con el contenido conservado** (bruno, #1005).
+
+## Una sola luz y la ficha que entra (#1017, #1018)
+
+Sustituye a lo que arriba se dice de la ficha que se levanta, la activa invertida de la paleta y el viaje de la ficha; las medidas anteriores de esas piezas ya no valen.
+
+**Personalidad:** recorrer se siente como `GSelect`, `GMenu`, `GSidebar` y `GTable`: una sola luz que se desliza bajo la fila y nada que parpadee o se invierta. Lo propio del combobox sigue en la forma (el campo que se abre) y en la ficha.
+
+- **Luz:** `g-combobox__highlight`, primer hijo de `g-combobox__panel`, que lleva `position: relative` e `isolation: isolate`. Viaja en `press` + `ease-out`, aparece en `fast`; con `is-highlight-instant`, solo fundido; reducido, solo fundido `linear`; `forced-colors`, sin capa y contorno `Highlight` siempre.
+- **Entrada:** `g-combobox-land` en `press` + `ease-out`; con reducido, `g-combobox-land-fade` en `fast` `linear`. Alias `--_cb-land`: `space × 1` hacia abajo, y hacia arriba con `is-up` (solo la ficha; el renglón siempre desde abajo). Sin `z-index`: a 4 px no pisa a nadie.
+
+**Medido en Chromium sobre un banco con el marcado del contrato** (12 temas: por defecto y los 11 de `dark-color-presence/generated/`, claro y oscuro), mínimos sobre `surface-sunken`:
+
+| Qué | Mínimo | Tema |
+| --- | --- | --- |
+| Título y `<mark>` | 16,08 | `linear` claro |
+| Código y línea secundaria | 6,87 | `spotify` claro |
+| Rótulo y valor compartido (`text-subtle`) | 4,70 | `lustre` claro |
+| Contorno de la casilla marcada | 4,21 | `spotify` claro |
+| Texto de «+N» sobre su píldora / sobre la luz | 4,51 / 4,74 | `grana` claro / `medium` claro |
+| Contorno de la activa sobre la luz / sobre la superficie | 4,19 / 4,52 | `apple` claro |
+
+- **«+N»:** en `medium` claro su píldora casi no se distingue de la luz (1,04:1). El texto sigue legible, así que no es defecto; perfilarla solo en la activa sería un cambio en la fila, que #1017 prohíbe.
+- **Luz sobre superficie:** 1,08:1 como mínimo (`stripe` claro), como en `GSelect`: con teclado la señal es el contorno.
+- **Contorno y anillo de la forma en A:** mismo color, pero el contorno va por dentro de la fila y queda a 9 px del borde del popover con densidad 1, con esquinas propias: se leen como dos marcas. Sin medir con densidad compacta.
+- Luz y fila a 0 px, con la lista desplazada y en RTL (variables escritas por el banco, no por `placeHighlight`).
