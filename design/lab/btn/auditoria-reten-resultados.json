@@ -1,0 +1,914 @@
+{
+ "chromium": {
+  "S1 nitidez 1×": {
+   "borde_reposo": {
+    "pico": 1,
+    "filas": 1,
+    "suma": 1
+   },
+   "borde_hundido": {
+    "pico": 0.61,
+    "filas": 2,
+    "suma": 1.18
+   },
+   "texto_pendiente_vs_reposo": 1.05,
+   "indicador_hundido_vs_sin_escala": 0.96
+  },
+  "S1 nitidez 2×": {
+   "borde_reposo": {
+    "pico": 1,
+    "filas": 2,
+    "suma": 2
+   },
+   "borde_hundido": {
+    "pico": 1,
+    "filas": 2,
+    "suma": 2
+   },
+   "texto_pendiente_vs_reposo": 1.05,
+   "indicador_hundido_vs_sin_escala": 1
+  },
+  "S2 block 1280": {
+   "ancho": 1184,
+   "borde_hundido_px": 17.76,
+   "borde_hundido_vertical_px": 0.54,
+   "teoria_px": 17.76,
+   "pico_fuera_px": 3.53,
+   "pico_fuera_vertical_px": 0.11,
+   "ancho_pico": 1191.06
+  },
+  "S3 tooltip reposo": {
+   "tabW": 128.97,
+   "btnW": 128.95,
+   "dTabLeft": 0,
+   "dTabRight": 0.01,
+   "gap": 6,
+   "dBodyCx": -0.19
+  },
+  "S3 tooltip carga": {
+   "tabW": 125.09,
+   "btnW": 125.08,
+   "dTabLeft": 0,
+   "dTabRight": 0.01,
+   "gap": 6,
+   "dBodyCx": -0.19
+  },
+  "S3 tooltip tras la suelta": {
+   "antes": {
+    "tabW": 125.09,
+    "btnW": 125.08
+   },
+   "despues": {
+    "dTabLeft": 1.93,
+    "dTabRight": -1.93,
+    "tabW": 125.09,
+    "btnW": 128.95,
+    "gap": 5.46
+   }
+  },
+  "S3 tooltip abierto antes de la carga (normal)": {
+   "ancho_caja": 87.39,
+   "pestana_sobresale_px_por_lado": 1.31,
+   "sigue_abierto": true
+  },
+  "S3 tooltip abierto antes de la carga (solo icono)": {
+   "ancho_caja": 36,
+   "pestana_sobresale_px_por_lado": 0.54,
+   "sigue_abierto": true
+  },
+  "S3 tooltip abierto antes de la carga (block (1184))": {
+   "ancho_caja": 1184,
+   "pestana_sobresale_px_por_lado": 0,
+   "sigue_abierto": true
+  },
+  "S4 link: grosor del subrayado (px)": {
+   "reposo": 1,
+   "pendiente_sin_puntero": 2,
+   "vista_sin_puntero": 1,
+   "scale_link": 1,
+   "etiqueta_opacidad_a_la_vista": 0,
+   "vista_con_puntero": 2,
+   "hover_reposo": 2
+  },
+  "S4 link: a la vista con puntero encima (el hover de un inerte)": 2,
+  "S4 marca sobre hover (light)": {
+   "reposo_min": 4.76,
+   "hover_min": 4.76,
+   "peor": "success/soft"
+  },
+  "S4 marca sobre hover (dark)": {
+   "reposo_min": 4.51,
+   "hover_min": 4.51,
+   "peor": "success/soft"
+  },
+  "S5 reafirmar con v-model, trazo ya completo": {
+   "se_redibuja": false,
+   "cambios_de_clase": 2,
+   "is_done_al_final": true,
+   "eventos": [
+    "done:false",
+    "click"
+   ],
+   "estado_ini": {
+    "off": 0,
+    "anims": 0,
+    "done": true,
+    "status": ""
+   }
+  },
+  "S5 causa: animaciones del trazo tras quitar y poner is-done": {
+   "base": 0,
+   "sinLectura": 0,
+   "conLectura": 1
+  },
+  "S5 reafirmar con v-model, a media cuenta del trazo": {
+   "se_redibuja": false,
+   "cambios_de_clase": 2,
+   "is_done_al_final": true,
+   "eventos": [
+    "done:false",
+    "click"
+   ],
+   "estado_ini": {
+    "off": -0.11116,
+    "anims": 1,
+    "done": true,
+    "status": ""
+   }
+  },
+  "S6 is-leaving + is-done (primer acuse)": {
+   "juntas": true,
+   "cuadros": [
+    "0ms giro 1 marca 1 trazo 0 etiqueta 0",
+    "30ms giro 0.39 marca 1 trazo 0.48 etiqueta 0",
+    "60ms giro 0.12 marca 1 trazo 0.78 etiqueta 0",
+    "90ms giro 0.02 marca 1 trazo 0.91 etiqueta 0",
+    "120ms giro 0 marca 1 trazo 0.97 etiqueta 0",
+    "180ms giro 0 marca 1 trazo 1 etiqueta 0",
+    "240ms giro 0 marca 1 trazo 1 etiqueta 0"
+   ]
+  },
+  "S6 solape del giro con la marca visible (primer acuse)": 0.39,
+  "S6 is-leaving + is-done (segundo acuse)": {
+   "juntas": true,
+   "cuadros": [
+    "0ms giro 1 marca 0 trazo 0 etiqueta 0",
+    "30ms giro 0.39 marca 0.61 trazo 0.48 etiqueta 0",
+    "60ms giro 0.12 marca 0.88 trazo 0.78 etiqueta 0",
+    "90ms giro 0.02 marca 0.98 trazo 0.91 etiqueta 0",
+    "120ms giro 0 marca 1 trazo 0.97 etiqueta 0",
+    "180ms giro 0 marca 1 trazo 1 etiqueta 0",
+    "240ms giro 0 marca 1 trazo 1 etiqueta 0"
+   ]
+  },
+  "S6 solape del giro con la marca visible (segundo acuse)": 0.29,
+  "S7 anfitriona GToast": {
+   "reposo_bg": "rgba(0, 0, 0, 0)",
+   "escala_en_carga": 0.97,
+   "pendiente_bg_igual_hover": null,
+   "a_la_vista_bg_igual_reposo": true,
+   "hover_inerte_igual": true,
+   "loader": 1,
+   "marca": 17.4,
+   "marca_op": 1,
+   "etiqueta_op": 0
+  },
+  "S7 anfitriona GStatusIsland (acción)": {
+   "reposo_bg": "rgb(26, 26, 26)",
+   "escala_en_carga": 0.97,
+   "pendiente_bg_igual_hover": null,
+   "a_la_vista_bg_igual_reposo": true,
+   "hover_inerte_igual": true,
+   "loader": 1,
+   "marca": 17.4,
+   "marca_op": 1,
+   "etiqueta_op": 0
+  },
+  "S7 anfitriona GStatusIsland (origen)": {
+   "reposo_bg": "rgba(0, 0, 0, 0)",
+   "escala_en_carga": 0.97,
+   "pendiente_bg_igual_hover": null,
+   "a_la_vista_bg_igual_reposo": true,
+   "hover_inerte_igual": true,
+   "loader": 1,
+   "marca": 17.4,
+   "marca_op": 1,
+   "etiqueta_op": 0
+  },
+  "S7 anfitriona GSpeechPill (principal)": {
+   "reposo_bg": "rgba(0, 0, 0, 0)",
+   "escala_en_carga": 0.97,
+   "pendiente_bg_igual_hover": null,
+   "a_la_vista_bg_igual_reposo": true,
+   "hover_inerte_igual": true,
+   "loader": 1,
+   "marca": 17.4,
+   "marca_op": 1,
+   "etiqueta_op": 0
+  },
+  "S7 anfitriona GFab (hijo directo)": {
+   "reposo_bg": "rgb(31, 31, 31)",
+   "escala_en_carga": 0.97,
+   "pendiente_bg_igual_hover": null,
+   "a_la_vista_bg_igual_reposo": true,
+   "hover_inerte_igual": true,
+   "loader": 1,
+   "marca": 16.48,
+   "marca_op": 1,
+   "etiqueta_op": 0
+  },
+  "S7 GFormActions en línea": {
+   "ancho_reposo": 146.7,
+   "ancho_hundido": 142.3,
+   "hundido_px_por_lado": 2.2,
+   "marca": 16.48,
+   "indicador": 1
+  },
+  "S7 GFormActions apilado (280)": {
+   "ancho_reposo": 280,
+   "ancho_hundido": 271.6,
+   "hundido_px_por_lado": 4.2,
+   "marca": 16.48,
+   "indicador": 1
+  },
+  "S7 GDialog (pie)": {
+   "escala": 0.97,
+   "marca": 16.48,
+   "contenedor_con_overflow": "g-dialog__inset",
+   "pico_sobre_el_borde_px": {
+    "izq": -277.35,
+    "der": -20.74,
+    "sup": -77.89,
+    "inf": -12.89
+   }
+  },
+  "S8 literales en GBtn.css fuera de la lista": [],
+  "S8 F1/F2 defecto light": "ok",
+  "S8 F1/F2 defecto dark": "ok",
+  "S8 F1/F2 T2 amarillo light": "ok",
+  "S8 F1/F2 T2 amarillo dark": "ok",
+  "S8 F1/F2 T4 dark:false light": "ok",
+  "S8 tema --g-press-scale: 0.9": {
+   "hundido": 0.9,
+   "pico_tras_soltar": 1.0199,
+   "retirada_tras_acuse_ms": 696
+  },
+  "S8 tema --g-press-scale: 1": {
+   "hundido": 1,
+   "pico_tras_soltar": 1,
+   "retirada_tras_acuse_ms": 702
+  },
+  "S8 tema duraciones a 0": {
+   "hundido": 0.97,
+   "pico_tras_soltar": 1,
+   "retirada_tras_acuse_ms": 699
+  },
+  "S9 movimiento reducido": {
+   "match": true,
+   "sc": 1,
+   "tr": "none",
+   "lt": "none",
+   "dur": "2s",
+   "maxScale": 1,
+   "minOff": 0,
+   "anims": 0,
+   "joint": false
+  },
+  "S9 forced-colors": [
+   {
+    "tag": "carga",
+    "bd": "rgb(0, 0, 0)",
+    "fg": "rgb(0, 0, 0)",
+    "bg": "rgb(255, 255, 255)",
+    "ld": "rgb(0, 0, 0)",
+    "ldOp": 1,
+    "mk": null,
+    "mkOp": null
+   },
+   {
+    "tag": "acuse",
+    "bd": "rgb(0, 0, 0)",
+    "fg": "rgb(0, 0, 0)",
+    "bg": "rgb(255, 255, 255)",
+    "ld": "rgb(0, 0, 0)",
+    "ldOp": 0,
+    "mk": "rgb(0, 0, 0)",
+    "mkOp": 1
+   }
+  ],
+  "S9 forced-colors link": {
+   "bd": "rgb(255, 255, 255)",
+   "mk": "rgb(0, 0, 0)",
+   "fg": "rgb(0, 0, 0)",
+   "op": 1
+  }
+ },
+ "firefox": {
+  "S1 nitidez 1×": {
+   "borde_reposo": {
+    "pico": 1,
+    "filas": 1,
+    "suma": 1
+   },
+   "borde_hundido": {
+    "pico": 0.59,
+    "filas": 2,
+    "suma": 1.18
+   },
+   "texto_pendiente_vs_reposo": 1.05,
+   "indicador_hundido_vs_sin_escala": 1.04
+  },
+  "S1 nitidez 2×": {
+   "borde_reposo": {
+    "pico": 1,
+    "filas": 2,
+    "suma": 2
+   },
+   "borde_hundido": {
+    "pico": 1,
+    "filas": 2,
+    "suma": 2
+   },
+   "texto_pendiente_vs_reposo": 1.05,
+   "indicador_hundido_vs_sin_escala": 0.98
+  },
+  "S2 block 1280": {
+   "ancho": 1184,
+   "borde_hundido_px": 17.77,
+   "borde_hundido_vertical_px": 0.53,
+   "teoria_px": 17.76,
+   "pico_fuera_px": 3.53,
+   "pico_fuera_vertical_px": 0.1,
+   "ancho_pico": 1191.07
+  },
+  "S3 tooltip reposo": {
+   "tabW": 129.12,
+   "btnW": 129.1,
+   "dTabLeft": 0,
+   "dTabRight": 0.02,
+   "gap": 6,
+   "dBodyCx": -0.06
+  },
+  "S3 tooltip carga": {
+   "tabW": 125.23,
+   "btnW": 125.23,
+   "dTabLeft": 0,
+   "dTabRight": 0,
+   "gap": 6,
+   "dBodyCx": -0.06
+  },
+  "S3 tooltip tras la suelta": {
+   "antes": {
+    "tabW": 125.23,
+    "btnW": 125.23
+   },
+   "despues": {
+    "dTabLeft": 1.93,
+    "dTabRight": -1.93,
+    "tabW": 125.23,
+    "btnW": 129.1,
+    "gap": 5.45
+   }
+  },
+  "S3 tooltip abierto antes de la carga (normal)": {
+   "ancho_caja": 87.37,
+   "pestana_sobresale_px_por_lado": 1.32,
+   "sigue_abierto": true
+  },
+  "S3 tooltip abierto antes de la carga (solo icono)": {
+   "ancho_caja": 36,
+   "pestana_sobresale_px_por_lado": 0.53,
+   "sigue_abierto": true
+  },
+  "S3 tooltip abierto antes de la carga (block (1184))": {
+   "ancho_caja": 1184,
+   "pestana_sobresale_px_por_lado": 0,
+   "sigue_abierto": true
+  },
+  "S4 link: grosor del subrayado (px)": {
+   "reposo": 1,
+   "pendiente_sin_puntero": 2,
+   "vista_sin_puntero": 1,
+   "scale_link": 1,
+   "etiqueta_opacidad_a_la_vista": 0,
+   "vista_con_puntero": 2,
+   "hover_reposo": 2
+  },
+  "S4 link: a la vista con puntero encima (el hover de un inerte)": 2,
+  "S4 marca sobre hover (light)": {
+   "reposo_min": 4.76,
+   "hover_min": 4.76,
+   "peor": "success/soft"
+  },
+  "S4 marca sobre hover (dark)": {
+   "reposo_min": 4.51,
+   "hover_min": 4.51,
+   "peor": "success/soft"
+  },
+  "S5 reafirmar con v-model, trazo ya completo": {
+   "se_redibuja": false,
+   "cambios_de_clase": 2,
+   "is_done_al_final": true,
+   "eventos": [
+    "done:false",
+    "click"
+   ],
+   "estado_ini": {
+    "off": 0,
+    "anims": 0,
+    "done": true,
+    "status": ""
+   }
+  },
+  "S5 causa: animaciones del trazo tras quitar y poner is-done": {
+   "base": 0,
+   "sinLectura": 0,
+   "conLectura": 1
+  },
+  "S5 reafirmar con v-model, a media cuenta del trazo": {
+   "se_redibuja": false,
+   "cambios_de_clase": 2,
+   "is_done_al_final": true,
+   "eventos": [
+    "done:false",
+    "click"
+   ],
+   "estado_ini": {
+    "off": -0.0544331,
+    "anims": 1,
+    "done": true,
+    "status": ""
+   }
+  },
+  "S6 is-leaving + is-done (primer acuse)": {
+   "juntas": true,
+   "cuadros": [
+    "0ms giro 1 marca 1 trazo 0 etiqueta 0",
+    "30ms giro 0.39 marca 1 trazo 0.48 etiqueta 0",
+    "60ms giro 0.12 marca 1 trazo 0.78 etiqueta 0",
+    "90ms giro 0.02 marca 1 trazo 0.91 etiqueta 0",
+    "120ms giro 0 marca 1 trazo 0.97 etiqueta 0",
+    "180ms giro 0 marca 1 trazo 1 etiqueta 0",
+    "240ms giro 0 marca 1 trazo 1 etiqueta 0"
+   ]
+  },
+  "S6 solape del giro con la marca visible (primer acuse)": 0.39,
+  "S6 is-leaving + is-done (segundo acuse)": {
+   "juntas": true,
+   "cuadros": [
+    "0ms giro 1 marca 0 trazo 0 etiqueta 0",
+    "30ms giro 0.39 marca 0.61 trazo 0.48 etiqueta 0",
+    "60ms giro 0.12 marca 0.88 trazo 0.78 etiqueta 0",
+    "90ms giro 0.02 marca 0.98 trazo 0.91 etiqueta 0",
+    "120ms giro 0 marca 1 trazo 0.97 etiqueta 0",
+    "180ms giro 0 marca 1 trazo 1 etiqueta 0",
+    "240ms giro 0 marca 1 trazo 1 etiqueta 0"
+   ]
+  },
+  "S6 solape del giro con la marca visible (segundo acuse)": 0.29,
+  "S7 anfitriona GToast": {
+   "reposo_bg": "rgba(0, 0, 0, 0)",
+   "escala_en_carga": 0.97,
+   "pendiente_bg_igual_hover": null,
+   "a_la_vista_bg_igual_reposo": true,
+   "hover_inerte_igual": true,
+   "loader": 1,
+   "marca": 17.4,
+   "marca_op": 1,
+   "etiqueta_op": 0
+  },
+  "S7 anfitriona GStatusIsland (acción)": {
+   "reposo_bg": "rgb(26, 26, 26)",
+   "escala_en_carga": 0.97,
+   "pendiente_bg_igual_hover": null,
+   "a_la_vista_bg_igual_reposo": true,
+   "hover_inerte_igual": true,
+   "loader": 1,
+   "marca": 17.4,
+   "marca_op": 1,
+   "etiqueta_op": 0
+  },
+  "S7 anfitriona GStatusIsland (origen)": {
+   "reposo_bg": "rgba(0, 0, 0, 0)",
+   "escala_en_carga": 0.97,
+   "pendiente_bg_igual_hover": null,
+   "a_la_vista_bg_igual_reposo": true,
+   "hover_inerte_igual": true,
+   "loader": 1,
+   "marca": 17.4,
+   "marca_op": 1,
+   "etiqueta_op": 0
+  },
+  "S7 anfitriona GSpeechPill (principal)": {
+   "reposo_bg": "rgba(0, 0, 0, 0)",
+   "escala_en_carga": 0.97,
+   "pendiente_bg_igual_hover": null,
+   "a_la_vista_bg_igual_reposo": true,
+   "hover_inerte_igual": true,
+   "loader": 1,
+   "marca": 17.4,
+   "marca_op": 1,
+   "etiqueta_op": 0
+  },
+  "S7 anfitriona GFab (hijo directo)": {
+   "reposo_bg": "rgb(31, 31, 31)",
+   "escala_en_carga": 0.97,
+   "pendiente_bg_igual_hover": null,
+   "a_la_vista_bg_igual_reposo": true,
+   "hover_inerte_igual": true,
+   "loader": 1,
+   "marca": 16.48,
+   "marca_op": 1,
+   "etiqueta_op": 0
+  },
+  "S7 GFormActions en línea": {
+   "ancho_reposo": 146.83,
+   "ancho_hundido": 142.43,
+   "hundido_px_por_lado": 2.2,
+   "marca": 16.48,
+   "indicador": 1
+  },
+  "S7 GFormActions apilado (280)": {
+   "ancho_reposo": 280,
+   "ancho_hundido": 271.6,
+   "hundido_px_por_lado": 4.2,
+   "marca": 16.48,
+   "indicador": 1
+  },
+  "S7 GDialog (pie)": {
+   "escala": 0.97,
+   "marca": 16.48,
+   "contenedor_con_overflow": "g-dialog__inset",
+   "pico_sobre_el_borde_px": {
+    "izq": -277.37,
+    "der": -20.75,
+    "sup": -77.9,
+    "inf": -12.88
+   }
+  },
+  "S8 literales en GBtn.css fuera de la lista": [],
+  "S8 F1/F2 defecto light": "ok",
+  "S8 F1/F2 defecto dark": "ok",
+  "S8 F1/F2 T2 amarillo light": "ok",
+  "S8 F1/F2 T2 amarillo dark": "ok",
+  "S8 F1/F2 T4 dark:false light": "ok",
+  "S8 tema --g-press-scale: 0.9": {
+   "hundido": 0.9,
+   "pico_tras_soltar": 1.0199,
+   "retirada_tras_acuse_ms": 708
+  },
+  "S8 tema --g-press-scale: 1": {
+   "hundido": 1,
+   "pico_tras_soltar": 1,
+   "retirada_tras_acuse_ms": 702
+  },
+  "S8 tema duraciones a 0": {
+   "hundido": 0.97,
+   "pico_tras_soltar": 1,
+   "retirada_tras_acuse_ms": 709
+  },
+  "S9 movimiento reducido": {
+   "match": true,
+   "sc": 1,
+   "tr": "none",
+   "lt": "none",
+   "dur": "2s",
+   "maxScale": 1,
+   "minOff": 0,
+   "anims": 0,
+   "joint": false
+  },
+  "S9 forced-colors": [
+   {
+    "tag": "carga",
+    "bd": "rgb(0, 0, 0)",
+    "fg": "rgb(0, 0, 0)",
+    "bg": "rgb(233, 233, 237)",
+    "ld": "rgb(0, 0, 0)",
+    "ldOp": 1,
+    "mk": null,
+    "mkOp": null
+   },
+   {
+    "tag": "acuse",
+    "bd": "rgb(0, 0, 0)",
+    "fg": "rgb(0, 0, 0)",
+    "bg": "rgb(233, 233, 237)",
+    "ld": "rgb(0, 0, 0)",
+    "ldOp": 0,
+    "mk": "rgb(0, 0, 0)",
+    "mkOp": 1
+   }
+  ],
+  "S9 forced-colors link": {
+   "bd": "rgb(255, 255, 255)",
+   "mk": "rgb(0, 0, 0)",
+   "fg": "rgb(0, 0, 0)",
+   "op": 1
+  }
+ },
+ "webkit": {
+  "S1 nitidez 1×": {
+   "borde_reposo": {
+    "pico": 1,
+    "filas": 1,
+    "suma": 1
+   },
+   "borde_hundido": {
+    "pico": 0.58,
+    "filas": 2,
+    "suma": 1.1
+   },
+   "texto_pendiente_vs_reposo": 1.04,
+   "indicador_hundido_vs_sin_escala": 1.01
+  },
+  "S1 nitidez 2×": {
+   "borde_reposo": {
+    "pico": 1,
+    "filas": 2,
+    "suma": 2
+   },
+   "borde_hundido": {
+    "pico": 1,
+    "filas": 2,
+    "suma": 1.95
+   },
+   "texto_pendiente_vs_reposo": 1.05,
+   "indicador_hundido_vs_sin_escala": 0.99
+  },
+  "S2 block 1280": {
+   "ancho": 1184,
+   "borde_hundido_px": 17.76,
+   "borde_hundido_vertical_px": 0.54,
+   "teoria_px": 17.76,
+   "pico_fuera_px": 3.51,
+   "pico_fuera_vertical_px": 0.11,
+   "ancho_pico": 1191.02
+  },
+  "S3 tooltip reposo": {
+   "tabW": 128.97,
+   "btnW": 128.95,
+   "dTabLeft": 0,
+   "dTabRight": 0.01,
+   "gap": 6,
+   "dBodyCx": -0.19
+  },
+  "S3 tooltip carga": {
+   "tabW": 125.09,
+   "btnW": 125.08,
+   "dTabLeft": 0,
+   "dTabRight": 0.01,
+   "gap": 6,
+   "dBodyCx": -0.19
+  },
+  "S3 tooltip tras la suelta": {
+   "antes": {
+    "tabW": 125.09,
+    "btnW": 125.08
+   },
+   "despues": {
+    "dTabLeft": 1.93,
+    "dTabRight": -1.93,
+    "tabW": 125.09,
+    "btnW": 128.95,
+    "gap": 5.46
+   }
+  },
+  "S3 tooltip abierto antes de la carga (normal)": {
+   "ancho_caja": 87.39,
+   "pestana_sobresale_px_por_lado": 1.31,
+   "sigue_abierto": true
+  },
+  "S3 tooltip abierto antes de la carga (solo icono)": {
+   "ancho_caja": 36,
+   "pestana_sobresale_px_por_lado": 0.54,
+   "sigue_abierto": true
+  },
+  "S3 tooltip abierto antes de la carga (block (1184))": {
+   "ancho_caja": 1184,
+   "pestana_sobresale_px_por_lado": 0,
+   "sigue_abierto": true
+  },
+  "S4 link: grosor del subrayado (px)": {
+   "reposo": 1,
+   "pendiente_sin_puntero": 2,
+   "vista_sin_puntero": 1,
+   "scale_link": 1,
+   "etiqueta_opacidad_a_la_vista": 0,
+   "vista_con_puntero": 2,
+   "hover_reposo": 2
+  },
+  "S4 link: a la vista con puntero encima (el hover de un inerte)": 2,
+  "S4 marca sobre hover (light)": {
+   "reposo_min": 4.76,
+   "hover_min": 4.76,
+   "peor": "success/soft"
+  },
+  "S4 marca sobre hover (dark)": {
+   "reposo_min": 4.51,
+   "hover_min": 4.51,
+   "peor": "success/soft"
+  },
+  "S5 reafirmar con v-model, trazo ya completo": {
+   "se_redibuja": false,
+   "cambios_de_clase": 2,
+   "is_done_al_final": true,
+   "eventos": [
+    "done:false",
+    "click"
+   ],
+   "estado_ini": {
+    "off": 0,
+    "anims": 0,
+    "done": true,
+    "status": ""
+   }
+  },
+  "S5 causa: animaciones del trazo tras quitar y poner is-done": {
+   "base": 0,
+   "sinLectura": 0,
+   "conLectura": 1
+  },
+  "S5 reafirmar con v-model, a media cuenta del trazo": {
+   "se_redibuja": false,
+   "cambios_de_clase": 2,
+   "is_done_al_final": true,
+   "eventos": [
+    "done:false",
+    "click"
+   ],
+   "estado_ini": {
+    "off": -0.065904,
+    "anims": 1,
+    "done": true,
+    "status": ""
+   }
+  },
+  "S6 is-leaving + is-done (primer acuse)": {
+   "juntas": true,
+   "cuadros": [
+    "0ms giro 1 marca 1 trazo 0 etiqueta 0",
+    "30ms giro 0.39 marca 1 trazo 0.48 etiqueta 0",
+    "60ms giro 0.12 marca 1 trazo 0.78 etiqueta 0",
+    "90ms giro 0.02 marca 1 trazo 0.91 etiqueta 0",
+    "120ms giro 0 marca 1 trazo 0.97 etiqueta 0",
+    "180ms giro 0 marca 1 trazo 1 etiqueta 0",
+    "240ms giro 0 marca 1 trazo 1 etiqueta 0"
+   ]
+  },
+  "S6 solape del giro con la marca visible (primer acuse)": 0.39,
+  "S6 is-leaving + is-done (segundo acuse)": {
+   "juntas": true,
+   "cuadros": [
+    "0ms giro 1 marca 0 trazo 0 etiqueta 0",
+    "30ms giro 0.39 marca 0.61 trazo 0.48 etiqueta 0",
+    "60ms giro 0.12 marca 0.88 trazo 0.78 etiqueta 0",
+    "90ms giro 0.02 marca 0.98 trazo 0.91 etiqueta 0",
+    "120ms giro 0 marca 1 trazo 0.97 etiqueta 0",
+    "180ms giro 0 marca 1 trazo 1 etiqueta 0",
+    "240ms giro 0 marca 1 trazo 1 etiqueta 0"
+   ]
+  },
+  "S6 solape del giro con la marca visible (segundo acuse)": 0.29,
+  "S7 anfitriona GToast": {
+   "reposo_bg": "rgba(0, 0, 0, 0)",
+   "escala_en_carga": 0.97,
+   "pendiente_bg_igual_hover": null,
+   "a_la_vista_bg_igual_reposo": true,
+   "hover_inerte_igual": true,
+   "loader": 1,
+   "marca": 17.4,
+   "marca_op": 1,
+   "etiqueta_op": 0
+  },
+  "S7 anfitriona GStatusIsland (acción)": {
+   "reposo_bg": "rgb(26, 26, 26)",
+   "escala_en_carga": 0.97,
+   "pendiente_bg_igual_hover": null,
+   "a_la_vista_bg_igual_reposo": true,
+   "hover_inerte_igual": true,
+   "loader": 1,
+   "marca": 17.4,
+   "marca_op": 1,
+   "etiqueta_op": 0
+  },
+  "S7 anfitriona GStatusIsland (origen)": {
+   "reposo_bg": "rgba(0, 0, 0, 0)",
+   "escala_en_carga": 0.97,
+   "pendiente_bg_igual_hover": null,
+   "a_la_vista_bg_igual_reposo": true,
+   "hover_inerte_igual": true,
+   "loader": 1,
+   "marca": 17.4,
+   "marca_op": 1,
+   "etiqueta_op": 0
+  },
+  "S7 anfitriona GSpeechPill (principal)": {
+   "reposo_bg": "rgba(0, 0, 0, 0)",
+   "escala_en_carga": 0.97,
+   "pendiente_bg_igual_hover": null,
+   "a_la_vista_bg_igual_reposo": true,
+   "hover_inerte_igual": true,
+   "loader": 1,
+   "marca": 17.4,
+   "marca_op": 1,
+   "etiqueta_op": 0
+  },
+  "S7 anfitriona GFab (hijo directo)": {
+   "reposo_bg": "rgb(31, 31, 31)",
+   "escala_en_carga": 0.97,
+   "pendiente_bg_igual_hover": null,
+   "a_la_vista_bg_igual_reposo": true,
+   "hover_inerte_igual": true,
+   "loader": 1,
+   "marca": 16.48,
+   "marca_op": 1,
+   "etiqueta_op": 0
+  },
+  "S7 GFormActions en línea": {
+   "ancho_reposo": 146.7,
+   "ancho_hundido": 142.3,
+   "hundido_px_por_lado": 2.2,
+   "marca": 16.48,
+   "indicador": 1
+  },
+  "S7 GFormActions apilado (280)": {
+   "ancho_reposo": 280,
+   "ancho_hundido": 271.6,
+   "hundido_px_por_lado": 4.2,
+   "marca": 16.48,
+   "indicador": 1
+  },
+  "S7 GDialog (pie)": {
+   "escala": 0.97,
+   "marca": 16.48,
+   "contenedor_con_overflow": "g-dialog__inset",
+   "pico_sobre_el_borde_px": {
+    "izq": -277.35,
+    "der": -20.74,
+    "sup": -77.89,
+    "inf": -12.89
+   }
+  },
+  "S8 literales en GBtn.css fuera de la lista": [],
+  "S8 F1/F2 defecto light": "ok",
+  "S8 F1/F2 defecto dark": "ok",
+  "S8 F1/F2 T2 amarillo light": "ok",
+  "S8 F1/F2 T2 amarillo dark": "ok",
+  "S8 F1/F2 T4 dark:false light": "ok",
+  "S8 tema --g-press-scale: 0.9": {
+   "hundido": 0.9,
+   "pico_tras_soltar": 1.0183,
+   "retirada_tras_acuse_ms": 697
+  },
+  "S8 tema --g-press-scale: 1": {
+   "hundido": 1,
+   "pico_tras_soltar": 1,
+   "retirada_tras_acuse_ms": 701
+  },
+  "S8 tema duraciones a 0": {
+   "hundido": 0.97,
+   "pico_tras_soltar": 1,
+   "retirada_tras_acuse_ms": 712
+  },
+  "S9 movimiento reducido": {
+   "match": true,
+   "sc": 1,
+   "tr": "none",
+   "lt": "none",
+   "dur": "2s",
+   "maxScale": 1,
+   "minOff": 0,
+   "anims": 0,
+   "joint": false
+  },
+  "S9 forced-colors": [
+   {
+    "tag": "carga",
+    "bd": "rgba(0, 0, 0, 0.847)",
+    "fg": "rgb(255, 255, 255)",
+    "bg": "rgb(31, 31, 31)",
+    "ld": "rgb(255, 255, 255)",
+    "ldOp": 1,
+    "mk": null,
+    "mkOp": null
+   },
+   {
+    "tag": "acuse",
+    "bd": "rgba(0, 0, 0, 0.847)",
+    "fg": "rgb(255, 255, 255)",
+    "bg": "rgb(31, 31, 31)",
+    "ld": "rgb(255, 255, 255)",
+    "ldOp": 0,
+    "mk": "rgb(255, 255, 255)",
+    "mkOp": 1
+   }
+  ],
+  "S9 forced-colors link": {
+   "bd": "rgb(255, 255, 255)",
+   "mk": "rgb(31, 31, 31)",
+   "fg": "rgb(31, 31, 31)",
+   "op": 1
+  }
+ }
+}
