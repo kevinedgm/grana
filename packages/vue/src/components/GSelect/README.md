@@ -71,17 +71,18 @@ Los atributos nativos (`aria-*`, `data-*`, escuchas como `@focus`) van al **bot�
 | `name` | String | | sin valor |
 | `id` | String | | generado (es el `id` del botón) |
 
-Un valor fuera de la lista muestra una advertencia en desarrollo. `variant` solo admite `outline` y `soft`.
+`variant` solo admite `outline` y `soft`.
 
-- **`modelValue`:** el `value` de la opción elegida, comparado con `===`. `null` o un valor sin opción muestra el `placeholder`. **Es controlado**: si no actualizas el prop, el selector sigue mostrando el valor anterior. No hay selección múltiple.
+- **`modelValue`:** el `value` de la opción elegida, comparado con `===`. `null` muestra el `placeholder`. Un **valor sin opción** (por ejemplo, el catálogo aún no llegó) **se conserva**: lo visible sigue siendo el `placeholder`, pero el valor no se borra ni se envía vacío (ver `name`); con las opciones ya cargadas y sin `loading`, en desarrollo hay un aviso. **Es controlado**: si no actualizas el prop, el selector sigue mostrando el valor anterior. No hay selección múltiple.
 - **Textos sin valor por defecto** (Grana es internacional): `placeholder` (sin él, el selector sin valor queda vacío), `clearLabel`, `emptyText` y `createLabel`.
-- **`clearable`:** con valor, muestra un botón aparte para borrar (`null`). **Solo se renderiza con `clearLabel`** (su nombre accesible); sin él, en desarrollo hay `console.warn`. No se muestra con `readonly` ni `disabled`.
+- **`clearable`:** con valor, muestra un botón aparte para borrar (`null`). **Solo se renderiza con `clearLabel`** (su nombre accesible); sin él, en desarrollo hay `console.warn`. No se muestra con `readonly` ni `disabled`. Al borrar con la lista abierta, borra y la cierra (`update:modelValue` y luego `close`; el foco queda en el botón). **Un valor sin opción no se puede limpiar con este botón:** el botón depende de que haya una opción elegida; bórralo desde tu aplicación.
 - **`label`:** el selector necesita un nombre accesible. Sin `label`, sin slot `label` y sin `aria-label` ni `aria-labelledby`, en desarrollo hay `console.warn`. El nombre que se anuncia es **etiqueta + texto del valor**.
 - **`error`:** con texto, el selector queda inválido (`aria-invalid="true"`) y se muestra el mensaje. **El componente no valida.**
 - **`required`:** `aria-required` y una marca visual. **Límite:** el campo oculto de `name` no participa en la validación nativa de un `<form>` (los navegadores no validan campos ocultos); si necesitas bloquear el envío, valida tú y usa `error`.
-- **`name`:** crea un `<input type="hidden" name>` con el valor (`String(value)`, o `''` sin valor) para formularios nativos.
+- **`name`:** crea un `<input type="hidden" name>` con el valor (`String(value)`, o `''` sin valor) para formularios nativos. Un valor sin opción en `options` **se envía igual** (`String(modelValue)`, p. ej. `99`): solo `null` y `undefined` envían `''`; así un catálogo que aún no llegó no borra el dato guardado.
+- **`emptyText`:** una **lista sin filas no se abre** (ni con clic ni con teclado, y no emite `open`); si se queda sin filas estando abierta, se cierra. Fila es una opción válida, el mensaje de vacío o «Agregar nuevo…». **Da siempre `emptyText` (o el slot `empty`)** si tu catálogo puede quedar vacío: con él la lista sí se abre y explica por qué no hay opciones. Con `loading` no se muestra.
 - **`readonly`:** `aria-readonly`; enfocable, pero **no abre** (ni con clic ni con teclado). El valor se envía. **`disabled`:** atributo nativo del botón.
-- **`loading`:** `aria-busy="true"` y un anillo. **No bloquea** la apertura ni la elección.
+- **`loading`:** `aria-busy="true"` y un anillo. **No bloquea** la apertura ni la elección, salvo que la lista no tenga filas (ver `emptyText`). Mientras carga no se muestra el mensaje de vacío (`emptyText` ni el slot `empty`): no afirma que no hay opciones cuando aún pueden llegar.
 
 ## Agregar una opción que no está en el catálogo
 
@@ -151,16 +152,16 @@ El foco **nunca** sale del selector mientras la lista está abierta: la opción 
 | Enter | Elige la activa, cierra y devuelve el foco al selector (sobre la fila «Agregar nuevo…», emite `create`) |
 | Espacio | Elige, salvo que se esté escribiendo un prefijo |
 | Esc | Cierra **sin cambiar**; el foco sigue en el selector. **No se propaga:** dentro de un `GDialog`, el primer Esc cierra solo la lista |
-| Tab | Elige la opción activa, cierra y sigue el orden (sobre la fila «Agregar nuevo…», cierra sin crear) |
-| Carácter imprimible | Abre la lista si estaba cerrada y activa la siguiente opción cuyo texto empieza así; varios seguidos (< ~500ms) forman el prefijo |
+| Tab | Elige la opción activa, cierra y sigue el orden (sobre la fila «Agregar nuevo…», cierra sin crear). **Límite (#54, abierta):** elige la activa también si no la moviste, es decir, la de partida |
+| Carácter imprimible | Abre la lista si estaba cerrada y activa la opción cuyo texto empieza así; varios seguidos (< ~500ms) forman el prefijo. Se ignoran mayúsculas y acentos («oscar» encuentra «Óscar», «av» encuentra «Ávila»). Si la activa de partida ya coincide, la escritura entra en ella; la **misma letra repetida** recorre las opciones con esa inicial («b» recorre Banana, Bolivia, Brasil) |
 
-Un clic fuera cierra sin cambiar; el clic en una opción deshabilitada no elige ni cierra.
+Un clic fuera cierra sin cambiar; el clic en una opción deshabilitada no elige ni cierra. **Una activación por gesto:** un doble clic o una tecla Intro mantenida abren y no vuelven a cerrar (la lista queda abierta). **Clic en la etiqueta:** solo enfoca el selector, no abre; con la lista abierta, la cierra. **Clic en el relleno o en la barra de desplazamiento de la lista** no cierra: «fuera» es lo que queda fuera del rectángulo de la lista.
 
 ## Lista y móvil
 
 - **Capa superior:** la lista es un `popover="manual"`: no la recorta ningún `overflow` ni queda bajo un `<dialog>` modal (funciona dentro de `GDialog`).
-- **Posición:** debajo del selector, con al menos su ancho; **hacia arriba** si no cabe debajo y hay más sitio arriba. Alto máximo de unas 8 opciones (o el 60% del visor) con scroll interno; la opción activa siempre se ve.
-- **Móvil (≤ ~520px de visor):** la lista es una **hoja inferior** pegada abajo, de ancho completo y con fondo, con las superficies de `GDialog` (`--g-surface-*`); opciones de 44px.
+- **Posición:** alineada con el borde inicial del selector (también en RTL), debajo del selector, con al menos su ancho; **hacia arriba** si no cabe debajo y hay más sitio arriba. Alto máximo de unas 8 opciones (o el 60% del visor) con scroll interno; la opción activa siempre se ve.
+- **Móvil (≤ ~520px de visor):** la lista es una **hoja inferior** pegada abajo, de ancho completo y con fondo, con las superficies de `GDialog` (`--g-surface-*`); opciones de 44px. Es **modal**: la página de detrás no se desplaza (rueda y toque sobre el fondo); solo el fondo de la hoja, al pulsarlo, cierra. Sin título en la hoja.
 
 ## Accesibilidad
 
@@ -193,6 +194,8 @@ Las emite el componente y las estiliza `GSelect.css`: `g-select`, `g-select--var
 
 - **Sin selección múltiple ni búsqueda:** para eso está [`GCombobox`](../GCombobox/README.md) (búsqueda con resultados de la aplicación, `multiple`). Tampoco se crea una opción escribiendo: solo se **pide** con «Agregar nuevo…».
 
+- **Sin título en la hoja móvil, Alt+↑ no cierra la lista y el valor mostrado largo se recorta** (límites actuales, fuera de este ajuste).
+
 - **Sin validación nativa de `required`** (el campo oculto no se valida).
 
 - **Sin virtualización:** listas de miles de opciones pueden ser lentas.
@@ -211,7 +214,10 @@ Las emite el componente y las estiliza `GSelect.css`: `g-select`, `g-select--var
 
 - **Texto de 16px con puntero grueso (#970 a #972):** `medido` solo en Chromium con emulación táctil: `node design/lab/campo-tactil/verificar.mjs` 2007/2007 ([`auditoria.md`](../../../../../design/lab/campo-tactil/auditoria.md)) y `tests/campo-tactil.spec.mjs` 15/15. **Sin verificar:** WebKit (el motor de iOS), Firefox y un iPhone real con Safari, que es donde se comprueba que ya no amplía.
 
-- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
+- **Correcciones tras la evaluación heurística (#1001), `medido`** en Chromium, Firefox y WebKit sobre el `dist/` real el 2026-11-07 ([`select.md`](../../../../../design/contracts/select.md), sección «Correcciones tras la evaluación heurística»): en RTL el borde inicial de la lista queda a 0 px de la caja; el doble clic deja la lista abierta; «oscar» encuentra «Óscar» y «av» encuentra «Ávila»; «b» repetida recorre Banana, Bolivia y Brasil; el relleno de la lista no cierra y el fondo de la hoja sí; la rueda sobre el fondo de la hoja desplaza 0 px la página; `name` con valor 99 envía `99`; una lista sin filas no se abre. La barra de desplazamiento visible en la lista: `medido` solo en WebKit.
+- **Sin verificar (#1001):** RTL con barra de desplazamiento clásica en `<html dir="rtl">`, y el bloqueo de la página con la hoja abierta en iOS real.
+
+- **Pendientes abiertos:** la decisión #54 de Tab (arriba) y los límites listados en «Alcance»; los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 
