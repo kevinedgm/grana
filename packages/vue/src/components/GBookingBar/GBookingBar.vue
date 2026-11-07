@@ -495,6 +495,7 @@ const onRange = (v) => set(v && v.start ? { from: v.start, to: v.end } : { from:
           <GDatePicker
             v-else-if="t.slot === 'from' || t.slot === 'date'"
             :ref="(c) => { if (c) dpRefs[t.slot] = c }"
+            months="auto"
             :model-value="query[t.slot]"
             :min="min"
             :max="max"
@@ -580,14 +581,14 @@ const onRange = (v) => set(v && v.start ? { from: v.start, to: v.end } : { from:
       <div v-if="!compact" ref="rowEl" class="g-booking-bar__row">
         <template v-if="kind === 'stay'">
           <div class="g-booking-bar__field">
-            <GDatePicker mode="range" split block :model-value="rangeModel" :label-start="fieldName('from')" :label-end="fieldName('to')" :min="min" :max="max" :disabled-dates="dpDisabled" :disabled-nights="dpNights" :min-nights="minNights" :max-nights="maxNights" :locale="loc" :labels="dpLabels" :error="rangeErr" :disabled="disabled || undefined" @update:model-value="onRange" />
+            <GDatePicker mode="range" split block months="auto" :model-value="rangeModel" :label-start="fieldName('from')" :label-end="fieldName('to')" :min="min" :max="max" :disabled-dates="dpDisabled" :disabled-nights="dpNights" :min-nights="minNights" :max-nights="maxNights" :locale="loc" :labels="dpLabels" :error="rangeErr" :disabled="disabled || undefined" @update:model-value="onRange" />
           </div>
         </template>
         <div v-if="kind === 'tour'" class="g-booking-bar__field">
           <GSelect block :model-value="query.tour" :options="tourOptions" :label="fieldName('tour')" :error="errors.tour" :disabled="disabled || undefined" @update:model-value="(v) => set({ tour: v })" />
         </div>
         <div v-if="kind !== 'stay'" class="g-booking-bar__field">
-          <GDatePicker block :model-value="query.date" :label="fieldName('date')" :min="min" :max="max" :disabled-dates="dpDisabled" :locale="loc" :labels="dpLabels" :error="errors.date" :disabled="disabled || undefined" @update:model-value="(v) => set({ date: v })" />
+          <GDatePicker block months="auto" :model-value="query.date" :label="fieldName('date')" :min="min" :max="max" :disabled-dates="dpDisabled" :locale="loc" :labels="dpLabels" :error="errors.date" :disabled="disabled || undefined" @update:model-value="(v) => set({ date: v })" />
         </div>
         <div v-if="kind === 'table'" class="g-booking-bar__field">
           <GSelect block :model-value="query.time" :options="timeOptions" :label="fieldName('time')" :error="errors.time" :disabled="disabled || undefined" @update:model-value="(v) => set({ time: v })" />

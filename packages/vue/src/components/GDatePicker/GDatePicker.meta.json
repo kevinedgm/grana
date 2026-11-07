@@ -2,11 +2,14 @@
   "schemaVersion": 1,
   "name": "GDatePicker",
   "tag": "g-datepicker",
-  "status": "candidate",
+  "status": "draft",
   "since": "0.1.0",
-  "description": "Selector de una fecha o de un rango (valor ISO YYYY-MM-DD): uno o dos meses según el ancho, campo(s) con popover u hoja inferior en móvil, o solo la superficie en línea. Franja de rango continua, proximidad ± N días, teclado APG y textos por labels.",
+  "description": "Selector de una fecha o de un rango (valor ISO YYYY-MM-DD): un mes por defecto (dos con months=\"auto\" si caben, o months=2), salto a mes y año desde el título (A · Zoom de escala), campo(s) con popover u hoja inferior en móvil, o solo la superficie en línea. Franja de rango continua que sigue fuera de lo visible, proximidad ± N días, superficie compacta con density, teclado APG y textos por labels.",
   "contract": "design/contracts/datepicker.md",
-  "prototype": "design/lab/datepicker/r01/",
+  "prototype": [
+    "design/lab/datepicker/r01/",
+    "design/lab/datepicker/r02/"
+  ],
   "style": "packages/vue/src/components/GDatePicker/GDatePicker.css",
   "tagAlias": "GDatepicker (Vue resuelve <g-datepicker> como GDatepicker; el registro incluye ese alias además de GDatePicker)",
   "props": [
@@ -76,12 +79,13 @@
     {
       "name": "months",
       "type": "String | Number",
-      "default": "auto",
+      "default": 1,
       "values": [
         "auto",
         1,
         2
-      ]
+      ],
+      "note": "#1021: un mes por defecto; `auto` mide y pone dos si caben"
     },
     {
       "name": "locale",
@@ -97,7 +101,7 @@
       "name": "labels",
       "type": "Object",
       "default": {},
-      "description": " checkoutOnly (#739): sufijo del nombre del día «solo salida» (recomendado con disabledNights)."
+      "description": " checkoutOnly (#739): sufijo del nombre del día «solo salida» (recomendado con disabledNights). r02 (#1025): chooseMonth, chooseYear (sufijo de los botones del título: «noviembre, elegir mes»), prevYear, nextYear (flechas en la vista de meses) y prevYears, nextYears (flechas en la vista de años) son requeridas (aviso de desarrollo único con las que falten, con o sin inline); viewMonths ({year}) y viewYears ({from}, {to}) nombran las rejillas de meses y años y anuncian el cambio de año o de página; typeYear es la pista visible de la vista de años; current y hasValue son sufijos del nombre de un mes o un año («…, actual», «…, contiene lo elegido»)."
     },
     {
       "name": "proximity",
@@ -164,7 +168,7 @@
         "compact"
       ],
       "resolvedDefault": "default",
-      "note": "Sin valor: prop explícita › contexto de GForm › default de siempre (form.md §2)"
+      "note": "El campo y la superficie, también con inline (#1022); sin valor: la región (density.md §1). Sin valor en la lógica: prop explícita › contexto de GForm › default de siempre (form.md §2)"
     },
     {
       "name": "rounded",
@@ -305,7 +309,7 @@
     {
       "name": "navigate",
       "payload": "{ month }",
-      "trigger": "Cambia el mes visible (botones, teclado, deslizamiento)"
+      "trigger": "Cambia el mes visible (botones, teclado, deslizamiento); también al bajar desde la vista de meses con otro primer mes (r02). Recorrer meses o años sin bajar no emite"
     },
     {
       "name": "update:open",
@@ -425,7 +429,9 @@
     "Noches y salida (#739): con disabledNights, minNights o maxNights en range, el fin va después del inicio y cada día se clasifica por canStart/canEnd: sin inicio pendiente, lo que no puede ser inicio es is-disabled salvo «solo salida» (is-checkout-only, sin aria-disabled; tocarlo no hace nada); con inicio pendiente, lo que no puede ser fin pero sí inicio es is-inactive y lo que no es ninguno, is-disabled. La vista previa solo pinta fines válidos. La proximidad recorta antes de la primera noche agotada y no pasa de maxNights. Avisos: las tres props en single; maxNights < minNights; modelValue con una noche agotada dentro (se muestra tal cual).",
     "Slot trigger (B-L7, #739): la raíz lleva g-datepicker--trigger (coco: display: contents); aviso si al montar la raíz tiene un <p> ancestro.",
     "B-L6 (#739): «Mes anterior» y «Mes siguiente» llevan disabled con disabled (también inline): el selector deshabilitado no navega.",
-    "Lectura del día (AV-C1, #952): con el slot day (con o sin inline) se mide en un solo cuadro (requestAnimationFrame) y solo con lecturas si algún hijo de .g-datepicker__day que no es __today-dot cumple scrollWidth > min(clientWidth, ancho del día) + 0,5 (la pista implícita de la rejilla del día crece con su contenido, así que clientWidth del hijo no basta; un hijo de 1 px o menos es texto oculto accesible y no cuenta); si alguno no cabe, la raíz lleva is-day-content-hidden (todo o nada, sin histéresis: coco oculta con visibility). Se mide con el ResizeObserver de la raíz (que ahora también observa la superficie con el slot day), al abrir y tras un render cuya clave medida (abierto, mes, número de meses y texto de los días) cambie: un padre con props en línea no vuelve a medir. g-datepicker__day-readout (aria-hidden, siempre en el DOM con el slot day, uno solo con dos meses, tras __months y antes de __foot) lleva la fecha corta (Intl weekday short + day numeric) y el mismo slot day del día activo: el del puntero (no el toque) y, si no hay, el de la parada de Tab. Sin prop ni aviso nuevos."
+    "Lectura del día (AV-C1, #952): con el slot day (con o sin inline) se mide en un solo cuadro (requestAnimationFrame) y solo con lecturas si algún hijo de .g-datepicker__day que no es __today-dot cumple scrollWidth > min(clientWidth, ancho del día) + 0,5 (la pista implícita de la rejilla del día crece con su contenido, así que clientWidth del hijo no basta; un hijo de 1 px o menos es texto oculto accesible y no cuenta); si alguno no cabe, la raíz lleva is-day-content-hidden (todo o nada, sin histéresis: coco oculta con visibility). Se mide con el ResizeObserver de la raíz (que ahora también observa la superficie con el slot day), al abrir y tras un render cuya clave medida (abierto, mes, número de meses y texto de los días) cambie: un padre con props en línea no vuelve a medir. g-datepicker__day-readout (aria-hidden, siempre en el DOM con el slot day, uno solo con dos meses, tras __months y antes de __foot) lleva la fecha corta (Intl weekday short + day numeric) y el mismo slot day del día activo: el del puntero (no el toque) y, si no hay, el de la parada de Tab. Sin prop ni aviso nuevos.",
+    "Vistas (r02, #1020, #1024): vista interna days/months/years (no es prop ni evento), días al montar y en cada apertura. Cada mes es g-datepicker__head + g-datepicker__stage > g-datepicker__view--days > grid; en meses y años, una sola g-datepicker__month con una cabecera y g-datepicker__stage > g-datepicker__view--months|--years > grid 3 × 4 (con dos meses, esa sección ocupa la caja de los dos). Título de días: dos botones g-datepicker__title-part--month/--year («mes, elegir mes»); la rejilla de días se nombra con g-datepicker__title-live (sr, aria-live polite); el h3 ya no es región viva. Elegir un año baja a sus meses (mismo mes); elegir un mes baja a sus días con el mismo número de día recortado y emite navigate si cambia el primer mes visible; abierto desde la segunda columna, el elegido queda segundo. Esc: vacía las cifras, sube un nivel (pila de gestos; foco en el botón del título que abrió) o, en días y con popover, cierra; si lo consume, preventDefault + stopPropagation. min/max (#1026): un mes o un año entero fuera es is-disabled + aria-disabled, recibe foco y no se elige; las flechas de cabecera del borde llevan aria-disabled y las del teclado no pasan a un año o una página enteros fuera; sin min/max, años 1 a 9999. Teclado APG: ±1/±3, Inicio/Fin de fila, Ctrl+Inicio/Fin, RePág/AvPág (año o página). Escribir el año: cifras \\p{Nd}, hasta 4 (salto recortado, página año − 4), Retroceso, YEAR_TYPE_MS = 1500 (constante de JS). Anuncios: cambio de año o de página en la región status con viewMonths/viewYears; entrar lo dice el foco. Zoom (#1023): data-zoom in/out solo al nacer de un cambio de nivel, --_zoom-x/-y en la raíz de la vista en % por índice de la rejilla 3 × 4 (sin leer cajas); la vista es un elemento nuevo por nivel, así que una interrupción la reinicia.",
+    "Franja que sigue (#1027): con el rango (o su vista previa) continuando fuera de lo visible, la primera o la última celda pintada lleva is-open-start / is-open-end en lugar de is-cap-*; en dos meses, el primer día del primero y el último del segundo (el corte entre meses sigue redondeado). Nombres y aria-selected sin cambio."
   ],
   "bundle": {
     "gzip": 222191,
@@ -438,7 +444,9 @@
     "RTL completo, Firefox y Safari (popover, ::backdrop, Intl.Locale.getWeekInfo, scale/rotate individuales)",
     "Hoja móvil con teclado virtual y deslizamiento en táctil real",
     "Franja del rango tenue (1.14:1 con el tema por defecto, 1.22:1 con el de prueba): decisión pendiente (ver auditoria.md)",
-    "Escribir la fecha a mano (fuera de v0.1)"
+    "Escribir la fecha a mano (fuera de v0.1)",
+    "Auditoría de coco de la r02 (design/lab/datepicker/auditoria-r02.md); status vuelve a candidate tras ella",
+    "Lector de pantalla real en el título con dos botones, el nodo vivo y las rejillas de meses y años"
   ],
   "formSystem": {
     "contract": "design/contracts/form.md §10",

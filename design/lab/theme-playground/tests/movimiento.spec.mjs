@@ -286,6 +286,48 @@ for (const reduced of [false, true]) {
   })
 }
 
+// ---------- Cambiar de nivel (moments.cambiarNivel, #1020, #1023) ----------
+// Solo por comportamiento: GDatePicker del banco, días → meses (sube) y meses → días (baja). Lo detallado (Δ 0 cuadro a
+// cuadro, dos meses, interrupción, Esc en GDialog, táctil) está en datepicker-r02.spec.mjs
+for (const reduced of [false, true]) {
+  test.describe(`cambiarNivel · ${reduced ? 'reducido' : 'sin reducir'}`, () => {
+    test.use({ contextOptions: { reducedMotion: reduced ? 'reduce' : 'no-preference' } })
+    test('GDatePicker: duración y curva de la fila, escala acotada, Δ 0 del panel; nunca dos vistas', async ({ page }) => {
+      const rule = motion.moments.cambiarNivel.rule.enter
+      await bench(page)
+      const T = await tokens(page)
+      await page.click('.g-datepicker__field')
+      await page.waitForTimeout(WAIT)
+      const size = () => page.evaluate(() => { const r = document.querySelector('.g-datepicker__surface').getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)] })
+      const s0 = await size()
+      for (const act of [() => page.click('.g-datepicker__title-part--month'), () => page.click('.g-datepicker__pick >> nth=3')]) {
+        await page.evaluate(() => {
+          const xs = []
+          let on = true
+          ;(function f() {
+            const v = [...document.querySelectorAll('.g-datepicker__view')]
+            const c = v[0] && getComputedStyle(v[0])
+            xs.push({ kinds: new Set(v.map((e) => e.className)).size, run: v[0] ? v[0].getAnimations().map((a) => ({ ms: a.effect.getTiming().duration, curve: c.animationTimingFunction })) : [], tf: c ? c.transform : 'none' })
+            if (on) requestAnimationFrame(f)
+          })()
+          window.__lv = () => { on = false; return xs }
+        })
+        await act()
+        await page.waitForTimeout(WAIT)
+        const xs = await page.evaluate(() => window.__lv())
+        const run = xs.flatMap((x) => x.run)
+        expect(xs.every((x) => x.kinds <= 1), 'nunca dos vistas').toBe(true)
+        near(Math.max(...run.map((r) => r.ms)), T[reduced ? 'fast' : rule.duration], 'cambiarNivel')
+        expect([...new Set(run.map((r) => r.curve))]).toEqual([await curveOf(page, reduced ? 'linear' : `var(${motion.curves[rule.curve]})`)])
+        const sc = xs.map((x) => (x.tf === 'none' ? 1 : Number(/matrix\(([^,]+)/.exec(x.tf)?.[1] ?? 1)))
+        if (reduced) expect(sc.every((v) => v === 1), 'sin escala').toBe(true)
+        else expect(Math.min(...sc) >= 0.95 && Math.max(...sc) <= 1.05, `escala ${Math.min(...sc)}…${Math.max(...sc)}`).toBe(true)
+        expect(await size(), 'Δ 0 del panel').toEqual(s0)
+      }
+    })
+  })
+}
+
 // ---------- GSelect · una sola luz ----------
 const OPT = '.g-select__option'
 const LIST = (s) => `${s} .g-select__list`

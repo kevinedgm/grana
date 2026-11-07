@@ -1538,12 +1538,12 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
         </section>
         <section class="pg-section" id="sec-datepicker" data-pg-section>
           <h2>GDatePicker</h2>
-          <p class="pg-lead">Selector de fecha o de rango, con días bloqueados y atajos.</p>
+          <p class="pg-lead">Selector de fecha o de rango, con días bloqueados y atajos. <b>Un mes por defecto</b> (#1021); las búsquedas de reserva piden <code>months="auto"</code> (dos si caben). Desde el título, <b>el mes y el año abren sus rejillas</b> en la misma caja (A · Zoom de escala, #1020): en la de años se escribe el año; <kbd>Esc</kbd> sube un nivel. <code>density="compact"</code> aprieta también la superficie (#1022).</p>
           <h3>Selector de fechas (GDatePicker)</h3>
           <div class="pg-panel">
     <div class="col" style="max-width:820px">
       <div class="row" style="align-items:flex-start">
-        <g-datepicker v-model="dpRange" mode="range" label="Fechas" placeholder="Elige fechas" :labels="dpLabels" :proximity="dpProx" :min="dpToday" :disabled-dates="dpBlocked" name="fechas" hint="Con proximidad y fechas bloqueadas" @start="dpLog = 'start ' + $event.date" @change="dpLog = 'change ' + JSON.stringify($event)" @navigate="dpLog = 'navigate ' + $event.month"></g-datepicker>
+        <g-datepicker v-model="dpRange" mode="range" months="auto" label="Fechas" placeholder="Elige fechas" :labels="dpLabels" :proximity="dpProx" :min="dpToday" :disabled-dates="dpBlocked" name="fechas" hint="Con proximidad y fechas bloqueadas" @start="dpLog = 'start ' + $event.date" @change="dpLog = 'change ' + JSON.stringify($event)" @navigate="dpLog = 'navigate ' + $event.month"></g-datepicker>
         <g-datepicker v-model="dpRange" mode="range" split label="Estancia" label-start="Desde" label-end="Hasta" placeholder-start="Fecha de inicio" placeholder-end="Fecha de fin" :labels="dpLabels" :min="dpToday"></g-datepicker>
         <g-datepicker v-model="dpSingle" label="Fecha de entrega" placeholder="Elige una fecha" :labels="dpLabels" variant="soft" color="accent"></g-datepicker>
       </div>
@@ -1554,17 +1554,23 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
       </div>
       <div id="dp-bar" class="row" style="border:1px solid var(--g-color-border-control);border-radius:var(--g-radius-pill);padding:4px;gap:0;flex-wrap:wrap;align-items:center">
         <input aria-label="Destino" placeholder="¿A dónde vas?" style="flex:1;border:0;background:transparent;padding:0 16px;font:inherit;min-inline-size:0">
-        <g-datepicker v-model="dpRange" mode="range" anchor="#dp-bar" :labels="dpLabels" :proximity="dpProx" :min="dpToday">
+        <g-datepicker v-model="dpRange" mode="range" months="auto" anchor="#dp-bar" :labels="dpLabels" :proximity="dpProx" :min="dpToday">
           <template #trigger="{ controls, expanded, toggle, text }">
             <g-btn variant="ghost" aria-haspopup="dialog" :aria-expanded="String(expanded)" :aria-controls="controls" @click="toggle">{{ text || 'Agrega fechas' }}</g-btn>
           </template>
         </g-datepicker>
         <g-btn>Buscar</g-btn>
       </div>
-      <g-datepicker v-model="dpRange" mode="range" inline :labels="dpLabels" :proximity="dpProx" :min="dpToday" :disabled-dates="dpBlocked">
+      <g-datepicker v-model="dpRange" mode="range" months="auto" inline :labels="dpLabels" :proximity="dpProx" :min="dpToday" :disabled-dates="dpBlocked">
         <template #summary="{ start, end, pending, days }">{{ pending ? 'Elige la fecha final' : days ? days + ' días' : 'Elige la fecha de inicio' }}</template>
         <template #day="{ date }"><span v-if="date.endsWith('-15')" class="g-datepicker__sr"> · precio bajo</span></template>
       </g-datepicker>
+      <h3>Un mes y compacto (r02)</h3>
+      <div id="dp-compact" class="row" style="align-items:flex-start;flex-wrap:wrap">
+        <g-datepicker v-model="dpSingle" inline :labels="dpLabels" locale="es" data-test="dp-one"></g-datepicker>
+        <g-datepicker v-model="dpSingle" inline density="compact" :labels="dpLabels" locale="es" :min="dpToday" data-test="dp-compact"></g-datepicker>
+        <g-datepicker v-model="dpRange" mode="range" density="compact" label="Compacto con campo" placeholder="Elige fechas" :labels="dpLabels" data-test="dp-compact-field"></g-datepicker>
+      </div>
       <div id="dp-price" class="col" style="max-width:min(420px, calc(100vw - 32px))">
         <label><input type="checkbox" v-model="dpFive" data-test="dp-five"> Precio de cinco cifras (lectura del día, #952)</label>
         <g-datepicker v-model="dpPriceDay" inline months="1" locale="es-MX" :labels="dpLabels" :day-description="(iso) => dpPrice(iso).toLocaleString('es-MX') + ' pesos mexicanos'">
@@ -3509,7 +3515,10 @@ createApp(App).use(Grana).use(createIcons([LockOpen, MapPin, Image]))</pre>
           prev: 'Mes anterior', next: 'Mes siguiente', dialog: 'Elegir fechas', close: 'Cerrar',
           today: 'hoy', selected: 'seleccionada', rangeStart: 'inicio del rango', rangeEnd: 'fin del rango', rangeSingle: 'inicio y fin del rango', inRange: 'dentro del rango', unavailable: 'no disponible',
           clear: 'Limpiar', done: 'Listo', proximityGroup: 'Ampliar el rango',
-          announceStart: 'Inicio del rango: {date}. Elige la fecha final.', announceEnd: 'Rango de {start} a {end}, {days} días.', announceDate: '{date} seleccionada.', announceWiden: 'Rango ampliado: {start} a {end}, {days} días.', announceClear: 'Selección borrada.'
+          announceStart: 'Inicio del rango: {date}. Elige la fecha final.', announceEnd: 'Rango de {start} a {end}, {days} días.', announceDate: '{date} seleccionada.', announceWiden: 'Rango ampliado: {start} a {end}, {days} días.', announceClear: 'Selección borrada.',
+          // r02 (#1025): salto a mes y año
+          chooseMonth: 'elegir mes', chooseYear: 'elegir año', prevYear: 'Año anterior', nextYear: 'Año siguiente', prevYears: 'Doce años antes', nextYears: 'Doce años después',
+          viewMonths: 'Meses de {year}', viewYears: 'Años de {from} a {to}', typeYear: 'Escribe un año', current: 'actual', hasValue: 'contiene lo elegido'
         }
         const selClient = ref(null)
         const selPerson = ref(null)

@@ -25,7 +25,7 @@ const ROWS = [
   { key: 'children', label: 'Niños', unit: (n) => `${n} ${n === 1 ? 'niño' : 'niños'}`, decrementLabel: '−', incrementLabel: '+' },
   { key: 'rooms', label: 'Habitaciones', min: 1, max: (v) => v.adults, unit: (n) => `${n} ${n === 1 ? 'habitación' : 'habitaciones'}`, decrementLabel: '−', incrementLabel: '+' }
 ]
-const DP = { prev: 'Mes anterior', next: 'Mes siguiente', dialog: 'Elegir fecha', close: 'Cerrar' }
+const DP = { prev: 'Mes anterior', next: 'Mes siguiente', dialog: 'Elegir fecha', close: 'Cerrar', chooseMonth: 'elegir mes', chooseYear: 'elegir año', prevYear: 'Año anterior', nextYear: 'Año siguiente', prevYears: 'Doce años antes', nextYears: 'Doce años después' }
 const LABELS = {
   phrase: 'Llego el {from}, me quedo {nights} y somos {party}.',
   fields: { from: 'Llegada', to: 'Salida', nights: 'Noches', date: 'Día', time: 'Hora', tour: 'Recorrido', party: 'Huéspedes' },
@@ -285,6 +285,15 @@ describe('GBookingBar · la barra', () => {
     expect(w.find('form').classes()).toContain('is-compact')
     formW = 720; cbs.forEach((fn) => fn([{ target: w.find('form').element }])); await new Promise((r) => setTimeout(r, 30)); await flush()
     expect(w.find('form').classes()).not.toContain('is-compact')
+  })
+})
+
+describe('GBookingBar · un mes por defecto en GDatePicker (#1021)', () => {
+  it('los tres GDatePicker con campo fijan months="auto"; la hoja (inline) sigue con un mes', () => {
+    const months = (w) => w.findAllComponents({ name: 'GDatePicker' }).map((c) => [c.props('inline'), c.props('months')])
+    expect(months(mk())).toEqual([[false, 'auto']]) // hueco de la frase
+    expect(months(mk({ appearance: 'bar' }))).toEqual([[false, 'auto']]) // rango partido de estancia
+    expect(months(mk({ appearance: 'bar', kind: 'table', times: [{ value: '20:00' }], labels: { ...LABELS, phrase: 'Mesa para {party} el {date} a las {time}.' } })).filter(([i]) => !i)).toEqual([[false, 'auto']]) // campo de fecha
   })
 })
 

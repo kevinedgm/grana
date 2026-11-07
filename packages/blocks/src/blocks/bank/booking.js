@@ -48,7 +48,10 @@ export const BAR_LABELS = {
   datePicker: {
     prev: 'Mes anterior', next: 'Mes siguiente', dialog: 'Elegir fechas', close: 'Cerrar', today: 'hoy', selected: 'elegida',
     rangeStart: 'llegada', rangeEnd: 'salida', rangeSingle: 'llegada y salida', inRange: 'dentro de la estancia', unavailable: 'no disponible',
-    clear: 'Borrar', done: 'Listo'
+    clear: 'Borrar', done: 'Listo',
+    // r02 de GDatePicker (#1025): salto a mes y año
+    chooseMonth: 'elegir mes', chooseYear: 'elegir año', prevYear: 'Año anterior', nextYear: 'Año siguiente', prevYears: 'Doce años antes', nextYears: 'Doce años después',
+    viewMonths: 'Meses de {year}', viewYears: 'Años de {from} a {to}', typeYear: 'Escribe un año', current: 'actual', hasValue: 'con fechas elegidas'
   }
 }
 

@@ -203,7 +203,7 @@
         viewOptions: [{ value: 'MXN', label: 'MXN' }, { value: 'USD', label: 'USD (aprox.)' }],
         currencies: [{ value: 'MXN', label: 'MXN · peso mexicano' }, { value: 'USD', label: 'USD · dólar estadounidense' }, { value: 'JPY', label: 'JPY · yen japonés' }, { value: 'EUR', label: 'EUR · euro' }],
         CART: [{ k: 'Patio de los naranjos · 2 noches', v: mxn(3700) }, { k: 'Recorrido Hierve el Agua · 2 personas', v: usd(190) }, { k: 'Desayuno oaxaqueño · 2', v: mxn(0) }, { k: 'Descuento de temporada', v: mxn(-200) }],
-        calLabels: { prev: 'Mes anterior', next: 'Mes siguiente', dialog: 'Elegir fechas', today: 'hoy', rangeStart: 'llegada', rangeEnd: 'salida', inRange: 'en tu estancia', selected: 'elegida', unavailable: 'sin disponibilidad', rangeSingle: 'llegada y salida' },
+        calLabels: { prev: 'Mes anterior', next: 'Mes siguiente', dialog: 'Elegir fechas', today: 'hoy', rangeStart: 'llegada', rangeEnd: 'salida', inRange: 'en tu estancia', selected: 'elegida', unavailable: 'sin disponibilidad', rangeSingle: 'llegada y salida', chooseMonth: 'elegir mes', chooseYear: 'elegir año', prevYear: 'Año anterior', nextYear: 'Año siguiente', prevYears: 'Doce años antes', nextYears: 'Doce años después', viewMonths: 'Meses de {year}', viewYears: 'Años de {from} a {to}', typeYear: 'Escribe un año', current: 'actual', hasValue: 'con fechas elegidas' },
         dayDescription: (iso) => (iso >= TODAY ? GranaPrice.formatPrice(mxn(dayPrice(iso)), { locale: LANG }).spoken : '')
       }
     }

@@ -1,6 +1,6 @@
 <script setup>
 // GDatePicker · selector de una fecha o de un rango (dueño: bruno)
-// Contrato: design/contracts/datepicker.md · Estructura: design/lab/datepicker/r01/ · Estilo: GDatePicker.css (coco)
+// Contrato: design/contracts/datepicker.md · Estructura: design/lab/datepicker/r01/ y r02/ · Estilo: GDatePicker.css (coco)
 // Patrón: date picker dialog (WAI-ARIA APG). Cada mes es un grid; un solo tabstop (tabindex móvil) y un
 // nombre completo por día. El valor es una cadena ISO (YYYY-MM-DD) o { start, end }; solo se emiten valores completos.
 import { computed, mergeProps, nextTick, onBeforeUnmount, onMounted, onUpdated, ref, useAttrs, useId, useSlots, watch } from 'vue'
@@ -9,6 +9,9 @@ import GIcon from '../GIcon/GLibIcon.js'
 import { messageIcon, spaceUnit, useFormField } from '../GForm/formContext.js'
 import { anchorGone, followFrame, isPhone, px, setVar, stickySide } from '../../utils/anchor.js'
 import { addDays, addMonths, daysBetween, daysInMonth, firstOfMonth, isISO, monthKey, parseISO, todayISO, weekday } from '../../utils/dates.js'
+
+// Búfer del año escrito en la vista de años (r02, #1024): sin cifra nueva en este tiempo se vacía. No es token (§29.6).
+const YEAR_TYPE_MS = 1500
 
 defineOptions({ name: 'GDatePicker', inheritAttrs: false })
 
@@ -24,7 +27,8 @@ const props = defineProps({
   disabledNights: { type: Function, default: undefined },
   minNights: { type: Number, default: undefined },
   maxNights: { type: Number, default: undefined },
-  months: { type: [String, Number], default: 'auto', validator: (v) => v === 'auto' || v === 1 || v === 2 || v === '1' || v === '2' },
+  // #1021: un mes por defecto; `auto` mide y pone dos si caben
+  months: { type: [String, Number], default: 1, validator: (v) => v === 'auto' || v === 1 || v === 2 || v === '1' || v === '2' },
   locale: { type: String, default: undefined },
   firstDay: { type: Number, default: undefined, validator: (v) => Number.isInteger(v) && v >= 0 && v <= 6 },
   labels: { type: Object, default: () => ({}) },
@@ -134,7 +138,17 @@ const rangeText = (a, b) => {
   const f = fmtShort.value
   return typeof f.formatRange === 'function' ? f.formatRange(parseISO(a), parseISO(b)) : `${short(a)} – ${short(b)}`
 }
-const fill = (tpl, vars) => (typeof tpl === 'string' ? tpl.replace(/\{(date|start|end|days)\}/g, (_, k) => String(vars[k] ?? '')) : '')
+const fill = (tpl, vars) => (typeof tpl === 'string' ? tpl.replace(/\{(date|start|end|days|year|from|to)\}/g, (_, k) => String(vars[k] ?? '')) : '')
+// Meses y años (r02): fechas locales con setFullYear (años de 1 a 99 sin el salto a 19xx de Date)
+const dateOf = (y, m = 0) => { const d = new Date(2000, m, 1); d.setFullYear(y); return d }
+const fmtYear = computed(() => dtf({ year: 'numeric' }))
+const fmtMonthYear = computed(() => dtf({ month: 'long', year: 'numeric' }))
+const fmtMonthShort = computed(() => dtf({ month: 'short' }))
+const yearText = (y) => fmtYear.value.format(dateOf(y))
+const yearsText = (a, b) => {
+  const f = fmtYear.value
+  return typeof f.formatRange === 'function' ? f.formatRange(dateOf(a), dateOf(b)) : `${yearText(a)}–${yearText(b)}`
+}
 
 // ---------- Valor ----------
 const normalized = computed(() => {
@@ -206,6 +220,10 @@ const weekdays = computed(() => {
 const grid = computed(() => {
   const out = []
   const today = todayISO()
+  // Borde visible de la franja que sigue (#1027): en un mes, la primera y la última celda pintadas; en dos, el primer día
+  // del primero y el último del segundo
+  const lead0 = (weekday(view.value) - fdow.value + 7) % 7
+  const vis = n.value === 1 ? [addDays(view.value, -lead0), addDays(view.value, 41 - lead0)] : [view.value, lastVisibleDay()]
   for (let i = 0; i < n.value; i++) {
     const first = addMonths(view.value, i)
     const lead = (weekday(first) - fdow.value + 7) % 7
@@ -220,7 +238,7 @@ const grid = computed(() => {
         const inMonth = idx >= 0 && idx < total
         const cell = { iso, day: parseISO(iso).getDate(), inMonth, render: inMonth || n.value === 1, col: c, last: inMonth && idx === total - 1, first: inMonth && idx === 0 }
         if (cell.render) {
-          cell.st = dayState(cell, today)
+          cell.st = dayState(cell, today, vis)
           cell.label = dayLabel(cell, cell.st)
           cell.sel = cellSelected(cell)
         }
@@ -228,7 +246,7 @@ const grid = computed(() => {
       }
       weeks.push(cells)
     }
-    out.push({ key: first, first, index: i, name: fmtMonth.value.format(d0), year: d0.getFullYear(), weeks })
+    out.push({ key: first, first, index: i, name: fmtMonth.value.format(d0), year: yearText(d0.getFullYear()), live: fmtMonthYear.value.format(d0), weeks })
   }
   return out
 })
@@ -239,7 +257,7 @@ const tabbable = computed(() => (cellAt(focusDate.value) ? focusDate.value : gri
 // Alcance del slot day, el mismo en la celda y en la lectura
 const dayScope = (c) => ({ date: c.iso, day: c.day, selected: c.st.selected, inRange: c.st.inBand, disabled: c.st.disabled, outside: c.st.outside })
 
-function dayState(cell, today) {
+function dayState(cell, today, vis) {
   const { a, b, preview } = eff.value
   const iso = cell.iso
   const range = isRange.value
@@ -268,6 +286,9 @@ function dayState(cell, today) {
   const circle = single ? selectedSingle : Boolean(a && (iso === a || (iso === b && !preview)))
   const cs = inBand && (cell.col === 0 || (multi && cell.first))
   const ce = inBand && (cell.col === 6 || (multi && cell.last))
+  // La franja que sigue (#1027): el rango continúa fuera de lo que se ve; en lugar del extremo redondo
+  const openStart = Boolean(inBand && iso === vis[0] && a < iso)
+  const openEnd = Boolean(inBand && iso === vis[1] && b > iso)
   return {
     selected: Boolean(circle),
     today: iso === today,
@@ -276,7 +297,7 @@ function dayState(cell, today) {
     inactive: inact,
     checkoutOnly: co,
     isStart, isEnd, same, inBand, preview: Boolean(inBand && preview),
-    capStart: Boolean(cs && !isStart), capEnd: Boolean(ce && !isEnd)
+    capStart: Boolean(cs && !isStart && !openStart), capEnd: Boolean(ce && !isEnd && !openEnd), openStart, openEnd
   }
 }
 
@@ -391,6 +412,7 @@ function clearValue() {
 // ---------- Vista, foco y navegación ----------
 function setView(first, { announce = true } = {}) {
   if (first === view.value) return
+  zoom.value = null // cambiar de mes no lleva zoom (#1023)
   view.value = first
   if (announce) emit('navigate', { month: monthKey(first) })
 }
@@ -455,6 +477,269 @@ function onGridPointerleave() {
   pointed.value = null
 }
 
+// ---------- Vistas: días, meses y años (r02, A · Zoom de escala; #1020, #1024) ----------
+// La vista es interna (no es prop ni evento). Las vistas solo navegan: elegir un año baja a sus meses y elegir un mes
+// baja a sus días; el valor no cambia. Esc sube un nivel (la pila es la de los gestos). El zoom lo pinta coco con
+// data-zoom y el origen --_zoom-x/-y, escritos en la raíz de la vista y calculados por índice (sin leer cajas).
+const level = ref('days')
+let stack = []
+const vy = ref(0) // año a la vista en meses
+const vm = ref(0) // mes con la parada de Tab en meses (0-11)
+const ys = ref(1) // primer año de la página de años
+const vyf = ref(0) // año con la parada de Tab en años
+const fromCol = ref(0) // columna (con dos meses) desde cuyo título se abrió
+const zoom = ref(null) // { dir: 'in' | 'out', x, y } en fracción del escenario
+const typed = ref([]) // cifras escritas del año
+let typedTimer = 0
+
+const pad4 = (y) => String(y).padStart(4, '0')
+const ymISO = (y, m, d = 1) => `${pad4(y)}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+const yOf = (iso) => Number(iso.slice(0, 4))
+const mOf = (iso) => Number(iso.slice(5, 7)) - 1
+const lastOf = (y, m) => ymISO(y, m, daysInMonth(ymISO(y, m)))
+// min/max en meses y años (#1026): solo min y max (disabledDates no cuenta); sin ellos, años de 1 a 9999
+const minY = computed(() => Math.max(1, isISO(props.min) ? yOf(props.min) : 1))
+const maxY = computed(() => Math.min(9999, isISO(props.max) ? yOf(props.max) : 9999))
+const monthOff = (y, m) => Boolean((props.min && lastOf(y, m) < props.min) || (props.max && ymISO(y, m) > props.max))
+const yearOff = (y) => y < minY.value || y > maxY.value
+const pageOff = (s) => s > maxY.value || s + 11 < minY.value
+const clampYs = (s) => Math.max(1, Math.min(9988, s))
+const origin = (idx) => ({ x: ((idx % 3) + 0.5) / 3, y: (Math.floor(idx / 3) + 0.5) / 4 })
+
+// Lo elegido que marcan meses y años: la fecha, el rango o el inicio pendiente
+const markSpan = computed(() => {
+  if (pending.value) return [pending.value, pending.value]
+  const { start, end } = normalized.value
+  return start ? [start, end || start] : null
+})
+const touches = (a, b) => Boolean(markSpan.value && markSpan.value[0] <= b && markSpan.value[1] >= a)
+function pickLabel(text, cur, has, off) {
+  const l = L.value
+  let t = text
+  const add = (x) => { if (x) t += `, ${x}` }
+  if (cur) add(l.current)
+  if (has) add(isRange.value ? l.hasValue : l.selected)
+  if (off) add(l.unavailable)
+  return t
+}
+const picks = computed(() => {
+  const lv = level.value
+  if (lv === 'days') return []
+  const today = todayISO()
+  const rows = []
+  for (let r = 0; r < 4; r++) {
+    const row = []
+    for (let c = 0; c < 3; c++) {
+      const i = r * 3 + c
+      if (lv === 'months') {
+        const y = vy.value
+        const has = touches(ymISO(y, i), lastOf(y, i))
+        const cur = yOf(today) === y && mOf(today) === i
+        const off = monthOff(y, i)
+        row.push({ key: i, text: fmtMonthShort.value.format(dateOf(y, i)), label: pickLabel(fmtMonthYear.value.format(dateOf(y, i)), cur, has, off), cur, has, off, tab: i === vm.value })
+      } else {
+        const y = ys.value + i
+        const has = touches(ymISO(y, 0), ymISO(y, 11, 31))
+        const cur = yOf(today) === y
+        const off = yearOff(y)
+        const text = yearText(y)
+        row.push({ key: y, text, label: pickLabel(text, cur, has, off), cur, has, off, tab: y === vyf.value })
+      }
+    }
+    rows.push(row)
+  }
+  return rows
+})
+const pickName = computed(() => {
+  const l = L.value
+  if (level.value === 'months') return fill(l.viewMonths, { year: yearText(vy.value) }) || yearText(vy.value)
+  return fill(l.viewYears, { from: yearText(ys.value), to: yearText(ys.value + 11) }) || yearsText(ys.value, ys.value + 11)
+})
+const yearsHintId = computed(() => `${baseId.value}-years-hint`)
+const typedDigits = computed(() => [0, 1, 2, 3].map((i) => (i < typed.value.length ? nf.value.format(typed.value[i]) : '')))
+// Bordes (#1026): la flecha que llevaría a un año o a una página enteros fuera de [min, max] lleva aria-disabled
+const edgePrev = computed(() => (level.value === 'months' ? yearOff(vy.value - 1) : ys.value <= 1 || pageOff(clampYs(ys.value - 12))))
+const edgeNext = computed(() => (level.value === 'months' ? yearOff(vy.value + 1) : ys.value >= 9988 || pageOff(clampYs(ys.value + 12))))
+// Origen del zoom en la vista i de n (con dos meses, el escenario son las dos columnas)
+const zoomVars = (i, cols) => (zoom.value ? { '--_zoom-x': `${(zoom.value.x * cols - i) * 100}%`, '--_zoom-y': `${zoom.value.y * 100}%` } : undefined)
+
+function clearTyped() {
+  if (typedTimer) { clearTimeout(typedTimer); typedTimer = 0 }
+  if (typed.value.length) typed.value = []
+}
+function focusPick() {
+  surfaceEl.value?.querySelector('.g-datepicker__pick[tabindex="0"]')?.focus()
+}
+function enter(next, dir, idx) {
+  clearTyped()
+  level.value = next
+  zoom.value = { dir, ...origin(idx) }
+  nextTick(next === 'days' ? focusDay : focusPick)
+}
+// Botón del título de días (columna i): meses de ese año, foco en ese mes
+function toMonths(i) {
+  if (isDisabled.value) return
+  const first = addMonths(view.value, i)
+  fromCol.value = i
+  stack = ['days']
+  vy.value = yOf(first)
+  vm.value = mOf(first)
+  enter('months', 'out', vm.value)
+}
+// Botón del año (en días, columna i, o en meses): la página empieza en el año − 4
+function toYears(i) {
+  if (isDisabled.value) return
+  let y
+  if (level.value === 'months') {
+    stack.push('months')
+    y = vy.value
+  } else {
+    const first = addMonths(view.value, i)
+    fromCol.value = i
+    stack = ['days']
+    y = yOf(first)
+    vm.value = mOf(first)
+  }
+  ys.value = clampYs(y - 4)
+  vyf.value = y
+  enter('years', 'out', y - ys.value)
+}
+function pickYear(y) {
+  if (yearOff(y)) return
+  const idx = y - ys.value
+  vy.value = y
+  stack = ['days']
+  enter('months', 'in', idx)
+}
+// Elegir un mes baja a sus días: el mismo número de día que la parada de Tab, recortado; abierto desde la segunda
+// columna, el elegido queda segundo. Emite navigate si cambia el primer mes visible
+function pickMonth(m) {
+  const y = vy.value
+  if (monthOff(y, m)) return
+  const d = Math.min(Number(focusDate.value.slice(8, 10)), daysInMonth(ymISO(y, m)))
+  focusDate.value = ymISO(y, m, d)
+  stack = []
+  setView(firstOfMonth(addMonths(ymISO(y, m), -fromCol.value)))
+  enter('days', 'in', m)
+}
+// Esc: sube al nivel anterior sin elegir; el foco vuelve al botón del título que abrió el nivel. No navega
+function levelUp() {
+  const was = level.value
+  const prev = stack.pop() || 'days'
+  clearTyped()
+  let idx = 4.5
+  if (was === 'months') idx = mOf(addMonths(view.value, fromCol.value))
+  else if (prev === 'months' && vy.value >= ys.value && vy.value <= ys.value + 11) idx = vy.value - ys.value
+  else if (prev === 'days') { const y = yOf(addMonths(view.value, fromCol.value)) - ys.value; if (y >= 0 && y <= 11) idx = y }
+  level.value = prev
+  zoom.value = { dir: 'in', ...origin(idx) }
+  nextTick(() => {
+    const months = surfaceEl.value?.querySelectorAll('.g-datepicker__month')
+    const sec = months && (months[prev === 'days' ? fromCol.value : 0] || months[0])
+    sec?.querySelector(`.g-datepicker__title-part--${prev === 'days' && was === 'months' ? 'month' : 'year'}`)?.focus()
+  })
+}
+function stepYear(d) {
+  if (isDisabled.value || yearOff(vy.value + d)) return
+  vy.value += d
+  say(fill(L.value.viewMonths, { year: yearText(vy.value) }))
+}
+function stepPage(d) {
+  if (isDisabled.value) return
+  const s = clampYs(ys.value + d * 12)
+  if (s === ys.value || pageOff(s)) return
+  vyf.value = Math.max(s, Math.min(s + 11, vyf.value + (s - ys.value)))
+  ys.value = s
+  say(fill(L.value.viewYears, { from: yearText(s), to: yearText(s + 11) }))
+}
+function onPickClick(event) {
+  const b = event.target.closest?.('.g-datepicker__pick')
+  if (!b) return
+  const v = Number(b.dataset.value)
+  if (level.value === 'months') { vm.value = v; pickMonth(v) } else { vyf.value = v; pickYear(v) }
+}
+function onPickFocus(event) {
+  const b = event.target.closest?.('.g-datepicker__pick')
+  if (!b) return
+  const v = Number(b.dataset.value)
+  if (level.value === 'months') vm.value = v
+  else vyf.value = v
+}
+// Valor de una cifra de cualquier sistema (\p{Nd}): los dígitos vienen en tramos contiguos de diez
+function digitOf(k) {
+  if (typeof k !== 'string' || [...k].length !== 1 || !/\p{Nd}/u.test(k)) return null
+  const cp = k.codePointAt(0)
+  let i = 0
+  while (i < 9 && /\p{Nd}/u.test(String.fromCodePoint(cp - i - 1))) i++
+  return i
+}
+function onPickKeydown(event) {
+  if (!event.target.closest?.('.g-datepicker__pick')) return
+  const k = event.key
+  const rtl = surfaceEl.value && getComputedStyle(surfaceEl.value).direction === 'rtl'
+  const ctrl = event.ctrlKey || event.metaKey
+  const steps = { ArrowLeft: rtl ? 1 : -1, ArrowRight: rtl ? -1 : 1, ArrowUp: -3, ArrowDown: 3 }
+  if (level.value === 'months') {
+    let y = vy.value
+    let m = vm.value
+    if (steps[k]) m += steps[k]
+    else if (k === 'Home') m = ctrl ? 0 : m - (m % 3)
+    else if (k === 'End') m = ctrl ? 11 : m - (m % 3) + 2
+    else if (k === 'PageUp') y -= 1
+    else if (k === 'PageDown') y += 1
+    else return
+    event.preventDefault()
+    y += Math.floor(m / 12)
+    m = ((m % 12) + 12) % 12
+    if (yearOff(y)) return // no se pasa a un año entero fuera de [min, max]
+    const crossed = y !== vy.value
+    vy.value = y
+    vm.value = m
+    if (crossed) say(fill(L.value.viewMonths, { year: yearText(y) }))
+    nextTick(focusPick)
+    return
+  }
+  // Años: cifras, Retroceso, flechas
+  const dg = event.altKey || ctrl ? null : digitOf(k)
+  if (dg !== null) {
+    event.preventDefault()
+    if (typedTimer) clearTimeout(typedTimer)
+    typed.value = [...typed.value, dg]
+    if (typed.value.length < 4) {
+      typedTimer = setTimeout(() => { typedTimer = 0; typed.value = [] }, YEAR_TYPE_MS)
+      return
+    }
+    const y = Math.max(minY.value, Math.min(maxY.value, Number(typed.value.join(''))))
+    clearTyped()
+    ys.value = clampYs(y - 4)
+    vyf.value = y
+    nextTick(focusPick)
+    return
+  }
+  if (k === 'Backspace') {
+    if (typed.value.length) { event.preventDefault(); typed.value = typed.value.slice(0, -1) }
+    return
+  }
+  let y = vyf.value
+  const s0 = ys.value
+  if (steps[k]) y += steps[k]
+  else if (k === 'Home') y = ctrl ? s0 : y - ((y - s0) % 3)
+  else if (k === 'End') y = ctrl ? s0 + 11 : y - ((y - s0) % 3) + 2
+  else if (k === 'PageUp') y -= 12
+  else if (k === 'PageDown') y += 12
+  else return
+  event.preventDefault()
+  if (y < 1 || y > 9999) return
+  let s = s0
+  while (y < s) s = clampYs(s - 12)
+  while (y > s + 11) s = clampYs(s + 12)
+  if (s !== s0 && pageOff(s)) return // no se pasa a una página entera fuera de [min, max]
+  ys.value = s
+  vyf.value = y
+  if (s !== s0) say(fill(L.value.viewYears, { from: yearText(s), to: yearText(s + 11) }))
+  nextTick(focusPick)
+}
+
 // Deslizamiento horizontal (táctil)
 let x0 = null
 let y0 = null
@@ -468,7 +753,11 @@ function onSwipeUp(event) {
   x0 = null
   if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.5) {
     const rtl = surfaceEl.value && getComputedStyle(surfaceEl.value).direction === 'rtl'
-    go((dx < 0) !== rtl ? 1 : -1)
+    const d = (dx < 0) !== rtl ? 1 : -1
+    // En cada vista, lo mismo que sus flechas (mes, año, página de 12)
+    if (level.value === 'months') stepYear(d)
+    else if (level.value === 'years') stepPage(d)
+    else if (!isDisabled.value) go(d)
   }
 }
 
@@ -540,6 +829,7 @@ function fit() {
   const need = needWidth()
   const next = avail >= need ? 2 : 1
   if (next !== n.value) {
+    zoom.value = null
     n.value = next
     ensureVisible(focusDate.value)
   }
@@ -615,6 +905,11 @@ function show(trigger) {
   const { start } = normalized.value
   pending.value = null
   hover.value = null
+  // Cada vez que se abre, la vista es la de días, sin zoom (r02)
+  level.value = 'days'
+  stack = []
+  zoom.value = null
+  clearTyped()
   view.value = firstOfMonth(start || todayISO())
   focusDate.value = start || todayISO()
   isOpen.value = true
@@ -674,11 +969,15 @@ function onPopFocusout(event) {
   close(false)
 }
 function onPopKeydown(event) {
-  if (event.key !== 'Escape' || props.inline) return
-  // Esc cierra solo el selector: no debe llegar a un GDialog que también escuche Esc
+  if (event.key !== 'Escape' || event.isComposing) return
+  // Esc cierra lo de arriba primero (r02, #1024): las cifras escritas, luego sube de nivel y, en días, cierra el
+  // selector. Lo que consume no debe llegar a un GDialog que también escuche Esc (un inline dentro no lo cierra)
+  if (typed.value.length) clearTyped()
+  else if (level.value !== 'days') levelUp()
+  else if (!props.inline) close(true)
+  else return
   event.preventDefault()
   event.stopPropagation()
-  close(true)
 }
 function done() {
   close(true)
@@ -725,6 +1024,7 @@ onMounted(() => {
 })
 onBeforeUnmount(() => {
   ro?.disconnect()
+  if (typedTimer) clearTimeout(typedTimer)
   if (measureRaf) cancelAnimationFrame(measureRaf)
   if (isOpen.value) close(false)
 })
@@ -842,7 +1142,9 @@ const sheetVisibleClose = computed(() => !props.inline)
 try {
   if (process.env.NODE_ENV !== 'production') {
     const l = props.labels || {}
-    if (!l.prev || !l.next) warnOnce('nav', 'necesita labels.prev y labels.next: sin ellos los botones de mes no tienen nombre accesible.')
+    // r02 (#1025): el salto a mes y año existe en todos los tamaños, así que sus seis claves se piden siempre; un solo aviso
+    const miss = ['prev', 'next', 'chooseMonth', 'chooseYear', 'prevYear', 'nextYear', 'prevYears', 'nextYears'].filter((k) => !l[k])
+    if (miss.length) warnOnce('nav', `necesita ${miss.map((k) => `labels.${k}`).join(', ')}: sin ellos los botones de mes, de año y de página quedan sin nombre.`)
     if (!props.inline && !l.dialog) warnOnce('dialog', 'necesita labels.dialog (nombre accesible del popover).')
     if (!props.inline && !l.close) warnOnce('close', 'necesita labels.close (nombre del botón de cierre de la hoja móvil).')
     if (!props.inline && !hasTriggerSlot.value) {
@@ -856,11 +1158,12 @@ try {
     if (!isRange.value && (props.disabledNights || props.minNights || props.maxNights)) warnOnce('nights-single', 'disabledNights, minNights y maxNights solo valen con mode="range".')
     if (props.maxNights < props.minNights) warnOnce('nights-max', `maxNights (${props.maxNights}) es menor que minNights (${props.minNights}).`)
     if (props.inline) {
-      const fieldProps = ['label', 'hint', 'error', 'placeholder', 'required', 'name', 'split', 'size', 'density', 'rounded', 'block', 'variant']
+      // density no: aprieta también la superficie en línea (#1022)
+      const fieldProps = ['label', 'hint', 'error', 'placeholder', 'required', 'name', 'split', 'size', 'rounded', 'block', 'variant']
       const given = fieldProps.filter((k) => attrs[k] !== undefined)
       // (los props declarados no llegan a attrs: se comprueban contra sus valores no predeterminados)
       const set = [props.label, props.hint, props.error, props.placeholder, props.required, props.name, props.split, props.block, props.rounded].some(Boolean)
-      if (given.length || set) warnOnce('inline-fields', 'con inline se ignoran las props de campo (label, hint, error, placeholder, required, name, split, size, density, rounded, block, variant).')
+      if (given.length || set) warnOnce('inline-fields', 'con inline se ignoran las props de campo (label, hint, error, placeholder, required, name, split, size, rounded, block, variant).')
     }
   }
 } catch {}
@@ -868,7 +1171,7 @@ try {
 defineExpose({
   open: () => show(fieldEls.value[0] || null),
   close: () => close(true),
-  focus: () => (isOpen.value || props.inline ? focusDay() : fieldEls.value[0]?.focus())
+  focus: () => (isOpen.value || props.inline ? (level.value === 'days' ? focusDay() : focusPick()) : fieldEls.value[0]?.focus())
 })
 </script>
 
@@ -919,77 +1222,159 @@ defineExpose({
         <button class="g-datepicker__sheet-close" type="button" :aria-label="L.close" @click="close(true)"><GIcon name="x" /></button>
       </div>
       <div ref="surfaceEl" class="g-datepicker__surface">
-        <div class="g-datepicker__months" @pointerdown="onSwipeDown" @pointerup="onSwipeUp">
-          <section v-for="m in grid" :key="m.key" class="g-datepicker__month" :aria-labelledby="monthId(m.index)">
+        <!-- r02 (#1020): cada mes es head + escenario (__stage) con la raíz de la vista (__view) dentro. En meses y años hay una
+             sola sección con una cabecera, que ocupa la caja de los meses visibles (con dos meses, las dos columnas) -->
+        <div :class="['g-datepicker__months', { 'g-datepicker__months--pair': n === 2 }]" @pointerdown="onSwipeDown" @pointerup="onSwipeUp">
+          <template v-if="level === 'days'">
+            <section v-for="m in grid" :key="m.index" class="g-datepicker__month" :aria-labelledby="monthId(m.index)">
+              <div class="g-datepicker__head">
+                <button
+                  class="g-datepicker__nav g-datepicker__nav--prev"
+                  type="button"
+                  :hidden="m.index !== 0 || undefined"
+                  :aria-hidden="m.index !== 0 ? 'true' : undefined"
+                  :tabindex="m.index !== 0 ? -1 : undefined"
+                  :aria-label="L.prev"
+                  :disabled="isDisabled || undefined"
+                  @click="go(-1)"
+                ><GIcon name="chevron-left" /></button>
+                <h3 class="g-datepicker__title"><button
+                  class="g-datepicker__title-part g-datepicker__title-part--month"
+                  type="button"
+                  :aria-label="L.chooseMonth ? `${m.name}, ${L.chooseMonth}` : undefined"
+                  :disabled="isDisabled || undefined"
+                  @click="toMonths(m.index)"
+                >{{ m.name }}<GIcon name="chevron-down" /></button> <button
+                  class="g-datepicker__title-part g-datepicker__title-part--year"
+                  type="button"
+                  :aria-label="L.chooseYear ? `${m.year}, ${L.chooseYear}` : undefined"
+                  :disabled="isDisabled || undefined"
+                  @click="toYears(m.index)"
+                >{{ m.year }}<GIcon name="chevron-down" /></button></h3>
+                <button
+                  class="g-datepicker__nav g-datepicker__nav--next"
+                  type="button"
+                  :hidden="m.index !== grid.length - 1 || undefined"
+                  :aria-hidden="m.index !== grid.length - 1 ? 'true' : undefined"
+                  :tabindex="m.index !== grid.length - 1 ? -1 : undefined"
+                  :aria-label="L.next"
+                  :disabled="isDisabled || undefined"
+                  @click="go(1)"
+                ><GIcon name="chevron-right" /></button>
+                <span :id="monthId(m.index)" class="g-datepicker__sr g-datepicker__title-live" aria-live="polite">{{ m.live }}</span>
+              </div>
+              <div class="g-datepicker__stage">
+                <div class="g-datepicker__view g-datepicker__view--days" :data-zoom="zoom ? zoom.dir : undefined" :style="zoomVars(m.index, grid.length)">
+                  <table class="g-datepicker__grid" role="grid" :aria-labelledby="monthId(m.index)" @click="onGridClick" @keydown="onGridKeydown" @pointerover="onGridPointerover" @pointerleave="onGridPointerleave">
+                    <thead>
+                      <tr>
+                        <th v-for="(w, wi) in weekdays" :key="wi" scope="col"><span aria-hidden="true">{{ w.narrow }}</span><span class="g-datepicker__sr">{{ w.long }}</span></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(week, wi) in m.weeks" :key="wi">
+                        <template v-for="cell in week" :key="cell.iso">
+                          <td v-if="!cell.render" aria-hidden="true" />
+                          <td
+                            v-else
+                            role="gridcell"
+                            :class="{
+                              'is-in-range': cell.st.inBand && !cell.st.isStart && !cell.st.isEnd,
+                              'is-range-start': cell.st.isStart || cell.st.same,
+                              'is-range-end': cell.st.isEnd || cell.st.same,
+                              'is-preview': cell.st.preview,
+                              'is-cap-start': cell.st.capStart,
+                              'is-cap-end': cell.st.capEnd,
+                              'is-open-start': cell.st.openStart,
+                              'is-open-end': cell.st.openEnd
+                            }"
+                            :aria-selected="cell.sel ? 'true' : 'false'"
+                          >
+                            <button
+                              class="g-datepicker__day"
+                              :class="{
+                                'is-selected': cell.st.selected,
+                                'is-today': cell.st.today,
+                                'is-disabled': cell.st.disabled,
+                                'is-outside': cell.st.outside,
+                                'is-inactive': cell.st.inactive,
+                                'is-checkout-only': cell.st.checkoutOnly
+                              }"
+                              type="button"
+                              :data-date="cell.iso"
+                              :tabindex="cell.iso === tabbable ? 0 : -1"
+                              :aria-label="cell.label"
+                              :aria-disabled="cell.st.disabled ? 'true' : undefined"
+                              :disabled="isDisabled || undefined"
+                              @focus="onDayFocus(cell.iso)"
+                            >{{ nf.format(cell.day) }}<GIcon v-if="cell.st.today" class="g-datepicker__today-dot" name="circle" filled /><slot name="day" v-bind="dayScope(cell)" /></button>
+                          </td>
+                        </template>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
+          </template>
+          <section v-else class="g-datepicker__month">
             <div class="g-datepicker__head">
               <button
-                class="g-datepicker__nav g-datepicker__nav--prev"
+                :class="['g-datepicker__nav', 'g-datepicker__nav--prev', level === 'months' ? 'g-datepicker__nav--year' : 'g-datepicker__nav--years']"
                 type="button"
-                :hidden="m.index !== 0 || undefined"
-                :aria-hidden="m.index !== 0 ? 'true' : undefined"
-                :tabindex="m.index !== 0 ? -1 : undefined"
-                :aria-label="L.prev"
+                :aria-label="level === 'months' ? L.prevYear : L.prevYears"
+                :aria-disabled="edgePrev ? 'true' : undefined"
                 :disabled="isDisabled || undefined"
-                @click="go(-1)"
+                @click="level === 'months' ? stepYear(-1) : stepPage(-1)"
               ><GIcon name="chevron-left" /></button>
-              <h3 :id="monthId(m.index)" class="g-datepicker__title" aria-live="polite"><span>{{ m.name }}</span> <span>{{ m.year }}</span></h3>
-              <button
-                class="g-datepicker__nav g-datepicker__nav--next"
+              <h3 v-if="level === 'months'" class="g-datepicker__title"><button
+                class="g-datepicker__title-part g-datepicker__title-part--year"
                 type="button"
-                :hidden="m.index !== grid.length - 1 || undefined"
-                :aria-hidden="m.index !== grid.length - 1 ? 'true' : undefined"
-                :tabindex="m.index !== grid.length - 1 ? -1 : undefined"
-                :aria-label="L.next"
+                :aria-label="L.chooseYear ? `${yearText(vy)}, ${L.chooseYear}` : undefined"
                 :disabled="isDisabled || undefined"
-                @click="go(1)"
+                @click="toYears(0)"
+              >{{ yearText(vy) }}<GIcon name="chevron-down" /></button></h3>
+              <h3 v-else class="g-datepicker__title">{{ yearsText(ys, ys + 11) }}</h3>
+              <button
+                :class="['g-datepicker__nav', 'g-datepicker__nav--next', level === 'months' ? 'g-datepicker__nav--year' : 'g-datepicker__nav--years']"
+                type="button"
+                :aria-label="level === 'months' ? L.nextYear : L.nextYears"
+                :aria-disabled="edgeNext ? 'true' : undefined"
+                :disabled="isDisabled || undefined"
+                @click="level === 'months' ? stepYear(1) : stepPage(1)"
               ><GIcon name="chevron-right" /></button>
             </div>
-            <table class="g-datepicker__grid" role="grid" :aria-labelledby="monthId(m.index)" @click="onGridClick" @keydown="onGridKeydown" @pointerover="onGridPointerover" @pointerleave="onGridPointerleave">
-              <thead>
-                <tr>
-                  <th v-for="(w, wi) in weekdays" :key="wi" scope="col"><span aria-hidden="true">{{ w.narrow }}</span><span class="g-datepicker__sr">{{ w.long }}</span></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(week, wi) in m.weeks" :key="wi">
-                  <template v-for="cell in week" :key="cell.iso">
-                    <td v-if="!cell.render" aria-hidden="true" />
-                    <td
-                      v-else
-                      role="gridcell"
-                      :class="{
-                        'is-in-range': cell.st.inBand && !cell.st.isStart && !cell.st.isEnd,
-                        'is-range-start': cell.st.isStart || cell.st.same,
-                        'is-range-end': cell.st.isEnd || cell.st.same,
-                        'is-preview': cell.st.preview,
-                        'is-cap-start': cell.st.capStart,
-                        'is-cap-end': cell.st.capEnd
-                      }"
-                      :aria-selected="cell.sel ? 'true' : 'false'"
-                    >
-                      <button
-                        class="g-datepicker__day"
-                        :class="{
-                          'is-selected': cell.st.selected,
-                          'is-today': cell.st.today,
-                          'is-disabled': cell.st.disabled,
-                          'is-outside': cell.st.outside,
-                          'is-inactive': cell.st.inactive,
-                          'is-checkout-only': cell.st.checkoutOnly
-                        }"
-                        type="button"
-                        :data-date="cell.iso"
-                        :tabindex="cell.iso === tabbable ? 0 : -1"
-                        :aria-label="cell.label"
-                        :aria-disabled="cell.st.disabled ? 'true' : undefined"
-                        :disabled="isDisabled || undefined"
-                        @focus="onDayFocus(cell.iso)"
-                      >{{ nf.format(cell.day) }}<GIcon v-if="cell.st.today" class="g-datepicker__today-dot" name="circle" filled /><slot name="day" v-bind="dayScope(cell)" /></button>
-                    </td>
-                  </template>
-                </tr>
-              </tbody>
-            </table>
+            <div class="g-datepicker__stage">
+              <div :key="level" :class="['g-datepicker__view', `g-datepicker__view--${level}`]" :data-zoom="zoom ? zoom.dir : undefined" :style="zoomVars(0, 1)">
+                <table
+                  :class="['g-datepicker__grid', `g-datepicker__grid--${level}`]"
+                  role="grid"
+                  :aria-label="pickName"
+                  :aria-describedby="level === 'years' && L.typeYear ? yearsHintId : undefined"
+                  @click="onPickClick"
+                  @keydown="onPickKeydown"
+                  @focusin="onPickFocus"
+                >
+                  <tbody>
+                    <tr v-for="(row, ri) in picks" :key="ri">
+                      <td v-for="c in row" :key="c.key" role="gridcell" :aria-selected="c.has && !isRange ? 'true' : 'false'">
+                        <button
+                          class="g-datepicker__pick"
+                          :class="{ 'is-current': c.cur, 'is-selected': c.has && !isRange, 'is-in-value': c.has && isRange, 'is-disabled': c.off }"
+                          type="button"
+                          :data-value="c.key"
+                          :tabindex="c.tab ? 0 : -1"
+                          :aria-label="c.label"
+                          :aria-disabled="c.off ? 'true' : undefined"
+                          :disabled="isDisabled || undefined"
+                        >{{ c.text }}<GIcon v-if="c.has && isRange" name="circle" filled /></button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div v-if="level === 'years' && L.typeYear" class="g-datepicker__years-hint"><span :id="yearsHintId">{{ L.typeYear }}</span><span class="g-datepicker__typed" aria-hidden="true"><span v-for="(d, di) in typedDigits" :key="di" class="g-datepicker__typed-digit">{{ d }}</span></span></div>
+              </div>
+            </div>
           </section>
         </div>
         <div v-if="$slots.day" class="g-datepicker__day-readout" aria-hidden="true"><template v-if="activeCell"><span>{{ fmtReadout.format(parseISO(activeCell.iso)) }}</span><slot name="day" v-bind="dayScope(activeCell)" /></template></div>

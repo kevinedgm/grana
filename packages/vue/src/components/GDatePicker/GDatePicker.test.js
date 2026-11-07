@@ -22,8 +22,12 @@ const LABELS = {
   prev: 'Mes anterior', next: 'Mes siguiente', dialog: 'Elegir fechas', close: 'Cerrar',
   today: 'hoy', selected: 'seleccionada', rangeStart: 'inicio del rango', rangeEnd: 'fin del rango', rangeSingle: 'inicio y fin del rango', inRange: 'dentro del rango', unavailable: 'no disponible',
   clear: 'Limpiar', done: 'Listo', proximityGroup: 'Ampliar el rango',
-  announceStart: 'Inicio: {date}', announceEnd: 'Rango de {start} a {end}, {days} días', announceDate: '{date} seleccionada', announceWiden: 'Ampliado: {start} a {end}', announceClear: 'Borrado'
+  announceStart: 'Inicio: {date}', announceEnd: 'Rango de {start} a {end}, {days} días', announceDate: '{date} seleccionada', announceWiden: 'Ampliado: {start} a {end}', announceClear: 'Borrado',
+  // r02 (#1025)
+  chooseMonth: 'elegir mes', chooseYear: 'elegir año', prevYear: 'Año anterior', nextYear: 'Año siguiente', prevYears: 'Doce años antes', nextYears: 'Doce años después',
+  viewMonths: 'Meses de {year}', viewYears: 'Años de {from} a {to}', typeYear: 'Escribe un año', current: 'actual', hasValue: 'contiene lo elegido'
 }
+const R02 = { chooseMonth: 'm', chooseYear: 'y', prevYear: 'a', nextYear: 'b', prevYears: 'c', nextYears: 'd' }
 const mk = (props = {}, opts = {}) => mount(GDatePicker, { attachTo: document.body, props: { locale: 'es', firstDay: 1, months: 1, labels: LABELS, ...props }, ...opts })
 const inline = (props = {}, opts = {}) => mk({ inline: true, ...props }, opts)
 const day = (w, iso) => w.find(`[data-date="${iso}"]`)
@@ -48,13 +52,18 @@ describe('GDatePicker · render en línea', () => {
     expect(w.find('table').attributes('role')).toBe('grid')
   })
 
-  it('el título del mes lleva un espacio entre mes y año y liga la cuadrícula por aria-labelledby', () => {
+  it('el título del mes lleva un espacio entre mes y año; la cuadrícula se nombra con el nodo vivo __title-live (r02)', () => {
     const w = inline({ modelValue: '2026-10-20' })
     const h3 = w.find('h3')
     expect(h3.text()).toBe('octubre 2026')
-    expect(h3.attributes('aria-live')).toBe('polite')
-    expect(w.find('table').attributes('aria-labelledby')).toBe(h3.attributes('id'))
-    expect(w.find('section').attributes('aria-labelledby')).toBe(h3.attributes('id'))
+    expect(h3.attributes('aria-live')).toBeUndefined()
+    const live = w.find('.g-datepicker__title-live')
+    expect(live.classes()).toContain('g-datepicker__sr')
+    expect(live.attributes('aria-live')).toBe('polite')
+    expect(live.text()).toBe('octubre de 2026')
+    expect(live.element.closest('.g-datepicker__head')).not.toBeNull()
+    expect(w.find('table').attributes('aria-labelledby')).toBe(live.attributes('id'))
+    expect(w.find('section').attributes('aria-labelledby')).toBe(live.attributes('id'))
   })
 
   it('firstDay cambia el orden de los encabezados', () => {
@@ -748,7 +757,7 @@ describe('GDatePicker · avisos de desarrollo', () => {
 
   it('en línea no exige dialog ni close', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    inline({ labels: { prev: 'a', next: 'b' } })
+    inline({ labels: { prev: 'a', next: 'b', ...R02 } })
     expect(warn).not.toHaveBeenCalled()
   })
 
@@ -1187,5 +1196,524 @@ describe('GDatePicker · lectura del día (AV-C1, #952)', () => {
     await flush()
     expect(w.classes()).toContain('is-day-content-hidden')
     expect(w.find('.g-datepicker__pop .g-datepicker__day-readout').exists()).toBe(true)
+  })
+})
+
+// ---------- r02: un mes por defecto, salto a mes y año, franja que sigue (datepicker.md §«r02», #1020 a #1029) ----------
+const part = (w, which, i = 0) => w.findAll(`.g-datepicker__title-part--${which}`)[i]
+const pickBtn = (w, v) => w.find(`.g-datepicker__pick[data-value="${v}"]`)
+const pkey = async (w, v, k, extra = {}) => { await pickBtn(w, v).trigger('keydown', { key: k, ...extra }); await nextTick(); await nextTick() }
+const tabPick = (w) => w.findAll('.g-datepicker__pick').filter((b) => b.attributes('tabindex') === '0')
+const status = (w) => w.find('[role="status"]').text()
+const toMonths = async (w, i = 0) => { await part(w, 'month', i).trigger('click'); await nextTick(); await nextTick() }
+const toYears = async (w, i = 0) => { await part(w, 'year', i).trigger('click'); await nextTick(); await nextTick() }
+const esc = async (w) => { const ev = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }); document.activeElement.dispatchEvent(ev); await nextTick(); await nextTick(); return ev }
+
+describe('GDatePicker · r02 · un mes por defecto (#1021)', () => {
+  it('months sin valor vale 1: un mes en single y en range, a cualquier ancho', async () => {
+    expect(GDatePicker.props.months.default).toBe(1)
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(2000)
+    for (const mode of ['single', 'range']) {
+      const w = mount(GDatePicker, { attachTo: document.body, props: { inline: true, mode, locale: 'es', firstDay: 1, labels: LABELS } })
+      await nextTick(); await nextTick()
+      expect(w.findAll('.g-datepicker__month')).toHaveLength(1)
+    }
+  })
+
+  it('months="auto" sigue midiendo: dos meses si caben, uno si no', async () => {
+    let width = 2000
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function () { return this.classList.contains('g-datepicker') ? width : 0 })
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function () { return { width: this.classList.contains('g-datepicker__day') ? 40 : 0, height: 0, top: 0, left: 0, right: 0, bottom: 0 } })
+    const w = inline({ months: 'auto', modelValue: '2026-10-20' })
+    await nextTick(); await nextTick()
+    expect(w.findAll('.g-datepicker__month')).toHaveLength(2)
+    width = 300
+    await w.setProps({ months: 2 }); await w.setProps({ months: 'auto' })
+    await nextTick(); await nextTick()
+    expect(w.findAll('.g-datepicker__month')).toHaveLength(1)
+  })
+})
+
+describe('GDatePicker · r02 · vistas y cabeceras (#1020)', () => {
+  it('días: el título son dos botones con el texto visible + «, elegir mes/año»; sin aria-expanded ni aria-haspopup', () => {
+    const w = inline({ modelValue: '2026-10-20' })
+    const m = part(w, 'month')
+    const y = part(w, 'year')
+    expect(m.element.parentElement.tagName).toBe('H3')
+    expect(m.text()).toBe('octubre')
+    expect(m.attributes('aria-label')).toBe('octubre, elegir mes')
+    expect(y.attributes('aria-label')).toBe('2026, elegir año')
+    expect(m.find('svg').exists()).toBe(true)
+    expect(m.attributes('aria-expanded')).toBeUndefined()
+    expect(m.attributes('aria-haspopup')).toBeUndefined()
+    expect(w.find('.g-datepicker__stage > .g-datepicker__view.g-datepicker__view--days > table').exists()).toBe(true)
+  })
+
+  it('el botón del mes abre los meses en la misma caja: rejilla 3 × 4 nombrada, flechas de año, foco en el mes mostrado', async () => {
+    const w = inline({ modelValue: '2026-10-20' })
+    await toMonths(w)
+    expect(w.find('.g-datepicker__view--days').exists()).toBe(false)
+    const g = w.find('.g-datepicker__stage > .g-datepicker__view--months > table.g-datepicker__grid.g-datepicker__grid--months')
+    expect(g.exists()).toBe(true)
+    expect(g.attributes('role')).toBe('grid')
+    expect(g.attributes('aria-label')).toBe('Meses de 2026')
+    expect(g.find('thead').exists()).toBe(false)
+    expect(g.findAll('tr')).toHaveLength(4)
+    expect(g.findAll('tr')[0].findAll('td[role="gridcell"]')).toHaveLength(3)
+    expect(pickBtn(w, 0).text()).toBe('ene')
+    expect(w.find('.g-datepicker__nav--prev').classes()).toContain('g-datepicker__nav--year')
+    expect(w.find('.g-datepicker__nav--prev').attributes('aria-label')).toBe('Año anterior')
+    expect(w.find('.g-datepicker__nav--next').attributes('aria-label')).toBe('Año siguiente')
+    expect(w.findAll('.g-datepicker__title-part')).toHaveLength(1)
+    expect(part(w, 'year').attributes('aria-label')).toBe('2026, elegir año')
+    expect(w.find('.g-datepicker__title-live').exists()).toBe(false)
+    expect(tabPick(w)).toHaveLength(1)
+    expect(document.activeElement).toBe(pickBtn(w, 9).element)
+    expect(status(w)).toBe('') // entrar lo dice el foco, no la región
+  })
+
+  it('el botón del año abre los años: página año − 4, tramo de Intl, flechas de doce años, pista y búfer', async () => {
+    const w = inline({ modelValue: '2026-10-20' })
+    await toYears(w)
+    const g = w.find('.g-datepicker__view--years table.g-datepicker__grid--years')
+    expect(g.attributes('aria-label')).toBe('Años de 2022 a 2033')
+    expect(w.find('h3').text()).toMatch(/^2022\s?[–-]\s?2033$/)
+    expect(w.find('h3 button').exists()).toBe(false)
+    expect(w.findAll('.g-datepicker__pick').map((b) => b.text())[0]).toBe('2022')
+    expect(document.activeElement).toBe(pickBtn(w, 2026).element)
+    expect(pickBtn(w, 2026).element.closest('tr').rowIndex).toBe(1)
+    expect(w.find('.g-datepicker__nav--prev').classes()).toContain('g-datepicker__nav--years')
+    expect(w.find('.g-datepicker__nav--next').attributes('aria-label')).toBe('Doce años después')
+    const hint = w.find('.g-datepicker__years-hint')
+    expect(g.attributes('aria-describedby')).toBe(hint.find('[id]').attributes('id'))
+    expect(hint.text()).toContain('Escribe un año')
+    expect(w.find('.g-datepicker__typed').attributes('aria-hidden')).toBe('true')
+    expect(w.findAll('.g-datepicker__typed-digit')).toHaveLength(4)
+    expect(w.findAll('.g-datepicker__typed-digit').every((d) => d.text() === '')).toBe(true)
+  })
+
+  it('sin typeYear no hay pista ni aria-describedby, y escribir sigue funcionando', async () => {
+    const w = inline({ modelValue: '2026-10-20', labels: { ...LABELS, typeYear: undefined } })
+    await toYears(w)
+    expect(w.find('.g-datepicker__years-hint').exists()).toBe(false)
+    expect(w.find('.g-datepicker__grid--years').attributes('aria-describedby')).toBeUndefined()
+    for (const d of '1999') await pkey(w, 2026, d)
+    expect(document.activeElement).toBe(pickBtn(w, 1999).element)
+  })
+
+  it('desde meses, el botón del año abre los años; Esc vuelve a meses con el foco en ese botón y otra Esc a días', async () => {
+    const w = inline({ modelValue: '2026-10-20' })
+    await toMonths(w)
+    await toYears(w)
+    expect(w.find('.g-datepicker__view--years').exists()).toBe(true)
+    let ev = await esc(w)
+    expect(ev.defaultPrevented).toBe(true)
+    expect(w.find('.g-datepicker__view--months').exists()).toBe(true)
+    expect(document.activeElement).toBe(part(w, 'year').element)
+    ev = await esc(w)
+    expect(w.find('.g-datepicker__view--days').exists()).toBe(true)
+    expect(document.activeElement).toBe(part(w, 'month').element)
+    // en días y en línea, Esc no se consume (el GDialog de fuera decide)
+    ev = await esc(w)
+    expect(ev.defaultPrevented).toBe(false)
+  })
+
+  it('volver con Esc no navega: el mes visible es el de antes aunque se recorrieran años', async () => {
+    const w = inline({ modelValue: '2026-10-20' })
+    await toMonths(w)
+    await w.find('.g-datepicker__nav--next').trigger('click')
+    await w.find('.g-datepicker__nav--next').trigger('click')
+    await esc(w)
+    expect(w.find('h3').text()).toBe('octubre 2026')
+    expect(w.emitted('navigate')).toBeUndefined()
+  })
+
+  it('elegir un año baja a sus meses (mismo mes) y elegir un mes baja a sus días: foco en el mismo día recortado y navigate', async () => {
+    const w = inline({ modelValue: '2026-10-31' })
+    await toYears(w)
+    await pickBtn(w, 2027).trigger('click'); await nextTick(); await nextTick()
+    expect(w.find('.g-datepicker__grid--months').attributes('aria-label')).toBe('Meses de 2027')
+    expect(document.activeElement).toBe(pickBtn(w, 9).element)
+    await pickBtn(w, 1).trigger('click'); await nextTick(); await nextTick()
+    expect(w.find('h3').text()).toBe('febrero 2027')
+    expect(document.activeElement.dataset.date).toBe('2027-02-28')
+    expect(w.emitted('navigate').map((e) => e[0].month)).toEqual(['2027-02'])
+    expect(w.emitted('update:modelValue')).toBeUndefined() // las vistas solo navegan
+    // Esc desde días tras bajar: la pila quedó vacía
+    expect(w.find('.g-datepicker__view--days').exists()).toBe(true)
+  })
+
+  it('elegir el mismo mes que ya se veía no emite navigate', async () => {
+    const w = inline({ modelValue: '2026-10-20' })
+    await toMonths(w)
+    await pickBtn(w, 9).trigger('click'); await nextTick()
+    expect(w.emitted('navigate')).toBeUndefined()
+  })
+
+  it('con dos meses: una sola cabecera en meses; abierto desde el segundo, el elegido queda segundo', async () => {
+    const w = inline({ modelValue: '2026-10-20', months: 2 })
+    expect(w.findAll('.g-datepicker__title-part--month')).toHaveLength(2)
+    expect(w.find('.g-datepicker__months').classes()).toContain('g-datepicker__months--pair')
+    await toMonths(w, 1)
+    expect(w.findAll('.g-datepicker__month')).toHaveLength(1)
+    expect(w.find('.g-datepicker__months').classes()).toContain('g-datepicker__months--pair')
+    expect(w.findAll('.g-datepicker__head')).toHaveLength(1)
+    expect(document.activeElement).toBe(pickBtn(w, 10).element)
+    await pickBtn(w, 2).trigger('click'); await nextTick(); await nextTick()
+    expect(w.findAll('h3').map((h) => h.text())).toEqual(['febrero 2026', 'marzo 2026'])
+    expect(last(w, 'navigate')).toEqual({ month: '2026-02' })
+  })
+
+  it('al abrir el popover la vista es siempre la de días', async () => {
+    const w = mk({ label: 'F', modelValue: '2026-10-20' })
+    await w.find('.g-datepicker__field').trigger('click'); await nextTick(); await nextTick()
+    await toMonths(w)
+    expect(w.find('.g-datepicker__view--months').exists()).toBe(true)
+    w.vm.close(); await nextTick()
+    w.vm.open(); await nextTick(); await nextTick()
+    expect(w.find('.g-datepicker__view--days').exists()).toBe(true)
+    expect(w.find('.g-datepicker__view--days').attributes('data-zoom')).toBeUndefined()
+  })
+
+  it('popover: Esc en meses sube y no cierra; en días cierra; ninguna llega al padre', async () => {
+    const parent = vi.fn()
+    const w = mount({ render: () => h('div', { onKeydown: parent }, [h(GDatePicker, { label: 'F', labels: LABELS, locale: 'es', modelValue: '2026-10-20' })]) }, { attachTo: document.body })
+    await w.find('.g-datepicker__field').trigger('click'); await nextTick(); await nextTick()
+    await toMonths(w)
+    await esc(w)
+    expect(w.find('.g-datepicker').classes()).toContain('is-open')
+    expect(w.find('.g-datepicker__view--days').exists()).toBe(true)
+    await esc(w)
+    expect(w.find('.g-datepicker').classes()).not.toContain('is-open')
+    expect(parent).not.toHaveBeenCalled()
+  })
+
+  it('disabled: botones del título y flechas de todas las vistas deshabilitados', () => {
+    const w = inline({ disabled: true })
+    expect(part(w, 'month').attributes('disabled')).toBeDefined()
+    expect(part(w, 'year').attributes('disabled')).toBeDefined()
+  })
+
+  it('readonly en línea: se navega por las tres vistas', async () => {
+    const w = inline({ readonly: true, modelValue: '2026-10-20' })
+    await toYears(w)
+    await pickBtn(w, 2024).trigger('click'); await nextTick(); await nextTick()
+    await pickBtn(w, 3).trigger('click'); await nextTick(); await nextTick()
+    expect(w.find('h3').text()).toBe('abril 2024')
+    expect(w.emitted('update:modelValue')).toBeUndefined()
+  })
+
+  it('deslizar en meses cambia de año y en años de página', async () => {
+    const w = inline({ modelValue: '2026-10-20' })
+    await toMonths(w)
+    const m = w.find('.g-datepicker__months')
+    await m.trigger('pointerdown', { pointerType: 'touch', clientX: 300, clientY: 100 })
+    await m.trigger('pointerup', { pointerType: 'touch', clientX: 120, clientY: 110 })
+    expect(part(w, 'year').text()).toBe('2027')
+    await toYears(w)
+    await m.trigger('pointerdown', { pointerType: 'touch', clientX: 120, clientY: 100 })
+    await m.trigger('pointerup', { pointerType: 'touch', clientX: 300, clientY: 110 })
+    expect(w.findAll('.g-datepicker__pick')[0].text()).toBe('2011')
+  })
+})
+
+describe('GDatePicker · r02 · marcas y nombres de meses y años', () => {
+  it('single: el mes y el año del valor son is-selected con aria-selected; hoy is-current; sufijos en orden', async () => {
+    const w = inline({ modelValue: '2026-10-20', min: '2026-03-01' })
+    await toMonths(w)
+    const oct = pickBtn(w, 9) // hoy es 2026-10-15: actual y elegido
+    expect(oct.classes()).toEqual(expect.arrayContaining(['is-current', 'is-selected']))
+    expect(oct.attributes('aria-label')).toBe('octubre de 2026, actual, seleccionada')
+    expect(oct.element.parentElement.getAttribute('aria-selected')).toBe('true')
+    expect(w.findAll('td[aria-selected="true"]')).toHaveLength(1)
+    const feb = pickBtn(w, 1)
+    expect(feb.classes()).toContain('is-disabled')
+    expect(feb.attributes('aria-disabled')).toBe('true')
+    expect(feb.attributes('aria-label')).toBe('febrero de 2026, no disponible')
+    await toYears(w)
+    expect(pickBtn(w, 2026).classes()).toEqual(expect.arrayContaining(['is-current', 'is-selected']))
+    expect(pickBtn(w, 2025).classes()).toContain('is-disabled')
+    expect(pickBtn(w, 2025).attributes('aria-label')).toBe('2025, no disponible')
+  })
+
+  it('range: los meses y años que tocan el rango llevan is-in-value (aria-selected false) y «contiene lo elegido»', async () => {
+    const w = inline({ mode: 'range', modelValue: { start: '2026-11-25', end: '2027-01-05' } })
+    await w.find('.g-datepicker__nav--next').trigger('click')
+    await toMonths(w)
+    expect(pickBtn(w, 10).classes()).toContain('is-in-value')
+    expect(pickBtn(w, 11).classes()).toContain('is-in-value')
+    expect(pickBtn(w, 10).find('svg.g-icon').exists()).toBe(true) // el punto: GIcon circle relleno
+    expect(pickBtn(w, 9).find('svg').exists()).toBe(false)
+    expect(pickBtn(w, 9).classes()).not.toContain('is-in-value')
+    expect(pickBtn(w, 10).classes()).not.toContain('is-selected')
+    expect(pickBtn(w, 11).attributes('aria-label')).toBe('diciembre de 2026, contiene lo elegido')
+    expect(w.findAll('td[aria-selected="true"]')).toHaveLength(0)
+    await toYears(w)
+    expect(pickBtn(w, 2026).classes()).toContain('is-in-value')
+    expect(pickBtn(w, 2027).classes()).toContain('is-in-value')
+    expect(pickBtn(w, 2028).classes()).not.toContain('is-in-value')
+  })
+
+  it('range con inicio pendiente: su mes lleva is-in-value', async () => {
+    const w = inline({ mode: 'range' })
+    await click(w, '2026-10-08')
+    await toMonths(w)
+    expect(pickBtn(w, 9).classes()).toContain('is-in-value')
+    expect(pickBtn(w, 8).classes()).not.toContain('is-in-value')
+  })
+
+  it('min/max: el mes no disponible recibe foco y no se elige; las flechas del borde llevan aria-disabled y no hacen nada', async () => {
+    const w = inline({ modelValue: '2026-10-20', min: '2026-03-10', max: '2026-12-31' })
+    await toMonths(w)
+    expect(w.find('.g-datepicker__nav--prev').attributes('aria-disabled')).toBe('true')
+    expect(w.find('.g-datepicker__nav--next').attributes('aria-disabled')).toBe('true')
+    expect(w.find('.g-datepicker__nav--prev').attributes('disabled')).toBeUndefined()
+    await w.find('.g-datepicker__nav--next').trigger('click')
+    expect(part(w, 'year').text()).toBe('2026')
+    // marzo tiene días dentro: disponible; febrero no
+    expect(pickBtn(w, 2).classes()).not.toContain('is-disabled')
+    await pkey(w, 9, 'Home', { ctrlKey: true })
+    expect(document.activeElement).toBe(pickBtn(w, 0).element)
+    await pickBtn(w, 0).trigger('click'); await nextTick()
+    expect(w.find('.g-datepicker__view--months').exists()).toBe(true)
+    // la flecha no pasa a un año entero fuera
+    await pkey(w, 0, 'ArrowLeft')
+    expect(part(w, 'year').text()).toBe('2026')
+    await pkey(w, 0, 'PageUp')
+    expect(part(w, 'year').text()).toBe('2026')
+  })
+
+  it('años: una página entera fuera de [min, max] no se alcanza', async () => {
+    const w = inline({ modelValue: '2026-10-20', min: '2022-01-01', max: '2030-12-31' })
+    await toYears(w)
+    expect(w.find('.g-datepicker__nav--prev').attributes('aria-disabled')).toBe('true')
+    expect(w.find('.g-datepicker__nav--next').attributes('aria-disabled')).toBe('true')
+    await pkey(w, 2026, 'PageDown')
+    expect(document.activeElement).toBe(pickBtn(w, 2026).element)
+    expect(pickBtn(w, 2031).classes()).toContain('is-disabled')
+  })
+})
+
+describe('GDatePicker · r02 · teclado de las vistas (#1024)', () => {
+  it('meses: ←/→ ±1 cruzando de año (lo anuncia la región), ↑/↓ ±3, Inicio/Fin de fila, Ctrl+Inicio/Fin, RePág/AvPág', async () => {
+    const w = inline({ modelValue: '2026-01-20' })
+    await toMonths(w)
+    expect(document.activeElement).toBe(pickBtn(w, 0).element)
+    await pkey(w, 0, 'ArrowLeft')
+    expect(part(w, 'year').text()).toBe('2025')
+    expect(document.activeElement).toBe(pickBtn(w, 11).element)
+    expect(w.find('.g-datepicker__grid--months').attributes('aria-label')).toBe('Meses de 2025')
+    await nextTick()
+    expect(status(w)).toBe('Meses de 2025')
+    await pkey(w, 11, 'ArrowRight')
+    expect(part(w, 'year').text()).toBe('2026')
+    expect(document.activeElement).toBe(pickBtn(w, 0).element)
+    await pkey(w, 0, 'ArrowDown')
+    expect(document.activeElement).toBe(pickBtn(w, 3).element)
+    await pkey(w, 3, 'End')
+    expect(document.activeElement).toBe(pickBtn(w, 5).element)
+    await pkey(w, 5, 'Home')
+    expect(document.activeElement).toBe(pickBtn(w, 3).element)
+    await pkey(w, 3, 'End', { ctrlKey: true })
+    expect(document.activeElement).toBe(pickBtn(w, 11).element)
+    await pkey(w, 11, 'ArrowUp')
+    expect(document.activeElement).toBe(pickBtn(w, 8).element)
+    await pkey(w, 8, 'PageDown')
+    expect(part(w, 'year').text()).toBe('2027')
+    expect(document.activeElement).toBe(pickBtn(w, 8).element)
+    await pkey(w, 8, 'PageUp')
+    expect(part(w, 'year').text()).toBe('2026')
+    expect(tabPick(w)).toHaveLength(1)
+  })
+
+  it('años: flechas ±1 y ±3, al salir de la página pasa la página; RePág/AvPág ±12; Ctrl+Inicio/Fin', async () => {
+    const w = inline({ modelValue: '2026-10-20' })
+    await toYears(w) // 2022–2033, foco 2026
+    await pkey(w, 2026, 'ArrowUp')
+    expect(document.activeElement).toBe(pickBtn(w, 2023).element)
+    await pkey(w, 2023, 'ArrowUp')
+    expect(w.findAll('.g-datepicker__pick')[0].text()).toBe('2010')
+    expect(document.activeElement).toBe(pickBtn(w, 2020).element)
+    await nextTick()
+    expect(status(w)).toBe('Años de 2010 a 2021')
+    await pkey(w, 2020, 'PageDown')
+    expect(document.activeElement).toBe(pickBtn(w, 2032).element)
+    await pkey(w, 2032, 'Home', { ctrlKey: true })
+    expect(document.activeElement).toBe(pickBtn(w, 2022).element)
+    await pkey(w, 2022, 'End', { ctrlKey: true })
+    expect(document.activeElement).toBe(pickBtn(w, 2033).element)
+    await pkey(w, 2033, 'Home')
+    expect(document.activeElement).toBe(pickBtn(w, 2031).element)
+    await pkey(w, 2031, 'ArrowLeft')
+    expect(document.activeElement).toBe(pickBtn(w, 2030).element)
+  })
+
+  it('Intro elige con el botón (clic nativo): en años baja a meses', async () => {
+    const w = inline({ modelValue: '2026-10-20' })
+    await toYears(w)
+    await pickBtn(w, 2030).trigger('click'); await nextTick(); await nextTick()
+    expect(w.find('.g-datepicker__grid--months').attributes('aria-label')).toBe('Meses de 2030')
+  })
+
+  it('RTL: ← y → se invierten en meses', async () => {
+    const gcs = window.getComputedStyle
+    vi.spyOn(window, 'getComputedStyle').mockImplementation((el) => (el.classList?.contains('g-datepicker__surface') ? { direction: 'rtl' } : gcs(el)))
+    const w = inline({ modelValue: '2026-05-20' })
+    await toMonths(w)
+    await pkey(w, 4, 'ArrowLeft')
+    expect(document.activeElement).toBe(pickBtn(w, 5).element)
+  })
+})
+
+describe('GDatePicker · r02 · escribir el año (#1024)', () => {
+  afterEach(() => vi.useRealTimers())
+
+  it('cuatro cifras saltan al año (página año − 4) sin anuncio aparte; las escritas se ven en el búfer', async () => {
+    const w = inline({ modelValue: '2026-10-20' })
+    await toYears(w)
+    await pkey(w, 2026, '1'); await pkey(w, 2026, '9')
+    expect(w.findAll('.g-datepicker__typed-digit').map((d) => d.text())).toEqual(['1', '9', '', ''])
+    await pkey(w, 2026, '8'); await pkey(w, 2026, '4')
+    expect(document.activeElement).toBe(pickBtn(w, 1984).element)
+    expect(w.findAll('.g-datepicker__pick')[0].text()).toBe('1980')
+    expect(w.findAll('.g-datepicker__typed-digit').every((d) => d.text() === '')).toBe(true)
+    expect(status(w)).toBe('')
+  })
+
+  it('cifras de otros sistemas (\\p{Nd}) cuentan con su valor', async () => {
+    const w = inline({ modelValue: '2026-10-20' })
+    await toYears(w)
+    for (const d of '١٩٩٩') await pkey(w, 2026, d)
+    expect(document.activeElement).toBe(pickBtn(w, 1999).element)
+  })
+
+  it('el salto se recorta a [min, max]', async () => {
+    const w = inline({ modelValue: '2026-10-20', min: '2000-01-01', max: '2040-12-31' })
+    await toYears(w)
+    for (const d of '1950') await pkey(w, 2026, d)
+    expect(document.activeElement).toBe(pickBtn(w, 2000).element)
+  })
+
+  it('Retroceso borra la última cifra; YEAR_TYPE_MS (1500) sin cifra vacía el búfer sin moverse', async () => {
+    vi.useFakeTimers()
+    const w = inline({ modelValue: '2026-10-20' })
+    await toYears(w)
+    await pkey(w, 2026, '2'); await pkey(w, 2026, '0')
+    await pkey(w, 2026, 'Backspace')
+    expect(w.findAll('.g-datepicker__typed-digit').map((d) => d.text())).toEqual(['2', '', '', ''])
+    vi.advanceTimersByTime(1499); await nextTick()
+    expect(w.findAll('.g-datepicker__typed-digit')[0].text()).toBe('2')
+    vi.advanceTimersByTime(1); await nextTick()
+    expect(w.findAll('.g-datepicker__typed-digit')[0].text()).toBe('')
+    expect(document.activeElement).toBe(pickBtn(w, 2026).element)
+  })
+
+  it('Esc vacía primero las cifras; la segunda sube', async () => {
+    const w = inline({ modelValue: '2026-10-20' })
+    await toYears(w)
+    await pkey(w, 2026, '1')
+    const ev = await esc(w)
+    expect(ev.defaultPrevented).toBe(true)
+    expect(w.find('.g-datepicker__view--years').exists()).toBe(true)
+    expect(w.findAll('.g-datepicker__typed-digit')[0].text()).toBe('')
+    await esc(w)
+    expect(w.find('.g-datepicker__view--days').exists()).toBe(true)
+    expect(document.activeElement).toBe(part(w, 'year').element)
+  })
+
+  it('fuera de la vista de años, una cifra no hace nada nuevo', async () => {
+    const w = inline({ modelValue: '2026-10-20' })
+    await key(w, '2026-10-20', '1')
+    expect(w.find('.g-datepicker__view--days').exists()).toBe(true)
+    expect(w.find('h3').text()).toBe('octubre 2026')
+  })
+})
+
+describe('GDatePicker · r02 · franja que sigue (#1027)', () => {
+  it('un mes: el rango que continúa fuera abre la primera y la última celda pintadas en lugar del extremo redondo', async () => {
+    const w = inline({ mode: 'range', modelValue: { start: '2026-09-10', end: '2026-12-01' } })
+    await w.find('.g-datepicker__nav--next').trigger('click') // a octubre (el valor abre en septiembre)
+    // octubre 2026 con lunes: primera celda pintada 2026-09-28, última 2026-11-08
+    const first = cellOf(w, '2026-09-28')
+    const lastC = cellOf(w, '2026-11-08')
+    expect(first.classList.contains('is-open-start')).toBe(true)
+    expect(first.classList.contains('is-cap-start')).toBe(false)
+    expect(lastC.classList.contains('is-open-end')).toBe(true)
+    expect(lastC.classList.contains('is-cap-end')).toBe(false)
+    // un salto de semana dentro sigue redondeado
+    expect(cellOf(w, '2026-10-04').classList.contains('is-cap-end')).toBe(true)
+    expect(cellOf(w, '2026-10-04').classList.contains('is-open-end')).toBe(false)
+  })
+
+  it('el extremo real dentro de lo visible no se abre', () => {
+    const w = inline({ mode: 'range', modelValue: { start: '2026-10-05', end: '2026-10-20' } })
+    expect(w.findAll('td.is-open-start, td.is-open-end')).toHaveLength(0)
+  })
+
+  it('dos meses: se abren el primer día del primero y el último del segundo; el corte entre meses sigue redondeado', async () => {
+    const w = inline({ mode: 'range', months: 2, modelValue: { start: '2026-09-20', end: '2026-12-10' } })
+    await w.find('.g-datepicker__nav--next').trigger('click') // octubre y noviembre
+    expect(cellOf(w, '2026-10-01').classList.contains('is-open-start')).toBe(true)
+    expect(cellOf(w, '2026-11-30').classList.contains('is-open-end')).toBe(true)
+    expect(cellOf(w, '2026-10-31').classList.contains('is-cap-end')).toBe(true)
+    expect(cellOf(w, '2026-10-31').classList.contains('is-open-end')).toBe(false)
+    expect(cellOf(w, '2026-11-01').classList.contains('is-cap-start')).toBe(true)
+  })
+
+  it('no cambia nombres ni aria-selected', async () => {
+    const w = inline({ mode: 'range', modelValue: { start: '2026-09-10', end: '2026-12-01' } })
+    await w.find('.g-datepicker__nav--next').trigger('click')
+    const b = day(w, '2026-09-28')
+    expect(b.attributes('aria-label')).toBe('lunes, 28 de septiembre de 2026, dentro del rango')
+    expect(cellOf(w, '2026-09-28').getAttribute('aria-selected')).toBe('true')
+  })
+})
+
+describe('GDatePicker · r02 · zoom y avisos', () => {
+  it('data-zoom solo al nacer de un cambio de nivel, con el origen por índice en la raíz de la vista', async () => {
+    const w = inline({ modelValue: '2026-10-20' })
+    expect(w.find('.g-datepicker__view').attributes('data-zoom')).toBeUndefined()
+    expect(w.find('.g-datepicker__view').attributes('style')).toBeUndefined()
+    await toMonths(w) // sube: origen en octubre (fila 3, columna 0)
+    let v = w.find('.g-datepicker__view--months')
+    expect(v.attributes('data-zoom')).toBe('out')
+    expect(v.element.style.getPropertyValue('--_zoom-x')).toBe(`${(0.5 / 3) * 100}%`)
+    expect(v.element.style.getPropertyValue('--_zoom-y')).toBe(`${(3.5 / 4) * 100}%`)
+    await pickBtn(w, 4).trigger('click'); await nextTick() // baja desde mayo (fila 1, columna 1)
+    v = w.find('.g-datepicker__view--days')
+    expect(v.attributes('data-zoom')).toBe('in')
+    expect(v.element.style.getPropertyValue('--_zoom-x')).toBe('50%')
+    expect(v.element.style.getPropertyValue('--_zoom-y')).toBe(`${(1.5 / 4) * 100}%`)
+    // cambiar de mes en días no lleva zoom
+    await w.find('.g-datepicker__nav--next').trigger('click')
+    expect(w.find('.g-datepicker__view--days').attributes('data-zoom')).toBeUndefined()
+  })
+
+  it('dos cambios seguidos terminan en la vista correcta con el foco en su celda (elemento nuevo por vista)', async () => {
+    const w = inline({ modelValue: '2026-10-20' })
+    await part(w, 'month').trigger('click')
+    const first = w.find('.g-datepicker__view--months').element
+    await part(w, 'year').trigger('click')
+    await nextTick(); await nextTick()
+    const yv = w.find('.g-datepicker__view--years')
+    expect(yv.exists()).toBe(true)
+    expect(yv.element).not.toBe(first)
+    expect(document.activeElement).toBe(pickBtn(w, 2026).element)
+  })
+
+  it('avisa una sola vez de las seis claves requeridas de r02 que falten', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    inline({ labels: { prev: 'a', next: 'b', chooseMonth: 'm' } })
+    const msgs = warn.mock.calls.map((c) => String(c[0])).filter((m) => m.includes('labels.chooseYear'))
+    expect(msgs).toHaveLength(1)
+    for (const k of ['chooseYear', 'prevYear', 'nextYear', 'prevYears', 'nextYears']) expect(msgs[0]).toContain(`labels.${k}`)
+    expect(msgs[0]).not.toContain('labels.chooseMonth')
+  })
+
+  it('density en línea aprieta la superficie (clase en la raíz) y no avisa', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const w = inline({ density: 'compact' })
+    expect(w.classes()).toContain('g-datepicker--density-compact')
+    expect(warn).not.toHaveBeenCalled()
   })
 })
