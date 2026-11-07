@@ -254,7 +254,7 @@ Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production
 
 ## Motor compartido (`utils/loadPhase.js`, interno; #531, #532)
 
-Lo usan `GLoadRegion` y los anfitriones que ya cargan (#540). Interno: no es API pública; la firma la decide bruno. Debe ofrecer:
+Lo usan `GLoadRegion`, los anfitriones que ya cargan (#540) y `GBtn` (`btn.md` «Carga y acuse», #1014: retraso y mínimo sin `SLOW`, motor creado solo con la primera carga, y entrada ya a la vista al montar en carga). Interno: no es API pública; la firma la decide bruno. Debe ofrecer:
 
 - **Entrada:** inicio y fin de una carga (desde un `watch` de `loading`), con `DELAY`, `MINIMUM` y `SLOW` fijos.
 - **Salida reactiva:** `busy` (de inicio a llegada), `pending` (dentro del retraso), `shown` (visible), `slow` (desde 5 s) y el momento de la **llegada** (cuando `loading` es `false` y se cumplió el mínimo, si se vio).

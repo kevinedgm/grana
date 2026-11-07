@@ -8,6 +8,9 @@ Ideas medidas o reservadas en `design/lab/personalidad/r01/declaracion.md` y `de
 
 | Componente | Idea | Estado |
 | --- | --- | --- |
+| `GBtn` | **F4:** pulsación con Enter y clic de 0 ms en acciones **sin carga** (hoy 1 / 1 en los tres motores, `design/lab/btn/r02/declaracion.md` §1). A la resuelve solo con carga; necesita un pulso mínimo en el `.vue` | sin prototipo, necesita ronda de kiwi |
+| `GBtn` | **F5:** qué cambia en una espera larga (`SLOW`, 5 s). Sin ella, la fila «Evoluciona con el tiempo» del diagnóstico sigue fallando | sin prototipo, necesita ronda de kiwi |
+| `GBtn` | **Marca de fallo** reservada: hoy fallo = reposo sin marca (#1010) | reservada; se abre solo con un caso real |
 | `GMenu` | M2 entrada escalonada de items con `linear()` | medida, fuera por frecuencia de apertura |
 | `GLoadRegion` | Revelado escalonado por elemento (retardo `fast × min(i, 4) / 4` por `[data-g-key]`, como la escalera de `GBreadcrumbs`; reservada en #549) | medida en idea, sin prototipo; necesita constante de coreografía (#187) |
 | `GMenu` | M3 (ver declaración) | sin prototipo |

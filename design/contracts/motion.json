@@ -66,7 +66,7 @@
     "pulsar": {
       "label": "Pulsar",
       "where": "GBtn y lo que lo compone",
-      "rule": { "press": { "duration": "fast", "curve": "out", "to": "--g-press-scale" }, "release": { "duration": "slow", "curve": "bounce" } },
+      "rule": { "press": { "duration": "fast", "curve": "out", "to": "--g-press-scale" }, "release": { "duration": "slow", "curve": "bounce" }, "held": "con carga se queda apretado y suelta a la llegada (retén, GBtn, #1013)" },
       "reduced": "sin escala"
     },
     "foco": {
@@ -106,10 +106,10 @@
     },
     "senalLlegada": {
       "label": "Señal de llegada",
-      "where": ["data-g-landed", "is-here de GTable"],
+      "where": ["data-g-landed", "is-here de GTable", "g-btn__done"],
       "rule": { "max": "slow × 4", "decorative": true, "blocks": false, "isTransition": false },
       "reduced": "fundido corto",
-      "decisions": ["#589", "#594", "#1003"]
+      "decisions": ["#589", "#594", "#1003", "#1012"]
     }
   },
 
@@ -128,7 +128,7 @@
     "GBadge": { "pieces": [] },
     "GBookingBar": { "pieces": ["panelAnclado"], "own": "booking-bar.md" },
     "GBreadcrumbs": { "pieces": ["panelAnclado"], "own": "#500" },
-    "GBtn": { "pieces": [], "own": "#300" },
+    "GBtn": { "pieces": [], "own": "#300, #1010" },
     "GCalendar": { "pieces": [] },
     "GCard": { "pieces": [], "own": "#303" },
     "GCardGroup": { "pieces": [], "own": "card-group.md" },
@@ -217,7 +217,7 @@
       "GDocumentPreview.css": { "count": 1, "use": "La marca del lomo que llega a su página en un salto explícito, solo translate", "decisions": ["#639"] }
     },
     "bounce": {
-      "GBtn.css": { "count": 1, "use": "Soltar", "decisions": ["#300"] },
+      "GBtn.css": { "count": 1, "use": "Soltar, también al terminar la carga (retén)", "decisions": ["#300", "#1013"] },
       "GCombobox.css": { "count": 1, "use": "La marca de la casilla de multiple al marcar por un gesto", "decisions": ["#427"] }
     }
   },
