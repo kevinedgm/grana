@@ -604,6 +604,10 @@
     background: var(--g-surface-inset);
     box-shadow: var(--g-shadow-3);
   }
+  /* Hoja a la vista = modal a la vista: la página de detrás no se desplaza (mismo mecanismo que GDialog) */
+  html:has(.g-select.is-open) {
+    overflow: hidden;
+  }
   .g-select__list::backdrop {
     background: var(--g-surface-backdrop);
   }
