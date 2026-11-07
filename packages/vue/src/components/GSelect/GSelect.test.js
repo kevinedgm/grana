@@ -1247,3 +1247,164 @@ describe('GSelect · una sola luz (select.md, #1004)', () => {
     w.unmount()
   })
 })
+
+// Cuándo elige Tab (#1016): solo si una tecla movió la activa en esta apertura
+describe('GSelect · Tab (#1016)', () => {
+  const FRUTAS = [{ value: 'ba', label: 'Banana' }, { value: 'bo', label: 'Bolivia' }, { value: 'ca', label: 'Cáscara' }, { value: 'ch', label: 'Chile' }]
+  let n = 0
+  const mkf = (props = {}) => mk({ options: FRUTAS, id: `t${++n}`, ...props })
+  const upd = (w) => w.emitted('update:modelValue')
+  const closed = (w) => expect(btn(w).attributes('aria-expanded')).toBe('false')
+
+  it('sin valor: abrir con ↓ o Enter y Tab no elige y emite close', async () => {
+    for (const k of ['ArrowDown', 'Enter']) {
+      const w = mkf()
+      await key(w, k)
+      await key(w, 'Tab')
+      expect(upd(w)).toBeUndefined()
+      expect(w.emitted('close')).toHaveLength(1)
+      closed(w)
+      w.unmount()
+    }
+  })
+
+  it('abrir con clic y Tab no elige; Shift+Tab tampoco', async () => {
+    const w = mkf()
+    await btn(w).trigger('click')
+    await key(w, 'Tab', { shiftKey: true })
+    expect(upd(w)).toBeUndefined()
+    closed(w)
+    w.unmount()
+  })
+
+  it('con un valor, abrir y Tab no cambia nada', async () => {
+    const w = mkf({ modelValue: 'bo' })
+    await key(w, 'ArrowDown'); await key(w, 'Tab')
+    expect(upd(w)).toBeUndefined()
+    w.unmount()
+  })
+
+  it('valor sin opción: abrir y Tab no lo pierde en FormData', async () => {
+    const w = mkf({ name: 'p', modelValue: 7 })
+    await key(w, 'ArrowDown'); await key(w, 'Tab')
+    expect(upd(w)).toBeUndefined()
+    expect(w.find('input[type="hidden"]').element.value).toBe('7')
+    w.unmount()
+  })
+
+  it('↓, Inicio, Fin, Re Pág y Av Pág que cambian la activa hacen que Tab elija', async () => {
+    const casos = [
+      [['ArrowDown', 'ArrowDown'], 'bo'],
+      [['ArrowDown', 'End'], 'ch'],
+      [['ArrowDown', 'End', 'Home'], 'ba'],
+      [['ArrowDown', 'PageDown'], 'ch'],
+      [['ArrowDown', 'PageDown', 'PageUp'], 'ba']
+    ]
+    for (const [keys, v] of casos) {
+      const w = mkf({ modelValue: v === 'ba' ? 'bo' : undefined })
+      for (const k of keys) await key(w, k)
+      await key(w, 'Tab')
+      expect(upd(w)).toEqual([[v]])
+      w.unmount()
+    }
+  })
+
+  it('↑ en la primera fila sin valor no mueve nada: Tab no elige', async () => {
+    const w = mkf()
+    await key(w, 'ArrowDown'); await key(w, 'ArrowUp'); await key(w, 'Tab')
+    expect(upd(w)).toBeUndefined()
+    w.unmount()
+  })
+
+  it('letra con coincidencia y Tab elige: con la lista cerrada, abierta y sobre la fila de partida', async () => {
+    vi.useFakeTimers()
+    const a = mkf()
+    await key(a, 'c'); await key(a, 'Tab') // la letra abre la lista
+    expect(upd(a)).toEqual([['ca']])
+    a.unmount()
+    await vi.advanceTimersByTimeAsync(600)
+    const b = mkf()
+    await key(b, 'ArrowDown'); await key(b, 'c'); await key(b, 'Tab')
+    expect(upd(b)).toEqual([['ca']])
+    b.unmount()
+    await vi.advanceTimersByTimeAsync(600)
+    const c = mkf()
+    await key(c, 'ArrowDown'); await key(c, 'b'); await key(c, 'Tab') // cae en Banana, la de partida
+    expect(upd(c)).toEqual([['ba']])
+    vi.useRealTimers()
+    c.unmount()
+  })
+
+  it('letra sin coincidencia y Tab no elige', async () => {
+    vi.useFakeTimers()
+    const w = mkf()
+    await key(w, 'ArrowDown'); await key(w, 'z'); await key(w, 'Tab')
+    expect(upd(w)).toBeUndefined()
+    await vi.advanceTimersByTimeAsync(600)
+    vi.useRealTimers()
+    w.unmount()
+  })
+
+  it('ratón sobre una opción y Tab no elige; con Enter sí', async () => {
+    const w = mkf()
+    await btn(w).trigger('click')
+    await move(opts(w)[0], 5, 5)
+    await move(opts(w)[2], 10, 80)
+    expect(activeText(w)).toBe('Cáscara')
+    await key(w, 'Tab')
+    expect(upd(w)).toBeUndefined()
+    w.unmount()
+    const e = mkf()
+    await btn(e).trigger('click')
+    await move(opts(e)[0], 5, 5)
+    await move(opts(e)[2], 10, 80)
+    await key(e, 'Enter')
+    expect(upd(e)).toEqual([['ca']])
+    e.unmount()
+  })
+
+  it('el último que mueve manda: ↓, puntero a otra opción y Tab no elige; con otra ↓ después, sí', async () => {
+    const w = mkf()
+    await key(w, 'ArrowDown'); await key(w, 'ArrowDown') // Bolivia por teclas
+    await move(opts(w)[0], 5, 5)
+    await move(opts(w)[2], 10, 80) // el puntero la lleva a Cáscara
+    await key(w, 'Tab')
+    expect(upd(w)).toBeUndefined()
+    w.unmount()
+    const e = mkf()
+    await key(e, 'ArrowDown'); await key(e, 'ArrowDown')
+    await move(opts(e)[0], 5, 5)
+    await move(opts(e)[2], 10, 80)
+    await key(e, 'ArrowDown') // Chile, por teclas otra vez
+    await key(e, 'Tab')
+    expect(upd(e)).toEqual([['ch']])
+    e.unmount()
+  })
+
+  it('el puntero que pasa por la activa sin cambiarla no quita lo anterior', async () => {
+    const w = mkf()
+    await key(w, 'ArrowDown'); await key(w, 'ArrowDown') // Bolivia
+    await move(opts(w)[0], 5, 5)
+    await move(opts(w)[1], 10, 40) // sobre la activa: no cambia
+    await key(w, 'Tab')
+    expect(upd(w)).toEqual([['bo']])
+    w.unmount()
+  })
+
+  it('se reinicia en cada apertura: ↓, Esc, abrir y Tab no elige', async () => {
+    const w = mkf()
+    await key(w, 'ArrowDown'); await key(w, 'ArrowDown'); await key(w, 'Escape')
+    await key(w, 'ArrowDown'); await key(w, 'Tab')
+    expect(upd(w)).toBeUndefined()
+    w.unmount()
+  })
+
+  it('llegar a «Agregar nuevo…» con teclas y Tab no crea ni cambia el valor', async () => {
+    const w = mk({ options: FRUTAS, id: `t${++n}`, createLabel: 'Agregar' })
+    await key(w, 'ArrowDown'); await key(w, 'End'); await key(w, 'Tab')
+    expect(w.emitted('create')).toBeUndefined()
+    expect(upd(w)).toBeUndefined()
+    closed(w)
+    w.unmount()
+  })
+})

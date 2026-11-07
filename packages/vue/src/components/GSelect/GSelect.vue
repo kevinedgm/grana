@@ -130,6 +130,7 @@ const control = ref(null)
 const open = ref(false)
 const activeIndex = ref(-1)
 const activeId = computed(() => (open.value && activeIndex.value >= 0 ? optId(activeIndex.value) : undefined))
+let keyMoved = false // una tecla (o una letra con coincidencia) movió la activa en esta apertura; solo eso hace que Tab elija (#1016)
 let moved = false // la persona movió la activa (teclas, puntero o letras): la de partida deja de serlo
 let lastX = null // última posición del puntero sobre la lista (o la del clic que la abrió)
 let lastY = null
@@ -206,6 +207,7 @@ function show() {
   if (open.value || isDisabled.value || isReadonly.value || !hasRows.value) return
   open.value = true
   moved = false
+  keyMoved = false
   const start = selected.value && !selected.value.disabled ? selected.value : (enabled.value[0] ?? (createVisible.value ? createItem.value : null))
   activeIndex.value = start ? start.index : -1
   nextTick(() => {
@@ -288,8 +290,10 @@ function moveActive(step) {
   if (step === 'first') next = 0
   else if (step === 'last') next = list_.length - 1
   else next = Math.max(0, Math.min(list_.length - 1, (cur < 0 ? 0 : cur) + step))
+  const changed = list_[next].index !== activeIndex.value
   activeIndex.value = list_[next].index
   moved = true
+  if (changed) keyMoved = true
   setKeyed(true)
   settle(true)
 }
@@ -318,6 +322,7 @@ function typeahead(ch) {
   if (hit) {
     activeIndex.value = hit.index
     moved = true
+    keyMoved = true
     setKeyed(true)
     settle(true)
   }
@@ -356,8 +361,8 @@ function onKeydown(event) {
     hide()
   }
   else if (k === 'Tab') {
-    // Elige la activa y sigue el orden del documento (sin devolver el foco al botón)
-    const it = itemAt(activeIndex.value)
+    // Elige la activa solo si una tecla la movió en esta apertura (#1016); sigue el orden del documento (sin devolver el foco)
+    const it = keyMoved ? itemAt(activeIndex.value) : null
     if (it && !it.create && !it.disabled && it.value !== props.modelValue) emitChange(it.value)
     hide()
   } else if (printable) { event.preventDefault(); typeahead(k) }
@@ -405,6 +410,7 @@ function onListPointermove(event) {
   setKeyed(false)
   moved = true
   if (item.index === activeIndex.value) return
+  keyMoved = false // el último que mueve la activa manda
   activeIndex.value = item.index
   settle()
 }
