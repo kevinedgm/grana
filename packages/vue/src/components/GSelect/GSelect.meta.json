@@ -264,6 +264,7 @@
     "--g-surface-backdrop",
     "--g-duration-fast",
     "--g-duration-press",
+    "--g-duration-slow",
     "--g-duration-spin",
     "--g-ease-standard",
     "--g-ease-out"
@@ -281,6 +282,9 @@
     "option-selected",
     "option-disabled",
     "list-up",
+    "list-has-highlight",
+    "list-highlight-instant",
+    "list-keyed",
     "sheet",
     "create-row",
     "with-prefix",
@@ -289,6 +293,9 @@
     "valid"
   ],
   "classes": {
+    "light": [
+      "g-select__highlight (li role=none, aria-hidden, primer hijo de g-select__list; --_highlight-x/-y/-w/-h en la capa, #964) · has-highlight e is-highlight-instant en la lista, por placeHighlight de utils/glide.js · is-keyed en la lista tras usar el teclado: contorno de la activa (select.md «Una sola luz», #1004) · is-up, is-keyed y has-highlight van por classList, nunca por :class, que reescribiría las de glide.js"
+    ],
     "personality": [
       "is-ready en la raíz: dos cuadros después de montar (tras el primer pintado), nunca en SSR; sin ella no se anima la entrada del mensaje (I1, #304 y #306; el CSS de I1 es de coco)",
       "is-rejected en la raíz: la pone GForm tras un envío con errores o showErrors() si este campo bloquea (I2, #304)"
@@ -296,7 +303,8 @@
     "tooltipBox": ["data-g-tooltip-box (vacío y estático, también en SSR) en g-select__control: caja visible del control; GTooltip ancla en ella la posición, la pestaña y el puntero (#395, api.md «Caja visible») · el botón de borrar va dentro de la caja: el puntero sobre él muestra el tooltip del campo"]
   },
   "implementation": [
-    "Panel estable al desplazar la página (utils/anchor.js, mismas reglas que GCombobox): el lado (abajo o arriba) se decide al abrir y se conserva; solo cambia si el actual baja de space × 40 y el otro ofrece al menos space × 12 más. --_min y --_max se fijan al abrir, al cambiar el contenido, en resize y al cambiar de lado; durante el desplazamiento solo se escribe la posición (style.setProperty, una vez por cuadro y solo si cambia). Si la caja sale del visor o de su contenedor con desplazamiento, la lista se cierra sin devolver el foco (no en la hoja móvil, que no la sigue). El puntero nunca desplaza la lista y solo activa con movimiento real (no la lista o la página que se mueven bajo el puntero quieto, ni la que aparece bajo el clic que la abrió)."
+    "Panel estable al desplazar la página (utils/anchor.js, mismas reglas que GCombobox): el lado (abajo o arriba) se decide al abrir y se conserva; solo cambia si el actual baja de space × 40 y el otro ofrece al menos space × 12 más. --_min y --_max se fijan al abrir, al cambiar el contenido, en resize y al cambiar de lado; durante el desplazamiento solo se escribe la posición (style.setProperty, una vez por cuadro y solo si cambia). Si la caja sale del visor o de su contenedor con desplazamiento, la lista se cierra sin devolver el foco (no en la hoja móvil, que no la sigue). El puntero nunca desplaza la lista y solo activa con movimiento real (no la lista o la página que se mueven bajo el puntero quieto, ni la que aparece bajo el clic que la abrió).",
+    "Una sola luz (select.md, #1004): settle() desplaza si toca y coloca con placeHighlight de utils/glide.js, una pasada por cambio de activeIndex, sin createPointerGlide; en cada apertura y al cambiar filas o ventana, con instant; el cierre no apaga la luz. onListPointermove solo atiende a ratón y lápiz (aimed)."
   ],
   "pending": [
     "Lector de pantalla real (incluido aria-activedescendant en la hoja móvil)",

@@ -1,5 +1,6 @@
 // «Una sola luz» (interno; dueño: bruno). api.md «Una sola luz», DECISIONS #957 a #963; ronda design/lab/hover-glide/r01/.
-// Una capa por lista que se desliza al destino bajo el PUNTERO (no al foco): GSidebar y GTable. La luz es presentación:
+// Una capa por lista que se desliza al destino bajo el PUNTERO (no al foco): GSidebar y GTable. GSelect solo usa
+// placeHighlight: su luz sigue a la opción activa, no al puntero (#1004). La luz es presentación:
 // no toca el foco, ni aria-*, ni tabindex, ni emite eventos. Sin efectos al importar (#444): las escuchas de documento
 // (pointerup, pointercancel, scroll) existen solo mientras el puntero está dentro o pulsado; destroy() lo quita todo.
 // Datos: has-highlight e is-highlight-instant (dos cuadros) en el anfitrión; --_highlight-x/-y/-w/-h (px FÍSICOS respecto
@@ -12,7 +13,7 @@ import { observeSize } from './sizeObserver.js'
 import { nextFrame } from '../components/GForm/formContext.js'
 
 // Solo ratón y lápiz: con el toque no pasa nada, también en híbridos (regla 3; por tipo de puntero, no por @media)
-const aimed = (e) => e.pointerType === 'mouse' || e.pointerType === 'pen'
+export const aimed = (e) => e.pointerType === 'mouse' || e.pointerType === 'pen'
 const DOC = { capture: true, passive: true }
 
 /** `is-highlight-instant` en `host` durante dos cuadros (la última llamada manda). También lo usa M1 de GMenu (menuNav.js) */

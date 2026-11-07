@@ -25,7 +25,7 @@ const mk = (props = {}, opts = {}) => mount(GSelect, { attachTo: document.body, 
 const btn = (w) => w.find('button.g-select__button')
 const opts = (w) => w.findAll('[role="option"]')
 const key = async (w, k, extra = {}) => { await btn(w).trigger('keydown', { key: k, ...extra }); await nextTick() }
-const move = (el, x, y) => el.trigger('pointermove', { clientX: x, clientY: y })
+const move = (el, x, y, pointerType = 'mouse') => el.trigger('pointermove', { clientX: x, clientY: y, pointerType })
 const activeText = (w) => {
   const id = btn(w).attributes('aria-activedescendant')
   return id ? document.getElementById(id)?.textContent : null
@@ -1088,6 +1088,162 @@ describe('GSelect · correcciones #1001', () => {
     expect(btn(w).attributes('aria-expanded')).toBe('false')
     expect(w.emitted('close')).toHaveLength(1)
     expect(document.activeElement).toBe(btn(w).element)
+    w.unmount()
+  })
+})
+
+describe('GSelect · una sola luz (select.md, #1004)', () => {
+  const list = (w) => w.find('.g-select__list').element
+  const layer = (w) => list(w).firstElementChild
+  const y = (w) => layer(w).style.getPropertyValue('--_highlight-y')
+  const open = async (w) => { await key(w, 'ArrowDown'); await flush() }
+  const flush = async () => { for (let i = 0; i < 4; i++) await nextTick() }
+  // Cada opción en su propia fila: jsdom no maqueta
+  const rows = (w) => opts(w).forEach((o, i) => { o.element.getBoundingClientRect = () => ({ left: 0, top: i * 40, width: 200, height: 40 }) })
+
+  it('la capa es el primer hijo, también con grupos y sin filas; no cuenta como opción', () => {
+    for (const props of [{}, { options: [] }, { options: [{ label: 'G', options: [{ value: 1, label: 'Uno' }] }] }]) {
+      const w = mk(props)
+      expect(layer(w).className).toBe('g-select__highlight')
+      expect(layer(w).getAttribute('role')).toBe('none')
+      expect(layer(w).getAttribute('aria-hidden')).toBe('true')
+      w.unmount()
+    }
+  })
+
+  it('sigue a la activa con teclado y con puntero; las medidas van en la capa, no en la lista', async () => {
+    const w = mk()
+    rows(w)
+    await open(w)
+    expect(list(w).classList.contains('has-highlight')).toBe(true)
+    expect(y(w)).toBe('0px')
+    await key(w, 'ArrowDown')
+    await flush()
+    expect(y(w)).toBe('40px')
+    await move(opts(w)[0], 5, 5)
+    await move(opts(w)[3], 6, 6)
+    await flush()
+    expect(activeText(w)).toBe('Argentina')
+    expect(y(w)).toBe('120px')
+    expect(list(w).style.getPropertyValue('--_highlight-y')).toBe('')
+    w.unmount()
+  })
+
+  it('un hueco, un título o una deshabilitada no la cambian', async () => {
+    const w = mk()
+    rows(w)
+    await open(w)
+    await move(opts(w)[0], 5, 5)
+    await move(opts(w)[1], 6, 6)
+    await flush()
+    const before = y(w)
+    await move(opts(w)[2], 7, 7) // Alemania, deshabilitada
+    await move(w.find('.g-select__group-label'), 8, 8)
+    await flush()
+    expect(y(w)).toBe(before)
+    expect(list(w).classList.contains('has-highlight')).toBe(true)
+    w.unmount()
+  })
+
+  it('cada apertura coloca sin viajar; cerrar no apaga la luz', async () => {
+    const w = mk()
+    rows(w)
+    await open(w)
+    await key(w, 'ArrowDown')
+    await flush()
+    await key(w, 'Escape')
+    await flush()
+    expect(list(w).classList.contains('has-highlight')).toBe(true)
+    expect(y(w)).toBe('40px')
+    list(w).classList.remove('is-highlight-instant')
+    await open(w)
+    expect(list(w).classList.contains('is-highlight-instant')).toBe(true)
+    expect(y(w)).toBe('0px')
+    w.unmount()
+  })
+
+  it('cambiar las filas con la lista abierta recoloca sin viajar; sin activa se apaga', async () => {
+    const w = mk()
+    rows(w)
+    await open(w)
+    list(w).classList.remove('is-highlight-instant')
+    await w.setProps({ options: [...OPTIONS, { value: 'pt', label: 'Portugal' }] })
+    await flush()
+    expect(list(w).classList.contains('is-highlight-instant')).toBe(true)
+    await w.setProps({ options: [], emptyText: 'Nada' })
+    await flush()
+    await flush()
+    w.unmount()
+  })
+
+  it('la fila «Agregar nuevo…» también lleva la luz', async () => {
+    const w = mk({ createLabel: 'Agregar nuevo' })
+    rows(w)
+    await open(w)
+    await key(w, 'End')
+    await flush()
+    expect(activeText(w)).toBe('Agregar nuevo')
+    expect(y(w)).toBe(`${(opts(w).length - 1) * 40}px`)
+    w.unmount()
+  })
+
+  it('is-keyed: teclas sí; abrir con clic, pulsar en la lista y mover el ratón sobre una opción, no; el puntero quieto no la quita', async () => {
+    const w = mk()
+    const keyed = () => list(w).classList.contains('is-keyed')
+    await open(w)
+    expect(keyed()).toBe(true)
+    await move(opts(w)[0], 5, 5) // el primer evento solo anota dónde está
+    expect(keyed()).toBe(true)
+    await move(opts(w)[0], 5, 5) // quieto
+    expect(keyed()).toBe(true)
+    await move(opts(w)[2], 6, 6) // deshabilitada
+    expect(keyed()).toBe(true)
+    await move(opts(w)[1], 7, 7)
+    expect(keyed()).toBe(false)
+    await key(w, 'ArrowDown')
+    expect(keyed()).toBe(true)
+    await opts(w)[0].trigger('pointerdown')
+    expect(keyed()).toBe(false)
+    await key(w, 'End')
+    expect(keyed()).toBe(true)
+    await key(w, 'Escape')
+    await btn(w).trigger('click')
+    await flush()
+    expect(keyed()).toBe(false)
+    w.unmount()
+  })
+
+  it('un re-render no borra has-highlight, is-up ni is-keyed: las clases de la lista van por classList', async () => {
+    const w = mk()
+    await open(w)
+    await w.setProps({ variant: 'soft', label: 'Otro' })
+    await flush()
+    expect([...list(w).classList]).toEqual(expect.arrayContaining(['has-highlight', 'is-keyed']))
+    w.unmount()
+  })
+
+  it('solo ratón y lápiz mueven la activa: un arrastre táctil no', async () => {
+    const w = mk()
+    await open(w)
+    await move(opts(w)[0], 5, 5, 'pen')
+    await move(opts(w)[1], 6, 6, 'pen')
+    expect(activeText(w)).toBe('Estados Unidos')
+    await move(opts(w)[0], 7, 7, 'touch')
+    await move(opts(w)[3], 8, 8, 'touch')
+    expect(activeText(w)).toBe('Estados Unidos')
+    w.unmount()
+  })
+
+  it('la luz no toca aria-activedescendant, is-active ni el foco', async () => {
+    const w = mk()
+    await open(w)
+    btn(w).element.focus()
+    await move(opts(w)[0], 5, 5)
+    await move(opts(w)[1], 6, 6)
+    await flush()
+    expect(document.activeElement).toBe(btn(w).element)
+    expect(btn(w).attributes('aria-activedescendant')).toBe(opts(w)[1].attributes('id'))
+    expect(opts(w)[1].classes()).toContain('is-active')
     w.unmount()
   })
 })

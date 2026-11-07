@@ -294,9 +294,9 @@
     "--g-color-accent-soft",
     "--g-color-{danger|warning|info|success}-text",
     "--g-color-{danger|warning|info|success}-soft (por GBadge)",
+    "--g-duration-press",
     "--g-duration-slow",
-    "--g-ease-out",
-    "--g-ease-spring"
+    "--g-ease-out"
   ],
   "states": [
     "table",

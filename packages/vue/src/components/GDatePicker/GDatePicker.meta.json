@@ -387,6 +387,7 @@
     "--g-focus-offset",
     "--g-duration-fast",
     "--g-duration-press",
+    "--g-duration-slow",
     "--g-ease-standard",
     "--g-ease-out"
   ],

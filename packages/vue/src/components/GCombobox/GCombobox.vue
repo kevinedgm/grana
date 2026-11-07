@@ -19,6 +19,7 @@ import { Fragment, computed, h, inject, mergeProps, nextTick, onBeforeUnmount, o
 import { oneOf } from '../../utils/oneOf.js'
 import { fill } from '../../utils/template.js'
 import { placeBlock } from '../../utils/anchor.js'
+import { transitionMs } from '../../utils/motion.js'
 import { createLiveWriter } from '../../utils/liveRegion.js'
 import { fold, tokens } from '../../utils/match.js'
 import GInput from '../GInput/GInput.vue'
@@ -404,6 +405,10 @@ const status = computed(() => {
 const hasPanel = computed(() => Boolean(status.value) || rows.value.all.length > 0)
 const panelVisible = computed(() => opened.value && (surface.value || hasPanel.value))
 const listOpen = computed(() => opened.value && !surface.value && hasPanel.value)
+// Salida de A (#1005): se cierra en el acto, pero el panel conserva lo que pintaba, con su lado y su colocación, lo que dura
+// el fundido; si no, se vaciaría y saltaría de lado mientras se funde. Abrir cancela el vaciado
+const leaving = shallowRef(null)      // { r, s }: filas y estado del último panel abierto
+let leaveTimer = null
 
 // La activa se lleva a la vista SOLO si la puso el teclado o un cambio de resultados; la del puntero nunca desplaza la
 // lista (saltaría bajo el puntero)
@@ -1035,6 +1040,8 @@ watch(() => (opened.value && !surface.value ? [hasPanel.value, rows.value.all.le
 // ---------- Abrir y cerrar ----------
 function show(seed, byTyping = false) {
   if (!editable.value || opened.value) return
+  clearTimeout(leaveTimer)
+  leaving.value = null
   shown.value = limit.value
   setActive(null)
   moreFrom = null
@@ -1071,6 +1078,7 @@ function show(seed, byTyping = false) {
 function closeList() {
   if (!opened.value) return
   const wasSurface = surface.value
+  const last = { r: rows.value, s: status.value }
   opened.value = false
   setActive(null)
   moreFrom = null
@@ -1097,8 +1105,12 @@ function closeList() {
     const pop = popupEl.value
     if (pop && typeof pop.hidePopover === 'function' && pop.matches?.(':popover-open')) {
       try { pop.hidePopover() } catch { /* ya cerrado */ }
+      const ms = hasPanel.value ? transitionMs(pop) : 0
+      if (ms > 0) {
+        leaving.value = last
+        leaveTimer = setTimeout(() => { leaving.value = null }, ms)
+      }
     }
-    up.value = false
     side = null
     written = {}
   }
@@ -1655,8 +1667,8 @@ function statusContent(s) {
 const NO_ROWS = { blocks: [], all: [], actions: [] }
 const Panel = () => {
   // Cerrado no se pinta ninguna fila (ni se filtra): el listbox existe, vacío, para que aria-controls apunte a algo
-  const r = opened.value ? rows.value : NO_ROWS
-  const s = opened.value ? status.value : null
+  const r = opened.value ? rows.value : leaving.value ? leaving.value.r : NO_ROWS
+  const s = opened.value ? status.value : leaving.value && leaving.value.s
   return h('div', { class: 'g-combobox__panel', onPointerdown: onPanelDown, onTouchend: onGestureTouchend, onPointerup: onGesturePointerup, onPointercancel: onGestureCancel, onMousedown: keep, onClick: onPanelClick, onPointermove: onPanelMove }, [
     s
       ? h('p', { class: ['g-combobox__status', `g-combobox__status--${s.kind}`], id: sub('status') }, [h(GIcon, { name: s.icon, key: s.icon }), h('span', null, statusContent(s))])
@@ -1809,7 +1821,7 @@ const Extras = () => [
           M ? h(Foot) : null // último hijo de g-dialog__body (coco)
         ]
       })
-    : h('div', { key: 'popup', id: sub('popup'), ref: popupEl, class: ['g-combobox__popup', { 'is-empty': !opened.value || !hasPanel.value }], popover: 'manual' }, [
+    : h('div', { key: 'popup', id: sub('popup'), ref: popupEl, class: ['g-combobox__popup', { 'is-empty': opened.value ? !hasPanel.value : !leaving.value }], popover: 'manual', inert: leaving.value ? true : undefined }, [
         h('div', { class: 'g-combobox__popup-body' }, [h(Panel)])
       ])
 ]
@@ -1883,7 +1895,7 @@ const rootClasses = computed(() => [
   M && ['g-combobox--multiple', `g-combobox--selection-${props.selection === 'list' ? 'list' : 'inline'}`, { 'has-chosen': count.value > 0, 'is-full': isFull.value }],
   {
     'is-open': listOpen.value,
-    'is-up': listOpen.value && up.value,
+    'is-up': (listOpen.value || leaving.value) && up.value,
     'is-surface': surface.value,
     'is-token': showToken.value,
     'is-custom': isCustom.value
@@ -1928,6 +1940,7 @@ let stopSize = null
 if (M) watch(() => [chosen.value, focused.value, opened.value, armed.value, domLang.value, L.value.rest], scheduleFit)
 onBeforeUnmount(() => {
   stopSize?.()
+  clearTimeout(leaveTimer)
   clearTimeout(timer)
   clearTimeout(annTimer)
   writer.dispose()

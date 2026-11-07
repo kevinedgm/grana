@@ -7,6 +7,7 @@
 import { defineComponent, h, ref, computed, nextTick, onBeforeUnmount, useId, inject, watch } from 'vue'
 import { OPS, parseValue, summarize } from '../../utils/filters.js'
 import { anchorGone, followFrame, placeAround, px, setVar, viewport } from '../../utils/anchor.js'
+import { transitionMs } from '../../utils/motion.js'
 import { fill } from '../../utils/template.js'
 import GIcon from '../GIcon/GLibIcon.js'
 import GMenu from '../GMenu/GMenu.vue'
@@ -44,6 +45,10 @@ export default defineComponent({
     // Clave del último editor presentado como hoja: la hoja la sigue pintando durante su salida (GDialog, #152)
     const sheetKey = ref(null)
     watch(editing, (ed) => { if (ed && ed.presentation === 'sheet') sheetKey.value = ed.key })
+    // Clave del editor popover que se está fundiendo (#1005): título y cuerpo siguen pintados, e inertes, lo que dura la salida.
+    // Sin efecto: el borrador ya está aplicado o descartado. Abrir cancela el vaciado
+    const leaveKey = ref(null)
+    let leaveTimer = null
     const draftOp = ref('')
     const draftRaw = ref('')
     const draftError = ref('')
@@ -98,6 +103,7 @@ export default defineComponent({
       if (keep !== 'scroll' || r.side !== usedSide) {
         el.style.setProperty('--_max', px(Math.max(0, r.room)))
         usedSide = r.side
+        el.setAttribute('data-side', r.side) // físico: coco lee de él el lado de entrada
       }
     }
     const isPopover = () => Boolean(editing.value && editing.value.presentation === 'popover')
@@ -127,6 +133,8 @@ export default defineComponent({
     function openEditor(key, anchor) {
       const field = fieldOf(key)
       if (!field) return
+      clearTimeout(leaveTimer)
+      leaveKey.value = null
       const cur = props.filters.find((f) => f.key === key)
       const type = field.filter.type
       anchorEl = anchor
@@ -151,12 +159,22 @@ export default defineComponent({
     }
     function closeEditor(returnFocus = true, key = editing.value?.key) {
       const el = editorEl.value
-      if (el && typeof el.hidePopover === 'function' && el.matches?.(':popover-open')) el.hidePopover()
+      if (el && typeof el.hidePopover === 'function' && el.matches?.(':popover-open')) {
+        el.hidePopover()
+        const ms = transitionMs(el)
+        if (ms > 0) {
+          leaveKey.value = key
+          leaveTimer = setTimeout(() => { leaveKey.value = null }, ms)
+        }
+      }
       stopListening()
       editing.value = null
       if (returnFocus) focusBack(key)
     }
-    onBeforeUnmount(stopListening)
+    onBeforeUnmount(() => {
+      stopListening()
+      clearTimeout(leaveTimer)
+    })
 
     const setOp = (op) => {
       draftOp.value = op
@@ -291,13 +309,16 @@ export default defineComponent({
       kids.push(h('p', { class: 'g-filter-bar__sr', 'aria-live': 'polite', key: 'live' }, live.value))
 
       const ed = editing.value
-      const titleKey = ed ? ed.key : sheetKey.value // durante la salida de la hoja, el título no cambia
+      // Durante la salida del popover o de la hoja, el título y el cuerpo no cambian; un campo que ya no está, se vacía
+      const leavingKey = !ed && fieldOf(leaveKey.value) ? leaveKey.value : null
+      const popKey = ed && ed.presentation === 'popover' ? ed.key : leavingKey
+      const titleKey = ed ? ed.key : leavingKey ?? sheetKey.value
       const title = titleKey !== null ? fill(L.filterBy, { label: fieldOf(titleKey)?.label }) : L.group
       kids.push(h('div', {
         key: 'editor', ref: editorEl, class: 'g-filter-bar__editor', role: 'dialog', popover: 'manual',
-        'aria-labelledby': `${uid}-title`, onKeydown: onEditorKeydown
-      }, ed && ed.presentation === 'popover'
-        ? [h('h3', { id: `${uid}-title`, class: 'g-filter-bar__editor-title' }, title), ...editorBody(), h('div', { class: 'g-filter-bar__actions' }, editorActions())]
+        'aria-labelledby': `${uid}-title`, onKeydown: onEditorKeydown, inert: ed ? undefined : leavingKey !== null || undefined
+      }, popKey !== null
+        ? [h('h3', { id: `${uid}-title`, class: 'g-filter-bar__editor-title' }, title), ...editorBody(popKey), h('div', { class: 'g-filter-bar__actions' }, editorActions())]
         : []))
       kids.push(h(GDialog, {
         key: 'sheet', id: `${uid}-sheet`, modelValue: Boolean(ed && ed.presentation === 'sheet'),

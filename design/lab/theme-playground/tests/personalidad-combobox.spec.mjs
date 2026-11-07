@@ -36,8 +36,9 @@ test.describe('GCombobox · personalidad con movimiento', () => {
     const hs2 = distinct(await run2)
     expect(hs2.length, `alturas al filtrar: ${hs2.join(', ')}`).toBeLessThanOrEqual(4) // la de antes, las de cada tecla («r», «r0») y la de después: saltos, no una transición
     expect(Math.min(...hs2)).toBeLessThan(final)
-    // Cerrar es inmediato
-    const run3 = sample(page, () => { const b = document.querySelector('#cb-dx-popup .g-combobox__popup-body'); return b.checkVisibility() ? b.getBoundingClientRect().height : 0 }, 12)
+    // Al cerrar no se pliega: se funde con su alto (#1005) y en Firefox y WebKit se va en el acto (D2 · A). Por debajo de
+    // 0,001 de opacidad no se ve, y el temporizador ya pudo vaciar el panel
+    const run3 = sample(page, () => { const b = document.querySelector('#cb-dx-popup .g-combobox__popup-body'); return b.checkVisibility() && +getComputedStyle(b.parentElement).opacity > 0.001 ? b.getBoundingClientRect().height : 0 }, 30)
     await page.keyboard.press('Escape')
     const hs3 = distinct(await run3)
     expect(hs3.length, `alturas al cerrar: ${hs3.join(', ')}`).toBeLessThanOrEqual(2)

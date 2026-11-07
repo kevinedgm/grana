@@ -10,6 +10,7 @@ import { messageIcon, nextFrame, spaceUnit, useFormField } from '../GForm/formCo
 import { anchorGone, followFrame, isPhone, px, setVar, stickySide } from '../../utils/anchor.js'
 import { fold } from '../../utils/match.js'
 import { repeatGesture } from '../../utils/menuNav.js'
+import { aimed, placeHighlight } from '../../utils/glide.js'
 
 defineOptions({ name: 'GSelect', inheritAttrs: false })
 
@@ -127,7 +128,6 @@ const showClear = computed(() => props.clearable && Boolean(props.clearLabel) &&
 const list = ref(null)
 const control = ref(null)
 const open = ref(false)
-const up = ref(false)
 const activeIndex = ref(-1)
 const activeId = computed(() => (open.value && activeIndex.value >= 0 ? optId(activeIndex.value) : undefined))
 let moved = false // la persona movió la activa (teclas, puntero o letras): la de partida deja de serlo
@@ -160,7 +160,7 @@ function place(full = true) {
     side = below < need && above > below ? 'top' : 'bottom'
   } else side = stickySide(side, { below, above, unit: spaceUnit(rootEl.value) })
   const goUp = side === 'top'
-  up.value = goUp
+  el.classList.toggle('is-up', goUp)
   // --_x es la distancia desde el borde INICIAL del visor (la lista usa inset-inline-start): en RTL, desde la derecha
   const rtl = window.getComputedStyle(el).direction === 'rtl'
   setVar(el, '--_x', px(rtl ? el.ownerDocument.documentElement.clientWidth - r.right : r.left))
@@ -174,20 +174,32 @@ const follow = followFrame((scroller) => {
   if (!isPhone() && anchorGone(control.value, scroller)) { hide(); return }
   place(false)
 })
+const refit = () => {
+  place()
+  settle(false, true)
+}
 const onResize = () => {
-  if (open.value) place()
+  if (open.value) refit()
 }
 const onScroll = (event) => {
   const t = event && event.target
   if (!open.value || (t && t.nodeType === 1 && list.value?.contains(t))) return // la propia lista se desplaza
   follow.schedule(t)
 }
-function scrollActive() {
+// Una sola luz (select.md, #1004): sigue a la activa, con la lista abierta. Una pasada por cambio: primero se desplaza y
+// luego placeHighlight lee y escribe, sin más lecturas. Cerrando no se toca: la luz se queda durante la salida (hide()
+// pone activeIndex en −1). Al desplazar la lista no hay nada que escribir: la capa va con el contenido.
+// Las clases de la lista van por classList (is-up, is-keyed): un :class reescribiría has-highlight, que pone glide.js.
+function settle(scroll, instant) {
   nextTick(() => {
-    const el = list.value?.ownerDocument.getElementById(optId(activeIndex.value))
-    if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' })
+    const l = list.value
+    if (!l || !open.value) return
+    const el = l.querySelector(`[data-index="${activeIndex.value}"]`) // por índice y en su lista: useId se repite entre aplicaciones
+    if (scroll && el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' })
+    placeHighlight(l, el, { instant, layer: l.firstElementChild })
   })
 }
+const setKeyed = (on) => list.value?.classList.toggle('is-keyed', on)
 
 // ---------- Abrir y cerrar ----------
 function show() {
@@ -200,7 +212,7 @@ function show() {
     const el = list.value
     if (el && typeof el.showPopover === 'function') el.showPopover()
     place()
-    scrollActive()
+    settle(true, true) // en cada apertura: has-highlight puede venir de la anterior y nunca viaja desde allí
   })
   document.addEventListener('pointerdown', onOutside)
   window.addEventListener('resize', onResize)
@@ -278,7 +290,8 @@ function moveActive(step) {
   else next = Math.max(0, Math.min(list_.length - 1, (cur < 0 ? 0 : cur) + step))
   activeIndex.value = list_[next].index
   moved = true
-  scrollActive()
+  setKeyed(true)
+  settle(true)
 }
 
 function typeahead(ch) {
@@ -305,7 +318,8 @@ function typeahead(ch) {
   if (hit) {
     activeIndex.value = hit.index
     moved = true
-    scrollActive()
+    setKeyed(true)
+    settle(true)
   }
 }
 
@@ -318,9 +332,11 @@ function onKeydown(event) {
   if (!open.value) {
     if (k === 'ArrowDown' || k === 'ArrowUp' || k === 'Enter' || k === ' ') {
       event.preventDefault()
+      setKeyed(true)
       show()
     } else if (printable) {
       event.preventDefault()
+      setKeyed(true)
       show()
       nextTick(() => { if (open.value) typeahead(k) })
     }
@@ -356,6 +372,7 @@ function onButtonClick(event) {
     // Safari y Firefox en macOS no enfocan un botón al hacer clic: sin foco en él, Esc, Inicio, Fin y las flechas no llegan
     // (verificado con Playwright en WebKit). En Chromium ya está enfocado: no cambia nada. preventScroll: no mueve la página.
     if (button.value && button.value.ownerDocument.activeElement !== button.value) button.value.focus({ preventScroll: true })
+    setKeyed(false)
     show()
   }
 }
@@ -363,6 +380,7 @@ function onButtonClick(event) {
 // La lista no roba el foco del botón
 function onListPointerdown(event) {
   event.preventDefault()
+  setKeyed(false)
 }
 function onListClick(event) {
   const li = event.target.closest?.('[role="option"]')
@@ -372,8 +390,10 @@ function onListClick(event) {
 }
 // Solo un movimiento REAL del puntero activa: el primer evento tras abrir con teclado solo anota dónde está, y uno sin
 // desplazamiento (la lista o la página que se mueven bajo el puntero quieto) se ignora. La activa por puntero nunca
-// desplaza la lista (scrollActive es solo del teclado y de la apertura).
+// desplaza la lista (settle(true) es solo del teclado y de la apertura). Solo ratón y lápiz: un arrastre táctil por la hoja
+// no la mueve, y tocar una opción la elige por su fila. Sobre un hueco, un título o una deshabilitada, nada cambia.
 function onListPointermove(event) {
+  if (!aimed(event)) return
   const still = lastX === null || (event.clientX === lastX && event.clientY === lastY)
   lastX = event.clientX
   lastY = event.clientY
@@ -381,7 +401,12 @@ function onListPointermove(event) {
   const li = event.target.closest?.('[role="option"]')
   if (!li) return
   const item = itemAt(Number(li.dataset.index))
-  if (item && !item.disabled) { activeIndex.value = item.index; moved = true }
+  if (!item || item.disabled) return
+  setKeyed(false)
+  moved = true
+  if (item.index === activeIndex.value) return
+  activeIndex.value = item.index
+  settle()
 }
 
 // La etiqueta solo enfoca, como en un <select> nativo: se cancela la activación nativa del <label for>, que abriría la lista
@@ -474,7 +499,7 @@ const hasRows = computed(() => items.value.length > 0 || emptyVisible.value || c
 // Abierta y sin filas (también porque `loading` retira el mensaje de vacío): se cierra
 watch(() => hasRows.value, (v) => { if (!v) hide() })
 // Contenido nuevo con la lista abierta: --_max se vuelve a fijar (el lado se conserva)
-watch(() => [model.value, emptyVisible.value, createVisible.value], () => { if (open.value) nextTick(() => place()) }, { flush: 'post' })
+watch(() => [model.value, emptyVisible.value, createVisible.value], () => { if (open.value) nextTick(refit) }, { flush: 'post' })
 
 try {
   if (process.env.NODE_ENV !== 'production') {
@@ -505,7 +530,6 @@ try {
       ref="list"
       :id="listId"
       class="g-select__list"
-      :class="{ 'is-up': up }"
       role="listbox"
       popover="manual"
       :aria-label="attrs['aria-label']"
@@ -514,6 +538,7 @@ try {
       @click="onListClick"
       @pointermove="onListPointermove"
     >
+      <li class="g-select__highlight" role="none" aria-hidden="true" />
       <template v-for="entry in model.entries" :key="entry.group !== undefined ? `g${entry.group}` : entry.index">
         <li v-if="entry.group !== undefined" role="presentation">
           <ul class="g-select__group" role="group" :aria-labelledby="groupId(entry.group)">

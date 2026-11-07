@@ -1,7 +1,7 @@
 name: CI
 
 # Verificación en cada push y pull request a main:
-#   verify        pruebas (vitest), build, vigilante de iconos y compuertas del dist
+#   verify        pruebas (vitest), build, vigilante de iconos, tabla de movimiento y compuertas del dist
 #   e2e-chromium  subconjunto rápido de Playwright en Chromium (design/lab/theme-playground)
 #   audit         npm audit, solo informativo
 # La pasada completa en Chromium, Firefox y WebKit está en e2e-full.yml (nocturna y manual).
@@ -49,6 +49,9 @@ jobs:
 
       - name: README con ejemplos montables o marcados como fragmento
         run: node packages/vue/scripts/check-readme-fragments.mjs
+
+      - name: Tabla única de movimiento (design/contracts/motion.json)
+        run: node packages/vue/scripts/check-motion.mjs
 
       - name: Compuertas del dist (lo que debe estar y lo que no)
         run: bash .github/scripts/gates.sh

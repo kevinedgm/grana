@@ -541,8 +541,10 @@
     "--g-color-text-muted",
     "--g-color-text-subtle",
     "--g-duration-fast",
+    "--g-duration-press",
     "--g-duration-slow",
     "--g-duration-spin",
+    "--g-ease-bounce",
     "--g-ease-out",
     "--g-ease-spring",
     "--g-ease-standard",
@@ -613,7 +615,8 @@
     "Sin prop locale: la comparación es NFD + minúsculas sin configuración regional y las cifras usan Intl.NumberFormat del lang del ancestro más cercano.",
     "Colocación de A: el lado (abajo o arriba) se decide al abrir y se conserva; solo cambia si deja de ser útil (menos de space × 40) y el otro ofrece al menos space × 12 más. --_max se fija al abrir, al cambiar los resultados, en resize y al cambiar de lado; durante el desplazamiento de la página solo se escribe la posición (style.setProperty, una vez por cuadro y solo si cambia). Si la caja sale del visor o de su contenedor con desplazamiento, la lista se cierra.",
     "La opción activa se lleva a la vista (desplazando el panel, nunca la página) solo cuando la puso el teclado o un cambio de resultados; la activación por puntero no desplaza la lista y exige un movimiento real del puntero (el primer evento tras abrir solo anota la posición).",
-    "El foco inicial de la superficie se fija en el campo de búsqueda al abrir (también al reabrir durante la salida de GDialog, cuando el navegador enfocaría el botón de cierre, que va antes en el DOM)."
+    "El foco inicial de la superficie se fija en el campo de búsqueda al abrir (también al reabrir durante la salida de GDialog, cuando el navegador enfocaría el botón de cierre, que va antes en el DOM).",
+    "Salida de A (#1005, combobox.md «Movimiento»): hidePopover(), aria-expanded e is-open en el acto; el popup conserva las filas y el estado del último panel, is-empty, is-up y su colocación, inerte, lo que dice transitionMs, con un temporizador que show() cancela. La marca de la fila activa se va en el acto, con aria-activedescendant."
   ],
   "pending": [
     "Solo en entorno real: lector de pantalla (eco de escritura con la primera activa, fantasma junto a aria-activedescendant, dos combobox y la vista previa, aria-describedby con la línea secundaria, filas de acción, recuentos), teclado virtual real sobre la hoja, IME real, forced-colors real, Safari real, zoom 200/400 %, pegado de texto largo.",

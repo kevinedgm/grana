@@ -7,6 +7,7 @@
 import { defineComponent, h, ref, computed, watch, nextTick, onBeforeUnmount, useId, mergeProps } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import { anchorGone, followFrame, placeAround, parsePlacement, px, setVar, viewport } from '../../utils/anchor.js'
+import { transitionMs } from '../../utils/motion.js'
 import GIcon from '../GIcon/GLibIcon.js'
 import GDialog from '../GDialog/GDialog.vue'
 
@@ -171,11 +172,22 @@ export default defineComponent({
       const el = content.value
       if (el && typeof el.hidePopover === 'function' && el.matches?.(':popover-open')) el.hidePopover()
     }
+    // Salida (#1005): se cierra en el acto, pero el contenido sigue pintado (e inerte) lo que dura el fundido, con su lado y
+    // su posición; sin esto se fundiría una caja vacía. Abrir cancela el vaciado
+    const leaving = ref(false)
+    let leaveTimer = null
+    const stay = (on) => {
+      clearTimeout(leaveTimer)
+      const ms = on ? transitionMs(content.value) : 0
+      leaving.value = ms > 0
+      if (ms > 0) leaveTimer = setTimeout(() => { leaving.value = false }, ms)
+    }
 
     const self = { close: () => close(false) }
     const doOpen = async () => {
       if (current && current !== self) current.close()
       current = self
+      stay(false)
       presentation.value = 'popover'
       await nextTick()
       showPopover()
@@ -191,6 +203,7 @@ export default defineComponent({
     const doClose = () => {
       unlisten()
       hidePopover()
+      stay(presentation.value === 'popover')
       if (current === self) current = null
       emit('toggle', { open: false, presentation: presentation.value })
     }
@@ -199,6 +212,7 @@ export default defineComponent({
     watch(() => props.disabled, (d) => { if (d) close(false) })
     onBeforeUnmount(() => {
       unlisten()
+      clearTimeout(leaveTimer)
       if (current === self) current = null
     })
     // Montado ya abierto (controlado): abre tras montar
@@ -253,8 +267,9 @@ export default defineComponent({
         role: 'dialog',
         'aria-label': props.contentLabel,
         popover: 'manual',
-        tabindex: '-1'
-      }, isOpen.value && !sheet ? renderContent() : null)
+        tabindex: '-1',
+        inert: leaving.value || undefined
+      }, (isOpen.value || leaving.value) && !sheet ? renderContent() : null)
 
       const kids = [trigger, popover]
       if (props.adaptive) {

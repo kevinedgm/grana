@@ -129,7 +129,11 @@
     "--g-color-focus",
     "--g-radius-*",
     "--g-shadow-2",
-    "--g-space-*"
+    "--g-space-*",
+    "--g-duration-fast",
+    "--g-duration-press",
+    "--g-ease-standard",
+    "--g-ease-out"
   ],
   "states": [
     "open",
