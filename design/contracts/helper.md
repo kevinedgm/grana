@@ -147,6 +147,15 @@ Existentes: `--g-color-surface`, `--g-color-text`, `--g-color-text-muted`, `--g-
 
 Variable dinámica en línea: `--_offset` (número).
 
+## Movimiento (`tokens.md` §29.9, #1002 y #1005)
+
+**Panel anclado** en la presentación popover; la hoja es la de `GDialog`. La entrada ya cumple. **Falta la salida** (hoy, cierre instantáneo en los tres motores):
+
+- **Coco:** fundido `--g-duration-fast` + `--g-ease-out` al cerrar, con `overlay` y `display` discretos; con reducido, `--g-duration-fast` `linear`. Sin desplazamiento. En Firefox y WebKit seguirá siendo instantáneo (D2 · A).
+- **Bruno:** `hidePopover()` no se retrasa, pero el contenido se conserva hasta acabar la salida: hoy `isOpen && !sheet ? renderContent() : null` vacía el panel en el acto. Regla común en `api.md` «Paneles anclados». Reabrir a mitad cancela el vaciado.
+
+Se verifica en Chromium con el contenido presente mientras la opacidad baja, y reabriendo a mitad de salida.
+
 ## Resolución de hallazgos
 
 | # | Hallazgo | Resolución | Base |

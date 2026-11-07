@@ -770,11 +770,12 @@ Ronda transversal de kiwi (`design/lab/personalidad/r01/`, §2) y decisiones del
 | `--g-ease-bounce` | Escalas **pequeñas**: rebasa 20 % de un cambio de `1 − --g-press-scale` (pico 1,006 con 0,97) | Soltar `GBtn` (#300); **la marca de la casilla de `GCombobox multiple` al marcar por un gesto**, desde la escala `0.4` (#427: segundo uso; una marca de 1em, rebase ≈ 12 %) | Desplazamientos (en 200px serían 40px), superficies grandes |
 
 - **Valores:** los de §6, como valor por defecto; coco los escribe en `defaults.css` (capa `grana.defaults`) y bruno regenera `packages/cli/src/defaults.js` (`node packages/cli/scripts/sync-defaults.mjs`). No son de color: no se redeclaran en el oscuro (§15). El CLI no valida curvas; un tema puede escribir cualquier `<easing-function>`.
-- **Duración:** siempre `--g-duration-slow`. El máximo de la interfaz sigue en 240ms (#71, #280).
+- **Duración:** siempre `--g-duration-slow`. El máximo de una transición sigue en 240ms (#71, #280; §29.10).
 - **Apagar el rebote** en un producto sobrio: `--g-ease-bounce: var(--g-ease-out); --g-ease-spring: var(--g-ease-out);` en su tema. Ningún componente cambia.
 - **Límite conocido:** el pico de `--g-ease-bounce` es proporcional a `1 − --g-press-scale`; un tema con `--g-press-scale` 0,9 lo lleva a ~1,02. Se documenta; el CLI no lo limita.
 - **Soporte:** la transición que usa una de las dos curvas va dentro de `@supports (transition-timing-function: linear(0, 1))`; fuera queda la vigente. No basta con declarar antes la vigente: con `var()`, una curva no soportada invalida la declaración en tiempo de cálculo y `transition` queda sin valor.
-- **Un uso nuevo** de cualquiera de las dos es una decisión nueva (lima; si cambia la identidad, el usuario).
+- **Un uso nuevo** de cualquiera de las dos es una decisión nueva (lima; si cambia la identidad, el usuario). La lista cerrada, por archivo, vive en `design/contracts/motion.json` (`easeUses`) y la vigila `check-motion.mjs` (#1009).
+- **El detalle de `GTable` no es un uso:** #599 lo escribió con el muelle sin registrarlo aquí; es un plegado y va con `--g-ease-out` (#1006).
 
 ### 29.2 Duraciones por jerarquía (tokens existentes)
 
@@ -782,9 +783,9 @@ Ronda transversal de kiwi (`design/lab/personalidad/r01/`, §2) y decisiones del
 | --- | --- | --- |
 | Color y fundidos | `--g-duration-fast` | Hover, selección, opacidad de piezas pequeñas, salidas |
 | Respuesta | `--g-duration-press` | Pulsar, entrada de un popover, borde que avanza, mensaje que aparece |
-| Bloques y asentamiento | `--g-duration-slow` | Paneles, alturas, muelles, sacudida, vuelta de una pulsación |
+| Bloques y asentamiento | `--g-duration-slow` | Alturas, anchos de bloque, muelles, sacudida, vuelta de una pulsación. Un panel anclado **no** entra aquí: entra en `--g-duration-press` (§29.9) |
 
-La salida es más corta que la entrada (#152). Lo frecuente usa el nivel más bajo posible.
+La salida es más corta que la entrada (#152), y un plegado lo cumple en su contenido, no en la altura (#1007). Lo frecuente usa el nivel más bajo posible.
 
 ### 29.3 Movimiento reducido (regla transversal; amplía el plan 007)
 
@@ -805,13 +806,15 @@ Transiciones por defecto (#71). **Keyframes** solo para reacciones únicas a un 
 
 Variables dinámicas en línea (excepción justificada a «sin estilos en línea», como `--_mark-*` de `GTabs`, #121 y #122, y `--_x`/`--_y` de `GMenu`) y atributos: `data-direction` y `data-orientation` (`GTabs`, `GTabPanel`; #306), `--_origin-x`/`--_origin-y` y `--_pin-top` (`GDialog`), `--_pointer-x`/`--_pointer-y` (`GCard`; se retiran al quitar las escuchas, no en `pointerleave`; `--_select-x`/`--_select-y` reservados **sin uso**: C2 sale por anclaje CSS), `--_active-y`/`--_active-h` (`GMenu`). `data-direction` en la capa de P2 y `data-bump` en P3 (`GNumberField`, #313). `--_island-w`/`--_island-h` (px del tamaño de destino de `__inner` **sin el borde**, medido antes de mostrarlo; el CSS suma `2 × --g-border-width`, #707), `--_left` (fracción 0–1 que queda al empezar el tramo de lectura) y `--_run-ms` (ms del tramo), `--_status-offset-top`, `data-form` (`empty`/`line`/`list`), `data-stage` (`drop`/`grow`/`fold`/`rise`), `is-peek`, `is-paused` y, en la marca, `is-echo` (`GStatusIsland`, `GStatusMark`; #701, sustituye `is-nudge` de #324). `--_x`, `--_top`, `--_bottom`, `--_w`, `--_max` y `--_field-h` (colocación de la lista de `GCombobox`), `--_travel-x`/`--_travel-y` e `is-arriving` (llegada de su ficha, #336). `--_x`, `--_y`, `--_yb`, `--_tooltip-ax`/`-ay`/`-aw`/`-ah` (geometría de la pestaña), `--_tooltip-ar1`/`-ar2` (radio del control en las esquinas que dan a la pestaña, #680) y `data-side`, `data-instant`, `data-travel`, `data-dwell`, `data-touch` (`GTooltip`, #388, #389). `is-entering` en la palabra de la lectura y `data-compact` en las dos lecturas (`GTimeField`, #407). `--_at`, `--_from`, `--_to`, `--_mid`, `--_pill-w`, `data-thumb`, `data-bump` (`GSlider`, #452, #454). `--_ghost-w` (px: ancho medido de la etiqueta al quitarla) e `is-ghost` en la `GTag`, `is-settling` en el elemento del grupo mientras se recoge (`GTagGroup`, #466, #471). `data-stage`, `data-clipped`, `is-entering`, `is-leaving`, `--_depth` y `--_x`/`--_y`/`--_max` y `data-side` de sus paneles (`GBreadcrumbs`, #495, #499, #500). `--_head-size` (px, alto del encabezado pegado, en el elemento abierto) y `--_scroll-pad` (px, relleno del contenedor de desplazamiento, en la raíz del grupo `sticky`) en `GAccordion`/`GAccordionItem` (#484, #517). `--_height` (longitud de la prop `height`, en la raíz), `--_seal-size` (px, alto del sello que el escenario reserva), `--_y` (% de la marca y de la página que asoma en el riel), `--_w`/`--_h` (px de cada página) y `data-phase`, `is-arriving`, `is-typing`, `is-dense`, `is-thumbs` (`GDocumentPreview`, #639, #642, #644). `--_drag-x`/`--_drag-y` (px, en el escenario o en la foto mientras se arrastra), `--_zoom-w`/`--_zoom-h` (px enteros: tamaño contenido de la foto × 2, en el escenario con `is-zoomed`; sustituyen a `--_zoom-x`/`--_zoom-y`, que nunca se leyeron: el punto del zoom va por `scrollLeft`/`scrollTop`) y `is-arriving` con `data-direction` en la foto (visor de `GGallery`, #734, #758). `--_reserve` (px, reserva leída de su borde inferior, en `div.g-booking-bar__dock`; `GBookingBar`, #740, #759). En `GFab`: `--_reserve` (px, reserva leída de su borde) y `--_offset` (longitud de `offset` de su borde, tal cual) en la raíz, `--_x`/`--_y`/`--_w`/`--_max` de cada lista, `--_minh` (px, alto exacto de la pila, sin margen, en el panel de la cola de A cuando la cubre, #677), `--_armed-w` (px, ancho de la píldora al armarse, en el `li` de la fila con el par de confirmación; el CSS lo aplica como `min-inline-size`, #677), `--_fx`/`--_fy` (px, vector de cada píldora al centro del FAB) e `--_i` (índice desde el FAB, tope 4) en los `li` de la pila, `--_clip-from` (recorte de partida del panel de C), `--_hole-x`/`-y`/`-w`/`-h` (px enteros del visor, ventana del velo táctil con su anillo de `space × 1` sumado por el `.vue` antes de redondear, #677) y `data-state`, `data-appearance`, `data-position`, `data-anchor`, `data-ack` (en la raíz y en el elemento que ejecuta), `is-tucked`, `is-coarse` (`GFab`, #655, #663, #664, #668 a #671; los datos de colocación se escriben en `opening`, que no lleva transición). Las clases de estado que los acompañan (`has-origin`, `is-pinned`, `has-highlight`, `is-highlight-instant`, `is-rejected`, `is-ready` de `GInput`, `is-rolling` e `is-bumping` de `GNumberField`, `is-merged`, `is-jumping`, `is-dragging` e `is-typing` de `GSlider`) se fijan en cada contrato.
 
+**Desde #1004 y #1005:** `--_highlight-x/-y/-w/-h` en `g-select__highlight`, con `has-highlight`, `is-highlight-instant` e `is-keyed` en `g-select__list` (`GSelect`, como `GSidebar` y `GTable`); `data-side` en `g-filter-bar__editor` (`GFilterBar`).
+
 ### 29.6 Constantes de coreografía (neutras, #187)
 
 | Constante | Dónde |
 | --- | --- |
 | `0.25` (fracción del vector de origen) y tope `--g-space-1 × 8` por eje | Entrada y salida de `GDialog` desde el disparador (#301) |
 | `--g-space-1 × 4` | Entrada lateral del panel de `GTabs` (#302) |
-| `--g-space-1 × 1` | Etiqueta de `GBtn` que cede el sitio (#300); mensaje de `GInput` que baja (#304); la franja del día que entra en `GTimeField` (`g-time-reading…`, #407) |
+| `--g-space-1 × 1` | Entrada de un panel anclado desde el lado del disparador (§29.9, #1002); etiqueta de `GBtn` que cede el sitio (#300); mensaje de `GInput` que baja (#304); la franja del día que entra en `GTimeField` (`g-time-reading…`, #407) |
 | Amplitudes `1 · 0.75 · 0.5 · 0.25` × `--g-space-1`, instantes `16 · 36 · 56 · 76 %` | Sacudida de un campo rechazado (#304) |
 | `--g-space-1 × 0.5` | Tope de `GNumberField` (P3) y de `GSlider` (B5): el número o la píldora se desplaza y vuelve (#313, #452); inclinación del chevron de `GAccordionItem` al pasar el puntero, ±, hacia donde va (#518) |
 | `TAP` 10px, `TYPE_MS` 900ms y 2px (constantes de **JS**) | `GSlider`: toque frente a gesto, pausa que confirma la cifra tecleada, umbral del empate de asas juntas (#449, #452) |
@@ -831,7 +834,7 @@ Variables dinámicas en línea (excepción justificada a «sin estilos en línea
 | `OPEN` 350 · `CLOSE` 100 · `SKIP` 600 · `NAV` 1000 · `DWELL` 700 · `LONG` 500 · `LINGER` 1500 ms, `MOVE` 10px y lectura en táctil `min(6000, max(1500, 1000 + 50 × caracteres))` ms (constantes de **JS**) | Motor de `GTooltip` (`utils/tooltip.js`; `tooltip.md`, #384, #385, #389); 350 y 600 son los de la pista de `GSidebar` |
 | Retardo `--g-duration-fast × min(i, 4) / 8` (15 ms por escalón con el tema por defecto) | Salida escalonada de las píldoras de `GFab` desde el FAB, la más cercana primero (#655; precedente de #500) |
 | `k ≤ 5`, `space × 3` (hueco con el FAB), `space × 10` (píldora; 44px con `pointer: coarse`), `space × 2` (separación), `space × 80` y `space × 20` (ancho y alto mínimo del panel), `space × 40` (sitio para el panel sobre la pila), `space × 130` (estrecho, el de `GDialog`) y `RECEIPT_MS` 4000 ms (constante de **JS**, la de `GDocumentPreview`) | Política `auto`, panel y acuse de `GFab` (`fab.md`, #663, #665; `k` se ajusta a los altos medidos, #670) |
-| Giro `45°` (iconos que se cruzan: el `+` es la `x`), escala de partida `0.96` (la de `GMenu`), márgenes del recorte en reposo `space × −6` (fila de la pila) y `space × −12` (panel de C) | `GFab.css` (`fab.md` «Tokens consumidos», #671) |
+| Giro `45°` (iconos que se cruzan: el `+` es la `x`), escala de partida `0.96` (constante propia de `GFab`: `GMenu` ya no escala, #1002), márgenes del recorte en reposo `space × −6` (fila de la pila) y `space × −12` (panel de C) | `GFab.css` (`fab.md` «Tokens consumidos», #671) |
 | `7.5cqi` (preferido del título fluido) e interlineado relativo `1.08`; margen `clamp(space × 4, 4cqi, space × 12)`; arco de A (50 % / 40 % en 4:5), muro `space × 2`, foto 4:5; labio de B `min(space × 40, 12cqi)` y de C `min(space × 28, 16cqi)`, tarjeta de C `min(100% − 2 × margen, space × 220)`; ninguna placa o tarjeta tapa más de la mitad de la foto; la mirada, **3 %** del alto | `GHero` (`hero.md`, #726 a #728) |
 | A: partición texto `flex-basis space × 88 + 2 × margen` y vano `space × 80 + 2 × margen` (tope `space × 130`), columna del vano ≤ `64svh` (el vano nunca pasa de `80svh`: el arco no se aplana), detalle = **40 %** del vano y asoma `space × 12` fuera de su esquina de inicio. B: foto **16:9**, mínimo `space × 56`, tope `64svh`; placa `min(100% − 2 × margen, space × 150)`, relleno `clamp(space × 5, 4cqi, space × 10)`, radio `xl`. C: foto **16:7**, mínimo `space × 60`, tope `68svh`; relleno de la tarjeta `clamp(space × 5, 4cqi, space × 12)`. Vistas: 44 px de alto, miniatura `space × 12` en 4:3; la vista anterior se va con retardo `--g-duration-slow` (cuando la nueva ya la cubre). Pausa: 44 × 44 | `GHero.css` (`hero.md`, coco 6945cda; #759) |
 | Umbrales del gesto **18 %** del ancho, **40 px** en < **250 ms**, **22 %** del alto para cerrar; zoom **×2** del tamaño contenido (#758); recorrido de llegada `space × 6` (constantes de **JS** las tres primeras) | Visor de `GGallery` (`gallery.md`, #734) |
@@ -870,6 +873,45 @@ Regla común para todo movimiento que avanza con el desplazamiento de la página
 3. **CSS, sin JS:** `animation-timeline: view()` (o `scroll()`); sin soporte (Firefox hoy), quieto. Nunca un manejador de `scroll`.
 4. **Movimiento reducido:** quieto (§29.3). **Siempre apagable** por prop (`look` en `GHero`).
 5. **Un uso nuevo** de esta regla es una decisión nueva (como §29.1).
+
+### 29.9 Tabla por tipo de pieza (DECISIONS.md #1002)
+
+Aprobada por el usuario el 2026-11-07 con D1 · A y D2 · A (`design/lab/movimiento/r01/tabla.md`, medida en tres motores). **Quien añade un componente elige su tipo de pieza y hereda la fila;** salirse de ella exige una decisión con número. La fuente canónica es **`design/contracts/motion.json`**: si esta tabla y el JSON difieren, manda el JSON. Allí está también qué pieza es cada componente.
+
+| Tipo de pieza | Componentes | Entrar o abrir | Salir o cerrar | Reducido |
+| --- | --- | --- | --- | --- |
+| **Panel anclado** | `GSelect`, `GDatePicker`, `GMenu`, `GHelper`, editor de `GFilterBar`, panel de `GPartyField`, paneles de `GBookingBar` y `GBreadcrumbs` | `press` + `ease-out`: fundido y `space × 1` desde el lado del disparador, sin escala (D1 · A) | `fast` + `ease-out`: solo fundido | Fundido `fast` `linear` en las dos direcciones |
+| **Hoja móvil** (≤ 520 px) | Las de `GSelect` y `GDatePicker`, y `GDialog` en hoja | `press` + `ease-out`: fundido y `space × 6` desde su borde; fondo con fundido `press` | `fast`: solo fundido, fondo también | Solo fundido |
+| **Diálogo** | `GDialog` | `press` + `ease-out`: fundido, `--g-press-scale`, D1 de #301 | `fast` + `ease-out`, hacia su origen | Solo fundido |
+| **Plegado** | `GAccordion`, `GFormSection`, `GFormReveal`, `GFormFold`, submenú de `GSidebar`, detalle de `GTable` | `slow` + `ease-out`: altura | `slow` + `ease-out`: altura, contenido con fundido `fast` | Sin transición de altura |
+| **Aviso flotante** | `GToast`, isla de estado | `press` + `ease-out` (la isla, su contrato) | `fast` el fundido | Solo fundido |
+
+| Momento de control | Dónde | Regla | Reducido |
+| --- | --- | --- | --- |
+| **Hover de un control** | Botones, campos, enlaces | Color y borde con `fast` + `standard`. Sin escala. Solo con `@media (hover: hover)` | Igual: es color |
+| **Pulsar** | `GBtn` y lo que lo compone | Aprieta `fast` + `ease-out` a `--g-press-scale`; suelta `slow` + `ease-bounce` | Sin escala |
+| **Foco** | Todo | **Abierta (#1008):** la tabla dice «nunca se anima: el anillo aparece en el acto», pero #35 da al anillo de `GInput` una transición de color. Hasta que decida el usuario, el código sigue como está y la compuerta no lo vigila | Igual |
+| **Recorrer una lista con filas que se tocan** | `GMenu`, `GSidebar`, `GTable`, `GSelect` | Una sola luz (`api.md`): viaja `press` + `ease-out`; la primera colocación aparece sin viajar; aparece con fundido `fast` | Solo fundido, sin viaje |
+| **Recorrer una lista con huecos o una rejilla** | `GCombobox` (fichas), `GDatePicker` (días), navbar | Una marca por elemento, nunca dos a la vez; salida instantánea (`api.md` «Una sola luz», regla 9) | Igual |
+| **Marcar o elegir** | Casillas, radios, interruptores, opción elegida | Color, relleno y marca que aparece con `fast`. Lo que se traza o se desplaza (trazo de la casilla, pulgar) es respuesta: `press` + `ease-out` (#1007) | Sin escala |
+| **Carga** | Todo giro | `--g-duration-spin`, `linear`; con reducido, × 2,5. Tiempos 200/400/5000 ms de `loadPhase.js` donde aplique | Giro lento |
+| **Señal de llegada** | `data-g-landed`, `is-here` de `GTable` | §29.10 | Fundido corto |
+
+**Límite aceptado (D2 · A): el fundido de salida solo existe donde hay `overlay`.** Un elemento en la capa superior solo sigue pintándose durante la salida con `overlay` y `display` discretos, y hoy eso es Chromium: en Firefox y WebKit `GMenu`, `GSelect` y `GDatePicker` desaparecen en el acto al cerrar (medido, `medir.json`). Hojas y diálogos usan el mismo mecanismo y se espera lo mismo, sin medir aún. Se acepta porque son 120 ms, sin código que retrase el cierre y con el margen de peso agotado (#506, #550). No se reabre sin motivo nuevo, y un `hidePopover()` nunca se retrasa para igualar los motores. Lo que sí hace falta es que el panel no se vacíe mientras se funde (`api.md` «Paneles anclados», #1005).
+
+**Excepciones que se conservan** (lista completa en `motion.json`, `exceptions`): `GCombobox` A, «el campo se abre» (#336) y su recorrido sin fundido (#1007); `GTooltip`, pestaña que viaja (#388); `GFab`, pila que crece (#655); `GTabs`, marca que se estira (#302); los usos de §29.1. **`GAvatarMotion` queda fuera de la tabla:** es ilustración, no control, y lleva tiempos y curvas propios (#1007). Sigue obligado a `prefers-reduced-motion`.
+
+### 29.10 Transición y señal de llegada (DECISIONS.md #1003)
+
+| | Transición | Señal de llegada |
+| --- | --- | --- |
+| **Qué es** | El cambio de un estado a otro: aquello que la persona espera ver acabar | Un marcador decorativo sobre algo que ya está en su sitio: «esto es lo que volvió» |
+| **Tope** | **`--g-duration-slow` (240 ms)** (#71, #280), retardos aparte | Hasta **`--g-duration-slow × 4`** (960 ms con el tema por defecto) |
+| **Bloquea** | Puede retener la interacción con su pieza mientras dura | **Nunca:** ni foco, ni clic, ni lectura. Lo que dice va por el foco y `announce` |
+| **Quién** | Todo lo de §29.9 | `data-g-landed`, `slow × 3` (#589); `is-here` de `GTable`, `slow × 4` (#594) |
+| **Reducido** | Según su fila | Fundido corto |
+
+Una señal nueva es una decisión nueva, con su multiplicador en `motion.json`. Tampoco cuentan para el tope, porque tampoco son transiciones: la **carga** (giro y pulso del esqueleto, infinitos), el **tiempo de lectura** (anillo de `GStatusIsland`, `--_run-ms`) y la **ilustración** (`GAvatarMotion`). «Nada supera 240 ms» de #299 se lee desde ahora como «ninguna transición supera 240 ms».
 
 ## 30. Campo numérico (`GNumberField`; sin tokens nuevos)
 

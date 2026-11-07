@@ -1,0 +1,307 @@
+{
+  "$comment": "Tabla única de movimiento de Grana: lista canónica (dueño: lima; DECISIONS #1002 a #1009; tokens.md §29.9 y §29.10). Origen: design/lab/movimiento/r01/tabla.md, aprobada por el usuario el 2026-11-07 con D1 · A y D2 · A. Si este archivo y una tabla de los contratos difieren, manda este archivo. Lo lee packages/vue/scripts/check-motion.mjs (bruno): las reglas de `gate` se aplican tal cual, sin decidir nada. Un uso nuevo de una curva, un multiplicador nuevo o salirse de la fila de su tipo de pieza es una decisión con número.",
+  "version": "0.1",
+  "decisions": ["#1002", "#1003", "#1004", "#1005", "#1006", "#1007", "#1008", "#1009"],
+
+  "durations": {
+    "fast": "--g-duration-fast",
+    "press": "--g-duration-press",
+    "slow": "--g-duration-slow",
+    "spin": "--g-duration-spin"
+  },
+  "curves": {
+    "standard": "--g-ease-standard",
+    "out": "--g-ease-out",
+    "spring": "--g-ease-spring",
+    "bounce": "--g-ease-bounce",
+    "linear": "linear"
+  },
+  "transitionCap": {
+    "token": "slow",
+    "appliesTo": "toda transición de la interfaz (§29.10)",
+    "notTransitions": ["señal de llegada", "carga", "tiempo de lectura", "ilustración"]
+  },
+
+  "pieces": {
+    "panelAnclado": {
+      "label": "Panel anclado",
+      "enter": { "duration": "press", "curve": "out", "fade": true, "offset": "space × 1", "from": "lado del disparador", "scale": false },
+      "exit": { "duration": "fast", "curve": "out", "fade": true, "offset": null, "scale": false, "requires": "overlay" },
+      "reduced": { "enter": { "duration": "fast", "curve": "linear", "fade": true, "offset": null, "scale": false }, "exit": { "duration": "fast", "curve": "linear", "fade": true, "offset": null, "scale": false, "requires": "overlay" } }
+    },
+    "hojaMovil": {
+      "label": "Hoja móvil (≤ 520 px)",
+      "enter": { "duration": "press", "curve": "out", "fade": true, "offset": "space × 6", "from": "su borde", "scale": false, "backdrop": { "duration": "press", "fade": true } },
+      "exit": { "duration": "fast", "curve": "out", "fade": true, "offset": null, "scale": false, "backdrop": { "duration": "fast", "fade": true }, "requires": "overlay" },
+      "reduced": { "enter": { "duration": "fast", "curve": "linear", "fade": true, "offset": null, "scale": false }, "exit": { "duration": "fast", "curve": "linear", "fade": true, "offset": null, "scale": false, "requires": "overlay" } }
+    },
+    "dialogo": {
+      "label": "Diálogo",
+      "enter": { "duration": "press", "curve": "out", "fade": true, "offset": "D1 de #301", "from": "disparador", "scale": "--g-press-scale" },
+      "exit": { "duration": "fast", "curve": "out", "fade": true, "offset": "D1 de #301", "to": "su origen", "scale": "--g-press-scale", "requires": "overlay" },
+      "reduced": { "enter": { "duration": "fast", "curve": "linear", "fade": true, "offset": null, "scale": false }, "exit": { "duration": "fast", "curve": "linear", "fade": true, "offset": null, "scale": false, "requires": "overlay" } }
+    },
+    "plegado": {
+      "label": "Plegado",
+      "enter": { "duration": "slow", "curve": "out", "property": "altura" },
+      "exit": { "duration": "slow", "curve": "out", "property": "altura", "content": { "duration": "fast", "fade": true } },
+      "reduced": { "enter": { "duration": null, "property": "sin transición de altura" }, "exit": { "duration": null, "property": "sin transición de altura" } },
+      "note": "Un plegado cambia de tamaño: no entra ni sale de la página. #152 («la salida es más corta») se cumple en el contenido, no en la altura (#1007)."
+    },
+    "avisoFlotante": {
+      "label": "Aviso flotante",
+      "enter": { "duration": "press", "curve": "out", "fade": true, "contract": "GStatusIsland: la caída de status.md (slow + ease-out, #701)" },
+      "exit": { "duration": "fast", "fade": true, "contract": "GStatusIsland: la subida de status.md" },
+      "reduced": { "enter": { "duration": "fast", "fade": true, "offset": null }, "exit": { "duration": "fast", "fade": true, "offset": null } }
+    }
+  },
+
+  "moments": {
+    "hover": {
+      "label": "Hover de un control",
+      "where": "Botones, campos, enlaces",
+      "rule": { "properties": ["color", "borde"], "duration": "fast", "curve": "standard", "scale": false, "media": "(hover: hover)" },
+      "reduced": "igual: es color"
+    },
+    "pulsar": {
+      "label": "Pulsar",
+      "where": "GBtn y lo que lo compone",
+      "rule": { "press": { "duration": "fast", "curve": "out", "to": "--g-press-scale" }, "release": { "duration": "slow", "curve": "bounce" } },
+      "reduced": "sin escala"
+    },
+    "foco": {
+      "label": "Foco",
+      "where": "Todo",
+      "rule": "Nunca se anima: el anillo aparece en el acto",
+      "reduced": "igual",
+      "status": "abierta",
+      "enforced": false,
+      "conflict": "Choca con #35 (anillo de GInput «con transición de color», comentario del usuario) y con el «anillo que se abre» de design/lab/checkbox/estilo.md y design/lab/switch/estilo.md. Decide el usuario (#1008). Hasta entonces, ni compuerta ni cambio en el CSS.",
+      "code": ["GCheckbox.css", "GDatePicker.css", "GFileField.css", "GInput.css", "GInputGroup.css", "GPartyField.css", "GRadioGroup.css", "GSelect.css", "GSwitch.css", "GTextarea.css", "GTranscript.css"]
+    },
+    "recorrerFilas": {
+      "label": "Recorrer una lista con filas que se tocan",
+      "where": ["GMenu", "GSidebar", "GTable", "GSelect"],
+      "rule": { "model": "una sola luz (api.md)", "travel": { "duration": "press", "curve": "out" }, "firstPlacement": "aparece sin viajar", "appear": { "duration": "fast", "fade": true } },
+      "reduced": "solo fundido, sin viaje"
+    },
+    "recorrerHuecos": {
+      "label": "Recorrer una lista con huecos o una rejilla",
+      "where": ["GCombobox (fichas)", "GDatePicker (días)", "GSidebar (navbar)"],
+      "rule": { "model": "una marca por elemento (api.md «Una sola luz», regla 9)", "maxLit": 1, "exit": "instantánea" },
+      "reduced": "igual"
+    },
+    "marcar": {
+      "label": "Marcar o elegir",
+      "where": "Casillas, radios, interruptores, opción elegida",
+      "rule": { "properties": ["color", "relleno", "marca que aparece"], "duration": "fast" },
+      "reduced": "sin escala",
+      "exceptions": ["marca-que-se-traza"]
+    },
+    "carga": {
+      "label": "Carga",
+      "where": "Todo giro",
+      "rule": { "duration": "spin", "curve": "linear", "times": "200/400/5000 ms de utils/loadPhase.js donde aplique" },
+      "reduced": "giro lento: calc(var(--g-duration-spin) * 2.5)"
+    },
+    "senalLlegada": {
+      "label": "Señal de llegada",
+      "where": ["data-g-landed", "is-here de GTable"],
+      "rule": { "max": "slow × 4", "decorative": true, "blocks": false, "isTransition": false },
+      "reduced": "fundido corto",
+      "decisions": ["#589", "#594", "#1003"]
+    }
+  },
+
+  "lightOwners": [
+    { "case": "foco dentro de la lista", "components": ["GMenu"], "follows": "el foco", "pointerMovesFocus": true, "ring": "el del foco" },
+    { "case": "foco fuera de la lista, con opción activa", "components": ["GSelect"], "follows": "la opción activa, por puntero o teclado", "pointerMovesFocus": false, "ring": "solo tras usar el teclado" },
+    { "case": "lista en la secuencia de Tab", "components": ["GSidebar", "GTable"], "follows": "el puntero", "pointerMovesFocus": false, "ring": "solo con teclado" }
+  ],
+
+  "components": {
+    "GAccordion": { "pieces": ["plegado"], "own": "accordion.md" },
+    "GAdaptiveLayout": { "pieces": [] },
+    "GAppShell": { "pieces": [], "own": "app-shell.md" },
+    "GAvatar": { "pieces": [], "own": "#298" },
+    "GAvatarMotion": { "pieces": [], "outOfTable": true },
+    "GBadge": { "pieces": [] },
+    "GBookingBar": { "pieces": ["panelAnclado"], "own": "booking-bar.md" },
+    "GBreadcrumbs": { "pieces": ["panelAnclado"], "own": "#500" },
+    "GBtn": { "pieces": [], "own": "#300" },
+    "GCalendar": { "pieces": [] },
+    "GCard": { "pieces": [], "own": "#303" },
+    "GCardGroup": { "pieces": [], "own": "card-group.md" },
+    "GCheckbox": { "pieces": [] },
+    "GCheckboxGroup": { "pieces": [] },
+    "GCombobox": { "pieces": ["dialogo"], "own": "#336", "exceptions": ["combobox-campo-se-abre", "combobox-recorrer"] },
+    "GContainer": { "pieces": [] },
+    "GDataList": { "pieces": [] },
+    "GDatePicker": { "pieces": ["panelAnclado", "hojaMovil"] },
+    "GDialog": { "pieces": ["dialogo", "hojaMovil"], "own": "#301" },
+    "GDialogStep": { "pieces": [], "own": "dialog.md" },
+    "GDivider": { "pieces": [] },
+    "GDocumentPreview": { "pieces": [], "own": "#639" },
+    "GEmpty": { "pieces": [] },
+    "GErrorSummary": { "pieces": [] },
+    "GFab": { "pieces": [], "own": "#655", "exceptions": ["fab-pila"] },
+    "GFieldGroup": { "pieces": [] },
+    "GFileField": { "pieces": [], "own": "file-field.md" },
+    "GFilterBar": { "pieces": ["panelAnclado"], "sheet": "GDialog" },
+    "GForm": { "pieces": [] },
+    "GFormActions": { "pieces": [] },
+    "GFormFold": { "pieces": ["plegado"], "own": "#580" },
+    "GFormLayout": { "pieces": [] },
+    "GFormReveal": { "pieces": ["plegado"] },
+    "GFormRow": { "pieces": [] },
+    "GFormSection": { "pieces": ["plegado"] },
+    "GGallery": { "pieces": [], "own": "gallery.md" },
+    "GHelper": { "pieces": ["panelAnclado"], "sheet": "GDialog" },
+    "GHelperScope": { "pieces": [] },
+    "GHero": { "pieces": [], "own": "#728" },
+    "GIcon": { "pieces": [] },
+    "GInput": { "pieces": [], "own": "#304" },
+    "GInputGroup": { "pieces": [] },
+    "GLoadRegion": { "pieces": [], "own": "load-region.md" },
+    "GMenu": { "pieces": ["panelAnclado"], "own": "#305" },
+    "GMetric": { "pieces": [] },
+    "GNumberField": { "pieces": [], "own": "#313" },
+    "GPageHeader": { "pieces": [], "own": "#632" },
+    "GPagination": { "pieces": [] },
+    "GPartyField": { "pieces": ["panelAnclado"] },
+    "GPrice": { "pieces": [], "own": "price.md" },
+    "GPriceScope": { "pieces": [] },
+    "GProgress": { "pieces": [] },
+    "GRadioGroup": { "pieces": [] },
+    "GSection": { "pieces": [] },
+    "GSelect": { "pieces": ["panelAnclado", "hojaMovil"] },
+    "GSidebar": { "pieces": ["plegado"], "own": "#617", "exceptions": ["sidebar-panel-flotante", "sidebar-submenu-contenido"] },
+    "GSlider": { "pieces": [], "own": "#452" },
+    "GSpeechHost": { "pieces": [], "own": "speech.md" },
+    "GSpeechPill": { "pieces": [], "own": "speech.md" },
+    "GSpeechTrigger": { "pieces": [] },
+    "GSplit": { "pieces": [] },
+    "GStack": { "pieces": [] },
+    "GStatus": { "pieces": [] },
+    "GStatusIsland": { "pieces": ["avisoFlotante"], "own": "#701" },
+    "GStatusMark": { "pieces": [], "own": "#701" },
+    "GStepper": { "pieces": [], "own": "stepper.md" },
+    "GSummary": { "pieces": [], "own": "summary.md" },
+    "GSurface": { "pieces": [] },
+    "GSwitch": { "pieces": [] },
+    "GTable": { "pieces": ["plegado"], "own": "#957" },
+    "GTabs": { "pieces": [], "own": "#302", "exceptions": ["tabs-marca"] },
+    "GTag": { "pieces": [], "own": "tag.md" },
+    "GTagGroup": { "pieces": [], "own": "tag.md" },
+    "GText": { "pieces": [] },
+    "GTextarea": { "pieces": [] },
+    "GTimeField": { "pieces": [], "own": "#407" },
+    "GToast": { "pieces": ["avisoFlotante"] },
+    "GTooltip": { "pieces": [], "own": "#388", "exceptions": ["tooltip-pestana"] },
+    "GTranscript": { "pieces": [], "own": "speech.md" },
+    "GWidget": { "pieces": [] },
+    "GWidgetConfig": { "pieces": [] },
+    "GWidgetGallery": { "pieces": [] },
+    "GWidgetGrid": { "pieces": [] }
+  },
+
+  "easeUses": {
+    "$comment": "Lista cerrada (#299 y ampliaciones; tokens.md §29.1). `count` = apariciones del token en el archivo, sin comentarios. GTable.css no está: #1006.",
+    "spring": {
+      "GTabs.css": { "count": 2, "use": "Borde de atrás de la marca", "decisions": ["#302"] },
+      "GStatusIsland.css": { "count": 4, "use": "Cambio de tamaño de la cápsula al crecer", "decisions": ["#324", "#701"] },
+      "GCombobox.css": { "count": 3, "use": "La ficha elegida que llega al campo; el renglón que llega a la cesta", "decisions": ["#336", "#427"] },
+      "GBreadcrumbs.css": { "count": 1, "use": "El nivel que llega al bajar, solo translate", "decisions": ["#500"] },
+      "GSidebar.css": { "count": 2, "use": "El asiento del item actual que se llena desde el centro", "decisions": ["#617", "#635"] },
+      "GPageHeader.css": { "count": 1, "use": "Entrada del muelle de acciones en estrecho, solo translate", "decisions": ["#632", "#635"] },
+      "GDocumentPreview.css": { "count": 1, "use": "La marca del lomo que llega a su página en un salto explícito, solo translate", "decisions": ["#639"] }
+    },
+    "bounce": {
+      "GBtn.css": { "count": 1, "use": "Soltar", "decisions": ["#300"] },
+      "GCombobox.css": { "count": 1, "use": "La marca de la casilla de multiple al marcar por un gesto", "decisions": ["#427"] }
+    }
+  },
+
+  "durationAliases": {
+    "$comment": "Alias locales de una duración. Cuentan como duración en el multiplicador. `--_t-line`, `--_dur`, `--_ppm` y `--_ppmx` no están porque son longitudes (GAccordion, GCalendar).",
+    "--_t": ["GAccordion.css", "GFormFold.css", "GFormReveal.css", "GFormSection.css", "GSidebar.css"],
+    "--_t-fade": ["GAccordion.css", "GFormFold.css", "GFormReveal.css", "GFormSection.css"],
+    "--_stagger": ["GSidebar.css"],
+    "--_app-shell-delay": ["GAppShell.css"]
+  },
+
+  "durationMultipliers": [
+    { "expr": "calc(var(--g-duration-slow) * 4)", "files": ["GTable.css"], "kind": "señal de llegada", "use": "is-here de la fila ancla", "decisions": ["#594"] },
+    { "expr": "calc(var(--g-duration-slow) * 3)", "files": ["GDialog.css"], "kind": "señal de llegada", "use": "data-g-landed", "decisions": ["#589"] },
+    { "expr": "calc(var(--g-duration-slow) * 2)", "files": ["GDialog.css"], "kind": "señal de llegada", "use": "Retardo del fundido de data-g-landed con movimiento reducido", "decisions": ["#589"] },
+    { "expr": "calc(var(--g-duration-spin) * 2.5)", "files": ["GBtn.css", "GCombobox.css", "GInput.css", "GSelect.css", "GTextarea.css"], "kind": "carga", "use": "Giro lento con movimiento reducido", "decisions": ["#1002"] },
+    { "expr": "calc(var(--g-duration-spin) * 1.5)", "files": ["GCalendar.css", "GCard.css", "GWidget.css"], "kind": "carga", "use": "Pulso del esqueleto, infinito y alterno", "decisions": ["#1007"] },
+    { "expr": "calc(var(--g-duration-fast) * 2)", "files": ["GAvatar.css"], "kind": "transición", "use": "Asentamiento de la foto", "decisions": ["#298"] },
+    { "expr": "calc(var(--g-duration-fast) * min(var(--_depth), 4) / 4)", "files": ["GBreadcrumbs.css"], "kind": "retardo", "use": "Escalones de la escalera", "decisions": ["#500"] },
+    { "expr": "calc(var(--g-duration-fast) * var(--_i) / 8)", "files": ["GFab.css"], "kind": "retardo", "use": "Salida escalonada de las píldoras", "decisions": ["#655"] },
+    { "expr": "calc(var(--g-duration-fast) * 0)", "files": ["GFab.css"], "kind": "retardo", "use": "Valor neutro del escalón", "decisions": ["#655"] },
+    { "expr": "calc(var(--g-duration-fast) * 0.25)", "files": ["GSidebar.css"], "kind": "retardo", "use": "Definición de --_stagger", "decisions": ["#71"] },
+    { "expr": "calc(var(--_stagger) * 1.5)", "files": ["GSidebar.css"], "kind": "retardo", "use": "Etiqueta que entra tras el panel", "decisions": ["#71"] },
+    { "expr": "calc(var(--_stagger) * 2)", "files": ["GSidebar.css"], "kind": "retardo", "use": "Grupo del drawer", "decisions": ["#71"] },
+    { "expr": "calc(var(--_stagger) * 3)", "files": ["GSidebar.css"], "kind": "retardo", "use": "Grupo del drawer", "decisions": ["#71"] },
+    { "expr": "calc(var(--_stagger) * 4)", "files": ["GSidebar.css"], "kind": "retardo", "use": "Grupo del drawer", "decisions": ["#71"] },
+    { "expr": "calc(var(--_stagger) * 5)", "files": ["GSidebar.css"], "kind": "retardo", "use": "Grupo del drawer", "decisions": ["#71"] },
+    { "expr": "calc(var(--_stagger) * 6)", "files": ["GSidebar.css"], "kind": "retardo", "use": "Grupo del drawer", "decisions": ["#71"] },
+    { "expr": "calc(var(--g-duration-slow) * 0.35)", "files": ["GSidebar.css"], "kind": "retardo", "use": "La tinta del destino cambia cuando el relleno ya la cubre", "decisions": ["#617"] },
+    { "expr": "calc(var(--g-duration-slow) * 0.4)", "files": ["GSidebar.css"], "kind": "retardo", "use": "La tinta y la etiqueta de la píldora activa", "decisions": ["#617"] },
+    { "expr": "calc(var(--_t-fade) / 3)", "files": ["GAccordion.css"], "kind": "retardo", "use": "El avance se va tras empezar a abrir", "decisions": ["#483"] }
+  ],
+
+  "literals": {
+    "$comment": "Tiempos y curvas escritos a mano en el CSS. Todo lo demás falla. `linear` es la palabra clave, no la función linear(...).",
+    "excludedFiles": ["GAvatarMotion.css"],
+    "times": { "0s": "*", "1ms": ["GStatusIsland.css"] },
+    "timeRationale": { "0s": "Retardo o valor neutro de visibility y de @property", "1ms": "Conversión del número --_run-ms en tiempo (#707)" },
+    "curves": { "linear": "*", "linear(0, 1)": "*", "step-end": ["GAvatar.css"] },
+    "curveRationale": { "linear": "Movimiento reducido, giro, sacudida, anillo de tiempo", "linear(0, 1)": "Solo como prueba de @supports (§29.1)", "step-end": "Retirar el respaldo al terminar el fundido (#298)" },
+    "timePattern": "(?<![\\w.-])\\d*\\.?\\d+m?s\\b",
+    "curvePattern": "(?<![\\w-])(ease-in-out|ease-in|ease-out|ease|step-start|step-end|steps\\([^)]*\\)|cubic-bezier\\([^)]*\\)|linear\\([^)]*\\))(?![\\w-])"
+  },
+
+  "exceptions": [
+    { "id": "combobox-campo-se-abre", "piece": "GCombobox A, «el campo se abre»", "does": "Despliegue de slow + ease-out que continúa el campo; al cerrar, fundido fast (#1005)", "decisions": ["#336"] },
+    { "id": "combobox-recorrer", "piece": "GCombobox, recorrer", "does": "Salto sin fundido también al entrar: la transición por fila dio dos marcos parpadeando (reporte del usuario)", "decisions": ["#1007"] },
+    { "id": "tooltip-pestana", "piece": "GTooltip", "does": "Pestaña que viaja entre controles", "decisions": ["#388"] },
+    { "id": "fab-pila", "piece": "GFab", "does": "Pila que crece", "decisions": ["#655"] },
+    { "id": "tabs-marca", "piece": "GTabs", "does": "Marca que se estira, con muelle", "decisions": ["#302"] },
+    { "id": "curvas-aprobadas", "piece": "Usos de --g-ease-spring y --g-ease-bounce", "does": "Lista cerrada de easeUses", "decisions": ["#299"] },
+    { "id": "avatar-motion", "piece": "GAvatarMotion", "does": "Tiempos y curvas propios: es ilustración, no control. Fuera de la tabla y de la compuerta; sigue obligado a prefers-reduced-motion", "decisions": ["#1007"] },
+    { "id": "marca-que-se-traza", "piece": "Trazo de GCheckbox, pulgar de GSwitch, escala de GCheckbox y GRadioGroup", "does": "press + ease-out, no fast: es respuesta (§29.2), y la tabla no pide cambiarlo (§2)", "decisions": ["#1007"] },
+    { "id": "sidebar-panel-flotante", "piece": "Panel flotante del riel de GSidebar (g-sidebar__fly)", "does": "press en las dos direcciones, escala 0.96 y space × 1,5; la tabla deja GSidebar sin cambios (§2)", "decisions": ["#1007"] },
+    { "id": "sidebar-submenu-contenido", "piece": "Contenido del submenú de GSidebar", "does": "Fundido press, no fast; la altura sí es la de plegado", "decisions": ["#1007"] }
+  ],
+
+  "gate": {
+    "$comment": "packages/vue/scripts/check-motion.mjs (bruno; job verify de ci.yml). Quita los comentarios CSS antes de buscar. Falla con el archivo, la línea y la regla. Los nombres de archivo se comparan por basename.",
+    "css": ["packages/vue/src/components/*/*.css", "packages/blocks/src/blocks/*/*.css"],
+    "componentDirs": "packages/vue/src/components",
+    "rules": [
+      { "id": "literal-time", "does": "Todo acierto de literals.timePattern debe estar en literals.times para ese archivo. Salta literals.excludedFiles." },
+      { "id": "literal-curve", "does": "Todo acierto de literals.curvePattern debe estar en literals.curves para ese archivo. Ignora los aciertos pegados a un nombre de token (--g-ease-out). Salta literals.excludedFiles." },
+      { "id": "ease-use", "does": "--g-ease-spring y --g-ease-bounce solo en los archivos de easeUses, y con exactamente `count` apariciones." },
+      { "id": "multiplier", "does": "Toda función calc() que contenga una duración (durations o durationAliases de ese archivo) y un * o un / debe coincidir con un expr de durationMultipliers, con espacios normalizados, y con ese archivo en files. Salta literals.excludedFiles." },
+      { "id": "component-declared", "does": "Todo directorio de componentDirs tiene clave en components, y toda clave de components tiene directorio." },
+      { "id": "pieces-known", "does": "Todo valor de components[*].pieces existe en pieces y todo components[*].exceptions existe en exceptions (por id)." }
+    ],
+    "notEnforced": ["moments.foco (#1008)"]
+  },
+
+  "behaviour": {
+    "$comment": "tests/movimiento.spec.mjs (bruno), nacida de design/lab/movimiento/r01/medir.mjs: abrir, cerrar y recorrer por tipo de pieza, con y sin movimiento reducido, en los tres motores, comparado con pieces y moments.",
+    "toleranceMs": 34,
+    "exitWithoutOverlay": { "ms": 0, "engines": ["firefox", "webkit"], "decisions": ["#1002"] },
+    "exitWithOverlay": { "engines": ["chromium"] }
+  },
+
+  "weight": {
+    "$comment": "#1009. gzip -9, medido por bruno en una copia aislada, antes y después; registrado en CHANGELOG.md. Con más, vuelve a lima y decide el usuario; el tope no se sube.",
+    "dist/grana.js": 512,
+    "dist/grana.css": 512,
+    "dist/combobox.js": 192
+  }
+}

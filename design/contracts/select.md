@@ -95,7 +95,8 @@ Selector de una opción con lista propia (patrón *select-only combobox* de WAI-
     <span class="g-select__loader" aria-hidden="true"></span>                                <!-- loading -->
   </div>
   <input type="hidden" name="pais" value="mx">                                              <!-- solo con name -->
-  <ul class="g-select__list" id="ID-list" role="listbox" popover="manual" aria-labelledby="ID-label">
+  <ul class="g-select__list has-highlight is-keyed" id="ID-list" role="listbox" popover="manual" aria-labelledby="ID-label">
+    <li class="g-select__highlight" role="none" aria-hidden="true"></li>                    <!-- la luz: siempre el primer hijo (#1004) -->
     <li class="g-select__option" id="ID-opt-0" role="option" aria-selected="true" aria-disabled="true"><span class="g-select__icon" aria-hidden="true">…</span>México</li>
     <li role="presentation"><ul class="g-select__group" role="group" aria-labelledby="ID-grp-0">
       <li class="g-select__group-label" id="ID-grp-0" role="presentation">Europa</li>
@@ -115,7 +116,7 @@ Selector de una opción con lista propia (patrón *select-only combobox* de WAI-
 - **`aria-describedby`** lista `ID-hint` si hay ayuda e `ID-error` solo mientras hay error.
 - La región `ID-error` (`aria-live="polite"`) **se renderiza siempre**, vacía mientras no hay error (WCAG 4.1.3), con señal no cromática (marca ⚠ que un lector no lee), como `GInput`.
 - **Altura real ≥ 44px con `pointer: coarse`** en el selector y en las opciones, sin importar `density`.
-- **El estado no depende solo del color:** la elegida lleva ✓ y más peso, la activa un contorno, la deshabilitada opacidad y tachado.
+- **El estado no depende solo del color:** la elegida lleva ✓ y más peso, la activa la luz y, tras usar el teclado, un contorno (§«Una sola luz»), la deshabilitada opacidad y tachado.
 
 ## Fila de agregar (`createLabel`)
 
@@ -197,11 +198,11 @@ Los mismos que `GInput` (`design/contracts/input.md`, "Tokens consumidos"), sin 
 | `--g-color-surface` | Fondo de la lista flotante |
 | `--g-color-border-control`, `--g-color-border-strong` | Borde de la lista |
 | `--g-shadow-2` | Sombra de la lista flotante |
-| `--g-radius-md` | Esquinas de la lista y de la opción activa |
-| `--g-color-surface-sunken` | Opción activa |
+| `--g-radius-md` | Esquinas de la lista y de la luz |
+| `--g-color-surface-sunken` | La luz de la opción activa |
 | `--g-color-text`, `--g-color-text-muted`, `--g-color-text-subtle` | Opción; encabezado de grupo; opción deshabilitada |
 | `--g-surface-shell`, `--g-surface-inset`, `--g-surface-gap`, `--g-surface-radius`, `--g-surface-radius-inset`, `--g-surface-backdrop` | Hoja inferior en móvil (mismo sistema de superficies que `GDialog`, `tokens.md` §11) |
-| `--g-duration-fast`, `--g-ease-standard`, `--g-ease-out`, `--g-duration-press` | Cambios de estado; aparición de la lista |
+| `--g-duration-fast`, `--g-ease-standard`, `--g-ease-out`, `--g-duration-press` | Cambios de estado; aparición de la lista; viaje de la luz |
 
 **Tokens nuevos:** ninguno. La **altura de la opción** sale de la caja del mismo `size` y `density` (`tokens.md` §4) con piso de 24px y 44px con `pointer: coarse`; el **alto máximo** de la lista es de unas 8 opciones (derivado de esa altura) o el 60% del visor.
 
@@ -237,13 +238,62 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `g-select__list` | Lista (`ul`, `popover`) | Siempre |
 | `is-up` | Lista | Se abre hacia arriba |
 | `g-select__option` | Opción (`li`) | Por cada opción |
-| `is-active` | Opción | Opción activa |
+| `is-active` | Opción | Opción activa. Sin fondo propio: lo pinta la luz |
+| `g-select__highlight` | Capa de la luz (`li`, `role="none"`, `aria-hidden`), primer hijo de la lista | Siempre (#1004) |
+| `has-highlight` | Lista | Hay opción activa con la lista abierta; se conserva durante la salida |
+| `is-highlight-instant` | Lista | Primera colocación de cada apertura y recolocación sin viaje; se quita a los dos cuadros |
+| `is-keyed` | Lista | La última entrada que tocó la lista fue el teclado: pinta el contorno de la activa |
 | `g-select__group`, `g-select__group-label` | Grupo y su encabezado | Por cada grupo |
 | `g-select__empty` | Mensaje de lista vacía | Sin opciones, sin `loading` y con `emptyText` o slot `empty` |
 | `g-select__create` | La fila «Agregar nuevo…» (además de `g-select__option`; también lleva `is-active` cuando está activa) | Con `createLabel` |
 | `g-select__hint`, `g-select__error` | Ayuda; región viva del error | Si hay ayuda; siempre |
 
 El estado elegida y deshabilitada de una opción se estiliza con `aria-selected` y `aria-disabled`, sin clases propias.
+
+## Movimiento (`tokens.md` §29.9, #1002)
+
+**Panel anclado** en escritorio y **hoja móvil** por debajo de 520 px, sin cambios sobre lo que hay (medido: `press` al abrir, `fast` al cerrar, sin escala). El fundido de salida solo existe donde hay `overlay`: en Firefox y WebKit la lista desaparece en el acto (D2 · A). **Recorrer:** una sola luz.
+
+### Una sola luz (`api.md` «Una sola luz», regla 1, tercer caso; #1004)
+
+Corrige dos defectos medidos en los tres motores: recorrer era un salto sin transición, y el puntero pintaba el anillo en cada fila. **Sin props, eventos, slots ni tokens nuevos.** La luz es presentación: no cambia `aria-activedescendant`, `is-active` ni el foco, que sigue en el botón.
+
+**Qué sigue:** a `activeIndex`, lo mueva el puntero, las flechas, Inicio, Fin, Re Pág, Av Pág o la escritura rápida. Incluye la fila «Agregar nuevo…». No la apaga ni un hueco, ni un encabezado de grupo, ni una opción deshabilitada, ni salir de la lista: la activa sigue siendo la misma. Se apaga solo si no hay activa.
+
+**Bruno (`GSelect.vue`):**
+
+1. La capa es siempre el **primer hijo** de `g-select__list`, también con grupos, sin filas y en la hoja.
+2. Coloca con **`placeHighlight(list, opción, { instant, layer: list.firstElementChild })`** de `utils/glide.js`, sin `createPointerGlide`: la sesión del puntero es de las listas que siguen al puntero. Una colocación por cambio de `activeIndex`, en el mismo `nextTick` que `scrollActive()`, sin leer cajas después de escribir.
+3. **Apertura:** tras `showPopover()` y `place()`, con `instant: true` en cada apertura (`has-highlight` puede venir de la anterior). Nunca viaja desde la posición del cierre anterior.
+4. **Cierre:** `hide()` pone `activeIndex` en −1, y eso **no** apaga la luz: `has-highlight` y las medidas se quedan durante la salida, o la opción se apagaría antes de que se funda la lista.
+5. **Cambio de filas o de tamaño con la lista abierta** (`options`, `loading`, ventana): se recoloca con `instant: true`. Al desplazar la lista no se escribe nada: la capa va con el contenido.
+6. **`is-keyed`:** se pone en toda tecla que abre la lista o mueve la activa, y al abrir con teclado. Se quita al abrir con puntero, en `pointerdown` sobre la lista y cuando un movimiento real de ratón o lápiz pasa sobre una opción habilitada. El puntero quieto (`still`, #358 regla 4) no la quita: mantener la flecha pulsada con el ratón encima sigue mostrando el anillo.
+7. **Solo ratón y lápiz mueven la activa:** `onListPointermove` filtra `pointerType`. Hoy un arrastre táctil por la hoja la movería, y con la luz se vería viajar. Tocar una opción sigue eligiéndola por su fila.
+
+**Coco (`GSelect.css`):**
+
+1. `.g-select__highlight`: `position: absolute` arriba a la izquierda de la lista (las medidas son px físicos, también en RTL), `translate: var(--_highlight-x) var(--_highlight-y)`, `inline-size` y `block-size` de `--_highlight-w/-h`, fondo `--g-color-surface-sunken`, el radio de la opción y `pointer-events: none`. Oculta sin `has-highlight`. **Las variables se leen solo en esta regla** (#964). El contenido de las opciones va por encima.
+2. `.g-select__option.is-active` pierde el fondo. El contorno pasa a `.g-select__list.is-keyed .g-select__option.is-active`.
+3. Movimiento (`motion.json`, `recorrerFilas`): `translate`, `inline-size` y `block-size` con `--g-duration-press` + `--g-ease-out`; `opacity` con `--g-duration-fast`; con `is-highlight-instant`, solo la opacidad. Sin `--g-ease-spring` ni `--g-ease-bounce`.
+4. **Reducido:** solo el fundido, sin viaje.
+5. **`forced-colors`:** la capa se oculta y `.is-active` **conserva el contorno `Highlight` siempre**, con o sin `is-keyed`: es la única marca que queda.
+6. Sin regla nueva de hover de opción: lo que hay bajo el puntero es la activa.
+
+**Se verifica** (`tests/movimiento.spec.mjs` y `GSelect.test.js`, tres motores):
+
+| Qué | Medida |
+| --- | --- |
+| Puntero | Al barrer: como máximo una superficie encendida, cuadros intermedios, acaba sobre la activa a ≤ 1 px; `document.activeElement` sigue en el botón; ningún contorno |
+| Teclado | ↓ mueve la luz y pinta el contorno; mover el ratón lo quita; la siguiente flecha lo devuelve |
+| Apertura y cierre | La luz aparece sobre la activa sin viajar, también al reabrir; no se apaga antes de la lista |
+| Huecos | Sobre un encabezado, un deshabilitado o fuera de la lista, la luz no cambia |
+| Forma | Con grupos, con la lista desplazada, en RTL y en la hoja móvil, luz y fila coinciden a ≤ 1 px |
+| Reducido | Sin viaje, con fundido |
+| `forced-colors` | Sin capa; la activa con contorno tras usar el puntero |
+| Rendimiento | Con 100 opciones y una flecha mantenida: 0 tareas largas (`--workers=1`, criterio de #965) |
+| ARIA | `aria-activedescendant`, `aria-selected` y roles sin cambios; la capa no cuenta como opción |
+
+**No verificable aquí:** el anillo solo tras teclado con VoiceOver y NVDA (rúbrica F de la tabla), y la comodidad con personas (B). **Rúbrica al contratar:** `design/lab/movimiento/r01/tabla.md` §7; la cierra coco en su auditoría.
 
 ## Resolución de hallazgos de r01
 

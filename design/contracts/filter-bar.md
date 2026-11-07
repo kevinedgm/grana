@@ -76,9 +76,20 @@ Barra de filtros **no fijos** al estilo Stripe: chips sugeridos, «Agregar filtr
 
 `--g-color-surface`, `--g-color-text`, `--g-color-text-muted`, `--g-color-border`, `--g-color-border-strong`, `--g-color-border-control`, `--g-color-focus`, `--g-radius-pill`, `--g-radius-lg`, `--g-shadow-2`, `--g-space-1`, `--g-text-body-sm-{size|line}`, `--g-text-action-weight`, `--g-border-width`, `--g-focus-{width|offset}`. Iconos `plus` y `x`. Sin tokens nuevos. El editor usa el lenguaje de `GSurface level="floating"`.
 
+## Movimiento (`tokens.md` §29.9, #1002 y #1005)
+
+**Panel anclado** en la presentación popover; la hoja es la de `GDialog`. Hoy el editor solo funde al entrar, en `press` también con reducido, y no tiene salida.
+
+- **Bruno:** `data-side` (`top` o `bottom`, físico, como `GMenu`) en `g-filter-bar__editor`, escrito desde `r.side` en `placeEditor` antes de mostrarlo y al cambiar de lado. El título y el cuerpo se conservan hasta acabar la salida, igual que ya hace `sheetKey` en la hoja: hoy `editing = null` vacía el editor en el acto (`api.md` «Paneles anclados»). `hidePopover()` no se retrasa, y el foco vuelve al chip en el acto. Durante la salida, ese contenido no aplica nada: el borrador ya está descartado o aplicado.
+- **Coco:** entrada con `--g-duration-press` + `--g-ease-out`, fundido y `--g-space-1 × 1` según `data-side`; salida con `--g-duration-fast` + `--g-ease-out`, solo fundido, con `overlay` y `display` discretos; con reducido, fundido `--g-duration-fast` `linear` en las dos direcciones. El comentario «no es movimiento» de `GFilterBar.css` deja de valer.
+
+Se verifica en Chromium con el editor lleno mientras se funde, y abriendo un chip nada más cerrar otro.
+
 ## Clases
 
 `g-filter-bar`, `__chip`, `__edit`, `__remove`, `__suggest`, `__add`, `__clear`, `__count`, `__editor`, `__editor-title`, `__rule`, `__value`, `__range`, `__input`, `__error`, `__actions`, `__sheet` y `__sr` (texto oculto propio, para que la barra funcione sin `GTable`).
+
+**Dato nuevo (#1005):** `data-side` en `__editor`.
 
 **Añadido al construir (bruno):** los textos `rule`, `value`, `from`, `to` y `range` (los campos del editor necesitan nombre accesible, WCAG 4.1.2) y las clases `__range`, `__input`, `__sheet` y `__sr`.
 

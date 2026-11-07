@@ -299,6 +299,12 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `is-day-content-hidden` | Raíz | Con el slot `day`, cuando su contenido no cabe en alguna celda (#952) |
 | `g-datepicker__day-readout` | Lectura del día bajo la cuadrícula (`aria-hidden`) | Con el slot `day`; visible solo con `is-day-content-hidden` (#952) |
 
+## Movimiento (`tokens.md` §29.9, #1002)
+
+**Panel anclado** en escritorio y **hoja móvil** por debajo de 520 px, sin cambios sobre lo que hay. El fundido de salida solo existe donde hay `overlay` (D2 · A); con `inline` no hay panel.
+
+**Recorrer los días** es una rejilla: una marca por elemento y **salida instantánea** (`api.md` «Una sola luz», regla 9). Hoy la celda que sale se funde en `fast` y puede haber dos encendidas. **Coco:** la transición de `background-color` deja la regla base de `.g-datepicker__day` y pasa a los estados que **llegan** (hover y elegido): al entrar funde `--g-duration-fast`, al salir se apaga en el acto. Se verifica barriendo la rejilla: como máximo un día con fondo de hover por cuadro.
+
 ## Resolución de hallazgos de r01
 
 | # | Hallazgo | Resolución | Base |

@@ -204,6 +204,17 @@ Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Men
 
 Ronda de kiwi `design/lab/personalidad/r01/` §8 (M1 prototipada sobre el componente real; M4 no). Ninguna prop, slot ni evento nuevo.
 
+### Entrada y salida (`tokens.md` §29.9; D1 · A, #1002)
+
+**Panel anclado.** Decisión del usuario: `GMenu` pierde su escala y entra como los demás. Hoy abre en `fast` con escala 0,96.
+
+- **Entrar:** `--g-duration-press` + `--g-ease-out`, fundido y **`--g-space-1 × 1`** desde el lado del disparador, **sin escala**. La lista raíz, según `data-side`: `bottom` desde arriba, `top` desde abajo. Un submenú sale de su padre, en el eje de línea, según `data-align`: `left` desde la izquierda, `right` desde la derecha.
+- **Salir:** `--g-duration-fast` + `--g-ease-out`, solo fundido, con `overlay` y `display` discretos. En Firefox y WebKit, en el acto (D2 · A).
+- **Reducido:** fundido `--g-duration-fast` `linear` en las dos direcciones.
+- **Coco:** quita `scale` y los `transform-origin` de `GMenu.css`. `data-side` y `data-align` ya existen: **sin cambios en el `.vue`**. El viaje de la luz no cambia, y `GFab` conserva su propio `0.96` (§29.6).
+
+Se verifica con `tests/movimiento.spec.mjs`: abrir ≈ 160 ms, con `translate` y sin `scale`, también en un submenú y en RTL.
+
 ### M1 · Una sola luz que viaja
 
 - **Un único resaltado por lista** (la lista raíz y cada submenú, cada uno el suyo), una capa bajo el contenido que **se desplaza** al elemento activo; los elementos **no** pintan fondo propio al tener hover o foco (hoy, al barrer, dos elementos tienen fondo a la vez: la estela que se corrige).

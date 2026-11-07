@@ -428,16 +428,21 @@ Reposo vacío · reposo con valor (ficha) · reposo con texto libre (`is-custom`
 
 ## Movimiento (#336)
 
-Con `prefers-reduced-motion: reduce` **ninguno se mueve** (#299 (3)); nada se anima al montar.
+Con `prefers-reduced-motion: reduce` **ninguno se mueve** (#299 (3)); los fundidos se quedan; nada se anima al montar.
 
 | Pieza | Qué | Duración y curva |
 | --- | --- | --- |
-| A · despliegue | `g-combobox__popup-body` crece desde la línea del campo (`grid-template-rows` 0fr → 1fr con `@starting-style`), solo **al abrir**; los cambios de alto entre resultados no se animan; cerrar es inmediato | `--g-duration-slow`, **`--g-ease-out`** (no el muelle: es una entrada, `tokens.md` §29.1) |
+| A · despliegue | `g-combobox__popup-body` crece desde la línea del campo (`grid-template-rows` 0fr → 1fr con `@starting-style`), solo **al abrir**; los cambios de alto entre resultados no se animan. Excepción de identidad de la tabla única (§29.9) | `--g-duration-slow`, **`--g-ease-out`** (no el muelle: es una entrada, `tokens.md` §29.1) |
+| A · salida (#1002, #1005) | `g-combobox__popup` se funde al cerrar, sin desplazamiento ni plegado, con `overlay` y `display` discretos. En Firefox y WebKit, en el acto (D2 · A). Hoy es instantáneo en los tres | `--g-duration-fast`, `--g-ease-out`; con reducido, `linear` |
+| A · apertura con reducido (#1002) | El despliegue se va y queda un fundido del panel. Hoy abre sin fundido | `--g-duration-fast`, `linear` |
 | B · entrada | La de `GDialog` desde su disparador (D1, #301), sin cambios: el disparador es el campo | La de `GDialog` |
 | C · la ficha llega | Al elegir desde la lista de `field`, la ficha viaja de su fila a su sitio. Bruno escribe el vector en `--_travel-x` / `--_travel-y` (px) y pone **`is-arriving`** en `g-combobox__token`; coco anima con keyframes **`g-combobox-arrive…`**; bruno retira la clase en `animationend`/`animationcancel` de ese nombre, o en el acto si no hay animación calculada (patrón de `GNumberField`, #313) | `--g-duration-slow`, **`--g-ease-spring`** dentro de `@supports`; fuera, `--g-ease-out`. **Cuarto uso aprobado del muelle**: un desplazamiento que llega |
-| Opción activa, hover, fantasma | Color y fondo | `--g-duration-fast`, `--g-ease-standard` |
+| Recorrer las opciones | **Salto, sin fundido**, también al entrar: con una transición por fila se leían dos marcos parpadeando (reporte del usuario). Sin luz: las fichas tienen huecos (`api.md` «Una sola luz», regla 9). Excepción de la tabla única (#1007) | Ninguna |
+| Hover, fantasma | Color y fondo | `--g-duration-fast`, `--g-ease-standard` |
 | Indicador de carga | Giro | `--g-duration-spin` |
 
+- **Salida de A, bruno (#1005):** `hidePopover()` no se retrasa y `aria-expanded` cambia en el acto, pero el panel conserva su contenido, `is-empty`, `up` y su colocación hasta acabar la salida (`api.md` «Paneles anclados»); hoy `close` los limpia en el acto y el panel saltaría de lado o se vaciaría mientras se funde. Reabrir a mitad cancela la limpieza.
+- **Salida de A, coco:** comprobar que la junta entre campo y panel no parpadea al recuperar el campo su forma (el caso anotado en `GCombobox.css`, en las esquinas de la caja). La paleta no cambia: es la de `GDialog`.
 - La ficha **no viaja** al elegir desde la superficie (el campo está detrás del modal), al cargar con valor, ni al cambiar `modelValue` desde la aplicación.
 - **Para coco:** medir el rebase de la llegada con la fila más lejana (3,8 % de la distancia); si pasa de `--g-space-1 × 2`, acotar el vector en CSS con `clamp` y anotarlo en `estilo.md` (alias local, §29.7; no cambia el contrato).
 
