@@ -174,7 +174,7 @@ Escala de `rubrica-movimiento.md`. H (inmersión) no aplica a ninguno. Contexto:
 
 ## 7. Pregunta de elección
 
-**Respuesta del usuario (2026-11-07): solo A · Retén.**
+**Respuesta del usuario (2026-11-07): solo A · Retén.** Y sobre la marca con `disabled`: **se queda como está** (regla 6: `disabled` cierra el acuse y `doneText` se anuncia igual; la receta del README es mantener el botón habilitado hasta `update:done`).
 
 **¿Qué concepto quieres para el éxito de `GBtn`?**
 
