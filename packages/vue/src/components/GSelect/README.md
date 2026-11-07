@@ -152,10 +152,10 @@ El foco **nunca** sale del selector mientras la lista está abierta: la opción 
 | Enter | Elige la activa, cierra y devuelve el foco al selector (sobre la fila «Agregar nuevo…», emite `create`) |
 | Espacio | Elige, salvo que se esté escribiendo un prefijo |
 | Esc | Cierra **sin cambiar**; el foco sigue en el selector. **No se propaga:** dentro de un `GDialog`, el primer Esc cierra solo la lista |
-| Tab | Elige la opción activa, cierra y sigue el orden (sobre la fila «Agregar nuevo…», cierra sin crear). **Límite (#54, abierta):** elige la activa también si no la moviste, es decir, la de partida |
+| Tab / Shift+Tab | Con la lista abierta, cierra y sigue el orden del documento. **Elige la activa solo si una tecla la movió durante esta apertura** (flechas, Inicio/Fin, Re Pág/Av Pág, escritura rápida con coincidencia); si no, cierra sin cambiar el valor. El puntero no cuenta, y se reinicia en cada apertura (#1016). Sobre la fila «Agregar nuevo…», cierra sin crear |
 | Carácter imprimible | Abre la lista si estaba cerrada y activa la opción cuyo texto empieza así; varios seguidos (< ~500ms) forman el prefijo. Se ignoran mayúsculas y acentos («oscar» encuentra «Óscar», «av» encuentra «Ávila»). Si la activa de partida ya coincide, la escritura entra en ella; la **misma letra repetida** recorre las opciones con esa inicial («b» recorre Banana, Bolivia, Brasil) |
 
-Un clic fuera cierra sin cambiar; el clic en una opción deshabilitada no elige ni cierra. **Una activación por gesto:** un doble clic o una tecla Intro mantenida abren y no vuelven a cerrar (la lista queda abierta). **Clic en la etiqueta:** solo enfoca el selector, no abre; con la lista abierta, la cierra. **Clic en el relleno o en la barra de desplazamiento de la lista** no cierra: «fuera» es lo que queda fuera del rectángulo de la lista.
+**Enter, Espacio y clic eligen la activa, sea cual sea su origen** (Tab es un gesto de salir, no de elegir; #1016). Un clic fuera cierra sin cambiar; el clic en una opción deshabilitada no elige ni cierra. **Una activación por gesto:** un doble clic o una tecla Intro mantenida abren y no vuelven a cerrar (la lista queda abierta). **Clic en la etiqueta:** solo enfoca el selector, no abre; con la lista abierta, la cierra. **Clic en el relleno o en la barra de desplazamiento de la lista** no cierra: «fuera» es lo que queda fuera del rectángulo de la lista.
 
 ## Lista y móvil
 
@@ -215,9 +215,10 @@ Las emite el componente y las estiliza `GSelect.css`: `g-select`, `g-select--var
 - **Texto de 16px con puntero grueso (#970 a #972):** `medido` solo en Chromium con emulación táctil: `node design/lab/campo-tactil/verificar.mjs` 2007/2007 ([`auditoria.md`](../../../../../design/lab/campo-tactil/auditoria.md)) y `tests/campo-tactil.spec.mjs` 15/15. **Sin verificar:** WebKit (el motor de iOS), Firefox y un iPhone real con Safari, que es donde se comprueba que ya no amplía.
 
 - **Correcciones tras la evaluación heurística (#1001), `medido`** en Chromium, Firefox y WebKit sobre el `dist/` real el 2026-11-07 ([`select.md`](../../../../../design/contracts/select.md), sección «Correcciones tras la evaluación heurística»): en RTL el borde inicial de la lista queda a 0 px de la caja; el doble clic deja la lista abierta; «oscar» encuentra «Óscar» y «av» encuentra «Ávila»; «b» repetida recorre Banana, Bolivia y Brasil; el relleno de la lista no cierra y el fondo de la hoja sí; la rueda sobre el fondo de la hoja desplaza 0 px la página; `name` con valor 99 envía `99`; una lista sin filas no se abre. La barra de desplazamiento visible en la lista: `medido` solo en WebKit.
+- **Tab solo elige si una tecla movió la activa (#1016), `prueba`:** vitest 109/109 con Node 22; 8 pruebas fallan sin el cambio ([`select.md`](../../../../../design/contracts/select.md), «Cuándo elige Tab»). Sin medición en navegador.
 - **Sin verificar (#1001):** RTL con barra de desplazamiento clásica en `<html dir="rtl">`, y el bloqueo de la página con la hoja abierta en iOS real.
 
-- **Pendientes abiertos:** la decisión #54 de Tab (arriba) y los límites listados en «Alcance»; los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
+- **Pendientes abiertos:** los límites listados en «Alcance»; los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 
