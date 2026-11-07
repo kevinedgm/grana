@@ -16,7 +16,8 @@
 | **Geometría float** | Solo propiedades lógicas y `translate` con `--_dir` (−1 en RTL) para `edge` y el centro |
 | **Popover** | Lenguaje de `GSurface level="floating"`: `surface`, borde tenue, `radius-lg`, `shadow-2`; relleno `space × 3/4`; ancho máximo `space × 80`; alto máximo `--_max` con scroll interno |
 | **Coordenadas** | `left`/`top` físicos (como `GMenu`): el componente calcula en coordenadas del visor |
-| **Entrada** | Opacidad + desplazamiento de `space` desde el lado del disparador (`data-side`), con `@starting-style`, solo con `prefers-reduced-motion: no-preference` |
+| **Entrada** | `--g-duration-press` + `--g-ease-out`: opacidad y desplazamiento de `space` desde el lado del disparador (`data-side`), solo con `prefers-reduced-motion: no-preference`. Con keyframes, no con `@starting-style` (ver «Tabla de movimiento») |
+| **Salida** | `--g-duration-fast` + `--g-ease-out`, solo fundido, con `overlay` y `display` discretos. En Firefox y WebKit, en el acto (D2 · A, #1002) |
 
 ## Estados cubiertos
 
@@ -27,7 +28,7 @@
 | abierto (`is-open`) | Icono y borde en `text` |
 | disabled | `cursor: not-allowed` y opacidad 0.5 (exento de contraste) |
 | active, loading | No aplican (el contrato no los define) |
-| `prefers-reduced-motion` | Sin desplazamiento; fundido de entrada de 120 ms (`linear`). Sin salida animada: el contenido se desmonta al cerrar |
+| `prefers-reduced-motion` | Sin desplazamiento; fundido de 120 ms (`linear`) en las dos direcciones |
 | `forced-colors` | Disparador con `ButtonText`/`ButtonFace`; contenido con borde `CanvasText` |
 
 ## Verificación en Chromium (banco de pruebas)
@@ -55,3 +56,9 @@
 ## No ejecutado
 
 `forced-colors` real (emulado: los colores de sistema se aplican), Firefox y Safari (`@starting-style`: si no existe, el popover aparece sin animación), zoom al 200%.
+
+## Tabla de movimiento (#1002, #1005)
+
+Panel anclado (`tokens.md` §29.9). El contenido se conserva hasta acabar la salida por `GHelper.vue` (bruno, `api.md` «Paneles anclados»). Cerrado no captura el puntero (`pointer-events: none`), para que los 120 ms de fundido no se traguen un clic.
+
+**La entrada no cumplía:** `helper.md` dice que sí, pero `GHelper.vue` abre, mide y después escribe `data-side`, y medir fija el estilo: con `@starting-style`, la primera apertura salía sin desplazamiento y las siguientes con el lado de la anterior (medido: `desplaza: false`). Ahora es una animación de `translate` que lee `--_in` en vivo, y la opacidad, una transición en `press`. Medido en los tres motores: 162 a 167 ms con desplazamiento desde la primera apertura.

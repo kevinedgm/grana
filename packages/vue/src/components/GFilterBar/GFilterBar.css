@@ -126,6 +126,8 @@
 
 /* ---------- Editor (popover; en hoja lo estiliza GDialog) ---------- */
 .g-filter-bar__editor {
+  /* Desplazamiento de entrada: nada hasta saber el lado (abajo) */
+  --_in: 0 0;
   position: fixed;
   inset: auto;
   left: var(--_x);
@@ -147,9 +149,19 @@
   font-family: var(--g-font-ui);
   font-size: var(--g-text-body-sm-size);
   line-height: var(--g-text-body-sm-line);
+  opacity: 0;
+  /* Mientras se funde al salir no captura el puntero: el chip de debajo se puede abrir ya */
+  pointer-events: none;
 }
 /* display solo cuando está abierto: un display propio anularía el ocultamiento nativo del popover */
-.g-filter-bar__editor:popover-open { display: flex; }
+.g-filter-bar__editor:popover-open {
+  display: flex;
+  opacity: 1;
+  pointer-events: auto;
+}
+/* data-side es físico y lo escribe bruno desde r.side (filter-bar.md «Movimiento»; como GMenu) */
+.g-filter-bar__editor[data-side="bottom"] { --_in: 0 calc(var(--g-space-1) * -1); }
+.g-filter-bar__editor[data-side="top"] { --_in: 0 var(--g-space-1); }
 .g-filter-bar__editor-title {
   margin: 0;
   font-size: var(--g-text-body-sm-size);
@@ -222,9 +234,34 @@
   justify-content: flex-end;
   gap: var(--g-space-2);
 }
-/* Entrada del editor: solo fundido (no es movimiento: vale también con movimiento reducido) */
-.g-filter-bar__editor:popover-open { transition: opacity var(--g-duration-press) var(--g-ease-out); }
+/* Panel anclado (tokens.md §29.9, #1002 y #1005). Salir: fast, solo fundido (en Firefox y WebKit, en el acto: D2 · A). Entrar:
+   press, fundido y space × 1 desde el lado del disparador. Con keyframes y no con @starting-style: el editor se abre, se
+   mide y solo entonces se sabe el lado; la animación lee --_in en vivo */
 @starting-style { .g-filter-bar__editor:popover-open { opacity: 0; } }
+@media (prefers-reduced-motion: no-preference) {
+  .g-filter-bar__editor {
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-out),
+      overlay var(--g-duration-fast) allow-discrete,
+      display var(--g-duration-fast) allow-discrete;
+  }
+  .g-filter-bar__editor:popover-open {
+    transition-duration: var(--g-duration-press);
+    animation: g-filter-bar-in var(--g-duration-press) var(--g-ease-out);
+  }
+  @keyframes g-filter-bar-in {
+    from { translate: var(--_in); }
+  }
+}
+/* Movimiento reducido: sin desplazamiento; el fundido se conserva en las dos direcciones */
+@media (prefers-reduced-motion: reduce) {
+  .g-filter-bar__editor {
+    transition:
+      opacity var(--g-duration-fast) linear,
+      overlay var(--g-duration-fast) allow-discrete,
+      display var(--g-duration-fast) allow-discrete;
+  }
+}
 @media (pointer: coarse) {
   :is(.g-filter-bar__edit, .g-filter-bar__remove, .g-filter-bar__suggest, .g-filter-bar__add, .g-filter-bar__clear) { min-block-size: 44px; }
 }

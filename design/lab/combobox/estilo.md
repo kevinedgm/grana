@@ -194,3 +194,9 @@ Mínimos de las 28 configuraciones: contorno 15,18, activa invertida 15,18, marc
 ## Rejilla de medio píxel (#682)
 
 Regla única de #682 (`docs/contract/tokens.md` §4 y §7; precedente `GBtn`, #667): dentro de `@supports (inline-size: round(1px, 1px))`, con `--_snap: 0.5px` declarado en la raíz, la altura base pasa a `--_cb-row: max(24px, round(calc(var(--g-space-1) * 9), var(--_snap)))` (fila del panel). El piso va **después** del redondeo (y el de 44px táctil, que lee la misma variable o se aplica detrás); lo que deriva de esa altura la sigue sin redondeo propio; anchos, radios, bordes, rellenos, interlineados y formas no se redondean. Fuera de `@supports`, la fórmula sin `round()`. La caja del campo la redondea `GInput.css`. Medido con `node design/lab/redondeo/verificar.mjs` (banco `design/lab/redondeo/banco.html`, tres motores, `space` 4 / 4,375 / 3,75): alto × 2 entero en todas las combinaciones con 4,375 y 3,75 (antes no), y con el tema por defecto ninguna altura cambia frente al `dist/` anterior.
+
+## Salida de A (#1002, #1005)
+
+`g-combobox__popup` se funde al cerrar en `fast` + `ease-out`, sin desplazamiento ni plegado; con reducido, `fast` `linear`, y también al abrir, donde el despliegue se va. `overlay` y `display` solo van con `:not(:popover-open)`: `is-empty` con la lista abierta sigue ocultando en el acto. Entrar no se funde: es el despliegue.
+
+**La junta no parpadea:** al cerrar, el campo recupera contorno y anillo en el acto (`border-image` y `outline-style`, discretos) en el mismo cuadro en que la forma empieza a fundirse, así que el campo queda debajo y siempre hay un contorno. El cuerpo no captura el puntero mientras se funde. Medido en Chromium con el panel vacío, porque hoy `close` lo limpia en el acto: **falta comprobarlo con el contenido conservado** (bruno, #1005).

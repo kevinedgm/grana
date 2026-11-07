@@ -22,6 +22,8 @@
   /* Resaltado único (M1): posición y alto del elemento activo, en px respecto de la lista; los escribe GMenu.vue */
   --_active-y: 0px;
   --_active-h: 0px;
+  /* Desplazamiento de entrada: nada hasta saber el lado (abajo) */
+  --_in: 0 0;
 
   position: fixed;
   inset: auto;
@@ -44,20 +46,16 @@
   font-size: var(--g-text-body-sm-size);
   line-height: var(--g-text-body-sm-line);
   box-shadow: var(--g-shadow-2);
-  transform-origin: 0 0;
   opacity: 0;
-  scale: 0.96;
 }
-/* Origen: la esquina más cercana al disparador (bruno escribe data-side y data-align en coordenadas físicas) */
-.g-menu__list[data-align="right"] { transform-origin: 100% 0; }
-.g-menu__list[data-side="top"] { transform-origin: 0 100%; }
-.g-menu__list[data-side="top"][data-align="right"] { transform-origin: 100% 100%; }
-/* Sin posición escrita todavía (SSR o antes de medir): inicio de línea */
-.g-menu__list:dir(rtl):not([data-align]) { transform-origin: 100% 0; }
-.g-menu__list:popover-open {
-  opacity: 1;
-  scale: 1;
-}
+.g-menu__list:popover-open { opacity: 1; }
+/* Panel anclado (tokens.md §29.9, D1 · A, #1002): entra space × 1 desde el disparador, sin escala. data-side y data-align
+   son físicos y los escribe bruno. La lista raíz viene del lado del disparador; un submenú, de su padre, en el eje de línea:
+   data-align="left" es un submenú a la derecha del padre, que llega desde la izquierda (y al revés, también en RTL) */
+.g-menu__list[data-side="bottom"] { --_in: 0 calc(var(--g-space-1) * -1); }
+.g-menu__list[data-side="top"] { --_in: 0 var(--g-space-1); }
+.g-menu__list .g-menu__list[data-align="left"] { --_in: calc(var(--g-space-1) * -1) 0; }
+.g-menu__list .g-menu__list[data-align="right"] { --_in: var(--g-space-1) 0; }
 .g-menu__list--density-comfortable { --_d: 0.875; }
 .g-menu__list--density-compact { --_d: 0.75; }
 /* Reinicio de grupos y elementos; un submenú (también un ul dentro de la lista) conserva el relleno de su lista */
@@ -502,12 +500,21 @@ a.g-menu__item:is(:visited, :hover, :active, :focus) { text-decoration: none; }
 
 /* ---------- Movimiento ---------- */
 @media (prefers-reduced-motion: no-preference) {
+  /* Salir: fast, solo fundido (en Firefox y WebKit, en el acto: D2 · A). Entrar: press, fundido y desplazamiento */
   .g-menu__list {
     transition:
       opacity var(--g-duration-fast) var(--g-ease-out),
-      scale var(--g-duration-fast) var(--g-ease-out),
       overlay var(--g-duration-fast) allow-discrete,
       display var(--g-duration-fast) allow-discrete;
+  }
+  /* Con keyframes y no con @starting-style: GMenu.vue abre, mide (eso fija el estilo) y después escribe data-side. Un
+     @starting-style usaría el lado de la apertura anterior, o ninguno en la primera. La animación lee --_in en vivo */
+  .g-menu__list:popover-open {
+    transition-duration: var(--g-duration-press);
+    animation: g-menu-in var(--g-duration-press) var(--g-ease-out);
+  }
+  @keyframes g-menu-in {
+    from { translate: var(--_in); }
   }
   /* Viaja en press con ease-out (sin sobrepaso: #299 no aprueba el muelle en menús); se funde en fast. La primera
      colocación (al abrir o tras quedarse sin activo) aparece en su sitio: solo el fundido */
@@ -534,7 +541,6 @@ a.g-menu__item:is(:visited, :hover, :active, :focus) { text-decoration: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .g-menu__list {
-    scale: none;
     transition:
       opacity var(--g-duration-fast) linear,
       overlay var(--g-duration-fast) allow-discrete,
@@ -552,10 +558,7 @@ a.g-menu__item:is(:visited, :hover, :active, :focus) { text-decoration: none; }
   .g-menu__dest > * { transition: opacity var(--g-duration-fast) linear; }
 }
 @starting-style {
-  .g-menu__list:popover-open {
-    opacity: 0;
-    scale: 0.96;
-  }
+  .g-menu__list:popover-open { opacity: 0; }
 }
 
 /* ---------- Colores forzados ---------- */

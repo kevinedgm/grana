@@ -501,15 +501,17 @@
   font-variant-numeric: tabular-nums;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: background-color var(--g-duration-fast) var(--g-ease-standard);
 }
 .g-datepicker__day:focus-visible {
   outline: var(--g-focus-width) solid var(--_focus);
   outline-offset: var(--g-focus-offset);
 }
+/* Rejilla: una marca por día y nunca dos a la vez (api.md «Una sola luz», regla 9). La transición va solo en los estados que
+   llegan (hover y elegido): entra con fundido y sale en el acto */
 @media (hover: hover) {
   .g-datepicker__day:hover:not(.is-disabled):not(.is-selected) {
     background: var(--g-color-surface-sunken);
+    transition: background-color var(--g-duration-fast) var(--g-ease-standard);
   }
 }
 /* Dentro de la franja, el texto usa el color pensado para el tono suave */
@@ -537,6 +539,7 @@
   color: var(--_on);
   font-weight: var(--g-text-action-weight);
   box-shadow: inset 0 0 0 var(--g-border-width) var(--_text);
+  transition: background-color var(--g-duration-fast) var(--g-ease-standard);
 }
 .g-datepicker__day.is-selected.is-today {
   box-shadow: inset 0 0 0 calc(var(--g-border-width) * 2) var(--_on);

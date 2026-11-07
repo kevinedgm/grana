@@ -286,6 +286,8 @@
      para que la marca, el icono de «Agregar nuevo…» y su sangría, que leen --_fs, sigan al texto de la opción */
   --_fs: var(--_fs-role);
   --_lh: var(--_lh-role);
+  /* Radio de la opción y de la luz */
+  --_opt-radius: max(0px, calc(var(--g-radius-md) - var(--g-space-1)));
   font-size: var(--_fs);
   line-height: var(--_lh);
   box-shadow: var(--g-shadow-2);
@@ -309,13 +311,31 @@
   box-sizing: border-box;
   min-block-size: var(--_opt);
   padding-inline: calc(var(--_px) * var(--_density));
-  border-radius: max(0px, calc(var(--g-radius-md) - var(--g-space-1)));
+  border-radius: var(--_opt-radius);
   overflow-wrap: anywhere;
   cursor: pointer;
 }
-/* Activa: relleno y contorno (WCAG 2.4.7: el foco vive en el selector, la activa lo señala) */
-.g-select__option.is-active {
+/* Una sola luz (select.md, api.md regla 1, tercer caso, #1004): la opción activa no pinta fondo; lo pinta una capa, primer
+   hijo de la lista, que sigue a la activa por puntero o teclado. Va con el contenido al desplazar y, con z-index -1, por
+   debajo de todo lo de la lista (también de títulos de grupo al cruzarlos) y sobre su fondo: la lista es contexto de
+   apilamiento (position: fixed). Px FÍSICOS, también en RTL. --_highlight-* solo se leen en esta regla (#964) */
+.g-select__highlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  inline-size: var(--_highlight-w);
+  block-size: var(--_highlight-h);
+  translate: var(--_highlight-x) var(--_highlight-y);
+  border-radius: var(--_opt-radius);
   background: var(--g-color-surface-sunken);
+  opacity: 0;
+  pointer-events: none;
+}
+.g-select__list.has-highlight > .g-select__highlight { opacity: 1; }
+/* Contorno de la activa solo tras usar el teclado (WCAG 2.4.7: el foco vive en el selector, la activa lo señala; el
+   puntero ya se ve a sí mismo) */
+.g-select__list.is-keyed .g-select__option.is-active {
   outline: var(--g-focus-width) solid var(--_focus);
   outline-offset: calc(var(--g-focus-width) * -1);
 }
@@ -382,6 +402,18 @@
   }
   @keyframes g-select-in-up {
     from { opacity: 0; translate: 0 var(--g-space-1); }
+  }
+  /* Recorrer (motion.json, recorrerFilas): viaja en press con ease-out; aparece con fundido fast. La primera colocación de
+     cada apertura no viaja. Sin muelle (#299) */
+  .g-select__highlight {
+    transition:
+      translate var(--g-duration-press) var(--g-ease-out),
+      inline-size var(--g-duration-press) var(--g-ease-out),
+      block-size var(--g-duration-press) var(--g-ease-out),
+      opacity var(--g-duration-fast) var(--g-ease-standard);
+  }
+  .g-select__list.is-highlight-instant > .g-select__highlight {
+    transition: opacity var(--g-duration-fast) var(--g-ease-standard);
   }
 }
 
@@ -690,6 +722,10 @@
       overlay var(--g-duration-fast) allow-discrete,
       display var(--g-duration-fast) allow-discrete;
   }
+  /* La luz: solo fundido, sin viaje */
+  .g-select__highlight {
+    transition: opacity var(--g-duration-fast) linear;
+  }
   .g-select__arrow {
     transition: none;
   }
@@ -708,8 +744,14 @@
   .g-select__list {
     border-color: CanvasText;
   }
-  .g-select__option.is-active {
-    outline-color: Highlight;
+  /* Sin capa: el contorno es la única marca de la activa, con o sin teclado (#1004) */
+  .g-select__highlight {
+    display: none;
+  }
+  .g-select__list .g-select__option.is-active,
+  .g-select__list.is-keyed .g-select__option.is-active {
+    outline: var(--g-focus-width) solid Highlight;
+    outline-offset: calc(var(--g-focus-width) * -1);
   }
   .g-select__create {
     border-color: CanvasText;

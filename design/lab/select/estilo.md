@@ -14,7 +14,7 @@
 | **Variantes, tamaños, densidad, colores de foco, error, `readonly`, `disabled`, `loading`** | Idénticos a `GInput` (`soft` con línea inferior de `border-control`, error con doble trazo y ⚠, `readonly` discontinuo) |
 | **Flecha y cruz dibujadas con bordes** | La flecha (dos bordes rotados) gira al abrir; la cruz de limpiar son dos barras de borde: ambas **sobreviven a `forced-colors`** (un fondo no) |
 | **Lista en la capa superior** | `position: fixed` con `--_x`, `--_top`, `--_bottom`, `--_min` y `--_max` de bruno; sin ellas (cerrada) valen `auto`. Sin respaldos en `var()`. Alto máximo `min(--_max, 8 opciones, 60dvh)` |
-| **Opción activa** | Relleno `surface-sunken` y contorno del grosor de `--g-focus-width` en el color de foco (el foco vive en el selector; la activa lo señala) |
+| **Opción activa** | Sin fondo propio: lo pinta la luz (`g-select__highlight`, `surface-sunken`). Contorno del grosor de `--g-focus-width` en el color de foco **solo tras usar el teclado** (`is-keyed` en la lista; el foco vive en el selector y la activa lo señala) |
 | **Elegida** | Más peso y marca ✓ dibujada con bordes al final de la fila (no depende del color) |
 | **Deshabilitada** | `text-subtle` y tachado; sin depender del color |
 | **Aparición** | Fundido breve con desplazamiento de `--g-space-1` (hacia abajo o hacia arriba con `is-up`), en `--g-duration-press`; sale con un fundido de `--g-duration-fast` sin desplazamiento (sin `overlay`, al instante). Con movimiento reducido, solo fundidos de 120 ms |
@@ -69,7 +69,7 @@ Lector de pantalla real (incluido el riesgo de `aria-activedescendant` en la hoj
 | **El icono del valor sustituye al prefijo** | `:has(.g-select__value > .g-select__icon)` oculta el prefijo: una sola posición inicial, sin dos iconos seguidos |
 | **Fila «Agregar nuevo…»** (`g-select__create`) | Línea superior de separación (`--g-color-border`), peso de acción, esquinas superiores rectas y **«+» dibujado con dos pseudo-elementos de borde** (sobrevive a `forced-colors`; en RTL se coloca con propiedades lógicas) |
 | **Altura** | La misma que una opción (`--_opt`, 44px con puntero grueso); si el texto es largo, la fila crece y el «+» sigue centrado |
-| **Activa** | Igual que una opción activa (relleno + contorno de foco) |
+| **Activa** | Igual que una opción activa (luz y, tras el teclado, contorno de foco) |
 
 ## Verificación en Chromium (banco de pruebas)
 
@@ -105,3 +105,17 @@ Lector de pantalla real (cómo anuncia la fila crear y los iconos); Firefox y Sa
 ## Rejilla de medio píxel (#682)
 
 Regla única de #682 (`docs/contract/tokens.md` §4 y §7; precedente `GBtn`, #667): dentro de `@supports (inline-size: round(1px, 1px))`, con `--_snap: 0.5px` declarado en la raíz, la altura base pasa a `--_h: max(24px, round(calc(var(--g-space-1) * var(--_units) * var(--_density)), var(--_snap)))`. El piso va **después** del redondeo (y el de 44px táctil, que lee la misma variable o se aplica detrás); lo que deriva de esa altura la sigue sin redondeo propio; anchos, radios, bordes, rellenos, interlineados y formas no se redondean. Fuera de `@supports`, la fórmula sin `round()`. La opción (`--_opt: var(--_h)`) la sigue. Medido con `node design/lab/redondeo/verificar.mjs` (banco `design/lab/redondeo/banco.html`, tres motores, `space` 4 / 4,375 / 3,75): alto × 2 entero en todas las combinaciones con 4,375 y 3,75 (antes no), y con el tema por defecto ninguna altura cambia frente al `dist/` anterior.
+
+## Una sola luz (#1004)
+
+**Qué le da personalidad:** una capa por lista viaja a la opción activa, la mueva el puntero o el teclado, en vez de que cada opción encienda su fondo (`api.md` «Una sola luz», regla 1, tercer caso). El anillo aparece solo tras una tecla: el puntero ya se ve a sí mismo.
+
+| Pieza | Valor |
+| --- | --- |
+| **Capa** | `g-select__highlight`, primer hijo de la lista: `absolute` arriba a la izquierda (px físicos, también en RTL), `surface-sunken`, el radio de la opción (`--_opt-radius`). `--_highlight-*` solo se leen en esa regla (#964) |
+| **Apilamiento** | `z-index: -1`, no `position: relative` en cada fila como `GMenu`: la lista es contexto de apilamiento y así la capa pasa también bajo títulos de grupo, «sin opciones» y lo que entre por el slot `option` |
+| **Movimiento** | `translate`, `inline-size` y `block-size` en `press` + `ease-out`; `opacity` en `fast`. Con `is-highlight-instant`, solo la opacidad |
+| **Reducido** | `opacity` `fast` `linear`, sin viaje |
+| **`forced-colors`** | Sin capa. La activa lleva contorno `Highlight` siempre, con o sin `is-keyed`: es la única marca que queda |
+
+`estilo-banco.html` imita lo que hará `GSelect.vue` (capa, colocación, `is-keyed`). `node design/lab/select/estilo-luz-verificar.mjs` mide el CSS real sobre ese banco en los tres motores (62/62): coincidencia con la fila ≤ 1 px también con grupos, desplazada, en RTL y en hoja; viaje por cuadros intermedios; ninguna opción pinta fondo; contorno solo tras teclado. **No mide el componente real**, que hasta bruno no tiene la capa.

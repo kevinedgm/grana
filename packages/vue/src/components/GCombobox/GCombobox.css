@@ -319,7 +319,9 @@
   font-size: var(--g-text-body-size);
   line-height: var(--g-text-body-line);
   pointer-events: none;
+  opacity: 0;
 }
+.g-combobox__popup:popover-open { opacity: 1; }
 .g-combobox.is-up .g-combobox__popup {
   padding: 0 0 calc(var(--_field-h) - var(--g-border-width) * 2);
 }
@@ -348,7 +350,7 @@
 }
 
 /* La parte con fondo: se despliega desde la línea del campo. Rejilla de una pista: 0fr → 1fr al abrir; después, 1fr
-   siempre, así los cambios de alto entre resultados no se animan; cerrar es inmediato (el popover se oculta) */
+   siempre, así los cambios de alto entre resultados no se animan; al cerrar no se pliega: se funde el popover (abajo) */
 .g-combobox__popup-body {
   display: grid;
   grid-template-rows: 1fr;
@@ -374,6 +376,32 @@
     .g-combobox__popup:popover-open .g-combobox__popup-body {
       grid-template-rows: 0fr;
     }
+  }
+}
+/* A · salida (combobox.md, #1002 y #1005): solo fundido, fast. En Firefox y WebKit, en el acto (D2 · A). overlay y display
+   solo al cerrar: is-empty con la lista abierta oculta en el acto. Entrar no se funde: es el despliegue. La junta no
+   parpadea: el campo recupera contorno y anillo en el acto (arriba) y queda debajo mientras la forma se funde */
+.g-combobox__popup:not(:popover-open) .g-combobox__popup-body { pointer-events: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .g-combobox__popup { transition: opacity var(--g-duration-fast) var(--g-ease-out); }
+  .g-combobox__popup:not(:popover-open) {
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-out),
+      overlay var(--g-duration-fast) allow-discrete,
+      display var(--g-duration-fast) allow-discrete;
+  }
+}
+/* A · movimiento reducido: el despliegue se va y queda un fundido, también al abrir */
+@media (prefers-reduced-motion: reduce) {
+  .g-combobox__popup { transition: opacity var(--g-duration-fast) linear; }
+  .g-combobox__popup:not(:popover-open) {
+    transition:
+      opacity var(--g-duration-fast) linear,
+      overlay var(--g-duration-fast) allow-discrete,
+      display var(--g-duration-fast) allow-discrete;
+  }
+  @starting-style {
+    .g-combobox__popup:popover-open { opacity: 0; }
   }
 }
 /* El panel se desplaza (nunca la página): alto disponible que da bruno (--_max) con tope space × 96 */

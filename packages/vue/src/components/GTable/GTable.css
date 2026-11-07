@@ -512,7 +512,7 @@ th[aria-sort] .g-table__sort .g-icon { opacity: 1; }
   vertical-align: middle;
   color: var(--g-color-text-muted);
   transition:
-    rotate var(--g-duration-slow) var(--g-ease-spring),
+    rotate var(--g-duration-fast) var(--g-ease-out),
     color var(--g-duration-fast) var(--g-ease-standard);
 }
 .g-table__row.is-expanded .g-table__door-chevron {
@@ -530,9 +530,9 @@ th[aria-sort] .g-table__sort .g-icon { opacity: 1; }
   padding: 0 var(--_pad-inline);
   cursor: auto;
 }
-/* La ficha: rejilla 0fr → 1fr (sin medir alturas; motor utils/collapse.js con --g-ease-spring). Se monta plegada y se
-   despliega desde @starting-style; al plegar vuelve a 0fr y bruno la desmonta al terminar. Relleno y margen se pliegan
-   con ella, para que no quede una franja. Su hijo directo (un único envoltorio del slot) es el que se recorta */
+/* La ficha, un plegado (tokens.md §29.9, #1006): rejilla 0fr → 1fr (sin medir alturas) en slow + ease-out. Se monta plegada
+   y se despliega desde @starting-style; al plegar vuelve a 0fr y bruno la desmonta al terminar. Relleno y margen se
+   pliegan con ella, para que no quede una franja. Su hijo directo (un único envoltorio del slot) es el que se recorta */
 .g-table__detail-body {
   display: grid;
   grid-template-rows: 0fr;
@@ -543,12 +543,16 @@ th[aria-sort] .g-table__sort .g-icon { opacity: 1; }
   border-radius: var(--g-radius-md);
   background: var(--g-color-surface-sunken);
   transition:
-    grid-template-rows var(--g-duration-slow) var(--g-ease-spring),
-    padding-block-start var(--g-duration-slow) var(--g-ease-spring),
-    padding-block-end var(--g-duration-slow) var(--g-ease-spring),
-    margin-block-end var(--g-duration-slow) var(--g-ease-spring);
+    grid-template-rows var(--g-duration-slow) var(--g-ease-out),
+    padding-block-start var(--g-duration-slow) var(--g-ease-out),
+    padding-block-end var(--g-duration-slow) var(--g-ease-out),
+    margin-block-end var(--g-duration-slow) var(--g-ease-out);
 }
 .g-table__detail-body > * { min-block-size: 0; }
+/* Al plegar, el contenido se funde en fast y la altura sigue en slow: la salida es más corta en el contenido (#1007). Al
+   desplegar no hay fundido (se monta entero); la transición va en la regla base para que invertir a mitad no salte */
+.g-table__detail-content { transition: opacity var(--g-duration-fast) var(--g-ease-out); }
+.g-table__detail:not(.is-open) .g-table__detail-content { opacity: 0; }
 .g-table__row.is-expanded + .g-table__detail .g-table__detail-body {
   grid-template-rows: 1fr;
   margin-block: 0 var(--g-space-3);
@@ -562,7 +566,7 @@ th[aria-sort] .g-table__sort .g-icon { opacity: 1; }
     padding-block-end: 0;
   }
 }
-.g-table__detail.is-instant .g-table__detail-body { transition: none; }
+.g-table__detail.is-instant :is(.g-table__detail-body, .g-table__detail-content) { transition: none; }
 
 /* ---------- Estado de fila (table.md «Estado de fila», #600): lomo con forma por valor + etiqueta; nunca se tiñe la fila ---------- */
 /* Tono por valor (error lee danger, como GCard) */
@@ -808,8 +812,11 @@ th[aria-sort] .g-table__sort .g-icon { opacity: 1; }
     translate: 0 0;
     transition: none;
   }
-  .g-table__door-chevron,
-  .g-table__detail-body { transition: none; }
+  /* Sin giro y sin transición de altura: el color del chevron se queda (§29.3) y la ficha se pliega de una vez, contenido
+     incluido (bruno la desmonta a los 50 ms: no daría tiempo a un fundido) */
+  .g-table__door-chevron { transition: color var(--g-duration-fast) linear; }
+  .g-table__detail-body,
+  .g-table__detail-content { transition: none; }
   .g-table__row.is-new > td,
   .g-table--mode-cards .g-table__row.is-new { animation: none; }
   .g-table__row.is-here > td {

@@ -134,6 +134,8 @@
 
 /* ---------- Contenido (popover en la capa superior) ---------- */
 .g-helper__content {
+  /* Desplazamiento de entrada: nada hasta saber el lado (abajo) */
+  --_in: 0 0;
   /* Coordenadas físicas de visor calculadas por el componente: por eso left/top (como GMenu) */
   position: fixed;
   inset: auto;
@@ -155,34 +157,52 @@
   border: var(--g-border-width) solid var(--g-color-border);
   border-radius: var(--g-radius-lg);
   box-shadow: var(--g-shadow-2);
+  opacity: 0;
+  /* Mientras se funde al salir no captura el puntero */
+  pointer-events: none;
 }
+.g-helper__content:popover-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.g-helper__content[data-side="bottom"] { --_in: 0 calc(var(--g-space-1) * -1); }
+.g-helper__content[data-side="top"] { --_in: 0 var(--g-space-1); }
+.g-helper__content[data-side="left"] { --_in: var(--g-space-1) 0; }
+.g-helper__content[data-side="right"] { --_in: calc(var(--g-space-1) * -1) 0; }
 .g-helper__content:focus-visible {
   outline: var(--g-focus-width) solid var(--g-color-focus);
   outline-offset: var(--g-focus-offset);
 }
 
-/* Entrada breve desde el lado del disparador; con reduced-motion, solo fundido */
+/* Panel anclado (tokens.md §29.9, #1002). Salir: fast, solo fundido (en Firefox y WebKit, en el acto: D2 · A). Entrar: press,
+   fundido y space × 1 desde el lado del disparador. Con keyframes y no con @starting-style: GHelper.vue abre, mide (eso
+   fija el estilo) y después escribe data-side; un @starting-style dejaba la primera apertura sin desplazamiento y las
+   siguientes con el lado de la anterior (medido). La animación lee --_in en vivo */
+@starting-style {
+  .g-helper__content:popover-open { opacity: 0; }
+}
 @media (prefers-reduced-motion: no-preference) {
-  .g-helper__content:popover-open {
+  .g-helper__content {
     transition:
-      opacity var(--g-duration-press) var(--g-ease-out),
-      translate var(--g-duration-press) var(--g-ease-out);
+      opacity var(--g-duration-fast) var(--g-ease-out),
+      overlay var(--g-duration-fast) allow-discrete,
+      display var(--g-duration-fast) allow-discrete;
   }
-  @starting-style {
-    .g-helper__content:popover-open { opacity: 0; }
-    .g-helper__content[data-side="bottom"]:popover-open { translate: 0 calc(var(--g-space-1) * -1); }
-    .g-helper__content[data-side="top"]:popover-open { translate: 0 var(--g-space-1); }
-    .g-helper__content[data-side="left"]:popover-open { translate: var(--g-space-1) 0; }
-    .g-helper__content[data-side="right"]:popover-open { translate: calc(var(--g-space-1) * -1) 0; }
+  .g-helper__content:popover-open {
+    transition-duration: var(--g-duration-press);
+    animation: g-helper-in var(--g-duration-press) var(--g-ease-out);
+  }
+  @keyframes g-helper-in {
+    from { translate: var(--_in); }
   }
 }
-/* Movimiento reducido: sin desplazamiento; el fundido se conserva */
+/* Movimiento reducido: sin desplazamiento; el fundido se conserva en las dos direcciones */
 @media (prefers-reduced-motion: reduce) {
-  .g-helper__content:popover-open {
-    transition: opacity var(--g-duration-fast) linear;
-  }
-  @starting-style {
-    .g-helper__content:popover-open { opacity: 0; }
+  .g-helper__content {
+    transition:
+      opacity var(--g-duration-fast) linear,
+      overlay var(--g-duration-fast) allow-discrete,
+      display var(--g-duration-fast) allow-discrete;
   }
 }
 
