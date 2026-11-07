@@ -168,6 +168,38 @@
     translate var(--g-duration-press) var(--g-ease-out),
     visibility var(--g-duration-fast) var(--g-ease-standard);
 }
+/* Marca de acuse (A · Retén, #1011): `check` de Lucide en el sitio y con el tamaño del indicador. Con el trazo completo en reposo:
+   la opacidad lo oculta, así que al retirarse funde una marca entera. El dibujo es una reacción única (keyframes, abajo), no una
+   transición: el nodo nace en el mismo render que `is-done`. `pathLength="1"` lo pone el .vue */
+.g-btn__done {
+  display: block;
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  inline-size: var(--_icon);
+  block-size: var(--_icon);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--g-duration-fast) var(--g-ease-standard),
+    visibility var(--g-duration-fast) var(--g-ease-standard);
+}
+.g-btn__done path {
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 0;
+}
+.g-btn.is-done > .g-btn__done {
+  opacity: 1;
+  visibility: visible;
+}
+.g-btn.is-done > .g-btn__done path {
+  animation: g-btn-done-draw var(--g-duration-slow) var(--g-ease-out);
+}
+.g-btn.is-done > .g-btn__label,
+.g-btn.is-done > .g-btn__prepend,
+.g-btn.is-done > .g-btn__append {
+  opacity: 0;
+}
 .g-btn__status {
   position: absolute;
   inline-size: 1px;
@@ -181,6 +213,9 @@
 }
 @keyframes g-btn-spin {
   to { rotate: 1turn; }
+}
+@keyframes g-btn-done-draw {
+  from { stroke-dashoffset: -1; }
 }
 
 /* ---------- Color ---------- */
@@ -315,7 +350,10 @@
   background: var(--_bg-hover);
   border-color: var(--_border-hover);
 }
-.g-btn:active:not(:disabled):not(.is-disabled):not(.is-loading):not(.g-btn--variant-link) {
+/* A · Retén (#1013): con carga el botón se queda hundido desde el primer cuadro (misma ida que :active); al quitar is-loading
+   sube con la regla base (B1, rebote). Sin otra aparición de --g-ease-bounce. Exclusiones: link, disabled, is-disabled */
+.g-btn:active:not(:disabled):not(.is-disabled):not(.is-loading):not(.g-btn--variant-link),
+.g-btn.is-loading:not(:disabled):not(.is-disabled):not(.g-btn--variant-link) {
   transform: scale(var(--g-press-scale));
   /* Ida (lista completa): aprieta rápido; la vuelta con rebote la da la regla base (B1, #300) */
   transition:
@@ -353,22 +391,48 @@
 
 /* loading: conserva el color y el ancho; la etiqueta ocupa su espacio sin verse, pero sigue en el árbol de accesibilidad
    (con visibility: hidden el nombre del botón quedaba vacío: nunca visibility ni display en la etiqueta, #300). Los iconos
-   de los huecos son aria-hidden: se ocultan del todo al terminar el fundido. */
+   de los huecos son aria-hidden: se ocultan del todo al terminar el fundido. B2 depende de is-shown (200 ms de retraso, F2):
+   hasta entonces la etiqueta no se mueve y el acuse inmediato es el hundido más el fondo de hover. */
 .g-btn.is-loading {
   cursor: progress;
 }
-.g-btn.is-loading .g-btn__loader {
+/* F2 · pendiente (sin is-shown): fondo de hover con o sin puntero. Cubre lo que el hundido no alcanza (reduce, press-scale 1).
+   Un solo selector: 0,3,0 gana a :hover y :active (0,2,0). El enlace no tiene fondo: toma el grosor de su hover */
+.g-btn.is-loading:not(.is-shown) {
+  color: var(--_fg-hover);
+  background: var(--_bg-hover);
+  border-color: var(--_border-hover);
+}
+.g-btn--variant-link.is-loading:not(.is-shown) {
+  text-decoration-thickness: calc(var(--g-border-width) * 2);
+}
+/* F1 · a la vista: lo inerte no responde al puntero; hover y activo leen el reposo */
+.g-btn.is-loading.is-shown {
+  color: var(--_fg);
+  background: var(--_bg);
+}
+/* Fuera de forced-colors: allí el borde lo fija el bloque del final (0,3,0 sobre ButtonText/Canvas/GrayText lo pisaría) */
+@media (forced-colors: none) {
+  .g-btn.is-loading.is-shown {
+    border-color: var(--_border);
+  }
+}
+.g-btn.is-shown .g-btn__loader {
   opacity: 1;
   visibility: visible;
   animation-play-state: running;
 }
-.g-btn.is-loading .g-btn__label {
+/* F3 · el giro sigue mientras se funde: se detenía de golpe en el primer cuadro de la salida */
+.g-btn.is-leaving .g-btn__loader {
+  animation-play-state: running;
+}
+.g-btn.is-shown .g-btn__label {
   opacity: 0;
   pointer-events: none;
   user-select: none;
 }
-.g-btn.is-loading .g-btn__prepend,
-.g-btn.is-loading .g-btn__append {
+.g-btn.is-shown .g-btn__prepend,
+.g-btn.is-shown .g-btn__append {
   opacity: 0;
   visibility: hidden;
 }
@@ -378,12 +442,12 @@
   .g-btn__loader {
     translate: 0 var(--g-space-1);
   }
-  .g-btn.is-loading .g-btn__loader {
+  .g-btn.is-shown .g-btn__loader {
     translate: 0 0;
   }
-  .g-btn.is-loading .g-btn__label,
-  .g-btn.is-loading .g-btn__prepend,
-  .g-btn.is-loading .g-btn__append {
+  .g-btn.is-shown .g-btn__label,
+  .g-btn.is-shown .g-btn__prepend,
+  .g-btn.is-shown .g-btn__append {
     translate: 0 calc(var(--g-space-1) * -1);
   }
 }
@@ -392,14 +456,20 @@
 @media (prefers-reduced-motion: reduce) {
   /* Se quedan colores y fundidos; se van la escala y el rebote (#299 (3)). B2 sin desplazamiento: ver arriba */
   .g-btn,
-  .g-btn:active:not(:disabled):not(.is-disabled):not(.is-loading):not(.g-btn--variant-link) {
+  .g-btn:active:not(:disabled):not(.is-disabled):not(.is-loading):not(.g-btn--variant-link),
+  .g-btn.is-loading:not(:disabled):not(.is-disabled):not(.g-btn--variant-link) {
     transition:
       background-color var(--g-duration-fast) var(--g-ease-standard),
       border-color var(--g-duration-fast) var(--g-ease-standard),
       color var(--g-duration-fast) var(--g-ease-standard);
   }
-  .g-btn:active:not(:disabled):not(.is-disabled):not(.is-loading):not(.g-btn--variant-link) {
+  .g-btn:active:not(:disabled):not(.is-disabled):not(.is-loading):not(.g-btn--variant-link),
+  .g-btn.is-loading:not(:disabled):not(.is-disabled):not(.g-btn--variant-link) {
     transform: none;
+  }
+  /* La marca llega entera desde el primer cuadro: se queda el fundido */
+  .g-btn.is-done > .g-btn__done path {
+    animation: none;
   }
   .g-btn__loader {
     animation-duration: calc(var(--g-duration-spin) * 2.5);
@@ -418,6 +488,11 @@
   .g-btn:hover,
   .g-btn:active {
     border-color: Highlight;
+  }
+  /* F1: a la vista, lo inerte no responde al puntero tampoco aquí (enlace y deshabilitados conservan lo suyo, abajo) */
+  .g-btn.is-loading.is-shown:not(.g-btn--variant-link):not([disabled]):not(.is-disabled):hover,
+  .g-btn.is-loading.is-shown:not(.g-btn--variant-link):not([disabled]):not(.is-disabled):active {
+    border-color: ButtonText;
   }
   .g-btn:disabled:where(:not(.g-form-reveal:not(.is-open) *)):where(:not(.g-form-section--mode-addable:not(.is-open) > .g-form-section__panel *)),
   .g-btn[disabled],

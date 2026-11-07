@@ -110,6 +110,33 @@ El conteo de cuadros en tiempo real solo se exige en Chromium: con carga en para
 - El respaldo sin `linear()` (fuera de `@supports`): los tres motores actuales lo soportan; no hay motor en el banco que lo ejerza.
 - Pantalla táctil real (la pulsación en táctil dura lo que el dedo; el rebote se ve al levantarlo) y `forced-colors` real: escrito, no emulado en este spec (la regla de `forced-colors` no toca el movimiento).
 
+## Carga y acuse · A · Retén (r02; DECISIONS.md #1010 a #1015; `btn.md` «Carga y acuse»)
+
+Lo que le da personalidad: el botón **se queda hundido mientras trabaja** y sube con el rebote de siempre al llegar; si la aplicación afirma el éxito, el `check` se dibuja donde estaba el giro. Pulsar y acabar son las dos mitades de un mismo gesto. Sin verde, sin texto nuevo a la vista y sin otro modo. Todo con tokens; la única constante es el `× 1` de `--g-space-1` (B2).
+
+| Fase o regla | Cómo lo pinta el CSS |
+| --- | --- |
+| Retén | `is-loading` toma la lista de `:active` (`transform` a `--g-press-scale`, ida `--g-duration-fast` + `--g-ease-out`) desde el primer cuadro. Exclusiones: `link`, `:disabled`, `is-disabled`. La subida es la regla base de B1: **ninguna aparición nueva de `--g-ease-bounce`** (sigue en 1). Con `reduce`: `transform: none` y lista sin `transform`. Listas completas (#300) |
+| Pendiente (sin `is-shown`) | Fondo, texto y borde de hover con o sin puntero (acuse inmediato; cubre `reduce` y `--g-press-scale: 1`); `link` toma el grosor de su hover. La etiqueta no se mueve |
+| F1 · a la vista (`is-loading is-shown`) | Hover y activo leen el reposo (color y fondo en un selector 0,3,0; el borde dentro de `forced-colors: none`). En `forced-colors` un hover o activo a la vista conserva `ButtonText` (el enlace y los deshabilitados conservan lo suyo) |
+| B2 | Pasa a depender de `is-shown` (etiqueta y huecos a `opacity: 0` y sube `space × 1`; indicador visible y corriendo). Hasta `is-shown` la etiqueta sigue donde estaba |
+| F3 | `is-leaving` mantiene `animation-play-state: running` en el indicador mientras se funde |
+| `g-btn__done` | Absoluto y centrado como el indicador, `--_icon`, opacidad `fast`. Su `path` queda **completo en reposo** (`stroke-dasharray: 1 1`, `dashoffset: 0`: la opacidad lo oculta y al retirarse funde una marca entera). Con `is-done` entra `g-btn-done-draw` (keyframes, `--g-duration-slow` + `--g-ease-out`), etiqueta y huecos a `opacity: 0`. Con `reduce`: `animation: none`, marca entera desde el primer cuadro y se queda el fundido. `currentColor`: hereda los 35 pares y `forced-colors` |
+
+### Mediciones (Chromium; marcado del contrato sobre `dist/grana.css` reconstruido; normal, `reduce` y `forced-colors`; cinco variantes)
+
+- Pendiente: fondo = fondo de hover en las cuatro variantes con fondo; escala 0,970 (sin escala con `reduce`); `link` con el grosor de hover (2px) y sin hundido; etiqueta a `opacity` 1.
+- A la vista: fondo y borde iguales en reposo, con puntero y pulsado, en las cinco variantes; etiqueta 0, indicador 1 y `running`; escala sostenida 0,970; `is-disabled` con carga: escala `none`.
+- Salida: indicador `running` con `is-leaving`.
+- Acuse: `animation-name: g-btn-done-draw`, 0,24s, `cubic-bezier(0.23, 1, 0.32, 1)` (`--g-ease-out`); `stroke-dashoffset` 0 en reposo; marca a 1 y etiqueta a 0; al retirar, marca a 0 y etiqueta a 1; con `reduce`, sin animación.
+- Ninguna duración supera 240 ms. Literales: ninguno nuevo; sin `@layer`.
+- **Peso (#1015):** `dist/grana.css` con `gzip -9`, antes y después sobre el mismo árbol: **+182 B** (tope +768 B).
+
+### Sin verificar (Retén)
+
+- El marcado es el del contrato: el `.vue` real aún no emite `is-shown`, `is-leaving`, `is-done` ni `g-btn__done`; hasta entonces B2 no se ve en el componente real y `tests/personalidad-btn.spec.mjs` (`seekB2`, «sin rebote en loading») cambia con bruno.
+- Firefox y WebKit, nitidez de la escala sostenida en esperas largas, `block` a 1280 px, `tooltip` durante la carga, la medida de cierre de kiwi sobre el componente real y `forced-colors` real: pendientes de la auditoría.
+
 ## No verificado
 
 - Alturas fraccionarias (`comfortable`: 31.5px, 38.5px…) pueden verse con bordes difusos en pantallas de baja densidad. Pendiente evaluar `round()` de CSS.
