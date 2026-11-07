@@ -218,9 +218,6 @@ for (const reduced of [false, true]) {
     })
 
     test('aviso flotante · GToast', async ({ page }) => {
-      // Hallazgo para coco: GToast.css entra en press con reducido y la fila dice fast (160 frente a 120 ms). Al corregirlo, esta
-      // marca hará fallar la prueba: se quita y ya
-      test.fail(reduced, 'GToast.css: entrada reducida en press, la tabla dice fast')
       await bench(page)
       const T = await tokens(page)
       const { enter, exit } = row('avisoFlotante')

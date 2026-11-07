@@ -1,0 +1,347 @@
+{
+ "chromium": {
+  "GSelect": {
+   "abrir": {
+    "ms": 130,
+    "cambios": 9,
+    "desplaza": false,
+    "escala": false
+   },
+   "cerrar": {
+    "ms": 117,
+    "cambios": 8,
+    "desplaza": false,
+    "escala": false
+   }
+  },
+  "GMenu": {
+   "abrir": {
+    "ms": 129,
+    "cambios": 9,
+    "desplaza": false,
+    "escala": false
+   },
+   "cerrar": {
+    "ms": 116,
+    "cambios": 8,
+    "desplaza": false,
+    "escala": false
+   }
+  },
+  "GHelper": {
+   "abrir": {
+    "ms": 134,
+    "cambios": 9,
+    "desplaza": false,
+    "escala": false
+   },
+   "cerrar": {
+    "ms": 116,
+    "cambios": 8,
+    "desplaza": false,
+    "escala": false
+   }
+  },
+  "GDatePicker": {
+   "abrir": {
+    "ms": 135,
+    "cambios": 9,
+    "desplaza": false,
+    "escala": false
+   },
+   "cerrar": {
+    "ms": 119,
+    "cambios": 8,
+    "desplaza": false,
+    "escala": false
+   }
+  },
+  "GCombobox": {
+   "abrir": {
+    "ms": 132,
+    "cambios": 9,
+    "desplaza": false,
+    "escala": false
+   },
+   "cerrar": {
+    "ms": 115,
+    "cambios": 8,
+    "desplaza": false,
+    "escala": false
+   }
+  },
+  "GTooltip": {
+   "abrir": {
+    "ms": 81,
+    "cambios": 6,
+    "desplaza": true,
+    "escala": false
+   },
+   "cerrar": {
+    "ms": 267,
+    "cambios": 11,
+    "desplaza": true,
+    "escala": false
+   }
+  },
+  "GDialog": {
+   "abrir": {
+    "ms": 0,
+    "cambios": 0
+   },
+   "cerrar": {
+    "ms": 0,
+    "cambios": 0
+   }
+  },
+  "recorrer.GSelect": {
+   "estadosDistintos": 1,
+   "msDelCambio": 0,
+   "foco": "combobox",
+   "anilloConPuntero": false
+  },
+  "recorrer.GCombobox": {
+   "estadosDistintos": 2,
+   "msDelCambio": 0,
+   "foco": "combobox",
+   "anilloConPuntero": false
+  },
+  "recorrer.GMenu": {
+   "estadosDistintos": 2,
+   "msDelCambio": 0,
+   "foco": "menuitem",
+   "anilloConPuntero": false
+  },
+  "errores": []
+ },
+ "firefox": {
+  "GSelect": {
+   "abrir": {
+    "ms": 133,
+    "cambios": 9,
+    "desplaza": false,
+    "escala": false
+   },
+   "cerrar": {
+    "ms": 0,
+    "cambios": 1,
+    "desplaza": false,
+    "escala": false
+   }
+  },
+  "GMenu": {
+   "abrir": {
+    "ms": 124,
+    "cambios": 9,
+    "desplaza": false,
+    "escala": false
+   },
+   "cerrar": {
+    "ms": 110,
+    "cambios": 2,
+    "desplaza": false,
+    "escala": false
+   }
+  },
+  "GHelper": {
+   "abrir": {
+    "ms": 125,
+    "cambios": 9,
+    "desplaza": false,
+    "escala": false
+   },
+   "cerrar": {
+    "ms": 0,
+    "cambios": 1,
+    "desplaza": false,
+    "escala": false
+   }
+  },
+  "GDatePicker": {
+   "abrir": {
+    "ms": 121,
+    "cambios": 9,
+    "desplaza": false,
+    "escala": false
+   },
+   "cerrar": {
+    "ms": 0,
+    "cambios": 1,
+    "desplaza": false,
+    "escala": false
+   }
+  },
+  "GCombobox": {
+   "abrir": {
+    "ms": 130,
+    "cambios": 9,
+    "desplaza": false,
+    "escala": false
+   },
+   "cerrar": {
+    "ms": 0,
+    "cambios": 1,
+    "desplaza": false,
+    "escala": false
+   }
+  },
+  "GTooltip": {
+   "abrir": {
+    "ms": 87,
+    "cambios": 6,
+    "desplaza": true,
+    "escala": false
+   },
+   "cerrar": {
+    "ms": 113,
+    "cambios": 3,
+    "desplaza": true,
+    "escala": false
+   }
+  },
+  "GDialog": {
+   "abrir": {
+    "ms": 0,
+    "cambios": 0
+   },
+   "cerrar": {
+    "ms": 0,
+    "cambios": 0
+   }
+  },
+  "recorrer.GSelect": {
+   "estadosDistintos": 1,
+   "msDelCambio": 0,
+   "foco": "combobox",
+   "anilloConPuntero": false
+  },
+  "recorrer.GCombobox": {
+   "estadosDistintos": 2,
+   "msDelCambio": 0,
+   "foco": "combobox",
+   "anilloConPuntero": false
+  },
+  "recorrer.GMenu": {
+   "estadosDistintos": 2,
+   "msDelCambio": 0,
+   "foco": "menuitem",
+   "anilloConPuntero": false
+  },
+  "errores": []
+ },
+ "webkit": {
+  "GSelect": {
+   "abrir": {
+    "ms": 115,
+    "cambios": 8,
+    "desplaza": false,
+    "escala": false
+   },
+   "cerrar": {
+    "ms": 0,
+    "cambios": 1,
+    "desplaza": false,
+    "escala": false
+   }
+  },
+  "GMenu": {
+   "abrir": {
+    "ms": 128,
+    "cambios": 9,
+    "desplaza": false,
+    "escala": false
+   },
+   "cerrar": {
+    "ms": 129,
+    "cambios": 2,
+    "desplaza": false,
+    "escala": false
+   }
+  },
+  "GHelper": {
+   "abrir": {
+    "ms": 133,
+    "cambios": 9,
+    "desplaza": false,
+    "escala": false
+   },
+   "cerrar": {
+    "ms": 0,
+    "cambios": 1,
+    "desplaza": false,
+    "escala": false
+   }
+  },
+  "GDatePicker": {
+   "abrir": {
+    "ms": 131,
+    "cambios": 10,
+    "desplaza": false,
+    "escala": false
+   },
+   "cerrar": {
+    "ms": 0,
+    "cambios": 1,
+    "desplaza": false,
+    "escala": false
+   }
+  },
+  "GCombobox": {
+   "abrir": {
+    "ms": 126,
+    "cambios": 9,
+    "desplaza": false,
+    "escala": false
+   },
+   "cerrar": {
+    "ms": 0,
+    "cambios": 1,
+    "desplaza": false,
+    "escala": false
+   }
+  },
+  "GTooltip": {
+   "abrir": {
+    "ms": 100,
+    "cambios": 7,
+    "desplaza": true,
+    "escala": false
+   },
+   "cerrar": {
+    "ms": 100,
+    "cambios": 3,
+    "desplaza": true,
+    "escala": false
+   }
+  },
+  "GDialog": {
+   "abrir": {
+    "ms": 0,
+    "cambios": 0
+   },
+   "cerrar": {
+    "ms": 0,
+    "cambios": 0
+   }
+  },
+  "recorrer.GSelect": {
+   "estadosDistintos": 1,
+   "msDelCambio": 0,
+   "foco": "combobox",
+   "anilloConPuntero": false
+  },
+  "recorrer.GCombobox": {
+   "estadosDistintos": 2,
+   "msDelCambio": 0,
+   "foco": "combobox",
+   "anilloConPuntero": false
+  },
+  "recorrer.GMenu": {
+   "estadosDistintos": 2,
+   "msDelCambio": 0,
+   "foco": "menuitem",
+   "anilloConPuntero": false
+  },
+  "errores": []
+ }
+}

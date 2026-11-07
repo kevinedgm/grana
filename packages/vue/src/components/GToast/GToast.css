@@ -296,7 +296,7 @@
 /* Movimiento reducido: solo fundido; ni desplazamiento de entrada ni giro (el arrastre sigue al dedo: no es animación) */
 @media (prefers-reduced-motion: reduce) {
   .g-toast {
-    transition: opacity var(--g-duration-press) linear;
+    transition: opacity var(--g-duration-fast) linear;
   }
   .g-toast[data-state="entering"] { translate: var(--_toast-swipe) 0; }
   .g-toast.is-swiping { transition: none; }

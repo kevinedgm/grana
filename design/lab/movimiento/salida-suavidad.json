@@ -1,0 +1,296 @@
+{
+ "GSelect · fast + ease-out (tabla)": {
+  "t50": 13,
+  "t10": 47,
+  "fin": 113,
+  "cuadrosVisibles": 4,
+  "secuencia": [
+   1,
+   0.477,
+   0.184,
+   0.066,
+   0.021,
+   0.005,
+   0.001,
+   0
+  ],
+  "anilloForma": [
+   "none",
+   "none",
+   "none",
+   "none"
+  ],
+  "anilloCampo": [
+   null,
+   null,
+   null,
+   null
+  ],
+  "filas": [
+   5,
+   5,
+   5,
+   5,
+   5
+  ]
+ },
+ "GSelect · fast + standard": {
+  "t50": 30,
+  "t10": 62,
+  "fin": 113,
+  "cuadrosVisibles": 5,
+  "secuencia": [
+   1,
+   0.69,
+   0.345,
+   0.183,
+   0.091,
+   0.038,
+   0.01,
+   0
+  ],
+  "anilloForma": [
+   "none",
+   "none",
+   "none",
+   "none"
+  ],
+  "anilloCampo": [
+   null,
+   null,
+   null,
+   null
+  ],
+  "filas": [
+   5,
+   5,
+   5,
+   5,
+   5,
+   5
+  ]
+ },
+ "GSelect · fast + linear": {
+  "t50": 66,
+  "t10": 116,
+  "fin": 132,
+  "cuadrosVisibles": 7,
+  "secuencia": [
+   1,
+   0.861,
+   0.722,
+   0.583,
+   0.445,
+   0.305,
+   0.167,
+   0.028
+  ],
+  "anilloForma": [
+   "none",
+   "none",
+   "none",
+   "none"
+  ],
+  "anilloCampo": [
+   null,
+   null,
+   null,
+   null
+  ],
+  "filas": [
+   5,
+   5,
+   5,
+   5,
+   5,
+   5
+  ]
+ },
+ "GSelect · press + linear": {
+  "t50": 80,
+  "t10": 147,
+  "fin": 164,
+  "cuadrosVisibles": 9,
+  "secuencia": [
+   1,
+   0.896,
+   0.791,
+   0.688,
+   0.583,
+   0.479,
+   0.375,
+   0.271,
+   0.166,
+   0.063
+  ],
+  "anilloForma": [
+   "none",
+   "none",
+   "none",
+   "none"
+  ],
+  "anilloCampo": [
+   null,
+   null,
+   null,
+   null
+  ],
+  "filas": [
+   5,
+   5,
+   5,
+   5,
+   5,
+   5
+  ]
+ },
+ "GCombobox · fast + ease-out (tabla)": {
+  "t50": 21,
+  "t10": 54,
+  "fin": 120,
+  "cuadrosVisibles": 4,
+  "secuencia": [
+   1,
+   1,
+   0.476,
+   0.185,
+   0.066,
+   0.021,
+   0.005,
+   0.001,
+   0
+  ],
+  "anilloForma": [
+   "none",
+   "none",
+   "none",
+   "none"
+  ],
+  "anilloCampo": [
+   "solid",
+   "solid",
+   "solid",
+   "solid"
+  ],
+  "filas": [
+   5,
+   5,
+   5,
+   5,
+   5,
+   5
+  ]
+ },
+ "GCombobox · fast + standard": {
+  "t50": 36,
+  "t10": 70,
+  "fin": 120,
+  "cuadrosVisibles": 5,
+  "secuencia": [
+   1,
+   1,
+   0.693,
+   0.345,
+   0.183,
+   0.091,
+   0.038,
+   0.01,
+   0
+  ],
+  "anilloForma": [
+   "none",
+   "none",
+   "none",
+   "none"
+  ],
+  "anilloCampo": [
+   "solid",
+   "solid",
+   "solid",
+   "solid"
+  ],
+  "filas": [
+   5,
+   5,
+   5,
+   5,
+   5,
+   5
+  ]
+ },
+ "GCombobox · fast + linear": {
+  "t50": 72,
+  "t10": 121,
+  "fin": 140,
+  "cuadrosVisibles": 7,
+  "secuencia": [
+   1,
+   1,
+   0.861,
+   0.722,
+   0.583,
+   0.445,
+   0.306,
+   0.166,
+   0.028
+  ],
+  "anilloForma": [
+   "none",
+   "none",
+   "none",
+   "none"
+  ],
+  "anilloCampo": [
+   "solid",
+   "solid",
+   "solid",
+   "solid"
+  ],
+  "filas": [
+   5,
+   5,
+   5,
+   5,
+   5,
+   5
+  ]
+ },
+ "GCombobox · press + linear": {
+  "t50": 88,
+  "t10": 154,
+  "fin": 173,
+  "cuadrosVisibles": 9,
+  "secuencia": [
+   1,
+   0.896,
+   0.792,
+   0.688,
+   0.584,
+   0.479,
+   0.375,
+   0.271,
+   0.166,
+   0.062
+  ],
+  "anilloForma": [
+   "none",
+   "none",
+   "none",
+   "none"
+  ],
+  "anilloCampo": [
+   "solid",
+   "solid",
+   "solid",
+   "solid"
+  ],
+  "filas": [
+   5,
+   5,
+   5,
+   5,
+   5,
+   5
+  ]
+ }
+}
