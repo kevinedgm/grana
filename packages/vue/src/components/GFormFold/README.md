@@ -28,7 +28,7 @@ createApp(App).use(Grana).use(GranaFormFold).mount('#app')
 <script setup>
 import { ref, computed } from 'vue'
 
-const categoria = ref('')
+const categoria = ref(null)
 const nuevaCategoria = ref('')
 const abierto = ref(false)
 const errores = computed(() => ({
@@ -81,7 +81,7 @@ const textos = { pending: 'Termina o cancela «{title}» antes de enviar.' }
 import { ref, computed } from 'vue'
 const nueva = ref('')
 const abierto = ref(false)
-const categoria = ref('')
+const categoria = ref(null)
 const opciones = ref([
   { value: 'medicamento', label: 'Medicamento' },
   { value: 'insumo',      label: 'Insumo médico' },

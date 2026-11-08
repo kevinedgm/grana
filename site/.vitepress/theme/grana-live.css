@@ -1,0 +1,373 @@
+/* Ficha interactiva (GranaLive.vue). Sin capa, como el resto del CSS del sitio: solo lee tokens --g-*. */
+
+.grana-live {
+  margin-block: var(--g-space-4) var(--g-space-8);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 16rem);
+  grid-template-areas: 'bar bar' 'stage side' 'code code' 'cases cases';
+  border: var(--g-border-width) solid var(--g-color-border-strong);
+  border-radius: var(--g-radius-lg);
+  background: var(--g-color-bg);
+  color: var(--g-color-text);
+  font-family: var(--g-font-ui);
+}
+@media (max-width: 720px) {
+  .grana-live {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'bar' 'stage' 'side' 'code' 'cases';
+  }
+}
+.grana-live__sr {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+}
+
+/* Barra: tema y ancho de la vista previa */
+.grana-live__bar {
+  grid-area: bar;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--g-space-2) var(--g-space-5);
+  padding: var(--g-space-2) var(--g-space-4);
+  border-block-end: var(--g-border-width) solid var(--g-color-border);
+}
+.grana-live__seg {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--g-space-1);
+}
+.grana-live__seg-label {
+  margin-inline-end: var(--g-space-1);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+}
+.grana-live__seg button {
+  min-block-size: 24px;
+  padding: 0 var(--g-space-2);
+  border: var(--g-border-width) solid var(--g-color-border-strong);
+  border-radius: var(--g-radius-sm);
+  background: transparent;
+  color: var(--g-color-text-muted);
+  font: inherit;
+  font-size: var(--g-text-caption-size);
+  cursor: pointer;
+}
+.grana-live__seg button[aria-pressed='true'] {
+  border-color: var(--g-color-text);
+  background: var(--g-color-neutral-soft);
+  color: var(--g-color-text);
+}
+@media (pointer: coarse) {
+  .grana-live__seg button { min-block-size: 44px; }
+}
+
+/* Escenario: el componente real sobre la trama de puntos */
+.grana-live__stage {
+  grid-area: stage;
+  position: relative;
+  min-block-size: 10rem;
+  display: grid;
+  place-items: center;
+  padding: var(--g-space-8) var(--g-space-4);
+  overflow-x: auto;
+  background-color: var(--g-color-bg);
+  background-image: radial-gradient(var(--g-color-border-strong) 1px, transparent 1px);
+  background-size: 16px 16px;
+  color: var(--g-color-text);
+  font-size: var(--g-text-body-size);
+  line-height: var(--g-text-body-line);
+}
+.grana-live__mount {
+  max-inline-size: 100%;
+}
+.grana-live__mount.is-block,
+.grana-live__case-stage.is-block {
+  inline-size: 100%;
+}
+.grana-live__stage[data-width='phone'] .grana-live__mount {
+  inline-size: 360px;
+  max-inline-size: 100%;
+  outline: var(--g-border-width) dashed var(--g-color-border-strong);
+  outline-offset: var(--g-space-2);
+}
+
+/* Lateral: medidas, lo que lee del tema, modelo y eventos */
+.grana-live__side {
+  grid-area: side;
+  display: grid;
+  align-content: start;
+  gap: var(--g-space-3);
+  padding: var(--g-space-4);
+  border-inline-start: var(--g-border-width) solid var(--g-color-border);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  min-inline-size: 0;
+}
+@media (max-width: 720px) {
+  .grana-live__side {
+    border-inline-start: 0;
+    border-block-start: var(--g-border-width) solid var(--g-color-border);
+  }
+}
+.grana-live__side p,
+.grana-live__side dl,
+.grana-live__side ol {
+  margin: 0;
+}
+.grana-live__dims {
+  display: grid;
+  gap: var(--g-space-1);
+  color: var(--g-color-text-muted);
+}
+.grana-live__dims strong,
+.grana-live__events strong {
+  color: var(--g-color-text);
+  font-weight: var(--g-text-action-weight);
+}
+.grana-live__reads {
+  display: grid;
+  gap: var(--g-space-2);
+}
+.grana-live__reads > div {
+  display: grid;
+  gap: 2px;
+}
+.grana-live__reads dt {
+  color: var(--g-color-text-muted);
+}
+.grana-live__reads dd {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-1) var(--g-space-2);
+  min-inline-size: 0;
+}
+.grana-live__reads code,
+.grana-live__events code {
+  overflow-wrap: anywhere;
+  font-size: var(--g-text-caption-size);
+}
+.grana-live__reads .is-faint code {
+  color: var(--g-color-text-muted);
+}
+.grana-live__detail {
+  color: var(--g-color-text-muted);
+}
+.grana-live__swatch {
+  inline-size: 12px;
+  block-size: 12px;
+  border-radius: var(--g-radius-xs);
+  box-shadow: 0 0 0 var(--g-border-width) var(--g-color-border-strong);
+  flex: none;
+}
+.grana-live__events {
+  display: grid;
+  gap: var(--g-space-2);
+  padding-block-start: var(--g-space-3);
+  border-block-start: var(--g-border-width) solid var(--g-color-border);
+}
+.grana-live__log {
+  display: grid;
+  gap: var(--g-space-1);
+  padding: 0;
+  list-style: none;
+}
+.grana-live__log span,
+.grana-live__hint {
+  color: var(--g-color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+/* Código: cada valor es un control */
+.grana-live__codebox {
+  grid-area: code;
+  border-block-start: var(--g-border-width) solid var(--g-color-border);
+  background: var(--g-color-surface-sunken);
+  min-inline-size: 0;
+}
+.grana-live__codehead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--g-space-2);
+  padding: var(--g-space-2) var(--g-space-4);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+}
+.grana-live__actions {
+  display: inline-flex;
+  gap: var(--g-space-2);
+}
+.vp-doc .grana-live__code,
+.grana-live__code {
+  margin: 0;
+  padding: var(--g-space-2) var(--g-space-4) var(--g-space-4);
+  overflow-x: auto;
+  background: transparent;
+  font-family: var(--vp-font-family-mono);
+  font-size: var(--g-text-body-sm-size);
+  line-height: 1.9;
+  color: var(--g-color-text);
+}
+.grana-live__code code {
+  font-size: inherit;
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+.grana-live__code .t-tag { color: var(--g-color-accent-text); }
+.grana-live__code .t-attr,
+.grana-live__code .t-slot { color: var(--g-color-text); }
+.grana-live__code .is-def { color: var(--g-color-text-muted); }
+.grana-live__code button,
+.grana-live__code input {
+  font: inherit;
+  color: inherit;
+  min-block-size: 24px;
+  border-radius: var(--g-radius-xs);
+}
+.grana-live__code .t-val {
+  padding: 0 var(--g-space-1);
+  border: var(--g-border-width) dashed var(--g-color-border-control);
+  background: var(--g-color-bg);
+  color: var(--g-color-text);
+  cursor: pointer;
+}
+.grana-live__code .is-def .t-val {
+  color: var(--g-color-text-muted);
+}
+.grana-live__code .t-val:hover {
+  border-style: solid;
+}
+.grana-live__code .t-bool {
+  padding: 0 var(--g-space-1);
+  border: var(--g-border-width) solid transparent;
+  background: transparent;
+  cursor: pointer;
+  text-align: start;
+}
+.grana-live__code .t-bool:hover {
+  border-color: var(--g-color-border-control);
+}
+.grana-live__code .t-bool.is-def {
+  color: var(--g-color-text-muted);
+}
+.grana-live__code .t-text input {
+  padding: 0 var(--g-space-1);
+  border: var(--g-border-width) dashed var(--g-color-border-control);
+  background: var(--g-color-bg);
+  max-inline-size: 100%;
+}
+@media (pointer: coarse) {
+  .grana-live__code button,
+  .grana-live__code input { min-block-size: 44px; }
+}
+.grana-live :where(button, input):focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+.grana-live__status {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  margin: 0;
+}
+
+/* Casos de uso */
+.grana-live__cases {
+  grid-area: cases;
+  display: grid;
+  gap: var(--g-space-4);
+  padding: var(--g-space-4);
+  border-block-start: var(--g-border-width) solid var(--g-color-border);
+}
+.vp-doc .grana-live__cases-title {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: var(--g-text-body-size);
+}
+.grana-live__case {
+  display: grid;
+  gap: var(--g-space-2);
+  padding: var(--g-space-4);
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-radius-md);
+  min-inline-size: 0;
+}
+.grana-live__case header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--g-space-2);
+}
+.grana-live__case-id {
+  font-family: var(--vp-font-family-mono);
+  font-size: var(--g-text-caption-size);
+  color: var(--g-color-text-muted);
+}
+.vp-doc .grana-live__case h4 {
+  margin: 0;
+  font-size: var(--g-text-body-size);
+}
+.vp-doc .grana-live__why {
+  margin: 0;
+  color: var(--g-color-text-muted);
+  font-size: var(--g-text-body-sm-size);
+}
+.grana-live__case-stage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-3);
+  padding: var(--g-space-4);
+  border-radius: var(--g-radius-sm);
+  background: var(--g-color-surface-sunken);
+  color: var(--g-color-text);
+  overflow-x: auto;
+}
+.vp-doc .grana-live__case-code {
+  margin: 0;
+  padding: var(--g-space-3);
+  overflow-x: auto;
+  border-radius: var(--g-radius-sm);
+  background: var(--g-color-surface-sunken);
+  font-family: var(--vp-font-family-mono);
+  font-size: var(--g-text-caption-size);
+  line-height: 1.6;
+}
+.grana-live__case-code code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+}
+.grana-live__case-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--g-space-2);
+}
+.grana-live__with-trigger {
+  display: grid;
+  justify-items: start;
+  gap: var(--g-space-3);
+}
+.grana-live-unavailable {
+  padding: var(--g-space-3) var(--g-space-4);
+  border: var(--g-border-width) dashed var(--g-color-border-strong);
+  border-radius: var(--g-radius-md);
+  color: var(--g-color-text-muted);
+}

@@ -56,6 +56,29 @@ test('ejemplo vivo interactivo: quitar una etiqueta deja la huella con «Deshace
   expect(problems).toEqual([])
 })
 
+test('prueba en vivo: el código es el control (GBtn)', async ({ page }) => {
+  const problems = watchConsole(page)
+  await page.goto('components/btn.html')
+  await page.waitForLoadState('networkidle')
+  const live = page.locator('.grana-live')
+  const btn = live.locator('.grana-live__mount .g-btn')
+  await expect(btn).toHaveClass(/g-btn--color-brand/)
+  // cada valor del código es un botón que cicla; la casilla activa la prop
+  await live.locator('.t-val').first().click()
+  await expect(btn).toHaveClass(/g-btn--color-accent/)
+  await live.locator('.t-bool', { hasText: 'disabled' }).click()
+  await expect(btn).toBeDisabled()
+  await expect(live.locator('.grana-live__code')).toContainText('[x] disabled')
+  // tema propio de la vista: oscuro sobre la página clara
+  await live.getByRole('button', { name: 'Oscuro' }).click()
+  await expect(live.locator('.grana-live__stage')).toHaveAttribute('data-theme', 'dark')
+  // un caso se abre en la ficha
+  await live.locator('.grana-live__case').nth(1).getByRole('button', { name: 'Abrir en la ficha' }).click()
+  await expect(btn).toHaveClass(/g-btn--color-danger/)
+  await expect(btn).toHaveClass(/g-btn--variant-outline/)
+  expect(problems).toEqual([])
+})
+
 test('búsqueda local: encuentra un componente y navega a su página', async ({ page }) => {
   await page.goto('')
   await page.locator('.VPNavBarSearch button').click()

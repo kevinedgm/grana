@@ -107,7 +107,10 @@ export default defineConfig({
     resolve: {
       alias: {
         '@site-demos': path.join(site, 'demos'),
-        '@gen-demos': path.join(site, 'src/.demos')
+        '@gen-demos': path.join(site, 'src/.demos'),
+        // Fichas interactivas (site/live/G<Nombre>.js) y los meta.json de los componentes, su fuente de controles.
+        '@site-live': path.join(site, 'live'),
+        '@grana-components': path.resolve(site, '../packages/vue/src/components')
       },
       dedupe: ['vue']
     },

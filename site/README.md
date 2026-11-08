@@ -65,6 +65,14 @@ Los README de las 29 secciones de blocks (Marketing 9, Booking 11 y las 9 `candi
 
 **Respaldo:** si un README no marca ningún bloque, la página muestra `site/demos/G<Nombre>.vue` en una sección «Ejemplo» antes del texto. Al marcar un bloque en el README, el respaldo deja de usarse y se puede borrar. La prueba exige que cada componente tenga uno de los dos.
 
+### Prueba en vivo: `site/live/G<Nombre>.js`
+
+Cada página de componente abre con la **ficha interactiva** del contrato de mora-docs (§3, bloques 4 a 6, dirección A «el código es el control»; forma confirmada por el usuario el 2026-11-07): el componente real del `dist/` sobre la trama de puntos, sus medidas y **qué lee del tema** (fondo, texto, borde, radio y letra, emparejados con los tokens `--g-*` reales en el tema de la ficha), el **código como control** (cada valor enumerado es un botón que cicla —Mayús + clic o las flechas, hacia atrás—, cada `Boolean` y cada slot opcional una casilla `[x]`, los textos se editan en el sitio; «Copiar» omite lo que está por defecto), el modelo y los eventos que emite, tema de la vista (página, claro u oscuro con `data-theme` anidado) y ancho (libre o teléfono), y los **casos de uso**: situaciones reales con su porqué, el componente real, su código copiable y «Abrir en la ficha».
+
+- **Los controles salen del `meta.json`.** `site/live/G<Nombre>.js` solo dice lo que el `meta.json` no sabe: textos y datos del ejemplo, slots, qué props no son controles y los casos. Forma y reglas en [`live/README.md`](live/README.md). Un componente que no se puede montar tal cual lleva `unavailable` con el motivo y la página dice «Vista previa no disponible» (contrato §1.6).
+- **Motor:** `.vitepress/theme/GranaLive.vue` + `grana-live.css`. El generador añade «Prueba en vivo» a la página en cuanto existe la ficha; `generate.test.mjs` exige una por componente `candidate`.
+- **Verificación:** `node scripts/check-live.mjs --base http://localhost:5174/grana/ [G<Nombre>…]` recorre en Chromium cada valor de cada control, cada casilla y cada caso, en claro a 1280 px y en oscuro a 375 px, con los avisos de desarrollo de Grana activos, y falla con un error, un aviso o desplazamiento horizontal.
+
 ### Traducción: `README.en.md`
 
 - Español es la fuente. La traducción va **al lado** del original: `G<Nombre>/README.en.md`, `README.en.md` (raíz), `CHANGELOG.en.md`, `packages/cli/README.en.md`.

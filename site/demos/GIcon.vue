@@ -7,7 +7,7 @@ const rtl = ref(false)
 
 <template>
   <div class="demo">
-    <p class="fila">
+    <div class="fila">
       <g-icon :name="bloqueado ? 'lock' : 'lock-open'" class="grande"></g-icon>
       <span>{{ bloqueado ? 'Formulario bloqueado' : 'Formulario editable' }}</span>
       <g-btn
@@ -16,14 +16,14 @@ const rtl = ref(false)
         :tooltip="bloqueado ? 'Desbloquear' : 'Bloquear'"
         @click="bloqueado = !bloqueado"
       ><g-icon :name="bloqueado ? 'lock-open' : 'lock'"></g-icon></g-btn>
-    </p>
+    </div>
 
-    <p class="fila">
+    <div class="fila">
       Estado de la cita:
       <g-icon name="calendar" label="Programada" class="grande"></g-icon>
       <g-icon name="bell" label="Con recordatorio" class="grande"></g-icon>
       <g-icon name="map-pin" label="Presencial" class="grande"></g-icon>
-    </p>
+    </div>
 
     <g-switch v-model="rtl" label="Dirección de derecha a izquierda"></g-switch>
     <div :dir="rtl ? 'rtl' : 'ltr'" class="fila">

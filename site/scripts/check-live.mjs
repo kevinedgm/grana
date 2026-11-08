@@ -1,0 +1,107 @@
+#!/usr/bin/env node
+// Recorrido de las fichas interactivas («Prueba en vivo», site/live/G<Nombre>.js) con Chromium:
+// la ficha monta el componente real, cada valor del código cicla por todos sus valores, cada casilla
+// se activa y se quita, cada caso se abre en la ficha, en claro y en oscuro, sin errores ni avisos
+// en la consola y sin desplazamiento horizontal (también a 375 px). Sobre docs:dev o docs:preview.
+//
+//   node site/scripts/check-live.mjs [--base http://localhost:4219/grana/] [--no-grana-warnings] [Componente…]
+//
+// Sin nombres, recorre todos los de site/live/. Inyecta `process.env.NODE_ENV = 'development'` para que
+// salgan los avisos de desarrollo de Grana (un texto que falta, un valor fuera de la lista).
+
+import fs from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { chromium } from '@playwright/test'
+
+const here = path.dirname(fileURLToPath(import.meta.url))
+const args = process.argv.slice(2)
+const opt = (name, def) => {
+  const i = args.indexOf(`--${name}`)
+  if (i === -1) return def
+  const v = args[i + 1]
+  args.splice(i, 2)
+  return v
+}
+const base = opt('base', 'http://localhost:4219/grana/')
+const granaWarnings = !args.includes('--no-grana-warnings')
+if (!granaWarnings) args.splice(args.indexOf('--no-grana-warnings'), 1)
+const data = JSON.parse(fs.readFileSync(path.join(here, '../src/.site-data.json'), 'utf8'))
+const live = fs.readdirSync(path.join(here, '../live')).filter((f) => /^G.*\.js$/.test(f)).map((f) => f.replace(/\.js$/, ''))
+const names = args.length ? args : live
+const slugOf = (n) => data.components.find((c) => c.name === n)?.slug
+
+const browser = await chromium.launch()
+let failures = 0
+for (const name of names) {
+  const slug = slugOf(name)
+  const problems = []
+  if (!slug) { console.log(`FALLA ${name}\n       sin página en el sitio`); failures++; continue }
+  const stats = { controls: 0, steps: 0, cases: 0 }
+  for (const [scheme, width] of [['light', 1280], ['dark', 375]]) {
+    const context = await browser.newContext({ viewport: { width, height: 900 }, colorScheme: scheme })
+    await context.addInitScript((s) => {
+      try { localStorage.setItem('vitepress-theme-appearance', s) } catch {}
+    }, scheme)
+    if (granaWarnings) await context.addInitScript(() => { window.process = { env: { NODE_ENV: 'development' } } })
+    const page = await context.newPage()
+    page.on('console', (m) => {
+      if (!['error', 'warning'].includes(m.type())) return
+      const t = m.text()
+      if (/Failed to load resource|\[vite\]|Download the Vue Devtools/.test(t)) return
+      problems.push(`${scheme}: ${m.type()}: ${t.slice(0, 240)}`)
+    })
+    page.on('pageerror', (e) => problems.push(`${scheme}: pageerror: ${e.message.slice(0, 240)}`))
+    const res = await page.goto(`${base}components/${slug}.html`, { waitUntil: 'networkidle' })
+    if (!res || res.status() !== 200) problems.push(`HTTP ${res?.status()}`)
+    const unavailable = await page.locator('.grana-live-unavailable').count()
+    if (unavailable) { stats.unavailable = true; await context.close(); break }
+    if (await page.locator('vite-error-overlay').count()) { problems.push(`${scheme}: error de Vite en la página (vite-error-overlay): reintentar tras la recarga`); await context.close(); continue }
+    const ok = await page.locator('.grana-live').count()
+    if (!ok) { problems.push(`${scheme}: sin ficha (.grana-live)`); await context.close(); continue }
+    await page.waitForTimeout(250)
+    const mounted = await page.evaluate(() => {
+      const m = document.querySelector('.grana-live__mount')
+      return !!m?.querySelector('*') && m.getBoundingClientRect().height >= 8
+    })
+    if (!mounted) problems.push(`${scheme}: la ficha no pinta el componente`)
+    // Solo a lo ancho (en claro): cada control recorre todos sus valores y vuelve al inicial.
+    if (scheme === 'light') {
+      const vals = page.locator('.grana-live__code .t-val')
+      const nv = await vals.count()
+      for (let i = 0; i < nv; i++) {
+        const label = await vals.nth(i).getAttribute('aria-label')
+        let seen = 0
+        do {
+          await vals.nth(i).click()
+          seen++
+          stats.steps++
+        } while ((await vals.nth(i).getAttribute('aria-label')) !== label && seen < 12)
+        stats.controls++
+      }
+      const bools = page.locator('.grana-live__code .t-bool')
+      const nb = await bools.count()
+      for (let i = 0; i < nb; i++) {
+        await bools.nth(i).click()
+        await bools.nth(i).click()
+        stats.controls++
+        stats.steps += 2
+      }
+      const cases = page.locator('.grana-live__case-actions .g-btn:last-child')
+      const nc = await cases.count()
+      for (let i = 0; i < nc; i++) { await cases.nth(i).click(); stats.cases++ }
+      await page.waitForTimeout(150)
+      const after = await page.evaluate(() => !!document.querySelector('.grana-live__mount *'))
+      if (!after) problems.push('tras recorrer los controles, la ficha quedó vacía')
+    }
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
+    if (overflow > 0) problems.push(`${scheme} ${width}px: desplazamiento horizontal de ${overflow}px`)
+    await context.close()
+  }
+  if (problems.length) failures++
+  const dedup = [...new Set(problems)]
+  console.log(`${dedup.length ? 'FALLA' : 'ok   '} ${name}${stats.unavailable ? ' (vista previa no disponible)' : ` (${stats.controls} controles, ${stats.steps} cambios, ${stats.cases} casos)`}${dedup.slice(0, 12).map((p) => '\n       ' + p).join('')}`)
+}
+await browser.close()
+console.log(`\n${names.length - failures}/${names.length} fichas sin problemas`)
+process.exit(failures ? 1 : 0)

@@ -62,7 +62,7 @@ const ruta = [
       :labels="{ actions: 'Acciones de la página' }"
     >
       <template #trail>
-        <GBreadcrumbs :items="ruta" label="Ruta de navegación" />
+        <GBreadcrumbs :items="ruta" :labels="{ nav: 'Ruta de navegación' }" />
       </template>
       <template #meta>
         <GBadge color="info">En análisis</GBadge>
@@ -105,13 +105,14 @@ const ruta = [{ label: 'Pedidos', href: '#pedidos' }]
 <template>
   <div style="min-height: 200px; overflow-y: auto; position: relative;">
     <GPageHeader
+      :heading-level="2"
       title="Pedido #4821"
       eyebrow="Tienda en línea"
       description="Creado el 10 de octubre de 2026."
       :labels="{ actions: 'Acciones del pedido' }"
     >
       <template #trail>
-        <GBreadcrumbs :items="ruta" label="Ruta de navegación" />
+        <GBreadcrumbs :items="ruta" :labels="{ nav: 'Ruta de navegación' }" />
       </template>
       <template #meta>
         <GBadge color="warning">En proceso</GBadge>
@@ -135,14 +136,15 @@ El encabezado sin pestañas no se pega (no hay zócalo que mostrar al hundir). E
 import { ref } from 'vue'
 const seccion = ref('datos')
 const secciones = [
-  { value: 'datos',    label: 'Datos' },
-  { value: 'bitacora', label: 'Bitácora' },
-  { value: 'adjuntos', label: 'Adjuntos' },
+  { id: 'datos',    label: 'Datos' },
+  { id: 'bitacora', label: 'Bitácora' },
+  { id: 'adjuntos', label: 'Adjuntos' },
 ]
 </script>
 <template>
   <div style="height: 280px; overflow-y: auto; position: relative; scroll-padding-block-start: 44px;">
     <GPageHeader
+      :heading-level="2"
       title="Expediente 2026-09-EX"
       description="Actualizado hace 2 horas."
       :labels="{ actions: 'Acciones del expediente' }"

@@ -8,7 +8,9 @@ const patio = foto('#3f6b52', '#c9b27c', 1600, 2000)
 </script>
 
 <template>
+  <!-- heading-level 2: esta página del sitio ya tiene su h1. En tu portada, el h1 es el del héroe (por defecto). -->
   <g-hero
+    :heading-level="2"
     title="Casa Alcalá"
     eyebrow="Hotel boutique · Centro histórico"
     lead="Doce habitaciones alrededor de un patio de cantera."

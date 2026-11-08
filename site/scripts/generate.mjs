@@ -88,7 +88,13 @@ export function discoverComponents(root) {
       .readdirSync(path.join(base, dir))
       .filter((f) => f.endsWith('.meta.json'))
       .sort((a, b) => (a === `${dir}.meta.json` ? -1 : b === `${dir}.meta.json` ? 1 : a.localeCompare(b)))
-      .map((f) => JSON.parse(fs.readFileSync(path.join(base, dir, f), 'utf8')))
+      .map((f) => {
+        const meta = JSON.parse(fs.readFileSync(path.join(base, dir, f), 'utf8'))
+        // Ruta real del archivo (no enumerable: no viaja a las tablas ni a .site-data.json). Un meta.json
+        // puede llamarse distinto de su carpeta (GToast/GToast.meta.json declara GToaster).
+        Object.defineProperty(meta, '__file', { value: `${dir}/${f}`, enumerable: false })
+        return meta
+      })
   const withReadme = dirs.filter((d) => fs.existsSync(path.join(base, d, 'README.md')))
   const components = withReadme.map((dir) => ({
     dir,
@@ -271,19 +277,27 @@ function buildPlan(root, locale) {
     ].join('\n')
     void tags
     page.parts.push({ kind: 'gen', text: header })
+    // Ficha interactiva (contrato de mora-docs §3, bloques 4 a 6) si existe site/live/<Componente>.js.
+    const liveRel = `site/live/${c.dir}.js`
+    if (main && exists(root, liveRel)) {
+      page.live = { spec: `@site-live/${c.dir}.js`, meta: `@grana-components/${main.__file ?? metaPath(root, c, main).replace(`${COMPONENTS_DIR}/`, '')}` }
+      page.parts.push({ kind: 'gen', text: `## ${L.playground}\n\n<p class="grana-api-note">${L.playgroundNote}</p>\n\n<ClientOnly><GranaLive :meta="liveMeta" :spec="liveSpec" /></ClientOnly>\n` })
+    }
     // Ejemplo de respaldo si el README no marca ninguno.
     const segs = lib.extractDemos(body)
     const esSegs = locale === 'es' || src.translated ? segs : segs
     const hasDemo = esSegs.some((s) => s.type === 'demo')
+    const hasLive = exists(root, `site/live/${c.dir}.js`)
     if (!hasDemo) {
       const demoRel = `site/demos/${c.dir}.vue`
       if (exists(root, demoRel)) {
         page.parts.push({ kind: 'gen', text: `## ${L.example}\n` })
         page.parts.push({ kind: 'demo', file: demoRel, code: read(root, demoRel), fallback: true })
-      } else warnings.push(`${c.dir}: sin ejemplo vivo (ni bloque \`vue demo\` en el README ni ${demoRel})`)
+      } else if (!hasLive) warnings.push(`${c.dir}: sin ejemplo vivo (ni bloque \`vue demo\` en el README, ni ${demoRel}, ni site/live/${c.dir}.js)`)
     }
     page.demoCount = esSegs.filter((s) => s.type === 'demo').length + (hasDemo ? 0 : exists(root, `site/demos/${c.dir}.vue`) ? 1 : 0)
-    page.demoSource = hasDemo ? 'readme' : exists(root, `site/demos/${c.dir}.vue`) ? 'fallback' : null
+    // La ficha interactiva cuenta como ejemplo vivo cuando no hay otro (GToast: un segundo gestor competiría con el suyo).
+    page.demoSource = hasDemo ? 'readme' : exists(root, `site/demos/${c.dir}.vue`) ? 'fallback' : hasLive ? 'live' : null
     let n = 0
     for (const s of esSegs) {
       if (s.type === 'md') page.parts.push({ kind: 'src', doc: c.readme, rel: src.rel, text: s.text, headingOffset: null })
@@ -590,6 +604,7 @@ function renderPage(page, ctx) {
   }
   fm.push('---', '')
   const out = [fm.join('\n')]
+  if (page.live) imports.push(`import liveSpec from '${page.live.spec}'`, `import liveMeta from '${page.live.meta}'`)
   if (imports.length) out.push(`<script setup>\n${imports.join('\n')}\n</script>\n`)
   if (!page.translated) {
     const P = UI[locale].pending

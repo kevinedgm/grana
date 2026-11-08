@@ -25,8 +25,12 @@ import '@grana/vue/style.css'
 import '@grana/vue/fonts.css'
 import '../../src/.lucide.css'
 import './grana-site.css'
+// Categorías del tema (cat-1…8), como las pondría una aplicación con `categories: 8` en @grana/cli: GTag, GAvatar.
+import '../../../packages/vue/playground/tag-categories.css'
+import './grana-live.css'
 import Layout from './Layout.vue'
 import GranaDemo from './GranaDemo.vue'
+import GranaLive from './GranaLive.vue'
 import GranaThemePlayground from './ThemePlayground.vue'
 import GranaBlockBank from './BlockBank.vue'
 import { siteIcons } from './icons.js'
@@ -44,6 +48,7 @@ export default {
     // @grana/blocks: sus secciones (<gb-*>) y, como una aplicación, las entradas de @grana/vue que componen (arriba).
     app.use(marketing).use(booking).use(ecommerce)
     app.component('GranaDemo', GranaDemo)
+    app.component('GranaLive', GranaLive)
     app.component('GranaThemePlayground', GranaThemePlayground)
     app.component('GranaBlockBank', GranaBlockBank)
   }

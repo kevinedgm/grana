@@ -28,7 +28,7 @@ function alEnviar(q) {
 <template>
   <div class="demo">
     <g-booking-bar
-      kind="stay" title="Consulta disponibilidad" v-model="consulta"
+      kind="stay" title="Consulta disponibilidad" v-model="consulta" locale="es-MX"
       :party-rows="filas" :min-nights="1"
       :names="{ from: 'checkin', to: 'checkout', party: 'guests' }"
       :labels="labels" @submit="alEnviar"

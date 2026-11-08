@@ -46,7 +46,8 @@ for (const slug of slugs) {
   if (!res || res.status() !== 200) problems.push(`HTTP ${res?.status()}`)
   await page.waitForTimeout(300)
   const info = await page.evaluate(() => {
-    const stages = [...document.querySelectorAll('.grana-demo__stage')]
+    // Ejemplos vivos y fichas interactivas («Prueba en vivo»).
+    const stages = [...document.querySelectorAll('.grana-demo__stage, .grana-live__mount')]
     return {
       demos: stages.length,
       empty: stages.filter((s) => !s.querySelector('*') || s.getBoundingClientRect().height < 8).length,

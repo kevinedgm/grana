@@ -40,6 +40,21 @@ test('cada componente tiene al menos un ejemplo vivo (bloque `vue demo` del READ
   assert.deepEqual(missing, [], `sin ejemplo vivo: ${missing.join(', ')}`)
 })
 
+test('cada componente candidate tiene su ficha interactiva (site/live/<Componente>.js) y la página la monta', () => {
+  const missing = []
+  for (const p of result.locales.es.pages.filter((x) => x.component)) {
+    const meta = p.component.metas[0]
+    if (meta?.status !== 'candidate') continue
+    if (!fs.existsSync(path.join(ROOT, 'site/live', `${p.component.dir}.js`))) { missing.push(p.component.dir); continue }
+    for (const locale of ['es', 'en']) {
+      const text = result.files.get(`${locale === 'es' ? '' : 'en/'}components/${p.component.slug}.md`)
+      assert.match(text, /<GranaLive :meta="liveMeta" :spec="liveSpec" \/>/, `${p.component.dir} (${locale}): la página no monta la ficha`)
+      assert.match(text, new RegExp(`import liveSpec from '@site-live/${p.component.dir}\\.js'`), `${p.component.dir} (${locale}): no importa su ficha`)
+    }
+  }
+  assert.deepEqual(missing, [], `candidate sin ficha interactiva: ${missing.join(', ')}`)
+})
+
 test('las carpetas con meta.json sin README se recogen en una página', () => {
   const { orphans, components } = discoverComponents(ROOT)
   // GPageHeader tiene README desde mora-docs (2026-10-14); la lista debe estar vacía.

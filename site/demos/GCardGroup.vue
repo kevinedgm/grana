@@ -81,6 +81,7 @@ const cardLabels = { loading: 'Cargando', loaded: 'Listo' }
     </g-card>
     <template #panel="{ filtered }">
       <g-table
+        caption="Facturas"
         :columns="columnas"
         :rows="FILAS"
         :labels="textos"
