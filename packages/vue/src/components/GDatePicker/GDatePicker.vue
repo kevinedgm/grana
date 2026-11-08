@@ -561,7 +561,13 @@ const typedDigits = computed(() => [0, 1, 2, 3].map((i) => (i < typed.value.leng
 const edgePrev = computed(() => (level.value === 'months' ? yearOff(vy.value - 1) : ys.value <= 1 || pageOff(clampYs(ys.value - 12))))
 const edgeNext = computed(() => (level.value === 'months' ? yearOff(vy.value + 1) : ys.value >= 9988 || pageOff(clampYs(ys.value + 12))))
 // Origen del zoom en la vista i de n (con dos meses, el escenario son las dos columnas)
-const zoomVars = (i, cols) => (zoom.value ? { '--_zoom-x': `${(zoom.value.x * cols - i) * 100}%`, '--_zoom-y': `${zoom.value.y * 100}%` } : undefined)
+// Con varios meses la separación entre ellos cuenta: (X·cols − i)·ancho + (X·(cols − 1) − i)·separación (B1 de la auditoría r02).
+const zoomVars = (i, cols) => {
+  if (!zoom.value) return undefined
+  const px = (zoom.value.x * cols - i) * 100
+  const x = cols > 1 ? `calc(${px}% + ${zoom.value.x * (cols - 1) - i} * var(--_months-gap))` : `${px}%`
+  return { '--_zoom-x': x, '--_zoom-y': `${zoom.value.y * 100}%` }
+}
 
 function clearTyped() {
   if (typedTimer) { clearTimeout(typedTimer); typedTimer = 0 }

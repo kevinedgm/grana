@@ -1689,6 +1689,16 @@ describe('GDatePicker · r02 · zoom y avisos', () => {
     expect(w.find('.g-datepicker__view--days').attributes('data-zoom')).toBeUndefined()
   })
 
+  it('dos meses: el origen del zoom a días cuenta la separación entre meses (B1)', async () => {
+    const w = inline({ modelValue: '2026-10-20', months: 2 })
+    await toMonths(w)
+    await pickBtn(w, 4).trigger('click'); await nextTick() // mayo: x = 0,5 del par
+    const vs = w.findAll('.g-datepicker__view--days')
+    expect(vs).toHaveLength(2)
+    expect(vs[0].element.style.getPropertyValue('--_zoom-x')).toBe('calc(100% + 0.5 * var(--_months-gap))')
+    expect(vs[1].element.style.getPropertyValue('--_zoom-x')).toBe('calc(0% + -0.5 * var(--_months-gap))')
+  })
+
   it('dos cambios seguidos terminan en la vista correcta con el foco en su celda (elemento nuevo por vista)', async () => {
     const w = inline({ modelValue: '2026-10-20' })
     await part(w, 'month').trigger('click')
