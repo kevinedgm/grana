@@ -1,8 +1,10 @@
 @layer grana.defaults, grana.components, grana.blocks, grana.utilities;
 
 /*
-  GPageIndex · estilo (forma `relay`, la única de v1)
-  Dueño: coco. Contrato: design/contracts/page-index.md (#1038 a #1040, #1042). Estructura: design/lab/sitio/r01/ (concepto A).
+  GPageIndex · estilo (formas `relay` y `list`, con `fold`)
+  Dueño: coco. Contrato: design/contracts/page-index.md (#1038 a #1040, #1042; `list` y `fold`: #1054). Estructura:
+  design/lab/sitio/r01/ (concepto A, `relay`) y design/lab/page-index/r01/ (kiwi, `list`). Calco de `list`: la columna «En
+  esta página» del sitio anterior (design/lab/sitio/referencia/medidas.md §5). Banco: design/lab/sitio/calco-estilo/.
   Reglas: solo var(--g-*) y alias locales var(--_*); la primera línea solo declara el orden de las cuatro capas (#806); las
   reglas van sin @layer (lo aplica el registro); únicos literales de medida: 24px y 44px (área táctil). Sin tokens nuevos.
 
@@ -218,5 +220,297 @@
   .g-page-index__key,
   .g-page-index__icon {
     color: ButtonText;
+  }
+}
+
+/* =====================================================================================================================
+   FORMA `list` (columna «En esta página», #1054) Y `fold` (desplegable de la barra local)
+   Calco medido de la columna del sitio anterior (referencia/medidas.md §5): línea guía de 1 px a todo lo alto, título 14/32
+   en 600, enlaces 14/32 en text-muted con elipsis, h3 sangrados 16 (y 16 al final), actual solo en color (text) y el
+   marcador de 2 × 18 sobre la línea, centrado en la fila actual.
+
+   CONTRATO DE CLASES Y ATRIBUTOS QUE ESTE BLOQUE ESPERA (lo pinta bruno en la extensión @grana/vue/page-index-list)
+     nav.g-page-index.g-page-index--appearance-list[.has-current][.is-instant]       la columna
+       div.g-page-index__body                                       la línea guía (borde inicial); contiene el marcador
+         span.g-page-index__marker[aria-hidden]                     bruno escribe EN ESTA CAPA (#964):
+                                                                      --_marker-y = borde superior de la fila del enlace actual
+                                                                      --_marker-h = alto de esa fila
+                                                                    (px, relativos al borde de relleno de __body; el CSS dibuja
+                                                                     2 × 18 centrado en la fila: la geometría del marcador es de coco)
+         p.g-page-index__title
+         div.g-page-index__scroll[tabindex=-1]                      desplazamiento propio (PI-N3)
+           ul.g-page-index__list > li > a.g-page-index__link[aria-current="location"]
+                                       ul.g-page-index__sub > li > a.g-page-index__link
+     nav.g-page-index.g-page-index--appearance-list.g-page-index--fold.g-page-index--align-{start|end}[.is-open]
+       button.g-page-index__fold[aria-expanded] > span + span.g-page-index__chev[aria-hidden] > GLibIcon chevron-right flip-rtl
+       div.g-page-index__drop[hidden]
+         a.g-page-index__top
+         div.g-page-index__scroll > ul.g-page-index__list …         (el marcador no se pinta en el panel)
+
+   PI-H2 (curva del marcador): el calco usa top .25s cubic-bezier(0,1,.5,1); aquí translate con --g-duration-slow (240 ms) y
+   --g-ease-out. Medido: las dos llegan al 90 % del viaje a 89 y 87 ms; solo difieren en los primeros 50 ms (el calco salta
+   el 61 % en 25 ms, la de Grana el 40 %). Basta: sin curva ni duración nuevas.
+   ===================================================================================================================== */
+.g-page-index--appearance-list {
+  --_marker-y: 0px;
+  --_marker-h: 0px;
+  --_row: calc(var(--g-space-1) * 8);
+  display: block;
+  color: var(--g-color-text);
+}
+
+/* ---------- Columna ---------- */
+.g-page-index__body {
+  position: relative;
+  box-sizing: border-box;
+  border-inline-start: var(--g-border-width) solid var(--g-color-border);
+  padding-inline-start: var(--g-space-4);
+}
+.g-page-index__title {
+  margin: 0;
+  overflow: hidden;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--_row);
+  font-weight: var(--g-text-title-sm-weight);
+  color: var(--g-color-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Desplazamiento propio (PI-N3, corrige el defecto 8): la columna cabe en el visor bajo lo pegado (banda, barra local), su
+   separación (space × 12) y el título; con margen inferior space × 8 */
+.g-page-index__scroll {
+  max-block-size: calc(
+    100dvh - var(--g-app-shell-top) - var(--g-app-shell-local-bar) - var(--g-space-12) - var(--_row) - var(--g-space-8)
+  );
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+/* Destino del foco por programa (#570): no es un control; el anillo, solo con teclado */
+.g-page-index__scroll:focus {
+  outline: none;
+}
+.g-page-index__scroll:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: calc(-1 * var(--g-focus-width));
+}
+.g-page-index__list,
+.g-page-index__sub {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.g-page-index__list li {
+  margin: 0;
+  padding: 0;
+}
+/* h3: 16 de sangría a cada lado (calco: x + 16 y 16 menos de ancho) */
+.g-page-index__sub {
+  padding-inline: var(--g-space-4);
+}
+.g-page-index__link {
+  display: block;
+  overflow: hidden;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--_row);
+  font-weight: var(--g-text-body-sm-weight);
+  color: var(--g-color-text-muted);
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color var(--g-duration-slow) var(--g-ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+.g-page-index__link[aria-current="location"] {
+  color: var(--g-color-text);
+}
+@media (hover: hover) {
+  .g-page-index__link:hover {
+    color: var(--g-color-text);
+  }
+}
+.g-page-index__link:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: calc(-1 * var(--g-focus-width));
+}
+
+/* Marcador: 2 × 18 sobre la línea guía (sobre el borde, x = la línea), centrado en la fila actual. Visible con has-current */
+.g-page-index__marker {
+  --_marker-size: calc(var(--g-space-1) * 4.5);
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: calc(-1 * var(--g-border-width));
+  inline-size: calc(var(--g-border-width) * 2);
+  block-size: var(--_marker-size);
+  translate: 0 calc(var(--_marker-y) + (var(--_marker-h) - var(--_marker-size)) / 2);
+  border-radius: var(--g-radius-xs);
+  background-color: var(--g-color-accent-text);
+  opacity: 0;
+  pointer-events: none;
+}
+.has-current > .g-page-index__body > .g-page-index__marker {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-page-index__marker {
+    transition:
+      translate var(--g-duration-slow) var(--g-ease-out),
+      opacity var(--g-duration-fast) var(--g-ease-standard);
+  }
+}
+/* Al montar, al volver a pintarse o al cambiar items: el marcador se coloca sin viajar */
+.g-page-index--appearance-list.is-instant .g-page-index__marker {
+  transition: none;
+}
+
+/* ---------- Plegada (fold): botón de texto + panel (APG Disclosure) ---------- */
+.g-page-index--fold {
+  position: relative;
+  display: inline-block;
+}
+.g-page-index__fold {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--g-space-1);
+  box-sizing: border-box;
+  min-block-size: 24px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--g-color-text-muted);
+  font: inherit;
+  font-size: var(--g-text-caption-size);
+  line-height: calc(var(--g-space-1) * 6);
+  font-weight: var(--g-text-action-weight);
+  text-align: start;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--g-duration-slow) var(--g-ease-out);
+}
+@media (hover: hover) {
+  .g-page-index__fold:hover {
+    color: var(--g-color-text);
+  }
+}
+.g-page-index__fold[aria-expanded="true"] {
+  color: var(--g-color-text);
+}
+.g-page-index__fold:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+.g-page-index__chev {
+  display: inline-flex;
+  flex: none;
+  font-size: var(--g-text-body-sm-size);
+  line-height: 0;
+}
+.g-page-index__fold[aria-expanded="true"] .g-page-index__chev {
+  rotate: 0.25turn;
+}
+.g-page-index__fold[aria-expanded="true"] .g-page-index__chev:dir(rtl) {
+  rotate: -0.25turn;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-page-index__chev {
+    transition: rotate var(--g-duration-slow) var(--g-ease-out);
+  }
+}
+
+/* Panel: bajo el botón, alineado con su borde inicial o final (align); nunca más ancho que el visor menos 2 × 16 */
+.g-page-index__drop {
+  position: absolute;
+  z-index: 3;
+  inset-block-start: calc(100% + var(--g-space-1));
+  inset-inline-end: 0;
+  box-sizing: border-box;
+  inline-size: min(calc(100vw - var(--g-space-4) * 2), calc(var(--g-space-1) * 100));
+  max-block-size: calc(100dvh - var(--g-app-shell-top) - var(--g-app-shell-local-bar) - var(--g-space-8));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: var(--g-border-width) solid var(--g-color-border-strong);
+  border-radius: var(--g-radius-lg);
+  background-color: var(--g-color-surface);
+  box-shadow: var(--g-shadow-2);
+  text-align: start;
+}
+.g-page-index--align-start > .g-page-index__drop {
+  inset-inline: 0 auto;
+}
+.g-page-index__drop[hidden] {
+  display: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-page-index__drop:not([hidden]) {
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-out),
+      translate var(--g-duration-fast) var(--g-ease-out);
+  }
+  @starting-style {
+    .g-page-index__drop:not([hidden]) {
+      opacity: 0;
+      translate: 0 calc(var(--g-space-1) * -1);
+    }
+  }
+}
+/* «Volver arriba»: fila de 48 con línea inferior, en accent-text (es un enlace) */
+.g-page-index__top {
+  display: block;
+  padding-inline: var(--g-space-4);
+  border-block-end: var(--g-border-width) solid var(--g-color-border);
+  font-size: var(--g-text-body-sm-size);
+  line-height: calc(var(--g-space-1) * 12 - var(--g-border-width));
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-accent-text);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.g-page-index__top:focus-visible,
+.g-page-index__drop .g-page-index__link:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: calc(-1 * var(--g-focus-width));
+}
+.g-page-index__drop .g-page-index__scroll {
+  max-block-size: none;
+  padding: var(--g-space-2) var(--g-space-4);
+}
+
+/* ---------- Táctil: botón y filas ≥ 44 (las filas, por interlineado: la elipsis sigue funcionando) ---------- */
+@media (pointer: coarse) {
+  .g-page-index__fold {
+    min-block-size: 44px;
+  }
+  .g-page-index--appearance-list .g-page-index__link,
+  .g-page-index__top {
+    line-height: 44px;
+  }
+}
+
+/* ---------- Movimiento reducido: el marcador solo se funde; el chevron gira al instante ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .g-page-index__marker {
+    transition: opacity var(--g-duration-fast) linear;
+  }
+}
+
+/* ---------- Colores forzados: marcador del sistema y la actual subrayada ---------- */
+@media (forced-colors: active) {
+  .g-page-index__body {
+    border-inline-start-color: CanvasText;
+  }
+  .g-page-index__marker {
+    background-color: Highlight;
+    forced-color-adjust: none;
+  }
+  .g-page-index__link[aria-current="location"] {
+    text-decoration: underline;
+    text-decoration-thickness: var(--g-border-width);
+  }
+  .g-page-index__fold {
+    color: ButtonText;
+  }
+  .g-page-index__drop {
+    border-color: CanvasText;
   }
 }

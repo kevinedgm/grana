@@ -1,0 +1,17 @@
+/* Banco de estilo del calco (coco): el orden de capas del sitio (layers.css), los estilos de documento de VitePress en su
+   capa, el paquete construido y, encima, las hojas FUENTE de coco en grana.components (las que aún no están en dist o
+   cambiaron en este lote) y el tema del sitio sin capa, como en site/.vitepress/theme/index.js. */
+@layer vitepress, grana.defaults, grana.components, grana.blocks, grana.utilities;
+@import url('../../../../node_modules/vitepress/dist/client/theme-default/styles/vars.css') layer(vitepress);
+@import url('../../../../node_modules/vitepress/dist/client/theme-default/styles/base.css') layer(vitepress);
+@import url('../../../../node_modules/vitepress/dist/client/theme-default/styles/utils.css') layer(vitepress);
+@import url('../../../../node_modules/vitepress/dist/client/theme-default/styles/components/custom-block.css') layer(vitepress);
+@import url('../../../../node_modules/vitepress/dist/client/theme-default/styles/components/vp-code.css') layer(vitepress);
+@import url('../../../../node_modules/vitepress/dist/client/theme-default/styles/components/vp-doc.css') layer(vitepress);
+@import url('../../../../packages/vue/dist/fonts.css');
+@import url('../../../../packages/vue/dist/grana.css');
+@import url('../../../../packages/vue/src/components/GAppShell/GAppShell.css') layer(grana.components);
+@import url('../../../../packages/vue/src/components/GNavBar/GNavBar.css') layer(grana.components);
+@import url('../../../../packages/vue/src/components/GPageIndex/GPageIndex.css') layer(grana.components);
+@import url('../../../../packages/vue/src/components/GCombobox/GCombobox.css') layer(grana.components);
+@import url('../../../../site/.vitepress/theme/grana-site.css');

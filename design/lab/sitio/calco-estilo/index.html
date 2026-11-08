@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calco del sitio · banco de estilo</title>
+<script>
+  // Antes de pintar, como el script del <head> del sitio: data-theme (tokens) y la clase dark (VitePress); data-top en la portada
+  ;(() => { const q = new URLSearchParams(location.search); const d = q.get('theme') === 'dark'; const h = document.documentElement; h.setAttribute('data-theme', d ? 'dark' : 'light'); h.classList.toggle('dark', d); if ((q.get('p') || 'comp') === 'home' && !scrollY) h.setAttribute('data-top', '') })()
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap">
+<link rel="stylesheet" href="./banco.css">
+<script>
+  // &tema=<nombre>: un tema generado por @grana/cli (sin capa, después del sitio: gana como el de una aplicación)
+  ;(() => { const t = new URLSearchParams(location.search).get('tema'); if (t && /^[a-z-]+$/.test(t)) document.write(`<link rel="stylesheet" href="../../tema-oscuro/dark-color-presence/generated/${t}.css">`) })()
+</script>
+<script src="../../lucide-icons.js"></script>
+<script src="../../navbar/r01/lucide-extra.js"></script>
+<script src="../r01/datos.js"></script>
+<script src="../../navbar/r01/numeros.js"></script>
+<script src="../../page-index/r01/secciones.js"></script>
+</head>
+<body>
+<!-- ?p=comp|guide|blocks|home  &theme=dark  &dir=rtl -->
+<div id="app"></div>
+<script src="../../../../node_modules/vue/dist/vue.global.prod.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../../../packages/vue/dist/app-shell.umd.js"></script>
+<script src="../../../../packages/vue/dist/sidebar-filter.umd.js"></script>
+<script src="./navbar.js"></script>
+<script src="./page-index.js"></script>
+<script src="./marco.js"></script>
+</body>
+</html>

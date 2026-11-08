@@ -1,3 +1,5 @@
+@layer grana.defaults, grana.components, grana.blocks, grana.utilities;
+
 /*
   GCombobox · estilo
   Dueño: coco. Contrato: design/contracts/combobox.md (#329 a #338). Estructura: design/lab/combobox/r01/ y r02/ (kiwi;
@@ -778,6 +780,116 @@
   }
 }
 
+/* =====================================================================================================================
+   MODO COMANDO (appearance="command", #1056): la búsqueda modal del sitio anterior, calcada (referencia/medidas.md §3,
+   estado-busqueda-1280-*.png). Es la misma superficie (GDialog bare) sin cabecera ni vista previa: arriba y centrada bajo lo
+   pegado, 900 de ancho (space × 225) y nunca más que el visor, relleno 12, radio 6, fondo surface-sunken, sin borde ni sombra;
+   el campo en una caja de 44 con borde, la lista de resultados y el pie de teclas (slot hints). Por debajo de 520px, la hoja
+   de siempre (--sheet), sin pie.
+
+   CONTRATO DE CLASES QUE ESTE BLOQUE ESPERA (bruno; combobox.md «Modo comando» · Anatomía)
+     div.g-combobox.g-combobox--appearance-command
+       dialog.g-dialog.g-dialog--bare.g-dialog--size-lg.g-dialog--mobile-sheet.g-combobox-surface.g-combobox-surface--command|--sheet
+         div.g-dialog__body (bare)
+           div.g-combobox__search … input.g-combobox__search-field
+           div.g-combobox__surface-body > div.g-combobox__panel …        (sin .has-preview)
+           div.g-combobox__hints                                         solo con el slot; kbd de la aplicación dentro
+           div.g-combobox__live
+
+   La cifra: el diálogo es hermano del chasis en el sitio (no hereda --g-app-shell-top, que vale 0 fuera de él), así que el
+   borde superior es max(--g-app-shell-top, space × 16): el calco (y = 64) y, dentro de un chasis con una banda más alta,
+   bajo ella.
+   ===================================================================================================================== */
+/* Sin GInput no hay de quién heredar el foco ni la densidad: la raíz de command los fija (los de GInput md por defecto) */
+.g-combobox--appearance-command {
+  --_focus: var(--g-color-focus);
+  --_density: 1;
+}
+@media (min-width: 521px) {
+  .g-dialog.g-combobox-surface.g-combobox-surface--command {
+    --_cb-cmd-top: max(var(--g-app-shell-top), var(--g-space-16));
+    inline-size: min(calc(var(--g-space-1) * 225), calc(100vw - var(--g-space-8)));
+    max-block-size: calc(100dvh - var(--_cb-cmd-top) - var(--g-space-16));
+    margin: var(--_cb-cmd-top) auto auto;
+    padding: var(--g-space-3);
+    border-width: 0;
+    border-radius: var(--g-radius-md);
+    background: var(--g-color-surface-sunken);
+    box-shadow: none;
+  }
+}
+.g-dialog.g-combobox-surface--command .g-dialog__body {
+  gap: var(--g-space-4);
+}
+/* El campo: una caja de 44 con borde y radio 4 (calco); con el foco, el borde y un anillo por dentro en --g-color-focus */
+.g-combobox-surface--command .g-combobox__search {
+  min-block-size: max(44px, calc(var(--g-space-1) * 11));
+  padding-inline: var(--g-space-3);
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-radius-sm);
+  font-size: var(--g-text-body-size);
+  line-height: var(--g-text-body-line);
+}
+.g-combobox-surface--command .g-combobox__search:has(.g-combobox__search-field:focus-visible) {
+  border-color: var(--_focus);
+  box-shadow: inset 0 0 0 calc(var(--g-focus-width) - var(--g-border-width)) var(--_focus);
+}
+.g-combobox-surface--sheet.g-combobox-surface--command .g-combobox__search {
+  border-width: 0 0 var(--g-border-width);
+  border-radius: 0;
+}
+/* Resultados: su alto (sin alto fijo ni vista previa); sin nada que enseñar no ocupan sitio */
+.g-combobox-surface--command .g-combobox__surface-body {
+  flex: 0 1 auto;
+}
+.g-combobox-surface--command .g-combobox__surface-body:not(:has(.g-combobox__option, .g-combobox__status, .g-combobox__group)) {
+  display: none;
+}
+.g-combobox-surface--command .g-combobox__panel {
+  padding: 0;
+}
+/* La luz es la tarjeta del resultado (calco: resultado sobre surface con borde): surface y un borde por dentro */
+.g-combobox-surface--command .g-combobox__highlight {
+  background: var(--g-color-surface);
+  box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-border);
+}
+
+/* Pie de teclas (slot hints): sin interactivos, texto que se lee tras la lista; las teclas en kbd */
+.g-combobox__hints {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--g-space-2) var(--g-space-4);
+  min-block-size: calc(var(--g-space-1) * 8);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+}
+.g-combobox__hints kbd {
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  min-inline-size: calc(var(--g-space-1) * 6);
+  min-block-size: calc(var(--g-space-1) * 5.5);
+  margin-inline-end: var(--g-space-1);
+  padding-inline: calc(var(--g-space-1) * 1.5);
+  border: var(--g-border-width) solid var(--g-color-border-strong);
+  border-radius: var(--g-radius-sm);
+  background: var(--g-color-surface);
+  color: var(--g-color-text);
+  box-shadow: var(--g-shadow-1);
+  font: inherit;
+  vertical-align: middle;
+}
+.g-combobox__hints kbd + kbd {
+  margin-inline-start: calc(var(--g-space-1) * -0.5);
+}
+/* En la hoja no hay teclado físico que explicar */
+.g-combobox-surface--sheet .g-combobox__hints {
+  display: none;
+}
+
 /* ---------- En una GFormRow (#336, form.md §4): la fila se parte antes de que la forma de A quede estrecha ---------- */
 /* Propiedad pública de ENTRADA (no del tema): el consumidor la sobrescribe con style */
 .g-form-row > .g-combobox--appearance-field {
@@ -1382,6 +1494,12 @@
 /* Colores forzados (L23, medido): la ficha se retira y vuelve el texto del <input>; forma de A con CanvasText y anillo
    Highlight; activa sin capa y con contorno Highlight (#1017); fantasma en GrayText; la marca conserva peso y subrayado */
 @media (forced-colors: active) {
+  .g-dialog.g-combobox-surface.g-combobox-surface--command {
+    border: var(--g-border-width) solid CanvasText;
+  }
+  .g-combobox__hints kbd {
+    border-color: CanvasText;
+  }
   .g-combobox.is-token .g-combobox__token {
     display: none;
   }

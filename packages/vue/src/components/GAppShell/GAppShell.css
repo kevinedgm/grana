@@ -1,3 +1,5 @@
+@layer grana.defaults, grana.components, grana.blocks, grana.utilities;
+
 /*
   GAppShell · estilo del chasis de aplicación
   Dueño: coco. Contrato: design/contracts/app-shell.md (DECISIONS.md #708 a #717; tokens.md §48; api.md «Piezas pegadas» y
@@ -15,8 +17,17 @@
     del zócalo son la misma línea en cada cuadro. Nunca asoma la página entre las dos franjas.
   - El enlace de salto es una pestaña que cuelga del borde del visor y baja con el foco.
 
+  Enmienda #1055 (sitio calcado; app-shell.md «pinned-wide», «Barra local» y «Canal interno»):
+  - header="pinned-wide": la banda pegada con el visor ≥ 60rem (constante de contrato) y en el flujo por debajo; ahí la cifra
+    --g-app-shell-top vale 0 y el scroll-padding solo cuenta lo que sigue pegado (barra local y zócalo). Sin animación.
+  - --g-app-shell-local-bar (entrada pública, @property <length>, 0px): el alto de una barra pegada de la aplicación bajo la
+    banda. Se suma al scroll-padding, a --g-page-header-top, a --g-accordion-sticky-top, a S1 y al presupuesto del cuarto;
+    NO a --g-app-shell-top (la barra local usa esa cifra como su top).
+  - is-covered (cover(true) del canal: pantalla de GNavBar abierta): el documento no se desplaza. El inert del marco y del
+    GSidebar lo pone el .vue.
+
   Marcado que espera (lo pinta bruno; app-shell.md «Anatomía» y «Clases y datos»):
-    div.g-app-shell[.g-app-shell--header-relay][.is-yielded][.has-header][.has-footer]
+    div.g-app-shell[.g-app-shell--header-relay|--header-pinned-wide][.is-yielded][.is-covered][.has-header][.has-footer]
       a.g-app-shell__skip
       header.g-app-shell__header[data-g-zone="brand"]   (solo con slot)
       <GSidebar> (hijo DIRECTO: .g-sidebar…, o span[hidden] + dialog.g-sidebar__drawer en drawer)
@@ -31,6 +42,12 @@
 /* ---------- Propiedades públicas (tokens.md §48; no son del tema) ---------- */
 /* Entrada: alto de la cabecera de la aplicación si mide MÁS que el de contrato. Se declara en :root (aviso 11). */
 @property --g-app-shell-header {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+/* Entrada (#1055): alto de una barra pegada de la aplicación bajo la banda mientras se ve. Se declara en :root (aviso 11) */
+@property --g-app-shell-local-bar {
   syntax: "<length>";
   inherits: true;
   initial-value: 0px;
@@ -78,13 +95,16 @@
      no (la holgura × 9999 es enorme si es positiva y ≤ 0 si no) */
   --_app-shell-pinned: min(
     var(--_app-shell-band),
-    max(calc(var(--g-space-1) * 0), (100svh - 4 * (var(--_app-shell-band) + var(--_app-shell-base))) * 9999)
+    max(
+      calc(var(--g-space-1) * 0),
+      (100svh - 4 * (var(--_app-shell-band) + var(--_app-shell-base) + var(--g-app-shell-local-bar))) * 9999
+    )
   );
   --g-app-shell-top: var(--_app-shell-pinned);
   /* La receta de api.md «Cabecera fija», escrita UNA vez y en la capa de Grana (#713): una aplicación que ya la escribía
      sin capa sigue ganando (aviso 10) */
-  --g-page-header-top: var(--g-app-shell-top);
-  --g-accordion-sticky-top: calc(var(--g-app-shell-top) + var(--_app-shell-base));
+  --g-page-header-top: calc(var(--g-app-shell-top) + var(--g-app-shell-local-bar));
+  --g-accordion-sticky-top: calc(var(--g-app-shell-top) + var(--g-app-shell-local-bar) + var(--_app-shell-base));
   --_app-shell-bar: calc(var(--g-space-1) * 0);
 
   display: grid;
@@ -233,8 +253,8 @@
 .g-app-shell__header,
 .g-app-shell__header :not(:where(.g-tooltip)) {
   scroll-margin-block:
-    calc(-1 * (var(--_app-shell-pinned) + var(--_app-shell-base)))
-    calc(var(--_app-shell-pinned) + var(--_app-shell-base));
+    calc(-1 * (var(--_app-shell-pinned) + var(--_app-shell-base) + var(--g-app-shell-local-bar)))
+    calc(var(--_app-shell-pinned) + var(--_app-shell-base) + var(--g-app-shell-local-bar));
 }
 
 /* ---------- Sidebar (slot nav): FIJO al visor, no pegado (S1, S2) ----------
@@ -287,8 +307,11 @@
   scroll-padding-block-start: calc(
     min(
       var(--_app-shell-band),
-      max(calc(var(--g-space-1) * 0), (100svh - 4 * (var(--_app-shell-band) + var(--_app-shell-base))) * 9999)
-    ) + var(--_app-shell-base)
+      max(
+        calc(var(--g-space-1) * 0),
+        (100svh - 4 * (var(--_app-shell-band) + var(--_app-shell-base) + var(--g-app-shell-local-bar))) * 9999
+      )
+    ) + var(--_app-shell-base) + var(--g-app-shell-local-bar)
   );
 }
 :root:has(.g-app-shell:not(dialog *) > .g-app-shell__frame > .g-app-shell__main .g-page-header.is-sticky:not(dialog *)) {
@@ -297,7 +320,28 @@
 /* Sin cabecera, o cedida (B): el desplazador solo cuenta el zócalo */
 :root:has(.g-app-shell:not(dialog *)):not(:has(.g-app-shell:not(dialog *) > .g-app-shell__header)),
 :root:has(.g-app-shell--header-relay.is-yielded:not(dialog *)):not(:has(.g-app-shell__header:focus-within)) {
-  scroll-padding-block-start: var(--_app-shell-base);
+  scroll-padding-block-start: calc(var(--_app-shell-base) + var(--g-app-shell-local-bar));
+}
+
+/* ---------- pinned-wide (#1055): por debajo de 60rem la banda va en el flujo y se va con la página ----------
+   Cambio de maqueta, no movimiento: sin transición. La cifra vale 0 (la banda no ocupa nada arriba mientras se lee) y con
+   ella el top de la barra local, el zócalo y el acordeón; el scroll-padding y S1 solo cuentan lo que sigue pegado. */
+@media (width < 60rem) {
+  .g-app-shell.g-app-shell--header-pinned-wide {
+    --_app-shell-pinned: calc(var(--g-space-1) * 0);
+  }
+  .g-app-shell--header-pinned-wide > .g-app-shell__header {
+    position: relative;
+    inset-block-start: auto;
+  }
+  :root:has(.g-app-shell--header-pinned-wide:not(dialog *)) {
+    scroll-padding-block-start: calc(var(--_app-shell-base) + var(--g-app-shell-local-bar));
+  }
+}
+
+/* ---------- Pantalla de GNavBar abierta (cover, #1055): el documento no se desplaza detrás ---------- */
+:root:has(.g-app-shell.is-covered:not(dialog *)) {
+  overflow: hidden;
 }
 
 /* ---------- Movimiento reducido: sin espera ni deslizamiento (§29.3) ---------- */

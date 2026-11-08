@@ -1,0 +1,468 @@
+@layer grana.defaults, grana.components, grana.blocks, grana.utilities;
+
+/*
+  GNavBar · estilo de la barra superior de un sitio
+  Dueño: coco. Contrato: design/contracts/nav-bar.md (#1052, #1053, #1055, #1057, #1059). Estructura: design/lab/navbar/r01/
+  (kiwi). Referencia medida (calco): design/lab/sitio/referencia/medidas.md §1 a §3, §6 y §7. Banco de paridad:
+  design/lab/sitio/calco-estilo/ (node design/lab/sitio/calco-estilo/verificar.mjs).
+  Reglas: solo var(--g-*) y alias locales var(--_*); la primera línea solo declara el orden de las cuatro capas (#806); las
+  reglas van sin @layer (lo aplica el registro); sin respaldos. Literales: 44px (área táctil), el patrón de texto oculto y los
+  cortes del visor 48rem y 80rem (constantes de contrato, nav-bar.md §«Cortes»). Ningún token nuevo (tokens.md §60).
+
+  Carácter (P1 · Una sola luz, #1053; api.md «Una sola luz»): en reposo es la barra del sitio anterior, idéntica. Lo propio
+  de Grana es de comportamiento: una luz bajo la fila de texto que se desliza de enlace en enlace bajo el puntero (no los 64
+  de la banda: la fila, como el hover de GSidebar y GMenu) y, con ella, el hover deja de pintar el texto en `accent`: el
+  puntero tiene su señal y la actual la suya (el color). Nada se mueve con el teclado; el foco no sigue al puntero.
+
+  CONTRATO DE CLASES Y ATRIBUTOS QUE ESTE CSS ESPERA (lo pinta bruno; nav-bar.md «Anatomía» y «Clases y datos»)
+    div.g-nav-bar[.is-open]#ID                                     dentro de header.g-app-shell__header (o del <header> de la aplicación)
+      div.g-nav-bar__brand                                         slot brand (se oculta con GSidebar expandido o en riel en el chasis)
+      div.g-nav-bar__search                                        slot search
+      nav.g-nav-bar__nav[aria-label]
+        ul.g-nav-bar__list[.has-highlight][.is-highlight-instant]
+          li.g-nav-bar__highlight[aria-hidden][role=none]          PRIMER hijo; bruno escribe en ESTA capa (#964) --_highlight-x/-y/-w/-h
+                                                                    = la caja del enlace bajo el puntero (px, relativa a la lista)
+          li > a.g-nav-bar__link[.g-nav-bar__link--external][aria-current="page"]
+                 span.g-nav-bar__ext[aria-hidden] > GLibIcon arrow-up-right flip-rtl     (externo)
+                 span.g-nav-bar__sr                                                      (externo: labels.newTab)
+      div.g-nav-bar__actions                                       slot actions { place: 'bar' }, con span.g-nav-bar__sep antes de cada nodo
+      div.g-nav-bar__more
+        button.g-nav-bar__more-btn[aria-expanded][popovertarget]   GLibIcon ellipsis
+        div.g-nav-bar__more-panel[popover=auto]                    slot actions { place: 'more' }
+      button.g-nav-bar__toggle[aria-expanded]                      GLibIcon menu | x
+      div.g-nav-bar__screen[hidden]                                bruno escribe --_screen-top al abrir (borde inferior de la banda, ≥ 0)
+        nav.g-nav-bar__screen-nav > ul.g-nav-bar__screen-list > li > a.g-nav-bar__screen-link[aria-current="page"]
+        div.g-nav-bar__screen-actions                              slot actions { place: 'screen' }
+
+  Posición del panel «…» (popover en la capa superior): con anclaje CSS, bajo el botón (su ancla implícita: popovertarget) y
+  alineado a su borde final. Sin anclaje (motores sin `position-area`), cae bajo la banda y al final del visor con
+  --_more-top y --_more-end; bruno puede escribirlos al abrir (borde inferior del botón y distancia de su borde final al del
+  visor, en px), como --_screen-top. Pedido anotado para lima en design/lab/sitio/calco-estilo/estilo.md (H2).
+
+  Acoplamientos (contratos entre componentes, no tema):
+  - La banda: con GNavBar dentro, la barra ocupa la banda entera (nav-bar.md «Relación con GAppShell») y pone su propio
+    relleno lateral (space × 8; space × 6 bajo 48rem): la banda no suma el suyo.
+  - La marca: con un GSidebar expandido o en riel hijo del chasis, la marca pertenece a la columna (N-L5): clases públicas de
+    GSidebar, como la reserva de #712.
+  - El interlineado de los enlaces es el alto de la banda que declara la aplicación (--g-app-shell-header, entrada pública de
+    GAppShell, #713): calco del original (14/64). Sin esa entrada, el del texto.
+*/
+
+/* ---------- Raíz: la fila de la barra ---------- */
+.g-nav-bar {
+  --_pad: var(--g-space-8);
+  --_band: max(var(--g-text-body-sm-line), var(--g-app-shell-header));
+
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  box-sizing: border-box;
+  min-inline-size: 0;
+  block-size: 100%;
+  padding-inline: var(--_pad);
+  font-family: var(--g-font-ui);
+  color: var(--g-color-text);
+}
+/* La banda no suma su relleno: la barra la ocupa entera (el calco pide 32 a cada lado, no 16 + 32) */
+.g-app-shell__header:has(> .g-nav-bar) {
+  padding-inline: 0;
+}
+
+/* ---------- Marca (slot brand) ---------- */
+.g-nav-bar__brand {
+  display: flex;
+  align-items: center;
+  flex: none;
+  block-size: 100%;
+  min-inline-size: 0;
+}
+.g-app-shell:has(> .g-sidebar--mode-expanded, > .g-sidebar--mode-rail) .g-nav-bar__brand {
+  display: none;
+}
+
+/* ---------- Búsqueda (slot search): ocupa el hueco entre la marca y los enlaces ---------- */
+.g-nav-bar__search {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  block-size: 100%;
+  padding-inline-start: calc(var(--g-space-1) * 10);
+}
+/* Con la columna izquierda a la vista, la búsqueda empieza a 16 del borde de la barra (48 del borde de la columna) */
+.g-app-shell:has(> .g-sidebar--mode-expanded, > .g-sidebar--mode-rail) .g-nav-bar__search {
+  padding-inline-start: var(--g-space-4);
+}
+
+/* ---------- Enlaces ---------- */
+.g-nav-bar__nav {
+  display: none;
+  flex: none;
+  block-size: 100%;
+}
+.g-nav-bar__list {
+  position: relative;
+  display: flex;
+  block-size: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.g-nav-bar__list > li:not(.g-nav-bar__highlight) {
+  display: flex;
+  margin: 0;
+  padding: 0;
+}
+.g-nav-bar__link {
+  /* Encima de la luz (que es absoluta): orden del árbol entre posicionados */
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--g-space-1);
+  box-sizing: border-box;
+  block-size: 100%;
+  padding-inline: var(--g-space-3);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--_band);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-text);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color var(--g-duration-slow) var(--g-ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+/* La actual: solo color (calco). El hover NO pinta accent: su señal es la luz (P1) */
+.g-nav-bar__link[aria-current="page"] {
+  color: var(--g-color-accent-text);
+}
+/* Anillo por dentro: el borde de la banda no lo corta (2.4.7) */
+.g-nav-bar__link:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: calc(-1 * var(--g-focus-width));
+}
+/* Externo: arrow-up-right de 11 (calco) en text-subtle, tras el texto */
+.g-nav-bar__ext {
+  display: inline-flex;
+  flex: none;
+  font-size: calc(var(--g-space-1) * 2.75);
+  line-height: 0;
+  color: var(--g-color-text-subtle);
+  transition: color var(--g-duration-slow) var(--g-ease-out);
+}
+.g-nav-bar__sr {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- P1 · Una sola luz (#957 a #964 con #1053) ----------
+   La capa es el primer hijo de la lista; bruno escribe la caja del enlace bajo el puntero en la propia capa. La luz cubre la
+   FILA DE TEXTO (space × 8, centrada en el enlace de la banda) con el ancho entero del enlace (sus 12 de relleno: los enlaces
+   se tocan, regla 5). Mismo token que la luz de GSidebar (--g-color-border). Posición y tamaño con --g-duration-press +
+   --g-ease-out, aparición con fundido --g-duration-fast (regla 7 común); sin gesto, solo fundido (is-highlight-instant). */
+.g-nav-bar__highlight {
+  --_row: calc(var(--g-space-1) * 8);
+  position: absolute;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+  inline-size: var(--_highlight-w);
+  block-size: var(--_row);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  translate: var(--_highlight-x) calc(var(--_highlight-y) + (var(--_highlight-h) - var(--_row)) / 2);
+  border-radius: var(--g-radius-md);
+  background: var(--g-color-border);
+  opacity: 0;
+  pointer-events: none;
+}
+.has-highlight > .g-nav-bar__highlight {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-nav-bar__highlight {
+    transition:
+      translate var(--g-duration-press) var(--g-ease-out),
+      inline-size var(--g-duration-press) var(--g-ease-out),
+      opacity var(--g-duration-fast) var(--g-ease-standard);
+  }
+  .is-highlight-instant > .g-nav-bar__highlight {
+    transition: opacity var(--g-duration-fast) var(--g-ease-standard);
+  }
+}
+
+/* ---------- Acciones en la barra (slot actions { place: 'bar' }), con separadores de 1 × 24 ---------- */
+.g-nav-bar__actions {
+  display: none;
+  align-items: center;
+  flex: none;
+  block-size: 100%;
+}
+.g-nav-bar__actions > :not(:where(.g-tooltip)) {
+  flex: none;
+}
+.g-nav-bar__sep {
+  flex: none;
+  inline-size: var(--g-border-width);
+  block-size: calc(var(--g-space-1) * 6);
+  margin-inline: var(--g-space-2);
+  background-color: var(--g-color-border);
+}
+
+/* ---------- Botones de icono: «…» (44 × banda) y hamburguesa (48 × banda) ---------- */
+.g-nav-bar__more {
+  display: none;
+  flex: none;
+  block-size: 100%;
+  /* Calco: el «…» se come parte del relleno final (VitePress: −12) */
+  margin-inline-end: calc(-1 * var(--g-space-3));
+}
+/* Con la columna izquierda, el original desbordaba el visor 2 px (982 + 44): aquí el «…» llega al borde y no lo pasa; los
+   enlaces se corren ≤ 4 px (desviación aceptada 2 de sitio-marco.md §12) */
+.g-app-shell:has(> .g-sidebar--mode-expanded, > .g-sidebar--mode-rail) .g-nav-bar__more {
+  margin-inline-end: calc(-1 * var(--_pad));
+}
+.g-nav-bar__more-btn,
+.g-nav-bar__toggle {
+  display: grid;
+  place-items: center;
+  flex: none;
+  box-sizing: border-box;
+  inline-size: calc(var(--g-space-1) * 11);
+  min-inline-size: 44px;
+  block-size: 100%;
+  min-block-size: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--g-color-text);
+  font-size: var(--g-text-title-sm-size);
+  line-height: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--g-duration-slow) var(--g-ease-out);
+}
+.g-nav-bar__toggle {
+  inline-size: calc(var(--g-space-1) * 12);
+  /* Calco: la hamburguesa queda a 8 del borde (relleno 24, VitePress −16) */
+  margin-inline-end: calc(var(--g-space-2) - var(--g-space-6));
+}
+@media (hover: hover) {
+  .g-nav-bar__more-btn:hover,
+  .g-nav-bar__toggle:hover {
+    color: var(--g-color-text-muted);
+  }
+}
+.g-nav-bar__more-btn:focus-visible,
+.g-nav-bar__toggle:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: calc(-1 * var(--g-focus-width));
+}
+
+/* ---------- «…» · panel (disclosure en popover; calco: radio 12, relleno 12, borde, superficie, sombra 2) ---------- */
+.g-nav-bar__more-panel {
+  --_more-top: calc(var(--g-app-shell-top) - var(--g-space-3));
+  --_more-end: calc(var(--_pad) - var(--g-space-3));
+  position: fixed;
+  inset: auto;
+  inset-block-start: max(calc(var(--g-space-1) * 0), var(--_more-top));
+  inset-inline-end: var(--_more-end);
+  box-sizing: border-box;
+  min-inline-size: calc(var(--g-space-1) * 32);
+  max-inline-size: calc(100vw - var(--g-space-4) * 2);
+  max-block-size: calc(100dvh - var(--g-space-8));
+  margin: 0;
+  padding: var(--g-space-3);
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-radius-xl);
+  background-color: var(--g-color-surface);
+  color: var(--g-color-text);
+  box-shadow: var(--g-shadow-2);
+  font-family: var(--g-font-ui);
+}
+/* Con anclaje CSS: bajo el botón (ancla implícita del popover: su popovertarget) y alineado a su borde final; solapa la
+   banda space × 3 como el original (y 52) */
+@supports (position-area: block-end) {
+  .g-nav-bar__more-panel {
+    inset: auto;
+    position-area: block-end span-inline-start;
+    margin-block-start: calc(-1 * var(--g-space-3));
+    position-try-fallbacks: flip-inline;
+  }
+}
+/* Entrada y salida comunes de los paneles anclados (#1002, las de GMenu): fundido y space × 1 desde el botón, sin escala */
+@media (prefers-reduced-motion: no-preference) {
+  .g-nav-bar__more-panel {
+    opacity: 0;
+    translate: 0 calc(var(--g-space-1) * -1);
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-out),
+      translate var(--g-duration-fast) var(--g-ease-out),
+      overlay var(--g-duration-fast) allow-discrete,
+      display var(--g-duration-fast) allow-discrete;
+  }
+  .g-nav-bar__more-panel:popover-open {
+    opacity: 1;
+    translate: 0 0;
+  }
+  @starting-style {
+    .g-nav-bar__more-panel:popover-open {
+      opacity: 0;
+      translate: 0 calc(var(--g-space-1) * -1);
+    }
+  }
+}
+
+/* ---------- Pantalla de menú (< 48rem): disclosure que cubre el visor bajo la banda ---------- */
+.g-nav-bar__screen {
+  --_screen-top: var(--g-app-shell-top);
+  position: fixed;
+  inset: var(--_screen-top) 0 0 0;
+  z-index: 6;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* Calco: una columna de 288 centrada (44 a cada lado a 375), nunca a menos de 16 del borde */
+  padding-block: var(--g-space-6) calc(var(--g-space-1) * 24);
+  padding-inline: max(var(--g-space-4), calc((100% - var(--g-space-1) * 72) / 2));
+  background-color: var(--g-color-bg);
+  color: var(--g-color-text);
+  font-family: var(--g-font-ui);
+}
+.g-nav-bar__screen[hidden] {
+  display: none;
+}
+.g-nav-bar__screen-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.g-nav-bar__screen-list > li {
+  margin: 0;
+  padding: 0;
+}
+/* Filas de 48 (≥ 44 táctil) con línea inferior: 12 + 24 + 11 + 1 */
+.g-nav-bar__screen-link {
+  display: flex;
+  align-items: center;
+  gap: var(--g-space-1);
+  box-sizing: border-box;
+  min-block-size: calc(var(--g-space-1) * 12);
+  padding-block: var(--g-space-3) calc(var(--g-space-3) - var(--g-border-width));
+  border-block-end: var(--g-border-width) solid var(--g-color-border);
+  font-size: var(--g-text-body-sm-size);
+  line-height: calc(var(--g-space-1) * 6);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-text);
+  text-decoration: none;
+  transition: color var(--g-duration-slow) var(--g-ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+.g-nav-bar__screen-link[aria-current="page"] {
+  color: var(--g-color-accent-text);
+}
+@media (hover: hover) {
+  .g-nav-bar__screen-link:hover {
+    color: var(--g-color-accent-text);
+  }
+}
+.g-nav-bar__screen-link:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: calc(-1 * var(--g-focus-width));
+}
+.g-nav-bar__screen-actions {
+  display: grid;
+  gap: var(--g-space-4);
+  margin-block-start: var(--g-space-6);
+}
+
+/* ---------- Cortes del visor (constantes de contrato): < 48rem hamburguesa; 48–80rem enlaces + «…»; ≥ 80rem todo ---------- */
+.g-nav-bar__toggle {
+  display: grid;
+}
+@media (width < 48rem) {
+  .g-nav-bar {
+    --_pad: var(--g-space-6);
+  }
+  /* La búsqueda (solo lupa) se arrima a la hamburguesa, a 8 */
+  .g-nav-bar__search {
+    justify-content: flex-end;
+    padding-inline: var(--g-space-2);
+  }
+  .g-app-shell:has(> .g-sidebar--mode-expanded, > .g-sidebar--mode-rail) .g-nav-bar__search {
+    padding-inline: var(--g-space-2);
+  }
+}
+@media (width >= 48rem) {
+  .g-nav-bar__nav,
+  .g-nav-bar__more {
+    display: flex;
+  }
+  .g-nav-bar__toggle,
+  .g-nav-bar__screen {
+    display: none;
+  }
+}
+@media (width >= 80rem) {
+  .g-nav-bar__more {
+    display: none;
+  }
+  .g-nav-bar__actions {
+    display: flex;
+  }
+}
+
+/* ---------- Táctil: todo lo pulsable ≥ 44 ---------- */
+@media (pointer: coarse) {
+  .g-nav-bar__link {
+    min-inline-size: 44px;
+    min-block-size: 44px;
+  }
+  .g-nav-bar__screen-link {
+    min-block-size: max(44px, calc(var(--g-space-1) * 12));
+  }
+}
+
+/* ---------- Movimiento reducido: la luz solo se funde (patrón único de #299) ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .g-nav-bar__highlight {
+    transition: opacity var(--g-duration-fast) linear;
+  }
+}
+
+/* ---------- Colores forzados: sin luz; la actual con subrayado del sistema; botones con borde del sistema ---------- */
+@media (forced-colors: active) {
+  .g-nav-bar__highlight {
+    display: none;
+  }
+  .g-nav-bar__link[aria-current="page"],
+  .g-nav-bar__screen-link[aria-current="page"] {
+    text-decoration: underline;
+    text-decoration-thickness: var(--g-border-width);
+    text-underline-offset: var(--g-space-1);
+  }
+  .g-nav-bar__more-btn,
+  .g-nav-bar__toggle {
+    border: var(--g-border-width) solid ButtonText;
+  }
+  .g-nav-bar__sep {
+    background-color: CanvasText;
+  }
+  .g-nav-bar__more-panel {
+    border-color: CanvasText;
+  }
+  .g-nav-bar__screen-link {
+    border-block-end-color: CanvasText;
+  }
+}
