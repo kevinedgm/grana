@@ -1,3 +1,4 @@
-/* Orden de capas del sitio: primero VitePress (sus reinicios de elemento), luego las de Grana.
-   Debe ser la primera hoja que se carga (theme/index.js la importa antes que nada). */
-@layer vitepress, grana.defaults, grana.components;
+/* Orden de capas del sitio (#516, #806; sitio-marco.md §11): primero VitePress (sus reinicios de elemento, en la capa
+   `vitepress` por el plugin layerVitepress de config.mjs), luego las cuatro de Grana en su orden. El orden lo fija la
+   PRIMERA hoja que lo declara: theme/index.js importa esta antes que nada. */
+@layer vitepress, grana.defaults, grana.components, grana.blocks, grana.utilities;
