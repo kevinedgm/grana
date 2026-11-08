@@ -87,7 +87,7 @@
     decrement: 'Una noche menos', increment: 'Una noche más',
     errors: { dates: 'Elige la llegada y las noches.', night: 'No quedan habitaciones la noche del {date}.', nights: 'Elige entre 1 y 14 noches.', date: 'Elige el día.', time: 'Elige la hora.', tour: 'Elige el recorrido.' },
     missing: (n, v) => (n === 1 ? `Falta un dato: ${v.list}` : `Faltan ${v.count} datos: ${v.list}`),
-    datePicker: { prev: 'Mes anterior', next: 'Mes siguiente', dialog: 'Elegir fecha', close: 'Cerrar', today: 'hoy', selected: 'elegida', unavailable: 'sin disponibilidad', checkoutOnly: 'solo salida', rangeStart: 'llegada', rangeEnd: 'salida', rangeSingle: 'llegada y salida', inRange: 'en tu estancia', done: 'Listo', announceStart: 'Llegada {date}. Elige la salida.', announceEnd: 'Del {start} al {end}.', announceDate: '{date}.' }
+    datePicker: { prev: 'Mes anterior', next: 'Mes siguiente', dialog: 'Elegir fecha', close: 'Cerrar', today: 'hoy', selected: 'elegida', unavailable: 'sin disponibilidad', checkoutOnly: 'solo salida', rangeStart: 'llegada', rangeEnd: 'salida', rangeSingle: 'llegada y salida', inRange: 'en tu estancia', done: 'Listo', announceStart: 'Llegada {date}. Elige la salida.', announceEnd: 'Del {start} al {end}.', announceDate: '{date}.', chooseMonth: 'elegir mes', chooseYear: 'elegir año', prevYear: 'Año anterior', nextYear: 'Año siguiente', prevYears: 'Doce años antes', nextYears: 'Doce años después', viewMonths: 'Meses de {year}', viewYears: 'Años de {from} a {to}', typeYear: 'Escribe un año', current: 'actual', hasValue: 'con fechas elegidas' }
   }
   app.use(Grana).use(GranaHero).use(GranaBooking)
   window.heroApp = app.mount('#app')
