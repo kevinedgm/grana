@@ -12,7 +12,10 @@
     "#1039",
     "#1040",
     "#1042",
-    "#1047"
+    "#1047",
+    "#1048",
+    "#1049",
+    "#1051"
   ],
   "prototype": "design/lab/sitio/r01/",
   "style": "packages/vue/src/components/GPageIndex/GPageIndex.css",
@@ -20,10 +23,11 @@
   "bundle": {
     "measured": "2026-11-08",
     "entry": "dist/page-index.js (GPageIndex)",
-    "gzip": 2905,
-    "umdGzip": 2677,
+    "gzip": 2932,
+    "umdGzip": 2698,
     "global": "GranaPageIndex",
-    "note": "gzip -9. Vue y @grana/vue externos; GMenu (con utils/menuNav.js), GLibIcon y transitionMs llegan de __shared, sin copia. El CSS va en grana.css."
+    "note": "gzip -9. Vue y @grana/vue externos; GMenu (con utils/menuNav.js), GLibIcon y transitionMs llegan de __shared, sin copia. El CSS va en grana.css.",
+    "cap": 3072
   },
   "props": [
     {
@@ -80,7 +84,7 @@
       "name": "labels",
       "type": "Object",
       "default": {},
-      "description": "Textos de GMenu, sin valores por defecto: findHint, matches, matchesOne, none (buscar al escribir, #797) y, si la aplicación los da, opened/openedLive y copied/copiedLive (varias pestañas y copiar el enlace a la sección)."
+      "description": "Textos de GMenu, tal cual y sin valores por defecto (#1049): findHint, matches, matchesOne, none (buscar al escribir, #797) y opened/openedLive, copied/copiedLive (pestaña nueva y copiar el enlace a la sección; sin una pareja, ese gesto queda en el del navegador y GMenu avisa E6)."
     },
     {
       "name": "id",
@@ -106,7 +110,7 @@
     {
       "name": "refresh",
       "signature": "refresh(): void",
-      "purpose": "Vuelve a leer la actual en el siguiente cuadro (contenido que crece sin desplazamiento)"
+      "purpose": "Vuelve a leer la actual en el siguiente cuadro (contenido que crece sin desplazamiento). Con una elegida sostenida (#1048) no hace nada"
     }
   ],
   "classes": [
@@ -117,7 +121,7 @@
   "composes": [
     "GMenu (elementos-enlace con current: 'location', #1039)"
   ],
-  "focus": "Tras elegir sin cancelar, cuando GMenu devuelve el foco al disparador, el destino lo recibe con preventScroll; si no es enfocable y no tiene tabindex, Grana le pone tabindex=\"-1\" (y no lo quita).",
+  "focus": "Tras elegir sin cancelar, cuando GMenu devuelve el foco al disparador, el destino lo recibe con preventScroll; si no es enfocable y no tiene tabindex, Grana le pone tabindex=\"-1\" (y no lo quita). La elegida se sostiene tras el salto hasta el primer scroll posterior (#1048); refresh() no la suelta, un cambio de items sí.",
   "warnings": [
     "1 elemento sin id o label",
     "2 id repetido",
@@ -155,7 +159,6 @@
     "ráfaga (is-burst)"
   ],
   "pending": [
-    "Peso (#1042): dist/page-index.js mide 2905 B gzip, 345 B por encima del tope de 2560 B; vuelve a lima (subir el tope o recortar alcance)",
     "Auditoría de coco sobre el componente real (status draft hasta entonces)",
     "Buscar al escribir de GMenu (#797) aún no está construido: los cuatro labels pasan a GMenu sin efecto"
   ]

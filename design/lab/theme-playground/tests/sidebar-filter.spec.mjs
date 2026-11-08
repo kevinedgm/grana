@@ -110,6 +110,23 @@ test.describe('GSidebar · filtro del índice', () => {
   })
 })
 
+test.describe('GSidebar · sin la extensión (#1050)', () => {
+  test('sin app.use(SidebarFilter): sin campo, índice entero, «/» no hace nada y ningún error', async ({ page }) => {
+    const errs = []
+    page.on('pageerror', (e) => errs.push(e.message))
+    await page.setViewportSize({ width: 1280, height: 900 })
+    await page.goto(PAGE + '?filter=0')
+    await page.waitForSelector('.g-sidebar__nav')
+    await settle(page)
+    expect(await page.locator('.g-sidebar__filter').count()).toBe(0)
+    expect((await visible(page)).length).toBe(35) // 34 destinos y el padre
+    await page.locator('body').click({ position: { x: 900, y: 600 } })
+    await page.keyboard.press('/')
+    expect(await page.evaluate(() => document.activeElement === document.body || !document.activeElement.closest('.g-sidebar'))).toBe(true)
+    expect(errs).toEqual([])
+  })
+})
+
 test.describe('GSidebar · filtro · rendimiento', () => {
   // La compuerta es el trabajo de la tecla (filtrar + parchear el DOM, sin lecturas de caja). El estilo y la disposición del
   // navegador al volver a mostrar cientos de filas se registran aparte: dependen del CSS (hallazgo para coco)

@@ -122,13 +122,16 @@ export default defineComponent({
     // ---------- Línea de lectura (api.md «Lugar actual», #1039) ----------
     let sc = null
     let raf = 0
+    // paused: el salto de una elección está en curso; held: terminó y la elegida se sostiene hasta el primer `scroll`
+    // posterior (#1048), que reanuda la lectura en ese cuadro. refresh() no la suelta; un cambio de `items`, sí
     let paused = false
+    let held = false
     let pauseT = null
     let on = false
     const target = () => sc || window
     const read = () => {
       raf = 0
-      if (paused || !props.track) return
+      if (paused || held || !props.track) return
       const root = sc || document.scrollingElement || document.documentElement
       const pad = parseFloat(getComputedStyle(root).scrollPaddingBlockStart) || 0
       const top = sc ? sc.getBoundingClientRect().top + sc.clientTop : 0
@@ -145,10 +148,10 @@ export default defineComponent({
       if (was) quiet = false
     }
     const schedule = () => { if (!raf && on) raf = requestAnimationFrame(read) }
-    const unpause = () => { clearTimeout(pauseT); paused = false; schedule() }
+    const unpause = () => { clearTimeout(pauseT); if (paused) held = true; paused = false }
     const onScroll = () => {
       if (paused) { clearTimeout(pauseT); pauseT = setTimeout(unpause, SETTLE) }
-      else schedule()
+      else { held = false; schedule() }
     }
     const listen = (yes) => {
       if (yes === on) return
@@ -175,6 +178,7 @@ export default defineComponent({
     watch(() => [...byId.value.keys()].join('\n'), () => {
       list = [...byId.value.values()]
       quiet = true
+      held = paused = false
       set(null)
       quiet = props.track
       schedule()

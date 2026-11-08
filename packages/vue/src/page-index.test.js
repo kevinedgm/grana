@@ -1,5 +1,5 @@
 // Entrada `@grana/vue/page-index` (page-index.md «Paquete y peso», DECISIONS.md #1042): GPageIndex va aparte del paquete
-// principal y toma GMenu, GLibIcon y transitionMs de `__shared` (src/shared.js), sin copia. Tope 2,5 KiB gzip.
+// principal y toma GMenu, GLibIcon y transitionMs de `__shared` (src/shared.js), sin copia. Tope 3 KiB gzip (#1051).
 import { describe, it, expect, vi } from 'vitest'
 import { createApp, h } from 'vue'
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
@@ -11,7 +11,7 @@ import { shared } from './shared.js'
 import GMenu from './components/GMenu/GMenu.vue'
 
 const SRC = resolve(process.cwd(), 'src')
-const CAP = 2560
+const CAP = 3072 // #1051
 vi.spyOn(console, 'warn').mockImplementation(() => {})
 
 describe('@grana/vue/page-index · entrada propia (#1042)', () => {
@@ -76,8 +76,8 @@ describe('@grana/vue/page-index · entrada propia (#1042)', () => {
     const gz = gzipSync(js, { level: 9 }).length
     const meta = JSON.parse(readFileSync(resolve(SRC, 'components/GPageIndex/GPageIndex.meta.json'), 'utf8'))
     expect(Math.abs(gz - meta.bundle.gzip)).toBeLessThan(256)
-    // Tope de #1042: si no cabe, vuelve a lima (anotado en meta.json pending mientras tanto)
-    if (!meta.pending?.some((p) => p.includes('#1042'))) expect(gz).toBeLessThanOrEqual(CAP)
+    expect(gz).toBeLessThanOrEqual(CAP)
+    expect(meta.bundle.cap).toBe(CAP)
   })
 })
 

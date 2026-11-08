@@ -105,7 +105,7 @@
       "name": "filter",
       "type": "Boolean",
       "default": false,
-      "note": "Filtro del índice en la cabecera (sidebar.md §«Filtro del índice», #1035): campo type=search que oculta con hidden lo que no coincide (sin desmontar), recuento visible y anunciado (cortés, 600 ms), Intro activa el primer destino, ↓ a la lista, Esc vacía sin propagar. En el riel, un botón (g-sidebar__search con is-filtering); en el navbar, en el drawer. Con filter, search no actúa (F1); con el slot search, manda el slot (F2)"
+      "note": "Filtro del índice en la cabecera (sidebar.md §«Filtro del índice», #1035). Necesita la extensión @grana/vue/sidebar-filter (app.use(SidebarFilter), #1050); sin ella actúa como false (sin campo; search vuelve a actuar), query se ignora, update:query no se emite y avisa F5. Con ella: campo type=search que oculta con hidden lo que no coincide (sin desmontar), recuento visible y anunciado (cortés, 600 ms), Intro activa el primer destino, ↓ a la lista, Esc vacía sin propagar; en el riel, un botón (g-sidebar__search con is-filtering); en el navbar, en el drawer. Con filter y la extensión, search no actúa (F1); con el slot search, manda el slot (F2)"
     },
     {
       "name": "query",
@@ -217,7 +217,7 @@
     {
       "name": "focusFilter",
       "signature": "focusFilter(): void",
-      "purpose": "Expandida: enfoca el campo del filtro y selecciona su texto. Riel: expande (update:collapsed false) y enfoca el campo. Drawer o navbar: abre el drawer (update:open true) y enfoca el campo. Sin filter, nada (#1035)"
+      "purpose": "Expandida: enfoca el campo del filtro y selecciona su texto. Riel: expande (update:collapsed false) y enfoca el campo. Drawer o navbar: abre el drawer (update:open true) y enfoca el campo. Sin filter, nada (#1035). Sin la extensión @grana/vue/sidebar-filter no hace nada y avisa F5 (#1050)"
     }
   ],
   "slots": [
@@ -319,11 +319,25 @@
     "Firefox y Safari (popover, <dialog>, @starting-style, interpolate-size)",
     "Táctil real y teclado virtual (navbar y drawer)",
     "Formato inicial antes de medir el contenedor (se pinta expandido un instante)",
-    "Filtro (#1035): con 500 destinos, el trabajo de la tecla (filtrar y parchear) mide 6–13 ms en Chromium; el estilo y la disposición del navegador al volver a mostrar cientos de filas llegan a 35–62 ms (CSS: coco)",
-    "Filtro (#1035): lector de pantalla real con el recuento (aria-describedby) y el anuncio cortés; IME real con Intro"
+    "Filtro (#1035): lector de pantalla real con el recuento (aria-describedby) y el anuncio cortés; IME real con Intro",
+    "Filtro (#1035): con 500 destinos, el trabajo de la tecla (filtrar y parchear) mide 6–13 ms en Chromium; el estilo y la disposición del navegador al volver a mostrar cientos de filas llegan a 35–62 ms (CSS: coco)"
   ],
   "weight": {
     "tooltipVisualMode": "−5 B gzip en grana.js y −40 B en grana.umd.js (sustituye la pista propia), medido el 2026-10-06",
-    "filterCodeLocation": "+2458 B gzip en grana.js con current: 'location' de GMenu (+129 B), medido el 2026-11-08 contra HEAD 4df51aee (229 847 → 232 305 B); tope del lote #1035/#1036/#1039: +1280 B → vuelve a lima"
+    "filterCodeLocation": "+837 B gzip en grana.js para el lote del marco A tras sacar el filtro a la extensión (#1050): code, current: 'location' de GMenu, props, F5 y enganche; medido el 2026-11-08 contra 4df51aee, la medida anterior a 336f3624 (229 847 → 230 684 B); tope +1280 B (#1042, #1050)"
+  },
+  "extension": {
+    "entry": "@grana/vue/sidebar-filter",
+    "global": "GranaSidebarFilter",
+    "decision": "#1050",
+    "install": "app.use(SidebarFilter): app.provide de la clave interna utils/sidebarFilter.js (por __shared); sin el plugin, filter actúa como false y avisa F5 una vez",
+    "bundle": {
+      "measured": "2026-11-08",
+      "entry": "dist/sidebar-filter.js (motor del filtro)",
+      "gzip": 2742,
+      "umdGzip": 2581,
+      "cap": 3072,
+      "note": "gzip -9. Vue y @grana/vue externos; la normalización (utils/match.js), GLibIcon, el canal de página y la clave interna llegan de __shared, sin copia. El CSS sigue en grana.css."
+    }
   }
 }

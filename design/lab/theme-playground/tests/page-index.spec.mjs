@@ -89,6 +89,38 @@ test.describe('GPageIndex · relay real', () => {
     expect(await page.evaluate(() => document.activeElement.id)).toBe('s9')
   })
 
+  // #1048: la elegida se sostiene tras el salto hasta el primer `scroll` posterior
+  const choose = async (page, label, id) => {
+    await trig(page).click()
+    await page.locator('#pi .g-menu__item', { hasText: label }).click()
+    await page.waitForFunction((x) => document.activeElement?.id === x, id)
+    await page.waitForTimeout(400) // el salto terminó (scrollend o 150 ms) y pasan varios cuadros
+  }
+  test('#1048 · sección corta: la elegida se sostiene aunque la lectura diga la siguiente; la rueda la suelta', async ({ page }) => {
+    await open(page, { qs: '?short=s5' })
+    await choose(page, 'Slots', 's5')
+    expect(await expected(page)).toBe('s6') // la lectura diría la siguiente
+    expect(await current(page)).toBe('s5')
+    await page.evaluate(() => window.piApp.$refs.pidx.refresh())
+    await page.setViewportSize({ width: 1280, height: 880 })
+    await settle(page)
+    expect(await current(page)).toBe('s5') // refresh() y un cambio de tamaño no la sueltan
+    await page.mouse.move(900, 500)
+    await page.mouse.wheel(0, 40)
+    await settle(page)
+    expect(await current(page)).toBe(await expected(page))
+    expect(await current(page)).not.toBe('s5')
+  })
+  test('#1048 · la penúltima al final del documento: se sostiene; una tecla de desplazamiento la suelta', async ({ page }) => {
+    await open(page, { qs: '?foot=0' })
+    await choose(page, 'Tokens', 's9')
+    expect(await expected(page)).toBe('s10')
+    expect(await current(page)).toBe('s9')
+    await page.keyboard.press('ArrowUp') // el foco está en la sección: el documento se desplaza
+    await settle(page)
+    expect(await current(page)).toBe(await expected(page))
+  })
+
   test('con el teclado: Intro abre, ↓ y Intro eligen; el foco acaba en la sección', async ({ page }) => {
     await open(page)
     await trig(page).focus()

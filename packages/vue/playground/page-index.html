@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Marco del sitio · banco del componente real (bruno)</title>
 <!-- Banco de las piezas del marco del sitio A «El índice se escribe» con los componentes reales de dist/ (dueño: bruno):
-     GSidebar con filtro del índice y `code` (#1035, #1036), GPageIndex relay en el slot `actions` de GPageHeader (entrada
+     GSidebar con filtro del índice (extensión @grana/vue/sidebar-filter, #1050) y `code` (#1035, #1036), GPageIndex relay en el slot `actions` de GPageHeader (entrada
      @grana/vue/page-index, #1038 a #1042, #1047) y GMenu con `current: 'location'` (#1039). Lo verifican
      design/lab/theme-playground/tests/page-index.spec.mjs y sidebar-filter.spec.mjs.
      Parámetros: ?n=500 (500 destinos en el índice, prueba de rendimiento) · ?mode=rail|drawer|navbar (formato fijo del
-     sidebar) · ?sections=200 (secciones de la página) · ?dir=rtl · ?dark=1. Estado en window.pi (registro de eventos). -->
+     sidebar) · ?sections=200 (secciones de la página) · ?filter=0 (sin la extensión) · ?short=s5 (una sección de un párrafo) · ?foot=0 (sin pie: la última no llega arriba) · ?dir=rtl · ?dark=1. Estado en window.pi (registro de eventos). -->
 <link rel="stylesheet" href="../dist/fonts.css">
 <link rel="stylesheet" href="../dist/grana.css">
 <style>
@@ -46,15 +46,16 @@
       <span id="current-out">{{ section || '—' }}</span>
     </section>
     <div class="panel">
-      <template v-for="s in sections" :key="s.id"><h2 :id="s.id">{{ s.label }}</h2><p v-for="k in 6" :key="k">{{ para }}</p></template>
+      <template v-for="s in sections" :key="s.id"><h2 :id="s.id">{{ s.label }}</h2><p v-for="k in (s.id === Q.short ? 1 : 6)" :key="k">{{ para }}</p></template>
     </div>
-    <footer class="panel" style="min-block-size:70vh"><p>Pie de la página (deja que la última sección llegue arriba).</p></footer>
+    <footer v-if="Q.foot" class="panel" style="min-block-size:70vh"><p>Pie de la página (deja que la última sección llegue arriba).</p></footer>
   </main>
 </div>
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script src="../dist/grana.umd.js"></script>
 <script src="../dist/page-header.umd.js"></script>
 <script src="../dist/page-index.umd.js"></script>
+<script src="../dist/sidebar-filter.umd.js"></script>
 <script src="./lucide-icons.js"></script>
 <script>
   const P = new URLSearchParams(location.search)
@@ -103,7 +104,7 @@
         }
       })
       return {
-        Q: { mode: P.get('mode') || 'expanded' },
+        Q: { mode: P.get('mode') || 'expanded', short: P.get('short'), foot: P.get('foot') !== '0' },
         nav: buildNav(Number(P.get('n')) || 30),
         current: Vue.ref('c8'),
         query: Vue.ref(''),
@@ -119,6 +120,8 @@
       }
     }
   })
+  // ?filter=0: sin la extensión del filtro (GSidebar se pinta sin filtro y avisa F5)
+  if (P.get('filter') !== '0') app.use(GranaSidebarFilter.default)
   app.use(Grana).use(GranaPageHeader).use(GranaPageIndex).use(Grana.createIcons(Object.values(window.LUCIDE_STATIC)))
   window.piApp = app.mount('#app')
 </script>

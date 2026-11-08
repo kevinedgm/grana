@@ -40,7 +40,8 @@ export const ENTRIES = [
   { name: 'gallery', src: 'src/gallery.js' },
   { name: 'booking', src: 'src/booking.js' },
   { name: 'price', src: 'src/price.js' },
-  { name: 'page-index', src: 'src/page-index.js' }
+  { name: 'page-index', src: 'src/page-index.js' },
+  { name: 'sidebar-filter', src: 'src/sidebar-filter.js' }
 ]
 
 // ---------------------------------------------------------------------------------------------------------------------

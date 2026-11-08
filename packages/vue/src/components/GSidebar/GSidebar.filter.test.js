@@ -4,6 +4,9 @@ import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import GSidebar from './GSidebar.vue'
 import { pageLiveNode } from '../../utils/liveRegion.js'
+import SidebarFilter from '../../sidebar-filter.js'
+
+const global = { plugins: [SidebarFilter] }
 
 const LABELS = {
   collapse: 'Contraer', expand: 'Expandir', more: 'Más', drawer: 'Navegación', close: 'Cerrar',
@@ -25,7 +28,7 @@ const ITEMS = [
     ] }
   ] }
 ]
-const mk = (props = {}) => mount(GSidebar, { attachTo: document.body, props: { items: ITEMS, label: 'Componentes', labels: LABELS, modelValue: 'combo', mode: 'expanded', filter: true, ...props } })
+const mk = (props = {}, plugins = global) => mount(GSidebar, { attachTo: document.body, global: plugins, props: { items: ITEMS, label: 'Componentes', labels: LABELS, modelValue: 'combo', mode: 'expanded', filter: true, ...props } })
 const input = (w) => w.find('.g-sidebar__filter-input')
 const type = async (w, v) => { await input(w).setValue(v); await nextTick() }
 const visibleIds = (w) => w.findAll('.g-sidebar__nav .g-sidebar__link').filter((l) => !l.element.closest('[hidden]')).map((l) => l.attributes('data-id'))
@@ -201,9 +204,26 @@ describe('GSidebar · filtro del índice', () => {
     expect(n.emitted('update:open')).toBeUndefined()
   })
 
+  it('sin la extensión: como filter=false (sin campo; search actúa), query ignorada, focusFilter no hace nada, F5 una vez', async () => {
+    warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const w = mk({ search: true, query: '24', labels: { ...LABELS, search: 'Buscar' } }, {})
+    expect(w.find('.g-sidebar__filter').exists()).toBe(false)
+    expect(w.find('.g-sidebar__search').text()).toContain('Buscar')
+    expect(visibleIds(w)).toHaveLength(8)
+    expect(w.find('.g-sidebar').classes()).not.toContain('is-filtering')
+    w.vm.focusFilter()
+    await nextTick()
+    expect(w.emitted('update:open')).toBeUndefined()
+    expect(w.emitted('update:query')).toBeUndefined()
+    const f5 = warn.mock.calls.map((c) => c[0]).filter((t) => t.includes('(F5)'))
+    expect(f5).toHaveLength(1)
+    expect(f5[0]).toContain('@grana/vue/sidebar-filter')
+    expect(warn.mock.calls.map((c) => c[0]).join('\n')).not.toContain('(F1)')
+  })
+
   it('avisos F1 a F4', () => {
     warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    mount(GSidebar, { props: { items: [{ id: 'a', label: 'A', keywords: 'x' }], label: 'N', filter: true, search: true, labels: {} }, slots: { search: () => 'S' } })
+    mount(GSidebar, { global, props: { items: [{ id: 'a', label: 'A', keywords: 'x' }], label: 'N', filter: true, search: true, labels: {} }, slots: { search: () => 'S' } })
     const t = warn.mock.calls.map((c) => c[0]).join('\n')
     for (const k of ['F1', 'F2', 'F3', 'F4']) expect(t).toContain(`(${k})`)
   })

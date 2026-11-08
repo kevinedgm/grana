@@ -5,14 +5,13 @@
 // compartido por los cuatro formatos. La raíz de cada formato es estable: al contraer, expandir, navegar o abrir un
 // submenú solo se alternan clases y atributos sobre el mismo DOM (así corren las transiciones de coco).
 // Pista del riel (#436, cierra #113): motor de GTooltip en modo visual (utils/visualTip.js, tooltip.md §«Modo visual»).
-import { Fragment, computed, defineComponent, h, nextTick, onBeforeUnmount, onMounted, ref, useAttrs, useId, useSlots, watch } from 'vue'
+import { Fragment, computed, defineComponent, h, inject, nextTick, onBeforeUnmount, onMounted, ref, useAttrs, useId, useSlots, watch } from 'vue'
 import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GLibIcon.js'
 import GAppIcon from '../GIcon/GIcon.vue'
 import { useVisualTips } from '../../utils/visualTip.js'
 import { createPointerGlide } from '../../utils/glide.js'
-import { fold } from '../../utils/match.js'
-import { acquirePageLive, announcePage } from '../../utils/liveRegion.js'
+import { sidebarFilterKey } from '../../utils/sidebarFilter.js'
 // Activación primaria de un enlace (#505): botón principal, sin modificadores y sin cancelar (Intro llega como clic primario)
 const primaryActivation = (e) => e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey && !e.defaultPrevented
 
@@ -85,13 +84,7 @@ export default defineComponent({
             if (code.length > 3) warnOnce('c2', 'code de más de 3 caracteres (C2).')
           }
         } catch {}
-        // `keywords` (#1035): arreglo de cadenas; otro valor se ignora (F4). Se pliegan una vez por cambio de `items`
-        let kw = raw.keywords
-        if (kw && !(Array.isArray(kw) && kw.every((k) => typeof k === 'string'))) {
-          try { if (process.env.NODE_ENV !== 'production') warnOnce('f4', 'keywords no es un arreglo de cadenas: se ignora (F4).') } catch {}
-          kw = 0
-        }
-        const item = { id: raw.id, label: raw.label, href: raw.href, icon: raw.icon, code: level ? null : code, f: fold(raw.label), kw: (kw || []).map(fold), badge: raw.badge, badgeLabel: raw.badgeLabel, dot: Boolean(raw.dot), disabled: Boolean(raw.disabled), primary: Boolean(raw.primary), raw, level, children: [] }
+        const item = { id: raw.id, label: raw.label, href: raw.href, icon: raw.icon, code: level ? null : code, badge: raw.badge, badgeLabel: raw.badgeLabel, dot: Boolean(raw.dot), disabled: Boolean(raw.disabled), primary: Boolean(raw.primary), raw, level, children: [] }
         if (level === 0 && Array.isArray(raw.children)) {
           item.children = raw.children.map((c) => {
             try { if (process.env.NODE_ENV !== 'production' && c && Array.isArray(c.children) && c.children.length) warnOnce('grandchildren', 'los nietos se ignoran: solo hay un nivel de hijos.') } catch {}
@@ -220,104 +213,18 @@ export default defineComponent({
     syncBranch()
     const toggleOpen = (id) => { openIds.value = openIds.value.includes(id) ? openIds.value.filter((x) => x !== id) : [...openIds.value, id] }
 
-    // ---------- Filtro del índice (sidebar.md §«Filtro del índice», #1035) ----------
-    // Un solo estado de consulta para todos los formatos. Lo que no coincide lleva `hidden` en su <li> (sin desmontar); un
-    // grupo sin nada visible se oculta entero; mientras hay consulta, todo padre visible está abierto (sin tocar openIds:
-    // al vaciar, cada padre vuelve a como estaba). Cuenta destinos: sin padres, deshabilitados ni `filterable: false`.
-    const q = ref(props.query || '')
-    watch(() => props.query, (v) => { q.value = v || '' })
-    const setQuery = (v) => { if (v === q.value) return; q.value = v; emit('update:query', v) }
-    const hit = (it, f) => (/^\d{1,3}$/.test(f)
-      ? Boolean(it.code && (it.code.startsWith(f) || (/^\d+$/.test(it.code) && +it.code === +f)))
-      : it.f.includes(f) || it.kw.some((k) => k.includes(f)) || (it.code !== null && fold(it.code) === f))
-    const filt = computed(() => {
-      const f = props.filter ? fold(q.value.trim()) : ''
-      const hide = new Set()
-      const open = new Set()
-      const r = { f, hide, open, total: 0, shown: 0 }
-      // Devuelve si se ve; cuenta los destinos (sin padres, deshabilitados ni fijos) y oculta lo que no
-      const see = (it, fixed, v) => {
-        if (!fixed && !it.disabled && !it.children.length) { r.total++; if (v) r.shown++ }
-        if (!v) hide.add(it.id)
-        return v
-      }
-      for (const g of model.value) {
-        let any = false
-        for (const it of g.items) {
-          const fixed = g.fixed || it.raw.filterable === false
-          const self = !f || fixed || hit(it, f)
-          let vis = self
-          for (const c of it.children) if (see(c, fixed || c.raw.filterable === false, self || fixed || c.raw.filterable === false || hit(c, f))) vis = true
-          if (vis && f && it.children.length) open.add(it.id)
-          if (see(it, fixed, vis)) any = true
-        }
-        if (f && !any) hide.add(g)
-      }
-      return r
-    })
+    // ---------- Filtro del índice: enganche con la extensión @grana/vue/sidebar-filter (#1035, #1050) ----------
+    // El motor (campo, coincidencia, ocultos, recuento, anuncio, teclado del campo) llega por `app.use(SidebarFilter)`.
+    // Sin él, `filter` actúa como false (sin campo; `search` vuelve a actuar) y avisa F5 una vez.
+    const engine = inject(sidebarFilterKey, null)
+    const fe = engine && engine({ props, emit, model, L, slots, baseId, rootEl, dlgRef: { get value() { return dlgRef.value } }, format, setDrawer: (v) => setDrawer(v), expand: () => { manual.value = 'expanded'; emit('update:collapsed', false) } })
+    const NONE = { hide: new Set(), open: new Set() }
+    const filt = computed(() => (fe && props.filter ? fe.state.value : NONE))
+    const fon = () => fe && props.filter && !slots.search
     const isOpen = (id) => openSet.value.has(id) || filt.value.open.has(id)
-    const countText = computed(() => {
-      const { f, shown, total } = filt.value
-      const fn = f && !shown ? L.value.filterNone : L.value.filterCount
-      if (typeof fn !== 'function') return ''
-      return f && !shown ? fn(q.value.trim()) : fn(f ? shown : total, total)
-    })
-    // Todas las cabeceras y regiones montadas (la en línea y la del drawer)
-    const scopes = () => [rootEl.value, dlgRef.value].filter(Boolean)
-    const FIELD = '.g-sidebar__filter-input'
-    const inputOf = () => rootEl.value?.querySelector(FIELD) || dlgRef.value?.querySelector(FIELD)
-    let annT = null
-    let releaseLive = null
-    watch(() => filt.value.f, (f, old) => {
-      // Cada cambio: la luz se apaga y la región vuelve al principio; al vaciar, el actual a la vista y sin anuncio
-      // La región se escribe en el cuadro siguiente, junto con la disposición que el navegador hará de todos modos (escribir
-      // scrollTop aquí forzaba la disposición de la lista entera dentro de la tecla)
-      for (const r of scopes()) r.querySelectorAll('.g-sidebar__list, .g-sidebar__fly-list').forEach((l) => l._glide?.clear())
-      requestAnimationFrame(() => scopes().forEach((r) => r.querySelectorAll('.g-sidebar__nav').forEach((n) => { n.scrollTop = 0 })))
-      clearTimeout(annT)
-      if (!f) {
-        if (old) nextTick(() => scopes().forEach((r) => r.querySelector('.g-sidebar__nav [aria-current="page"]')?.scrollIntoView?.({ block: 'nearest' })))
-        return
-      }
-      if (!releaseLive) releaseLive = acquirePageLive()
-      annT = setTimeout(() => announcePage(countText.value), 600)
-    }, { flush: 'post' })
-    const firstLink = (root, dest) => [...(root?.querySelectorAll('.g-sidebar__nav .g-sidebar__link') || [])]
-      .find((x) => x.getAttribute('aria-disabled') !== 'true' && !x.closest('[hidden], [inert]') && !(dest && x.classList.contains('g-sidebar__parent')))
-    const onFilterKeydown = (e) => {
-      const k = e.key
-      const root = e.currentTarget.closest('.g-sidebar')
-      if (k === 'Enter') {
-        if (e.isComposing || e.keyCode === 229 || !filt.value.f) return
-        e.preventDefault()
-        firstLink(root, true)?.click()
-      } else if (k === 'ArrowDown') {
-        const to = firstLink(root)
-        if (to) { e.preventDefault(); to.focus() }
-      } else if (k === 'Escape' && q.value) {
-        // Con texto: vacía y no se propaga (no cierra el drawer); vacío, sigue su curso
-        e.preventDefault()
-        e.stopPropagation()
-        setQuery('')
-      }
-    }
-    const focusInput = () => { const i = inputOf(); if (i) { i.focus(); i.select() } }
-    // Riel: lo del botón de expandir y después el campo
-    const fromRail = () => {
-      manual.value = 'expanded'
-      emit('update:collapsed', false)
-      nextTick(focusInput)
-    }
-    const focusFilter = () => {
-      if (!props.filter || slots.search) return
-      const f = format.value
-      if (f === 'rail') fromRail()
-      else if (f === 'expanded') focusInput()
-      else {
-        setDrawer(true)
-        nextTick(() => nextTick(() => { if (dlgRef.value?.open) focusInput() }))
-      }
-    }
+    const f5 = () => { try { if (process.env.NODE_ENV !== 'production' && props.filter && !fe) warnOnce('f5', '`filter` necesita @grana/vue/sidebar-filter (app.use(SidebarFilter)); se pinta sin filtro (F5).') } catch {} }
+    f5()
+    const focusFilter = () => { f5(); if (fon()) fe.focus() }
 
     // ---------- Drawer ----------
     const drawer = ref(props.open)
@@ -509,8 +416,7 @@ export default defineComponent({
       const all = [...nav.querySelectorAll('.g-sidebar__link')].filter((x) => x.getAttribute('aria-disabled') !== 'true' && !x.closest('[inert], [hidden]') && !x.closest('.g-sidebar__fly'))
       const i = all.indexOf(link)
       // ↑ en el primero visible vuelve al campo del filtro (#1035)
-      const field = k === 'ArrowUp' && !i && nav.parentElement.querySelector(FIELD)
-      if (field) { e.preventDefault(); field.focus(); return }
+      if (k === 'ArrowUp' && fon() && fe.up(e, nav, i)) return
       const n = k === 'ArrowDown' ? i + 1 : k === 'ArrowUp' ? i - 1 : k === 'Home' ? 0 : all.length - 1
       e.preventDefault()
       all[Math.max(0, Math.min(all.length - 1, n))]?.focus()
@@ -572,10 +478,7 @@ export default defineComponent({
       const raf = typeof requestAnimationFrame === 'function' ? requestAnimationFrame : (fn) => setTimeout(fn, 16)
       raf(() => raf(() => { if (!unmountedFlag) ready.value = true }))
     })
-    onMounted(() => { if (props.filter && !releaseLive) releaseLive = acquirePageLive() })
     onBeforeUnmount(() => {
-      clearTimeout(annT)
-      releaseLive?.()
       unmountedFlag = true
       clearTimeout(expandT)
       ro?.disconnect()
@@ -594,9 +497,8 @@ export default defineComponent({
         if (!l.more) warnOnce('more', 'necesita labels.more (texto del botón «Más» del navbar).')
         if (props.search && !l.search && !slots.search) warnOnce('search', 'con search necesita labels.search.')
         if (props.filter) {
-          if (props.search) warnOnce('f1', 'con filter, search no actúa (F1).')
+          if (props.search && fe) warnOnce('f1', 'con filter, search no actúa (F1).')
           if (slots.search) warnOnce('f2', 'con filter, manda el slot search (F2).')
-          if (!l.filter || !l.filterCount || !l.filterNone || !l.filterClear) warnOnce('f3', 'con filter necesita labels.filter, filterCount, filterNone y filterClear (F3).')
         }
       }
     } catch {}
@@ -739,44 +641,8 @@ export default defineComponent({
               : null)
       ])
       let search = null
-      const filtering = Boolean(filt.value.f)
-      if (props.filter && !slots.search) {
-        const fid = `${baseId}-${kind}-filter`
-        const icon = slots['search-icon'] ? slots['search-icon'](scope) : null
-        search = rail
-          // Riel: botón del filtro con la anatomía de g-sidebar__search; la consulta se conserva y su recuento va oculto
-          ? h('button', { type: 'button', class: cls('g-sidebar__search', filtering && 'is-filtering'), 'data-g-tooltip': '', onClick: fromRail }, [
-              h('span', { class: 'g-sidebar__icon', 'aria-hidden': 'true' }, icon),
-              h('span', { class: 'g-sidebar__label' }, L.value.filter),
-              filtering ? h('span', { class: 'g-sidebar__sr' }, `, ${countText.value}`) : null
-            ])
-          : h('div', { class: 'g-sidebar__filter' }, [
-              h('div', { class: 'g-sidebar__filter-box' }, [
-                h('label', { class: 'g-sidebar__sr', for: fid }, L.value.filter),
-                h('span', { class: 'g-sidebar__filter-icon', 'aria-hidden': 'true' }, icon),
-                h('input', {
-                  class: 'g-sidebar__filter-input',
-                  id: fid,
-                  type: 'search',
-                  value: q.value,
-                  placeholder: L.value.filterPlaceholder,
-                  autocomplete: 'off',
-                  spellcheck: 'false',
-                  enterkeyhint: 'go',
-                  'aria-describedby': `${fid}-count`,
-                  'aria-controls': `${baseId}-${kind}-nav`,
-                  'aria-keyshortcuts': props.filterKeyshortcuts || undefined,
-                  onInput: (e) => setQuery(e.target.value),
-                  onKeydown: onFilterKeydown
-                }),
-                !q.value && L.value.filterHint ? h('kbd', { class: 'g-sidebar__filter-hint', 'aria-hidden': 'true' }, L.value.filterHint) : null,
-                q.value
-                  ? h('button', { type: 'button', class: 'g-sidebar__filter-clear', 'aria-label': L.value.filterClear, onClick: (e) => { setQuery(''); e.currentTarget.parentElement.querySelector(FIELD).focus() } }, [h(GIcon, { name: 'x' })])
-                  : null
-              ]),
-              h('p', { class: cls('g-sidebar__filter-count', filtering && !filt.value.shown && 'is-empty'), id: `${fid}-count` }, countText.value)
-            ])
-      } else if (props.search || slots.search) {
+      if (fon()) search = fe.head(kind, rail, scope)
+      else if (props.search || slots.search) {
         search = slots.search
           ? slots.search(scope)
           : h('button', { type: 'button', class: 'g-sidebar__search', 'aria-haspopup': 'dialog', 'data-g-tooltip': kind === 'side' ? '' : undefined, onClick: () => emit('search') }, [
@@ -832,7 +698,7 @@ export default defineComponent({
       // Pistas del riel (#436): al final de la raíz, en el orden del documento (contraer, búsqueda y los items)
       if (kind === 'side') {
         children.push(tips.node(TOGGLE_TIP, rail ? L.value.expand : L.value.collapse))
-        if ((props.search || props.filter) && !slots.search) children.push(tips.node(SEARCH_TIP, props.filter ? L.value.filter : L.value.search))
+        if ((props.search || fon()) && !slots.search) children.push(tips.node(SEARCH_TIP, fon() ? L.value.filter : L.value.search))
         for (const g of model.value) for (const item of g.items) children.push(tips.node(itemTip(item), item.label))
       }
       const own = kind === 'side' ? { ref: rootEl, ...rootAttrs() } : {}

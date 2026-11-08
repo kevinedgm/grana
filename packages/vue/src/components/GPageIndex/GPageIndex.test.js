@@ -182,6 +182,53 @@ describe('GPageIndex · línea de lectura', () => {
     expect(w.find('.g-page-index__current').attributes('data-phase')).toBeUndefined()
   })
 
+  it('#1048: la elegida se sostiene tras el salto (scrollend) aunque la lectura diga otra; refresh() no la suelta; el primer scroll posterior sí', async () => {
+    Object.defineProperty(document.documentElement, 'clientHeight', { configurable: true, value: 900 })
+    Object.defineProperty(document.documentElement, 'scrollHeight', { configurable: true, value: 5000 })
+    sections([40, 100, 160]) // las tres por encima de la línea: la lectura diría «teclado»
+    const w = mk()
+    await flushRaf()
+    expect(w.emitted('update:modelValue').at(-1)[0]).toBe('teclado')
+    await openMenu(w)
+    const a = w.findAll('.g-menu__item')[0]
+    a.element.addEventListener('click', (e) => e.preventDefault())
+    await a.trigger('click', { button: 0 })
+    await tick(4)
+    window.dispatchEvent(new Event('scroll')) // el salto
+    window.dispatchEvent(new Event('scrollend')) // fin del salto
+    await flushRaf()
+    expect(w.emitted('update:modelValue').at(-1)[0]).toBe('uso')
+    w.vm.refresh()
+    window.dispatchEvent(new Event('resize'))
+    await flushRaf()
+    expect(w.emitted('update:modelValue').at(-1)[0]).toBe('uso')
+    window.dispatchEvent(new Event('scroll')) // el usuario se mueve
+    await flushRaf()
+    expect(w.emitted('update:modelValue').at(-1)[0]).toBe('teclado')
+  })
+
+  it('#1048: un cambio de items suelta la elegida', async () => {
+    Object.defineProperty(document.documentElement, 'clientHeight', { configurable: true, value: 900 })
+    Object.defineProperty(document.documentElement, 'scrollHeight', { configurable: true, value: 5000 })
+    sections([40, 100, 160])
+    const w = mk()
+    await flushRaf()
+    await openMenu(w)
+    const a = w.findAll('.g-menu__item')[0]
+    a.element.addEventListener('click', (e) => e.preventDefault())
+    await a.trigger('click', { button: 0 })
+    await tick(4)
+    window.dispatchEvent(new Event('scrollend'))
+    await flushRaf()
+    expect(w.emitted('update:modelValue').at(-1)[0]).toBe('uso')
+    await w.setProps({ items: [...ITEMS.slice(1), { id: 'uso', label: 'Ejemplos' }] })
+    await flushRaf()
+    expect(w.emitted('update:modelValue').at(-1)[0]).toBe('uso') // ahora «uso» es la última y la lectura la elige
+    await w.setProps({ items: ITEMS.slice(0, 2) })
+    await flushRaf()
+    expect(w.emitted('update:modelValue').at(-1)[0]).toBe('api')
+  })
+
   it('al montar, location.hash que coincide es la actual', async () => {
     history.replaceState(null, '', '#api')
     sections([2000, 2000, 2000])

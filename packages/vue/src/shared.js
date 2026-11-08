@@ -49,6 +49,10 @@
 // (utils/currency.js con la tabla de símbolos compartidos, la misma que usa GNumberField currency), template, oneOf, nextFrame
 // (formContext) y GLibIcon; su regla (utils/price.js, formatPrice) vive en la entrada.
 //
+// El índice de la página (`@grana/vue/page-index`, #1042) toma de aquí GMenu, GLibIcon y transitionMs. El filtro del índice
+// de GSidebar (`@grana/vue/sidebar-filter`, #1050) toma la clave interna utils/sidebarFilter.js (el mismo Symbol que
+// inyecta GSidebar), la normalización (utils/match.js), GLibIcon y el canal de página; su motor vive en la entrada.
+//
 // vite.speech.config.js redirige cada importación relativa de la entrada speech que sale de sus carpetas
 // (GSpeechHost, GSpeechPill, GSpeechTrigger, GTranscript) a la clave correspondiente de este mapa (ruta relativa a src/). Si la
 // captura empieza a importar un módulo nuevo del principal, hay que añadirlo aquí: el build se detiene si falta la
@@ -95,6 +99,7 @@ import { cardGroupKey } from './utils/cardGroup.js'
 import { appShellKey } from './utils/appShell.js'
 import { sectionKey as gSectionKey } from './utils/sectionKey.js'
 import { transitionMs } from './utils/motion.js'
+import { sidebarFilterKey } from './utils/sidebarFilter.js'
 import { aimed, placeHighlight } from './utils/glide.js'
 import { createHighlight, createPointer, createTypeahead, focusItem, repeatGesture, stepTo } from './utils/menuNav.js'
 import { warnMissingCategory } from './utils/categoryToken.js'
@@ -144,6 +149,7 @@ export const shared = {
   'utils/appShell.js': { appShellKey },
   'utils/sectionKey.js': { sectionKey: gSectionKey },
   'utils/motion.js': { transitionMs },
+  'utils/sidebarFilter.js': { sidebarFilterKey },
   'utils/glide.js': { aimed, placeHighlight },
   'utils/menuNav.js': { createHighlight, createPointer, createTypeahead, focusItem, repeatGesture, stepTo },
   'utils/categoryToken.js': { warnMissingCategory },
