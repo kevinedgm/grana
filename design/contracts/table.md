@@ -68,6 +68,7 @@ Tabla de datos con **personalidad** (celdas ricas, filas como superficie, densid
 
 - **Orden local:** compara el campo de `sortBy` (números como números, texto con `Intl.Collator` del idioma del documento). Un clic en el encabezado ordena ascendente; otro, descendente; en otra columna, vuelve a ascendente. Con `external`, solo emite `update:sort`.
 - **Filtros locales:** Y entre filtros; O dentro de un `enum`. Con `external`, solo emite `update:filters`. Cambiar filtros vuelve a la página 1 (`update:page`).
+- **Filtro «últimos N días» y la fecha del dispositivo (#1033, 19bc9a8c):** con `filterMode="local"`, una regla `last` de un campo `date` usa la fecha del dispositivo leída **al montar**; antes de montar **no filtra** (todas las filas pasan por esa regla) para que el servidor y el cliente den el mismo HTML. Con `external` no aplica (la tabla no filtra). Pruebas `GTable.hydration.test.js`.
 - **Paginación:** con `pageSize`, la tabla corta localmente y muestra `GPagination` debajo. Con `total` (y datos ya paginados por el servidor), solo muestra la paginación y emite `update:page`.
 - **Selección:** casilla por fila y «todo» en el encabezado (o en la barra, en tarjetas), que actúa sobre **la página visible**, con estado mixto. La fila seleccionada lleva la clase `is-selected`; **no** `aria-selected` (no permitido en filas de tabla).
 - **`caption`:** nombre accesible de la tabla (visible). Sin `caption` ni `aria-label`/`aria-labelledby`, en desarrollo `console.warn`.

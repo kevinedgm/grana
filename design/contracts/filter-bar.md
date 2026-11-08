@@ -34,6 +34,7 @@ Barra de filtros **no fijos** al estilo Stripe: chips sugeridos, «Agregar filtr
 | `enum` | `in` | lista de valores (≥ 1) |
 
 - **Un filtro por campo** (aplicar sobre uno existente lo sustituye).
+- **`last` (últimos N días) y la fecha del dispositivo (#1033, 19bc9a8c):** «últimos N días» cuenta desde hoy, y hoy es la fecha del dispositivo, que se lee **al montar**. Sin hoy (un componente antes de montar), la regla `last` **todavía no filtra**: no descarta ninguna fila, para que el servidor y el primer pintado del cliente muestren lo mismo; al montar se aplica. Las demás operaciones de fecha (`after`, `before`, `between`) no dependen de hoy y filtran siempre. La regla sigue guardada y visible en la barra.
 - **Validación del editor:** no se aplica sin valor (un campo numérico vacío no es 0); `between` exige desde ≤ hasta; mensaje visible y anunciado.
 - **Reservado (#457):** el editor de `between` (`number`) puede adoptar `GSlider range` en una ronda propia; obligaría a decidir la entrada del paquete (`GSlider` vive en `@grana/vue/slider`, #455).
 
