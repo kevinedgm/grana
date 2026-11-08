@@ -1,6 +1,6 @@
 # Contrato · GSidebar
 
-**Dueño:** lima · **Estado:** aprobado · **Basado en:** `design/lab/sidebar/r01/` (kiwi); el item actual, los cortes y el hueco del icono en `design/lab/sidebar/r02/` (§«Item actual: el asiento», §«Cortes de adaptación», DECISIONS.md #612 a #619); el filtro del índice y el código del item en `design/lab/sitio/r01/` (concepto A del marco del sitio; §«Filtro del índice», §«Código del item», DECISIONS.md #1035 y #1036; pendiente de coco y bruno)
+**Dueño:** lima · **Estado:** aprobado · **Basado en:** `design/lab/sidebar/r01/` (kiwi); el item actual, los cortes y el hueco del icono en `design/lab/sidebar/r02/` (§«Item actual: el asiento», §«Cortes de adaptación», DECISIONS.md #612 a #619); el filtro del índice y el código del item en `design/lab/sitio/r01/` (concepto A del marco del sitio; §«Filtro del índice», §«Código del item», DECISIONS.md #1035 y #1036; extensión `@grana/vue/sidebar-filter` por #1050; pendiente de coco y bruno)
 **Tag:** `g-sidebar` · **Categoría:** navegación
 
 Navegación lateral (principal o secundaria) que **se transforma con un solo sistema**: **expandida** (etiquetas, grupos, submenús en línea), **riel** de iconos (submenús en un panel flotante) y, en móvil, **navbar inferior** con la «píldora activa» o **drawer**. Alcance decidido por el usuario (DECISIONS.md #67 a #70): navegación por arreglo `items` y slots, búsqueda que solo dispara un evento, adaptación por el ancho del contenedor con `mode` manual, navbar inferior con los primeros N items y «Más», estilo «píldora activa».
@@ -32,7 +32,7 @@ Navegación lateral (principal o secundaria) que **se transforma con un solo sis
 | `overlay` | Boolean | | `false` | propia |
 | `barCount` | Number | 3, 4 o 5 | `4` | propia |
 | `search` | Boolean | | `false` | propia |
-| `filter` | Boolean | | `false` | propia (filtro del índice en la cabecera; §«Filtro del índice», #1035) |
+| `filter` | Boolean | | `false` | propia (filtro del índice en la cabecera; §«Filtro del índice», #1035; **necesita la extensión `@grana/vue/sidebar-filter`**, #1050) |
 | `query` | String | texto del filtro | `''` | propia (con `update:query`; #1035) |
 | `filterKeyshortcuts` | String | valor de `aria-keyshortcuts` del campo (p. ej. `'/ Control+K Meta+K'`) | sin valor | propia (el componente **no** escucha atajos globales; #1035) |
 | `closeOnNavigate` | Boolean | | `true` | propia (drawer) |
@@ -55,7 +55,7 @@ Navegación lateral (principal o secundaria) que **se transforma con un solo sis
 - **`variant`:** `fixed` = borde a borde con un borde interior; `floating` = margen, radio y sombra (superficie flotante). Aplica a expandida y riel; el navbar es siempre flotante (píldora).
 - **`overlay`:** con `rail`, el usuario puede expandir **sobre** el contenido sin moverlo: la superficie expandida se posiciona encima del riel y **no** desplaza el diseño.
 - **`barCount`:** cuántos items van en la barra (además de «Más»).
-- **`filter`, `query`, `filterKeyshortcuts`:** ver §«Filtro del índice» (#1035). Con `filter`, `search` no actúa (aviso F1).
+- **`filter`, `query`, `filterKeyshortcuts`:** ver §«Filtro del índice» (#1035). Con `filter` **y la extensión cargada** (#1050), `search` no actúa (aviso F1); sin la extensión, todo es como con `filter` en `false` (aviso F5).
 - **`search`:** muestra el disparador de búsqueda en la cabecera (campo compacto expandido, botón de icono en riel; en el navbar vive en el drawer). El texto y el atajo salen de `labels`. Solo emite `search`.
 - **`closeOnNavigate`:** el drawer se cierra al elegir un destino (`navigate` no cancelado).
 - **`color`:** relleno de los **contadores y puntos** (`--g-color-{color}` y `on-`) en todos los formatos. **No pinta el item actual ni la píldora del navbar**: los dos leen las ranuras del item actual (`--g-sidebar-current*`, §«Item actual: el asiento»; #615, cambia el uso de #68). Quien usaba `color` para teñir la píldora pasa a `--g-sidebar-current` en el tema.
@@ -589,6 +589,24 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 
 **Origen:** concepto A «El índice se escribe» de `design/lab/sitio/r01/` (elegido por el usuario el 2026-11-08, #1034): un campo en la cabecera **filtra la lista en su sitio** mientras se escribe, y un número lleva a su entrada (`/` `2` `4` Intro). Kiwi lo midió con un campo de la aplicación en el slot `search` (411/411, tres motores); se contrata **dentro de `GSidebar`** porque el recuento anunciado, Esc sin propagar, ↓ a la lista, Intro al primero y el trato de grupos vacíos, padres, asiento y drawer solo salen bien por construcción, y sirve igual a un administrador con decenas de módulos (inventario #13: ERP, hospital).
 
+### Extensión y conexión (#1050, enmienda de #1035)
+
+El filtro **no viaja en `@grana/vue`**: su motor va en la entrada **`@grana/vue/sidebar-filter`** (global UMD `GranaSidebarFilter`) y se conecta una vez por aplicación (decisión del usuario del 2026-11-08: cada aplicación con `GSidebar` pagaba ≈ 2,3 KB gzip por una función que solo usan los sitios de documentación y los índices grandes).
+
+```js
+import SidebarFilter from '@grana/vue/sidebar-filter'
+app.use(SidebarFilter) // conecta el motor con todos los GSidebar de la aplicación
+```
+
+- **Conexión:** el plugin hace `app.provide` del motor con una **clave interna** (no es API pública) que llega a la entrada por `__shared` (#240); `GSidebar` la inyecta. Un solo camino: sin prop para pasar el motor ni opciones de `install`. En UMD, `app.use(GranaSidebarFilter.default)` tras cargar `grana.umd.js`. Igual en SSR: el plugin se instala en la aplicación del servidor y en la del cliente, y el HTML del servidor ya trae el campo y la lista filtrada por `query`.
+- **Qué se queda en `GSidebar` (principal):** las props `filter`, `query` y `filterKeyshortcuts`, el evento `update:query`, el método `focusFilter()`, los campos `keywords` y `filterable` del modelo (se conservan aunque no se usen), los `labels` del filtro (§«Textos»), las clases (`g-sidebar__filter*` siguen en `grana.css`: coco no cambia nada), los avisos F1, F2 y F5, el **punto de enganche interno** (lo define bruno: el motor recibe el árbol, la consulta y los nodos y devuelve el campo y el conjunto de visibles; no es API pública) y el `code` del item (#1036), que no depende del filtro.
+- **Qué va en la extensión:** el campo y su anatomía, qué coincide (normalización compartida con `utils/menuNav.js` por `__shared`, sin copia), ocultar con `hidden`, padres abiertos por la consulta, recuento y anuncio cortés, el teclado del campo (Intro, ↓, ↑ desde el primero, Esc), el botón del filtro del riel con `is-filtering`, la región al principio y la luz apagada al cambiar la consulta, y los avisos F3 y F4.
+- **Sin la extensión** (no se hizo `app.use(SidebarFilter)`): `GSidebar` con `filter` se pinta **como si `filter` fuera `false`**: sin campo ni botón del filtro en el riel, con el índice entero, y el disparador de `search` vuelve a actuar si la aplicación lo pidió (F1 no aplica). Aviso **F5**. Nunca un error.
+- **`v-model:query` sin la extensión:** la prop se acepta y se ignora (no filtra nada); `update:query` no se emite nunca (solo lo emite el campo). El valor sigue en el estado de la aplicación.
+- **`focusFilter()` sin la extensión:** no hace nada (ni abre el drawer ni expande el riel) y dispara F5 si aún no se emitió. Con la extensión, lo de §«Método».
+- **Tipos:** `filter`, `query`, `filterKeyshortcuts`, `update:query` y `focusFilter` siguen en `GSidebar.meta.json` (son API de `GSidebar`). La entrada lleva su `.d.ts` con el plugin por defecto (`Plugin`) y nada en `GlobalComponents`; se declara en `exports`, `typesVersions`, `ENTRIES` de `scripts/build-types.mjs` y `src/types.test.js` (`api.md` «Paquete, entradas y tipos»).
+- **Peso (#1050):** `dist/sidebar-filter.js` **≤ 3 KiB (3 072 B) gzip**; en `grana.js` lo que queda del lote del marco A (`code`, `current: 'location'` de `GMenu`, las props, F5 y el enganche) sigue con el tope de #1042, **≤ +1 280 B gzip** sobre la medida anterior al lote (la de antes de 336f3624). Compuertas en `gates.sh`: `test -f packages/vue/dist/sidebar-filter.js`; `! grep -q` en `dist/grana.js` de una cadena propia del motor (bruno la elige, p. ej. el texto de F3); `grep -q "g-sidebar__filter-count" packages/vue/dist/grana.css`; y que `dist/sidebar-filter.js` no lleve copia de `GSidebar` ni de `utils/menuNav.js` (cadena propia elegida por bruno). Si no cabe, vuelve a lima; con más, decide el usuario.
+
 ### Anatomía (en `g-sidebar__head`, fuera del `<nav>`)
 
 ```html
@@ -670,7 +688,7 @@ Filtrar 500 destinos en Chromium: **< 16 ms por tecla** sin desmontar items; sin
 
 ### Avisos (`[Grana] GSidebar`, guarda canónica de #653)
 
-**F1** `filter` con `search`: `search` no actúa. **F2** `filter` con el slot `search`: manda el slot. **F3** `filter` sin `labels.filter`, `labels.filterCount`, `labels.filterNone` o `labels.filterClear`. **F4** `keywords` que no es un arreglo de cadenas: se ignora.
+**F1** `filter` con `search` (con la extensión cargada): `search` no actúa. **F2** `filter` con el slot `search`: manda el slot. **F3** `filter` sin `labels.filter`, `labels.filterCount`, `labels.filterNone` o `labels.filterClear`. **F4** `keywords` que no es un arreglo de cadenas: se ignora. **F5** (#1050) `filter` sin la extensión: «[Grana GSidebar] `filter` necesita `@grana/vue/sidebar-filter` (`app.use(SidebarFilter)`); se pinta sin filtro». Una vez por instancia; también lo dispara `focusFilter()`. F1, F2 y F5 los emite `GSidebar`; F3 y F4, la extensión.
 
 ## Código del item: el número en el asiento (#1036)
 

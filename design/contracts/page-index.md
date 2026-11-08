@@ -1,6 +1,6 @@
 # Contrato · GPageIndex (índice de la página)
 
-**Dueño:** lima · **Estado:** aprobado (forma `relay`); las demás formas, reservadas · **Basado en:** `design/lab/sitio/r01/` (kiwi; concepto A «El índice se escribe», elegido por el usuario el 2026-11-08, #1034), hallazgos S-L2 y S-L4 de su `declaracion.md` e inventario #2 (`inventario-componentes.md`) · **Decisiones:** #1038 a #1040, #1042, #1047 a #1049
+**Dueño:** lima · **Estado:** aprobado (forma `relay`); las demás formas, reservadas · **Basado en:** `design/lab/sitio/r01/` (kiwi; concepto A «El índice se escribe», elegido por el usuario el 2026-11-08, #1034), hallazgos S-L2 y S-L4 de su `declaracion.md` e inventario #2 (`inventario-componentes.md`) · **Decisiones:** #1038 a #1040, #1042, #1047 a #1049, #1051
 **Tag:** `g-page-index` · **Categoría:** navegación · **Entrada:** `@grana/vue/page-index`
 
 Índice de las secciones **de la página que se está leyendo**, con la sección actual siguiendo la lectura (`aria-current="location"`). Es la pieza que el sitio necesita en A («En esta página» como **relevo** en el zócalo de `GPageHeader`) y la que hoy se escribe a mano en formularios largos y ajustes (`GbSettingsLayout01` compone un índice con `GCard interaction="link"` y `current`). Por eso es un **componente reutilizable**, no una enmienda de `GPageHeader` (#1038): el encabezado solo lo aloja en su slot `actions`, como aloja cualquier `GMenu`.
@@ -189,7 +189,7 @@ El primer render no lee `location`, `matchMedia` ni cajas (#1033): pinta `items`
 ## Paquete y peso (#1042)
 
 - **Entrada propia `@grana/vue/page-index`** (global UMD `GranaPageIndex`), con plugin `app.use(PageIndex)`; `@grana/vue` no lo exporta. #550: el margen del principal está agotado. `GMenu` y `utils/menuNav.js` llegan por `__shared`, **sin copia** (compuerta).
-- **Tope: 2,5 KiB (2 560 B) gzip** de `dist/page-index.js`. Si no cabe, vuelve a lima.
+- **Tope: 3 KiB (3 072 B) gzip** de `dist/page-index.js` (#1051, decisión del usuario del 2026-11-08; antes 2 560 B por #1042; medido 2 905 B en 336f3624). Si no cabe, vuelve a lima, y con más decide el usuario.
 - Declarar en `exports`, `typesVersions`, `ENTRIES` de `scripts/build-types.mjs` y `src/types.test.js` (#442, #443).
 - Compuertas para `gates.sh`: `test -f packages/vue/dist/page-index.js`, `! grep -q "GPageIndex" packages/vue/dist/grana.js`, `grep -q "g-page-index__stack" packages/vue/dist/grana.css`, y que `dist/page-index.js` no lleve una copia de `GMenu` (bruno elige la cadena propia de `GMenu.vue` que lo demuestra).
 
