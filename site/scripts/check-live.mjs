@@ -4,7 +4,7 @@
 // se activa y se quita, cada caso se abre en la ficha, en claro y en oscuro, sin errores ni avisos
 // en la consola y sin desplazamiento horizontal (también a 375 px). Sobre docs:dev o docs:preview.
 //
-//   node site/scripts/check-live.mjs [--base http://localhost:4219/grana/] [--browser chromium|firefox|webkit] [--no-grana-warnings] [Componente…]
+//   node site/scripts/check-live.mjs [--base http://localhost:4219/grana/] [--browser chromium|firefox|webkit] [--days-ahead N] [--no-grana-warnings] [Componente…]
 //
 // Sin nombres, recorre todos los de site/live/. Inyecta `process.env.NODE_ENV = 'development'` para que
 // salgan los avisos de desarrollo de Grana (un texto que falta, un valor fuera de la lista).
@@ -25,6 +25,9 @@ const opt = (name, def) => {
 }
 const base = opt('base', 'http://localhost:4219/grana/')
 const engine = { chromium, firefox, webkit }[opt('browser', 'chromium')]
+// Sitio estático: se construye una vez y se abre otro día. --days-ahead N adelanta el reloj del navegador N días
+// (lo que dependa de «hoy» en el primer render daría «Hydration mismatch»; DECISIONS #1033).
+const daysAhead = Number(opt('days-ahead', '0'))
 if (!engine) throw new Error('--browser: chromium, firefox o webkit')
 const granaWarnings = !args.includes('--no-grana-warnings')
 if (!granaWarnings) args.splice(args.indexOf('--no-grana-warnings'), 1)
@@ -46,6 +49,7 @@ for (const name of names) {
       try { localStorage.setItem('vitepress-theme-appearance', s) } catch {}
     }, scheme)
     if (granaWarnings) await context.addInitScript(() => { window.process = { env: { NODE_ENV: 'development' } } })
+    if (daysAhead) await context.clock.install({ time: new Date(Date.now() + daysAhead * 86_400_000) })
     const page = await context.newPage()
     page.on('console', (m) => {
       if (!['error', 'warning'].includes(m.type())) return
@@ -71,7 +75,9 @@ for (const name of names) {
     })
     if (!mounted) problems.push(`${scheme}: la ficha no pinta el componente`)
     // Oscilación: con la página quieta, un componente que se mide a sí mismo no debe cambiar de forma sin parar.
-    const churn = await page.evaluate(() => new Promise((done) => {
+    // Un asentamiento al montar (entrada, medida en dos cuadros) no es oscilación: si hay cambios, se espera
+    // un segundo y se vuelve a medir; solo cuenta lo que sigue.
+    const sample = () => page.evaluate(() => new Promise((done) => {
       const root = document.querySelector('.grana-live')
       if (!root) return done(0)
       let n = 0
@@ -79,6 +85,8 @@ for (const name of names) {
       mo.observe(root, { attributes: true, subtree: true, attributeFilter: ['class'] })
       setTimeout(() => { mo.disconnect(); done(n) }, 600)
     }))
+    let churn = await sample()
+    if (churn > 10) { await page.waitForTimeout(1000); churn = await sample() }
     if (churn > 10) problems.push(`${scheme} ${width}px: la ficha no se queda quieta (${churn} cambios de clase en 600 ms, ¿oscila?)`)
     // Solo a lo ancho (en claro): cada control recorre todos sus valores y vuelve al inicial.
     if (scheme === 'light') try {

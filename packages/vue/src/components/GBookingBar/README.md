@@ -206,10 +206,13 @@ const { text, checkout, nights, missing } = describeQuery(
 | `tours` | `{ value, label }[]` | `tour`: el nombre del recorrido |
 | `locale` | `string` | BCP 47; sin él, el de `Intl` del entorno |
 | `labels` | `{ nights, separator, checkout?, noDates?, noDate?, noTime?, noTour? }` | Las mismas claves de «Textos» con el mismo significado |
+| `today` | `string \| null` | Fecha ISO que cuenta como hoy para «hoy» y «mañana» (`table`); `null`, fecha corta sin relativo; sin la opción, la fecha del dispositivo (DECISIONS #1033) |
+| `formatRange` | `boolean` | Por omisión `true`: el rango de fechas con `Intl.DateTimeFormat#formatRange`. Con `false`, forma propia («26 oct – 29 oct»), igual en todo motor (#1033) |
 
 - **`text`** es exactamente lo que pinta el resumen de la barra con esos datos; **`checkout`** es «Salida el {date}» (solo en `stay` completo; vacío si no); **`nights`** es el número de noches o `null`; **`missing`** nombra lo que falta en orden (`dates`, `date`, `time`, `tour`).
 - **Pura:** sin DOM, sin `window` y sin estado salvo la caché de `Intl`; funciona en el servidor. **Nunca lanza:** una consulta con forma inválida devuelve el `text` con lo que falta. Una clave de `labels` que falta omite su pieza, sin aviso (los avisos siguen siendo de `GBookingBar`, aviso 7).
-- **Lo relativo se hereda:** con `kind: 'table'` el texto dice «hoy» y «mañana» como el resumen de la barra (`Intl.RelativeTimeFormat`); no hay opción para apagarlo (DECISIONS #884). Una página cacheada puede decir «mañana» un día después.
+- **Lo relativo se hereda:** con `kind: 'table'` el texto dice «hoy» y «mañana» como el resumen de la barra (`Intl.RelativeTimeFormat`), relativo a `today` (DECISIONS #884, #1033).
+- **Con SSR, sin entorno en el primer render (#1033):** si pintas en el servidor, llama antes de montar con `{ today: null, formatRange: false }` y, al montar, sin ellas: el servidor no sabe qué día es para el visitante ni qué datos de ICU tiene su navegador (Node, Chromium y WebKit no escriben igual un rango). `GBookingBar` y las secciones de `@grana/blocks/booking` ya lo hacen: su resumen cambia una vez al montar (fecha corta → «hoy»/«mañana», rango propio → `formatRange`).
 - **Evidencia:** `bookingQuery.test.js` comprueba, para los tres `kind`, con y sin huecos, que `describeQuery(...).text` es igual al resumen de `GBookingBar` montado con la misma consulta (y en inglés), más el resultado, los `labels` que faltan y que nunca lanza; `bookingQuery.ssr.test.js` lo ejecuta sin `window` ni `document`; 18 de 18 en verde (`prueba`, 2026-10-23).
 
 ## Props de `GBookingBar`
