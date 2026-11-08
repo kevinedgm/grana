@@ -1,0 +1,252 @@
+/* GSidebar appearance="index" · prototipo de kiwi (r03). NO es GSidebar.css: es la piel que se propone a coco, escrita
+   sin capa sobre el GSidebar real para medirla contra el original (VitePress 1.6.4, design/lab/sitio/referencia/).
+   Dos partes: (1) lo que pondría el TEMA DEL SITIO (sin capa, como site/.vitepress/theme) y (2) lo que sería la apariencia
+   del componente, que solo lee --g-* y alias --_*. Literales: los de la regla (24px, 44px) y ninguno más.
+   El drawer de GSidebar es un <dialog> hermano cuya raíz interna NO lleva la clase de la apariencia (hallazgo SB-B1): aquí se
+   alcanza con `.g-sidebar__drawer > .g-sidebar`; en el componente, la raíz del drawer llevará g-sidebar--appearance-index. */
+
+/* ---------- (1) Tema del sitio ---------- */
+:root {
+  /* Título de grupo en 700 como el original. Ranura propuesta (SB-L5): el componente lee --g-sidebar-group-title-weight,
+     cuyo valor por defecto en defaults.css sería var(--g-text-title-sm-weight) (600) */
+  --g-sidebar-group-title-weight: 700;
+}
+
+/* ---------- (2) La apariencia ---------- */
+:is(.g-sidebar--appearance-index, .g-sidebar__drawer > .g-sidebar) {
+  --_ix-pad: var(--g-space-8);                          /* relleno lateral de la columna: 32 */
+  --_ix-row: max(24px, calc(var(--g-space-1) * 8));     /* fila: 32 */
+  --_ix-line: calc(var(--g-space-1) * 6);               /* interlineado: 24 */
+  --_ix-gtop: calc(var(--g-space-1) * 2.5);             /* relleno superior del grupo: 10 */
+  --_ix-gend: var(--g-space-6);                         /* relleno inferior del grupo abierto: 24 */
+  --_ix-mark-x: calc(var(--g-space-1) * 4.25 * -1);     /* la marca a 15 px del borde (32 − 17) */
+  --_ix-mark-h: calc(var(--g-space-1) * 5);             /* 20 */
+  --_ix-mark-w: calc(var(--g-border-width) * 2);        /* 2 */
+  --_seam: 0px;
+  border-inline-end: 0;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--_ix-line);
+}
+@media (pointer: coarse) {
+  :is(.g-sidebar--appearance-index, .g-sidebar__drawer > .g-sidebar) { --_ix-row: 44px; }
+}
+
+/* Cabecera: la banda de 64 con la marca y su línea (la línea va de borde a borde del contenido: 32 → 240) */
+:is(.g-sidebar--appearance-index, .g-sidebar__drawer > .g-sidebar) .g-sidebar__head {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: var(--g-app-shell-header) auto;
+  align-items: center;
+  gap: 0;
+  padding: 0 var(--_ix-pad);
+}
+:is(.g-sidebar--appearance-index, .g-sidebar__drawer > .g-sidebar) :is(.g-sidebar__top, .g-sidebar__filter) { display: contents; }
+.g-sidebar--appearance-index .g-sidebar__head::after {
+  content: "";
+  position: absolute;
+  inset-inline: var(--_ix-pad);
+  inset-block-start: calc(var(--g-app-shell-header) - var(--g-border-width));
+  block-size: var(--g-border-width);
+  background: var(--g-color-border);
+}
+.g-sidebar--appearance-index .g-sidebar__logo { grid-area: 1 / 1; transition: opacity var(--g-duration-fast) var(--g-ease-standard); }
+/* Sin riel en el índice: el botón de contraer no se pinta (SB-L1) */
+.g-sidebar--appearance-index .g-sidebar__toggle { display: none; }
+
+/* El filtro: campo sin caja en reposo; al enfocarlo o con texto, se vuelve campo (borde de control, superficie de campo) */
+:is(.g-sidebar--appearance-index, .g-sidebar__drawer > .g-sidebar) .g-sidebar__filter-box {
+  grid-row: 1;
+  min-block-size: var(--_ix-row);
+  padding-inline: var(--g-space-2) var(--g-space-1);
+  border-color: transparent;
+  background: transparent;
+  color: var(--g-color-text-muted);
+}
+@media (hover: hover) {
+  :is(.g-sidebar--appearance-index, .g-sidebar__drawer > .g-sidebar) .g-sidebar__filter-box:hover { border-color: transparent; background: var(--g-color-border); }
+}
+:is(.g-sidebar--appearance-index, .g-sidebar__drawer > .g-sidebar) :is(.g-sidebar__filter-box:focus-within, .g-sidebar__filter-box:has(.g-sidebar__filter-input:not(:placeholder-shown))) {
+  border-color: var(--g-color-border-control);
+  background: var(--g-surface-inset);
+}
+/* El recuento: oculto a la vista mientras el campo está vacío (sigue en el DOM y en aria-describedby, SB-L4); con texto,
+   una línea bajo la banda */
+:is(.g-sidebar--appearance-index, .g-sidebar__drawer > .g-sidebar) .g-sidebar__filter-count {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  padding: var(--g-space-2) 0 0;
+}
+:is(.g-sidebar--appearance-index, .g-sidebar__drawer > .g-sidebar) .g-sidebar__filter:not(:has(.g-sidebar__filter-input:not(:placeholder-shown))) .g-sidebar__filter-count {
+  position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; padding: 0;
+}
+
+/* F1 · Filtro en la banda (por defecto): ocupa el hueco a la derecha de la marca y, al enfocarlo o con texto, crece hasta
+   tapar la marca (I3). La lista no se mueve en reposo */
+[data-filtro="banda"] .g-sidebar--appearance-index .g-sidebar__filter-box {
+  grid-column: 1 / -1;
+  justify-self: end;
+  inline-size: calc(var(--g-space-1) * 30);
+}
+[data-filtro="banda"] .g-sidebar--appearance-index .g-sidebar__filter-box:is(:focus-within, :has(.g-sidebar__filter-input:not(:placeholder-shown))) { inline-size: 100%; }
+[data-filtro="banda"] .g-sidebar--appearance-index .g-sidebar__head:has(.g-sidebar__filter-box:is(:focus-within, :has(.g-sidebar__filter-input:not(:placeholder-shown)))) .g-sidebar__logo { opacity: 0; visibility: hidden; }
+@media (prefers-reduced-motion: no-preference) {
+  [data-filtro="banda"] .g-sidebar--appearance-index .g-sidebar__filter-box { transition: inline-size var(--g-duration-slow) var(--g-ease-out), background-color var(--g-duration-fast) var(--g-ease-standard), border-color var(--g-duration-fast) var(--g-ease-standard); }
+}
+/* F2 · Filtro en una fila bajo la banda: siempre a lo ancho; la lista baja 32 + 10 */
+[data-filtro="fila"] .g-sidebar--appearance-index .g-sidebar__head { grid-template-rows: var(--g-app-shell-header) auto auto; }
+[data-filtro="fila"] .g-sidebar--appearance-index .g-sidebar__filter-box { grid-column: 1 / -1; grid-row: 2; margin-block-start: var(--_ix-gtop); }
+[data-filtro="fila"] .g-sidebar--appearance-index .g-sidebar__filter-count { grid-row: 3; }
+
+/* Drawer: sin marca (la marca está en la barra), el campo y el botón de cerrar en la primera fila, a 32 del borde como el
+   original; ancho del original: 320 o el visor menos 64 (SB-C3) */
+.g-sidebar__drawer:has(> .g-sidebar) { inline-size: min(calc(var(--g-space-1) * 80), calc(100vw - var(--g-space-1) * 16)); max-inline-size: none; }
+.g-sidebar__drawer > .g-sidebar .g-sidebar__head { grid-template-rows: auto auto; padding-block-start: var(--_ix-pad); gap: 0 var(--g-space-2); }
+.g-sidebar__drawer > .g-sidebar .g-sidebar__logo { display: none; }
+.g-sidebar__drawer > .g-sidebar .g-sidebar__filter-box { grid-column: 1; }
+.g-sidebar__drawer > .g-sidebar .g-sidebar__toggle { grid-area: 1 / 2; inline-size: var(--_ix-row); block-size: var(--_ix-row); min-inline-size: 0; min-block-size: 0; }
+
+/* Región: relleno 0 32 96 (el de la columna del original); posición para la marca que viaja */
+:is(.g-sidebar--appearance-index, .g-sidebar__drawer > .g-sidebar) .g-sidebar__nav {
+  position: relative;
+  padding: 0 var(--_ix-pad) calc(var(--g-space-1) * 24);
+}
+
+/* Grupo: separador superior de 1 px entre grupos, 10 arriba, 24 abajo (10 si está plegado) */
+:is(.g-sidebar--appearance-index, .g-sidebar__drawer > .g-sidebar) .g-sidebar__group {
+  margin: 0;
+  padding: var(--_ix-gtop) 0 var(--_ix-gend);
+}
+:is(.g-sidebar--appearance-index, .g-sidebar__drawer > .g-sidebar) .g-sidebar__group:not([hidden]) ~ .g-sidebar__group { border-block-start: var(--g-border-width) solid var(--g-color-border); }
+/* En el drawer el primer grupo empieza pegado (como el original) */
+.g-sidebar__drawer > .g-sidebar .g-sidebar__group:first-child { padding-block-start: 0; }
+:is(.g-sidebar--appearance-index, .g-sidebar__drawer > .g-sidebar) .g-sidebar__group.is-closed { padding-block-end: var(--_ix-gtop); }
+
+/* Título: 14/24, peso de la ranura, `text`; plegable = botón real con la flecha al final (32 × 32, −7 al borde) */
+:is(.g-sidebar--appearance-index, .g-sidebar__drawer > .g-sidebar) .g-sidebar__group-title {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--_ix-row);
+  padding: 0;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--_ix-line);
+  font-weight: var(--g-sidebar-group-title-weight);
+  color: var(--g-color-text);
+}
+.ix-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--g-space-2);
+  inline-size: 100%;
+  min-block-size: var(--_ix-row);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--g-radius-sm);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.ix-toggle:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset); }
+.ix-toggle__chev {
+  flex: none;
+  display: grid;
+  place-items: center;
+  inline-size: var(--_ix-row);
+  block-size: var(--_ix-row);
+  margin-inline-end: calc(var(--g-space-1) * -1.75);
+  color: var(--g-color-text-muted);
+  line-height: 0;
+}
+.ix-toggle__chev svg { inline-size: calc(var(--g-space-1) * 4.5); block-size: calc(var(--g-space-1) * 4.5); rotate: 90deg; }
+[dir="rtl"] .ix-toggle__chev svg { scale: -1 1; }
+.ix-toggle[aria-expanded="false"] .ix-toggle__chev svg { rotate: 0deg; }
+@media (hover: hover) { .ix-toggle:hover .ix-toggle__chev { color: var(--g-color-text); } }
+@media (prefers-reduced-motion: no-preference) { .ix-toggle__chev svg { transition: rotate var(--g-duration-slow) var(--g-ease-out); } }
+
+/* La lista plegada: alto animado mientras se mueve (indice.js; en el componente, la rejilla de utils/collapse.js) y, al
+   asentar, hidden="until-found" (Ctrl+F la abre). Donde el navegador no conoce until-found, hidden a secas: la regla de
+   display de .g-sidebar__list ganaría al hidden del navegador, así que se repone aquí */
+:is(.g-sidebar--appearance-index, .g-sidebar__drawer > .g-sidebar) .g-sidebar__list[hidden]:not([hidden="until-found"]) { display: none; }
+.g-sidebar__list.is-folding { overflow: clip; }
+
+/* Enlace: fila de 32, sin icono ni asiento, 14/24/500 en text-muted; hover a `text` (la luz marca el puntero) */
+:is(.g-sidebar--appearance-index, .g-sidebar__drawer > .g-sidebar) .g-sidebar__link {
+  gap: var(--g-space-2);
+  min-block-size: var(--_ix-row);
+  padding-inline: 0;
+  border-radius: var(--g-radius-sm);
+  font-weight: var(--g-text-action-weight);
+  line-height: var(--_ix-line);
+  color: var(--g-color-text-muted);
+}
+:is(.g-sidebar--appearance-index, .g-sidebar__drawer > .g-sidebar) .g-sidebar__link:active:not([aria-disabled="true"]) { scale: 1; }
+:is(.g-sidebar--appearance-index, .g-sidebar__drawer > .g-sidebar) .g-sidebar__link :is(.g-sidebar__label) { flex: 1 1 auto; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+:is(.g-sidebar--appearance-index, .g-sidebar__drawer > .g-sidebar) .g-sidebar__icon:not([data-code]) { display: none; }
+:is(.g-sidebar--appearance-index, .g-sidebar__drawer > .g-sidebar) .g-sidebar__icon::before,
+:is(.g-sidebar--appearance-index, .g-sidebar__drawer > .g-sidebar) .g-sidebar__icon::after { display: none; }
+@media (hover: hover) {
+  :is(.g-sidebar--appearance-index, .g-sidebar__drawer > .g-sidebar) .g-sidebar__link:hover:not([aria-disabled="true"]):not([aria-current="page"]) { color: var(--g-color-text); }
+}
+/* El actual: SOLO `accent-text` como el original (mismo peso) + la marca 2 × 20 en el margen, que el original dejaba
+   transparente (SB-C1: sin ella el actual se distingue solo por color, 1,31:1 frente a sus vecinos) */
+:is(.g-sidebar--appearance-index, .g-sidebar__drawer > .g-sidebar) .g-sidebar__link:is([aria-current="page"], .is-active) {
+  color: var(--g-color-accent-text);
+  font-weight: var(--g-text-action-weight);
+}
+:is(.g-sidebar--appearance-index, .g-sidebar__drawer > .g-sidebar) .g-sidebar__link[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: var(--_ix-mark-x);
+  inset-block-start: calc(50% - var(--_ix-mark-h) / 2);
+  inline-size: var(--_ix-mark-w);
+  block-size: var(--_ix-mark-h);
+  border-radius: var(--_ix-mark-w);
+  background: var(--g-color-accent-text);
+}
+/* Con la marca que viaja (I2), la estática no se pinta: la pinta la capa .ix-mark */
+.ix-hilo .g-sidebar__link[aria-current="page"]::before { content: none; }
+.ix-mark {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: calc(var(--_ix-pad) + var(--_ix-mark-x));
+  inline-size: var(--_ix-mark-w);
+  block-size: var(--_ix-mark-h);
+  border-radius: var(--_ix-mark-w);
+  background: var(--g-color-accent-text);
+  translate: 0 var(--_ix-mark-y, 0px);
+  opacity: 0;
+  pointer-events: none;
+}
+.ix-mark.is-on { opacity: 1; }
+/* Representa: el actual está dentro de un grupo plegado → la marca hueca (solo contorno) en la fila del título */
+.ix-mark.is-rep { background: transparent; box-shadow: inset 0 0 0 var(--g-border-width) var(--g-color-accent-text); }
+@media (prefers-reduced-motion: no-preference) {
+  .ix-mark.is-ready { transition: translate var(--g-duration-slow) var(--g-ease-spring), opacity var(--g-duration-fast) var(--g-ease-standard); }
+}
+@media (forced-colors: active) {
+  .ix-mark, :is(.g-sidebar--appearance-index, .g-sidebar__drawer > .g-sidebar) .g-sidebar__link[aria-current="page"]::before { background: Highlight; forced-color-adjust: none; }
+}
+
+/* Números (#1036). C1 · al final de la fila, como el número de página del índice de un libro: la etiqueta no se mueve de x = 32 */
+:is(.g-sidebar--appearance-index, .g-sidebar__drawer > .g-sidebar) .g-sidebar__icon[data-code] {
+  order: 2;
+  inline-size: auto;
+  block-size: auto;
+  margin: 0 0 0 auto;
+  margin-inline: auto 0;
+  color: var(--g-color-text-subtle);
+}
+:is(.g-sidebar--appearance-index, .g-sidebar__drawer > .g-sidebar) .g-sidebar__link[aria-current="page"] .g-sidebar__icon[data-code] { color: var(--g-color-accent-text); }
+/* C2 · solo al filtrar: en reposo no se ven (siguen en el nombre accesible y en el filtro); con texto en el campo, aparecen */
+[data-num="filtro"] :is(.g-sidebar--appearance-index, .g-sidebar__drawer > .g-sidebar):not(:has(.g-sidebar__filter-input:not(:placeholder-shown))) .g-sidebar__icon[data-code] { display: none; }
+
+/* La luz (#957): la misma capa, ensanchada 8 px por lado para que no corte el texto, que empieza a ras */
+:is(.g-sidebar--appearance-index, .g-sidebar__drawer > .g-sidebar) .g-sidebar__highlight {
+  inline-size: calc(var(--_highlight-w) + var(--g-space-2) * 2);
+  translate: calc(var(--_highlight-x) - var(--g-space-2)) var(--_highlight-y);
+  border-radius: var(--g-radius-sm);
+}
