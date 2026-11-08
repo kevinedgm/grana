@@ -1060,8 +1060,8 @@ describe('GCombobox · semántica y composición de GInput (#330, #334)', () => 
     expect(p.minChars.validator(0)).toBe(true)
   })
 
-  it('emits declarados: los ocho eventos', () => {
-    expect([...GCombobox.emits].sort()).toEqual(['change', 'close', 'create', 'more', 'open', 'search', 'update:custom', 'update:modelValue'])
+  it('emits declarados: los nueve eventos (select, #1056)', () => {
+    expect([...GCombobox.emits].sort()).toEqual(['change', 'close', 'create', 'more', 'open', 'search', 'select', 'update:custom', 'update:modelValue'])
   })
 })
 

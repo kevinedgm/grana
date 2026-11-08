@@ -76,7 +76,7 @@ describe('niveles de tokens en los componentes (tokens.md §17)', () => {
   // PUBLIC_INPUTS, no se ponen a 0 en .g-dialog__body (el chasis no va en un <dialog>, aviso 7; el contenedor no lee cabecera).
   // Excepción acotada y nombrada, no un comodín.
   const REGISTERED_PUBLIC = {
-    'GAppShell/GAppShell.css': { '--g-app-shell-header': true, '--g-app-shell-top': true },
+    'GAppShell/GAppShell.css': { '--g-app-shell-header': true, '--g-app-shell-top': true, '--g-app-shell-local-bar': true },
     'GContainer/GContainer.css': { '--g-container-max': false, '--g-container-inset-start': true, '--g-container-inset-end': true }
   }
 
@@ -112,12 +112,24 @@ describe('niveles de tokens en los componentes (tokens.md §17)', () => {
   const CAT_OK = new RegExp(`^--g-color-(?:cat-${K}(?:-strong|-soft|-text)?|on-cat-${K}(?:-soft)?)$`)
   const CAT_ANY = /^--g-color-(?:on-)?cat-/
 
+  // Hojas que LEEN las propiedades públicas registradas del chasis (sitio calcado, #1053 a #1056): la superficie del modo
+  // comando se coloca bajo lo pegado (combobox.md «Modo comando» 2), la barra mide la banda (nav-bar.md «Relación con
+  // GAppShell») y la columna `list` cabe en el visor bajo lo pegado (page-index.md «Forma list» 4). Solo las que registra
+  // GAppShell en REGISTERED_PUBLIC; excepción acotada y nombrada.
+  const READS_SHELL = {
+    'GCombobox/GCombobox.css': ['--g-app-shell-top'],
+    'GNavBar/GNavBar.css': ['--g-app-shell-header', '--g-app-shell-top'],
+    'GPageIndex/GPageIndex.css': ['--g-app-shell-top', '--g-app-shell-local-bar']
+  }
+
   it('todo var(--g-*) existe en defaults.css o lo declara el propio componente (o la primitiva que compone, si la publica)', () => {
+    for (const names of Object.values(READS_SHELL)) for (const n of names) expect(REGISTERED_PUBLIC['GAppShell/GAppShell.css'][n], n).toBe(true)
     const bad = {}
     for (const s of sheets) {
       const declared = new Set([...s.css.matchAll(/(--g-[a-z0-9-]+)\s*:/g)].map((m) => m[1]))
       for (const p of COMPOSES[s.name] ?? []) for (const n of PUBLISHED[p] ?? []) declared.add(n)
       for (const n of Object.keys(REGISTERED_PUBLIC[s.name] ?? {})) declared.add(n)
+      for (const n of READS_SHELL[s.name] ?? []) declared.add(n)
       for (const m of s.css.matchAll(/var\((--g-[a-z0-9-]+)/g)) {
         if (s.name in CAT_FAMILY_READERS && CAT_OK.test(m[1])) continue
         if (!defined.has(m[1]) && !declared.has(m[1])) (bad[s.name] ??= new Set()).add(m[1])

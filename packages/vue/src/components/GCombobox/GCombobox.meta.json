@@ -6,7 +6,7 @@
   "since": "0.1.0",
   "description": "Campo para elegir una opción de un catálogo grande escribiendo (paciente entre miles, diagnóstico CIE-10, medicamento). APG «Combobox with list autocomplete» sobre GInput. A · el campo se abre (appearance=\"field\"): campo y lista son una sola forma y la primera coincidencia por prefijo se completa como texto fantasma. B · paleta con vista previa (appearance=\"palette\"; con el visor ≤ 520px, siempre, como hoja): un GDialog real con su propio campo y la ficha de la opción activa. C · el valor es un objeto: en reposo el campo enseña la ficha de lo elegido y distingue el texto libre. Sin fetch: emite search, more y create; la aplicación entrega options, loading, total, loadError y selectedOption.",
   "contract": "design/contracts/combobox.md",
-  "decisions": "DECISIONS.md #329 a #338, #356 (adopción de GSummary) y #358 (paneles anclados); Fase 2 (multiple): #417 a #429",
+  "decisions": "DECISIONS.md #329 a #338, #356 (adopción de GSummary) y #358 (paneles anclados); Fase 2 (multiple): #417 a #429; modo comando: #1056",
   "prototype": "design/lab/combobox/r01/ y design/lab/combobox/r02/ y design/lab/combobox/r03/ (Fase 2)",
   "style": "packages/vue/src/components/GCombobox/GCombobox.css",
   "entry": "@grana/vue/combobox",
@@ -42,6 +42,14 @@
       "delta": 7592,
       "umdGzipAfter": 19569,
       "note": "Fase 2 (multiple) en la misma entrada (#428): +7 592 B gzip (7,4 KB), por debajo del tope de 8 KB de #328/#428; queda poco margen: crecer más exige la entrada aparte @grana/vue/combobox-multiple que prevé lima. GBtn («Listo») y utils/sizeObserver llegan por __shared, sin copia; multi.js (motor puro de la Fase 2) va en la entrada."
+    },
+    "command": {
+      "measured": "2026-11-08",
+      "entryGzipBefore": 22041,
+      "entryGzipAfter": 22423,
+      "delta": 382,
+      "cap": 1024,
+      "note": "Modo comando (#1056) en la misma entrada: lote ≤ +1 KiB (#1059)."
     }
   },
   "composes": [
@@ -89,9 +97,10 @@
       "default": "field",
       "values": [
         "field",
-        "palette"
+        "palette",
+        "command"
       ],
-      "note": "field = A (la lista es el interior del campo abierto). palette = B (superficie modal con vista previa). Con el visor ≤ 520px siempre la superficie (hoja, sin vista previa). Cambiarla con la lista abierta la cierra"
+      "note": "field = A (la lista es el interior del campo abierto). palette = B (superficie modal con vista previa). Con el visor ≤ 520px siempre la superficie (hoja, sin vista previa). Cambiarla con la lista abierta la cierra. command (#1056) = superficie de búsqueda sin campo en la página ni valor: se abre con open() y elegir emite select y cierra"
     },
     {
       "name": "filter",
@@ -363,6 +372,11 @@
       "name": "close",
       "payload": "—",
       "trigger": "Dejan de verse, por el motivo que sea"
+    },
+    {
+      "name": "select",
+      "payload": "{ option, event }",
+      "trigger": "Solo en command (#1056): Intro sobre la activa o clic en una opción; event es el keydown o click nativo. Después la superficie se cierra (siempre). Sin update:modelValue, update:custom ni change"
     }
   ],
   "slots": [
@@ -416,6 +430,10 @@
       "name": "chosen",
       "scope": "{ option, custom }",
       "purpose": "Con multiple: contenido de un renglón de la receta (B) y de la cesta (C); option null con texto libre. Por defecto, GSummary row de dos líneas. Sin multiple, aviso 15"
+    },
+    {
+      "name": "hints",
+      "purpose": "Solo en command: pie de la superficie con las teclas (texto visible, sin interactivos); oculto en la hoja móvil"
     }
   ],
   "labels": [
@@ -522,7 +540,9 @@
     "9 multiple, type, slots append/action, slot preview con field",
     "10 dentro de GInputGroup",
     "11 limit, delay o minChars fuera de rango",
-    "12 dato de facts sin label (no se pinta, no se busca ni se anuncia; una vez por instancia)"
+    "12 dato de facts sin label (no se pinta, no se busca ni se anuncia; una vez por instancia)",
+    "18 command sin label o con name, multiple, allowCustom, creatable, clearable, modelValue, custom o los slots value, preview o chosen (se ignoran)",
+    "19 open() con una appearance que no es command (no abre)"
   ],
   "tokens": [
     "los de GInput",
@@ -664,5 +684,12 @@
     "fresh",
     "basketEmpty",
     "clear («Quitar todas»)"
+  ],
+  "methods": [
+    {
+      "name": "open",
+      "signature": "open(): void",
+      "purpose": "Solo en command (#1056): abre la superficie con el foco en la búsqueda y la última búsqueda seleccionada; abierta, no hace nada; en otra appearance, aviso 19 y no abre"
+    }
   ]
 }

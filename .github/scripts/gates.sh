@@ -191,6 +191,13 @@ must_not_have grana.js "filterCount, filterNone y filterClear (F3)" "El motor de
 must_not_have grana.js "g-sidebar__filter-input" "El campo del filtro de GSidebar viajó en grana.js; debe ir solo en sidebar-filter.js (#1050)"
 must_not_have sidebar-filter.js "g-sidebar__fly-title" "GSidebar quedó copiado en sidebar-filter.js; debe llegar del principal (#1050)"
 must_not_have sidebar-filter.js "NFD" "La normalización quedó copiada en sidebar-filter.js; debe llegar por __shared (#1050)"
+# GNavBar (#1053): entrada propia nav-bar.js (tope 3,5 KiB gzip, #1059); la luz (utils/glide.js) llega por __shared
+must_exist "nav-bar.js" "No se generó la entrada propia nav-bar.js (revisar vite.nav-bar.config.js y el script build de packages/vue)"
+must_not_have grana.js "GNavBar" "GNavBar viajó en el paquete principal grana.js; debe ir solo en la entrada nav-bar.js (#1053)"
+must_have grana.css "g-nav-bar__screen" "$CSS_MSG"
+must_not_have nav-bar.js "_glideTurn" "utils/glide.js quedó copiado en nav-bar.js; debe llegar por __shared desde el principal (#1059)"
+# Modo comando de GCombobox (#1056): en la entrada combobox.js
+must_have grana.css "g-combobox-surface--command" "$CSS_MSG"
 
 # Clases utilitarias (#804 a #811): capa grana.utilities, la última; dist/utilities.css suelto (tope +3 KiB gzip en grana.css)
 must_have grana.css "g-mx-auto" "Las utilidades no quedaron registradas en grana.css (¿falta el @import de utilities.css en grana.css?)"

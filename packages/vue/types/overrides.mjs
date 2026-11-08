@@ -62,6 +62,8 @@ export const props = {
   'GSidebar.items': 'SidebarItem[]',
   'GSidebar.breakpoints': '{ expanded?: number; rail?: number } | null',
   'GPageIndex.items': 'Array<{ id: string; label: string; href?: string; [key: string]: unknown }>',
+  'GNavBar.items': 'Array<{ id: string; label: string; href: string; activeMatch?: string; external?: boolean; target?: string; rel?: string; lang?: string; hreflang?: string; [key: string]: unknown }>',
+  'GNavBar.labels': '{ more?: string; menu?: string; newTab?: string }',
   'GPageIndex.scroller': 'string | Element | null',
   'GSlider.modelValue': 'number | null | [number, number]',
   'GSlider.valueText': '((value: number) => string)',
@@ -268,6 +270,7 @@ export const slots = {
 export const exposed = {
   GAdaptiveLayout: '{ refresh(): void }',
   GCard: "{ readonly size: string; readonly layout: string }",
+  GCombobox: '{ open(): void }',
   GDatePicker: '{ open(): void; close(): void; focus(): void }',
   GGalleryViewer: '{ show(index: number): void; zoomIn(): void; zoomOut(): void }',
   GPartyField: '{ open(): void; close(): void; focus(): void }',

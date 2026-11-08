@@ -32,7 +32,7 @@ const props = defineProps({
 
 const slots = useSlots()
 
-const HEADERS = ['pinned', 'relay']
+const HEADERS = ['pinned', 'relay', 'pinned-wide']
 const ZONES = ['none', 'brand']
 const RELAY_SPACES = 4 // umbral de B: space × 4 seguidos (app-shell.md «No son tokens»)
 
@@ -107,7 +107,8 @@ function compute() {
   if (yielded && !(relay.value && pinned > 0 && stuck)) setYielded(false, false) // nada que tome el relevo: vuelve
   const t = yielded ? 0 : pinned
   if (top.value !== t) top.value = t
-  setEdgeReserve(ownerTop, 'top', t, { order: EDGE_ORDER.appShell })
+  // El borde publicado suma la barra local de la aplicación (--g-app-shell-local-bar, #1055); la cifra `top`, no
+  setEdgeReserve(ownerTop, 'top', t + lengthOf(frameEl.value, 'var(--g-app-shell-local-bar)', 'local'), { order: EDGE_ORDER.appShell })
   const frame = frameEl.value
   const bottom = frame && isNavbar(root) ? parseFloat(getComputedStyle(frame).paddingBlockEnd) || 0 : 0
   setEdgeReserve(ownerBottom, 'bottom', Math.round(bottom * 100) / 100, { order: EDGE_ORDER.appShell })
@@ -120,7 +121,17 @@ function notify() {
   if (listening && stuck && !yielded && acc >= threshold && pinned > 0 && !focusInHeader()) setYielded(true)
 }
 
-provide(appShellKey, { top: readonly(top), notify })
+// cover(on) (#1055): la pantalla de menú de GNavBar tapa la página; el marco y el GSidebar hijo directo (raíz y <dialog> del
+// drawer) quedan inert y el documento no se desplaza (is-covered, CSS de coco). La banda no: allí viven botón y pantalla
+const covered = ref(false)
+function cover(on) {
+  covered.value = on = Boolean(on)
+  const root = rootEl.value
+  if (!root) return
+  for (const el of [frameEl.value, ...root.querySelectorAll(':scope > .g-sidebar, :scope > .g-sidebar__drawer')]) if (el) el.inert = on
+}
+
+provide(appShellKey, { top: readonly(top), notify, cover })
 
 // ---------- B · Relevo de franja (#710) ----------
 function setYielded(v, recompute = true) {
@@ -186,7 +197,7 @@ function onSkip(e) {
 // ---------- Avisos ----------
 function checkProps() {
   try { if (process.env.NODE_ENV !== 'production' && !skipText.value) warnOnce('skip', 'falta labels.skip (o está vacío): es el texto del enlace «Saltar al contenido», el primer enfocable de la página.') } catch {}
-  try { if (process.env.NODE_ENV !== 'production' && !HEADERS.includes(props.header)) warnOnce(`header:${props.header}`, `header="${props.header}" no está en pinned | relay: se usa pinned.`) } catch {}
+  try { if (process.env.NODE_ENV !== 'production' && !HEADERS.includes(props.header)) warnOnce(`header:${props.header}`, `header="${props.header}" no está en pinned | relay | pinned-wide: se usa pinned.`) } catch {}
   try { if (process.env.NODE_ENV !== 'production' && !ZONES.includes(props.headerZone)) warnOnce(`zone:${props.headerZone}`, `headerZone="${props.headerZone}" no está en none | brand: se usa none.`) } catch {}
   try { if (process.env.NODE_ENV !== 'production' && props.headerZone === 'brand' && !slots.header) warnOnce('zone-header', 'headerZone="brand" sin slot header: no hay banda que pintar.') } catch {}
 }
@@ -218,14 +229,15 @@ function checkDom() {
           const cs = getComputedStyle(root)
           const own = parseFloat(cs.getPropertyValue('--g-app-shell-top'))
           const base = parseFloat(cs.getPropertyValue('--_app-shell-base')) || 0
+          const local = parseFloat(cs.getPropertyValue('--g-app-shell-local-bar')) || 0 // #1055: el chasis la suma
           const inMain = parseFloat(getComputedStyle(main).getPropertyValue('--g-page-header-top'))
           const pad = parseFloat(getComputedStyle(html).scrollPaddingBlockStart)
-          if ((Number.isFinite(own) && Number.isFinite(inMain) && Math.abs(own - inMain) > 0.5) || (Number.isFinite(own) && Number.isFinite(pad) && Math.abs(own + base - pad) > 0.5)) {
+          if ((Number.isFinite(own) && Number.isFinite(inMain) && Math.abs(own + local - inMain) > 0.5) || (Number.isFinite(own) && Number.isFinite(pad) && Math.abs(own + base + local - pad) > 0.5)) {
             warnOnce('recipe', 'la aplicación escribe su propia receta de cabecera (--g-page-header-top o scroll-padding-block-start): con GAppShell no hace falta y se cuenta con el valor de la aplicación.')
           }
-          const a = cs.getPropertyValue('--g-app-shell-header').trim()
-          const b = getComputedStyle(html).getPropertyValue('--g-app-shell-header').trim()
-          if (a !== b) warnOnce('header-root', '--g-app-shell-header se declaró en el chasis o en un ancestro que no es :root: el scroll-padding de <html> no lo ve. Declárala en :root.')
+          for (const v of ['--g-app-shell-header', '--g-app-shell-local-bar']) {
+            if (cs.getPropertyValue(v).trim() !== getComputedStyle(html).getPropertyValue(v).trim()) warnOnce(v, `${v} se declaró en el chasis o en un ancestro que no es :root: el scroll-padding de <html> no lo ve. Declárala en :root.`)
+          }
         }
       }
     }
@@ -300,6 +312,7 @@ onBeforeUnmount(() => {
   if (onResize) window.removeEventListener('resize', onResize)
   unobserveHeader()
   if (mutations) mutations.disconnect()
+  if (covered.value) cover(false)
   clearEdgeReserve(ownerTop)
   clearEdgeReserve(ownerBottom)
 })
@@ -309,7 +322,7 @@ onBeforeUnmount(() => {
   <div
     ref="rootEl"
     :id="props.id"
-    :class="['g-app-shell', { 'g-app-shell--header-relay': relay, 'has-header': !!$slots.header, 'has-footer': !!$slots.footer }]"
+    :class="['g-app-shell', { 'g-app-shell--header-relay': relay, 'g-app-shell--header-pinned-wide': header === 'pinned-wide', 'is-covered': covered, 'has-header': !!$slots.header, 'has-footer': !!$slots.footer }]"
   >
     <a class="g-app-shell__skip" :href="`#${mainId}`" @click="onSkip">{{ skipText }}</a>
     <header v-if="$slots.header" ref="headerEl" class="g-app-shell__header" :data-g-zone="zoneBrand ? 'brand' : undefined" @focusin="onHeaderFocusIn"><slot name="header" /></header>

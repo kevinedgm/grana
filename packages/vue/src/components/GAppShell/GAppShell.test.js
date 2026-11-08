@@ -18,12 +18,16 @@ enableAutoUnmount(afterEach)
 
 // La banda pegada mide 56 (sonda de --_app-shell-pinned); `band.value` la cambia (0 = despegada por el presupuesto)
 const band = { value: 56 }
+// La barra local de la aplicación (--g-app-shell-local-bar, #1055): sonda `local`
+const local = { value: 0 }
 let realRect
 beforeEach(() => {
   band.value = 56
+  local.value = 0
   realRect = Element.prototype.getBoundingClientRect
   vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function () {
     if (this.dataset && this.dataset.gProbe === 'pinned') return { top: 0, left: 0, right: 0, bottom: band.value, width: 0, height: band.value, x: 0, y: 0 }
+    if (this.dataset && this.dataset.gProbe === 'local') return { top: 0, left: 0, right: 0, bottom: local.value, width: 0, height: local.value, x: 0, y: 0 }
     return realRect.call(this)
   })
   setScroll(0)
@@ -436,5 +440,48 @@ describe('GAppShell · servidor', () => {
     expect(html).toMatch(/<header class="g-app-shell__header">(<!--\[-->)?Marca/)
     expect(html).toContain('tabindex="-1"')
     expect(html).not.toContain('is-yielded')
+  })
+})
+
+describe('GAppShell · pinned-wide, barra local y cover() (#1055)', () => {
+  it('header="pinned-wide" está en la lista: clase propia, sin aviso 9; otro valor avisa', async () => {
+    const spy = warns()
+    const w = shell({ header: 'pinned-wide' })
+    await wait()
+    expect(w.element.classList.contains('g-app-shell--header-pinned-wide')).toBe(true)
+    expect(w.element.classList.contains('g-app-shell--header-relay')).toBe(false)
+    expect(warned(spy, /header=/)).toBe(false)
+    mount(GAppShell, { props: { labels: LABELS, header: 'ancho' }, slots: { default: () => h('p') } })
+    await wait()
+    expect(warned(spy, /pinned \| relay \| pinned-wide/)).toBe(true)
+  })
+
+  it('el borde publicado suma la barra local; la cifra del canal, no', async () => {
+    local.value = 48
+    shell({ header: 'pinned-wide' })
+    await wait()
+    expect(edgeReserve('top')).toBe(104)
+    expect(channel.top.value).toBe(56)
+  })
+
+  it('cover(true) pone inert en el marco y en el GSidebar hijo directo (y el <dialog> del drawer), is-covered; idempotente; cover(false) y desmontar lo deshacen', async () => {
+    const w = shell({}, { nav: () => [h('span', { class: 'g-sidebar' }), h('dialog', { class: 'g-sidebar__drawer' })] })
+    await wait()
+    const frame = w.element.querySelector('.g-app-shell__frame')
+    const side = w.element.querySelector(':scope > .g-sidebar')
+    const drawer = w.element.querySelector(':scope > .g-sidebar__drawer')
+    const header = w.element.querySelector('.g-app-shell__header')
+    channel.cover(true)
+    channel.cover(true)
+    await nextTick()
+    expect(w.element.classList.contains('is-covered')).toBe(true)
+    expect([frame.inert, side.inert, drawer.inert, Boolean(header.inert)]).toEqual([true, true, true, false])
+    channel.cover(false)
+    await nextTick()
+    expect(w.element.classList.contains('is-covered')).toBe(false)
+    expect([frame.inert, side.inert, drawer.inert]).toEqual([false, false, false])
+    channel.cover(true)
+    w.unmount()
+    expect(frame.inert).toBe(false)
   })
 })

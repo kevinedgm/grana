@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sitio calcado · banco del componente real (bruno)</title>
+<!-- Banco de las piezas del sitio calcado (#1052 a #1059) con los componentes REALES de dist/ (dueño: bruno):
+     GAppShell header="pinned-wide" (@grana/vue/app-shell, #1055) con GNavBar en la banda (@grana/vue/nav-bar, #1053),
+     GSidebar en el slot nav, una ficha con una barra local pegada (< 80rem, --g-app-shell-local-bar en :root) y la búsqueda
+     modal GCombobox appearance="command" (#1056) que abren el botón de la barra y Ctrl/⌘ K (los registra la aplicación).
+     La columna «En esta página» (GPageIndex appearance="list", #1054) entra cuando su extensión quepa en su tope (#1059).
+     Lo verifican design/lab/theme-playground/tests/nav-bar.spec.mjs, combobox-command.spec.mjs y app-shell-wide.spec.mjs.
+     Parámetros: ?shell=0 (sin chasis: la barra en un <header> propio) · ?nav=0 (sin GSidebar) ·
+     ?sections=N (secciones h2 con dos h3 cada una; 8 por defecto) · ?dir=rtl · ?dark=1 · ?current=/ruta.
+     Estado en window.site (registro de eventos y la reserva de borde compartida). -->
+<link rel="stylesheet" href="../dist/fonts.css">
+<link rel="stylesheet" href="../dist/grana.css">
+<style>
+  /* Andamio del banco (no es de Grana): la maqueta de la ficha, la barra local y la columna derecha son de la aplicación */
+  :root{ --g-app-shell-header: calc(var(--g-space-1) * 16); --g-app-shell-local-bar: 0px; }
+  @media (width < 80rem){ :root{ --g-app-shell-local-bar: 48px; } }
+  body{margin:0;font-size:var(--g-text-body-size);line-height:var(--g-text-body-line);background:var(--g-color-bg);color:var(--g-color-text)}
+  .site-brand{display:flex;align-items:center;gap:8px;color:inherit;text-decoration:none;font-weight:600}
+  .site-mark{inline-size:24px;block-size:24px;border-radius:6px;background:var(--g-color-brand)}
+  .search-btn{display:inline-flex;align-items:center;gap:8px;min-block-size:36px;padding-inline:12px;border:0;border-radius:8px;background:var(--g-color-surface-sunken);color:var(--g-color-text-muted);font:inherit;cursor:pointer}
+  .search-btn kbd{font:inherit;font-size:12px}
+  /* Receta del disparador (nav-bar.md «Recetas»): por debajo del corte que elige la aplicación, solo la lupa con su nombre */
+  @media (width < 60rem){ .search-btn .search-text{display:none} .search-btn{padding-inline:8px} }
+  .page{display:grid;grid-template-columns:minmax(0,1fr) 224px;gap:32px;padding:32px}
+  .local{display:none}
+  .aside{position:sticky;inset-block-start:calc(var(--g-app-shell-top) + 24px);align-self:start}
+  @media (width < 80rem){
+    .page{grid-template-columns:minmax(0,1fr)}
+    .aside{display:none}
+    .local{display:flex;box-sizing:border-box;align-items:center;position:sticky;inset-block-start:var(--g-app-shell-top);z-index:2;block-size:48px;padding-inline:24px;border-block-end:1px solid var(--g-color-border);background:var(--g-color-bg)}
+  }
+  .doc h2{font-size:24px;margin:48px 0 12px}
+  .doc h3{font-size:18px;margin:32px 0 8px}
+  .doc p{max-inline-size:70ch;margin:0 0 12px}
+  .hdr{position:sticky;top:0;z-index:3;block-size:64px;display:flex;background:var(--g-color-bg);border-block-end:1px solid var(--g-color-border)}
+</style>
+</head>
+<body>
+<div id="app">
+  <component :is="Q.shell ? 'g-app-shell' : 'div'" id="shell" v-bind="Q.shell ? { header: 'pinned-wide', labels: { skip: 'Saltar al contenido' } } : {}">
+    <template v-if="Q.shell" #header><nav-bar></nav-bar></template>
+    <template v-if="Q.shell && Q.nav" #nav>
+      <g-sidebar id="sb" v-model="active" :items="sbItems" label="Documentación" :labels="sbLabels" mobile="drawer" @navigate="(e) => { e.event.preventDefault(); active = e.item.id }">
+        <template #logo><a href="#" class="site-brand"><span class="site-mark" aria-hidden="true"></span>Grana</a></template>
+        <template #toggle-icon><g-icon name="panel-left"></g-icon></template>
+      </g-sidebar>
+    </template>
+    <header v-if="!Q.shell" class="hdr"><nav-bar></nav-bar></header>
+    <div class="local" id="local">
+      <span id="local-title">En esta página</span>
+    </div>
+    <div class="page">
+      <article class="doc">
+        <h1 id="top-title">GCombobox</h1>
+        <p>Búsqueda con resultados de la aplicación. Esta ficha tiene secciones con dos niveles para el índice de la página.</p>
+        <template v-for="s in sections" :key="s.id">
+          <component :is="s.level === 3 ? 'h3' : 'h2'" :id="s.id">{{ s.label }}</component>
+          <p v-for="k in 4" :key="k">{{ para }}</p>
+        </template>
+        <p style="min-block-size:60vh">Fin de la ficha.</p>
+      </article>
+      <aside class="aside" id="aside">
+        <p id="pi-list">En esta página</p>
+      </aside>
+    </div>
+  </component>
+  <g-combobox ref="cmd" id="cmd" appearance="command" label="Buscar en la documentación" placeholder="Buscar en la documentación" :options="index" :labels="cbLabels" @select="onSelect">
+    <template #hints><span><kbd>↵</kbd> para elegir</span> · <span><kbd>esc</kbd> para cerrar</span></template>
+  </g-combobox>
+</div>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="../dist/grana.umd.js"></script>
+<script src="../dist/app-shell.umd.js"></script>
+<script src="../dist/nav-bar.umd.js"></script>
+<script src="../dist/combobox.umd.js"></script>
+<script src="./lucide-icons.js"></script>
+<script>
+  const P = new URLSearchParams(location.search)
+  if (P.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  if (P.get('dark') === '1') document.documentElement.dataset.theme = 'dark'
+  const events = []
+  window.site = { events, edge: Grana.__shared['utils/edgeReserve.js'] }
+  const log = (e) => events.push(e)
+  const para = 'Cada sección explica una parte del componente con ejemplos que se pueden copiar. El índice de la página sigue la lectura y la columna se sigue sola cuando la sección actual sale de su vista.'
+  const N = Number(P.get('sections')) || 8
+  const NAMES = ['Uso', 'Opciones', 'Datos', 'Teclado', 'Accesibilidad', 'Props', 'Eventos', 'Slots', 'Avisos', 'Tokens']
+  const sections = []
+  for (let i = 1; i <= N; i++) {
+    const n = NAMES[(i - 1) % NAMES.length] + (i > NAMES.length ? ` ${Math.ceil(i / NAMES.length)}` : '')
+    sections.push({ id: `s${i}`, label: n })
+    sections.push({ id: `s${i}a`, label: `${n} · detalle`, level: 3 }, { id: `s${i}b`, label: `${n} · casos límite con un título largo que no cabe`, level: 3 })
+  }
+  const NavBar = {
+    setup() {
+      const current = Vue.ref(P.get('current') || '/components/combobox')
+      const open = () => { log('search'); window.siteApp.$refs.cmd.open() }
+      return () => Vue.h(Vue.resolveComponent('g-nav-bar'), {
+        id: 'nb', current: current.value, label: 'Secciones', labels: { more: 'Más opciones', menu: 'Menú', newTab: 'se abre en otra pestaña' },
+        items: [
+          { id: 'guide', label: 'Guía', href: '#/getting-started', activeMatch: '^/(getting-started|theming)' },
+          { id: 'components', label: 'Componentes', href: '#/components/btn', activeMatch: '^/components/' },
+          { id: 'blocks', label: 'Blocks', href: '#/blocks/', activeMatch: '^/blocks/' },
+          { id: 'playground', label: 'Playground', href: '#/theme-playground' },
+          { id: 'changelog', label: 'Cambios', href: '#/changelog' },
+          { id: 'github', label: 'GitHub', href: 'https://github.com/kevinedgm/grana', external: true }
+        ],
+        onNavigate: ({ item, event }) => { event.preventDefault(); log('navigate · ' + item.id); current.value = item.href.slice(1) }
+      }, {
+        brand: () => Vue.h('a', { href: '#', class: 'site-brand', id: 'brand' }, [Vue.h('span', { class: 'site-mark', 'aria-hidden': 'true' }), 'Grana']),
+        search: () => Vue.h('button', { type: 'button', class: 'search-btn', id: 'search-btn', 'aria-haspopup': 'dialog', 'aria-keyshortcuts': 'Control+K Meta+K', 'aria-label': 'Buscar en la documentación', onClick: open }, [
+          Vue.h(Vue.resolveComponent('g-icon'), { name: 'search' }), Vue.h('span', { class: 'search-text' }, 'Buscar'), Vue.h('span', { class: 'search-text', 'aria-hidden': 'true' }, [Vue.h('kbd', 'Ctrl'), ' ', Vue.h('kbd', 'K')])
+        ]),
+        actions: ({ place }) => place === 'bar'
+          ? [Vue.h('button', { type: 'button', id: 'lang-' + place, class: 'search-btn' }, 'Español'), Vue.h('button', { type: 'button', id: 'theme-' + place, class: 'search-btn', 'aria-label': 'Tema oscuro' }, 'Tema')]
+          : [Vue.h('a', { href: '#/en', id: 'lang-' + place, lang: 'en', hreflang: 'en' }, 'English'), Vue.h('button', { type: 'button', id: 'theme-' + place, class: 'search-btn' }, 'Apariencia')]
+      })
+    }
+  }
+  const app = Vue.createApp({
+    setup() {
+      return {
+        Q: { shell: P.get('shell') !== '0', nav: P.get('nav') !== '0' },
+        active: Vue.ref('combobox'), section: Vue.ref(null), sections, para, log,
+        sbLabels: { collapse: 'Contraer', expand: 'Expandir', more: 'Más', moreActive: 'contiene la página actual', drawer: 'Documentación', close: 'Cerrar' },
+        sbItems: [{ label: 'Componentes', items: ['GBtn', 'GInput', 'GSelect', 'GCombobox', 'GMenu', 'GDialog'].map((n) => ({ id: n.slice(1).toLowerCase(), label: n, href: '#' })) }],
+        index: sections.map((s) => ({ value: s.id, label: s.label, description: `GCombobox / ${s.label} · ${para.slice(0, 60)}` })),
+        cbLabels: { loading: 'Buscando…', noResults: 'Sin resultados para «{text}»', results: (n) => (n === 1 ? '1 resultado' : `${n} resultados`) },
+        onSelect: ({ option }) => { log('select · ' + option.value); location.hash = option.value }
+      }
+    }
+  })
+  app.component('NavBar', NavBar)
+  app.use(Grana).use(GranaAppShell).use(GranaNavBar).use(GranaCombobox).use(Grana.createIcons(Object.values(window.LUCIDE_STATIC)))
+  window.siteApp = app.mount('#app')
+  // El atajo es de la aplicación (Grana no escucha el documento, #1035)
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); log('shortcut'); window.siteApp.$refs.cmd.open() }
+  })
+</script>
+</body>
+</html>

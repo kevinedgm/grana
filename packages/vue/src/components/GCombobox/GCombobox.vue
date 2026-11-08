@@ -41,7 +41,7 @@ const props = defineProps({
   custom: { type: [String, Array], default: '' },
   options: { type: Array, default: () => [] },
   selectedOption: { type: Object, default: null },
-  appearance: { type: String, default: 'field', validator: oneOf(['field', 'palette']) },
+  appearance: { type: String, default: 'field', validator: oneOf(['field', 'palette', 'command']) },
   filter: { type: [Boolean, Function], default: true },
   loading: Boolean,
   total: { type: Number, default: null },
@@ -80,7 +80,7 @@ const props = defineProps({
 })
 
 // Todos declarados (lección de `emits`): el @change del consumidor recibe el objeto y no llega al <input> nativo
-const emit = defineEmits(['update:modelValue', 'update:custom', 'change', 'search', 'more', 'create', 'open', 'close'])
+const emit = defineEmits(['update:modelValue', 'update:custom', 'change', 'search', 'more', 'create', 'open', 'close', 'select'])
 
 const attrs = useAttrs()
 const slots = useSlots()
@@ -104,7 +104,11 @@ const PIN_CAP = 12          // filas de «Elegidas» y renglones de la cesta ant
 const ROWS_CAP = 6          // renglones de la receta en reposo antes de «Ver los N» (#426)
 
 // `multiple` se lee AL MONTAR (#338, aviso 13): cambiarlo después no tiene efecto; para cambiar de modo, la `key`
-const M = Boolean(props.multiple)
+const M = Boolean(props.multiple) && props.appearance !== 'command'
+// Modo comando (#1056): superficie sin campo en la página y sin valor; elegir emite `select` y cierra
+const cmd = computed(() => props.appearance === 'command')
+let lastQ = '' // la última búsqueda: open() la devuelve seleccionada
+let pickEv = null // el evento nativo del gesto que elige (keydown o click)
 
 // ---------- Avisos (una vez por instancia y motivo) ----------
 const warned = new Set()
@@ -199,7 +203,7 @@ const displayText = computed(() => (selected.value ? selected.value.label : cust
 
 // ---------- Estado ----------
 const narrow = ref(false)   // visor por debajo del umbral móvil: se resuelve al montar (SSR pinta según appearance)
-const surface = computed(() => props.appearance === 'palette' || narrow.value)
+const surface = computed(() => props.appearance !== 'field' || narrow.value)
 const opened = ref(false)   // abierto en sentido lógico; el panel de `field` solo se ve si además hay filas o estado
 const up = ref(false)
 const text = ref(displayText.value)   // texto del <input> visible
@@ -1132,6 +1136,7 @@ function closeList() {
     ledger.value = ledger.value.filter((e) => !e.trace)
   }
   if (wasSurface) {
+    lastQ = query.value
     query.value = ''
     q.value = ''
   } else {
@@ -1206,6 +1211,10 @@ watch(showToken, (v) => { if (!v) endLand() })
 function pick(row, { leaving = false } = {}) {
   if (!row || row.disabled || !editable.value) return
   if (row.kind === 'action') return runAction(row)
+  if (cmd.value) {
+    emit('select', { option: row.o, event: pickEv })
+    return closeList()
+  }
   if (M) return toggleRow(row)
   const o = row.o
   const wasSurface = surface.value
@@ -1540,9 +1549,17 @@ function onClearClick(e) {
 function focusSearch() {
   nextTick(() => {
     const el = typeof document !== 'undefined' ? document.getElementById(sub('search')) : null
-    if (el && opened.value && document.activeElement !== el) el.focus({ preventScroll: true })
+    if (!el || !opened.value) return
+    if (document.activeElement !== el) el.focus({ preventScroll: true })
+    if (cmd.value) el.select()
   })
 }
+/** Solo en `command` (#1056): abre la superficie con el foco en la búsqueda y la última seleccionada */
+function open() {
+  try { if (process.env.NODE_ENV !== 'production' && !cmd.value) warnOnce('open', 'open() solo abre con appearance="command" (aviso 19).') } catch {}
+  if (cmd.value) show(lastQ)
+}
+defineExpose({ open })
 function onSearchInput(e) {
   query.value = e.target.value
   if (M) lastRemoved = null
@@ -1555,6 +1572,7 @@ function onSearchCompositionend(e) {
   afterType()
 }
 function onSearchKeydown(e) {
+  pickEv = e
   keyMark(e)
   if (composing.value || e.isComposing) return
   if (M && multiKey(e)) return
@@ -1571,6 +1589,7 @@ function rowFromEvent(e) {
 // su clic, solo si el gesto empezó en una opción del panel (el click que sigue a abrir con la flecha no elige lo de debajo)
 let mouseDownInPanel = false
 const pickFrom = (e) => {
+  pickEv = e
   const row = rowFromEvent(e)
   if (row) pick(row)
 }
@@ -1786,7 +1805,7 @@ const Foot = () => h('div', { class: 'g-combobox__foot' }, [
  * Antes de montar (servidor e hidratación) se pinta en la celda; al montar, <Teleport> lo lleva a la raíz de GInput.
  */
 const Extras = () => [
-  h('div', { key: 'live', id: sub('live'), class: 'g-combobox__live', role: 'status', 'aria-live': 'polite', 'aria-atomic': 'true' }, surfaceOpen.value ? '' : live.polite),
+  cmd.value ? null : h('div', { key: 'live', id: sub('live'), class: 'g-combobox__live', role: 'status', 'aria-live': 'polite', 'aria-atomic': 'true' }, surfaceOpen.value ? '' : live.polite),
   surface.value
     ? h(GDialog, {
         key: 'surface',
@@ -1794,11 +1813,10 @@ const Extras = () => [
         modelValue: surfaceOpen.value,
         'onUpdate:modelValue': (v) => { surfaceOpen.value = v },
         onOpen: focusSearch,
-        class: ['g-combobox-surface', narrow.value ? 'g-combobox-surface--sheet' : 'g-combobox-surface--palette'],
+        class: ['g-combobox-surface', narrow.value ? 'g-combobox-surface--sheet' : `g-combobox-surface--${cmd.value ? 'command' : 'palette'}`],
         size: 'lg',
         mobile: 'sheet',
-        title: surfaceTitle.value,
-        closeLabel: L.value.close
+        ...(cmd.value ? { bare: true, 'aria-label': props.label } : { title: surfaceTitle.value, closeLabel: L.value.close })
       }, {
         default: () => [
           h('div', { class: 'g-combobox__search' }, [
@@ -1812,7 +1830,7 @@ const Extras = () => [
               'aria-expanded': 'true',
               'aria-controls': sub('list'),
               'aria-activedescendant': activeRow.value ? activeRow.value.id : undefined,
-              'aria-labelledby': sub('surface-title'),
+              'aria-labelledby': sub(cmd.value ? 'surface' : 'surface-title'),
               value: query.value,
               placeholder: selected.value ? selected.value.label : attrs.placeholder,
               autocomplete: 'off',
@@ -1831,6 +1849,7 @@ const Extras = () => [
             hasPreview.value ? h('aside', { id: sub('preview'), class: 'g-combobox__preview', 'aria-label': L.value.preview }, [h(Preview)]) : null,
             basketShown.value ? h(Basket) : null
           ]),
+          cmd.value && slots.hints ? h('div', { class: 'g-combobox__hints' }, slots.hints()) : null,
           h('div', { class: 'g-combobox__live', role: 'status', 'aria-live': 'polite', 'aria-atomic': 'true' }, live.polite),
           M ? h(Foot) : null // último hijo de g-dialog__body (coco)
         ]
@@ -1973,14 +1992,15 @@ onBeforeUnmount(() => {
 try {
   if (process.env.NODE_ENV !== 'production') {
     if (!hasLabel.value && !attrs['aria-label'] && !attrs['aria-labelledby']) warnOnce('name', 'necesita label, slot label, aria-label o aria-labelledby para tener un nombre accesible.')
-    if (!L.value.close) warnOnce('label:close', 'falta labels.close: la superficie (paleta y hoja móvil) queda sin botón de cierre.')
+    if (cmd.value && (!props.label || props.name || props.multiple || props.allowCustom || props.creatable || props.clearable || props.modelValue != null || props.custom || slots.value || slots.preview || slots.chosen)) warnOnce('command', 'appearance="command" necesita label y no admite name, multiple, allowCustom, creatable, clearable, modelValue, custom ni los slots value, preview y chosen: se ignoran (aviso 18).')
+    if (!cmd.value && !L.value.close) warnOnce('label:close', 'falta labels.close: la superficie (paleta y hoja móvil) queda sin botón de cierre.')
     if (props.clearable && !L.value.clear) warnOnce('label:clear', 'clearable necesita labels.clear: el botón de limpiar no se pinta.')
     if (props.allowCustom && !L.value.useCustom) warnOnce('label:useCustom', 'allowCustom necesita labels.useCustom: la fila de texto libre no se pinta.')
     if (props.allowCustom && !L.value.custom) warnOnce('label:custom', 'allowCustom necesita labels.custom: la ficha de texto libre queda sin marca.')
     if (props.creatable && !L.value.create) warnOnce('label:create', 'creatable necesita labels.create: la fila de agregar no se pinta.')
     if (minChars.value > 0 && !L.value.minChars) warnOnce('label:minChars', 'minChars necesita labels.minChars para la pista de mínimo.')
     if (!M && props.appearance === 'palette' && !L.value.preview) warnOnce('label:preview', 'appearance="palette" necesita labels.preview: la vista previa queda sin nombre.')
-    if (!props.label && !attrs['aria-label'] && !L.value.surfaceTitle) warnOnce('label:surfaceTitle', 'sin label ni aria-label, la superficie necesita labels.surfaceTitle para su título.')
+    if (!cmd.value && !props.label && !attrs['aria-label'] && !L.value.surfaceTitle) warnOnce('label:surfaceTitle', 'sin label ni aria-label, la superficie necesita labels.surfaceTitle para su título.')
     if (props.allowCustom && props.name && !props.customName) warnOnce('custom-name', 'allowCustom con name y sin customName: el texto libre no viaja en FormData.')
     if (attrs.type !== undefined) warnOnce('type', 'type no aplica: el campo es siempre type="text" con role="combobox".')
     if (slots.append || slots.action) warnOnce('slots', 'los slots append y action no aplican (el final de la caja es de limpiar y flecha): no se pintan.')
@@ -2031,7 +2051,9 @@ try {
 </script>
 
 <template>
+  <div v-if="cmd" :id="baseId" :class="['g-combobox g-combobox--appearance-command', attrs.class]" :style="attrs.style"><Extras /></div>
   <GInput
+    v-else
     v-bind="forwardAttrs"
     :id="baseId"
     :class="rootClasses"

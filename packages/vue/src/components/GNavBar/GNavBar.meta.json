@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "name": "GNavBar",
+  "tag": "g-nav-bar",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Barra superior de navegación de un sitio: los enlaces a sus secciones con la actual marcada por la ruta (aria-current=\"page\", de la prop current, nunca de location) y el sitio para las acciones globales de la aplicación (búsqueda, idioma, tema). Lista de enlaces (APG Disclosure Navigation), sin flechas ni roles de menú. Por debajo de 80rem las acciones van en «…» (disclosure con popover=\"auto\") y por debajo de 48rem todo va en una pantalla de menú con hamburguesa; todo está en el HTML del servidor y el CSS enseña lo que toca. P1 · una sola luz bajo el puntero (#957). Vive en el slot header de GAppShell.",
+  "contract": "design/contracts/nav-bar.md",
+  "decisions": [
+    "#1052",
+    "#1053",
+    "#1055",
+    "#1057",
+    "#1059"
+  ],
+  "prototype": "design/lab/navbar/r01/",
+  "style": "packages/vue/src/components/GNavBar/GNavBar.css",
+  "entry": "@grana/vue/nav-bar",
+  "bundle": {
+    "measured": "2026-11-08",
+    "entry": "dist/nav-bar.js (GNavBar)",
+    "gzip": 3011,
+    "global": "GranaNavBar",
+    "note": "gzip -9. Vue y @grana/vue externos; GLibIcon, utils/glide.js (createPointerGlide), utils/link.js y utils/appShell.js llegan de __shared, sin copia. El CSS va en grana.css.",
+    "cap": 3584,
+    "umdGzip": 2791
+  },
+  "props": [
+    {
+      "name": "items",
+      "type": "Array",
+      "default": [],
+      "description": "Enlaces { id, label, href, activeMatch?, external?, target?, rel?, lang?, hreflang? } en el orden de la barra. Sin id, label o href se ignora (aviso 1); id repetido, gana el primero (aviso 2); activeMatch es una cadena de RegExp sin banderas que se prueba contra current y se compila una vez por cambio de items (si no compila, aviso 3 y href === current). external: target=\"_blank\", rel=\"noreferrer\", icono arrow-up-right y labels.newTab oculto; nunca es actual ni emite navigate. Cualquier otro campo llega a navigate."
+    },
+    {
+      "name": "current",
+      "type": "String",
+      "default": null,
+      "description": "La ruta actual de la aplicación. La actual es el primer item que casa (activeMatch o href === current); sin current, ninguno. Al cambiar se cierran «…» y la pantalla."
+    },
+    {
+      "name": "label",
+      "type": "String",
+      "required": true,
+      "default": null,
+      "description": "Nombre del <nav> (y del de la pantalla). Aviso 4 sin él."
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": {},
+      "description": "Textos, sin valores por defecto (#226): more (botón «…»), menu (hamburguesa), newTab (texto oculto de un externo). Aviso 6 sin more o menu; aviso 5 con un externo y sin newTab."
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null,
+      "description": "id de la raíz y prefijo de {id}-more-btn, {id}-more, {id}-toggle y {id}-screen; generado SSR-seguro sin valor."
+    }
+  ],
+  "events": [
+    {
+      "name": "navigate",
+      "payload": "{ item, event }",
+      "trigger": "Clic primario o Intro en un enlace interno (barra o pantalla), sin modificadores, sin defaultPrevented y sin target de otro contexto (#505, #574). Cancelable de forma síncrona; elegir cierra «…» y la pantalla también si se cancela. Un externo no lo emite"
+    }
+  ],
+  "slots": [
+    {
+      "name": "brand",
+      "purpose": "Marca de la aplicación (enlace a la portada). Se oculta por CSS con un GSidebar expandido o en riel en el chasis"
+    },
+    {
+      "name": "search",
+      "purpose": "Disparador de búsqueda de la aplicación (receta del README); sigue en la barra en estrecho"
+    },
+    {
+      "name": "actions",
+      "scope": "{ place: 'bar' | 'more' | 'screen' }",
+      "purpose": "Acciones globales (idioma, tema). Se pinta tres veces; en bar, GNavBar pone un separador decorativo antes de cada nodo de primer nivel"
+    }
+  ],
+  "methods": [],
+  "classes": [
+    "g-nav-bar (raíz, no es landmark) + is-open con la pantalla abierta",
+    "g-nav-bar__brand, __search, __nav (nav con aria-label), __list, __highlight (primer li, aria-hidden, role=none), __link, __link--external, __ext, __sr",
+    "has-highlight e is-highlight-instant en __list; --_highlight-x/-y/-w/-h en la capa (utils/glide.js, #964)",
+    "g-nav-bar__actions, __sep (aria-hidden)",
+    "g-nav-bar__more, __more-btn (aria-expanded sincronizado con el toggle del popover), __more-panel (popover=auto)",
+    "g-nav-bar__toggle (aria-expanded), __screen (hidden cerrada; --_screen-top al abrir), __screen-nav, __screen-list, __screen-link, __screen-actions",
+    "aria-current=\"page\" en el enlace actual (barra y pantalla)"
+  ],
+  "composes": [
+    "GLibIcon (ellipsis, menu, x, arrow-up-right con flip-rtl)"
+  ],
+  "focus": "Tab recorre marca, búsqueda, enlaces, acciones o «…» y la hamburguesa, sin flechas. Esc cierra «…» o la pantalla y devuelve el foco a su botón. Al abrir la pantalla el foco va al primer enlace y Tab/Mayús+Tab quedan en bucle hamburguesa ↔ pantalla; con chasis, además, cover(true) pone inert el marco y el GSidebar. El puntero no mueve el foco (P1).",
+  "warnings": [
+    "1 elemento sin id, label o href",
+    "2 id repetido",
+    "3 activeMatch que no compila",
+    "4 sin label",
+    "5 un externo sin labels.newTab",
+    "6 sin labels.more o labels.menu"
+  ],
+  "tokens": [
+    "--g-color-bg",
+    "--g-color-text",
+    "--g-color-text-subtle",
+    "--g-color-accent-text",
+    "--g-color-border",
+    "--g-color-surface",
+    "--g-shadow-2",
+    "--g-text-body-sm-size",
+    "--g-text-body-sm-line",
+    "--g-text-action-weight",
+    "--g-font-ui",
+    "--g-space-1",
+    "--g-color-focus",
+    "--g-focus-width",
+    "--g-focus-offset",
+    "--g-border-width",
+    "--g-duration-fast",
+    "--g-duration-press",
+    "--g-duration-slow",
+    "--g-ease-out"
+  ],
+  "states": [
+    "actual (aria-current=\"page\")",
+    "luz bajo el puntero (has-highlight)",
+    "«…» abierto (aria-expanded)",
+    "pantalla abierta (is-open)"
+  ],
+  "pending": [
+    "Auditoría de coco sobre el componente real (status draft hasta entonces)",
+    "Lector de pantalla con dos nav y la pantalla abierta; trackpad inercial; Safari y táctil reales (entorno real)"
+  ]
+}

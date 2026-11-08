@@ -41,7 +41,8 @@ export const ENTRIES = [
   { name: 'booking', src: 'src/booking.js' },
   { name: 'price', src: 'src/price.js' },
   { name: 'page-index', src: 'src/page-index.js' },
-  { name: 'sidebar-filter', src: 'src/sidebar-filter.js' }
+  { name: 'sidebar-filter', src: 'src/sidebar-filter.js' },
+  { name: 'nav-bar', src: 'src/nav-bar.js' }
 ]
 
 // ---------------------------------------------------------------------------------------------------------------------
