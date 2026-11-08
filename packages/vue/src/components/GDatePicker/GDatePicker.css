@@ -383,6 +383,18 @@
   inline-size: calc(var(--_cell) * var(--_pair-cells) * 2 + var(--_months-gap));
 }
 
+/* Reserva antes de montar (#1033): en línea y sin valor, el primer pintado (servidor o hidratación) no lleva rejilla de días
+   y `__months` queda vacío; reserva lo que ocupará el mes (encabezado + escenario) para que al montar no salte la página.
+   Con dos meses, el ancho de las dos columnas. Se apaga solo en cuanto hay un mes dentro (`:empty`). */
+.g-datepicker--inline .g-datepicker__months:empty {
+  block-size: calc(var(--_cell) + var(--g-space-2) * var(--_density) + var(--_stage-h));
+  inline-size: calc(var(--_cell) * 8.5);
+  max-inline-size: 100%;
+}
+.g-datepicker--inline .g-datepicker__months--pair:empty {
+  inline-size: calc(var(--_cell) * var(--_pair-cells) * 2 + var(--_months-gap));
+}
+
 /* ---------- Encabezado: alto constante en las tres vistas (r02 §2); las flechas conservan su hueco ---------- */
 .g-datepicker__head {
   display: flex;
