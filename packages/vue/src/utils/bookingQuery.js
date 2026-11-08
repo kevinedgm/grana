@@ -26,7 +26,8 @@ export function queryFormat(locale) {
       nf: make(Intl.NumberFormat, locale),
       short,
       long: (d) => l.format(parseISO(d)),
-      range: (a, b) => (r.formatRange ? r.formatRange(parseISO(a), parseISO(b)) : `${r.format(parseISO(a))} – ${r.format(parseISO(b))}`),
+      // `native` false: sin formatRange (su salida cambia con el ICU de cada motor); lo pide un componente antes de montar (#1033)
+      range: (a, b, native = true) => (native && r.formatRange ? r.formatRange(parseISO(a), parseISO(b)) : `${r.format(parseISO(a))} – ${r.format(parseISO(b))}`),
       // «hoy»/«mañana» respecto de `today` (ISO; por omisión, la fecha del dispositivo). Con `today` null, la fecha corta:
       // así lo pide un componente antes de montar (#1033), para que el servidor y el cliente pinten lo mismo
       day: (d, today = todayISO()) => {
@@ -45,7 +46,7 @@ export function queryFormat(locale) {
  * La consulta en palabras, igual que el resumen de GBookingBar. Una clave de `labels` que falta (o no es texto ni función)
  * deja fuera su pieza.
  * @param {{ kind: 'stay'|'table'|'tour', from?, to?, date?, time?, tour?, party? }} query
- * @param {{ partyRows: object[], times?: object[], tours?: object[], locale?: string, today?: string | null, labels: object }} options (today: ISO de «hoy» para «hoy»/«mañana» de la mesa; por omisión, la fecha del dispositivo; null, la fecha corta, #1033)
+ * @param {{ partyRows: object[], times?: object[], tours?: object[], locale?: string, formatRange?: boolean, today?: string | null, labels: object }} options (formatRange: false, el rango de fechas sin Intl formatRange, igual en todo motor, para pintar antes de montar, #1033; today: ISO de «hoy» para «hoy»/«mañana» de la mesa; por omisión, la fecha del dispositivo; null, la fecha corta, #1033)
  * @returns {{ text: string, checkout: string, nights: number | null, missing: string[] }}
  */
 export function describeQuery(query, options) {
@@ -69,7 +70,7 @@ export function describeQuery(query, options) {
       if (from && to) {
         const n = (out.nights = daysBetween(from, to) - 1)
         const nights = t('nights')
-        parts.push(`${f.range(from, to)}${sep}${typeof nights === 'function' ? String(nights(n, { count: f.nf.format(n) })) : fill(nights, { count: f.nf.format(n) })}`)
+        parts.push(`${f.range(from, to, o.formatRange !== false)}${sep}${typeof nights === 'function' ? String(nights(n, { count: f.nf.format(n) })) : fill(nights, { count: f.nf.format(n) })}`)
         out.checkout = fill(t('checkout'), { date: f.long(to) })
       } else lack('dates', 'noDates')
     }

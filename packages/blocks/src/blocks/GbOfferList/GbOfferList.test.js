@@ -103,9 +103,10 @@ describe('GbOfferList · una oferta', () => {
       w.unmount()
     }
   })
-  it('la línea de la consulta, una vez por lista: describeQuery con forQuery y la salida', () => {
+  it('la línea de la consulta, una vez por lista: describeQuery con forQuery y la salida', async () => {
     for (const [, C] of ALL) {
       const { w } = run(C)
+      await nextTick()
       const lines = w.findAllComponents(GText).filter((t) => t.text().startsWith('Para '))
       expect(lines).toHaveLength(1)
       expect(lines[0].text()).toBe(LINE)
@@ -184,7 +185,7 @@ describe('GbOfferList · idioma de la oferta (#885, #891)', () => {
 })
 
 describe('GbOfferList · la consulta de mesa con «hoy» y «mañana» (§20.1, #884)', () => {
-  it('la línea es describeQuery(table) y coincide con el resumen de GBookingBar, también con fecha relativa', () => {
+  it('la línea es describeQuery(table) y coincide con el resumen de GBookingBar, también con fecha relativa', async () => {
     const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
     const today = new Date()
     const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
@@ -195,9 +196,11 @@ describe('GbOfferList · la consulta de mesa con «hoy» y «mañana» (§20.1, 
       if (date === iso(today)) expect(text).toMatch(/^hoy/)
       if (date === iso(tomorrow)) expect(text).toMatch(/^mañana/)
       const s = mountBlock(GbSearch02, { props: { ...searchBank.tests.table, query: q } }).w
+      await nextTick()
       expect(s.find('.g-booking-bar__digest').text(), date).toBe(text)
       for (const [n, C] of ALL) {
         const { w } = run(C, { query: q, context: { times } })
+        await nextTick()
         const line = w.findAllComponents(GText).find((t) => t.text().startsWith('Para '))
         expect(line && line.text(), `${n} ${date}`).toContain(`Para ${text}`)
       }

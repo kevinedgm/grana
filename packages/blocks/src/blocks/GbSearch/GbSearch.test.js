@@ -106,8 +106,9 @@ describe('GbSearch · lo que pasa a GBookingBar', () => {
       }
     }
   })
-  it('el resumen de la barra es describeQuery con la misma consulta (el hilo, #862)', () => {
+  it('el resumen de la barra es describeQuery con la misma consulta (el hilo, #862)', async () => {
     const { w } = run(GbSearch02)
+    await nextTick()
     const text = describeQuery(QUERY, { partyRows: PARTY_ROWS, locale: 'es', labels: QUERY_LABELS }).text
     expect(w.find('.g-booking-bar__digest').text()).toBe(text)
   })

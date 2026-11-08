@@ -1,6 +1,6 @@
 // GbBookingSummary (dueño: bruno): booking-summary.md «Verificación propia» + la batería común de _comun.md §8 y §20.
 import { describe, it, expect, afterEach, vi } from 'vitest'
-import { h } from 'vue'
+import { h, nextTick } from 'vue'
 import meta from './GbBookingSummary.meta.json'
 import * as bank from './booking-summary.bank.js'
 import * as section from './props.js'
@@ -24,16 +24,19 @@ const ALL = Object.entries(variants).map(([k, C]) => [k.slice(-2), C])
 const TEXT = describeQuery(QUERY, { partyRows: PARTY_ROWS, locale: 'es', labels: QUERY_LABELS }).text
 
 describe('GbBookingSummary · lo pedido y el total', () => {
-  it('la consulta es exactamente describeQuery, como dato labels.when del GSummary', () => {
+  it('la consulta es exactamente describeQuery, como dato labels.when del GSummary', async () => {
     for (const [, C] of ALL) {
       const { w } = run(C)
+      await nextTick()
       const s = w.findComponent(GSummary)
       expect(s.props('title')).toBe('Suite Jardín')
       expect(s.props('facts')).toEqual([{ label: 'Fechas y personas', value: TEXT, priority: 1 }])
     }
     expect(run(GbBookingSummary03).w.findComponent(GSummary).props('layout')).toBe('inline')
+    const noOffer = run(GbBookingSummary01, { offer: undefined }).w
+    await nextTick()
     // Sin oferta, la consulta sola es el título
-    expect(run(GbBookingSummary01, { offer: undefined }).w.findComponent(GSummary).props('title')).toBe(TEXT)
+    expect(noOffer.findComponent(GSummary).props('title')).toBe(TEXT)
   })
   it('el total es el dado (la cuenta) y el bloque no suma las líneas', () => {
     for (const [n, C] of ALL) {

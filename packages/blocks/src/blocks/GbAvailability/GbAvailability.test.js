@@ -100,6 +100,7 @@ describe('GbAvailability · del dato al calendario', () => {
     vi.setSystemTime(new Date(2026, 10, 1, 12)) // sin valor, el calendario abre en el mes de hoy
     const onSelect = vi.fn()
     const { w } = run(GbAvailability01, { value: null, onSelect }, { attachTo: document.body })
+    await nextTick() // la vista sin valor lee «hoy» al montar (#1033)
     const btn = (iso) => w.find(`.g-datepicker__day[data-date="${iso}"]`)
     await btn('2026-11-16').trigger('click')
     await btn('2026-11-18').trigger('click')
@@ -164,6 +165,7 @@ describe('GbAvailability · del dato al calendario', () => {
   it('03: la selección dicha con describeQuery, el total dado y el botón con la elección completa', async () => {
     const onSelect = vi.fn()
     const { w } = run(GbAvailability03, { onSelect })
+    await nextTick()
     expect(w.findComponent(GCard).props('title')).toBe(describeQuery(QUERY, { partyRows: PARTY_ROWS, locale: 'es', labels: QUERY_LABELS }).text)
     const total = w.findAllComponents(GPrice).find((p) => p.props('size') === 'lg')
     expect(total.props('value')).toEqual(bank.props.total.value)

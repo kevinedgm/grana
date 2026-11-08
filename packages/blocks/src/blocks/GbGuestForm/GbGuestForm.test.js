@@ -188,8 +188,9 @@ describe('GbGuestForm · 02 por pasos', () => {
 })
 
 describe('GbGuestForm · 03 con lo pedido a la vista', () => {
-  it('GFormActions sticky y lo pedido arriba igual a describeQuery', () => {
+  it('GFormActions sticky y lo pedido arriba igual a describeQuery', async () => {
     const { w } = run(GbGuestForm03)
+    await nextTick()
     expect(w.findComponent(GFormActions).props('sticky')).toBe(true)
     const d = describeQuery(QUERY, { partyRows: PARTY_ROWS, locale: 'es', labels: QUERY_LABELS })
     expect(w.text()).toContain(`Para ${d.text} · ${d.checkout}`)

@@ -40,4 +40,15 @@ describe('hidratación · GBookingBar · otro día en el cliente', () => {
     const r = await run({}, at(2026, 11, 7), at(2026, 11, 8))
     expect(r.mismatch).toEqual([])
   })
+
+  it('estancia: formatRange distinto en el cliente (otro ICU) no desajusta el resumen; al montar usa formatRange', async () => {
+    const orig = Intl.DateTimeFormat.prototype.formatRange
+    const props = { kind: 'stay', labels: { ...LABELS, nights: '{count} noches', checkout: 'Salida el {date}', fields: { dates: 'Fechas', party: 'Personas' }, empty: { dates: '¿cuándo?' }, noDates: 'Sin fechas' }, modelValue: { from: '2026-10-26', to: '2026-10-29', party: { adults: 2 } } }
+    const r = await hydrate(App(props), () => { Intl.DateTimeFormat.prototype.formatRange = function (a, b) { return `«${orig.call(this, a, b)}»` }; return () => { Intl.DateTimeFormat.prototype.formatRange = orig } })
+    expect(r.mismatch).toEqual([])
+    expect(r.html).not.toContain('«')
+    await nextTick(); await nextTick()
+    expect(r.el.textContent).toContain('«')
+    r.undo?.()
+  })
 })

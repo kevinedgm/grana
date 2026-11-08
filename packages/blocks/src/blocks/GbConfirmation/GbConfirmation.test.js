@@ -1,4 +1,5 @@
 // GbConfirmation (dueño: bruno): confirmation.md «Verificación propia» + la batería común de _comun.md §8 y §20.
+import { nextTick } from 'vue'
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import meta from './GbConfirmation.meta.json'
 import * as bank from './confirmation.bank.js'
@@ -35,9 +36,10 @@ describe('GbConfirmation · lo confirmado', () => {
       expect(all[h + 1].classList.contains('g-metric')).toBe(true)
     }
   })
-  it('la ficha dice la consulta con describeQuery (el hilo)', () => {
+  it('la ficha dice la consulta con describeQuery (el hilo)', async () => {
     for (const [n, C] of ALL) {
       const { w } = run(C)
+      await nextTick()
       const s = w.findComponent(GSummary)
       expect(s.props('title')).toBe('Suite Jardín')
       // 02 (#896): la consulta en una línea de GText, no como dato de GSummary

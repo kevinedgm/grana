@@ -103,3 +103,17 @@ describe('describeQuery · resultado', () => {
     expect(booking.describeQuery).toBe(describeQuery)
   })
 })
+
+describe('describeQuery · formatRange false (#1033)', () => {
+  it('sin formatRange el rango usa la forma propia, igual en todo motor; por omisión usa formatRange', () => {
+    const orig = Intl.DateTimeFormat.prototype.formatRange
+    Intl.DateTimeFormat.prototype.formatRange = function (a, b) { return `«${orig.call(this, a, b)}»` }
+    try {
+      const rows = [{ key: 'adults', label: 'Adultos', default: 2, unit: '{count} adultos', decrementLabel: '−', incrementLabel: '+' }]
+      const q = { kind: 'stay', from: '2026-11-13', to: '2026-11-15', party: {} }
+      const o = { partyRows: rows, locale: 'es-MX', labels: { nights: '{count} noches', separator: ' · ', checkout: 'Salida el {date}' } }
+      expect(describeQuery(q, { ...o, formatRange: false }).text).not.toContain('«')
+      expect(describeQuery(q, o).text).toContain('«')
+    } finally { Intl.DateTimeFormat.prototype.formatRange = orig }
+  })
+})

@@ -8,7 +8,7 @@
 //   - `dateTime`: una fecha u hora para `<time datetime>` con su texto de Intl (en la zona del lugar si hay `timeZone`).
 //   - `availability` (K4), `priceSpec` (K3), `offerKey` (K5).
 // Avisos con la guarda de #653 en el sitio de cada texto.
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { describeQuery } from '@grana/vue/booking'
 import { has } from './text.js'
 import { fill } from './locale.js'
@@ -52,6 +52,9 @@ export function checkQuery(query, warn, kind) {
  * `labels.query`, no se dice. `context` = `{ times, tours }` de la sección.
  */
 export function useQueryLine(props, warn, { kind, forQuery = true, locale } = {}) {
+  // Antes de montar (servidor e hidratación): sin «hoy»/«mañana» ni formatRange, que dependen del dispositivo y del ICU del motor (#1033)
+  const ready = ref(false)
+  onMounted(() => { ready.value = true })
   return computed(() => {
     const q = checkQuery(props.query, warn, kind)
     if (!q) return null
@@ -62,7 +65,7 @@ export function useQueryLine(props, warn, { kind, forQuery = true, locale } = {}
       return null
     }
     const ctx = props.context && typeof props.context === 'object' ? props.context : {}
-    const d = describeQuery(q, { partyRows: rows, times: ctx.times, tours: ctx.tours, locale: locale ? locale.value : props.locale, labels })
+    const d = describeQuery(q, { partyRows: rows, times: ctx.times, tours: ctx.tours, locale: locale ? locale.value : props.locale, today: ready.value ? undefined : null, formatRange: ready.value, labels })
     let line = d.text
     if (forQuery) {
       const t = props.labels && props.labels.forQuery

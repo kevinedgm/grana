@@ -216,7 +216,7 @@ const slotValue = (slot) => {
 // Booking dicen la consulta con estas mismas palabras. Los textos se leen con `lab` al pedirlos (aviso 7 como antes, solo
 // de lo que la pieza necesita); `checkout` va aparte para no pedir labels.checkout donde no se pinta.
 const qLabels = (withCheckout) => new Proxy({}, { get: (_, k) => (k === 'separator' ? sep() : k === 'checkout' && !withCheckout ? undefined : lab(k)) })
-const describe = (withCheckout) => describeQuery({ kind: kind.value, ...query.value }, { partyRows: rows.value, times: timeList.value, tours: tourList.value, locale: loc.value, today: todayKey.value, labels: qLabels(withCheckout) })
+const describe = (withCheckout) => describeQuery({ kind: kind.value, ...query.value }, { partyRows: rows.value, times: timeList.value, tours: tourList.value, locale: loc.value, today: todayKey.value, formatRange: todayKey.value !== null, labels: qLabels(withCheckout) })
 const digest = computed(() => describe(false).text)
 const checkoutText = computed(() => (kind.value === 'stay' && query.value.from && query.value.to ? describe(true).checkout : ''))
 

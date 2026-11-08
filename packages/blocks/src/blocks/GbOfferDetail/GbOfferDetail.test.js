@@ -45,9 +45,10 @@ describe('GbOfferDetail · galería, ficha y texto (#869)', () => {
       expect(g.props('appearance')).toBe(n === '02' ? 'strip' : 'grid')
     }
   })
-  it('la ficha: GCard outlined as="section" con los facts en un dl de GText, perks con nombre, la consulta y el precio en una GPriceScope', () => {
+  it('la ficha: GCard outlined as="section" con los facts en un dl de GText, perks con nombre, la consulta y el precio en una GPriceScope', async () => {
     for (const C of Object.values(ALL)) {
       const { w } = run(C)
+      await nextTick()
       const f = ficha(w)
       expect(f.props('level')).toBe('outlined')
       expect(f.props('as')).toBe('section')
