@@ -54,14 +54,21 @@ export default defineComponent({
     // cuya lista, a su ancho natural, cabe en el contenedor. El ancho natural se lee del propio DOM con la clase de
     // medición de coco, así depende del texto, la fuente, size, density e indicator, y no de un múltiplo fijo de space.
     const adaptive = computed(() => props.responsive === 'auto' && props.orientation === 'horizontal')
-    const tier = computed(() => {
+    // Histéresis (#1032): cada cambio de tramo altera el alto de la lista y con él la barra de desplazamiento de la
+    // página (~15 px de ancho). Se baja de tramo con `ancho < need`; se sube solo con `ancho >= need + 6 × space`.
+    const space = ref(NaN)
+    const HYST_UNITS = 6
+    const RANK = { full: 0, condensed: 1, current: 2, compact: 3 }
+    const tier = computed((prev) => {
       if (props.responsive === 'compact') return 'compact'
       if (!adaptive.value || !(width.value > 0) || !needs.value) return 'full'
       const w = width.value
       const n = needs.value
-      if (w >= n.full) return 'full'
-      if (w >= n.condensed) return 'condensed'
-      if (w >= n.current) return 'current'
+      const margin = Number.isNaN(space.value) ? 0 : HYST_UNITS * space.value
+      const from = prev && prev in RANK ? RANK[prev] : 0
+      for (const t of ['full', 'condensed', 'current']) {
+        if (w >= n[t] + (RANK[t] < from ? margin : 0)) return t
+      }
       return 'compact'
     })
     const isCompact = computed(() => tier.value === 'compact')
@@ -70,6 +77,11 @@ export default defineComponent({
     const measureNeeds = () => {
       const el = root.value
       if (!el || !adaptive.value) return
+      if (typeof getComputedStyle === 'function') {
+        const raw = getComputedStyle(el).getPropertyValue('--g-space-1')
+        const n = parseFloat(raw)
+        space.value = Number.isNaN(n) ? NaN : /rem\s*$|em\s*$/.test(raw) ? n * parseFloat(getComputedStyle(document.documentElement).fontSize) : n
+      }
       const list = el.querySelector(':scope > .g-stepper__list')
       if (!list) return
       const original = el.className

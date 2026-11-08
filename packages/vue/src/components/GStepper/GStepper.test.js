@@ -331,6 +331,32 @@ describe('GStepper · compacto y adaptación', () => {
       w.unmount()
     })
 
+    it('histéresis: un ancho que roza un umbral por menos de 6 × space no hace oscilar el tramo (#1032)', async () => {
+      const api = stub(700) // need: 641 / 520 / 300; space 4px → margen 24
+      const w = mk({}, { attrs: { 'aria-label': 'Registro', style: '--g-space-1: 4px' } }); await nextTick()
+      expect(tiers(w)).toEqual([])
+      const resize = async (x) => { api.resize(x); await nextTick() }
+      await resize(636) // por debajo de 641: baja
+      expect(tiers(w)).toEqual(['g-stepper--condensed'])
+      for (const x of [645, 636, 650, 640, 660]) { await resize(x); expect(tiers(w)).toEqual(['g-stepper--condensed']) }
+      await resize(665) // need + 6 × space: vuelve
+      expect(tiers(w)).toEqual([])
+      await resize(645) // arriba solo baja por debajo de need
+      expect(tiers(w)).toEqual([])
+      await resize(640)
+      expect(tiers(w)).toEqual(['g-stepper--condensed'])
+      // mismo en el umbral condensado → solo el actual, y compacto
+      await resize(515)
+      expect(tiers(w)).toEqual(['g-stepper--current-only'])
+      for (const x of [530, 515, 540, 519]) { await resize(x); expect(tiers(w)).toEqual(['g-stepper--current-only']) }
+      await resize(295)
+      expect(tiers(w)).toEqual(['g-stepper--is-compact'])
+      for (const x of [310, 295, 320]) { await resize(x); expect(tiers(w)).toEqual(['g-stepper--is-compact']) }
+      await resize(324)
+      expect(tiers(w)).toEqual(['g-stepper--current-only'])
+      w.unmount()
+    })
+
     it('muy estrecho: ni el actual cabe → compacto', async () => {
       stub(299)
       const w = mk(); await nextTick()
