@@ -10,7 +10,9 @@ import {
   Upload, Users, Wallet, Zap,
   // los que registran los bancos de @grana/blocks (appIcons)
   Baby, CalendarPlus, CalendarX, MessageCircle, Navigation, PawPrint, Wifi,
-  Hand
+  Hand,
+  // los del marco del sitio (Layout.vue, sitio-marco.md §4): tema, idioma, índice y grupos de guía
+  Sun, Moon, Monitor, Languages, Menu, Search, PanelLeft, Diamond, List, Target, RefreshCw, ExternalLink, Copy, Blocks
 } from 'lucide-static'
 
 export const siteIcons = [
@@ -21,5 +23,6 @@ export const siteIcons = [
   Rocket, Save, Send, Settings, Share2, ShoppingCart, Sparkles, Star, Stethoscope, Tag, Truck,
   Upload, Users, Wallet, Zap,
   Baby, CalendarPlus, CalendarX, MessageCircle, Navigation, PawPrint, Wifi,
-  Hand
+  Hand,
+  Sun, Moon, Monitor, Languages, Menu, Search, PanelLeft, Diamond, List, Target, RefreshCw, ExternalLink, Copy, Blocks
 ]

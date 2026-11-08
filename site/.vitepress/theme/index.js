@@ -1,7 +1,16 @@
-// Tema del sitio: el de VitePress (sin su fuente) vestido con Grana.
+// Tema del sitio: el marco es Grana (Layout.vue: GAppShell, GSidebar con filtro, GPageHeader con GPageIndex…;
+// design/contracts/sitio-marco.md) y de VitePress solo quedan sus estilos de documento (.vp-doc: Markdown, tablas,
+// bloques de código con Shiki y su botón de copiar, custom-block). Sin `extends: DefaultTheme`: así no viajan
+// VPNav, VPSidebar, VPDocAside, VPLocalNav ni la búsqueda en ventana, que el marco ya no pinta.
 // Orden de importación = orden de las hojas: capas → VitePress → Grana → sitio.
 import './layers.css'
-import DefaultTheme from 'vitepress/theme-without-fonts'
+import 'vitepress/dist/client/theme-default/styles/vars.css'
+import 'vitepress/dist/client/theme-default/styles/base.css'
+import 'vitepress/dist/client/theme-default/styles/utils.css'
+import 'vitepress/dist/client/theme-default/styles/components/custom-block.css'
+import 'vitepress/dist/client/theme-default/styles/components/vp-code.css'
+import 'vitepress/dist/client/theme-default/styles/components/vp-code-group.css'
+import 'vitepress/dist/client/theme-default/styles/components/vp-doc.css'
 import Grana, { createIcons } from '@grana/vue'
 import Combobox from '@grana/vue/combobox'
 import FileField from '@grana/vue/file-field'
@@ -14,6 +23,9 @@ import PageHeader from '@grana/vue/page-header'
 import Fab from '@grana/vue/fab'
 import FormFold from '@grana/vue/form-fold'
 import AppShell from '@grana/vue/app-shell'
+import PageIndex from '@grana/vue/page-index'
+// Filtro del índice de GSidebar, en su extensión (#1050, sitio-marco.md §3): sin ella, `filter` se pinta sin filtro (F5).
+import SidebarFilter from '@grana/vue/sidebar-filter'
 import Hero from '@grana/vue/hero'
 import Gallery from '@grana/vue/gallery'
 import Booking from '@grana/vue/booking'
@@ -36,14 +48,13 @@ import GranaBlockBank from './BlockBank.vue'
 import { siteIcons } from './icons.js'
 
 export default {
-  extends: DefaultTheme,
   Layout,
   enhanceApp({ app }) {
     // El paquete principal y las entradas propias que son plugins (registran <g-*>). Una que falte aquí no
     // falla al compilar: dentro de demos/G<Nombre>.vue, <g-nombre> se resuelve con la propia demo y se llama a sí misma.
     // La voz y la isla de estado son servicios: cada ejemplo crea el suyo.
     app.use(Grana).use(createIcons(siteIcons)).use(Combobox).use(FileField).use(TimeField).use(Slider).use(Tag).use(LoadRegion)
-      .use(CardGroup).use(PageHeader).use(Fab).use(FormFold).use(AppShell)
+      .use(CardGroup).use(PageHeader).use(Fab).use(FormFold).use(AppShell).use(PageIndex).use(SidebarFilter)
       .use(Hero).use(Gallery).use(Booking).use(Price)
     // @grana/blocks: sus secciones (<gb-*>) y, como una aplicación, las entradas de @grana/vue que componen (arriba).
     app.use(marketing).use(booking).use(ecommerce)

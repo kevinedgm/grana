@@ -53,6 +53,49 @@ export const GUIDE = [
  */
 export const TOOLS = [{ id: 'playground', component: 'GranaThemePlayground' }]
 
+/**
+ * Marco del sitio (design/contracts/sitio-marco.md §3): grupos del índice fuera de los componentes,
+ * con el icono de cada página (nombres de Lucide que registra site/.vitepress/theme/icons.js).
+ */
+export const NAV_SECTIONS = {
+  start: ['getting-started', 'theming', 'utilities', 'accessibility', 'personality'],
+  tools: ['cli', 'playground'],
+  project: ['changelog', 'project']
+}
+export const NAV_ICONS = {
+  'getting-started': 'flag', theming: 'diamond', utilities: 'list', accessibility: 'users', personality: 'activity',
+  cli: 'settings', playground: 'target', changelog: 'refresh-cw', project: 'folder', 'blocks/': 'blocks', github: 'external-link'
+}
+
+/* ------------------------------------------------------------------ números estables (#1037) */
+
+/** Registro de números estables: site/scripts/numeros.json, `{ "GCombobox": 24, … }`. Un número asignado no cambia. */
+export const NUMBERS_FILE = 'site/scripts/numeros.json'
+
+/** Lee el registro y comprueba que ningún número se repite. */
+export function loadNumbers(root) {
+  const numbers = JSON.parse(read(root, NUMBERS_FILE))
+  const seen = new Map()
+  for (const [name, n] of Object.entries(numbers)) {
+    if (!Number.isInteger(n) || n < 1) throw new Error(`${NUMBERS_FILE}: «${name}» no tiene un número entero positivo (${n})`)
+    if (seen.has(n)) throw new Error(`${NUMBERS_FILE}: el número ${n} se repite (${seen.get(n)} y ${name})`)
+    seen.set(n, name)
+  }
+  return numbers
+}
+
+/** Falla si un componente con página no tiene número (el siguiente libre se asigna a mano en el registro). */
+export function checkNumbers(numbers, names) {
+  const missing = names.filter((n) => !(n in numbers))
+  if (missing.length) {
+    const next = Math.max(0, ...Object.values(numbers)) + 1
+    throw new Error(`${NUMBERS_FILE}: sin número para ${missing.join(', ')}. Asigna el siguiente libre (${next}…) y colócalo al final de su grupo; un número no se reutiliza`)
+  }
+}
+
+/** El número se pinta con dos cifras (tres desde 100). */
+export const formatCode = (n) => String(n).padStart(2, '0')
+
 const read = (root, rel) => fs.readFileSync(path.join(root, rel), 'utf8')
 const exists = (root, rel) => fs.existsSync(path.join(root, rel))
 const enFile = (rel) => rel.replace(/\.md$/, '.en.md')
@@ -189,7 +232,7 @@ function buildPlan(root, locale) {
     if (g.whole) {
       const { title, body } = lib.stripH1(src.text)
       page.title = g.id === 'cli' ? title : t(locale, `pages.${g.id}`)
-      page.parts.push({ kind: 'gen', text: `# ${page.title}\n` })
+      // Sin `# título` en el cuerpo: el h1 lo pinta GPageHeader desde `title` (sitio-marco.md §6.1).
       if (g.demos) {
         // Páginas de guía con ejemplos vivos: bloques `vue demo` del README, como en un componente.
         page.demoSlug = g.id
@@ -208,7 +251,6 @@ function buildPlan(root, locale) {
       page.title = g.home ? UI[locale].siteTitle : t(locale, `pages.${g.id}`)
       // Una sola sección: su `##` pasa a ser el título de la página (y todo sube un nivel).
       const promote = !g.home && idx.length === 1
-      if (!g.home && !promote) page.parts.push({ kind: 'gen', text: `# ${page.title}\n` })
       const allHeadings = lib.parseHeadings(src.text)
       // Preámbulo del README (párrafos de presentación) al principio del inicio.
       if (g.home) {
@@ -225,7 +267,9 @@ function buildPlan(root, locale) {
         }
         // posición del encabezado de la sección dentro del documento (para los slugs de GitHub)
         const offset = allHeadings.findIndex((h) => h.level === 2 && h.text === sec.title)
-        page.parts.push({ kind: 'src', doc: 'README.md', rel: src.rel, text: promote ? lib.promoteHeadings(sec.text) : sec.text, headingOffset: offset })
+        // Una sección promovida pierde su `#` (pasa a `title`, el h1 de GPageHeader): el resto empieza un encabezado después.
+        if (promote) page.parts.push({ kind: 'src', doc: 'README.md', rel: src.rel, text: lib.stripH1(lib.promoteHeadings(sec.text)).body, headingOffset: offset + 1, titleOffset: offset })
+        else page.parts.push({ kind: 'src', doc: 'README.md', rel: src.rel, text: sec.text, headingOffset: offset })
       }
     }
     pages.push(page)
@@ -258,25 +302,11 @@ function buildPlan(root, locale) {
       description: main?.description,
       parts: []
     }
-    const tags = metas.map((m) => '`<' + m.tag + '>`').join(' ')
     const entry = main ? lib.entryOf(main) : '@grana/vue'
     const names = metas.map((m) => m.name).join(', ')
-    const header = [
-      `# ${page.title}`,
-      '',
-      `<p class="grana-meta"><span><strong>${L.tag}</strong> ${metas.map((m) => `<code>&lt;${m.tag}&gt;</code>`).join(' ')}</span>` +
-        `<span><strong>${L.status}</strong> <code class="grana-status">${main?.status ?? '—'}</code></span>` +
-        `<span><strong>${L.entry}</strong> <code>${entry}</code></span>` +
-        (main?.since ? `<span><strong>${L.since}</strong> <code>${main.since}</code></span>` : '') +
-        '</p>',
-      '',
-      '```js',
-      `import { ${names} } from '${entry}'`,
-      '```',
-      ''
-    ].join('\n')
-    void tags
-    page.parts.push({ kind: 'gen', text: header })
+    // La cabecera (título, estado e importación) la pinta GPageHeader desde el frontmatter (sitio-marco.md §6.1):
+    // el cuerpo no lleva `# Nombre` (un segundo h1). Las etiquetas y la entrada siguen en la tabla de la API.
+    page.entry = { status: main?.status ?? null, import: `import { ${names} } from '${entry}'`, tags: metas.map((m) => m.tag) }
     // Ficha interactiva (contrato de mora-docs §3, bloques 4 a 6) si existe site/live/<Componente>.js.
     const liveRel = `site/live/${c.dir}.js`
     if (main && exists(root, liveRel)) {
@@ -337,7 +367,9 @@ function buildPlan(root, locale) {
         return null
       }
       const offset = bHeadings.findIndex((h) => h.level === 2 && h.text === sec.title)
-      return { kind: 'src', doc: BLOCKS_README, rel: bs.rel, text: promote ? lib.promoteHeadings(sec.text) : sec.text, headingOffset: offset, title: sec.title }
+      // Promovida: su `#` pasa al título de la página (GPageHeader), fuera del cuerpo.
+      if (promote) return { kind: 'src', doc: BLOCKS_README, rel: bs.rel, text: lib.stripH1(lib.promoteHeadings(sec.text)).body, headingOffset: offset + 1, titleOffset: offset, title: sec.title }
+      return { kind: 'src', doc: BLOCKS_README, rel: bs.rel, text: sec.text, headingOffset: offset, title: sec.title }
     }
     const byFamily = (id) => blocks.filter((b) => b.family === id)
     for (const b of blocks) if (!BLOCK_FAMILIES.some((f) => f.id === b.family)) warnings.push(`${b.dir}: familia «${b.family}» sin página (BLOCK_FAMILIES)`)
@@ -346,7 +378,6 @@ function buildPlan(root, locale) {
     {
       const id = 'blocks/'
       const page = { id, locale, url: pageUrl(locale, id), file: pageFile(locale, id), title: t(locale, 'pages.blocks/'), translated: bs.translated, blockIndex: true, parts: [] }
-      page.parts.push({ kind: 'gen', text: `# ${page.title}\n` })
       const pre = lib.stripH1(bSplit.preamble).body
       page.parts.push({ kind: 'src', doc: BLOCKS_README, rel: bs.rel, text: pre.trim() + '\n', headingOffset: 1 })
       const rows = ['## ' + BL.sections, '', `| ${BL.section} | ${BL.family} | ${BL.variants} | ${BL.status} |`, '| --- | --- | --- | --- |']
@@ -383,21 +414,9 @@ function buildPlan(root, locale) {
         description: meta.description, demoSlug: `gb-${b.family}-${b.slug}`, parts: []
       }
       const entry = meta.bundle?.entry || `@grana/blocks/${b.family}`
-      const header = [
-        `# ${page.title}`,
-        '',
-        `<p class="grana-meta"><span><strong>${BC.tag}</strong> ${meta.variants.map((v) => `<code>&lt;${v.tag}&gt;</code>`).join(' ')}</span>` +
-          `<span><strong>${BC.status}</strong> <code class="grana-status">${meta.status}</code></span>` +
-          `<span><strong>${BC.entry}</strong> <code>${entry}</code></span>` +
-          (meta.since ? `<span><strong>${BC.since}</strong> <code>${meta.since}</code></span>` : '') +
-          `<span><strong>${BL.family}</strong> <a href="${pageUrl(locale, `blocks/${b.family}/`)}">${BL[b.family]}</a></span></p>`,
-        '',
-        '```js',
-        `import { ${meta.variants.map((v) => v.name).join(', ')} } from '${entry}'`,
-        '```',
-        ''
-      ].join('\n')
-      page.parts.push({ kind: 'gen', text: header })
+      // Cabecera desde el frontmatter (GPageHeader), como en los componentes.
+      page.entry = { status: meta.status, import: `import { ${meta.variants.map((v) => v.name).join(', ')} } from '${entry}'`, tags: meta.variants.map((v) => v.tag) }
+      page.group = BL[b.family]
       const segs = lib.extractDemos(body)
       const hasDemo = segs.some((x) => x.type === 'demo')
       const demoRel = `site/demos/${b.dir}.vue`
@@ -507,6 +526,11 @@ function anchorMap(plan, root) {
       }
       if (!docMain.has(part.doc) || page.home) docMain.set(part.doc, page.url)
       const docHs = ghOf(part.rel)
+      // El encabezado que pasó a título de la página (GPageHeader) lleva a la página, sin ancla.
+      if (part.titleOffset != null) {
+        const gh = docHs[part.titleOffset]?.gh
+        if (gh && !map.has(`${part.doc}#${gh}`)) map.set(`${part.doc}#${gh}`, { url: page.url, slug: null })
+      }
       hs.forEach((h, i) => {
         const vp = slug(h.text)
         const gh = docHs[part.headingOffset + i]?.gh
@@ -534,6 +558,7 @@ function linkResolver({ root, page, part, anchors, warnings, other }) {
     if (known) {
       if (decoded) {
         const hit = anchors.map.get(`${doc}#${decoded}`)
+        if (hit && hit.slug == null) return hit.url
         if (hit) return hit.url === page.url ? `#${hit.slug}` : `${hit.url}#${hit.slug}`
         warnings.push(`${part.rel}: ancla #${decoded} no encontrada en ${doc}`)
         return known === page.url ? `#${decoded}` : known
@@ -588,19 +613,23 @@ function renderPage(page, ctx) {
   }
   const fm = ['---', `title: ${yaml(page.title)}`]
   if (page.description) fm.push(`description: ${yaml(page.description)}`)
+  // Datos del marco (sitio-marco.md §6.1): la cabecera (GPageHeader) y las páginas vecinas salen de aquí.
+  if (page.entry) fm.push(`component: ${yaml({ ...(page.code ? { code: page.code } : {}), group: page.group ?? null, status: page.entry.status, import: page.entry.import })}`)
+  if (page.prev) fm.push(`prev: ${yaml(page.prev)}`)
+  if (page.next) fm.push(`next: ${yaml(page.next)}`)
   if (page.tool) {
     fm.push('layout: page', '---', '')
     return `${fm.join('\n')}\n<${page.tool} />\n`
   }
   if (page.home) {
     const H = UI[locale].hero
-    fm.push('layout: home', 'hero:', `  name: ${yaml('Grana')}`, `  text: ${yaml(H.text)}`, `  tagline: ${yaml(H.tagline)}`, '  actions:')
-    fm.push('    - theme: brand', `      text: ${yaml(H.start)}`, `      link: ${yaml(pageUrl(locale, 'getting-started'))}`)
-    fm.push('    - theme: alt', `      text: ${yaml(H.components)}`, `      link: ${yaml(pageUrl(locale, 'components/'))}`)
-    if (page.features?.length && page.translated) {
-      fm.push('features:')
-      for (const f of page.features) fm.push(`  - title: ${yaml(f.title)}`, `    details: ${yaml(f.details)}`)
-    }
+    // La portada la compone el Layout con Blocks (GbHero, GbFeatures); los textos de las ventajas, sin HTML.
+    const plain = (html) => html.replace(/<[^>]+>/g, '').replace(/&lt;/g, '<')
+    fm.push('layout: home', `hero: ${yaml({ name: 'Grana', text: H.text, tagline: H.tagline, actions: [
+      { theme: 'brand', text: H.start, link: pageUrl(locale, 'getting-started') },
+      { theme: 'alt', text: H.components, link: pageUrl(locale, 'components/') }
+    ] })}`)
+    if (page.features?.length && page.translated) fm.push(`features: ${yaml(page.features.map((f) => ({ title: plain(f.title), details: plain(f.details) })))}`)
   }
   fm.push('---', '')
   const out = [fm.join('\n')]
@@ -616,58 +645,114 @@ function renderPage(page, ctx) {
   return out.join('\n')
 }
 
-function sidebarFor(locale, plan, index) {
-  const groups = [
-    {
-      text: t(locale, 'groups.guide'),
-      items: GUIDE.filter((g) => !g.home && !g.index).map((g) => ({
-        text: g.id === 'cli' ? '@grana/cli' : t(locale, `pages.${g.id}`),
-        link: pageUrl(locale, g.id)
-      })).concat(TOOLS.map((tool) => ({ text: t(locale, `pages.${tool.id}`), link: pageUrl(locale, tool.id) })))
+/** Slugs de VitePress de los encabezados de una página, en orden (los mismos `id` que tendrá el HTML). */
+function pageSlugs(page) {
+  const slug = lib.uniqueSlugger(lib.vpSlug)
+  const out = []
+  for (const part of page.parts) {
+    if (part.kind === 'demo') continue
+    for (const h of lib.parseHeadings(part.text)) out.push({ level: h.level, text: h.text, slug: slug(h.text) })
+  }
+  return out
+}
+
+/**
+ * Índice del marco (GSidebar con filtro, sitio-marco.md §3): Empezar · grupos de componentes con su número
+ * estable · Blocks (cada familia, un padre) · Herramientas · Proyecto. Devuelve también el orden lineal de los
+ * destinos (páginas vecinas) y los componentes que no están en el índice del README.
+ */
+function navFor(locale, plan, index, numbers, root) {
+  const other = locale === 'es' ? 'en' : 'es'
+  const F = UI[locale].frame
+  const byId = new Map(plan.pages.map((p) => [p.id, p]))
+  const guideItem = (id) => {
+    const p = byId.get(id)
+    if (!p) return null
+    const label = id === 'cli' ? '@grana/cli' : t(locale, `pages.${id}`)
+    const keywords = [...new Set([id.replace(/\/$/, ''), id === 'cli' ? 'cli' : t(other, `pages.${id}`)])]
+    return { id: p.url, label, href: p.url, icon: NAV_ICONS[id], keywords }
+  }
+  const groups = []
+  const order = []
+  const push = (group) => {
+    if (!group.items.length) return
+    groups.push(group)
+    for (const it of group.items) {
+      if (it.children) it.children.forEach((c) => c.href && order.push({ ...c, group: group.label }))
+      else if (it.href && !it.external) order.push({ ...it, group: group.label })
     }
-  ]
+  }
+  push({ id: 'g-start', label: F.start, items: NAV_SECTIONS.start.map(guideItem).filter(Boolean) })
+
+  // Componentes, por las categorías del README (`###` de «Componentes»), con su ancla en components/.
   const comps = plan.pages.filter((p) => p.component)
   const byName = new Map(comps.map((p) => [p.component.dir, p]))
+  const indexPage = byId.get('components/')
+  // La página de índice promueve su sección («Componentes»): las categorías `###` quedan como `##`.
+  const anchors = indexPage ? pageSlugs(indexPage).filter((h) => h.level === 2).map((h) => h.slug) : []
   const used = new Set()
-  for (const cat of index) {
+  const compItem = (p, group) => {
+    const n = p.component.dir
+    p.code = formatCode(numbers[n])
+    p.group = group
+    return {
+      id: p.url, label: n, href: p.url, code: formatCode(numbers[n]), status: p.entry?.status ?? null,
+      keywords: [...new Set([p.component.slug, n.replace(/^G/, ''), p.component.slug.replace(/-/g, ' ')])]
+    }
+  }
+  index.forEach((cat, ci) => {
     const items = []
+    const label = UI[locale].categories[cat.title] || cat.title
     for (const n of cat.components) {
       const p = byName.get(n)
       if (!p || used.has(n)) continue
       used.add(n)
-      items.push({ text: n, link: p.url })
+      items.push(compItem(p, label))
     }
-    if (items.length) groups.push({ text: UI[locale].categories[cat.title] || cat.title, collapsed: false, items })
-  }
+    const anchor = indexPage && anchors[ci] ? `${indexPage.url}#${anchors[ci]}` : indexPage?.url
+    push({ id: `g-cat-${ci + 1}`, label, anchor, items })
+  })
   const rest = comps.filter((p) => !used.has(p.component.dir))
-  if (rest.length) groups.push({ text: t(locale, 'groups.other'), collapsed: false, items: rest.map((p) => ({ text: p.component.dir, link: p.url })) })
-  return { groups, unlisted: rest.map((p) => p.component.dir) }
+  push({ id: 'g-other', label: t(locale, 'groups.other'), items: rest.map((p) => compItem(p, t(locale, 'groups.other'))) })
+
+  // Blocks: el resumen y cada familia como padre (su página y sus secciones, un nivel).
+  const BL = UI[locale].blocks
+  const blockIdx = byId.get('blocks/')
+  if (blockIdx) {
+    const esB = fs.existsSync(path.join(root, BLOCKS_README)) ? lib.splitSections(read(root, BLOCKS_README), 2) : { sections: [] }
+    const items = [{ id: blockIdx.url, label: BL.overview, href: blockIdx.url, icon: NAV_ICONS['blocks/'], keywords: ['blocks', '@grana/blocks'] }]
+    for (const f of BLOCK_FAMILIES) {
+      const fam = byId.get(`blocks/${f.id}/`)
+      if (!fam) continue
+      const sec = esB.sections.find((x) => x.title.startsWith(f.section))
+      const order = sec ? blockOrder(sec.text) : []
+      const mine = plan.pages.filter((p) => p.block && p.block.family === f.id)
+      const ordered = [...order.map((n) => mine.find((p) => p.block.dir === n)).filter(Boolean), ...mine.filter((p) => !order.includes(p.block.dir))]
+      items.push({
+        id: `family:${f.id}`, label: BL[f.id], icon: 'folder', keywords: [f.id],
+        children: [{ id: fam.url, label: F.familyOverview(BL[f.id]), href: fam.url }, ...ordered.map((p) => ({ id: p.url, label: p.block.name, href: p.url }))]
+      })
+    }
+    push({ id: 'g-blocks', label: t(locale, 'pages.blocks/'), items })
+  }
+  push({ id: 'g-tools', label: F.tools, items: NAV_SECTIONS.tools.map(guideItem).filter(Boolean) })
+  push({
+    id: 'g-project', label: F.project,
+    items: [...NAV_SECTIONS.project.map(guideItem).filter(Boolean), { id: 'github', label: 'GitHub', href: REPO_URL, icon: NAV_ICONS.github, external: true, keywords: ['repo', 'repositorio', 'repository'] }]
+  })
+  return { groups, order, unlisted: rest.map((p) => p.component.dir) }
 }
 
-/** Barra lateral de blocks/: el resumen y, por familia, sus secciones en el orden del README del paquete. */
-function blocksSidebarFor(locale, plan, root) {
-  const BL = UI[locale].blocks
-  const secs = plan.pages.filter((p) => p.block)
-  if (!secs.length && !plan.pages.some((p) => p.blockIndex)) return { groups: [], unlisted: [] }
-  const esB = lib.splitSections(read(root, BLOCKS_README), 2)
-  const groups = [
-    {
-      text: t(locale, 'pages.blocks/'),
-      items: [{ text: BL.overview, link: pageUrl(locale, 'blocks/') }].concat(
-        BLOCK_FAMILIES.map((f) => ({ text: BL[f.id], link: pageUrl(locale, `blocks/${f.id}/`) }))
-      )
-    }
-  ]
-  const used = new Set()
-  for (const f of BLOCK_FAMILIES) {
-    const sec = esB.sections.find((x) => x.title.startsWith(f.section))
-    const order = sec ? blockOrder(sec.text) : []
-    const mine = secs.filter((p) => p.block.family === f.id)
-    const ordered = [...order.map((n) => mine.find((p) => p.block.dir === n)).filter(Boolean), ...mine.filter((p) => !order.includes(p.block.dir))]
-    ordered.forEach((p) => used.add(p.block.dir))
-    if (ordered.length) groups.push({ text: BL[f.id], collapsed: false, items: ordered.map((p) => ({ text: p.block.name, link: p.url })) })
+/** Anterior y siguiente de cada página por el orden del índice; en las fichas, con el número delante. */
+function linkNeighbours(plan, order) {
+  const at = new Map(order.map((o, i) => [o.id, i]))
+  const brief = (o) => (o ? { text: o.label, link: o.href, ...(o.code ? { code: o.code } : {}) } : undefined)
+  for (const page of plan.pages) {
+    const i = at.get(page.url)
+    if (i == null) continue
+    page.prev = brief(order[i - 1])
+    page.next = brief(order[i + 1])
   }
-  return { groups, unlisted: secs.filter((p) => !used.has(p.block.dir)).map((p) => p.block.dir) }
 }
 
 /* ------------------------------------------------------------------ iconos (Lucide) */
@@ -681,25 +766,14 @@ export function lucideCss(root) {
     if (color) s = s.replace(/currentColor/g, color)
     return `url("data:image/svg+xml,${encodeURIComponent(s).replace(/'/g, '%27')}")`
   }
-  const vpIcons = fs
-    .readFileSync(path.join(root, 'node_modules/vitepress/dist/client/theme-default/styles/icons.css'), 'utf8')
-    .match(/\.vpi-[a-z0-9-]+/g)
-  const alias = { 'more-horizontal': 'ellipsis' }
-  const lines = [
-    '/* Generado por site/scripts/generate.mjs desde lucide-static (ISC): los iconos del tema de',
-    '   VitePress se sustituyen por los de la versión de Lucide del proyecto (regla «solo Lucide»). */'
-  ]
-  for (const cls of [...new Set(vpIcons)]) {
-    const name = alias[cls.slice(5)] || cls.slice(5)
-    if (!fs.existsSync(path.join(dir, `${name}.svg`))) throw new Error(`lucide-static no tiene ${name}.svg (para ${cls})`)
-    lines.push(`${cls} { --icon: ${svg(name)}; }`)
-  }
-  lines.push(`.vp-doc a::after, .vp-external-link-icon::after { --icon: ${svg('arrow-up-right')}; }`)
-  lines.push(`.DocSearch-Search-Icon { --icon: ${svg('search')}; }`)
-  lines.push(`:root { --vp-icon-copy: ${svg('copy', 'rgba(128,128,128,1)')}; --vp-icon-copied: ${svg('check', 'rgba(128,128,128,1)')}; }`)
-  lines.push(`.VPNavBarHamburger { --grana-hamburger: ${svg('menu')}; }`)
-  lines.push(`.VPNavBarHamburger.active { --grana-hamburger: ${svg('x')}; }`)
-  return lines.join('\n') + '\n'
+  // El marco ya no pinta los componentes del tema de VitePress (VPNav, VPSidebar…): de sus iconos quedan solo los
+  // de los estilos de documento (copiar el código y la marca de enlace externo de .vp-doc).
+  return [
+    '/* Generado por site/scripts/generate.mjs desde lucide-static (ISC): los iconos de los estilos de documento de',
+    '   VitePress se sustituyen por los de la versión de Lucide del proyecto (regla «solo Lucide»). */',
+    `:is(.vp-external-link-icon, .vp-doc a[href*='://'], .vp-doc a[target='_blank'])::after { --icon: ${svg('arrow-up-right')}; }`,
+    `:root { --vp-icon-copy: ${svg('copy', 'rgba(128,128,128,1)')}; --vp-icon-copied: ${svg('check', 'rgba(128,128,128,1)')}; }`
+  ].join('\n') + '\n'
 }
 
 /* ------------------------------------------------------------------ principal */
@@ -725,34 +799,40 @@ function writeTree(out, all) {
   }
 }
 
-export function generate({ root = path.resolve(SITE, '..'), out = path.join(SITE, 'src'), write = true } = {}) {
+export function generate({ root = path.resolve(SITE, '..'), out = path.join(SITE, 'src'), write = true, numbers = null } = {}) {
   const warnings = []
   const result = { locales: {}, warnings }
   const esReadme = read(root, 'README.md')
   const index = componentIndex(esReadme)
+  // Números estables (#1037): falla si un componente con página no tiene número o si uno se repite.
+  const nums = numbers ?? loadNumbers(root)
+  checkNumbers(nums, discoverComponents(root).components.map((c) => c.dir))
   const files = new Map()
   const demoFiles = new Map()
   for (const locale of Object.keys(LOCALES)) {
     const plan = buildPlan(root, locale)
     warnings.push(...plan.warnings.map((w) => `[${locale}] ${w}`))
+    const nav = navFor(locale, plan, index, nums, root)
+    linkNeighbours(plan, nav.order)
     const anchors = anchorMap(plan, root)
     const other = []
     const ctx = { root, anchors, warnings: [], other, demoFiles }
     for (const page of plan.pages) files.set(page.file, renderPage(page, ctx))
     warnings.push(...[...new Set(ctx.warnings)].map((w) => `[${locale}] ${w}`))
-    const sidebar = sidebarFor(locale, plan, index)
-    const blocksSidebar = blocksSidebarFor(locale, plan, root)
-    result.locales[locale] = { pages: plan.pages, sidebar: sidebar.groups, unlisted: sidebar.unlisted, components: plan.components, blocks: plan.blocks, blocksSidebar: blocksSidebar.groups, blocksUnlisted: blocksSidebar.unlisted }
+    result.locales[locale] = { pages: plan.pages, nav: nav.groups, order: nav.order, unlisted: nav.unlisted, components: plan.components, blocks: plan.blocks }
   }
   result.files = files
   result.demoFiles = demoFiles
+  result.numbers = nums
   if (write) {
     const all = new Map([...files].map(([rel, text]) => [rel, text]))
     for (const [rel, text] of demoFiles) all.set(`.demos/${rel}`, text)
+    const version = JSON.parse(read(root, 'packages/vue/package.json')).version
     const data = {
-      sidebar: Object.fromEntries(Object.entries(result.locales).map(([l, v]) => [l, v.sidebar])),
-      blocksSidebar: Object.fromEntries(Object.entries(result.locales).map(([l, v]) => [l, v.blocksSidebar])),
-      components: result.locales.es.pages.filter((p) => p.component).map((p) => ({ name: p.component.dir, slug: p.component.slug, demo: p.demoSource })),
+      version,
+      // Índice del marco por idioma (GSidebar con filtro): grupos e items con id, label, href (sin base), code, keywords, icon.
+      nav: Object.fromEntries(Object.entries(result.locales).map(([l, v]) => [l, v.nav])),
+      components: result.locales.es.pages.filter((p) => p.component).map((p) => ({ name: p.component.dir, slug: p.component.slug, code: p.code, demo: p.demoSource })),
       blocks: result.locales.es.pages.filter((p) => p.block).map((p) => ({ name: p.block.dir, family: p.block.family, slug: p.block.slug, demo: p.demoSource }))
     }
     all.set('.site-data.json', JSON.stringify(data, null, 2) + '\n')

@@ -9,7 +9,9 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import * as lib from './lib.mjs'
-import { generate, discoverComponents, discoverBlocks, GUIDE, COMPONENTS_DIR, BLOCKS_DIR, BLOCK_FAMILIES } from './generate.mjs'
+import { execFileSync } from 'node:child_process'
+import vm from 'node:vm'
+import { generate, discoverComponents, discoverBlocks, loadNumbers, checkNumbers, GUIDE, COMPONENTS_DIR, BLOCKS_DIR, BLOCK_FAMILIES, NUMBERS_FILE } from './generate.mjs'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const result = generate({ root: ROOT, write: false })
@@ -106,8 +108,8 @@ test('utilidades: página de guía en los dos idiomas, con ejemplos vivos y en l
     assert.ok(result.files.has(file), `falta ${file}`)
     const page = result.files.get(file)
     assert.match(page, /GranaExample1/, `${file}: sin ejemplo vivo (bloque \`vue demo\` del README)`)
-    const guide = result.locales[locale].sidebar[0].items
-    assert.ok(guide.some((i) => i.link === (locale === 'es' ? '/utilities' : '/en/utilities')), `${locale}: «Utilidades» no está en el grupo Guía`)
+    const start = result.locales[locale].nav[0].items
+    assert.ok(start.some((i) => i.href === (locale === 'es' ? '/utilities' : '/en/utilities')), `${locale}: «Utilidades» no está en el grupo Empezar`)
   }
   assert.ok([...result.demoFiles.keys()].some((k) => k.startsWith('utilities-')), 'falta el SFC del ejemplo de las utilidades')
   assert.match(result.files.get('en/utilities.md'), /::: warning Translation pending/)
@@ -126,7 +128,7 @@ test('fixture: un componente nuevo con README genera página aunque no tenga met
   w('packages/vue/src/styles/README-utilities.md', '# Clases utilitarias\n\nTexto.\n')
   w(`${COMPONENTS_DIR}/GNuevo/README.md`, '# GNuevo\n\nUn componente.\n\n```vue demo\n<g-btn>Hola</g-btn>\n```\n\nVer [GBtn](../GBtn/README.md).\n')
   w(`${COMPONENTS_DIR}/GBtn/README.md`, '# GBtn\n\nBotón.\n\n## Uso\n\nTexto.\n')
-  const r = generate({ root: tmp, write: false })
+  const r = generate({ root: tmp, write: false, numbers: { GBtn: 1, GNuevo: 2 } })
   assert.ok(r.files.has('components/nuevo.md'))
   assert.ok(r.files.has('en/components/nuevo.md'))
   assert.match(r.files.get('components/nuevo.md'), /\]\(\/components\/btn\)/)
@@ -157,7 +159,8 @@ test('blocks: cada sección con README y meta.json genera su página en los dos 
       assert.ok(result.files.has(file), `${b.dir}: falta ${file}`)
       const page = result.files.get(file)
       assert.match(page, /GranaExample\d/, `${file}: sin ejemplo vivo`)
-      assert.match(page, new RegExp(`<code>&lt;${b.meta.variants[0].tag}&gt;</code>`), `${file}: sin la etiqueta de la primera variante`)
+      assert.match(page, new RegExp(`\\| \`<${b.meta.variants[0].tag}>\` \\|`), `${file}: sin la etiqueta de la primera variante`)
+      assert.match(page, new RegExp(`^component: .*"import":"import \\{ ${b.meta.variants[0].name}`, 'm'), `${file}: sin la importación en el frontmatter`)
       assert.match(page, new RegExp(`blob/main/${b.meta.contract}`), `${file}: sin enlace a su contrato`)
       assert.match(page, new RegExp(`blob/main/design/lab/blocks/${b.family}/auditoria\\.md`), `${file}: sin enlace a su auditoría`)
     }
@@ -202,12 +205,14 @@ test('blocks: índice, índice por familia, navegación y barra lateral', () => 
       assert.ok(fam, `${locale}: falta el índice de ${f.id}`)
       for (const b of discoverBlocks(ROOT).filter((x) => x.family === f.id)) assert.ok(fam.includes(`/${prefix}blocks/${f.id}/${b.slug})`), `${locale}/${f.id}: no enlaza ${b.dir}`)
     }
-    const groups = result.locales[locale].blocksSidebar
-    assert.deepEqual(result.locales[locale].blocksUnlisted, [], `${locale}: secciones fuera de la barra lateral`)
-    assert.equal(groups.flatMap((g) => g.items).filter((i) => /\/blocks\/[a-z]+\/[a-z-]+$/.test(i.link)).length, discoverBlocks(ROOT).length)
+    // Una sola navegación global (sitio-marco.md §3): Blocks es un grupo del índice, cada familia un padre.
+    const group = result.locales[locale].nav.find((g) => g.id === 'g-blocks')
+    assert.ok(group, `${locale}: falta el grupo Blocks en el índice`)
+    const families = group.items.filter((i) => i.children)
+    assert.equal(families.length, BLOCK_FAMILIES.length)
+    const sections = families.flatMap((f) => f.children).filter((c) => /\/blocks\/[a-z]+\/[a-z-]+$/.test(c.href))
+    assert.equal(sections.length, discoverBlocks(ROOT).length, `${locale}: secciones fuera del índice`)
   }
-  const config = fs.readFileSync(path.join(ROOT, 'site/.vitepress/config.mjs'), 'utf8')
-  assert.match(config, /activeMatch: `\^\$\{p\}blocks\/`/, 'falta «Blocks» en la navegación')
   assert.ok(result.files.has('blocks/marketing/hero.md') && result.files.has('en/blocks/booking/search.md') && result.files.has('en/blocks/ecommerce/product-grid.md'))
 })
 
@@ -230,6 +235,123 @@ test('blocks: sin glifos de pictograma en el texto generado', () => {
 
 test('los GText y GPrice nuevos salen en «Componentes»', () => {
   for (const slug of ['text', 'price']) assert.ok(result.files.has(`components/${slug}.md`), `falta components/${slug}.md`)
+})
+
+/* ---------------------------------------------------------------- marco del sitio (sitio-marco.md §5, §6, §12.8) */
+
+test('números estables: todo componente con página tiene número, ninguno se repite y se pintan con dos cifras', () => {
+  const numbers = loadNumbers(ROOT)
+  const { components } = discoverComponents(ROOT)
+  for (const c of components) assert.ok(c.dir in numbers, `${c.dir}: sin número en ${NUMBERS_FILE}`)
+  const values = Object.values(numbers)
+  assert.equal(new Set(values).size, values.length, 'un número se repite')
+  for (const locale of ['es', 'en']) {
+    for (const g of result.locales[locale].nav) for (const it of g.items) {
+      if (!it.code) continue
+      assert.match(it.code, /^\d{2,}$/, `${it.label}: código «${it.code}»`)
+      assert.equal(Number(it.code), numbers[it.label], `${it.label}: el índice no lleva su número`)
+    }
+  }
+  assert.equal(numbers.GCombobox, 24, 'GCombobox es «24» (la dirección del contrato)')
+})
+
+test('números estables: ningún número asignado cambia ni se reutiliza (comparado con el registro en git)', (t) => {
+  let committed
+  try {
+    committed = JSON.parse(execFileSync('git', ['show', `HEAD:${NUMBERS_FILE}`], { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }))
+  } catch {
+    t.skip(`${NUMBERS_FILE} aún no está en HEAD`)
+    return
+  }
+  const now = loadNumbers(ROOT)
+  for (const [name, n] of Object.entries(committed)) {
+    assert.ok(name in now, `${name} desapareció del registro: un componente retirado conserva su número (no se reutiliza)`)
+    assert.equal(now[name], n, `${name}: su número cambió de ${n} a ${now[name]}`)
+  }
+})
+
+test('números estables: el generador falla si falta un número o si uno se repite', () => {
+  assert.throws(() => checkNumbers({ GBtn: 1 }, ['GBtn', 'GNuevo']), /sin número para GNuevo/)
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'grana-numeros-'))
+  fs.mkdirSync(path.join(tmp, path.dirname(NUMBERS_FILE)), { recursive: true })
+  fs.writeFileSync(path.join(tmp, NUMBERS_FILE), JSON.stringify({ GBtn: 3, GTag: 3 }))
+  assert.throws(() => loadNumbers(tmp), /el número 3 se repite/)
+  fs.rmSync(tmp, { recursive: true, force: true })
+})
+
+test('sin h1 en el cuerpo de ninguna página: el título va en el frontmatter (GPageHeader)', () => {
+  for (const [file, text] of result.files) {
+    const body = text.replace(/^---\n[\s\S]*?\n---\n/, '')
+    const h1 = lib.parseHeadings(body).filter((h) => h.level === 1)
+    assert.deepEqual(h1.map((h) => h.text), [], `${file}: h1 en el cuerpo`)
+    assert.match(text, /^---\ntitle: "[^"]+"/, `${file}: sin title en el frontmatter`)
+  }
+})
+
+test('frontmatter de cada ficha: component { code, group, status, import } y páginas vecinas por el orden del índice', () => {
+  for (const locale of ['es', 'en']) {
+    const order = result.locales[locale].order
+    for (const p of result.locales[locale].pages.filter((x) => x.component)) {
+      const text = result.files.get(p.file)
+      const fm = Object.fromEntries(text.split('\n---\n')[0].split('\n').slice(1).map((l) => [l.slice(0, l.indexOf(':')), l.slice(l.indexOf(':') + 2)]))
+      const comp = JSON.parse(fm.component)
+      assert.match(comp.code, /^\d{2,}$/, `${p.file}: code`)
+      assert.ok(comp.group, `${p.file}: group`)
+      assert.ok(comp.status, `${p.file}: status`)
+      assert.match(comp.import, new RegExp(`^import \\{ ${p.component.metas[0]?.name ?? p.component.dir}\\b.*\\} from '@grana/vue`), `${p.file}: import`)
+      const i = order.findIndex((o) => o.id === p.url)
+      assert.ok(i >= 0, `${p.file}: fuera del orden del índice`)
+      if (i > 0) assert.equal(JSON.parse(fm.prev).link, order[i - 1].href, `${p.file}: prev`)
+      if (i < order.length - 1) assert.equal(JSON.parse(fm.next).link, order[i + 1].href, `${p.file}: next`)
+    }
+  }
+  const combobox = result.files.get('components/combobox.md')
+  assert.match(combobox, /^component: \{"code":"24","group":"Campos de entrada"/m)
+  assert.match(result.files.get('en/components/combobox.md'), /^component: \{"code":"24","group":"Input fields"/m)
+})
+
+test('índice del marco: grupos de §3, items con id, label, href, keywords; ids únicos', () => {
+  for (const locale of ['es', 'en']) {
+    const nav = result.locales[locale].nav
+    const ids = []
+    for (const g of nav) for (const it of g.items) {
+      ids.push(it.id, ...(it.children || []).map((c) => c.id))
+      assert.ok(it.label, `${g.label}: item sin label`)
+      if (!it.children) assert.ok(it.href, `${it.label}: sin href`)
+      if (it.code) assert.ok(it.keywords?.length, `${it.label}: sin keywords`)
+    }
+    assert.equal(new Set(ids).size, ids.length, `${locale}: ids repetidos en el índice`)
+    assert.deepEqual(nav.map((g) => g.id).filter((id) => !id.startsWith('g-cat-')), ['g-start', 'g-blocks', 'g-tools', 'g-project'])
+    assert.ok(nav.filter((g) => g.id.startsWith('g-cat-')).every((g) => g.anchor), `${locale}: grupo de componentes sin ancla en components/`)
+  }
+})
+
+test('«En el texto»: forma del índice local de VitePress (@localSearchIndex) en el sitio construido', (t) => {
+  const assets = path.join(ROOT, 'site/.vitepress/dist/assets/chunks')
+  if (!fs.existsSync(assets)) {
+    t.skip('sin site/.vitepress/dist: ejecuta antes npm run docs:build')
+    return
+  }
+  const files = fs.readdirSync(assets)
+  // Una carga perezosa por idioma (claves `root` y `en` del módulo virtual), cada una con el JSON de MiniSearch.
+  for (const key of ['root', 'en']) {
+    const f = files.find((x) => x.startsWith(`@localSearchIndex${key}.`) && x.endsWith('.js'))
+    assert.ok(f, `falta el índice local de «${key}»`)
+    const src = fs.readFileSync(path.join(assets, f), 'utf8')
+    const m = src.match(/^const \w+=(["'`])([\s\S]*)\1;export\{\w+ as default\};?\s*$/)
+    assert.ok(m, `@localSearchIndex${key}: no exporta una cadena por defecto`)
+    const json = JSON.parse(vm.runInNewContext(m[1] + m[2] + m[1]))
+    assert.ok(Array.isArray(json.fieldIds ? Object.keys(json.fieldIds) : null), 'sin fieldIds')
+    assert.deepEqual(Object.keys(json.fieldIds).sort(), ['text', 'title', 'titles'])
+    const stored = Object.values(json.storedFields)
+    assert.ok(stored.length > 100, `@localSearchIndex${key}: ${stored.length} secciones`)
+    assert.ok(stored.every((s) => typeof s.title === 'string' && Array.isArray(s.titles)), 'storedFields sin title/titles')
+    const ids = Object.values(json.documentIds)
+    assert.ok(ids.every((id) => typeof id === 'string' && id.startsWith('/grana/')), 'ids sin la base')
+    assert.ok(ids.some((id) => /\/theming\.html#tema-oscuro$/.test(id)) || key === 'en', 'sin la sección «Tema oscuro» de Tematización')
+  }
+  const client = files.filter((x) => x.endsWith('.js')).map((x) => fs.readFileSync(path.join(assets, x), 'utf8')).find((x) => x.includes('@localSearchIndexroot'))
+  assert.ok(client && /root:\(\)=>/.test(client) && /en:\(\)=>/.test(client), 'el módulo virtual ya no es { root: () => import(…), en: () => import(…) }')
 })
 
 /* ---------------------------------------------------------------- utilidades */

@@ -9,52 +9,17 @@ const here = path.dirname(fileURLToPath(import.meta.url))
 const site = path.resolve(here, '..')
 const dataFile = path.join(site, 'src/.site-data.json')
 if (!fs.existsSync(dataFile)) throw new Error('Falta site/src/: ejecuta antes `node site/scripts/generate.mjs` (lo hacen docs:dev y docs:build)')
-const data = JSON.parse(fs.readFileSync(dataFile, 'utf8'))
 
 // GitHub Pages de un repositorio de proyecto: https://kevinedgm.github.io/grana/
 const base = process.env.GRANA_SITE_BASE || '/grana/'
 
-function themeFor(locale) {
-  const U = UI[locale]
-  const T = U.theme
-  const p = '/' + LOCALES[locale].prefix
-  return {
-    nav: [
-      { text: U.nav.guide, link: p + 'getting-started', activeMatch: `^${p}(getting-started|theming|cli|utilities|accessibility|personality|project)` },
-      { text: U.nav.components, link: p + 'components/', activeMatch: `^${p}components/` },
-      { text: U.nav.blocks, link: p + 'blocks/', activeMatch: `^${p}blocks/` },
-      { text: U.nav.playground, link: p + 'playground', activeMatch: `^${p}playground` },
-      { text: U.nav.changelog, link: p + 'changelog' },
-      { text: U.nav.github, link: 'https://github.com/kevinedgm/grana' }
-    ],
-    // Dos barras: la de Blocks (por familia) en /blocks/ y la de siempre en el resto (se elige la ruta más profunda).
-    sidebar: { [p + 'blocks/']: data.blocksSidebar[locale], [p]: data.sidebar[locale] },
-    outline: { level: [2, 3], label: T.outline },
-    docFooter: { prev: T.prev, next: T.next },
-    darkModeSwitchLabel: T.appearance,
-    lightModeSwitchTitle: T.toLight,
-    darkModeSwitchTitle: T.toDark,
-    sidebarMenuLabel: T.menu,
-    returnToTopLabel: T.top,
-    langMenuLabel: T.langMenu,
-    skipToContentLabel: T.skip,
-    notFound: T.notFound,
-    footer: { message: T.footer }
-  }
+/** URL de una página (`components/btn.md` → `/grana/components/btn.html`) y la de su gemela en el otro idioma. */
+function pageHref(relativePath) {
+  const rel = relativePath.replace(/(^|\/)index\.md$/, '$1').replace(/\.md$/, '.html')
+  return base + rel
 }
-
-function searchTranslations(locale) {
-  const S = UI[locale].theme.search
-  return {
-    button: { buttonText: S.button, buttonAriaLabel: S.buttonAria },
-    modal: {
-      displayDetails: S.detailed,
-      resetButtonTitle: S.reset,
-      backButtonTitle: S.back,
-      noResultsText: S.noResults,
-      footer: { selectText: S.select, navigateText: S.navigate, closeText: S.close }
-    }
-  }
+function twinPath(relativePath) {
+  return relativePath.startsWith(LOCALES.en.prefix) ? relativePath.slice(LOCALES.en.prefix.length) : LOCALES.en.prefix + relativePath
 }
 
 export default defineConfig({
@@ -66,7 +31,8 @@ export default defineConfig({
   // Comprobación de enlaces muertos activa: un enlace interno roto detiene el build.
   ignoreDeadLinks: false,
   head: [
-    // Sincroniza el tema de Grana (data-theme) con la apariencia de VitePress antes de pintar.
+    // Tema antes de pintar (sitio-marco.md §7): VitePress pone la clase `dark` con su propio script (clave
+    // `vitepress-theme-appearance`: auto · light · dark); este escribe a la vez `data-theme` para los tokens de Grana.
     [
       'script',
       {},
@@ -77,29 +43,36 @@ export default defineConfig({
     ['link', { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }],
     ['link', { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Poppins:wght@400;500;600;700&display=swap' }]
   ],
+  // Página gemela en el otro idioma (sitio-marco.md §4): `<link rel="alternate" hreflang>` en cada página.
+  transformHead({ pageData }) {
+    if (pageData.isNotFound || !pageData.relativePath) return []
+    const self = pageData.relativePath
+    const twin = twinPath(self)
+    const enSelf = self.startsWith(LOCALES.en.prefix)
+    const es = enSelf ? twin : self
+    const en = enSelf ? self : twin
+    return [
+      ['link', { rel: 'alternate', hreflang: 'es', href: pageHref(es) }],
+      ['link', { rel: 'alternate', hreflang: 'en', href: pageHref(en) }]
+    ]
+  },
   locales: {
-    root: { label: LOCALES.es.label, lang: 'es', description: UI.es.description, themeConfig: themeFor('es') },
-    en: { label: LOCALES.en.label, lang: 'en', link: '/en/', description: UI.en.description, themeConfig: themeFor('en') }
+    root: { label: LOCALES.es.label, lang: 'es', description: UI.es.description },
+    en: { label: LOCALES.en.label, lang: 'en', link: '/en/', description: UI.en.description }
   },
+  // El marco es propio (theme/Layout.vue, sin DefaultTheme.Layout): de la configuración del tema solo queda la
+  // búsqueda local, que construye el índice `@localSearchIndex` de «En el texto» (sitio-marco.md §6.3).
   themeConfig: {
-    logo: {
-      light: '/logo.svg',
-      dark: '/logo-dark.svg',
-      alt: ''
-    },
-    search: {
-      provider: 'local',
-      options: {
-        locales: {
-          root: { translations: searchTranslations('es') },
-          en: { translations: searchTranslations('en') }
-        }
-      }
-    }
+    search: { provider: 'local' }
   },
+  // Al saltar a un `#ancla` (enlace del contenido), la sección queda bajo la banda de GAppShell y el zócalo pegado de
+  // GPageHeader (≈ su alto con el relevo; medido en el sitio construido).
+  scrollOffset: { selector: '.g-app-shell__header', padding: 88 },
   markdown: {
     // Sin numeración ni comprobaciones extra: el contenido es el de los README.
-    theme: { light: 'github-light', dark: 'github-dark' }
+    theme: { light: 'github-light', dark: 'github-dark' },
+    // `page.headers` con los h2 (ids del ancla de markdown-it): las secciones de GPageIndex (sitio-marco.md §6.2).
+    headers: { level: [2] }
   },
   vite: {
     // El logo vive en site/public; con srcDir «src» VitePress buscaría site/src/public (que el generador vacía): 404 del logo.
