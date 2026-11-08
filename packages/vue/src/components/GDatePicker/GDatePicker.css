@@ -54,6 +54,9 @@
   --_row: var(--_cell);
   --_stage-h: calc(var(--g-space-1) + var(--g-space-2) + var(--g-text-caption-line) + var(--_row) * 6);
   --_months-gap: calc(var(--g-space-1) * 10 * var(--_density));
+  /* Celdas de ancho de cada mes del panel de dos meses (#1030): el ancho de antes de la r02 (8,5 celdas, 340 px por
+     defecto); en compacto, siete celdas como el mes único */
+  --_pair-cells: 8.5;
   /* Amplitud del zoom del cambio de nivel (#1023): 0 con movimiento reducido (solo fundido) */
   --_zoom-amp: 1;
 
@@ -360,19 +363,24 @@
   min-inline-size: min(calc(var(--_cell) * 7), 100%);
   max-inline-size: calc(var(--_cell) * 8.5);
 }
-/* Dos meses en la vista de meses o de años (r02 §2): una sola columna ocupa la caja de los dos (Δ 0 del panel). Nombre
-   propuesto por coco, pendiente de contrato: g-datepicker__months--pair en __months cuando se ven dos meses */
+/* Dos meses en la vista de meses o de años (r02 §2, #1030 g-datepicker__months--pair): una sola columna ocupa la caja de
+   los dos (Δ 0 del panel) */
 .g-datepicker__months--pair > .g-datepicker__month:only-child {
   min-inline-size: min(calc(var(--_cell) * 14 + var(--_months-gap)), 100%);
   max-inline-size: calc(var(--_cell) * 17 + var(--_months-gap));
 }
-/* En el panel el mes mide siete celdas (r02 §8: ≈ 328 px por defecto, ≈ 246 px en compacto; la misma medida con la que
-   bruno decide uno o dos meses). En línea sigue creciendo hasta 8,5 celdas; en la hoja llena el ancho */
+/* En el panel, un mes mide siete celdas (r02 §8: ≈ 328 px por defecto, ≈ 246 px en compacto). Dos meses conservan el
+   ancho de antes de la r02 (#1030): --_pair-cells por mes (8,5 celdas, 340 px por defecto; 7 en compacto); si el visor no
+   da para tanto, ceden hasta siete celdas como antes (la medida con la que bruno decide uno o dos). En línea sigue
+   creciendo hasta 8,5 celdas; en la hoja llena el ancho */
 .g-datepicker__pop .g-datepicker__month {
   inline-size: calc(var(--_cell) * 7);
 }
+.g-datepicker__pop .g-datepicker__months--pair > .g-datepicker__month {
+  inline-size: calc(var(--_cell) * var(--_pair-cells));
+}
 .g-datepicker__pop .g-datepicker__months--pair > .g-datepicker__month:only-child {
-  inline-size: calc(var(--_cell) * 14 + var(--_months-gap));
+  inline-size: calc(var(--_cell) * var(--_pair-cells) * 2 + var(--_months-gap));
 }
 
 /* ---------- Encabezado: alto constante en las tres vistas (r02 §2); las flechas conservan su hueco ---------- */
@@ -643,8 +651,10 @@
   box-shadow: inset 0 0 0 var(--g-border-width) var(--_text);
   transition: background-color var(--g-duration-fast) var(--g-ease-standard);
 }
+/* Elegido y actual: el trazo {color}-text sigue por fuera (§7.1; con un {color} claro, como el verde de un tema, el
+   relleno solo no llega a 3:1 con la superficie) y el aro de «actual» va dentro en on-{color} */
 .g-datepicker__pick.is-selected.is-current {
-  box-shadow: inset 0 0 0 calc(var(--g-border-width) * 2) var(--_on);
+  box-shadow: inset 0 0 0 var(--g-border-width) var(--_text), inset 0 0 0 calc(var(--g-border-width) * 3) var(--_on);
 }
 .g-datepicker__pick > .g-icon {
   position: absolute;
@@ -761,8 +771,9 @@
   box-shadow: inset 0 0 0 var(--g-border-width) var(--_text);
   transition: background-color var(--g-duration-fast) var(--g-ease-standard);
 }
+/* Elegido y hoy: como el mes elegido y actual, el trazo {color}-text por fuera y el aro on-{color} dentro (§7.1) */
 .g-datepicker__day.is-selected.is-today {
-  box-shadow: inset 0 0 0 calc(var(--g-border-width) * 2) var(--_on);
+  box-shadow: inset 0 0 0 var(--g-border-width) var(--_text), inset 0 0 0 calc(var(--g-border-width) * 3) var(--_on);
 }
 /* Día de otro mes (un mes): atenuado, sigue siendo elegible */
 .g-datepicker__day.is-outside {
@@ -1018,7 +1029,7 @@
 /* ---------- Densidad del campo ---------- */
 .g-datepicker--density-default { --_density: 1; }
 .g-datepicker--density-comfortable { --_density: 0.875; }
-.g-datepicker--density-compact { --_density: 0.75; }
+.g-datepicker--density-compact { --_density: 0.75; --_pair-cells: 7; }
 
 /* ---------- Forma del campo ---------- */
 .g-datepicker--rounded-none { --_radius: var(--g-radius-none); }

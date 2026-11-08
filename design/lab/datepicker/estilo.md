@@ -94,7 +94,7 @@ Contrato: `datepicker.md` §«Un mes por defecto y salto a mes y año (r02)». B
 | Panel de un mes (con borde) | 330 | — | 248 | — |
 
 - **Δ 0** del escenario, la cabecera y la superficie entre días, meses y años en las tres densidades, en el par de meses (con `g-datepicker__months--pair`) y con el tema de prueba; la rejilla de meses llena el escenario y las cuatro filas de años miden igual; la pista queda dentro.
-- **Panel:** el mes mide siete celdas (`.g-datepicker__pop .g-datepicker__month`), como dice §8 (antes crecía a 8,5 celdas: 388 px por defecto). En línea sigue creciendo hasta 8,5 celdas; en la hoja llena el ancho.
+- **Panel:** un mes mide siete celdas (`.g-datepicker__pop .g-datepicker__month`), como dice §8: 330 px de panel por defecto, 254 px en compacto. **Dos meses conservan el ancho de antes de la r02 (#1030, decisión del usuario):** `--_pair-cells` celdas por mes (8,5: 340 px por mes, 770 px de panel, igual que antes; 7 en compacto), y en la vista de meses o de años la única columna mide `--_pair-cells × 2` celdas + la separación (Δ 0). Si el visor no da para tanto, los meses ceden hasta siete celdas, como antes. En línea sigue creciendo hasta 8,5 celdas; en la hoja llena el ancho.
 - **Hoja a 320 px táctil:** relleno lateral `max(0px, min(space × 4, (100% − 7 × celda) / 2))` = 5 px; sin desborde; celda, flechas y título de 44 px. A 375 px, 16 px. La hoja lleva `overflow-x: hidden` para que el 3 % del zoom no asome una barra.
 - **Contraste** (por defecto): texto de pieza 17,40 · elegido 16,48 (acento 5,69) · trazo del elegido 16,48 (acento 5,69) · aro del actual 7,46 · no disponible 5,10 · punto 17,40 · pista 7,46 · raya vacía 3,45 · cifra 17,40 · título 17,40 · chevron 7,46 · flecha en el borde 5,10. Todos ≥ 4,5 (texto) / 3 (marcas) en los once temas, claro y oscuro.
 - **Zoom:** de 0,97 (0,94 con el tema de prueba) y de 1,03 (1,06) a 1, 160 ms, `cubic-bezier(0.23, 1, 0.32, 1)`; origen x en la pieza también en RTL (`calc(100% − --_zoom-x)`); reducido 120 ms `linear`, escala 1.
@@ -102,9 +102,14 @@ Contrato: `datepicker.md` §«Un mes por defecto y salto a mes y año (r02)». B
 
 ### Nombres y notas para bruno y lima
 
-- **`g-datepicker__months--pair`** (propuesta de coco, no está en el contrato): en `__months` cuando se ven dos meses. Con la vista de meses o de años la única columna ocupa la caja de los dos (Δ 0). Sin ella, el panel de dos meses se estrecha al cambiar de vista.
+- **`g-datepicker__months--pair`** (contratada en #1030): en `__months` cuando se ven dos meses. Con la vista de meses o de años la única columna ocupa la caja de los dos (Δ 0). Sin ella, el panel de dos meses se estrecha al cambiar de vista.
 - **Punto de `is-in-value`:** se estiliza `.g-datepicker__pick > .g-icon` (el `circle` relleno que emita bruno, como el punto de hoy); coco no lo dibuja.
 - **`--_zoom-x` / `--_zoom-y`:** porcentajes desde el **inicio en línea** (columna 0 = inicio); el CSS invierte la x en RTL.
 - La pista y las cifras funcionan como hijos de `__view--years` en cualquier orden; si `__typed` va fuera de `__years-hint`, ocupa otra fila del escenario.
 - Densidad: todo lee `--_density` de `g-datepicker--density-*`; las flechas del borde con `aria-disabled` se atenúan y pierden el hover.
 - Sin `@layer` en el archivo (lo pone el registro, regla de la skill de coco y de la mayoría de componentes).
+
+### Auditoría r02 (paso 5)
+
+- Contraste de lo marcado elegido **y** actual (mes) o hoy (día): el trazo `{color}-text` queda por fuera y el aro on-`{color}` va dentro (dos sombras interiores). Antes el aro on-`{color}` sustituía al trazo y, con un `{color}` claro (tema `spotify`), el relleno quedaba a 1,92:1 con la superficie; ahora 4,53:1. Sin cambio visible en el tema por defecto (trazo y relleno son el mismo tono). Detalle en `auditoria-r02.md`.
+

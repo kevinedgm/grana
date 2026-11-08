@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GDatePicker r02 · auditoría</title>
+<!-- Página de auditoría de coco (paso 5, r02): GDatePicker y GBookingBar REALES de dist/ (grana.umd.js y booking.umd.js),
+     sin CSS del banco. La sirve design/lab/datepicker/auditoria-r02-verificar.mjs desde la raíz del dist que se audita.
+     Parámetros: ?dir=rtl  &dark=1  &theme=<generated/*>  &tema=prueba  &case=<id>  &booking=1 -->
+<link rel="stylesheet" href="/packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="/packages/vue/dist/grana.css">
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style>
+  /* Tema de prueba distinto del por defecto (sin capa: gana a grana.defaults como un tema de usuario): otra unidad de
+     espacio, otra escala de pulsación, marca y acento propios, radios a cero */
+  html[data-tema="prueba"] {
+    --g-space-1: 5px;
+    --g-press-scale: 0.95;
+    --g-color-brand: #0B1F4D;
+    --g-color-brand-text: #0B1F4D;
+    --g-color-on-brand: #FFFFFF;
+    --g-color-accent: #8A2D5C;
+    --g-color-accent-text: #8A2D5C;
+    --g-radius-sm: 0px;
+    --g-radius-md: 0px;
+    --g-surface-radius: 0px;
+  }
+  html[data-tema="prueba"][data-theme="dark"] {
+    --g-color-brand: #9DB6F2;
+    --g-color-brand-text: #9DB6F2;
+    --g-color-on-brand: #0B1F4D;
+    --g-color-accent: #E8A3C7;
+    --g-color-accent-text: #E8A3C7;
+  }
+  html, body { margin: 0; }
+  body { background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui); }
+  main { padding: 16px; display: flex; flex-direction: column; gap: 24px; align-items: flex-start; }
+  .tall { block-size: 60vh; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="/node_modules/vue/dist/vue.global.prod.js"></script>
+<script src="/packages/vue/dist/grana.umd.js"></script>
+<script src="/packages/vue/dist/booking.umd.js"></script>
+<script>
+  const q = new URLSearchParams(location.search)
+  if (q.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  if (q.get('dark') === '1') document.documentElement.dataset.theme = 'dark'
+  if (q.get('theme')) document.getElementById('gen').href = `/design/lab/tema-oscuro/dark-color-presence/generated/${q.get('theme')}.css`
+  if (q.get('tema')) document.documentElement.dataset.tema = q.get('tema')
+  const L = { prev: 'Mes anterior', next: 'Mes siguiente', dialog: 'Elegir fecha', close: 'Cerrar', today: 'hoy', selected: 'elegida', unavailable: 'no disponible', rangeStart: 'inicio', rangeEnd: 'fin', rangeSingle: 'inicio y fin', inRange: 'dentro del rango', done: 'Listo', clear: 'Borrar', announceStart: 'Inicio {date}. Elige el fin.', announceEnd: 'Del {start} al {end}.', announceDate: '{date}.', chooseMonth: 'elegir mes', chooseYear: 'elegir año', prevYear: 'Año anterior', nextYear: 'Año siguiente', prevYears: 'Doce años antes', nextYears: 'Doce años después', viewMonths: 'Meses de {year}', viewYears: 'Años de {from} a {to}', typeYear: 'Escribe un año', current: 'actual', hasValue: 'con fechas elegidas' }
+  // Casos: id → props. Popover salvo inline. Valor fijo para que la vista no dependa del día de hoy salvo «hoy»
+  const CASES = {
+    one: { label: 'Un mes', modelValue: '2026-11-18' },
+    today: { label: 'Hoy elegido', modelValue: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10) },
+    two: { label: 'Dos meses', months: 2, mode: 'range', modelValue: { start: '2026-11-20', end: '2026-12-08' } },
+    auto: { label: 'Auto', months: 'auto', mode: 'range', modelValue: { start: '2026-11-20', end: '2026-12-08' } },
+    compact: { label: 'Compacto', density: 'compact', modelValue: '2026-11-18' },
+    compact2: { label: 'Compacto dos', density: 'compact', months: 2, mode: 'range', modelValue: { start: '2026-11-20', end: '2026-12-08' } },
+    comfortable: { label: 'Cómodo', density: 'comfortable', modelValue: '2026-11-18' },
+    rangeOne: { label: 'Rango un mes', mode: 'range', modelValue: { start: '2026-11-20', end: '2027-01-12' } },
+    minmax: { label: 'Límites', modelValue: '2026-11-18', min: '2026-03-10', max: '2027-02-10' },
+    inline1: { label: 'En línea', inline: true, modelValue: '2026-11-18' },
+    inline2: { label: 'En línea dos', inline: true, months: 2, mode: 'range', modelValue: { start: '2026-11-20', end: '2026-12-08' } }
+  }
+  const only = q.get('case')
+  const keys = only ? only.split(',') : Object.keys(CASES)
+  const app = Vue.createApp({
+    setup () {
+      const vals = Vue.reactive(Object.fromEntries(keys.map((k) => [k, CASES[k].modelValue])))
+      const query = Vue.ref(null)
+      const bl = {
+        phrase: 'Llego el {from}, me quedo {nights} y somos {party}.',
+        fields: { from: 'Llegada', to: 'Salida', nights: 'Noches', date: 'Día', time: 'Hora', tour: 'Recorrido', party: 'Huéspedes' },
+        empty: { from: '¿qué día?', nights: '¿cuántas noches?', date: '¿qué día?', time: '¿a qué hora?', tour: '¿cuál?' },
+        nights: (n) => `${n} ${n === 1 ? 'noche' : 'noches'}`, checkout: 'Salida el {date}', noDates: 'Sin fechas', noDate: 'Sin fecha', noTime: 'Sin hora', noTour: 'Sin recorrido',
+        separator: ' · ', summaryTitle: 'Tu consulta', change: 'Cambiar', submit: 'Ver disponibilidad', pending: 'Consultando…', close: 'Cerrar', done: 'Listo', otherDay: 'Otro día', full: 'lleno',
+        decrement: 'Una noche menos', increment: 'Una noche más',
+        errors: { dates: 'Elige la llegada y las noches.', night: 'Sin habitaciones la noche del {date}.', nights: 'Elige entre 1 y 14 noches.', date: 'Elige el día.', time: 'Elige la hora.', tour: 'Elige el recorrido.' },
+        missing: (n, v) => (n === 1 ? `Falta un dato: ${v.list}` : `Faltan ${v.count} datos: ${v.list}`),
+        datePicker: { ...L, rangeStart: 'llegada', rangeEnd: 'salida', checkoutOnly: 'solo salida' }
+      }
+      const rows = [{ key: 'adults', label: 'Adultos', min: 1, default: 2, unit: (n) => `${n} adultos`, decrementLabel: 'Quitar adulto', incrementLabel: 'Añadir adulto' }]
+      window.audit = { vals }
+      return { keys, CASES, vals, L, query, bl, rows, booking: q.get('booking') === '1' }
+    },
+    template: `<main>
+      <g-booking-bar v-if="booking" id="bb" kind="stay" appearance="bar" title="Consulta" v-model="query" :party-rows="rows" :min-nights="1" :max-nights="14" :labels="bl" locale="es-MX"></g-booking-bar>
+      <template v-else>
+        <div v-for="k in keys" :key="k" :id="'c-' + k" class="case">
+          <g-date-picker v-bind="{ ...CASES[k], modelValue: undefined }" v-model="vals[k]" :labels="L" locale="es-MX"></g-date-picker>
+        </div>
+      </template>
+      <div class="tall"></div>
+    </main>`
+  })
+  app.use(Grana).use(GranaBooking)
+  app.mount('#app')
+  window.auditReady = true
+</script>
+</body>
+</html>

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GDatePicker",
   "tag": "g-datepicker",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Selector de una fecha o de un rango (valor ISO YYYY-MM-DD): un mes por defecto (dos con months=\"auto\" si caben, o months=2), salto a mes y año desde el título (A · Zoom de escala), campo(s) con popover u hoja inferior en móvil, o solo la superficie en línea. Franja de rango continua que sigue fuera de lo visible, proximidad ± N días, superficie compacta con density, teclado APG y textos por labels.",
   "contract": "design/contracts/datepicker.md",
