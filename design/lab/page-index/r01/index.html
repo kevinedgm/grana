@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Índice de la página · r01</title>
+<script>
+  // El tema se aplica antes de pintar (como el script del <head> del sitio)
+  ;(() => { const q = new URLSearchParams(location.search); document.documentElement.setAttribute('data-theme', q.get('theme') === 'dark' ? 'dark' : 'light') })()
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap">
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="../../navbar/r01/navbar.css">
+<link rel="stylesheet" href="./page-index.css">
+<link rel="stylesheet" href="../../navbar/r01/marco.css">
+<script src="../../lucide-icons.js"></script>
+<script src="../../navbar/r01/lucide-extra.js"></script>
+<script src="../../sitio/r01/datos.js"></script>
+<script src="../../navbar/r01/numeros.js"></script>
+<script src="./secciones.js"></script>
+</head>
+<body>
+<!-- GPageIndex list r01 (kiwi): la columna «En esta página» y su forma plegada, en el mismo marco calcado.
+     ?p=comp|guide|blocks|home  &theme=dark  &follow=0 (sin PI-P1)  &landing=1 (PI-P2 · llegada) -->
+<div id="app"></div>
+<script src="../../../../node_modules/vue/dist/vue.global.prod.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../../../packages/vue/dist/app-shell.umd.js"></script>
+<script src="../../../../packages/vue/dist/sidebar-filter.umd.js"></script>
+<script src="../../../../packages/vue/dist/combobox.umd.js"></script>
+<script src="../../navbar/r01/navbar.js"></script>
+<script src="./page-index.js"></script>
+<script src="../../navbar/r01/marco.js"></script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Barra de navegación · r01</title>
+<script>
+  // El tema se aplica antes de pintar (como el script del <head> del sitio)
+  ;(() => { const q = new URLSearchParams(location.search); document.documentElement.setAttribute('data-theme', q.get('theme') === 'dark' ? 'dark' : 'light') })()
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap">
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="./navbar.css">
+<link rel="stylesheet" href="../../page-index/r01/page-index.css">
+<link rel="stylesheet" href="./marco.css">
+<script src="../../lucide-icons.js"></script>
+<script src="./lucide-extra.js"></script>
+<script src="../../sitio/r01/datos.js"></script>
+<script src="./numeros.js"></script>
+<script src="../../page-index/r01/secciones.js"></script>
+</head>
+<body>
+<!-- GNavBar r01 (kiwi): marco del sitio anterior calcado con componentes reales + el prototipo de GNavBar.
+     ?p=comp|guide|blocks|home  &theme=dark  &glide=1 (P1 · una sola luz)  &mark=1 (P2 · marca que viaja) -->
+<div id="app"></div>
+<script src="../../../../node_modules/vue/dist/vue.global.prod.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../../../packages/vue/dist/app-shell.umd.js"></script>
+<script src="../../../../packages/vue/dist/sidebar-filter.umd.js"></script>
+<script src="../../../../packages/vue/dist/combobox.umd.js"></script>
+<script src="./navbar.js"></script>
+<script src="../../page-index/r01/page-index.js"></script>
+<script src="./marco.js"></script>
+</body>
+</html>

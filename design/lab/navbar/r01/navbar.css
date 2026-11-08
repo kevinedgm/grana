@@ -1,0 +1,263 @@
+/* GNavBar · prototipo de kiwi r01 (no es el CSS del componente: lo escribe coco desde el contrato de lima).
+   Calca la barra del sitio anterior (design/lab/sitio/referencia/medidas.md §2 y §3) con tokens --g-*.
+   Nombres del prototipo → contrato propuesto: .nb → .g-nav-bar, .nb__* → .g-nav-bar__*.
+   Literales: solo 24px/44px (área táctil) y el patrón de texto oculto. Los cortes 48rem / 80rem son del contrato (N4). */
+
+.nb {
+  --_highlight-x: 0px;
+  --_highlight-y: 0px;
+  --_highlight-w: 0px;
+  --_highlight-h: 0px;
+  --_mark-x: 0px;
+  --_mark-w: 0px;
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  block-size: 100%;
+  /* La banda de GAppShell ya pone space-4; el calco pide 32 a cada lado (24 en estrecho) */
+  padding-inline: var(--g-space-4);
+  gap: 0;
+  font-family: var(--g-font-ui);
+  color: var(--g-color-text);
+}
+
+/* ---------- Marca (slot brand) ---------- */
+.nb__brand {
+  display: flex;
+  align-items: center;
+  flex: none;
+  gap: var(--g-space-2);
+  block-size: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+/* Con un GSidebar expandido o en riel en el chasis, la marca ya está en su cabecera (calco: la marca pertenece a la
+   columna). Contrato entre componentes por clases públicas de GSidebar, como la reserva de #712 (N-L5). */
+.g-app-shell:has(> .g-sidebar--mode-expanded, > .g-sidebar--mode-rail) .nb__brand {
+  display: none;
+}
+
+/* ---------- Búsqueda (slot search): ocupa el hueco entre la marca y los enlaces ---------- */
+.nb__search {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  padding-inline-start: calc(var(--g-space-1) * 10);
+}
+@media (width >= 60rem) { .nb__search { padding-inline-start: var(--g-space-12); } }
+/* Con el índice al lado, la búsqueda empieza a 48 del borde de la columna (banda 16 + barra 16 + 16) */
+.g-app-shell:has(> .g-sidebar--mode-expanded, > .g-sidebar--mode-rail) .nb__search { padding-inline-start: var(--g-space-4); }
+
+/* ---------- Enlaces ---------- */
+.nb__nav {
+  display: none;
+  block-size: 100%;
+  flex: none;
+}
+.nb__list {
+  position: relative;
+  display: flex;
+  block-size: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.nb__list > li { display: flex; }
+.nb__link {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--g-space-1);
+  padding-inline: var(--g-space-3);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-text);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color var(--g-duration-slow) var(--g-ease-out);
+}
+.nb__link:hover,
+.nb__link[aria-current='page'] {
+  color: var(--g-color-accent-text);
+}
+.nb__link:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: calc(-1 * var(--g-focus-width));
+}
+.nb__ext {
+  inline-size: 0.6875em;
+  block-size: 0.6875em;
+  color: var(--g-color-text-subtle);
+}
+.nb__ext svg { inline-size: 100%; block-size: 100%; display: block; }
+
+/* P1 · Una sola luz (opcional, glide): la capa es el primer hijo del anfitrión (#962), medidas en la capa */
+.nb__light {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  inline-size: var(--_highlight-w);
+  block-size: var(--_highlight-h);
+  translate: var(--_highlight-x) var(--_highlight-y);
+  /* La luz cubre la fila de texto, no los 64 px de la banda */
+  scale: 1 0.5;
+  border-radius: var(--g-radius-md);
+  background-color: var(--g-color-neutral-soft);
+  opacity: 0;
+  pointer-events: none;
+  transition: translate var(--g-duration-slow) var(--g-ease-out), inline-size var(--g-duration-slow) var(--g-ease-out), opacity var(--g-duration-fast) linear;
+}
+.nb--glide .nb__list.has-highlight > .nb__light { opacity: 1; }
+.nb--glide .nb__list.is-highlight-instant > .nb__light { transition: none; }
+/* Con la luz, el hover deja de pintar como el actual: la señal del puntero es la luz (resuelve G183, §7 de medidas) */
+.nb--glide .nb__link:hover:not([aria-current='page']) { color: var(--g-color-text); }
+
+/* P2 · La marca de la página actual (opcional, mark): 2 px en el borde de la banda bajo el actual; viaja al cambiar */
+.nb__mark {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline-start: 0;
+  inline-size: var(--_mark-w);
+  block-size: 2px;
+  translate: var(--_mark-x) 0;
+  border-radius: var(--g-radius-sm);
+  background-color: var(--g-color-accent-text);
+  opacity: 0;
+  pointer-events: none;
+  transition: translate var(--g-duration-slow) var(--g-ease-spring), inline-size var(--g-duration-slow) var(--g-ease-spring);
+}
+.nb--mark .nb__list.has-mark > .nb__mark { opacity: 1; }
+.nb__list.is-mark-instant > .nb__mark { transition: none; }
+
+/* ---------- Acciones (slot actions) en la barra, con separadores de 1 × 24 ---------- */
+.nb__actions {
+  display: none;
+  align-items: center;
+  flex: none;
+  block-size: 100%;
+}
+.nb__sep {
+  flex: none;
+  inline-size: var(--g-border-width);
+  block-size: 24px;
+  margin-inline: var(--g-space-2) var(--g-space-4);
+  background-color: var(--g-color-border);
+}
+
+/* ---------- «…» (idioma y tema recogidos): disclosure, no menú ---------- */
+.nb__more,
+.nb__toggle {
+  display: none;
+  position: relative;
+  flex: none;
+}
+.nb__iconbtn {
+  display: grid;
+  place-items: center;
+  inline-size: calc(var(--g-space-1) * 11);
+  min-inline-size: 44px;
+  block-size: 100%;
+  min-block-size: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--g-color-text);
+  cursor: pointer;
+}
+.nb__iconbtn:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: calc(-1 * var(--g-focus-width));
+}
+.nb__iconbtn .g-icon { font-size: var(--g-text-body-size); }
+.nb__more .nb__iconbtn { block-size: calc(var(--g-space-1) * 16); }
+/* Calco: «…» y la hamburguesa se comen parte del relleno final (VitePress: −12 y −8) */
+.nb__more { margin-inline-end: calc(-1 * var(--g-space-3)); }
+.nb__toggle { margin-inline-end: calc(-1 * var(--g-space-2)); }
+.nb__panel {
+  position: absolute;
+  inset-block-start: calc(100% - var(--g-space-3));
+  inset-inline-end: 0;
+  z-index: 2;
+  min-inline-size: calc(var(--g-space-1) * 32);
+  padding: var(--g-space-3);
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-radius-lg);
+  background-color: var(--g-color-surface);
+  box-shadow: var(--g-shadow-2);
+}
+.nb__panel[hidden] { display: none; }
+
+/* ---------- Pantalla del menú en estrecho: disclosure que cubre el visor bajo la banda ---------- */
+.nb__screen {
+  position: fixed;
+  /* Bajo la banda: la cifra que publica el chasis (#713) */
+  inset: var(--g-app-shell-top) 0 0 0;
+  z-index: 6;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--g-space-6) calc(var(--g-space-1) * 11) var(--g-space-16);
+  background-color: var(--g-color-bg);
+}
+.nb__screen[hidden] { display: none; }
+.nb__screen-list { margin: 0; padding: 0; list-style: none; }
+.nb__screen-link {
+  display: flex;
+  align-items: center;
+  gap: var(--g-space-1);
+  min-block-size: calc(var(--g-space-1) * 12);
+  border-block-end: var(--g-border-width) solid var(--g-color-border);
+  font-size: var(--g-text-body-sm-size);
+  font-weight: var(--g-text-action-weight);
+  color: var(--g-color-text);
+  text-decoration: none;
+}
+.nb__screen-link[aria-current='page'] { color: var(--g-color-accent-text); }
+.nb__screen-link:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset); }
+.nb__screen-actions { display: grid; gap: var(--g-space-4); margin-block-start: var(--g-space-6); }
+
+/* ---------- Cortes (del visor, N4): < 48rem hamburguesa; 48–80rem enlaces + «…»; ≥ 80rem todo en la barra ---------- */
+.nb__toggle { display: flex; }
+@media (width >= 48rem) {
+  .nb { padding-inline: var(--g-space-4); }
+  .nb__nav { display: flex; }
+  .nb__toggle { display: none; }
+  .nb__more { display: flex; }
+  .nb__screen { display: none; }
+}
+@media (width < 48rem) {
+  .nb { padding-inline: var(--g-space-2) 0; }
+  .nb__brand { padding-inline-end: 0; }
+  .nb__search { justify-content: flex-end; padding-inline: var(--g-space-2); }
+}
+@media (width >= 80rem) {
+  .nb__more { display: none; }
+  .nb__actions { display: flex; }
+}
+
+@media (pointer: coarse) {
+  .nb__link { min-inline-size: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nb__light { transition: opacity var(--g-duration-fast) linear; }
+  .nb__mark { transition: opacity var(--g-duration-fast) linear; }
+}
+@media (forced-colors: active) {
+  .nb__link[aria-current='page'] { text-decoration: underline; text-underline-offset: var(--g-space-1); }
+  .nb__mark, .nb__light { background-color: Highlight; forced-color-adjust: none; }
+}
+
+.nb-sr {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

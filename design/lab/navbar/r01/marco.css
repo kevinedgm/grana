@@ -1,0 +1,163 @@
+/* Marco calcado del sitio anterior con componentes reales · prototipo de kiwi (navbar r01 y page-index r01).
+   Dos partes: (1) «tema del sitio», lo que la aplicación declara sin capa (como site/.vitepress/theme): alturas y anchos
+   del calco sobre tokens; (2) la maqueta del documento (columna de texto + columna derecha), que en el sitio es del
+   Layout y no de un componente. Solo --g-*; literal: la familia Instrument Serif del sitio (Google Fonts), como hoy. */
+
+/* ---------- (1) Tema del sitio ---------- */
+:root {
+  /* Banda de 64 (VitePress) en vez de 56: la entrada pública de GAppShell (#713) */
+  --g-app-shell-header: calc(var(--g-space-1) * 16);
+  /* Columna izquierda de 272 (VitePress) en vez de 264 */
+  --g-sidebar-width: calc(var(--g-space-1) * 68);
+  --mk-serif: 'Instrument Serif', ui-serif, Georgia, serif;
+}
+body {
+  margin: 0;
+  background: var(--g-color-bg);
+  color: var(--g-color-text);
+  font-family: var(--g-font-ui);
+}
+
+/* Marca: logo 24 + Instrument Serif 20/24 (en la barra y en la cabecera del índice) */
+.mk-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--g-space-2);
+  color: var(--g-color-text);
+  text-decoration: none;
+}
+.mk-brand img { inline-size: 24px; block-size: 24px; }
+.mk-brand span { font-family: var(--mk-serif); font-size: var(--g-text-title-sm-size); line-height: 1.2; }
+.mk-brand:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset); }
+
+/* Botón de búsqueda calcado (DocSearch): lupa + «Buscar» + ⌘K; en estrecho, solo la lupa */
+.mk-search {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--g-space-2);
+  block-size: calc(var(--g-space-1) * 9);
+  min-inline-size: 44px;
+  padding-inline: var(--g-space-2);
+  border: 0;
+  border-radius: var(--g-radius-pill);
+  background: none;
+  color: var(--g-color-text-muted);
+  font: inherit;
+  font-weight: var(--g-text-action-weight);
+  cursor: pointer;
+}
+.mk-search:hover { color: var(--g-color-text); }
+.mk-search:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset); }
+.mk-search__text { padding-inline: var(--g-space-1) var(--g-space-3); font-size: var(--g-text-body-size); }
+.mk-search__keys { display: inline-flex; gap: var(--g-space-1); }
+.mk-search__keys kbd {
+  display: grid;
+  place-items: center;
+  min-inline-size: calc(var(--g-space-1) * 5);
+  block-size: calc(var(--g-space-1) * 4.5);
+  border: var(--g-border-width) solid var(--g-color-border-strong);
+  border-radius: var(--g-radius-xs);
+  font: inherit;
+  font-size: var(--g-text-caption-size);
+}
+@media (width < 48rem) {
+  .mk-search__text, .mk-search__keys { display: none; }
+}
+@media (width < 48rem) { .mk-search { min-inline-size: calc(var(--g-space-1) * 12); justify-content: center; } }
+@media (pointer: coarse) { .mk-search { min-block-size: 44px; } }
+
+/* Disparador del idioma calcado: languages 16 + chevron-down 14, alto de la banda */
+.mk-lang {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--g-space-1);
+  block-size: calc(var(--g-space-1) * 16);
+  min-inline-size: 44px;
+  padding-inline: var(--g-space-3);
+  border: 0;
+  background: none;
+  color: var(--g-color-text);
+  cursor: pointer;
+}
+.mk-lang:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: calc(-1 * var(--g-focus-width)); }
+.mk-lang .g-icon { font-size: var(--g-text-body-size); }
+.mk-lang .mk-lang__chev { font-size: var(--g-text-body-sm-size); }
+
+/* Listas de idioma dentro de «…» y de la pantalla: actual en negrita (título), el otro enlace */
+.mk-langs { display: grid; margin: 0; padding: 0; list-style: none; }
+.mk-langs a, .mk-langs span { display: flex; align-items: center; min-block-size: calc(var(--g-space-1) * 8); padding-inline: var(--g-space-3); border-radius: var(--g-radius-sm); font-size: var(--g-text-body-sm-size); font-weight: var(--g-text-action-weight); color: var(--g-color-text); text-decoration: none; }
+.mk-langs [aria-current] { font-weight: var(--g-text-title-sm-weight); }
+.mk-langs a:hover { background: var(--g-color-neutral-soft); }
+.mk-langs a:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: calc(-1 * var(--g-focus-width)); }
+.mk-row { display: flex; align-items: center; justify-content: space-between; gap: var(--g-space-4); padding: var(--g-space-2) var(--g-space-3); border-block-start: var(--g-border-width) solid var(--g-color-border); margin-block-start: var(--g-space-2); font-size: var(--g-text-caption-size); color: var(--g-color-text-muted); }
+.nb__screen .mk-row { border: 0; border-radius: var(--g-radius-md); background: var(--g-color-surface-sunken); padding: var(--g-space-3) var(--g-space-4); }
+.nb__screen .mk-lang-row { display: flex; align-items: center; gap: var(--g-space-2); font-size: var(--g-text-body-sm-size); font-weight: var(--g-text-action-weight); }
+
+/* La cabecera del índice izquierdo: 64 con línea inferior, como la marca sobre la columna en el calco */
+.mk-sidebar .g-sidebar__header { min-block-size: calc(var(--g-space-1) * 16); }
+
+/* ---------- (2) Maqueta del documento ---------- */
+.mk-local {
+  position: sticky;
+  inset-block-start: var(--g-app-shell-top);
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  block-size: calc(var(--g-space-1) * 12);
+  padding-inline: var(--g-space-8);
+  border-block-end: var(--g-border-width) solid var(--g-color-border);
+  background: var(--g-color-bg);
+}
+.mk-local__menu { display: inline-flex; align-items: center; gap: var(--g-space-2); min-block-size: 24px; padding: 0; border: 0; background: none; font: inherit; font-size: var(--g-text-caption-size); font-weight: var(--g-text-action-weight); color: var(--g-color-text-muted); cursor: pointer; }
+.mk-local__menu:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset); }
+.mk-local__menu[hidden] { display: none; }
+.mk-local__index { margin-inline-start: auto; }
+/* Con el índice al lado (960–1279), «En esta página» va al inicio, alineado con el texto (calco: x = columna + 36) */
+@media (width >= 60rem) { .mk-local { padding-inline: calc(var(--g-space-1) * 9); } .mk-local__index { margin-inline-start: 0; } }
+@media (width >= 80rem) { .mk-local { display: none; } }
+/* La barra local también está pegada: el destino de un ancla queda bajo ella, no debajo (api.md «Piezas pegadas»).
+   La banda (64) + la barra local (48); el chasis solo cuenta la banda (hallazgo PI-L6). */
+@media (width < 80rem) { :root:has(.mk-local) { scroll-padding-block-start: calc(var(--g-space-1) * 16 + var(--g-space-12)); } }
+@media (width < 48rem) { .mk-local { padding-inline: var(--g-space-6); } }
+@media (pointer: coarse) { .mk-local__menu { min-block-size: 44px; } }
+
+.mk-doc {
+  display: flex;
+  justify-content: center;
+  padding: var(--g-space-12) var(--g-space-8) 0;
+}
+/* Calco: columna de 688 con 32 de relleno (texto de 624) + columna derecha de 256 con 32 de relleno (lista de 224) */
+.mk-content { flex: 0 1 calc(var(--g-space-1) * 172); box-sizing: border-box; min-inline-size: 0; padding-inline: var(--g-space-8); }
+.mk-aside { display: none; flex: none; box-sizing: border-box; inline-size: calc(var(--g-space-1) * 64); padding-inline-start: var(--g-space-8); }
+.mk-aside__inner { position: sticky; inset-block-start: calc(var(--g-app-shell-top) + var(--g-space-12)); }
+@media (width >= 80rem) { .mk-aside { display: block; } }
+@media (width < 60rem) { .mk-doc { padding-inline: var(--g-space-6); } .mk-content { padding-inline: 0; } }
+@media (width < 48rem) { .mk-doc { padding-block-start: var(--g-space-8); } }
+
+.mk-prose h1 { margin: 0; font-family: var(--mk-serif); font-weight: 400; font-size: var(--g-text-title-lg-size); line-height: 1.25; letter-spacing: -0.01em; }
+.mk-prose h2 { margin: var(--g-space-12) 0 var(--g-space-4); padding-block-start: var(--g-space-6); border-block-start: var(--g-border-width) solid var(--g-color-border); font-family: var(--mk-serif); font-weight: 400; font-size: var(--g-text-title-size); line-height: 1.3; }
+.mk-prose h3 { margin: var(--g-space-8) 0 0; font-size: var(--g-text-body-size); font-weight: var(--g-text-title-sm-weight); line-height: 1.75; }
+.mk-prose p { margin: var(--g-space-4) 0; color: var(--g-color-text-muted); line-height: 1.75; }
+.mk-prose :is(h1, h2, h3):focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset); }
+.mk-prose :is(h1, h2, h3):focus:not(:focus-visible) { outline: none; }
+
+.mk-pager { display: grid; grid-template-columns: 1fr 1fr; gap: var(--g-space-4); margin-block: var(--g-space-16) var(--g-space-16); padding-block-start: var(--g-space-6); border-block-start: var(--g-border-width) solid var(--g-color-border); }
+.mk-pager a { display: grid; padding: var(--g-space-3) var(--g-space-4); border: var(--g-border-width) solid var(--g-color-border); border-radius: var(--g-radius-md); text-decoration: none; }
+.mk-pager a:hover { border-color: var(--g-color-accent); }
+.mk-pager a:focus-visible { outline: var(--g-focus-width) solid var(--g-color-focus); outline-offset: var(--g-focus-offset); }
+.mk-pager a.is-next { grid-column: 2; text-align: end; }
+.mk-pager small { font-size: var(--g-text-caption-size); font-weight: var(--g-text-action-weight); color: var(--g-color-text-muted); }
+.mk-pager b { font-size: var(--g-text-body-sm-size); font-weight: var(--g-text-action-weight); color: var(--g-color-accent-text); }
+@media (width < 40rem) { .mk-pager { grid-template-columns: 1fr; } .mk-pager a.is-next { grid-column: 1; } }
+
+.mk-home { padding: var(--g-space-16) var(--g-space-16) var(--g-space-16); }
+.mk-home h1 { margin: 0; font-size: calc(var(--g-text-display-size) * 1.5); line-height: 1.1; font-weight: var(--g-text-display-weight); }
+.mk-home p { max-inline-size: 36rem; font-size: var(--g-text-title-sm-size); color: var(--g-color-text-muted); }
+.mk-foot { padding: var(--g-space-8); text-align: center; font-size: var(--g-text-body-sm-size); color: var(--g-color-text-muted); }
+@media (width < 48rem) { .mk-home { padding: var(--g-space-12) var(--g-space-6); } .mk-home h1 { font-size: var(--g-text-display-size); } }
+
+/* Interruptor de tema: GSwitch real con sol y luna en el pulgar, sin etiqueta visible */
+.mk-theme .g-switch__row { gap: 0; }
+.mk-theme .g-switch__row > :not(.g-switch__control) { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
