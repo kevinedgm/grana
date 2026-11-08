@@ -288,7 +288,14 @@
 .g-page-header.is-narrow:not(.has-tabs) .g-page-header__actions-home {
   padding-inline-start: 0;
 }
+/* Sin pestañas, las acciones son lo único que se reparte el zócalo: pueden ceder hasta su ancho, así un hijo que sabe
+   encogerse (el relevo de GPageIndex) se acorta en vez de desbordar el visor. Los botones siguen sin ceder (flex: none) */
+.g-page-header:not(.has-tabs) .g-page-header__actions-home {
+  flex: 0 1 auto;
+  min-inline-size: 0;
+}
 .g-page-header__actions {
+  min-inline-size: 0;
   display: flex;
   flex-wrap: nowrap;
   align-items: center;

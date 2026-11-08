@@ -51,6 +51,12 @@
   font-size: var(--g-text-body-sm-size);
   line-height: var(--g-text-body-sm-line);
 }
+/* En una fila flexible (acciones de GPageHeader, que fijan `flex: none` a sus hijos), el relevo es el que cede: la
+   sección se acorta con elipsis antes de que el disparador desborde el visor (375 px). Dos clases: gana a la regla de
+   hijos de la fila sea cual sea el orden de las hojas */
+.g-page-index.g-page-index--appearance-relay {
+  flex: 0 1 auto;
+}
 /* Misma altura exacta que un GBtn md en la misma fila (rejilla de medio píxel, como GBtn.css; dentro de @supports por
    si round() no existe, que invalidaría --_h en tiempo de cómputo) */
 @supports (inline-size: round(1px, 1px)) {
