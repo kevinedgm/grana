@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Marco del sitio · r01</title>
+<script>
+  // El tema se aplica antes de pintar (como el script del <head> de site/.vitepress/config.mjs)
+  ;(() => { const q = new URLSearchParams(location.search); document.documentElement.setAttribute('data-theme', q.get('theme') === 'dark' ? 'dark' : 'light') })()
+</script>
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="./sitio.css">
+<script src="../../lucide-icons.js"></script>
+<script src="./datos.js"></script>
+</head>
+<body>
+<!-- ?c=A|B|C  (A · El índice se escribe; B · Coordenadas fijas; C · Mesa de consulta)
+     &p=comp|home|guide  &theme=dark  &lang=en  &q=<texto del filtro de A>  &mesa=0|1 (C) -->
+<div id="app"></div>
+<script src="../../../../node_modules/vue/dist/vue.global.prod.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../../../packages/vue/dist/app-shell.umd.js"></script>
+<script src="../../../../packages/vue/dist/page-header.umd.js"></script>
+<script src="../../../../packages/vue/dist/combobox.umd.js"></script>
+<script src="./sitio.js"></script>
+</body>
+</html>
