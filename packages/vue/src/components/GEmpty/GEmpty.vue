@@ -52,7 +52,9 @@ export default defineComponent({
     const mounted = ref(false)
     const locale = computed(() => {
       if (validLocale(props.locale)) return props.locale
-      if (!mounted.value) return undefined
+      // Antes de montar (servidor e hidratación), un idioma fijo: Intl sin locale toma el del entorno (Node en-US frente al
+      // del sistema en WebKit) y la cuenta o la lista desajustaban la hidratación. Al montar, el del documento.
+      if (!mounted.value) return 'en'
       const nav = typeof navigator !== 'undefined' ? navigator.language : undefined
       for (const c of [domLang.value, nav]) if (validLocale(c)) return c
       return undefined
