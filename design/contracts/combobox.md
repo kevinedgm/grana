@@ -949,7 +949,7 @@ Las opciones elegidas, deshabilitadas o no elegibles por el tope se estilizan co
 
 ### SSR y RTL (Fase 2)
 
-- **SSR:** el servidor pinta los ocultos (uno por valor y por texto), la receta (B), la frase **completa** (sin cesión) y `ID-about`, con `Intl` **sin `locale`**; al montar se lee el `lang` del ancestro y se rehacen frase, `ID-about` y cifras, y se mide la cesión (el primer pintado del cliente coincide con el del servidor). Nada se anima.
+- **SSR:** el servidor pinta los ocultos (uno por valor y por texto), la receta (B), la frase **completa** (sin cesión) y `ID-about`, con `Intl` de **idioma fijo `'en'`** (`Intl.ListFormat` y `Intl.NumberFormat`; nunca el idioma por defecto del entorno: Node, WebKit y Chromium lo resuelven distinto y la frase y `ID-about` decían «and» en el servidor y «y» al hidratar, #1033); **al montar** se lee el `lang` del ancestro (o el del entorno) y se rehacen frase, `ID-about` y cifras, y se mide la cesión (el primer pintado del cliente coincide con el del servidor). Nada se anima. Regla general: #1033; prueba `GCombobox.hydration.test.js`.
 - **RTL:** propiedades lógicas; frase y renglones empiezan en el borde de inicio (medido); casilla y barra de «Nueva» al inicio; `Intl.ListFormat` sigue el `lang`, no `dir`; los textos de los elementos con `dir="auto"` (los de `GSummary`).
 
 ### Slots (Fase 2)
