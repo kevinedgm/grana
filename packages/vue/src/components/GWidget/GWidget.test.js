@@ -6,6 +6,9 @@ import GMetric from '../GMetric/GMetric.vue'
 import GProgress from '../GProgress/GProgress.vue'
 import GDataList from '../GDataList/GDataList.vue'
 
+// El observador mide en el cuadro siguiente (#169): las pruebas esperan un cuadro tras su devolución
+const frame = () => new Promise((r) => requestAnimationFrame(() => r()))
+
 beforeEach(() => {
   HTMLElement.prototype.showPopover = function () { this.setAttribute('data-popover-open', '') }
   HTMLElement.prototype.hidePopover = function () { this.removeAttribute('data-popover-open') }
@@ -98,8 +101,25 @@ describe('GWidget · niveles y forma por su propio tamaño', () => {
     vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function () { return { width: this.classList?.contains('g-widget') ? width : 0, height: 300, top: 0, left: 0, right: 0, bottom: 0 } })
     const w = mk(); await nextTick()
     expect(w.classes()).toContain('g-widget--level-l')
-    width = 150; cb(); await nextTick()
+    width = 150; cb(); await frame(); await nextTick()
     expect(w.classes()).toContain('g-widget--level-s')
+    delete globalThis.ResizeObserver
+  })
+
+  it('la devolución del observador no escribe en el acto: mide en el cuadro siguiente, una vez, y solo si cambia (#169)', async () => {
+    let cb
+    globalThis.ResizeObserver = class { constructor(f) { cb = f } observe() {} disconnect() {} }
+    let width = 500
+    const rect = vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function () { return { width: this.classList?.contains('g-widget') ? width : 0, height: 300, top: 0, left: 0, right: 0, bottom: 0 } })
+    const w = mk(); await nextTick()
+    expect(w.classes()).toContain('g-widget--level-l')
+    width = 150; rect.mockClear()
+    cb(); cb(); cb(); await nextTick()
+    expect(rect).not.toHaveBeenCalled()
+    expect(w.classes()).toContain('g-widget--level-l')
+    await frame(); await nextTick()
+    expect(w.classes()).toContain('g-widget--level-s')
+    expect(rect.mock.calls.filter(([], i) => rect.mock.contexts[i]?.classList?.contains('g-widget')).length).toBe(1)
     delete globalThis.ResizeObserver
   })
 

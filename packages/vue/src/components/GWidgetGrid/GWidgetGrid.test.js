@@ -4,6 +4,9 @@ import { nextTick, h } from 'vue'
 import GWidgetGrid from './GWidgetGrid.vue'
 import GWidget from '../GWidget/GWidget.vue'
 
+// El observador mide en el cuadro siguiente (#169): las pruebas esperan un cuadro tras su devolución
+const frame = () => new Promise((r) => requestAnimationFrame(() => r()))
+
 beforeEach(() => {
   HTMLElement.prototype.showPopover = function () { this.setAttribute('data-popover-open', '') }
   HTMLElement.prototype.hidePopover = function () { this.removeAttribute('data-popover-open') }
@@ -96,18 +99,26 @@ describe('GWidgetGrid · columnas por el ancho de la rejilla', () => {
   it('4 columnas con ≥ 960, 2 con ≥ 560 y 1 por debajo; umbrales exactos', async () => {
     const w = await auto()
     expect(cols(w)).toBe('4')
-    for (const [px, c] of [[959, '2'], [960, '4'], [560, '2'], [559, '1']]) { width = px; cb(); await nextTick(); expect(cols(w)).toBe(c) }
+    for (const [px, c] of [[959, '2'], [960, '4'], [560, '2'], [559, '1']]) { width = px; cb(); await frame(); await nextTick(); expect(cols(w)).toBe(c) }
+  })
+
+  it('la devolución del observador no escribe en el acto: las columnas cambian en el cuadro siguiente (#169)', async () => {
+    const w = await auto()
+    width = 400; cb(); await nextTick()
+    expect(cols(w)).toBe('4')
+    await frame(); await nextTick()
+    expect(cols(w)).toBe('1')
   })
 
   it('los spans se recortan al máximo de columnas sin cambiar el dato', async () => {
     const w = await auto()
-    width = 700; cb(); await nextTick()
+    width = 700; cb(); await frame(); await nextTick()
     expect(cols(w)).toBe('2')
     const wide = mk({ modelValue: [{ id: 'a', w: 4, h: 1 }], columns: undefined }); await nextTick()
-    width = 700; cb(); await nextTick()
+    width = 700; cb(); await frame(); await nextTick()
     expect(li(wide, 'a').attributes('style')).toContain('span 2')
     expect(wide.props('modelValue')[0].w).toBe(4)
-    width = 400; cb(); await nextTick()
+    width = 400; cb(); await frame(); await nextTick()
     expect(li(wide, 'a').attributes('style')).toContain('span 1')
   })
 

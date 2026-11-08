@@ -224,6 +224,11 @@ const valueEl = ref(null)
 const popupEl = ref(null)
 const host = shallowRef(null)         // raíz de GInput: destino del Teleport
 const domLang = ref(null)
+// Idioma de las cifras y de la frase. Antes de montar (servidor e hidratación) es fijo: el idioma por defecto del
+// entorno no es el mismo en el servidor que en el navegador (WebKit toma el del sistema), y la frase o `ID-about`
+// no coincidirían al hidratar. Al montar, el `lang` del ancestro o, sin él, el del entorno.
+const mounted = ref(false)
+const fmtLocale = computed(() => (mounted.value ? domLang.value || undefined : 'en'))
 
 const qTrim = computed(() => q.value.trim())
 const short = computed(() => minChars.value > 0 && qTrim.value.length > 0 && qTrim.value.length < minChars.value)
@@ -233,7 +238,7 @@ const busy = computed(() => props.loading || pending.value)
 
 // ---------- Cifras: Intl.NumberFormat del lang del ancestro más cercano (como GNumberField; sin prop locale) ----------
 const numberFormat = computed(() => {
-  try { return new Intl.NumberFormat(domLang.value || undefined) } catch { return new Intl.NumberFormat() }
+  try { return new Intl.NumberFormat(fmtLocale.value) } catch { return new Intl.NumberFormat() }
 })
 const nf = (n) => numberFormat.value.format(n)
 
@@ -283,7 +288,7 @@ const shortOf = (it) => (it.text != null ? it.text : it.option && it.option.code
 /** Elemento de `change` (#421): la forma del `change` de la Fase 1 */
 const elementOf = (it) => (it.text != null ? { value: null, custom: it.text, option: null } : { value: it.value, custom: '', option: it.option })
 const listFormat = computed(() => {
-  try { return new Intl.ListFormat(domLang.value || undefined, { type: 'conjunction' }) } catch { return null }
+  try { return new Intl.ListFormat(fmtLocale.value, { type: 'conjunction' }) } catch { return null }
 })
 const aboutMulti = computed(() => {
   if (!count.value) return ''
@@ -1923,6 +1928,7 @@ onMounted(() => {
   const root = valueEl.value?.closest('.g-input') || null
   host.value = root
   domLang.value = root?.closest('[lang]')?.getAttribute('lang') || null
+  mounted.value = true
   if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
     mq = window.matchMedia(PHONE_QUERY)
     narrow.value = mq.matches
@@ -1946,7 +1952,7 @@ onMounted(() => {
 })
 const disarm = () => { armed.value = null }
 let stopSize = null
-if (M) watch(() => [chosen.value, focused.value, opened.value, armed.value, domLang.value, L.value.rest], scheduleFit)
+if (M) watch(() => [chosen.value, focused.value, opened.value, armed.value, fmtLocale.value, L.value.rest], scheduleFit)
 onBeforeUnmount(() => {
   stopSize?.()
   clearTimeout(leaveTimer)

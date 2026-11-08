@@ -257,6 +257,16 @@ export default defineComponent({
 
     // ---------- Medición ----------
     let ro = null
+    // La devolución del observador no mide ni escribe: pide fit() para el cuadro siguiente (una vez por cuadro). Dentro
+    // de la devolución, el render que sigue cambia el tamaño de lo observado y WebKit avisa «ResizeObserver loop
+    // completed» (#169, como GTable).
+    let roFrame = 0
+    const raf = (f) => (typeof requestAnimationFrame === 'function' ? requestAnimationFrame(f) : setTimeout(f, 16))
+    const caf = (id) => (typeof cancelAnimationFrame === 'function' ? cancelAnimationFrame(id) : clearTimeout(id))
+    const onResize = () => {
+      if (roFrame) return
+      roFrame = raf(() => { roFrame = 0; fit() })
+    }
     let observedScroller = null
     let observedList = null
     let observedTabs = new Set()
@@ -435,7 +445,7 @@ export default defineComponent({
     onMounted(() => {
       unmounted = false
       if (typeof ResizeObserver !== 'undefined') {
-        ro = new ResizeObserver(() => fit())
+        ro = new ResizeObserver(onResize)
         ro.observe(rootEl.value)
         if (scrollerEl.value) { ro.observe(scrollerEl.value); observedScroller = scrollerEl.value }
         observedList = listEl()
@@ -469,6 +479,7 @@ export default defineComponent({
     onBeforeUnmount(() => {
       unmounted = true
       ro?.disconnect()
+      if (roFrame) { caf(roFrame); roFrame = 0 }
       observedTabs = new Set()
       animHost?.removeEventListener('animationend', refresh)
       if (typeof document !== 'undefined') document.fonts?.removeEventListener?.('loadingdone', fit)

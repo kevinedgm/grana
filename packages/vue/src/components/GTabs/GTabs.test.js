@@ -1418,6 +1418,24 @@ describe('GTabs · pista de solo icono (modo visual del motor del tooltip)', () 
   })
 })
 
+// #169 (como GTable): la devolución del observador no mide ni escribe; pide fit() para el cuadro siguiente, una vez
+describe('GTabs · el observador mide en el cuadro siguiente', () => {
+  it('varias devoluciones en un cuadro: ninguna lectura en el acto y una sola medida después', async () => {
+    let cb = null
+    vi.stubGlobal('ResizeObserver', class { constructor(f) { cb = f } observe() {} unobserve() {} disconnect() {} })
+    const w = mk()
+    await nextTick(); await new Promise((r) => requestAnimationFrame(() => r())); await nextTick()
+    const root = w.element
+    const spy = vi.spyOn(root, 'clientWidth', 'get')
+    cb([]); cb([]); cb([])
+    await nextTick(); await nextTick()
+    expect(spy).not.toHaveBeenCalled()
+    await new Promise((r) => requestAnimationFrame(() => r())); await nextTick()
+    expect(spy).toHaveBeenCalledTimes(1)
+    w.unmount()
+  })
+})
+
 // PENDIENTES.md §6: la marca se vuelve a medir si una pestaña cambia de ancho sin que cambien raíz, scroller ni lista
 describe('GTabs · cada pestaña se observa', () => {
   it('observa cada [role=tab]; al quitar o añadir pestañas sincroniza, y al desmontar desconecta', async () => {

@@ -113,7 +113,11 @@ const hasTriggerSlot = computed(() => !props.inline && Boolean(slots.trigger))
 const L = computed(() => props.labels || {})
 
 // ---------- Idioma ----------
-const locale = computed(() => props.locale || (typeof document !== 'undefined' && document.documentElement.lang) || (typeof navigator !== 'undefined' && navigator.language) || 'en')
+// Antes de montar (servidor e hidratación) nada del entorno: sin `locale`, 'en', y los tramos sin formatRange, cuya
+// salida cambia con los datos de ICU de cada motor (WebKit separa «26 – 29», Node y Chromium «26–29»). Al montar,
+// el `lang` del documento o del navegador y formatRange.
+const mounted = ref(false)
+const locale = computed(() => props.locale || (mounted.value && (document.documentElement.lang || (typeof navigator !== 'undefined' && navigator.language))) || 'en')
 const fdow = computed(() => {
   if (props.firstDay !== undefined) return props.firstDay
   try {
@@ -136,7 +140,7 @@ const short = (iso) => fmtShort.value.format(parseISO(iso))
 const rangeText = (a, b) => {
   if (a === b) return short(a)
   const f = fmtShort.value
-  return typeof f.formatRange === 'function' ? f.formatRange(parseISO(a), parseISO(b)) : `${short(a)} – ${short(b)}`
+  return mounted.value && typeof f.formatRange === 'function' ? f.formatRange(parseISO(a), parseISO(b)) : `${short(a)} – ${short(b)}`
 }
 const fill = (tpl, vars) => (typeof tpl === 'string' ? tpl.replace(/\{(date|start|end|days|year|from|to)\}/g, (_, k) => String(vars[k] ?? '')) : '')
 // Meses y años (r02): fechas locales con setFullYear (años de 1 a 99 sin el salto a 19xx de Date)
@@ -147,7 +151,7 @@ const fmtMonthShort = computed(() => dtf({ month: 'short' }))
 const yearText = (y) => fmtYear.value.format(dateOf(y))
 const yearsText = (a, b) => {
   const f = fmtYear.value
-  return typeof f.formatRange === 'function' ? f.formatRange(dateOf(a), dateOf(b)) : `${yearText(a)}–${yearText(b)}`
+  return mounted.value && typeof f.formatRange === 'function' ? f.formatRange(dateOf(a), dateOf(b)) : `${yearText(a)}–${yearText(b)}`
 }
 
 // ---------- Valor ----------
@@ -1016,6 +1020,7 @@ watch(() => [normalized.value.start, normalized.value.end, props.disabledNights]
 
 let ro = null
 onMounted(() => {
+  mounted.value = true
   // Aviso (B-L7, #739): la raíz es un div y no va dentro de un <p> (el analizador cerraría el párrafo en SSR)
   try { if (process.env.NODE_ENV !== 'production' && root.value && root.value.parentElement && root.value.parentElement.closest('p')) warnOnce('in-p', 'la raíz está dentro de un <p> (usa un div).') } catch {}
   // Un solo observador: la raíz en línea (uno o dos meses) y, con el slot day, la superficie (lectura del día, #952)

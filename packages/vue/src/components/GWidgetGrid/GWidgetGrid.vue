@@ -8,6 +8,9 @@ import { computed, defineComponent, h, nextTick, onBeforeUnmount, onBeforeUpdate
 import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GLibIcon.js'
 import { GRID_KEY, ITEM_KEY } from '../../utils/widgetContext.js'
+import { nextFrame } from '../GForm/formContext.js'
+
+const cancelFrame = (id) => (typeof cancelAnimationFrame === 'function' ? cancelAnimationFrame(id) : clearTimeout(id))
 
 const DEFAULT_PRESETS = [{ id: 's', w: 1, h: 1 }, { id: 'm', w: 2, h: 1 }, { id: 'l', w: 2, h: 2 }, { id: 'wide', w: 4, h: 1 }, { id: 'tall', w: 1, h: 2 }]
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v))
@@ -78,12 +81,16 @@ export default defineComponent({
     const width = ref(0)
     const unit = ref(4)
     let ro = null
+    let roFrame = 0
+    // La devolución del observador no escribe: mide en el cuadro siguiente (una vez por cuadro) y escribe solo si cambia
+    const onResize = () => { if (!roFrame) roFrame = nextFrame(() => { roFrame = 0; measure() }) }
     const measure = () => {
       if (!rootEl.value) return
       const v = typeof getComputedStyle !== 'undefined' ? getComputedStyle(rootEl.value).getPropertyValue('--g-space-1').trim() : ''
       const n = parseFloat(v)
       if (n) unit.value = v.endsWith('rem') ? n * (parseFloat(getComputedStyle(document.documentElement).fontSize) || 16) : n
-      width.value = rootEl.value.getBoundingClientRect().width
+      const w = rootEl.value.getBoundingClientRect().width
+      if (w !== width.value) width.value = w
     }
     const cols = computed(() => {
       if (props.columns) return props.columns
@@ -353,13 +360,14 @@ export default defineComponent({
 
     onMounted(() => {
       measure()
+      // En el cuadro siguiente y solo si cambia (#169, como GTable): ver GWidget
       if (typeof ResizeObserver !== 'undefined') {
-        ro = new ResizeObserver(() => measure())
+        ro = new ResizeObserver(onResize)
         ro.observe(rootEl.value)
       }
       tick.value++
     })
-    onBeforeUnmount(() => ro?.disconnect())
+    onBeforeUnmount(() => { ro?.disconnect(); if (roFrame) { cancelFrame(roFrame); roFrame = 0 } })
 
     // ---------- Avisos de desarrollo ----------
     try {

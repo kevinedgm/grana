@@ -8,6 +8,9 @@ import { oneOf } from '../../utils/oneOf.js'
 import GIcon from '../GIcon/GLibIcon.js'
 import GMenu from '../GMenu/GMenu.vue'
 import { GRID_KEY, ITEM_KEY } from '../../utils/widgetContext.js'
+import { nextFrame } from '../GForm/formContext.js'
+
+const cancelFrame = (id) => (typeof cancelAnimationFrame === 'function' ? cancelAnimationFrame(id) : clearTimeout(id))
 
 const COLORS = ['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info']
 const isEmptyNode = (v) => v.type === Comment || (v.type === Text && !String(v.children ?? '').trim()) || (v.type === Fragment && (!Array.isArray(v.children) || v.children.every(isEmptyNode)))
@@ -61,6 +64,9 @@ export default defineComponent({
     const size = ref({ w: 0, h: 0 })
     const unit = ref(4)
     let ro = null
+    let roFrame = 0
+    // La devolución del observador no escribe: mide en el cuadro siguiente (una vez por cuadro) y escribe solo si cambia
+    const onResize = () => { if (!roFrame) roFrame = nextFrame(() => { roFrame = 0; measure() }) }
     const measureUnit = () => {
       if (typeof getComputedStyle === 'undefined' || !rootEl.value) return
       const v = getComputedStyle(rootEl.value).getPropertyValue('--g-space-1').trim()
@@ -72,7 +78,7 @@ export default defineComponent({
       if (!rootEl.value) return
       measureUnit()
       const r = rootEl.value.getBoundingClientRect()
-      size.value = { w: r.width, h: r.height }
+      if (r.width !== size.value.w || r.height !== size.value.h) size.value = { w: r.width, h: r.height }
     }
     const levelAuto = computed(() => {
       const w = size.value.w
@@ -93,12 +99,14 @@ export default defineComponent({
     })
     onMounted(() => {
       measure()
+      // Mide en el cuadro siguiente y escribe solo si cambia: dentro de la devolución del observador, el render que
+      // sigue cambia el tamaño de lo observado y WebKit avisa «ResizeObserver loop completed» (#169, como GTable)
       if (typeof ResizeObserver !== 'undefined') {
-        ro = new ResizeObserver(() => measure())
+        ro = new ResizeObserver(onResize)
         ro.observe(rootEl.value)
       }
     })
-    onBeforeUnmount(() => { ro?.disconnect() })
+    onBeforeUnmount(() => { ro?.disconnect(); if (roFrame) { cancelFrame(roFrame); roFrame = 0 } })
 
     // ---------- Contexto de la rejilla ----------
     const editing = computed(() => Boolean(grid && grid.editing.value))
