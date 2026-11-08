@@ -76,5 +76,6 @@
   "GSpeechHost": 75,
   "GSpeechPill": 76,
   "GSpeechTrigger": 77,
-  "GTranscript": 78
+  "GTranscript": 78,
+  "GPageIndex": 79
 }

@@ -70,7 +70,7 @@ createApp(App).use(Grana).use(createIcons([Pencil])).mount('#app')
 | `target` | Atributo del `<a>`. `_blank` o un nombre de ventana abre en otra pestaña y muestra el icono `external-link`. `_self` usa la misma; `_parent` y `_top` no abren en otra pestaña pero tampoco emiten `navigate` |
 | `rel` | Atributo del `<a>`; solo con `href` |
 | `external` | Boolean. El destino es otro sitio: añade el icono `external-link` y el texto oculto de `labels.external`. Solo con `href` |
-| `current` | Boolean. Es la página actual: `aria-current="page"`. Solo con `href`; como mucho uno por menú |
+| `current` | Boolean o String. `true` o `'page'`: es la página actual (`aria-current="page"`). `'location'`: es la **sección actual de esta página** (`aria-current="location"`; la pone [`GPageIndex`](../GPageIndex/README.md)). La marca visual es la misma. Solo con `href`; como mucho uno por menú; otro valor se trata como `true` y avisa |
 | `lang` | Idioma de la **etiqueta** (BCP 47), en cualquier elemento: se escribe como atributo `lang` en el `<a>` o el `<button>` del elemento, y el texto (`g-menu__label`) lleva `dir="auto"`. Un valor que `Intl.getCanonicalLocales` rechaza se ignora y avisa |
 | `hreflang` | Idioma del **destino** (BCP 47), solo con `href`: atributo `hreflang` del `<a>`. Sin `href` se ignora y avisa; un valor inválido se ignora y avisa |
 

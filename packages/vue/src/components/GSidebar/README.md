@@ -1,6 +1,6 @@
 # GSidebar
 
-Navegación lateral (principal o secundaria) que **se transforma con un solo sistema**: **expandida** (etiquetas, grupos, submenús en línea), **riel** de iconos (submenús en un panel flotante), y, en móvil, un **navbar inferior** con «píldora activa» o un **drawer**. Los items se definen con un arreglo (grupos, items y un nivel de hijos); el destino actual es un prop; la adaptación se decide por el ancho del contenedor.
+Navegación lateral (principal o secundaria) que **se transforma con un solo sistema**: **expandida** (etiquetas, grupos, submenús en línea), **riel** de iconos (submenús en un panel flotante), y, en móvil, un **navbar inferior** con «píldora activa» o un **drawer**. Los items se definen con un arreglo (grupos, items y un nivel de hijos); el destino actual es un prop; la adaptación se decide por el ancho del contenedor. Con `filter` y la extensión `@grana/vue/sidebar-filter`, un campo en la cabecera **filtra el índice mientras escribes**; con `code`, cada item lleva un número estable dentro de su asiento.
 
 **Etiqueta:** `<g-sidebar>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/sidebar/auditoria.md`](../../../../../design/lab/sidebar/auditoria.md)) · **Desde:** 0.1.0
 
@@ -98,7 +98,10 @@ El componente no empuja tu contenido. Hasta que se mide el contenedor (el primer
 | `variant` | String | `fixed` `floating` | `fixed` |
 | `overlay` | Boolean | el riel se expande **sobre** el contenido | `false` |
 | `barCount` | Number | `3` `4` `5` | `4` |
-| `search` | Boolean | muestra el disparador de búsqueda | `false` |
+| `search` | Boolean | muestra el disparador de búsqueda (no actúa con `filter` y la extensión) | `false` |
+| `filter` | Boolean | filtro del índice en la cabecera; **necesita la extensión** `@grana/vue/sidebar-filter` (ver «Filtro del índice») | `false` |
+| `query` | String | texto del filtro (con `v-model:query`) | `''` |
+| `filterKeyshortcuts` | String | valor de `aria-keyshortcuts` del campo, p. ej. `'/ Control+K Meta+K'`; solo lo publica, no escucha atajos | `null` |
 | `closeOnNavigate` | Boolean | el drawer se cierra al elegir un destino | `true` |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` (relleno de la píldora y de los indicadores) | `brand` |
 | `density` | String | `default` `comfortable` `compact` | `default` |
@@ -110,7 +113,7 @@ Un valor de prop fuera de su lista avisa en desarrollo. **`class`, `style` y `da
 
 ```js
 [
-  { label: 'Principal', items: [ /* grupo */ { id, label, href?, icon?, badge?, badgeLabel?, dot?, disabled?, primary?, children? } ] },
+  { label: 'Principal', items: [ /* grupo */ { id, label, href?, icon?, code?, keywords?, filterable?, badge?, badgeLabel?, dot?, disabled?, primary?, children? } ] },
   { id: 'set', label: 'Ajustes', href: '/settings' }   // item sin grupo
 ]
 ```
@@ -119,6 +122,7 @@ Un valor de prop fuera de su lista avisa en desarrollo. **`class`, `style` y `da
 - **`href`**: un `<a>`. **Sin `href` ni `children`**: un `<button>` de solo acción (también emite `navigate`). **`disabled`**: `<a role="link" aria-disabled="true">` **sin `href`** (no recibe foco), tachado y atenuado.
 - **`children`**: **un solo nivel** (los nietos se ignoran y avisan); un padre es un botón de submenú, nunca navega por sí mismo.
 - **`icon`** (#202): una **cadena** es un nombre de Lucide que el sidebar dibuja con [`GIcon`](../GIcon/README.md) en el hueco del item de primer nivel (decorativo, 20px en expandido, riel y navbar) si no hay slot `icon`; se busca en el registro de tu aplicación (`createIcons`) y luego en la lista de la librería. Con slot `icon`, manda el slot; otro valor solo llega al slot. Los hijos no llevan icono. **`badge`** (número o texto corto) y **`dot`** (marca sin número) son decorativos: **`badgeLabel`** es el texto para lectores y es **obligatorio** si hay `badge` o `dot`.
+- **`code`** (1 a 3 caracteres, solo en items de primer nivel): un identificador corto que se pinta **dentro del asiento** en lugar del icono y va al principio del nombre accesible («24 GCombobox»). Es de tu aplicación: Grana no numera, y su estabilidad es cosa tuya. Con `code` e `icon` se pinta el `code` (avisa); con más de 3 caracteres se pinta igual y avisa; en un hijo se ignora y avisa. **`keywords`** (arreglo de cadenas: alias, otro idioma, el `slug`) amplía lo que encuentra el filtro; **`filterable: false`**, en un grupo o un item, lo deja siempre visible y fuera de la cuenta (para lo que tu aplicación ya filtró con la misma consulta).
 - **`primary`**: en el navbar, los items marcados van en la barra; sin ninguno, los primeros `barCount` no deshabilitados (padres incluidos).
 
 ## Textos (`labels`)
@@ -133,6 +137,11 @@ Ninguno tiene valor por defecto (Grana es internacional). Los requeridos avisan 
 | `moreActive` | Texto oculto cuando la página actual está fuera de la barra («contiene la página actual») | Recomendado |
 | `close` | Nombre del botón de cierre del drawer (sin él no hay botón) | Recomendado |
 | `search`, `searchHint` | Texto y atajo visible (decorativo) del buscador | `search`, con `search` |
+| `filter` | Nombre del campo del filtro (`<label>` oculto) y del botón del filtro en el riel | Sí, con `filter` |
+| `filterCount` | Función `(mostrados, total) => texto`: el recuento, visible y anunciado | Sí, con `filter` |
+| `filterNone` | Función `(consulta) => texto`: sin coincidencias | Sí, con `filter` |
+| `filterClear` | Nombre del botón de vaciar el filtro | Sí, con `filter` |
+| `filterPlaceholder`, `filterHint` | Texto de ejemplo del campo y atajo visible (decorativo; se oculta con texto) | No |
 
 ## Navegar
 
@@ -145,6 +154,53 @@ Ninguno tiene valor por defecto (Grana es internacional). Los requeridos avisan 
 - **`navigate`** (`{ item, event }`) se emite al elegir un destino (clic o Enter en un enlace o botón sin hijos, o un hijo), con el **evento nativo**. Después, `update:modelValue`.
 - **`event.preventDefault()`** cancela la navegación del `href` (para un router) y **también** impide `update:modelValue` y el cierre del drawer.
 - El valor es el prop: si no actualizas `modelValue`, el destino actual no cambia. Un padre con un hijo actual queda como **rama activa** (peso y color), **sin** `aria-current`.
+
+## Filtro del índice
+
+Un campo en la cabecera filtra la lista **en su sitio** mientras escribes: lo que no coincide se oculta, el recuento se anuncia y un número lleva a su entrada. Sirve igual a un sitio de documentación que a un administrador con decenas de módulos.
+
+El filtro **no viaja en `@grana/vue`**: su motor va en una entrada propia (`@grana/vue/sidebar-filter`, global UMD `GranaSidebarFilter`, 2 742 B gzip frente a un tope de 3 072 B, anotado por bruno en `GSidebar.meta.json` el 2026-11-08) y se conecta una vez por aplicación. Quien no lo usa no lo paga (DECISIONS #1050).
+
+```js
+import SidebarFilter from '@grana/vue/sidebar-filter'
+
+app.use(SidebarFilter)   // conecta el motor con todos los GSidebar de la aplicación
+```
+
+**Sin la extensión**, `GSidebar` con `filter` se pinta como si `filter` fuera `false`: sin campo, con el índice entero, y el disparador de `search` vuelve a actuar. `query` se ignora, `update:query` no se emite y `focusFilter()` no hace nada. Nunca es un error: avisa una vez (F5) en desarrollo.
+
+```vue
+<!-- Fragmento: `actual`, `items`, `router` y `textos` son de tu aplicación -->
+<script setup>
+import { ref } from 'vue'
+const consulta = ref('')
+const textos = {
+  collapse: 'Contraer el índice', expand: 'Expandir el índice', more: 'Más', moreActive: 'contiene la página actual',
+  drawer: 'Índice', close: 'Cerrar el índice',
+  filter: 'Filtrar el índice',
+  filterPlaceholder: 'Nombre o número',
+  filterClear: 'Vaciar el filtro',
+  filterCount: (mostrados, total) => `${mostrados} de ${total} páginas`,
+  filterNone: (q) => `Ningún título con «${q}»`
+}
+</script>
+
+<template>
+  <g-sidebar v-model="actual" v-model:query="consulta" :items="items" label="Documentación" :labels="textos"
+    filter filter-keyshortcuts="/ Control+K Meta+K"
+    @navigate="({ item, event }) => { event.preventDefault(); router.push(item.href) }" />
+</template>
+```
+
+- **Qué coincide.** Sin distinguir mayúsculas ni acentos, la consulta debe estar **contenida** en la `label` o en alguna `keyword` del item. Una consulta **solo de dígitos** (1 a 3) coincide con el `code` que empieza por ella o con su valor numérico («2» encuentra `02` y `20` a `29`; «24», solo `24`). El título de un grupo no cuenta: un grupo sin items visibles se oculta entero.
+- **Padres e hijos.** Un padre se ve si él o alguno de sus hijos coincide; si coincide el padre, se ven todos sus hijos. Mientras hay consulta, todo padre visible está abierto; al vaciar, cada uno vuelve a su estado.
+- **Se oculta con `hidden`, sin desmontar.** El item actual conserva su `aria-current` aunque no coincida; al vaciar el filtro se trae a la vista. Cada cambio de consulta lleva la lista al principio.
+- **Recuento y anuncio.** El recuento (`filterCount`, o `filterNone` sin coincidencias) está siempre a la vista y unido al campo; se anuncia de forma cortés 600 ms después del último cambio. Cuenta destinos: items con `href` o de solo acción y los hijos; no los padres, ni los deshabilitados, ni lo marcado con `filterable: false`.
+- **Por formato.** Expandida y drawer: el campo en la cabecera. Riel: un botón de filtro que expande y enfoca el campo; la consulta se conserva entre formatos. Navbar: la barra no se filtra, el campo vive en el drawer de «Más».
+- **Atajo global.** Lo registra tu aplicación (`/` fuera de un campo editable, ⌘K o Ctrl+K) y llama a `focusFilter()`; `GSidebar` no escucha el documento. `filterKeyshortcuts` solo lo publica.
+- **Sin movimiento propio:** filtrar oculta y muestra al instante.
+
+Avisos de desarrollo del filtro: **F1** `filter` con `search` (no actúa `search`); **F2** `filter` con el slot `search` (manda el slot); **F3** `filter` sin `filter`, `filterCount`, `filterNone` o `filterClear` en `labels`; **F4** `keywords` que no es un arreglo de cadenas (se ignora); **F5** `filter` sin la extensión. Y del `code`: **C1** con `icon`, **C2** de más de 3 caracteres, **C3** en un hijo.
 
 ## Riel
 
@@ -178,8 +234,9 @@ Ninguno tiene valor por defecto (Grana es internacional). Los requeridos avisan 
 | `update:open` | Boolean | El drawer se abre o cierra |
 | `mode-change` | `{ mode, overlay }` | El formato resuelto cambia (y al montar) |
 | `search` | | Se activa el disparador de búsqueda |
+| `update:query` | String | El texto del filtro cambia (escribir, vaciar con Esc o con el botón) |
 
-Métodos expuestos: `open()`, `close()` (drawer), `toggle()` (contraer/expandir) y `focus()`.
+Métodos expuestos: `open()`, `close()` (drawer), `toggle()` (contraer/expandir), `focus()` (primer item) y `focusFilter()`: con la extensión, enfoca el campo y selecciona su texto (en el riel lo expande, en el drawer o el navbar emite `update:open` con `true`); sin ella, o sin `filter`, no hace nada.
 
 ## Slots
 
@@ -187,7 +244,7 @@ Métodos expuestos: `open()`, `close()` (drawer), `toggle()` (contraer/expandir)
 | --- | --- |
 | `logo` | Identidad en la cabecera. Alcance `{ collapsed }` (en el riel, la marca sola) |
 | `header` | Contenido extra bajo el logo. Alcance `{ collapsed }` |
-| `search` | Sustituye al disparador de búsqueda (no se emite `search`). Alcance `{ collapsed }` |
+| `search` | Sustituye al disparador de búsqueda (no se emite `search`) **o al filtro**: con `filter` y este slot, manda el slot y el filtro no se pinta. Alcance `{ collapsed }` |
 | `icon` | Icono de un item (decorativo). Alcance `{ item }` |
 | `item` | Contenido de un item, en lugar de icono y etiqueta. Alcance `{ item, active, collapsed, level }`; **conserva el texto de la etiqueta** (es el nombre accesible) |
 | `user` | Área de usuario al pie. Alcance `{ collapsed }`; **en el riel, solo el avatar con nombre accesible que das tú**; el menú del usuario es tuyo |
@@ -232,10 +289,16 @@ El slot no trae marcado propio: tú pones **un botón de ancho completo** con el
 | ← / Esc | En el panel: lo cierra y devuelve el foco. **Esc no llega a un `GDialog` que lo contenga** |
 | ← → / Inicio / Fin | En el navbar: mueven entre los items (← → se invierten en RTL) |
 | Esc | En el drawer: lo cierra y devuelve el foco |
+| Escribir en el filtro | Filtra en cada cambio |
+| Intro en el filtro | Activa el primer destino visible y habilitado, como un clic (pasa por `navigate`); sin consulta o sin coincidencias, nada |
+| ↓ en el filtro | Lleva el foco al primer item visible; desde ahí, el teclado de siempre |
+| ↑ en el primer item visible | Vuelve al campo |
+| Esc en el filtro con texto | Vacía el filtro, el foco se queda y **no se propaga** (no cierra el drawer); con el campo vacío, se propaga |
 
 ## Accesibilidad
 
 - **Luz de hover** (coco, [`design/lab/hover-glide/auditoria.md`](../../../../../design/lab/hover-glide/auditoria.md)): la capa es `aria-hidden` y no cambia la cuenta de items que anuncia el lector; el puntero no mueve el foco. Contraste del texto sobre la luz **13,43:1** (etiqueta, claro), **13,17:1** (oscuro) y **8,59:1** (zona de marca); `medido` en Chromium (115/115 y 268/268).
+- **Filtro** (`medido` en Chromium, `sidebar-filter.spec.mjs` 9/9): campo nativo `type="search"` con `<label>` oculto, no un `combobox` (filtra una lista que sigue siendo la navegación), recuento unido por `aria-describedby`, anuncio cortés a los 600 ms. Con `code`, el asiento sigue `aria-hidden` y el nombre accesible del enlace lleva antes el código («24 GCombobox, enlace»), para que lo que se ve y lo que se dice coincidan (WCAG 2.5.3). **No verificado:** el recuento y el anuncio con un lector de pantalla real.
 - **`<nav aria-label>` con solo enlaces y botones de submenú**; cabecera y pie van fuera de la región. Cada grupo es una lista con su título como nombre (también en el riel: el título se oculta visualmente y queda en el DOM).
 - **El nombre accesible es texto real**, no `aria-label` ni tooltip: las etiquetas del riel y de los items inactivos de la píldora se ocultan visualmente y siguen ahí; los indicadores visibles son `aria-hidden` y su texto es `badgeLabel`.
 - **`aria-current="page"`** solo en el destino real; `aria-expanded`/`aria-controls` en los padres (`aria-haspopup` en el riel); el submenú cerrado es `inert` (sin foco ni lectura).
@@ -290,11 +353,11 @@ Sin definir, el tema por defecto usa `--g-surface-inset` con contorno `--g-color
 
 ## Clases
 
-Las emite el componente y las estiliza `GSidebar.css`: `g-sidebar` (con `--mode-{expanded|rail|navbar}`, `--variant-*`, `--color-*`, `--density-*`, `--overlay`, `--contained`, `is-entering`), `__head`, `__top`, `__logo`, `__toggle`, `__search`, `__hint`, `__nav`, `__groups`, `__group`, `__group-title`, `__list`, `__item`, `__link` (con `is-active`, `is-branch`), `__parent`, `__sub` (con `is-open`), `__chevron`, `__icon`, `__label`, `__badge` (y `__badge--dot`), `__sr`, `__foot`, `__fly`, `__fly-title`, `__bar`, `__tab`, `__more`, `__label--hidden`, `__drawer`, `__highlight` (la luz, `li[role="none"][aria-hidden="true"]`, primer hijo de cada lista) y `__fly-list` (la lista del panel flotante). Los nodos de la pista del riel son `g-tooltip` (con `aria-hidden`), hijos de la raíz; `__tip` e `is-instant` ya no existen.
+Las emite el componente y las estiliza `GSidebar.css`: `g-sidebar` (con `--mode-{expanded|rail|navbar}`, `--variant-*`, `--color-*`, `--density-*`, `--overlay`, `--contained`, `is-entering`), `__head`, `__top`, `__logo`, `__toggle`, `__search`, `__hint`, `__nav`, `__groups`, `__group`, `__group-title`, `__list`, `__item`, `__link` (con `is-active`, `is-branch`), `__parent`, `__sub` (con `is-open`), `__chevron`, `__icon`, `__label`, `__badge` (y `__badge--dot`), `__sr`, `__foot`, `__fly`, `__fly-title`, `__bar`, `__tab`, `__more`, `__label--hidden`, `__drawer`, `__filter`, `__filter-box`, `__filter-icon`, `__filter-input`, `__filter-hint`, `__filter-clear`, `__filter-count` (con `is-empty`; la raíz y el botón del riel llevan `is-filtering` con consulta), `data-code` en `__icon` (item con `code`), `__highlight` (la luz, `li[role="none"][aria-hidden="true"]`, primer hijo de cada lista) y `__fly-list` (la lista del panel flotante). Los nodos de la pista del riel son `g-tooltip` (con `aria-hidden`), hijos de la raíz; `__tip` e `is-instant` ya no existen.
 
 ## Alcance
 
-- **Un solo nivel de hijos**; sin árboles profundos, arrastrar ni favoritos. **Sin buscador propio** ni filtro: `search` solo dispara el evento. **Sin menú contextual del usuario:** el slot `user` lo pones tú (por ejemplo con [`GMenu`](../GMenu/README.md)).
+- **Un solo nivel de hijos**; sin árboles profundos, arrastrar ni favoritos. **Sin buscador propio:** `search` solo dispara el evento; el filtro del índice es una extensión que conectas tú (ver «Filtro del índice»). **El filtro no busca en el texto de las páginas:** si tu aplicación lo hace, mete sus resultados en un grupo `filterable: false`. **Sin menú contextual del usuario:** el slot `user` lo pones tú (por ejemplo con [`GMenu`](../GMenu/README.md)).
 
 - **Grana no trae textos ni los iconos de tu navegación**: `labels` y los iconos de `icon`, `toggle-icon`, `search-icon` y `more-icon` son de la aplicación (por nombre de Lucide o con `GIcon` en el slot; los que no están en la lista de la librería, con `createIcons`).
 
@@ -314,10 +377,12 @@ Las emite el componente y las estiliza `GSidebar.css`: `g-sidebar` (con `--mode-
 
 - **Luz de hover (Una sola luz), solo Chromium:** `node design/lab/hover-glide/auditoria-verificar.mjs chromium` 115/115 (sidebar, riel, panel flotante, drawer, navbar, RTL, claro, oscuro y zona de marca), `estilo-verificar.mjs chromium` 268/268 y `personalidad-sidebar-glide.spec.mjs` con la de la tabla 24/24. **Sin verificar en Firefox, WebKit, con lector de pantalla real ni con `forced-colors` real** (emulado en Chromium). **Rendimiento (`medido` en Chromium, con reserva):** con un sidebar de 60 items el p95 de la luz es de 0,3 a 0,9 ms tras ff20a8c; una pasada dio 2,2 ms y no se trazó. Las tareas largas del barrido son ruido de la VM compartida (H1b); por DECISIONS #965 el criterio «0 tareas largas» se exige en un entorno sin vecinos (integración continua o la máquina del usuario), donde aún no se ha comprobado. Firefox y WebKit sin medir (fila G de [`auditoria.md`](../../../../../design/lab/hover-glide/auditoria.md)).
 
+- **Filtro del índice y `code` (`medido` en Chromium, 2026-11-08):** `design/lab/theme-playground/tests/sidebar-filter.spec.mjs` 9/9 (atajo y número, código en el asiento y en el nombre accesible, sin acentos y grupos vacíos, caja estable, padres, drawer, riel, sin la extensión, 500 destinos con 5 a 14 ms por tecla de JavaScript y parche; el estilo y la disposición del navegador llegaron a 50 ms en alguna tecla) y `GSidebar.filter.test.js` (19 pruebas, nivel `prueba`). **Sin verificar:** Firefox y WebKit del filtro; el recuento con un lector de pantalla real; el IME real con Intro. El filtro está construido por bruno y **sin auditoría de coco** (`GSidebar` conserva `candidate` por su auditoría anterior; el filtro no está cubierto por ella).
+
 - **Sin verificar:** un lector de pantalla real (riel, ramas, contadores, panel, píldora, drawer), Safari real, el navbar y el drawer en un dispositivo táctil real y con el teclado virtual, RTL con un idioma RTL real, cientos de items y `forced-colors` real de Windows (solo emulado en Chromium). Los cortes de adaptación, el asiento, `is-rep` y la pista del riel están medidos en Chromium, Firefox y WebKit (`tests/sidebar-asiento.spec.mjs`, `sidebar-activo.spec.mjs`, `sidebar-pista.spec.mjs`); `prefers-reduced-motion` está medido con la preferencia emulada en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`, 18/18 el 2026-10-18: con `reduce` ningún elemento conserva transiciones ni animaciones de movimiento).
 
 - **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
 
 ## Fuentes
 
-- API: [`GSidebar.meta.json`](./GSidebar.meta.json) · Contrato: [`design/contracts/sidebar.md`](../../../../../design/contracts/sidebar.md) · Prototipo: [`design/lab/sidebar/r01/`](../../../../../design/lab/sidebar/r01/) · Auditoría: [`design/lab/sidebar/auditoria.md`](../../../../../design/lab/sidebar/auditoria.md) · Una sola luz (DECISIONS #957 a #964): [`api.md`](../../../../../docs/contract/api.md), [`estilo.md`](../../../../../design/lab/hover-glide/estilo.md), [`auditoria.md`](../../../../../design/lab/hover-glide/auditoria.md)
+- API: [`GSidebar.meta.json`](./GSidebar.meta.json) · Contrato: [`design/contracts/sidebar.md`](../../../../../design/contracts/sidebar.md) · Prototipo: [`design/lab/sidebar/r01/`](../../../../../design/lab/sidebar/r01/) · Auditoría: [`design/lab/sidebar/auditoria.md`](../../../../../design/lab/sidebar/auditoria.md) · Filtro y código del item (DECISIONS #1035, #1036, #1050): [`sidebar.md`](../../../../../design/contracts/sidebar.md) «Filtro del índice» · Una sola luz (DECISIONS #957 a #964): [`api.md`](../../../../../docs/contract/api.md), [`estilo.md`](../../../../../design/lab/hover-glide/estilo.md), [`auditoria.md`](../../../../../design/lab/hover-glide/auditoria.md)

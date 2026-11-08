@@ -35,9 +35,9 @@ Orden fijo. Las secciones que no aplican se omiten; no se dejan vacías.
 
 | # | Bloque | Tipo | Qué lleva | Fuente |
 | --- | --- | --- | --- | --- |
-| 1 | **Ruta y cabecera** | referencia | Miga `componentes / <nombre>`; antetítulo `COMPONENTE NN · <estado>`; título; la línea de importación exacta (`import { GBtn } from '@grana/vue'` o la entrada propia, p. ej. `@grana/vue/combobox`) | `CLAUDE.md`, `exports` |
+| 1 | **Ruta y cabecera** | referencia | La cabecera es `GPageHeader`: miga (en el marco, con puertas a los hermanos), antetítulo «Componente NN · <grupo>», título y, en `meta`, el **estado** (`GBadge`, no el antetítulo) y la línea de importación exacta (`import { GBtn } from '@grana/vue'` o la entrada propia, p. ej. `@grana/vue/combobox`) | `CLAUDE.md`, `exports`, `numeros.json` |
 | 2 | **Entradilla** | explicación | Una o dos frases: qué hace y qué **no** trae (el color lo pone el tema) | contrato |
-| 3 | **En esta página** | — | Enlaces `§ ficha`, `§ ejemplos`, `§ api`, `§ accesibilidad` (y los que existan) que derivan de secciones reales | secciones |
+| 3 | **En esta página** | — | Vive en el **zócalo de `GPageHeader`** como `GPageIndex` `relay`, derivado de los `h2` reales de la página (no es un bloque del cuerpo). En el README, la línea `[§ Uso] · [§ Ejemplos] …` hace de índice en GitHub | secciones |
 | 4 | **Ficha interactiva** | referencia | El componente real sobre la trama de puntos, con sus **cotas medidas** (alto, relleno); a su lado «**Qué lee del tema**»: fondo, texto, borde, radio, alto y letra, cada uno con el **token real** y su muestra; una línea viva (`aria-live="polite"`) que anuncia los cambios | `meta.json`, CSS, tokens |
 | 5 | **Código editable** | referencia | El código del uso actual con **cada valor enumerado como botón** que cicla por los valores del `meta.json` (`aria-label` «prop: valor. Cambiar a siguiente»); los booleanos como casillas `[x]`/`[ ]` con `aria-pressed`; «Restablecer» y «Copiar». **Copiar omite lo que está en su valor por defecto** | `meta.json` |
 | 6 | **Ejemplos** | guía | De 2 a 6 casos reales. Cada uno: id (`e1`…), título que nombra la situación, **por qué** en una frase (cuándo sí y cuándo no), el componente real, su código y «Abrir en la ficha ↑», que carga ese caso en la ficha | contrato, decisiones |
@@ -48,15 +48,15 @@ Orden fijo. Las secciones que no aplican se omiten; no se dejan vacías.
 | 11 | **Tema** | referencia | Tokens que lee y alias locales que se pueden ajustar | contrato, CSS |
 | 12 | **Alcance** | referencia | Lo que el componente no hace por diseño o reserva, cada punto con su decisión de `DECISIONS.md`, y los límites de uso aceptados | contrato, `DECISIONS.md` |
 | 13 | **Verificación** | referencia | Nivel de evidencia: qué está `medido` y dónde (motores, specs, verificadores con su conteo), límites medidos de motor y lo que solo se comprueba en entorno real; cierra con la viñeta **«Pendientes abiertos»**, que enlaza a `PENDIENTES.md` §6 y nombra en una frase los que afectan al componente | auditoría, `PENDIENTES.md` |
-| 14 | **Páginas vecinas** | — | `← anterior` · `siguiente →` según el índice | índice |
+| 14 | **Páginas vecinas** | — | `← anterior` · `siguiente →` según el orden del índice, con el número delante en las fichas | índice |
 
-**Marco de la página** (el shell, igual en todas): cabecera con marca, miga, estado de versión, búsqueda (`/`) y botón de tema claro/oscuro; índice lateral con `EMPEZAR` (Instalación, Tema y tokens, Tema oscuro), `COMPONENTES` numerados (`01`, `02`…) con `aria-current="page"` en el actual, y `HERRAMIENTAS` (`@grana/cli`). Un solo marco y una sola navegación global; no se crean marcos paralelos.
+**Marco de la página** (el shell, igual en todas; su contrato es `design/contracts/sitio-marco.md`): banda con marca, miga, estado de versión, selector de idioma con ruta equivalente y tema **sistema/claro/oscuro**; índice lateral (`GSidebar`) con `Empezar` (con iconos: Empezar, Tematización, Utilidades, Accesibilidad, Personalidad), los **grupos de componentes con su número estable** (`01`, `02`…, `aria-current="page"` en el actual y el número en el asiento), `Blocks` por familia, `Herramientas` (`@grana/cli`, Playground de tema) y `Proyecto`, con el **filtro en su cabecera** (`/`, ⌘K o Ctrl+K): la búsqueda ya no es un botón aparte, y el texto completo sale como un grupo más, «En el texto». «Tema oscuro» es una sección de Tematización, no una página del índice. Un solo marco y una sola navegación global; no se crean marcos paralelos.
 
 **Tono de los textos:** frases cortas en segunda persona («Pruébalo con Tab en la ficha»), cada ejemplo dice su porqué, nada de relleno ni de cifras inventadas.
 
 ## 4. Correspondencia con el `README.md`
 
-El sitio de documentación aún no existe. Mientras tanto el `README.md` del componente es la página, en este mismo orden, y será la fuente del sitio:
+El sitio de documentación (`site/`) se genera desde el `README.md` de cada componente y su `meta.json`: el README es la fuente y la página sigue su orden. En el sitio, el `# Nombre` pasa a ser el título de `GPageHeader`, y la ficha interactiva (bloques 4 y 5) la monta `site/live/<Componente>.js`. Correspondencia:
 
 | Bloque de la página | Sección del README |
 | --- | --- |

@@ -88,7 +88,7 @@ export const UI = {
       body: ''
     },
     // Marco del sitio (Layout.vue, sitio-marco.md): textos de la interfaz de GAppShell, GSidebar, GPageHeader,
-    // GPageIndex, GBreadcrumbs y los menús de idioma y tema. Textos provisionales de bruno: los revisa mora-docs.
+    // GPageIndex, GBreadcrumbs y los menús de idioma y tema. Textos revisados por mora-docs (2026-11-08, #1045): frases cortas, segunda persona, sin relleno.
     frame: {
       skip: 'Saltar al contenido',
       nav: 'Documentación',
@@ -109,7 +109,7 @@ export const UI = {
       filterPlaceholder: 'Nombre o número',
       filterHint: '/',
       filterClear: 'Vaciar el filtro',
-      filterCount: (n, total) => `${n} de ${total} páginas`,
+      filterCount: (n, total) => `${n} de ${total} ${total === 1 ? 'página' : 'páginas'}`,
       filterNone: (q) => `Ningún título con «${q}»`,
       inText: 'En el texto',
       inTextCount: (n) => (n === 1 ? '1 en el texto' : `${n} en el texto`),
@@ -147,7 +147,7 @@ export const UI = {
       statLocales: 'idiomas',
       external: '(se abre en otra pestaña)',
       footerNav: 'Enlaces del pie',
-      notFound: { title: 'Página no encontrada', description: 'Esta página no existe o cambió de sitio. El índice de la izquierda lleva a todas las demás.', home: 'Volver a la portada' }
+      notFound: { title: 'Página no encontrada', description: 'Esta página no existe o cambió de sitio. Búscala en el índice o vuelve a la portada.', home: 'Volver a la portada' }
     },
     theme: {
       outline: 'En esta página',
@@ -282,7 +282,7 @@ export const UI = {
       findHint: 'Type to search',
       matches: '{count} sections',
       matchesOne: '1 section',
-      matchesNone: 'No section',
+      matchesNone: 'No sections',
       opened: 'Opened',
       openedLive: '{label} opened in another tab',
       copied: 'Link copied',
@@ -291,7 +291,7 @@ export const UI = {
       filterPlaceholder: 'Name or number',
       filterHint: '/',
       filterClear: 'Clear the filter',
-      filterCount: (n, total) => `${n} of ${total} pages`,
+      filterCount: (n, total) => `${n} of ${total} ${total === 1 ? 'page' : 'pages'}`,
       filterNone: (q) => `No title with “${q}”`,
       inText: 'In the text',
       inTextCount: (n) => (n === 1 ? '1 in the text' : `${n} in the text`),
@@ -329,7 +329,7 @@ export const UI = {
       statLocales: 'languages',
       external: '(opens in a new tab)',
       footerNav: 'Footer links',
-      notFound: { title: 'Page not found', description: 'This page does not exist or has moved. The index on the left leads to every other page.', home: 'Back to the home page' }
+      notFound: { title: 'Page not found', description: 'This page does not exist or has moved. Look for it in the index or go back to the home page.', home: 'Back to the home page' }
     },
     theme: {
       outline: 'On this page',
