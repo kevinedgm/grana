@@ -406,6 +406,8 @@ Una vez por menú, con la guarda canónica de #653 (`try { if (process.env.NODE_
 | E7 | `navigator.clipboard.writeText` se rechaza | Sin huella ni anuncio |
 | E8 | `lang` o `hreflang` que `Intl.getCanonicalLocales` rechaza (#743) | Lo ignora (sin atributo) |
 | E10 | `current` con un valor que no es `true`, `'page'` ni `'location'` (#1039) | Lo trata como `true` (`aria-current="page"`) |
+| E11 | Algún elemento con `confirm` y sin `labels.cancel` (#790; antes «E8», que chocaba con `lang`) | Esos elementos quedan `aria-disabled` |
+| E12 | `confirm` sin `danger` (#790; antes «E9») | Ignora `confirm` |
 
 ### Clases nuevas (para coco, L7)
 
@@ -496,7 +498,7 @@ La pide el primer block de `@grana/blocks` (`design/contracts/resource-list.md` 
 3. **Un doble clic nunca ejecuta** (#661): el segundo clic de la ráfaga se ignora y, si cae, cae en «Cancelar». Con teclado: Intro en el elemento, → (o ↓) a la confirmación, Intro: se ejecuta **una vez**.
 4. **Confirmar emite `select`** del elemento (misma carga de siempre; `item` es el elemento peligroso) y sigue `closeOnSelect` (una acción cierra y devuelve el foco al disparador).
 5. **Nada se mueve:** el ancho de la lista no cambia al armar (el `.vue` escribe en el `li` armado **`--_armed-w`**, px, el ancho de la fila al armar, y lo retira al desarmar o confirmar; el CSS lo aplica como `min-inline-size`; como `GFab`, #677). La lista **no** cambia de alto: el par ocupa la fila.
-6. **Sin `labels.cancel`** con algún elemento que confirma, esos elementos quedan `aria-disabled` (fallo seguro: nada destructivo sin poder cancelar) y aviso **E8** (`[Grana] <GMenu>`, una vez). `confirm` sin `danger`: se ignora y aviso **E9**.
+6. **Sin `labels.cancel`** con algún elemento que confirma, esos elementos quedan `aria-disabled` (fallo seguro: nada destructivo sin poder cancelar) y aviso **E11** (`[Grana] <GMenu>`, una vez). `confirm` sin `danger`: se ignora y aviso **E12**.
 7. **Sin ticket** en `select` (el acuse de #663 es del FAB; en un menú de fila lo da la aplicación con `GToast`). Reservado: `select` con ticket en `GMenu`, si un caso lo pide.
 8. **Movimiento:** ninguno propio (el par aparece en el sitio); con movimiento reducido, igual. Reutiliza el motor de menú compartido (`utils/menuNav.js`, #657) para el foco del par; la lógica de armado puede compartirse con `GFab` por `utils/` si bruno lo ve (sin cambiar `GFab`).
 
@@ -506,7 +508,7 @@ La pide el primer block de `@grana/blocks` (`design/contracts/resource-list.md` 
 
 ### Peso y pruebas
 
-Sigue en el principal (ampliación de un componente existente, #550). Cuenta en el **lote de #793** junto con las enmiendas de `GTable` (≤ +1,5 KiB gzip de `grana.js`; `resource-list.md` «Enmiendas»). `GMenu.test.js`: motivo (`aria-describedby`, enfocable, no se activa), armado y desarmado (Cancelar, Esc sin cerrar, foco que sale), confirmación con teclado y puntero, doble clic, `--_armed-w`, E8 y E9, y que un `danger` sin `confirm` sigue emitiendo `select` al activarse. Playwright en los tres motores dentro de `tests/resource-list.spec.mjs` (la tabla quieta, Δ0) y un caso suelto en `tests/menu.spec.mjs`.
+Sigue en el principal (ampliación de un componente existente, #550). Cuenta en el **lote de #793** junto con las enmiendas de `GTable` (≤ +1,5 KiB gzip de `grana.js`; `resource-list.md` «Enmiendas»). `GMenu.test.js`: motivo (`aria-describedby`, enfocable, no se activa), armado y desarmado (Cancelar, Esc sin cerrar, foco que sale), confirmación con teclado y puntero, doble clic, `--_armed-w`, E11 y E12, y que un `danger` sin `confirm` sigue emitiendo `select` al activarse. Playwright en los tres motores dentro de `tests/resource-list.spec.mjs` (la tabla quieta, Δ0) y un caso suelto en `tests/menu.spec.mjs`.
 
 ## Límites conocidos
 

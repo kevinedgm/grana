@@ -1,6 +1,6 @@
 # Contrato · marco del sitio de documentación (A · «El índice se escribe»)
 
-**Dueño:** lima · **Estado:** aprobado (forma); **el motor está pendiente de confirmación del usuario** (§1) · **Basado en:** `design/lab/sitio/r01/` (kiwi, 2026-11-08: `declaracion.md`, `brief.md`, `inventario-componentes.md`, prototipo `index.html?c=A`, `verificar.mjs` 411/411) · **Elección del usuario:** concepto **A**, sin mezcla con B ni C (2026-11-08, #1034) · **Decisiones:** #1034 a #1043
+**Dueño:** lima · **Estado:** aprobado (forma y motor) · **Basado en:** `design/lab/sitio/r01/` (kiwi, 2026-11-08: `declaracion.md`, `brief.md`, `inventario-componentes.md`, prototipo `index.html?c=A`, `verificar.mjs` 411/411) · **Elección del usuario:** concepto **A**, sin mezcla con B ni C (2026-11-08, #1034) · **Decisiones:** #1034 a #1047
 
 El marco (shell) de `site/`: lo que rodea a cada página de documentación. Lleva a la página y al punto de la página que se busca, dice dónde se está y qué versión se lee, y deja cambiar tema e idioma sin perder el sitio. **No enseña componentes** (eso es la página, de mora-docs, `docs/documentacion/contrato.md`) y no compite con la ficha viva por el ancho: en A la columna de contenido pasa de 624 a ≈ 950 px a 1280 (medido por kiwi).
 
@@ -10,12 +10,12 @@ El marco (shell) de `site/`: lo que rodea a cada página de documentación. Llev
 2. **El índice es la búsqueda.** Filtrar no saca de la página: la lista se encoge donde ya está la mirada; el texto completo aparece como un grupo más, «En el texto», al final de la misma lista.
 3. **El índice de la página no ocupa una columna.** «En esta página» es un **relevo** en el zócalo pegado de `GPageHeader` que cambia con la lectura.
 
-## 1. Motor: VitePress, cambiando solo el `Layout` (recomendación de kiwi; **el usuario aún no lo confirmó**)
+## 1. Motor: VitePress 1.6.4, cambiando solo el `Layout` (confirmado por el usuario el 2026-11-08, #1044)
 
 - **Se mantiene VitePress, versión fijada exacta** (hoy `1.6.4` en `site/package.json`, sin `^`), con `extends: DefaultTheme` (`vitepress/theme-without-fonts`) para conservar sus estilos de documento (`.vp-doc`: Markdown, tablas, bloques de código con Shiki y su botón de copiar, `custom-block`), **y un `Layout.vue` propio hecho con Grana que ya no pinta `DefaultTheme.Layout`**.
 - **Solo API pública de VitePress:** `Content`, `useData` (`page`, `frontmatter`, `theme`, `lang`, `localeIndex`, `isDark`), `useRoute`, `useRouter` (`go`), `onContentUpdated`, `withBase`, `inBrowser`. **Una sola excepción:** el módulo virtual **`@localSearchIndex`** para «En el texto» (§6.3), que no está documentado: versión fijada y **una prueba que falla si su forma cambia** (claves por idioma, carga perezosa que devuelve el JSON de MiniSearch, campos `id`, `title`, `titles`). Lo interno del tema por defecto (`useLangs`, `outline.js`, `getScrollOffset`) **no** se importa: se reimplementa (§4, §6).
 - Se conserva sin tocar: Markdown y rutas (`srcDir: 'src'`), SSG para GitHub Pages (`base`), `generate.mjs` y su prueba, `check-live.mjs`, `check-pages.mjs`, `ignoreDeadLinks: false`, `postcssIsolateStyles` + la capa `vitepress` (#516) y los componentes del sitio (`GranaLive`, `GranaDemo`, `ThemePlayground`, `BlockBank`).
-- **Si el usuario elige reescribir el motor**, este contrato vale igual salvo §1 y las fuentes de §6 (la composición de §2 a §5 no depende de VitePress).
+- **Reescribir el motor queda descartado** (#1044). Si algún día se cambiara, este contrato valdría igual salvo §1 y las fuentes de §6 (la composición de §2 a §5 no depende de VitePress).
 
 ## 2. Composición
 
@@ -38,7 +38,7 @@ GAppShell  :labels="{ skip }"                                  ← un solo chasi
 ```
 
 - **`GPageHeader` es el primer hijo directo del `main`** (`page-header.md` §«Anatomía»), fuera de `GContainer`; el contenido, después, en su contenedor.
-- **Sin rail en A:** expandida desde 1024 px de ancho del chasis, drawer por debajo (la receta de `sidebar.md` §«Cortes de adaptación»). El botón «Abrir el índice» de la banda abre el drawer (`v-model:open`), y el drawer devuelve el foco a él al cerrarse (defecto S8 de WebKit abierto, `PENDIENTES.md` §3).
+- **Sin rail en A:** expandida desde 1024 px de ancho del chasis, drawer por debajo, **sin riel intermedio** (aceptado por el usuario, #1046; la receta de `sidebar.md` §«Cortes de adaptación»). El botón «Abrir el índice» de la banda abre el drawer (`v-model:open`), y el drawer devuelve el foco a él al cerrarse (defecto S8 de WebKit abierto, `PENDIENTES.md` §3).
 - **Portada** (`layout: home`): mismo marco, sin `GPageHeader` ni índice de la página; se compone con Blocks (`GbHero`, `GbFeatures`, `GbStats`). **404**: mismo marco, sin miga, sin foco automático en el filtro.
 - **Sin `GNavBar`** (S-L6, #1041): la fila «Guía · Componentes · Blocks · Playground · Cambios» la hace el índice (grupos) en A. GitHub: enlace en `GbFooter` y en el grupo Proyecto.
 
@@ -85,6 +85,7 @@ Iconos del marco que no están en la lista de la librería (`sun`, `moon`, `moni
 ### 6.3 «En el texto» (texto completo)
 
 - Con una consulta **no numérica de 3 o más caracteres**, el sitio carga **la primera vez** el índice local (`@localSearchIndex`, el del idioma actual; ≈ 1,6 MB, como hoy) y MiniSearch (`minisearch`, **dependencia explícita del sitio** con la versión que usa VitePress 1.6.4), y añade al final de `items` el grupo `{ label: 'En el texto', filterable: false, items: [...] }` con **como mucho 5** resultados `{ id, label: 'Página · Sección', href: withBase(...#ancla), icon: 'file-text' }` que **no** repiten un título ya visible.
+- **El título de un grupo no cuenta como coincidencia** (#1046): filtrar «Formularios» no deja pasar los componentes del grupo por llevar su nombre; solo coinciden los items (y sus `keywords`). Un grupo sin items coincidentes se oculta.
 - Sin consulta, o con una numérica, el grupo no está. Mientras carga, no hay grupo (aparece al final, no desplaza lo de arriba).
 - El anuncio y el recuento son de `GSidebar` (`labels.filterCount`/`filterNone`); las funciones del sitio añaden lo de «En el texto» («Ningún título con «oscuro»; 3 en el texto»).
 
@@ -141,14 +142,14 @@ Sobre el sitio construido (`docs:build` + `preview`, puerto propio), en `site/te
 
 **No verificable aquí:** lector de pantalla real (recuento del filtro, `aria-current="location"` en un menú), Safari y táctil reales, `forced-colors`, texto al 200 %, RTL.
 
-## 13. Quién construye (pendiente de asignación)
+## 13. Quién construye (#1045)
 
-Por `AGENTS.md`, `site/` es de **mora-docs** («sitio de docs»). Lo de los componentes es de coco y bruno:
+Por `AGENTS.md`, `site/` es de mora-docs; **para este lote el usuario lo reparte así** (2026-11-08, #1045; excepción de lote, `AGENTS.md` no cambia):
 
-1. **coco** (Sonnet; Opus si lo pide la medida): `GPageIndex.css`, filtro y código del asiento en `GSidebar.css`.
-2. **bruno** (Opus: `GPageIndex` lleva motor de lectura y foco; el filtro toca el motor de `GSidebar`): `GPageIndex.vue` + entrada + pruebas; filtro, `code`, `focusFilter` en `GSidebar.vue`; `current: 'location'` en `GMenu.vue`; `meta.json` y tipos.
+1. **coco** (Sonnet; Opus si lo pide la medida): `GPageIndex.css`, filtro y código del asiento en `GSidebar.css`; en el sitio, `grana-site.css` y `layers.css` (las cinco capas, #806).
+2. **bruno** (Opus: `GPageIndex` lleva motor de lectura y foco; el filtro toca el motor de `GSidebar`): `GPageIndex.vue` + entrada + pruebas; filtro, `code`, `focusFilter` en `GSidebar.vue`; `current: 'location'` en `GMenu.vue`; `meta.json` y tipos. **En el sitio, el `Layout` y todo lo funcional:** `site/.vitepress/theme/*.vue`, `config.mjs`, `index.js`, `icons.js`, scripts, `generate.mjs` en lo que toque a los datos del marco (índice, `code`, `keywords`, frontmatter) y las pruebas del sitio.
 3. **coco**, auditoría de los dos sobre el componente real.
-4. **El marco** (`Layout.vue`, `generate.mjs`, `config.mjs`, `layers.css`, `icons.js`, `grana-site.css`, pruebas del sitio): **el orquestador decide** si lo construye mora-docs (dueña) o si se reasigna para este lote (recomendación: lo funcional a bruno y `grana-site.css` a coco, con mora-docs revisando el contenido). Lima no lo decide: es reparto de archivos.
+4. **mora-docs:** solo los textos (contenido de las páginas, etiquetas y mensajes) y la enmienda de `docs/documentacion/contrato.md` §3 (§14); no toca `.vue`, `config.mjs`, scripts ni CSS del sitio.
 
 ## 14. Enmienda del contrato de documentación (para mora-docs; `docs/documentacion/contrato.md` §3 es suyo)
 

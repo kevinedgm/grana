@@ -1,6 +1,6 @@
 # Contrato · GPageIndex (índice de la página)
 
-**Dueño:** lima · **Estado:** aprobado (forma `relay`); las demás formas, reservadas · **Basado en:** `design/lab/sitio/r01/` (kiwi; concepto A «El índice se escribe», elegido por el usuario el 2026-11-08, #1034), hallazgos S-L2 y S-L4 de su `declaracion.md` e inventario #2 (`inventario-componentes.md`) · **Decisiones:** #1038 a #1040, #1042
+**Dueño:** lima · **Estado:** aprobado (forma `relay`); las demás formas, reservadas · **Basado en:** `design/lab/sitio/r01/` (kiwi; concepto A «El índice se escribe», elegido por el usuario el 2026-11-08, #1034), hallazgos S-L2 y S-L4 de su `declaracion.md` e inventario #2 (`inventario-componentes.md`) · **Decisiones:** #1038 a #1040, #1042, #1047
 **Tag:** `g-page-index` · **Categoría:** navegación · **Entrada:** `@grana/vue/page-index`
 
 Índice de las secciones **de la página que se está leyendo**, con la sección actual siguiendo la lectura (`aria-current="location"`). Es la pieza que el sitio necesita en A («En esta página» como **relevo** en el zócalo de `GPageHeader`) y la que hoy se escribe a mano en formularios largos y ajustes (`GbSettingsLayout01` compone un índice con `GCard interaction="link"` y `current`). Por eso es un **componente reutilizable**, no una enmienda de `GPageHeader` (#1038): el encabezado solo lo aloja en su slot `actions`, como aloja cualquier `GMenu`.
@@ -51,7 +51,6 @@
 | `appearance` | String | `relay` | `relay` | propia (`list`, `line` y `rail` reservados, #1038) |
 | `label` | String | texto | sin valor (**obligatoria**) | propia (nombre del `<nav>` y primera parte del disparador) |
 | `align` | String | `start` `end` | `end` | de `GMenu` (se pasa tal cual) |
-| `density` | String | `default` `comfortable` `compact` | sin valor: la región | compartida (se pasa a `GMenu`) |
 | `labels` | Object | `findHint`, `matches`, `matchesOne`, `none` (buscar al escribir de `GMenu`, #797) | `{}` | compartida (sin valores por defecto) |
 | `id` | String | | generado (SSR-seguro) | propia |
 
@@ -63,6 +62,7 @@
 - **`scroller`:** el contenedor cuyo desplazamiento mueve las secciones. Sin valor, el documento (`document.scrollingElement`). Un selector que no encuentra nada avisa (aviso 3) y se usa el documento. Se resuelve **al montar** (#1033).
 - **`appearance`:** fuera de lista, aviso 4 y `relay`.
 - **`label`:** obligatoria (aviso 5). Nombra el `<nav>` y es el texto fijo del disparador.
+- **Sin `density` (#1047):** el disparador mide siempre la altura de `GBtn` `md` (la de su `--g-btn-*`, 44 px táctil, nunca `compact` ni `comfortable`: es un control de cabecera, como los de `GPageHeader`); la lista sigue la región como cualquier `GMenu` (`density.md` §5.1). Una `density` que llegue por `attrs` no cambia el disparador.
 - **Atributos:** `class`, `style` y `data-*` van a la raíz (`nav`).
 
 ### Modelo de `items`
@@ -153,9 +153,9 @@ El de `GMenu` (disparador Intro/Espacio/↓ abre en el primero, ↑ en el últim
 
 | Qué se mueve | Cómo | Movimiento reducido |
 | --- | --- | --- |
-| **Relevo del texto** al cambiar la sección actual | La etiqueta saliente se funde y la entrante entra con un desplazamiento de `space × 1` **en el sentido de la lectura** (bajando, desde abajo; subiendo, desde arriba), `--g-duration-fast` + `--g-ease-out`. Solo `opacity` y `transform` de la celda de texto | Solo fundido `--g-duration-fast` (patrón único de #300) |
+| **Relevo del texto** al cambiar la sección actual (#1047) | **En dos fases sobre una sola etiqueta** (`__current`; nunca hay dos visibles). **1. Sale:** `data-dir` (`down`/`up`, el sentido de la lectura) + `data-phase="out"`: la etiqueta se funde y se va un paso de `space × 1` hacia donde se lee. **2. Entra:** al terminar la salida (`transitionend`, con red de seguridad de `--g-duration-fast` + un cuadro) bruno **cambia el texto** y pone `data-phase="in"` (invisible, desplazada un paso desde donde viene la lectura). **3.** En el cuadro siguiente, tras forzar el estilo, quita `data-phase` **y** `data-dir`: transición a reposo. `--g-duration-fast` + `--g-ease-out` cada fase; solo `opacity` y `transform` | Solo fundido `--g-duration-fast` (patrón único de #300), mismas fases sin desplazamiento |
 | **Ráfaga** (otro cambio a menos de 600 ms del anterior, la ventana de `GTooltip`) | Cambio **instantáneo**, sin fundido ni desplazamiento: al desplazarse deprisa no hay animaciones encadenadas | Igual |
-| Interrupción | Un cambio a mitad de transición parte del estado actual (transición CSS, no `@keyframes`) y nunca deja dos etiquetas visibles a la vez | — |
+| Interrupción | Un cambio a mitad de transición parte del estado actual (transición CSS, no `@keyframes`): durante la salida, el destino nuevo sustituye al pendiente (no se encadenan relevos: al entrar se pinta la **última** actual); durante la entrada, vuelve a `data-phase="out"`. Nunca dos etiquetas visibles | — |
 | Apertura de la lista | La de `GMenu` (#1002) | La de `GMenu` |
 | Nada al montar | El primer valor se pinta sin transición | — |
 
@@ -167,8 +167,9 @@ Evaluación (rúbrica §2): **A** cumple (dice qué cambió y en qué dirección
 | --- | --- | --- |
 | `g-page-index`, `g-page-index--appearance-relay` | raíz `nav` | bruno |
 | `g-page-index__trigger`, `__key`, `__value`, `__stack`, `__ghost`, `__current`, `__icon` | disparador | bruno |
-| `data-dir="down"` / `"up"` | `__current` durante el relevo (sentido de la lectura) | bruno |
-| `is-burst` | `__current` cuando el cambio cae en la ventana de 600 ms (sin transición) | bruno |
+| `data-dir="down"` / `"up"` | `__current` durante el relevo (sentido de la lectura); se quita en el último cuadro | bruno |
+| `data-phase="out"` / `"in"` | `__current`: `out` mientras sale la etiqueta, `in` desde el cambio de texto hasta el cuadro siguiente; se quita al reposo (#1047) | bruno |
+| `is-burst` | `__current` cuando el cambio cae en la ventana de 600 ms: **el texto cambia al instante**, sin `data-phase` ni `data-dir` | bruno |
 | `is-empty` | raíz, sin sección actual | bruno |
 
 ## Tokens
