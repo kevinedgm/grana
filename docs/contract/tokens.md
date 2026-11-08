@@ -1402,4 +1402,13 @@ Consume además (lista exacta de `GHero.css`, #759): `--g-color-bg`, `--g-color-
 - **Código en el asiento:** `--g-text-caption-*` con cifras tabulares, `--g-font-ui`, `--g-text-action-weight`; lleno `--g-sidebar-on-current` sobre `--g-sidebar-current` (P1, §43); en reposo y en la rama, texto sobre la carcasa ≥ 4,5:1.
 - **Reservado con nombre, sin valor (#1041):** **`--g-font-code`** (familia de la letra de código), para `GCode` (inventario del sitio #4) cuando se contrate. Ni el marco del sitio ni estos componentes lo necesitan: el código del sitio lo pinta VitePress en la capa `vitepress`.
 
-La siguiente sección nueva es la 60.
+## 60. Barra superior del sitio, columna del índice de la página, modo comando y barra local (`GNavBar`, `GPageIndex list`, `GCombobox command`, `GAppShell`; sin tokens nuevos)
+
+**Ningún token del tema nuevo** (`design/contracts/nav-bar.md`, `page-index.md` §«Forma `list`», `combobox.md` §«Modo comando», `app-shell.md` §«Barra local»; DECISIONS.md #1053 a #1056; §17.6: ningún existente se queda corto).
+
+- **`GNavBar`:** banda `--g-color-bg` (la de `GAppShell`), enlaces `--g-color-text` con `--g-text-body-sm-*` y `--g-text-action-weight`, actual `--g-color-accent-text`, icono externo `--g-color-text-subtle`, separadores `--g-color-border`, luz de P1 con el token de la luz de `GSidebar` (§«Una sola luz»), panel «…» `--g-color-surface` + `--g-color-border` + `--g-shadow-2` + `--g-radius-*`, pantalla `--g-color-bg` con filas separadas por `--g-color-border`, foco de siempre, `--g-duration-fast`/`press`/`slow`, `--g-ease-out`. **Constantes de contrato (no tokens):** cortes del visor `48rem` y `80rem`.
+- **`GPageIndex list`:** línea guía `--g-color-border`, marcador `--g-color-accent-text`, enlaces `--g-color-text-muted` (actual y hover `--g-color-text`), título `--g-color-text` con `--g-text-title-sm-weight`, panel de `fold` `--g-color-surface` + `--g-color-border-strong` + `--g-shadow-2` + `--g-radius-md`. Marcador de 2 px, filas `space × 8`, sangría `space × 4`: medidas de coco.
+- **`GCombobox command`:** los de la superficie de la paleta (§32); el pie `__hints` en `--g-text-caption-*` y `--g-color-text-muted`.
+- **`GAppShell`:** **propiedad pública de entrada nueva `--g-app-shell-local-bar`** (`<length>`, `inherits: true`, `initial-value: 0px`; no es del tema, no va en `defaults.css` ni en `tokens.json`; excepción en `levels.test.js` como `--g-app-shell-header`, §48): el alto de una barra pegada de la aplicación bajo la banda, declarada en `:root`. **Constante de contrato:** el corte `60rem` de `header="pinned-wide"`.
+
+La siguiente sección nueva es la 61.

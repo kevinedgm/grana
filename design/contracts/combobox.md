@@ -1,6 +1,6 @@
 # Contrato · GCombobox
 
-**Dueño:** lima · **Estado:** aprobado (forma A + B + C, C sumado a las dos y `multiple` en Fase 2: decisiones del usuario del 2026-10-04; el resto deriva de APG *Combobox with list autocomplete*, WCAG 2.2 y los contratos vigentes; **ninguna pregunta de producto abierta**) · **Basado en:** `design/lab/combobox/r01/` (kiwi; base funcional: frontera del `brief.md`, 27 decisiones, L1 a L15, `combo.js`, `verificar.mjs` 315/315) y `design/lab/combobox/r02/` (kiwi, commit `6187a1d`; conceptos A, B, C y la mezcla `?c=AC`, L16 a L25, 1407/1407 en los tres motores) · **Decisiones:** DECISIONS.md **#329 a #338** · **Convive con:** `input.md` (la caja; slots internos `field` y `end`, #309), `form.md` (contexto, `useFormField`, `GFormRow`; Fase 5), `select.md` (frontera), `dialog.md` (la superficie), `avatar.md`, `icons.md` (`search`, nuevo), `tokens.md` §32 · **Enmendado por #356** (2026-10-04, decisión del usuario): opción, ficha del valor y vista previa se pintan con **`GSummary`** (`summary.md`); ver «Fichas con `GSummary`» · **Fase 2 (`multiple`) contratada por #417 a #428** (2026-10-06, decisiones del usuario: A «La frase» por defecto, B «La receta» como `selection="list"`, C «La cesta» = `palette` + `multiple`; kiwi `design/lab/combobox/r03/`, commit `a6f731f`, L26 a L42): ver «Fase 2 · Selección múltiple», que manda con `multiple`
+**Dueño:** lima · **Estado:** aprobado (forma A + B + C, C sumado a las dos y `multiple` en Fase 2: decisiones del usuario del 2026-10-04; el resto deriva de APG *Combobox with list autocomplete*, WCAG 2.2 y los contratos vigentes; **ninguna pregunta de producto abierta**) · **Basado en:** `design/lab/combobox/r01/` (kiwi; base funcional: frontera del `brief.md`, 27 decisiones, L1 a L15, `combo.js`, `verificar.mjs` 315/315) y `design/lab/combobox/r02/` (kiwi, commit `6187a1d`; conceptos A, B, C y la mezcla `?c=AC`, L16 a L25, 1407/1407 en los tres motores) · **Decisiones:** DECISIONS.md **#329 a #338** · **Convive con:** `input.md` (la caja; slots internos `field` y `end`, #309), `form.md` (contexto, `useFormField`, `GFormRow`; Fase 5), `select.md` (frontera), `dialog.md` (la superficie), `avatar.md`, `icons.md` (`search`, nuevo), `tokens.md` §32 · **Enmendado por #356** (2026-10-04, decisión del usuario): opción, ficha del valor y vista previa se pintan con **`GSummary`** (`summary.md`); ver «Fichas con `GSummary`» · **Modo comando (`appearance="command"`, `open()`, `select`, slot `hints`) contratado por #1056** (2026-11-08, búsqueda modal del sitio): ver «Modo comando» · **Fase 2 (`multiple`) contratada por #417 a #428** (2026-10-06, decisiones del usuario: A «La frase» por defecto, B «La receta» como `selection="list"`, C «La cesta» = `palette` + `multiple`; kiwi `design/lab/combobox/r03/`, commit `a6f731f`, L26 a L42): ver «Fase 2 · Selección múltiple», que manda con `multiple`
 **Tag:** `g-combobox` · **Categoría:** entradas · **Entrada del paquete:** `@grana/vue/combobox` (#337)
 **Componente complejo** (CLAUDE.md, «Modelos por rol»: teclado compuesto, se posiciona sobre otros elementos, motor de datos, compone `GInput`, `GAvatar` y `GDialog`): **coco en Opus, bruno en Fable**.
 
@@ -65,7 +65,7 @@ app.use(Combobox)            // registra <g-combobox>; o: components: { GCombobo
 | `custom` | String | el texto libre (`v-model:custom`) | `''` | propia (#331) |
 | `options` | Array | ver «Opciones» | `[]` | propia (como `GSelect`) |
 | `selectedOption` | Object \| null | la opción de `modelValue` cuando no está en `options` | `null` | propia |
-| `appearance` | String | `field` `palette` | `field` | propia (nombre de `GTable`, `GTabs` y `GRadioGroup`) |
+| `appearance` | String | `field` `palette` `command` | `field` | propia (nombre de `GTable`, `GTabs` y `GRadioGroup`; `command`, #1056: «Modo comando») |
 | `filter` | Boolean \| Function | `true` · `false` · `(option, query) => Boolean` | `true` | propia (#332) |
 | `loading` | Boolean | | `false` | compartida (control de entrada: no bloquea) |
 | `total` | Number \| null | entero ≥ 0 | `null` | propia |
@@ -969,6 +969,8 @@ Las opciones elegidas, deshabilitadas o no elegibles por el tope se estilizan co
 15. `selectedOption` con `multiple` o `selectedOptions` sin él; `selection`, `numbered` o `max` sin `multiple`; `numbered` sin renglones (`inline` en `field`); slot `value` con `multiple`; slot `preview` con `multiple` en `palette`; slot `chosen` sin `multiple`.
 16. `max` < 1 (además del validador: sin límite) o más elegidos que `max` (se pinta y envía todo).
 17. Los textos de la tabla de «Textos nuevos» que hacen falta y no están (aviso 2 ampliado): `selected`, `chosen` y `done` al montar con `multiple`; los demás, la primera vez que se necesitan.
+18. **`command` (#1056):** sin `label`; o con `name`, `multiple`, `allowCustom`, `creatable`, `clearable`, `modelValue`, `custom` o los slots `value`, `preview` o `chosen` (no aplican: se ignoran).
+19. `open()` con una `appearance` que no es `command` (no abre).
 
 ### Verificación (Fase 2)
 
@@ -994,6 +996,81 @@ Lector de pantalla (VoiceOver, NVDA, TalkBack): si `aria-selected` se anuncia al
 | Semillas descartadas (fichas con ×, ← → entre fichas, carril, «+N», solo recuento, borrador con «Aplicar», Tab que agrega; vista previa compacta sobre la cesta) | Sin reserva (#417, #424) | Motivo nuevo |
 
 ---
+
+## Modo comando · `appearance="command"` (S-L1, lo mínimo; #1056)
+
+**Origen:** decisión del usuario del 2026-11-08 (#1052, punto 3): «Buscar ⌘K» del sitio abre **una búsqueda modal como antes** (la de VitePress, `design/lab/sitio/referencia/medidas.md` §3, captura `estado-busqueda-1280-*.png`), de texto completo. Reabre S-L1 de #1041 (modo comando, `open()`, disparador compacto, fragmento) y se contrata **lo mínimo**: un valor de `appearance`, un método, un evento y un slot. El disparador compacto **no** es de `GCombobox` (es un botón de la aplicación: receta en `nav-bar.md` «Recetas»), y el fragmento **ya existe** (`description` + la marca `<mark>` de #356).
+
+### Qué es
+
+Una **superficie de búsqueda sin campo en la página**: elegir **ejecuta** (la aplicación navega) y **no deja valor**. Es la paleta de B sin su campo disparador, sin modelo y sin vista previa.
+
+| | `palette` | **`command`** |
+| --- | --- | --- |
+| Campo en la página | Sí (disparador) | **No**: nada visible hasta `open()` |
+| Valor (`v-model`, oculto, `GForm`) | Sí | **No** |
+| Elegir | Fija el valor y cierra | **Emite `select` y cierra**; el texto se conserva |
+| Vista previa | Sí (por encima de 520px) | **No** (calco: lista de resultados con su fragmento) |
+| Cabecera del diálogo | Título + cierre | **Sin cabecera** (`GDialog bare`): el campo de búsqueda arriba (calco) |
+| Móvil (≤ 520px) | Hoja anclada arriba | La misma hoja, sin cambios |
+
+### Anatomía
+
+```html
+<div class="g-combobox g-combobox--appearance-command" id="ID">        <!-- sin GInput: solo la superficie -->
+  <dialog class="g-dialog g-dialog--bare g-dialog--size-lg g-dialog--mobile-sheet g-combobox-surface g-combobox-surface--command|--sheet" id="ID-surface" aria-label="{label}">
+    <div class="g-combobox__search"> …el campo de búsqueda de la superficie (role="combobox", aria-labelledby → nombre de la superficie)… </div>
+    <div class="g-combobox__surface-body"><div class="g-combobox__panel">…opciones y grupos…</div></div>
+    <div class="g-combobox__hints">[slot hints]</div>                      <!-- solo con el slot -->
+    <div class="g-combobox__live" role="status" aria-live="polite" aria-atomic="true"></div>
+  </dialog>
+</div>
+```
+
+1. **Es un `GDialog` real con `bare`** (`dialog.md` §«Visor a pantalla completa», #732): foco atrapado, capa superior, página inerte, Esc y fondo cierran; **sin botón de cierre propio** (el calco no lo tenía; Esc, el fondo y, en la hoja móvil, el gesto del sistema). Nombre accesible por `aria-label` = `label` (obligatoria en `command`, aviso 18). El campo de búsqueda lleva `aria-labelledby` al diálogo (como en la paleta) y el `placeholder` del atributo `placeholder` del consumidor.
+2. **Posición (coco):** arriba y centrada, bajo lo pegado de la aplicación (`--g-app-shell-top`, calco y = 64), con el ancho del calco por `space` (900 = `space × 225` con `space` 4) y nunca más que el visor; clase `g-combobox-surface--command`. Por debajo de 520px, la hoja de siempre (`--sheet`).
+3. **Opciones y grupos:** los de siempre («Opciones»). Para una búsqueda de documentación: `label` = título de la sección, `description` = **el fragmento** («GCombobox › Props · …texto donde aparece…»), `icon` opcional, grupos por página si la aplicación quiere. La marca `<mark>` de la coincidencia (#356) se pinta sobre `label` y `description` sin cambios.
+4. **Datos:** los de «Datos: sin `fetch`»; con un índice de texto completo, **`filter: false`** + `search` + `loading` (la aplicación consulta su índice) es lo esperado. `minChars`, `delay`, `limit`, «Mostrar más», `total`, `loadError` y sus textos funcionan igual.
+
+### Abrir: método `open()`
+
+| Método | Firma | Qué hace |
+| --- | --- | --- |
+| `open` | `open(): void` | **Solo en `command`:** abre la superficie y pone el foco en el campo de búsqueda, con el texto de la última búsqueda **seleccionado** (escribir lo reemplaza; calco de VitePress). Abierta, no hace nada. En otra `appearance`, aviso 19 y no hace nada (abrir `field` o `palette` por programa queda reservado) |
+
+- Expuesto con `defineExpose`; consta en `meta.json` (`methods`).
+- **La aplicación pone el disparador y el atajo** (Grana no escucha el documento, regla de #1035): un botón con `aria-haspopup="dialog"` y `aria-keyshortcuts`, y su manejador de ⌘K/Ctrl+K que llama a `open()`.
+- **Foco al cerrar:** vuelve al elemento que lo tenía al abrir (el de `GDialog`: el botón, o donde estuviera la persona al pulsar ⌘K). Tras `select`, la aplicación navega y lleva el foco a la página nueva (en el sitio, al `h1`).
+
+### Elegir: evento `select`
+
+| Evento | Payload | Cuándo |
+| --- | --- | --- |
+| `select` | `{ option, event }` | **Solo en `command`:** Intro sobre la activa o clic en una opción. `event` es el evento nativo (`keydown` o `click`). **Después** de emitir, la superficie se cierra (siempre) |
+
+- **No hay valor:** no se emiten `update:modelValue`, `update:custom` ni `change`; no hay campo oculto ni contexto de `GForm` (`name`, `required`, `error` y los demás de formulario no se pintan; con `name`, aviso 18).
+- **Ctrl/⌘+Intro o Ctrl/⌘+clic** llegan igual en `event`: la aplicación decide (p. ej. abrir en otra pestaña). Grana no abre nada.
+- **Las filas de acción** («Mostrar más», «Reintentar») funcionan como en la paleta. `allowCustom`, `creatable`, `clearable` y `multiple` **no aplican** (aviso 18; no se pintan).
+- **Teclado:** el de «Lista abierta» sobre el campo de búsqueda de la superficie (↓ ↑ Av Pág Re Pág, Intro elige la activa, Esc cierra, Tab se mueve dentro del diálogo y **nunca elige**), con la regla de búsqueda pendiente de siempre (Intro no elige la resaltada sola con búsqueda pendiente).
+- **Anuncios:** los de la superficie (región de dentro). Elegir no se anuncia (la página cambia).
+
+### Slot `hints` (solo `command`)
+
+Pie de la superficie con las teclas (calco: «↑↓ para moverte · ↵ para elegir · esc para cerrar»). Sin interactivos; texto visible, leído en orden tras la lista (no es `aria-hidden`: es ayuda); las teclas en `kbd` y los símbolos de flecha, si los hay, son iconos de la aplicación (`icons.md` §1). Oculto en la hoja móvil (no hay teclado físico que explicar). Sin el slot, no hay pie.
+
+### Lo que no cambia
+
+`field` y `palette` no cambian en nada; la Fase 2 (`multiple`) no aplica a `command`. **Siguen sin existir** `mode` (el modo es la forma: `appearance`) y un disparador propio de `GCombobox`.
+
+### Paquete
+
+En la misma entrada `@grana/vue/combobox`: lote propio **≤ +1 KiB (1 024 B) gzip** de `dist/combobox.js` (medido 22 041 B el 2026-11-08). Si no cabe, vuelve a lima. Compuerta: `grep -q "g-combobox-surface--command" packages/vue/dist/grana.css`.
+
+### Verificación (`command`)
+
+- **bruno (vitest):** sin `GInput` ni oculto en el HTML; `open()` abre con el foco en el campo y el texto anterior seleccionado; `open()` en `field`/`palette` avisa y no abre; `select` con `{ option, event }` por Intro y por clic, sin `update:*` ni `change`, y cierre después; Tab no elige; búsqueda pendiente; avisos 18 y 19; `hints` solo en `command`; hidratación (nada visible en el servidor).
+- **Playwright (tres motores):** abrir con un botón y con ⌘K/Ctrl+K de la página de prueba; foco atrapado y devuelto; superficie arriba y dentro del visor a 1280, 768, 375 y 320; hoja a 375 con opciones ≥ 44; `<mark>` sobre el fragmento; Esc y fondo cierran sin `select`.
+- **coco:** `g-combobox-surface--command` y `__hints` en `GCombobox.css`; contraste del fragmento y de la marca sobre la superficie (calco: fondo `--g-color-surface-sunken`); paridad con `referencia/estado-busqueda-1280-*.png` (`sitio-marco.md` §12).
 
 ## Resolución de hallazgos
 

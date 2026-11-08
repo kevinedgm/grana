@@ -1,6 +1,6 @@
 # Contrato · GAppShell (chasis de aplicación)
 
-**Dueño:** lima · **Estado:** contratado (DECISIONS.md #708 a #718, 2026-10-21; cambios en archivos compartidos aplicados en `api.md` «Piezas pegadas», «Cabecera fija de la aplicación», «Contención en línea», «Paquete, entradas y tipos» y «Convivencia de servicios», `tokens.md` §48, `status.md` «Borde compartido» y `page-header.md` «Geometría pública» y «Bordes compartidos») · **Basado en:** `design/lab/app-shell/r01/` (kiwi, commit 0c202e3: `brief.md` con la auditoría previa del chasis del playground, `declaracion.md` con 19 decisiones de base, conceptos A/B/C, hallazgos S1 a S11 y L1 a L15, `index.html`, `shell.js`, `shell.css`, `verificar.mjs` 352/352 en Chromium, Firefox y WebKit, puerto 4211)
+**Dueño:** lima · **Estado:** contratado (DECISIONS.md #708 a #718, 2026-10-21; enmendado por **#1055**, 2026-11-08: `header="pinned-wide"`, `--g-app-shell-local-bar` y `cover()` del canal interno; cambios en archivos compartidos aplicados en `api.md` «Piezas pegadas», «Cabecera fija de la aplicación», «Contención en línea», «Paquete, entradas y tipos» y «Convivencia de servicios», `tokens.md` §48, `status.md` «Borde compartido» y `page-header.md` «Geometría pública» y «Bordes compartidos») · **Basado en:** `design/lab/app-shell/r01/` (kiwi, commit 0c202e3: `brief.md` con la auditoría previa del chasis del playground, `declaracion.md` con 19 decisiones de base, conceptos A/B/C, hallazgos S1 a S11 y L1 a L15, `index.html`, `shell.js`, `shell.css`, `verificar.mjs` 352/352 en Chromium, Firefox y WebKit, puerto 4211)
 **Tag:** `g-app-shell` · **Categoría:** estructura de aplicación · **Paquete:** entrada propia **`@grana/vue/app-shell`** (global UMD `GranaAppShell`; #716) · **Hermanos de la misma ronda:** `GStack` (`stack.md`) y `GSection` (`section.md`); la columna de la página es `GContainer` (`container.md`)
 
 **Componente complejo** (L12: se posiciona sobre otros elementos —sidebar fijo, cabecera pegada—, se solapa con `GSidebar`, `GPageHeader`, `GContainer` y `edgeReserve`): **coco y bruno en Opus** (regla de `CLAUDE.md`).
@@ -92,7 +92,7 @@ div.g-app-shell                                   ← raíz: rejilla [pista del 
 
 | Prop | Tipo | Valores | Default | Nota |
 | --- | --- | --- | --- | --- |
-| `header` | String | `pinned` `relay` | `pinned` | Comportamiento de la cabecera al desplazar. `relay` = B · Relevo de franja (§«B»). Fuera de lista: aviso 9 y `pinned` |
+| `header` | String | `pinned` `relay` `pinned-wide` | `pinned` | Comportamiento de la cabecera al desplazar. `relay` = B · Relevo de franja (§«B»). `pinned-wide` = pegada en ancho y con la página por debajo de `60rem` (§«Banda que se va con la página», #1055). Fuera de lista: aviso 9 y `pinned` |
 | `headerZone` | String | `none` `brand` | `none` | Zona de marca **de la banda de cabecera** (`api.md` «Zona de marca», regla 1): `brand` pone `data-g-zone="brand"` en el `header`, nunca en la raíz (pintaría la página entera) ni en un envoltorio. Valores de `zone` (`inverse` reservado). Fuera de lista o sin slot `header`: aviso 8 y `none` |
 | `labels` | Object | `{ skip }` | `{}` (**sin valores por defecto**, #226) | `skip`: texto del enlace de salto. **Obligatorio** (aviso 1); sin él, el enlace se pinta vacío pero sigue siendo el primer enfocable |
 | `id` | String | | generado (SSR-seguro) | Base de ids: `{id}-main` (destino del salto) |
@@ -236,13 +236,47 @@ con la misma expresión en `<html>` para el `scroll-padding`. Constantes: **`4`*
 
 **Qué lo hace distinto (B).** No es el «ocultar al desplazar» genérico, que deja la pantalla sin nada que diga dónde estás: la cabecera y el encabezado de la página **se pasan el borde**. Siempre hay una sola franja arriba: la de la aplicación cuando navegas, la de la página cuando lees. Recupera 56 px de lectura en cada pantalla (más del 20 % en un teléfono apaisado) sin perder el título ni las acciones, y el teclado la devuelve con solo entrar en ella.
 
+## Banda que se va con la página en estrecho (`header="pinned-wide"`; #1055)
+
+Decisión del usuario del 2026-11-08 (calco del sitio anterior, N-Q3 y N-L8 de `design/lab/navbar/r01/`): **en el teléfono la barra se desplaza con la página, como antes**; en ancho, pegada.
+
+1. **Regla.** Con `header="pinned-wide"`, la banda está **pegada con el visor ≥ `60rem`** (la base, igual que `pinned`) y **se va con la página por debajo de `60rem`** (`position: relative` en el flujo: ni pegada ni fija). `60rem` es **constante de contrato** (960 px con 16 px de raíz, el corte del sitio anterior; en `rem` para que crezca con el texto, 1.4.4) y se escribe como consulta del **visor** en `GAppShell.css`.
+2. **La cifra sigue a la regla:** por debajo del corte, `--g-app-shell-top` vale **0** (la banda no ocupa nada arriba mientras se lee), y con ella `--g-page-header-top`, `--g-accordion-sticky-top` y el `scroll-padding` (que solo cuentan lo pegado: la barra local, el zócalo). Solo CSS: la misma consulta escribe las dos cosas, sin JS ni escuchas.
+3. **S1 sigue valiendo** en ancho; en estrecho la banda no está pegada y su `scroll-margin` negativo es 0 (no hay banda en el `scroll-padding`).
+4. **Bordes compartidos:** el chasis publica `top` con el valor resuelto de la cifra en cada recálculo (§«Bordes compartidos»: al montar y al `resize`, que cubre cruzar el corte); en estrecho, 0 (la isla y los avisos van arriba del visor, bajo lo que siga pegado).
+5. **No se combina con B:** `pinned-wide` y `relay` son valores distintos de la misma prop. Con `pinned-wide`, el presupuesto del cuarto sigue valiendo en ancho.
+6. **Sin animación:** despegarse por el corte es un cambio de maqueta, no un movimiento.
+
+**Por qué un valor y no una entrada `unpinBelow`:** el corte va en una consulta de medios y CSS no admite propiedades personalizadas en ellas; un valor con su constante es contrato, cabe en el `.vue` (solo la lista de valores) y no pide JS. Otro corte, si alguien lo pide, es otro valor o una decisión de lima.
+
+## Barra local de la aplicación bajo la banda (`--g-app-shell-local-bar`; PI-L6, #1055)
+
+Una **barra pegada propia de la aplicación** justo bajo la banda (el sitio: «Menú · En esta página», 48 px, por debajo de `80rem`) también tapa lo que se enfoca y los destinos de un ancla. Antes de esto la aplicación tenía que escribir su propio `scroll-padding`, que el chasis avisa como receta duplicada (aviso 10).
+
+- **Propiedad pública de entrada `--g-app-shell-local-bar`** (`@property` `<length>`, `inherits: true`, `initial-value: 0px`; no es del tema): el alto de esa barra **mientras se ve y está pegada**. **Se declara en `:root`** (como `--g-app-shell-header`; aviso 11 si difiere entre el chasis y `<html>`), con las consultas de la aplicación (0 donde la barra no se pinta).
+- **El chasis la suma** a lo que ya escribe: `scroll-padding-block-start` de `<html>`, `--g-accordion-sticky-top`, **`--g-page-header-top`** (= `--g-app-shell-top` + barra local: un zócalo pegado queda bajo ella) y el **presupuesto del cuarto** (cuenta como pegado). **No** la suma a `--g-app-shell-top` (que sigue siendo la banda: la barra local usa esa cifra como su `top`).
+- **Bordes compartidos:** el `top` publicado (`order: EDGE_ORDER.appShell`) pasa a ser **banda + barra local** resueltos en px: la isla, los avisos y un FAB de arriba quedan bajo ella.
+- **La barra la pinta y la pega la aplicación** (`position: sticky; inset-block-start: var(--g-app-shell-top)`), dentro de `main` o del marco; el chasis no la conoce como elemento. Si la barra contiene enfocables que caen dentro de la banda del `scroll-padding`, la aplicación aplica S1 (`api.md` «Piezas pegadas», regla 1) a su barra.
+
+## Canal interno (`appShellKey`; #710, ampliado por #1055)
+
+Módulo compartido por `__shared` (`utils/appShell.js`); **no es API pública**. Lo que provee el chasis:
+
+| Miembro | Tipo | Quién lo usa | Qué |
+| --- | --- | --- | --- |
+| `top` | `Readonly<Ref<number>>` | `GPageHeader` (S6) | px del sitio final de la cifra (§«B») |
+| `notify()` | función | `GPageHeader` | Su `is-sticky` cambió: el chasis vuelve a calcular |
+| **`cover(on)`** | función `(Boolean) => void` | **`GNavBar`** (N-L7, `nav-bar.md` §«Pantalla de menú») | **Nuevo.** Con `true`, el chasis pone `inert` en su **marco** (`__frame`) y en el **`GSidebar` hijo directo** (raíz y `<dialog>` del drawer), y bloquea el desplazamiento del documento (clase `is-covered` en la raíz; `GAppShell.css` pone `overflow: hidden` en `:root:has(.g-app-shell.is-covered)`); con `false`, lo deshace. La banda **no** se vuelve inerte (allí viven la hamburguesa y la pantalla). Idempotente; al desmontar con `cover` activo, se deshace |
+
+- `cover` no mueve el foco (lo lleva `GNavBar`) ni anuncia nada. Con `cover` activo el enlace de salto queda en la banda (se puede enfocar, su destino es `inert`: límite aceptado, la pantalla ya cubre el visor).
+
 ## Bordes compartidos (`edgeReserve`; #714)
 
 **Primer cliente del registro por orden:** `EDGE_ORDER = { appShell: 5, speech: 10, pageHeader: 15, bookingDock: 20, fab: 25, status: 30 }` (`bookingDock`, #740, lee al chasis y queda encima de su navbar; cambio interno en el principal, bruno; enmienda #631 y #699).
 
 | Pieza | Borde | Publica | Lee |
 | --- | --- | --- | --- |
-| Banda de cabecera | `top` | `--g-app-shell-top` resuelto en px (el sitio final: 0 si despegada o cedida), `order: EDGE_ORDER.appShell` | Nada |
+| Banda de cabecera | `top` | `--g-app-shell-top` + `--g-app-shell-local-bar` resueltos en px (el sitio final: la banda vale 0 si despegada, cedida o, con `pinned-wide`, por debajo de `60rem`; #1055), `order: EDGE_ORDER.appShell` | Nada |
 | Navbar de `GSidebar` (`g-sidebar--mode-navbar`) | `bottom` | El **`padding-block-end` resuelto del marco** en px (`--g-sidebar-bar` + el área segura: lo que de verdad reserva; 68 sin muesca con el tema por defecto), `order: EDGE_ORDER.appShell`. Publicar solo `--g-sidebar-bar` dejaría con muesca el muelle y el FAB el área segura más bajos que el pie (#749) | Nada |
 
 - **Un dueño por borde y por instancia**; se retira al desaparecer (sin cabecera, sin navbar) y al desmontar. Se vuelve a calcular al montar, al `resize` del visor, al cambiar el tamaño de la banda (`ResizeObserver`), al ceder o volver (B) y cuando `GPageHeader` llama a `notify()`.
@@ -303,12 +337,15 @@ con la misma expresión en `<html>` para el `scroll-padding`. Constantes: **`4`*
 | `g-app-shell` | Raíz | Siempre |
 | `g-app-shell--header-relay` | Raíz | `header="relay"` |
 | `is-yielded` | Raíz | B: la cabecera cedió el borde |
+| `g-app-shell--header-pinned-wide` | Raíz | `header="pinned-wide"` (#1055) |
+| `is-covered` | Raíz | `cover(true)` del canal (pantalla de `GNavBar` abierta; #1055) |
+| `inert` | `__frame` y el `GSidebar` hijo directo | Con `is-covered` (lo pone el `.vue`) |
 | `has-header`, `has-footer` | Raíz | Slot presente |
 | `g-app-shell__skip` | `a` | Siempre |
 | `g-app-shell__header` | `header` | Con slot `header` |
 | `data-g-zone="brand"` | `__header` | `headerZone="brand"` |
 | `g-app-shell__frame`, `g-app-shell__main`, `g-app-shell__footer` | Marco, `main`, `footer` | Siempre / con slot |
-| Clases públicas de `GSidebar` (§«Reserva») | Hijos directos de la raíz | Las lee `GAppShell.css` con `:has(> …)`; las pone `GSidebar` |
+| Clases públicas de `GSidebar` (§«Reserva») | Hijos directos de la raíz | Las lee `GAppShell.css` con `:has(> …)` **y `GNavBar.css`** para ocultar su marca con la columna a la vista (`nav-bar.md` §«La marca», N-L5); las pone `GSidebar` |
 | `.g-page-header.is-sticky` | Descendiente de `__main` | Lo lee `GAppShell.css` para contar el zócalo; lo pone `GPageHeader` |
 
 **Selectores sobre hijos de la aplicación** (`__header > *`): con la exclusión de `.g-tooltip` de #383 (`:not(:where(.g-tooltip))`). El chasis estiliza la **posición** de `GSidebar` (fijo) y nada más de él.
@@ -327,7 +364,7 @@ Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production
 8. `headerZone` fuera de lista (se usa `none`), o `headerZone="brand"` sin slot `header`.
 9. `header` fuera de lista (se usa `pinned`).
 10. La aplicación escribe su propia receta: `--g-page-header-top` calculado en `main` distinto de `--g-app-shell-top`, o el `scroll-padding-block-start` de `<html>` distinto del que escribe el chasis (con chasis no hace falta; se contaría con el valor de la aplicación).
-11. `--g-app-shell-header` calculado en el chasis distinto del de `<html>` (se declaró en el chasis o en un ancestro que no es `:root`: el `scroll-padding` no lo ve).
+11. `--g-app-shell-header` o `--g-app-shell-local-bar` calculados en el chasis distintos de los de `<html>` (se declararon en el chasis o en un ancestro que no es `:root`: el `scroll-padding` no los ve).
 
 ## Accesibilidad y mínimos (no son tema)
 
@@ -352,7 +389,7 @@ Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production
 
 - **Entrada propia `@grana/vue/app-shell`** (global UMD `GranaAppShell`; L1): exporta `GAppShell` y un plugin que lo registra (`app.use(AppShell)`); `@grana/vue` no lo exporta ni lo registra. Llegan por `__shared` (#240, sin copias): `utils/edgeReserve.js` (**obligatorio**: un solo registro por documento) y **`utils/appShell.js`** (nuevo, con `appShellKey`; obligatorio por `__shared` porque `GPageHeader`, en otra entrada, lo inyecta: dos copias serían dos claves). El CSS sigue en `grana.css`.
 - **Por qué no el principal:** #550 (margen agotado, entrada propia por defecto) y lo que lleva: registro de bordes, manejador de B, once avisos. En el principal solo crece `EDGE_ORDER.appShell` (bytes) y, si `utils/appShell.js` cae en el principal por `__shared`, la clave (bytes).
-- **Tope de peso:** **4 KiB (4096 B) gzip** de `dist/app-shell.js` con base + A + B y los avisos (sin estimación medida de kiwi; lima estima ≈ 3 KiB). Si lo supera, vuelve a lima.
+- **Tope de peso:** **4 KiB (4096 B) gzip** de `dist/app-shell.js` con base + A + B y los avisos (sin estimación medida de kiwi; lima estima ≈ 3 KiB). Si lo supera, vuelve a lima. **#1055 no lo sube** (medido 3 911 B el 2026-11-08): `pinned-wide` y la barra local son CSS (en `grana.css`) más un valor en la lista; `cover()` son unas líneas. Si no caben, bruno lo devuelve a lima con la medida.
 - Se declara en **`exports`** (`./app-shell`, con `types`, `import` y `default`), **`typesVersions`**, **`ENTRIES`** de `scripts/build-types.mjs` y **`src/types.test.js`** (#442, #443).
 - **Compuertas de `dist`** (bruno las añade a `gates.sh`): `grep -q "g-app-shell__frame" packages/vue/dist/grana.css`, `! grep -q "GAppShell" packages/vue/dist/grana.js`, `test -f packages/vue/dist/app-shell.js`.
 
@@ -411,6 +448,10 @@ Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production
 ### Playwright (`design/lab/theme-playground/`, **puerto propio**; las de `verificar.mjs` de kiwi como base)
 
 `tests/app-shell.spec.mjs` y `tests/personalidad-app-shell.spec.mjs`, en Chromium, Firefox y WebKit, con `GSidebar`, `GPageHeader`, `GContainer`, `GAccordion sticky`, `GStatusIsland`, `GToaster` y `GFab` **reales**: landmarks; salto con el primer Tab; pista 264/64/288/0 por formato y navbar abajo; superpuesto fijo tras desplazar; RTL; S1 (enfocar sidebar, cabecera y acción del zócalo con la página desplazada: Δ0 de `scrollY`); cifra 56 / 104 y zócalo pegado en 56; `--g-app-shell-header` de 72; presupuesto a 1440×900, 800×430, 800×400 y 320×256; isla y avisos bajo la banda **sin** `offset.top`; muelle y FAB encima del navbar; A (dos posiciones, espera, interrupción a 80 ms, reducido); B (ceder, volver, foco, reducido, sin zócalo no cede); `forced-colors` en Chromium; consola limpia. Rendimiento: el desplazamiento con B no vuelve a pintar Vue; `:root:has(.g-app-shell …)` en una página de 2000 nodos (medida, no compuerta).
+
+### Enmienda #1055 (bruno y coco)
+
+`GAppShell.test.js`: `header="pinned-wide"` en la lista (clase), aviso 9 con otro valor; `cover(true/false)` pone y quita `inert` en `__frame` y en el `GSidebar` hijo directo (también el `<dialog>` del drawer) y `is-covered`; idempotente; se deshace al desmontar. Playwright (tres motores): con `pinned-wide`, a 1280 y 1024 la banda pegada y `--g-app-shell-top` = banda; a 900, 768 y 375 la banda se va con la página (`top` < 0 tras desplazar 900 px), `--g-app-shell-top` = 0 y la isla arriba; con `--g-app-shell-local-bar: 48px` en `:root`, un ancla y el foco por Tab quedan bajo la barra local (Δ ≤ 1 px) y el `top` publicado suma la barra; presupuesto del cuarto con banda + barra local a 800×400; `cover` con la pantalla de `GNavBar` abierta: Tab no sale de banda y pantalla y la página no se desplaza con la rueda.
 
 ### coco (Opus) · CSS y auditoría
 

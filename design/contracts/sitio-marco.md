@@ -1,160 +1,214 @@
-# Contrato · marco del sitio de documentación (A · «El índice se escribe»)
+# Contrato · marco del sitio de documentación (calco del sitio anterior, hecho con Grana)
 
-**Dueño:** lima · **Estado:** aprobado (forma y motor) · **Basado en:** `design/lab/sitio/r01/` (kiwi, 2026-11-08: `declaracion.md`, `brief.md`, `inventario-componentes.md`, prototipo `index.html?c=A`, `verificar.mjs` 411/411) · **Elección del usuario:** concepto **A**, sin mezcla con B ni C (2026-11-08, #1034) · **Decisiones:** #1034 a #1047
+**Dueño:** lima · **Estado:** aprobado (composición, datos y paridad); el aspecto del índice izquierdo, **pendiente de la ronda de kiwi** (§4) · **Basado en:** la referencia medida del sitio anterior `design/lab/sitio/referencia/` (kiwi, 16272793: `medidas.md`, `medidas.json` con 44 vistas × 63 piezas, 18 estados y el recorrido de Tab, y sus capturas), `design/lab/navbar/r01/` (`GNavBar`, prototipo del marco calcado con componentes reales, `paridad.json`, 772/772) y `design/lab/page-index/r01/` (`GPageIndex list`, 198/198) · **Decisiones:** **#1052** (cambio de dirección: el diseño anterior, idéntico, hecho con Grana; sustituye en lo que toque a #1034 y #1043) y #1053 a #1059; siguen vigentes #1035 a #1037, #1044, #1045, #1050
 
-El marco (shell) de `site/`: lo que rodea a cada página de documentación. Lleva a la página y al punto de la página que se busca, dice dónde se está y qué versión se lee, y deja cambiar tema e idioma sin perder el sitio. **No enseña componentes** (eso es la página, de mora-docs, `docs/documentacion/contrato.md`) y no compite con la ficha viva por el ancho: en A la columna de contenido pasa de 624 a ≈ 950 px a 1280 (medido por kiwi).
+El marco (shell) de `site/`: lo que rodea a cada página de documentación. **Se ve exactamente como el sitio anterior** (VitePress 1.6.4 vestido con tokens de Grana, el árbol de `887c3779^` = 1d11c448) y **cada pieza es un componente real de Grana**. No enseña componentes (eso es la página, de mora-docs, `docs/documentacion/contrato.md`).
 
-## 0. Personalidad (#1034)
+## 0. Qué cambió y qué se conserva (#1052)
 
-1. **Los números son direcciones.** Cada componente tiene un número estable (§5) que vive dentro del asiento de `GSidebar`: lleno = estás aquí. Quien vuelve aprende que el combobox es «24» como una extensión: `/` `2` `4` Intro, sin mirar.
-2. **El índice es la búsqueda.** Filtrar no saca de la página: la lista se encoge donde ya está la mirada; el texto completo aparece como un grupo más, «En el texto», al final de la misma lista.
-3. **El índice de la página no ocupa una columna.** «En esta página» es un **relevo** en el zócalo pegado de `GPageHeader` que cambia con la lectura.
+Decisión del usuario del 2026-11-08, tras ver el concepto A construido (887c3779): «exactamente el mismo diseño que tenía antes, y que Grana lo logre».
 
-## 1. Motor: VitePress 1.6.4, cambiando solo el `Layout` (confirmado por el usuario el 2026-11-08, #1044)
+| Del concepto A (#1034, #1043) | Ahora |
+| --- | --- |
+| **Filtro del índice** en la cabecera de `GSidebar` (`/`) | **Se conserva** (#1035, #1050) |
+| **Números estables 01–79** en el asiento del índice | **Se conservan** (#1036, #1037), solo en el índice (§5) |
+| Banda con versión, miga con puertas, idioma y tema de tres estados | Sale. La banda es **`GNavBar`** (§3) |
+| «En esta página» como relevo en el zócalo de `GPageHeader` | Sale del sitio. Vuelve **la columna** (`GPageIndex list`) y el desplegable de la barra local (`fold`) |
+| `GPageHeader` con antetítulo y meta | Sale del sitio: el encabezado de la ficha vuelve al cuerpo (§6.1) |
+| «En el texto» como grupo del filtro | Sale: el texto completo vuelve a la **búsqueda modal** (§6.3) |
+| Sin `GNavBar` (S-L6) | Enmendado: `GNavBar` es componente real (#1053) |
 
-- **Se mantiene VitePress, versión fijada exacta** (hoy `1.6.4` en `site/package.json`, sin `^`), con `extends: DefaultTheme` (`vitepress/theme-without-fonts`) para conservar sus estilos de documento (`.vp-doc`: Markdown, tablas, bloques de código con Shiki y su botón de copiar, `custom-block`), **y un `Layout.vue` propio hecho con Grana que ya no pinta `DefaultTheme.Layout`**.
-- **Solo API pública de VitePress:** `Content`, `useData` (`page`, `frontmatter`, `theme`, `lang`, `localeIndex`, `isDark`), `useRoute`, `useRouter` (`go`), `onContentUpdated`, `withBase`, `inBrowser`. **Una sola excepción:** el módulo virtual **`@localSearchIndex`** para «En el texto» (§6.3), que no está documentado: versión fijada y **una prueba que falla si su forma cambia** (claves por idioma, carga perezosa que devuelve el JSON de MiniSearch, campos `id`, `title`, `titles`). Lo interno del tema por defecto (`useLangs`, `outline.js`, `getScrollOffset`) **no** se importa: se reimplementa (§4, §6).
+**`GPageIndex relay`, `GBreadcrumbs` con puertas y `GPageHeader` siguen siendo componentes de la librería**; solo dejan de ir en el sitio.
+
+**Personalidad del marco:** el aspecto es el del original; lo propio de Grana es de **comportamiento** y no se ve en reposo: los números como direcciones y el filtro (de A), **la luz que se desliza en la barra** (P1 de `GNavBar`, #1053) y **la columna que se sigue sola** (PI-P1 de `GPageIndex list`, #1054). Más los defectos del original que **no se calcan** (`referencia/medidas.md` §6: interruptor sin nombre, «…» en inglés y con `aria-expanded` falso, botón «En esta página» sin `aria-expanded`, título de grupo enfocable, iconos recortados, idioma que se abre al pasar, columna sin desplazamiento propio).
+
+## 1. Motor: VitePress 1.6.4, cambiando solo el `Layout` (#1044, sin cambios)
+
+- **VitePress fijado exacto** (`1.6.4` en `site/package.json`, sin `^`), `extends: DefaultTheme` (`vitepress/theme-without-fonts`) para los estilos de documento (`.vp-doc`: Markdown, tablas, bloques de código con Shiki y su botón de copiar, `custom-block`), **y un `Layout.vue` propio hecho con Grana que no pinta `DefaultTheme.Layout`** (ni `VPNav`, `VPSidebar`, `VPDocAside`, `VPLocalNav`, `VPLocalSearchBox`).
+- **Solo API pública de VitePress:** `Content`, `useData` (`page`, `frontmatter`, `theme`, `lang`, `localeIndex`, `isDark`), `useRoute`, `useRouter` (`go`), `onContentUpdated`, `withBase`, `inBrowser`. **Una excepción vigilada:** el módulo virtual **`@localSearchIndex`** para la búsqueda modal (§6.3), con versión fijada y **una prueba que falla si su forma cambia** (claves por idioma, carga perezosa que devuelve el JSON de MiniSearch, campos `id`, `title`, `titles`, `text`). Lo interno del tema por defecto no se importa: se reimplementa.
 - Se conserva sin tocar: Markdown y rutas (`srcDir: 'src'`), SSG para GitHub Pages (`base`), `generate.mjs` y su prueba, `check-live.mjs`, `check-pages.mjs`, `ignoreDeadLinks: false`, `postcssIsolateStyles` + la capa `vitepress` (#516) y los componentes del sitio (`GranaLive`, `GranaDemo`, `ThemePlayground`, `BlockBank`).
-- **Reescribir el motor queda descartado** (#1044). Si algún día se cambiara, este contrato valdría igual salvo §1 y las fuentes de §6 (la composición de §2 a §5 no depende de VitePress).
 
 ## 2. Composición
 
 ```
-GAppShell  :labels="{ skip }"                                  ← un solo chasis (#708): banner · nav · main · contentinfo
-├─ #header  (banda de alto de contrato; nada la hace crecer, aviso 6 de app-shell)
-│   ≥ 768:  [marca]* · GBadge versión · GBreadcrumbs (con puertas) · ─espacio─ · GMenu idioma · GRadioGroup tema
-│   < 768:  GBtn índice (abre el drawer) · marca · ─espacio─ · GBtn filtro (focusFilter) · GMenu idioma · GMenu tema
-├─ #nav     GSidebar  filter  mode="auto" mobile="drawer" :breakpoints="{ expanded: 1024, rail: 1024 }"
-│            #logo   marca (enlace a la portada)              * en ≥ 1024 la marca vive aquí, no en la banda
-│            #header versión (solo en el drawer, S-H4)
-│            items   Empezar · 10 grupos de componentes (con `code`) · Blocks · Herramientas · Proyecto [· En el texto]
-├─ #default (dentro del main del chasis)
-│   GPageHeader  eyebrow · title · description · #meta (estado + importación) · #actions (GPageIndex relay · Copiar importación)
-│                #trail  GBreadcrumbs (solo < 768: la miga sale de la banda)
-│   GContainer   width="xl" (fichas, Blocks) | width="reading" prose (guías)
-│     Content.vp-doc
-│     Páginas vecinas: GSplit ratio="1:1" con dos GCard interaction="link"
-└─ #footer  GbFooter (licencia y créditos)
+Layout.vue
+├─ GAppShell  header="pinned-wide"  :labels="{ skip }"            ← banner · nav · main · contentinfo (#708; #1055)
+│  ├─ #header  GNavBar  :items  :current="route.path"  label="Secciones"  :labels="{ more, menu, newTab }"
+│  │            #brand   marca (enlace a la portada: logo 24 + «Grana» en Instrument Serif)
+│  │            #search  botón «Buscar ⌘K» (receta de nav-bar.md) → search.open()
+│  │            #actions { place }
+│  │               bar:          GMenu idioma (languages + chevron-down; elementos-enlace) · GSwitch tema (sol/luna, aria-label)
+│  │               more/screen:  lista de idiomas (enlaces con lang/hreflang, actual en negrita) · fila «Apariencia» con GSwitch
+│  ├─ #nav     GSidebar  filter  mode="auto"  mobile="drawer"  :breakpoints="{ expanded: 960, rail: 960 }"   (no en la portada)
+│  │            #logo  la misma marca
+│  │            items   los grupos del índice con `code` (aspecto: §4, pendiente de kiwi)
+│  ├─ #default (dentro del main del chasis)
+│  │   barra local  (< 80rem; pegada en --g-app-shell-top; 48 px)  «Menú» (abre el drawer, solo < 960) · GPageIndex appearance="list" fold
+│  │   documento    rejilla: contenido (Content.vp-doc, columna de 624)  |  ≥ 80rem: columna «En esta página» = GPageIndex appearance="list" (sticky)
+│  │                Anterior / siguiente: dos GCard interaction="link" (§3.6)
+│  └─ #footer  pie (solo en la portada)
+└─ GCombobox appearance="command"  ref="search"  label="Buscar en la documentación"  filter=false  (hermano del chasis; §6.3)
 ```
 
-- **`GPageHeader` es el primer hijo directo del `main`** (`page-header.md` §«Anatomía»), fuera de `GContainer`; el contenido, después, en su contenedor.
-- **Sin rail en A:** expandida desde 1024 px de ancho del chasis, drawer por debajo, **sin riel intermedio** (aceptado por el usuario, #1046; la receta de `sidebar.md` §«Cortes de adaptación»). El botón «Abrir el índice» de la banda abre el drawer (`v-model:open`), y el drawer devuelve el foco a él al cerrarse (defecto S8 de WebKit abierto, `PENDIENTES.md` §3).
-- **Portada** (`layout: home`): mismo marco, sin `GPageHeader` ni índice de la página; se compone con Blocks (`GbHero`, `GbFeatures`, `GbStats`). **404**: mismo marco, sin miga, sin foco automático en el filtro.
-- **Sin `GNavBar`** (S-L6, #1041): la fila «Guía · Componentes · Blocks · Playground · Cambios» la hace el índice (grupos) en A. GitHub: enlace en `GbFooter` y en el grupo Proyecto.
+- **Portada** (`layout: home`): mismo marco **sin** `#nav`, sin barra local ni índice de la página, con pie; la banda **transparente y sin línea mientras la página está arriba del todo** (§3.5). **404:** el marco de una página sin `GPageIndex`.
+- **Plugins del tema** (`enhanceApp`): `@grana/vue/app-shell`, `@grana/vue/nav-bar`, `@grana/vue/page-index`, `@grana/vue/page-index-list` (sin él, `list` cae a `relay` con aviso 7), `@grana/vue/sidebar-filter` (sin él, el índice sin filtro, F5) y `@grana/vue/combobox`.
 
-## 3. El índice (`GSidebar` con filtro)
+## 3. La barra superior (`GNavBar`, `nav-bar.md`)
 
-- **Grupos y orden:** `Empezar` (guías con icono: Empezar, Tematización, Utilidades, Accesibilidad, Personalidad) · los **diez grupos de componentes** con su nombre como título y cada componente con `code` (§5) · `Blocks` (cada familia es un padre y sus secciones, sus hijos: un nivel, como permite `GSidebar`) · `Herramientas` (`@grana/cli`, Playground de tema) · `Proyecto` (Cambios, Proyecto). **Una sola navegación global** también en `/blocks/`: desaparecen las dos barras de hoy (`blocksSidebar`).
-- **Datos de cada item:** `id` (ruta), `label`, `href` (con `withBase`), `code` (componentes), `keywords` (slug, nombre sin la `G`, el nombre en el otro idioma), `icon` (guías: por nombre del registro del sitio).
-- **Filtro:** el tema del sitio hace `app.use(SidebarFilter)` de `@grana/vue/sidebar-filter` en `enhanceApp` (#1050; sin él, el índice sale sin filtro y avisa F5), y pasa `filter`, `v-model:query`, `filterKeyshortcuts="/ Control+K Meta+K"`, los seis `labels` del filtro (`sidebar.md` §«Filtro del índice»). **El sitio registra el atajo** en `document` (`/` fuera de un campo editable, sin modificadores; ⌘K/Ctrl+K siempre, para no romper la costumbre de hoy) y llama a `focusFilter()`.
-- **Navegar:** `@navigate` → `event.preventDefault()`, `router.go(href)`, `open = false`; el `modelValue` sale de la ruta (con el evento cancelado `GSidebar` no cierra el drawer ni emite `update:modelValue`, `sidebar.md` §«Eventos»). `/ 2 4 Intro` pasa por aquí (Intro hace `click()` en el primer visible).
-- **Ruta actual** = `modelValue` (`aria-current="page"`, asiento lleno con el número).
+### 3.1 Enlaces y actual
 
-## 4. La banda
+Los seis del original, en este orden: **Guía** (`/getting-started`), **Componentes** (`/components/…`), **Blocks** (`/blocks/`), **Playground** (`/theme-playground`), **Cambios** (`/changelog`) y **GitHub** (`external`). `activeMatch` de cada uno = el del `config.mjs` de 1d11c448 (bruno los copia de allí, `git show 1d11c448:site/.vitepress/config.mjs`); los `href` con `withBase`; `current` = la ruta de VitePress con `base`. En inglés, las mismas rutas bajo `en/` con los textos del idioma. `@navigate` → `event.preventDefault()` y `router.go(href)`.
 
-| Pieza | Componente | Regla |
-| --- | --- | --- |
-| Marca | enlace con el logo (`logo.svg`/`logo-dark.svg`, `alt=""` y texto «Grana») | En ≥ 1024, en el slot `logo` del sidebar; por debajo, en la banda |
-| Versión | `GBadge` `variant="outline"` `color="neutral"` con `label` «Versión 0.1.0-beta.0» | Desde `package.json`. En < 768, en el slot `header` del sidebar (dentro del drawer) |
-| Miga | `GBreadcrumbs` con `children` (puertas a los hermanos: grupos y componentes del grupo, con su `code` delante) | `navigate` como §3. En < 768, en `#trail` de `GPageHeader`. Depende de **S-H1** (coco + bruno: la cesión con puertas en táctil a 375) |
-| Idioma | `GMenu` con elementos-enlace: `lang`, `hreflang`, `current` (#743) | **Ruta equivalente:** quitar o poner `en/` tras `base` (el generador garantiza la página gemela). Disparador: texto del idioma en ≥ 768, icono `languages` con nombre accesible en < 768. Además, `<link rel="alternate" hreflang>` en el `head` (recomendado) |
-| Tema | ≥ 768: `GRadioGroup appearance="segmented" labelMode="icon"` con Sistema · Claro · Oscuro (`monitor`, `sun`, `moon`, nombres por `label`). < 768: `GMenu` con tres `radio` y disparador de icono con nombre | Tres estados (§7) |
+### 3.2 Búsqueda
 
-Iconos del marco que no están en la lista de la librería (`sun`, `moon`, `monitor`, `languages`, `menu`, `file-text`…): los **registra el sitio** en `site/.vitepress/theme/icons.js` con `createIcons` (`icons.md` §5); no entran en `@grana/vue` (#1041).
+El disparador de la receta de `nav-bar.md` (lupa + «Buscar» + `kbd`; solo lupa con nombre accesible por debajo de `60rem`, como el original) llama a `open()` del `GCombobox appearance="command"` (§6.3).
 
-## 5. Números estables (#1037)
+### 3.3 Idioma (ruta equivalente; de A, sin cambios en la regla)
 
-- **Un número por componente, asignado una vez y para siempre.** El registro es un archivo de datos del sitio (propuesta: `site/scripts/numeros.json`, `{ "GCombobox": 24, … }`), con la numeración inicial = el orden del índice de hoy (01–78, la de `datos.js` de kiwi).
-- **Un componente nuevo recibe el siguiente libre** (79, 80…) y se coloca **al final de su grupo**; un componente retirado **retira su número** (no se reutiliza). Por eso, con el tiempo, un grupo puede no ser correlativo: es el precio de que el número sea una dirección.
-- **Se pinta con dos cifras** (`code: '01'`…`'99'`; tres desde 100). El generador **falla** si un componente con página no tiene número, si un número se repite o si cambia uno ya asignado (la prueba compara con el registro en `git`).
-- El mismo número va en el antetítulo de `GPageHeader` («Componente 24 · Campos de entrada»), en la miga y en «Páginas vecinas».
+- `GMenu` con elementos-enlace (`lang`, `hreflang`, `current`, #743) en `bar`; en `more` y `screen`, una lista de dos enlaces con el actual como texto en negrita y `aria-current="page"` (calco). **Ruta equivalente:** quitar o poner `en/` tras `base` (el generador garantiza la página gemela). `<link rel="alternate" hreflang>` en el `head` (recomendado).
+- Abre **al pulsar**, no al pasar (corrige el defecto 7).
+
+### 3.4 Tema (dos estados, como el original)
+
+- **`GSwitch`** con `icon-on`/`icon-off` (`moon`/`sun`, registrados por el sitio) y **`aria-label`** («Cambiar a tema oscuro»/«claro», o un nombre fijo con `aria-checked`) en `bar`; con etiqueta visible «Apariencia» en `more` y `screen`. Corrige el defecto 1 (sin nombre accesible).
+- **Una sola fuente:** la preferencia en `localStorage` con la clave de siempre (`vitepress-theme-appearance`: `auto` · `light` · `dark`). **`auto` hasta el primer cambio** (sigue al sistema, como VitePress); el interruptor muestra el tema **resuelto** y al pulsarlo escribe `dark` o `light`. El tercer estado explícito de A («Sistema») sale con el calco.
+- **Antes de pintar** (script del `head`): resuelve `auto` con `prefers-color-scheme` y escribe **a la vez** `data-theme` (tokens de Grana) y la clase `dark` en `<html>` (estilos de VitePress y tema doble de Shiki). **Riesgo para bruno (de A, sigue):** el núcleo de VitePress gestiona `.dark` con `appearance` activo; una sola de las dos vías, medida sin parpadeo en claro, oscuro y sistema, tres motores.
+
+### 3.5 La banda
+
+- **Alto 64:** el tema del sitio declara en `:root` `--g-app-shell-header: calc(var(--g-space-1) * 16)` (#713).
+- **`header="pinned-wide"`** (#1055): pegada con el visor ≥ `60rem`; por debajo se va con la página y solo queda la barra local pegada a 0 (calco).
+- **Línea inferior** de la banda: la de `GAppShell` (`--g-color-border`); con la columna izquierda no la cruza (la banda está en el marco, no sobre la pista).
+- **Portada arriba del todo (N-L9):** la banda **transparente y sin línea** mientras `scrollY === 0`; al desplazar, fondo `--g-color-bg` y línea. **Receta del sitio**, no del chasis: el `Layout` pone `data-top` en `<html>` en la portada (el servidor lo pinta como «arriba», que es lo que ve quien carga; un manejador pasivo de `scroll` lo quita y lo pone al cambiar) y `grana-site.css` lo pinta (sin capa).
+
+### 3.6 Anterior / siguiente
+
+Dos `GCard interaction="link"` en dos columnas (≥ 640 px de la columna; una sola, alineada al final, si falta el par), con «Anterior»/«Siguiente» en `--g-text-caption-*` `text-muted` y el título en `accent-text` (calco 304 × 66, radio 8, borde 1 px). Sin número (§5). Si `GCard` no llega a la medida con sus props, **receta del sitio** en `grana-site.css` sobre las clases públicas de `GCard`, medida por coco; no se enmienda `GCard` por el sitio.
+
+## 4. El índice izquierdo (`GSidebar` con filtro) — **hueco: ronda de kiwi pendiente** (#1052, punto 6)
+
+**Decidido:** `GSidebar` con `filter` (extensión `@grana/vue/sidebar-filter`, #1050) y `code` en los items de componentes (#1036); `filterKeyshortcuts="/"` (⌘K va a la búsqueda); ancho 272 (`--g-sidebar-width` en el tema del sitio); **expandida desde 960 px, drawer por debajo, sin riel** (calco; enmienda el 1024 de #1046); el drawer lo abre el botón «Menú» de la barra local; navegar con `@navigate` → `preventDefault`, `router.go(href)`, `open = false` (de A, §3 antiguo); `modelValue` de la ruta.
+
+**Grupos y orden: los del original** (los de `site/.vitepress/config.mjs` de 1d11c448: Guía, los grupos de componentes y, en `/blocks/`, su barra propia `blocksSidebar`, como en el original), con los números en los componentes. Bruno los copia de allí.
+
+**Pendiente (no se contrata todavía):** el **aspecto calcado** del índice —títulos de grupo en negrita (14/24, 700), grupos plegables con flecha, separadores entre grupos, enlaces sin icono y la actual solo en color con el indicador de 2 px (`referencia/medidas.md` §4)— y la **cabecera de `GSidebar` con el alto de la banda y su línea** (N-L10). Kiwi hace una ronda corta de `GSidebar` (`design/lab/sidebar/`); lima la contrata después como enmienda de `sidebar.md`. Hasta entonces el índice se pinta con el aspecto actual de `GSidebar` y **queda fuera de la compuerta de paridad** (§12).
+
+**Atajo:** el sitio registra en `document` `/` (fuera de un campo editable, sin modificadores) → `focusFilter()` (en `< 960`, abre el drawer primero); **en la portada (sin índice), `/` abre la búsqueda modal**.
+
+## 5. Números estables (#1037, sin cambios en la regla)
+
+- Un número por componente, asignado una vez y para siempre, en `site/scripts/numeros.json` (01–79 hoy); uno nuevo toma el siguiente libre y va al final de su grupo; uno retirado retira su número. Dos cifras (`code: '01'`…); el generador falla si falta, se repite o cambia.
+- **Se pinta solo en el índice** (asiento de `GSidebar`, nombre accesible «24 GCombobox», #1036). El antetítulo, la miga y las páginas vecinas de A no existen en el calco (decisión derivada de #1052: el original no tenía números).
 
 ## 6. Datos: de dónde sale cada cosa
 
-### 6.1 `site/scripts/generate.mjs` (`.site-data.json` y frontmatter)
+### 6.1 `site/scripts/generate.mjs`
 
-- **Índice por idioma:** los grupos de §3 con `id`, `label`, `href`, `code`, `keywords`, `icon`, `status`.
-- **Frontmatter de cada ficha:** `title` (el nombre), `description` (entradilla), `component: { code, group, status, import }` (la línea de importación exacta, de `exports`), `prev`/`next` (por el orden del índice). **El `# Nombre` del README sale del cuerpo** y pasa a `title`: un segundo `h1` daría el aviso 2 de `GPageHeader` y dos `h1` por página.
+- **Índice por idioma** (los grupos de §4) con `id`, `label`, `href`, `code`, `keywords` (para el filtro), sin `icon` (el original no los tenía; si la ronda de §4 dice otra cosa, se ajusta).
+- **El cuerpo de la ficha vuelve al de 1d11c448:** el `# Nombre` y el bloque de datos (etiqueta, estado, entrada, desde, línea de importación) en el Markdown, como antes; el frontmatter conserva `title`, `description` y `prev`/`next`. Así hay **un solo `h1`**, el del cuerpo. Bruno compara con `git show 1d11c448:site/…` y deja la prueba de `generate` en verde con la forma restaurada (sin `h1` duplicado).
 - **Páginas gemelas** en `en/` (como hoy), para la ruta equivalente del idioma.
 
-### 6.2 Secciones de la página (`GPageIndex`)
+### 6.2 Secciones de la página (`GPageIndex list`)
 
-- De **`page.headers`** de `useData()` con `markdown.headers` activado en el nivel 2 (`h2`): los `id` son los del ancla de markdown-it, así que coinciden con el DOM, y están en el HTML del servidor. **bruno comprueba en 1.6.4** que `page.headers` llega con `markdown.headers`; si no, los da `generate.mjs` con el mismo `slugify` de VitePress y una prueba de que cada `id` existe en la página construida.
-- Al cambiar de ruta, `GPageIndex` recibe los `items` nuevos (§«Al montar y al cambiar de ruta» de `page-index.md`); `onContentUpdated` llama a `refresh()`.
+- De **`page.headers`** de `useData()` con `markdown.headers` en los niveles **2 y 3** (el calco sangra los `h3`): `{ id: slug, label: title, level }`. bruno comprueba en 1.6.4 que llegan; si no, los da `generate.mjs` con el `slugify` de VitePress y una prueba de que cada `id` existe en la página construida.
+- **Dos instancias** con el mismo `v-model` (columna ≥ `80rem`, plegada en la barra local por debajo): PI-L5 evita que se disputen la actual (`page-index.md` §«Dos instancias»). Al cambiar de ruta reciben los `items` nuevos; `onContentUpdated` llama a `refresh()` de las dos.
+- Textos: `label` «En esta página» (calco), `labels.top` «Volver arriba»; `align="start"` en la plegada con la columna izquierda a la vista (≥ 960) y `end` por debajo (calco: el botón al inicio de la barra local en un caso y al final en el otro; lo mide coco).
 
-### 6.3 «En el texto» (texto completo)
+### 6.3 Búsqueda modal de texto completo (`GCombobox appearance="command"`, #1056)
 
-- Con una consulta **no numérica de 3 o más caracteres**, el sitio carga **la primera vez** el índice local (`@localSearchIndex`, el del idioma actual; ≈ 1,6 MB, como hoy) y MiniSearch (`minisearch`, **dependencia explícita del sitio** con la versión que usa VitePress 1.6.4), y añade al final de `items` el grupo `{ label: 'En el texto', filterable: false, items: [...] }` con **como mucho 5** resultados `{ id, label: 'Página · Sección', href: withBase(...#ancla), icon: 'file-text' }` que **no** repiten un título ya visible.
-- **El título de un grupo no cuenta como coincidencia** (#1046): filtrar «Formularios» no deja pasar los componentes del grupo por llevar su nombre; solo coinciden los items (y sus `keywords`). Un grupo sin items coincidentes se oculta.
-- Sin consulta, o con una numérica, el grupo no está. Mientras carga, no hay grupo (aparece al final, no desplaza lo de arriba).
-- El anuncio y el recuento son de `GSidebar` (`labels.filterCount`/`filterNone`); las funciones del sitio añaden lo de «En el texto» («Ningún título con «oscuro»; 3 en el texto»).
+- **Abrir:** el botón «Buscar» y **⌘K / Ctrl+K** (registrado por el sitio en `document`, también dentro de un campo editable) llaman a `open()`. `/` va al filtro (§4), salvo en la portada.
+- **Índice:** con la primera búsqueda (o al abrir por primera vez), el sitio carga **`@localSearchIndex`** del idioma actual (≈ 1,6 MB, como hoy) y **MiniSearch** (`minisearch`, dependencia explícita del sitio con la versión de VitePress 1.6.4), con las opciones de búsqueda de VitePress (prefijo y difusa). Mientras carga, `loading`.
+- **Opciones:** `filter: false` (la aplicación busca) + `@search` con `loading` en el mismo manejador (regla de «Datos» de `combobox.md`); **como mucho 20** resultados por búsqueda (`limit`), cada uno `{ value: id, label: <título de la sección>, description: '<Página> › <secciones> · <fragmento>' }`, donde el fragmento es el trozo del texto alrededor de la primera coincidencia (≤ 1 línea, recortado por el sitio). La marca `<mark>` de `GCombobox` resalta la coincidencia (#356).
+- **Elegir (`@select`):** `router.go(withBase(href#ancla))`; en el destino, el foco al `h1` o a la sección (§8). Con Ctrl/⌘ en `event`, `window.open` en otra pestaña (decisión del sitio).
+- **Pie** (slot `hints`): «↑↓ para moverte · ↵ para elegir · esc para cerrar» con `kbd` (calco; textos por idioma). Los botones del original de vista detallada y de vaciar **no** se calcan (no son marco: decisión derivada; el fragmento va siempre).
+- Textos de la superficie (`labels` de `combobox.md`): `close`, `loading`, `noResults`, `minChars`, `results`, `partial`, `more`, `retry`, por idioma.
 
-## 7. Tema: claro, oscuro, sistema
+## 7. Barra local (< `80rem`)
 
-- **Una sola fuente:** la preferencia en `localStorage` con la clave de hoy (`vitepress-theme-appearance`: `auto` · `light` · `dark`), para que nadie pierda la suya.
-- **Antes de pintar** (script del `head`, como hoy en `config.mjs`): resuelve `auto` con `prefers-color-scheme` y escribe **a la vez** `data-theme` (tokens de Grana) **y** la clase `dark` en `<html>` (los estilos de VitePress y el tema doble de Shiki la leen). Con `auto`, sigue los cambios del sistema en vivo.
-- El control de §4 escribe la preferencia y las dos marcas; `aria-checked` del grupo de radios, sin anuncio.
-- **Riesgo para bruno:** el núcleo de VitePress también gestiona `.dark` con `appearance` activo; o se usa su `isDark` para lo resuelto y el sitio solo guarda `auto`, o se pone `appearance: false` y lo hace todo el sitio. Una sola de las dos, medida (sin parpadeo al cargar en claro, oscuro y sistema, tres motores).
+- **Del sitio** (no es componente): una franja de 48 px `position: sticky; inset-block-start: var(--g-app-shell-top)` al principio del `main`, con **«Menú»** (`GBtn variant="ghost"` con `align-left` del sitio y `aria-haspopup="dialog"`; solo con el drawer, < 960) y el **`GPageIndex list fold`**. Fondo `--g-color-bg` y línea inferior `--g-color-border` (calco, lo mide coco).
+- **El sitio declara en `:root`** `--g-app-shell-local-bar: calc(var(--g-space-1) * 12)` por debajo de `80rem` y `0px` por encima (#1055): el chasis la suma al `scroll-padding` y al registro de bordes (destinos de ancla y foco bajo la barra; PI-L6).
+- Sus enfocables, si caen en la banda del `scroll-padding`, aplican S1 (`api.md` «Piezas pegadas», regla 1) en `grana-site.css`.
 
 ## 8. Teclado, foco y anuncios
 
 | Qué | Regla |
 | --- | --- |
 | Primer Tab | «Saltar al contenido» (`GAppShell labels.skip`) → `main`. Límite de WebKit (S7) |
-| `/`, ⌘K, Ctrl+K | `focusFilter()` (en estrecho abre el drawer primero). Fuera de un campo editable para `/` |
-| En el filtro | Escribir filtra; Intro va al primero; ↓ a la lista; Esc vacía sin propagar (`sidebar.md`) |
-| Orden | salto → banda → índice → `main` (`h1`, zócalo con el relevo, contenido) → pie. Nada reordenado con CSS |
-| Al cambiar de ruta | El foco va al `h1` (`GPageHeader.focus()`) tras `onContentUpdated`; el título del documento lo pone VitePress. **No** en la primera carga ni en un salto a `#ancla` de la misma página. Sin región viva |
-| En esta página | `GPageIndex` (`page-index.md`): elegir lleva el foco a la sección |
-| Anuncios | Solo el recuento del filtro (cortés, 600 ms). Tema, idioma y sección actual, sin anuncio |
+| Orden | salto → marca (sin columna) → Buscar → enlaces → idioma → tema (o «…» / hamburguesa) → índice (filtro y enlaces) → barra local → contenido → columna «En esta página» → pie. Nada reordenado con CSS. El título de grupo del índice **no** es enfocable salvo que sea un botón de plegar (corrige el defecto 4; ronda de §4) |
+| `/` | `focusFilter()` (en `< 960`, abre el drawer primero; en la portada, la búsqueda). Fuera de un campo editable |
+| ⌘K / Ctrl+K | `search.open()` (también desde un campo) |
+| Al cambiar de ruta | El foco al `h1` del contenido (`tabindex="-1"` puesto por el `Layout` si falta, `preventScroll`) tras `onContentUpdated`; **no** en la primera carga ni en un salto a `#ancla` de la misma página. El título del documento lo pone VitePress. Sin región viva |
+| En esta página | `GPageIndex` (`page-index.md`): elegir lleva el foco a la sección; «Volver arriba», al `h1` |
+| Anuncios | Solo el recuento del filtro (cortés, 600 ms) y los recuentos de la búsqueda (región de la superficie). Tema, idioma y sección actual, sin anuncio |
 
-## 9. Estrecho, táctil y mínimos
+## 9. Cortes del sitio (del visor, calco de `referencia/medidas.md` §1)
 
-- **320 px sin desplazamiento horizontal**, claro y oscuro, tres motores. La banda a 320 lleva cinco piezas de 44 px como mucho (índice, marca, filtro, idioma, tema).
-- **≥ 44 px** todo lo pulsable del marco con `pointer: coarse` (lo traen los componentes; lo propio del sitio, `grana-site.css`).
-- Texto del marco ≥ 12 px y contraste ≥ 4,5:1 (claro y oscuro); el número en el asiento, §59 de `tokens.md`.
-- **Movimiento:** el marco no anima nada propio. Se mueve lo de los componentes, cada uno con su `prefers-reduced-motion`: asiento de `GSidebar` (#617), hundido del zócalo y muelle de `GPageHeader` (#632), relevo de `GPageIndex` (#1040). El filtro no tiene movimiento (#1040).
+| Visor | `GNavBar` | Banda | `GSidebar` | Barra local | «En esta página» |
+| --- | --- | --- | --- | --- | --- |
+| ≥ 1280 (`80rem`) | todo en la barra | pegada | expandida 272 | no | columna derecha 224 (+32), pegada bajo la banda |
+| 960–1279 | enlaces + «…» | pegada | expandida 272 | sí, pegada bajo la banda: plegada | plegada (`align="start"`) |
+| 768–959 (`48rem`–`60rem`) | enlaces + «…», búsqueda solo lupa | **se va con la página** | drawer | sí, pegada a 0: «Menú» + plegada | plegada |
+| < 768 | marca, lupa, hamburguesa | se va con la página | drawer | sí, pegada a 0 | plegada (`align="end"`) |
+
+- **320 px sin desplazamiento horizontal**, claro y oscuro, tres motores (el original desbordaba 1 px con «…» a 1024: no se calca).
+- **≥ 44 px** todo lo pulsable con `pointer: coarse` (lo traen los componentes; lo propio del sitio, `grana-site.css`). Texto ≥ 12 px; contraste ≥ 4,5:1 en claro y oscuro (actual de la barra frente al reposo: límite aceptado de `nav-bar.md`).
+- **Movimiento:** el marco no anima nada propio; se mueve lo de los componentes con su `prefers-reduced-motion` (luz de `GNavBar`, marcador y PI-P1 de `GPageIndex`, drawer y asiento de `GSidebar`, superficie de `GCombobox`). El fondo de la banda en la portada cambia al instante.
 
 ## 10. SSR e hidratación
 
-- El marco se pinta en el servidor con la página actual marcada (asiento, `aria-current`, miga, relevo con su ancho) y **nada salta al hidratar** (#1033): sin `matchMedia`, `location`, `localStorage` ni medidas en el primer render; el tema llega por el script del `head`.
-- **Riesgo medido antes de dar por hecho:** `GSidebar mode="auto"` decide en el cliente; el primer pintado depende de la reserva por CSS de `GAppShell` (#712, `is-ready`). Con `docs:build` + `vitepress preview`, a 1280, 900 y 375: **CLS del marco = 0** y ningún aviso de hidratación, tres motores.
+- El marco se pinta en el servidor con la sección actual de la barra (`current`), el asiento del índice, la sección de `modelValue` y la portada «arriba»; **nada salta al hidratar** (#1033): sin `matchMedia`, `location`, `localStorage` ni medidas en el primer render; el tema llega por el script del `head`; los cortes son CSS.
+- **Medido antes de dar por hecho:** con `docs:build` + `vitepress preview`, a 1280, 1024, 900, 375 y 320: **CLS del marco = 0** y ningún aviso de hidratación, tres motores (el riesgo de `GSidebar mode="auto"` sigue cubierto por la reserva por CSS de #712).
 
 ## 11. Capas y estilos (#516, #806)
 
-- `site/.vitepress/theme/layers.css`, primera hoja: **`@layer vitepress, grana.defaults, grana.components, grana.blocks, grana.utilities;`**. **Hoy le faltan `grana.blocks` y `grana.utilities`** (#806: el orden lo fija la primera hoja que lo declara): hallazgo para el dueño del sitio.
-- Todo el CSS de VitePress en la capa `vitepress` (plugin `layerVitepress`), los estilos de documento aislados de los ejemplos vivos (`postcssIsolateStyles`, `.vp-raw`).
-- El CSS propio del marco (`grana-site.css`) solo lee `var(--g-*)` y alias locales; sin capa (gana como el tema de una aplicación). El código del contenido sigue con la letra de VitePress (§59: `--g-font-code` reservado).
-- El `Layout` no pinta nada de `VPNav`, `VPSidebar`, `VPDocAside`, `VPLocalNav`: desaparecen sus estilos de pantalla, no los de documento.
+- `site/.vitepress/theme/layers.css`, primera hoja: `@layer vitepress, grana.defaults, grana.components, grana.blocks, grana.utilities;` (a86aefc2).
+- Todo el CSS de VitePress en la capa `vitepress`; los estilos de documento aislados de los ejemplos vivos (`postcssIsolateStyles`, `.vp-raw`).
+- El CSS propio del marco (`grana-site.css`, de coco) solo lee `var(--g-*)` y alias locales, sin capa: la marca y los `h1`/`h2` en **Instrument Serif** (fuente del sitio, no token: solo la documentación la usa), la barra local, la rejilla del documento (624 + columna derecha), la portada «arriba», las recetas de §3.6 y §7, S1 de la barra local. El código del contenido sigue con la letra de VitePress (`--g-font-code` reservado, §59).
 
-## 12. Verificación (criterio de hecho)
+## 12. Paridad visual con la referencia (criterio de hecho)
 
-Sobre el sitio construido (`docs:build` + `preview`, puerto propio), en `site/tests/site.spec.mjs` ampliado, tres motores, claro y oscuro, 1280 · 900 · 375 · 320:
+**Referencia congelada:** `design/lab/sitio/referencia/medidas.json` y sus capturas (de kiwi; **nadie las regenera** salvo kiwi; `medir.mjs` escribe en su carpeta y lee las clases de VitePress, así que no se usa contra el sitio nuevo).
 
-1. Un `banner`, un `main`, un `h1`, un `contentinfo`; toda `nav` con nombre (`Documentación`, `Ruta`, `En esta página`).
-2. Sin desplazamiento horizontal; táctil ≥ 44 (estrecho); contraste del marco ≥ 4,5:1 y del número en el asiento lleno.
-3. `/` `2` `4` Intro llega a `GCombobox` y el foco queda en su `h1`; «oscuro» da «Ningún título» + «En el texto» con «Tematización · Modo oscuro»; Esc vacía y vuelve el total.
-4. El relevo dice la sección que cruza la línea de lectura; elegir una sección lleva el foco a ella.
-5. Idioma: misma ruta en el otro idioma; `lang`/`hreflang` en los enlaces.
-6. Tema: los tres estados persisten y no parpadean al cargar.
-7. Hidratación: sin avisos, CLS del marco 0 (§10).
-8. `generate.test.mjs`: números estables (§5), sin `h1` en el cuerpo, frontmatter completo; prueba de forma de `@localSearchIndex` (§1).
+**Cómo se mide:** bruno escribe `site/tests/paridad.mjs` (Playwright, Chromium, `deviceScaleFactor` 1, puerto propio) que, sobre el sitio construido (`docs:build` + `preview`), recorre **las mismas vistas** (portada, Empezar, GCombobox, Blocks × 1280/1024/768/375/320 × claro/oscuro), **los mismos estados** (hover de «Blocks», foco al 5.º Tab, idioma, búsqueda con «comb», «…» a 1024, menú móvil a 375, «En esta página» desplegado a 375, drawer a 375, lectura a mitad de la ficha) y **las mismas piezas** de `medidas.json`, con un mapa de selectores de Grana (base: el de `design/lab/navbar/r01/verificar.mjs`), y escribe `site/tests/paridad-resultados.json` con `ref`, `grana` y `delta` por pieza. Coco lo lee en su auditoría.
 
-**No verificable aquí:** lector de pantalla real (recuento del filtro, `aria-current="location"` en un menú), Safari y táctil reales, `forced-colors`, texto al 200 %, RTL.
+**Tolerancias (compuerta):**
 
-## 13. Quién construye (#1045)
+| Qué | Tolerancia |
+| --- | --- |
+| Estructura: banda (alto 64), línea inferior, columna izquierda (272), columna de texto (624 / 688 / 327), columna «En esta página» (x 1024, 224), barra local (48), `h1` | **\|Δ\| ≤ 1 px** en x, y, ancho y alto |
+| Piezas de texto e iconos: marca, botón de búsqueda, cada enlace de la barra, idioma, interruptor, «…», hamburguesa, título y enlaces de «En esta página», tarjetas anterior/siguiente, paneles abiertos (idioma, «…», búsqueda, menú móvil, desplegado) | **\|Δ\| ≤ 2 px** en x, y, ancho y alto |
+| Tipografía de cada pieza | `font-family`, `font-size`, `font-weight` y `line-height` **iguales** |
+| Color de cada pieza (texto, fondo, borde) | **El mismo color resuelto** que en `medidas.json` `tokens` (claro y oscuro) |
+| Desplazamiento horizontal | **Ninguno** en ninguna vista (`scrollWidth` = ancho) |
+| Tab | El orden de §8 = el de `medidas.json` `teclado`, salvo las correcciones listadas abajo |
 
-Por `AGENTS.md`, `site/` es de mora-docs; **para este lote el usuario lo reparte así** (2026-11-08, #1045; excepción de lote, `AGENTS.md` no cambia):
+**Desviaciones aceptadas** (no cuentan contra la compuerta; cada una con su cota):
 
-1. **coco** (Sonnet; Opus si lo pide la medida): `GPageIndex.css`, filtro y código del asiento en `GSidebar.css`; en el sitio, `grana-site.css` y `layers.css` (las cinco capas, #806).
-2. **bruno** (Opus: `GPageIndex` lleva motor de lectura y foco; el filtro toca el motor de `GSidebar`): `GPageIndex.vue` + entrada + pruebas; filtro, `code`, `focusFilter` en `GSidebar.vue`; `current: 'location'` en `GMenu.vue`; `meta.json` y tipos. **En el sitio, el `Layout` y todo lo funcional:** `site/.vitepress/theme/*.vue`, `config.mjs`, `index.js`, `icons.js`, scripts, `generate.mjs` en lo que toque a los datos del marco (índice, `code`, `keywords`, frontmatter) y las pruebas del sitio.
-3. **coco**, auditoría de los dos sobre el componente real.
-4. **mora-docs:** solo los textos (contenido de las páginas, etiquetas y mensajes) y la enmienda de `docs/documentacion/contrato.md` §3 (§14); no toca `.vue`, `config.mjs`, scripts ni CSS del sitio.
+1. **Defectos que no se calcan** (`referencia/medidas.md` §6): nombres accesibles, `aria-expanded`, título de grupo no enfocable, idioma al pulsar, iconos enteros (Lucide sin recortar: el ancho del icono puede diferir **≤ 4 px**), columna con desplazamiento propio.
+2. **«…» a 1024 dentro del visor** (el original se salía 2 px): las piezas a su izquierda pueden correrse **≤ 4 px**.
+3. **Botón de búsqueda a 1024:** ancho **≤** el del original (el original desbordaba su hueco).
+4. **Hover de la barra:** luz en vez de color `accent` (P1, #1053); **la actual** sí se calca (color).
+5. **«En esta página» a la vista** (PI-P1): la columna puede estar desplazada por dentro respecto de la captura de lectura.
+6. **Índice izquierdo:** **fuera de la compuerta** hasta que se contrate la ronda de §4 (se mide y se informa, no bloquea).
+7. **Fuente de la marca y de los títulos:** si Instrument Serif llega de otro origen, el ancho del texto **≤ 2 px**.
+
+**Informativo (no compuerta):** diferencia de píxeles por captura con `pixelmatch` (umbral 0,1), excluido el contenido vivo de las fichas; se informa el porcentaje por vista en `paridad-resultados.json`.
+
+**Además** (de A, siguen): un `banner`, un `main`, un `h1`; toda `nav` con nombre («Secciones», «Documentación», «En esta página»); `contentinfo` en la portada; táctil ≥ 44; contraste; hidratación sin avisos y CLS 0 (§10); `generate.test.mjs` (números estables, un solo `h1`, frontmatter); prueba de forma de `@localSearchIndex`; ⌘K abre la búsqueda y «comb» da resultados con `<mark>`; `/` enfoca el filtro; idioma con ruta equivalente y `lang`/`hreflang`; tema que persiste y no parpadea. En `site/tests/site.spec.mjs`, tres motores, claro y oscuro.
+
+**No verificable aquí:** lector de pantalla real (dos `nav`, `aria-current="location"` en una lista larga, la búsqueda), Safari y táctil reales, `forced-colors`, texto al 200 %, RTL.
+
+## 13. Quién construye (excepción de lote #1045, ampliada a este lote por #1052)
+
+1. **coco** (Opus en `GNavBar`; Sonnet en el resto): `GNavBar.css`; `GPageIndex.css` (forma `list` y `fold`); `GCombobox.css` (`--command`, `__hints`); `GAppShell.css` (`pinned-wide`, barra local, `is-covered`); en el sitio, `grana-site.css` (marca y títulos en serif, barra local, rejilla, portada «arriba», recetas, interruptor de 40 × 24 si hace falta, N-H3). Después, la auditoría de cada componente sobre el real y la de paridad (§12).
+2. **bruno** (Opus en `GNavBar` y `GPageIndex list`; Sonnet en el resto): los `.vue`, entradas, `meta.json`, tipos, compuertas y pruebas de cada componente; en el sitio, el `Layout` y todo lo funcional (`site/.vitepress/theme/*.vue`, `config.mjs`, `index.js`, `icons.js`, `generate.mjs` en lo que toque al marco, `site/tests/`, `paridad.mjs`).
+3. **mora-docs:** textos (etiquetas, mensajes, pie de la búsqueda por idioma), README de `GNavBar` y de lo nuevo de `GPageIndex`, `GAppShell` y `GCombobox` tras sus auditorías, y la enmienda de `docs/documentacion/contrato.md` §3 (§14).
+4. **kiwi:** la ronda corta de `GSidebar` para el índice calcado (§4).
 
 ## 14. Enmienda del contrato de documentación (para mora-docs; `docs/documentacion/contrato.md` §3 es suyo)
 
-- **Párrafo «Marco de la página»:** el índice lateral pasa a «`Empezar` con iconos, **los grupos de componentes con su número estable** (§5 de este contrato; `aria-current="page"` en el actual, el número en el asiento), `Blocks` por familia, `Herramientas` y `Proyecto`», con **filtro en su cabecera** (`/`); la búsqueda deja de ser un botón aparte; «estado de versión» en la banda (en estrecho, en el drawer); tema **sistema/claro/oscuro**; selector de idioma con ruta equivalente. Remite a este contrato.
-- **Fila 1 (Ruta y cabecera):** la cabecera es `GPageHeader`; el antetítulo es «Componente NN · <grupo>» y el estado va en `meta` (como `GBadge`), no en el antetítulo.
-- **Fila 3 (En esta página):** vive en el **zócalo de `GPageHeader`** como `GPageIndex` `relay` (derivado de los `h2` reales), no como bloque del cuerpo.
-- **Fila 14 (Páginas vecinas):** según el orden del índice, con el número delante en las fichas.
-- **Hallazgos de kiwi para mora-docs** (S-H2): la portada dice 64 componentes (son 78); «Props» y «Referencia de la API» duplicadas; el orden de los `h2` no sigue §3 (A no lo exige —el relevo lee los `h2` que haya—, pero el contrato sí).
+- **Párrafo «Marco de la página»:** barra superior `GNavBar` (Guía · Componentes · Blocks · Playground · Cambios · GitHub, búsqueda «Buscar ⌘K» modal de texto completo, idioma con ruta equivalente, tema claro/oscuro); índice lateral con **filtro** (`/`) y **números estables** en los componentes; «En esta página» como **columna a la derecha** en ancho y desplegable en la barra local en estrecho. Remite a este contrato.
+- **Fila 1 (Ruta y cabecera):** el `h1` y el bloque de datos vuelven al cuerpo (como antes de 887c3779); sin `GPageHeader` ni antetítulo numerado.
+- **Fila 3 (En esta página):** `GPageIndex appearance="list"` derivado de los `h2` y `h3` reales, no como bloque del cuerpo.
+- **Fila 14 (Páginas vecinas):** anterior/siguiente por el orden del índice, **sin número**.
+- Hallazgos que siguen abiertos (S-H2, N-H5): la portada dice «64 componentes» (son 79); «Props» y «Referencia de la API» duplicadas (con la columna completa se nota más, PI-H3).
