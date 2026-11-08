@@ -186,8 +186,8 @@ export interface MenuItem extends GranaExtra {
   rel?: string
   /** El destino es otro sitio (marca «sale de aquí» y texto oculto); solo con `href`. */
   external?: boolean
-  /** Página actual (`aria-current="page"`); solo con `href`; como mucho uno por menú (#576). */
-  current?: boolean
+  /** `true` o `'page'`: página actual (`aria-current="page"`); `'location'`: sección actual de esta página (`aria-current="location"`, #1039). Solo con `href`; como mucho uno por menú (#576); otro valor se trata como `true` (E10). */
+  current?: boolean | 'page' | 'location'
   /** Idioma de la etiqueta (BCP 47), atributo `lang` del elemento; vale en cualquier elemento (#743). Inválido: se ignora (E8). */
   lang?: string
   /** Idioma del destino (BCP 47), atributo `hreflang` del `<a>`; solo con `href` (#743). Inválido: se ignora (E8). */
@@ -290,6 +290,12 @@ export interface SidebarItem extends GranaExtra {
   items?: SidebarItem[]
   children?: SidebarItem[]
   disabled?: boolean
+  /** Identificador corto (1 a 3 caracteres) que se pinta en el asiento y va al principio del nombre accesible; solo primer nivel (#1036). */
+  code?: string
+  /** Alias que también encuentra el filtro (otro idioma, slug); arreglo de cadenas (#1035). */
+  keywords?: string[]
+  /** `false`: el filtro nunca lo oculta ni lo cuenta (lo ya filtrado por la aplicación); en un grupo o un item (#1035). */
+  filterable?: boolean
 }
 
 /** Nivel de `GBreadcrumbs` (breadcrumbs.md «Modelo de `items`»). El último es la página actual. */

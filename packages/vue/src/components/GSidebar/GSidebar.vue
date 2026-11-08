@@ -11,6 +11,8 @@ import GIcon from '../GIcon/GLibIcon.js'
 import GAppIcon from '../GIcon/GIcon.vue'
 import { useVisualTips } from '../../utils/visualTip.js'
 import { createPointerGlide } from '../../utils/glide.js'
+import { fold } from '../../utils/match.js'
+import { acquirePageLive, announcePage } from '../../utils/liveRegion.js'
 // Activación primaria de un enlace (#505): botón principal, sin modificadores y sin cancelar (Intro llega como clic primario)
 const primaryActivation = (e) => e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey && !e.defaultPrevented
 
@@ -35,13 +37,17 @@ export default defineComponent({
     overlay: Boolean,
     barCount: { type: Number, default: 4, validator: (v) => v === 3 || v === 4 || v === 5 },
     search: Boolean,
+    // Filtro del índice (sidebar.md §«Filtro del índice», #1035)
+    filter: Boolean,
+    query: { type: String, default: '' },
+    filterKeyshortcuts: { type: String, default: undefined },
     closeOnNavigate: { type: Boolean, default: true },
     color: { type: String, default: 'brand', validator: oneOf(COLORS) },
     density: { type: String, default: 'default', validator: oneOf(['default', 'comfortable', 'compact']) },
     labels: { type: Object, default: () => ({}) }
   },
   // Solo estos eventos se declaran: el resto llega a la raíz por $attrs.
-  emits: ['update:modelValue', 'update:collapsed', 'update:open', 'navigate', 'mode-change', 'search'],
+  emits: ['update:modelValue', 'update:collapsed', 'update:open', 'navigate', 'mode-change', 'search', 'update:query'],
   setup(props, { emit, expose }) {
     const attrs = useAttrs()
     const slots = useSlots()
@@ -70,7 +76,22 @@ export default defineComponent({
         try { if (process.env.NODE_ENV !== 'production' && seen.has(raw.id)) warnOnce(`dup-${raw.id}`, `hay dos items con el mismo id (${String(raw.id)}).`) } catch {}
         seen.add(raw.id)
         try { if (process.env.NODE_ENV !== 'production' && (raw.badge !== undefined || raw.dot) && !raw.badgeLabel) warnOnce(`badge-${raw.id}`, `el item «${raw.id}» tiene badge o dot sin badgeLabel (texto para lectores).`) } catch {}
-        const item = { id: raw.id, label: raw.label, href: raw.href, icon: raw.icon, badge: raw.badge, badgeLabel: raw.badgeLabel, dot: Boolean(raw.dot), disabled: Boolean(raw.disabled), primary: Boolean(raw.primary), raw, level, children: [] }
+        // `code` (#1036): solo en el primer nivel (C3); con `icon`, manda el código (C1); más de 3 caracteres avisa (C2)
+        const code = raw.code == null || raw.code === '' ? null : String(raw.code)
+        try {
+          if (process.env.NODE_ENV !== 'production' && code) {
+            if (level) warnOnce('c3', 'code en un hijo: se ignora (C3).')
+            else if (raw.icon) warnOnce('c1', 'code e icon: se pinta code (C1).')
+            if (code.length > 3) warnOnce('c2', 'code de más de 3 caracteres (C2).')
+          }
+        } catch {}
+        // `keywords` (#1035): arreglo de cadenas; otro valor se ignora (F4). Se pliegan una vez por cambio de `items`
+        let kw = raw.keywords
+        if (kw && !(Array.isArray(kw) && kw.every((k) => typeof k === 'string'))) {
+          try { if (process.env.NODE_ENV !== 'production') warnOnce('f4', 'keywords no es un arreglo de cadenas: se ignora (F4).') } catch {}
+          kw = 0
+        }
+        const item = { id: raw.id, label: raw.label, href: raw.href, icon: raw.icon, code: level ? null : code, f: fold(raw.label), kw: (kw || []).map(fold), badge: raw.badge, badgeLabel: raw.badgeLabel, dot: Boolean(raw.dot), disabled: Boolean(raw.disabled), primary: Boolean(raw.primary), raw, level, children: [] }
         if (level === 0 && Array.isArray(raw.children)) {
           item.children = raw.children.map((c) => {
             try { if (process.env.NODE_ENV !== 'production' && c && Array.isArray(c.children) && c.children.length) warnOnce('grandchildren', 'los nietos se ignoran: solo hay un nivel de hijos.') } catch {}
@@ -84,7 +105,7 @@ export default defineComponent({
       props.items.forEach((el, i) => {
         if (el && Array.isArray(el.items)) {
           loose = null
-          groups.push({ key: `g${i}`, label: typeof el.label === 'string' ? el.label : undefined, items: el.items.map((x) => mk(x, 0)).filter(Boolean) })
+          groups.push({ key: `g${i}`, label: typeof el.label === 'string' ? el.label : undefined, fixed: el.filterable === false, items: el.items.map((x) => mk(x, 0)).filter(Boolean) })
         } else {
           const it = mk(el, 0)
           if (!it) return
@@ -199,6 +220,105 @@ export default defineComponent({
     syncBranch()
     const toggleOpen = (id) => { openIds.value = openIds.value.includes(id) ? openIds.value.filter((x) => x !== id) : [...openIds.value, id] }
 
+    // ---------- Filtro del índice (sidebar.md §«Filtro del índice», #1035) ----------
+    // Un solo estado de consulta para todos los formatos. Lo que no coincide lleva `hidden` en su <li> (sin desmontar); un
+    // grupo sin nada visible se oculta entero; mientras hay consulta, todo padre visible está abierto (sin tocar openIds:
+    // al vaciar, cada padre vuelve a como estaba). Cuenta destinos: sin padres, deshabilitados ni `filterable: false`.
+    const q = ref(props.query || '')
+    watch(() => props.query, (v) => { q.value = v || '' })
+    const setQuery = (v) => { if (v === q.value) return; q.value = v; emit('update:query', v) }
+    const hit = (it, f) => (/^\d{1,3}$/.test(f)
+      ? Boolean(it.code && (it.code.startsWith(f) || (/^\d+$/.test(it.code) && +it.code === +f)))
+      : it.f.includes(f) || it.kw.some((k) => k.includes(f)) || (it.code !== null && fold(it.code) === f))
+    const filt = computed(() => {
+      const f = props.filter ? fold(q.value.trim()) : ''
+      const hide = new Set()
+      const open = new Set()
+      const r = { f, hide, open, total: 0, shown: 0 }
+      // Devuelve si se ve; cuenta los destinos (sin padres, deshabilitados ni fijos) y oculta lo que no
+      const see = (it, fixed, v) => {
+        if (!fixed && !it.disabled && !it.children.length) { r.total++; if (v) r.shown++ }
+        if (!v) hide.add(it.id)
+        return v
+      }
+      for (const g of model.value) {
+        let any = false
+        for (const it of g.items) {
+          const fixed = g.fixed || it.raw.filterable === false
+          const self = !f || fixed || hit(it, f)
+          let vis = self
+          for (const c of it.children) if (see(c, fixed || c.raw.filterable === false, self || fixed || c.raw.filterable === false || hit(c, f))) vis = true
+          if (vis && f && it.children.length) open.add(it.id)
+          if (see(it, fixed, vis)) any = true
+        }
+        if (f && !any) hide.add(g)
+      }
+      return r
+    })
+    const isOpen = (id) => openSet.value.has(id) || filt.value.open.has(id)
+    const countText = computed(() => {
+      const { f, shown, total } = filt.value
+      const fn = f && !shown ? L.value.filterNone : L.value.filterCount
+      if (typeof fn !== 'function') return ''
+      return f && !shown ? fn(q.value.trim()) : fn(f ? shown : total, total)
+    })
+    // Todas las cabeceras y regiones montadas (la en línea y la del drawer)
+    const scopes = () => [rootEl.value, dlgRef.value].filter(Boolean)
+    const FIELD = '.g-sidebar__filter-input'
+    const inputOf = () => rootEl.value?.querySelector(FIELD) || dlgRef.value?.querySelector(FIELD)
+    let annT = null
+    let releaseLive = null
+    watch(() => filt.value.f, (f, old) => {
+      // Cada cambio: la luz se apaga y la región vuelve al principio; al vaciar, el actual a la vista y sin anuncio
+      // La región se escribe en el cuadro siguiente, junto con la disposición que el navegador hará de todos modos (escribir
+      // scrollTop aquí forzaba la disposición de la lista entera dentro de la tecla)
+      for (const r of scopes()) r.querySelectorAll('.g-sidebar__list, .g-sidebar__fly-list').forEach((l) => l._glide?.clear())
+      requestAnimationFrame(() => scopes().forEach((r) => r.querySelectorAll('.g-sidebar__nav').forEach((n) => { n.scrollTop = 0 })))
+      clearTimeout(annT)
+      if (!f) {
+        if (old) nextTick(() => scopes().forEach((r) => r.querySelector('.g-sidebar__nav [aria-current="page"]')?.scrollIntoView?.({ block: 'nearest' })))
+        return
+      }
+      if (!releaseLive) releaseLive = acquirePageLive()
+      annT = setTimeout(() => announcePage(countText.value), 600)
+    }, { flush: 'post' })
+    const firstLink = (root, dest) => [...(root?.querySelectorAll('.g-sidebar__nav .g-sidebar__link') || [])]
+      .find((x) => x.getAttribute('aria-disabled') !== 'true' && !x.closest('[hidden], [inert]') && !(dest && x.classList.contains('g-sidebar__parent')))
+    const onFilterKeydown = (e) => {
+      const k = e.key
+      const root = e.currentTarget.closest('.g-sidebar')
+      if (k === 'Enter') {
+        if (e.isComposing || e.keyCode === 229 || !filt.value.f) return
+        e.preventDefault()
+        firstLink(root, true)?.click()
+      } else if (k === 'ArrowDown') {
+        const to = firstLink(root)
+        if (to) { e.preventDefault(); to.focus() }
+      } else if (k === 'Escape' && q.value) {
+        // Con texto: vacía y no se propaga (no cierra el drawer); vacío, sigue su curso
+        e.preventDefault()
+        e.stopPropagation()
+        setQuery('')
+      }
+    }
+    const focusInput = () => { const i = inputOf(); if (i) { i.focus(); i.select() } }
+    // Riel: lo del botón de expandir y después el campo
+    const fromRail = () => {
+      manual.value = 'expanded'
+      emit('update:collapsed', false)
+      nextTick(focusInput)
+    }
+    const focusFilter = () => {
+      if (!props.filter || slots.search) return
+      const f = format.value
+      if (f === 'rail') fromRail()
+      else if (f === 'expanded') focusInput()
+      else {
+        setDrawer(true)
+        nextTick(() => nextTick(() => { if (dlgRef.value?.open) focusInput() }))
+      }
+    }
+
     // ---------- Drawer ----------
     const drawer = ref(props.open)
     const dlgRef = ref(null)
@@ -246,13 +366,21 @@ export default defineComponent({
     const SEARCH_TIP = 'search'
     const TOGGLE_TIP = 'toggle'
     const itemTip = (item) => `i:${String(item.id)}`
+    let tipLinks = null
     const tips = useVisualTips({
       find(key) {
         const root = rootEl.value
         if (!root || root.hidden) return null
         if (key === SEARCH_TIP) { const b = root.querySelector(':scope > .g-sidebar__head .g-sidebar__search'); return b ? { ctrl: b } : null }
         if (key === TOGGLE_TIP) { const b = root.querySelector(':scope > .g-sidebar__head .g-sidebar__toggle'); return b ? { ctrl: b } : null }
-        const el = [...root.querySelectorAll(':scope > .g-sidebar__nav .g-sidebar__item > .g-sidebar__link')].find((x) => `i:${x.dataset.id}` === key)
+        // Un índice por pasada de sync (se descarta en la siguiente microtarea): buscar en la lista por cada pista era
+        // cuadrático y costaba > 100 ms por render con 500 destinos (prueba de rendimiento del filtro, #1035)
+        if (!tipLinks) {
+          tipLinks = new Map()
+          for (const x of root.querySelectorAll(':scope > .g-sidebar__nav .g-sidebar__item > .g-sidebar__link')) tipLinks.set(`i:${x.dataset.id}`, x)
+          queueMicrotask(() => { tipLinks = null })
+        }
+        const el = tipLinks.get(key)
         return el ? { ctrl: el } : null
       },
       disabled: () => format.value !== 'rail',
@@ -378,8 +506,11 @@ export default defineComponent({
       }
       if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(k)) return
       const nav = e.currentTarget
-      const all = [...nav.querySelectorAll('.g-sidebar__link')].filter((x) => x.getAttribute('aria-disabled') !== 'true' && !x.closest('[inert]') && !x.closest('.g-sidebar__fly'))
+      const all = [...nav.querySelectorAll('.g-sidebar__link')].filter((x) => x.getAttribute('aria-disabled') !== 'true' && !x.closest('[inert], [hidden]') && !x.closest('.g-sidebar__fly'))
       const i = all.indexOf(link)
+      // ↑ en el primero visible vuelve al campo del filtro (#1035)
+      const field = k === 'ArrowUp' && !i && nav.parentElement.querySelector(FIELD)
+      if (field) { e.preventDefault(); field.focus(); return }
       const n = k === 'ArrowDown' ? i + 1 : k === 'ArrowUp' ? i - 1 : k === 'Home' ? 0 : all.length - 1
       e.preventDefault()
       all[Math.max(0, Math.min(all.length - 1, n))]?.focus()
@@ -441,7 +572,10 @@ export default defineComponent({
       const raf = typeof requestAnimationFrame === 'function' ? requestAnimationFrame : (fn) => setTimeout(fn, 16)
       raf(() => raf(() => { if (!unmountedFlag) ready.value = true }))
     })
+    onMounted(() => { if (props.filter && !releaseLive) releaseLive = acquirePageLive() })
     onBeforeUnmount(() => {
+      clearTimeout(annT)
+      releaseLive?.()
       unmountedFlag = true
       clearTimeout(expandT)
       ro?.disconnect()
@@ -459,6 +593,11 @@ export default defineComponent({
         if (!l.drawer) warnOnce('drawer', 'necesita labels.drawer (nombre accesible del drawer).')
         if (!l.more) warnOnce('more', 'necesita labels.more (texto del botón «Más» del navbar).')
         if (props.search && !l.search && !slots.search) warnOnce('search', 'con search necesita labels.search.')
+        if (props.filter) {
+          if (props.search) warnOnce('f1', 'con filter, search no actúa (F1).')
+          if (slots.search) warnOnce('f2', 'con filter, manda el slot search (F2).')
+          if (!l.filter || !l.filterCount || !l.filterNone || !l.filterClear) warnOnce('f3', 'con filter necesita labels.filter, filterCount, filterNone y filterClear (F3).')
+        }
       }
     } catch {}
 
@@ -483,6 +622,14 @@ export default defineComponent({
     const iconNode = (item) => (slots.icon
       ? slots.icon({ item: item.raw })
       : (item.level === 0 && typeof item.icon === 'string' && item.icon !== '' ? [h(GAppIcon, { name: item.icon })] : null))
+    // Código del item (#1036): dentro del asiento en lugar del icono (slot icon › code › icon por nombre) y, delante de la
+    // etiqueta, en el nombre accesible (2.5.3)
+    const codeOf = (item) => (slots.icon ? null : item.code)
+    const seat = (item) => {
+      const c = codeOf(item)
+      return h('span', { class: 'g-sidebar__icon', 'aria-hidden': 'true', 'data-code': c ?? undefined }, c ?? iconNode(item))
+    }
+    const codeSr = (item) => (codeOf(item) ? h('span', { class: 'g-sidebar__sr' }, `${item.code} `) : null)
     const badgeNodes = (item) => {
       const out = []
       if (item.badge !== undefined && item.badge !== null) out.push(h('span', { class: 'g-sidebar__badge', 'aria-hidden': 'true' }, String(item.badge)))
@@ -499,7 +646,8 @@ export default defineComponent({
       const content = slots.item
         ? [slots.item({ item: item.raw, active: cur, collapsed: rail, level })]
         : [
-            level === 0 ? h('span', { class: 'g-sidebar__icon', 'aria-hidden': 'true' }, iconNode(item)) : null,
+            level === 0 ? seat(item) : null,
+            codeSr(item),
             h('span', { class: 'g-sidebar__label' }, item.label),
             ...badgeNodes(item)
           ]
@@ -511,7 +659,7 @@ export default defineComponent({
       const tip = kind === 'side' && level === 0 ? { 'data-g-tooltip': '' } : {}
       if (item.children.length) {
         const branch = isBranch(item)
-        const expanded = rail ? flyOpen.value && flyItem.value?.id === item.id : openSet.value.has(item.id)
+        const expanded = rail ? flyOpen.value && flyItem.value?.id === item.id : isOpen(item.id)
         return h('button', {
           type: 'button',
           // `is-rep` (#616): en el riel el padre representa al hijo actual (asiento lleno, sin aria-current)
@@ -530,7 +678,8 @@ export default defineComponent({
             } else toggleOpen(item.id)
           }
         }, [
-          level === 0 ? h('span', { class: 'g-sidebar__icon', 'aria-hidden': 'true' }, iconNode(item)) : null,
+          level === 0 ? seat(item) : null,
+          codeSr(item),
           h('span', { class: 'g-sidebar__label' }, item.label),
           h(GIcon, { class: 'g-sidebar__chevron', name: 'chevron-right' })
         ])
@@ -554,17 +703,18 @@ export default defineComponent({
 
     const renderGroups = (kind) => model.value.map((g) => {
       const titleId = `${baseId}-${kind}-${g.key}`
+      const { hide } = filt.value
       const list = h('ul', { class: 'g-sidebar__list', 'aria-labelledby': g.label ? titleId : undefined, ...glideHost }, [highlight(), ...g.items.map((item) => {
         const children = item.children.length
           ? h('ul', {
-              class: cls('g-sidebar__sub', kind === 'side' && format.value === 'rail' ? '' : openSet.value.has(item.id) && 'is-open', isBranch(item) && 'has-current'),
+              class: cls('g-sidebar__sub', kind === 'side' && format.value === 'rail' ? '' : isOpen(item.id) && 'is-open', isBranch(item) && 'has-current'),
               id: `${baseId}-${kind}-${item.id}`,
-              inert: kind === 'side' && format.value === 'rail' ? '' : !openSet.value.has(item.id) ? '' : undefined
-            }, item.children.map((c) => h('li', { key: c.id }, [renderLink(c, 1, kind)])))
+              inert: kind === 'side' && format.value === 'rail' ? '' : !isOpen(item.id) ? '' : undefined
+            }, item.children.map((c) => h('li', { key: c.id, hidden: hide.has(c.id) || undefined }, [renderLink(c, 1, kind)])))
           : null
-        return h('li', { class: 'g-sidebar__item', key: item.id }, [renderLink(item, 0, kind), children])
+        return h('li', { class: 'g-sidebar__item', key: item.id, hidden: hide.has(item.id) || undefined }, [renderLink(item, 0, kind), children])
       })])
-      return h('li', { class: 'g-sidebar__group', role: 'presentation', key: g.key }, [
+      return h('li', { class: 'g-sidebar__group', role: 'presentation', key: g.key, hidden: hide.has(g) || undefined }, [
         g.label ? h('span', { class: 'g-sidebar__group-title', id: titleId }, g.label) : null,
         list
       ])
@@ -589,7 +739,44 @@ export default defineComponent({
               : null)
       ])
       let search = null
-      if (props.search || slots.search) {
+      const filtering = Boolean(filt.value.f)
+      if (props.filter && !slots.search) {
+        const fid = `${baseId}-${kind}-filter`
+        const icon = slots['search-icon'] ? slots['search-icon'](scope) : null
+        search = rail
+          // Riel: botón del filtro con la anatomía de g-sidebar__search; la consulta se conserva y su recuento va oculto
+          ? h('button', { type: 'button', class: cls('g-sidebar__search', filtering && 'is-filtering'), 'data-g-tooltip': '', onClick: fromRail }, [
+              h('span', { class: 'g-sidebar__icon', 'aria-hidden': 'true' }, icon),
+              h('span', { class: 'g-sidebar__label' }, L.value.filter),
+              filtering ? h('span', { class: 'g-sidebar__sr' }, `, ${countText.value}`) : null
+            ])
+          : h('div', { class: 'g-sidebar__filter' }, [
+              h('div', { class: 'g-sidebar__filter-box' }, [
+                h('label', { class: 'g-sidebar__sr', for: fid }, L.value.filter),
+                h('span', { class: 'g-sidebar__filter-icon', 'aria-hidden': 'true' }, icon),
+                h('input', {
+                  class: 'g-sidebar__filter-input',
+                  id: fid,
+                  type: 'search',
+                  value: q.value,
+                  placeholder: L.value.filterPlaceholder,
+                  autocomplete: 'off',
+                  spellcheck: 'false',
+                  enterkeyhint: 'go',
+                  'aria-describedby': `${fid}-count`,
+                  'aria-controls': `${baseId}-${kind}-nav`,
+                  'aria-keyshortcuts': props.filterKeyshortcuts || undefined,
+                  onInput: (e) => setQuery(e.target.value),
+                  onKeydown: onFilterKeydown
+                }),
+                !q.value && L.value.filterHint ? h('kbd', { class: 'g-sidebar__filter-hint', 'aria-hidden': 'true' }, L.value.filterHint) : null,
+                q.value
+                  ? h('button', { type: 'button', class: 'g-sidebar__filter-clear', 'aria-label': L.value.filterClear, onClick: (e) => { setQuery(''); e.currentTarget.parentElement.querySelector(FIELD).focus() } }, [h(GIcon, { name: 'x' })])
+                  : null
+              ]),
+              h('p', { class: cls('g-sidebar__filter-count', filtering && !filt.value.shown && 'is-empty'), id: `${fid}-count` }, countText.value)
+            ])
+      } else if (props.search || slots.search) {
         search = slots.search
           ? slots.search(scope)
           : h('button', { type: 'button', class: 'g-sidebar__search', 'aria-haspopup': 'dialog', 'data-g-tooltip': kind === 'side' ? '' : undefined, onClick: () => emit('search') }, [
@@ -617,7 +804,7 @@ export default defineComponent({
       const scope = { collapsed: rail }
       const children = [
         renderHead(kind),
-        h('nav', { class: 'g-sidebar__nav', 'aria-label': props.label || attrs['aria-label'], onKeydown: onNavKeydown }, [
+        h('nav', { class: 'g-sidebar__nav', id: `${baseId}-${kind}-nav`, 'aria-label': props.label || attrs['aria-label'], onKeydown: onNavKeydown }, [
           h('ul', { class: 'g-sidebar__groups', role: 'list' }, renderGroups(kind))
         ]),
         slots.user ? h('div', { class: 'g-sidebar__foot' }, slots.user(scope)) : null
@@ -637,7 +824,7 @@ export default defineComponent({
           }, flyItem.value
             ? [
                 h('div', { class: 'g-sidebar__fly-title' }, flyItem.value.label),
-                h('ul', { class: 'g-sidebar__fly-list', key: flyItem.value.id, ...glideHost }, [highlight(), ...flyItem.value.children.map((c) => h('li', { key: c.id }, [renderLink(c, 1, 'fly')]))])
+                h('ul', { class: 'g-sidebar__fly-list', key: flyItem.value.id, ...glideHost }, [highlight(), ...flyItem.value.children.map((c) => h('li', { key: c.id, hidden: filt.value.hide.has(c.id) || undefined }, [renderLink(c, 1, 'fly')]))])
               ]
             : [])
         )
@@ -645,11 +832,11 @@ export default defineComponent({
       // Pistas del riel (#436): al final de la raíz, en el orden del documento (contraer, búsqueda y los items)
       if (kind === 'side') {
         children.push(tips.node(TOGGLE_TIP, rail ? L.value.expand : L.value.collapse))
-        if (props.search && !slots.search) children.push(tips.node(SEARCH_TIP, L.value.search))
+        if ((props.search || props.filter) && !slots.search) children.push(tips.node(SEARCH_TIP, props.filter ? L.value.filter : L.value.search))
         for (const g of model.value) for (const item of g.items) children.push(tips.node(itemTip(item), item.label))
       }
       const own = kind === 'side' ? { ref: rootEl, ...rootAttrs() } : {}
-      return h('div', { ...own, class: cls(...modeClasses(mode), ready.value && 'is-ready', kind === 'side' && expanding.value && 'is-expanding', kind === 'side' ? attrs.class : null), 'data-mode': mode }, children)
+      return h('div', { ...own, class: cls(...modeClasses(mode), filt.value.f && 'is-filtering', ready.value && 'is-ready', kind === 'side' && expanding.value && 'is-expanding', kind === 'side' ? attrs.class : null), 'data-mode': mode }, children)
     }
 
     const renderNavbar = () => {
@@ -670,7 +857,8 @@ export default defineComponent({
             'aria-haspopup': 'dialog',
             onClick: (e) => { ensureOpen(item.id); setDrawer(true, e.currentTarget) }
           }, [
-            h('span', { class: 'g-sidebar__icon', 'aria-hidden': 'true' }, iconNode(item)),
+            seat(item),
+            codeSr(item),
             lab(item.label, current),
             branch && L.value.moreActive ? h('span', { class: 'g-sidebar__sr' }, `, ${L.value.moreActive}`) : null
           ]))
@@ -681,7 +869,7 @@ export default defineComponent({
           'aria-current': isCurrent(item) ? 'page' : undefined,
           onClick: (e) => navigateTo(item, e)
         }
-        const content = [h('span', { class: 'g-sidebar__icon', 'aria-hidden': 'true' }, iconNode(item)), lab(item.label, current), ...badgeNodes(item)]
+        const content = [seat(item), codeSr(item), lab(item.label, current), ...badgeNodes(item)]
         return tab(item.id, current, item.href ? h('a', { ...common, href: item.href }, content) : h('button', { ...common, type: 'button' }, content))
       })
       li.push(tab('__more', curKey === '__more', h('button', {
@@ -720,7 +908,8 @@ export default defineComponent({
       open: () => setDrawer(true),
       close: () => setDrawer(false),
       toggle: toggleCollapsed,
-      focus: () => rootEl.value?.querySelector('.g-sidebar__link, .g-sidebar__tab')?.focus()
+      focus: () => rootEl.value?.querySelector('.g-sidebar__link, .g-sidebar__tab')?.focus(),
+      focusFilter
     })
 
     return () => {

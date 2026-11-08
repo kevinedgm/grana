@@ -39,7 +39,8 @@ export const ENTRIES = [
   { name: 'hero', src: 'src/hero.js' },
   { name: 'gallery', src: 'src/gallery.js' },
   { name: 'booking', src: 'src/booking.js' },
-  { name: 'price', src: 'src/price.js' }
+  { name: 'price', src: 'src/price.js' },
+  { name: 'page-index', src: 'src/page-index.js' }
 ]
 
 // ---------------------------------------------------------------------------------------------------------------------

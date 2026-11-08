@@ -80,7 +80,10 @@ export default defineComponent({
         try { if (process.env.NODE_ENV !== 'production' && ['target', 'rel', 'external', 'current', 'hreflang'].some((k) => raw[k])) warnOnce('e2', 'ignora target, rel, external, current y hreflang sin href (E2).') } catch {}
         return null
       }
-      let current = Boolean(raw.current)
+      // `current`: true o 'page' → página actual; 'location' → sección actual de esta página (#1039); otro valor, E10
+      const cv = raw.current
+      try { if (process.env.NODE_ENV !== 'production' && cv && cv !== true && cv !== 'page' && cv !== 'location') warnOnce('e10', `trata current=${JSON.stringify(cv)} como true: solo true, 'page' o 'location' (E10).`) } catch {}
+      let current = cv ? (cv === 'location' ? 'location' : 'page') : false
       if (current && scan.current) { try { if (process.env.NODE_ENV !== 'production') warnOnce('e3', 'solo el primer `current` es la página actual (E3).') } catch {} current = false }
       if (current) { scan.current = true; path.forEach((k) => scan.branch.add(k)) }
       const ext = Boolean(raw.external)
@@ -635,7 +638,7 @@ export default defineComponent({
       const on = !it.disabled
       const button = h(lk ? 'a' : 'button', {
         ...(lk
-          ? { href: on ? lk.href : undefined, target: on ? lk.target : undefined, rel: on ? lk.rel : undefined, hreflang: on ? lk.hreflang : undefined, 'aria-current': lk.current ? 'page' : undefined, onAuxclick: (e) => e.button === 1 && onLink(node, e) }
+          ? { href: on ? lk.href : undefined, target: on ? lk.target : undefined, rel: on ? lk.rel : undefined, hreflang: on ? lk.hreflang : undefined, 'aria-current': lk.current || undefined, onAuxclick: (e) => e.button === 1 && onLink(node, e) }
           : { type: 'button' }),
         id: `${rootId}-i-${node.key}`,
         lang,

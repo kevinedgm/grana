@@ -18,7 +18,7 @@
       "name": "items",
       "type": "Array",
       "default": [],
-      "note": "Un elemento con icon cadena (nombre de Lucide) y sin slot icon dibuja GIcon en g-menu__icon (registro de la aplicación → librería; #202); con slot icon, manda el slot; otro valor de icon es dato opaco para el slot. Campos lang (idioma de la etiqueta, en cualquier elemento, con dir=\"auto\" en el texto) y hreflang (idioma del destino, solo con href; sin él, E2), #743: un valor que Intl.getCanonicalLocales rechaza se ignora y avisa (E8)"
+      "note": "Un elemento con icon cadena (nombre de Lucide) y sin slot icon dibuja GIcon en g-menu__icon (registro de la aplicación → librería; #202); con slot icon, manda el slot; otro valor de icon es dato opaco para el slot. Campos lang (idioma de la etiqueta, en cualquier elemento, con dir=\"auto\" en el texto) y hreflang (idioma del destino, solo con href; sin él, E2), #743: un valor que Intl.getCanonicalLocales rechaza se ignora y avisa (E8). current: true o 'page' → aria-current=\"page\"; 'location' → aria-current=\"location\" (sección actual de la página, la pone GPageIndex, #1039); otro valor se trata como true y avisa (E10)"
     },
     {
       "name": "label",

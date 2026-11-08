@@ -967,6 +967,22 @@ describe('GMenu · elementos-enlace · anatomía', () => {
     expect(lk(w, 'Más').classes()).toContain('is-branch')
   })
 
+  it("current: 'location' pone aria-current=\"location\" (#1039); 'page' y true, page; otro valor se trata como true y avisa (E10)", async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const w = await openLinks({ items: [
+      { id: 'a', label: 'Uso', href: '#uso' },
+      { id: 'b', label: 'API', href: '#api', current: 'location' }
+    ] })
+    expect(lk(w, 'API').attributes('aria-current')).toBe('location')
+    expect(lk(w, 'Uso').attributes('aria-current')).toBeUndefined()
+    expect(warnsOf(warn).filter((m) => m.includes('(E10)'))).toHaveLength(0)
+    const p = await openLinks({ items: [{ id: 'a', label: 'Uno', href: '#/a', current: 'page' }] })
+    expect(lk(p, 'Uno').attributes('aria-current')).toBe('page')
+    const x = await openLinks({ items: [{ id: 'a', label: 'Raro', href: '#/a', current: 'step' }] })
+    expect(lk(x, 'Raro').attributes('aria-current')).toBe('page')
+    expect(warnsOf(warn).filter((m) => m.includes('(E10)'))).toHaveLength(1)
+  })
+
   it('orden de las partes: icono, etiqueta, texto oculto, atajo, huella, marca; huella vacía desde el montaje', async () => {
     const w = await openLinks({ items: [
       { id: 'a', label: 'Ajustes', icon: 'settings', href: 'https://example.org/a', target: '_blank', external: true, shortcut: 'Ctrl+,' }

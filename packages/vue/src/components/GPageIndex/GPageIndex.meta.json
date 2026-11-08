@@ -1,0 +1,162 @@
+{
+  "schemaVersion": 1,
+  "name": "GPageIndex",
+  "tag": "g-page-index",
+  "status": "draft",
+  "since": "0.1.0",
+  "description": "Índice de las secciones de la página que se está leyendo, con la sección actual siguiendo la lectura (aria-current=\"location\"). Forma relay: un botón de menú cuyo texto dice dónde estás («En esta página · API») y despliega las secciones como un GMenu de elementos-enlace; al elegir, el navegador sigue el #id y el foco va a la sección. El relevo del texto se funde y se desplaza un paso en el sentido de la lectura; el ancho no cambia nunca (pila de etiquetas, sin medir).",
+  "contract": "design/contracts/page-index.md",
+  "decisions": [
+    "#1034",
+    "#1038",
+    "#1039",
+    "#1040",
+    "#1042",
+    "#1047"
+  ],
+  "prototype": "design/lab/sitio/r01/",
+  "style": "packages/vue/src/components/GPageIndex/GPageIndex.css",
+  "entry": "@grana/vue/page-index",
+  "bundle": {
+    "measured": "2026-11-08",
+    "entry": "dist/page-index.js (GPageIndex)",
+    "gzip": 2905,
+    "umdGzip": 2677,
+    "global": "GranaPageIndex",
+    "note": "gzip -9. Vue y @grana/vue externos; GMenu (con utils/menuNav.js), GLibIcon y transitionMs llegan de __shared, sin copia. El CSS va en grana.css."
+  },
+  "props": [
+    {
+      "name": "items",
+      "type": "Array",
+      "default": [],
+      "description": "Secciones { id, label, href? } en el orden del documento; id es el del elemento destino; href por defecto #id. Sin id o sin label se ignora (aviso 1); id repetido, gana el primero (aviso 2). Cualquier otro campo se conserva y llega a navigate. Un solo nivel (level reservado)."
+    },
+    {
+      "name": "modelValue",
+      "type": "String",
+      "default": null,
+      "description": "id de la sección actual (v-model opcional). Con track, la lectura lo corrige en el siguiente desplazamiento; un id sin item cuenta como ninguno."
+    },
+    {
+      "name": "track",
+      "type": "Boolean",
+      "default": true,
+      "description": "Línea de lectura (api.md «Lugar actual», #1039). false: la actual es solo modelValue."
+    },
+    {
+      "name": "scroller",
+      "type": "String",
+      "default": null,
+      "description": "Selector o elemento que se desplaza; sin valor, el documento. Se resuelve al montar; no encontrado, aviso 3 y el documento."
+    },
+    {
+      "name": "appearance",
+      "type": "String",
+      "values": [
+        "relay"
+      ],
+      "default": "relay",
+      "description": "Forma. Solo relay en v1 (list, line y rail reservados, #1038); fuera de lista, aviso 4."
+    },
+    {
+      "name": "label",
+      "type": "String",
+      "required": true,
+      "default": null,
+      "description": "Nombre del <nav> y texto fijo del disparador (aviso 5 sin él)."
+    },
+    {
+      "name": "align",
+      "type": "String",
+      "values": [
+        "start",
+        "end"
+      ],
+      "default": "end",
+      "description": "Alineación de la lista (de GMenu)."
+    },
+    {
+      "name": "labels",
+      "type": "Object",
+      "default": {},
+      "description": "Textos de GMenu, sin valores por defecto: findHint, matches, matchesOne, none (buscar al escribir, #797) y, si la aplicación los da, opened/openedLive y copied/copiedLive (varias pestañas y copiar el enlace a la sección)."
+    },
+    {
+      "name": "id",
+      "type": "String",
+      "default": null,
+      "description": "id de la raíz y prefijo de los de GMenu ({id}-trigger, {id}-list); generado SSR-seguro sin valor."
+    }
+  ],
+  "events": [
+    {
+      "name": "update:modelValue",
+      "payload": "String | null",
+      "trigger": "La sección actual cambia por la lectura o por elegir una (no cuando cambia modelValue desde fuera)"
+    },
+    {
+      "name": "navigate",
+      "payload": "{ item, event }",
+      "trigger": "Se elige una sección con clic primario o Intro/Espacio sin modificadores (guarda de #505 con #574). preventDefault() síncrono: Grana no cambia la actual ni mueve el foco (router o desplazamiento propio)"
+    }
+  ],
+  "slots": [],
+  "methods": [
+    {
+      "name": "refresh",
+      "signature": "refresh(): void",
+      "purpose": "Vuelve a leer la actual en el siguiente cuadro (contenido que crece sin desplazamiento)"
+    }
+  ],
+  "classes": [
+    "g-page-index g-page-index--appearance-relay (raíz nav) + is-empty sin actual",
+    "g-page-index__trigger, __key, __value, __stack (aria-hidden), __ghost × N, __current, __icon (aria-hidden)",
+    "data-dir=\"down|up\" y data-phase=\"out|in\" en __current durante el relevo (#1047); is-burst en un cambio a menos de 600 ms del anterior"
+  ],
+  "composes": [
+    "GMenu (elementos-enlace con current: 'location', #1039)"
+  ],
+  "focus": "Tras elegir sin cancelar, cuando GMenu devuelve el foco al disparador, el destino lo recibe con preventScroll; si no es enfocable y no tiene tabindex, Grana le pone tabindex=\"-1\" (y no lo quita).",
+  "warnings": [
+    "1 elemento sin id o label",
+    "2 id repetido",
+    "3 scroller no encontrado",
+    "4 appearance fuera de lista",
+    "5 sin label",
+    "6 destino fuera del documento (al elegir; al montar con track, ninguno de los id)"
+  ],
+  "tokens": [
+    "--g-color-border-control",
+    "--g-color-text",
+    "--g-color-text-muted",
+    "--g-color-border-strong",
+    "--g-color-neutral-soft",
+    "--g-radius-shape",
+    "--g-color-focus",
+    "--g-focus-width",
+    "--g-focus-offset",
+    "--g-border-width",
+    "--g-text-body-sm-size",
+    "--g-text-body-sm-line",
+    "--g-text-action-weight",
+    "--g-font-ui",
+    "--g-space-1",
+    "--g-space-2",
+    "--g-space-3",
+    "--g-duration-fast",
+    "--g-ease-out",
+    "--g-ease-standard"
+  ],
+  "states": [
+    "vacío (is-empty)",
+    "abierto (aria-expanded)",
+    "relevo out/in",
+    "ráfaga (is-burst)"
+  ],
+  "pending": [
+    "Peso (#1042): dist/page-index.js mide 2905 B gzip, 345 B por encima del tope de 2560 B; vuelve a lima (subir el tope o recortar alcance)",
+    "Auditoría de coco sobre el componente real (status draft hasta entonces)",
+    "Buscar al escribir de GMenu (#797) aún no está construido: los cuatro labels pasan a GMenu sin efecto"
+  ]
+}

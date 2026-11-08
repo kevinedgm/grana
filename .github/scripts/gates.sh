@@ -179,6 +179,14 @@ must_exist "price.js" "No se generó la entrada propia price.js (revisar vite.pr
 must_not_have grana.js "supportedValuesOf" "La tabla de símbolos se calcula en el navegador; debe venir generada en el build (scripts/currency-symbols.mjs, #770)"
 must_not_have price.js "supportedValuesOf" "La tabla de símbolos se calcula en el navegador; debe venir generada en el build (scripts/currency-symbols.mjs, #770)"
 must_not_have price.js "\"Rs\"" "La tabla de símbolos quedó copiada en price.js; debe llegar por __shared desde utils/currency.js (#776)"
+# Índice de la página (#1042): entrada propia page-index.js (tope 2,5 KiB gzip); GMenu y utils/menuNav.js llegan por __shared
+must_have grana.css "g-page-index__stack" "$CSS_MSG"
+must_not_have grana.js "GPageIndex" "GPageIndex viajó en el paquete principal grana.js; debe ir solo en la entrada page-index.js (#1042)"
+must_exist "page-index.js" "No se generó la entrada propia page-index.js (revisar vite.page-index.config.js y el script build de packages/vue)"
+must_not_have page-index.js "g-menu__dest" "GMenu quedó copiado en page-index.js; debe llegar por __shared desde el principal, sin copia (#1042)"
+# Filtro del índice y código del item de GSidebar (#1035, #1036)
+must_have grana.css "g-sidebar__filter-count" "$CSS_MSG"
+must_have grana.js "g-sidebar__filter-input" "El filtro del índice de GSidebar no llegó al paquete principal (#1035)"
 
 # Clases utilitarias (#804 a #811): capa grana.utilities, la última; dist/utilities.css suelto (tope +3 KiB gzip en grana.css)
 must_have grana.css "g-mx-auto" "Las utilidades no quedaron registradas en grana.css (¿falta el @import de utilities.css en grana.css?)"

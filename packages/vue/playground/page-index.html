@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Marco del sitio · banco del componente real (bruno)</title>
+<!-- Banco de las piezas del marco del sitio A «El índice se escribe» con los componentes reales de dist/ (dueño: bruno):
+     GSidebar con filtro del índice y `code` (#1035, #1036), GPageIndex relay en el slot `actions` de GPageHeader (entrada
+     @grana/vue/page-index, #1038 a #1042, #1047) y GMenu con `current: 'location'` (#1039). Lo verifican
+     design/lab/theme-playground/tests/page-index.spec.mjs y sidebar-filter.spec.mjs.
+     Parámetros: ?n=500 (500 destinos en el índice, prueba de rendimiento) · ?mode=rail|drawer|navbar (formato fijo del
+     sidebar) · ?sections=200 (secciones de la página) · ?dir=rtl · ?dark=1. Estado en window.pi (registro de eventos). -->
+<link rel="stylesheet" href="../dist/fonts.css">
+<link rel="stylesheet" href="../dist/grana.css">
+<style>
+  /* Andamio del banco (no es de Grana): sidebar a la izquierda, contenido a la derecha, la receta de una variable */
+  *{box-sizing:border-box}
+  :root{ --g-page-header-top: 0px; scroll-padding-block-start: max(var(--g-space-12), 44px); }
+  body{margin:0;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  .shell{display:grid;grid-template-columns:auto 1fr;min-block-size:100vh}
+  .side{position:sticky;inset-block-start:0;block-size:100vh;display:flex}
+  main{min-inline-size:0;outline:none}
+  .panel{padding:var(--g-space-6)}
+  .panel h2{font-size:20px;margin:24px 0 8px}
+  .panel p{max-inline-size:75ch;margin:0 0 12px}
+  .demo{display:flex;gap:16px;align-items:center;padding:var(--g-space-6);border-block-end:var(--g-border-width) solid var(--g-color-border)}
+</style>
+</head>
+<body>
+<div id="app" class="shell">
+  <div class="side">
+    <g-sidebar id="sb" ref="sb" :items="nav" v-model="current" v-model:query="query" filter :mode="Q.mode" mobile="drawer"
+      label="Componentes" filter-keyshortcuts="/ Control+K Meta+K" :labels="labels" @navigate="onNav">
+      <template #logo><b>Grana</b></template>
+    </g-sidebar>
+  </div>
+  <main id="main" tabindex="-1">
+    <g-page-header id="ph" title="GCombobox" eyebrow="Formularios · 24" description="Búsqueda con resultados de la aplicación." :labels="{ actions: 'Acciones de la página' }">
+      <template #actions>
+        <g-page-index id="pi" ref="pidx" v-model="section" :items="sections" label="En esta página" @navigate="(e) => log('navigate · ' + e.item.id)"></g-page-index>
+        <g-btn id="copy" variant="ghost" color="neutral">Copiar importación</g-btn>
+      </template>
+    </g-page-header>
+    <section id="sec-menu-location" class="demo" aria-label="GMenu con current location">
+      <g-menu id="loc" v-model="menu" :items="locItems" label="Secciones"><template #trigger="{ attrs }"><g-btn v-bind="attrs" id="loc-btn" variant="outline" color="neutral">GMenu · location</g-btn></template></g-menu>
+      <span id="current-out">{{ section || '—' }}</span>
+    </section>
+    <div class="panel">
+      <template v-for="s in sections" :key="s.id"><h2 :id="s.id">{{ s.label }}</h2><p v-for="k in 6" :key="k">{{ para }}</p></template>
+    </div>
+    <footer class="panel" style="min-block-size:70vh"><p>Pie de la página (deja que la última sección llegue arriba).</p></footer>
+  </main>
+</div>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="../dist/grana.umd.js"></script>
+<script src="../dist/page-header.umd.js"></script>
+<script src="../dist/page-index.umd.js"></script>
+<script src="./lucide-icons.js"></script>
+<script>
+  const P = new URLSearchParams(location.search)
+  if (P.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  if (P.get('dark') === '1') document.documentElement.dataset.theme = 'dark'
+  const events = []
+  window.pi = { events }
+  const para = 'Cada sección explica una parte del componente con ejemplos que se pueden copiar. El índice de la página sigue la lectura: la sección actual es la última cuyo título cruzó el tercio superior del área visible.'
+  const GROUPS = ['Formularios', 'Navegación', 'Datos', 'Avisos', 'Superficies', 'Disposición', 'Medios', 'Voz', 'Tiempo', 'Selección']
+  const NAMES = ['GBtn', 'GInput', 'GTextarea', 'GSelect', 'GCheckbox', 'GRadioGroup', 'GSwitch', 'GCombobox', 'GSlider', 'GTag']
+  function buildNav(n) {
+    const out = [{ label: 'Empezar', items: [
+      { id: 'start', label: 'Empezar', href: '#start', icon: 'house', keywords: ['getting started'] },
+      { id: 'theme', label: 'Tematización', href: '#theme', icon: 'palette', keywords: ['theming'] }
+    ] }]
+    let k = 1
+    for (let g = 0; k <= n; g++) {
+      const items = []
+      for (let i = 0; i < 10 && k <= n; i++, k++) {
+        const name = k <= 10 ? NAMES[k - 1] : `${NAMES[(k - 1) % 10]} ${Math.ceil(k / 10)}`
+        items.push({ id: `c${k}`, label: name, href: `#c${k}`, code: String(k).padStart(2, '0'), keywords: [name.toLowerCase().replace(/^g/, '')] })
+      }
+      out.push({ label: g < GROUPS.length ? GROUPS[g] : `Grupo ${g + 1}`, items })
+    }
+    out.push({ label: 'Blocks', items: [{ id: 'rl', label: 'Lista de recursos', icon: 'list', children: [
+      { id: 'rl-frase', label: 'La frase', href: '#rl-frase' }, { id: 'rl-facetas', label: 'Facetas', href: '#rl-facetas' }
+    ] }] })
+    return out
+  }
+  const SEC = ['Ejemplos', 'API', 'Props', 'Eventos', 'Slots', 'Teclado y foco', 'Accesibilidad', 'Movimiento', 'Tokens', 'Límites conocidos']
+  function buildSections(n) {
+    return Array.from({ length: n }, (_, i) => ({ id: `s${i + 1}`, label: i < SEC.length ? SEC[i] : `Sección ${i + 1}` }))
+  }
+  const app = Vue.createApp({
+    setup() {
+      const section = Vue.ref(null)
+      const sections = buildSections(Number(P.get('sections')) || 10)
+      const log = (e) => { events.push(e) }
+      const sb = Vue.ref(null)
+      // El atajo global lo registra la aplicación (sidebar.md «Atajo global»): `/` fuera de un campo editable, ⌘K/Ctrl+K siempre
+      document.addEventListener('keydown', (e) => {
+        const editable = e.target.closest?.('input, textarea, select, [contenteditable]')
+        if ((e.key === '/' && !editable && !e.ctrlKey && !e.metaKey && !e.altKey) || (e.key.toLowerCase() === 'k' && (e.ctrlKey || e.metaKey))) {
+          e.preventDefault()
+          sb.value?.focusFilter()
+        }
+      })
+      return {
+        Q: { mode: P.get('mode') || 'expanded' },
+        nav: buildNav(Number(P.get('n')) || 30),
+        current: Vue.ref('c8'),
+        query: Vue.ref(''),
+        menu: Vue.ref(false),
+        section, sections, para, log, sb,
+        locItems: Vue.computed(() => sections.slice(0, 5).map((s) => ({ id: s.id, label: s.label, href: '#' + s.id, current: s.id === section.value ? 'location' : undefined }))),
+        labels: {
+          collapse: 'Contraer', expand: 'Expandir', more: 'Más', drawer: 'Índice', close: 'Cerrar',
+          filter: 'Filtrar el índice', filterPlaceholder: 'Nombre o número', filterHint: '/', filterClear: 'Vaciar el filtro',
+          filterCount: (n, t) => `${n} de ${t} páginas`, filterNone: (q) => `Ningún título con «${q}»`
+        },
+        onNav(e) { e.event.preventDefault(); log('sidebar · ' + e.item.id) }
+      }
+    }
+  })
+  app.use(Grana).use(GranaPageHeader).use(GranaPageIndex).use(Grana.createIcons(Object.values(window.LUCIDE_STATIC)))
+  window.piApp = app.mount('#app')
+</script>
+</body>
+</html>
