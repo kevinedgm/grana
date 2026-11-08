@@ -128,7 +128,6 @@ Recuperación tras cerrar la aplicación, contrato y kit de pruebas del audio te
 | Inventario de carga: tonos del marcador incoherentes (`surface-sunken` ≈ 1,08:1 en `GWidget`, `GCalendar`; `border-strong` con alfa en `GCard`, `GSummary`) y sin regla en `forced-colors` en `GWidget`, `GCalendar` (`GTable` ya usa `--g-color-mold` y `GrayText`): pasan a `--g-color-mold` y `GrayText` (#538, #540) | coco |
 | `--g-color-mold` en el CLI: ya se emite (a9f53cf: `defaults.js` y `usage.js`); **falta el diagnóstico** ≥ 1,3:1 y < 3:1 frente a `surface` (informativo, como #228; #538). No bloqueante: el valor de `defaults.css` se calcula con el `text` y el `surface` del tema y cumple en los 26 temas medidos (coco, 1,46 a 1,71:1) | bruno |
 | `@grana/cli` no emite `--g-hero-title-max` (`fontSize × typeScale⁶` en `rem`, `tokens.md` §51, #727, #761): sin él el valor derivado de `display` en `defaults.css` sigue a `fontSize` y `fontDisplay` pero no a `typeScale`. No bloquea | bruno |
-| `GTable` con `responsive="auto"` oscila entre tabla y tarjetas cuando el ancho del contenedor roza el umbral (con `selectable`, ≈ 588 px en la ficha del sitio): el alto salta de 548 a 1185 px y el scroll se mueve solo. Hace falta histéresis en el cambio de modo. Encontrado al hacer la ficha interactiva del sitio (2026-11-07); la ficha lo esquiva con `responsive: 'table'` en ese caso | bruno |
 
 ## 7. Solo en entorno real (no automatizable)
 

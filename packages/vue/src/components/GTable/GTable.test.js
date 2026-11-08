@@ -243,6 +243,31 @@ describe('GTable · acciones, estados y modo', () => {
     expect(w.find('.g-table__bar-cards select').exists()).toBe(true)
     w.unmount()
   })
+  it('responsive auto: histéresis, el ancho que roza el umbral no hace oscilar el modo', async () => {
+    const cbs = []
+    const RO = globalThis.ResizeObserver
+    globalThis.ResizeObserver = class { constructor(f) { cbs.push(f) } observe() {} disconnect() {} }
+    vi.stubGlobal('requestAnimationFrame', (f) => { f(); return 0 })
+    const spy = vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue({ width: 480, height: 0, top: 0, left: 0, right: 480, bottom: 0 })
+    const w = mk({ selectable: true }, { attrs: { style: '--g-space-1: 4px' } })
+    await nextTick()
+    // need = 488: 480 → tarjetas
+    expect(w.classes()).toContain('g-table--mode-cards')
+    const resize = async (width) => { cbs.forEach((f) => f([{ contentRect: { width } }])); await nextTick() }
+    // alterna ±8 px alrededor del umbral (menos que el margen de 24 px): sigue en tarjetas
+    for (const x of [496, 480, 500, 484, 510]) { await resize(x); expect(w.classes()).toContain('g-table--mode-cards') }
+    // con need + margen vuelve a tabla, y ahí solo baja por debajo de need
+    await resize(520)
+    expect(w.classes()).toContain('g-table--mode-table')
+    await resize(495)
+    expect(w.classes()).toContain('g-table--mode-table')
+    await resize(480)
+    expect(w.classes()).toContain('g-table--mode-cards')
+    w.unmount()
+    globalThis.ResizeObserver = RO
+    vi.unstubAllGlobals()
+    spy.mockRestore()
+  })
   it('controles de tarjetas: ordenar por y dirección', async () => {
     const w = mk({ responsive: 'cards' })
     const [by, dir] = w.findAll('.g-table__bar select')

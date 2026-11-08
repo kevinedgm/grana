@@ -641,10 +641,14 @@ export default defineComponent({
       const units = cols.value.reduce((s, c) => s + (c.min || (isComposite(c) ? 40 : 24)), 0) + (props.selectable ? 10 : 0) + (slots['row-actions'] ? 10 : 0)
       return units * space.value
     })
-    const mode = computed(() => {
+    // Histéresis: ya en tarjetas, solo vuelve a tabla con `need` + margen (HYST_UNITS × space, más que una barra de
+    // desplazamiento); al pasar a tarjetas cambia el alto de la página y con él el ancho del contenedor (~15 px)
+    const HYST_UNITS = 6
+    const mode = computed((prev) => {
       if (props.responsive !== 'auto') return props.responsive
       if (!width.value || Number.isNaN(space.value)) return 'table'
-      return width.value < need.value ? 'cards' : 'table'
+      const limit = prev === 'cards' ? need.value + HYST_UNITS * space.value : need.value
+      return width.value < limit ? 'cards' : 'table'
     })
     let observer = null
     let frame = 0
