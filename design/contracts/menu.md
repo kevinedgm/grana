@@ -1,6 +1,6 @@
 # Contrato · GMenu
 
-**Dueño:** lima · **Estado:** aprobado; motivo de no disponible y confirmación en el sitio contratados el 2026-10-20 para `GResourceList` (#790) y buscar al escribir el 2026-10-21 (#797), pendientes de coco y bruno · **Basado en:** `design/lab/menu/r01/` y `design/lab/menu/r02/` (elementos-enlace, §«Elementos-enlace») (kiwi) · **Complementa:** `design/contracts/widget.md`
+**Dueño:** lima · **Estado:** aprobado; motivo de no disponible y confirmación en el sitio contratados el 2026-10-20 para `GResourceList` (#790) y buscar al escribir el 2026-10-21 (#797), pendientes de coco y bruno; `current: 'location'` el 2026-11-08 para `GPageIndex` (#1039), pendiente de bruno · **Basado en:** `design/lab/menu/r01/` y `design/lab/menu/r02/` (elementos-enlace, §«Elementos-enlace») (kiwi) · **Complementa:** `design/contracts/widget.md`
 **Tag:** `g-menu` · **Categoría:** superposiciones
 
 Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Menu* de APG): acciones, separadores, grupos con título, casillas, opciones, submenús y elementos peligrosos. Alcance decidido por el usuario (DECISIONS.md #82 a #84): botón de menú (sin menú contextual ni anclaje libre), contenido por arreglo de `items` con slots, y `GWidget` pasa a usarlo.
@@ -71,7 +71,7 @@ Menú de acciones anclado a un **botón de menú** (patrón *Menu Button* y *Men
 | `target`, `rel` | String | Atributos del `<a>`; solo con `href` (§«Elementos-enlace») |
 | `lang`, `hreflang` | String | Idioma de la etiqueta (cualquier elemento) e idioma del destino (solo con `href`); selector de idioma (§«Elementos-enlace», #743) |
 | `external` | Boolean | El destino es **otro sitio**: marca «sale de aquí» y texto para lectores; solo con `href` |
-| `current` | Boolean | Es la **página actual**: `aria-current="page"`; solo con `href`; como mucho uno por menú |
+| `current` | Boolean \| String | `true` o `'page'`: es la **página actual** (`aria-current="page"`); `'location'`: es la **sección actual de esta página** (`aria-current="location"`, la pone `GPageIndex`; #1039). Solo con `href`; como mucho uno por menú; otro valor se trata como `true` y avisa (aviso E10) |
 
 - **Grupo:** `{ type: 'group', label, items }`; el título es visible y **nombra** el grupo (`role="group"`). Las **opciones** de un grupo se presentan como exclusivas, pero **el componente no fuerza la exclusividad**: la aplicación marca `checked` tras `select`.
 - **Submenús:** hasta **tres niveles** verificados; un submenú sin elementos no se abre.
@@ -260,7 +260,7 @@ El resaltado **salta** (sin desplazamiento), con fundido. M4 no es movimiento: r
 | `target` | String | Atributo del `<a>`. Sin valor (o vacío), la misma pestaña. **«Otra pestaña»** = `_blank` o un nombre de ventana (que no empieza por `_`); `_self` = la misma; `_parent` y `_top` no son otra pestaña (no llevan marca ni texto), pero **tampoco emiten `navigate`** (#574) |
 | `rel` | String | Atributo del `<a>` tal cual. **Grana no añade nada** (con `_blank` los navegadores ya aplican `noopener`) |
 | `external` | Boolean | El destino es **otro sitio**. Explícito: Grana **no compara orígenes** (sin `location` en el render, sin desajuste en SSR) |
-| `current` | Boolean | Página actual: `aria-current="page"` (#576) |
+| `current` | Boolean \| String | Página actual: `aria-current="page"` (#576); con `'location'`, sección actual de la página: `aria-current="location"` (#1039; `api.md` «Lugar actual en la página»). La marca visual es la misma |
 | `lang` | String | Idioma de la **etiqueta** (BCP 47): atributo `lang` en el elemento (`<a>` o `<button>`), para que el lector pronuncie «English» o «Deutsch» en su idioma (WCAG 3.1.2). Vale en **cualquier** `item`, enlace o no; con `dir="auto"` en su texto (#282). Un valor que `Intl.getCanonicalLocales` rechaza se ignora y avisa (aviso E8). #743, M-L3 del inventario de marketing |
 | `hreflang` | String | Idioma del **destino** (BCP 47): atributo `hreflang` del `<a>`. Solo con `href` (sin él, aviso E2). Selector de idioma: cada idioma es una página (`href`), con `lang` **y** `hreflang` (#743) |
 
@@ -405,6 +405,7 @@ Una vez por menú, con la guarda canónica de #653 (`try { if (process.env.NODE_
 | E6 | Hay enlaces habilitados y falta alguno de `opened`/`openedLive` o `copied`/`copiedLive` | Ese gesto de C cae al comportamiento nativo (cierra / no copia) |
 | E7 | `navigator.clipboard.writeText` se rechaza | Sin huella ni anuncio |
 | E8 | `lang` o `hreflang` que `Intl.getCanonicalLocales` rechaza (#743) | Lo ignora (sin atributo) |
+| E10 | `current` con un valor que no es `true`, `'page'` ni `'location'` (#1039) | Lo trata como `true` (`aria-current="page"`) |
 
 ### Clases nuevas (para coco, L7)
 

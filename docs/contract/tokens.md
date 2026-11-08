@@ -1393,4 +1393,13 @@ Consume además (lista exacta de `GHero.css`, #759): `--g-color-bg`, `--g-color-
 - **Pieza 3** (#966): los tokens de texto compactos se reasignarán **en el elemento de la región**, como la zona de marca (§44) redeclara el color; nunca con selectores descendientes.
 - **Límite:** el token en `:root` desde un `tokens.css` propio o un `style.setProperty` queda fuera de contrato (taparía `<html data-g-density>` y el observador no lo ve).
 
-La siguiente sección nueva es la 59.
+## 59. Índice de la página y filtro del índice (`GPageIndex`, `GSidebar` con `filter` y `code`; sin tokens nuevos)
+
+**Ningún token nuevo** (`design/contracts/page-index.md`, `design/contracts/sidebar.md` §«Filtro del índice» y §«Código del item»; DECISIONS.md #1035, #1036, #1038; §17.6: ningún existente se queda corto).
+
+- **`GPageIndex` (`relay`):** el disparador con los tokens de `GBtn` `outline` `neutral` (`--g-color-border-control`, `--g-color-text`, `--g-color-text-muted` en la primera parte, `--g-radius-shape`, `--g-border-width`, foco `--g-color-focus`/`--g-focus-width`/`--g-focus-offset`), `--g-text-body-sm-*`, `--g-text-action-weight`, `--g-font-ui`, `--g-space-1` (tope de ancho como alias local `--_relay-max`, múltiplo de `space`), relevo con `--g-duration-fast` + `--g-ease-out`. La lista es la de `GMenu`.
+- **Filtro de `GSidebar`:** caja del campo como un control (`--g-color-surface`, `--g-color-border-control`, `--g-radius-shape`, foco de siempre), texto `--g-text-body-sm-*` (16 px con `pointer: coarse`, #970), recuento `--g-text-caption-*` en `--g-color-text-subtle` (sin coincidencias, `--g-color-text`), atajo como `searchHint`.
+- **Código en el asiento:** `--g-text-caption-*` con cifras tabulares, `--g-font-ui`, `--g-text-action-weight`; lleno `--g-sidebar-on-current` sobre `--g-sidebar-current` (P1, §43); en reposo y en la rama, texto sobre la carcasa ≥ 4,5:1.
+- **Reservado con nombre, sin valor (#1041):** **`--g-font-code`** (familia de la letra de código), para `GCode` (inventario del sitio #4) cuando se contrate. Ni el marco del sitio ni estos componentes lo necesitan: el código del sitio lo pinta VitePress en la capa `vitepress`.
+
+La siguiente sección nueva es la 60.

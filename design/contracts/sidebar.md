@@ -1,6 +1,6 @@
 # Contrato · GSidebar
 
-**Dueño:** lima · **Estado:** aprobado · **Basado en:** `design/lab/sidebar/r01/` (kiwi); el item actual, los cortes y el hueco del icono en `design/lab/sidebar/r02/` (§«Item actual: el asiento», §«Cortes de adaptación», DECISIONS.md #612 a #619)
+**Dueño:** lima · **Estado:** aprobado · **Basado en:** `design/lab/sidebar/r01/` (kiwi); el item actual, los cortes y el hueco del icono en `design/lab/sidebar/r02/` (§«Item actual: el asiento», §«Cortes de adaptación», DECISIONS.md #612 a #619); el filtro del índice y el código del item en `design/lab/sitio/r01/` (concepto A del marco del sitio; §«Filtro del índice», §«Código del item», DECISIONS.md #1035 y #1036; pendiente de coco y bruno)
 **Tag:** `g-sidebar` · **Categoría:** navegación
 
 Navegación lateral (principal o secundaria) que **se transforma con un solo sistema**: **expandida** (etiquetas, grupos, submenús en línea), **riel** de iconos (submenús en un panel flotante) y, en móvil, **navbar inferior** con la «píldora activa» o **drawer**. Alcance decidido por el usuario (DECISIONS.md #67 a #70): navegación por arreglo `items` y slots, búsqueda que solo dispara un evento, adaptación por el ancho del contenedor con `mode` manual, navbar inferior con los primeros N items y «Más», estilo «píldora activa».
@@ -32,6 +32,9 @@ Navegación lateral (principal o secundaria) que **se transforma con un solo sis
 | `overlay` | Boolean | | `false` | propia |
 | `barCount` | Number | 3, 4 o 5 | `4` | propia |
 | `search` | Boolean | | `false` | propia |
+| `filter` | Boolean | | `false` | propia (filtro del índice en la cabecera; §«Filtro del índice», #1035) |
+| `query` | String | texto del filtro | `''` | propia (con `update:query`; #1035) |
+| `filterKeyshortcuts` | String | valor de `aria-keyshortcuts` del campo (p. ej. `'/ Control+K Meta+K'`) | sin valor | propia (el componente **no** escucha atajos globales; #1035) |
 | `closeOnNavigate` | Boolean | | `true` | propia (drawer) |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | `brand` | compartida (contadores y puntos; **ya no** la píldora, #615) |
 | `density` | String | `default` `comfortable` `compact` | sin valor: la región (`density.md`, #975) | compartida |
@@ -52,6 +55,7 @@ Navegación lateral (principal o secundaria) que **se transforma con un solo sis
 - **`variant`:** `fixed` = borde a borde con un borde interior; `floating` = margen, radio y sombra (superficie flotante). Aplica a expandida y riel; el navbar es siempre flotante (píldora).
 - **`overlay`:** con `rail`, el usuario puede expandir **sobre** el contenido sin moverlo: la superficie expandida se posiciona encima del riel y **no** desplaza el diseño.
 - **`barCount`:** cuántos items van en la barra (además de «Más»).
+- **`filter`, `query`, `filterKeyshortcuts`:** ver §«Filtro del índice» (#1035). Con `filter`, `search` no actúa (aviso F1).
 - **`search`:** muestra el disparador de búsqueda en la cabecera (campo compacto expandido, botón de icono en riel; en el navbar vive en el drawer). El texto y el atajo salen de `labels`. Solo emite `search`.
 - **`closeOnNavigate`:** el drawer se cierra al elegir un destino (`navigate` no cancelado).
 - **`color`:** relleno de los **contadores y puntos** (`--g-color-{color}` y `on-`) en todos los formatos. **No pinta el item actual ni la píldora del navbar**: los dos leen las ranuras del item actual (`--g-sidebar-current*`, §«Item actual: el asiento»; #615, cambia el uso de #68). Quien usaba `color` para teñir la píldora pasa a `--g-sidebar-current` en el tema.
@@ -77,7 +81,7 @@ Navegación lateral (principal o secundaria) que **se transforma con un solo sis
 ```
 
 - **Grupo:** `{ label, items, id? }` (con `items`). Un elemento de primer nivel sin `items` es un **item sin grupo**. `label` del grupo es su nombre (`aria-labelledby`); en el riel el título se oculta visualmente y **sigue en el DOM**.
-- **Item:** `{ id, label, href?, icon?, badge?, badgeLabel?, dot?, disabled?, primary?, children? }`. `icon` es un valor **de la aplicación**: si es una **cadena** y no hay slot `icon`, el item dibuja `GIcon` con ese nombre en `g-sidebar__icon` (registro de la aplicación o lista de la librería; `icons.md` §5, `api.md` «Iconos en los componentes», #202); **con slot `icon`, manda el slot**; otro valor (componente, objeto) es un dato opaco que solo recibe el slot. `badge` es un número o texto corto (visible, `aria-hidden`); `dot` una marca sin número; **`badgeLabel` es el texto para lectores** (obligatorio si hay `badge` o `dot`: aviso en desarrollo). Cualquier otro campo se conserva y llega a los slots.
+- **Item:** `{ id, label, href?, icon?, code?, keywords?, filterable?, badge?, badgeLabel?, dot?, disabled?, primary?, children? }` (`code`, `keywords` y `filterable`: §«Filtro del índice» y §«Código del item», #1035 y #1036). `icon` es un valor **de la aplicación**: si es una **cadena** y no hay slot `icon`, el item dibuja `GIcon` con ese nombre en `g-sidebar__icon` (registro de la aplicación o lista de la librería; `icons.md` §5, `api.md` «Iconos en los componentes», #202); **con slot `icon`, manda el slot**; otro valor (componente, objeto) es un dato opaco que solo recibe el slot. `badge` es un número o texto corto (visible, `aria-hidden`); `dot` una marca sin número; **`badgeLabel` es el texto para lectores** (obligatorio si hay `badge` o `dot`: aviso en desarrollo). Cualquier otro campo se conserva y llega a los slots.
 - **`href`:** un item con `href` es un `<a>`; sin `href` ni `children`, un item de solo acción (`<button>`) que emite `navigate` igualmente. Con un router, la aplicación cancela el evento nativo de `navigate` y navega ella.
 - **`children`:** un **solo nivel**; un hijo `{ id, label, href?, badge?, badgeLabel?, disabled? }` no lleva `icon` propio ni `children` (los nietos se ignoran y avisan). Un padre es siempre un botón de submenú (no navega por sí mismo).
 - **`disabled`:** `<a role="link" aria-disabled="true">` **sin `href`** (no recibe foco; se lee en modo de exploración), tachado y atenuado.
@@ -96,6 +100,12 @@ Ninguno tiene valor por defecto. Los requeridos avisan una vez en desarrollo.
 | `close` | Nombre del botón de cierre del drawer | Recomendado |
 | `search` | Texto del disparador de búsqueda | Sí (con `search`) |
 | `searchHint` | Atajo visible del disparador (p. ej. «⌘K»), decorativo | No |
+| `filter` | Nombre del campo de filtro (`<label>` oculto) y del botón del filtro en el riel | Sí (con `filter`) |
+| `filterPlaceholder` | Texto de ejemplo del campo («Nombre o número») | No |
+| `filterHint` | Atajo visible del campo (p. ej. «/»), decorativo; se oculta con texto | No |
+| `filterCount` | Función `(shown, total) => String`: recuento visible y anunciado («24 de 90 páginas») | Sí (con `filter`) |
+| `filterNone` | Función `(query) => String`: sin coincidencias («Ningún título con «x»») | Sí (con `filter`) |
+| `filterClear` | Nombre del botón de vaciar el filtro | Sí (con `filter`) |
 
 ## Adaptación (`mode="auto"`)
 
@@ -319,13 +329,13 @@ Ancho `--g-sidebar-rail`. Etiquetas y títulos de grupo ocultos visualmente (sig
 | Slot | Propósito | Alcance | Anatomía que debe conservar |
 | --- | --- | --- | --- |
 | `logo` | Identidad en la cabecera | `{ collapsed }` | Dentro de `g-sidebar__logo`; en el riel, la marca sola |
-| `search` | Sustituye al disparador de búsqueda | `{ collapsed }` | La aplicación pone su propio botón con nombre; el evento `search` no se emite |
+| `search` | Sustituye al disparador de búsqueda **o al filtro** | `{ collapsed }` | La aplicación pone su propio botón con nombre; el evento `search` no se emite. Con `filter` y este slot, manda el slot y el filtro no se pinta (aviso F2) |
 | `icon` | Icono del item; **sustituye** al `GIcon` por nombre de `item.icon` | `{ item }` | Dentro de `g-sidebar__icon` (`aria-hidden`); decorativo |
 | `item` | Contenido de un item (sustituye a icono + etiqueta) | `{ item, active, collapsed, level }` | Dentro del enlace o botón; sin interactivos; conserva el **texto de la etiqueta** (nombre accesible) |
 | `user` | Área de usuario al pie | `{ collapsed }` | Dentro de `g-sidebar__foot`; en el riel, solo el avatar **con nombre accesible** que da la aplicación; el menú del usuario es de la aplicación |
 | `header` | Contenido extra bajo el logo | `{ collapsed }` | Dentro de la cabecera |
 | `toggle-icon` | Icono del botón de contraer y expandir (sin icono por defecto; normalmente un `GIcon`) | `{ collapsed }` | Decorativo, dentro de `g-sidebar__toggle` (su nombre lo da `labels.collapse` o `labels.expand`) |
-| `search-icon` | Icono del disparador de búsqueda | `{ collapsed }` | Decorativo, dentro de `g-sidebar__icon` |
+| `search-icon` | Icono del disparador de búsqueda **y del campo de filtro** | `{ collapsed }` | Decorativo, dentro de `g-sidebar__icon` (en el campo, `g-sidebar__filter-icon`) |
 | `more-icon` | Icono del botón «Más» del navbar | | Decorativo, dentro de `g-sidebar__icon` |
 
 **Ejemplo del slot `user`** (#295, `avatar.md`): el avatar es decorativo dentro del botón de la aplicación; el nombre es del botón (su texto al expandir, `aria-label` en el riel).
@@ -349,6 +359,7 @@ Ancho `--g-sidebar-rail`. Etiquetas y títulos de grupo ocultos visualmente (sig
 | `update:open` | Boolean | El drawer se abre o se cierra |
 | `mode-change` | `{ mode, overlay }` | El formato resuelto cambia (`expanded` `rail` `navbar` `drawer`); `overlay` es verdadero cuando el sidebar está **expandido encima del riel** (la aplicación reserva el ancho del riel) |
 | `search` | | El usuario activa el disparador de búsqueda |
+| `update:query` | String | El texto del filtro cambia (escribir, vaciar con Esc o con el botón); #1035 |
 
 **Nota para bruno:** los demás eventos (`click`, `keydown`…) no se declaran; llegan a la raíz. Al elegir en el drawer, el foco vuelve al botón que lo abrió **antes** de emitir. Un item de solo acción (sin `href` ni `children`) emite `navigate` y no cambia `modelValue` si se cancela.
 
@@ -516,6 +527,9 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `is-open` | `g-sidebar__sub` | Submenú abierto (cerrado: sin la clase y con `inert`) |
 | ~~`is-instant`~~ | — | Sustituida por `data-instant` del nodo de la pista (#436) |
 | `is-entering` | Raíz en `navbar` | Solo mientras la barra entra al pasar a este formato (bruno la pone y la quita al terminar la animación) |
+| `g-sidebar__filter`, `__filter-box`, `__filter-icon`, `__filter-input`, `__filter-hint`, `__filter-clear`, `__filter-count` (+ `is-empty`) | Filtro del índice en la cabecera | Con `filter` (#1035) |
+| `is-filtering` | Raíz y botón del filtro del riel | Hay consulta (#1035) |
+| `data-code` | `g-sidebar__icon` | El item lleva `code` (#1036) |
 
 ## Resolución de hallazgos de r01
 
@@ -570,6 +584,103 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 5. `CHANGELOG.md`: cambio visible del actual (asiento con relleno) y de `color` (ya no la píldora).
 
 **mora-docs (`GSidebar/README.md`, después de la auditoría de coco):** el asiento y sus tres estados; las ranuras con un ejemplo de identidad propia (y su oscuro); `color` solo para contadores; `breakpoints` con el caso real; el icono va sin fondo (11-C).
+
+## Filtro del índice (S-L3 del marco del sitio, concepto A; #1035)
+
+**Origen:** concepto A «El índice se escribe» de `design/lab/sitio/r01/` (elegido por el usuario el 2026-11-08, #1034): un campo en la cabecera **filtra la lista en su sitio** mientras se escribe, y un número lleva a su entrada (`/` `2` `4` Intro). Kiwi lo midió con un campo de la aplicación en el slot `search` (411/411, tres motores); se contrata **dentro de `GSidebar`** porque el recuento anunciado, Esc sin propagar, ↓ a la lista, Intro al primero y el trato de grupos vacíos, padres, asiento y drawer solo salen bien por construcción, y sirve igual a un administrador con decenas de módulos (inventario #13: ERP, hospital).
+
+### Anatomía (en `g-sidebar__head`, fuera del `<nav>`)
+
+```html
+<div class="g-sidebar__filter">
+  <div class="g-sidebar__filter-box">
+    <label class="g-sidebar__sr" for="ID-filter">Filtrar el índice</label>
+    <span class="g-sidebar__filter-icon" aria-hidden="true">…slot search-icon…</span>
+    <input class="g-sidebar__filter-input" id="ID-filter" type="search" placeholder="Nombre o número"
+           autocomplete="off" spellcheck="false" enterkeyhint="go" aria-describedby="ID-count" aria-controls="ID-nav"
+           aria-keyshortcuts="/ Control+K Meta+K">
+    <kbd class="g-sidebar__filter-hint" aria-hidden="true">/</kbd>                  <!-- solo vacío -->
+    <button class="g-sidebar__filter-clear" type="button" aria-label="Vaciar el filtro">…GLibIcon x…</button>   <!-- solo con texto -->
+  </div>
+  <p class="g-sidebar__filter-count" id="ID-count">24 de 90 páginas</p>
+</div>
+```
+
+- **Campo nativo `type="search"`** con `<label>` oculto (`labels.filter`), no `combobox`: filtra una lista que sigue siendo la navegación, sin lista emergente ni opción activa (APG no pide más; un `combobox` mentiría sobre lo que hay). El `<nav>` lleva `id` para `aria-controls`.
+- **Recuento visible siempre** (`labels.filterCount(shown, total)`; sin coincidencias, `labels.filterNone(query)` con la clase `is-empty`), unido al campo por `aria-describedby`.
+- **Botón de vaciar** (`labels.filterClear`, icono `x` de la librería) solo con texto: para el puntero y el táctil (≥ 44 px con `pointer: coarse`); el teclado tiene Esc.
+- **Texto editable con puntero grueso:** 16 px (`max(16px, <rol>)`, #970).
+
+### Qué coincide
+
+- **Normalización:** sin mayúsculas ni diacríticos (NFD), como «Letras en listas de comandos» (`api.md`, #658/#797); se recortan los espacios de los extremos. El motor de comparación se comparte con `utils/menuNav.js` (sin duplicarlo).
+- **Consulta solo de dígitos** (1 a 3): coincide el item cuyo `code` **empieza** por la consulta, o cuyo valor numérico es igual («2» encuentra `02` y `20`–`29`; «24», solo `24`). Los items sin `code` no coinciden con una consulta numérica.
+- **Otra consulta:** coincide el item cuya `label`, o alguna de sus `keywords` (arreglo de cadenas: otro idioma, alias, `slug`), **contiene** la consulta; también si su `code` coincide literalmente.
+- **El título del grupo no cuenta** (un grupo no aparece entero por su nombre; reservado si un caso lo pide).
+- **Padres e hijos:** un padre se ve si él o alguno de sus hijos coincide; si coincide el padre, se ven todos sus hijos; si solo coinciden hijos, solo esos. **Mientras hay consulta, todo padre visible está abierto** (`is-open`, sin `inert`, `aria-expanded="true"`); al vaciar, cada padre vuelve al estado que tenía.
+- **`filterable: false`** (en un grupo o un item): nunca se oculta ni se cuenta. Es para lo que **la aplicación ya filtró** con la misma consulta (en el sitio, el grupo «En el texto» con las coincidencias de texto completo); la aplicación lo incluye en `items` solo cuando hay consulta.
+
+### Qué se ve y qué se cuenta
+
+- **Lo que no coincide se oculta con `hidden` en su `<li>`, sin desmontar** (mismo DOM; nada se reconstruye). Un **grupo sin items visibles** se oculta entero, título incluido: nunca un título sobre una lista vacía.
+- **Total y visibles** cuentan **destinos**: items con `href` o de solo acción y los hijos; no los padres, no los deshabilitados, no lo que lleva `filterable: false`.
+- **Asiento y `aria-current`:** no cambian. Si el actual no coincide, queda oculto con su `aria-current`; la rama tampoco cambia. Al vaciar el filtro, el actual se trae a la vista (`scrollIntoView({ block: 'nearest' })`).
+- **Desplazamiento de la región:** cada cambio de la consulta lleva la región de navegación al principio (los resultados empiezan arriba).
+- **La luz** (#957) se apaga al cambiar la consulta (puede estar sobre una fila que se ocultó) y vuelve con el siguiente movimiento del puntero.
+
+### Teclado (en el campo)
+
+| Tecla | Qué hace |
+| --- | --- |
+| Escribir | Filtra en cada cambio (sin espera); `update:query` |
+| **Intro** | Activa el **primer destino visible y habilitado** en orden del documento con `el.click()` (clic sintético: botón 0, sin modificadores; pasa por la guarda de #505 y emite `navigate` como un clic real). Sin consulta o sin coincidencias, nada. Durante una composición de IME, nada |
+| **↓** | Lleva el foco al primer item visible de la lista (desde ahí, el teclado de siempre) |
+| ↑ en el **primer** item visible de la lista | Vuelve al campo (regla nueva; en el resto de la lista ↑ sigue igual) |
+| **Esc** con texto | Vacía (`update:query` con `''`), el foco se queda, y **no se propaga** (no cierra el drawer) |
+| Esc vacío | Se propaga: en el drawer, lo cierra (como hoy) |
+
+**Atajo global (`/`, ⌘K):** lo registra **la aplicación** (fuera de un campo editable) y llama a `focusFilter()`; Grana no escucha el documento. `filterKeyshortcuts` solo publica el atajo en `aria-keyshortcuts`.
+
+### Método
+
+| Método | Firma | Qué hace |
+| --- | --- | --- |
+| `focusFilter` | `focusFilter(): void` | Expandida: enfoca el campo y selecciona su texto. Riel: hace lo del botón del filtro (abajo). Drawer o navbar: emite `update:open` con `true` y enfoca el campo cuando el drawer está abierto (si la aplicación no lo abre, nada). Sin `filter`, nada |
+
+Expuesto con `defineExpose`; consta en `meta.json` (`methods`).
+
+### Anuncio
+
+**Cortés, 600 ms después del último cambio** (la regla de `GCombobox`), por el canal cortés de página (`announcePage`, #533): `filterCount(shown, total)` o `filterNone(query)`. Al vaciar, nada. Las funciones son de la aplicación, que puede sumar lo suyo (en el sitio, «y 3 en el texto»).
+
+### Por formato
+
+- **Expandida:** campo en la cabecera, bajo el logo (sustituye al disparador de búsqueda).
+- **Riel:** el campo no cabe: un **botón de filtro** con la anatomía de `g-sidebar__search` (nombre `labels.filter`, pista del riel #436). Activarlo hace lo del botón de expandir (`update:collapsed` con `false`; con `overlay`, encima del contenido) y después enfoca el campo. **La consulta se conserva entre formatos** (un solo estado de navegación): contraer con consulta deja el riel filtrado, y el botón lleva `is-filtering` (marca de coco) y el recuento en su texto oculto (`g-sidebar__sr`).
+- **Drawer:** campo en la cabecera del drawer, como en expandida.
+- **Navbar:** la barra **no se filtra** (es estable); el campo vive en el drawer de «Más».
+
+### Movimiento (#1040)
+
+**Ninguno.** Filtrar oculta y muestra al instante: la lista se encoge donde ya está la mirada, sin alturas animadas ni elementos que viajen (rúbrica C y D: nada se desliza mientras se lee; G: sin coste de animación por tecla). Los padres que se abren por la consulta tampoco animan su altura (sí al abrirlos a mano, como hoy).
+
+### Rendimiento
+
+Filtrar 500 destinos en Chromium: **< 16 ms por tecla** sin desmontar items; sin lecturas de caja por tecla (salvo el `scrollTop` de la región). Lo mide bruno con una prueba de rendimiento (`--workers=1`).
+
+### Avisos (`[Grana] GSidebar`, guarda canónica de #653)
+
+**F1** `filter` con `search`: `search` no actúa. **F2** `filter` con el slot `search`: manda el slot. **F3** `filter` sin `labels.filter`, `labels.filterCount`, `labels.filterNone` o `labels.filterClear`. **F4** `keywords` que no es un arreglo de cadenas: se ignora.
+
+## Código del item: el número en el asiento (#1036)
+
+**Origen:** concepto A: «cada componente tiene un número estable que vive dentro del asiento (#612): lleno = estás aquí». Kiwi lo pintó con el slot `icon`; se contrata como **campo del item** porque el filtro lo necesita como dato (consulta numérica) y el nombre accesible debe llevarlo (2.5.3).
+
+- **`code`** (String, **1 a 3 caracteres** recomendados, p. ej. `'24'`, `'§7'`): un identificador corto que se pinta **dentro del asiento** en lugar del icono. Precedencia en `g-sidebar__icon`: slot `icon` › `code` › `icon` por nombre. Con `code` **e** `icon`, se pinta el `code` (aviso C1). Más de 3 caracteres: se pinta igual y avisa (aviso C2; puede desbordar el asiento).
+- **Solo en items de primer nivel** (los que tienen asiento). En un hijo se ignora (aviso C3).
+- **Asiento con código** (`g-sidebar__icon` con `data-code`): el texto en `--g-text-caption-*` (≥ 12 px) con cifras tabulares, `--g-font-ui`, `--g-text-action-weight`. Lleno: `--g-sidebar-on-current` sobre `--g-sidebar-current` (P1 ya exige 4,5:1, que vale para texto). **En reposo y en el asiento hueco de la rama el código es texto sobre la carcasa: ≥ 4,5:1** (`--g-color-text-muted` o el que coco mida). Riel y drawer, igual. **Navbar:** la celda pinta el código donde iría el icono; la píldora, igual.
+- **Nombre accesible** (WCAG 2.5.3, la etiqueta visible está en el nombre y en el mismo orden): el asiento sigue `aria-hidden` y el enlace lleva antes de `g-sidebar__label` un `g-sidebar__sr` con `code` + espacio: «24 GCombobox, enlace, página actual». Así el control por voz («pulsa 24») y el lector coinciden con lo que se ve. La pista del riel dice la `label` sola (el código ya se ve).
+- `code` es **de la aplicación** (Grana no numera): su estabilidad es contrato de quien lo da (en el sitio, #1037).
 
 ## Límites conocidos
 

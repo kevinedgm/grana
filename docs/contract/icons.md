@@ -1,6 +1,6 @@
-# Contrato de iconos · v0.14
+# Contrato de iconos · v0.15
 
-**Dueño:** lima · DECISIONS.md #85, #86 (revisada por #197), #87, #197 a #203, #204 a #206, #224, #253, #296, #336, #377, #537, #575, #602, #647, #744 y #776 · **Basado en:** `design/lab/icons/r01/` (kiwi; `brief.md`, `declaracion.md`, `index.html`, `verificar.mjs` 53/53). **Regla única: [Lucide](https://lucide.dev) (licencia ISC) es la única fuente de iconos** en todo el repositorio (componentes, prototipos, bancos de prueba, playground, README y documentación) y, desde la v0.2, **también en lo que una aplicación dibuja con `GIcon`** (#198).
+**Dueño:** lima · DECISIONS.md #85, #86 (revisada por #197), #87, #197 a #203, #204 a #206, #224, #253, #296, #336, #377, #537, #575, #602, #647, #744, #776, #1035 y #1038 · **Basado en:** `design/lab/icons/r01/` (kiwi; `brief.md`, `declaracion.md`, `index.html`, `verificar.mjs` 53/53). **Regla única: [Lucide](https://lucide.dev) (licencia ISC) es la única fuente de iconos** en todo el repositorio (componentes, prototipos, bancos de prueba, playground, README y documentación) y, desde la v0.2, **también en lo que una aplicación dibuja con `GIcon`** (#198).
 
 **Cambios respecto a la v0.1:** `GIcon` pasa a ser **público** (§2; #197, #199) con registro de iconos **por aplicación** (`createIcons`, §5; #200); la validación «solo Lucide» se impone a la aplicación por la forma del dato (§5.3; #198); la lista de la librería es **API pública** (§4; #201); convención de huecos «dato → nombre; plantilla → slot» (§5.8, `api.md`; #202); hueco `lead` en `GFormSection` (#203). Sin tokens nuevos.
 
@@ -25,6 +25,8 @@
 **Cambios respecto a la v0.12:** la lista crece (cambio menor, #201) con **`play`**, el icono del botón de pausa de `GHero` en pausa (`design/contracts/hero.md` «Movimiento del vídeo»; #744; `pause` ya estaba por la captura de voz). Corrige H-L8 de `design/lab/hero/r01/`, que lo daba por incluido: `play` **no** estaba (era uno de los ejemplos de `GCard` que se dejaron fuera, #137). Nombre canónico comprobado por lima en `lucide-static` (`dist/esm/icons/play.mjs`, marca `lucide-play`; ya en `playground` y `lab` de `scripts/icons.json`). **Bruno** lo añade a `library` y regenera la lista antes de usarlo. `GGallery` (`chevron-left`, `chevron-right`, `x`, `zoom-in`, `zoom-out`, `image`) y `GBookingBar`/`GPartyField` (`calendar`, `users`, `chevron-down`, `x`) no traen ninguno nuevo; **`star`, `utensils`, `bed-double`, `clock`, `map` y `ticket` no entran** (los piden recetas o apariencias reservadas, no un componente: los registra la aplicación con `createIcons`, §5). Sin tokens nuevos ni cambios de API de `GIcon`.
 
 **Cambios respecto a la v0.13:** sin iconos nuevos. `GPrice` (`design/contracts/price.md`, referencia `trace` de C; #776) usa **`arrow-right`** (ya en la lista por `GTable`, #602), decorativa dentro de lo visible `aria-hidden` y siempre con **`flip-rtl`** (la flecha va de la referencia al precio actual en el sentido de lectura). Sin tokens nuevos ni cambios de API de `GIcon`.
+
+**Cambios respecto a la v0.14:** sin iconos nuevos. El filtro del índice de `GSidebar` (`sidebar.md` §«Filtro del índice»; #1035) usa **`x`** para vaciar (ya en la lista, y ya de `GSidebar`); su lupa es de la aplicación (slot `search-icon`). `GPageIndex` (`page-index.md`; #1038) usa **`chevrons-up-down`** en su disparador (ya en la lista por `GTable` y `GCombobox`). Los iconos del marco del sitio (`sun`, `moon`, `monitor`, `languages`…) los registra el sitio como aplicación (`site/.vitepress/theme/icons.js`, §5): no entran en la lista (§4, «Qué entra»).
 
 ## 1. Qué es un icono (y qué no)
 
@@ -144,7 +146,7 @@ Nombre de Lucide entre comillas.
 | `GDatePicker` | Icono del campo · mes anterior · siguiente · cierre de la hoja · punto de hoy | `calendar` · `chevron-left` · `chevron-right` · `x` · `circle` (rellena) |
 | `GCalendar` | Anterior · siguiente · puntos de eventos · punto de la línea de ahora | `chevron-left` · `chevron-right` · `circle` (rellena) · `circle` (rellena) |
 | `GDialog` | Cierre | `x` |
-| `GSidebar` | Chevron de un padre · cierre del drawer | `chevron-right` (gira) · `x` |
+| `GSidebar` | Chevron de un padre · cierre del drawer · vaciar el filtro del índice (#1035) | `chevron-right` (gira) · `x` · `x` (**ninguno nuevo**) |
 | `GBadge` | Figuras: círculo · cuadrado · rombo · triángulo · punto de estado | `circle` · `square` · `diamond` · `triangle` · `circle` (rellenas) |
 | `GMetric` | Tendencia: sube · baja · igual | `arrow-up` · `arrow-down` · `minus` |
 | `GDataList` | Muestras de la leyenda | `circle` · `square` · `diamond` · `triangle` (rellenas) |
@@ -178,6 +180,7 @@ Nombre de Lucide entre comillas.
 | `GHero` (`hero.md`; #744) | Botón de pausa del vídeo: en marcha · en pausa | `pause` · `play` (**uno nuevo: `play`**) |
 | `GGallery`, `GGalleryViewer` (`gallery.md`; #744) | Anterior · siguiente (espejados en RTL) · cerrar · ampliar · reducir · foto rota | `chevron-left` · `chevron-right` · `x` · `zoom-in` · `zoom-out` · `image` (**ninguno nuevo**) |
 | `GBookingBar`, `GPartyField` (`booking-bar.md`; #744) | Campo de fecha (por `GDatePicker`) · grupo · chevron de los huecos y del disparador · cierre de la hoja (por `GDialog`) | `calendar` · `users` · `chevron-down` · `x` (**ninguno nuevo**) |
+| `GPageIndex` (`page-index.md`; #1038) | Disparador del relevo (decorativo) | `chevrons-up-down` (**ninguno nuevo**) |
 | `GPrice` (`price.md`; #776) | Flecha de la referencia al precio actual en C (`compareStyle="trace"`; decorativa, con `flip-rtl`) | `arrow-right` (**ninguno nuevo**) |
 
 **Alias de compatibilidad (#206):** `circle-help` estaba en la lista de la v0.2 con el nombre de un **archivo de alias** de `lucide-static` (`icons/circle-help.svg`, marca `lucide-circle-help`), no con el canónico: en `lucide-static` 1.49.0 `CircleHelp`, `HelpCircle` y `CircleQuestionMark` exportan el mismo módulo, `circle-question-mark`. Desde la v0.3 la lista usa el canónico **`circle-question-mark`** y **conserva `circle-help`** como alias del mismo dibujo (sin bytes duplicados en el paquete), sin aviso, hasta la siguiente versión mayor (#201: quitar un nombre es cambio mayor); está **obsoleto**: la documentación y los componentes usan el canónico. Es el único alias; uno nuevo solo entra por una decisión de lima cuando Lucide renombre un icono de la lista (§7, prueba 9).
