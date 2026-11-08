@@ -1,8 +1,8 @@
 # GDatePicker
 
-Selector de **una fecha o de un rango de fechas**. Muestra uno o dos meses según el ancho disponible, se abre desde un campo (popover en escritorio, hoja inferior en móvil) o vive en línea dentro de un Dialog o una página. El rango es una **franja continua** entre el inicio y el fin, y el valor es una **cadena ISO `YYYY-MM-DD`** (sin hora ni zona: no hay desfase de un día).
+Selector de **una fecha o de un rango de fechas**. Muestra **un mes por defecto** (dos con `months="auto"` o `months="2"`), deja saltar a otro mes o año desde el título, se abre desde un campo (popover en escritorio, hoja inferior en móvil) o vive en línea dentro de un Dialog o una página. El rango es una **franja continua** entre el inicio y el fin, y el valor es una **cadena ISO `YYYY-MM-DD`** (sin hora ni zona: no hay desfase de un día).
 
-**Etiqueta:** `<g-datepicker>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/datepicker/auditoria.md`](../../../../../design/lab/datepicker/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-datepicker>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/datepicker/auditoria.md`](../../../../../design/lab/datepicker/auditoria.md) y, para la r02, [`auditoria-r02.md`](../../../../../design/lab/datepicker/auditoria-r02.md)) · **Desde:** 0.1.0
 
 > `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`. Usa `popover`, `Intl` y, para el primer día de la semana, `Intl.Locale.getWeekInfo` cuando el navegador lo trae.
 
@@ -26,7 +26,10 @@ const labels = {
   prev: 'Mes anterior', next: 'Mes siguiente', dialog: 'Elegir fechas', close: 'Cerrar',
   today: 'hoy', selected: 'seleccionada', rangeStart: 'inicio del rango', rangeEnd: 'fin del rango',
   rangeSingle: 'inicio y fin del rango', inRange: 'dentro del rango', unavailable: 'no disponible',
-  clear: 'Limpiar', done: 'Listo', proximityGroup: 'Ampliar el rango'
+  clear: 'Limpiar', done: 'Listo', proximityGroup: 'Ampliar el rango',
+  // Salto a mes y año (requeridas, también con inline)
+  chooseMonth: 'elegir mes', chooseYear: 'elegir año', prevYear: 'Año anterior', nextYear: 'Año siguiente',
+  prevYears: 'Doce años antes', nextYears: 'Doce años después'
 }
 </script>
 
@@ -36,6 +39,48 @@ const labels = {
 ```
 
 > **Nombre de la etiqueta:** Vue resuelve `<g-datepicker>` como `GDatepicker`; por eso el registro de Grana incluye ese alias además de `GDatePicker` (también funciona `<g-date-picker>`). En plantillas dentro del HTML (sin compilar), escribe `<g-datepicker ...></g-datepicker>`: Vue no admite etiquetas de componente autocerradas.
+
+## Un mes, compacto o dos meses (r02)
+
+Con la r02 (DECISIONS #1020 a #1031) el selector abre **un mes** si no pides otra cosa, y el título permite saltar a otro mes o año. Cada forma es una prop:
+
+```vue
+<!-- Fragmento: `fecha`, `fechas` y `labels` son de tu aplicación (labels con las claves de «Textos») -->
+
+<!-- 1. Un mes (lo de siempre desde la r02): la fecha de un formulario -->
+<g-datepicker v-model="fecha" label="Fecha de nacimiento" :labels="labels" />
+
+<!-- 2. Compacto: la superficie sigue la densidad del campo (también con inline) -->
+<g-datepicker v-model="fecha" density="compact" label="Fecha" :labels="labels" />
+
+<!-- 3. Dos meses: un rango donde importa ver el tramo entero -->
+<g-datepicker v-model="fechas" mode="range" months="auto" label="Estancia" :labels="labels" />
+```
+
+| Forma | Medida con el tema por defecto (`medido`, coco, Chromium a 1280 px) |
+| --- | --- |
+| Un mes | mes de 280 px, panel de 330 px; celda de 40 px |
+| Compacto (`density="compact"`) | celda de 30 px (44 px con puntero grueso); un mes de 216 px y panel de **254 px**; dos meses, 210 + 210 px y panel de 488 px |
+| Dos meses (`2` o `auto` resuelto a dos) | 340 + 340 px, panel de **770 px** (con `space` 5: 425 + 425 y 950) |
+
+**Cambio de comportamiento (#1021).** Antes `months` valía `auto` y en escritorio se abrían dos meses si cabían. Ahora vale `1`, en `single` y en `range`. Si tu aplicación dependía del defecto, escribe `months="auto"` (dos meses si caben) o `months="2"`. `GBookingBar` ya lo fija a `auto` y no cambia; los campos de fecha de `@grana/blocks` (formulario de huésped, pago) pasan a un mes a propósito.
+
+### Salto a mes y año
+
+El título del mes son **dos botones** («noviembre» y «2026», con `chevron-down`) que cambian la vista **en el sitio**, sin abrir otro panel. Hay tres vistas, con el panel y la cabecera a la misma medida (Δ 0, `medido`, cuatro temas y tres motores):
+
+| Vista | Cómo se llega | Qué muestra |
+| --- | --- | --- |
+| Días | Al montar y cada vez que se abre | El mes de siempre |
+| Meses | Botón del mes o del año | Rejilla 3 × 4 de meses; flechas de año anterior y siguiente |
+| Años | Botón del año, desde meses | Rejilla 3 × 4 de doce años (empieza en el año mostrado menos 4); flechas de doce años |
+
+- **Elegir en estas vistas no cambia el valor:** solo navega. Un año baja a sus meses; un mes baja a sus días, con el mismo número de día recortado al último del mes (31 pasa a 28). Si cambia el primer mes visible, se emite `navigate`; recorrer meses o años sin bajar no emite.
+- **Teclado de las rejillas:** flechas ±1 (en meses cruza de año), ↑ ↓ ±3, Inicio y Fin de fila, Ctrl + Inicio y Fin (enero y diciembre, o primero y último de la página), Re Pág y Av Pág (año o página de doce), Intro y Espacio bajan un nivel.
+- **Escribir el año:** con el foco en la rejilla de años, las cifras (hasta cuatro) saltan a ese año, recortado a `min`/`max`; Retroceso borra la última; sin cifra nueva en 1,5 s se vacía el búfer. La pista visible sale de `labels.typeYear`.
+- **Esc sube un nivel antes de cerrar:** vacía las cifras, vuelve a la vista anterior sin elegir (con el foco en el botón del título) y, desde los días, cierra el popover. Cuando lo consume, no llega a un `GDialog` que contenga un `inline`. Volver con Esc no navega.
+- **`min` y `max`:** un mes o un año **entero** fuera de rango se pinta tachado (`is-disabled`, `aria-disabled`), recibe foco y no se elige; las flechas del borde llevan `aria-disabled` y no pasan a un año o una página enteros fuera. Sin `min`/`max`, los años van de 1 a 9999.
+- **Con dos meses,** meses y años ocupan la caja de los dos con una sola cabecera; abierto desde la segunda columna, el mes elegido queda segundo.
 
 ## Formas de uso
 
@@ -85,7 +130,7 @@ Con el slot `trigger` no se renderizan `label`, `hint`, `error`, `name` ni `spli
 | `dayDescription` | Function | `(iso) => string`: texto que se añade al nombre accesible del día (ver «Precio y otros datos del día») | sin valor |
 | `disabledNights` | Function | solo `range`: `(iso) => boolean`, la noche que empieza `iso` está agotada (ver «Noches y salida») | sin valor |
 | `minNights`, `maxNights` | Number | solo `range`: noches mínimas (entero ≥ 1) y máximas (entero ≥ `minNights`) | sin valor |
-| `months` | String \| Number | `auto` `1` `2` | `auto` |
+| `months` | String \| Number | `auto` `1` `2` | `1` (antes `auto`, ver «Un mes, compacto o dos meses») |
 | `locale` | String | etiqueta BCP 47 | la de `<html lang>` |
 | `firstDay` | Number | 0 (domingo) a 6 | el del idioma (lunes si el navegador no lo sabe) |
 | `labels` | Object | ver «Textos» | `{}` |
@@ -94,7 +139,8 @@ Con el slot `trigger` no se renderizan `label`, `hint`, `error`, `name` ni `spli
 | `closeOnSelect` | Boolean | ver «Cierre» | sin valor |
 | `anchor` | String \| Element | selector CSS o elemento | el campo |
 | `color` | String | `brand` `accent` `neutral` `success` `warning` `danger` `info` | `brand` (color de la selección) |
-| `variant`, `size`, `density`, `rounded`, `block` | | como `GSelect` (solo el **campo**) | `outline`, `md`, `default` |
+| `variant`, `size`, `rounded`, `block` | | como `GSelect` (solo el **campo**) | `outline`, `md`, `default` |
+| `density` | String | `default` `comfortable` `compact` | sin valor: la región; resuelve a `default`. Aprieta el **campo y la superficie**, también con `inline` |
 | `disabled`, `readonly` | Boolean | | `false` |
 | `label`, `hint`, `error`, `placeholder`, `required`, `name`, `id` | | como `GSelect` (campo) | sin valor |
 | `warning`, `valid` | String | como `GInput`: mensaje único bajo el campo (`error` → `warning` → `valid`); la advertencia no bloquea ni pone `aria-invalid` | sin valor |
@@ -105,8 +151,8 @@ Con el slot `trigger` no se renderizan `label`, `hint`, `error`, `name` ni `spli
 Un valor de prop fuera de su lista avisa en desarrollo. `loading` **no aplica**.
 
 - **`modelValue` inválido** (formato, `2026-02-30`, `start` posterior a `end`, o un tipo que no corresponde al `mode`) se trata como vacío y avisa **una vez** en desarrollo. El componente **no recorta** un valor fuera de `min`/`max`: lo muestra tal cual.
-- **`months="auto"`:** dos meses si el ancho disponible los deja con celdas cómodas, uno si no. El umbral **no es un número fijo**: sale de la **celda medida** (`--g-space-1 × 10`, o 44px con puntero táctil): con el tema por defecto, unos 648px (unos 812px con `space` 5). El ancho disponible es el del contenedor (en línea) o el de la ventana (popover), o el del `anchor` si lo das. En móvil es siempre un mes.
-- **`inline`:** ignora las props de campo (`label`, `hint`, `error`, `placeholder`, `required`, `name`, `split`, `size`, `density`, `rounded`, `block`, `variant`) y avisa una vez en desarrollo.
+- **`months`:** `1` por defecto. `2` fuerza dos meses. **`auto`** mide y pone dos si caben, uno si no. El umbral **no es un número fijo**: sale de la **celda medida** (`--g-space-1 × 10`, o 44px con puntero táctil): con el tema por defecto, unos 648px (unos 812px con `space` 5). El ancho disponible es el del contenedor (en línea) o el de la ventana (popover), o el del `anchor` si lo das. En móvil es siempre un mes. En compacto la celda es menor y caben dos meses antes. Dos meses miden 340 + 340 px (panel de 770 px) con el tema por defecto.
+- **`inline`:** ignora las props de campo (`label`, `hint`, `error`, `placeholder`, `required`, `name`, `split`, `size`, `rounded`, `block`, `variant`; `density` ya no avisa: aprieta la superficie) y avisa una vez en desarrollo.
 - **`name`:** `single` renderiza un `<input type="hidden" name>` con el ISO; `range` renderiza **dos**: `name-start` y `name-end`. Un campo oculto no participa en la validación nativa: valida tú y usa `error`.
 - **`error`:** deja el campo inválido (`aria-invalid`, mensaje visible con región viva siempre presente). **El componente no valida.**
 - **`readonly`:** el campo se enfoca pero no abre; en `inline`, navega sin elegir. **`disabled`:** sin foco ni envío.
@@ -178,7 +224,7 @@ Para un rango de **noches** (una estancia), donde lo que se agota es la noche y 
 
 | Clave | Uso | ¿Requerido? |
 | --- | --- | --- |
-| `prev`, `next` | Nombre de los botones de mes anterior y siguiente | **Sí** (aviso en desarrollo) |
+| `prev`, `next` | Nombre de los botones de mes anterior y siguiente | **Sí** (aviso en desarrollo; con las seis claves nuevas, un solo aviso con las que falten) |
 | `dialog` | Nombre accesible del popover | **Sí**, sin `inline` |
 | `close` | Nombre del botón de cierre de la hoja móvil | **Sí**, sin `inline` |
 | `today`, `selected`, `rangeStart`, `rangeEnd`, `rangeSingle`, `inRange`, `unavailable` | Sufijo del nombre de cada día: «…, hoy», «…, inicio del rango»… | No (recomendados: sin ellos, un día se nombra solo con su fecha) |
@@ -186,6 +232,12 @@ Para un rango de **noches** (una estancia), donde lo que se agota es la noche y 
 | `clear`, `done` | «Limpiar» y «Listo». **Cada botón solo existe si tiene texto** | No (`done` hace falta en la hoja móvil y con `proximity`) |
 | `proximityGroup` | Nombre del grupo de chips | No (recomendado con `proximity`) |
 | `announceStart`, `announceEnd`, `announceDate`, `announceWiden`, `announceClear` | Mensajes de la región viva; marcadores `{date}`, `{start}`, `{end}`, `{days}` (días **inclusivos**) | No: sin ellos, **no se anuncia** cada paso |
+| `chooseMonth`, `chooseYear` | Sufijo del nombre de los botones del título: «noviembre, elegir mes», «2026, elegir año» | **Sí** (también con `inline`) |
+| `prevYear`, `nextYear` | Flechas de la vista de meses | **Sí** |
+| `prevYears`, `nextYears` | Flechas de la vista de años (doce años) | **Sí** |
+| `viewMonths`, `viewYears` | Nombre de las rejillas de meses (`{year}`) y de años (`{from}`, `{to}`) y anuncio al cambiar de año o de página | No (recomendados) |
+| `typeYear` | Pista visible de la vista de años («Escribe un año») | No |
+| `current`, `hasValue` | Sufijos del nombre de un mes o un año: «…, actual», «…, contiene lo elegido» | No (recomendados) |
 
 Los `proximity` van con su texto: `[{ days: 3, label: '± 3 días', ariaLabel: 'Ampliar el rango 3 días por cada lado' }]`. Si das `ariaLabel`, debe **contener** el texto visible (WCAG 2.5.3).
 
@@ -226,12 +278,12 @@ Métodos expuestos: `open()`, `close()` y `focus()`.
 | ← / → | Día anterior / siguiente (se invierten en RTL) |
 | ↑ / ↓ | Misma fecha en la semana anterior / siguiente |
 | Inicio / Fin | Primer / último día de la semana (según `firstDay`) |
-| Re Pág / Av Pág | Mes anterior / siguiente (el último día si no existe el mismo) |
+| Re Pág / Av Pág | Mes anterior / siguiente (el último día si no existe el mismo). En meses y años, año o página de doce |
 | Mayús + Re Pág / Av Pág | Año anterior / siguiente |
-| Esc | Cierra el popover, devuelve el foco al campo y descarta un inicio pendiente |
+| Esc | En meses o años, sube un nivel sin elegir. En días, cierra el popover, devuelve el foco al campo y descarta un inicio pendiente |
 | Tab | Recorre botones de mes, chips y acciones; al salir de la superficie, cierra |
 
-Si el día con foco sale de los meses visibles, se desplazan los meses. En táctil, **deslizar horizontalmente** cambia de mes.
+Las teclas de las vistas de meses y años están en «Salto a mes y año». Si el día con foco sale de los meses visibles, se desplazan los meses. En táctil, **deslizar horizontalmente** cambia de mes.
 
 ## Accesibilidad
 
@@ -243,7 +295,8 @@ Si el día con foco sale de los meses visibles, se desplazan los meses. En táct
 - **Contraste** (auditoría): con el tema por defecto, texto de día 17.4:1, atenuado y tachado 5.10:1, bordes del campo y de los chips 3.45:1; con un tema distinto (espacio 5, foco de 3px), 6.18:1 o más en el texto atenuado. **Con `forced-colors`** la franja pasa a un borde superior e inferior y la selección conserva su borde.
 - **Contorno del día elegido** (DECISIONS #431 y #432): el día elegido conserva su relleno y gana un trazo interior de `--g-border-width` en `--g-color-{color}-text` (el componente gana la variable interna `--_text`). El día **elegido y hoy** conserva su aro `on-{color}` de dos trazos, que es la señal de hoy. Sin cambio visible con el tema por defecto. Medido (medido por coco, [`design/lab/contraste-marcado/estilo.md`](../../../../../design/lab/contraste-marcado/estilo.md), tres motores) en el tema por defecto, lustre, spotify y uno con clave `primary` propia, claro y oscuro, con `brand`, `accent` y `warning`: día elegido **4.07:1 o más** sobre la franja `-soft` y elegido y hoy **4.53:1 o más**. La franja de rango no cambia: ya se distingue por sus filos `border-control` (3.19:1 o más).
 - **Dato del día que no cabe (AV-C1):** con el texto al 200 % o con importes largos, el dato sale de las celdas y se lee bajo la cuadrícula; el nombre del día conserva el precio y la lectura es `aria-hidden` (nada se anuncia dos veces). Ningún contenido visible fuera de su celda: 0 solapes (`medido`, `lectura-verificar.mjs` 654/654 en los tres motores).
-- **Movimiento:** transiciones de color y el panel anclado: entra con un fundido y un desplazamiento de `space × 1` desde el lado del disparador (`--g-duration-press`) y sale con un fundido de `--g-duration-fast` en `linear` (#1002, #1019); en Firefox y WebKit el cierre es instantáneo (D2 · A, aceptado). Con `prefers-reduced-motion` no hay desplazamiento: queda solo el fundido.
+- **Movimiento del cambio de nivel (r02):** al subir (días a meses a años) la vista nueva entra con un fundido y un acercamiento de ≈ 3 % (escala 1,03 a 1) y al bajar un alejamiento (0,97 a 1), desde la pieza elegida, en `--g-duration-press` con `--g-ease-out`, sin rebote; la amplitud la manda `--g-press-scale` del tema (con 0,95, ≈ 5 %). Cambiar de mes con la flecha no anima. Es interrumpible (la vista es un elemento nuevo por nivel). Con `prefers-reduced-motion` queda solo el fundido de `--g-duration-fast` en `linear`, con escala 1. `medido` cuadro a cuadro en Chromium, Firefox y WebKit (8 a 9 cuadros, ≈ 115 a 140 ms; Δ 0 del panel y de la cabecera). El nivel lo dicen el foco y el nombre de la rejilla, no el movimiento.
+- **Movimiento general:** transiciones de color y el panel anclado: entra con un fundido y un desplazamiento de `space × 1` desde el lado del disparador (`--g-duration-press`) y sale con un fundido de `--g-duration-fast` en `linear` (#1002, #1019); en Firefox y WebKit el cierre es instantáneo (D2 · A, aceptado). Con `prefers-reduced-motion` no hay desplazamiento: queda solo el fundido.
 - **RTL:** las propiedades son lógicas; en la auditoría se invirtieron columnas, chevrones y franja, y las flechas siguen la dirección.
 
 ## Tema
@@ -262,11 +315,11 @@ Con un `GForm` alrededor el campo lee su contexto: densidad, solo lectura, desha
 
 ## Clases
 
-Las emite el componente y las estiliza `GDatePicker.css`: `g-datepicker` (con `--mode-*`, `--variant-*`, `--size-*`, `--density-*`, `--color-*`, `--rounded-*`, `--block`, `--inline`, `--split`, `is-open`, `is-disabled`, `is-readonly`, `is-invalid`), `__label`, `__field`, `__value`, `__pop`, `__surface`, `__months`, `__month`, `__title`, `__nav`, `__grid`, `__day` (con `is-selected`, `is-today`, `is-disabled`, `is-outside`, `is-inactive`), las celdas de la franja (`is-in-range`, `is-range-start`, `is-range-end`, `is-preview`, `is-cap-start`, `is-cap-end`), `__chip`, `__summary`, `__action`, `__sr`. Con rango de noches: `is-checkout-only` en el día «solo salida». Con el slot `trigger`: `g-datepicker--trigger`.
+Las emite el componente y las estiliza `GDatePicker.css`: `g-datepicker` (con `--mode-*`, `--variant-*`, `--size-*`, `--density-*`, `--color-*`, `--rounded-*`, `--block`, `--inline`, `--split`, `is-open`, `is-disabled`, `is-readonly`, `is-invalid`), `__label`, `__field`, `__value`, `__pop`, `__surface`, `__months`, `__month`, `__title`, `__nav`, `__grid`, `__day` (con `is-selected`, `is-today`, `is-disabled`, `is-outside`, `is-inactive`), las celdas de la franja (`is-in-range`, `is-range-start`, `is-range-end`, `is-preview`, `is-cap-start`, `is-cap-end`), `__chip`, `__summary`, `__action`, `__sr`. **r02:** `__stage` (caja de las rejillas), `__view` con `--days`, `--months` y `--years` (y `data-zoom` `in`/`out` solo al nacer de un cambio de nivel), `__head`, `__title-part` con `--month` y `--year`, `__title-live` (texto oculto vivo), `__nav--year` y `__nav--years`, `__grid--months` y `__grid--years`, `__pick` (con `is-current`, `is-selected`, `is-in-value`, `is-disabled`), `__years-hint`, `__typed` y `__typed-digit`, `__months--pair` (con dos meses). **Franja que sigue (#1027):** cuando el rango, o su vista previa, continúa fuera de lo visible, la primera o la última celda pintada lleva `is-open-start` o `is-open-end` en lugar de `is-cap-start` o `is-cap-end` (en dos meses, el primer día del primero y el último del segundo; el corte entre meses sigue redondeado); los nombres y `aria-selected` no cambian. Con rango de noches: `is-checkout-only` en el día «solo salida». Con el slot `trigger`: `g-datepicker--trigger`.
 
 ## Alcance
 
-- **No se puede escribir la fecha a mano** en el campo (cada idioma tiene su formato): el campo es un botón. **Sin** selección de varias fechas sueltas, hora, ni vistas de meses o años.
+- **No se puede escribir la fecha a mano** en el campo (cada idioma tiene su formato): el campo es un botón. En la vista de años sí se escribe el año. **Sin** selección de varias fechas sueltas ni hora. **Meses y años no ven `disabledDates` ni `disabledNights`** (serían hasta 366 llamadas por año): solo `min` y `max` los deshabilitan, y un mes con todos sus días deshabilitados por la función sigue siendo elegible.
 
 - **La franja del rango lleva bordes superior e inferior en `--g-color-border-control`** (DECISIONS #89, `GDatePicker.css`): su relleno suave solo medía 1,14:1 frente a la superficie con el tema por defecto (1,22:1 con el de la auditoría) y, como elemento gráfico, debe llegar a 3:1. Lo que identifica el rango sigue siendo el inicio y el fin (círculos de alto contraste), el nombre de cada día y el resumen.
 
@@ -294,8 +347,10 @@ Las emite el componente y las estiliza `GDatePicker.css`: `g-datepicker` (con `-
 
 - **Texto de 16px con puntero grueso (#970 a #972):** `medido` solo en Chromium con emulación táctil: `node design/lab/campo-tactil/verificar.mjs` 2007/2007 ([`auditoria.md`](../../../../../design/lab/campo-tactil/auditoria.md)) y `tests/campo-tactil.spec.mjs` 15/15. **Sin verificar:** WebKit (el motor de iOS), Firefox y un iPhone real con Safari, que es donde se comprueba que ya no amplía.
 
-- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
+- **r02 (#1020 a #1031):** auditoría de coco, `node design/lab/datepicker/auditoria-r02-verificar.mjs`: **5433/5436** en Chromium, Firefox y WebKit (`medido`); los tres fallos son el mismo hallazgo menor **B1** (el origen del zoom al bajar a días con dos meses queda 1 px de la celda con el tema por defecto, 2 px con `--g-press-scale` 0,95; derivado a bruno, no bloquea). El banco de estilo da 1426/1426 en Chromium. Los contrastes mínimos de los diez temas (elegido 4,53:1, texto 4,83:1, foco 4,57:1) están en la auditoría. **Las pruebas de vitest y de Playwright de bruno no se corrieron en esa auditoría** (solo cambió el CSS).
+- **Límites conocidos de la r02:** (1) **sin lector de pantalla real** sobre el título de dos botones, el nodo vivo y las rejillas de meses y años, ni táctil o teléfono reales; (2) **cierre del popover instantáneo en Firefox y WebKit** (la plataforma no anima la salida; en Chromium es un fundido de 132 ms); (3) `disabledDates` no cuenta para meses ni años; (4) **la guarda de cierre por coordenadas** (un cierre que viene del puntero no debe cerrar ni elegir, como en `GSelect`, #1001 y #1016) **no está aplicada** a `GDatePicker`: pendiente de lima (regla común) y de bruno, en [`PENDIENTES.md`](../../../../../PENDIENTES.md); (5) `forced-colors` solo se emula en Chromium, y el puntero grueso no se emula en Firefox.
+- **Pendientes abiertos:** B1 (bruno), la guarda de cierre por coordenadas y los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md).
 
 ## Fuentes
 
-- API: [`GDatePicker.meta.json`](./GDatePicker.meta.json) · Contrato: [`design/contracts/datepicker.md`](../../../../../design/contracts/datepicker.md) · Prototipo: [`design/lab/datepicker/r01/`](../../../../../design/lab/datepicker/r01/) · Auditoría: [`design/lab/datepicker/auditoria.md`](../../../../../design/lab/datepicker/auditoria.md)
+- API: [`GDatePicker.meta.json`](./GDatePicker.meta.json) · Contrato: [`design/contracts/datepicker.md`](../../../../../design/contracts/datepicker.md) · Prototipos: [`r01`](../../../../../design/lab/datepicker/r01/) y [`r02`](../../../../../design/lab/datepicker/r02/) · Auditorías: [r02](../../../../../design/lab/datepicker/auditoria-r02.md) y [`design/lab/datepicker/auditoria.md`](../../../../../design/lab/datepicker/auditoria.md)
