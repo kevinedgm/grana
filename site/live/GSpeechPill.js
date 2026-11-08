@@ -14,7 +14,7 @@ const ficha = defineComponent({
     const t = useT()
     useDemoSpeech()
     return () => h('div', { style: columna }, [
-      h(GSurface, { as: 'header', level: 'outlined', padding: 'sm', style: 'display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--g-space-2);min-block-size:calc(var(--g-space-1) * 14)' }, () => [
+      h(GSurface, { as: 'header', level: 'outlined', padding: 'sm', style: 'display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--g-space-2);min-block-size:calc(var(--g-space-1) * 21)' }, () => [
         h('strong', t('Consulta · Lucía Herrera', 'Consultation · Lucía Herrera')),
         props.scenario === 'header' ? h(GSpeechPill) : null
       ]),

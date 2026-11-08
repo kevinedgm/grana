@@ -75,7 +75,10 @@
   position: relative;
   min-block-size: 10rem;
   display: grid;
-  place-items: center;
+  /* Arriba y centrado en horizontal, no en vertical: la fila crece con la columna lateral y un componente
+     centrado bajaría con cada evento o cambio de lectura (el menú «se iba desplazando hacia abajo»). */
+  place-items: start center;
+  align-content: start;
   padding: var(--g-space-8) var(--g-space-4);
   overflow-x: auto;
   background-color: var(--g-color-bg);
@@ -376,4 +379,15 @@
   border: var(--g-border-width) dashed var(--g-color-border-strong);
   border-radius: var(--g-radius-md);
   color: var(--g-color-text-muted);
+}
+/* El registro tiene el alto de sus seis líneas desde el principio: la vista previa no se mueve con cada evento. */
+.grana-live__logbox {
+  block-size: calc(var(--g-text-caption-line) * 6 + var(--g-space-1) * 5);
+  overflow: hidden;
+}
+.grana-live__log li,
+.grana-live__model {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

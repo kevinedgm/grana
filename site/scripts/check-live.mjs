@@ -90,6 +90,22 @@ for (const name of names) {
     if (churn > 10) problems.push(`${scheme} ${width}px: la ficha no se queda quieta (${churn} cambios de clase en 600 ms, ¿oscila?)`)
     // Solo a lo ancho (en claro): cada control recorre todos sus valores y vuelve al inicial.
     if (scheme === 'light') try {
+      // Estabilidad: pulsar el componente varias veces (y cerrar con Esc) no lo desplaza. La columna de eventos
+      // crecía con cada clic y movía el componente centrado («el menú se iba desplazando hacia abajo»).
+      // Fijado al elemento inicial: si se recalculara, otro botón que aparece encima (la pill) pasaría a medirse.
+      const handle = await page.locator('.grana-live__mount :is(button, [role="tab"], summary):visible').first().elementHandle({ timeout: 2000 }).catch(() => null)
+      if (handle) {
+        const target = handle
+        const topOf = () => handle.evaluate((el) => (el.isConnected ? Math.round(el.getBoundingClientRect().top + scrollY) : null))
+        const before = await topOf()
+        for (let i = 0; i < 4; i++) {
+          await target.click({ timeout: 3000 }).catch(() => {})
+          await page.keyboard.press('Escape')
+          await page.waitForTimeout(150)
+        }
+        const after = (await topOf().catch(() => null)) ?? before
+        if (Math.abs(after - before) > 1) problems.push(`${scheme}: el componente se desplaza ${after - before}px al pulsarlo varias veces`)
+      }
       const vals = page.locator('.grana-live__code .t-val')
       const nv = await vals.count()
       for (let i = 0; i < nv; i++) {

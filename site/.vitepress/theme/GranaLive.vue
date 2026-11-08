@@ -495,10 +495,13 @@ const uid = 'gl-' + Math.random().toString(36).slice(2, 8)
         <p v-for="m in extraTexts" :key="m.name" class="grana-live__model"><strong>{{ T.model }}</strong> <code>{{ m.name }} = {{ m.text }}</code></p>
         <template v-if="listened.length">
           <p class="grana-live__events-title"><strong>{{ T.events }}</strong></p>
+          <!-- Caja de alto fijo: si el registro creciera, la vista previa (centrada) se movería con cada evento. -->
+          <div class="grana-live__logbox">
           <ol v-if="log.length" class="grana-live__log">
-            <li v-for="e in log" :key="e.id"><code>@{{ e.name }}</code> <span>{{ e.payload }}</span></li>
-          </ol>
-          <p v-else class="grana-live__hint">{{ T.noEvents }}</p>
+              <li v-for="e in log" :key="e.id"><code>@{{ e.name }}</code> <span>{{ e.payload }}</span></li>
+            </ol>
+            <p v-else class="grana-live__hint">{{ T.noEvents }}</p>
+          </div>
         </template>
       </div>
     </div>
