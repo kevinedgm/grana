@@ -338,7 +338,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 
 ## Límites conocidos
 
-- **Sin escritura manual** de fechas (en la vista de años sí se escribe el año, r02), sin selección múltiple (varias fechas sueltas), sin hora. ~~Sin vista de años ni de meses~~: la r02 las añade (#1020); la frase se retira de este límite **cuando bruno lo construya** y la verifique (L7).
+- **Sin escritura manual** de fechas (en la vista de años sí se escribe el año, r02), sin selección múltiple (varias fechas sueltas), sin hora.
 - **Meses y años no ven `disabledDates`** (r02): un mes con todos sus días deshabilitados por la función sigue siendo elegible en la vista de meses (solo `min` y `max` deshabilitan meses y años).
 - **Sin textos por defecto:** una aplicación que no pasa `labels` obtiene botones sin nombre (`prev`, `next`) y avisos en desarrollo, y días sin sufijos.
 - **`Intl.Locale.weekInfo`** no está en todos los navegadores: sin él, `firstDay` es 1 (lunes) salvo que se dé.
@@ -566,6 +566,7 @@ La superficie tiene una **vista** interna: `days` (la de siempre), `months` o `y
 | Encabezado de columnas | `caption` (12 px, ya en el piso) | `caption` |
 
 - `comfortable` usa las mismas fórmulas con 0,875. Ancho de un mes compacto ≈ 7 × 30 + 2 × 18 = 246 px frente a ≈ 328 px en `default` (kiwi midió 236 px con relleno `space × 3`; con la fórmula común son 10 px más, a cambio de no tener un número propio).
+- **Ancho del panel de dos meses (decisión del usuario, 2026-11-07, #1031):** con dos meses (`auto` o `2`) **cada mes mide lo que medía antes de la r02, ≈ 388 px por defecto** (no 328 px); la medida de **siete celdas** de arriba y el ancho ≈ 328 px valen **para un mes** y para el compacto. El panel de dos meses conserva por tanto su ancho anterior (afecta sobre todo a `GBookingBar`, que fija `months="auto"`). La raíz de `__months` lleva entonces `g-datepicker__months--pair` (§«Clases nuevas»). coco lo mide y lo escribe.
 - El umbral de `months="auto"` usa la **celda medida**: en compacto caben dos meses antes.
 - **Puntero grueso:** la celda es de 44 px siempre (D3 de `density.md`); las regiones ceden a 1 (P2, #978) y la prop explícita no.
 - **Hoja a 320 px (hallazgo de kiwi):** hoy el relleno lateral de la superficie en la hoja es `space × 4` y 7 × 44 + 2 × 16 = 340 > 320. **Regla:** en la hoja (≤ 520 px) el relleno lateral de la superficie es **`min(space × 4, (ancho de la hoja − 7 × 44px − bordes) / 2)`**, que las funciones matemáticas recortan a 0 si fuera negativo; con 320 px quedan ≈ 6 px por lado y nada desborda. Literal permitido: `44px`. coco lo escribe (con `100%` del bloque contenedor o la unidad que mida bien en los tres motores) y lo mide a 320 y 375 px con puntero grueso emulado.
@@ -615,6 +616,8 @@ La superficie tiene una **vista** interna: `days` (la de siempre), `months` o `y
 | `g-datepicker__pick` + `is-current`, `is-selected`, `is-in-value`, `is-disabled` | Botón de mes o de año | Según estado |
 | `g-datepicker__years-hint`, `__typed`, `__typed-digit` | Pista de la vista de años y búfer de cifras (`aria-hidden`) | Vista de años |
 | `is-open-start`, `is-open-end` | Celda `td` de día (franja) | §7; en lugar de `is-cap-*` en el borde visible |
+| `g-datepicker__months--pair` | En `__months` cuando se ven **dos meses** (también en las vistas de meses y años, que ocupan la caja de los dos; #1031) | Con `months` `2` o `auto` resuelto a 2 |
+| Punto de `is-in-value` | `GIcon` `circle` **relleno** (Lucide, #85) dentro de `.g-datepicker__pick`, `aria-hidden`; no es un nodo propio contratado ni un carácter | Meses y años del rango |
 | `g-datepicker--density-{d}` | Raíz | Ya existía; desde r02 también aprieta la superficie |
 
 ### 11. Eventos, slots y tokens
@@ -645,6 +648,15 @@ Ampliación de un componente que ya está en el principal (no es un componente n
 - **`dist/grana.css` ≤ +1024 B (1 KiB)** gzip: vistas, partes del título, marcas, franja que sigue, densidad de la superficie, regla de la hoja a 320 y las dos `@keyframes`.
 - Se registra también lo que pesa importar **solo** `GDatePicker`.
 - Con más, **vuelve a lima y decide el usuario**; el tope no se sube (regla de #963 y #964). No cuenta en los lotes de #1009, #1017 o #1019.
+- **Medido y aceptado (2026-11-07, #1030, enmienda de #1028):** `grana.js` **+4 109 B** y `grana.css` **+1 230 B** (ambos sobre el tope); solo `GDatePicker` 15 644 → 18 570 B. El usuario **acepta el peso como cargo único** (nueva base `grana.js` 229 146 B y `grana.css` 105 707 B); los topes de arriba quedan como los que se superaron, no como precedente.
+
+### 14.1 Anotaciones de construcción de bruno (#1031)
+
+Decididas al construir y no previstas arriba; son contrato desde ahora:
+
+- En las vistas de meses y de años hay **una sola `section.g-datepicker__month`** (una cabecera, una rejilla), también con dos meses; el título sirve a las dos columnas.
+- **Esc** sube de nivel y también anima el zoom **`in`** con origen en la **pieza a la que se vuelve** (el mes o el año desde el que se bajó), no en el centro.
+- Sin `labels.typeYear` **no se pinta el búfer** de cifras (`__typed`); la pista y el búfer van juntos.
 
 ### 15. Verificación
 
@@ -663,7 +675,7 @@ Ampliación de un componente que ya está en el principal (no es un componente n
 | L4 | Claves de A (§«Textos», §12; #1025); las de B (`laneYear`, `laneMonth`) y C (`goTo`, `goHint`) **no** se contratan (reservados) |
 | L5 | `is-open-start`/`is-open-end`, extendidas a los extremos de dos meses (§7; #1027) |
 | L6 | §3 (#1026); sin regla de B |
-| L7 | La frase se retira de «Límites conocidos» cuando esté construido (anotado allí) |
+| L7 | ~~La frase «sin vista de años ni de meses» se retira de «Límites conocidos»~~ (hecho, #1031) |
 | L8 | Fila nueva `cambiarNivel` en la tabla y en `motion.json`, con la escala reducida (§9; #1023) |
 | L9 | Lote propio ≤ +2 KiB JS y ≤ +1 KiB CSS (§14; #1028); sin intérprete de C |
 
