@@ -1,49 +1,66 @@
 // Ficha interactiva de GBookingBar. Controles desde GBookingBar.meta.json. Entrada propia: @grana/vue/booking.
-const filas = [
-  { key: 'adults', label: 'Adultos', min: 1, default: 2, unit: (n) => `${n} ${n === 1 ? 'adulto' : 'adultos'}`, decrementLabel: 'Quitar un adulto', incrementLabel: 'Añadir un adulto' },
-  { key: 'rooms', label: 'Habitaciones', min: 1, default: 1, unit: (n) => `${n} ${n === 1 ? 'habitación' : 'habitaciones'}`, decrementLabel: 'Quitar una habitación', incrementLabel: 'Añadir una habitación' }
-]
-const comunes = {
-  fields: { from: 'Llegada', to: 'Salida', nights: 'Noches', party: 'Huéspedes', date: 'Fecha', time: 'Turno', tour: 'Recorrido' },
-  nights: (n) => `${n} ${n === 1 ? 'noche' : 'noches'}`,
-  checkout: 'Salida el {date}',
-  noDates: 'Sin fechas', noDate: 'Sin fecha', noTime: 'Sin turno', noTour: 'Sin recorrido', separator: ' · ',
-  summaryTitle: 'Tu consulta', change: 'Cambiar',
-  submit: 'Ver disponibilidad', pending: 'Consultando…', done: 'Listo', close: 'Cerrar',
-  otherDay: 'Otro día', full: 'lleno',
-  decrement: 'Quitar una noche', increment: 'Añadir una noche',
-  missing: 'Falta {list}.',
-  datePicker: { prev: 'Mes anterior', next: 'Mes siguiente', dialog: 'Elige un día', close: 'Cerrar', checkoutOnly: ', solo salida' }
+const T = (en) => (a, b) => (en ? b : a)
+const construir = (en) => {
+  const t = T(en)
+  const plural = (n, a1, a2, b1, b2) => `${n} ${n === 1 ? t(a1, b1) : t(a2, b2)}`
+  const filas = [
+    { key: 'adults', label: t('Adultos', 'Adults'), min: 1, default: 2, unit: (n) => plural(n, 'adulto', 'adultos', 'adult', 'adults'), decrementLabel: t('Quitar un adulto', 'Remove an adult'), incrementLabel: t('Añadir un adulto', 'Add an adult') },
+    { key: 'rooms', label: t('Habitaciones', 'Rooms'), min: 1, default: 1, unit: (n) => plural(n, 'habitación', 'habitaciones', 'room', 'rooms'), decrementLabel: t('Quitar una habitación', 'Remove a room'), incrementLabel: t('Añadir una habitación', 'Add a room') }
+  ]
+  const comunes = {
+    fields: { from: t('Llegada', 'Check-in'), to: t('Salida', 'Check-out'), nights: t('Noches', 'Nights'), party: t('Huéspedes', 'Guests'), date: t('Fecha', 'Date'), time: t('Turno', 'Time slot'), tour: t('Recorrido', 'Tour') },
+    nights: (n) => plural(n, 'noche', 'noches', 'night', 'nights'),
+    checkout: t('Salida el {date}', 'Check-out on {date}'),
+    noDates: t('Sin fechas', 'No dates'), noDate: t('Sin fecha', 'No date'), noTime: t('Sin turno', 'No time slot'), noTour: t('Sin recorrido', 'No tour'), separator: ' · ',
+    summaryTitle: t('Tu consulta', 'Your search'), change: t('Cambiar', 'Change'),
+    submit: t('Ver disponibilidad', 'Check availability'), pending: t('Consultando…', 'Checking…'), done: t('Listo', 'Done'), close: t('Cerrar', 'Close'),
+    otherDay: t('Otro día', 'Another day'), full: t('lleno', 'full'),
+    decrement: t('Quitar una noche', 'Remove a night'), increment: t('Añadir una noche', 'Add a night'),
+    missing: t('Falta {list}.', 'Missing {list}.'),
+    datePicker: { prev: t('Mes anterior', 'Previous month'), next: t('Mes siguiente', 'Next month'), dialog: t('Elige un día', 'Pick a day'), close: t('Cerrar', 'Close'), checkoutOnly: t(', solo salida', ', check-out only'), chooseMonth: t('Elegir mes', 'Choose month'), chooseYear: t('Elegir año', 'Choose year'), prevYear: t('Año anterior', 'Previous year'), nextYear: t('Año siguiente', 'Next year'), prevYears: t('Años anteriores', 'Earlier years'), nextYears: t('Años siguientes', 'Later years') }
+  }
+  return {
+    filas,
+    labels: {
+      ...comunes,
+      phrase: t('Llego el {from}, me quedo {nights} y somos {party}.', 'I arrive on {from}, stay {nights} and we are {party}.'),
+      empty: { from: t('¿qué día?', 'which day?'), nights: t('¿cuántas noches?', 'how many nights?') },
+      errors: { dates: t('Elige las fechas.', 'Pick the dates.'), night: t('No quedan habitaciones la noche del {date}.', 'No rooms left the night of {date}.'), nights: t('Elige un número de noches válido.', 'Pick a valid number of nights.') }
+    },
+    labelsMesa: {
+      ...comunes,
+      submit: t('Reservar mesa', 'Book a table'),
+      phrase: t('Mesa para {party} el {date} a las {time}.', 'Table for {party} on {date} at {time}.'),
+      empty: { date: t('¿qué día?', 'which day?'), time: t('¿a qué hora?', 'what time?') },
+      errors: { date: t('Elige el día.', 'Pick the day.'), time: t('Elige un turno.', 'Pick a time slot.') }
+    },
+    labelsRecorrido: {
+      ...comunes,
+      submit: t('Ver salidas', 'See departures'),
+      phrase: t('Quiero hacer {tour} el {date}, para {party}.', 'I want to take {tour} on {date}, for {party}.'),
+      empty: { tour: t('¿qué recorrido?', 'which tour?'), date: t('¿qué día?', 'which day?') },
+      errors: { tour: t('Elige un recorrido.', 'Pick a tour.'), date: t('Elige el día.', 'Pick the day.') }
+    },
+    filasMesa: [{ key: 'people', label: t('Personas', 'People'), min: 1, default: 2, unit: (n) => plural(n, 'persona', 'personas', 'person', 'people'), decrementLabel: t('Quitar una persona', 'Remove a person'), incrementLabel: t('Añadir una persona', 'Add a person') }],
+    recorridos: [
+      { value: 'centro', label: t('Centro histórico', 'Historic center'), description: t('2 horas a pie', '2 hours on foot') },
+      { value: 'cerro', label: t('Subida al cerro', 'Hill climb'), description: t('Medio día', 'Half a day') }
+    ]
+  }
 }
-const labels = {
-  ...comunes,
-  phrase: 'Llego el {from}, me quedo {nights} y somos {party}.',
-  empty: { from: '¿qué día?', nights: '¿cuántas noches?' },
-  errors: { dates: 'Elige las fechas.', night: 'No quedan habitaciones la noche del {date}.', nights: 'Elige un número de noches válido.' }
-}
-const labelsMesa = {
-  ...comunes,
-  submit: 'Reservar mesa',
-  phrase: 'Mesa para {party} el {date} a las {time}.',
-  empty: { date: '¿qué día?', time: '¿a qué hora?' },
-  errors: { date: 'Elige el día.', time: 'Elige un turno.' }
-}
-const labelsRecorrido = {
-  ...comunes,
-  submit: 'Ver salidas',
-  phrase: 'Quiero hacer {tour} el {date}, para {party}.',
-  empty: { tour: '¿qué recorrido?', date: '¿qué día?' },
-  errors: { tour: 'Elige un recorrido.', date: 'Elige el día.' }
-}
-const filasMesa = [{ key: 'people', label: 'Personas', min: 1, default: 2, unit: (n) => `${n} ${n === 1 ? 'persona' : 'personas'}`, decrementLabel: 'Quitar una persona', incrementLabel: 'Añadir una persona' }]
+const ES = construir(false)
+const EN = construir(true)
+const pair = (k) => ({ es: ES[k], en: EN[k] })
+const filas = pair('filas')
+const labels = pair('labels')
+const labelsMesa = pair('labelsMesa')
+const labelsRecorrido = pair('labelsRecorrido')
+const filasMesa = pair('filasMesa')
+const recorridos = pair('recorridos')
 const turnos = [
   { value: '19:30', label: '19:30' },
   { value: '20:30', label: '20:30', disabled: true },
   { value: '21:30', label: '21:30' }
-]
-const recorridos = [
-  { value: 'centro', label: 'Centro histórico', description: '2 horas a pie' },
-  { value: 'cerro', label: 'Subida al cerro', description: 'Medio día' }
 ]
 
 export default {

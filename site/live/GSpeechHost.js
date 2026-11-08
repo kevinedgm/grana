@@ -118,7 +118,7 @@ export const speechLabelsEn = {
   mode: { dictation: 'Dictation into “{target}”', conversation: 'Conversation · {speakers}' },
   expectedSpeakers: { label: 'Expected participants', options: { 1: '1 participant', 2: '2 participants', many: 'Several participants' } },
   noDiarization: 'The engine does not tell speakers apart: the transcript will have no labels.',
-  consent: { label: 'I have told the participants they are being recorded', required: 'Tick the box to start recording.' },
+  consent: { label: 'I have told the participants they are being recorded', required: 'Check the box to start recording.' },
   speaker: 'Speaker {letter}', unassigned: 'Unassigned', attempt: 'Attempt {attempt}', signalFlat: 'No sound reaches the microphone. Check that it is not muted.',
   pending: (n) => (n === 1 ? '1 segment pending' : n + ' segments pending'), pendingNone: 'All transcribed', progress: 'Processing the pending audio',
   privacy: { device: 'Processed on this device.', local: 'Processed by your organization’s local service.', remote: 'Processed by an external service.' },
@@ -161,7 +161,7 @@ export const speechLabelsEn = {
     restored: 'Transcription service restored.', restoredHeld: 'Service restored. Recording is still paused: press Resume.', inserted: 'Text added to {target}.',
     undone: 'Insertion undone.', undoFailed: 'Cannot undo: the field changed after inserting.', discarded: 'Recording discarded. Transcript and temporary audio deleted.',
     discardedUnconfirmed: 'Recording discarded. The engine did not confirm deleting the audio.', closed: 'Recording session closed.', signalFlat: 'No sound reaches the microphone.',
-    segmentFailed: 'Could not transcribe a segment. Recording continues.', busy: 'A recording is already in progress.', consentRequired: 'Tick the participant notice box to start.'
+    segmentFailed: 'Could not transcribe a segment. Recording continues.', busy: 'A recording is already in progress.', consentRequired: 'Check the participant notice box to start.'
   },
   errors: {
     'permission-denied': { title: 'Microphone permission denied', what: 'The browser does not allow using the microphone.', fix: 'Allow the microphone in the site settings and press Retry.' },

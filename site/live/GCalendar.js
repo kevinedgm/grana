@@ -139,15 +139,15 @@ export default {
   model: { prop: 'date', value: '2026-10-14T12:00', var: 'fecha' },
   base: {
     events: [
-      { id: 1, resourceId: 'ruiz', title: 'Consulta · Ana Torres', start: at(12, '09:00'), end: at(12, '09:45'), color: 'accent' },
-      { id: 2, resourceId: 'ruiz', title: 'Revisión de estudios', start: at(13, '11:00'), end: at(13, '12:00'), color: 'success', status: 'tentative' },
-      { id: 3, resourceId: 'ruiz', title: 'Consulta · Luis Peña', start: at(14, '09:30'), end: at(14, '10:30'), color: 'info' },
-      { id: 4, resourceId: 'ruiz', title: 'Junta clínica', start: at(15, '13:00'), end: at(15, '14:30'), color: 'warning' },
-      { id: 5, resourceId: 'ruiz', title: 'Consulta · Iris Cano', start: at(16, '10:00'), end: at(16, '10:30'), color: 'accent' }
+      { id: 1, resourceId: 'ruiz', title: E('Consulta · Ana Torres', 'Visit · Ana Torres'), start: at(12, '09:00'), end: at(12, '09:45'), color: 'accent' },
+      { id: 2, resourceId: 'ruiz', title: E('Revisión de estudios', 'Test results review'), start: at(13, '11:00'), end: at(13, '12:00'), color: 'success', status: 'tentative' },
+      { id: 3, resourceId: 'ruiz', title: E('Consulta · Luis Peña', 'Visit · Luis Peña'), start: at(14, '09:30'), end: at(14, '10:30'), color: 'info' },
+      { id: 4, resourceId: 'ruiz', title: E('Junta clínica', 'Clinical meeting'), start: at(15, '13:00'), end: at(15, '14:30'), color: 'warning' },
+      { id: 5, resourceId: 'ruiz', title: E('Consulta · Iris Cano', 'Visit · Iris Cano'), start: at(16, '10:00'), end: at(16, '10:30'), color: 'accent' }
     ],
-    resources: [{ id: 'ruiz', title: 'Dra. Ruiz', subtitle: 'Consultorio 3' }],
+    resources: [{ id: 'ruiz', title: E('Dra. Ruiz', 'Dr. Ruiz'), subtitle: E('Consultorio 3', 'Office 3') }],
     availability: [{ resourceId: 'ruiz', startTime: '09:00', endTime: '18:00', slotDuration: 30 }],
-    blocks: [{ id: 'b1', resourceId: 'ruiz', start: at(14, '14:00'), end: at(14, '15:00'), reason: 'Comida' }],
+    blocks: [{ id: 'b1', resourceId: 'ruiz', start: at(14, '14:00'), end: at(14, '15:00'), reason: E('Comida', 'Lunch') }],
     timezone: tz,
     locale: E('es-MX', 'en-US'),
     now: at(14, '10:10'),
@@ -173,7 +173,7 @@ export default {
     },
     {
       title: E('Panorama del mes', 'Month overview'),
-      why: E('month resume cada día con sus citas y «+N más»; sirve para elegir una fecha, no para ajustar horas.', 'month sums up each day with its appointments and «+N more»; it helps pick a date, not adjust hours.'),
+      why: E('month resume cada día con sus citas y «+N más»; sirve para elegir una fecha, no para ajustar horas.', 'month sums up each day with its appointments and “+N more”; it helps pick a date, not adjust hours.'),
       props: { view: 'month' }
     },
     {

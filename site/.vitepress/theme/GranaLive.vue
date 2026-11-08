@@ -50,7 +50,9 @@ const trAll = (o) => Object.fromEntries(Object.entries(o || {}).map(([k, v]) => 
 // ------------------------------------------------------------------ modelo de la ficha
 const tag = computed(() => props.spec.tag || props.meta.tag)
 const metaProps = computed(() => props.meta.props || [])
-const exclude = computed(() => new Set([...(props.spec.exclude || []), 'modelValue', ...(props.spec.model ? [props.spec.model.prop || 'modelValue'] : [])]))
+// `spec.models`: más v-model además del principal ([{ prop, value, var }]; GTable: sort, filters, page).
+const extras = computed(() => props.spec.models || [])
+const exclude = computed(() => new Set([...(props.spec.exclude || []), 'modelValue', ...(props.spec.model ? [props.spec.model.prop || 'modelValue'] : []), ...extras.value.map((m) => m.prop)]))
 const textProps = computed(() => props.spec.text || [])
 const controls = computed(() => {
   const only = props.spec.controls
@@ -88,6 +90,8 @@ function initial() {
 const values = reactive(initial())
 const slotOn = reactive(Object.fromEntries((props.spec.slots || []).map((s) => [s.name, s.optional ? !!s.on : true])))
 const model = ref(props.spec.model ? clone(props.spec.model.value) : undefined)
+const extrasOf = (over = {}) => Object.fromEntries((props.spec.models || []).map((m) => [m.prop, clone(m.prop in over ? over[m.prop] : m.value)]))
+const extra = reactive(extrasOf())
 const renderKey = ref(0)
 
 function clone(v) { return v === undefined ? v : JSON.parse(JSON.stringify(v)) }
@@ -97,6 +101,7 @@ function reset() {
   Object.assign(values, initial())
   for (const s of props.spec.slots || []) slotOn[s.name] = s.optional ? !!s.on : true
   if (props.spec.model) model.value = clone(props.spec.model.value)
+  Object.assign(extra, extrasOf())
   log.value = []
   renderKey.value++
   announce(T.value.reset)
@@ -111,8 +116,8 @@ const log = ref([])
 const listened = computed(() => {
   if (props.spec.listen === false) return []
   const skip = new Set(props.spec.ignore || [])
-  const modelEv = `update:${props.spec.model?.prop || 'modelValue'}`
-  return (props.meta.events || []).map((e) => e.name).filter((n) => n !== modelEv && !skip.has(n))
+  const modelEvs = new Set([`update:${props.spec.model?.prop || 'modelValue'}`, ...extras.value.map((m) => `update:${m.prop}`)])
+  return (props.meta.events || []).map((e) => e.name).filter((n) => !modelEvs.has(n) && !skip.has(n))
 })
 function payloadText(args) {
   return args.map((a) => {
@@ -126,7 +131,7 @@ function payloadText(args) {
 }
 const handlerName = (ev) => 'on' + ev.split(':').map((p, i) => (i === 0 ? p.charAt(0).toUpperCase() + p.slice(1) : p)).join(':').replace(/-([a-z])/g, (_, c) => c.toUpperCase())
 
-function vnodeProps(state = values, slots = slotOn, mdl = model, record = true) {
+function vnodeProps(state = values, slots = slotOn, mdl = model, record = true, ext = extra) {
   const p = fixedOf(state)
   // Un control en su valor por defecto no se pasa: el componente aplica el suyo (y no avisa de combinaciones que no pidió).
   for (const c of controls.value) if (applies(c, state) && !empty(state[c.name]) && (state[c.name] !== c.def || c.required)) p[c.name] = state[c.name]
@@ -134,6 +139,10 @@ function vnodeProps(state = values, slots = slotOn, mdl = model, record = true) 
     const mp = props.spec.model.prop || 'modelValue'
     p[mp] = mdl.value
     p[`onUpdate:${mp}`] = (v) => { mdl.value = v; if (record) push(`update:${mp}`, [v]) }
+  }
+  for (const m of extras.value) {
+    p[m.prop] = ext[m.prop]
+    p[`onUpdate:${m.prop}`] = (v) => { ext[m.prop] = v; if (record) push(`update:${m.prop}`, [v]) }
   }
   if (record) for (const ev of listened.value) p[handlerName(ev)] = (...args) => push(ev, args)
   return p
@@ -158,9 +167,9 @@ function vnodeSlots(slots = slotOn) {
 // El componente real, como función de render (también para los casos).
 // `spec.host`: un componente propio que recibe las mismas props (servicios, composiciones).
 // `spec.trigger`: un botón antes del componente que pone el modelo en `trigger.value` (diálogos, hojas, menús).
-function Real(state, slots, mdl, record) {
+function Real(state, slots, mdl, record, ext = extra) {
   return () => {
-    const comp = h(props.spec.host || resolveComponent(tag.value), vnodeProps(state, slots, mdl, record), vnodeSlots(slots))
+    const comp = h(props.spec.host || resolveComponent(tag.value), vnodeProps(state, slots, mdl, record, ext), vnodeSlots(slots))
     if (!props.spec.trigger) return comp
     const t = props.spec.trigger
     return h('div', { class: 'grana-live__with-trigger' }, [
@@ -194,6 +203,7 @@ function attrList(state, slots, { clean }) {
     const mp = props.spec.model.prop || 'modelValue'
     out.push({ kind: 'fixed', text: mp === 'modelValue' ? `v-model="${modelVar.value}"` : `v-model:${kebab(mp)}="${modelVar.value}"` })
   }
+  for (const m of extras.value) out.push({ kind: 'fixed', text: `v-model:${kebab(m.prop)}="${m.var || m.prop}"` })
   for (const [k, v] of Object.entries(fixedOf(state))) {
     if (hidden.value.has(k)) continue
     const code = props.spec.code?.[k]
@@ -250,11 +260,12 @@ function cleanCode(state = values, slots = slotOn, kase = null) {
 function scriptCode(state, kase) {
   const lines = []
   const imports = [...(props.spec.imports || [])]
-  const needRef = !!props.spec.model
+  const needRef = !!props.spec.model || extras.value.length > 0
   if (needRef) imports.unshift("import { ref } from 'vue'")
   lines.push(...imports)
   if (imports.length) lines.push('')
   if (props.spec.model) lines.push(`const ${modelVar.value} = ref(${jsLiteral(kase && 'model' in kase ? kase.model : props.spec.model.value)})`)
+  for (const m of extras.value) lines.push(`const ${m.var || m.prop} = ref(${jsLiteral(kase?.models && m.prop in kase.models ? kase.models[m.prop] : m.value)})`)
   for (const [k, v] of Object.entries(fixedOf(state))) {
     if (isPrim(v) || props.spec.code?.[k] || hidden.value.has(k)) continue
     lines.push(`const ${k} = ${jsLiteral(v)}`)
@@ -365,7 +376,10 @@ function measure() {
     // Se mide la caja visible: la que marca el componente con data-g-tooltip-box (campos) o su raíz.
     // Con disparador, lo que se mide es el componente (el último hijo del envoltorio), no el botón.
     const top = props.spec.trigger ? root?.firstElementChild?.lastElementChild : root?.firstElementChild
-    const el = (props.spec.measure && root?.querySelector(props.spec.measure)) || root?.querySelector('[data-g-tooltip-box]') || top
+    // Un diálogo o panel abierto (capa superior) se mide a él: es lo que el lector está mirando.
+    let open = null
+    if (props.spec.trigger) try { open = root?.querySelector('dialog[open], :popover-open') } catch { open = root?.querySelector('dialog[open]') }
+    const el = (props.spec.measure && root?.querySelector(props.spec.measure)) || open || root?.querySelector('[data-g-tooltip-box]') || top
     const visible = el && el.getBoundingClientRect().width > 0
     if (!visible || !tokenMap) { reads.value = []; dims.value = ''; return }
     const cs = getComputedStyle(el)
@@ -401,7 +415,7 @@ onMounted(() => {
 })
 onBeforeUnmount(() => { ro?.disconnect(); mo?.disconnect(); cancelAnimationFrame(raf); clearTimeout(late) })
 let late = 0
-watch([values, slotOn, stageTheme, widthMode], () => {
+watch([values, slotOn, stageTheme, widthMode, model, extra], () => {
   nextTick(measure)
   // Respaldo: una transición interrumpida no siempre emite transitionend.
   clearTimeout(late)
@@ -412,12 +426,13 @@ watch([values, slotOn, stageTheme, widthMode], () => {
 const cases = computed(() => (props.spec.cases || []).map((c, i) => {
   const st = { ...initial(), ...trAll(c.props) }
   const sl = { ...Object.fromEntries((props.spec.slots || []).map((s) => [s.name, s.optional ? !!s.on : true])), ...(c.slots || {}) }
-  return { id: c.id || `e${i + 1}`, title: c.title, why: c.why, state: st, slots: sl, model: 'model' in c ? c.model : props.spec.model?.value, code: cleanCode(st, sl, c) }
+  return { id: c.id || `e${i + 1}`, title: c.title, why: c.why, state: st, slots: sl, model: 'model' in c ? c.model : props.spec.model?.value, models: c.models || {}, code: cleanCode(st, sl, c) }
 }))
 const caseModels = {}
 function CaseReal(c) {
   if (!caseModels[c.id]) caseModels[c.id] = ref(props.spec.model ? clone(c.model) : undefined)
-  return { name: 'GranaLiveCase', setup: () => Real(reactive(c.state), reactive(c.slots), caseModels[c.id], false) }
+  const ext = reactive(extrasOf(c.models))
+  return { name: 'GranaLiveCase', setup: () => Real(reactive(c.state), reactive(c.slots), caseModels[c.id], false, ext) }
 }
 const caseComponents = computed(() => Object.fromEntries(cases.value.map((c) => [c.id, CaseReal(c)])))
 const region = ref(null)
@@ -426,6 +441,7 @@ function openCase(c) {
   Object.assign(values, c.state)
   Object.assign(slotOn, c.slots)
   if (props.spec.model) model.value = clone(c.model)
+  Object.assign(extra, extrasOf(c.models))
   renderKey.value++
   announce(`${T.value.loaded}: ${tr(c.title)}`)
   region.value?.scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
@@ -435,6 +451,7 @@ function openCase(c) {
 const codeParts = computed(() => attrList(values, slotOn, { clean: false }))
 const codeSlots = computed(() => slotLines(slotOn, false))
 const modelText = computed(() => (props.spec.model ? JSON.stringify(model.value) : ''))
+const extraTexts = computed(() => extras.value.map((m) => ({ name: m.var || m.prop, text: JSON.stringify(extra[m.prop]) })))
 const uid = 'gl-' + Math.random().toString(36).slice(2, 8)
 </script>
 
@@ -473,8 +490,9 @@ const uid = 'gl-' + Math.random().toString(36).slice(2, 8)
           </dd>
         </div>
       </dl>
-      <div v-if="spec.model || listened.length" class="grana-live__events">
+      <div v-if="spec.model || extras.length || listened.length" class="grana-live__events">
         <p v-if="spec.model" class="grana-live__model"><strong>{{ T.model }}</strong> <code>{{ modelVar }} = {{ modelText }}</code></p>
+        <p v-for="m in extraTexts" :key="m.name" class="grana-live__model"><strong>{{ T.model }}</strong> <code>{{ m.name }} = {{ m.text }}</code></p>
         <template v-if="listened.length">
           <p class="grana-live__events-title"><strong>{{ T.events }}</strong></p>
           <ol v-if="log.length" class="grana-live__log">

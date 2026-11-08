@@ -114,7 +114,7 @@ export default {
         en: 'A toast with action does not close itself: that leaves time to undo. One action at most, text only; if deleting is irreversible, confirm first in a dialog.'
       },
       props: {
-        type: 'neutral', title: { es: 'Expediente archivado', en: 'Case archived' },
+        type: 'neutral', title: { es: 'Expediente archivado', en: 'Record archived' },
         description: { es: 'Lucía Fernández · 2026-0412', en: 'Lucía Fernández · 2026-0412' },
         actionLabel: { es: 'Deshacer', en: 'Undo' }
       }

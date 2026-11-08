@@ -21,6 +21,7 @@ export default {
   },
   code: { options: ':options="areas"' }, // opcional: cómo se escribe una prop fija en el código
   model: { prop: 'modelValue', value: 'a', var: 'area' },   // v-model de la ficha (prop por defecto modelValue)
+  models: [{ prop: 'sort', value: null, var: 'orden' }],     // más v-model (cada caso puede fijarlos con `models: { sort: … }`)
   trigger: { label: { es: 'Abrir', en: 'Open' }, value: true }, // botón que pone el modelo en `value` (diálogos, hojas)
   slots: [
     { name: 'default', text: { es: 'Guardar', en: 'Save' } },

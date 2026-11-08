@@ -18,7 +18,11 @@ const labels = {
   decrement: 'Quitar una noche', increment: 'Añadir una noche',
   errors: { dates: 'Elige las fechas.', night: 'No quedan habitaciones la noche del {date}.', nights: 'Elige un número de noches válido.' },
   missing: 'Falta {list}.',
-  datePicker: { prev: 'Mes anterior', next: 'Mes siguiente', dialog: 'Elige un día', close: 'Cerrar', checkoutOnly: ', solo salida' }
+  datePicker: {
+    prev: 'Mes anterior', next: 'Mes siguiente', dialog: 'Elige un día', close: 'Cerrar', checkoutOnly: ', solo salida',
+    chooseMonth: 'elegir mes', chooseYear: 'elegir año', prevYear: 'Año anterior', nextYear: 'Año siguiente',
+    prevYears: 'Doce años antes', nextYears: 'Doce años después'
+  }
 }
 function alEnviar(q) {
   enviada.value = JSON.stringify(q)

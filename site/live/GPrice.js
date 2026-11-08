@@ -24,7 +24,7 @@ export default {
     },
     {
       title: { es: 'Rango de precios', en: 'Price range' },
-      why: { es: 'max pinta «de a»; úsalo cuando el precio depende de una elección que aún no se hizo.', en: 'max draws a range; use it when the price depends on a choice not yet made.' },
+      why: { es: 'max pinta «de a»; úsalo cuando el precio depende de una elección que aún no se hizo.', en: 'max draws “X to Y”; use it when the price depends on a choice not yet made.' },
       props: { max: { amount: 2600, currency: 'MXN' }, labels: { range: { es: '{min} a {max}', en: '{min} to {max}' } }, lead: '', unit: '', unitLabel: '' }
     },
     {

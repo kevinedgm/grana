@@ -27,7 +27,7 @@ export default {
     },
     {
       title: { es: 'Barra de acciones', en: 'Action bar' },
-      why: { es: 'horizontal con gap sm y alineación al final: los hijos se parten en líneas en pantallas estrechas en vez de desbordar.', en: 'horizontal with gap sm and end alignment: buttons wrap onto lines on narrow screens instead of overflowing.' },
+      why: { es: 'horizontal con gap sm y alineación al final: los hijos se parten en líneas en pantallas estrechas en vez de desbordar.', en: 'horizontal with gap sm and end alignment: children wrap onto lines on narrow screens instead of overflowing.' },
       props: { orientation: 'horizontal', gap: 'sm', horizontal: 'end' }
     },
     {

@@ -8,7 +8,10 @@ const mk = (en) => {
     prev: t('Mes anterior', 'Previous month'), next: t('Mes siguiente', 'Next month'), dialog: t('Elegir fecha', 'Choose a date'), close: t('Cerrar', 'Close'),
     today: t('hoy', 'today'), selected: t('seleccionada', 'selected'), rangeStart: t('inicio del rango', 'range start'), rangeEnd: t('fin del rango', 'range end'),
     rangeSingle: t('inicio y fin del rango', 'range start and end'), inRange: t('dentro del rango', 'in range'), unavailable: t('no disponible', 'unavailable'),
-    clear: t('Limpiar', 'Clear'), done: t('Listo', 'Done'), proximityGroup: t('Ampliar el rango', 'Widen the range')
+    clear: t('Limpiar', 'Clear'), done: t('Listo', 'Done'), proximityGroup: t('Ampliar el rango', 'Widen the range'),
+    // Salto a mes y año (r02, requeridas también con inline)
+    chooseMonth: t('elegir mes', 'choose month'), chooseYear: t('elegir año', 'choose year'), prevYear: t('Año anterior', 'Previous year'), nextYear: t('Año siguiente', 'Next year'),
+    prevYears: t('Doce años antes', 'Twelve years earlier'), nextYears: t('Doce años después', 'Twelve years later')
   }
 }
 const lit = (o) => `{\n${Object.entries(o).map(([k, v]) => `  ${k}: '${v.replace(/'/g, "\\'")}'`).join(',\n')}\n}`

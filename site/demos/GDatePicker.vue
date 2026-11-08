@@ -9,7 +9,10 @@ const labels = {
   prev: 'Mes anterior', next: 'Mes siguiente', dialog: 'Elegir fechas', close: 'Cerrar',
   today: 'hoy', selected: 'seleccionada', rangeStart: 'inicio del rango', rangeEnd: 'fin del rango',
   rangeSingle: 'inicio y fin del rango', inRange: 'dentro del rango', unavailable: 'no disponible',
-  clear: 'Limpiar', done: 'Listo', proximityGroup: 'Ampliar el rango'
+  clear: 'Limpiar', done: 'Listo', proximityGroup: 'Ampliar el rango',
+  // Salto a mes y año (r02, requeridas también con inline)
+  chooseMonth: 'elegir mes', chooseYear: 'elegir año', prevYear: 'Año anterior', nextYear: 'Año siguiente',
+  prevYears: 'Doce años antes', nextYears: 'Doce años después'
 }
 const proximidad = [
   { days: 1, label: '± 1 día', ariaLabel: 'Ampliar el rango 1 día por cada lado, ± 1 día' },

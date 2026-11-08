@@ -7,7 +7,7 @@ export default {
   cases: [
     {
       title: { es: 'Ajuste que se aplica al instante', en: 'Setting that applies at once' },
-      why: { es: 'Un interruptor es efecto inmediato: si el cambio necesita «Guardar», usa GCheckbox.', en: 'A switch is an immediate effect: if the change needs «Save», use GCheckbox.' },
+      why: { es: 'Un interruptor es efecto inmediato: si el cambio necesita «Guardar», usa GCheckbox.', en: 'A switch is an immediate effect: if the change needs “Save”, use GCheckbox.' },
       props: {}
     },
     {

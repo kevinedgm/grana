@@ -32,7 +32,7 @@ const todas = {
     { id: 'note', label: 'New note', icon: 'file-text' },
     { id: 'upload', label: 'Upload file', icon: 'upload', description: 'PDF, image or CSV' },
     { id: 'agenda', label: 'Schedule collection', icon: 'calendar' },
-    { id: 'csv', label: 'Export CSV', icon: 'download', group: 'Export', description: 'What is filtered, in UTF-8' },
+    { id: 'csv', label: 'Export CSV', icon: 'download', group: 'Export', description: 'The filtered rows, in UTF-8' },
     { id: 'print', label: 'Print labels', icon: 'printer', group: 'Export' },
     { id: 'purge', label: 'Empty drafts', icon: 'trash', group: 'Maintenance', danger: true, confirm: 'Empty the 12 drafts?', confirmLabel: 'Empty' }
   ]

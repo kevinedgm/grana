@@ -21,7 +21,7 @@ const ficha = defineComponent({
           // El disparador va justo después del campo, como hermano (no dentro)
           h(GSpeechTrigger, { ...attrs, for: dictado ? campo : undefined })
         ]),
-        nota(dictado ? t('Pulsa el micrófono: el texto confirmado entra en el cursor; pulsa otra vez para terminar.', 'Press the microphone: confirmed text goes in at the cursor; press again to finish.') : t('Prepara la conversación: abre el panel con el micrófono todavía apagado.', 'Prepare the conversation: opens the panel with the microphone still off.')),
+        nota(dictado ? t('Pulsa el micrófono: el texto confirmado entra en el cursor; pulsa otra vez para terminar.', 'Press the microphone: confirmed text goes in at the cursor; press again to finish.') : t('Prepara la conversación: abre el panel con el micrófono todavía apagado.', 'Prepare the conversation: it opens the panel with the microphone still off.')),
         h(GSpeechHost)
       ])
     }

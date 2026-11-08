@@ -55,7 +55,7 @@ export default {
     },
     {
       title: { es: 'Falló la carga', en: 'Loading failed' },
-      why: { es: 'cause error con un texto que dice qué falló; ofrece reintentar en el slot actions. No lo uses para «sin resultados».', en: 'cause error with text saying what failed; offer retry in the actions slot. Do not use it for «no results».' },
+      why: { es: 'cause error con un texto que dice qué falló; ofrece reintentar en el slot actions. No lo uses para «sin resultados».', en: 'cause error with text saying what failed; offer retry in the actions slot. Do not use it for “no results”.' },
       props: { cause: 'error', title: { es: 'No pudimos cargar las muestras', en: 'We could not load the samples' }, description: { es: 'Revisa tu conexión e inténtalo de nuevo.', en: 'Check your connection and try again.' } }
     },
     {

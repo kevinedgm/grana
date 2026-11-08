@@ -44,7 +44,7 @@ const labelsSrc = {
   uploadFailed: 'Could not upload', notAdded: 'Files not added', dismiss: 'Dismiss',
   reasons: { type: 'is not an accepted type', empty: 'is empty', duplicate: 'is already in the list', size: 'is {size}, the maximum is {limit}', count: 'there are already {limit}, the maximum' },
   added: 'Added {name}.', addedMany: (n) => \`Added \${n} files.\`, replaced: '{old} replaced by {name}.',
-  rejected: 'Did not add {name}: {reason}.', rejectedMany: 'Did not add {count} files: {list}.',
+  rejected: 'Could not add {name}: {reason}.', rejectedMany: 'Could not add {count} files: {list}.',
   uploading: (n) => (n === 1 ? 'Uploading.' : \`Uploading \${n}.\`), uploaded: '{name} uploaded.', uploadedMany: (n) => \`\${n} files uploaded.\`,
   uploadError: 'Could not upload {name}: {message}.', retrying: 'Retrying {name}.',
   removed: (n, name) => \`Removed \${name}. \` + (n ? plural(n, '1 file left.', '{n} files left.') : 'No files.'),
@@ -90,7 +90,7 @@ const textosEn = {
   uploadFailed: 'Could not upload', notAdded: 'Files not added', dismiss: 'Dismiss',
   reasons: { type: 'is not an accepted type', empty: 'is empty', duplicate: 'is already in the list', size: 'is {size}, the maximum is {limit}', count: 'there are already {limit}, the maximum' },
   added: 'Added {name}.', addedMany: (n) => `Added ${n} files.`, replaced: '{old} replaced by {name}.',
-  rejected: 'Did not add {name}: {reason}.', rejectedMany: 'Did not add {count} files: {list}.',
+  rejected: 'Could not add {name}: {reason}.', rejectedMany: 'Could not add {count} files: {list}.',
   uploading: (n) => (n === 1 ? 'Uploading.' : `Uploading ${n}.`), uploaded: '{name} uploaded.', uploadedMany: (n) => `${n} files uploaded.`,
   uploadError: 'Could not upload {name}: {message}.', retrying: 'Retrying {name}.',
   removed: (n, name) => `Removed ${name}. ` + (n ? plural(n, '1 file left.', '{n} files left.') : 'No files.'),
@@ -111,7 +111,7 @@ export default {
   imports: ["import { GFileField } from '@grana/vue/file-field'", "import { createSimulatedUploader } from '@grana/vue/testing'"],
   block: true,
   base: {
-    label: E('Estudios del expediente', 'Record studies'),
+    label: E('Estudios del expediente', 'Tests in the record'),
     hint: E(hintOf(false), hintOf(true)),
     locale: E('es-MX', 'en-US'),
     multiple: true,
@@ -128,7 +128,7 @@ export default {
   },
   cases: [
     {
-      title: E('Varios estudios con límites', 'Several studies with limits'),
+      title: E('Varios estudios con límites', 'Several tests with limits'),
       why: E('multiple con max, max-size y accept: el campo rechaza lo que no cabe y explica por qué; los límites no sustituyen a la validación del servidor.', 'multiple with max, max-size and accept: the field rejects what does not fit and says why; limits do not replace server validation.'),
       props: {}
     },
@@ -140,7 +140,7 @@ export default {
     {
       title: E('Adjunto obligatorio con error', 'Required attachment with an error'),
       why: E('required y error al enviar sin archivos; con pendientes o fallidos el envío se bloquea en GForm.', 'required and error on submit without files; with pending or failed uploads the submit is blocked in GForm.'),
-      props: { required: true, error: E('Adjunta al menos un estudio.', 'Attach at least one study.') }
+      props: { required: true, error: E('Adjunta al menos un estudio.', 'Attach at least one test.') }
     },
     {
       title: E('Lista de solo lectura', 'Read-only list'),

@@ -92,6 +92,12 @@
 .grana-live__case-stage.is-block {
   inline-size: 100%;
 }
+/* Un componente de ancho completo ocupa la fila: si se ajustara a su contenido, uno que se mide a sí mismo
+   (GTable responsive="auto", GStepper) cambiaría de forma, de ancho, y otra vez de forma, sin fin. */
+.grana-live__case-stage.is-block > * {
+  flex: 1 1 100%;
+  min-inline-size: 0;
+}
 .grana-live__stage[data-width='phone'] .grana-live__mount {
   inline-size: 360px;
   max-inline-size: 100%;

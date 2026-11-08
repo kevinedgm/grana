@@ -11,12 +11,12 @@ export default {
   host: GPageHeader,
   imports: ["import { GPageHeader } from '@grana/vue/page-header'"],
   base: {
-    title: { es: 'Expediente 2026-09-EX', en: 'File 2026-09-EX' },
+    title: { es: 'Expediente 2026-09-EX', en: 'Record 2026-09-EX' },
     eyebrow: { es: 'Consulta externa', en: 'Outpatient' },
     description: { es: 'Actualizado hace 2 horas.', en: 'Updated 2 hours ago.' },
     sticky: false,
     headingLevel: 2,
-    labels: { es: { actions: 'Acciones del expediente' }, en: { actions: 'File actions' } }
+    labels: { es: { actions: 'Acciones del expediente' }, en: { actions: 'Record actions' } }
   },
   slots: [
     { name: 'meta', optional: true, on: false, code: '<g-badge color="info">Activo</g-badge>', render: () => h(GBadge, { color: 'info' }, () => 'Activo') },
@@ -28,7 +28,7 @@ export default {
   ],
   cases: [
     {
-      title: { es: 'Cabecera de un expediente', en: 'Header of a file' },
+      title: { es: 'Cabecera de un expediente', en: 'Header of a record' },
       why: { es: 'Título, estado y las acciones de la página en un solo sitio; el h1 es del encabezado, no repitas otro.', en: 'Title, status and the page actions in one place; the h1 belongs to the header, do not add another.' },
       props: {}, slots: { meta: true, actions: true }
     },

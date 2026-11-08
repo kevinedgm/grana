@@ -30,7 +30,7 @@ export default {
   cases: [
     {
       title: { es: 'Datos fiscales solo si piden factura', en: 'Tax data only when an invoice is requested' },
-      why: { es: 'when abierto muestra los campos; cerrado quedan inert, fuera del envío y sin obligar a llenarlos. Úsalo para ramas de una respuesta anterior, justo después de ella.', en: 'Open when shows the fields; closed they are inert, out of the submission and not required. Use it for branches of a previous answer, right after it.' },
+      why: { es: 'when abierto muestra los campos; cerrado quedan inert, fuera del envío y sin obligar a llenarlos. Úsalo para ramas de una respuesta anterior, justo después de ella.', en: 'When open, when shows the fields; closed, they are inert, out of the submission and not required. Use it for branches of a previous answer, right after it.' },
       props: { when: true }
     },
     {

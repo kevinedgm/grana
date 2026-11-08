@@ -44,6 +44,12 @@ export default {
   text: ['caption'],
   block: true,
   model: { prop: 'selected', value: [], var: 'elegidos' },
+  // Los otros tres v-model de la tabla: orden, filtros y página quedan ligados y se ven al cambiar.
+  models: [
+    { prop: 'sort', value: null, var: 'orden' },
+    { prop: 'filters', value: [], var: 'filtros' },
+    { prop: 'page', value: 1, var: 'pagina' }
+  ],
   base: {
     caption: { es: 'Clientes', en: 'Customers' },
     columns: columnas,
@@ -78,8 +84,8 @@ export default {
   cases: [
     {
       title: { es: 'Lista de clientes con selección', en: 'Customer list with selection' },
-      why: { es: 'selectable para acciones en lote en una tabla que no cambia a tarjetas (table); cada fila lleva el nombre como título, así los lectores de pantalla anuncian «Seleccionar Ana Torres».', en: 'selectable for bulk actions in a table that never turns into cards (table); each row uses the name as title, so screen readers announce “Select Ana Torres”.' },
-      props: { selectable: true, responsive: 'table' }
+      why: { es: 'selectable para acciones en lote; cada fila lleva el nombre como título, así los lectores de pantalla anuncian «Seleccionar Ana Torres». En estrecho pasa a tarjetas con su casilla.', en: 'selectable for bulk actions; each row uses the name as title, so screen readers announce “Select Ana Torres”. When narrow it turns into cards with their checkbox.' },
+      props: { selectable: true }
     },
     {
       title: { es: 'Carga inicial con filas esqueleto', en: 'First load with skeleton rows' },

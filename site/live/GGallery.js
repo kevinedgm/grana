@@ -5,21 +5,27 @@ const foto = (a, b, w, h) =>
     `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#g)"/></svg>`
   )
 const P = (a, b, w, h, alt, group) => ({ src: foto(a, b, w, h), thumb: foto(a, b, w / 4, h / 4), width: w, height: h, alt, group })
+const E = (es, en) => ({ es, en })
 const fotos = [
-  P('#6f8f72', '#e6dcc2', 1600, 1067, 'Cama con lámparas de barro', 'hab'),
-  P('#8a6f4e', '#d9c7a0', 1600, 1067, 'Ventana al patio', 'hab'),
-  P('#4f7a8a', '#d6e4e8', 1067, 1600, 'Regadera de lluvia en el baño', 'bano'),
-  P('#7a8a96', '#e4e8ec', 1600, 1067, 'Lavabo de cantera', 'bano')
+  P('#6f8f72', '#e6dcc2', 1600, 1067, E('Cama con lámparas de barro', 'Bed with clay lamps'), 'hab'),
+  P('#8a6f4e', '#d9c7a0', 1600, 1067, E('Ventana al patio', 'Window onto the courtyard'), 'hab'),
+  P('#4f7a8a', '#d6e4e8', 1067, 1600, E('Regadera de lluvia en el baño', 'Rain shower in the bathroom'), 'bano'),
+  P('#7a8a96', '#e4e8ec', 1600, 1067, E('Lavabo de cantera', 'Stone sink'), 'bano')
 ]
-const labels = {
-  total: (n) => `${n} ${n === 1 ? 'foto' : 'fotos'}`,
-  count: '{index} de {total}', groupCount: '{group} · {index} de {total}', position: '{index} de {total}',
-  announce: '{position}. {alt}.', first: 'Primera foto.', last: 'Última foto.',
-  prev: 'Foto anterior', next: 'Foto siguiente', close: 'Cerrar', zoom: 'Ampliar',
-  viewer: '{title}, galería', groups: 'Espacios',
-  groupLink: (n, v) => `${v.group}, ${v.count} ${n === 1 ? 'foto' : 'fotos'}`,
-  broken: 'No se pudo cargar esta foto: {alt}', carousel: 'carrusel', slide: 'foto'
+const labelsDe = (en) => {
+  const t = (a, b) => (en ? b : a)
+  const f = (n) => `${n} ${n === 1 ? t('foto', 'photo') : t('fotos', 'photos')}`
+  return {
+    total: f,
+    count: t('{index} de {total}', '{index} of {total}'), groupCount: t('{group} · {index} de {total}', '{group} · {index} of {total}'), position: t('{index} de {total}', '{index} of {total}'),
+    announce: '{position}. {alt}.', first: t('Primera foto.', 'First photo.'), last: t('Última foto.', 'Last photo.'),
+    prev: t('Foto anterior', 'Previous photo'), next: t('Foto siguiente', 'Next photo'), close: t('Cerrar', 'Close'), zoom: t('Ampliar', 'Enlarge'),
+    viewer: t('{title}, galería', '{title}, gallery'), groups: t('Espacios', 'Spaces'),
+    groupLink: (n, v) => `${v.group}, ${f(n)}`,
+    broken: t('No se pudo cargar esta foto: {alt}', 'This photo could not be loaded: {alt}'), carousel: t('carrusel', 'carousel'), slide: t('foto', 'photo')
+  }
 }
+const labels = { es: labelsDe(false), en: labelsDe(true) }
 
 export default {
   exclude: ['id', 'locale', 'eager', 'index', 'open'],
@@ -30,7 +36,7 @@ export default {
   base: {
     title: { es: 'Habitación Jardín', en: 'Garden Room' },
     photos: fotos,
-    groups: [{ value: 'hab', label: 'Habitación' }, { value: 'bano', label: 'Baño' }],
+    groups: [{ value: 'hab', label: E('Habitación', 'Room') }, { value: 'bano', label: E('Baño', 'Bathroom') }],
     labels
   },
   code: { photos: ':photos="fotos"', groups: ':groups="espacios"', labels: ':labels="textos"' },

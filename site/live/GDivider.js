@@ -27,7 +27,7 @@ export default {
   cases: [
     {
       title: { es: 'Separar dos opciones de acceso', en: 'Separate two sign-in options' },
-      why: { es: 'Con texto centrado («O bien»): frase corta; si el texto titula lo que sigue, usa un encabezado, no un divider.', en: 'With centered text («Or»): a short phrase; if the text titles what follows, use a heading, not a divider.' },
+      why: { es: 'Con texto centrado («O bien»): frase corta; si el texto titula lo que sigue, usa un encabezado, no un divider.', en: 'With centered text (“Or”): a short phrase; if the text titles what follows, use a heading, not a divider.' },
       props: { label: { es: 'O bien', en: 'Or' } }
     },
     {

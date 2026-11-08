@@ -8,7 +8,7 @@ export default {
   imports: ["import { GTimeField } from '@grana/vue/time-field'"],
   base: {
     label: E('Hora de la toma', 'Time of the dose'),
-    hint: E('Escribe como lo dirías: 930, 9h30, 9 noche o mediodía.', 'Type it the way you would say it: 930, 9:30 pm or noon.'),
+    hint: E('Escribe como lo dirías: 930, 9h30, 9 noche o mediodía.', 'Type it the way you would say it: 930, 9h30, 9 pm or noon.'),
     locale: E('es-MX', 'en-US'),
     step: 15,
     labels: { es: { invalid: 'Escribe una hora, por ejemplo 9:30' }, en: { invalid: 'Enter a time, for example 9:30 am' } }

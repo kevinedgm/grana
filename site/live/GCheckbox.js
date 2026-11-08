@@ -35,7 +35,7 @@ export default {
     },
     {
       title: E('Selección parcial', 'Partial selection'),
-      why: E('indeterminate representa «algunas» en una casilla que gobierna a otras; en cuanto el usuario la pulsa deja de serlo.', 'indeterminate stands for «some» in a box that governs others; it stops being so once the user clicks it.'),
+      why: E('indeterminate representa «algunas» en una casilla que gobierna a otras; en cuanto el usuario la pulsa deja de serlo.', 'indeterminate stands for “some” in a box that governs others; it stops being so once the user clicks it.'),
       props: { indeterminate: true, label: E('Todas las opciones', 'All options'), hint: '' }
     }
   ]

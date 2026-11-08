@@ -28,7 +28,7 @@ export default {
     },
     {
       title: { es: 'Filtro que se enciende y apaga', en: 'Filter that toggles' },
-      why: { es: 'pressed booleano la vuelve un botón de alternar (aria-pressed); en la ficha se muestra encendida, con v-model:pressed la controlas tú.', en: 'a boolean pressed makes it a toggle button (aria-pressed); the playground shows it on, with v-model:pressed you control it.' },
+      why: { es: 'pressed booleano la vuelve un botón de alternar (aria-pressed); en la ficha se muestra encendida, con v-model:pressed la controlas tú.', en: 'a boolean pressed makes it a toggle button (aria-pressed); the live example shows it on, with v-model:pressed you control it.' },
       props: { label: { es: 'Solo pendientes', en: 'Pending only' }, pressed: true }
     },
     {

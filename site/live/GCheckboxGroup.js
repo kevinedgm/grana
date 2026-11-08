@@ -32,7 +32,7 @@ export default {
   ],
   cases: [
     {
-      title: E('Servicios con «seleccionar todos»', 'Services with «select all»'),
+      title: E('Servicios con «seleccionar todos»', 'Services with “select all”'),
       why: E('select-all da la casilla maestra y el recuento cuando la lista es larga; con tres opciones o menos sobra.', 'select-all gives the master box and the count when the list is long; with three options or fewer it is overkill.'),
       props: { selectAll: true }
     },

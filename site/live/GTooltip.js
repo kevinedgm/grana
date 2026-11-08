@@ -64,7 +64,7 @@ export default {
       props: {
         kind: 'label', shortcut: '', keyshortcuts: '',
         text: { es: 'Marcar para revisión', en: 'Flag for review' },
-        detail: { es: 'Avisa al responsable del expediente', en: 'Notifies the case owner' }
+        detail: { es: 'Avisa al responsable del expediente', en: 'Notifies the record owner' }
       }
     },
     {

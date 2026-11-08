@@ -47,7 +47,7 @@ export default {
       props: {
         role: 'alertdialog', size: 'sm', closeOnBackdrop: false,
         title: { es: '¿Dar de baja a Lucía Fernández?', en: 'Remove Lucía Fernández?' },
-        description: { es: 'Sus citas futuras se cancelarán.', en: 'Their future appointments will be cancelled.' }
+        description: { es: 'Sus citas futuras se cancelarán.', en: 'Their future appointments will be canceled.' }
       }
     },
     {
