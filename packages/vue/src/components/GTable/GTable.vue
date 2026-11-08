@@ -216,6 +216,7 @@ export default defineComponent({
     watch(() => props.error, (v) => { if (!ph.busy) appliedError.value = v })
     onMounted(() => {
       mounted = true
+      today.value = new Date()
       // Montada ya cargando: la región existe vacía desde el montaje (#14) y el texto llega al verse la carga
       if (props.loading) phase.arm()
     })
@@ -230,7 +231,9 @@ export default defineComponent({
     const keyOf = (row) => row[props.rowKey]
 
     // ---- Datos: filtrar → ordenar → paginar ----
-    const filtered = computed(() => (props.filterMode === 'local' ? applyFilters(paintedRows.value, cols.value, filtersState.value) : paintedRows.value))
+    // Hoy, para «últimos N días»: la fecha del dispositivo se lee al montar (#1033)
+    const today = ref(null)
+    const filtered = computed(() => (props.filterMode === 'local' ? applyFilters(paintedRows.value, cols.value, filtersState.value, today.value) : paintedRows.value))
     const collator = computed(() => new Intl.Collator(locale(), { numeric: true, sensitivity: 'base' }))
     const sorted = computed(() => {
       const s = sortState.value

@@ -1254,6 +1254,8 @@ export interface DescribeQueryOptions {
   tours?: { value: string | number; label: string }[]
   /** BCP 47; sin él, el de Intl del entorno (no lee el DOM). */
   locale?: string
+  /** «Hoy» (ISO) para el «hoy»/«mañana» de la mesa; sin él, la fecha del dispositivo; `null`, la fecha corta (#1033). */
+  today?: string | null
   labels: {
     nights: string | ((count: number, vars: { count: string }) => string)
     separator: string

@@ -27,8 +27,11 @@ export function queryFormat(locale) {
       short,
       long: (d) => l.format(parseISO(d)),
       range: (a, b) => (r.formatRange ? r.formatRange(parseISO(a), parseISO(b)) : `${r.format(parseISO(a))} – ${r.format(parseISO(b))}`),
-      day: (d) => {
-        const n = daysBetween(todayISO(), d) - 1
+      // «hoy»/«mañana» respecto de `today` (ISO; por omisión, la fecha del dispositivo). Con `today` null, la fecha corta:
+      // así lo pide un componente antes de montar (#1033), para que el servidor y el cliente pinten lo mismo
+      day: (d, today = todayISO()) => {
+        if (!today) return short(d)
+        const n = daysBetween(today, d) - 1
         if (n === 0 || n === 1) { try { return new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }).format(n, 'day') } catch {} }
         return short(d)
       }
@@ -42,7 +45,7 @@ export function queryFormat(locale) {
  * La consulta en palabras, igual que el resumen de GBookingBar. Una clave de `labels` que falta (o no es texto ni función)
  * deja fuera su pieza.
  * @param {{ kind: 'stay'|'table'|'tour', from?, to?, date?, time?, tour?, party? }} query
- * @param {{ partyRows: object[], times?: object[], tours?: object[], locale?: string, labels: object }} options
+ * @param {{ partyRows: object[], times?: object[], tours?: object[], locale?: string, today?: string | null, labels: object }} options (today: ISO de «hoy» para «hoy»/«mañana» de la mesa; por omisión, la fecha del dispositivo; null, la fecha corta, #1033)
  * @returns {{ text: string, checkout: string, nights: number | null, missing: string[] }}
  */
 export function describeQuery(query, options) {
@@ -71,7 +74,7 @@ export function describeQuery(query, options) {
       } else lack('dates', 'noDates')
     }
     if (kind === 'tour') { const x = find(o.tours, q.tour); x ? parts.push(x.label || String(x.value)) : lack('tour', 'noTour') }
-    if (kind !== 'stay') { const d = iso(q.date); d ? parts.push(kind === 'table' ? f.day(d) : f.short(d)) : lack('date', 'noDate') }
+    if (kind !== 'stay') { const d = iso(q.date); d ? parts.push(kind === 'table' ? f.day(d, o.today) : f.short(d)) : lack('date', 'noDate') }
     if (kind === 'table') { const x = find(o.times, q.time); x ? parts.push(x.label || x.value) : lack('time', 'noTime') }
     const rows = validRows(o.partyRows)
     parts.push(partySummary(rows, completeParty(rows, q.party), sep, f.nf))

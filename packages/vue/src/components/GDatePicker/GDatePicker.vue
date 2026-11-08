@@ -172,8 +172,14 @@ const hasValue = computed(() => Boolean(normalized.value.start))
 // Estado interno
 const pending = ref(null) // inicio de rango elegido y aún sin fin
 const hover = ref(null)
-const view = ref(firstOfMonth(normalized.value.start || todayISO()))
-const focusDate = ref(normalized.value.start || todayISO())
+// La fecha del dispositivo se lee al montar (#1033): el servidor y el primer pintado del cliente no marcan hoy, y la vista
+// sale solo del valor. Sin valor, la rejilla de días espera al montaje (`viewReady`), que pone el mes de hoy; HOLD es un
+// marcador estable que nunca se pinta.
+const HOLD = '2000-01-01'
+const today = ref(null)
+const viewReady = ref(Boolean(normalized.value.start))
+const view = ref(firstOfMonth(normalized.value.start || HOLD))
+const focusDate = ref(normalized.value.start || HOLD)
 const n = ref(props.months === 2 || props.months === '2' ? 2 : 1)
 const announcement = ref('')
 
@@ -223,7 +229,8 @@ const weekdays = computed(() => {
 })
 const grid = computed(() => {
   const out = []
-  const today = todayISO()
+  if (!viewReady.value) return out
+  const now = today.value
   // Borde visible de la franja que sigue (#1027): en un mes, la primera y la última celda pintadas; en dos, el primer día
   // del primero y el último del segundo
   const lead0 = (weekday(view.value) - fdow.value + 7) % 7
@@ -242,7 +249,7 @@ const grid = computed(() => {
         const inMonth = idx >= 0 && idx < total
         const cell = { iso, day: parseISO(iso).getDate(), inMonth, render: inMonth || n.value === 1, col: c, last: inMonth && idx === total - 1, first: inMonth && idx === 0 }
         if (cell.render) {
-          cell.st = dayState(cell, today, vis)
+          cell.st = dayState(cell, now, vis)
           cell.label = dayLabel(cell, cell.st)
           cell.sel = cellSelected(cell)
         }
@@ -257,7 +264,7 @@ const grid = computed(() => {
 const cellAt = (iso) => {
   for (const m of grid.value) for (const w of m.weeks) for (const c of w) if (c.render && c.iso === iso) return c
 }
-const tabbable = computed(() => (cellAt(focusDate.value) ? focusDate.value : grid.value[0].first))
+const tabbable = computed(() => (cellAt(focusDate.value) ? focusDate.value : grid.value[0]?.first ?? focusDate.value))
 // Alcance del slot day, el mismo en la celda y en la lectura
 const dayScope = (c) => ({ date: c.iso, day: c.day, selected: c.st.selected, inRange: c.st.inBand, disabled: c.st.disabled, outside: c.st.outside })
 
@@ -295,7 +302,7 @@ function dayState(cell, today, vis) {
   const openEnd = Boolean(inBand && iso === vis[1] && b > iso)
   return {
     selected: Boolean(circle),
-    today: iso === today,
+    today: Boolean(today) && iso === today,
     disabled: dis,
     outside: !cell.inMonth,
     inactive: inact,
@@ -529,7 +536,7 @@ function pickLabel(text, cur, has, off) {
 const picks = computed(() => {
   const lv = level.value
   if (lv === 'days') return []
-  const today = todayISO()
+  const now = today.value
   const rows = []
   for (let r = 0; r < 4; r++) {
     const row = []
@@ -538,13 +545,13 @@ const picks = computed(() => {
       if (lv === 'months') {
         const y = vy.value
         const has = touches(ymISO(y, i), lastOf(y, i))
-        const cur = yOf(today) === y && mOf(today) === i
+        const cur = Boolean(now) && yOf(now) === y && mOf(now) === i
         const off = monthOff(y, i)
         row.push({ key: i, text: fmtMonthShort.value.format(dateOf(y, i)), label: pickLabel(fmtMonthYear.value.format(dateOf(y, i)), cur, has, off), cur, has, off, tab: i === vm.value })
       } else {
         const y = ys.value + i
         const has = touches(ymISO(y, 0), ymISO(y, 11, 31))
-        const cur = yOf(today) === y
+        const cur = Boolean(now) && yOf(now) === y
         const off = yearOff(y)
         const text = yearText(y)
         row.push({ key: y, text, label: pickLabel(text, cur, has, off), cur, has, off, tab: y === vyf.value })
@@ -920,8 +927,10 @@ function show(trigger) {
   stack = []
   zoom.value = null
   clearTyped()
-  view.value = firstOfMonth(start || todayISO())
-  focusDate.value = start || todayISO()
+  today.value = todayISO()
+  view.value = firstOfMonth(start || today.value)
+  focusDate.value = start || today.value
+  viewReady.value = true
   isOpen.value = true
   nextTick(() => {
     const el = popEl.value
@@ -1021,6 +1030,12 @@ watch(() => [normalized.value.start, normalized.value.end, props.disabledNights]
 let ro = null
 onMounted(() => {
   mounted.value = true
+  today.value = todayISO()
+  if (!viewReady.value) {
+    view.value = firstOfMonth(normalized.value.start || today.value)
+    focusDate.value = normalized.value.start || today.value
+    viewReady.value = true
+  }
   // Aviso (B-L7, #739): la raíz es un div y no va dentro de un <p> (el analizador cerraría el párrafo en SSR)
   try { if (process.env.NODE_ENV !== 'production' && root.value && root.value.parentElement && root.value.parentElement.closest('p')) warnOnce('in-p', 'la raíz está dentro de un <p> (usa un div).') } catch {}
   // Un solo observador: la raíz en línea (uno o dos meses) y, con el slot day, la superficie (lectura del día, #952)

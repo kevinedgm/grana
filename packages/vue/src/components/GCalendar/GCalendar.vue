@@ -84,9 +84,11 @@ const localView = ref('week')
 const localKey = ref(null)
 const localSelected = ref(null)
 const viewId = computed(() => props.view ?? localView.value)
-const nowDate = ref(new Date())
+// La hora del dispositivo se lee al montar (#1033): sin `now`, el servidor y el primer pintado del cliente no tienen «hoy»
+// (ninguna columna es hoy, sin línea de ahora) y, sin `date`, la ventana visible espera al montaje (dateKey null)
+const nowDate = ref(null)
 const current = computed(() => (props.now != null ? toDate(props.now, tz.value) : nowDate.value))
-const dateKey = computed(() => (props.date != null ? dayKey(toDate(props.date, tz.value), tz.value) : localKey.value ?? dayKey(current.value, tz.value)))
+const dateKey = computed(() => (props.date != null ? dayKey(toDate(props.date, tz.value), tz.value) : localKey.value ?? (current.value ? dayKey(current.value, tz.value) : null)))
 const selectedId = computed(() => (props.selectedEventId !== undefined ? props.selectedEventId : localSelected.value))
 const mode = ref('desktop')
 const activeResource = ref(null)
@@ -177,8 +179,9 @@ function rangeTitleFor(v, key) {
   if (v === 'week') return `${formatDay(s, { day: 'numeric', month: 'short' }, props.locale)} – ${formatDay(addDays(e, -1), { day: 'numeric', month: 'short', year: 'numeric' }, props.locale)}`
   return formatDay(key, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }, props.locale)
 }
-const title = computed(() => rangeTitleFor(viewId.value, dateKey.value))
+const title = computed(() => (dateKey.value ? rangeTitleFor(viewId.value, dateKey.value) : ''))
 watch([viewId, dateKey, tz, () => props.weekStartsOn], () => {
+  if (!dateKey.value) return
   const [s, e] = rangeOf(viewId.value, dateKey.value)
   emit('range-change', { start: zoned(s, 0, tz.value), end: zoned(e, 0, tz.value), view: viewId.value, timezone: tz.value })
 }, { immediate: true })
@@ -193,15 +196,15 @@ const dayResources = computed(() => {
 const showResourceList = computed(() => phone.value && ((viewId.value === 'day' && resList.value.length > 1 && !activeResource.value) || viewId.value === 'timeline'))
 
 // ---- Modelo de vista
-const todayKey = computed(() => dayKey(current.value, tz.value))
+const todayKey = computed(() => (current.value ? dayKey(current.value, tz.value) : null))
 const nowRel = computed(() => {
-  if (!props.showNowIndicator) return null
+  if (!props.showNowIndicator || !current.value) return null
   const d = current.value
   const p = (+d - +zoned(todayKey.value, 0, tz.value)) / 60000
   return p >= fromMin.value && p <= toMin.value ? p - fromMin.value : null
 })
 function daySegs(resId, key, minMinutes) {
-  const segs = normEvents.value.filter((e) => e.resources.includes(resId) && !e.allDay).map((e) => segmentOf(e, key, tz.value, current.value)).filter(Boolean)
+  const segs = normEvents.value.filter((e) => e.resources.includes(resId) && !e.allDay).map((e) => segmentOf(e, key, tz.value, current.value || e.start)).filter(Boolean)
   const visible = segs.filter((s) => s.endMin > fromMin.value && s.startMin < toMin.value)
   assignLanes(visible, minMinutes)
   for (const s of visible) { s.k = `${s.ev.id}|${resId}|${key}`; s.relStart = Math.max(s.startMin, fromMin.value) - fromMin.value; s.relDur = Math.min(s.endMin, toMin.value) - Math.max(s.startMin, fromMin.value) }
@@ -233,7 +236,7 @@ function chronological(segs, blks) {
   ].sort((a, b) => a.t - b.t || (a.kind === 'block' ? -1 : 1))
 }
 const columns = computed(() => {
-  if (viewId.value !== 'day' && viewId.value !== 'week') return []
+  if ((viewId.value !== 'day' && viewId.value !== 'week') || !dateKey.value) return []
   const minMin = metrics.value.evmin / metrics.value.ppm
   const cols = viewId.value === 'day'
     ? dayResources.value.map((r) => ({ key: dateKey.value, res: r, head: r.title || formatDay(dateKey.value, { weekday: 'short', day: 'numeric' }, props.locale), sub: r.title ? formatDay(dateKey.value, { weekday: 'short', day: 'numeric' }, props.locale) : '' }))
@@ -245,7 +248,7 @@ const columns = computed(() => {
   })
 })
 const timelineRows = computed(() => {
-  if (viewId.value !== 'timeline') return []
+  if (viewId.value !== 'timeline' || !dateKey.value) return []
   const minMin = metrics.value.evmin / metrics.value.ppmx
   return resList.value.map((r) => {
     const { visible } = daySegs(r.id, dateKey.value, minMin)
@@ -259,7 +262,7 @@ function eventsOnDay(key, resIds) {
   return normEvents.value.filter((e) => e.resources.some((r) => resIds.includes(r)) && +e.start < +de && +(e.end || e.start) >= +ds).sort((a, b) => (b.allDay ? 1 : 0) - (a.allDay ? 1 : 0) || +a.start - +b.start)
 }
 const monthCells = computed(() => {
-  if (viewId.value !== 'month') return []
+  if (viewId.value !== 'month' || !dateKey.value) return []
   const first = monthStart(dateKey.value)
   const start = weekStart(first, props.weekStartsOn)
   const ids = resList.value.map((r) => r.id)
@@ -292,6 +295,7 @@ const effectiveTabStop = computed(() => (tabStop.value && allKeys.value.includes
 // ---- Estado de un recurso (teléfono)
 function statusOf(resId) {
   const key = todayKey.value
+  if (!key) return ''
   const ds = zoned(key, 0, tz.value)
   const de = zoned(addDays(key, 1), 0, tz.value)
   const n = current.value
@@ -577,7 +581,7 @@ function move(n) {
   announce(rangeTitleFor(v, v === 'month' ? addMonths(dateKey.value, n) : addDays(dateKey.value, n * (v === 'week' ? 7 : 1))))
 }
 function goToday() {
-  setDate(todayKey.value)
+  if (todayKey.value) setDate(todayKey.value)
 }
 function pickResource(id) {
   emit('resource-click', { resourceId: id })
@@ -593,6 +597,7 @@ let pendingMode = null
 const raf = (f) => (typeof requestAnimationFrame === 'function' ? requestAnimationFrame(f) : setTimeout(f, 16))
 const caf = (id) => (typeof cancelAnimationFrame === 'function' ? cancelAnimationFrame(id) : clearTimeout(id))
 onMounted(() => {
+  if (props.now == null) nowDate.value = new Date()
   measure()
   if (typeof ResizeObserver !== 'undefined' && rootEl.value) {
     // La escritura va al cuadro siguiente y solo si cambia: dentro de la devolución, WebKit avisa «ResizeObserver loop completed» (#169)
@@ -640,9 +645,9 @@ const statusText = computed(() => {
   return ''
 })
 const showEmpty = computed(() => !props.loading && !props.error && totalVisible.value === 0 && !showResourceList.value)
-const phoneAgenda = computed(() => (viewId.value === 'week' && phone.value ? eventsOnDay(dateKey.value, [weekRes.value]) : []))
+const phoneAgenda = computed(() => (viewId.value === 'week' && phone.value && dateKey.value ? eventsOnDay(dateKey.value, [weekRes.value]) : []))
 const sheetEvents = computed(() => (sheetKey.value ? eventsOnDay(sheetKey.value, resList.value.map((r) => r.id)) : []))
-const weekStripDays = computed(() => [...Array(7)].map((_, i) => { const k = addDays(weekStart(dateKey.value, props.weekStartsOn), i); return { key: k, n: eventsOnDay(k, [weekRes.value]).length, label: formatDay(k, { weekday: 'narrow', day: 'numeric' }, props.locale) } }))
+const weekStripDays = computed(() => (!dateKey.value ? [] : [...Array(7)].map((_, i) => { const k = addDays(weekStart(dateKey.value, props.weekStartsOn), i); return { key: k, n: eventsOnDay(k, [weekRes.value]).length, label: formatDay(k, { weekday: 'narrow', day: 'numeric' }, props.locale) } })))
 const ghostFor2 = (key) => (ghost.value && ghost.value.cell === key ? ghost.value : null)
 </script>
 

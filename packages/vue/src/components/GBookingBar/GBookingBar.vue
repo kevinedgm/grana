@@ -104,8 +104,10 @@ const fmt = computed(() => queryFormat(loc.value))
 const nf = computed(() => fmt.value.nf)
 const short = (iso) => fmt.value.short(iso)
 const long = (iso) => fmt.value.long(iso)
-const today = () => todayISO()
-const dayWord = (iso) => fmt.value.day(iso)
+// La fecha del dispositivo se lee al montar (#1033): antes, la fecha corta en vez de «hoy»/«mañana» y sin días rápidos
+const todayKey = ref(null)
+const today = () => todayKey.value
+const dayWord = (iso) => fmt.value.day(iso, todayKey.value)
 
 // ---------- Modelo (B-L4): la consulta; las noches se derivan ----------
 const rows = computed(() => validRows(props.partyRows))
@@ -187,6 +189,7 @@ const timeOf = (v) => timeList.value.find((t) => t.value === v)
 const quickOptions = computed(() => {
   const n = Number.isInteger(props.quickDays) ? props.quickDays : 0
   const out = []
+  if (!today()) return out
   let d = props.min && props.min > today() ? props.min : today()
   for (let i = 0; out.length < n && i < n + 60; i++, d = addDays(d, 1)) {
     if (props.max && d > props.max) break
@@ -213,7 +216,7 @@ const slotValue = (slot) => {
 // Booking dicen la consulta con estas mismas palabras. Los textos se leen con `lab` al pedirlos (aviso 7 como antes, solo
 // de lo que la pieza necesita); `checkout` va aparte para no pedir labels.checkout donde no se pinta.
 const qLabels = (withCheckout) => new Proxy({}, { get: (_, k) => (k === 'separator' ? sep() : k === 'checkout' && !withCheckout ? undefined : lab(k)) })
-const describe = (withCheckout) => describeQuery({ kind: kind.value, ...query.value }, { partyRows: rows.value, times: timeList.value, tours: tourList.value, locale: loc.value, labels: qLabels(withCheckout) })
+const describe = (withCheckout) => describeQuery({ kind: kind.value, ...query.value }, { partyRows: rows.value, times: timeList.value, tours: tourList.value, locale: loc.value, today: todayKey.value, labels: qLabels(withCheckout) })
 const digest = computed(() => describe(false).text)
 const checkoutText = computed(() => (kind.value === 'stay' && query.value.from && query.value.to ? describe(true).checkout : ''))
 
@@ -422,6 +425,7 @@ function stopDock() {
 watch(() => props.dock, (on) => { if (on) nextTick(startDock); else stopDock() })
 
 onMounted(() => {
+  todayKey.value = todayISO()
   if (!props.locale) {
     const near = formEl.value && formEl.value.parentElement && formEl.value.parentElement.closest('[lang]')
     loc.value = (near && near.getAttribute('lang')) || document.documentElement.lang || undefined

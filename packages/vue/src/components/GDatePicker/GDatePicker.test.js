@@ -30,6 +30,8 @@ const LABELS = {
 const R02 = { chooseMonth: 'm', chooseYear: 'y', prevYear: 'a', nextYear: 'b', prevYears: 'c', nextYears: 'd' }
 const mk = (props = {}, opts = {}) => mount(GDatePicker, { attachTo: document.body, props: { locale: 'es', firstDay: 1, months: 1, labels: LABELS, ...props }, ...opts })
 const inline = (props = {}, opts = {}) => mk({ inline: true, ...props }, opts)
+// La fecha de hoy y, sin valor, la rejilla llegan al montar (#1033): un cuadro después de mount
+const ready = async (w) => { await nextTick(); return w }
 const day = (w, iso) => w.find(`[data-date="${iso}"]`)
 const cellOf = (w, iso) => day(w, iso).element.parentElement
 const click = async (w, iso) => { await day(w, iso).trigger('click'); await nextTick() }
@@ -78,8 +80,8 @@ describe('GDatePicker · render en línea', () => {
     expect(zero[0].attributes('data-date')).toBe('2026-10-20')
   })
 
-  it('el nombre de cada día es la fecha completa más los sufijos de labels', () => {
-    const w = inline({ modelValue: '2026-10-15' })
+  it('el nombre de cada día es la fecha completa más los sufijos de labels', async () => {
+    const w = await ready(inline({ modelValue: '2026-10-15' }))
     expect(day(w, '2026-10-15').attributes('aria-label')).toBe('jueves, 15 de octubre de 2026, hoy, seleccionada')
     expect(day(w, '2026-10-16').attributes('aria-label')).toBe('viernes, 16 de octubre de 2026')
   })
@@ -89,8 +91,8 @@ describe('GDatePicker · render en línea', () => {
     expect(day(w, '2026-10-15').attributes('aria-label')).toBe('jueves, 15 de octubre de 2026')
   })
 
-  it('hoy lleva is-today; la fecha única is-selected y aria-selected en la celda', () => {
-    const w = inline({ modelValue: '2026-10-20' })
+  it('hoy lleva is-today; la fecha única is-selected y aria-selected en la celda', async () => {
+    const w = await ready(inline({ modelValue: '2026-10-20' }))
     expect(day(w, '2026-10-15').classes()).toContain('is-today')
     expect(day(w, '2026-10-20').classes()).toContain('is-selected')
     expect(cellOf(w, '2026-10-20').getAttribute('aria-selected')).toBe('true')
@@ -157,14 +159,14 @@ describe('GDatePicker · valor', () => {
 
 describe('GDatePicker · selección de una fecha', () => {
   it('elegir un día emite update:modelValue y change con la cadena ISO', async () => {
-    const w = inline({ modelValue: null })
+    const w = await ready(inline({ modelValue: null }))
     await click(w, '2026-10-20')
     expect(last(w, 'update:modelValue')).toBe('2026-10-20')
     expect(last(w, 'change')).toBe('2026-10-20')
   })
 
   it('un día no disponible no se elige', async () => {
-    const w = inline({ min: '2026-10-10', max: '2026-10-25', disabledDates: (iso) => iso === '2026-10-20' })
+    const w = await ready(inline({ min: '2026-10-10', max: '2026-10-25', disabledDates: (iso) => iso === '2026-10-20' }))
     await click(w, '2026-10-05')
     await click(w, '2026-10-20')
     await click(w, '2026-10-30')
@@ -173,8 +175,8 @@ describe('GDatePicker · selección de una fecha', () => {
     expect(last(w, 'update:modelValue')).toBe('2026-10-21')
   })
 
-  it('los no disponibles llevan is-disabled y aria-disabled, siguen enfocables y el nombre lo dice', () => {
-    const w = inline({ min: '2026-10-10', disabledDates: (iso) => iso === '2026-10-20' })
+  it('los no disponibles llevan is-disabled y aria-disabled, siguen enfocables y el nombre lo dice', async () => {
+    const w = await ready(inline({ min: '2026-10-10', disabledDates: (iso) => iso === '2026-10-20' }))
     for (const iso of ['2026-10-05', '2026-10-20']) {
       const b = day(w, iso)
       expect(b.classes()).toContain('is-disabled')
@@ -200,17 +202,17 @@ describe('GDatePicker · selección de una fecha', () => {
   })
 
   it('readonly y disabled no eligen', async () => {
-    const a = inline({ readonly: true })
+    const a = await ready(inline({ readonly: true }))
     await click(a, '2026-10-20')
     expect(a.emitted('update:modelValue')).toBeUndefined()
-    const b = inline({ disabled: true })
+    const b = await ready(inline({ disabled: true }))
     expect(b.find('[data-date="2026-10-20"]').attributes('disabled')).toBeDefined()
   })
 })
 
 describe('GDatePicker · selección de un rango', () => {
   it('el primer toque solo emite start (no update:modelValue); el segundo emite el rango completo', async () => {
-    const w = inline({ mode: 'range' })
+    const w = await ready(inline({ mode: 'range' }))
     await click(w, '2026-10-20')
     expect(last(w, 'start')).toEqual({ date: '2026-10-20' })
     expect(w.emitted('update:modelValue')).toBeUndefined()
@@ -220,7 +222,7 @@ describe('GDatePicker · selección de un rango', () => {
   })
 
   it('un día anterior al inicio pendiente cambia el inicio (no invierte)', async () => {
-    const w = inline({ mode: 'range' })
+    const w = await ready(inline({ mode: 'range' }))
     await click(w, '2026-10-20')
     await click(w, '2026-10-18')
     expect(w.emitted('start')).toHaveLength(2)
@@ -231,7 +233,7 @@ describe('GDatePicker · selección de un rango', () => {
   })
 
   it('un rango de un día: inicio = fin', async () => {
-    const w = inline({ mode: 'range' })
+    const w = await ready(inline({ mode: 'range' }))
     await click(w, '2026-10-20')
     await click(w, '2026-10-20')
     expect(last(w, 'update:modelValue')).toEqual({ start: '2026-10-20', end: '2026-10-20' })
@@ -287,7 +289,7 @@ describe('GDatePicker · selección de un rango', () => {
   })
 
   it('mientras se elige el final: vista previa al pasar el puntero y días anteriores «inactivos»', async () => {
-    const w = inline({ mode: 'range' })
+    const w = await ready(inline({ mode: 'range' }))
     await click(w, '2026-10-20')
     expect(day(w, '2026-10-18').classes()).toContain('is-inactive')
     expect(day(w, '2026-10-22').classes()).not.toContain('is-inactive')
@@ -299,7 +301,7 @@ describe('GDatePicker · selección de un rango', () => {
   })
 
   it('el resumen dice el inicio pendiente y luego el rango formateado', async () => {
-    const w = inline({ mode: 'range' })
+    const w = await ready(inline({ mode: 'range' }))
     await click(w, '2026-10-20')
     expect(w.find('.g-datepicker__summary').text()).toContain('20')
     await w.setProps({ modelValue: { start: '2026-10-28', end: '2026-11-03' } })
@@ -310,7 +312,7 @@ describe('GDatePicker · selección de un rango', () => {
 
 describe('GDatePicker · anuncios', () => {
   it('la región status dice cada paso con los textos de labels', async () => {
-    const w = inline({ mode: 'range' })
+    const w = await ready(inline({ mode: 'range' }))
     await click(w, '2026-10-20')
     await nextTick()
     expect(w.find('[role="status"]').text()).toBe('Inicio: martes, 20 de octubre de 2026'.replace('martes', 'martes'))
@@ -320,7 +322,7 @@ describe('GDatePicker · anuncios', () => {
   })
 
   it('sin announce* no se anuncia nada', async () => {
-    const w = inline({ mode: 'range', labels: { prev: 'a', next: 'b' } })
+    const w = await ready(inline({ mode: 'range', labels: { prev: 'a', next: 'b' } }))
     await click(w, '2026-10-20')
     await nextTick()
     expect(w.find('[role="status"]').text()).toBe('')
@@ -373,13 +375,13 @@ describe('GDatePicker · teclado', () => {
   })
 
   it('los días no disponibles reciben foco pero no se eligen', async () => {
-    const w = inline({ min: '2026-10-16', modelValue: null, focusDate: undefined })
+    const w = await ready(inline({ min: '2026-10-16', modelValue: null, focusDate: undefined }))
     await key(w, '2026-10-15', 'ArrowLeft')
     expect(document.activeElement.dataset.date).toBe('2026-10-14')
   })
 
   it('el foco en un día con inicio pendiente pinta la vista previa', async () => {
-    const w = inline({ mode: 'range' })
+    const w = await ready(inline({ mode: 'range' }))
     await click(w, '2026-10-20')
     await key(w, '2026-10-20', 'ArrowRight')
     await key(w, '2026-10-21', 'ArrowRight')
@@ -914,7 +916,7 @@ describe('GDatePicker · noches y salida (#739, datepicker.md «Noches y salida�
   const st = (w, iso) => day(w, iso).classes()
 
   it('un día con la noche agotada no es inicio; sin inicio pendiente, el 20 es «solo salida» (sin aria-disabled, sufijo)', async () => {
-    const w = inline({ mode: 'range', disabledNights: off, labels: { ...LABELS, checkoutOnly: 'solo salida' } })
+    const w = await ready(inline({ mode: 'range', disabledNights: off, labels: { ...LABELS, checkoutOnly: 'solo salida' } }))
     expect(st(w, '2026-10-20')).toContain('is-checkout-only')
     expect(st(w, '2026-10-20')).not.toContain('is-disabled')
     expect(day(w, '2026-10-20').attributes('aria-disabled')).toBeUndefined()
@@ -924,15 +926,15 @@ describe('GDatePicker · noches y salida (#739, datepicker.md «Noches y salida�
     expect(st(w, '2026-10-21')).not.toContain('is-checkout-only')
   })
 
-  it('una noche agotada cuya anterior también lo está: ni inicio ni salida → is-disabled', () => {
-    const w = inline({ mode: 'range', disabledNights: (iso) => iso === '2026-10-20' || iso === '2026-10-21' })
+  it('una noche agotada cuya anterior también lo está: ni inicio ni salida → is-disabled', async () => {
+    const w = await ready(inline({ mode: 'range', disabledNights: (iso) => iso === '2026-10-20' || iso === '2026-10-21' }))
     expect(st(w, '2026-10-20')).toContain('is-checkout-only')
     expect(st(w, '2026-10-21')).toContain('is-disabled')
     expect(day(w, '2026-10-21').attributes('aria-disabled')).toBe('true')
   })
 
   it('salir un día agotado es válido; dormir esa noche no: tras el agotado, Inactive (reinicia) y no fin', async () => {
-    const w = inline({ mode: 'range', disabledNights: off })
+    const w = await ready(inline({ mode: 'range', disabledNights: off }))
     await click(w, '2026-10-18')
     expect(st(w, '2026-10-20')).not.toContain('is-disabled') // fin válido (18→20 duerme 18 y 19)
     expect(st(w, '2026-10-22')).toContain('is-inactive') // contendría la noche del 20; pero puede ser inicio
@@ -943,7 +945,7 @@ describe('GDatePicker · noches y salida (#739, datepicker.md «Noches y salida�
   })
 
   it('tocar un Inactive posterior reinicia el inicio; el fin va siempre después del inicio', async () => {
-    const w = inline({ mode: 'range', disabledNights: off })
+    const w = await ready(inline({ mode: 'range', disabledNights: off }))
     await click(w, '2026-10-18')
     await click(w, '2026-10-22')
     expect(w.emitted('start').map((e) => e[0].date)).toEqual(['2026-10-18', '2026-10-22'])
@@ -955,7 +957,7 @@ describe('GDatePicker · noches y salida (#739, datepicker.md «Noches y salida�
   })
 
   it('minNights y maxNights solos: el fin fuera de [min, max] no es elegible', async () => {
-    const w = inline({ mode: 'range', minNights: 2, maxNights: 3 })
+    const w = await ready(inline({ mode: 'range', minNights: 2, maxNights: 3 }))
     await click(w, '2026-10-10')
     expect(st(w, '2026-10-11')).toContain('is-inactive')
     expect(st(w, '2026-10-12')).not.toContain('is-inactive')
@@ -968,7 +970,7 @@ describe('GDatePicker · noches y salida (#739, datepicker.md «Noches y salida�
   })
 
   it('la vista previa solo pinta un fin válido', async () => {
-    const w = inline({ mode: 'range', disabledNights: off })
+    const w = await ready(inline({ mode: 'range', disabledNights: off }))
     await click(w, '2026-10-18')
     await day(w, '2026-10-22').trigger('pointerover'); await nextTick()
     expect(w.findAll('td.is-preview')).toHaveLength(0)
@@ -977,7 +979,7 @@ describe('GDatePicker · noches y salida (#739, datepicker.md «Noches y salida�
   })
 
   it('sin las tres reglas, el comportamiento de siempre (inicio = fin vale; disabledDates no impide contener días)', async () => {
-    const w = inline({ mode: 'range' })
+    const w = await ready(inline({ mode: 'range' }))
     await click(w, '2026-10-10')
     await click(w, '2026-10-10')
     expect(last(w, 'update:modelValue')).toEqual({ start: '2026-10-10', end: '2026-10-10' })
@@ -1008,7 +1010,7 @@ describe('GDatePicker · noches y salida (#739, datepicker.md «Noches y salida�
 
 describe('GDatePicker · B-L6 y raíz con trigger (#739)', () => {
   it('inline + disabled: los botones de mes también quedan deshabilitados', async () => {
-    const w = inline({ disabled: true })
+    const w = await ready(inline({ disabled: true }))
     const prev = w.find('.g-datepicker__nav--prev')
     const next = w.find('.g-datepicker__nav--next')
     expect(prev.attributes('disabled')).toBeDefined()
@@ -1036,25 +1038,25 @@ describe('GDatePicker · B-L6 y raíz con trigger (#739)', () => {
 })
 
 describe('GDatePicker · dayDescription y forma del día con contenido (#778)', () => {
-  it('lo que devuelve se añade al nombre del día tras los sufijos de estado; vacío o no texto no añade nada', () => {
+  it('lo que devuelve se añade al nombre del día tras los sufijos de estado; vacío o no texto no añade nada', async () => {
     const calls = []
-    const w = inline({
+    const w = await ready(inline({
       modelValue: '2026-10-15',
       dayDescription: (iso) => { calls.push(iso); return iso === '2026-10-15' ? '1,850 pesos mexicanos' : iso === '2026-10-16' ? '' : iso === '2026-10-17' ? 42 : null }
-    })
+    }))
     expect(day(w, '2026-10-15').attributes('aria-label')).toBe('jueves, 15 de octubre de 2026, hoy, seleccionada, 1,850 pesos mexicanos')
     expect(day(w, '2026-10-16').attributes('aria-label')).toBe('viernes, 16 de octubre de 2026')
     expect(day(w, '2026-10-17').attributes('aria-label')).toBe('sábado, 17 de octubre de 2026')
     expect(calls).toContain('2026-10-01')
     expect(calls).toContain('2026-10-31')
   })
-  it('también en los días no disponibles, después de «no disponible»', () => {
-    const w = inline({ disabledDates: (iso) => iso === '2026-10-20', dayDescription: () => '900 pesos mexicanos' })
+  it('también en los días no disponibles, después de «no disponible»', async () => {
+    const w = await ready(inline({ disabledDates: (iso) => iso === '2026-10-20', dayDescription: () => '900 pesos mexicanos' }))
     expect(day(w, '2026-10-20').attributes('aria-label')).toBe('martes, 20 de octubre de 2026, no disponible, 900 pesos mexicanos')
   })
-  it('con el slot day la raíz lleva g-datepicker--day-content (todas las celdas); sin él, no', () => {
-    expect(inline().classes()).not.toContain('g-datepicker--day-content')
-    const w = inline({}, { slots: { day: ({ day: d }) => (d === 3 ? h('span', { class: 'x' }, '$9') : null) } })
+  it('con el slot day la raíz lleva g-datepicker--day-content (todas las celdas); sin él, no', async () => {
+    expect((await ready(inline())).classes()).not.toContain('g-datepicker--day-content')
+    const w = await ready(inline({}, { slots: { day: ({ day: d }) => (d === 3 ? h('span', { class: 'x' }, '$9') : null) } }))
     expect(w.classes()).toContain('g-datepicker--day-content')
     expect(day(w, '2026-10-03').find('.x').exists()).toBe(true)
     expect(day(w, '2026-10-03').attributes('aria-label')).toBe('sábado, 3 de octubre de 2026')
@@ -1388,8 +1390,8 @@ describe('GDatePicker · r02 · vistas y cabeceras (#1020)', () => {
     expect(parent).not.toHaveBeenCalled()
   })
 
-  it('disabled: botones del título y flechas de todas las vistas deshabilitados', () => {
-    const w = inline({ disabled: true })
+  it('disabled: botones del título y flechas de todas las vistas deshabilitados', async () => {
+    const w = await ready(inline({ disabled: true }))
     expect(part(w, 'month').attributes('disabled')).toBeDefined()
     expect(part(w, 'year').attributes('disabled')).toBeDefined()
   })
@@ -1455,7 +1457,7 @@ describe('GDatePicker · r02 · marcas y nombres de meses y años', () => {
   })
 
   it('range con inicio pendiente: su mes lleva is-in-value', async () => {
-    const w = inline({ mode: 'range' })
+    const w = await ready(inline({ mode: 'range' }))
     await click(w, '2026-10-08')
     await toMonths(w)
     expect(pickBtn(w, 9).classes()).toContain('is-in-value')

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { nextTick } from 'vue'
 import GCheckbox from '../components/GCheckbox/GCheckbox.vue'
 import GCheckboxGroup from '../components/GCheckboxGroup/GCheckboxGroup.vue'
 import GRadioGroup from '../components/GRadioGroup/GRadioGroup.vue'
@@ -86,6 +87,7 @@ describe('GDatePicker y GCalendar · iconos de Lucide', () => {
   it('GDatePicker: calendar en el campo, chevrons de navegación, x de la hoja, punto de hoy y error', async () => {
     const { default: GDatePicker } = await import('../components/GDatePicker/GDatePicker.vue')
     const w = mount(GDatePicker, { attachTo: document.body, props: { label: 'Fecha', inline: true, modelValue: null, error: 'Mal', invalid: true, labels: { prev: 'Mes anterior', next: 'Mes siguiente' } } })
+    await nextTick() // sin valor, la rejilla llega al montar (#1033)
     expect(w.find('.g-datepicker__nav--prev svg').html()).toContain('m15 18-6-6 6-6')
     expect(w.find('.g-datepicker__nav--next svg').html()).toContain('m9 18 6-6-6-6')
     w.unmount()

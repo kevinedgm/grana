@@ -47,6 +47,8 @@ export function matches(row, field, f, today = new Date()) {
     if (f.op === 'after') return d > f.value
     if (f.op === 'before') return d < f.value
     if (f.op === 'between') return d >= f.value[0] && d <= f.value[1]
+    // Sin hoy (un componente antes de montar, #1033), «últimos N días» aún no filtra: servidor y cliente pintan lo mismo
+    if (!today) return true
     const from = new Date(today)
     from.setDate(from.getDate() - f.value)
     return d >= isoDate(from) && d <= isoDate(today)
