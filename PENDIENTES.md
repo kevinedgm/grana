@@ -97,6 +97,9 @@ Recuperación tras cerrar la aplicación, contrato y kit de pruebas del audio te
 
 | Qué | Dueño |
 | --- | --- |
+| **Buscar al escribir en `GMenu` (#797) sin construir** (visto por bruno al construir `GPageIndex`, 336f3624): `utils/menuNav.js` y `GMenu` siguen con el salto por letra; solo `GFab` filtra al escribir. Los cuatro `labels` (`findHint`, `matches`, `matchesOne`, `none`) llegan a `GMenu` desde `GPageIndex` (y desde los huecos de `GResourceList`) **sin efecto**. Falta construirlo con su lote ≤ +1 KiB gzip de `grana.js` (#797), que hoy no tiene margen (ver el peso del marco A, #1042) | coco / bruno |
+| **Confirmación de `GMenu` de #790 sin construir:** `GMenu.vue` no tiene `confirm` ni `labels.cancel`, así que los avisos **E11** y **E12** (`menu.md`, renumerados en #1047) no se emiten. Lo pide la baja confirmada de `GResourceList` | bruno |
+| **Peso del marco A por encima de #1042, decisión del usuario:** `grana.js` +2 458 B gzip (tope +1 280; `GSidebar` filtro y `code` +2 364, `GMenu` `location` +129) y `dist/page-index.js` 2 905 B (tope 2 560). Opciones y recomendación de lima en el informe del 2026-11-08 (#1048 a #1049 no tocan los topes) | usuario |
 | **`<select>` de orden de `GTable` en `mode="cards"` a 30 px de alto también en táctil**, por debajo de los 44 px de `tokens.md` §7 (hallado por coco en la pieza 1, 7470b94; no se tocó porque #972 exige altura Δ0; el README de `GTable` lo deja dicho y su frase «controles de 44px» en táctil queda contradicha hasta corregirlo). | coco / bruno |
 | **`GPartyField` sin README** (visto al documentar la pieza 1, d7a90e6). | mora-docs |
 | **Pieza 1 (texto editable ≥ 16 px táctil, #970 a #972):** verificada solo en Chromium con emulación; faltan WebKit, la ampliación real en iPhone con Safari, RTL del fantasma y espejos, y las cifras de mínimos de `GFormRow` en táctil. | bruno / coco |

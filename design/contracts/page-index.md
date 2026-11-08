@@ -1,6 +1,6 @@
 # Contrato · GPageIndex (índice de la página)
 
-**Dueño:** lima · **Estado:** aprobado (forma `relay`); las demás formas, reservadas · **Basado en:** `design/lab/sitio/r01/` (kiwi; concepto A «El índice se escribe», elegido por el usuario el 2026-11-08, #1034), hallazgos S-L2 y S-L4 de su `declaracion.md` e inventario #2 (`inventario-componentes.md`) · **Decisiones:** #1038 a #1040, #1042, #1047
+**Dueño:** lima · **Estado:** aprobado (forma `relay`); las demás formas, reservadas · **Basado en:** `design/lab/sitio/r01/` (kiwi; concepto A «El índice se escribe», elegido por el usuario el 2026-11-08, #1034), hallazgos S-L2 y S-L4 de su `declaracion.md` e inventario #2 (`inventario-componentes.md`) · **Decisiones:** #1038 a #1040, #1042, #1047 a #1049
 **Tag:** `g-page-index` · **Categoría:** navegación · **Entrada:** `@grana/vue/page-index`
 
 Índice de las secciones **de la página que se está leyendo**, con la sección actual siguiendo la lectura (`aria-current="location"`). Es la pieza que el sitio necesita en A («En esta página» como **relevo** en el zócalo de `GPageHeader`) y la que hoy se escribe a mano en formularios largos y ajustes (`GbSettingsLayout01` compone un índice con `GCard interaction="link"` y `current`). Por eso es un **componente reutilizable**, no una enmienda de `GPageHeader` (#1038): el encabezado solo lo aloja en su slot `actions`, como aloja cualquier `GMenu`.
@@ -51,7 +51,7 @@
 | `appearance` | String | `relay` | `relay` | propia (`list`, `line` y `rail` reservados, #1038) |
 | `label` | String | texto | sin valor (**obligatoria**) | propia (nombre del `<nav>` y primera parte del disparador) |
 | `align` | String | `start` `end` | `end` | de `GMenu` (se pasa tal cual) |
-| `labels` | Object | `findHint`, `matches`, `matchesOne`, `none` (buscar al escribir de `GMenu`, #797) | `{}` | compartida (sin valores por defecto) |
+| `labels` | Object | `findHint`, `matches`, `matchesOne`, `none` (buscar al escribir de `GMenu`, #797) y `opened`, `openedLive`, `copied`, `copiedLive` (gestos de los elementos-enlace de `GMenu`, #577) | `{}` | compartida, de `GMenu` (sin valores por defecto, #1049) |
 | `id` | String | | generado (SSR-seguro) | propia |
 
 ### Reglas de props
@@ -63,6 +63,7 @@
 - **`appearance`:** fuera de lista, aviso 4 y `relay`.
 - **`label`:** obligatoria (aviso 5). Nombra el `<nav>` y es el texto fijo del disparador.
 - **Sin `density` (#1047):** el disparador mide siempre la altura de `GBtn` `md` (la de su `--g-btn-*`, 44 px táctil, nunca `compact` ni `comfortable`: es un control de cabecera, como los de `GPageHeader`); la lista sigue la región como cualquier `GMenu` (`density.md` §5.1). Una `density` que llegue por `attrs` no cambia el disparador.
+- **`labels` (#1049):** `GPageIndex` **no tiene textos propios** en `labels`: pasa el objeto **entero y tal cual** a `GMenu`, y valen las reglas de `menu.md` (§«Textos» de los elementos-enlace y «Letras en listas de comandos» de `api.md`). Los ocho que importan aquí: los cuatro de buscar al escribir (#797; sin ellos, salto por letra) y las dos parejas `opened`/`openedLive` (Ctrl/⌘+clic y botón central dejan el menú abierto con huella: abrir la sección en otra pestaña) y `copied`/`copiedLive` (Ctrl/⌘+C copia el enlace absoluto a la sección, el gesto que más pide un índice de documentación). Sin una pareja, ese gesto cae al del navegador y **`GMenu` emite E6** (el aviso es suyo, con su prefijo; `GPageIndex` no añade otro). Recomendado: pasar las ocho. Las demás claves de `GMenu` (`external`, `newTab`, `destExternal`, `destNewTab`) no aplican: los enlaces son de la misma página.
 - **Atributos:** `class`, `style` y `data-*` van a la raíz (`nav`).
 
 ### Modelo de `items`
@@ -85,7 +86,7 @@ Un **botón de menú** cuyo texto dice dónde estás («En esta página · API»
 ```html
 <nav class="g-page-index g-page-index--appearance-relay" aria-label="En esta página" id="ID">
   <!-- GMenu: el disparador es de GPageIndex (slot trigger), la lista es la de GMenu -->
-  <button class="g-page-index__trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="ID-menu">
+  <button class="g-page-index__trigger" type="button" id="ID-trigger" aria-haspopup="menu" aria-expanded="false" aria-controls="ID-list">
     <span class="g-page-index__key" dir="auto">En esta página</span>
     <span class="g-page-index__value">
       <span class="g-page-index__stack" aria-hidden="true">       <!-- todas las etiquetas, apiladas: dan el ancho -->
@@ -95,15 +96,16 @@ Un **botón de menú** cuyo texto dice dónde estás («En esta página · API»
     </span>
     <span class="g-page-index__icon" aria-hidden="true"><!-- GLibIcon chevrons-up-down --></span>
   </button>
-  <ul class="g-menu__list" role="menu" id="ID-menu" popover="manual">
+  <ul class="g-menu__list" role="menu" id="ID-list" popover="manual" aria-labelledby="ID-trigger">
     <li role="none"><a class="g-menu__item" role="menuitem" href="#uso" tabindex="-1">…Ejemplos</a></li>
     <li role="none"><a class="g-menu__item" role="menuitem" href="#api" aria-current="location" tabindex="-1">…API</a></li>
   </ul>
 </nav>
 ```
 
+- **Identificadores (#1049):** `GPageIndex` pasa su `id` (prop o generado, SSR-seguro) a `GMenu` como prop `id`; `GMenu` genera `{id}-trigger` para el disparador, `{id}-list` para la lista y `{id}-i-…` para cada elemento (`menu.md` §«`id` del disparador», #308), sin poner `{id}` en ningún nodo, así que el `nav` lo lleva sin duplicarse. El disparador de `GPageIndex` recibe sus atributos por el slot `trigger` y **no** pone `id` propio.
 - **`nav` con nombre** (`label`): el índice es un punto de referencia propio («En esta página»), como midió kiwi en los tres motores. Dentro del `role="group"` de las acciones de `GPageHeader` es válido.
-- **El menú es `GMenu`** con elementos-enlace (`menu.md` §«Elementos-enlace»): teclado, cierre, panel estable (#358), una sola luz (M1), buscar al escribir con los cuatro `labels` (#797). **Enmienda de la frontera de #571 (#1038):** `GMenu` puede llevar **todas** las secciones de una página cuando lo compone `GPageIndex` (patrón «Navigation Menu Button» de APG); la navegación entre páginas sigue en `GSidebar`.
+- **El menú es `GMenu`** con elementos-enlace (`menu.md` §«Elementos-enlace»): teclado, cierre, panel estable (#358), una sola luz (M1), buscar al escribir con sus cuatro `labels` (#797; **aún no construido en `GMenu`**, `PENDIENTES.md` §6: hasta entonces, salto por letra). **Enmienda de la frontera de #571 (#1038):** `GMenu` puede llevar **todas** las secciones de una página cuando lo compone `GPageIndex` (patrón «Navigation Menu Button» de APG); la navegación entre páginas sigue en `GSidebar`.
 - **Sección actual en la lista:** el elemento lleva `current: 'location'` → `aria-current="location"` (enmienda de `GMenu`, #1039). Al abrir, el foco sigue empezando en el primero (APG; abrir en la actual sigue reservado en `menu.md` L11).
 - **Disparador:** `<button>` de `GPageIndex` en el slot `trigger` de `GMenu` (recibe sus `attrs`). Nombre accesible = su texto: «En esta página API» (`key` + `current`); la pila es `aria-hidden`. Sin actual (antes de la primera sección), solo `key`; la celda conserva el ancho.
 - **Ancho estable (Δ0):** la celda del valor es una pila (rejilla de una celda) con **todas** las etiquetas ocultas (`visibility: hidden`) y la actual encima: el disparador mide la etiqueta más larga desde el HTML del servidor, **sin medir con JS**, y no cambia de ancho al cambiar la sección. Tope de ancho de coco (alias local `--_relay-max`, múltiplo de `space`) con elipsis en la actual; el nombre accesible lleva siempre el texto entero.
@@ -112,7 +114,7 @@ Un **botón de menú** cuyo texto dice dónde estás («En esta página · API»
 ### Elegir una sección
 
 1. El enlace del menú pasa por la guarda común (#505 con #574) y `GMenu` emite `navigate`; `GPageIndex` lo **reemite** como su `navigate` `{ item, event }` (mismo evento nativo).
-2. **Sin cancelar:** el navegador sigue el `#id` (respeta `scroll-padding` de `GAppShell`/`GPageHeader`, #713, y el `scroll-behavior` de la aplicación: Grana no anima el desplazamiento). La actual pasa **al instante** al destino y la línea de lectura queda en pausa hasta que el desplazamiento termina (`scrollend`, o 150 ms sin cambios donde no existe), para que el relevo no recorra las secciones intermedias.
+2. **Sin cancelar:** el navegador sigue el `#id` (respeta `scroll-padding` de `GAppShell`/`GPageHeader`, #713, y el `scroll-behavior` de la aplicación: Grana no anima el desplazamiento). La actual pasa **al instante** al destino y la línea de lectura queda en pausa hasta que el desplazamiento termina (`scrollend`, o 150 ms sin cambios donde no existe), para que el relevo no recorra las secciones intermedias. **La elegida se sostiene (#1048):** al terminar el salto la lectura **no** se reanuda en ese momento; la elegida sigue siendo la actual hasta el **primer evento `scroll` posterior al fin del salto** (rueda, toque, teclas de desplazamiento, barra, un enlace del contenido o un desplazamiento de la aplicación), que reanuda la lectura en ese mismo cuadro. Así una sección más corta que un tercio del visor, o una del final del documento, no cede la actual a la siguiente sin que el usuario se haya movido (ver `api.md` «Lugar actual…»).
 3. **Foco:** cuando `GMenu` ha cerrado y devuelto el foco al disparador, `GPageIndex` lo lleva al **destino** (`focus({ preventScroll: true })`). Si el destino no es enfocable y no tiene `tabindex`, Grana le pone `tabindex="-1"` (y no lo quita; límite documentado). Así el siguiente Tab sigue desde la sección (WCAG 2.4.3), no desde el zócalo pegado. Si el destino no existe en el documento, el foco se queda en el disparador y avisa (aviso 6).
 4. **Cancelado** (`event.preventDefault()`, síncrono): Grana no cambia la actual ni mueve el foco; la aplicación desplaza y enfoca (router, desplazamiento propio).
 5. Ctrl/⌘/Mayús+clic, botón central y Ctrl/⌘+C: lo de `GMenu` (pestaña nueva, copiar el enlace a la sección).
@@ -120,7 +122,7 @@ Un **botón de menú** cuyo texto dice dónde estás («En esta página · API»
 ### Al montar y al cambiar de ruta
 
 - Al montar: si `location.hash` coincide con un `id`, esa es la actual; si no, la lectura decide en el primer cuadro.
-- Al cambiar `items` (nueva página en la misma instancia): se descarta la actual y se vuelve a leer en el siguiente cuadro; el ancho de la pila se rehace con el HTML (sin medir).
+- Al cambiar `items` (nueva página en la misma instancia): se descarta la actual (y la elegida sostenida, #1048) y se vuelve a leer en el siguiente cuadro; el ancho de la pila se rehace con el HTML (sin medir).
 
 ## Eventos
 
@@ -133,7 +135,7 @@ Un **botón de menú** cuyo texto dice dónde estás («En esta página · API»
 
 | Método | Firma | Qué hace |
 | --- | --- | --- |
-| `refresh` | `refresh(): void` | Vuelve a leer la actual en el siguiente cuadro (contenido que crece sin desplazamiento: imágenes, `GFormReveal`, un acordeón) |
+| `refresh` | `refresh(): void` | Vuelve a leer la actual en el siguiente cuadro (contenido que crece sin desplazamiento: imágenes, `GFormReveal`, un acordeón). Con una elegida sostenida (#1048) no hace nada: la sostenida solo la suelta un desplazamiento |
 
 Expuesto con `defineExpose`; consta en `meta.json` (`methods`).
 
@@ -203,7 +205,7 @@ Props, eventos (`update:modelValue`, `navigate`), método `refresh`; `types/over
 
 ## Verificación (criterio de hecho)
 
-- **bruno (vitest + jsdom):** modelo y avisos 1 a 6; `aria-current="location"` en uno solo; `navigate` con la guarda de #505 (clic primario emite; modificadores, botón central y `target` no); cancelado no mueve el foco; sin cancelar el foco acaba en el destino (`tabindex="-1"` puesto si falta); ancho de la pila con todas las etiquetas; hidratación sin desajuste.
-- **Playwright (puerto propio, tres motores):** la actual sigue a la línea de lectura (una sola, la correcta al llevar cada sección a la vista; la última al final del documento); elegir no recorre las intermedias; Δ0 del disparador al cambiar de sección; ráfaga sin transiciones; dentro de `GPageHeader` pegado y en el muelle (mismo nodo, foco); táctil ≥ 44; reducido = fundido; rendimiento con 200 secciones (tareas < 50 ms, `--workers=1`).
+- **bruno (vitest + jsdom):** modelo y avisos 1 a 6; `labels` llega entero a `GMenu`; ids `{id}-trigger` y `{id}-list`; `aria-current="location"` en uno solo; `navigate` con la guarda de #505 (clic primario emite; modificadores, botón central y `target` no); cancelado no mueve el foco; sin cancelar el foco acaba en el destino (`tabindex="-1"` puesto si falta); ancho de la pila con todas las etiquetas; hidratación sin desajuste.
+- **Playwright (puerto propio, tres motores):** la actual sigue a la línea de lectura (una sola, la correcta al llevar cada sección a la vista; la última al final del documento); elegir no recorre las intermedias; **la elegida se sostiene** tras el salto con una sección más corta que un tercio del visor y con la última del documento, y el primer desplazamiento posterior (rueda y teclas) reanuda la lectura (#1048); Δ0 del disparador al cambiar de sección; ráfaga sin transiciones; dentro de `GPageHeader` pegado y en el muelle (mismo nodo, foco); táctil ≥ 44; reducido = fundido; rendimiento con 200 secciones (tareas < 50 ms, `--workers=1`).
 - **coco:** `GPageIndex.css`, contraste del disparador en claro y oscuro y en la zona de marca, rúbrica de movimiento, auditoría.
 - **No verificado (entorno real):** lector de pantalla con `aria-current="location"` dentro de un `menu`, desplazamiento inercial en táctil real.

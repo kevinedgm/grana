@@ -189,6 +189,7 @@
     "GMetric": { "pieces": [] },
     "GNumberField": { "pieces": [], "own": "#313" },
     "GPageHeader": { "pieces": [], "own": "#632" },
+    "GPageIndex": { "pieces": [], "own": "page-index.md «Movimiento» (#1040, #1047): relevo de la etiqueta en dos fases, fast + ease-out, otro cambio a menos de 600 ms al instante; el panel es el de GMenu" },
     "GPagination": { "pieces": [] },
     "GPartyField": { "pieces": ["panelAnclado"] },
     "GPrice": { "pieces": [], "own": "price.md" },
