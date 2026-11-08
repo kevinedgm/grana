@@ -263,7 +263,7 @@ a.g-menu__item:is(:visited, :hover, :active, :focus) { text-decoration: none; }
 /* ---------- Elementos-enlace (r02; menu.md «Elementos-enlace», #571 a #579) ---------- */
 /* Página actual: barra al inicio lógico en accent-text (el trazo de la barra activa de GSidebar, #228: ≥ 3:1 sobre la
    superficie y sobre el resaltado) y peso; nunca solo color (1.4.1). La rama (padre de un submenú que la contiene), peso */
-.g-menu__item[aria-current="page"]::before {
+.g-menu__item:is([aria-current="page"], [aria-current="location"])::before {
   content: "";
   position: absolute;
   inset-inline-start: 0;
@@ -272,7 +272,7 @@ a.g-menu__item:is(:visited, :hover, :active, :focus) { text-decoration: none; }
   border-radius: var(--g-radius-pill);
   background: var(--g-color-accent-text);
 }
-.g-menu__item[aria-current="page"] .g-menu__label,
+.g-menu__item:is([aria-current="page"], [aria-current="location"]) .g-menu__label,
 .g-menu__item.is-branch .g-menu__label { font-weight: var(--g-text-action-weight); }
 
 /* Marca «sale de aquí» (external-link de Lucide, decorativa): cierra la columna final, tras el atajo y la huella.
@@ -579,7 +579,7 @@ a.g-menu__item:is(:visited, :hover, :active, :focus) { text-decoration: none; }
   .g-menu__mark > .g-icon { color: CanvasText; }
   /* r02: barra de la página actual en CanvasText (el peso sigue); marca y huella siguen al color del sistema del elemento
      (LinkText en un enlace, GrayText deshabilitado); pie con borde superior; con el modificador, lo apartado en GrayText */
-  .g-menu__item[aria-current="page"]::before {
+  .g-menu__item:is([aria-current="page"], [aria-current="location"])::before {
     background: CanvasText;
     forced-color-adjust: none;
   }

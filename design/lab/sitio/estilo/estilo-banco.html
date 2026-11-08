@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marco del sitio · banco de estilo (coco)</title>
+<!-- Banco de coco: marcado EXACTO de design/contracts/page-index.md (anatomía `relay`), sidebar.md (§Filtro del índice y §Código
+     del item) y menu.md (current:'location'), con el CSS real de GPageIndex.css, GSidebar.css y GMenu.css cargado DENTRO de
+     la capa grana.components (como lo registrará bruno) sobre los tokens y los componentes reales de dist/ (GBtn, GPageHeader).
+     El relevo lo mueve un guion mínimo con la secuencia de fases de la cabecera de GPageIndex.css; no es la implementación de bruno.
+     Requiere dist/. Desde la raíz:  python3 -m http.server 4232  →  /design/lab/sitio/estilo/estilo-banco.html
+     Parámetros: ?dark=1  ?theme=<nombre de design/lab/tema-oscuro/dark-color-presence/generated/*.css>
+     Verificación: GRANA_PW_PORT=4232 node design/lab/sitio/estilo/estilo-verificar.mjs -->
+<link rel="stylesheet" href="../../../../packages/vue/dist/fonts.css">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<style>
+@import url("../../../../packages/vue/src/components/GMenu/GMenu.css") layer(grana.components);
+@import url("../../../../packages/vue/src/components/GSidebar/GSidebar.css") layer(grana.components);
+@import url("../../../../packages/vue/src/components/GPageIndex/GPageIndex.css") layer(grana.components);
+</style>
+<link id="gen" rel="stylesheet" href="data:text/css,">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  main{padding:16px;display:grid;gap:24px;max-inline-size:1100px}
+  h2{font-size:15px;margin:0 0 8px}
+  .cols{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:start}
+  .shelf{display:flex;gap:8px;align-items:center;padding:12px 16px;border:1px solid var(--g-color-border);background:var(--g-color-bg);min-inline-size:0}
+  .stage{block-size:520px;display:flex}
+  .menu-static{position:static!important;opacity:1!important;display:block;inline-size:max-content}
+  .nar{inline-size:320px;max-inline-size:100%}
+</style>
+</head>
+<body>
+<main>
+<section>
+  <h2>1 · Zócalo con GPageIndex relay</h2>
+  <div class="shelf" id="shelf">
+    <nav class="g-page-index g-page-index--appearance-relay" aria-label="En esta página" id="pi">
+      <button class="g-page-index__trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="pi-menu" id="pi-trigger">
+        <span class="g-page-index__key" dir="auto">En esta página</span>
+        <span class="g-page-index__value">
+          <span class="g-page-index__stack" aria-hidden="true">
+            <span class="g-page-index__ghost" dir="auto">Ejemplos</span><span class="g-page-index__ghost" dir="auto">API</span><span class="g-page-index__ghost" dir="auto">Teclado y foco</span><span class="g-page-index__ghost" dir="auto">Accesibilidad y lectores de pantalla</span>
+          </span>
+          <span class="g-page-index__current" dir="auto" id="pi-cur">API</span>
+        </span>
+        <span class="g-page-index__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></span>
+      </button>
+    </nav>
+    <button class="g-btn g-btn--variant-ghost g-btn--color-neutral g-btn--size-md" id="sib"><span class="g-btn__label">Copiar importación</span></button>
+  </div>
+  <div class="shelf nar" id="shelf-narrow" style="margin-block-start:8px">
+    <nav class="g-page-index g-page-index--appearance-relay is-empty" aria-label="En esta página" id="pi2">
+      <button class="g-page-index__trigger" type="button" aria-haspopup="menu" aria-expanded="false">
+        <span class="g-page-index__key">En esta página</span>
+        <span class="g-page-index__value"><span class="g-page-index__stack" aria-hidden="true"><span class="g-page-index__ghost">Ejemplos</span><span class="g-page-index__ghost">Accesibilidad y lectores de pantalla y mucho más texto largo todavía</span></span><span class="g-page-index__current"></span></span>
+        <span class="g-page-index__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></span>
+      </button>
+    </nav>
+  </div>
+  <p style="font-size:13px;color:var(--g-color-text-muted)">Arriba, con actual; abajo, sin actual (is-empty) en 320 px y con una etiqueta larguísima: la pila fija el tope.</p>
+</section>
+
+<section>
+  <h2>2 · Lista de GMenu con aria-current="location" (estática)</h2>
+  <ul class="g-menu__list menu-static" role="menu" id="pi-menu">
+    <li role="none"><a class="g-menu__item" role="menuitem" href="#uso" tabindex="-1"><span class="g-menu__label">Ejemplos</span></a></li>
+    <li role="none"><a class="g-menu__item" role="menuitem" href="#api" aria-current="location" tabindex="-1" id="loc"><span class="g-menu__label">API</span></a></li>
+    <li role="none"><a class="g-menu__item" role="menuitem" href="#teclado" tabindex="-1"><span class="g-menu__label">Teclado y foco</span></a></li>
+  </ul>
+</section>
+
+<section>
+  <h2>3 · GSidebar: filtro y código</h2>
+  <div class="cols">
+    <div class="stage" id="stage-exp">
+      <nav class="g-sidebar g-sidebar--mode-expanded g-sidebar--variant-fixed is-filtering-demo" aria-label="Índice" id="sb">
+        <div class="g-sidebar__head">
+          <div class="g-sidebar__top"><div class="g-sidebar__logo"><span class="g-sidebar__label">Grana</span></div></div>
+          <div class="g-sidebar__filter" id="flt">
+            <div class="g-sidebar__filter-box" id="fbox">
+              <label class="g-sidebar__sr" for="fin">Filtrar el índice</label>
+              <span class="g-sidebar__filter-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span>
+              <input class="g-sidebar__filter-input" id="fin" type="search" placeholder="Nombre o número" autocomplete="off" aria-describedby="fcount">
+              <kbd class="g-sidebar__filter-hint" id="fhint" aria-hidden="true">/</kbd>
+              <button class="g-sidebar__filter-clear" id="fclear" type="button" aria-label="Vaciar el filtro" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+            </div>
+            <p class="g-sidebar__filter-count" id="fcount">90 de 90 páginas</p>
+          </div>
+        </div>
+        <div class="g-sidebar__nav" role="presentation" style="overflow:auto">
+          <ul class="g-sidebar__groups" style="list-style:none;margin:0;padding:0">
+            <li class="g-sidebar__group" role="presentation"><span class="g-sidebar__group-title">Estructura de página</span>
+              <ul class="g-sidebar__list">
+                <li class="g-sidebar__item"><a class="g-sidebar__link" href="#" id="s-rest"><span class="g-sidebar__icon" data-code="01" aria-hidden="true">01</span><span class="g-sidebar__sr">01 </span><span class="g-sidebar__label">GAppShell</span></a></li>
+                <li class="g-sidebar__item"><a class="g-sidebar__link is-active" href="#" aria-current="page" id="s-cur"><span class="g-sidebar__icon" data-code="24" aria-hidden="true">24</span><span class="g-sidebar__sr">24 </span><span class="g-sidebar__label">GCombobox</span></a></li>
+                <li class="g-sidebar__item"><button class="g-sidebar__link g-sidebar__parent is-branch" type="button" id="s-branch" aria-expanded="false"><span class="g-sidebar__icon" data-code="§7" aria-hidden="true">§7</span><span class="g-sidebar__label">Guía</span></button></li>
+                <li class="g-sidebar__item"><a class="g-sidebar__link" href="#" id="s-three"><span class="g-sidebar__icon" data-code="108" aria-hidden="true">108</span><span class="g-sidebar__label">GTresCifras</span></a></li>
+                <li class="g-sidebar__item"><a class="g-sidebar__link" role="link" aria-disabled="true" id="s-dis"><span class="g-sidebar__icon" data-code="31" aria-hidden="true">31</span><span class="g-sidebar__label">GReservado</span></a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </div>
+    <div class="stage" id="stage-rail">
+      <nav class="g-sidebar g-sidebar--mode-rail g-sidebar--variant-fixed" aria-label="Índice riel" id="sbr" style="min-inline-size:0">
+        <div class="g-sidebar__head">
+          <div class="g-sidebar__top"></div>
+          <button class="g-sidebar__search is-filtering" type="button" id="rbtn"><span class="g-sidebar__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span><span class="g-sidebar__label">Filtrar el índice</span></button>
+        </div>
+        <div class="g-sidebar__nav"><ul class="g-sidebar__list" style="list-style:none;margin:0;padding:0">
+          <li class="g-sidebar__item"><a class="g-sidebar__link is-active" href="#" aria-current="page"><span class="g-sidebar__icon" data-code="24" aria-hidden="true">24</span><span class="g-sidebar__label">GCombobox</span></a></li>
+          <li class="g-sidebar__item"><a class="g-sidebar__link" href="#"><span class="g-sidebar__icon" data-code="25" aria-hidden="true">25</span><span class="g-sidebar__label">GTabs</span></a></li>
+        </ul></div>
+      </nav>
+    </div>
+  </div>
+</section>
+</main>
+<script>
+  const q = new URLSearchParams(location.search)
+  if (q.get('dark')) document.documentElement.setAttribute('data-theme', 'dark')
+  if (q.get('theme')) document.getElementById('gen').href = '../../tema-oscuro/dark-color-presence/generated/' + q.get('theme') + '.css'
+  // Guion mínimo del relevo (secuencia de la cabecera de GPageIndex.css)
+  window.relay = (text, dir, burst) => new Promise((res) => {
+    const c = document.getElementById('pi-cur')
+    if (burst) { c.classList.add('is-burst'); c.textContent = text; requestAnimationFrame(() => { c.classList.remove('is-burst'); res() }); return }
+    c.dataset.dir = dir; c.dataset.phase = 'out'
+    const swap = () => { c.textContent = text; c.dataset.phase = 'in'; void c.offsetWidth; requestAnimationFrame(() => { delete c.dataset.phase; delete c.dataset.dir; res() }) }
+    setTimeout(swap, 130)
+  })
+  const inp = document.getElementById('fin'), clr = document.getElementById('fclear'), hint = document.getElementById('fhint'), cnt = document.getElementById('fcount')
+  inp.addEventListener('input', () => { const v = inp.value; clr.hidden = !v; hint.hidden = !!v; cnt.textContent = v ? 'Ningún título con «' + v + '»' : '90 de 90 páginas'; cnt.classList.toggle('is-empty', !!v) })
+</script>
+</body>
+</html>

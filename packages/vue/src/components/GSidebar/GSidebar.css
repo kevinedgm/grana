@@ -235,6 +235,166 @@
   border: 0;
 }
 
+/* ---------- Filtro del índice (sidebar.md §«Filtro del índice», #1035; concepto A del marco del sitio) ----------
+   Un campo en la cabecera, bajo el logo, que filtra la lista en su sitio. NO SE MUEVE: la caja mide siempre --_item (nada
+   cambia al escribir, al enfocar ni al aparecer el botón de vaciar, que va por dentro) y el recuento ocupa siempre una línea
+   (el texto se sustituye, no se añade). Foco: anillo hacia afuera (sin cambio de medidas; la cabecera deja el espacio).
+   Atributos que espera el CSS: `is-empty` en __filter-count (sin coincidencias); `is-filtering` en el botón de filtro del riel
+   (que lleva además `g-sidebar__search`, §«Por formato»). El hint (__filter-hint) lo quita bruno cuando hay texto. */
+.g-sidebar__filter {
+  display: grid;
+  gap: var(--g-space-1);
+  inline-size: 100%;
+  min-inline-size: 0;
+  box-sizing: border-box;
+}
+.g-sidebar__filter-box {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: var(--g-space-2);
+  inline-size: 100%;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: var(--_item);
+  padding-block: 0;
+  padding-inline: var(--_px) var(--g-space-1);
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--_radius);
+  background: var(--g-surface-inset);
+  color: var(--g-color-text-muted);
+  cursor: text;
+}
+@media (hover: hover) {
+  .g-sidebar__filter-box:hover {
+    border-color: var(--g-color-text-muted);
+  }
+}
+.g-sidebar__filter-box:focus-within {
+  outline: var(--g-focus-width) solid var(--_focus);
+  outline-offset: var(--g-focus-offset);
+}
+.g-sidebar__filter-icon {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  line-height: 0;
+}
+.g-sidebar__filter-icon > svg {
+  inline-size: calc(var(--g-space-1) * 4);
+  block-size: calc(var(--g-space-1) * 4);
+}
+.g-sidebar__filter-input {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--g-color-text);
+  font: inherit;
+  appearance: none;
+  outline: none;
+}
+.g-sidebar__filter-input::placeholder {
+  color: var(--g-color-text-muted);
+  opacity: 1;
+}
+/* El botón de vaciar es nuestro (con nombre y área): se quita el del navegador */
+.g-sidebar__filter-input::-webkit-search-cancel-button,
+.g-sidebar__filter-input::-webkit-search-decoration {
+  appearance: none;
+  display: none;
+}
+.g-sidebar__filter-hint {
+  flex: none;
+  margin-inline-start: auto;
+  padding: 0 var(--g-space-1);
+  border: var(--g-border-width) solid var(--g-color-border);
+  border-radius: var(--g-radius-xs);
+  font: inherit;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+}
+.g-sidebar__filter-clear {
+  flex: none;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  inline-size: max(24px, calc(var(--g-space-1) * 7));
+  block-size: max(24px, calc(var(--g-space-1) * 7));
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--g-radius-sm);
+  background: transparent;
+  color: var(--g-color-text-muted);
+  line-height: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.g-sidebar__filter-clear > svg {
+  inline-size: calc(var(--g-space-1) * 4);
+  block-size: calc(var(--g-space-1) * 4);
+}
+@media (hover: hover) {
+  .g-sidebar__filter-clear:hover {
+    background: var(--g-color-border);
+    color: var(--g-color-text);
+  }
+}
+.g-sidebar__filter-clear:focus-visible {
+  outline: var(--g-focus-width) solid var(--_focus);
+  outline-offset: calc(var(--g-focus-width) * -1);
+}
+/* Recuento: una línea reservada siempre (el campo y la lista no se mueven al cambiar el texto); un mensaje largo parte en
+   dos líneas en vez de cortarse (solo la lista de abajo cede). Sin coincidencias, pasa a `text` */
+.g-sidebar__filter-count {
+  margin: 0;
+  padding-inline: var(--g-space-1);
+  min-block-size: var(--g-text-caption-line);
+  color: var(--g-color-text-muted);
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.g-sidebar__filter-count.is-empty {
+  color: var(--g-color-text);
+}
+/* Texto editable con puntero grueso: 16 px mínimo (umbral de ampliación de iOS, #970); el área ya sube con --_item */
+@media (pointer: coarse) {
+  .g-sidebar__filter-input {
+    font-size: max(16px, var(--g-text-body-sm-size));
+  }
+  .g-sidebar__filter-clear {
+    inline-size: 44px;
+    block-size: 44px;
+    margin-block: calc((var(--_item) - 44px) / 2);
+  }
+}
+/* Riel: el botón de filtro (g-sidebar__search) marca que hay consulta con un punto en la esquina del icono: forma sin par,
+   en accent-text (§7.1: ≥ 3:1 frente a la carcasa), con aro del color de la carcasa; la presencia del punto es la señal
+   (no solo el color, 1.4.1) y el recuento va en el texto oculto del botón */
+.g-sidebar--mode-rail .g-sidebar__search.is-filtering {
+  position: relative;
+}
+.g-sidebar--mode-rail .g-sidebar__search.is-filtering::after {
+  content: "";
+  position: absolute;
+  inset-block-start: calc(50% - var(--_ico) / 2 - var(--g-space-1) * 0.5);
+  inset-inline-end: calc(50% - var(--_ico) / 2 - var(--g-space-1) * 0.5);
+  inline-size: calc(var(--g-space-1) * 2.5);
+  block-size: calc(var(--g-space-1) * 2.5);
+  box-sizing: border-box;
+  border: var(--_ring) solid var(--g-surface-shell);
+  border-radius: var(--g-radius-pill);
+  background: var(--g-color-accent-text);
+  pointer-events: none;
+}
+
 /* ---------- Región de navegación ---------- */
 .g-sidebar__nav {
   flex: 1 1 auto;
@@ -373,6 +533,21 @@
 .g-sidebar__toggle > svg {
   inline-size: var(--_ico);
   block-size: var(--_ico);
+}
+/* Código del item (#1036): el número vive DENTRO del asiento, donde iría el icono (el asiento sigue aria-hidden; el nombre
+   lo da g-sidebar__sr). Es texto, no glifo: caption (≥ 12px), cifras tabulares alineadas con la caja, mismo peso que la
+   acción. Tinta: la del enlace (muted en reposo, text en hover y en la rama, on-current en el lleno: P1 ya mide 4,5:1);
+   no se fija aquí ningún color. 1 a 3 caracteres caben en el asiento (32px: 3 cifras ≈ 22px); más desborda hacia los lados
+   sin tocar la fila (aviso C2). Navbar: la misma regla pinta el código en la celda del icono */
+.g-sidebar__icon[data-code] {
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-caption-size);
+  line-height: 1;
+  font-weight: var(--g-text-action-weight);
+  letter-spacing: var(--g-text-caption-tracking);
+  font-variant-numeric: tabular-nums lining-nums;
+  white-space: nowrap;
+  user-select: none;
 }
 
 /* ---------- Item actual: el asiento (sidebar.md §«Item actual: el asiento»; DECISIONS #612 a #617) ---------- */
@@ -1193,6 +1368,21 @@
   .g-sidebar__link:focus-visible,
   .g-sidebar__tab:focus-visible {
     outline-color: Highlight;
+  }
+  .g-sidebar__filter-box {
+    border-color: ButtonText;
+  }
+  .g-sidebar__filter-box:focus-within,
+  .g-sidebar__filter-clear:focus-visible {
+    outline-color: Highlight;
+  }
+  .g-sidebar__filter-input {
+    color: FieldText;
+  }
+  .g-sidebar--mode-rail .g-sidebar__search.is-filtering::after {
+    forced-color-adjust: none;
+    background: Highlight;
+    border-color: Canvas;
   }
   .g-sidebar__link[aria-disabled="true"] {
     color: GrayText;

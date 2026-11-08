@@ -1,0 +1,216 @@
+@layer grana.defaults, grana.components, grana.blocks, grana.utilities;
+
+/*
+  GPageIndex · estilo (forma `relay`, la única de v1)
+  Dueño: coco. Contrato: design/contracts/page-index.md (#1038 a #1040, #1042). Estructura: design/lab/sitio/r01/ (concepto A).
+  Reglas: solo var(--g-*) y alias locales var(--_*); la primera línea solo declara el orden de las cuatro capas (#806); las
+  reglas van sin @layer (lo aplica el registro); únicos literales de medida: 24px y 44px (área táctil). Sin tokens nuevos.
+
+  CONTRATO DE CLASES Y ATRIBUTOS QUE ESTE CSS ESPERA (para bruno; todo lo demás es de GMenu)
+    nav.g-page-index.g-page-index--appearance-relay[.is-empty]
+      button.g-page-index__trigger
+        span.g-page-index__key                      texto fijo (`label`)
+        span.g-page-index__value                    celda de UNA sola casilla de rejilla: la pila
+          span.g-page-index__stack[aria-hidden]     todas las etiquetas, `visibility: hidden`: dan el ancho (Δ0, sin JS)
+            span.g-page-index__ghost × N
+          span.g-page-index__current[data-dir][data-phase][.is-burst]   la actual, en la misma casilla (encima de la pila)
+        span.g-page-index__icon[aria-hidden]        chevrons-up-down (GLibIcon)
+      ul.g-menu__list ...                           la lista es la de GMenu (su CSS pinta aria-current="location", #1039)
+
+  RELEVO (#1040) con transiciones CSS, nunca @keyframes (se interrumpen y parten del estado actual). El valor de reposo es
+  `opacity: 1; translate: none`. Todo cambio de sección que NO sea ráfaga sigue esta secuencia en `__current`:
+    1. `data-dir="down|up"` + `data-phase="out"`  → la etiqueta saliente se funde y se va UN paso (space × 1) en sentido
+       contrario a la lectura (bajando, sube; subiendo, baja). Transición.
+    2. Al terminar la salida (`transitionend` de opacity, con un respaldo de --g-duration-fast + 50 ms), bruno cambia el TEXTO
+       y pone `data-phase="in"`: estado de partida de la entrada (invisible, desplazado UN paso hacia donde viene la lectura:
+       bajando, desde abajo). Sin transición (`transition: none`), así el cambio de texto nunca se ve.
+    3. En el cuadro siguiente (tras forzar el estilo), bruno QUITA `data-phase` y `data-dir`: transición a reposo.
+  Una interrupción a mitad (otro cambio) parte del estado actual: basta con volver a poner `data-phase="out"` (o
+  `data-phase="in"` tras cambiar el texto). Nunca hay dos etiquetas visibles: hay UNA sola `__current` que cambia de texto.
+  Versión mínima aceptada: solo el paso 2 y 3 (la etiqueta entra con fundido y desplazamiento sobre la saliente ya invisible).
+  `is-burst` (otro cambio a menos de 600 ms del anterior): cambia el texto al instante y NO pone data-phase; el CSS anula
+  cualquier transición. Al montar no se pone nada: el primer valor se pinta sin transición.
+  Movimiento reducido: solo fundido (el desplazamiento y el cambio de posición desaparecen), mismo patrón de fases.
+*/
+
+/* ---------- Raíz ---------- */
+.g-page-index {
+  /* Tope del ancho del valor (alias local, múltiplo de `space`): con más texto la actual se acorta con elipsis y el nombre
+     accesible del disparador conserva el texto entero. La pila mide el ancho: sin JS, desde el HTML del servidor */
+  --_relay-max: calc(var(--g-space-1) * 56);
+  --_h: max(24px, calc(var(--g-space-1) * 9));
+  --_shift: var(--g-space-1);
+  --_radius: var(--g-radius-shape);
+
+  display: inline-block;
+  box-sizing: border-box;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  vertical-align: middle;
+  font-family: var(--g-font-ui);
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+}
+/* Misma altura exacta que un GBtn md en la misma fila (rejilla de medio píxel, como GBtn.css; dentro de @supports por
+   si round() no existe, que invalidaría --_h en tiempo de cómputo) */
+@supports (inline-size: round(1px, 1px)) {
+  .g-page-index {
+    --_h: max(24px, round(calc(var(--g-space-1) * 9), 0.5px));
+  }
+}
+@media (pointer: coarse) {
+  .g-page-index {
+    --_h: 44px;
+  }
+}
+
+/* ---------- Disparador: un botón de menú con aspecto de control de contorno ---------- */
+.g-page-index__trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--g-space-2);
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-block-size: var(--_h);
+  margin: 0;
+  padding-block: 0;
+  padding-inline: var(--g-space-3) var(--g-space-2);
+  border: var(--g-border-width) solid var(--g-color-border-control);
+  border-radius: var(--_radius);
+  background: transparent;
+  color: var(--g-color-text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color var(--g-duration-fast) var(--g-ease-standard),
+    border-color var(--g-duration-fast) var(--g-ease-standard);
+}
+@media (hover: hover) {
+  .g-page-index__trigger:hover {
+    background: var(--g-color-neutral-soft);
+    border-color: var(--g-color-text-muted);
+  }
+}
+.g-page-index__trigger[aria-expanded="true"] {
+  background: var(--g-color-neutral-soft);
+}
+.g-page-index__trigger:focus-visible {
+  outline: var(--g-focus-width) solid var(--g-color-focus);
+  outline-offset: var(--g-focus-offset);
+}
+
+/* Texto fijo («En esta página»): atenuado; la sección es lo que cambia, y lleva el contraste fuerte */
+.g-page-index__key {
+  flex: none;
+  color: var(--g-color-text-muted);
+  white-space: nowrap;
+}
+
+/* ---------- Valor: la pila (una sola casilla de rejilla) ---------- */
+.g-page-index__value {
+  display: inline-grid;
+  grid-template-columns: minmax(0, auto);
+  align-items: center;
+  flex: 0 1 auto;
+  min-inline-size: 0;
+  max-inline-size: var(--_relay-max);
+  /* El separador es una línea (no un carácter): no entra en el nombre accesible y no depende del color por sí sola */
+  padding-inline-start: var(--g-space-2);
+  border-inline-start: var(--g-border-width) solid var(--g-color-border-strong);
+  font-weight: var(--g-text-action-weight);
+}
+.is-empty > .g-page-index__trigger .g-page-index__value {
+  /* Sin sección actual: la celda conserva el ancho (Δ0) pero no dibuja la línea sobre un hueco */
+  border-inline-start-color: transparent;
+}
+.g-page-index__stack {
+  display: contents;
+}
+.g-page-index__ghost,
+.g-page-index__current {
+  grid-area: 1 / 1;
+  min-inline-size: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.g-page-index__ghost {
+  visibility: hidden;
+  pointer-events: none;
+  user-select: none;
+  text-overflow: clip;
+}
+.g-page-index__current {
+  color: var(--g-color-text);
+  text-overflow: ellipsis;
+  --_sgn: 1;
+  transition: opacity var(--g-duration-fast) var(--g-ease-out);
+}
+
+.g-page-index__icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  color: var(--g-color-text-muted);
+  line-height: 0;
+}
+.g-page-index__icon > svg {
+  inline-size: calc(var(--g-space-1) * 4);
+  block-size: calc(var(--g-space-1) * 4);
+}
+
+/* ---------- Relevo (#1040): fundido en el sentido de la lectura ---------- */
+.g-page-index__current[data-dir="up"] {
+  --_sgn: -1;
+}
+/* Salida: se funde. Con movimiento, además se va un paso hacia donde la lectura se aleja (bajando, sube) */
+.g-page-index__current[data-phase="out"] {
+  opacity: 0;
+}
+/* Partida de la entrada: invisible y sin transición (el texto ya cambió; el salto no se ve) */
+.g-page-index__current[data-phase="in"] {
+  opacity: 0;
+  transition: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-page-index__current {
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-out),
+      translate var(--g-duration-fast) var(--g-ease-out);
+  }
+  .g-page-index__current[data-phase="out"] {
+    translate: 0 calc(var(--_shift) * var(--_sgn) * -1);
+  }
+  .g-page-index__current[data-phase="in"] {
+    translate: 0 calc(var(--_shift) * var(--_sgn));
+    transition: none;
+  }
+}
+/* Ráfaga: otro cambio a menos de 600 ms del anterior. Instantáneo, sin fundido ni desplazamiento. Al final y con
+   especificidad de sobra: gana a las dos fases */
+.g-page-index__current.is-burst,
+.g-page-index__current.is-burst[data-phase] {
+  opacity: 1;
+  translate: none;
+  transition: none;
+}
+
+@media (forced-colors: active) {
+  .g-page-index__trigger {
+    border-color: ButtonText;
+  }
+  .g-page-index__trigger:focus-visible {
+    outline-color: Highlight;
+  }
+  .g-page-index__value {
+    border-inline-start-color: ButtonText;
+  }
+  .is-empty > .g-page-index__trigger .g-page-index__value {
+    border-inline-start-color: transparent;
+  }
+  .g-page-index__key,
+  .g-page-index__icon {
+    color: ButtonText;
+  }
+}
