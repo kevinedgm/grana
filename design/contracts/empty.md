@@ -49,7 +49,7 @@ El **vacío con causa**: lo que una región enseña cuando no tiene nada que ens
 - **`description`** es la causa o el paso siguiente («El servidor no respondió (503).», «Pídeselo a la responsable del laboratorio, Laura Ortiz.»). El slot por defecto la sustituye cuando hace falta texto rico (un enlace dentro).
 - **`filters`** (solo `filtered`) son los filtros activos que dejaron la región en cero; `count` es **cuántos elementos volverían quitando solo ese filtro** (lo calcula la aplicación). `key` es lo que devuelve `relax`. Con otra `cause`, `filters` y `total` se ignoran (aviso de desarrollo).
 - **`total`** es cuántos había antes de los filtros (la cuenta de «Antes había 4»). Sin `total`, no se pinta la frase de la traza.
-- **`locale`** solo afecta a `Intl.ListFormat` (`{filters}` de `labels.before`, tipo `conjunction`) y a `Intl.NumberFormat` (cuentas). Se lee al montar y cuando cambia la prop; un cambio del `lang` de un ancestro después de montar no se observa (límite de #310).
+- **`locale`** solo afecta a `Intl.ListFormat` (`{filters}` de `labels.before`, tipo `conjunction`) y a `Intl.NumberFormat` (cuentas). **Antes de montar, sin `locale`, el idioma es `'en'`** (no se lee el entorno en el render; #1033, 469392a4: servidor y cliente pintan lo mismo) y al montar pasa al del documento. Se lee al montar y cuando cambia la prop; un cambio del `lang` de un ancestro después de montar no se observa (límite de #310).
 
 ## La salida (B, solo `cause="filtered"` con `filters`)
 
