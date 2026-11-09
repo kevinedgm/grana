@@ -1,5 +1,6 @@
-// Tema del sitio: el marco es Grana (Layout.vue: GAppShell, GSidebar con filtro, GPageHeader con GPageIndex…;
-// design/contracts/sitio-marco.md) y de VitePress solo quedan sus estilos de documento (.vp-doc: Markdown, tablas,
+// Tema del sitio: el marco es Grana (Layout.vue: GAppShell, GNavBar, GSidebar appearance="index" con filtro, GPageIndex
+// list, GCombobox command; design/contracts/sitio-marco.md, calco del sitio anterior #1052) y de VitePress solo quedan sus
+// estilos de documento (.vp-doc: Markdown, tablas,
 // bloques de código con Shiki y su botón de copiar, custom-block). Sin `extends: DefaultTheme`: así no viajan
 // VPNav, VPSidebar, VPDocAside, VPLocalNav ni la búsqueda en ventana, que el marco ya no pinta.
 // Orden de importación = orden de las hojas: capas → VitePress → Grana → sitio.
@@ -24,6 +25,9 @@ import Fab from '@grana/vue/fab'
 import FormFold from '@grana/vue/form-fold'
 import AppShell from '@grana/vue/app-shell'
 import PageIndex from '@grana/vue/page-index'
+import PageIndexList from '@grana/vue/page-index-list'
+import NavBar from '@grana/vue/nav-bar'
+import SidebarIndex from '@grana/vue/sidebar-index'
 // Filtro del índice de GSidebar, en su extensión (#1050, sitio-marco.md §3): sin ella, `filter` se pinta sin filtro (F5).
 import SidebarFilter from '@grana/vue/sidebar-filter'
 import Hero from '@grana/vue/hero'
@@ -54,7 +58,8 @@ export default {
     // falla al compilar: dentro de demos/G<Nombre>.vue, <g-nombre> se resuelve con la propia demo y se llama a sí misma.
     // La voz y la isla de estado son servicios: cada ejemplo crea el suyo.
     app.use(Grana).use(createIcons(siteIcons)).use(Combobox).use(FileField).use(TimeField).use(Slider).use(Tag).use(LoadRegion)
-      .use(CardGroup).use(PageHeader).use(Fab).use(FormFold).use(AppShell).use(PageIndex).use(SidebarFilter)
+      .use(CardGroup).use(PageHeader).use(Fab).use(FormFold).use(AppShell).use(PageIndex).use(PageIndexList).use(NavBar)
+      .use(SidebarFilter).use(SidebarIndex)
       .use(Hero).use(Gallery).use(Booking).use(Price)
     // @grana/blocks: sus secciones (<gb-*>) y, como una aplicación, las entradas de @grana/vue que componen (arriba).
     app.use(marketing).use(booking).use(ecommerce)

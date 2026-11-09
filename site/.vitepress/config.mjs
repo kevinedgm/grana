@@ -65,14 +65,17 @@ export default defineConfig({
   themeConfig: {
     search: { provider: 'local' }
   },
-  // Al saltar a un `#ancla` (enlace del contenido), la sección queda bajo la banda de GAppShell y el zócalo pegado de
-  // GPageHeader (≈ su alto con el relevo; medido en el sitio construido).
-  scrollOffset: { selector: '.g-app-shell__header', padding: 88 },
+  // Portada «arriba del todo» desde el servidor (sitio-marco.md §3.5): `data-top` en <html>; el Layout lo quita y lo
+  // pone al desplazar. Las demás páginas, sin él.
+  transformHtml(html, id, { pageData }) {
+    if (pageData?.frontmatter?.layout !== 'home') return
+    return html.replace(/<html([^>]*)>/, (m, attrs) => (/data-top/.test(attrs) ? m : `<html${attrs} data-top>`))
+  },
   markdown: {
     // Sin numeración ni comprobaciones extra: el contenido es el de los README.
     theme: { light: 'github-light', dark: 'github-dark' },
-    // `page.headers` con los h2 (ids del ancla de markdown-it): las secciones de GPageIndex (sitio-marco.md §6.2).
-    headers: { level: [2] }
+    // `page.headers` con los h2 y h3 (ids del ancla de markdown-it): las secciones de GPageIndex list (sitio-marco.md §6.2).
+    headers: { level: [2, 3] }
   },
   vite: {
     // El logo vive en site/public; con srcDir «src» VitePress buscaría site/src/public (que el generador vacía): 404 del logo.

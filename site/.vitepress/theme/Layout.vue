@@ -1,140 +1,80 @@
 <script setup>
-// Marco del sitio de documentación hecho con Grana: concepto A «El índice se escribe» (design/contracts/sitio-marco.md,
-// DECISIONS.md #1034 a #1047; prototipo design/lab/sitio/r01/). Ya no pinta DefaultTheme.Layout: el chasis es
-// GAppShell (banda · índice · página · pie), el índice es GSidebar con filtro y números estables, la cabecera es
-// GPageHeader con GPageIndex (relevo) en sus acciones y el contenido va en GContainer. De VitePress solo se usa la API
-// pública (Content, useData, useRoute, useRouter, onContentUpdated, withBase, inBrowser) y `@localSearchIndex` para
-// «En el texto» (textSearch.js). Sin <style>: el CSS del marco es de coco (grana-site.css).
+// Marco del sitio de documentación: el diseño del sitio anterior (VitePress 1.6.4 vestido con Grana, 1d11c448), hecho con
+// componentes reales de Grana (design/contracts/sitio-marco.md, DECISIONS.md #1052 a #1070). Del concepto A se conservan
+// el filtro del índice (`/`) y los números estables 01–79.
 //
-// `vp-raw` en el índice, la miga, el idioma y la cabecera: el router de VitePress escucha los clics en *captura* y
-// cancela el de todo enlace interno antes que los componentes, así que GSidebar, GBreadcrumbs, GMenu y GPageIndex
-// verían su `navigate` ya cancelado (el drawer no se cerraba y el relevo no llevaba el foco a la sección). Con
-// `.vp-raw` VitePress no los toca: el marco navega con `router.go` desde su `navigate` y el relevo deja el salto a
+//   GAppShell header="pinned-wide"   banda de 64 · índice · página · pie (solo portada)
+//     #header  GNavBar   marca · «Buscar ⌘K» · Guía/Componentes/Blocks/Playground/Cambios/GitHub · idioma · tema
+//     #nav     GSidebar appearance="index" con filtro F1 y números al final (no en la portada)
+//     #default barra local (< 80rem: «Menú» + GPageIndex fold) · documento (Content.vp-doc + anterior/siguiente)
+//              · columna «En esta página» (GPageIndex list, ≥ 80rem). Portada: VPHome (el contenido de la página de
+//              inicio del original: hero y ventajas del tema de documento de VitePress)
+//   GCombobox appearance="command"  búsqueda modal de texto completo (@localSearchIndex + MiniSearch)
+//
+// Las clases `site-*` son las que espera grana-site.css (coco; su cabecera). Sin <style>. Los cortes del visor son CSS
+// (§10): el primer render no lee matchMedia, location ni localStorage.
+//
+// `vp-raw` en el índice, la barra local y la columna: el router de VitePress escucha los clics en *captura* y cancela los
+// enlaces internos antes que Grana (GSidebar no cerraría el cajón; GPageIndex no llevaría el foco a la sección). Con
+// `.vp-raw` VitePress no los toca: el índice navega con `router.go` desde su `navigate` y GPageIndex deja el salto a
 // `#ancla` al navegador (con el `scroll-padding` de GAppShell) y lleva el foco a la sección.
-//
-// SSR e hidratación (§10): el primer render no lee matchMedia, location ni localStorage; supone el marco ancho
-// (≥ 1024: índice expandido con la marca, banda con versión y miga). Lo estrecho se corrige al montar con `hidden`
-// en los envoltorios marcados con `site-band__wide` / `site-band__narrow` / `site-band__brand`; coco puede adelantarlo
-// con media queries en grana-site.css (mismas clases) para que tampoco cambie nada al montar en un teléfono.
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
 import { Content, inBrowser, onContentUpdated, useData, useRoute, useRouter, withBase } from 'vitepress'
+import VPHome from 'vitepress/dist/client/theme-default/components/VPHome.vue'
 import siteData from '../../src/.site-data.json'
-import { UI } from '../i18n.mjs'
+import { UI, LOCALES } from '../i18n.mjs'
 import { useAppearance } from './appearance.js'
-import { useTextSearch, textItems, wantsText } from './textSearch.js'
-import { crumbsFor, findInNav, labelsByPath, routeId, twinPath, withBaseItems } from './frameNav.js'
-
-const REPO_URL = 'https://github.com/kevinedgm/grana'
-const NARROW = '(max-width: 767.98px)'
+import { useSiteSearch } from './textSearch.js'
+import { navBarItems, pageSections, routeId, twinPath, withBaseItems } from './frameNav.js'
 
 const { page, frontmatter, localeIndex, site } = useData()
 const route = useRoute()
 const router = useRouter()
 const { mode: themeMode, isDark } = useAppearance()
-const mounted = ref(false)
-// El logo oscuro, solo tras montar (isDark del servidor es claro); coco puede adelantarlo con `.dark` en CSS.
-const darkLogo = computed(() => mounted.value && isDark.value)
+
+// VPHero (portada) lo inyecta el Layout del tema por defecto: sin imagen de hero en el sitio.
+provide('hero-image-slot-exists', computed(() => false))
 
 // ---------- Idioma y textos ----------
 const locale = computed(() => (localeIndex.value === 'en' ? 'en' : 'es'))
+const U = computed(() => UI[locale.value])
 const F = computed(() => UI[locale.value].frame)
-const T = computed(() => UI[locale.value])
 const base = computed(() => site.value.base)
+const prefix = computed(() => LOCALES[locale.value].prefix)
+
+// ---------- Página ----------
+const currentPath = computed(() => routeId(route.path, base.value))
+const isHome = computed(() => frontmatter.value.layout === 'home')
+const isBlocks = computed(() => /^\/(en\/)?blocks\//.test(currentPath.value + '/'))
+const sections = computed(() => (isHome.value || page.value.isNotFound ? [] : pageSections(page.value.headers)))
+const section = ref(null)
+const nb = (n) => (n ? { text: n.text, href: withBase(n.link) } : null)
+const prev = computed(() => nb(frontmatter.value.prev))
+const next = computed(() => nb(frontmatter.value.next))
 
 // ---------- Estado del marco (cliente) ----------
-const narrow = ref(false) // < 768: banda compacta y miga en el zócalo
-const sidebarMode = ref('expanded') // lo decide GSidebar (mode="auto", cortes de 1024)
-const drawerMode = computed(() => sidebarMode.value === 'drawer')
+const mounted = ref(false)
+const wide960 = ref(true) // ≥ 60rem: la columna izquierda a la vista (el plegado se alinea al inicio)
 const drawerOpen = ref(false)
 const query = ref('')
 const sidebar = ref(null)
-const header = ref(null)
-const pageIndex = ref(null)
+const search = ref(null)
+const langOpen = ref(false)
+const apple = ref(false)
 
-// ---------- Índice (GSidebar) ----------
-const navGroups = computed(() => withBaseItems(siteData.nav[locale.value], withBase).map((g) => ({ ...g, anchorHref: g.anchor ? withBase(g.anchor) : undefined })))
-const currentId = computed(() => routeId(route.path, base.value))
-const current = computed(() => findInNav(siteData.nav[locale.value], currentId.value))
-
-const { hits } = useTextSearch(query, localeIndex)
-const pageLabels = computed(() => labelsByPath(siteData.nav[locale.value]))
-const textHits = computed(() => {
-  if (!wantsText(query.value) || !hits.value.length) return []
-  const norm = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
-  const q = norm(query.value.trim())
-  // Lo que el filtro ya deja ver (mismas reglas: etiqueta o palabras clave) no se repite en «En el texto».
-  const visible = []
-  for (const g of siteData.nav[locale.value]) for (const it of g.items) {
-    const hit = (x) => norm(x.label).includes(q) || (x.keywords || []).some((k) => norm(k).includes(q))
-    if (hit(it)) visible.push(it.label)
-    for (const c of it.children || []) if (hit(c)) visible.push(c.label)
-  }
-  return textItems(hits.value, {
-    visible,
-    pageLabel: (path) => pageLabels.value.get(routeId(path, base.value))
-  })
-})
-const sidebarItems = computed(() => {
-  const groups = navGroups.value
-  if (!textHits.value.length) return groups
-  return [...groups, { id: 'g-text', label: F.value.inText, filterable: false, items: textHits.value }]
-})
-const sidebarLabels = computed(() => {
-  const f = F.value
-  const extra = () => (textHits.value.length ? f.inTextCount(textHits.value.length) : '')
-  return {
-    collapse: f.collapse, expand: f.expand, drawer: f.drawer, close: f.close, more: f.more, moreActive: f.moreActive,
-    filter: f.filter, filterPlaceholder: f.filterPlaceholder, filterHint: f.filterHint, filterClear: f.filterClear,
-    filterCount: (n, total) => [f.filterCount(n, total), extra()].filter(Boolean).join(' · '),
-    filterNone: (q) => [f.filterNone(q), extra()].filter(Boolean).join('; ')
-  }
-})
-
-function go(href) {
-  drawerOpen.value = false
-  router.go(href)
-}
-// El índice: con el evento cancelado, GSidebar no cierra el drawer ni emite update:modelValue (sidebar.md «Eventos»).
-function onNavigate({ item, event }) {
-  if (!item?.href || item.external) return
-  event?.preventDefault()
-  go(item.href)
-}
-function onLang({ item, event }) {
-  if (!item?.href) return
-  event?.preventDefault()
-  router.go(item.href)
-}
-function onCrumb({ item, event }) {
-  if (!item?.href) return
-  event?.preventDefault()
-  go(item.href)
-}
-function onMode({ mode }) {
-  sidebarMode.value = mode
-  if (mode !== 'drawer') drawerOpen.value = false
-}
-function openDrawer() {
-  drawerOpen.value = true
-}
-function focusFilter() {
-  sidebar.value?.focusFilter()
-}
-
-// ---------- Banda: marca, versión, miga, idioma y tema ----------
-const homeHref = computed(() => withBase(locale.value === 'en' ? '/en/' : '/'))
+// ---------- Barra superior (GNavBar) ----------
+const navItems = computed(() => navBarItems(U.value.nav, prefix.value, withBase))
+const navLabels = computed(() => ({ more: F.value.moreOptions, menu: F.value.menu, newTab: F.value.newTab }))
+const homeHref = computed(() => withBase('/' + prefix.value))
 const logoLight = withBase('/logo.svg')
 const logoDark = withBase('/logo-dark.svg')
-const crumbLabels = computed(() => ({ nav: F.value.crumbs, up: F.value.up, path: F.value.path, children: F.value.doors }))
-const crumbs = computed(() =>
-  page.value.isNotFound || frontmatter.value.layout === 'home'
-    ? []
-    : crumbsFor(navGroups.value, currentId.value, {
-        componentsLabel: T.value.pages['components/'],
-        componentsHref: withBase(locale.value === 'en' ? '/en/components/' : '/components/'),
-        blocksLabel: T.value.pages['blocks/']
-      })
-)
+function onNavBar({ item, event }) {
+  if (!item?.href || item.external || event?.defaultPrevented) return
+  event.preventDefault()
+  router.go(item.href)
+}
+
+// Idioma: ruta equivalente (§3.3)
 const LANGS = [
   { id: 'es', label: 'Español' },
   { id: 'en', label: 'English' }
@@ -146,173 +86,196 @@ const langItems = computed(() =>
     current: l.id === locale.value ? 'page' : undefined
   }))
 )
-const langOpen = ref(false)
-const themeMenuOpen = ref(false)
-const langName = computed(() => LANGS.find((l) => l.id === locale.value).label)
-const themeOptions = computed(() => [
-  { value: 'auto', label: F.value.themeSystem, icon: 'monitor' },
-  { value: 'light', label: F.value.themeLight, icon: 'sun' },
-  { value: 'dark', label: F.value.themeDark, icon: 'moon' }
-])
-const themeMenuItems = computed(() => themeOptions.value.map((o) => ({ type: 'radio', id: o.value, label: o.label, icon: o.icon, checked: themeMode.value === o.value })))
-const themeIcon = computed(() => themeOptions.value.find((o) => o.value === themeMode.value)?.icon ?? 'monitor')
-const themeName = computed(() => `${F.value.theme}: ${themeOptions.value.find((o) => o.value === themeMode.value)?.label}`)
-function onThemeSelect({ id }) {
-  themeMode.value = id
+const langMenuLabels = computed(() => ({ opened: F.value.opened, openedLive: F.value.openedLive, copied: F.value.copied, copiedLive: F.value.copiedLive }))
+function onLang({ item, event }) {
+  if (!item?.href) return
+  event?.preventDefault()
+  langOpen.value = false
+  router.go(item.href)
+}
+function onLangLink(event, href) {
+  if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return
+  event.preventDefault()
+  router.go(href)
 }
 
-// ---------- Página ----------
-const isHome = computed(() => frontmatter.value.layout === 'home')
-const isNotFound = computed(() => !!page.value.isNotFound)
-const comp = computed(() => frontmatter.value.component || null)
-const eyebrow = computed(() => {
-  const c = comp.value
-  if (c?.code) return F.value.componentEyebrow(c.code, c.group)
-  if (c) return F.value.blockEyebrow(c.group)
-  return current.value?.parent?.label ?? current.value?.group?.label ?? undefined
+// Tema de dos estados (§3.4): el interruptor enseña el tema resuelto y escribe `dark` o `light`. Hasta montar, apagado
+// (el servidor no sabe el tema; los colores ya los puso el <head>, sin destello).
+const darkOn = computed({
+  get: () => mounted.value && isDark.value,
+  set: (v) => { themeMode.value = v ? 'dark' : 'light' }
 })
-const STATUS_COLOR = { candidate: 'success', draft: 'warning', stable: 'brand' }
-const sections = computed(() => (page.value.headers || []).filter((h) => h.level === 2 && h.slug).map((h) => ({ id: h.slug, label: h.title })))
-// Gestos de los elementos-enlace de GMenu (#577: abrir en otra pestaña, copiar el enlace), en el índice y en el idioma.
-const linkGestures = computed(() => ({ opened: F.value.opened, openedLive: F.value.openedLive, copied: F.value.copied, copiedLive: F.value.copiedLive }))
-const pageIndexLabels = computed(() => ({ findHint: F.value.findHint, matches: F.value.matches, matchesOne: F.value.matchesOne, none: F.value.matchesNone, ...linkGestures.value }))
-// Fichas, Blocks y herramientas a lo ancho; las guías, a la medida de lectura (sitio-marco.md §2).
-const isReading = computed(() => !comp.value && frontmatter.value.layout !== 'page' && !/^\/(en\/)?(components|blocks)\//.test(currentId.value + '/'))
-const neighbours = computed(() => [frontmatter.value.prev, frontmatter.value.next].some(Boolean))
-const nb = (n) => (n ? { ...n, title: n.code ? `${n.code} ${n.text}` : n.text, href: withBase(n.link) } : null)
-const prev = computed(() => nb(frontmatter.value.prev))
-const next = computed(() => nb(frontmatter.value.next))
 
-const copied = ref(false)
-let copiedT = 0
-async function copyImport() {
-  try {
-    await navigator.clipboard.writeText(comp.value.import)
-    copied.value = true
-    clearTimeout(copiedT)
-    copiedT = setTimeout(() => { copied.value = false }, 2000)
-  } catch {}
+// ---------- Índice izquierdo (GSidebar appearance="index") ----------
+const sidebarItems = computed(() => withBaseItems((isBlocks.value ? siteData.blocksSidebar : siteData.sidebar)[locale.value], withBase))
+const currentId = computed(() => {
+  const id = currentPath.value
+  // los ids del índice son las rutas sin base ni `.html` (las páginas de índice terminan en «/»)
+  return id
+})
+const sidebarLabels = computed(() => {
+  const f = F.value
+  return {
+    collapse: f.collapse, expand: f.expand, drawer: f.drawer, close: f.close, more: f.more, moreActive: f.moreActive, groupCurrent: f.groupCurrent,
+    filter: f.filter, filterPlaceholder: f.filterShort, filterHint: f.filterHint, filterClear: f.filterClear,
+    filterCount: f.filterCount, filterNone: f.filterNone
+  }
+})
+function onNavigate({ item, event }) {
+  if (!item?.href || item.external) return
+  event?.preventDefault()
+  drawerOpen.value = false
+  router.go(item.href)
+}
+function openDrawer() {
+  drawerOpen.value = true
+}
+// El filtro del índice (extensión @grana/vue/sidebar-filter, #1050) vive solo en GSidebar y aquí.
+function focusFilter() {
+  sidebar.value?.focusFilter()
 }
 
-// ---------- Portada ----------
-const hero = computed(() => frontmatter.value.hero || {})
-const heroActions = computed(() => (hero.value.actions || []).map((a, i) => ({ id: i, label: a.text, href: withBase(a.link) })))
-const heroMedia = computed(() => ({ src: withBase('/logo.svg'), width: 480, height: 480, decorative: true }))
-const features = computed(() => (frontmatter.value.features || []).map((f, i) => ({ id: i, title: f.title, description: f.details })))
-const stats = computed(() => [
-  { id: 'c', value: siteData.components.length, label: F.value.statComponents, source: `@grana/vue ${siteData.version}` },
-  { id: 'b', value: siteData.blocks.length, label: F.value.statBlocks, source: '@grana/blocks' },
-  { id: 'l', value: 2, label: F.value.statLocales, source: F.value.nav }
-])
+// ---------- En esta página (GPageIndex list: columna y plegada, mismo v-model; PI-L5) ----------
+const pageIndexLabels = computed(() => ({ top: F.value.top }))
+const pageIndexes = ref([])
+const setIndex = (el) => { if (el && !pageIndexes.value.includes(el)) pageIndexes.value.push(el) }
 
-// ---------- Pie ----------
-const footerBrand = computed(() => ({ name: 'Grana', href: homeHref.value }))
-const footerGroups = computed(() => [
-  {
-    title: F.value.project,
-    links: [
-      { label: T.value.pages.changelog, href: withBase(locale.value === 'en' ? '/en/changelog.html' : '/changelog.html') },
-      { label: T.value.pages.project, href: withBase(locale.value === 'en' ? '/en/project.html' : '/project.html') },
-      { label: 'GitHub', href: REPO_URL, external: true }
-    ]
+// ---------- Búsqueda modal (GCombobox appearance="command", §6.3) ----------
+const { options: searchOpts, loading: searchLoading, search: runSearch, warm } = useSiteSearch(localeIndex)
+const cmdLabels = computed(() => F.value.cmd)
+function openSearch() {
+  warm()
+  search.value?.open()
+}
+function onSearchSelect({ option, event }) {
+  const href = String(option.value)
+  if (event && (event.ctrlKey || event.metaKey)) {
+    window.open(href, '_blank', 'noopener')
+    return
   }
-])
+  router.go(href)
+}
 
-// ---------- Teclado: `/`, Ctrl+K y ⌘K hacia el filtro (§8; GSidebar no escucha el documento) ----------
+// ---------- Teclado: ⌘K/Ctrl+K a la búsqueda (también desde un campo) y `/` al filtro (en la portada, a la búsqueda) ----------
 function onKey(e) {
   if (e.defaultPrevented || e.isComposing) return
   const k = (e.key || '').toLowerCase()
+  if (k === 'k' && (e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey) {
+    e.preventDefault()
+    openSearch()
+    return
+  }
   const editable = e.target?.closest?.('input, textarea, select, [contenteditable]:not([contenteditable="false"])')
-  const slash = e.key === '/' && !editable && !e.ctrlKey && !e.metaKey && !e.altKey
-  const cmdK = k === 'k' && (e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey
-  if (!slash && !cmdK) return
-  e.preventDefault()
-  focusFilter()
+  if (e.key === '/' && !editable && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    e.preventDefault()
+    if (isHome.value) openSearch()
+    else focusFilter()
+  }
 }
 
-// ---------- Foco al cambiar de ruta (§8): al h1, tras el contenido nuevo; no en la primera carga ni con #ancla ----------
+// ---------- Portada «arriba del todo» (§3.5): data-top en <html> mientras scrollY === 0 ----------
+function syncTop() {
+  if (!inBrowser) return
+  document.documentElement.toggleAttribute('data-top', isHome.value && window.scrollY === 0)
+}
+
+// ---------- Foco al cambiar de ruta (§8): al h1 del contenido tras el contenido nuevo; no en la primera carga ni con #ancla ----------
 let pendingFocus = false
 watch(() => route.path, () => {
   pendingFocus = true
-  // En drawer, GSidebar pinta el <dialog> fuera de su raíz (y de `.vp-raw`): el router de VitePress se lleva el clic
-  // y GSidebar no ve su `navigate`. Cambiar de página cierra el drawer igual.
+  // En el cajón, GSidebar pinta el <dialog> fuera de su raíz (y de `.vp-raw`): el router de VitePress se lleva el clic
+  // y GSidebar no ve su `navigate`. Cambiar de página cierra el cajón igual.
   drawerOpen.value = false
+  query.value = ''
+  nextTick(syncTop)
 })
 onContentUpdated(() => {
-  pageIndex.value?.refresh?.()
+  for (const pi of pageIndexes.value) pi?.refresh?.()
   if (!pendingFocus) return
   pendingFocus = false
   nextTick(() => {
-    const hash = inBrowser ? decodeURIComponent(location.hash.slice(1)) : ''
-    const target = hash && document.getElementById(hash)
-    if (target) {
-      if (target.tabIndex < 0 && !target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1')
-      target.focus({ preventScroll: true })
-    } else header.value?.focus?.()
+    const hash = decodeURIComponent(location.hash.slice(1))
+    const target = (hash && document.getElementById(hash)) || document.querySelector('main h1')
+    if (!target) return
+    if (target.tabIndex < 0 && !target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1')
+    target.focus({ preventScroll: true })
   })
 })
 
 let mq = null
-const onMq = () => { narrow.value = !!mq?.matches }
+const onMq = () => { wide960.value = !!mq?.matches }
 onMounted(() => {
   mounted.value = true
-  mq = matchMedia(NARROW)
+  apple.value = /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent)
+  mq = matchMedia('(min-width: 60rem)')
   onMq()
   mq.addEventListener('change', onMq)
   document.addEventListener('keydown', onKey)
+  window.addEventListener('scroll', syncTop, { passive: true })
+  syncTop()
 })
 onBeforeUnmount(() => {
   mq?.removeEventListener('change', onMq)
   document.removeEventListener('keydown', onKey)
-  clearTimeout(copiedT)
+  window.removeEventListener('scroll', syncTop)
 })
 </script>
 
 <template>
-  <GAppShell class="site-frame" :labels="{ skip: F.skip }">
+  <GAppShell header="pinned-wide" :labels="{ skip: F.skip }">
     <template #header>
-      <!-- Banda (§4): cada pieza en su envoltorio, hijo directo de la banda flexible de GAppShell. Lo estrecho (< 768)
-           y la marca (con el índice en drawer, < 1024) se corrigen al montar con `hidden`; ver la nota de arriba. -->
-      <div class="site-band__narrow" :hidden="!narrow">
-        <GBtn class="site-band__menu" variant="ghost" color="neutral" icon :aria-label="F.menu" @click="openDrawer"><GIcon name="menu" /></GBtn>
-      </div>
-      <div class="site-band__brand" :hidden="!drawerMode">
-        <a class="site-brand" :href="homeHref"><img class="site-brand__logo" :src="darkLogo ? logoDark : logoLight" alt="" width="24" height="24"><span class="site-brand__name">Grana</span></a>
-      </div>
-      <div class="site-band__wide" :hidden="narrow">
-        <GBadge class="site-band__version" variant="outline" color="neutral" size="sm" :label="F.version(siteData.version)">{{ siteData.version }}</GBadge>
-      </div>
-      <div class="site-band__wide site-band__crumbs g-grow g-min-w-0 vp-raw" :hidden="narrow || !crumbs.length">
-        <GBreadcrumbs v-if="crumbs.length" :items="crumbs" :labels="crumbLabels" @navigate="onCrumb" />
-      </div>
-      <div class="site-band__narrow g-ms-auto" :hidden="!narrow">
-        <GBtn class="site-band__filter" variant="ghost" color="neutral" icon :aria-label="F.filter" aria-keyshortcuts="/ Control+K Meta+K" @click="focusFilter"><GIcon name="search" /></GBtn>
-      </div>
-      <div class="site-band__lang g-ms-auto vp-raw">
-        <GMenu v-model="langOpen" :items="langItems" :label="F.language" align="end" :labels="linkGestures" @navigate="onLang">
-          <template #trigger="{ attrs }">
-            <GBtn v-if="narrow" v-bind="attrs" variant="ghost" color="neutral" icon :aria-label="`${F.language}: ${langName}`"><GIcon name="languages" /></GBtn>
-            <GBtn v-else v-bind="attrs" variant="ghost" color="neutral" :aria-label="`${F.language}: ${langName}`"><template #prepend><GIcon name="languages" /></template>{{ langName }}</GBtn>
+      <GNavBar :items="navItems" :current="currentPath" :label="F.sections" :labels="navLabels" @navigate="onNavBar">
+        <template #brand>
+          <a class="site-brand" :href="homeHref">
+            <img class="site-brand__logo site-brand__logo--light" :src="logoLight" alt="" width="24" height="24">
+            <img class="site-brand__logo site-brand__logo--dark" :src="logoDark" alt="" width="24" height="24">
+            <span class="site-brand__name">Grana</span>
+          </a>
+        </template>
+        <template #search>
+          <button class="site-search" type="button" :aria-label="F.searchAria" aria-haspopup="dialog" aria-keyshortcuts="Control+K Meta+K" @click="openSearch">
+            <GIcon class="site-search__icon" name="search" />
+            <span class="site-search__text">{{ F.search }}</span>
+            <span class="site-search__keys" aria-hidden="true"><kbd class="site-search__mod">{{ apple ? '⌘' : 'Ctrl' }}</kbd><kbd>K</kbd></span>
+          </button>
+        </template>
+        <template #actions="{ place }">
+          <template v-if="place === 'bar'">
+            <GMenu id="site-lang" v-model="langOpen" :items="langItems" :label="F.langMenu" align="end" :labels="langMenuLabels" @navigate="onLang">
+              <template #trigger="{ attrs }">
+                <button v-bind="attrs" class="site-lang" type="button" :aria-label="F.langMenu"><GIcon name="languages" /><GIcon class="site-lang__chev" name="chevron-down" /></button>
+              </template>
+            </GMenu>
+            <GSwitch v-model="darkOn" class="site-theme" size="sm" color="neutral" :aria-label="F.themeSwitch">
+              <template #icon-on><GIcon name="moon" /></template>
+              <template #icon-off><GIcon name="sun" /></template>
+            </GSwitch>
           </template>
-        </GMenu>
-      </div>
-      <div class="site-band__wide" :hidden="narrow">
-        <GRadioGroup class="site-band__theme" :model-value="themeMode" :options="themeOptions" appearance="segmented" label-mode="icon" size="sm" :field="false" :aria-label="F.theme" @update:model-value="(v) => (themeMode = v)" />
-      </div>
-      <div class="site-band__narrow" :hidden="!narrow">
-        <GMenu v-model="themeMenuOpen" :items="themeMenuItems" :label="F.theme" align="end" @select="onThemeSelect">
-          <template #trigger="{ attrs }"><GBtn v-bind="attrs" variant="ghost" color="neutral" icon :aria-label="themeName"><GIcon :name="themeIcon" /></GBtn></template>
-        </GMenu>
-      </div>
+          <template v-else>
+            <nav :aria-label="F.langMenu">
+              <ul class="site-langs">
+                <li v-for="l in langItems" :key="l.id">
+                  <a :href="l.href" :lang="l.lang" :hreflang="l.hreflang" :aria-current="l.current ? 'page' : undefined" @click="onLangLink($event, l.href)">{{ l.label }}</a>
+                </li>
+              </ul>
+            </nav>
+            <div class="site-appearance">
+              <span class="site-appearance__label">{{ F.appearance }}</span>
+              <GSwitch v-model="darkOn" class="site-theme" size="sm" color="neutral" :aria-label="F.themeSwitch">
+                <template #icon-on><GIcon name="moon" /></template>
+                <template #icon-off><GIcon name="sun" /></template>
+              </GSwitch>
+            </div>
+          </template>
+        </template>
+      </GNavBar>
     </template>
 
-    <template #nav>
-      <!-- El filtro del índice (filter, v-model:query, filter-keyshortcuts, labels del filtro, focusFilter) vive solo aquí y en
-           focusFilter() de arriba: cuando salga a su extensión (@grana/vue/sidebar-filter), basta con su import y app.use()
-           en index.js. -->
+    <template v-if="!isHome" #nav>
       <GSidebar
         ref="sidebar"
         class="vp-raw"
+        appearance="index"
         :items="sidebarItems"
         :model-value="currentId"
         v-model:open="drawerOpen"
@@ -320,75 +283,78 @@ onBeforeUnmount(() => {
         :label="F.nav"
         mode="auto"
         mobile="drawer"
-        :breakpoints="{ expanded: 1024, rail: 1024 }"
+        :breakpoints="{ expanded: 960 }"
         filter
-        filter-keyshortcuts="/ Control+K Meta+K"
+        filter-keyshortcuts="/"
         :labels="sidebarLabels"
         @navigate="onNavigate"
-        @mode-change="onMode"
       >
         <template #logo>
           <a class="site-brand" :href="homeHref">
-            <img class="site-brand__logo" :src="darkLogo ? logoDark : logoLight" alt="" width="24" height="24">
+            <img class="site-brand__logo site-brand__logo--light" :src="logoLight" alt="" width="24" height="24">
+            <img class="site-brand__logo site-brand__logo--dark" :src="logoDark" alt="" width="24" height="24">
             <span class="site-brand__name">Grana</span>
           </a>
         </template>
-        <template v-if="narrow" #header>
-          <GBadge class="site-band__version" variant="outline" color="neutral" size="sm" :label="F.version(siteData.version)">{{ siteData.version }}</GBadge>
-        </template>
+        <template #search-icon><GIcon name="search" /></template>
       </GSidebar>
     </template>
 
-    <!-- Portada: mismo marco, sin GPageHeader ni índice de la página; compuesta con Blocks -->
-    <template v-if="isHome">
-      <GContainer width="xl">
-        <GStack gap="lg">
-          <GbHero01 :title="hero.text || 'Grana'" eyebrow="Grana" :lead="hero.tagline" :media="heroMedia" :actions="heroActions" />
-          <GbStats01 :title="F.stats" :items="stats" />
-          <GbFeatures01 v-if="features.length" :title="F.features" :items="features" />
-          <Content class="vp-doc" />
-        </GStack>
-      </GContainer>
-    </template>
-
-    <!-- 404: mismo marco, sin miga y sin foco automático en el filtro -->
-    <template v-else-if="isNotFound">
-      <GPageHeader ref="header" :title="F.notFound.title" :description="F.notFound.description" :sticky="false" :labels="{ actions: F.actions }">
-        <template #actions><GBtn :href="homeHref">{{ F.notFound.home }}</GBtn></template>
-      </GPageHeader>
-    </template>
+    <!-- Portada: el marco sin índice ni barra local; el contenido de la página de inicio del original -->
+    <VPHome v-if="isHome" />
 
     <template v-else>
-      <GPageHeader ref="header" class="vp-raw" :title="frontmatter.title || page.title" :eyebrow="eyebrow" :description="frontmatter.description" :labels="{ actions: F.actions }">
-        <template v-if="narrow && crumbs.length" #trail>
-          <GBreadcrumbs :items="crumbs" :labels="crumbLabels" @navigate="onCrumb" />
-        </template>
-        <template v-if="comp" #meta>
-          <GBadge v-if="comp.status" :color="STATUS_COLOR[comp.status] || 'neutral'" variant="soft" size="sm" :label="`${F.status}: ${comp.status}`">{{ comp.status }}</GBadge>
-          <code class="site-import">{{ comp.import }}</code>
-        </template>
-        <template #actions="{ narrow: headerNarrow }">
-          <GPageIndex v-if="sections.length" ref="pageIndex" :items="sections" :label="F.onPage" :labels="pageIndexLabels" />
-          <GBtn v-if="comp && !headerNarrow" variant="ghost" color="neutral" @click="copyImport"><template #prepend><GIcon name="copy" /></template>{{ copied ? F.importCopied : F.copy }}</GBtn>
-        </template>
-      </GPageHeader>
-      <GContainer :width="isReading ? 'reading' : 'xl'" :prose="isReading">
-        <Content class="vp-doc" />
-        <nav v-if="neighbours" class="site-neighbours" :aria-label="F.neighbours">
-          <GSplit ratio="1:1" gap="md">
-            <template #start>
-              <GCard v-if="prev" interaction="link" :href="prev.href" :eyebrow="F.prev" :title="prev.title" />
-            </template>
-            <template #end>
-              <GCard v-if="next" interaction="link" :href="next.href" :eyebrow="F.next" :title="next.title" />
-            </template>
-          </GSplit>
-        </nav>
-      </GContainer>
+      <div class="site-local vp-raw">
+        <button class="site-local__menu" type="button" aria-haspopup="dialog" @click="openDrawer"><GIcon name="align-left" />{{ F.menu }}</button>
+        <GPageIndex v-if="sections.length" :ref="setIndex" v-model="section" class="site-local__index" appearance="list" fold :align="wide960 ? 'start' : 'end'" :items="sections" :label="F.onPage" :labels="pageIndexLabels" />
+      </div>
+      <div class="site-doc">
+        <div class="site-doc__inner">
+          <article class="site-content">
+            <Content class="vp-doc" />
+            <nav v-if="prev || next" class="site-pager" :aria-label="F.neighbours">
+              <div class="site-pager__list">
+                <GCard v-if="prev" class="site-pager__card" interaction="link" :href="prev.href">
+                  <span class="site-pager__label">{{ F.prev }}</span><span class="site-pager__title">{{ prev.text }}</span>
+                </GCard>
+                <GCard v-if="next" class="site-pager__card is-next" interaction="link" :href="next.href">
+                  <span class="site-pager__label">{{ F.next }}</span><span class="site-pager__title">{{ next.text }}</span>
+                </GCard>
+              </div>
+            </nav>
+          </article>
+          <aside v-if="sections.length" class="site-aside vp-raw">
+            <div class="site-aside__inner">
+              <GPageIndex :ref="setIndex" v-model="section" appearance="list" :items="sections" :label="F.onPage" :labels="pageIndexLabels" />
+            </div>
+          </aside>
+        </div>
+      </div>
     </template>
 
-    <template #footer>
-      <GbFooter01 as="div" :brand="footerBrand" :groups="footerGroups" :note="T.theme.footer" :labels="{ nav: F.footerNav, external: F.external }" />
+    <template v-if="isHome" #footer>
+      <p class="site-footer">{{ U.theme.footer }}</p>
     </template>
   </GAppShell>
+
+  <GCombobox
+    id="site-search"
+    ref="search"
+    appearance="command"
+    :label="F.searchAria"
+    :placeholder="F.searchAria"
+    :filter="false"
+    :options="searchOpts"
+    :loading="searchLoading"
+    :limit="20"
+    :labels="cmdLabels"
+    @search="runSearch"
+    @select="onSearchSelect"
+  >
+    <template #hints>
+      <span><kbd><GIcon name="arrow-up" /></kbd><kbd><GIcon name="arrow-down" /></kbd>{{ F.cmd.move }}</span>
+      <span><kbd><GIcon name="corner-down-left" /></kbd>{{ F.cmd.select }}</span>
+      <span><kbd>esc</kbd>{{ F.cmd.esc }}</span>
+    </template>
+  </GCombobox>
 </template>

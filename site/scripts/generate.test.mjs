@@ -108,8 +108,8 @@ test('utilidades: página de guía en los dos idiomas, con ejemplos vivos y en l
     assert.ok(result.files.has(file), `falta ${file}`)
     const page = result.files.get(file)
     assert.match(page, /GranaExample1/, `${file}: sin ejemplo vivo (bloque \`vue demo\` del README)`)
-    const start = result.locales[locale].nav[0].items
-    assert.ok(start.some((i) => i.href === (locale === 'es' ? '/utilities' : '/en/utilities')), `${locale}: «Utilidades» no está en el grupo Empezar`)
+    const guide = result.locales[locale].sidebar[0].items
+    assert.ok(guide.some((i) => i.href === (locale === 'es' ? '/utilities' : '/en/utilities')), `${locale}: «Utilidades» no está en el grupo Guía`)
   }
   assert.ok([...result.demoFiles.keys()].some((k) => k.startsWith('utilities-')), 'falta el SFC del ejemplo de las utilidades')
   assert.match(result.files.get('en/utilities.md'), /::: warning Translation pending/)
@@ -159,8 +159,7 @@ test('blocks: cada sección con README y meta.json genera su página en los dos 
       assert.ok(result.files.has(file), `${b.dir}: falta ${file}`)
       const page = result.files.get(file)
       assert.match(page, /GranaExample\d/, `${file}: sin ejemplo vivo`)
-      assert.match(page, new RegExp(`\\| \`<${b.meta.variants[0].tag}>\` \\|`), `${file}: sin la etiqueta de la primera variante`)
-      assert.match(page, new RegExp(`^component: .*"import":"import \\{ ${b.meta.variants[0].name}`, 'm'), `${file}: sin la importación en el frontmatter`)
+      assert.match(page, new RegExp(`<code>&lt;${b.meta.variants[0].tag}&gt;</code>`), `${file}: sin la etiqueta de la primera variante`)
       assert.match(page, new RegExp(`blob/main/${b.meta.contract}`), `${file}: sin enlace a su contrato`)
       assert.match(page, new RegExp(`blob/main/design/lab/blocks/${b.family}/auditoria\\.md`), `${file}: sin enlace a su auditoría`)
     }
@@ -205,14 +204,15 @@ test('blocks: índice, índice por familia, navegación y barra lateral', () => 
       assert.ok(fam, `${locale}: falta el índice de ${f.id}`)
       for (const b of discoverBlocks(ROOT).filter((x) => x.family === f.id)) assert.ok(fam.includes(`/${prefix}blocks/${f.id}/${b.slug})`), `${locale}/${f.id}: no enlaza ${b.dir}`)
     }
-    // Una sola navegación global (sitio-marco.md §3): Blocks es un grupo del índice, cada familia un padre.
-    const group = result.locales[locale].nav.find((g) => g.id === 'g-blocks')
-    assert.ok(group, `${locale}: falta el grupo Blocks en el índice`)
-    const families = group.items.filter((i) => i.children)
-    assert.equal(families.length, BLOCK_FAMILIES.length)
-    const sections = families.flatMap((f) => f.children).filter((c) => /\/blocks\/[a-z]+\/[a-z-]+$/.test(c.href))
-    assert.equal(sections.length, discoverBlocks(ROOT).length, `${locale}: secciones fuera del índice`)
+    // Su barra propia, como en el original (sitio-marco.md §4): grupos por familia plegables, sin números
+    const groups = result.locales[locale].blocksSidebar
+    assert.deepEqual(result.locales[locale].blocksUnlisted, [], `${locale}: secciones fuera de la barra lateral`)
+    assert.equal(groups.flatMap((g) => g.items).filter((i) => /\/blocks\/[a-z]+\/[a-z-]+$/.test(i.href)).length, discoverBlocks(ROOT).length)
+    assert.ok(groups.slice(1).every((g) => g.collapsible && g.id && g.collapsed === false), `${locale}: familias sin plegar`)
+    assert.ok(groups.flatMap((g) => g.items).every((i) => !i.code), `${locale}: números en /blocks/`)
   }
+  const frame = fs.readFileSync(path.join(ROOT, 'site/.vitepress/theme/frameNav.js'), 'utf8')
+  assert.match(frame, /activeMatch: `\^\$\{p\}blocks\/`/, 'falta «Blocks» en la barra superior')
   assert.ok(result.files.has('blocks/marketing/hero.md') && result.files.has('en/blocks/booking/search.md') && result.files.has('en/blocks/ecommerce/product-grid.md'))
 })
 
@@ -246,7 +246,7 @@ test('números estables: todo componente con página tiene número, ninguno se r
   const values = Object.values(numbers)
   assert.equal(new Set(values).size, values.length, 'un número se repite')
   for (const locale of ['es', 'en']) {
-    for (const g of result.locales[locale].nav) for (const it of g.items) {
+    for (const g of result.locales[locale].sidebar) for (const it of g.items) {
       if (!it.code) continue
       assert.match(it.code, /^\d{2,}$/, `${it.label}: código «${it.code}»`)
       assert.equal(Number(it.code), numbers[it.label], `${it.label}: el índice no lleva su número`)
@@ -279,54 +279,57 @@ test('números estables: el generador falla si falta un número o si uno se repi
   fs.rmSync(tmp, { recursive: true, force: true })
 })
 
-test('sin h1 en el cuerpo de ninguna página: el título va en el frontmatter (GPageHeader)', () => {
+test('un solo h1 por página, en el cuerpo (como en 1d11c448): fichas y guías con su `# Título`', () => {
   for (const [file, text] of result.files) {
     const body = text.replace(/^---\n[\s\S]*?\n---\n/, '')
     const h1 = lib.parseHeadings(body).filter((h) => h.level === 1)
-    assert.deepEqual(h1.map((h) => h.text), [], `${file}: h1 en el cuerpo`)
+    const home = /^layout: home$/m.test(text)
+    const tool = /^layout: page$/m.test(text)
+    // la portada lleva su h1 en el hero (VPHome) y las herramientas en su componente
+    assert.equal(h1.length, home || tool ? 0 : 1, `${file}: ${h1.length} h1 en el cuerpo`)
     assert.match(text, /^---\ntitle: "[^"]+"/, `${file}: sin title en el frontmatter`)
   }
+  assert.match(result.files.get('components/combobox.md'), /^# GCombobox$/m)
+  assert.match(result.files.get('components/combobox.md'), /<p class="grana-meta">/)
+  assert.match(result.files.get('components/combobox.md'), /import \{ GCombobox \} from '@grana\/vue\/combobox'/)
 })
 
-test('frontmatter de cada ficha: component { code, group, status, import } y páginas vecinas por el orden del índice', () => {
+test('frontmatter: páginas vecinas por el orden de la barra lateral de cada página (sin número)', () => {
   for (const locale of ['es', 'en']) {
-    const order = result.locales[locale].order
-    for (const p of result.locales[locale].pages.filter((x) => x.component)) {
-      const text = result.files.get(p.file)
-      const fm = Object.fromEntries(text.split('\n---\n')[0].split('\n').slice(1).map((l) => [l.slice(0, l.indexOf(':')), l.slice(l.indexOf(':') + 2)]))
-      const comp = JSON.parse(fm.component)
-      assert.match(comp.code, /^\d{2,}$/, `${p.file}: code`)
-      assert.ok(comp.group, `${p.file}: group`)
-      assert.ok(comp.status, `${p.file}: status`)
-      assert.match(comp.import, new RegExp(`^import \\{ ${p.component.metas[0]?.name ?? p.component.dir}\\b.*\\} from '@grana/vue`), `${p.file}: import`)
-      const i = order.findIndex((o) => o.id === p.url)
-      assert.ok(i >= 0, `${p.file}: fuera del orden del índice`)
-      if (i > 0) assert.equal(JSON.parse(fm.prev).link, order[i - 1].href, `${p.file}: prev`)
-      if (i < order.length - 1) assert.equal(JSON.parse(fm.next).link, order[i + 1].href, `${p.file}: next`)
+    for (const [key, filter] of [['sidebar', (p) => !(p.block || p.blockIndex || p.blockFamily)], ['blocksSidebar', (p) => p.block || p.blockIndex || p.blockFamily]]) {
+      const order = result.locales[locale][key].flatMap((g) => g.items)
+      for (const p of result.locales[locale].pages.filter(filter)) {
+        const i = order.findIndex((o) => o.href === p.url)
+        if (i < 0) continue
+        const text = result.files.get(p.file)
+        const fm = Object.fromEntries(text.split('\n---\n')[0].split('\n').slice(1).map((l) => [l.slice(0, l.indexOf(':')), l.slice(l.indexOf(':') + 2)]))
+        if (i > 0) assert.deepEqual(JSON.parse(fm.prev), { text: order[i - 1].label, link: order[i - 1].href }, `${p.file}: prev`)
+        else assert.equal(fm.prev, undefined, `${p.file}: prev en el primero`)
+        if (i < order.length - 1) assert.deepEqual(JSON.parse(fm.next), { text: order[i + 1].label, link: order[i + 1].href }, `${p.file}: next`)
+      }
     }
   }
-  const combobox = result.files.get('components/combobox.md')
-  assert.match(combobox, /^component: \{"code":"24","group":"Campos de entrada"/m)
-  assert.match(result.files.get('en/components/combobox.md'), /^component: \{"code":"24","group":"Input fields"/m)
+  assert.match(result.files.get('components/combobox.md'), /^prev: \{"text":"GSelect","link":"\/components\/select"\}$/m)
 })
 
-test('índice del marco: grupos de §3, items con id, label, href, keywords; ids únicos', () => {
+test('índice izquierdo: Guía sin plegar y grupos de componentes plegables con id, collapsed false y números; ids únicos', () => {
   for (const locale of ['es', 'en']) {
-    const nav = result.locales[locale].nav
-    const ids = []
-    for (const g of nav) for (const it of g.items) {
-      ids.push(it.id, ...(it.children || []).map((c) => c.id))
-      assert.ok(it.label, `${g.label}: item sin label`)
-      if (!it.children) assert.ok(it.href, `${it.label}: sin href`)
-      if (it.code) assert.ok(it.keywords?.length, `${it.label}: sin keywords`)
+    const groups = result.locales[locale].sidebar
+    assert.equal(groups[0].id, 'g-guide')
+    assert.ok(!groups[0].collapsible, 'Guía no se pliega')
+    for (const g of groups.slice(1)) {
+      assert.ok(g.collapsible && g.id && g.collapsed === false, `${locale}: ${g.label} sin plegar`)
+      assert.ok(g.items.every((i) => /^\d{2,}$/.test(i.code) && i.keywords?.length && i.href), `${locale}: ${g.label} sin números o palabras clave`)
     }
-    assert.equal(new Set(ids).size, ids.length, `${locale}: ids repetidos en el índice`)
-    assert.deepEqual(nav.map((g) => g.id).filter((id) => !id.startsWith('g-cat-')), ['g-start', 'g-blocks', 'g-tools', 'g-project'])
-    assert.ok(nav.filter((g) => g.id.startsWith('g-cat-')).every((g) => g.anchor), `${locale}: grupo de componentes sin ancla en components/`)
+    const ids = groups.flatMap((g) => g.items.map((i) => i.id))
+    assert.equal(new Set(ids).size, ids.length, `${locale}: ids repetidos`)
+    assert.ok(groups.flatMap((g) => g.items).every((i) => !i.icon), `${locale}: el índice calcado no lleva iconos`)
   }
+  // los ids de grupo son estables entre idiomas
+  assert.deepEqual(result.locales.es.sidebar.map((g) => g.id), result.locales.en.sidebar.map((g) => g.id))
 })
 
-test('«En el texto»: forma del índice local de VitePress (@localSearchIndex) en el sitio construido', (t) => {
+test('búsqueda modal: forma del índice local de VitePress (@localSearchIndex) en el sitio construido', (t) => {
   const assets = path.join(ROOT, 'site/.vitepress/dist/assets/chunks')
   if (!fs.existsSync(assets)) {
     t.skip('sin site/.vitepress/dist: ejecuta antes npm run docs:build')

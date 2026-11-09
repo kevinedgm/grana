@@ -147,6 +147,23 @@ export const UI = {
       statLocales: 'idiomas',
       external: '(se abre en otra pestaña)',
       footerNav: 'Enlaces del pie',
+      // Marco calcado (#1052): barra superior, índice, barra local y búsqueda modal. Textos provisionales de bruno: los revisa mora-docs.
+      sections: 'Secciones',
+      moreOptions: 'Más opciones',
+      newTab: 'se abre en otra pestaña',
+      search: 'Buscar',
+      searchAria: 'Buscar en la documentación',
+      langMenu: 'Cambiar idioma',
+      appearance: 'Apariencia',
+      themeSwitch: 'Tema oscuro',
+      top: 'Volver arriba',
+      groupCurrent: 'contiene la página actual',
+      filterShort: 'Filtrar',
+      cmd: {
+        close: 'Cerrar la búsqueda', loading: 'Buscando…', noResults: 'Sin resultados para «{text}»', minChars: 'Escribe al menos {count} letras',
+        results: (n) => (n === 1 ? '1 resultado' : `${n} resultados`), partial: (n, t) => `${n} de ${t} resultados`,
+        more: 'Mostrar más ({shown} de {total})', retry: 'Reintentar', move: 'para moverte', select: 'para elegir', esc: 'para cerrar', enter: 'Intro'
+      },
       notFound: { title: 'Página no encontrada', description: 'Esta página no existe o cambió de sitio. Búscala en el índice o vuelve a la portada.', home: 'Volver a la portada' }
     },
     theme: {
@@ -329,6 +346,22 @@ export const UI = {
       statLocales: 'languages',
       external: '(opens in a new tab)',
       footerNav: 'Footer links',
+      sections: 'Sections',
+      moreOptions: 'More options',
+      newTab: 'opens in a new tab',
+      search: 'Search',
+      searchAria: 'Search the documentation',
+      langMenu: 'Change language',
+      appearance: 'Appearance',
+      themeSwitch: 'Dark theme',
+      top: 'Return to top',
+      groupCurrent: 'contains the current page',
+      filterShort: 'Filter',
+      cmd: {
+        close: 'Close search', loading: 'Searching…', noResults: 'No results for “{text}”', minChars: 'Type at least {count} letters',
+        results: (n) => (n === 1 ? '1 result' : `${n} results`), partial: (n, t) => `${n} of ${t} results`,
+        more: 'Show more ({shown} of {total})', retry: 'Retry', move: 'to navigate', select: 'to select', esc: 'to close', enter: 'Enter'
+      },
       notFound: { title: 'Page not found', description: 'This page does not exist or has moved. Look for it in the index or go back to the home page.', home: 'Back to the home page' }
     },
     theme: {

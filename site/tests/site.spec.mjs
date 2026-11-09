@@ -1,7 +1,8 @@
 // Pruebas de navegador del sitio de documentación (build + `vitepress preview`, puerto 4219 o GRANA_SITE_PORT).
 //   cd site && npm run docs:build && npx playwright test --project=chromium
-// El marco es Grana (theme/Layout.vue, design/contracts/sitio-marco.md): GAppShell, GSidebar con filtro, GPageHeader con
-// GPageIndex, GBreadcrumbs, menús de idioma y tema. Las pruebas del marco están al final («marco: …»).
+// El marco es el del sitio anterior hecho con Grana (theme/Layout.vue, design/contracts/sitio-marco.md, #1052): GAppShell
+// pinned-wide, GNavBar, GSidebar appearance="index" con filtro, GPageIndex list (columna y plegada), GCombobox command.
+// Las pruebas del marco están al final («marco: …»); la paridad visual con la referencia, en tests/paridad.mjs.
 import { test, expect } from '@playwright/test'
 
 const PAGES = ['components/btn', 'components/tag', 'components/combobox', 'components/form', 'components/table']
@@ -29,17 +30,18 @@ for (const locale of ['', 'en/']) {
     const problems = watchConsole(page)
     const res = await page.goto(locale)
     expect(res.status()).toBe(200)
-    await expect(page.locator('main h1')).toHaveCount(1)
-    await expect(page.locator('main .g-hero')).toBeVisible()
+    // la portada del original: el hero lleva el único h1
+    await expect(page.locator('h1')).toHaveCount(1)
+    await expect(page.locator('main .VPHero h1')).toContainText('Grana')
     await expect(page.locator('html')).toHaveAttribute('lang', locale ? 'en' : 'es')
     for (const p of PAGES) {
       const r = await page.goto(`${locale}${p}.html`)
       expect(r.status(), p).toBe(200)
       // esperar a la hidratación: una navegación a mitad de carga aborta los módulos en curso (Firefox lo registra)
       await page.waitForLoadState('networkidle')
-      // un solo h1 por página: el de GPageHeader (el `# Nombre` del README pasó al frontmatter)
+      // un solo h1 por página, el del cuerpo (como en el original)
       await expect(page.locator('h1')).toHaveCount(1)
-      await expect(page.locator('main .g-page-header h1')).toBeVisible()
+      await expect(page.locator('main .vp-doc h1')).toBeVisible()
       await expect(page.locator('.grana-demo__stage').first()).toBeVisible()
       // el ejemplo vivo es Grana de verdad: al menos un elemento .g-* dentro
       expect(await page.locator('.grana-demo__stage [class^="g-"], .grana-demo__stage [class*=" g-"]').count(), p).toBeGreaterThan(0)
@@ -84,13 +86,19 @@ test('prueba en vivo: el código es el control (GBtn)', async ({ page }) => {
   expect(problems).toEqual([])
 })
 
-test('búsqueda: el filtro del índice encuentra un componente y navega a su página', async ({ page }) => {
+test('búsqueda modal: «Buscar» abre la búsqueda, encuentra un componente y navega a su página', async ({ page }) => {
+  test.setTimeout(120_000)
   await page.goto('')
   await page.waitForLoadState('networkidle')
-  const input = page.locator('.g-sidebar__filter-input')
+  await page.locator('.site-search').click()
+  const input = page.locator('#site-search-surface input')
+  await expect(input).toBeFocused()
   await input.fill('combobox')
-  const nav = page.locator('.g-sidebar__nav')
-  await expect(nav.getByRole('link', { name: /GCombobox/ })).toBeVisible()
+  // el índice de búsqueda (≈ 3 MB por idioma, unos 6 s de carga en Chromium) se carga con la primera búsqueda: margen
+  const first = page.locator('#site-search-surface .g-combobox__option').first()
+  await expect(first).toBeVisible({ timeout: 60_000 })
+  await expect(page.locator('#site-search-surface')).toContainText('GCombobox')
+  await expect(page.locator('#site-search-surface mark').first()).toBeVisible()
   await input.press('Enter')
   await expect(page).toHaveURL(/components\/combobox/)
 })
@@ -98,7 +106,7 @@ test('búsqueda: el filtro del índice encuentra un componente y navega a su pá
 test('selector de idioma: de español a inglés en la misma página', async ({ page }) => {
   await page.goto('components/btn.html')
   await page.waitForLoadState('networkidle')
-  await page.locator('.site-band__lang button').click()
+  await page.locator('.g-nav-bar__actions .site-lang').click()
   const english = page.getByRole('menuitem', { name: 'English' })
   await expect(english).toHaveAttribute('hreflang', 'en')
   await expect(english).toHaveAttribute('lang', 'en')
@@ -106,7 +114,7 @@ test('selector de idioma: de español a inglés en la misma página', async ({ p
   await expect(page).toHaveURL(/\/grana\/en\/components\/btn/)
   await expect(page.locator('html')).toHaveAttribute('lang', 'en')
   await expect(page.getByText('Translation pending').first()).toBeVisible()
-  await expect(page.locator('.g-sidebar')).toContainText('Get started')
+  await expect(page.locator('.g-nav-bar')).toContainText('Components')
 })
 
 test('modo oscuro: VitePress y los tokens de Grana cambian a la vez', async ({ page }) => {
@@ -116,7 +124,7 @@ test('modo oscuro: VitePress y los tokens de Grana cambian a la vez', async ({ p
   await expect(html).toHaveAttribute('data-theme', 'light')
   const bgLight = await page.evaluate(() => getComputedStyle(document.body).backgroundColor)
   const btnLight = await page.locator('.grana-demo .g-btn').first().evaluate((el) => getComputedStyle(el).backgroundColor)
-  await page.locator('.site-band__theme').getByRole('radio', { name: 'Oscuro' }).check()
+  await page.locator('.g-nav-bar__actions .site-theme input').click()
   await expect(html).toHaveClass(/dark/)
   await expect(html).toHaveAttribute('data-theme', 'dark')
   const bgDark = await page.evaluate(() => getComputedStyle(document.body).backgroundColor)
@@ -132,23 +140,28 @@ const CONTRAST_TARGETS = {
   'components/btn.html': {
     texto: '.vp-doc p',
     enlace: '.vp-doc a:not(.header-anchor)',
-    barraLateral: '.g-sidebar__nav .g-sidebar__label',
-    barraActiva: '.g-sidebar__nav [aria-current="page"] .g-sidebar__label',
-    filtro: '.g-sidebar__filter-count',
-    indice: '.g-page-index__trigger',
-    miga: '.g-app-shell__header .g-breadcrumbs a',
-    antetitulo: '.g-page-header__eyebrow',
-    metaComponente: '.site-import',
+    barraLateral: '.g-app-shell > .g-sidebar .g-sidebar__link:not([aria-current]) .g-sidebar__label',
+    barraActiva: '.g-app-shell > .g-sidebar [aria-current="page"] .g-sidebar__label',
+    numero: '.g-app-shell > .g-sidebar .g-sidebar__link:not([aria-current]) .g-sidebar__code',
+    filtro: '.g-sidebar__filter-input',
+    indice: '.site-aside .g-page-index__link:not([aria-current])',
+    indiceTitulo: '.site-aside .g-page-index__title',
+    navegacion: '.g-nav-bar__link:not([aria-current])',
+    navegacionActual: '.g-nav-bar__link[aria-current="page"]',
+    busqueda: '.site-search__text',
+    metaComponente: '.grana-meta',
     etiquetaEjemplo: '.grana-demo__label',
     codigo: '.vp-doc :not(pre) > code',
-    pie: '.site-neighbours .g-card__title'
+    pie: '.site-pager__label, .site-pager__title'
   },
   '': {
-    lema: '.g-hero__lead',
-    titular: '.g-hero__title',
-    botonPrincipal: '.g-hero__actions .g-btn',
-    tarjetaTitulo: '.g-card__title',
-    texto: '.vp-doc p'
+    lema: '.VPHero .tagline',
+    botonPrincipal: '.VPButton.brand',
+    botonAlterno: '.VPButton.alt',
+    tarjetaTitulo: '.VPFeature .title',
+    tarjetaTexto: '.VPFeature .details',
+    texto: '.vp-doc p',
+    piePortada: '.site-footer'
   },
   'en/components/btn.html': { aviso: '.custom-block.warning p' }
 }
@@ -202,30 +215,6 @@ for (const scheme of ['light', 'dark']) for (const [url, sel] of Object.entries(
   })
 }
 
-for (const scheme of ['light', 'dark']) {
-  test(`contraste del número en el asiento lleno ≥ 4.5:1 (${scheme})`, async ({ page }) => {
-    await page.emulateMedia({ colorScheme: scheme })
-    await page.goto('components/combobox.html')
-    await page.waitForLoadState('networkidle')
-    // El asiento es el ::before del hueco del icono (GSidebar.css): el fondo del número no es de un antepasado.
-    const ratio = await page.locator('.g-sidebar__nav [aria-current="page"] .g-sidebar__icon').evaluate((el) => {
-      const parse = (c) => { const m = c.match(/rgba?\(([^)]+)\)/); const [r, g, b, a = 1] = m[1].split(/[ ,/]+/).filter(Boolean).map(Number); return { r, g, b, a } }
-      const lum = ({ r, g, b }) => { const f = (v) => ((v /= 255) <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4); return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b) }
-      let base = { r: 255, g: 255, b: 255 }
-      const stack = []
-      for (let e = el; e; e = e.parentElement) { const c = parse(getComputedStyle(e).backgroundColor); if (c.a > 0) { stack.push(c); if (c.a >= 1) break } }
-      for (const c of stack.reverse()) base = { r: c.r * c.a + base.r * (1 - c.a), g: c.g * c.a + base.g * (1 - c.a), b: c.b * c.a + base.b * (1 - c.a) }
-      const seat = parse(getComputedStyle(el, '::before').backgroundColor)
-      const bg = { r: seat.r * seat.a + base.r * (1 - seat.a), g: seat.g * seat.a + base.g * (1 - seat.a), b: seat.b * seat.a + base.b * (1 - seat.a) }
-      const fg = parse(getComputedStyle(el).color)
-      const t = { r: fg.r * fg.a + bg.r * (1 - fg.a), g: fg.g * fg.a + bg.g * (1 - fg.a), b: fg.b * fg.a + bg.b * (1 - fg.a) }
-      const [a, b] = [lum(t), lum(bg)].sort((x, y) => y - x)
-      return Math.round(((a + 0.05) / (b + 0.05)) * 100) / 100
-    })
-    expect(ratio).toBeGreaterThanOrEqual(4.5)
-  })
-}
-
 test('foco visible con teclado en la navegación del sitio', async ({ page, browserName }) => {
   await page.goto('components/btn.html')
   await page.waitForLoadState('networkidle')
@@ -262,7 +251,7 @@ test.describe('puntero grueso', () => {
     // Área táctil real (la que recibe el toque), no la caja visible: Grana la amplía con un seudoelemento (GBtn) o con el
     // enlace estirado de la tarjeta (GCard). Se toca a ±21 px del centro en los dos ejes y debe responder el mismo control.
     const small = await page.evaluate(() =>
-      ['.g-app-shell__header button', '.g-app-shell__header a', '.g-page-index__trigger', '.g-page-header button', '.site-neighbours a']
+      ['.g-app-shell__header button', '.g-app-shell__header a', '.site-local button', '.site-pager a']
         .flatMap((s) => [...document.querySelectorAll(s)])
         .filter((e) => e.getClientRects().length && !e.closest('[hidden]'))
         .map((e) => {
@@ -290,24 +279,25 @@ test('blocks: índice, una sección de cada familia con su ejemplo vivo y su fam
     const r = await page.goto(p.endsWith('/') ? p : `${p}.html`)
     expect(r.status(), p).toBe(200)
     await page.waitForLoadState('networkidle')
-    await expect(page.locator('main .g-page-header h1')).toBeVisible()
+    await expect(page.locator('main .vp-doc h1')).toBeVisible()
     if (!p.endsWith('/')) {
       await expect(page.locator('.grana-block-bank [data-gb]').first()).toBeVisible()
       expect(await page.locator('.grana-block-bank [data-gb]').count(), p).toBe(3)
       expect(await hScroll(page), p).toBeLessThanOrEqual(0)
     }
-    // una sola navegación global también en /blocks/ (sitio-marco.md §3): la familia es un padre del índice
-    await expect(page.locator('.g-sidebar__nav').getByRole('button', { name: 'Booking' })).toBeVisible()
+    // su barra propia (como el original, sitio-marco.md §4): grupos por familia, plegables y sin números
+    await expect(page.locator('.g-app-shell > .g-sidebar .g-sidebar__group-title', { hasText: 'Booking' })).toBeVisible()
+    expect(await page.locator('.g-app-shell > .g-sidebar [data-code]').count(), p).toBe(0)
   }
-  await expect(page.locator('.g-sidebar__nav .g-sidebar__group-title', { hasText: 'Blocks' })).toBeVisible()
+  await expect(page.locator('.g-nav-bar__link[aria-current="page"]')).toHaveText('Blocks')
   expect(real()).toEqual([])
 })
 
-/* ------------------------------------------------------------------ marco del sitio (sitio-marco.md §12) */
+/* ------------------------------------------------------------------ marco calcado (sitio-marco.md §8, §10, §12 «Además») */
 
-test('marco: un banner, un main, un h1 y un contentinfo; toda nav con nombre', async ({ page }) => {
+test('marco: un banner, un main, un h1; contentinfo solo en la portada; toda nav con nombre', async ({ page }) => {
   const problems = watchConsole(page)
-  for (const p of ['components/combobox.html', 'theming.html', 'blocks/booking/offer-list.html', '']) {
+  for (const [p, home] of [['components/combobox.html', false], ['getting-started.html', false], ['blocks/booking/offer-list.html', false], ['', true]]) {
     await page.goto(p)
     await page.waitForLoadState('networkidle')
     const info = await page.evaluate(() => ({
@@ -317,10 +307,28 @@ test('marco: un banner, un main, un h1 y un contentinfo; toda nav con nombre', a
       contentinfo: document.querySelectorAll('footer.g-app-shell__footer').length,
       unnamed: [...document.querySelectorAll('nav')].filter((n) => n.getClientRects().length && !n.getAttribute('aria-label') && !n.getAttribute('aria-labelledby')).length
     }))
-    expect(info, p).toEqual({ banner: 1, main: 1, h1: 1, contentinfo: 1, unnamed: 0 })
+    expect(info, p).toEqual({ banner: 1, main: 1, h1: 1, contentinfo: home ? 1 : 0, unnamed: 0 })
   }
-  await expect(page.getByRole('navigation', { name: 'Documentación' })).toBeVisible()
+  await page.goto('components/combobox.html')
+  for (const name of ['Secciones', 'Documentación', 'En esta página']) await expect(page.getByRole('navigation', { name }).first()).toBeVisible()
   expect(problems).toEqual([])
+})
+
+test('marco: ⌘K / Ctrl+K abre la búsqueda (también desde un campo) y Esc la cierra', async ({ page, browserName }) => {
+  test.setTimeout(120_000)
+  await page.goto('components/btn.html')
+  await page.waitForLoadState('networkidle')
+  const mod = browserName === 'webkit' ? 'Meta' : 'Control'
+  await page.locator('.g-sidebar__filter-input').focus()
+  await page.keyboard.press(`${mod}+k`)
+  const surface = page.locator('#site-search-surface')
+  await expect(surface).toHaveJSProperty('open', true)
+  await expect(surface.locator('input')).toBeFocused()
+  await page.keyboard.type('comb')
+  await expect(surface.locator('.g-combobox__option').first()).toBeVisible({ timeout: 60_000 })
+  await expect(surface.locator('mark').first()).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(surface).toHaveJSProperty('open', false)
 })
 
 test('marco: `/` lleva al filtro y «24» + Intro llega a GCombobox con el foco en su h1', async ({ page }) => {
@@ -329,70 +337,51 @@ test('marco: `/` lleva al filtro y «24» + Intro llega a GCombobox con el foco 
   await page.waitForLoadState('networkidle')
   await page.locator('main h1').click()
   await page.keyboard.press('/')
-  const input = page.locator('.g-sidebar__filter-input')
+  const input = page.locator('.g-app-shell > .g-sidebar .g-sidebar__filter-input')
   await expect(input).toBeFocused()
   await page.keyboard.type('24')
-  await expect(page.locator('.g-sidebar__filter-count')).toHaveText(/^1 de \d+ páginas/)
+  await expect(page.locator('.g-app-shell > .g-sidebar .g-sidebar__link:visible')).toHaveCount(1)
   await page.keyboard.press('Enter')
   await expect(page).toHaveURL(/components\/combobox\.html/)
-  // la página nueva se carga en el cliente (trozo de la ficha con su prueba en vivo): margen para máquinas cargadas
-  await expect(page.locator('main h1')).toHaveText('GCombobox', { timeout: 15_000 })
+  await expect(page.locator('main h1')).toHaveText(/GCombobox/, { timeout: 15_000 })
   await expect(page.locator('main h1')).toBeFocused()
-  await expect(page.locator('.g-page-header__eyebrow')).toHaveText(/Componente 24 · Campos de entrada/)
-  // Ctrl+K y ⌘K también llevan al filtro (fuera y dentro de un campo)
-  await page.keyboard.press('ControlOrMeta+k')
-  await expect(input).toBeFocused()
+  // en la portada (sin índice), `/` abre la búsqueda
+  await page.goto('')
+  await page.waitForLoadState('networkidle')
+  await page.keyboard.press('/')
+  await expect(page.locator('#site-search-surface')).toHaveJSProperty('open', true)
   expect(problems).toEqual([])
 })
 
-test('marco: «oscuro» no está en ningún título y aparece «En el texto»; Esc vacía y vuelve el total', async ({ page }) => {
-  test.setTimeout(90_000)
-  await page.goto('components/btn.html')
-  await page.waitForLoadState('networkidle')
-  const input = page.locator('.g-sidebar__filter-input')
-  const count = page.locator('.g-sidebar__filter-count')
-  const total = (await count.textContent()).trim()
-  await input.fill('oscuro')
-  await expect(count).toContainText('Ningún título con «oscuro»')
-  // el índice local (≈ 1,6 MB) se carga la primera vez: margen para máquinas cargadas
-  const group = page.locator('.g-sidebar__group', { has: page.locator('.g-sidebar__group-title', { hasText: 'En el texto' }) })
-  await expect(group).toBeVisible({ timeout: 30_000 })
-  await expect(group.getByRole('link', { name: /Tematización · Tema oscuro/ })).toBeVisible()
-  expect(await group.getByRole('link').count()).toBeLessThanOrEqual(5)
-  await expect(count).toContainText('en el texto')
-  await input.press('Escape')
-  await expect(input).toHaveValue('')
-  await expect(input).toBeFocused()
-  await expect(count).toHaveText(total)
-  await expect(group).toHaveCount(0)
-})
-
-test('marco: aria-current="page" en el índice y "location" en el relevo de la página', async ({ page }) => {
+test('marco: aria-current="page" en la barra y en el índice; "location" en la columna, que sigue la lectura', async ({ page }) => {
   const problems = watchConsole(page)
   await page.goto('components/combobox.html')
   await page.waitForLoadState('networkidle')
-  const current = page.locator('.g-sidebar__nav [aria-current="page"]')
+  await expect(page.locator('.g-nav-bar__link[aria-current="page"]')).toHaveText('Componentes')
+  const current = page.locator('.g-app-shell > .g-sidebar [aria-current="page"]')
   await expect(current).toHaveCount(1)
   await expect(current).toContainText('GCombobox')
   await expect(current).toContainText('24')
-  // elegir una sección del relevo: «location» en el menú y el foco en la sección
-  const trigger = page.locator('.g-page-index__trigger')
-  await trigger.click()
-  const items = page.locator('.g-page-index [role="menuitem"]')
-  const n = await items.count()
-  expect(n).toBeGreaterThan(2)
-  const target = items.nth(2)
-  const label = (await target.textContent()).trim()
-  const href = await target.getAttribute('href')
-  await target.click()
+  // la columna sigue la lectura: tras desplazar, la actual es la última sección cuyo título ya cruzó la línea de lectura
+  const links = page.locator('.site-aside .g-page-index__link')
+  const href = await links.nth(4).getAttribute('href')
   const id = decodeURIComponent(href.split('#')[1])
-  await expect(page.locator(`[id="${id}"]`)).toBeFocused()
-  // Que el relevo siga diciendo la elegida tras el salto depende de #1048 (la elegida se mantiene hasta el primer
-  // desplazamiento del usuario; pendiente en GPageIndex.vue): si falla aquí, es ese cambio.
-  await expect(trigger).toContainText(label)
-  await trigger.click()
-  await expect(page.locator(`.g-page-index [role="menuitem"][href$="#${id}"]`)).toHaveAttribute('aria-current', 'location')
-  await page.keyboard.press('Escape')
+  await page.evaluate((i) => { const el = document.getElementById(i); window.scrollTo(0, el.getBoundingClientRect().top + scrollY - 120) }, id)
+  await expect.poll(() => page.evaluate(() => {
+    const cur = document.querySelector('.site-aside .g-page-index__link[aria-current="location"]')
+    if (!cur) return 'sin actual'
+    const ids = [...document.querySelectorAll('.site-aside .g-page-index__link')].map((a) => decodeURIComponent(a.getAttribute('href').slice(1)))
+    const tops = ids.map((i) => document.getElementById(i)?.getBoundingClientRect().top ?? Infinity)
+    const k = ids.indexOf(decodeURIComponent(cur.getAttribute('href').slice(1)))
+    // su título está por encima de la mitad del visor y el siguiente aún no (la línea de lectura cae entre los dos)
+    return tops[k] <= innerHeight / 2 && (k === ids.length - 1 || tops[k + 1] > 0) ? 'ok' : `actual ${ids[k]} (${Math.round(tops[k])})`
+  }), { timeout: 5000 }).toBe('ok')
+  // elegir en la columna lleva el foco a la sección
+  const pick = links.nth(2)
+  const pid = decodeURIComponent((await pick.getAttribute('href')).split('#')[1])
+  await pick.click()
+  await expect(page.locator(`[id="${pid}"]`)).toBeFocused()
+  await expect(pick).toHaveAttribute('aria-current', 'location')
   expect(problems).toEqual([])
 })
 
@@ -400,13 +389,13 @@ test('marco: idioma con ruta equivalente y enlaces alternos en el head', async (
   await page.goto('components/combobox.html')
   await page.waitForLoadState('networkidle')
   await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute('href', '/grana/en/components/combobox.html')
-  await page.locator('.site-band__lang button').click()
+  await page.locator('.g-nav-bar__actions .site-lang').click()
   await expect(page.getByRole('menuitem', { name: 'Español' })).toHaveAttribute('aria-current', 'page')
   await page.getByRole('menuitem', { name: 'English' }).click()
   await expect(page).toHaveURL(/\/grana\/en\/components\/combobox\.html$/)
-  await expect(page.locator('.g-page-header__eyebrow')).toHaveText(/Component 24 · Input fields/, { timeout: 15_000 })
-  await expect(page.locator('main h1')).toHaveText('GCombobox')
-  await page.locator('.site-band__lang button').click()
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en', { timeout: 15_000 })
+  await expect(page.locator('.g-nav-bar__link[aria-current="page"]')).toHaveText('Components')
+  await page.locator('.g-nav-bar__actions .site-lang').click()
   await page.getByRole('menuitem', { name: 'Español' }).click()
   await expect(page).toHaveURL(/\/grana\/components\/combobox\.html$/)
 })
@@ -425,23 +414,29 @@ for (const [pref, theme, dark] of [['light', 'light', false], ['dark', 'dark', t
     await page.goto('components/btn.html')
     await page.waitForLoadState('networkidle')
     expect(await page.evaluate(() => window.__first)).toEqual({ theme, dark })
-    const radio = page.locator('.site-band__theme').getByRole('radio', { name: { light: 'Claro', dark: 'Oscuro', auto: 'Sistema' }[pref] })
-    await expect(radio).toBeChecked()
+    // el interruptor enseña el tema resuelto
+    const sw = page.locator('.g-nav-bar__actions .site-theme input')
+    if (dark) await expect(sw).toBeChecked()
+    else await expect(sw).not.toBeChecked()
     await page.reload()
     await page.waitForLoadState('networkidle')
     expect(await page.evaluate(() => window.__first)).toEqual({ theme, dark })
-    await expect(radio).toBeChecked()
+    expect(await page.evaluate(() => localStorage.getItem('vitepress-theme-appearance'))).toBe(pref)
+    // pulsar escribe el contrario explícito (dos estados, como el original)
+    await sw.click()
+    await expect(page.locator('html')).toHaveAttribute('data-theme', dark ? 'light' : 'dark')
+    expect(await page.evaluate(() => localStorage.getItem('vitepress-theme-appearance'))).toBe(dark ? 'light' : 'dark')
     expect(problems).toEqual([])
   })
 }
 
 test.describe('estrecho', () => {
   test.use({ viewport: { width: 375, height: 800 } })
-  test('marco: drawer del índice; Esc lo cierra y el foco vuelve al botón', async ({ page, browserName }) => {
+  test('marco: «Menú» abre el cajón del índice; Esc lo cierra; `/` lo abre con el filtro; navegar lo cierra', async ({ page, browserName }) => {
     const problems = watchConsole(page)
     await page.goto('components/btn.html')
     await page.waitForLoadState('networkidle')
-    const open = page.locator('.site-band__menu')
+    const open = page.locator('.site-local__menu')
     await expect(open).toBeVisible()
     await open.click()
     const drawer = page.locator('dialog.g-sidebar__drawer[open]')
@@ -449,9 +444,8 @@ test.describe('estrecho', () => {
     await expect(drawer.locator('[aria-current="page"]')).toContainText('GBtn')
     await page.keyboard.press('Escape')
     await expect(drawer).toHaveCount(0)
-    // WebKit: el drawer no devuelve el foco al botón que lo abrió (defecto S8 de GSidebar, PENDIENTES.md §3).
+    // WebKit: el cajón no devuelve el foco al botón que lo abrió (defecto S8 de GSidebar, PENDIENTES.md §3).
     if (browserName !== 'webkit') await expect(open).toBeFocused()
-    // `/` abre el drawer y enfoca el filtro
     await page.locator('main h1').click()
     await page.keyboard.press('/')
     await expect(page.locator('dialog[open] .g-sidebar__filter-input')).toBeFocused()
@@ -459,20 +453,27 @@ test.describe('estrecho', () => {
     await page.keyboard.press('Enter')
     await expect(page).toHaveURL(/components\/tag\.html/)
     await expect(page.locator('dialog.g-sidebar__drawer[open]')).toHaveCount(0)
+    // «En esta página» plegado en la barra local: abre, «Volver arriba» y Esc
+    const fold = page.locator('.site-local__index .g-page-index__fold')
+    // con el teclado (WebKit no enfoca un botón al pulsarlo: Esc solo cierra con el foco dentro)
+    await fold.focus()
+    await page.keyboard.press('Enter')
+    await expect(fold).toHaveAttribute('aria-expanded', 'true')
+    await page.keyboard.press('Escape')
+    await expect(fold).toHaveAttribute('aria-expanded', 'false')
     expect(problems).toEqual([])
   })
 })
 
-for (const width of [1280, 900, 375]) {
+for (const width of [1280, 1024, 900, 375, 320]) {
   test(`marco: hidratación sin avisos y CLS del marco 0 a ${width} px`, async ({ page, browserName }) => {
     const problems = watchConsole(page)
     await page.setViewportSize({ width, height: 900 })
     await page.addInitScript(() => {
       window.__cls = []
-      // Desplazamientos del MARCO: banda, índice, cabecera, pie, o la columna de la página entera (marco, main, contenedor).
-      // Lo que se mueve dentro del contenido (.vp-doc: ejemplos vivos y fichas que montan en el cliente) es de cada página.
-      const FRAME = '.g-app-shell__header, .g-sidebar, .g-page-header, .g-app-shell__footer'
-      const isFrame = (n) => n && n.nodeType === 1 && (!!n.closest(FRAME) || n.matches('.g-app-shell, .g-app-shell__frame, .g-app-shell__main, .g-app-shell__main > .g-container'))
+      // Desplazamientos del MARCO: banda, índice, barra local, columna derecha, o la columna de la página entera.
+      const FRAME = '.g-app-shell__header, .g-sidebar, .site-local, .site-aside, .g-app-shell__footer'
+      const isFrame = (n) => n && n.nodeType === 1 && (!!n.closest(FRAME) || n.matches('.g-app-shell, .g-app-shell__frame, .g-app-shell__main, .site-doc, .site-doc__inner, .site-content'))
       try {
         new PerformanceObserver((list) => {
           for (const e of list.getEntries()) {

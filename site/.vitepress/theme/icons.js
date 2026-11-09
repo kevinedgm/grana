@@ -11,8 +11,8 @@ import {
   // los que registran los bancos de @grana/blocks (appIcons)
   Baby, CalendarPlus, CalendarX, MessageCircle, Navigation, PawPrint, Wifi,
   Hand,
-  // los del marco del sitio (Layout.vue, sitio-marco.md §4): tema, idioma, índice y grupos de guía
-  Sun, Moon, Monitor, Languages, Menu, Search, PanelLeft, Diamond, List, Target, RefreshCw, ExternalLink, Copy, Blocks
+  // los del marco calcado (Layout.vue, sitio-marco.md §3): tema, idioma, búsqueda, «Menú» y las teclas del pie de la búsqueda
+  Sun, Moon, Languages, Menu, Search, AlignLeft, ChevronDown, ArrowUp, ArrowDown, CornerDownLeft
 } from 'lucide-static'
 
 export const siteIcons = [
@@ -24,5 +24,5 @@ export const siteIcons = [
   Upload, Users, Wallet, Zap,
   Baby, CalendarPlus, CalendarX, MessageCircle, Navigation, PawPrint, Wifi,
   Hand,
-  Sun, Moon, Monitor, Languages, Menu, Search, PanelLeft, Diamond, List, Target, RefreshCw, ExternalLink, Copy, Blocks
+  Sun, Moon, Languages, Menu, Search, AlignLeft, ChevronDown, ArrowUp, ArrowDown, CornerDownLeft
 ]
