@@ -2,7 +2,7 @@
 
 Barra superior de navegación de un sitio: los enlaces a sus secciones con la actual marcada por la ruta, y un sitio para las acciones globales de la aplicación (búsqueda, idioma, tema). En estrecho recoge las acciones en «…» y, en un teléfono, todo en una pantalla de menú. **No busca, no cambia el idioma ni el tema, no lee `location` y no trae color propio**: aloja los controles de tu aplicación y la ruta actual te la das tú.
 
-**Etiqueta:** `<g-nav-bar>` · **Estado:** `draft` (construido; falta la auditoría de coco sobre el componente real, ver «Verificación») · **Entrada propia:** `@grana/vue/nav-bar` (global UMD `GranaNavBar`) · **Desde:** 0.1.0
+**Etiqueta:** `<g-nav-bar>` · **Estado:** `candidate` (auditado por coco sobre el sitio construido, ver «Verificación») · **Entrada propia:** `@grana/vue/nav-bar` (global UMD `GranaNavBar`) · **Desde:** 0.1.0
 
 ```js
 import GranaNavBar from '@grana/vue/nav-bar'   // plugin; también: import { GNavBar } from '@grana/vue/nav-bar'
@@ -218,9 +218,10 @@ Los tres sitios están en el HTML del servidor y el CSS elige: no se mide nada e
 ## Verificación
 
 - **`prueba`:** `GNavBar.test.js`, 15 pruebas en verde el 2026-11-08 (modelo y avisos, actual por `activeMatch` o `href`, externos, `navigate`, «…», pantalla).
-- **`medido` en banco, tres motores:** `design/lab/sitio/calco-estilo/verificar.mjs` (puerto 4240) sobre `dist/` y el marcado de contrato, **2080/2080** (694 Chromium, 693 Firefox, 693 WebKit), de ellas 94 de barra, luz y barra local; incluye la actual frente a reposo (3,06:1) y el Δ 0 de los enlaces con y sin la luz. Es el banco de paridad, no la auditoría del componente real.
+- **`medido` en banco, tres motores:** `design/lab/sitio/calco-estilo/verificar.mjs` (puerto 4240) sobre `dist/` y el marcado de contrato, **2080/2080** (694 Chromium, 693 Firefox, 693 WebKit), de ellas 94 de barra, luz y barra local; incluye la actual frente a reposo (3,06:1) y el Δ 0 de los enlaces con y sin la luz. Es el banco de paridad; la auditoría del componente real está en la viñeta siguiente.
 - **`medido` en el prototipo de kiwi:** `design/lab/navbar/r01/verificar.mjs`, 772/772 en los tres motores (prototipo, no el componente).
-- **Sin verificar:** la auditoría de coco sobre el `GNavBar` real con un tema distinto del de por defecto (**el estado es `draft` hasta entonces**; esta página no lo promueve); lector de pantalla real con dos `nav` y la pantalla abierta; trackpad inercial; Safari y táctil reales.
+- **`medido` en la auditoría de coco, sobre el sitio construido real** ([`design/lab/sitio/auditoria.md`](../../../../../design/lab/sitio/auditoria.md), 2026-11-09): `design/lab/sitio/auditoria-verificar.mjs` (puerto 4246), **472/472** en total (estático 16/16, Chromium 166/166, Firefox 129/129, WebKit 161/161; Firefox sin táctil ni `forced-colors`, WebKit sin `forced-colors`), con el tema por defecto y `caracol-purpura`, los dos en claro y en oscuro. Contraste de los enlaces: el menor (la actual) 5,69 / 4,95 / 4,94 / 4,98 : 1 según tema y modo, frente a 4,5; el enlace bajo la luz P1 se mantiene ≥ 4,5 : 1. Rúbrica de movimiento sin «No cumple»: la luz P1 no mueve la barra de medida, reducido = fundido, sin capa en `forced-colors`. Spec `nav-bar` sin tareas largas (Chromium). Estado promovido a `candidate`.
+- **Sin verificar:** lector de pantalla real con dos `nav` y la pantalla abierta; trackpad inercial; Safari, táctil y `forced-colors` reales.
 - **Pendientes abiertos:** [`PENDIENTES.md`](../../../../../PENDIENTES.md) §5 y §6. Afecta a este componente la comprobación del par `accent-text` / `text` ≥ 3:1 en el motor de tema.
 
 ## Fuentes

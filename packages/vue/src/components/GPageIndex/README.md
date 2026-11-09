@@ -2,7 +2,7 @@
 
 Índice de **las secciones de la página que estás leyendo**, con la sección actual siguiendo la lectura. En su forma `relay` es un botón de menú que dice dónde estás («En esta página · API») y que, al abrirlo, lista las secciones como un [`GMenu`](../GMenu/README.md) de enlaces; en su forma `list` es la columna clásica «En esta página», con la actual sobre una línea guía. Al elegir una, el navegador sigue el `#id` y el foco llega a la sección. Las secciones son un dato de tu aplicación (`items`); el componente no lee los títulos del documento, no navega por su cuenta más allá del `href` y todo texto lo pones tú en `label` y `labels`.
 
-**Etiqueta:** `<g-page-index>` · **Estado:** `draft` (construido; falta la auditoría de coco, ver «Verificación») · **Desde:** 0.1.0 · **Entrada:** propia, `@grana/vue/page-index`
+**Etiqueta:** `<g-page-index>` · **Estado:** `candidate` (auditado por coco sobre el sitio construido, ver «Verificación») · **Desde:** 0.1.0 · **Entrada:** propia, `@grana/vue/page-index`
 
 ```js
 import GranaPageIndex from '@grana/vue/page-index'   // plugin; también: import { GPageIndex } from '@grana/vue/page-index'
@@ -230,11 +230,11 @@ d. **Objetivo táctil:** disparador y elementos de la lista ≥ 44 px con `point
 
 e. **Movimiento reducido:** el relevo del texto se queda en un fundido, sin desplazamiento. Nivel `medido` en Chromium (`page-index.spec.mjs`).
 
-f. **Contraste** del disparador (texto, valor y borde como control) en claro, oscuro y zona de marca: `sin verificar` hasta la auditoría de coco.
+f. **Contraste** de la lista (`list` y `fold`) en dos temas, claro y oscuro: `medido` por coco sobre el sitio construido (con `caracol-purpura` en claro, la sección actual da **4,56 : 1** sobre `surface-sunken`, margen de 0,06; pasa, pero sin colchón, `PENDIENTES.md` §5). El disparador de `relay` en zona de marca queda `sin verificar`.
 
 g. **Con `list`:** `<nav>` nombrado por su título visible (`aria-labelledby`; el título es un `<p>`, no un encabezado, y no entra en el esquema de la página), `aria-current="location"` en un solo enlace (la rama del `h2` no lo lleva), una línea por enlace con elipsis y `title` con el texto entero. Con `fold`, el botón lleva `aria-expanded` y `aria-controls`. Nivel `prueba` (`GPageIndex.list.test.js`, 11 pruebas).
 
-h. **La columna cabe en el visor** bajo lo pegado y se desplaza dentro (`tabindex="-1"`), de modo que la actual no queda fuera de vista en una lista larga. Nivel `medido` por kiwi sobre su prototipo (secciones 1, 6, 20, 40 y final, sin mover la página, tres motores); sobre el componente real queda a la auditoría de coco.
+h. **La columna cabe en el visor** bajo lo pegado y se desplaza dentro (`tabindex="-1"`), de modo que la actual no queda fuera de vista en una lista larga. Nivel `medido` por kiwi sobre su prototipo (secciones 1, 6, 20, 40 y final, sin mover la página, tres motores) y por coco sobre el componente real en el sitio construido.
 
 > **Peligro.** Sin `label` el `<nav>` queda sin nombre y el disparador sin su texto fijo: el lector anuncia un botón vacío dentro de un punto de referencia anónimo (el componente avisa en desarrollo). Y si el `id` de un item no existe en la página, elegirlo no lleva a ningún sitio.
 
@@ -272,7 +272,8 @@ Con `relay`: `g-page-index` con `g-page-index--appearance-relay` (raíz `nav`, m
 - **`prueba`:** `GPageIndex.test.js` (18 pruebas: anatomía, modelo y avisos 1 a 6, elegir, línea de lectura, elegida sostenida, relevo en fases), `GPageIndex.list.test.js` (11: extensión, `level`, `fold`, PI-L5 y avisos 7 a 10) y `GPageIndex.hydration.test.js` (1), en verde el 2026-11-08 (30/30).
 - **`medido` en banco, tres motores:** `design/lab/sitio/calco-estilo/verificar.mjs` sobre `dist/`, 2080/2080 con la columna y la plegada (marcador, paridad y barra local; es el banco de paridad del marco, no la auditoría del componente real).
 - **`medido` en Chromium:** `design/lab/theme-playground/tests/page-index.spec.mjs`, 11/11 (anatomía, línea de lectura, foco al destino, elegida sostenida, Δ0 del disparador, relevo, movimiento reducido, 200 secciones con tareas < 50 ms, táctil ≥ 44 px), 2026-11-08, puerto 4236.
-- **Sin verificar:** Firefox y WebKit (no se ejecutaron al documentar); contraste en claro, oscuro y zona de marca; rúbrica de movimiento; lector de pantalla real con `aria-current="location"` dentro de un `menu`; desplazamiento inercial en táctil real. **El estado es `draft` hasta la auditoría de coco**: esta página no lo promueve.
+- **`medido` en la auditoría de coco, sobre el sitio construido real** ([`design/lab/sitio/auditoria.md`](../../../../../design/lab/sitio/auditoria.md), 2026-11-09): `design/lab/sitio/auditoria-verificar.mjs` (puerto 4246), **472/472** en total (estático 16/16, Chromium 166/166, Firefox 129/129, WebKit 161/161; Firefox sin táctil ni `forced-colors`, WebKit sin `forced-colors`), con `GPageIndex` `list` y `fold`, el tema por defecto y `caracol-purpura`, en claro y en oscuro. Rendimiento solo y sin vecinos (#965): 200 secciones con tareas < 50 ms en los tres motores. Rúbrica de movimiento sin «No cumple»: nunca mueve la página, todo es interrumpible, con rama reducida y de colores forzados. Estado promovido a `candidate`.
+- **Sin verificar:** contraste del disparador de `relay` en zona de marca; lector de pantalla real con `aria-current="location"` dentro de un `menu`; desplazamiento inercial en táctil real; Safari y `forced-colors` reales.
 - **Pendientes abiertos:** [`PENDIENTES.md`](../../../../../PENDIENTES.md) §6. Afecta a este componente que **buscar al escribir en `GMenu` (#797) aún no está construido**.
 
 ## Fuentes
