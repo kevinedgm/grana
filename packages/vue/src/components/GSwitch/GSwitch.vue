@@ -62,6 +62,11 @@ const hasLabel = computed(() => Boolean(props.label || slots.label))
 const hasHint = computed(() => Boolean(props.hint || slots.hint))
 const hasIconOn = computed(() => Boolean(slots['icon-on']))
 const hasIconOff = computed(() => Boolean(slots['icon-off']))
+// H1/N-H4 (PENDIENTES §6): sin etiqueta ni ayuda visibles (solo aria-label, p. ej. el tema en GNavBar) no se pintan la columna
+// de texto ni, fuera de GForm y sin mensaje, la región del mensaje (vacías ocupaban 8 + 48 px). Con etiqueta o en un
+// formulario, la región viva sigue siempre presente (4.1.3)
+const showText = computed(() => hasLabel.value || hasHint.value)
+const showMessage = computed(() => showText.value || ff.inForm || Boolean(message.value))
 
 // El <input> nativo puede divergir del prop tras un clic; se vuelve a alinear con lo que diga el consumidor.
 function sync() {
@@ -148,11 +153,11 @@ try {
         <span v-if="hasIconOn" class="g-switch__icon g-switch__icon--on" aria-hidden="true"><slot name="icon-on" /></span>
         <span v-if="hasIconOff" class="g-switch__icon g-switch__icon--off" aria-hidden="true"><slot name="icon-off" /></span>
       </span>
-      <span class="g-switch__text">
+      <span v-if="showText" class="g-switch__text">
         <span v-if="hasLabel" :id="labelId" class="g-switch__label"><slot name="label">{{ label }}</slot></span>
         <span v-if="hasHint" :id="hintId" class="g-switch__hint"><slot name="hint">{{ hint }}</slot></span>
       </span>
     </label>
-    <div :id="ff.messageId.value" class="g-switch__message" :aria-live="ff.live.value"><template v-if="message"><GIcon class="g-switch__message-icon" :name="messageIcon(message.type)" /><span v-if="message.prefix" class="g-switch__message-type">{{ message.prefix }}</span><slot v-if="message.type === 'error'" name="error">{{ message.text }}</slot><template v-else>{{ message.text }}</template></template></div>
+    <div v-if="showMessage" :id="ff.messageId.value" class="g-switch__message" :aria-live="ff.live.value"><template v-if="message"><GIcon class="g-switch__message-icon" :name="messageIcon(message.type)" /><span v-if="message.prefix" class="g-switch__message-type">{{ message.prefix }}</span><slot v-if="message.type === 'error'" name="error">{{ message.text }}</slot><template v-else>{{ message.text }}</template></template></div>
   </div>
 </template>

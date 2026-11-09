@@ -220,3 +220,23 @@ describe('GSwitch · orden de las escuchas', () => {
     expect(seen).toBe(false)
   })
 })
+
+describe('GSwitch · sin etiqueta visible (H1/N-H4)', () => {
+  it('solo aria-label: el nombre llega al <input> y no se pintan __text ni __message vacíos', () => {
+    const w = mount(GSwitch, { attrs: { 'aria-label': 'Tema oscuro' } })
+    expect(w.find('input').attributes('aria-label')).toBe('Tema oscuro')
+    expect(w.find('.g-switch__text').exists()).toBe(false)
+    expect(w.find('.g-switch__message').exists()).toBe(false)
+    expect(w.find('input').attributes('aria-describedby')).toBeUndefined()
+  })
+  it('con etiqueta, la región viva del mensaje existe vacía; sin etiqueta y con error, aparece con él', async () => {
+    const lab = mount(GSwitch, { props: { label: 'Avisos' } })
+    expect(lab.find('.g-switch__text').exists()).toBe(true)
+    expect(lab.find('.g-switch__message').exists()).toBe(true)
+    expect(lab.find('.g-switch__message').text()).toBe('')
+    const w = mount(GSwitch, { attrs: { 'aria-label': 'Tema' } })
+    await w.setProps({ error: 'No se pudo guardar' })
+    expect(w.find('.g-switch__message').text()).toContain('No se pudo guardar')
+    expect(w.find('input').attributes('aria-describedby')).toBe(w.find('.g-switch__message').attributes('id'))
+  })
+})

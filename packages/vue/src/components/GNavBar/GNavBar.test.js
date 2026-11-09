@@ -182,6 +182,25 @@ describe('GNavBar · «…» (disclosure con popover)', () => {
     expect(w.get('.g-nav-bar__more-btn').attributes('aria-expanded')).toBe('false')
     w.unmount()
   })
+
+  it('H2 (#1066): --_more-top y --_more-end se escriben en beforetoggle al abrir (px ≥ 0, en bruto), no al cerrar', async () => {
+    const w = make({}, { actions: () => h('a', { href: '/x' }, 'X') })
+    const btn = w.get('.g-nav-bar__more-btn').element
+    btn.getBoundingClientRect = () => ({ top: 8, bottom: 52, left: 900, right: 940, width: 40, height: 44 })
+    Object.defineProperty(document.documentElement, 'clientWidth', { configurable: true, value: 1024 })
+    const panel = w.get('.g-nav-bar__more-panel').element
+    const ev = (state) => Object.assign(new Event('beforetoggle'), { newState: state })
+    panel.dispatchEvent(ev('open'))
+    expect(panel.style.getPropertyValue('--_more-top')).toBe('52px')
+    expect(panel.style.getPropertyValue('--_more-end')).toBe('84px')
+    btn.getBoundingClientRect = () => ({ top: 8, bottom: 52, left: 1000, right: 1040, width: 40, height: 44 })
+    panel.dispatchEvent(ev('closed'))
+    expect(panel.style.getPropertyValue('--_more-end')).toBe('84px')
+    panel.dispatchEvent(ev('open'))
+    expect(panel.style.getPropertyValue('--_more-end')).toBe('0px')
+    delete document.documentElement.clientWidth
+    w.unmount()
+  })
 })
 
 describe('GNavBar · pantalla de menú', () => {

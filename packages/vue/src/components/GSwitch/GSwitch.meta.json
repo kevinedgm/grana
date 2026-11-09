@@ -188,7 +188,8 @@
   ],
   "pending": [
     "Lector de pantalla real: rol switch, activado/desactivado, ayuda, error y aria-busy",
-    "Firefox y Safari (pseudo-elementos del input, :dir(), :has())"
+    "Firefox y Safari (pseudo-elementos del input, :dir(), :has())",
+    "H1/N-H4 (2026-11-08): sin label ni hint visibles (solo aria-label) no se pintan g-switch__text ni, fuera de GForm y sin mensaje, g-switch__message; con etiqueta o dentro de GForm la región viva sigue siempre presente. switch.md («Clases»: g-switch__text «Siempre»; C4: región «siempre presente») pendiente de enmienda de lima. Límite: un interruptor sin etiqueta fuera de GForm que recibe error inserta la región con el texto (el anuncio no está garantizado)"
   ],
   "formSystem": {
     "contract": "design/contracts/form.md §10",

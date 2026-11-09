@@ -181,14 +181,16 @@ export default defineComponent({
             class: 'g-nav-bar__more-panel',
             id: `${rid}-more`,
             popover: 'auto',
-            onToggle: (e) => {
-              more.value = e.newState === 'open'
-              // Sin anclaje CSS (position-area), coco coloca el panel con estas dos (H2 de su banco; pendiente de lima)
+            // H2 (#1066): antes de abrir, para que el primer cuadro ya salga en su sitio; siempre (el CSS solo las usa sin anclaje).
+            // Borde inferior del botón y distancia de su borde final al del visor, px ≥ 0 en bruto
+            onBeforetoggle: (e) => {
+              if (e.newState !== 'open') return
               const b = moreBtn.value.getBoundingClientRect()
               const p = morePanel.value.style
-              p.setProperty('--_more-top', `${Math.round(b.bottom)}px`)
-              p.setProperty('--_more-end', `${Math.round(getComputedStyle(root.value).direction === 'rtl' ? b.left : document.documentElement.clientWidth - b.right)}px`)
+              p.setProperty('--_more-top', `${Math.max(0, Math.round(b.bottom))}px`)
+              p.setProperty('--_more-end', `${Math.max(0, Math.round(getComputedStyle(root.value).direction === 'rtl' ? b.left : document.documentElement.clientWidth - b.right))}px`)
             },
+            onToggle: (e) => { more.value = e.newState === 'open' },
             onClick: (e) => { if (e.target.closest('a')) hideMore() }
           }, slots.actions?.({ place: 'more' }))
         ]),
