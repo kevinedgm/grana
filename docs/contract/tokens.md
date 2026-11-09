@@ -333,6 +333,8 @@ Lenguaje reutilizable de **superficies de cristal** (liquid glass): un velo tran
 
 **Dueño:** lima (reglas) · coco (valores de `defaults.css`) · bruno (derivación en el CLI). DECISIONS.md #79 a #81. **Estado:** candidate (auditoría de coco aprobada: `design/lab/tema-oscuro/auditoria.md`). **Sin tokens nuevos**: el tema oscuro redeclara los mismos tokens de color; los componentes no cambian (solo leen `var(--g-*)`).
 
+> **Semánticos en oscuro con `semanticCollision: "adjust"` (#NNNN, enmienda de #93):** la variante oscura de un semántico hace su propia búsqueda de separación (§16.1), con tono posiblemente distinto del claro; el resultado pasa por `darkColorTokens` y conserva la garantía de `{familia}-text` (#1074).
+
 ### Activación (automática y forzable)
 
 | Situación | Resultado |
@@ -432,6 +434,12 @@ El `tokens.css` del usuario va **sin capa y gana siempre** (§8): si define `bra
 
 `success`, `warning`, `danger` e `info` parten de su color claro por defecto. Si el más cercano de `brand` o `accent` (claros **y** sus variantes oscuras derivadas) queda a una **distancia OKLab < 0.12**, o si el semántico resultante se parecería a otro semántico (< 0.09; el tema por defecto ya está en ≈ 0.10), se busca el **menor giro**: tono ±45° (pasos de 5°) y luminosidad ±0.15 (pasos de 0.05), con el coste `|Δtono| / 45 + 0.6 · |ΔL| / 0.15`. Se conserva el croma, se reduce a la gama sRGB y se derivan `strong`, `soft`, `text`, `on-*` y su variante oscura como cualquier color (§2, §15). Si ningún giro llega a 0.12, se elige el de mayor distancia y se avisa (`semantic-close`). **Los semánticos que no chocan no se tocan** (no se emiten), y con `warn` tampoco los que chocan. Si el usuario fija uno con `overrides` y queda a < 0.12 de la marca, también avisa.
 
+**En oscuro, búsqueda propia (con `semanticCollision: "adjust"`; DECISIONS.md #NNNN, enmienda de #93).** El oscuro del semántico ya no es solo el claro derivado por §15: el semántico hace su **propia búsqueda sobre su variante oscura** con la misma regla (tono ±45° en pasos de 5°, luminosidad ±0.15 en pasos de 0.05, croma conservado, mismo coste y mismos umbrales 0.12 frente a marca y acento oscuros y 0.09 frente a otros semánticos oscuros), porque en oscuro `deriveDarkColor` sube semántico y acento al mismo piso de contraste y casi no queda margen de luminosidad. **El tono oscuro puede ser distinto del claro.** La búsqueda parte del color oscuro que ya cumple §15 y el resultado vuelve a pasar por `darkColorTokens`: la garantía de `{familia}-text` de #1074 (≥ 4.5:1 contra `surface`, `surface-sunken` y `bg`) se mantiene. El claro se resuelve como antes. Con `warn` no cambia nada (el oscuro es el derivado del claro, y el aviso lleva la alternativa).
+
+**Límite documentado (hueco entre marca y acento).** Un semántico que queda **entre** la marca y el acento (p. ej. `info` con marca violeta y acento cian, como en Stripe) puede no llegar a 0.12 con ±45° y ±0.15. **Se acepta el aviso:** no se gira más de ±45° ni se quita croma, porque el estado cambiaría de significado (§17.7). Se elige el candidato de mayor distancia y la nota dice que no llega (ver abajo); quien necesite el mínimo lo fija con `overrides`. Medición de bruno con 1000 temas al azar: la búsqueda propia corrige 110 de los 120 avisos de oscuro; los 10 restantes son este caso.
+
+**Mensaje de `semantic-adjusted`.** Con `ok: true`: «se separó de …» con el cambio y la distancia, como hasta ahora. Con `ok: false` **no puede decir que se separó**: debe decir que el color **se acercó pero no llega al mínimo**, con la distancia lograda y el mínimo (p. ej. ««info» se acercó a la marca/acento (de 0.105 a 0.111) pero no llega al mínimo de 0.12 dentro de ±45° y ±0.15; fíjalo con `overrides` si necesitas más»), y la nota (`semantic-adjusted`, `ok: false`) llega al usuario como **aviso**, no como nota informativa. Si el que no llega es el claro, el oscuro o ambos, el mensaje lo dice (`scheme`).
+
 ### 16.2 Neutros teñidos (`neutrals: "tinted"`, por defecto con `brand`)
 
 `text`, `text-muted`, `text-subtle`, `border`, `border-strong`, `border-control`, `surface-sunken` y la base de `neutral` (y, en el oscuro, también `bg` y `surface`) conservan la **luminosidad del tema por defecto** y toman el **tono de `brand`** con croma = 8 % del de la marca, entre 0.006 y 0.02 (0.008 sobre L > 0.9 y 0.01 bajo L < 0.3, donde el mismo croma se nota más). Después se aleja L, paso a paso, hasta cumplir: texto ≥ 7:1 (`text`) y ≥ 4.5:1 (`muted`, `subtle`) sobre `surface` y `surface-sunken`; `border-control` ≥ 3:1. Los bordes son la tinta del texto con la transparencia por defecto. Con una marca casi gris (croma < 0.02) no se tiñe nada. **`neutralsHue: "brand" | "accent"`** (por defecto `brand`) elige **solo de qué color se toma el tono**; el croma sale siempre de la marca y las reglas de luminosidad y contraste no cambian. No se infiere cuál conviene: lo decide quien configura. `surface` y `bg` claros siguen siendo blancos.
@@ -454,6 +462,7 @@ Documento con el formato de un sistema de diseño: `{ name, version, color: { th
 - Con `dark: false` no se deriva el oscuro de nada de esto.
 - **Presencia de los colores en oscuro (investigación pendiente, «Dark Color Presence»):** la derivación oscura de `accent` y de los semánticos solo garantiza el mínimo WCAG de 4.5:1; puede cumplirlo y tener poca presencia visual. No se modifica la regla hasta probarla con distintas familias cromáticas (`design/lab/tema-oscuro/investigacion-dark-color-presence.md`).
 - Los colores de gráficas de datos (series) no se derivan: las categorías son para iconos y etiquetas.
+- **Semántico en un hueco entre marca y acento (#NNNN):** con `adjust`, si no cabe en ±45° y ±0.15 se acepta el aviso (distancia < 0.12) en lugar de girar más o quitar croma; se arregla con `overrides`.
 
 ## 17. Arquitectura de tokens y roles de color (propuesta v0.2)
 
@@ -508,7 +517,7 @@ Se detecta con la distancia OKLab (§16.1). La **corrección** es una política:
 | Valor | Comportamiento |
 | --- | --- |
 | **`warn`** (por defecto) | Conserva el semántico, **calcula la alternativa**, avisa (`semantic-close`, con `recommended`) y la documenta en `tokens.json` (`recommended` en el token y en `diagnostics`). No cambia en silencio el significado visual que fijó el diseñador |
-| `adjust` | Aplica la separación de §16.1 (tono ±45°, luminosidad ±0.15, croma ≈ original; el cambio mínimo que cumpla). Sigue sujeto a validación de contraste |
+| `adjust` | Aplica la separación de §16.1 (tono ±45°, luminosidad ±0.15, croma ≈ original; el cambio mínimo que cumpla), **en claro y, con búsqueda propia, en oscuro** (#NNNN). Sigue sujeto a validación de contraste. Si no llega al mínimo, `semantic-adjusted` con `ok: false` avisa que se acercó sin llegar |
 
 **Valor configurado y valor derivado.** Sin `accent` del usuario, el acento se deriva de `brand` (§1). Los avisos y diagnósticos lo distinguen: «`danger` se parece a la marca (a través del acento derivado)» frente a «`danger` se parece al acento» (cuando el usuario lo definió). Internamente la colisión sigue registrándose con `accent` (`collidedWith: "accent"`, `accentDerived: true`).
 
