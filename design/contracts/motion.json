@@ -1,7 +1,7 @@
 {
   "$comment": "Tabla única de movimiento de Grana: lista canónica (dueño: lima; DECISIONS #1002 a #1009; tokens.md §29.9 y §29.10). Origen: design/lab/movimiento/r01/tabla.md, aprobada por el usuario el 2026-11-07 con D1 · A y D2 · A. Si este archivo y una tabla de los contratos difieren, manda este archivo. Lo lee packages/vue/scripts/check-motion.mjs (bruno): las reglas de `gate` se aplican tal cual, sin decidir nada. Un uso nuevo de una curva, un multiplicador nuevo o salirse de la fila de su tipo de pieza es una decisión con número.",
   "version": "0.1",
-  "decisions": ["#1002", "#1003", "#1004", "#1005", "#1006", "#1007", "#1008", "#1009", "#1023", "#1062", "#1066"],
+  "decisions": ["#1002", "#1003", "#1004", "#1005", "#1006", "#1007", "#1008", "#1009", "#1023", "#1062", "#1066", "#1071"],
 
   "durations": {
     "fast": "--g-duration-fast",
@@ -235,7 +235,7 @@
       "GTabs.css": { "count": 2, "use": "Borde de atrás de la marca", "decisions": ["#302"] },
       "GStatusIsland.css": { "count": 4, "use": "Cambio de tamaño de la cápsula al crecer", "decisions": ["#324", "#701"] },
       "GBreadcrumbs.css": { "count": 1, "use": "El nivel que llega al bajar, solo translate", "decisions": ["#500"] },
-      "GSidebar.css": { "count": 3, "use": "El asiento del item actual que se llena desde el centro; la marca del actual de appearance=\"index\" que viaja, solo translate (#1062; JS en la extensión @grana/vue/sidebar-index, #1069; el CSS sigue en GSidebar.css)", "decisions": ["#617", "#635", "#1062"] },
+      "GSidebar.css": { "count": 3, "use": "El asiento del item actual que se llena desde el centro; la marca del actual de appearance=\"index\" que viaja, solo translate y solo en el viaje corto, ≤ 1,5 filas; con is-far lleva --g-ease-out (#1071) (#1062; JS en la extensión @grana/vue/sidebar-index, #1069; el CSS sigue en GSidebar.css)", "decisions": ["#617", "#635", "#1062", "#1071"] },
       "GPageHeader.css": { "count": 1, "use": "Entrada del muelle de acciones en estrecho, solo translate", "decisions": ["#632", "#635"] },
       "GDocumentPreview.css": { "count": 1, "use": "La marca del lomo que llega a su página en un salto explícito, solo translate", "decisions": ["#639"] }
     },

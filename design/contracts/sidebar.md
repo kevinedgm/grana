@@ -546,7 +546,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `g-sidebar__group-title` (`<button>` en un grupo plegable; `<span>` en el resto) + `g-sidebar__chevron` | Título del grupo | Con `collapsible` y `id` (#1061) |
 | `g-sidebar__group-body` (+ `hidden="until-found"` al asentar cerrado) | Envoltorio de la lista de un grupo plegable | Con `collapsible` (#1061; el `hidden` va aquí, no en `g-sidebar__list`, SB-B4) |
 | `g-sidebar__code` | Número al final de la fila | `index` con `code` (#1063) |
-| `g-sidebar__mark` + `is-full`, `is-hollow`, `is-instant`; `--_mark-y`, `--_mark-h` en la propia capa | Marca del actual de `index`, última hija del `<nav>` | `index` (#1062) |
+| `g-sidebar__mark` + `is-full`, `is-hollow`, `is-instant`, `is-far` (#1071); `--_mark-y`, `--_mark-h` en la propia capa | Marca del actual de `index`, última hija del `<nav>` | `index` (#1062) |
 | `has-mark` | `g-sidebar__nav` | Desde la primera colocación de la marca (antes, el indicador estático de CSS; #1062) |
 
 ## Resolución de hallazgos de r01
@@ -845,6 +845,7 @@ Reglas:
 - **Cuándo se recoloca:** al cambiar `modelValue` (**viaja**); al plegar o desplegar **el grupo del actual** (**viaja** al título o vuelve a la fila: el título no se mueve y la fila conserva su posición dentro del cuerpo que crece); al plegar o desplegar un grupo **por encima** del actual (la fila se desplaza durante el plegado: la marca se funde `fast` al empezar y vuelve **sin viajar** al asentar, `onSettle`); al cambiar la consulta del filtro, `items` o el tamaño de la lista (**sin viajar**: `is-instant` dos cuadros, #1040).
 - **SSR y primer pintado:** hasta la primera colocación, la marca no se ve y coco pinta un **indicador estático** con CSS en `.g-sidebar__link[aria-current]` (lleno) o en el botón de un `g-sidebar__group.has-current.is-closed` (hueco) de `index`; bruno pone **`has-mark`** en `g-sidebar__nav` tras colocar la capa por primera vez (sin viaje) y el estático se apaga. El primer HTML ya lleva la señal.
 - **Movimiento (I2):** `translate` en el eje de bloque con **`--g-duration-slow` + `--g-ease-spring`** (el muelle del actual de `GSidebar`, #617 y #635: misma pieza, «el actual llega»; uso nuevo en `GSidebar.css`, `motion.json` `easeUses`, #1062); el cambio llena ↔ hueca con fundido `--g-duration-fast`. **Reducido:** sin viaje (salta), solo el fundido. Nada al montar.
+- **Viajes largos (H2 de coco, #1071):** el muelle rebasa un 3,8 % del recorrido: ≈ 1,2 px en una fila contigua, pero ≈ 15 px en un salto de 408 px, y la marca se pararía un instante sobre la fila vecina del destino (señal contradictoria, rúbrica C). **Solo el viaje corto lleva muelle**: al recolocar con viaje, bruno mide la distancia al destino (ya lee la posición anterior y la de la fila) y, si es **mayor que 1,5 veces el alto de la fila** (`--_mark-h`; una fila contigua queda dentro, dos ya no), pone **`is-far`** en la marca **antes** de escribir `--_mark-y`; si no, la quita. Con `is-far` el `translate` va con **`--g-duration-slow` + `--g-ease-out`**: llega sin rebasar, sigue siendo un viaje (el ojo lo sigue y la fila de destino se reconoce) y no se funde ni se salta. Rebase máximo con muelle: ≤ 1,5 × 3,8 % × alto de fila ≈ 2 px con filas de 36 px. Sin `is-far` en los recolocados sin viaje (`is-instant`, plegado por encima). Coste de bruno: una comparación y un `classList.toggle` (≈ 40 a 60 B gzip; **si con ello `sidebar-index.js` pasa de 3 840 B, para y pregunta**, el tope no se sube solo, #1067).
 
 ### Cajón de `index` (SB-L9)
 
@@ -862,7 +863,7 @@ El reposo es un calco; lo distinto es **cómo se comporta** y nada cambia lo que
 | Qué | Cómo | Reducido |
 | --- | --- | --- |
 | Plegar y desplegar un grupo | Pieza `plegado` (`slow` + `ease-out`, contenido `fast`); flecha 90° | Inmediato |
-| I2 · la marca | `translate` `slow` + `--g-ease-spring`; llena ↔ hueca, fundido `fast` | Sin viaje, fundido |
+| I2 · la marca | `translate` `slow` + `--g-ease-spring` en el viaje corto (≤ 1,5 filas) y `slow` + `--g-ease-out` con `is-far` (#1071); llena ↔ hueca, fundido `fast` | Sin viaje, fundido |
 | I3 · el filtro que crece | `inline-size` de `space × 30` a `space × 52` con `slow` + `ease-out`; la marca de la banda se funde `fast` | Sin transición |
 | La luz | La de #957 (`press` + `ease-out`) | Solo fundido |
 | Filtrar | **Nada** (#1040): los grupos que abre el filtro no animan | — |
