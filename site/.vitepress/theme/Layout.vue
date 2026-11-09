@@ -7,8 +7,9 @@
 //     #header  GNavBar   marca · «Buscar ⌘K» · Guía/Componentes/Blocks/Playground/Cambios/GitHub · idioma · tema
 //     #nav     GSidebar appearance="index" con filtro F1 y números al final (no en la portada)
 //     #default barra local (< 80rem: «Menú» + GPageIndex fold) · documento (Content.vp-doc + anterior/siguiente)
-//              · columna «En esta página» (GPageIndex list, ≥ 80rem). Portada: VPHome (el contenido de la página de
-//              inicio del original: hero y ventajas del tema de documento de VitePress)
+//              · columna «En esta página» (GPageIndex list, ≥ 80rem). Portada: VPHome con la marca (BrandHero en
+//              `home-hero-before`: logo W2, «La impresión», lema y acciones; manual de marca v1) y debajo las ventajas
+//              y el cuerpo de la portada del original
 //   GCombobox appearance="command"  búsqueda modal de texto completo (@localSearchIndex + MiniSearch)
 //
 // Las clases `site-*` son las que espera grana-site.css (coco; su cabecera). Sin <style>. Los cortes del visor son CSS
@@ -21,6 +22,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
 import { Content, inBrowser, onContentUpdated, useData, useRoute, useRouter, withBase } from 'vitepress'
 import VPHome from 'vitepress/dist/client/theme-default/components/VPHome.vue'
+import BrandHero from './BrandHero.vue'
 import siteData from '../../src/.site-data.json'
 import { UI, LOCALES } from '../i18n.mjs'
 import { useAppearance } from './appearance.js'
@@ -32,7 +34,7 @@ const route = useRoute()
 const router = useRouter()
 const { mode: themeMode, isDark } = useAppearance()
 
-// VPHero (portada) lo inyecta el Layout del tema por defecto: sin imagen de hero en el sitio.
+// VPHero lo inyecta el Layout del tema por defecto: sin imagen de hero en el sitio (la portada ya no lleva `hero`).
 provide('hero-image-slot-exists', computed(() => false))
 
 // ---------- Idioma y textos ----------
@@ -300,12 +302,14 @@ onBeforeUnmount(() => {
       </GSidebar>
     </template>
 
-    <!-- Portada: el marco sin índice ni barra local; el contenido de la página de inicio del original -->
-    <VPHome v-if="isHome" />
+    <!-- Portada: el marco sin índice ni barra local; la marca (BrandHero) y debajo el contenido de la portada del original -->
+    <VPHome v-if="isHome">
+      <template #home-hero-before><BrandHero /></template>
+    </VPHome>
 
     <template v-else>
       <div class="site-local vp-raw">
-        <button class="site-local__menu" type="button" aria-haspopup="dialog" @click="openDrawer"><GIcon name="align-left" />{{ F.menu }}</button>
+        <button class="site-local__menu" type="button" aria-haspopup="dialog" @click="openDrawer"><GIcon name="text-align-start" />{{ F.menu }}</button>
         <GPageIndex v-if="sections.length" :ref="setIndex" v-model="section" class="site-local__index" appearance="list" fold :align="wide960 ? 'start' : 'end'" :items="sections" :label="F.onPage" :labels="pageIndexLabels" />
       </div>
       <div class="site-doc">
@@ -315,10 +319,12 @@ onBeforeUnmount(() => {
             <nav v-if="prev || next" class="site-pager" :aria-label="F.neighbours">
               <div class="site-pager__list">
                 <GCard v-if="prev" class="site-pager__card" interaction="link" :href="prev.href">
-                  <span class="site-pager__label">{{ F.prev }}</span><span class="site-pager__title">{{ prev.text }}</span>
+                  <template #eyebrow><span class="site-pager__label">{{ F.prev }}</span></template>
+                  <template #title><span class="site-pager__title">{{ prev.text }}</span></template>
                 </GCard>
                 <GCard v-if="next" class="site-pager__card is-next" interaction="link" :href="next.href">
-                  <span class="site-pager__label">{{ F.next }}</span><span class="site-pager__title">{{ next.text }}</span>
+                  <template #eyebrow><span class="site-pager__label">{{ F.next }}</span></template>
+                  <template #title><span class="site-pager__title">{{ next.text }}</span></template>
                 </GCard>
               </div>
             </nav>

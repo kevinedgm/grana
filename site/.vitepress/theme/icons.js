@@ -11,8 +11,10 @@ import {
   // los que registran los bancos de @grana/blocks (appIcons)
   Baby, CalendarPlus, CalendarX, MessageCircle, Navigation, PawPrint, Wifi,
   Hand,
-  // los del marco calcado (Layout.vue, sitio-marco.md §3): tema, idioma, búsqueda, «Menú» y las teclas del pie de la búsqueda
-  Sun, Moon, Languages, Menu, Search, AlignLeft, ChevronDown, ArrowUp, ArrowDown, CornerDownLeft
+  // los del marco calcado (Layout.vue, sitio-marco.md §3): tema, idioma, búsqueda, «Menú» y las teclas del pie de la búsqueda.
+  // «Menú» lleva text-align-start: en lucide-static 1.x la exportación AlignLeft ya pinta ese icono y se registra con
+  // ese nombre, así que `align-left` no existía (aviso de GIcon en todas las páginas).
+  Sun, Moon, Languages, Menu, Search, TextAlignStart, ChevronDown, ArrowUp, ArrowDown, CornerDownLeft
 } from 'lucide-static'
 
 export const siteIcons = [
@@ -24,5 +26,5 @@ export const siteIcons = [
   Upload, Users, Wallet, Zap,
   Baby, CalendarPlus, CalendarX, MessageCircle, Navigation, PawPrint, Wifi,
   Hand,
-  Sun, Moon, Languages, Menu, Search, AlignLeft, ChevronDown, ArrowUp, ArrowDown, CornerDownLeft
+  Sun, Moon, Languages, Menu, Search, TextAlignStart, ChevronDown, ArrowUp, ArrowDown, CornerDownLeft
 ]

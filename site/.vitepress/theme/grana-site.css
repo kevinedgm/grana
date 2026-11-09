@@ -777,3 +777,11 @@ body {
     border-color: CanvasText;
   }
 }
+
+/* ---------- bruno · MÍNIMO BLOQUEANTE para coco (portada con la marca, BrandHero.vue) ----------
+   Las ventajas de VPHome (.VPFeatures .items, margen negativo de 8 px) empiezan pegadas a la cabecera y se pintan encima
+   del área táctil de las acciones: «≥ 44 px» fallaba en la portada. Solo deja sitio debajo; coco lo sustituye con el
+   ritmo y la paleta de la portada (variables y clases en la cabecera de BrandHero.vue). */
+.site-hero {
+  padding-block-end: var(--g-space-6);
+}

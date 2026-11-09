@@ -30,9 +30,10 @@ for (const locale of ['', 'en/']) {
     const problems = watchConsole(page)
     const res = await page.goto(locale)
     expect(res.status()).toBe(200)
-    // la portada del original: el hero lleva el único h1
+    // la portada con la marca: el único h1 es el logo W2 (svg role="img" con nombre «Grana»)
     await expect(page.locator('h1')).toHaveCount(1)
-    await expect(page.locator('main .VPHero h1')).toContainText('Grana')
+    await expect(page.getByRole('heading', { level: 1, name: 'Grana' })).toBeVisible()
+    await expect(page.locator('main .site-hero h1 svg[role="img"][aria-label="Grana"]')).toHaveCount(1)
     await expect(page.locator('html')).toHaveAttribute('lang', locale ? 'en' : 'es')
     for (const p of PAGES) {
       const r = await page.goto(`${locale}${p}.html`)
@@ -155,9 +156,11 @@ const CONTRAST_TARGETS = {
     pie: '.site-pager__label, .site-pager__title'
   },
   '': {
-    lema: '.VPHero .tagline',
-    botonPrincipal: '.VPButton.brand',
-    botonAlterno: '.VPButton.alt',
+    lema: '.site-hero__motto',
+    entradilla: '.site-hero__lead',
+    nombre: '.site-hero__origin',
+    botonPrincipal: '.site-hero__start',
+    botonAlterno: '.site-hero__browse',
     tarjetaTitulo: '.VPFeature .title',
     tarjetaTexto: '.VPFeature .details',
     texto: '.vp-doc p',
@@ -243,15 +246,19 @@ for (const p of ['', 'getting-started.html', 'components/btn.html', 'components/
 
 test.describe('puntero grueso', () => {
   test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 800 } })
-  test('controles de la navegación ≥ 44 px', async ({ page, browserName }) => {
+  // La portada (sin barra local ni tarjetas) con las acciones de BrandHero.
+  for (const [url, sels] of [
+    ['components/btn.html', ['.g-app-shell__header button', '.g-app-shell__header a', '.site-local button', '.site-pager a']],
+    ['', ['.g-app-shell__header button', '.g-app-shell__header a', '.site-hero a']]
+  ]) test(`controles de la navegación ≥ 44 px: /${url}`, async ({ page, browserName }) => {
     test.skip(browserName === 'firefox', 'Firefox no emula isMobile')
-    await page.goto('components/btn.html')
+    await page.goto(url)
     await page.waitForLoadState('networkidle')
     expect(await page.evaluate(() => matchMedia('(pointer: coarse)').matches)).toBe(true)
     // Área táctil real (la que recibe el toque), no la caja visible: Grana la amplía con un seudoelemento (GBtn) o con el
     // enlace estirado de la tarjeta (GCard). Se toca a ±21 px del centro en los dos ejes y debe responder el mismo control.
-    const small = await page.evaluate(() =>
-      ['.g-app-shell__header button', '.g-app-shell__header a', '.site-local button', '.site-pager a']
+    const small = await page.evaluate((sels) =>
+      sels
         .flatMap((s) => [...document.querySelectorAll(s)])
         .filter((e) => e.getClientRects().length && !e.closest('[hidden]'))
         .map((e) => {
@@ -264,7 +271,8 @@ test.describe('puntero grueso', () => {
           const ok = [[cx - 21, cy], [cx + 21, cy], [cx, cy - 21], [cx, cy + 21]].every(([x, y]) => owner(x, y))
           return { s: e.className, label: e.getAttribute('aria-label') || e.textContent.trim().slice(0, 24), w: Math.round(r.width), h: Math.round(r.height), ok }
         })
-        .filter((r) => !r.ok)
+        .filter((r) => !r.ok),
+      sels
     )
     expect(small).toEqual([])
   })
@@ -494,5 +502,105 @@ for (const width of [1280, 1024, 900, 375, 320]) {
       expect(total, JSON.stringify(cls)).toBe(0)
     }
     expect(problems).toEqual([])
+  })
+}
+
+// Portada con la marca (manual de marca v1, BrandHero.vue + brandMark.js): «La impresión» corre una vez, al cargar la
+// portada; nunca al llegar a ella navegando dentro del sitio, ni al volver, y con «reducir movimiento» el logo sale completo.
+const markState = (page) => page.evaluate(() => {
+  const svg = document.querySelector('main .site-hero h1 svg')
+  if (!svg) return null
+  const anims = svg.getAnimations({ subtree: true })
+  return { print: svg.classList.contains('grana-mov'), anims: anims.length, names: [...new Set(anims.map((a) => a.animationName))].sort() }
+})
+
+// Navegación SPA a la portada: un enlace del cuerpo que intercepta el router de VitePress (la marca de la banda recarga
+// el documento: eso es «cargar la portada» y sí imprime).
+async function spaHome(page) {
+  await page.evaluate(() => {
+    window.__spa = true
+    const a = document.createElement('a')
+    a.id = 'zz-home'; a.href = document.querySelector('.site-brand').getAttribute('href'); a.textContent = 'inicio'
+    // fuera del árbol de Vue (el contenido nuevo no lo quita); el router de VitePress escucha los clics en toda la ventana
+    a.style.cssText = 'position:fixed;inset-block-start:0;inset-inline-start:0;z-index:2147483647'
+    document.body.append(a)
+  })
+  await page.locator('#zz-home').click()
+  await expect(page.locator('main .site-hero h1 svg')).toHaveCount(1)
+  await page.evaluate(() => document.getElementById('zz-home')?.remove())
+  expect(await page.evaluate(() => window.__spa), 'la navegación a la portada fue SPA').toBe(true)
+}
+
+test('portada: «La impresión» corre una vez al cargar la portada', async ({ page }) => {
+  const problems = watchConsole(page)
+  await page.goto('')
+  const first = await markState(page)
+  expect(first.print).toBe(true)
+  // trazado (3 trazos), tinte (aparece + registro) y nombre (aparece + registro): 7 animaciones de CSS
+  expect(first.names).toEqual(['grana-registro', 'grana-registro2', 'grana-tenir', 'grana-trazar'])
+  // terminan (sin bucle): a 1,6 s ninguna sigue corriendo
+  await page.waitForTimeout(1600)
+  expect(await page.evaluate(() => document.querySelector('main .site-hero h1 svg').getAnimations({ subtree: true }).filter((a) => a.playState === 'running').length)).toBe(0)
+  // a otra página y de vuelta por la marca (navegación SPA): sin impresión
+  await page.locator('.site-hero__start').click()
+  await expect(page).toHaveURL(/getting-started/)
+  await page.waitForLoadState('networkidle')
+  await spaHome(page)
+  expect(await markState(page)).toEqual({ print: false, anims: 0, names: [] })
+  // y con «atrás» del navegador desde otra página (popstate, SPA)
+  await page.locator('.site-hero__start').click()
+  await expect(page).toHaveURL(/getting-started/)
+  await page.goBack()
+  await expect(page.locator('main .site-hero h1 svg')).toHaveCount(1)
+  expect(await page.evaluate(() => window.__spa)).toBe(true)
+  expect(await markState(page)).toEqual({ print: false, anims: 0, names: [] })
+  expect(problems).toEqual([])
+})
+
+test('portada: llegar navegando desde otra página no imprime el logo', async ({ page }) => {
+  const problems = watchConsole(page)
+  await page.goto('getting-started.html')
+  await page.waitForLoadState('networkidle')
+  await spaHome(page)
+  expect(await markState(page)).toEqual({ print: false, anims: 0, names: [] })
+  expect(problems).toEqual([])
+})
+
+test('portada: con «reducir movimiento» el logo aparece completo', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('')
+  const st = await markState(page)
+  expect(st.anims).toBe(0)
+  // el tinte y el nombre, visibles y en su sitio desde el primer cuadro
+  const tint = await page.evaluate(() => {
+    const t = document.querySelector('main .site-hero .grana__tinte')
+    const cs = getComputedStyle(t)
+    return { opacity: cs.opacity, translate: cs.translate }
+  })
+  expect(tint.opacity).toBe('1')
+  expect(['none', '0px', '0px 0px']).toContain(tint.translate)
+})
+
+for (const width of [1280, 375, 320]) {
+  // CLS de la estructura (logo, impresión, hidratación): sin la fuente web, para no medir el cambio de la fuente de respaldo
+  // a Instrument Sans, que re-parte el texto y es de las métricas de respaldo de grana-site.css (coco; BrandHero.vue).
+  test(`portada: hidratación sin avisos y CLS 0 a ${width} px (logo, lema y acciones)`, async ({ page, browserName }) => {
+    const problems = watchConsole(page)
+    await page.route(/\.woff2?(\?|$)/, (r) => r.abort())
+    await page.setViewportSize({ width, height: 800 })
+    await page.addInitScript(() => {
+      window.__cls = []
+      try {
+        new PerformanceObserver((list) => {
+          for (const e of list.getEntries()) if (!e.hadRecentInput) window.__cls.push({ value: e.value, nodes: (e.sources || []).map((x) => x.node?.className?.baseVal ?? x.node?.className ?? x.node?.nodeName) })
+        }).observe({ type: 'layout-shift', buffered: true })
+      } catch { window.__cls = null }
+    })
+    await page.goto('')
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(1600) // la impresión entera (1380 ms)
+    if (browserName === 'chromium') expect(await page.evaluate(() => window.__cls)).toEqual([])
+    expect(await hScroll(page)).toBeLessThanOrEqual(0)
+    expect(problems.filter((p) => !/Failed to load resource|downloadable font|woff/.test(p))).toEqual([])
   })
 }

@@ -243,9 +243,9 @@ function buildPlan(root, locale) {
       // Preámbulo del README (párrafos de presentación) al principio del inicio.
       if (g.home) {
         const pre = lib.stripH1(split.preamble).body
-        const lines = pre.split('\n').filter((l) => !/^\s*>/.test(l) && !/^\s*- \*\*/.test(l))
         page.features = featuresFrom(pre)
-        page.parts.push({ kind: 'src', doc: 'README.md', rel: src.rel, text: lines.join('\n').trim() + '\n', headingOffset: 1 })
+        // Los párrafos de presentación (entradilla y nombre) los pinta BrandHero con los textos del manual de marca: el
+        // cuerpo de la portada empieza en «Qué es Grana».
       }
       for (const i of idx) {
         const sec = split.sections[i]
@@ -626,10 +626,9 @@ function renderPage(page, ctx) {
     return `${fm.join('\n')}\n<${page.tool} />\n`
   }
   if (page.home) {
-    const H = UI[locale].hero
-    fm.push('layout: home', 'hero:', `  name: ${yaml('Grana')}`, `  text: ${yaml(H.text)}`, `  tagline: ${yaml(H.tagline)}`, '  actions:')
-    fm.push('    - theme: brand', `      text: ${yaml(H.start)}`, `      link: ${yaml(pageUrl(locale, 'getting-started'))}`)
-    fm.push('    - theme: alt', `      text: ${yaml(H.components)}`, `      link: ${yaml(pageUrl(locale, 'components/'))}`)
+    // Sin `hero`: la cabecera de la portada es BrandHero.vue (logo W2, lema, entradilla y acciones; textos en
+    // i18n.mjs `hero`), en el hueco `home-hero-before` de VPHome. Las ventajas siguen en `features`.
+    fm.push('layout: home')
     if (page.features?.length && page.translated) {
       fm.push('features:')
       for (const f of page.features) fm.push(`  - title: ${yaml(f.title)}`, `    details: ${yaml(f.details)}`)

@@ -285,7 +285,7 @@ test('un solo h1 por página, en el cuerpo (como en 1d11c448): fichas y guías c
     const h1 = lib.parseHeadings(body).filter((h) => h.level === 1)
     const home = /^layout: home$/m.test(text)
     const tool = /^layout: page$/m.test(text)
-    // la portada lleva su h1 en el hero (VPHome) y las herramientas en su componente
+    // la portada lleva su h1 en BrandHero (logo W2) y las herramientas en su componente
     assert.equal(h1.length, home || tool ? 0 : 1, `${file}: ${h1.length} h1 en el cuerpo`)
     assert.match(text, /^---\ntitle: "[^"]+"/, `${file}: sin title en el frontmatter`)
   }

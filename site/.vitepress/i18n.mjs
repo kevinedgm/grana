@@ -12,10 +12,14 @@ export const UI = {
     siteTitle: 'Grana',
     description: 'Componentes Vue 3 con tema por tokens: la librería trae la estructura y tu tema pone el color.',
     hero: {
-      text: 'Componentes Vue 3 con tema por tokens',
-      tagline: 'The only bug you’ll want in your UI. La librería trae la estructura; tu tema pone el color.',
       start: 'Empezar',
-      components: 'Ver componentes'
+      components: 'Ver componentes',
+      // Portada con la marca (BrandHero.vue, manual de marca v1): el lema va aparte del logo; la entradilla del manual
+      // empieza por la frase en inglés (`bug`, con lang="en") y sigue con `lead`; `origin`, la frase del nombre (README).
+      motto: 'Estructura fija, color tuyo.',
+      bug: 'The only bug you’ll want in your UI.',
+      lead: 'Grana es una librería de componentes Vue 3: los componentes traen la estructura y el tema de cada proyecto les da el color.',
+      origin: 'El nombre viene de la grana cochinilla, el insecto oaxaqueño cuyo tinte coloreó medio mundo. Grana funciona igual: un armazón fijo y un color que pone cada proyecto.'
     },
     pages: {
       'getting-started': 'Empezar',
@@ -202,10 +206,12 @@ export const UI = {
     siteTitle: 'Grana',
     description: 'Vue 3 components themed with tokens: the library brings the structure, your theme brings the color.',
     hero: {
-      text: 'Vue 3 components themed with tokens',
-      tagline: 'The only bug you’ll want in your UI. The library brings the structure; your theme brings the color.',
       start: 'Get started',
-      components: 'Browse components'
+      components: 'Browse components',
+      motto: 'Fixed structure, your color.',
+      bug: 'The only bug you’ll want in your UI.',
+      lead: 'Grana is a Vue 3 component library: components bring the structure and each project’s theme gives them the color.',
+      origin: 'The name comes from grana cochinilla, the Oaxacan cochineal insect whose dye colored half the world. Grana works the same way: a fixed frame and a color each project brings.'
     },
     pages: {
       'getting-started': 'Getting started',
