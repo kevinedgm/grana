@@ -61,6 +61,24 @@
   --vp-code-link-color: var(--g-color-accent-text);
   --vp-code-lang-color: var(--g-color-text-subtle);
   --vp-code-copy-code-bg: var(--g-color-surface);
+
+  /* Portada: botones con la marca (tinta) y nombre del héroe en marca, no en el acento de VitePress */
+  --vp-button-brand-bg: var(--g-color-brand);
+  --vp-button-brand-text: var(--g-color-on-brand);
+  --vp-button-brand-border: transparent;
+  --vp-button-brand-hover-bg: var(--g-color-brand-strong);
+  --vp-button-brand-hover-text: var(--g-color-on-brand);
+  --vp-button-brand-hover-border: transparent;
+  --vp-button-brand-active-bg: var(--g-color-brand-strong);
+  --vp-button-brand-active-text: var(--g-color-on-brand);
+  --vp-button-brand-active-border: transparent;
+  --vp-button-alt-bg: var(--g-color-neutral-soft);
+  --vp-button-alt-text: var(--g-color-on-neutral-soft);
+  --vp-button-alt-border: transparent;
+  --vp-button-alt-hover-bg: var(--g-color-border-strong);
+  --vp-button-alt-hover-text: var(--g-color-on-neutral-soft);
+  --vp-button-alt-hover-border: transparent;
+  --vp-home-hero-name-color: var(--g-color-brand-text);
 }
 
 body {
@@ -163,8 +181,28 @@ body {
 
 /* Titulares de la documentación con Instrument Serif (guía de marca de Grana; calco: h1 32/40 y h2 24/32 en 400). La fuente
    es del sitio, no token (sitio-marco.md §11): solo la documentación la usa. */
+/* Fallbacks con métricas ajustadas (CLS 0 por debajo de 960 px): mientras llegan las fuentes, la marca, la búsqueda y el botón
+   «En esta página» ocupan el ancho que tendrán con ellas (medido en Chromium: Georgia ×0,764 de Instrument Serif; Arial ×1,056
+   de Instrument Sans en los enlaces de la banda y ×1,02 en el botón plegado, cuya frase es más corta). En otra plataforma sin
+   esas locales queda el salto de antes. */
+@font-face {
+  font-family: 'Instrument Serif Fallback';
+  src: local('Georgia');
+  size-adjust: 76.4%;
+}
+@font-face {
+  font-family: 'Instrument Sans Fallback';
+  src: local('Arial'), local('Helvetica');
+  size-adjust: 105.6%;
+}
+@font-face {
+  font-family: 'Instrument Sans Fallback Fold';
+  src: local('Arial'), local('Helvetica');
+  size-adjust: 102%;
+}
 :root {
-  --_site-serif: 'Instrument Serif', ui-serif, Georgia, serif;
+  --_site-serif: 'Instrument Serif', 'Instrument Serif Fallback', ui-serif, Georgia, serif;
+  --g-font-ui: 'Instrument Sans Variable', 'Instrument Sans', 'Instrument Sans Fallback', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
 .vp-doc h1,
 .vp-doc h2 {
@@ -428,6 +466,20 @@ body {
   font-size: var(--g-text-body-sm-size);
 }
 
+/* Panel del idioma (GMenu id="site-lang"): calco de 128 × 90, radio 12, relleno 12 y filas de 32; la lista se coloca por
+   JS (--_x, --_y): aquí solo caja, y el borde de la banda se solapa por el desplazamiento del propio menú. */
+#site-lang-list {
+  --_pad: var(--g-space-3);
+  --_ctl: calc(var(--g-space-1) * 8);
+  box-sizing: border-box;
+  min-inline-size: calc(var(--g-space-1) * 32);
+  inline-size: calc(var(--g-space-1) * 32);
+  margin-block-start: calc(var(--g-space-1) * -4);
+  border-color: var(--g-color-border);
+  border-radius: var(--g-radius-xl);
+  box-shadow: var(--g-shadow-2);
+}
+
 /* ---------- Tema: GSwitch size="sm" (40 × 22 en una fila de 24); en la barra, 16 tras su separador (calco 8 + 16) ---------- */
 .g-nav-bar__actions .site-theme {
   margin-inline-start: var(--g-space-2);
@@ -565,6 +617,9 @@ body {
   inset-block-start: calc(100% - var(--g-space-2));
   inset-inline: var(--g-space-4);
   inline-size: auto;
+}
+.site-local .g-page-index__fold {
+  font-family: 'Instrument Sans Variable', 'Instrument Sans', 'Instrument Sans Fallback Fold', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
 @media (width < 48rem) {
   .site-local__menu {
