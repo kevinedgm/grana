@@ -101,6 +101,33 @@ describe('GSidebar · appearance="index"', () => {
     expect(mk({ appearance: 'default' }).find('.g-sidebar__mark').exists()).toBe(false)
   })
 
+  it('la marca: salto corto sin is-far, salto largo (> 1,5 filas) con is-far (#1071)', async () => {
+    const tops = { intro: 0, tema: 40, input: 200 }
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function () {
+      const id = this.getAttribute?.('data-id')
+      const top = id in tops ? tops[id] : 0
+      return { top, bottom: top + 40, left: 0, right: 100, width: 100, height: this.matches?.('.g-sidebar__nav, nav') ? 600 : 40, x: 0, y: top }
+    })
+    const w = mk({ modelValue: 'intro' })
+    await tick()
+    const m = w.find('.g-sidebar__mark').element
+    expect(m.classList.contains('is-far')).toBe(false)
+    await w.setProps({ modelValue: 'tema' })
+    await tick()
+    expect(m.style.getPropertyValue('--_mark-y')).toBe('40px')
+    expect(m.classList.contains('is-far')).toBe(false)
+    await w.setProps({ modelValue: 'input' })
+    await tick()
+    expect(m.style.getPropertyValue('--_mark-y')).toBe('200px')
+    expect(m.classList.contains('is-far')).toBe(true)
+    await w.setProps({ modelValue: 'tema' })
+    await tick()
+    expect(m.classList.contains('is-far')).toBe(true)
+    await w.setProps({ modelValue: 'intro' })
+    await tick()
+    expect(m.classList.contains('is-far')).toBe(false)
+  })
+
   it('drawer: la raíz interna lleva la clase de apariencia (SB-B1); sin logo; con cerrar', async () => {
     mk({ mode: 'drawer', open: true }, { slots: { logo: () => 'Logo' } })
     await tick()

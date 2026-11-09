@@ -172,6 +172,7 @@ export function createSidebarIndex(c) {
     const t = how !== 'fade' && markTarget(nav)
     const nr = t && nav.getBoundingClientRect()
     const r = t && t[0].getBoundingClientRect()
+    const py = parseFloat(m.style.getPropertyValue('--_mark-y'))
     m.classList.remove('is-full', 'is-hollow')
     if (!r?.height) return
     if (how !== 'travel' || !nav.classList.contains('has-mark')) {
@@ -179,7 +180,11 @@ export function createSidebarIndex(c) {
       m.classList.add('is-instant')
       nextFrame(() => nextFrame(() => k === markTok && m.classList.remove('is-instant')))
     }
-    m.style.cssText = `--_mark-y:${Math.round(r.top - nr.top - nav.clientTop + nav.scrollTop)}px;--_mark-h:${Math.round(r.height)}px`
+    const y = Math.round(r.top - nr.top - nav.clientTop + nav.scrollTop)
+    const h = Math.round(r.height)
+    // Viaje largo (#1071): más de 1,5 filas de salto
+    m.classList.toggle('is-far', how === 'travel' && Math.abs(y - py) > 1.5 * h)
+    m.style.cssText = `--_mark-y:${y}px;--_mark-h:${h}px`
     m.classList.add(t[1] ? 'is-hollow' : 'is-full')
     nav.classList.add('has-mark')
   }
