@@ -389,3 +389,10 @@ test('ejemplos: solo bloques `vue demo` de primer nivel; plantilla → SFC', () 
 test('tablas de API: escapan < y | fuera del código', () => {
   assert.equal(lib.cell('a <b> | `c<d>`'), 'a &lt;b&gt; \\| `c<d>`')
 })
+
+test('anclas: el enlace del original (español) a un encabezado resuelve en la traducción', () => {
+  // Los README de componente en español enlazan #tema-oscuro; en /en/ el README raíz está traducido
+  // y sus slugs son otros, así que el generador registra también los del original.
+  const sinAncla = result.warnings.filter((w) => /ancla #.* no encontrada/.test(w))
+  assert.deepEqual(sinAncla, [])
+})

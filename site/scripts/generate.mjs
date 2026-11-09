@@ -537,10 +537,17 @@ function anchorMap(plan, root) {
       }
       if (!docMain.has(part.doc) || page.home) docMain.set(part.doc, page.url)
       const docHs = ghOf(part.rel)
+      const esHs = part.rel === part.doc ? null : ghOf(part.doc)
       hs.forEach((h, i) => {
         const vp = slug(h.text)
         const gh = docHs[part.headingOffset + i]?.gh
         if (gh && !map.has(`${part.doc}#${gh}`)) map.set(`${part.doc}#${gh}`, { url: page.url, slug: vp })
+        // Una traducción conserva los enlaces del original: se registra también el slug del documento
+        // en español (mismo índice de encabezado). Solo si ambos tienen los mismos encabezados.
+        if (esHs && esHs.length === docHs.length) {
+          const ghEs = esHs[part.headingOffset + i]?.gh
+          if (ghEs && !map.has(`${part.doc}#${ghEs}`)) map.set(`${part.doc}#${ghEs}`, { url: page.url, slug: vp })
+        }
       })
     }
   }
