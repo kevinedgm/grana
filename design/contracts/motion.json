@@ -1,7 +1,7 @@
 {
   "$comment": "Tabla única de movimiento de Grana: lista canónica (dueño: lima; DECISIONS #1002 a #1009; tokens.md §29.9 y §29.10). Origen: design/lab/movimiento/r01/tabla.md, aprobada por el usuario el 2026-11-07 con D1 · A y D2 · A. Si este archivo y una tabla de los contratos difieren, manda este archivo. Lo lee packages/vue/scripts/check-motion.mjs (bruno): las reglas de `gate` se aplican tal cual, sin decidir nada. Un uso nuevo de una curva, un multiplicador nuevo o salirse de la fila de su tipo de pieza es una decisión con número.",
   "version": "0.1",
-  "decisions": ["#1002", "#1003", "#1004", "#1005", "#1006", "#1007", "#1008", "#1009", "#1023"],
+  "decisions": ["#1002", "#1003", "#1004", "#1005", "#1006", "#1007", "#1008", "#1009", "#1023", "#1062", "#1066"],
 
   "durations": {
     "fast": "--g-duration-fast",
@@ -86,7 +86,7 @@
     },
     "recorrerFilas": {
       "label": "Recorrer una lista con filas que se tocan o con opción activa",
-      "where": ["GMenu", "GSidebar", "GTable", "GSelect", "GCombobox"],
+      "where": ["GMenu", "GSidebar", "GTable", "GSelect", "GCombobox", "GNavBar"],
       "rule": { "model": "una sola luz (api.md)", "travel": { "duration": "press", "curve": "out" }, "firstPlacement": "aparece sin viajar", "appear": { "duration": "fast", "fade": true } },
       "reduced": "solo fundido, sin viaje"
     },
@@ -138,7 +138,7 @@
   "lightOwners": [
     { "case": "foco dentro de la lista", "components": ["GMenu"], "follows": "el foco", "pointerMovesFocus": true, "ring": "el del foco" },
     { "case": "foco fuera de la lista, con opción activa", "components": ["GSelect", "GCombobox"], "follows": "la opción activa, por puntero o teclado", "pointerMovesFocus": false, "ring": "solo tras usar el teclado" },
-    { "case": "lista en la secuencia de Tab", "components": ["GSidebar", "GTable"], "follows": "el puntero", "pointerMovesFocus": false, "ring": "solo con teclado" }
+    { "case": "lista en la secuencia de Tab", "components": ["GSidebar", "GTable", "GNavBar"], "follows": "el puntero", "pointerMovesFocus": false, "ring": "solo con teclado" }
   ],
 
   "components": {
@@ -189,7 +189,8 @@
     "GMetric": { "pieces": [] },
     "GNumberField": { "pieces": [], "own": "#313" },
     "GPageHeader": { "pieces": [], "own": "#632" },
-    "GPageIndex": { "pieces": [], "own": "page-index.md «Movimiento» (#1040, #1047): relevo de la etiqueta en dos fases, fast + ease-out, otro cambio a menos de 600 ms al instante; el panel es el de GMenu" },
+    "GNavBar": { "pieces": ["panelAnclado"], "own": "nav-bar.md «Movimiento» (#1053, #1066): P1 · una sola luz de la barra (recorrerFilas: press + ease-out, aparición fast; reducido, solo fundido); color del enlace actual y del icono externo slow + ease-out (el calco: 0,25 s); panel «…» y pantalla de menú con la entrada y salida comunes de #1002; icono de la hamburguesa al instante. P2 `mark` reservada (#1058)" },
+    "GPageIndex": { "pieces": ["panelAnclado"], "own": "page-index.md «Movimiento» (#1040, #1047): relevo de la etiqueta en dos fases, fast + ease-out, otro cambio a menos de 600 ms al instante; el panel es el de GMenu. Forma list (#1054, #1066, «Movimiento (list)»): marcador con translate slow + ease-out (PI-H2: el calco cubic-bezier(0,1,.5,1) 250 ms, sin curva ni duración nuevas), reducido solo fundido fast; color del enlace slow; chevron de fold rotate 90° slow + ease-out, reducido al instante; PI-P1 scrollBy suave dentro de la columna (instantáneo con reducido o si el salto supera la columna); panel de fold, panelAnclado (#1002); nada al montar (is-instant)" },
     "GPagination": { "pieces": [] },
     "GPartyField": { "pieces": ["panelAnclado"] },
     "GPrice": { "pieces": [], "own": "price.md" },
@@ -198,7 +199,7 @@
     "GRadioGroup": { "pieces": [], "exceptions": ["anillo-que-se-abre"] },
     "GSection": { "pieces": [] },
     "GSelect": { "pieces": ["panelAnclado", "hojaMovil"] },
-    "GSidebar": { "pieces": ["plegado"], "own": "#617", "exceptions": ["sidebar-panel-flotante", "sidebar-submenu-contenido"] },
+    "GSidebar": { "pieces": ["plegado"], "own": "#617; appearance index (#1060 a #1063): marca del actual (I2) con translate slow + --g-ease-spring (noveno uso, #1062), llena ↔ hueca con fundido fast, reducido sin viaje; grupos plegables con la pieza plegado y flecha a 90° slow + ease-out (#1061); filtro que crece en la banda, inline-size slow + ease-out (I3, #1063); filtrar no anima (#1040)", "exceptions": ["sidebar-panel-flotante", "sidebar-submenu-contenido"] },
     "GSlider": { "pieces": [], "own": "#452" },
     "GSpeechHost": { "pieces": [], "own": "speech.md" },
     "GSpeechPill": { "pieces": [], "own": "speech.md" },
@@ -234,7 +235,7 @@
       "GTabs.css": { "count": 2, "use": "Borde de atrás de la marca", "decisions": ["#302"] },
       "GStatusIsland.css": { "count": 4, "use": "Cambio de tamaño de la cápsula al crecer", "decisions": ["#324", "#701"] },
       "GBreadcrumbs.css": { "count": 1, "use": "El nivel que llega al bajar, solo translate", "decisions": ["#500"] },
-      "GSidebar.css": { "count": 2, "use": "El asiento del item actual que se llena desde el centro", "decisions": ["#617", "#635"] },
+      "GSidebar.css": { "count": 2, "use": "El asiento del item actual que se llena desde el centro", "decisions": ["#617", "#635"], "pending": { "count": 3, "use": "La marca del actual de appearance=\"index\" que viaja, solo translate", "decisions": ["#1062"], "note": "check-motion lee count, no pending: el count pasa a 3 en el mismo lote en que coco escriba la marca en GSidebar.css (lo cambia lima). Hasta entonces el árbol real sigue con 2" } },
       "GPageHeader.css": { "count": 1, "use": "Entrada del muelle de acciones en estrecho, solo translate", "decisions": ["#632", "#635"] },
       "GDocumentPreview.css": { "count": 1, "use": "La marca del lomo que llega a su página en un salto explícito, solo translate", "decisions": ["#639"] }
     },

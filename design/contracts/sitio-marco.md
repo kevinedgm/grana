@@ -1,6 +1,6 @@
 # Contrato · marco del sitio de documentación (calco del sitio anterior, hecho con Grana)
 
-**Dueño:** lima · **Estado:** aprobado (composición, datos y paridad); el aspecto del índice izquierdo, **pendiente de la ronda de kiwi** (§4) · **Basado en:** la referencia medida del sitio anterior `design/lab/sitio/referencia/` (kiwi, 16272793: `medidas.md`, `medidas.json` con 44 vistas × 63 piezas, 18 estados y el recorrido de Tab, y sus capturas), `design/lab/navbar/r01/` (`GNavBar`, prototipo del marco calcado con componentes reales, `paridad.json`, 772/772) y `design/lab/page-index/r01/` (`GPageIndex list`, 198/198) · **Decisiones:** **#1052** (cambio de dirección: el diseño anterior, idéntico, hecho con Grana; sustituye en lo que toque a #1034 y #1043) y #1053 a #1059; siguen vigentes #1035 a #1037, #1044, #1045, #1050
+**Dueño:** lima · **Estado:** aprobado (composición, datos y paridad; el índice izquierdo contratado como `GSidebar appearance="index"`, §4, #1060 a #1065 y #1068) · **Basado en:** la referencia medida del sitio anterior `design/lab/sitio/referencia/` (kiwi, 16272793: `medidas.md`, `medidas.json` con 44 vistas × 63 piezas, 18 estados y el recorrido de Tab, y sus capturas), `design/lab/navbar/r01/` (`GNavBar`, prototipo del marco calcado con componentes reales, `paridad.json`, 772/772) y `design/lab/page-index/r01/` (`GPageIndex list`, 198/198) y `design/lab/sidebar/r03/` (`GSidebar appearance="index"`, 743/743, 637d9a15) · **Decisiones:** **#1052** (cambio de dirección: el diseño anterior, idéntico, hecho con Grana; sustituye en lo que toque a #1034 y #1043) y #1053 a #1068; siguen vigentes #1035 a #1037, #1044, #1045, #1050
 
 El marco (shell) de `site/`: lo que rodea a cada página de documentación. **Se ve exactamente como el sitio anterior** (VitePress 1.6.4 vestido con tokens de Grana, el árbol de `887c3779^` = 1d11c448) y **cada pieza es un componente real de Grana**. No enseña componentes (eso es la página, de mora-docs, `docs/documentacion/contrato.md`).
 
@@ -39,9 +39,11 @@ Layout.vue
 │  │            #actions { place }
 │  │               bar:          GMenu idioma (languages + chevron-down; elementos-enlace) · GSwitch tema (sol/luna, aria-label)
 │  │               more/screen:  lista de idiomas (enlaces con lang/hreflang, actual en negrita) · fila «Apariencia» con GSwitch
-│  ├─ #nav     GSidebar  filter  mode="auto"  mobile="drawer"  :breakpoints="{ expanded: 960, rail: 960 }"   (no en la portada)
-│  │            #logo  la misma marca
-│  │            items   los grupos del índice con `code` (aspecto: §4, pendiente de kiwi)
+│  ├─ #nav     GSidebar  appearance="index"  filter  filterKeyshortcuts="/"  mode="auto"  :breakpoints="{ expanded: 960 }"   (no en la portada)
+│  │            :labels  { …filtro (filterPlaceholder corto: «Filtrar»), close, drawer, groupCurrent }
+│  │            #logo  la misma marca (en la banda de la columna; no en el cajón)
+│  │            #search-icon  la lupa
+│  │            items   los grupos del índice: Guía sin plegar; los de componentes `collapsible` con `id` y `collapsed: false`; `code` en los componentes (§4)
 │  ├─ #default (dentro del main del chasis)
 │  │   barra local  (< 80rem; pegada en --g-app-shell-top; 48 px)  «Menú» (abre el drawer, solo < 960) · GPageIndex appearance="list" fold
 │  │   documento    rejilla: contenido (Content.vp-doc, columna de 624)  |  ≥ 80rem: columna «En esta página» = GPageIndex appearance="list" (sticky)
@@ -85,13 +87,15 @@ El disparador de la receta de `nav-bar.md` (lupa + «Buscar» + `kbd`; solo lupa
 
 Dos `GCard interaction="link"` en dos columnas (≥ 640 px de la columna; una sola, alineada al final, si falta el par), con «Anterior»/«Siguiente» en `--g-text-caption-*` `text-muted` y el título en `accent-text` (calco 304 × 66, radio 8, borde 1 px). Sin número (§5). Si `GCard` no llega a la medida con sus props, **receta del sitio** en `grana-site.css` sobre las clases públicas de `GCard`, medida por coco; no se enmienda `GCard` por el sitio.
 
-## 4. El índice izquierdo (`GSidebar` con filtro) — **hueco: ronda de kiwi pendiente** (#1052, punto 6)
+## 4. El índice izquierdo (`GSidebar appearance="index"`; #1060 a #1065, #1068)
 
-**Decidido:** `GSidebar` con `filter` (extensión `@grana/vue/sidebar-filter`, #1050) y `code` en los items de componentes (#1036); `filterKeyshortcuts="/"` (⌘K va a la búsqueda); ancho 272 (`--g-sidebar-width` en el tema del sitio); **expandida desde 960 px, drawer por debajo, sin riel** (calco; enmienda el 1024 de #1046); el drawer lo abre el botón «Menú» de la barra local; navegar con `@navigate` → `preventDefault`, `router.go(href)`, `open = false` (de A, §3 antiguo); `modelValue` de la ruta.
+**Decidido:** `GSidebar` con **`appearance="index"`** (`sidebar.md` §«Apariencia `index`», ronda `design/lab/sidebar/r03/` de kiwi, 743/743 en tres motores; cierra el hueco de esta sección y N-L10), `filter` (extensión `@grana/vue/sidebar-filter`, #1050) y `code` en los items de componentes (#1036); `filterKeyshortcuts="/"` (⌘K va a la búsqueda); ancho 272 (`--g-sidebar-width` en el tema del sitio); **expandida desde 960 px, drawer por debajo, sin riel** (en `index` no hay riel: basta `:breakpoints="{ expanded: 960 }"`); el drawer lo abre el botón «Menú» de la barra local; navegar con `@navigate` → `preventDefault`, `router.go(href)`, `open = false` (de A, §3 antiguo); `modelValue` de la ruta.
 
-**Grupos y orden: los del original** (los de `site/.vitepress/config.mjs` de 1d11c448: Guía, los grupos de componentes y, en `/blocks/`, su barra propia `blocksSidebar`, como en el original), con los números en los componentes. Bruno los copia de allí.
+**Aspecto:** el del original, pieza a pieza (columna `surface-sunken` sin borde; cabecera = la banda de 64 con su línea; títulos 14/24 en 700 con la ranura `--g-sidebar-group-title-weight` que el tema del sitio sube a 700, §11; separadores; enlaces sin icono en filas de 32; el actual en `accent-text`), con lo que decidió el usuario el 2026-11-08 (**SB-Q1 → F1 + C1**, #1063): el **filtro en la banda**, junto a la marca, que crece al pulsar `/` (la lista no se mueve), y los **números al final de la fila**, como en el índice de un libro. **La marca del actual** (2 × 20 en `accent-text`) se pinta siempre (WCAG 1.4.1; desviación 6 de §12) y viaja al cambiar de página (I2).
 
-**Pendiente (no se contrata todavía):** el **aspecto calcado** del índice —títulos de grupo en negrita (14/24, 700), grupos plegables con flecha, separadores entre grupos, enlaces sin icono y la actual solo en color con el indicador de 2 px (`referencia/medidas.md` §4)— y la **cabecera de `GSidebar` con el alto de la banda y su línea** (N-L10). Kiwi hace una ronda corta de `GSidebar` (`design/lab/sidebar/`); lima la contrata después como enmienda de `sidebar.md`. Hasta entonces el índice se pinta con el aspecto actual de `GSidebar` y **queda fuera de la compuerta de paridad** (§12).
+**Grupos y orden: los del original** (los de `site/.vitepress/config.mjs` de 1d11c448: Guía, los grupos de componentes y, en `/blocks/`, su barra propia `blocksSidebar`, como en el original), con los números en los componentes. «Guía» no se pliega; **los grupos de componentes son `collapsible` con `id` estable y `collapsed: false`** (el original); el plegado dura la visita (estado de la instancia; el sitio no usa `closedGroups`). Bruno los copia de allí. `labels.groupCurrent` («contiene la página actual» y su traducción) obligatorio en el sitio.
+
+**`/blocks/` (SB-L12):** la misma apariencia con su barra propia (`blocksSidebar`): grupos por familia `collapsible` con `id` y `collapsed: false`, **sin números**. Mismo modelo; **no prototipado** (kiwi): bruno lo construye con el mismo `Layout` y coco lo mide en la auditoría de paridad.
 
 **Atajo:** el sitio registra en `document` `/` (fuera de un campo editable, sin modificadores) → `focusFilter()` (en `< 960`, abre el drawer primero); **en la portada (sin índice), `/` abre la búsqueda modal**.
 
@@ -104,7 +108,7 @@ Dos `GCard interaction="link"` en dos columnas (≥ 640 px de la columna; una so
 
 ### 6.1 `site/scripts/generate.mjs`
 
-- **Índice por idioma** (los grupos de §4) con `id`, `label`, `href`, `code`, `keywords` (para el filtro), sin `icon` (el original no los tenía; si la ronda de §4 dice otra cosa, se ajusta).
+- **Índice por idioma** (los grupos de §4) con `id`, `label`, `href`, `code`, `keywords` (para el filtro), sin `icon` (el original no los tenía; en `index` se ignora, aviso A2); los grupos de componentes y de `/blocks/` con `id` estable, `collapsible: true` y `collapsed: false` (#1068).
 - **El cuerpo de la ficha vuelve al de 1d11c448:** el `# Nombre` y el bloque de datos (etiqueta, estado, entrada, desde, línea de importación) en el Markdown, como antes; el frontmatter conserva `title`, `description` y `prev`/`next`. Así hay **un solo `h1`**, el del cuerpo. Bruno compara con `git show 1d11c448:site/…` y deja la prueba de `generate` en verde con la forma restaurada (sin `h1` duplicado).
 - **Páginas gemelas** en `en/` (como hoy), para la ruta equivalente del idioma.
 
@@ -134,7 +138,7 @@ Dos `GCard interaction="link"` en dos columnas (≥ 640 px de la columna; una so
 | Qué | Regla |
 | --- | --- |
 | Primer Tab | «Saltar al contenido» (`GAppShell labels.skip`) → `main`. Límite de WebKit (S7) |
-| Orden | salto → marca (sin columna) → Buscar → enlaces → idioma → tema (o «…» / hamburguesa) → índice (filtro y enlaces) → barra local → contenido → columna «En esta página» → pie. Nada reordenado con CSS. El título de grupo del índice **no** es enfocable salvo que sea un botón de plegar (corrige el defecto 4; ronda de §4) |
+| Orden | salto → marca (sin columna) → Buscar → enlaces → idioma → tema (o «…» / hamburguesa) → índice (filtro y enlaces) → barra local → contenido → columna «En esta página» → pie. Nada reordenado con CSS. El título de grupo del índice **no** es enfocable salvo que sea un botón de plegar: los de componentes lo son, «Guía» no (corrige el defecto 4; #1061) |
 | `/` | `focusFilter()` (en `< 960`, abre el drawer primero; en la portada, la búsqueda). Fuera de un campo editable |
 | ⌘K / Ctrl+K | `search.open()` (también desde un campo) |
 | Al cambiar de ruta | El foco al `h1` del contenido (`tabindex="-1"` puesto por el `Layout` si falta, `preventScroll`) tras `onContentUpdated`; **no** en la primera carga ni en un salto a `#ancla` de la misma página. El título del documento lo pone VitePress. Sin región viva |
@@ -163,7 +167,7 @@ Dos `GCard interaction="link"` en dos columnas (≥ 640 px de la columna; una so
 
 - `site/.vitepress/theme/layers.css`, primera hoja: `@layer vitepress, grana.defaults, grana.components, grana.blocks, grana.utilities;` (a86aefc2).
 - Todo el CSS de VitePress en la capa `vitepress`; los estilos de documento aislados de los ejemplos vivos (`postcssIsolateStyles`, `.vp-raw`).
-- El CSS propio del marco (`grana-site.css`, de coco) solo lee `var(--g-*)` y alias locales, sin capa: la marca y los `h1`/`h2` en **Instrument Serif** (fuente del sitio, no token: solo la documentación la usa), la barra local, la rejilla del documento (624 + columna derecha), la portada «arriba», las recetas de §3.6 y §7, S1 de la barra local. El código del contenido sigue con la letra de VitePress (`--g-font-code` reservado, §59).
+- El CSS propio del marco (`grana-site.css`, de coco) solo lee `var(--g-*)` y alias locales, sin capa: la marca y los `h1`/`h2` en **Instrument Serif** (fuente del sitio, no token: solo la documentación la usa), la barra local, la rejilla del documento (624 + columna derecha), la portada «arriba», las recetas de §3.6 y §7, S1 de la barra local. **Tema del sitio** (en `:root` de `grana-site.css`, sin capa, gana a los valores por defecto): `--g-app-shell-header` (64), `--g-sidebar-width` (272), **`--g-sidebar-group-title-weight: 700`** (#1064) y **`--g-surface-backdrop: rgb(0 0 0 / 0.6)`** también en claro (el velo del original para el cajón y la búsqueda, `rgba(0,0,0,.6)`; H7 y SB-C4, #1066; afecta solo al sitio). El código del contenido sigue con la letra de VitePress (`--g-font-code` reservado, §59).
 
 ## 12. Paridad visual con la referencia (criterio de hecho)
 
@@ -189,8 +193,9 @@ Dos `GCard interaction="link"` en dos columnas (≥ 640 px de la columna; una so
 3. **Botón de búsqueda a 1024:** ancho **≤** el del original (el original desbordaba su hueco).
 4. **Hover de la barra:** luz en vez de color `accent` (P1, #1053); **la actual** sí se calca (color).
 5. **«En esta página» a la vista** (PI-P1): la columna puede estar desplazada por dentro respecto de la captura de lectura.
-6. **Índice izquierdo:** **fuera de la compuerta** hasta que se contrate la ronda de §4 (se mide y se informa, no bloquea).
+6. **Índice izquierdo** (dentro de la compuerta desde #1068, contra `design/lab/sidebar/r03/paridad.json` y `referencia/medidas.json`): (a) **la marca del actual pintada** en `accent-text` (5,27:1 claro, 5,12:1 oscuro), donde el original dejaba su indicador **transparente** (`rgba(0,0,0,0)`) y el actual se distinguía solo por color a 1,31:1 / 1,88:1: **desviación aceptada por WCAG 1.4.1** (SB-K1, #1062). La fila «Índice» de `referencia/medidas.md` §7 («actual `text`»; «el marcador de 2 px es la otra señal») **es errónea**: lo medido es actual en `accent-text` e indicador transparente; la referencia está congelada y no se toca (§12, arriba), la corrección vive aquí; (b) **hover** en `text` con la luz en vez del color del actual (I1; corrige el defecto 6); (c) **los números** al final de las filas y **el filtro** en el hueco de la banda (no existían; C1 y F1, decisión del usuario): la lista y las etiquetas, Δ 0; (d) **cajón:** la lista baja **+32** (la fila del filtro y del cierre) y sin la marca; ancho y velo, los del original; (e) **grupos plegables** con `<button>` real y flecha entera de Lucide (defectos 4 y 5).
 7. **Fuente de la marca y de los títulos:** si Instrument Serif llega de otro origen, el ancho del texto **≤ 2 px**.
+8. **Idioma actual en «…», en la pantalla de menú y en el panel de idioma: peso 600 en vez de 700** (H4 de coco, #1064): la escala no tiene un peso de 700 y no se crea un rol global para una pieza; el actual sigue distinguido por peso frente a 400/500 y por `aria-current`. La compuerta de tipografía no exige el peso en esas piezas.
 
 **Informativo (no compuerta):** diferencia de píxeles por captura con `pixelmatch` (umbral 0,1), excluido el contenido vivo de las fichas; se informa el porcentaje por vista en `paridad-resultados.json`.
 
@@ -203,7 +208,7 @@ Dos `GCard interaction="link"` en dos columnas (≥ 640 px de la columna; una so
 1. **coco** (Opus en `GNavBar`; Sonnet en el resto): `GNavBar.css`; `GPageIndex.css` (forma `list` y `fold`); `GCombobox.css` (`--command`, `__hints`); `GAppShell.css` (`pinned-wide`, barra local, `is-covered`); en el sitio, `grana-site.css` (marca y títulos en serif, barra local, rejilla, portada «arriba», recetas, interruptor de 40 × 24 si hace falta, N-H3). Después, la auditoría de cada componente sobre el real y la de paridad (§12).
 2. **bruno** (Opus en `GNavBar` y `GPageIndex list`; Sonnet en el resto): los `.vue`, entradas, `meta.json`, tipos, compuertas y pruebas de cada componente; en el sitio, el `Layout` y todo lo funcional (`site/.vitepress/theme/*.vue`, `config.mjs`, `index.js`, `icons.js`, `generate.mjs` en lo que toque al marco, `site/tests/`, `paridad.mjs`).
 3. **mora-docs:** textos (etiquetas, mensajes, pie de la búsqueda por idioma), README de `GNavBar` y de lo nuevo de `GPageIndex`, `GAppShell` y `GCombobox` tras sus auditorías, y la enmienda de `docs/documentacion/contrato.md` §3 (§14).
-4. **kiwi:** la ronda corta de `GSidebar` para el índice calcado (§4).
+4. **kiwi:** la ronda corta de `GSidebar` para el índice calcado (§4): **hecha** (`design/lab/sidebar/r03/`, 637d9a15). Lo que sigue: coco `GSidebar.css` (apariencia `index`, grupos plegables, marca) y en `grana-site.css` las dos entradas del tema de §11; bruno `GSidebar.vue` y los datos del índice (§6.1); después, la auditoría de coco y la paridad con el índice dentro (§12, desviación 6).
 
 ## 14. Enmienda del contrato de documentación (para mora-docs; `docs/documentacion/contrato.md` §3 es suyo)
 

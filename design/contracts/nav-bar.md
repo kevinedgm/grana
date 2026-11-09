@@ -159,7 +159,7 @@ const sections = [
 
 - Botón con `aria-expanded`, `aria-controls` y nombre de `labels.more`; panel con **`popover="auto"`** (capa superior sin recortes, cierre por fuera y Esc nativos). Su contenido es de la aplicación (una lista de enlaces y un interruptor, como en el original): no es un `menu` y no tiene flechas.
 - **Esc** cierra y devuelve el foco al botón; **elegir un enlace** de dentro lo cierra (bruno escucha `click` en enlaces del panel); al cambiar `current`, se cierra. `aria-expanded` se sincroniza con el evento `toggle` del popover (corrige el defecto 2 del original: decía «extra navigation» en inglés y `aria-expanded="false"` abierto).
-- Posición: bajo el botón, alineado a su borde final, dentro del visor (coco).
+- Posición: bajo el botón, alineado a su borde final, dentro del visor (coco). **Con anclaje CSS** (`@supports (position-area: block-end)`), el ancla implícita del popover (`popovertarget`) y sin JS. **Sin anclaje** (H2 de coco, #1066): antes de abrir (evento `beforetoggle` con `newState === 'open'`, para que el primer cuadro ya salga en su sitio), bruno escribe en `__more-panel` **`--_more-top`** = borde inferior del botón y **`--_more-end`** = distancia del borde final del botón al borde final del visor (px lógicos: en RTL, al izquierdo), las dos en px del visor y ≥ 0; **siempre** (una lectura de caja por apertura, sin coste aunque el motor tenga anclaje: el CSS solo las usa fuera de `@supports`). Los valores son la medida en bruto: el solape de `space × 3` con la banda lo pone el CSS (coco). Sin abrir, valen lo que declare `GNavBar.css` (bajo la banda, al final del visor).
 
 ### Pantalla de menú (< `48rem`)
 
@@ -255,6 +255,7 @@ Declarado en `emits`. Ningún otro: abrir y cerrar «…» o la pantalla no son 
 | `g-nav-bar__toggle`, `__screen`, `__screen-nav`, `__screen-list`, `__screen-link`, `__screen-actions` | pantalla | bruno |
 | `is-open` | raíz, con la pantalla abierta | bruno |
 | `--_screen-top` | `__screen` | bruno, al abrir (borde inferior de la banda, ≥ 0) |
+| `--_more-top`, `--_more-end` | `__more-panel` | bruno, al abrir el «…» (borde inferior del botón; distancia de su borde final al del visor; px, ≥ 0; #1066) |
 | `aria-current="page"` | el enlace actual (barra y pantalla) | bruno |
 
 **Selectores sobre contenido de la aplicación** (`__actions > *`, slots): con la exclusión de `.g-tooltip` de #383 (`:not(:where(.g-tooltip))`).
