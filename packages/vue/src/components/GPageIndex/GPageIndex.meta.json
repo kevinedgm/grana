@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GPageIndex",
   "tag": "g-page-index",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Índice de las secciones de la página que se está leyendo, con la sección actual siguiendo la lectura (aria-current=\"location\"). Forma relay: un botón de menú cuyo texto dice dónde estás («En esta página · API») y despliega las secciones como un GMenu de elementos-enlace; al elegir, el navegador sigue el #id y el foco va a la sección. El relevo del texto se funde y se desplaza un paso en el sentido de la lectura; el ancho no cambia nunca (pila de etiquetas, sin medir). Forma list (#1054, extensión @grana/vue/page-index-list): columna «En esta página» con nav nombrado por su título, enlaces con level 2 y 3 (un 3 cuelga del 2 anterior), marcador sobre la línea guía, desplazamiento propio y PI-P1 (la columna trae la actual a la vista sin mover nunca la página; se detiene con el puntero o el foco dentro); con fold, botón + panel (disclosure) con «Volver arriba». PI-L5: la instancia list sin cajas no lee ni emite.",
   "contract": "design/contracts/page-index.md",

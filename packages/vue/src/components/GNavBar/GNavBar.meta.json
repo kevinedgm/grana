@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "name": "GNavBar",
   "tag": "g-nav-bar",
-  "status": "draft",
+  "status": "candidate",
   "since": "0.1.0",
   "description": "Barra superior de navegación de un sitio: los enlaces a sus secciones con la actual marcada por la ruta (aria-current=\"page\", de la prop current, nunca de location) y el sitio para las acciones globales de la aplicación (búsqueda, idioma, tema). Lista de enlaces (APG Disclosure Navigation), sin flechas ni roles de menú. Por debajo de 80rem las acciones van en «…» (disclosure con popover=\"auto\") y por debajo de 48rem todo va en una pantalla de menú con hamburguesa; todo está en el HTML del servidor y el CSS enseña lo que toca. P1 · una sola luz bajo el puntero (#957). Vive en el slot header de GAppShell.",
   "contract": "design/contracts/nav-bar.md",
