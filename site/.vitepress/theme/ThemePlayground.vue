@@ -283,12 +283,23 @@ const PRESETS = [
   // Puntos de partida con la paleta propia de Grana (guía de marca v1): carmín #a3123a (el tinte), nopal #2f6a3d (la
   // planta, acento escaso), cera (fondo, la dan los neutros teñidos) y tinta #1d1517 (texto y estructura). El motor
   // deriva el oscuro y garantiza el contraste; carmín y nopal nunca distinguen dos estados por sí solos (deuteranopía).
-  { id: 'carmin', es: 'Carmín', en: 'Carmine', set: { brand: '#A3123A', radius: 8, fontDisplay: 'instrument-serif' } },
+  { id: 'carmin', es: 'Carmín', en: 'Carmine', set: { brand: '#A3123A', radius: 8, fontDisplay: 'instrument-serif', collision: true } },
   { id: 'carmin-nopal', es: 'Carmín y nopal', en: 'Carmine and nopal', set: { brand: '#A3123A', accent: '#2F6A3D', radius: 8, collision: true } },
   { id: 'nopal', es: 'Nopal', en: 'Nopal', set: { brand: '#2F6A3D', accent: '#A3123A', radius: 6, collision: true } },
-  { id: 'tinta', es: 'Tinta y carmín', en: 'Ink and carmine', set: { brand: '#1D1517', accent: '#A3123A', primary: '#A3123A', neutralsHue: 'accent', radius: 4, fontDisplay: 'instrument-serif' } },
-  { id: 'cera', es: 'Cera en píldora', en: 'Wax pill', set: { brand: '#A3123A', shape: 'pill', radius: 10, space: 4.5 } },
-  { id: 'tinta-compacta', es: 'Tinta compacta', en: 'Compact ink', set: { brand: '#1D1517', accent: '#2F6A3D', neutrals: 'pure', radius: 2, space: 3.5, fontSize: 14, collision: true } }
+  { id: 'tinta', es: 'Tinta y carmín', en: 'Ink and carmine', set: { brand: '#1D1517', accent: '#A3123A', primary: '#A3123A', neutralsHue: 'accent', radius: 4, fontDisplay: 'instrument-serif', collision: true } },
+  { id: 'cera', es: 'Cera en píldora', en: 'Wax pill', set: { brand: '#A3123A', shape: 'pill', radius: 10, space: 4.5, collision: true } },
+  { id: 'tinta-compacta', es: 'Tinta compacta', en: 'Compact ink', set: { brand: '#1D1517', accent: '#2F6A3D', neutrals: 'pure', radius: 2, fontSize: 14, collision: true } },
+  // Inspiración: temas de ejemplo con el color y la forma de productos conocidos (los mismos de la evaluación de
+  // Dark Color Presence, design/lab/tema-oscuro/dark-color-presence/themes/). Solo color y forma: ni logos ni nombres
+  // dentro de la vista previa. Inter, que el sitio no carga, va como la fuente del sistema; el motor ajusta el contraste.
+  { id: 'spotify', es: 'Inspirado en Spotify', en: 'Inspired by Spotify', set: { brand: '#1ED760', accent: '#A7F3C1', radius: 20, shape: 'pill', font: 'system', collision: true } },
+  { id: 'stripe', es: 'Inspirado en Stripe', en: 'Inspired by Stripe', set: { brand: '#635BFF', accent: '#00AFC7', radius: 10, font: 'system', collision: true } },
+  { id: 'amazon', es: 'Inspirado en Amazon', en: 'Inspired by Amazon', set: { brand: '#232F3E', accent: '#FF9900', radius: 8, font: 'system', typeScale: 1.2, collision: true } },
+  { id: 'github', es: 'Inspirado en GitHub', en: 'Inspired by GitHub', set: { brand: '#24292F', accent: '#0969DA', font: 'system', typeScale: 1.2, collision: true } },
+  { id: 'medium', es: 'Inspirado en Medium', en: 'Inspired by Medium', set: { brand: '#242424', accent: '#1A8917', radius: 4, font: 'serif', typeScale: 1.35, collision: true } },
+  { id: 'apple', es: 'Inspirado en Apple', en: 'Inspired by Apple', set: { brand: '#1D1D1F', accent: '#007AFF', radius: 14, font: 'system', typeScale: 1.3, collision: true } },
+  { id: 'notion', es: 'Inspirado en Notion', en: 'Inspired by Notion', set: { brand: '#2F3437', accent: '#2383E2', font: 'system', collision: true } },
+  { id: 'linear', es: 'Inspirado en Linear', en: 'Inspired by Linear', set: { brand: '#5E6AD2', accent: '#8A7CFF', radius: 10, fontSize: 15, font: 'system', typeScale: 1.2, collision: true } }
 ]
 const COLOR_KEYS = ['brand', 'accent', 'primary']
 const BTN_COLORS = ['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info']
