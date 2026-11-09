@@ -47,8 +47,10 @@ const prefix = computed(() => LOCALES[locale.value].prefix)
 // ---------- Página ----------
 const currentPath = computed(() => routeId(route.path, base.value))
 const isHome = computed(() => frontmatter.value.layout === 'home')
+// `layout: page` (herramientas como el playground de tema): ancho completo, sin columna de lectura ni «En esta página»
+const isPage = computed(() => frontmatter.value.layout === 'page')
 const isBlocks = computed(() => /^\/(en\/)?blocks\//.test(currentPath.value + '/'))
-const sections = computed(() => (isHome.value || page.value.isNotFound ? [] : pageSections(page.value.headers)))
+const sections = computed(() => (isHome.value || isPage.value || page.value.isNotFound ? [] : pageSections(page.value.headers)))
 const section = ref(null)
 const nb = (n) => (n ? { text: n.text, href: withBase(n.link) } : null)
 const prev = computed(() => nb(frontmatter.value.prev))
@@ -312,10 +314,10 @@ onBeforeUnmount(() => {
         <button class="site-local__menu" type="button" aria-haspopup="dialog" @click="openDrawer"><GIcon name="text-align-start" />{{ F.menu }}</button>
         <GPageIndex v-if="sections.length" :ref="setIndex" v-model="section" class="site-local__index" appearance="list" fold :align="wide960 ? 'start' : 'end'" :items="sections" :label="F.onPage" :labels="pageIndexLabels" />
       </div>
-      <div class="site-doc">
+      <div class="site-doc" :class="{ 'site-doc--page': isPage }">
         <div class="site-doc__inner">
           <article class="site-content">
-            <Content class="vp-doc" />
+            <Content :class="{ 'vp-doc': !isPage }" />
             <nav v-if="prev || next" class="site-pager" :aria-label="F.neighbours">
               <div class="site-pager__list">
                 <GCard v-if="prev" class="site-pager__card" interaction="link" :href="prev.href">

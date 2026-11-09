@@ -698,6 +698,12 @@ watch(L, (l) => { notes.value = l.notes }, { immediate: true })
 <style scoped>
 /* Página de herramienta del sitio (sin capa, como una aplicación): solo maqueta y tokens de Grana. */
 .tp {
+  /* Lleva .grana-live solo por la regla de foco del sitio; no hereda la rejilla de la ficha viva (grana-live.css). */
+  display: block;
+  margin-block: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
   box-sizing: border-box;
   max-inline-size: 1440px;
   margin-inline: auto;
@@ -719,8 +725,8 @@ watch(L, (l) => { notes.value = l.notes }, { immediate: true })
   .tp-layout { grid-template-columns: minmax(19rem, 22rem) minmax(0, 1fr); }
   .tp-panel {
     position: sticky;
-    inset-block-start: calc(var(--vp-nav-height, 64px) + var(--g-space-4));
-    max-block-size: calc(100dvh - var(--vp-nav-height, 64px) - var(--g-space-8));
+    inset-block-start: calc(var(--g-app-shell-top) + var(--g-space-4));
+    max-block-size: calc(100dvh - var(--g-app-shell-top) - var(--g-space-8));
     overflow-y: auto;
     overscroll-behavior: contain;
   }

@@ -698,6 +698,14 @@ body {
     display: block;
   }
 }
+/* `layout: page` (playground de tema): la herramienta usa todo el ancho junto al índice, sin columna de lectura */
+.site-doc--page .site-doc__inner {
+  max-inline-size: none;
+}
+.site-doc--page .site-content {
+  flex: 1 1 auto;
+  padding-inline: 0;
+}
 @media (width < 48rem) {
   .site-doc {
     padding: var(--g-space-8) var(--g-space-6) calc(var(--g-space-1) * 24);
