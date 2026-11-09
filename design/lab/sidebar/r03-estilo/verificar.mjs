@@ -27,7 +27,7 @@ await new Promise((r) => server.listen(PORT, '127.0.0.1', r))
 const BASE = `http://127.0.0.1:${PORT}/design/lab/sidebar/r03-estilo/index.html`
 const pw = await import(new URL('../../theme-playground/node_modules/playwright/index.mjs', import.meta.url))
 const REF = JSON.parse(await readFile(join(ROOT, 'design/lab/sitio/referencia/medidas.json'), 'utf8'))
-const GEN_DIR = join(ROOT, 'design/lab/tema-oscuro/dark-color-presence/generated')
+const GEN_DIR = process.env.GEN_DIR || join(ROOT, 'design/lab/tema-oscuro/dark-color-presence/generated')
 const THEMES = (await readdir(GEN_DIR)).filter((f) => /^[a-z-]+\.css$/.test(f) && !f.includes('variants')).map((f) => f.replace('.css', ''))
 
 const ENGINES = (process.env.ENGINES || 'chromium,firefox,webkit').split(',')
