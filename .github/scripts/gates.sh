@@ -179,7 +179,7 @@ must_exist "price.js" "No se generó la entrada propia price.js (revisar vite.pr
 must_not_have grana.js "supportedValuesOf" "La tabla de símbolos se calcula en el navegador; debe venir generada en el build (scripts/currency-symbols.mjs, #770)"
 must_not_have price.js "supportedValuesOf" "La tabla de símbolos se calcula en el navegador; debe venir generada en el build (scripts/currency-symbols.mjs, #770)"
 must_not_have price.js "\"Rs\"" "La tabla de símbolos quedó copiada en price.js; debe llegar por __shared desde utils/currency.js (#776)"
-# Índice de la página (#1042): entrada propia page-index.js (tope 3 KiB gzip, #1051); GMenu y utils/menuNav.js llegan por __shared
+# Índice de la página (#1042): entrada propia page-index.js (tope 3,25 KiB gzip, #1067); GMenu y utils/menuNav.js llegan por __shared
 must_have grana.css "g-page-index__stack" "$CSS_MSG"
 must_not_have grana.js "GPageIndex" "GPageIndex viajó en el paquete principal grana.js; debe ir solo en la entrada page-index.js (#1042)"
 must_exist "page-index.js" "No se generó la entrada propia page-index.js (revisar vite.page-index.config.js y el script build de packages/vue)"
@@ -191,6 +191,11 @@ must_not_have grana.js "filterCount, filterNone y filterClear (F3)" "El motor de
 must_not_have grana.js "g-sidebar__filter-input" "El campo del filtro de GSidebar viajó en grana.js; debe ir solo en sidebar-filter.js (#1050)"
 must_not_have sidebar-filter.js "g-sidebar__fly-title" "GSidebar quedó copiado en sidebar-filter.js; debe llegar del principal (#1050)"
 must_not_have sidebar-filter.js "NFD" "La normalización quedó copiada en sidebar-filter.js; debe llegar por __shared (#1050)"
+# Forma list de GPageIndex (#1054): extensión propia page-index-list.js (tope 2,25 KiB gzip, #1067); el motor de lectura se queda en page-index.js
+must_exist "page-index-list.js" "No se generó la extensión page-index-list.js (revisar vite.page-index-list.config.js y el script build de packages/vue)"
+must_have grana.css "g-page-index__marker" "$CSS_MSG"
+must_not_have page-index.js "g-page-index__marker" "La forma list viajó en page-index.js; debe ir solo en la extensión page-index-list.js (#1054)"
+must_not_have page-index-list.js "scrollPaddingBlockStart" "El motor de lectura de GPageIndex quedó copiado en page-index-list.js; se queda en page-index.js (#1054)"
 # GNavBar (#1053): entrada propia nav-bar.js (tope 3,5 KiB gzip, #1059); la luz (utils/glide.js) llega por __shared
 must_exist "nav-bar.js" "No se generó la entrada propia nav-bar.js (revisar vite.nav-bar.config.js y el script build de packages/vue)"
 must_not_have grana.js "GNavBar" "GNavBar viajó en el paquete principal grana.js; debe ir solo en la entrada nav-bar.js (#1053)"

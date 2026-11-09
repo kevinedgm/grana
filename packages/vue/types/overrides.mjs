@@ -61,7 +61,7 @@ export const props = {
   'GSelect.options': 'Array<SelectOption | SelectOptionGroup>',
   'GSidebar.items': 'SidebarItem[]',
   'GSidebar.breakpoints': '{ expanded?: number; rail?: number } | null',
-  'GPageIndex.items': 'Array<{ id: string; label: string; href?: string; [key: string]: unknown }>',
+  'GPageIndex.items': 'Array<{ id: string; label: string; href?: string; level?: 2 | 3; [key: string]: unknown }>',
   'GNavBar.items': 'Array<{ id: string; label: string; href: string; activeMatch?: string; external?: boolean; target?: string; rel?: string; lang?: string; hreflang?: string; [key: string]: unknown }>',
   'GNavBar.labels': '{ more?: string; menu?: string; newTab?: string }',
   'GPageIndex.scroller': 'string | Element | null',

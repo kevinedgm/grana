@@ -5,10 +5,11 @@
 // elementos-enlace (`current: 'location'`). Motor: la línea de lectura de api.md «Lugar actual» (#1039), leída en un cuadro
 // por desplazamiento (todas las cajas antes de escribir, #964). Entrada propia `@grana/vue/page-index`: GMenu, GLibIcon y
 // transitionMs llegan de `__shared`, sin copia.
-import { computed, defineComponent, h, nextTick, onBeforeUnmount, onMounted, ref, useAttrs, useId, watch } from 'vue'
+import { computed, defineComponent, h, inject, nextTick, onBeforeUnmount, onMounted, ref, useAttrs, useId, watch } from 'vue'
 import GMenu from '../GMenu/GMenu.vue'
 import GIcon from '../GIcon/GLibIcon.js'
 import { transitionMs } from '../../utils/motion.js'
+import { pageIndexListKey } from '../../utils/pageIndexList.js'
 
 const BURST = 600 // ventana de ráfaga (la de GTooltip)
 const SETTLE = 150 // fin del desplazamiento donde no hay scrollend
@@ -22,6 +23,7 @@ export default defineComponent({
     track: { type: Boolean, default: true },
     scroller: { type: [String, Object], default: null },
     appearance: { type: String, default: 'relay' },
+    fold: Boolean,
     label: String,
     align: { type: String, default: 'end' },
     labels: { type: Object, default: () => ({}) },
@@ -31,11 +33,18 @@ export default defineComponent({
   setup(props, { emit, expose }) {
     const attrs = useAttrs()
     const rid = props.id || `g-page-index-${useId()}`
+    // Forma `list` (#1054): la pinta la extensión `@grana/vue/page-index-list`; aquí solo la conexión
+    const List = inject(pageIndexListKey, null)
+    const isList = () => List && props.appearance == 'list'
+    // ctl.gate lo pone la forma: PI-L5, la instancia sin cajas no lee ni emite
+    const ctl = { go(id, event) { onNavigate({ id, event }); onClosed() } }
     const warned = new Set()
     const warn = (k, m) => { try { if (process.env.NODE_ENV !== 'production' && !warned.has(k)) { warned.add(k); console.warn(`[Grana GPageIndex] ${m} (aviso ${k[0]}).`) } } catch {} }
     try {
       if (process.env.NODE_ENV !== 'production') {
-        if (props.appearance !== 'relay') warn('4', 'appearance fuera de lista: relay')
+        const a = props.appearance
+        if (a != 'relay' && !isList()) warn(a == 'list' ? '7' : '4', a == 'list' ? 'list sin @grana/vue/page-index-list: relay' : 'appearance fuera de lista: relay')
+        if (props.fold && a != 'list') warn('8', 'fold sin list: se ignora')
         if (!props.label) warn('5', 'falta label')
       }
     } catch {}
@@ -46,6 +55,8 @@ export default defineComponent({
       for (const it of props.items || []) {
         if (!it?.id || !String(it.label ?? '').trim()) {
           try { if (process.env.NODE_ENV !== 'production') warn('1', 'elemento sin id o sin label: se ignora') } catch {}
+        } else if (it.level === 3 && !isList()) {
+          // en relay los 3 no se pintan (#1054)
         } else if (m.has(it.id)) {
           try { if (process.env.NODE_ENV !== 'production') warn(`2${it.id}`, `id «${it.id}» repetido: gana el primero`) } catch {}
         } else m.set(it.id, it)
@@ -131,14 +142,14 @@ export default defineComponent({
     const target = () => sc || window
     const read = () => {
       raf = 0
-      if (paused || held || !props.track) return
+      if (paused || held || !props.track || (ctl.gate && ctl.gate())) return
       const root = sc || document.scrollingElement || document.documentElement
       const pad = parseFloat(getComputedStyle(root).scrollPaddingBlockStart) || 0
       const top = sc ? sc.getBoundingClientRect().top + sc.clientTop : 0
       const hgt = sc ? sc.clientHeight : document.documentElement.clientHeight
       const line = top + pad + (hgt - pad) / 3
       const end = root.scrollTop + root.clientHeight >= root.scrollHeight - 1
-      const rects = list.map((it) => document.getElementById(it.id)?.getBoundingClientRect())
+      const rects = list.map((it) => { const el = document.getElementById(it.id); return el && el.getBoundingClientRect() })
       let at = -1
       rects.forEach((r, i) => {
         if (r && (r.top <= line || (end && r.top < top + hgt && r.bottom > top + pad))) at = i
@@ -212,6 +223,7 @@ export default defineComponent({
 
     return () => {
       const all = [...byId.value.values()]
+      if (isList()) return h(List, { p: props, cur: cur.value, all, rid, attrs, ctl })
       const items = all.map((it) => ({ id: it.id, label: it.label, href: it.href || `#${it.id}`, current: it.id === cur.value ? 'location' : undefined }))
       return h('nav', { ...attrs, id: rid, class: ['g-page-index g-page-index--appearance-relay', !cur.value && 'is-empty', attrs.class], 'aria-label': props.label }, [
         h(GMenu, {

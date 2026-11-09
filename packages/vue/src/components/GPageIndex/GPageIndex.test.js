@@ -71,7 +71,7 @@ describe('GPageIndex · anatomía', () => {
 describe('GPageIndex · modelo y avisos', () => {
   it('avisos 1 (sin id o label), 2 (repetido, gana el primero), 4 (appearance), 5 (sin label)', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const w = mount(GPageIndex, { props: { appearance: 'list', track: false, items: [{ id: 'a', label: 'A' }, { id: 'a', label: 'B' }, { label: 'C' }, { id: 'd', label: '  ' }] } })
+    const w = mount(GPageIndex, { props: { appearance: 'line', track: false, items: [{ id: 'a', label: 'A' }, { id: 'a', label: 'B' }, { label: 'C' }, { id: 'd', label: '  ' }] } })
     expect(w.findAll('.g-page-index__ghost').map((g) => g.text())).toEqual(['A'])
     const t = warn.mock.calls.map((c) => c[0]).join('\n')
     for (const k of [1, 2, 4, 5]) expect(t).toContain(`(aviso ${k})`)

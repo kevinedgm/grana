@@ -11,7 +11,7 @@ import { shared } from './shared.js'
 import GMenu from './components/GMenu/GMenu.vue'
 
 const SRC = resolve(process.cwd(), 'src')
-const CAP = 3072 // #1051
+const CAP = 3328 // #1067
 vi.spyOn(console, 'warn').mockImplementation(() => {})
 
 describe('@grana/vue/page-index · entrada propia (#1042)', () => {
@@ -100,7 +100,7 @@ describe('@grana/vue/page-index · lo compartido llega del paquete principal (sr
   }
 
   it('importa del principal solo lo que src/shared.js expone, nombre por nombre', () => {
-    expect(imports.map((i) => i.key).sort()).toEqual(['components/GIcon/GLibIcon.js', 'components/GMenu/GMenu.vue', 'utils/motion.js'])
+    expect([...new Set(imports.map((i) => i.key))].sort()).toEqual(['components/GIcon/GLibIcon.js', 'components/GMenu/GMenu.vue', 'utils/motion.js', 'utils/pageIndexList.js'])
     for (const { from, key, names } of imports) {
       expect(shared[key], `${from} → ${key}`).toBeTruthy()
       for (const n of names) expect(shared[key][n], `${from} → ${key} · ${n}`).toBeDefined()

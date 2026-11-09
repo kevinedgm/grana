@@ -42,6 +42,7 @@ export const ENTRIES = [
   { name: 'price', src: 'src/price.js' },
   { name: 'page-index', src: 'src/page-index.js' },
   { name: 'sidebar-filter', src: 'src/sidebar-filter.js' },
+  { name: 'page-index-list', src: 'src/page-index-list.js' },
   { name: 'nav-bar', src: 'src/nav-bar.js' }
 ]
 

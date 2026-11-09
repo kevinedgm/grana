@@ -6,11 +6,12 @@
 <title>Sitio calcado · banco del componente real (bruno)</title>
 <!-- Banco de las piezas del sitio calcado (#1052 a #1059) con los componentes REALES de dist/ (dueño: bruno):
      GAppShell header="pinned-wide" (@grana/vue/app-shell, #1055) con GNavBar en la banda (@grana/vue/nav-bar, #1053),
-     GSidebar en el slot nav, una ficha con una barra local pegada (< 80rem, --g-app-shell-local-bar en :root) y la búsqueda
+     GSidebar en el slot nav, una ficha con GPageIndex appearance="list" en la columna derecha (≥ 80rem) y fold en una barra
+     local pegada (< 80rem, --g-app-shell-local-bar en :root; extensión @grana/vue/page-index-list, #1054) y la búsqueda
      modal GCombobox appearance="command" (#1056) que abren el botón de la barra y Ctrl/⌘ K (los registra la aplicación).
-     La columna «En esta página» (GPageIndex appearance="list", #1054) entra cuando su extensión quepa en su tope (#1059).
-     Lo verifican design/lab/theme-playground/tests/nav-bar.spec.mjs, combobox-command.spec.mjs y app-shell-wide.spec.mjs.
-     Parámetros: ?shell=0 (sin chasis: la barra en un <header> propio) · ?nav=0 (sin GSidebar) ·
+     Lo verifican design/lab/theme-playground/tests/nav-bar.spec.mjs, page-index-list.spec.mjs, combobox-command.spec.mjs y
+     app-shell-wide.spec.mjs.
+     Parámetros: ?shell=0 (sin chasis: la barra en un <header> propio) · ?nav=0 (sin GSidebar) · ?list=0 (sin la extensión) ·
      ?sections=N (secciones h2 con dos h3 cada una; 8 por defecto) · ?dir=rtl · ?dark=1 · ?current=/ruta.
      Estado en window.site (registro de eventos y la reserva de borde compartida). -->
 <link rel="stylesheet" href="../dist/fonts.css">
@@ -52,7 +53,7 @@
     </template>
     <header v-if="!Q.shell" class="hdr"><nav-bar></nav-bar></header>
     <div class="local" id="local">
-      <span id="local-title">En esta página</span>
+      <g-page-index id="pi-fold" v-model="section" :items="sections" appearance="list" fold align="start" label="En esta página" :labels="{ top: 'Volver arriba' }" @navigate="(e) => log('fold · ' + e.item.id)"></g-page-index>
     </div>
     <div class="page">
       <article class="doc">
@@ -65,7 +66,7 @@
         <p style="min-block-size:60vh">Fin de la ficha.</p>
       </article>
       <aside class="aside" id="aside">
-        <p id="pi-list">En esta página</p>
+        <g-page-index id="pi-list" v-model="section" :items="sections" appearance="list" label="En esta página" @navigate="(e) => log('list · ' + e.item.id)"></g-page-index>
       </aside>
     </div>
   </component>
@@ -77,6 +78,8 @@
 <script src="../dist/grana.umd.js"></script>
 <script src="../dist/app-shell.umd.js"></script>
 <script src="../dist/nav-bar.umd.js"></script>
+<script src="../dist/page-index.umd.js"></script>
+<script src="../dist/page-index-list.umd.js"></script>
 <script src="../dist/combobox.umd.js"></script>
 <script src="./lucide-icons.js"></script>
 <script>
@@ -135,7 +138,8 @@
     }
   })
   app.component('NavBar', NavBar)
-  app.use(Grana).use(GranaAppShell).use(GranaNavBar).use(GranaCombobox).use(Grana.createIcons(Object.values(window.LUCIDE_STATIC)))
+  app.use(Grana).use(GranaAppShell).use(GranaNavBar).use(GranaPageIndex).use(GranaCombobox).use(Grana.createIcons(Object.values(window.LUCIDE_STATIC)))
+  if (P.get('list') !== '0') app.use(GranaPageIndexList)
   window.siteApp = app.mount('#app')
   // El atajo es de la aplicación (Grana no escucha el documento, #1035)
   document.addEventListener('keydown', (e) => {
