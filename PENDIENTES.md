@@ -195,3 +195,10 @@ Origen: página de Notion «Hallazgos de integración real · Grana» (22 hallaz
 - **Cerrados:** P-A4 (rendimiento de A con 50 precios, bruno, 6f9d3c6: cuadro de pintado de 54–77 ms a 27–29 ms, prueba 6/6) y P-A2 (fecha local en el banco `price.html`, bruno, 6f9d3c6).
 - **P-A5 (informativo, banco):** la fila árabe usa los `labels` en español y `?dir=rtl` deja texto español en línea RTL; son textos de la aplicación, sin acción de contrato.
 - **P-A3 (límite documentado, #801; enmendado por #952):** el día con precio de cinco cifras ya no desbordará: cuando no cabe, pasa a la lectura del día de `GDatePicker` (AV-C1, §6, pendiente de bruno y coco); `notation: 'compact'` sigue reservado.
+
+## 11. Portada con la marca (2026-11-09, #1073)
+
+- **Manual de marca, `<svg>` con `class` duplicado** (dueño del manual): por eso su animación no corre; el `BrandHero` no depende de él, pero conviene corregirlo en el origen.
+- **Primera ventaja de la portada repite el lema** (mora-docs): reescribirla para que diga algo distinto de «Estructura fija, color tuyo.».
+- **Cuerpo de la portada en inglés sin traducir** (mora-docs).
+- **Por medir (coco):** duración percibida de «La impresión» por cuadros y WebKit; lector de pantalla real sobre el `h1` con el W2 (no verificable aquí).
