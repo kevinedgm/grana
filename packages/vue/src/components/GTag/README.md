@@ -2,9 +2,9 @@
 
 Etiquetas: **elementos de un conjunto que clasifican o resumen una elección** (las alergias de un expediente, los filtros aplicados sobre una lista, los temas de un artículo, el «Solo pendientes» de la cabecera de una tabla). Una etiqueta se **lee**, se **quita**, se **alterna** o se **sigue**. `GTag` es **una** etiqueta; `GTagGroup` es un **conjunto dirigido por datos** (`v-model:items`) que añade lo que una etiqueta suelta no puede tener: la **huella** al quitar (con «Deshacer» en el sitio), los **racimos** por faceta, el tope «Ver N más», «Quitar todas» y un foco que nunca se pierde. Neutra o de categoría, **nunca semántica** (para el estado de otra cosa, `GBadge`). No es un campo: no se envía y no se registra en `GForm`. Todo texto visible o accesible lo pones tú en `labels` y en los datos.
 
-**Etiquetas:** `<g-tag>` y `<g-tag-group>` · **Estado:** `candidate` (ver [`design/lab/chip/auditoria.md`](../../../../../design/lab/chip/auditoria.md) y «Verificación») · **Desde:** 0.1.0 · **Entrada:** propia, `@grana/vue/tag` (global UMD `GranaTag`)
+**Etiquetas:** `<g-tag>` y `<g-tag-group>` · **Estado:** `stable` (ver [`design/lab/chip/auditoria.md`](../../../../../design/lab/chip/auditoria.md) y «Verificación») · **Desde:** 1.0.0 · **Entrada:** propia, `@grana/vue/tag` (global UMD `GranaTag`)
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GTag y GTagGroup`, `#sec-tag`). Exige Vue `^3.5.0` (usa `useId`) y un navegador actual.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GTag y GTagGroup`, `#sec-tag`). Exige Vue `^3.5.0` (usa `useId`) y un navegador actual.
 
 ## Instalación: entrada propia
 

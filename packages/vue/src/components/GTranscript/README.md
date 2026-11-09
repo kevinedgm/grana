@@ -2,9 +2,9 @@
 
 Vista de **revisión de un transcript** de la captura de voz: corregir lo que entendió el motor, eliminar fragmentos, asignar hablantes y roles, ver qué cambió frente al original, copiar e **insertar** lo revisado en los campos del formulario, con deshacer en todo. Funciona con la conversación en curso (el transcript de la sesión) y con un transcript que tu aplicación guardó (`createTranscript(json)`), sin micrófono ni sesión. Es una **rejilla de datos** (patrón *data grid* de APG): una fila por fragmento y **una sola parada de tabulación** para todo el transcript.
 
-**Etiqueta:** `<g-transcript>` · **Entrada:** `@grana/vue/speech` (no viaja en `@grana/vue`) · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/speech/auditoria-f2.md`](../../../../../design/lab/speech/auditoria-f2.md)) · **Desde:** 0.1.0 · **Fase:** 2 de 3 de la captura de voz
+**Etiqueta:** `<g-transcript>` · **Entrada:** `@grana/vue/speech` (no viaja en `@grana/vue`) · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/speech/auditoria-f2.md`](../../../../../design/lab/speech/auditoria-f2.md)) · **Desde:** 1.0.0 · **Fase:** 2 de 3 de la captura de voz
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (playground en `packages/vue/playground/`, sección «Captura de voz», con `?speech=self`: revisión junto a un `GForm` real, diálogo de respaldo forzable, transcript guardado y botones de 320 y 1000 fragmentos). Exige Vue `^3.5.0`. La captura en sí (`createSpeech`, el anfitrión, la pill y los disparadores) está en [`GSpeechHost/README.md`](../GSpeechHost/README.md).
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (playground en `packages/vue/playground/`, sección «Captura de voz», con `?speech=self`: revisión junto a un `GForm` real, diálogo de respaldo forzable, transcript guardado y botones de 320 y 1000 fragmentos). Exige Vue `^3.5.0`. La captura en sí (`createSpeech`, el anfitrión, la pill y los disparadores) está en [`GSpeechHost/README.md`](../GSpeechHost/README.md).
 
 ## Qué es y qué no es
 

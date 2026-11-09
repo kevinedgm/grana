@@ -4,9 +4,9 @@ Un **contenedor sin superficie** que reparte a sus hijos directos en líneas con
 
 No es masonry, no ordena por relevancia, no tiene superficie, semántica de formulario, teclado ni movimiento propios, y no promete proporciones exactas cuando chocan con la legibilidad. Los nodos nunca se mueven: cambiar el ancho recoloca por CSS.
 
-**Etiqueta:** `<g-adaptive-layout>` · **Estado:** `candidate` (auditoría de coco, ronda 2, sin defectos bloqueantes; ver [`design/lab/adaptive-layout/auditoria-coco.md`](../../../../../design/lab/adaptive-layout/auditoria-coco.md)) · **Desde:** 0.1.0 · **Entrada:** paquete principal `@grana/vue`
+**Etiqueta:** `<g-adaptive-layout>` · **Estado:** `stable` (auditoría de coco, ronda 2, sin defectos bloqueantes; ver [`design/lab/adaptive-layout/auditoria-coco.md`](../../../../../design/lab/adaptive-layout/auditoria-coco.md)) · **Desde:** 1.0.0 · **Entrada:** paquete principal `@grana/vue`
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (banco [`playground/adaptive-layout.html`](../../../playground/adaptive-layout.html) y sección `GAdaptiveLayout` del playground, `#sec-adaptive`). Es **opt-in**: no cambia `GFormLayout`, `GFormRow` ni sus reglas.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (banco [`playground/adaptive-layout.html`](../../../playground/adaptive-layout.html) y sección `GAdaptiveLayout` del playground, `#sec-adaptive`). Es **opt-in**: no cambia `GFormLayout`, `GFormRow` ni sus reglas.
 
 ## Uso
 

@@ -2,7 +2,7 @@
 
 Una **pregunta compuesta cuyas partes necesitan su propia etiqueta** (contacto de emergencia; fecha en Día · Mes · Año): `fieldset` + `legend`, partes en una `GFormRow` interna y un solo mensaje. Va **siempre en su propia fila**. Para un dato que se lee como uno (teléfono, valor + unidad) usa `GInputGroup`.
 
-**Etiqueta:** `<g-field-group>` · **Estado:** `candidate` (auditoría de coco r02 aprobada; ver [`design/lab/form/auditoria.md`](../../../../../design/lab/form/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-field-group>` · **Estado:** `stable` (auditoría de coco r02 aprobada; ver [`design/lab/form/auditoria.md`](../../../../../design/lab/form/auditoria.md)) · **Desde:** 1.0.0
 
 > Forma parte del **sistema de formularios**. La guía completa (cuándo usar cada pieza, recetas, API, teclado, accesibilidad medida y limitaciones) está en [`GForm/README.md`](../GForm/README.md#preguntas-compuestas-gfieldgroup).
 

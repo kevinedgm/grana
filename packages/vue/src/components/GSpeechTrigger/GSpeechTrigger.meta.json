@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "name": "GSpeechTrigger",
   "tag": "g-speech-trigger",
-  "status": "candidate",
-  "since": "0.1.0",
+  "status": "stable",
+  "since": "1.0.0",
   "description": "Disparador de la captura de voz, hermano del campo e inmediatamente después de él: dictado a un textarea o input (botón conmutable de solo icono, con su nota bajo el campo: provisional, «Insertar», «Deshacer dictado») o conversación (botón con texto que prepara la sesión y abre el panel). No lleva la sesión: si se desmonta, la sesión sigue en el gestor y al volver se reconoce por modo y campo. Con otra sesión activa no crea otra: aria-disabled, descripción, anuncio y foco a la pill visible.",
   "entry": "@grana/vue/speech → dist/speech.js (ES) y dist/speech.umd.js (global GranaSpeech; requiere Vue y Grana). No está en @grana/vue (#238): app.use(speech) lo registra; lo compartido con el paquete principal (GBtn, GIcon, topModal, reservas de borde, canales) llega de @grana/vue sin copia",
   "contract": "design/contracts/speech.md",
@@ -37,7 +37,6 @@
   "tokens": [],
   "icons": ["mic", "shield-question-mark", "circle", "audio-lines", "captions", "circle-pause", "loader-circle", "refresh-cw", "mic-off", "unplug", "circle-alert", "circle-check"],
   "pending": [
-    "Auditoría de coco (paso 5) con un tema distinto al por defecto; status candidate lo pone coco",
     "GBtn ahora respeta el aria-disabled del consumidor cuando no hay loading (para el disparador con otra sesión): btn.md no lo menciona (lima: reflejarlo si procede)",
     "Lector de pantalla real: descripción de «grabación en curso», nota no viva, cambio de aria-pressed",
     "Teclado virtual y móvil real con el dictado al cursor"

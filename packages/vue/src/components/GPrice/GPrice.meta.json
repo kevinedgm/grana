@@ -2,8 +2,8 @@
   "name": "GPrice",
   "tag": "g-price",
   "schemaVersion": 1,
-  "status": "candidate",
-  "since": "0.1.0",
+  "status": "stable",
+  "since": "1.0.0",
   "entry": "@grana/vue/price",
   "bundle": {
     "global": "GranaPrice",
@@ -166,8 +166,6 @@
     "9 · locale que Intl rechaza"
   ],
   "pending": [
-    "Auditoría de coco (GPrice.css, rúbrica de movimiento de A) → candidate",
-    "README (mora-docs)",
     "Lector de pantalla real, teléfono real, forced-colors real (price.md «No verificado»)"
   ]
 }

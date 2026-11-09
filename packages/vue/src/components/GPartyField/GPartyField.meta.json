@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "status": "candidate",
-  "since": "0.1.0",
+  "status": "stable",
+  "since": "1.0.0",
   "entry": "@grana/vue/booking",
   "contract": "design/contracts/booking-bar.md",
   "decisions": "DECISIONS.md #736 a #742, #744, #745, #757, #759",
@@ -247,7 +247,6 @@
     "5 · valor fuera de [min, max]"
   ],
   "pending": [
-    "README (mora-docs)",
     "childAges reservado"
   ]
 }

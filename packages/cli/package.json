@@ -1,6 +1,6 @@
 {
   "name": "@grana/cli",
-  "version": "0.1.0-beta.0",
+  "version": "1.0.0",
   "description": "Genera y valida el tema de Grana: deriva color en OKLCH y rechaza temas que rompan los mínimos de accesibilidad.",
   "keywords": [
     "grana",

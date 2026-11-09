@@ -2,13 +2,13 @@
 
 La apertura de una página de un **sitio** (un hotel, un restaurante, un recorrido): el título, la promesa, la acción y **la foto que vende**. Garantiza tres cosas que una receta a mano suele romper: el texto **nunca** queda sobre la foto (vive en la página, en una placa opaca o en una tarjeta), la foto principal es la primera en llegar y **nada se mueve ni cambia solo** sin poder pararse. No trae color propio: el tema lo pone; `GHero` solo lee tokens. No es el encabezado de una vista de gestión (para eso, [`GPageHeader`](../GPageHeader/README.md)).
 
-**Etiquetas:** `<g-hero>` · **Estado:** `candidate` (ver [`design/lab/hero/auditoria.md`](../../../../../design/lab/hero/auditoria.md) y «Verificación») · **Desde:** 0.1.0 · **Entrada:** propia, `@grana/vue/hero` (global UMD `GranaHero`)
+**Etiquetas:** `<g-hero>` · **Estado:** `stable` (ver [`design/lab/hero/auditoria.md`](../../../../../design/lab/hero/auditoria.md) y «Verificación») · **Desde:** 1.0.0 · **Entrada:** propia, `@grana/vue/hero` (global UMD `GranaHero`)
 
 ```js
 import Hero, { GHero } from '@grana/vue/hero'   // plugin por defecto; GHero para registrarlo a mano
 ```
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (banco del componente real en `packages/vue/playground/hero.html`). Exige Vue `^3.5.0` y un navegador actual.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (banco del componente real en `packages/vue/playground/hero.html`). Exige Vue `^3.5.0` y un navegador actual.
 
 ## Instalación: entrada propia
 

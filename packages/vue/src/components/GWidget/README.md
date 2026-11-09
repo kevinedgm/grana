@@ -2,9 +2,9 @@
 
 Carcasa reutilizable de un **widget de panel**: encabezado (icono, categoría, título, subtítulo, badge y menú de acciones), cuerpo y pie. **No conoce el significado de su contenido** (métricas, listas, gráficos…): lo pones tú con slots. **Mide su propio tamaño** y elige un **nivel de detalle** (`s`, `m`, `l`); soporta seis estados sin cambiar de tamaño. Se combina con las primitivas [`GMetric`](../GMetric/README.md), [`GProgress`](../GProgress/README.md) y [`GDataList`](../GDataList/README.md) y con la rejilla [`GWidgetGrid`](../GWidgetGrid/README.md).
 
-**Etiqueta:** `<g-widget>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/widget/auditoria.md`](../../../../../design/lab/widget/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-widget>` · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/widget/auditoria.md`](../../../../../design/lab/widget/auditoria.md)) · **Desde:** 1.0.0
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`. Usa `popover` y `inert`.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`. Usa `popover` y `inert`.
 
 ## Uso
 

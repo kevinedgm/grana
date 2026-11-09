@@ -2,7 +2,7 @@
 
 Resumen de errores (patrón GOV.UK): tras un envío con errores muestra el título con la cantidad y **un enlace por pregunta** con el mismo texto que el error en línea, y recibe el foco. Al corregir, cada elemento sale en silencio. Dentro de un `GForm` lee sus errores; fuera, recibe `errors`.
 
-**Etiqueta:** `<g-error-summary>` · **Estado:** `candidate` (auditoría de coco r02 aprobada; ver [`design/lab/form/auditoria.md`](../../../../../design/lab/form/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-error-summary>` · **Estado:** `stable` (auditoría de coco r02 aprobada; ver [`design/lab/form/auditoria.md`](../../../../../design/lab/form/auditoria.md)) · **Desde:** 1.0.0
 
 > Forma parte del **sistema de formularios**. La guía completa (cuándo usar cada pieza, recetas, API, teclado, accesibilidad medida y limitaciones) está en [`GForm/README.md`](../GForm/README.md#resumen-de-errores-gerrorsummary).
 

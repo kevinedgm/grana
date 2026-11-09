@@ -2,9 +2,33 @@
 
 Todos los cambios notables de Grana se documentan en este archivo.
 
-El formato sigue [Keep a Changelog 1.1.0](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto adopta [Versionado Semántico](https://semver.org/lang/es/). Mientras la versión sea `0.x`, **la API puede cambiar entre versiones**.
+El formato sigue [Keep a Changelog 1.1.0](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto adopta [Versionado Semántico](https://semver.org/lang/es/). Desde la `1.0.0`, la API que promete cada componente `stable` solo cambia en una mayor (ver [1.0.0](#100---2026-11-09)).
 
 Los números `#NNN` remiten a [`DECISIONS.md`](DECISIONS.md), el registro de decisiones con su porqué.
+
+## [1.0.0] - 2026-11-09
+
+Primera versión estable de `@grana/vue` y `@grana/cli` (decisión #1076). La `0.1.0-beta.0` nunca se publicó: todo lo que lleva `"since"` en los `meta.json` pasa a `"1.0.0"`.
+
+### Promesa de versionado (semver)
+
+- **Romper es una `2.0`:** rutas de `exports` y la entrada en la que vive cada cosa (también extensiones, `./testing` y los globales UMD; en 1.x nada sale de una entrada y `@grana/vue/layout` queda para la 2.0), lo que declara el `meta.json` (props con tipo, valores y default, `v-model`, eventos y su payload, slots, métodos, claves de `labels`), roles ARIA, teclado y qué se envía en un formulario, la raíz `g-<tag>`, los modificadores `g-<tag>--*`, las clases `is-*`, las clases utilitarias de `utilities.json`, `data-g-zone`/`data-g-density`/`data-g-tooltip-box`/`data-theme`, los nombres de los tokens `--g-*`, las capas y su orden, los mínimos y garantías del tema, la lista de iconos, `engines` y los *peer*.
+- **Añadir es una menor; corregir para cumplir lo contratado o WCAG/APG es un parche.** Lo que se retire pasa antes por `deprecated` en el `meta.json` y se quita solo en una mayor.
+- **Fuera de la promesa:** partes `g-<tag>__*` y estructura del DOM, alias `--_*`, `data-*` internos, `__shared`, `utils/*`, slots internos, textos de avisos de desarrollo y de `labels` por defecto, valores de `defaults.css` (nunca bajo los mínimos de §7), movimiento y tiempos, topes de peso, y los estados `draft` y `candidate`.
+- **`@grana/cli`:** son públicos los comandos `theme` y `check` con sus opciones, los códigos de salida 0/1/2, las claves de configuración de `tokens.md` §1, los nombres de los tokens emitidos, los campos de `tokens.json`, los `code`/`id`/`severity` de diagnósticos y avisos (no sus mensajes), `buildTheme` y `@grana/cli/vite`. Una validación nueva entra como aviso en 1.x.
+
+### Estados
+
+- **`stable` (82 piezas con `meta.json`, 76 de ellas componentes documentados):** contrato, CSS, pruebas, `meta.json`, tipos generados, README que pasa `check-readme-props.mjs`, ficha viva en el sitio y auditoría de coco, sin defecto abierto contra un mínimo que no se rompe. Cubiertos por semver.
+- **`candidate` (`GTable`):** sigue exportado y fuera de semver; puede cambiar en una menor con una línea «Cambia (candidate)» aquí. Sube cuando el `<select>` de orden de `mode="cards"` llegue a 44 px con puntero grueso.
+- **`draft` (`GStatus`, `GStatusIsland`, `GStatusMark`):** rediseño de la isla sin auditoría de coco; sin promesa.
+- **Fuera de la 1.0:** `@grana/blocks` (privado, `0.0.0`, su *peer* pasa a `@grana/vue ^1.0.0`) y `GDocumentPreview` (sin `meta.json` ni entrada).
+
+### Cambiado
+
+- Versiones: `@grana/vue`, `@grana/cli` y el `package.json` raíz pasan de `0.1.0-beta.0` a `1.0.0`; se publicará con la etiqueta `latest`.
+- `status` de los `meta.json`: de `candidate` a `stable` salvo lo indicado; se limpian de `pending` las entregas ya hechas (auditoría de coco, README).
+- Pendiente del equipo, sin bloquear el código: `npm publish` de los dos paquetes, la etiqueta `v1.0.0` y el contacto privado de `SECURITY.md` y `CODE_OF_CONDUCT.md`.
 
 ## [Sin publicar]
 

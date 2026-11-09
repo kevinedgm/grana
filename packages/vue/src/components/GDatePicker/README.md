@@ -2,9 +2,9 @@
 
 Selector de **una fecha o de un rango de fechas**. Muestra **un mes por defecto** (dos con `months="auto"` o `months="2"`), deja saltar a otro mes o año desde el título, se abre desde un campo (popover en escritorio, hoja inferior en móvil) o vive en línea dentro de un Dialog o una página. El rango es una **franja continua** entre el inicio y el fin, y el valor es una **cadena ISO `YYYY-MM-DD`** (sin hora ni zona: no hay desfase de un día).
 
-**Etiqueta:** `<g-datepicker>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/datepicker/auditoria.md`](../../../../../design/lab/datepicker/auditoria.md) y, para la r02, [`auditoria-r02.md`](../../../../../design/lab/datepicker/auditoria-r02.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-datepicker>` · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/datepicker/auditoria.md`](../../../../../design/lab/datepicker/auditoria.md) y, para la r02, [`auditoria-r02.md`](../../../../../design/lab/datepicker/auditoria-r02.md)) · **Desde:** 1.0.0
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`. Usa `popover`, `Intl` y, para el primer día de la semana, `Intl.Locale.getWeekInfo` cuando el navegador lo trae.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`. Usa `popover`, `Intl` y, para el primer día de la semana, `Intl.Locale.getWeekInfo` cuando el navegador lo trae.
 
 ## Uso
 

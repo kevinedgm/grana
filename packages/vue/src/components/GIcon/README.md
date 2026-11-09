@@ -2,9 +2,9 @@
 
 Icono de [Lucide](https://lucide.dev) en línea: un `<svg>` de **1em** que toma el color del texto (`currentColor`), **decorativo** por defecto o **imagen con nombre** con `label`, y nunca enfocable. Dibuja los iconos que ya usan los componentes de Grana (la **lista de la librería**) y los que tu aplicación **registra** con `createIcons` importándolos de `lucide-static`. **Solo Lucide:** lo que no es Lucide (logotipos, pictogramas propios, ilustraciones) va por el slot del componente, nunca por `GIcon`.
 
-**Etiqueta:** `<g-icon>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/icons/auditoria.md`](../../../../../design/lab/icons/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-icon>` · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/icons/auditoria.md`](../../../../../design/lab/icons/auditoria.md)) · **Desde:** 1.0.0
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver la sección «Iconos» del playground en `packages/vue/playground/`). Exige Vue `^3.5.0`.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver la sección «Iconos» del playground en `packages/vue/playground/`). Exige Vue `^3.5.0`.
 
 ## Uso
 

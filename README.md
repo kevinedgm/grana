@@ -8,7 +8,7 @@ El nombre viene de la **grana cochinilla**, el insecto oaxaqueño cuyo tinte col
 
 - **Un tema nuevo no deja restos.** Los componentes solo leen variables `--g-*`, sin valores de respaldo ni colores escritos en su CSS: no queda ningún valor fijo atrás.
 - **Accesibilidad como restricción, no como extra.** Área táctil, tamaño de texto, contraste y foco tienen mínimos que no son tema: el generador de temas rechaza lo que los rompa.
-- **80 componentes documentados** (75 en estado `candidate` y 5 en `draft`, a la espera de su auditoría): formularios completos, tablas y filtros, calendario, paneles, avisos, captura de voz.
+- **80 componentes documentados** (76 en estado `stable`, 1 en `candidate` y 3 en `draft`): formularios completos, tablas y filtros, calendario, paneles, avisos, captura de voz.
 - **Personalidad propia.** Movimiento y forma con identidad, siempre con tokens, `prefers-reduced-motion` y contraste intactos (ver [Personalidad](#personalidad)).
 
 ## Qué es Grana
@@ -46,14 +46,15 @@ Grana separa las dos responsabilidades. **La librería decide la estructura**: a
 
 Para equipos que construyen **aplicaciones de uso diario**, donde la gente trabaja horas capturando, revisando y decidiendo, y que quieren un sistema coherente y accesible **con su propia identidad**. No es un kit para páginas de marketing, y no incluye router ni capa de datos: se integra con los que ya uses (por ejemplo, `RouterLink` o `NuxtLink` en los enlaces).
 
-## Estado: `0.1.0-beta`
+## Estado: `1.0.0`
 
-Esta es una **beta**. Qué significa:
+Grana sigue [Versionado Semántico](https://semver.org/lang/es/) desde la `1.0.0` (decisión #1076). Qué significa:
 
-- **La API puede cambiar** entre betas. Las decisiones de diseño están registradas en [`DECISIONS.md`](DECISIONS.md) y los contratos en [`docs/contract/`](docs/contract/) y [`design/contracts/`](design/contracts/), pero ninguno está congelado como API estable.
-- **`candidate`** es el estado de 75 de los 80 componentes (los otros cinco, `GStatus`, `GStatusIsland`, `GStatusMark`, `GPageIndex` y `GNavBar`, siguen en `draft`: construidos, sin auditoría de coco): tienen contrato, CSS, pruebas, `meta.json`, README y una auditoría del componente real con un tema distinto al por defecto, sin defectos bloqueantes, en Chromium, Firefox y WebKit.
+- **`stable`** es el estado de 76 de los 80 componentes documentados (82 de las 86 piezas con `meta.json`, contando las partes como `GAccordionItem`): tienen contrato, CSS, pruebas, `meta.json`, README, ficha viva en el sitio y una auditoría del componente real con un tema distinto al por defecto, sin defectos bloqueantes. **Semver los cubre:** romper lo que prometen (rutas de `exports`, props, eventos, slots, roles ARIA, teclado, clases `g-<tag>` y `--*`, nombres de tokens `--g-*`, capas) es una `2.0`; añadir es una menor y corregir para cumplir el contrato o WCAG es un parche. La lista exacta de lo que se promete y lo que no está en [`docs/contract/api.md`](docs/contract/api.md), «Estabilidad y versiones».
+- **`candidate`** (hoy `GTable`, por el `<select>` de orden de `mode="cards"`, que mide 30 px con puntero grueso y debe llegar a 44 px) sigue exportado pero **fuera de semver**: puede cambiar en una versión menor, con su línea en [`CHANGELOG.md`](CHANGELOG.md). **`draft`** (`GStatus`, `GStatusIsland` y `GStatusMark`, a la espera de la auditoría de coco de su rediseño) no promete nada.
+- **`@grana/blocks`** queda fuera de la 1.0: es privado, va en `0.0.0` y se publicará con su propia cadencia.
 - **Falta la verificación en entorno real:** lector de pantalla (VoiceOver, NVDA), Safari real, táctil y móvil reales, `forced-colors` real y zoom real al 200 y 400 %. Está listado en [`PENDIENTES.md`](PENDIENTES.md), sección 7. Si dependes de alguno de esos entornos, pruébalo antes de adoptar un componente.
-- **Todavía no está publicada en npm.** Se publicará como `0.1.0-beta.0` (la versión que ya llevan `@grana/vue`, `@grana/cli` y el `package.json` raíz). Mientras tanto se usa desde este repositorio (ver [Probarlo en este repositorio](#probarlo-en-este-repositorio)). Las instrucciones de instalación de abajo son las de la publicación.
+- **Publicación:** `@grana/vue` y `@grana/cli` están en `1.0.0`; se publican en npm con la etiqueta `latest` (el `npm publish` lo hace el equipo; hasta entonces se usa desde este repositorio, ver [Probarlo en este repositorio](#probarlo-en-este-repositorio)). Las instrucciones de instalación de abajo son las de la publicación.
 
 ## Instalación
 
@@ -272,7 +273,7 @@ Reglas y límites: [`docs/contract/tokens.md` §15](docs/contract/tokens.md). Ve
 
 ## Componentes
 
-Salvo cinco en **`draft`** (`GStatus`, `GStatusIsland`, `GStatusMark`, `GPageIndex` y `GNavBar`), todos están en **`candidate`**: ver [Estado](#estado-010-beta). «Propia» indica que se importa de su entrada propia ([Entradas propias](#entradas-propias)). El enlace lleva al README del componente, con su API completa, teclado, accesibilidad medida y límites.
+Salvo `GTable` (**`candidate`**) y tres en **`draft`** (`GStatus`, `GStatusIsland` y `GStatusMark`), todos están en **`stable`**: ver [Estado](#estado-100). «Propia» indica que se importa de su entrada propia ([Entradas propias](#entradas-propias)). El enlace lleva al README del componente, con su API completa, teclado, accesibilidad medida y límites.
 
 ### Estructura de página
 

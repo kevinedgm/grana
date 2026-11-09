@@ -2,9 +2,9 @@
 
 Campo para **un número que se escribe** (edad, peso, temperatura, porcentaje, cantidad): texto con forma de número que se escribe libre, se lee en el formato del idioma y, si lo pides, se ajusta con −/+ o con las flechas. El modelo es un `Number` o `null`, **nunca una cadena**, y el envío lleva el valor canónico (`72.5`), no el texto visible («72,5»). Compone [`GInput`](../GInput/README.md): etiqueta, caja, prefijo y sufijo, valor calculado (`output`), ayuda, mensajes, marcas y contexto de `GForm` son los de `GInput`.
 
-**Etiqueta:** `<g-number-field>` · **Estado:** `candidate` (auditoría de coco aprobada, sin defectos bloqueantes; ver [`design/lab/number-field/auditoria.md`](../../../../../design/lab/number-field/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-number-field>` · **Estado:** `stable` (auditoría de coco aprobada, sin defectos bloqueantes; ver [`design/lab/number-field/auditoria.md`](../../../../../design/lab/number-field/auditoria.md)) · **Desde:** 1.0.0
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GNumberField` y los signos vitales de «Alta de paciente»). Exige Vue `^3.5.0` (usa `useId`).
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GNumberField` y los signos vitales de «Alta de paciente»). Exige Vue `^3.5.0` (usa `useId`).
 
 ## Uso
 

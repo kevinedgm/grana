@@ -2,9 +2,9 @@
 
 La **región cuyo contenido llega tarde**: envuelve la plantilla de tu aplicación (una lista, un grupo de teselas, una ficha) y se ocupa de **cuándo** se ve la espera, **cuánto** se queda, **qué** se anuncia, **qué pasa con el foco** y de que **la página no se mueva**. En la primera carga la espera **es la propia plantilla sin tinta** (el molde) y la tinta llega a su sitio sin que nada se desplace. Al refrescar, **nada se borra**: lo de antes sigue a la vista, inerte, con un filo y «Actualizando»; lo nuevo llega marcado; y si el refresco falla, **lo conocido se queda**. No pide datos (sin `fetch`): le dices si carga (`loading`), qué hay (`items`) y si falló (`error`). Todo texto visible o accesible lo pones tú en `labels`.
 
-**Etiqueta:** `<g-load-region>` · **Estado:** `candidate` (ver [`design/lab/empty-skeleton/auditoria.md`](../../../../../design/lab/empty-skeleton/auditoria.md) y «Verificación») · **Desde:** 0.1.0 · **Entrada:** propia, `@grana/vue/load-region` (global UMD `GranaLoadRegion`)
+**Etiqueta:** `<g-load-region>` · **Estado:** `stable` (ver [`design/lab/empty-skeleton/auditoria.md`](../../../../../design/lab/empty-skeleton/auditoria.md) y «Verificación») · **Desde:** 1.0.0 · **Entrada:** propia, `@grana/vue/load-region` (global UMD `GranaLoadRegion`)
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GLoadRegion y GEmpty`, `#sec-load-region`). Exige Vue `^3.5.0` y un navegador actual.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GLoadRegion y GEmpty`, `#sec-load-region`). Exige Vue `^3.5.0` y un navegador actual.
 
 ## Instalación: entrada propia
 

@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "name": "GSlider",
   "tag": "g-slider",
-  "status": "candidate",
-  "since": "0.1.0",
+  "status": "stable",
+  "since": "1.0.0",
   "description": "Deslizador de un valor acotado donde manda la posición relativa (volumen, intensidad del dolor, una edad aproximada) o de un rango de dos extremos (precio mínimo y máximo). Forma B «El valor es el asa»: la cifra vive dentro de la píldora que se arrastra. Modelo Number o null («sin elegir») o, con range, [inicio, fin]; nunca una cadena.",
   "contract": "design/contracts/slider.md",
   "decisions": [
@@ -349,8 +349,6 @@
     "Sin vertical (orientation reservado) ni volver a «sin elegir» desde la interfaz (clearable reservado)"
   ],
   "pending": [
-    "Auditoría de coco con un tema distinto (paso 5): design/lab/slider/auditoria.md",
-    "README (mora-docs) tras la auditoría",
     "Lector de pantalla, táctil, IME y forced-colors reales (entorno real)"
   ]
 }

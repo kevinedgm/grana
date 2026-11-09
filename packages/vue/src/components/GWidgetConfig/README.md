@@ -2,9 +2,9 @@
 
 **Carcasa del panel de configuración de un widget**: una **hoja lateral modal** (sobre [`GDialog`](../GDialog/README.md), `placement="end"`) con vista previa en vivo, pestañas, resumen de errores, «Restablecer», «Cancelar» y «Aplicar», y confirmación al descartar cambios. **El contenido de cada pestaña lo pones tú** (Datos, Estilo, Ajustes…) y **la validación también**: Grana no conoce las opciones de cada widget.
 
-**Etiqueta:** `<g-widget-config>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/widget/auditoria-2.md`](../../../../../design/lab/widget/auditoria-2.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-widget-config>` · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/widget/auditoria-2.md`](../../../../../design/lab/widget/auditoria-2.md)) · **Desde:** 1.0.0
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`. Usa `<dialog>` e `inert`.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`. Usa `<dialog>` e `inert`.
 
 ## Uso
 

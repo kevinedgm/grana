@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "name": "GAccordionItem",
   "tag": "g-accordion-item",
-  "status": "candidate",
-  "since": "0.1.0",
+  "status": "stable",
+  "since": "1.0.0",
   "description": "Elemento de GAccordion; suelto (sin grupo), sección plegable de una pieza con v-model:open (APG Disclosure con encabezado). hN > button con título y meta dentro, avance (A) debajo en la misma celda que el contenido, acciones fuera del hN. Contenido montado siempre (salvo lazy), plegado y asentado con hidden=\"until-found\".",
   "contract": "design/contracts/accordion.md",
   "prototype": "design/lab/accordion/r01/",
@@ -210,10 +210,6 @@
     "8 · dentro de un GForm con controles de formulario en su contenido (al montar y al montarse un lazy, #486)",
     "9 · su id está repetido en el documento",
     "10 · en un grupo con v-model, sin value ni id"
-  ],
-  "pending": [
-    "Auditoría de coco sobre el componente real (design/lab/accordion/auditoria.md)",
-    "README (mora-docs) tras la auditoría"
   ],
   "weight": {
     "main": "Medido junto con GAccordion (GAccordion.meta.json «weight»)"

@@ -2,9 +2,9 @@
 
 Grupo de casillas con modelo de arreglo, **casilla maestra** ("seleccionar todas") derivada de las hijas y **conteo** anunciado en una región viva. Las hijas son [`GCheckbox`](../GCheckbox/README.md) con `value`.
 
-**Etiqueta:** `<g-checkbox-group>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/checkbox/auditoria.md`](../../../../../design/lab/checkbox/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-checkbox-group>` · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/checkbox/auditoria.md`](../../../../../design/lab/checkbox/auditoria.md)) · **Desde:** 1.0.0
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`.
 
 ## Uso
 

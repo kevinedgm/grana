@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "name": "GToaster",
   "tag": "g-toaster",
-  "status": "candidate",
-  "since": "0.1.0",
+  "status": "stable",
+  "since": "1.0.0",
   "description": "Avisos breves y no modales como servicio imperativo: la aplicación crea su gestor (createToaster, también plugin de Vue), lo usa con useToast() y monta una región <GToaster />. Región viva única y permanente (dos canales vivos fuera de la lista), nunca roba el foco (F8 va y vuelve, Esc cierra el aviso enfocado sin cerrar el diálogo anfitrión), tiempo pausable con resto conservado, cola FIFO con el error adelantado, deduplicación por id y por contenido, promesa, traslado al <dialog> modal superior y SSR sin DOM.",
   "contract": "design/contracts/toast.md",
   "prototype": "design/lab/toast/r01/",
@@ -71,7 +71,6 @@
     "MOBILE_SPACES": "130 (visor < --g-space-1 × 130)"
   },
   "pending": [
-    "Auditoría de coco (paso 5) con un tema distinto al por defecto; status candidate lo pone coco",
     "Lector de pantalla real (VoiceOver, NVDA, JAWS, TalkBack): lectura tras vaciar y reescribir el canal, interrupción del alert, que el traslado al modal no repita ni pierda anuncios, retardos de escritura (50 ms) y vaciado (5 s), duplicación con el cursor virtual",
     "Los GBtn del aviso no llevan loadingText, así que no pintan g-btn__status (#257, sustituye a #149): la lista no tiene ninguna región viva",
     "Táctil real (inercia, gesto «atrás» del sistema en los bordes), teclado virtual, varios modales apilados, un GMenu abierto sobre un aviso, rendimiento del MutationObserver en apps grandes, 2.4.12 en general"

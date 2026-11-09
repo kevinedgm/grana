@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "name": "GSection",
   "tag": "g-section",
-  "status": "candidate",
-  "since": "0.1.0",
+  "status": "stable",
+  "since": "1.0.0",
   "description": "Región de página con encabezado (h2 a h4), descripción y acciones: el nivel lo pone el documento por anidación y el tamaño del título la profundidad; sin superficie, plegado ni pegado. Región con nombre solo con landmark.",
   "contract": "design/contracts/section.md",
   "prototype": "design/lab/app-shell/r01/",
@@ -99,7 +99,6 @@
     "default"
   ],
   "pending": [
-    "Auditoría de coco con un tema distinto (status draft hasta entonces)",
     "Lector de pantalla real: esquema de encabezados y regiones",
     "Lectura de sectionKey por GCard, GFormSection y GDialog: fuera de v1 (L14)"
   ]

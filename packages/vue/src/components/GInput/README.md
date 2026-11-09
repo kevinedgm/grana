@@ -2,9 +2,9 @@
 
 Campo de texto de una línea, completo: etiqueta, ayuda, mensaje de error, iconos, contador y, en contraseñas, botón para mostrar u ocultar. Con el slot `action`, un botón (`GBtn`) queda acoplado al final del campo.
 
-**Etiqueta:** `<g-input>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/input/auditoria.md`](../../../../../design/lab/input/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-input>` · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/input/auditoria.md`](../../../../../design/lab/input/auditoria.md)) · **Desde:** 1.0.0
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0` (usa `useId`).
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0` (usa `useId`).
 
 ## Uso
 

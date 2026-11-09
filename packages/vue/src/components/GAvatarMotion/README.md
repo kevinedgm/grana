@@ -2,9 +2,9 @@
 
 Avatar ilustrado que **responde a estados**: tú dices qué está ocurriendo (`state`) y el avatar elige cómo moverse. Sirve para dar personalidad a una ayuda contextual o a un asistente, dentro de un control (el disparador de [`GHelper`](../GHelper/README.md)) o como ilustración suelta. **No es interactivo y no es un icono.**
 
-**Etiqueta:** `<g-avatar-motion>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/avatar-motion/auditoria.md`](../../../../../design/lab/avatar-motion/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-avatar-motion>` · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/avatar-motion/auditoria.md`](../../../../../design/lab/avatar-motion/auditoria.md)) · **Desde:** 1.0.0
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`.
 
 ## Uso
 

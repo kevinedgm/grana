@@ -2,13 +2,13 @@
 
 Dos regiones **lado a lado con una proporción** cuando caben y **una debajo de otra** cuando no, en el orden del DOM y solo con CSS. Es la pieza para **un panel con varios controles junto a otra cosa**: el panel de compra junto a las fotos, el resumen junto a las líneas del carrito, el pedido junto al formulario de pago, lo elegido junto al calendario. El umbral no lo dice el visor sino **el ancho mínimo del lado estrecho** (`collapse`), que además **sigue al texto**. **No pinta caja ni color** (lo pone el tema) y no mide nada con JavaScript.
 
-**Etiqueta:** `<g-split>` · **Estado:** `candidate` (auditoría de coco aprobada, 2241/2241; ver [`design/lab/split/auditoria.md`](../../../../../design/lab/split/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-split>` · **Estado:** `stable` (auditoría de coco aprobada, 2241/2241; ver [`design/lab/split/auditoria.md`](../../../../../design/lab/split/auditoria.md)) · **Desde:** 1.0.0
 
 ```js
 import { GSplit } from '@grana/vue'
 ```
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio. Exige Vue `^3.5.0`.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio. Exige Vue `^3.5.0`.
 
 > **Los umbrales de este README son del tema por defecto** (`space` 4, cuerpo de 16 px). Con otro `space` o un cuerpo mayor se recalculan con la fórmula de «Cuándo va al lado»: con un cuerpo de 17 px la pareja se apila antes.
 

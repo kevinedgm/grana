@@ -2,9 +2,9 @@
 
 Indicador de avance para procesos de **pasos discretos y conocidos**: formularios de varios pasos, onboarding, checkout, asistentes o flujos de aprobación. Responde tres preguntas de un vistazo: **dónde estoy, qué ya hice y qué falta**. Una sola lógica de pasos se dibuja en horizontal o vertical, con número, punto, icono, segmento o línea, y se transforma en un resumen compacto cuando el contenedor es estrecho.
 
-**Etiqueta:** `<g-stepper>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/stepper/auditoria.md`](../../../../../design/lab/stepper/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-stepper>` · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/stepper/auditoria.md`](../../../../../design/lab/stepper/auditoria.md)) · **Desde:** 1.0.0
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`.
 
 > **No es una barra de progreso continuo** (porcentaje o indeterminado): ese es otro componente, todavía por diseñar (DECISIONS.md #97).
 

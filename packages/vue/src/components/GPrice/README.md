@@ -4,13 +4,13 @@
 
 El campo para **capturar** un importe no es un componente nuevo: es [`GNumberField`](../GNumberField/README.md#moneda-currency) con `currency`.
 
-**Etiquetas:** `<g-price>` y `<g-price-scope>` · **Estado:** `candidate` (ver [`design/lab/price/auditoria.md`](../../../../../design/lab/price/auditoria.md) y «Verificación») · **Desde:** 0.1.0 · **Entrada:** propia, `@grana/vue/price` (global UMD `GranaPrice`)
+**Etiquetas:** `<g-price>` y `<g-price-scope>` · **Estado:** `stable` (ver [`design/lab/price/auditoria.md`](../../../../../design/lab/price/auditoria.md) y «Verificación») · **Desde:** 1.0.0 · **Entrada:** propia, `@grana/vue/price` (global UMD `GranaPrice`)
 
 ```js
 import Price, { GPrice, GPriceScope, formatPrice, currencyDigits } from '@grana/vue/price'
 ```
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (banco del componente real en `packages/vue/playground/price.html`). Exige Vue `^3.5.0` y un navegador actual.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (banco del componente real en `packages/vue/playground/price.html`). Exige Vue `^3.5.0` y un navegador actual.
 
 ## Instalación: entrada propia
 

@@ -2,9 +2,9 @@
 
 Ayuda contextual asociada a una región de la interfaz: un **disparador** (en el flujo del layout o flotando sobre un borde de la región) que abre un **contenido libre**: texto, acciones, un formulario o un asistente. `GHelper` no asume qué es ese contenido.
 
-**Etiqueta:** `<g-helper>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/helper/auditoria.md`](../../../../../design/lab/helper/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-helper>` · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/helper/auditoria.md`](../../../../../design/lab/helper/auditoria.md)) · **Desde:** 1.0.0
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0` y un navegador con la API `popover` y `<dialog>`: los actuales.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0` y un navegador con la API `popover` y `<dialog>`: los actuales.
 
 ## Uso
 

@@ -2,9 +2,9 @@
 
 La **cara de una persona o de una entidad** (organización, equipo, espacio) en una caja de lado fijo. Muestra, por orden, una **imagen**, unas **iniciales** o un **icono**, y la caja **nunca cambia** al pasar de uno a otro: cargar o fallar una foto no mueve nada (medido: 0px). Es **decorativo** por defecto (el nombre casi siempre está escrito al lado); con `label` es una imagen con nombre. **Nunca es interactivo**, no lleva estado de presencia (esa es una `GBadge` anclada) y no tiene slots ni eventos. El color es neutro, fijo (`color`) o derivado de forma estable del nombre o de un id (`categories`).
 
-**Etiqueta:** `<g-avatar>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/avatar/auditoria.md`](../../../../../design/lab/avatar/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-avatar>` · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/avatar/auditoria.md`](../../../../../design/lab/avatar/auditoria.md)) · **Desde:** 1.0.0
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GAvatar`). Exige Vue `^3.5.0`. El icono de respaldo y el `icon` usan Lucide (`GIcon`); el color por categorías necesita que tu tema declare `categories` (ver «Color»).
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GAvatar`). Exige Vue `^3.5.0`. El icono de respaldo y el `icon` usan Lucide (`GIcon`); el color por categorías necesita que tu tema declare `categories` (ver «Color»).
 
 ## Uso
 

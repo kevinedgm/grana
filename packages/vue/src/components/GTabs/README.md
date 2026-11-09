@@ -2,9 +2,9 @@
 
 Pestañas para navegar **entre vistas del mismo nivel dentro de una misma vista** (patrón *Tabs* de APG): cuatro apariencias (`underline`, `pill`, `segmented`, `contained`) por dos orientaciones, una marca que se desliza, activación automática o manual, desbordamiento por scroll, flechas o menú «Más», solo icono según el espacio, contador, insignia y estados (`loading`, `attention`). Los paneles pueden ir integrados, ser perezosos o vivir en otra parte del árbol con `GTabPanel`.
 
-**Etiquetas:** `<g-tabs>` y `<g-tab-panel>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/tabs/auditoria.md`](../../../../../design/lab/tabs/auditoria.md)) · **Desde:** 0.1.0
+**Etiquetas:** `<g-tabs>` y `<g-tab-panel>` · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/tabs/auditoria.md`](../../../../../design/lab/tabs/auditoria.md)) · **Desde:** 1.0.0
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`; el menú «Más» usa la API `popover`.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`; el menú «Más» usa la API `popover`.
 
 > **No es navegación entre páginas ni un árbol.** No se anidan: un `GTabs` dentro del panel de otro avisa en desarrollo. Para pasos de un proceso usa `GStepper`.
 

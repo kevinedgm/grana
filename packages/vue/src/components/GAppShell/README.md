@@ -2,13 +2,13 @@
 
 Chasis de aplicación: reparte el visor entre la cabecera, la navegación (`GSidebar`), la región principal y el pie, con sus puntos de referencia y su enlace de salto. Reserva el sitio de la navegación **leyendo su forma por CSS** y escribe **una sola vez** la cifra de la cabecera para todo lo que se pega debajo. **No navega, no pide datos, no abre el menú del drawer por su cuenta, no trae color propio** (lo pone el tema).
 
-**Etiqueta:** `<g-app-shell>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/app-shell/auditoria.md`](../../../../../design/lab/app-shell/auditoria.md)) · **Entrada propia:** `@grana/vue/app-shell` (global UMD `GranaAppShell`) · **Desde:** 0.1.0
+**Etiqueta:** `<g-app-shell>` · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/app-shell/auditoria.md`](../../../../../design/lab/app-shell/auditoria.md)) · **Entrada propia:** `@grana/vue/app-shell` (global UMD `GranaAppShell`) · **Desde:** 1.0.0
 
 ```js
 import GranaAppShell from '@grana/vue/app-shell'
 ```
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio. Exige Vue `^3.5.0`.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio. Exige Vue `^3.5.0`.
 
 > **Un solo chasis por documento, y no dentro de un `<dialog>`.** Dos chasis duplican el `main` (aviso 2); dentro de un diálogo no publica bordes ni escribe la cifra (aviso 7). El chasis ocupa el visor: se usa en la raíz de la aplicación, no en un trozo de página.
 

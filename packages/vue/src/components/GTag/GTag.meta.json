@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "name": "GTag",
   "tag": "g-tag",
-  "status": "candidate",
-  "since": "0.1.0",
+  "status": "stable",
+  "since": "1.0.0",
   "description": "Un elemento de un conjunto que clasifica o resume una elección: se lee, se quita, se alterna (aria-pressed) o se sigue (enlace). Neutro o de categoría, nunca semántico (para el estado de otra cosa, GBadge). No es un campo: no se envía ni se registra en GForm. Suelta, una etiqueta quitable solo emite remove; la huella y el foco los da GTagGroup.",
   "contract": "design/contracts/tag.md",
   "decisions": ["#460", "#461", "#462", "#464", "#465", "#466", "#469", "#470", "#471", "#472", "#505"],
@@ -109,7 +109,6 @@
     "browser": "design/lab/theme-playground/tests/tag.spec.mjs y personalidad-tag.spec.mjs (Chromium, Firefox, WebKit, sobre packages/vue/playground #sec-tag)"
   },
   "pending": [
-    "README (mora-docs)",
     "Lectores de pantalla reales (VoiceOver, NVDA), táctil real y forced-colors real"
   ]
 }

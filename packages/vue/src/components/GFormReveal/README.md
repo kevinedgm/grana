@@ -4,9 +4,9 @@ Un **bloque de campos que existe solo si una respuesta lo pide**: «¿Requiere f
 
 Es una pieza del [sistema de formularios](../GForm/README.md) (Fase 3). Fuera de `GForm` también funciona; solo falta la parte del registro.
 
-**Etiqueta:** `<g-form-reveal>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/form-reveal/auditoria.md`](../../../../../design/lab/form-reveal/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-form-reveal>` · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/form-reveal/auditoria.md`](../../../../../design/lab/form-reveal/auditoria.md)) · **Desde:** 1.0.0
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (playground en `packages/vue/playground/`, sección «Formularios (GForm)», panel «Bloque condicional (GFormReveal)»).
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (playground en `packages/vue/playground/`, sección «Formularios (GForm)», panel «Bloque condicional (GFormReveal)»).
 
 > **En plantillas dentro del HTML** (sin compilar), Vue no admite etiquetas de componente autocerradas: escribe `<g-form-reveal ...></g-form-reveal>`.
 

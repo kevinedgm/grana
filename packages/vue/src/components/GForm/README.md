@@ -6,9 +6,9 @@ Capa de **composición** sobre los campos de Grana (`GInput`, `GTextarea`, `GSel
 
 Este es el README principal del sistema. Cada pieza tiene un README breve que remite aquí.
 
-**Etiquetas:** `<g-form>`, `<g-form-section>`, `<g-form-layout>`, `<g-form-row>`, `<g-input-group>` (+ `<g-input-group-input>`, `<g-input-group-select>`, `<g-input-group-text>`), `<g-field-group>`, `<g-form-actions>`, `<g-error-summary>` · **Estado:** `candidate` (revisión r02; auditoría de coco aprobada, ver [`design/lab/form/auditoria.md`](../../../../../design/lab/form/auditoria.md)) · **Desde:** 0.1.0
+**Etiquetas:** `<g-form>`, `<g-form-section>`, `<g-form-layout>`, `<g-form-row>`, `<g-input-group>` (+ `<g-input-group-input>`, `<g-input-group-select>`, `<g-input-group-text>`), `<g-field-group>`, `<g-form-actions>`, `<g-error-summary>` · **Estado:** `stable` (revisión r02; auditoría de coco aprobada, ver [`design/lab/form/auditoria.md`](../../../../../design/lab/form/auditoria.md)) · **Desde:** 1.0.0
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (playground en `packages/vue/playground/`, sección «Formularios (GForm)», con un banco de anchos, mensajes, etiquetas largas y densidad).
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (playground en `packages/vue/playground/`, sección «Formularios (GForm)», con un banco de anchos, mensajes, etiquetas largas y densidad).
 
 ## Uso
 

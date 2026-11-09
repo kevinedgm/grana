@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "name": "GDatePicker",
   "tag": "g-datepicker",
-  "status": "candidate",
-  "since": "0.1.0",
+  "status": "stable",
+  "since": "1.0.0",
   "description": "Selector de una fecha o de un rango (valor ISO YYYY-MM-DD): un mes por defecto (dos con months=\"auto\" si caben, o months=2), salto a mes y año desde el título (A · Zoom de escala), campo(s) con popover u hoja inferior en móvil, o solo la superficie en línea. Franja de rango continua que sigue fuera de lo visible, proximidad ± N días, superficie compacta con density, teclado APG y textos por labels.",
   "contract": "design/contracts/datepicker.md",
   "prototype": [
@@ -445,7 +445,6 @@
     "Hoja móvil con teclado virtual y deslizamiento en táctil real",
     "Franja del rango tenue (1.14:1 con el tema por defecto, 1.22:1 con el de prueba): decisión pendiente (ver auditoria.md)",
     "Escribir la fecha a mano (fuera de v0.1)",
-    "Auditoría de coco de la r02 (design/lab/datepicker/auditoria-r02.md); status vuelve a candidate tras ella",
     "Lector de pantalla real en el título con dos botones, el nodo vivo y las rejillas de meses y años"
   ],
   "formSystem": {

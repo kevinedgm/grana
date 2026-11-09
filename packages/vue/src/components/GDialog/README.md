@@ -2,11 +2,11 @@
 
 Diálogo modal genérico con una **carcasa** exterior y una **superficie inset** interior: el contenido queda alojado dentro de la carcasa, a poca distancia de su borde y con radio concéntrico, como una sola pieza ensamblada. Sirve de base para formularios, confirmaciones, detalles, configuraciones, vistas previas y recorridos con pasos; no conoce ningún caso concreto.
 
-**Etiqueta:** `<g-dialog>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/dialog/auditoria.md`](../../../../../design/lab/dialog/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-dialog>` · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/dialog/auditoria.md`](../../../../../design/lab/dialog/auditoria.md)) · **Desde:** 1.0.0
 
-**Etiqueta:** `<g-dialog-step>` (pasos) · **Estado:** `candidate` (reauditoría de coco aprobada en los tres motores; ver [`design/lab/dialog/auditoria-pasos.md`](../../../../../design/lab/dialog/auditoria-pasos.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-dialog-step>` (pasos) · **Estado:** `stable` (reauditoría de coco aprobada en los tres motores; ver [`design/lab/dialog/auditoria-pasos.md`](../../../../../design/lab/dialog/auditoria-pasos.md)) · **Desde:** 1.0.0
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0` y un navegador con `<dialog>` (`showModal()`), `::backdrop` que herede variables y `:has()`: los actuales.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0` y un navegador con `<dialog>` (`showModal()`), `::backdrop` que herede variables y `:has()`: los actuales.
 
 ## Uso
 

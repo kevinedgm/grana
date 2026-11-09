@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "status": "candidate",
-  "since": "0.1.0",
+  "status": "stable",
+  "since": "1.0.0",
   "entry": "@grana/vue/booking",
   "contract": "design/contracts/booking-bar.md",
   "decisions": "DECISIONS.md #736 a #742, #744, #745, #757, #759",
@@ -242,7 +242,6 @@
     "9 · appearance=\"guided\" (reservada)"
   ],
   "pending": [
-    "README (mora-docs)",
     "Lector real con la frase en modo lectura, móvil real (teclado virtual sobre la hoja), otros idiomas en la frase"
   ]
 }

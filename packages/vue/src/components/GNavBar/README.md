@@ -2,13 +2,13 @@
 
 Barra superior de navegación de un sitio: los enlaces a sus secciones con la actual marcada por la ruta, y un sitio para las acciones globales de la aplicación (búsqueda, idioma, tema). En estrecho recoge las acciones en «…» y, en un teléfono, todo en una pantalla de menú. **No busca, no cambia el idioma ni el tema, no lee `location` y no trae color propio**: aloja los controles de tu aplicación y la ruta actual te la das tú.
 
-**Etiqueta:** `<g-nav-bar>` · **Estado:** `candidate` (auditado por coco sobre el sitio construido, ver «Verificación») · **Entrada propia:** `@grana/vue/nav-bar` (global UMD `GranaNavBar`) · **Desde:** 0.1.0
+**Etiqueta:** `<g-nav-bar>` · **Estado:** `stable` (auditado por coco sobre el sitio construido, ver «Verificación») · **Entrada propia:** `@grana/vue/nav-bar` (global UMD `GranaNavBar`) · **Desde:** 1.0.0
 
 ```js
 import GranaNavBar from '@grana/vue/nav-bar'   // plugin; también: import { GNavBar } from '@grana/vue/nav-bar'
 ```
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio. Exige Vue `^3.5.0`.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio. Exige Vue `^3.5.0`.
 
 > **Barra superior de un sitio, no barra inferior de una aplicación.** La barra inferior del teléfono con píldora activa es [`GSidebar`](../GSidebar/README.md) con `mode="navbar"`. En una misma página no se recomiendan las dos: serían dos navegaciones globales.
 

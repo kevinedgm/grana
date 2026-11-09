@@ -2,9 +2,9 @@
 
 Secciones plegables de contenido: preguntas frecuentes, paneles de detalles, ajustes que se aplican al momento. `GAccordion` es el **grupo** y `GAccordionItem` su **elemento**; el elemento también se usa **suelto**, sin grupo, como una sección plegable de una pieza («Ver condiciones»). No tiene cajas: el encabezado cerrado **enseña la primera línea de la respuesta** y, al abrir, esa línea no se mueve y el resto se desenrolla debajo. Lo plegado **se encuentra** con Ctrl+F, **se enlaza** con `#id` y **se imprime** abierto. El componente no tiene textos propios (no hay `labels`): título, dato corto y avance son tuyos.
 
-**Etiquetas:** `<g-accordion>` y `<g-accordion-item>` · **Estado:** `candidate` (auditoría de coco aprobada, sin defectos bloqueantes; ver [`design/lab/accordion/auditoria.md`](../../../../../design/lab/accordion/auditoria.md)) · **Desde:** 0.1.0 · **Entrada:** principal, `@grana/vue`
+**Etiquetas:** `<g-accordion>` y `<g-accordion-item>` · **Estado:** `stable` (auditoría de coco aprobada, sin defectos bloqueantes; ver [`design/lab/accordion/auditoria.md`](../../../../../design/lab/accordion/auditoria.md)) · **Desde:** 1.0.0 · **Entrada:** principal, `@grana/vue`
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GAccordion`, `#sec-accordion`). Exige Vue `^3.5.0` (usa `useId`) y un navegador actual.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GAccordion`, `#sec-accordion`). Exige Vue `^3.5.0` (usa `useId`) y un navegador actual.
 
 ## Instalación: paquete principal
 

@@ -2,9 +2,9 @@
 
 Campo para **elegir una opción de un catálogo grande escribiendo**: un paciente entre miles, un diagnóstico CIE-10, un medicamento, un cliente, una colonia. Sigue el patrón *combobox with list autocomplete* de WAI-ARIA sobre [`GInput`](../GInput/README.md): etiqueta, caja, ayuda, mensajes, marcas y contexto de `GForm` son los de `GInput`. **Grana no pide datos:** el componente emite `search`, `more` y `create`, y tu aplicación entrega `options`, `loading`, `total` y `loadError`. El modelo es el `value` de la opción elegida y, si lo permites, un texto libre aparte. Con **`multiple`** (Fase 2) elige **varias**: el modelo pasa a ser un arreglo de `value`, junto a un arreglo de textos libres. Todo lo de **varias opciones** está en su propia sección, [Selección múltiple](#selección-múltiple-multiple-fase-2); lo que sigue, hasta ella, describe una sola opción.
 
-**Etiqueta:** `<g-combobox>` · **Estado:** `candidate` (auditoría de coco aprobada, sin defectos bloqueantes; ver [`design/lab/combobox/auditoria.md`](../../../../../design/lab/combobox/auditoria.md) y, para `multiple`, [`auditoria-multiple.md`](../../../../../design/lab/combobox/auditoria-multiple.md)) · **Desde:** 0.1.0 · **Entrada:** propia, `@grana/vue/combobox` (global UMD `GranaCombobox`)
+**Etiqueta:** `<g-combobox>` · **Estado:** `stable` (auditoría de coco aprobada, sin defectos bloqueantes; ver [`design/lab/combobox/auditoria.md`](../../../../../design/lab/combobox/auditoria.md) y, para `multiple`, [`auditoria-multiple.md`](../../../../../design/lab/combobox/auditoria-multiple.md)) · **Desde:** 1.0.0 · **Entrada:** propia, `@grana/vue/combobox` (global UMD `GranaCombobox`)
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GCombobox`, con un servidor simulado, y «Alta de paciente»). Exige Vue `^3.5.0` (usa `useId`) y un navegador actual: `popover`, `@starting-style` y `<dialog>`.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GCombobox`, con un servidor simulado, y «Alta de paciente»). Exige Vue `^3.5.0` (usa `useId`) y un navegador actual: `popover`, `@starting-style` y `<dialog>`.
 
 ## Instalación: entrada propia
 
@@ -478,7 +478,7 @@ Admitido como hijo de una fila con más de un hijo (raíz de `GInput`, tres hijo
 
 `multiple` es un **modo del mismo componente** y de la misma entrada (`@grana/vue/combobox`): no hay otra etiqueta ni otro paquete. Con `multiple`, **esta sección manda** sobre lo que el resto del README diga del modelo, el envío, la ficha del valor, el teclado, los textos y los anuncios. Lo que aquí no se nombra **sigue como en una sola opción**: los datos sin `fetch` (`filter`, `search`, `more`, búsqueda pendiente, `loading`, `loadError`, «Mostrar más»), el texto fantasma y su aceptación con →, la forma única de A, la superficie sobre `GDialog`, las fichas de `GSummary`, los paneles estables, `--g-form-min`, `aria-required`, la región viva propia y la composición IME.
 
-Estado: `candidate`, con auditoría de coco sin defectos bloqueantes ([`design/lab/combobox/auditoria-multiple.md`](../../../../../design/lab/combobox/auditoria-multiple.md)). Contrato: [`design/contracts/combobox.md`](../../../../../design/contracts/combobox.md), «Fase 2 · Selección múltiple» (DECISIONS #417 a #430). Se puede ver en el playground, sección `GCombobox · multiple` (`#sec-combobox-multiple`); con `?cm=A`, `?cm=B` o `?cm=C` en la dirección, todos sus casos toman ese concepto.
+Estado: `stable`, con auditoría de coco sin defectos bloqueantes ([`design/lab/combobox/auditoria-multiple.md`](../../../../../design/lab/combobox/auditoria-multiple.md)). Contrato: [`design/contracts/combobox.md`](../../../../../design/contracts/combobox.md), «Fase 2 · Selección múltiple» (DECISIONS #417 a #430). Se puede ver en el playground, sección `GCombobox · multiple` (`#sec-combobox-multiple`); con `?cm=A`, `?cm=B` o `?cm=C` en la dirección, todos sus casos toman ese concepto.
 
 ### Cuándo usarlo
 

@@ -2,13 +2,13 @@
 
 Pila de un eje con la escala de separación de Grana: `sm` «va con lo anterior», `md` «lo siguiente», `lg` «otro tema». **Sin superficie, sin envoltorio por hijo y sin poder romper el reflujo**: en línea siempre se parte, y es la **única** fuente de aire entre sus hijos. Es el ritmo de bloque que `GContainer` deja fuera. **No pinta color** (lo pone el tema).
 
-**Etiqueta:** `<g-stack>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/stack/auditoria.md`](../../../../../design/lab/stack/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-stack>` · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/stack/auditoria.md`](../../../../../design/lab/stack/auditoria.md)) · **Desde:** 1.0.0
 
 ```js
 import { GStack } from '@grana/vue'
 ```
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio. Exige Vue `^3.5.0`.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio. Exige Vue `^3.5.0`.
 
 > **La pila no distribuye campos ni reparte por tamaño.** Los campos de un formulario van en `GFormLayout` + `GFormRow`; repartir hijos en líneas por su tamaño es de `GAdaptiveLayout`. Ver «Cuándo usarla».
 

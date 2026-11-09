@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "name": "GEmpty",
   "tag": "g-empty",
-  "status": "candidate",
-  "since": "0.1.0",
+  "status": "stable",
+  "since": "1.0.0",
   "description": "El vacío con causa: lo que una región enseña cuando no tiene nada que enseñar, diciendo por qué y cómo salir. A «el primer hueco» (un elemento en el sitio y del tamaño del primero que llegará; dentro de una GLoadRegion lee su --_load-slot) y B «la salida con cuentas» (cause=\"filtered\" con filters: cuántas había, qué filtro quitar y cuántas vuelven, de más a menos).",
   "contract": "design/contracts/empty.md",
   "decisions": [
@@ -156,7 +156,6 @@
   "focus": "Nunca toma el foco (sin tabindex). Al desmontarse con el foco dentro de una GLoadRegion, avisa a la región para que lo recoja (#534); suelto, la aplicación decide.",
   "attrs": "Los atributos van a la raíz <div>.",
   "pending": [
-    "README (mora-docs)",
     "Lector de pantalla real",
     "cause=\"done\" y appearance=\"phrase\" reservados (#543)"
   ],

@@ -4,9 +4,9 @@ Dictado a un campo y grabación de conversaciones con **transcripción provision
 
 Es un **servicio imperativo**, como `GToast`: creas un gestor (`createSpeech`), lo instalas como plugin, montas **un** `<GSpeechHost />` y colocas disparadores (`<GSpeechTrigger>`) junto a los campos; si quieres, una pill en la cabecera (`<GSpeechPill>`). Desde la **Fase 2**, la conversación se **revisa** con [`GTranscript`](../GTranscript/README.md) (corregir, hablantes y roles, deshacer) y lo revisado se **inserta** en los campos de tu formulario (destinos).
 
-**Etiquetas:** `<g-speech-host>` (anfitrión) · `<g-speech-trigger>` (disparador) · `<g-speech-pill>` (pill colocable) · **Entrada:** `@grana/vue/speech` (no viaja en `@grana/vue`) · **Estado:** `candidate` (auditorías de coco aprobadas: [Fase 1](../../../../../design/lab/speech/auditoria.md) y [Fase 2](../../../../../design/lab/speech/auditoria-f2.md)) · **Desde:** 0.1.0 · **Fases:** 1 y 2 de 3
+**Etiquetas:** `<g-speech-host>` (anfitrión) · `<g-speech-trigger>` (disparador) · `<g-speech-pill>` (pill colocable) · **Entrada:** `@grana/vue/speech` (no viaja en `@grana/vue`) · **Estado:** `stable` (auditorías de coco aprobadas: [Fase 1](../../../../../design/lab/speech/auditoria.md) y [Fase 2](../../../../../design/lab/speech/auditoria-f2.md)) · **Desde:** 1.0.0 · **Fases:** 1 y 2 de 3
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (playground en `packages/vue/playground/`, sección «Captura de voz», con el adaptador simulado; `?speech=self` simula también el micrófono). Exige Vue `^3.5.0` y un contexto seguro (`https` o `localhost`) para el micrófono.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (playground en `packages/vue/playground/`, sección «Captura de voz», con el adaptador simulado; `?speech=self` simula también el micrófono). Exige Vue `^3.5.0` y un contexto seguro (`https` o `localhost`) para el micrófono.
 
 ## Privacidad primero
 

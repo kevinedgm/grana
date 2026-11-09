@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "status": "candidate",
-  "since": "0.1.0",
+  "status": "stable",
+  "since": "1.0.0",
   "entry": "@grana/vue/gallery",
   "contract": "design/contracts/gallery.md",
   "decisions": "DECISIONS.md #730 a #735, #742, #744, #758, #759",
@@ -171,7 +171,6 @@
     "9 · index fuera de rango"
   ],
   "pending": [
-    "README (mora-docs)",
     "Gesto táctil real, pellizco del sistema y lector real"
   ]
 }

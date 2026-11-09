@@ -2,7 +2,7 @@
 
 Campo fusionado: **un dato en varias partes que se lee como uno** (teléfono país + número, valor + unidad elegible, moneda + importe, serie + folio, rango). Una caja, una etiqueta, un mensaje; cada parte con su foco y su nombre accesible. Partes: `GInputGroupInput`, `GInputGroupSelect` (`<select>` nativo, autocompletable) y `GInputGroupText`.
 
-**Etiqueta:** `<g-input-group>` · **Estado:** `candidate` (auditoría de coco r02 aprobada; ver [`design/lab/form/auditoria.md`](../../../../../design/lab/form/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-input-group>` · **Estado:** `stable` (auditoría de coco r02 aprobada; ver [`design/lab/form/auditoria.md`](../../../../../design/lab/form/auditoria.md)) · **Desde:** 1.0.0
 
 > Forma parte del **sistema de formularios**. La guía completa (cuándo usar cada pieza, recetas, API, teclado, accesibilidad medida y limitaciones) está en [`GForm/README.md`](../GForm/README.md#campos-fusionados-ginputgroup).
 

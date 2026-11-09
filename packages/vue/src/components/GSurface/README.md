@@ -2,9 +2,9 @@
 
 Superficie visual genérica sobre la que vive cualquier contenido: sección, grupo de formulario, tarjeta, popover, carcasa de diálogo o zona incrustada. **No tiene significado funcional ni estructura:** es la base del lenguaje de profundidad de Grana, para que todas las superficies compartan fondo, borde, radio y sombra en lugar de que cada componente los decida.
 
-**Etiqueta:** `<g-surface>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/surface/auditoria.md`](../../../../../design/lab/surface/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-surface>` · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/surface/auditoria.md`](../../../../../design/lab/surface/auditoria.md)) · **Desde:** 1.0.0
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`.
 
 ## Uso
 

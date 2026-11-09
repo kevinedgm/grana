@@ -2,9 +2,9 @@
 
 El **nombre visible** de un control que solo tiene icono (un `GBtn icon` en una barra, las acciones de una fila o de una tarjeta) y, en segundo lugar, la **descripción corta** y el **atajo** de un control que ya tiene nombre. Aparece al pasar el puntero, al llegar al control navegando con el teclado y con la pulsación larga en táctil. Es texto: no se pulsa, no se enfoca y no contiene enlaces ni botones. Lo que contiene ya está en el nombre o la descripción del control (referencias ARIA desde el montaje); el tooltip nunca se anuncia por su cuenta.
 
-**Etiqueta:** `<g-tooltip>` · **Estado:** `candidate` (auditoría de coco aprobada, sin defectos bloqueantes; ver [`design/lab/tooltip/auditoria.md`](../../../../../design/lab/tooltip/auditoria.md)) · **Desde:** 0.1.0 · **Entrada:** el paquete principal `@grana/vue` (global UMD `Grana`)
+**Etiqueta:** `<g-tooltip>` · **Estado:** `stable` (auditoría de coco aprobada, sin defectos bloqueantes; ver [`design/lab/tooltip/auditoria.md`](../../../../../design/lab/tooltip/auditoria.md)) · **Desde:** 1.0.0 · **Entrada:** el paquete principal `@grana/vue` (global UMD `Grana`)
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GTooltip`, `#sec-tooltip`). Exige Vue `^3.5.0` (usa `useId`) y un navegador actual con `popover` (`popover="manual"`).
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GTooltip`, `#sec-tooltip`). Exige Vue `^3.5.0` (usa `useId`) y un navegador actual con `popover` (`popover="manual"`).
 
 ## Registro
 

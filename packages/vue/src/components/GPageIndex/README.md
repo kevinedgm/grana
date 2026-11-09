@@ -2,13 +2,13 @@
 
 Índice de **las secciones de la página que estás leyendo**, con la sección actual siguiendo la lectura. En su forma `relay` es un botón de menú que dice dónde estás («En esta página · API») y que, al abrirlo, lista las secciones como un [`GMenu`](../GMenu/README.md) de enlaces; en su forma `list` es la columna clásica «En esta página», con la actual sobre una línea guía. Al elegir una, el navegador sigue el `#id` y el foco llega a la sección. Las secciones son un dato de tu aplicación (`items`); el componente no lee los títulos del documento, no navega por su cuenta más allá del `href` y todo texto lo pones tú en `label` y `labels`.
 
-**Etiqueta:** `<g-page-index>` · **Estado:** `candidate` (auditado por coco sobre el sitio construido, ver «Verificación») · **Desde:** 0.1.0 · **Entrada:** propia, `@grana/vue/page-index`
+**Etiqueta:** `<g-page-index>` · **Estado:** `stable` (auditado por coco sobre el sitio construido, ver «Verificación») · **Desde:** 1.0.0 · **Entrada:** propia, `@grana/vue/page-index`
 
 ```js
 import GranaPageIndex from '@grana/vue/page-index'   // plugin; también: import { GPageIndex } from '@grana/vue/page-index'
 ```
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (banco `packages/vue/playground/page-index.html`). Exige Vue `^3.5.0`.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (banco `packages/vue/playground/page-index.html`). Exige Vue `^3.5.0`.
 
 ## En esta página
 

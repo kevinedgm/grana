@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "name": "GStack",
   "tag": "g-stack",
-  "status": "candidate",
-  "since": "0.1.0",
+  "status": "stable",
+  "since": "1.0.0",
   "description": "Pila de un eje con la escala de separación de Grana (sm, md, lg como relación sobre la base de página), sin superficie y sin poder romper el reflujo: en línea siempre se parte y es la única fuente de aire entre sus hijos.",
   "contract": "design/contracts/stack.md",
   "prototype": "design/lab/app-shell/r01/",
@@ -100,7 +100,6 @@
     "default"
   ],
   "pending": [
-    "Auditoría de coco con un tema distinto (status draft hasta entonces)",
     "Un hijo oculto con una clase de la aplicación (display: none) sigue contando para divided: límite conocido, no detectable en CSS"
   ]
 }

@@ -2,9 +2,9 @@
 
 Una **pregunta con una sola respuesta** (Sí/No, sexo, modalidad de consulta, tipo de sangre, frecuencia) con **radios nativos** (`<input type="radio">`) de `name` común. Cinco apariencias (`list`, `inline`, `segmented`, `chip`, `card`) que cambian la **forma**, no la semántica; todas exponen un `role="radiogroup"` con nombre visible. El navegador hace el trabajo: estado, teclado, envío y agrupación son los del radio nativo.
 
-**Etiqueta:** `<g-radio-group>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/radio-group/auditoria.md`](../../../../../design/lab/radio-group/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-radio-group>` · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/radio-group/auditoria.md`](../../../../../design/lab/radio-group/auditoria.md)) · **Desde:** 1.0.0
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GRadioGroup`). Exige Vue `^3.5.0`.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GRadioGroup`). Exige Vue `^3.5.0`.
 
 > **No es un radio suelto.** No hay `GRadio` en v0.1 (el nombre está reservado): un radio solo no se puede desmarcar y no tiene sentido. La lista de opciones **es** el orden, así que no hay hijas que registrar (a diferencia de `GCheckboxGroup`).
 

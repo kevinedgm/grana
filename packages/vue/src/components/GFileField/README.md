@@ -2,9 +2,9 @@
 
 Campo para **adjuntar archivos a un formulario**: la receta escaneada, las fotos de una lesión, el comprobante de domicilio, los estudios de un expediente que ya tiene adjuntos. Se elige con el diálogo del sistema, se arrastra o se pega. **Grana no hace red:** la subida es un adaptador de tu aplicación (`uploader`) y, sin adaptador, los archivos viajan con el envío nativo. Etiqueta, pie, mensajes, marcas y contexto de [`GForm`](../GForm/README.md) son los de [`GInput`](../GInput/README.md); la caja mide lo mismo que la de un `GInput` y comparte fila con él en una [`GFormRow`](../GFormRow/README.md).
 
-**Etiqueta:** `<g-file-field>` · **Estado:** `candidate` (auditoría de coco aprobada, sin defectos bloqueantes; ver [`design/lab/file-field/auditoria.md`](../../../../../design/lab/file-field/auditoria.md)) · **Desde:** 0.1.0 · **Entrada:** propia, `@grana/vue/file-field` (global UMD `GranaFileField`)
+**Etiqueta:** `<g-file-field>` · **Estado:** `stable` (auditoría de coco aprobada, sin defectos bloqueantes; ver [`design/lab/file-field/auditoria.md`](../../../../../design/lab/file-field/auditoria.md)) · **Desde:** 1.0.0 · **Entrada:** propia, `@grana/vue/file-field` (global UMD `GranaFileField`)
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GFileField`, `#sec-file-field`, con el adaptador simulado). Exige Vue `^3.5.0` (usa `useId`) y un navegador actual: `DataTransfer` construible (para reescribir `input.files`) y `:has()`.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GFileField`, `#sec-file-field`, con el adaptador simulado). Exige Vue `^3.5.0` (usa `useId`) y un navegador actual: `DataTransfer` construible (para reescribir `input.files`) y `:has()`.
 
 ## Instalación: entrada propia
 

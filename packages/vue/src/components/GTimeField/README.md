@@ -2,9 +2,9 @@
 
 Campo para **una hora del reloj**: la de una cita, una toma de medicamento, el inicio de un turno. Se **escribe como se dice** («930», «9h30», «9.30p», «9 noche»), la hora **vuelve en palabras** pegada al número («9:30 · de la noche») y, cuando lo escrito puede ser de mañana o de noche, **ofrece la otra lectura a un toque**. El valor es una cadena `"HH:mm"` (o `"HH:mm:ss"`) o `null`: una hora de pared, sin fecha ni zona. Etiqueta, caja, prefijo y sufijo, pie, mensajes, marcas y contexto de [`GForm`](../GForm/README.md) son los de [`GInput`](../GInput/README.md), que compone; la caja mide lo mismo que la de un `GInput` y comparte fila con él en una [`GFormRow`](../GFormRow/README.md).
 
-**Etiqueta:** `<g-time-field>` · **Estado:** `candidate` (auditoría de coco aprobada, sin defectos bloqueantes; ver [`design/lab/time-field/auditoria.md`](../../../../../design/lab/time-field/auditoria.md)) · **Desde:** 0.1.0 · **Entrada:** propia, `@grana/vue/time-field` (global UMD `GranaTimeField`)
+**Etiqueta:** `<g-time-field>` · **Estado:** `stable` (auditoría de coco aprobada, sin defectos bloqueantes; ver [`design/lab/time-field/auditoria.md`](../../../../../design/lab/time-field/auditoria.md)) · **Desde:** 1.0.0 · **Entrada:** propia, `@grana/vue/time-field` (global UMD `GranaTimeField`)
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GTimeField`, `#sec-time`). Exige Vue `^3.5.0` (usa `useId`) y un navegador actual con `Intl.DateTimeFormat` y su opción `dayPeriod` (las franjas del día en palabras salen de ahí; con un idioma sin franja, el campo muestra solo la hora).
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GTimeField`, `#sec-time`). Exige Vue `^3.5.0` (usa `useId`) y un navegador actual con `Intl.DateTimeFormat` y su opción `dayPeriod` (las franjas del día en palabras salen de ahí; con un idioma sin franja, el campo muestra solo la hora).
 
 ## Instalación: entrada propia
 

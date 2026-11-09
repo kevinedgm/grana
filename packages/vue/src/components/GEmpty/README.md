@@ -2,9 +2,9 @@
 
 El **vacío con causa**: lo que una región enseña cuando no tiene nada que enseñar, diciendo **por qué** y **cómo salir**. No es un póster con ilustración centrado en media pantalla: ocupa el sitio y el tamaño de **un elemento** (el primero que llegará) y su texto lo escribes tú. Hay cuatro causas (`none`, `filtered`, `error`, `forbidden`); cuando la causa es un filtro, el vacío dice **cuántas había, qué filtro quitar y cuántas vuelven con cada uno**. Es contenido de flujo (sin `role`, sin región viva, sin foco propio): lo anuncia quien lo contiene, sobre todo [`GLoadRegion`](../GLoadRegion/README.md). Todo texto visible o accesible lo pones tú, en `title`, `description` y `labels`.
 
-**Etiqueta:** `<g-empty>` · **Estado:** `candidate` (ver [`design/lab/empty-skeleton/auditoria.md`](../../../../../design/lab/empty-skeleton/auditoria.md) y «Verificación») · **Desde:** 0.1.0 · **Entrada:** principal, `@grana/vue`
+**Etiqueta:** `<g-empty>` · **Estado:** `stable` (ver [`design/lab/empty-skeleton/auditoria.md`](../../../../../design/lab/empty-skeleton/auditoria.md) y «Verificación») · **Desde:** 1.0.0 · **Entrada:** principal, `@grana/vue`
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GLoadRegion y GEmpty`, `#sec-load-region`). Exige Vue `^3.5.0` y un navegador actual.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GLoadRegion y GEmpty`, `#sec-load-region`). Exige Vue `^3.5.0` y un navegador actual.
 
 ## Instalación: paquete principal
 

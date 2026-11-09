@@ -4,9 +4,9 @@ El **resumen de una entidad** (persona, paciente, diagnóstico, cliente, product
 
 No es una tarjeta: no tiene superficie, selección, enlace ni media. Es **contenido de frase** (`span`) que vive dentro de una opción, un campo, una celda, una tarjeta o un panel. No tiene eventos, teclado ni foco propios.
 
-**Etiqueta:** `<g-summary>` · **Estado:** `candidate` (auditoría de coco aprobada, sin defectos bloqueantes; ver [`design/lab/summary/auditoria.md`](../../../../../design/lab/summary/auditoria.md)) · **Desde:** 0.1.0 · **Entrada:** paquete principal `@grana/vue`
+**Etiqueta:** `<g-summary>` · **Estado:** `stable` (auditoría de coco aprobada, sin defectos bloqueantes; ver [`design/lab/summary/auditoria.md`](../../../../../design/lab/summary/auditoria.md)) · **Desde:** 1.0.0 · **Entrada:** paquete principal `@grana/vue`
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GSummary`, y el banco `summary.html`). Exige Vue `^3.5.0` y un navegador actual: la ficha usa la unidad `lh` y `:has()`.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GSummary`, y el banco `summary.html`). Exige Vue `^3.5.0` y un navegador actual: la ficha usa la unidad `lh` y `:has()`.
 
 ## Qué la hace distinta: prioridad líquida
 

@@ -2,9 +2,9 @@
 
 Deslizador para **un valor acotado donde manda la posición** (el volumen de los avisos, la intensidad del dolor de 0 a 10, una edad aproximada) o para **un rango de dos extremos** (el precio mínimo y máximo de un filtro). El asa **es** el valor: una píldora con la cifra dentro, siempre a la vista y del ancho de su texto más largo. El modelo es un `Number` o `null` («sin elegir») o, con `range`, un arreglo `[inicio, fin]`; **nunca una cadena**. Etiqueta, ayuda, mensajes, marcas y contexto de [`GForm`](../GForm/README.md) siguen las reglas de [`GInput`](../GInput/README.md), y el área mide lo que la caja de un `GInput` `md`, así que comparte fila con él en una [`GFormRow`](../GFormRow/README.md).
 
-**Etiqueta:** `<g-slider>` · **Estado:** `candidate` (auditoría de coco aprobada, sin defectos bloqueantes; ver [`design/lab/slider/auditoria.md`](../../../../../design/lab/slider/auditoria.md)) · **Desde:** 0.1.0 · **Entrada:** propia, `@grana/vue/slider` (global UMD `GranaSlider`)
+**Etiqueta:** `<g-slider>` · **Estado:** `stable` (auditoría de coco aprobada, sin defectos bloqueantes; ver [`design/lab/slider/auditoria.md`](../../../../../design/lab/slider/auditoria.md)) · **Desde:** 1.0.0 · **Entrada:** propia, `@grana/vue/slider` (global UMD `GranaSlider`)
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GSlider`, `#sec-slider`). Exige Vue `^3.5.0` (usa `useId`) y un navegador actual.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GSlider`, `#sec-slider`). Exige Vue `^3.5.0` (usa `useId`) y un navegador actual.
 
 ## Instalación: entrada propia
 

@@ -2,9 +2,9 @@
 
 Botón flotante con acciones para **crear o capturar desde cualquier sitio**: un círculo con icono en un borde del visor (o de un contenedor) que, al abrirse, despliega sus acciones con icono y etiqueta siempre visibles. Es un **botón de menú** (APG *Menu Button* + *Menu*) que comparte el motor de teclado de [`GMenu`](../GMenu/README.md) y suma lo que solo tiene algo flotante: sitio en el borde con área segura, convivencia con la voz, el muelle de [`GPageHeader`](../GPageHeader/README.md) y los avisos, confirmación de lo peligroso en la misma fila, acuse en el propio botón y una sola activación por gesto. **No trae color propio** (el relleno es la acción principal del tema), **no pide datos** (sin `fetch`) y **no trae textos**: todo texto visible o accesible lo pones tú.
 
-**Etiqueta:** `<g-fab>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/fab/auditoria.md`](../../../../../design/lab/fab/auditoria.md)) · **Desde:** 0.1.0 · **Entrada:** propia, `@grana/vue/fab` (global UMD `GranaFab`)
+**Etiqueta:** `<g-fab>` · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/fab/auditoria.md`](../../../../../design/lab/fab/auditoria.md)) · **Desde:** 1.0.0 · **Entrada:** propia, `@grana/vue/fab` (global UMD `GranaFab`)
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GFab`, `#sec-fab`). Exige Vue `^3.5.0` y un navegador actual.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GFab`, `#sec-fab`). Exige Vue `^3.5.0` y un navegador actual.
 
 > **Una sola forma por defecto, una opción.** **A · «La pila que crece»** (por defecto): salen del botón las acciones que caben, la más usada pegada a él. **C · «Acción con cola»** (prop `main`): el botón es la acción principal, con su nombre visible, y una cola abre el resto. La forma **B · «Arco con gesto»** está reservada (`appearance="arc"`, ver [Alcance](#alcance)).
 

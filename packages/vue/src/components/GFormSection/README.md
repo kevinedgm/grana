@@ -12,7 +12,7 @@ Tiene **tres modos** (`mode`):
 
 Además, el encabezado puede ir **al lado** del cuerpo según el ancho propio de la sección (`headerPlacement="auto"`) y la sección puede dibujar una **línea** con la anterior (`divider`).
 
-**Etiqueta:** `<g-form-section>` · **Estado:** `candidate` (la Fase 1 con la auditoría r02 de [`design/lab/form/auditoria.md`](../../../../../design/lab/form/auditoria.md); la Fase 3, plegable, agregable, al lado y con línea, con la de [`design/lab/form-section/auditoria.md`](../../../../../design/lab/form-section/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-form-section>` · **Estado:** `stable` (la Fase 1 con la auditoría r02 de [`design/lab/form/auditoria.md`](../../../../../design/lab/form/auditoria.md); la Fase 3, plegable, agregable, al lado y con línea, con la de [`design/lab/form-section/auditoria.md`](../../../../../design/lab/form-section/auditoria.md)) · **Desde:** 1.0.0
 
 > Forma parte del **sistema de formularios**. La guía completa (cuándo usar cada pieza, recetas, API, teclado, accesibilidad medida y limitaciones) está en [`GForm/README.md`](../GForm/README.md#secciones-gformsection). `@grana/vue` está en la versión 0.0.0 y aún no se publica: por ahora se usa desde el repositorio (playground, «Alta de paciente» `#fm-medium` y el marco `#fx-frame`).
 

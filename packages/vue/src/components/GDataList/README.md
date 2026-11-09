@@ -2,7 +2,7 @@
 
 Primitiva de widget: una **lista compacta de pares etiqueta–valor**. Con `swatches` sirve de **leyenda** de un gráfico. Sirve dentro de [`GWidget`](../GWidget/README.md), pero funciona en cualquier sitio.
 
-**Etiqueta:** `<g-data-list>` · **Estado:** `candidate` · **Desde:** 0.1.0
+**Etiqueta:** `<g-data-list>` · **Estado:** `stable` · **Desde:** 1.0.0
 
 ```vue
 <g-data-list swatches label="Por canal" :rows="[

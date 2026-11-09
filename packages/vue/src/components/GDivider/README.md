@@ -2,9 +2,9 @@
 
 Línea de separación **entre grupos de contenido tuyos**, para cuando el espacio por sí solo no basta: horizontal entre bloques apilados, vertical entre grupos de acciones de una fila, con un texto corto centrado («O bien», «Ayer»), acortada por un inset que define la anfitriona, sutil o fuerte, y decorativa cuando un encabezado ya marca la separación. Es deliberadamente simple: no tiene estados, ni movimiento, ni densidad, ni márgenes propios, y nunca es enfocable.
 
-**Etiqueta:** `<g-divider>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/divider/auditoria.md`](../../../../../design/lab/divider/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-divider>` · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/divider/auditoria.md`](../../../../../design/lab/divider/auditoria.md)) · **Desde:** 1.0.0
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección «GDivider»). Exige Vue `^3.5.0`.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección «GDivider»). Exige Vue `^3.5.0`.
 
 > **Regla de uso: no sustituye al espacio.** Si dos secciones ya quedan claramente separadas por título + espacio, no hace falta una línea. Usa `GDivider` cuando la separación necesita una marca más (un cambio de tema entre párrafos, dos grupos de acciones en una barra, «O bien» entre dos formas de entrar), no por instinto entre cada bloque. El componente no lo puede imponer: es una guía.
 

@@ -2,9 +2,9 @@
 
 Fila de tarjetas de métrica que filtran la región de debajo (casi siempre una `GTable`): «Pendientes 8 · Vencidas 4 · Pagadas 10 · En disputa 2». Pulsar una tarjeta filtra; pulsarla otra vez quita el filtro. **`GCardGroup` no dibuja tarjetas**: coordina las `GCard` hijas y les da lo que una tarjeta sola no puede tener: exclusividad (o varias con `multiple`), una sola parada de Tab y la cifra en la descripción del botón. **No es para valores de formulario**: si siempre tiene que haber una tarjeta elegida, usa `GCard selectType="radio"` con un `role="radiogroup"` tuyo o `GRadioGroup appearance="card"`.
 
-**Etiqueta:** `<g-card-group>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/card-group/auditoria.md`](../../../../../design/lab/card-group/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-card-group>` · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/card-group/auditoria.md`](../../../../../design/lab/card-group/auditoria.md)) · **Desde:** 1.0.0
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`.
 
 > **La lengüeta exige la región filtrada justo debajo.** Con el slot `panel`, las tarjetas se apoyan en el marco del panel y un puente visual une la pulsada al marco. Sin el slot `panel`, el grupo es una rejilla. Si entre las tarjetas y la tabla va algo más (un título, botones), no uses el slot `panel` y une el modelo con un `computed` (ver [Receta con la tabla](#receta-con-la-tabla)).
 

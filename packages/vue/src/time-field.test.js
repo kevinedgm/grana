@@ -66,7 +66,7 @@ describe('@grana/vue/time-field · entrada propia (#400)', () => {
   it('meta.json: status, entrada y peso gzip anotado', () => {
     const meta = JSON.parse(readFileSync(resolve(SRC, 'components/GTimeField/GTimeField.meta.json'), 'utf8'))
     expect(meta.name).toBe('GTimeField')
-    expect(['draft', 'candidate']).toContain(meta.status)
+    expect(['draft', 'candidate', 'stable']).toContain(meta.status)
     expect(meta.entry).toBe('@grana/vue/time-field')
     expect(meta.bundle.gzip).toBeGreaterThan(0)
   })

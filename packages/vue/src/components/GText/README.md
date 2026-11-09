@@ -2,13 +2,13 @@
 
 Texto suelto con la tipografía del tema: el rol (`body`, `body-sm`, `caption`), el color (`default` o `muted`) y **una pausa por tamaño entre sus bloques**, sin añadir aire hacia fuera. Es para el texto que no cabe en una prop de componente: la cita y su pie, la garantía bajo una llamada a la acción, el legal de un boletín, la dirección de un pie, los párrafos de una respuesta. **No pinta caja ni color propio** (lo pone el tema) y, sin contenido, **no deja elemento**.
 
-**Etiqueta:** `<g-text>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/text/auditoria.md`](../../../../../design/lab/text/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-text>` · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/text/auditoria.md`](../../../../../design/lab/text/auditoria.md)) · **Desde:** 1.0.0
 
 ```js
 import { GText } from '@grana/vue'
 ```
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio. Exige Vue `^3.5.0`.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio. Exige Vue `^3.5.0`.
 
 > **Un bloque dentro de `p`, `span` o `small` es HTML no válido.** Si tu texto lleva párrafos, listas o citas dentro, usa `as="div"`. Ver «Recetas y límites».
 

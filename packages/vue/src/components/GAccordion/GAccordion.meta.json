@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "name": "GAccordion",
   "tag": "g-accordion",
-  "status": "candidate",
-  "since": "0.1.0",
+  "status": "stable",
+  "since": "1.0.0",
   "description": "Grupo de secciones plegables de contenido (preguntas frecuentes, detalles, ajustes que se aplican al momento). Forma A «Avance» (#475): sin cajas, el encabezado cerrado enseña una línea de la respuesta que no se mueve al abrir; el encabezado que toca el usuario no se mueve (Δ0); lo plegado se encuentra (hidden=\"until-found\"), se enlaza (#id) y se imprime. Encabezado pegado opcional (sticky). APG Accordion: hN > button por elemento, Tab por todos los encabezados y flechas opcionales.",
   "contract": "design/contracts/accordion.md",
   "prototype": "design/lab/accordion/r01/",
@@ -137,8 +137,6 @@
     "main": "GAccordion + GAccordionItem + utils/collapse.js: +5,7 KB gzip -9 en grana.js (184 424 → 190 270 B), +5,0 KB en grana.umd.js (162 896 → 168 054 B) y +1,5 KB en grana.css (71 966 → 73 528 B); medido el 2026-10-08 en el mismo árbol. Bajo el tope de 8 KB (#476): va en el paquete principal"
   },
   "pending": [
-    "Auditoría de coco sobre el componente real (design/lab/accordion/auditoria.md)",
-    "README (mora-docs) tras la auditoría",
     "Lector de pantalla real sobre region y su regla, el avance por describedby y la navegación por encabezados"
   ],
   "warnings": [

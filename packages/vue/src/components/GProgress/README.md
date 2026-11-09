@@ -2,7 +2,7 @@
 
 Primitiva de widget: una **barra de progreso** con nombre, valor y texto propios. Sirve dentro de [`GWidget`](../GWidget/README.md), pero funciona en cualquier sitio.
 
-**Etiqueta:** `<g-progress>` · **Estado:** `candidate` · **Desde:** 0.1.0
+**Etiqueta:** `<g-progress>` · **Estado:** `stable` · **Desde:** 1.0.0
 
 ```vue
 <g-progress :value="72" label="Meta mensual" value-text="72 %" color="success" />

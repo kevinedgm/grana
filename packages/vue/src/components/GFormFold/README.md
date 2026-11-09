@@ -2,9 +2,9 @@
 
 Pliegue para crear lo que falta en su sitio: un formulario propio que se abre debajo del campo que lo pide, con su título, su propósito y su propio confirmar. Sus campos no viajan en el envío de fuera; abierto, bloquea ese envío con el mensaje de `labels.pending`.
 
-**Etiqueta:** `<g-form-fold>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/form-fold/auditoria.md`](../../../../../design/lab/form-fold/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-form-fold>` · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/form-fold/auditoria.md`](../../../../../design/lab/form-fold/auditoria.md)) · **Desde:** 1.0.0
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio. Exige Vue `^3.5.0`.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio. Exige Vue `^3.5.0`.
 
 > **Dentro de un `GDialog` con pasos.** `GFormFold` vive dentro de un `GDialogStep` (o directamente en un `GDialog`): es el contenedor del formulario de cada paso. Usarlo fuera de ese contexto es válido, pero su caso principal es completar un dato —crear una opción que no está en el catálogo— sin salir del formulario que se llena.
 

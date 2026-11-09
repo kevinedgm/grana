@@ -2,9 +2,9 @@
 
 Migas de pan: dicen **dónde está la página dentro de una jerarquía** y dejan **subir a cualquier nivel** (Inicio · Laboratorio central · Muestras · 2026 · Lote 2026-0412 · Muestra M-0007). Donde tu aplicación lo sabe, dejan además **moverse de lado** (del lote 0412 al 0413) sin subir y volver a bajar. La ruta es un dato de tu aplicación (`items`); el componente no conoce ningún router, no pide datos y no navega por su cuenta más allá del `href`: emite `navigate` con el evento nativo cancelable. Todo destino es un `<a href>` de verdad (pestaña nueva, URL al pasar, clic central), y todo texto lo pones tú en `labels` y en los datos.
 
-**Etiqueta:** `<g-breadcrumbs>` · **Estado:** `candidate` (auditoría de coco aprobada, sin defectos bloqueantes; ver [`design/lab/breadcrumbs/auditoria.md`](../../../../../design/lab/breadcrumbs/auditoria.md)) · **Desde:** 0.1.0 · **Entrada:** principal, `@grana/vue`
+**Etiqueta:** `<g-breadcrumbs>` · **Estado:** `stable` (auditoría de coco aprobada, sin defectos bloqueantes; ver [`design/lab/breadcrumbs/auditoria.md`](../../../../../design/lab/breadcrumbs/auditoria.md)) · **Desde:** 1.0.0 · **Entrada:** principal, `@grana/vue`
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GBreadcrumbs`, `#sec-breadcrumbs`). Exige Vue `^3.5.0` (usa `useId`) y un navegador actual.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`, sección `GBreadcrumbs`, `#sec-breadcrumbs`). Exige Vue `^3.5.0` (usa `useId`) y un navegador actual.
 
 ## Instalación: paquete principal
 

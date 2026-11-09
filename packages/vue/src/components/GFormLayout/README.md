@@ -2,7 +2,7 @@
 
 Pila vertical de filas de un formulario: cada hijo directo (una `GFormRow`, un campo suelto, un `GFieldGroup`, casillas, interruptores) ocupa el ancho entero, separado por `--g-form-gap`. No mide nada; provee `block`, densidad y `stack` a lo que contiene. Sustituye a `GFormGrid` (Fase 1).
 
-**Etiqueta:** `<g-form-layout>` · **Estado:** `candidate` (auditoría de coco r02 aprobada; ver [`design/lab/form/auditoria.md`](../../../../../design/lab/form/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-form-layout>` · **Estado:** `stable` (auditoría de coco r02 aprobada; ver [`design/lab/form/auditoria.md`](../../../../../design/lab/form/auditoria.md)) · **Desde:** 1.0.0
 
 > Forma parte del **sistema de formularios**. La guía completa (cuándo usar cada pieza, recetas, API, teclado, accesibilidad medida y limitaciones) está en [`GForm/README.md`](../GForm/README.md#guía-de-distribución).
 

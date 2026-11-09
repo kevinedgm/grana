@@ -45,7 +45,7 @@ export const SUB = [
 // window.__router (true por defecto): navigate cancela (router simulado). window.__open: estado abierto por menú.
 export async function mountLinks(page, { dir = 'ltr', labels = LABELS, theme = null, scheme = 'light' } = {}) {
   await page.context().route(/example\.org/, (r) => r.fulfill({ status: 200, contentType: 'text/html', body: '<title>externo</title>' }))
-  await page.goto(PAGE)
+  await page.goto(PAGE + '?lat=3600000')
   await page.waitForSelector('.g-btn', { timeout: 60_000 })
   await page.evaluate(async ({ dir, labels, account, file, sub, theme, scheme }) => {
     document.documentElement.dataset.theme = scheme

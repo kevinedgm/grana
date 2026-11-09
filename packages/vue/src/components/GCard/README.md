@@ -2,9 +2,9 @@
 
 Superficie de contenido **contenida** con regiones opcionales que se combinan: media, encabezado (icono o avatar, eyebrow, título, subtítulo, insignia, menú), contenido libre, aviso de estado, vacío, metadata, región secundaria, acciones y pie. Sirve para resumir, representar una entidad, mostrar una métrica, ofrecer una acción o abrir una vista de detalle. **No impone qué contiene:** las doce composiciones del brief (básica, contenido, media, entidad, perfil, métrica, estado, interactiva, seleccionable, horizontal, acción, inset) son el mismo `GCard` con otras props y slots.
 
-**Etiqueta:** `<g-card>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/card/auditoria.md`](../../../../../design/lab/card/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-card>` · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/card/auditoria.md`](../../../../../design/lab/card/auditoria.md)) · **Desde:** 1.0.0
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`; el menú de acciones usa la API `popover`.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`; el menú de acciones usa la API `popover`.
 
 > **La tarjeta nunca es el control.** La acción principal es un `<a>`, un `<button>` o un `<label>` real **dentro del título** que se «estira» para cubrir toda la tarjeta; el resto de controles van por encima y no la activan. Por eso una tarjeta admite varias acciones sin romper la accesibilidad (WCAG 4.1.2), y por eso **no se puede seleccionar texto con el puntero** en una tarjeta navegable.
 

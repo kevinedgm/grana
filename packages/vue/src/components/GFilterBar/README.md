@@ -2,7 +2,7 @@
 
 Filtros **no fijos** al estilo Stripe: el usuario **descubre** qué puede filtrar (chips sugeridos y «Agregar filtro»), **define** una regla y un valor en un editor y **lee** el resultado como un chip («Total mayor que $3,000 ×»). Produce un **modelo de datos** (`filters`) que tú aplicas o envías a tu servidor. La usa [`GTable`](../GTable/README.md) y funciona sola.
 
-**Etiqueta:** `<g-filter-bar>` · **Estado:** `candidate` (ver [`design/lab/table/auditoria.md`](../../../../../design/lab/table/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-filter-bar>` · **Estado:** `stable` (ver [`design/lab/table/auditoria.md`](../../../../../design/lab/table/auditoria.md)) · **Desde:** 1.0.0
 
 ## Uso
 

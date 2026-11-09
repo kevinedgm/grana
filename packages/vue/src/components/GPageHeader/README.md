@@ -2,9 +2,9 @@
 
 Encabezado de página pegado con zócalo y muelle: dónde estoy (ruta), qué es (`h1`, antetítulo, descripción, estado), qué puedo hacer (acciones) y qué secciones tiene (pestañas). Al desplazar, el encabezado entero se hunde bajo el borde hasta que solo asoma el zócalo; en estrecho y pegado, las acciones bajan a un muelle en la zona del pulgar con `--g-ease-spring`. **No navega, no pide datos, no mueve el foco por su cuenta.**
 
-**Etiqueta:** `<g-page-header>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/page-header/auditoria.md`](../../../../../design/lab/page-header/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-page-header>` · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/page-header/auditoria.md`](../../../../../design/lab/page-header/auditoria.md)) · **Desde:** 1.0.0
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio. Exige Vue `^3.5.0`.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio. Exige Vue `^3.5.0`.
 
 > **Primer hijo de `main`, sin `role` ni `aria-label`.** Un `header` dentro de `main` no es `banner` (HTML-AAM). El encabezado va directamente en el contenedor que se desplaza; un envoltorio alrededor suyo limita el pegado a ese envoltorio (aviso 5).
 

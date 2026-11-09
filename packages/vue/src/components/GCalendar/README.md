@@ -2,9 +2,9 @@
 
 Calendario y planificador genérico de uno o varios recursos, con cuatro vistas: **Día**, **Semana**, **Mes** y **Timeline**. Representa y manipula tiempo; no conoce tu dominio (citas, turnos, salas, reservas). **Emite solicitudes, no muta**: tú decides si aceptas cada cambio.
 
-**Etiqueta:** `<g-calendar>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/calendar/auditoria.md`](../../../../../design/lab/calendar/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-calendar>` · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/calendar/auditoria.md`](../../../../../design/lab/calendar/auditoria.md)) · **Desde:** 1.0.0
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`.
 
 ## Uso
 

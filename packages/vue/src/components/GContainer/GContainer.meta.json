@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "name": "GContainer",
   "tag": "g-container",
-  "status": "candidate",
-  "since": "0.1.0",
+  "status": "stable",
+  "since": "1.0.0",
   "description": "Contenedor de página: pone los límites en línea del contenido (ancho máximo, centrado, margen fluido y elemento) midiendo su sitio y no el visor. Un descendiente con g-bleed llega al borde de la caja con su contenido alineado a la columna; width=\"reading\" y prose limitan la línea a la medida de lectura.",
   "contract": "design/contracts/container.md",
   "decisions": "DECISIONS.md #717, #718, #721 a #724",
@@ -70,8 +70,6 @@
     "5 · una banda g-bleed / g-bleed-raw que no ocupa la columna (medido al montar)"
   ],
   "pending": [
-    "Auditoría de coco con un tema distinto (status draft hasta entonces)",
-    "README (mora-docs)",
     "L4: relleno lateral de GPageHeader dentro de la columna (PENDIENTES.md)"
   ]
 }

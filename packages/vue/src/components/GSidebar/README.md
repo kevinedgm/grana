@@ -2,9 +2,9 @@
 
 Navegación lateral (principal o secundaria) que **se transforma con un solo sistema**: **expandida** (etiquetas, grupos, submenús en línea), **riel** de iconos (submenús en un panel flotante), y, en móvil, un **navbar inferior** con «píldora activa» o un **drawer**. Los items se definen con un arreglo (grupos, items y un nivel de hijos); el destino actual es un prop; la adaptación se decide por el ancho del contenedor. Con `filter` y la extensión `@grana/vue/sidebar-filter`, un campo en la cabecera **filtra el índice mientras escribes**; con `code`, cada item lleva un número estable dentro de su asiento. Con la extensión `@grana/vue/sidebar-index`, `appearance="index"` lo pinta como el índice de una documentación (texto, número al final, una marca que viaja) y los grupos pueden **plegarse**.
 
-**Etiqueta:** `<g-sidebar>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/sidebar/auditoria.md`](../../../../../design/lab/sidebar/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-sidebar>` · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/sidebar/auditoria.md`](../../../../../design/lab/sidebar/auditoria.md)) · **Desde:** 1.0.0
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`. Usa `<dialog>`, `popover`, `@starting-style` e `interpolate-size` (sin estos dos últimos, las animaciones de cierre y del submenú desaparecen pero todo funciona).
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`. Usa `<dialog>`, `popover`, `@starting-style` e `interpolate-size` (sin estos dos últimos, las animaciones de cierre y del submenú desaparecen pero todo funciona).
 
 ## Uso
 

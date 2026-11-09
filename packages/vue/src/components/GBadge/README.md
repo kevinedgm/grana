@@ -2,9 +2,9 @@
 
 Insignia **no interactiva** para señalar un estado, una categoría o una cantidad: texto, texto con figura de estado o icono, solo icono, solo figura y contador con tope, y cualquiera de ellas **anclada** a la esquina de otro elemento. Cuatro variantes: `solid`, `soft`, `outline` y `glass` (liquid glass). El significado nunca depende solo del color: se lee por texto, figura o icono.
 
-**Etiqueta:** `<g-badge>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/badge/auditoria.md`](../../../../../design/lab/badge/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-badge>` · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/badge/auditoria.md`](../../../../../design/lab/badge/auditoria.md)) · **Desde:** 1.0.0
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`. La variante `glass` usa `backdrop-filter` y `color-mix()`; sin `backdrop-filter` (o con transparencia reducida) se ve como `soft`.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`. La variante `glass` usa `backdrop-filter` y `color-mix()`; sin `backdrop-filter` (o con transparencia reducida) se ve como `soft`.
 
 ## Uso
 

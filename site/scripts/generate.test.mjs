@@ -42,11 +42,11 @@ test('cada componente tiene al menos un ejemplo vivo (bloque `vue demo` del READ
   assert.deepEqual(missing, [], `sin ejemplo vivo: ${missing.join(', ')}`)
 })
 
-test('cada componente candidate tiene su ficha interactiva (site/live/<Componente>.js) y la página la monta', () => {
+test('cada componente candidate o stable tiene su ficha interactiva (site/live/<Componente>.js) y la página la monta', () => {
   const missing = []
   for (const p of result.locales.es.pages.filter((x) => x.component)) {
     const meta = p.component.metas[0]
-    if (meta?.status !== 'candidate') continue
+    if (!['candidate', 'stable'].includes(meta?.status)) continue
     if (!fs.existsSync(path.join(ROOT, 'site/live', `${p.component.dir}.js`))) { missing.push(p.component.dir); continue }
     for (const locale of ['es', 'en']) {
       const text = result.files.get(`${locale === 'es' ? '' : 'en/'}components/${p.component.slug}.md`)
@@ -54,7 +54,7 @@ test('cada componente candidate tiene su ficha interactiva (site/live/<Component
       assert.match(text, new RegExp(`import liveSpec from '@site-live/${p.component.dir}\\.js'`), `${p.component.dir} (${locale}): no importa su ficha`)
     }
   }
-  assert.deepEqual(missing, [], `candidate sin ficha interactiva: ${missing.join(', ')}`)
+  assert.deepEqual(missing, [], `candidate o stable sin ficha interactiva: ${missing.join(', ')}`)
 })
 
 test('las carpetas con meta.json sin README se recogen en una página', () => {

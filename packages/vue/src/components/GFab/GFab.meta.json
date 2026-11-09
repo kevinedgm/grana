@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "name": "GFab",
   "tag": "g-fab",
-  "status": "candidate",
-  "since": "0.1.0",
+  "status": "stable",
+  "since": "1.0.0",
   "description": "Botón flotante con acciones: un círculo con icono en un borde del visor (o de un contenedor) para crear o capturar desde cualquier sitio. Botón de menú de APG con el motor de GMenu. A · «La pila que crece» por defecto (las que caben, ≤ 5, como píldoras pegadas al botón; si sobran, la más lejana es «Más acciones (N)» y abre el resto agrupado) y C · «Acción con cola» con main (la principal a un toque, con su etiqueta, y una cola que abre un panel donde escribir filtra). Confirmación en el sitio para lo peligroso, acuse en el propio botón con el ticket de select, se aparta del foco (2.4.11), velo táctil, una activación por gesto.",
   "contract": "design/contracts/fab.md",
   "decisions": [
@@ -266,10 +266,8 @@
     "GLibIcon (plus, x, ellipsis-vertical, loader-circle, check, circle-alert, triangle-alert)"
   ],
   "pending": [
-    "Auditoría de coco sobre el componente real (paso 5)",
     "Lector de pantalla real: orden invertido de la pila, par de confirmación dentro de un menu, filtro de C",
     "Táctil real (velo, primer toque del FAB apartado) y teclado en pantalla real",
-    "Peso de la entrada sobre el tope de 8 KiB (#656): vuelve a lima",
-    "README (mora-docs)"
+    "Peso de la entrada sobre el tope de 8 KiB (#656): vuelve a lima"
   ]
 }

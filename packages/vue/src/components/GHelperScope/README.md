@@ -2,7 +2,7 @@
 
 Contenedor **sin aspecto propio** que fija el contexto de posición de los [`GHelper`](../GHelper/README.md) flotantes que contiene. Su única regla es `position: relative`: no añade fondo, borde, relleno ni margen.
 
-**Etiqueta:** `<g-helper-scope>` · **Estado:** `candidate` (ver [`design/lab/helper/auditoria.md`](../../../../../design/lab/helper/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-helper-scope>` · **Estado:** `stable` (ver [`design/lab/helper/auditoria.md`](../../../../../design/lab/helper/auditoria.md)) · **Desde:** 1.0.0
 
 ```vue
 <g-helper-scope as="section" aria-label="Datos de facturación">

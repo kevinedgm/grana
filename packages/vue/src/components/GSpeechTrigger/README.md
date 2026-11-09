@@ -2,7 +2,7 @@
 
 Disparador de la captura de voz: **dictado** a un campo (botón de solo icono, conmutable, con su nota bajo el campo) o **conversación** (botón con texto que prepara la sesión y abre el panel). Es parte del sistema de captura de voz: **la documentación completa está en [`GSpeechHost/README.md`](../GSpeechHost/README.md)** (privacidad, instalación, adaptador, estados, accesibilidad medida).
 
-**Etiqueta:** `<g-speech-trigger>` · **Entrada:** `@grana/vue/speech` (lo registra `app.use(speech)`) · **Estado:** `candidate` · **Desde:** 0.1.0
+**Etiqueta:** `<g-speech-trigger>` · **Entrada:** `@grana/vue/speech` (lo registra `app.use(speech)`) · **Estado:** `stable` · **Desde:** 1.0.0
 
 ```vue
 <!-- Fragmento: `form` es de tu aplicación -->

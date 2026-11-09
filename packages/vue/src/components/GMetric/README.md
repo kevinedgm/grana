@@ -2,7 +2,7 @@
 
 Primitiva de widget: un **valor** con su etiqueta, unidad, **tendencia** y contexto. Sirve dentro de [`GWidget`](../GWidget/README.md), pero funciona en cualquier sitio.
 
-**Etiqueta:** `<g-metric>` · **Estado:** `candidate` · **Desde:** 0.1.0
+**Etiqueta:** `<g-metric>` · **Estado:** `stable` · **Desde:** 1.0.0
 
 ```vue
 <g-metric label="Ingresos" value="$48.2k" unit="USD" trend="+12%" direction="up" trend-color="success" context="vs. mes anterior" size="lg" />

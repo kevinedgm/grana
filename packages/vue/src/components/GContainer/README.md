@@ -2,13 +2,13 @@
 
 Contenedor de página (el componente, no el «contenedor de consultas» de CSS): pone los **límites en línea** del contenido, es decir, cuánto ancho ocupa, dónde se centra, cuánto aire deja contra el borde y qué elemento es. **Mide su sitio, no el visor.** No reparte, no apila, no hace columnas y **no pinta nada** (ni fondo, ni borde, ni sombra): el color y la superficie los ponen el tema y `GSurface`.
 
-**Etiqueta:** `<g-container>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/container/auditoria.md`](../../../../../design/lab/container/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-container>` · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/container/auditoria.md`](../../../../../design/lab/container/auditoria.md)) · **Desde:** 1.0.0
 
 ```js
 import { GContainer } from '@grana/vue'
 ```
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio. Exige Vue `^3.5.0`.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio. Exige Vue `^3.5.0`.
 
 > **Un solo contenedor por página.** El ancho completo no se logra con un segundo contenedor `full` (el «emparedado» corta el pegado de `GPageHeader`): una banda pide el borde con `g-bleed` y su contenido se queda en la columna.
 

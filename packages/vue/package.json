@@ -1,6 +1,6 @@
 {
   "name": "@grana/vue",
-  "version": "0.1.0-beta.0",
+  "version": "1.0.0",
   "description": "Componentes Vue 3 con tema por tokens. The only bug you'll want in your UI.",
   "keywords": [
     "vue",

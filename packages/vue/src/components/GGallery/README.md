@@ -2,13 +2,13 @@
 
 Las fotos de un lugar (una habitación, una carta, un recorrido) **ordenadas por lo que se vende**, con miniaturas que son enlaces a la foto grande y un **visor a pantalla completa** que te devuelve a la foto que estabas mirando. `GGallery` es la galería; `GGalleryViewer` es el visor, que `GGallery` usa por dentro y que también puedes usar suelto (por ejemplo, desde un botón «Ver 10 fotos» de una tarjeta). Grana no pide nada: las URL las pide el navegador, y cada foto llega con su `src`, `alt`, `width` y `height`. No trae color propio: el tema lo pone.
 
-**Etiquetas:** `<g-gallery>` y `<g-gallery-viewer>` · **Estado:** `candidate` (ver [`design/lab/gallery/auditoria.md`](../../../../../design/lab/gallery/auditoria.md) y «Verificación») · **Desde:** 0.1.0 · **Entrada:** propia, `@grana/vue/gallery` (global UMD `GranaGallery`)
+**Etiquetas:** `<g-gallery>` y `<g-gallery-viewer>` · **Estado:** `stable` (ver [`design/lab/gallery/auditoria.md`](../../../../../design/lab/gallery/auditoria.md) y «Verificación») · **Desde:** 1.0.0 · **Entrada:** propia, `@grana/vue/gallery` (global UMD `GranaGallery`)
 
 ```js
 import Gallery, { GGallery, GGalleryViewer } from '@grana/vue/gallery'
 ```
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (banco del componente real en `packages/vue/playground/gallery.html`). Exige Vue `^3.5.0` y un navegador actual.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (banco del componente real en `packages/vue/playground/gallery.html`). Exige Vue `^3.5.0` y un navegador actual.
 
 ## Instalación: entrada propia
 

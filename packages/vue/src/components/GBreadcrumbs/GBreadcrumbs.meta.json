@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "name": "GBreadcrumbs",
   "tag": "g-breadcrumbs",
-  "status": "candidate",
-  "since": "0.1.0",
+  "status": "stable",
+  "since": "1.0.0",
   "description": "Migas de pan: dicen dónde está la página en una jerarquía y dejan subir a cualquier nivel. Forma A «Ruta líquida» (todos los niveles en una fila que se aprieta por prioridad; un nombre recortado se vuelve pastilla y el actual es la pastilla de acento), con la cara de B «Escalón» como última etapa («Subir · página» con la ruta entera como escalera) y las puertas de C cuando la aplicación da children (el separador abre los hermanos del nivel siguiente). Enlaces de verdad (<a href>) con navigate cancelable y slot link para un router; pistas del motor del tooltip en modo visual sobre lo recortado.",
   "contract": "design/contracts/breadcrumbs.md",
   "prototype": "design/lab/breadcrumbs/r01/",
@@ -120,8 +120,6 @@
     "main": "+6,3 KB gzip en grana.js (179 506 → 185 840 B), +5,7 KB en grana.umd.js y +1,9 KB en grana.css; medido el 2026-10-07 en el mismo árbol. Bajo el tope de 8 KB (#490): va en el paquete principal"
   },
   "pending": [
-    "Auditoría de coco sobre el componente real (design/lab/breadcrumbs/auditoria.md)",
-    "README (mora-docs) tras la auditoría",
     "Comprobación con VoiceOver de la lista dentro del nav con list-style: none (role=\"list\" solo si se pierde)"
   ]
 }

@@ -2,13 +2,13 @@
 
 Región de página con **encabezado** (`h2` a `h4`), descripción y acciones. **El nivel lo pone el documento por anidación** y el tamaño del título lo pone la profundidad: el esquema que oye el lector de pantalla y la jerarquía que ve el ojo no pueden desalinearse. **Sin superficie, sin plegado y sin pegado**; no es punto de referencia salvo que lo pidas con `landmark`.
 
-**Etiqueta:** `<g-section>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/section/auditoria.md`](../../../../../design/lab/section/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-section>` · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/section/auditoria.md`](../../../../../design/lab/section/auditoria.md)) · **Desde:** 1.0.0
 
 ```js
 import { GSection } from '@grana/vue'
 ```
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio. Exige Vue `^3.5.0`.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio. Exige Vue `^3.5.0`.
 
 > **Bajo el `h1` de `GPageHeader`.** La primera sección es `h2`. Dentro de un `GDialog` (cuyo título ya es `h2`), pasa `headingLevel="3"` (aviso 4).
 

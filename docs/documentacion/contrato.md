@@ -23,7 +23,7 @@ Dueño: **mora-docs**. Fija **cómo se documenta** un componente de Grana: la fo
 | Tokens que lee | `design/contracts/<nombre>.md`, `docs/contract/tokens.md` y `<Nombre>.css` |
 | Teclado, foco y comportamiento | contrato del componente y pruebas (`*.test.js`, specs de Playwright) |
 | Cifras de accesibilidad y rendimiento | auditoría de coco (`design/lab/<nombre>/auditoria.md`) y su verificación propia |
-| Estado (`candidate`…), versión y entrada del paquete | `CLAUDE.md` «Estado actual», `package.json` (`exports`) y `api.md` |
+| Estado (`draft`, `candidate`, `stable`), versión y entrada del paquete | `CLAUDE.md` «Estado actual», `package.json` (`exports`) y `api.md` |
 | Personalidad | decisión de personalidad en `DECISIONS.md` y su plan en `plans/` |
 | Orden y forma de la página | este contrato |
 

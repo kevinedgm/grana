@@ -2,9 +2,9 @@
 
 Selector de **una** opción con lista propia, completo: etiqueta, ayuda, mensaje de error, prefijo e iconos, grupos, opciones deshabilitadas, teclado con escritura rápida y una fila «Agregar nuevo…» para catálogos incompletos. Sigue el patrón *select-only combobox* de WAI-ARIA y comparte el lenguaje de [`GInput`](../GInput/README.md): mismas variantes, tamaños, densidad, colores de foco y estados. En móvil, la lista es una hoja inferior.
 
-**Etiqueta:** `<g-select>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/select/auditoria.md`](../../../../../design/lab/select/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-select>` · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/select/auditoria.md`](../../../../../design/lab/select/auditoria.md)) · **Desde:** 1.0.0
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0` (usa `useId`) y un navegador con `popover`, `::backdrop` de popover, `:popover-open` y `:has()`: los actuales.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0` (usa `useId`) y un navegador con `popover`, `::backdrop` de popover, `:popover-open` y `:has()`: los actuales.
 
 ## Uso
 

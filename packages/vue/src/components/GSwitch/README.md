@@ -2,9 +2,9 @@
 
 Interruptor de efecto inmediato: activa o desactiva una opción. Usa el `<input type="checkbox" role="switch">` nativo, con una marca de estado dibujada en el pulgar, ayuda, error, iconos opcionales y un estado de carga que no bloquea.
 
-**Etiqueta:** `<g-switch>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/switch/auditoria.md`](../../../../../design/lab/switch/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-switch>` · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/switch/auditoria.md`](../../../../../design/lab/switch/auditoria.md)) · **Desde:** 1.0.0
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0` (usa `useId`).
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0` (usa `useId`).
 
 ## Uso
 

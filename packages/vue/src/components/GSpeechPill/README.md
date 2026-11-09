@@ -2,7 +2,7 @@
 
 Pill **colocable** de la captura de voz: muestra la grabación en curso donde la pongas (cabecera, barra de herramientas) con el estado (icono y texto), la duración, Pausar / Reanudar / Reintentar y Finalizar; su botón principal abre el panel. Es parte del sistema de captura de voz: **la documentación completa está en [`GSpeechHost/README.md`](../GSpeechHost/README.md)** (privacidad, instalación, adaptador, estados, accesibilidad medida).
 
-**Etiqueta:** `<g-speech-pill>` · **Entrada:** `@grana/vue/speech` (la registra `app.use(speech)`) · **Estado:** `candidate` · **Desde:** 0.1.0
+**Etiqueta:** `<g-speech-pill>` · **Entrada:** `@grana/vue/speech` (la registra `app.use(speech)`) · **Estado:** `stable` · **Desde:** 1.0.0
 
 ```vue
 <header class="app-header">

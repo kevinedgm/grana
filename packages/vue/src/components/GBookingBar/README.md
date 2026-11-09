@@ -2,13 +2,13 @@
 
 `GBookingBar` es la **consulta de disponibilidad** de un sitio (una estancia, una mesa o un recorrido): reúne fechas, turno o recorrido y personas, **valida al enviar, dice en palabras lo que falta** y entrega una **intención**. **No hace la reserva:** emite un evento `submit` con un objeto limpio y tu aplicación decide adónde va (su motor, WhatsApp, una página). `GPartyField` es la pieza de **personas por tipo** (adultos, niños, habitaciones) que la consulta usa por dentro y que también sirve suelta en cualquier formulario. Ninguna trae color propio (el tema lo pone) y ninguna hace `fetch`.
 
-**Etiquetas:** `<g-booking-bar>` y `<g-party-field>` · **Estado:** `candidate` (ver [`design/lab/booking-bar/auditoria.md`](../../../../../design/lab/booking-bar/auditoria.md) y «Verificación») · **Desde:** 0.1.0 · **Entrada:** propia, `@grana/vue/booking` (global UMD `GranaBooking`)
+**Etiquetas:** `<g-booking-bar>` y `<g-party-field>` · **Estado:** `stable` (ver [`design/lab/booking-bar/auditoria.md`](../../../../../design/lab/booking-bar/auditoria.md) y «Verificación») · **Desde:** 1.0.0 · **Entrada:** propia, `@grana/vue/booking` (global UMD `GranaBooking`)
 
 ```js
 import Booking, { GBookingBar, GPartyField, describeQuery } from '@grana/vue/booking'
 ```
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (banco del componente real en `packages/vue/playground/booking.html`). Exige Vue `^3.5.0` y un navegador actual.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (banco del componente real en `packages/vue/playground/booking.html`). Exige Vue `^3.5.0` y un navegador actual.
 
 ## Instalación: entrada propia
 

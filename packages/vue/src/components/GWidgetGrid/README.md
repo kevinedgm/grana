@@ -2,9 +2,9 @@
 
 Rejilla adaptable para dashboards: coloca [`GWidget`](../GWidget/README.md) (u otro contenido) de distintos tamaños, **reordena y redimensiona con puntero y con teclado**, se adapta al ancho (4, 2 o 1 columnas) y guarda su disposición como **un dato**. **No crea widgets**: tú pones uno por celda con el slot `item`. La aplicación guarda el layout.
 
-**Etiqueta:** `<g-widget-grid>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/widget/auditoria.md`](../../../../../design/lab/widget/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-widget-grid>` · **Estado:** `stable` (auditoría de coco aprobada; ver [`design/lab/widget/auditoria.md`](../../../../../design/lab/widget/auditoria.md)) · **Desde:** 1.0.0
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`.
 
 ## Uso
 

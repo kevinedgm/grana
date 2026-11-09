@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "name": "GCard",
   "tag": "g-card",
-  "status": "candidate",
-  "since": "0.1.0",
+  "status": "stable",
+  "since": "1.0.0",
   "description": "Superficie de contenido contenida (compone GSurface) con regiones opcionales por slots y props de atajo; acción principal por enlace estirado dentro del título (link, button, toggle o select), menú de acciones con GMenu, estado de contenido, vacío, esqueleto derivado de las regiones y adaptación medida por su propio ancho.",
   "contract": "design/contracts/card.md",
   "prototype": "design/lab/card/r01/",
@@ -475,7 +475,6 @@
     ]
   },
   "pending": [
-    "Auditoría de coco (paso 5) con un tema distinto al por defecto; status candidate lo pone coco",
     "Lector de pantalla real (VoiceOver, NVDA, TalkBack): nombre del article sin aria-labelledby con principal, título-enlace, aria-busy, role=\"status\" y role=\"alert\"",
     "Táctil real (pulsación larga sobre el enlace estirado) y zoom al 200%",
     "Rendimiento con cientos de tarjetas (un ResizeObserver por tarjeta)",

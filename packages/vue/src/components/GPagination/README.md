@@ -2,9 +2,9 @@
 
 Paginación de una colección: rango («11–20 de 120»), anterior/siguiente y páginas (primera, última, la actual y sus vecinas, con «…» en los saltos). Cuando no caben los botones, pasa a **«Página 2 de 12»** con anterior/siguiente. Con `pageSizes`, añade un **selector de filas por página** (radios nativos) que conserva la fila que estabas mirando. La usa [`GTable`](../GTable/README.md) y funciona sola.
 
-**Etiqueta:** `<g-pagination>` · **Estado:** `candidate` (ver [`design/lab/table/auditoria.md`](../../../../../design/lab/table/auditoria.md)) · **Desde:** 0.1.0
+**Etiqueta:** `<g-pagination>` · **Estado:** `stable` (ver [`design/lab/table/auditoria.md`](../../../../../design/lab/table/auditoria.md)) · **Desde:** 1.0.0
 
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`.
+> `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (ver el playground en `packages/vue/playground/`). Exige Vue `^3.5.0`.
 
 ## Uso
 
