@@ -91,10 +91,11 @@
 @media (pointer: coarse) {
   .g-table__bar .g-table__bar-cards select {
     font-size: max(16px, var(--g-text-body-sm-size));
-    /* El alto de un <select> sigue a las métricas de la fuente, no al interlineado: se fija el de antes (línea body-sm
-       + relleno + borde) para que la barra no crezca (#972, criterio 4) */
+    /* Área táctil (tokens.md §7): el <select> mide al menos 44px de alto; la barra crece lo justo en cards con
+       puntero grueso (el alto de un <select> sigue a las métricas de la fuente, no al interlineado) */
     box-sizing: border-box;
-    block-size: calc(var(--g-text-body-sm-line) + var(--g-space-1) * 2 + var(--g-border-width) * 2);
+    min-block-size: 44px;
+    block-size: 44px;
   }
 }
 
