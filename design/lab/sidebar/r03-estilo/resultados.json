@@ -1,0 +1,77 @@
+{
+ "fecha": "2026-11-09",
+ "motores": [
+  "chromium",
+  "firefox",
+  "webkit"
+ ],
+ "por": {
+  "chromium": [
+   408,
+   408
+  ],
+  "firefox": [
+   361,
+   361
+  ],
+  "webkit": [
+   361,
+   361
+  ]
+ },
+ "total": "1130/1130",
+ "fallos": [],
+ "notas": [
+  "chromium: sobrepaso de la marca en un salto de 408 px = 14.9 px (3,8 % del recorrido, el del muelle); en una fila (32 px) = 1.2 px",
+  "firefox: sobrepaso de la marca en un salto de 408 px = 15.3 px (3,8 % del recorrido, el del muelle); en una fila (32 px) = 1.2 px",
+  "webkit: sobrepaso de la marca en un salto de 408 px = 15.3 px (3,8 % del recorrido, el del muelle); en una fila (32 px) = 1.2 px"
+ ],
+ "hallazgos": [
+  "tema amazon claro: el actual (accent-text) sobre la columna (surface-sunken) 4.22:1 < 4,5",
+  "tema apple claro: el actual (accent-text) sobre la columna (surface-sunken) 4.19:1 < 4,5",
+  "tema grana claro: el actual (accent-text) sobre la columna (surface-sunken) 4.23:1 < 4,5",
+  "tema linear claro: el actual (accent-text) sobre la columna (surface-sunken) 4.2:1 < 4,5",
+  "tema medium claro: el actual (accent-text) sobre la columna (surface-sunken) 4.19:1 < 4,5",
+  "tema notion claro: el actual (accent-text) sobre la columna (surface-sunken) 4.26:1 < 4,5",
+  "tema spotify claro: el actual (accent-text) sobre la columna (surface-sunken) 4.29:1 < 4,5",
+  "tema stripe claro: el actual (accent-text) sobre la columna (surface-sunken) 4.32:1 < 4,5"
+ ],
+ "minimos": {
+  "enlace": {
+   "v": 6.87,
+   "d": "lustre claro"
+  },
+  "actual": {
+   "v": 4.19,
+   "d": "apple claro"
+  },
+  "numero": {
+   "v": 4.7,
+   "d": "lustre claro"
+  },
+  "titulo": {
+   "v": 16.08,
+   "d": "linear claro"
+  },
+  "marca": {
+   "v": 4.19,
+   "d": "apple claro"
+  },
+  "flecha": {
+   "v": 6.87,
+   "d": "lustre claro"
+  },
+  "hover": {
+   "v": 13.17,
+   "d": "apple oscuro"
+  },
+  "hoverSobreLuz": {
+   "v": 13.17,
+   "d": "defecto oscuro"
+  },
+  "foco": {
+   "v": 4.19,
+   "d": "apple claro"
+  }
+ }
+}

@@ -12,6 +12,27 @@
   Bruno da la posición del panel flotante y de la pista con variables CSS dinámicas
   (--_x, --_top, --_bottom, --_notch), y la luz de hover de cada lista con has-highlight e is-highlight-instant en el
   anfitrión (la lista) y --_highlight-x/-y/-w/-h en la capa g-sidebar__highlight (§«Una sola luz», #957 a #964).
+
+  APARIENCIA `index` Y GRUPOS PLEGABLES (sidebar.md §«Apariencia `index`», #1060 a #1065; ronda design/lab/sidebar/r03/;
+  banco design/lab/sidebar/r03-estilo/). Lo que este CSS espera de bruno:
+    raíz                         g-sidebar--appearance-{default|index}; también la raíz interna del drawer
+                                 (.g-sidebar__drawer > .g-sidebar, SB-B1); is-ready e is-filtering como hoy
+    li.g-sidebar__group          + is-collapsible (plegable válido) · is-closed (plegado EFECTIVO: sin consulta; con consulta
+                                 el CSS lo pinta abierto igual) · has-current (contiene el actual)
+                                 + is-animating · is-instant (los de useCollapse, como GAccordionItem: is-animating mientras la
+                                 rejilla se mueve —recorta el cuerpo—; is-instant dos cuadros en un cambio sin animar:
+                                 beforematch, la ruta que abre al montar)
+      button.g-sidebar__group-title[aria-expanded][aria-controls][aria-disabled="true" con consulta]
+        texto · span.g-sidebar__chevron[aria-hidden] > GLibIcon chevron-right flip-rtl (el svg DENTRO del span) ·
+        span.g-sidebar__sr (groupCurrent)
+      div.g-sidebar__group-body[hidden="until-found" al asentar plegado] > ul.g-sidebar__list (sin hidden en la lista, SB-B4)
+    index · enlace               sin g-sidebar__icon (A2) · span.g-sidebar__label · badge · span.g-sidebar__code[aria-hidden]
+                                 al final (C1) · span.g-sidebar__sr del número DESPUÉS de la etiqueta
+    index · nav                  span.g-sidebar__mark[aria-hidden] última hija + is-full | is-hollow | is-instant;
+                                 --_mark-y y --_mark-h EN LA MARCA (px, borde superior y alto de la fila marcada, relativos al
+                                 borde de relleno del <nav>); has-mark en g-sidebar__nav tras la primera colocación (antes, el
+                                 indicador estático de este CSS)
+    index · cabecera             sin g-sidebar__toggle en la columna (SB-B2); en el drawer, sin logo y con el botón de cerrar
 */
 
 /* ---------- Esqueleto ---------- */
@@ -1262,6 +1283,432 @@
 .g-sidebar--color-danger { --_color: var(--g-color-danger); --_on: var(--g-color-on-danger); --_text: var(--g-color-danger-text); }
 .g-sidebar--color-info { --_color: var(--g-color-info); --_on: var(--g-color-on-info); --_text: var(--g-color-info-text); }
 
+/* ---------- Grupos plegables (sidebar.md §«Grupos plegables», #1061): las dos apariencias ----------
+   El título de un grupo plegable es un <button> real (APG Disclosure) con el aspecto del título de siempre y la flecha al final.
+   El cuerpo es la rejilla 0fr → 1fr del motor compartido (utils/collapse.js, #486, la de GAccordion): sin medir alturas.
+   `hidden` (until-found al asentar plegado) va en el envoltorio y aquí NO se le da display: sin until-found, el hidden del
+   navegador oculta; con until-found, content-visibility (Ctrl+F lo encuentra). La lista recorta en bloque solo mientras se
+   pliega o está plegada: abierta y asentada, los anillos de foco y la luz ensanchada salen libres. */
+.g-sidebar__group.is-collapsible > .g-sidebar__group-title {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: var(--g-space-2);
+  inline-size: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: var(--_radius);
+  background: none;
+  font-family: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.g-sidebar__group-title[aria-disabled="true"] {
+  cursor: default;
+}
+.g-sidebar__group-title:focus-visible {
+  z-index: 1;
+  outline: var(--g-focus-width) solid var(--_focus);
+  outline-offset: var(--g-focus-offset);
+}
+@media (pointer: coarse) {
+  .g-sidebar__group.is-collapsible > .g-sidebar__group-title {
+    min-block-size: 44px;
+  }
+}
+@media (hover: hover) {
+  .g-sidebar--appearance-default .g-sidebar__group.is-collapsible > .g-sidebar__group-title:not([aria-disabled="true"]):hover {
+    color: var(--g-color-text-muted);
+  }
+}
+/* La flecha: span con chevron-right de la librería (flip-rtl de GIcon en el svg); abierta gira a abajo. El span no hereda
+   el giro ni el espejo de la flecha de los padres (.g-sidebar__chevron es el svg en ellos) */
+.g-sidebar__group-title > .g-sidebar__chevron {
+  display: inline-grid;
+  place-items: center;
+  margin-inline-start: auto;
+  line-height: 0;
+  scale: none;
+}
+.g-sidebar__group-title > .g-sidebar__chevron > svg {
+  inline-size: calc(var(--g-space-1) * 4);
+  block-size: calc(var(--g-space-1) * 4);
+  rotate: 90deg;
+}
+.g-sidebar__group-title > .g-sidebar__chevron > svg:dir(rtl) {
+  rotate: -90deg;
+}
+.g-sidebar__group-title[aria-expanded="false"] > .g-sidebar__chevron > svg {
+  rotate: none;
+}
+.g-sidebar__group-body:not([hidden]) {
+  display: grid;
+  grid-template-rows: 1fr;
+  grid-template-columns: minmax(0, 1fr);
+}
+.g-sidebar__group-body > .g-sidebar__list {
+  min-block-size: 0;
+}
+.g-sidebar__group.is-closed > .g-sidebar__group-body {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+.g-sidebar__group:is(.is-closed, .is-animating) > .g-sidebar__group-body > .g-sidebar__list {
+  overflow-x: visible;
+  overflow-y: clip;
+}
+/* Con consulta (#1035, regla 5): todo grupo con coincidencias se pinta abierto sin tocar el estado y sin animar; en el riel,
+   igual (títulos ocultos, todo abierto, el estado se conserva) */
+:is(.g-sidebar.is-filtering, .g-sidebar--mode-rail) .g-sidebar__group.is-closed > .g-sidebar__group-body {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+:is(.g-sidebar.is-filtering, .g-sidebar--mode-rail) .g-sidebar__group > .g-sidebar__group-body > .g-sidebar__list {
+  overflow: visible;
+}
+/* Movimiento: la pieza `plegado` de motion.json (alto slow + ease-out; el contenido se funde fast al plegar y al abrir está
+   entero desde el primer cuadro: lo va descubriendo la rejilla); la flecha gira con la misma curva. Nada al montar
+   (is-ready de la raíz), nada con is-instant ni con consulta */
+@media (prefers-reduced-motion: no-preference) {
+  .g-sidebar.is-ready:not(.is-filtering) .g-sidebar__group:not(.is-instant) > .g-sidebar__group-body {
+    transition:
+      grid-template-rows var(--g-duration-slow) var(--g-ease-out),
+      opacity 0s;
+  }
+  .g-sidebar.is-ready:not(.is-filtering) .g-sidebar__group.is-closed:not(.is-instant) > .g-sidebar__group-body {
+    transition:
+      grid-template-rows var(--g-duration-slow) var(--g-ease-out),
+      opacity var(--g-duration-fast) var(--g-ease-standard);
+  }
+  .g-sidebar.is-ready:not(.is-filtering) .g-sidebar__group:not(.is-instant) > .g-sidebar__group-title > .g-sidebar__chevron > svg {
+    transition: rotate var(--g-duration-slow) var(--g-ease-out);
+  }
+}
+
+/* ---------- Apariencia `index` (sidebar.md §«Apariencia `index`», #1060 a #1064; ronda r03 de kiwi) ----------
+   El índice de documentación calcado: sin icono ni asiento, filas de 32, títulos 14/24 con la ranura de peso, separadores,
+   la cabecera es la banda con su línea y el filtro dentro (F1), el número al final (C1) y la marca del actual (2 × 20) que
+   viaja. El reposo es el calco (paridad de r03, Δ 0 en la columna); lo propio es de comportamiento: I1 la luz que no imita
+   al actual, I2 la marca que viaja, I3 el filtro que espera en la banda, I5 el cajón que abre donde estás (de bruno).
+   Las mismas reglas valen en la raíz de la columna y en la raíz interna del drawer (las dos llevan la clase, SB-B1). */
+.g-sidebar--appearance-index {
+  --_item: max(24px, calc(var(--g-space-1) * 8));
+  --_sub: var(--_item);
+  --_seam: calc(var(--g-space-1) * 0);
+  --_gap: var(--g-space-2);
+  --_ix-pad: var(--g-space-8);
+  --_ix-line: calc(var(--g-space-1) * 6);
+  --_ix-gtop: calc(var(--g-space-1) * 2.5);
+  /* La banda: la fórmula de contrato de GAppShell (#713), así la línea cae a la altura de la de la banda del chasis */
+  --_ix-band: max(calc(var(--g-space-1) * 14), 44px, var(--g-app-shell-header));
+  /* La marca del actual: 2 × 20, a 15 del borde de la columna (la caja del indicador del original: 32 − 17) */
+  --_ix-mark-w: calc(var(--g-border-width) * 2);
+  --_ix-mark-h: calc(var(--g-space-1) * 5);
+  --_ix-mark-in: calc(var(--g-space-1) * 4.25);
+  --_ix-mark-c: var(--g-color-accent-text);
+  border-inline-end: 0;
+  line-height: var(--_ix-line);
+}
+@media (pointer: coarse) {
+  .g-sidebar--appearance-index {
+    --_item: 44px;
+  }
+}
+
+/* Cabecera = la banda (SB-L10): el logo a la izquierda, el filtro a la derecha y la línea inferior dentro del relleno */
+.g-sidebar--appearance-index > .g-sidebar__head {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: var(--_ix-band) auto;
+  align-items: center;
+  gap: 0;
+  padding: 0 var(--_ix-pad);
+}
+.g-sidebar--appearance-index > .g-sidebar__head::after {
+  content: "";
+  position: absolute;
+  inset-inline: var(--_ix-pad);
+  inset-block-start: calc(var(--_ix-band) - var(--g-border-width));
+  block-size: 0;
+  border-block-end: var(--g-border-width) solid var(--g-color-border);
+  pointer-events: none;
+}
+.g-sidebar--appearance-index > .g-sidebar__head > :is(.g-sidebar__top, .g-sidebar__filter) {
+  display: contents;
+}
+.g-sidebar--appearance-index > .g-sidebar__head > :not(.g-sidebar__top, .g-sidebar__filter) {
+  grid-column: 1 / -1;
+}
+/* (Sin riel en el índice: bruno no emite el botón de contraer en la columna, SB-B2) */
+.g-sidebar--appearance-index .g-sidebar__logo {
+  grid-area: 1 / 1;
+}
+
+/* I3 · el filtro que espera en la banda (F1, #1063): space × 30 sin caja en reposo; con el foco dentro o con texto, ocupa el
+   ancho del contenido (space × 52 en el sitio) y tapa la marca, que se funde. La lista no se mueve */
+.g-sidebar--appearance-index .g-sidebar__filter-box {
+  grid-row: 1;
+  grid-column: 1 / -1;
+  justify-self: end;
+  inline-size: calc(var(--g-space-1) * 30);
+  padding-inline: var(--g-space-2) var(--g-space-1);
+  border-color: transparent;
+  background: transparent;
+}
+.g-sidebar--appearance-index .g-sidebar__filter-icon:empty {
+  display: none;
+}
+@media (hover: hover) {
+  .g-sidebar--appearance-index:not(.is-filtering) .g-sidebar__filter-box:not(:focus-within):hover {
+    border-color: transparent;
+    background: var(--g-color-border);
+  }
+}
+.g-sidebar--appearance-index:is(.is-filtering, :has(.g-sidebar__filter-box:focus-within)) .g-sidebar__filter-box {
+  inline-size: 100%;
+  border-color: var(--g-color-border-control);
+  background: var(--g-surface-inset);
+}
+.g-sidebar--appearance-index:is(.is-filtering, :has(.g-sidebar__filter-box:focus-within)) .g-sidebar__logo {
+  visibility: hidden;
+  opacity: 0;
+}
+/* Recuento (enmienda de #1035): con el campo vacío, oculto a la vista y presente en el DOM y en aria-describedby; con texto,
+   una línea bajo la banda */
+.g-sidebar--appearance-index .g-sidebar__filter-count {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  padding: var(--g-space-2) 0 0;
+}
+.g-sidebar--appearance-index:not(.is-filtering) .g-sidebar__filter-count {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  min-block-size: 0;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Región: relleno 0 32 96 (el de la columna del original); contiene la marca, que se desplaza con la lista */
+.g-sidebar--appearance-index > .g-sidebar__nav {
+  position: relative;
+  padding: 0 var(--_ix-pad) calc(var(--g-space-1) * 24);
+}
+
+/* Grupo: 10 arriba, 24 abajo (10 plegado), separador de una línea entre grupos visibles */
+.g-sidebar--appearance-index .g-sidebar__group {
+  margin: 0;
+  padding: var(--_ix-gtop) 0 var(--g-space-6);
+}
+.g-sidebar--appearance-index .g-sidebar__group:not([hidden]) ~ .g-sidebar__group {
+  border-block-start: var(--g-border-width) solid var(--g-color-border);
+}
+.g-sidebar--appearance-index:not(.is-filtering) .g-sidebar__group.is-closed {
+  padding-block-end: var(--_ix-gtop);
+}
+/* Título: 14/24 en `text` con la ranura de peso (#1064); plegable, botón con la flecha de 18 en una caja de 32 que cae a
+   9 px del borde del contenido (−7 de margen), en la columna de los números */
+.g-sidebar--appearance-index .g-sidebar__group-title {
+  position: relative;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-block-size: var(--_item);
+  padding: 0;
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--_ix-line);
+  font-weight: var(--g-sidebar-group-title-weight);
+  color: var(--g-color-text);
+  border-radius: var(--g-radius-sm);
+}
+.g-sidebar--appearance-index .g-sidebar__group-title > .g-sidebar__chevron {
+  color: var(--g-color-text-muted);
+  inline-size: calc(var(--g-space-1) * 8);
+  block-size: calc(var(--g-space-1) * 8);
+  margin-inline-end: calc(var(--g-space-1) * -1.75);
+}
+.g-sidebar--appearance-index .g-sidebar__group-title > .g-sidebar__chevron > svg {
+  inline-size: calc(var(--g-space-1) * 4.5);
+  block-size: calc(var(--g-space-1) * 4.5);
+}
+@media (hover: hover) {
+  .g-sidebar--appearance-index .g-sidebar__group-title:not([aria-disabled="true"]):hover > .g-sidebar__chevron {
+    color: var(--g-color-text);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-sidebar--appearance-index.is-ready:not(.is-filtering) .g-sidebar__group:not(.is-instant) {
+    transition: padding-block-end var(--g-duration-slow) var(--g-ease-out);
+  }
+}
+
+/* Enlace: fila de 32 sin icono ni asiento, 14/24/500 en text-muted, el texto a ras (sin relleno); el hover pasa a `text`
+   (regla común) y el actual NO lo hereda: queda en accent-text (I1, corrige el defecto 6 de la referencia) */
+.g-sidebar--appearance-index .g-sidebar__link {
+  padding-inline: 0;
+  border-radius: var(--g-radius-sm);
+  font-weight: var(--g-text-action-weight);
+  line-height: var(--_ix-line);
+}
+.g-sidebar--appearance-index .g-sidebar__link:active:not([aria-disabled="true"]) {
+  scale: none;
+}
+.g-sidebar--appearance-index .g-sidebar__link > .g-sidebar__icon {
+  display: none;
+}
+.g-sidebar--appearance-index .g-sidebar__link:is([aria-current="page"], .is-active) {
+  color: var(--g-color-accent-text);
+}
+/* Hijos de un padre (no prototipado): sangrados space × 4, sin la línea de conexión ni el nodo (la marca es la señal) */
+.g-sidebar--appearance-index .g-sidebar__sub {
+  margin-inline-start: 0;
+  padding-inline-start: var(--g-space-4);
+}
+.g-sidebar--appearance-index .g-sidebar__sub::before,
+.g-sidebar--appearance-index .g-sidebar__sub .g-sidebar__link::before,
+.g-sidebar--appearance-index .g-sidebar__sub .g-sidebar__link::after {
+  content: none;
+}
+/* C1 · el número al final de la fila, como el índice de un libro (#1063): caption, cifras tabulares, text-subtle; el del
+   actual en accent-text. La etiqueta se corta antes; el número nunca */
+.g-sidebar__code {
+  flex: none;
+  margin-inline-start: auto;
+  font-size: var(--g-text-caption-size);
+  line-height: var(--g-text-caption-line);
+  font-weight: var(--g-text-action-weight);
+  letter-spacing: var(--g-text-caption-tracking);
+  font-variant-numeric: tabular-nums lining-nums;
+  white-space: nowrap;
+  color: var(--g-color-text-subtle);
+}
+.g-sidebar__link:is([aria-current="page"], .is-active) > .g-sidebar__code {
+  color: var(--g-color-accent-text);
+}
+/* I1 · la luz ensanchada space × 2 por lado: el texto empieza a ras y la luz no lo corta */
+.g-sidebar--appearance-index .g-sidebar__highlight {
+  inline-size: calc(var(--_highlight-w) + var(--g-space-2) * 2);
+  translate: calc(var(--_highlight-x) - var(--g-space-2)) calc(var(--_highlight-y) + var(--_seam) / 2);
+  border-radius: var(--g-radius-sm);
+}
+
+/* I2 · la marca del actual (#1062, SB-K1): una por <nav>, 2 × 20 en accent-text (≥ 3:1 frente a la columna); llena en la
+   fila del actual, hueca (solo contorno) en el botón de su grupo plegado; viaja con el muelle del actual de GSidebar
+   (#617/#635). Bruno escribe la fila en la capa (#964); el CSS centra los 20 */
+.g-sidebar__mark,
+.g-sidebar--appearance-index .g-sidebar__nav:not(.has-mark) :is(.g-sidebar__item > .g-sidebar__link:is([aria-current="page"], .is-active), .g-sidebar__group.has-current.is-closed > .g-sidebar__group-title)::before {
+  box-sizing: border-box;
+  inline-size: var(--_ix-mark-w);
+  block-size: var(--_ix-mark-h);
+  border: var(--g-border-width) solid var(--_ix-mark-c);
+  border-radius: var(--_ix-mark-w);
+  background-color: var(--_ix-mark-c);
+  pointer-events: none;
+}
+.g-sidebar__mark {
+  --_mark-y: calc(var(--g-space-1) * 0);
+  --_mark-h: var(--_ix-mark-h);
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: calc(var(--_ix-pad) - var(--_ix-mark-in));
+  translate: 0 calc(var(--_mark-y) + (var(--_mark-h) - var(--_ix-mark-h)) / 2);
+  opacity: 0;
+}
+.g-sidebar__mark:is(.is-full, .is-hollow) {
+  opacity: 1;
+}
+.g-sidebar__mark.is-hollow,
+.g-sidebar--appearance-index .g-sidebar__nav:not(.has-mark) .g-sidebar__group.has-current.is-closed > .g-sidebar__group-title::before {
+  background-color: transparent;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .g-sidebar__mark {
+    transition:
+      translate var(--g-duration-slow) var(--g-ease-spring),
+      opacity var(--g-duration-fast) var(--g-ease-standard),
+      background-color var(--g-duration-fast) var(--g-ease-standard);
+  }
+}
+.g-sidebar__mark.is-instant {
+  transition: none;
+}
+/* SSR y primer pintado: hasta has-mark, el indicador estático (la misma forma, arriba) en la fila del actual (lleno) o en el
+   botón de su grupo plegado (hueco). El primer HTML ya lleva la señal (1.4.1) */
+.g-sidebar--appearance-index .g-sidebar__nav:not(.has-mark) :is(.g-sidebar__item > .g-sidebar__link:is([aria-current="page"], .is-active), .g-sidebar__group.has-current.is-closed > .g-sidebar__group-title)::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: calc(var(--_ix-mark-in) * -1);
+  inset-block-start: calc(50% - var(--_ix-mark-h) / 2);
+}
+
+/* Cajón de `index` (SB-L9): 320 o el visor menos 64; sin banda ni logo; el campo y el botón de cerrar en la primera fila, a
+   32 del borde como el original; el primer grupo empieza pegado; el campo no crece (ya va a lo ancho) */
+.g-sidebar__drawer:has(> .g-sidebar--appearance-index) {
+  inline-size: min(calc(var(--g-space-1) * 80), calc(100vw - var(--g-space-1) * 16));
+}
+.g-sidebar__drawer > .g-sidebar--appearance-index > .g-sidebar__head {
+  grid-template-rows: auto auto;
+  column-gap: var(--g-space-2);
+  padding-block-start: var(--_ix-pad);
+}
+.g-sidebar__drawer > .g-sidebar--appearance-index > .g-sidebar__head::after {
+  content: none;
+}
+.g-sidebar__drawer > .g-sidebar--appearance-index .g-sidebar__logo {
+  display: none;
+}
+.g-sidebar__drawer > .g-sidebar--appearance-index .g-sidebar__filter-box {
+  grid-column: 1;
+  justify-self: stretch;
+  inline-size: auto;
+}
+.g-sidebar__drawer > .g-sidebar--appearance-index .g-sidebar__toggle {
+  grid-area: 1 / 2;
+}
+.g-sidebar__drawer > .g-sidebar--appearance-index .g-sidebar__group:first-child {
+  padding-block-start: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .g-sidebar--appearance-index:not(.g-sidebar__drawer > *) .g-sidebar__filter-box {
+    transition:
+      inline-size var(--g-duration-slow) var(--g-ease-out),
+      background-color var(--g-duration-fast) var(--g-ease-standard),
+      border-color var(--g-duration-fast) var(--g-ease-standard);
+  }
+  /* visibility se interpola como «visible» mientras dura: se oculta al acabar el fundido y aparece al empezar */
+  .g-sidebar--appearance-index .g-sidebar__logo {
+    transition:
+      opacity var(--g-duration-fast) var(--g-ease-standard),
+      visibility var(--g-duration-fast);
+  }
+}
+/* Reducido (patrón único, #299): el plegado, la flecha y el filtro no declaran transición fuera de no-preference (son
+   inmediatos); la marca salta y solo se funde (is-instant, sin nada, gana por especificidad) */
+@media (prefers-reduced-motion: reduce) {
+  .g-sidebar__mark {
+    transition:
+      opacity var(--g-duration-fast) linear,
+      background-color var(--g-duration-fast) linear;
+  }
+}
+@media (forced-colors: active) {
+  .g-sidebar--appearance-index {
+    --_ix-mark-c: Highlight;
+  }
+  .g-sidebar__mark,
+  .g-sidebar--appearance-index .g-sidebar__nav:not(.has-mark) :is(.g-sidebar__item > .g-sidebar__link, .g-sidebar__group-title)::before {
+    forced-color-adjust: none;
+  }
+  .g-sidebar--appearance-index:is(.is-filtering, :has(.g-sidebar__filter-box:focus-within)) .g-sidebar__filter-box {
+    border-color: ButtonText;
+  }
+}
+
 /* ---------- Preferencias del sistema ---------- */
 /* Movimiento reducido = menos y más suave, no cero: se conservan los fundidos y se quitan los desplazamientos y escalas */
 @media (prefers-reduced-motion: reduce) {
@@ -1366,6 +1813,7 @@
   .g-sidebar__toggle:focus-visible,
   .g-sidebar__search:focus-visible,
   .g-sidebar__link:focus-visible,
+  .g-sidebar__group-title:focus-visible,
   .g-sidebar__tab:focus-visible {
     outline-color: Highlight;
   }

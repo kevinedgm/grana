@@ -36,8 +36,8 @@
 
   Posición del panel «…» (popover en la capa superior): con anclaje CSS, bajo el botón (su ancla implícita: popovertarget) y
   alineado a su borde final. Sin anclaje (motores sin `position-area`), cae bajo la banda y al final del visor con
-  --_more-top y --_more-end; bruno puede escribirlos al abrir (borde inferior del botón y distancia de su borde final al del
-  visor, en px), como --_screen-top. Pedido anotado para lima en design/lab/sitio/calco-estilo/estilo.md (H2).
+  --_more-top y --_more-end, que bruno escribe al abrir (beforetoggle) EN BRUTO: borde inferior del botón y distancia de su
+  borde final al del visor, en px ≥ 0 (nav-bar.md, H2, #1066). El solape de space × 3 con la banda lo pone este CSS.
 
   Acoplamientos (contratos entre componentes, no tema):
   - La banda: con GNavBar dentro, la barra ocupa la banda entera (nav-bar.md «Relación con GAppShell») y pone su propio
@@ -229,6 +229,9 @@
 .g-app-shell:has(> .g-sidebar--mode-expanded, > .g-sidebar--mode-rail) .g-nav-bar__more {
   margin-inline-end: calc(-1 * var(--_pad));
 }
+.g-app-shell:has(> .g-sidebar--mode-expanded, > .g-sidebar--mode-rail) .g-nav-bar__more-panel {
+  --_more-end: calc(var(--g-space-1) * 0);
+}
 .g-nav-bar__more-btn,
 .g-nav-bar__toggle {
   display: grid;
@@ -270,12 +273,15 @@
 
 /* ---------- «…» · panel (disclosure en popover; calco: radio 12, relleno 12, borde, superficie, sombra 2) ---------- */
 .g-nav-bar__more-panel {
-  --_more-top: calc(var(--g-app-shell-top) - var(--g-space-3));
+  /* La medida en bruto (nav-bar.md «…», H2, #1066): borde inferior del botón y distancia de su borde final al del visor. Sin
+     abrir valen lo que mide la banda (el «…» llega a la banda por abajo y se come space × 3 del relleno final, o todo con la
+     columna, abajo); al abrir las escribe bruno. El solape de space × 3 con la banda lo pone el inset, no el valor */
+  --_more-top: var(--g-app-shell-top);
   --_more-end: calc(var(--_pad) - var(--g-space-3));
   position: fixed;
   inset: auto;
-  inset-block-start: max(calc(var(--g-space-1) * 0), var(--_more-top));
-  inset-inline-end: var(--_more-end);
+  inset-block-start: max(calc(var(--g-space-1) * 0), calc(var(--_more-top) - var(--g-space-3)));
+  inset-inline-end: max(calc(var(--g-space-1) * 0), var(--_more-end));
   box-sizing: border-box;
   min-inline-size: calc(var(--g-space-1) * 32);
   max-inline-size: calc(100vw - var(--g-space-4) * 2);

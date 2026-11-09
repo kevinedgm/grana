@@ -1,0 +1,6 @@
+/* Banco de coco (r03-estilo): SOLO lo que pone el tema del sitio (sin capa, como site/.vitepress/theme/grana-site.css).
+   La apariencia `index` es la de packages/vue/dist/grana.css (GSidebar.css); aquí no hay piel de prototipo. */
+:root {
+  --g-sidebar-group-title-weight: 700;
+  --g-surface-backdrop: rgb(0 0 0 / 0.6);
+}

@@ -214,6 +214,10 @@ body {
   /* Banda de 64 (la entrada pública de GAppShell, #713) y columna izquierda de 272 */
   --g-app-shell-header: calc(var(--g-space-1) * 16);
   --g-sidebar-width: calc(var(--g-space-1) * 68);
+  /* Índice calcado (GSidebar appearance="index"): títulos de grupo en 700 como el original (#1064) */
+  --g-sidebar-group-title-weight: 700;
+  /* Velo del original, rgba(0,0,0,.6), también en claro: cajón del índice y búsqueda (H7, SB-C4, #1066; solo el sitio) */
+  --g-surface-backdrop: rgb(0 0 0 / 0.6);
 }
 /* La barra local pegada bajo la banda, mientras se ve (#1055): el chasis la suma al scroll-padding y a lo pegado */
 @media (width < 80rem) {
@@ -428,14 +432,7 @@ body {
 .g-nav-bar__actions .site-theme {
   margin-inline-start: var(--g-space-2);
 }
-/* Sin etiqueta visible (aria-label) la fila de GSwitch no deja hueco tras el riel (N-H4: lo resolvería GSwitch) */
-.site-theme .g-switch__row {
-  column-gap: 0;
-}
-.site-theme .g-switch__text:empty,
-.site-theme .g-switch__message:empty {
-  display: none;
-}
+/* (Sin etiqueta visible, GSwitch ya no pinta texto ni mensaje vacíos: 7d1024d7, N-H4; la receta del sitio se retiró) */
 
 /* ---------- «…» y pantalla: idiomas y fila «Apariencia» ---------- */
 .site-langs {

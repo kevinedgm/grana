@@ -207,6 +207,8 @@
   --g-sidebar-width: calc(var(--g-space-1) * 66);
   --g-sidebar-rail: calc(var(--g-space-1) * 16);
   --g-sidebar-bar: calc(var(--g-space-1) * 17);
+  /* Sidebar · peso del título de grupo en appearance="index" (tokens.md §61, #1064); default no la lee */
+  --g-sidebar-group-title-weight: var(--g-text-title-sm-weight);
 
   /* Widgets · estructura de la rejilla (tokens.md §14) */
   --g-widget-row: calc(var(--g-space-1) * 28);

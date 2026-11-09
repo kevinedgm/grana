@@ -109,3 +109,50 @@ Colores y radios solo de tokens; medidas solo de `space` y de la altura del item
 ## Sin verificar (lo audita el paso 5 o queda pendiente)
 
 Lector de pantalla real; `forced-colors` y `prefers-reduced-motion` reales; RTL con datos en un idioma RTL real; Firefox y Safari (`popover`, `<dialog>`, `::backdrop`, `rotate`/`translate` individuales); el navbar y el drawer en un dispositivo táctil real y con el teclado virtual; muchos items (cientos); tema oscuro (no existe).
+
+---
+
+# Apariencia `index` y grupos plegables (r03; #1060 a #1065) · coco, 2026-11-08
+
+Piel de `GSidebar.css` para el índice de documentación calcado (`appearance="index"`) y el botón de grupo plegable de las dos apariencias. Banco: `design/lab/sidebar/r03-estilo/` (el `GSidebar` real dentro del marco calcado de kiwi; `node design/lab/sidebar/r03-estilo/verificar.mjs`, puerto 4242). Valores de la ronda r03 de kiwi (`r03/indice.css`, paridad Δ 0) llevados a las clases del contrato.
+
+## Qué le da personalidad (regla de `CLAUDE.md`)
+
+El reposo es el calco al píxel; la identidad está en cómo se comporta, y nada de esto cambia lo que se ve quieto:
+
+- **I2 · la marca que llega.** Una sola marca de 2 × 20 por `<nav>` que viaja de la entrada anterior a la nueva con el muelle del actual de `GSidebar` (`slow` + `--g-ease-spring`, la gramática del asiento de #617) y, si pliegas el grupo del actual, **sube al título y se vacía** (contorno de 1 px): «estás aquí dentro». En un paso de una fila rebasa 1,2 px.
+- **I1 · la luz que no imita al actual.** La luz de #957 ensanchada `space × 2` por lado (el texto empieza a ras y la luz no lo corta) y el hover en `text`; el actual sigue en `accent-text` aunque el puntero pase por encima.
+- **I3 · el filtro que espera en la banda.** Sin caja en reposo (lupa, «Filtrar», `/`); con el foco o con texto se vuelve campo y crece de `space × 30` a lo ancho (`slow` + `ease-out`) tapando la marca, que se funde (`fast`) y queda fuera del orden de Tab mientras está tapada (`visibility`).
+- **El plegado sin saltos.** La rejilla del grupo y su relleno inferior (24 → 10) se mueven a la vez con la misma curva: el grupo siguiente sube de una vez, sin el salto de 14 px al asentar.
+
+## Decisiones
+
+| Pieza | Valor | Por qué |
+| --- | --- | --- |
+| Fila, título y botón de grupo | `max(24px, space × 8)`; 44 con `pointer: coarse` | El calco (32) con el mínimo táctil |
+| Banda | `max(space × 14, 44px, --g-app-shell-header)`; línea como **borde** de un pseudo-elemento | La fórmula de `GAppShell` (#713); un borde sobrevive en `forced-colors` (un fondo no) |
+| Marca | `--_ix-mark-c` (= `accent-text`; `Highlight` en `forced-colors`), borde + relleno del mismo color; hueca = sin relleno | Un solo cambio de color para la llena, la hueca y el indicador estático; el contorno no depende de sombras (que `forced-colors` quita) |
+| Indicador estático (SSR) | La misma forma en `::before` del actual o del botón del grupo plegado con el actual, hasta `has-mark` | El primer HTML ya lleva la segunda señal (1.4.1) |
+| Cuerpo del grupo | Rejilla `0fr → 1fr`; la lista recorta **solo en bloque** (`overflow-y: clip`) y solo plegada o moviéndose | Abierta, la luz ensanchada y los anillos de foco salen libres |
+| `hidden` del cuerpo | Sin `display` de autor sobre `[hidden]` | `until-found` funciona donde existe y el `hidden` simple oculta donde no (SB-B4) |
+| Con consulta y en el riel | El CSS pinta abierto el grupo aunque lleve `is-closed`, sin transición | Regla 5 de #1061 sin depender del orden de clases |
+| Flecha del grupo | `span.g-sidebar__chevron` con el svg dentro (flip-rtl); el span anula el espejo de la flecha de los padres; RTL abierto −90° | Abierta apunta abajo en LTR y en RTL |
+| Botón de grupo en `default` | Aspecto del título de siempre (caption, `text-subtle`), flecha de 16 al final, hover a `text-muted` | #1061 regla 9 |
+
+## Medido (banco, tres motores, componente real de la rama `bruno/sidebar-index` 8fc75c10 + este CSS)
+
+**1130/1130** (Chromium 408, Firefox 361, WebKit 361). Paridad con `sitio/referencia/medidas.json` en 1280, 1024, 768 y 375, claro y oscuro: columna, grupo, título, enlace y actual **Δ 0**; marca **Δ 0** (tolerancia 2); en el cajón la lista baja 32 (desviación aceptada). Tipografía y color de título, enlace, actual y fondo iguales al original. Contraste (tema por defecto, claro/oscuro): enlace 6,90/9,59, actual y marca 5,27/5,12, número 4,72/6,93 (margen 0,22 en claro), flecha 6,90/9,59, foco 5,27/5,12, hover sobre la luz 13,43/13,17; en los 11 temas, el número ≥ 4,70 y el enlace ≥ 6,87 (el actual, H1). Táctil ≥ 44 y texto editable 16 en el cajón. RTL, `forced-colors` (Chromium), movimiento reducido (sin viaje ni transición de altura). Sobrepaso del muelle: 1,2 px en una fila, ≈ 15 px en un salto de 408 px.
+
+## Hallazgos (para sus dueños)
+
+- **H1 (lima, CLI):** en 8 de los 11 temas de Dark Color Presence (claro), el actual en `accent-text` sobre la columna `surface-sunken` queda en **4,19 a 4,32:1** (< 4,5): el motor garantiza `accent-text` sobre `surface`, no sobre `surface-sunken` (el mismo caso de `GFileField soft`). El tema por defecto y el del sitio cumplen (5,27). Opciones: que el CLI valide `accent-text` también sobre `surface-sunken`, o una ranura `--g-sidebar-index-current`.
+- **H2 (lima, rúbrica B):** el muelle rebasa el 3,8 % del recorrido: ≤ 2 px solo hasta ~52 px (una o dos filas). En saltos largos (≈ 400 px) rebasa ≈ 15 px. Opciones: aceptarlo (como la marca de `GTabs`), o que bruno coloque con `is-instant` + fundido cuando el salto pase de N filas.
+- ~~**H3 (lima):** `motion.json` con `count: 2`~~ — resuelto en ca4b7742 (#1070): 3 usos, `check-motion` 0 fallos.
+- **H5 (bruno):** `src/tokens/levels.test.js` no admite `--g-app-shell-header` en `GSidebar.css` (lectura permitida por #1070, tokens.md §48): falta `'GSidebar/GSidebar.css': ['--g-app-shell-header']` en su lista, como `GNavBar.css`.
+
+**Peso (#1069, tope +1792 B gzip, CSS en `grana.css`):** la piel suma **+1534 B** gzip (zlib por defecto; +1515 con nivel 9) a `grana.css` frente a la base anterior al lote (incluye 6 B del ajuste de `--_more-*` de `GNavBar.css`).
+- **H4 (lima, contrato):** el CSS usa `is-animating` e `is-instant` en `g-sidebar__group` (los de `useCollapse`, como `GAccordionItem`); no constan en la tabla de clases de `sidebar.md`. La rama de bruno ya los emite.
+
+## Sin verificar
+
+Lector de pantalla, Ctrl+F real (solo `beforematch`), táctil y `forced-colors` reales, padres con `children` en `index` (sangría `space × 4`, sin línea ni nodo: no hay datos en el banco), la barra de `/blocks/`.
