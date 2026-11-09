@@ -282,9 +282,16 @@
   .grana-live__code button,
   .grana-live__code input { min-block-size: 44px; }
 }
+/* Solo los controles propios de la ficha: los componentes de Grana pintan su foco (GInput en la fila, no en el
+   <input>), y este anillo sobre ellos daba un segundo foco. */
 .grana-live :where(button, input):focus-visible {
   outline: var(--g-focus-width) solid var(--g-color-focus);
   outline-offset: var(--g-focus-offset);
+}
+.grana-live :where([class^="g-"], [class*=" g-"]) :where(button, input):focus-visible,
+.grana-live :where(button, input):where([class^="g-"], [class*=" g-"]):focus-visible {
+  outline: revert-layer;
+  outline-offset: revert-layer;
 }
 .grana-live__status {
   position: absolute;
