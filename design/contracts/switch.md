@@ -144,10 +144,10 @@ Bruno las emite; coco las estiliza. Ninguno usa otras. El estado encendido se es
 | `g-switch__control` | `span` | Siempre |
 | `g-switch__input` | `<input>` | Siempre |
 | `g-switch__icon`, `g-switch__icon--on`, `g-switch__icon--off` | `span` `aria-hidden` | Con el slot correspondiente |
-| `g-switch__text` | Columna de etiqueta y ayuda | Siempre |
+| `g-switch__text` | Columna de etiqueta y ayuda | Con `label` (prop o slot) o `hint` (prop o slot); sin ninguno, no se pinta (#1070) |
 | `g-switch__label` | Etiqueta | Siempre |
 | `g-switch__hint` | Ayuda | Si hay ayuda |
-| `g-switch__error` | Región viva | Siempre presente |
+| ~~`g-switch__error`~~ → `g-switch__message` | Región viva (C4) | Siempre presente **salvo** sin etiqueta ni ayuda visibles, fuera de `GForm` y sin mensaje (#1070) |
 
 ## Límites conocidos
 
@@ -191,3 +191,12 @@ Bruno las emite; coco las estiliza. Ninguno usa otras. El estado encendido se es
 - `GSwitch.css` no define hoy `--_text`: coco lo añade (`--g-color-{familia}-text`) al bloque base y a cada `.g-switch--color-*`, como `GCheckbox`.
 - En el tema por defecto, `brand` y `accent` sin cambio visible (`-text` = base).
 - Selectores, temas y medida: encargo único de coco en `checkbox.md` §«Contraste de lo marcado».
+
+## Sin etiqueta visible (H1 de coco y N-H4; DECISIONS.md #1070)
+
+**Origen:** el interruptor de tema de `GNavBar` (`nav-bar.md`, solo `aria-label`) medía 48 en vez de 40 por una columna de texto y una región de mensaje vacías. **Construido por bruno en 7d1024d7**; esta sección enmienda «Estructura accesible», la tabla de clases y C4 donde choquen.
+
+- **`g-switch__text`** se pinta solo con `label` o `hint` (prop o slot). Sin ninguno, el nombre accesible es el `aria-label` o `aria-labelledby` de la aplicación, que llega al `<input>` (`inheritAttrs: false`; el aviso de nombre ya los acepta). Cierra N-H4.
+- **`g-switch__message`** se pinta siempre que haya etiqueta o ayuda visibles, **o** el interruptor esté dentro de `GForm`, **o** haya un mensaje. Solo se omite en el caso de arriba (sin texto visible, fuera de `GForm`, sin mensaje). Dentro de `GForm` la región viva sigue **siempre presente** (4.1.3, C4).
+- **Límite aceptado:** un interruptor **sin etiqueta visible y fuera de `GForm`** que recibe `error`, `warning` o `valid` inserta la región ya con el texto, así que **el anuncio no está garantizado** (una región viva que nace con contenido no siempre se lee). La guía ya pide que un interruptor con error lleve etiqueta o vaya en un formulario. Consta en `GSwitch.meta.json` (`pending`); se documenta en el README.
+- Sin cambio de API, tokens ni CSS (coco quita la receta `.site-theme` del sitio cuando lo compruebe; no es de este contrato).

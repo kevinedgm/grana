@@ -1,6 +1,6 @@
 # Contrato · GSidebar
 
-**Dueño:** lima · **Estado:** aprobado · **Basado en:** `design/lab/sidebar/r01/` (kiwi); el item actual, los cortes y el hueco del icono en `design/lab/sidebar/r02/` (§«Item actual: el asiento», §«Cortes de adaptación», DECISIONS.md #612 a #619); el filtro del índice y el código del item en `design/lab/sitio/r01/` (concepto A del marco del sitio; §«Filtro del índice», §«Código del item», DECISIONS.md #1035 y #1036; extensión `@grana/vue/sidebar-filter` por #1050; pendiente de coco y bruno); la **apariencia `index`** y los **grupos plegables** en `design/lab/sidebar/r03/` (§«Apariencia `index`», DECISIONS.md #1060 a #1065; pendiente de coco y bruno)
+**Dueño:** lima · **Estado:** aprobado · **Basado en:** `design/lab/sidebar/r01/` (kiwi); el item actual, los cortes y el hueco del icono en `design/lab/sidebar/r02/` (§«Item actual: el asiento», §«Cortes de adaptación», DECISIONS.md #612 a #619); el filtro del índice y el código del item en `design/lab/sitio/r01/` (concepto A del marco del sitio; §«Filtro del índice», §«Código del item», DECISIONS.md #1035 y #1036; extensión `@grana/vue/sidebar-filter` por #1050; pendiente de coco y bruno); la **apariencia `index`** y los **grupos plegables** en `design/lab/sidebar/r03/` (§«Apariencia `index`», DECISIONS.md #1060 a #1065; en la extensión `@grana/vue/sidebar-index` por #1069; pendiente de coco y bruno)
 **Tag:** `g-sidebar` · **Categoría:** navegación
 
 Navegación lateral (principal o secundaria) que **se transforma con un solo sistema**: **expandida** (etiquetas, grupos, submenús en línea), **riel** de iconos (submenús en un panel flotante) y, en móvil, **navbar inferior** con la «píldora activa» o **drawer**. Alcance decidido por el usuario (DECISIONS.md #67 a #70): navegación por arreglo `items` y slots, búsqueda que solo dispara un evento, adaptación por el ancho del contenedor con `mode` manual, navbar inferior con los primeros N items y «Más», estilo «píldora activa».
@@ -19,8 +19,8 @@ Navegación lateral (principal o secundaria) que **se transforma con un solo sis
 | Prop | Tipo | Valores | Default | Origen |
 | --- | --- | --- | --- | --- |
 | `items` | Array | ver «Modelo de `items`» | `[]` | propia |
-| `appearance` | String | `default` `index` | `default` | propia (piel del índice de documentación; §«Apariencia `index`», #1060) |
-| `closedGroups` | Array \| undefined | `id` de los grupos plegables cerrados | `undefined` (estado interno) | propia (con `update:closedGroups`; §«Grupos plegables», #1061) |
+| `appearance` | String | `default` `index` | `default` | propia (piel del índice de documentación; §«Apariencia `index`», #1060; **necesita la extensión `@grana/vue/sidebar-index`**, #1069) |
+| `closedGroups` | Array \| undefined | `id` de los grupos plegables cerrados | `undefined` (estado interno) | propia (con `update:closedGroups`; §«Grupos plegables», #1061; **necesita la extensión `@grana/vue/sidebar-index`**, #1069) |
 | `modelValue` | String \| Number \| null | `id` del destino actual | `null` | compartida |
 | `label` | String | texto libre | sin valor | propia (nombre del `<nav>`) |
 | `mode` | String | `auto` `expanded` `rail` `navbar` `drawer` | `auto` | propia |
@@ -62,8 +62,8 @@ Navegación lateral (principal o secundaria) que **se transforma con un solo sis
 - **`closeOnNavigate`:** el drawer se cierra al elegir un destino (`navigate` no cancelado).
 - **`color`:** relleno de los **contadores y puntos** (`--g-color-{color}` y `on-`) en todos los formatos. **No pinta el item actual ni la píldora del navbar**: los dos leen las ranuras del item actual (`--g-sidebar-current*`, §«Item actual: el asiento»; #615, cambia el uso de #68). Quien usaba `color` para teñir la píldora pasa a `--g-sidebar-current` en el tema.
 - **`density`:** multiplica la altura del item (1×, 0.875×, 0.75×) con piso de 24px, como el resto; el navbar no la usa (objetivos táctiles).
-- **`appearance`:** ver §«Apariencia `index`» (#1060). Un valor fuera de la lista cuenta como `default` (aviso A4).
-- **`closedGroups`:** ver §«Grupos plegables» (#1061). Sin la prop (`undefined`), el estado de plegado es interno y nace de `collapsed` de cada grupo; con la prop, manda el arreglo.
+- **`appearance`:** ver §«Apariencia `index`» (#1060). Un valor fuera de la lista cuenta como `default` (aviso A4). Sin la extensión `@grana/vue/sidebar-index`, `index` se pinta como `default` (aviso A5, #1069).
+- **`closedGroups`:** ver §«Grupos plegables» (#1061). Sin la prop (`undefined`), el estado de plegado es interno y nace de `collapsed` de cada grupo; con la prop, manda el arreglo. Sin la extensión, los grupos no se pliegan: la prop se acepta y se ignora y `update:closedGroups` no se emite (A5, #1069).
 - **Atributos:** `class`, `style`, `data-*` y `aria-*` (salvo `aria-label`, que es `label`) van a la **raíz**.
 
 ### Modelo de `items`
@@ -84,7 +84,7 @@ Navegación lateral (principal o secundaria) que **se transforma con un solo sis
 ]
 ```
 
-- **Grupo:** `{ label, items, id?, collapsible?, collapsed? }` (con `items`; `collapsible` y `collapsed`: §«Grupos plegables», #1061; con `collapsible`, `id` es obligatorio, aviso A3). Un elemento de primer nivel sin `items` es un **item sin grupo**. `label` del grupo es su nombre (`aria-labelledby`); en el riel el título se oculta visualmente y **sigue en el DOM**.
+- **Grupo:** `{ label, items, id?, collapsible?, collapsed? }` (con `items`; `collapsible` y `collapsed`: §«Grupos plegables», #1061; con `collapsible`, `id` es obligatorio, aviso A3; solo actúan con la extensión `@grana/vue/sidebar-index`, #1069). Un elemento de primer nivel sin `items` es un **item sin grupo**. `label` del grupo es su nombre (`aria-labelledby`); en el riel el título se oculta visualmente y **sigue en el DOM**.
 - **Item:** `{ id, label, href?, icon?, code?, keywords?, filterable?, badge?, badgeLabel?, dot?, disabled?, primary?, children? }` (`code`, `keywords` y `filterable`: §«Filtro del índice» y §«Código del item», #1035 y #1036). `icon` es un valor **de la aplicación**: si es una **cadena** y no hay slot `icon`, el item dibuja `GIcon` con ese nombre en `g-sidebar__icon` (registro de la aplicación o lista de la librería; `icons.md` §5, `api.md` «Iconos en los componentes», #202); **con slot `icon`, manda el slot**; otro valor (componente, objeto) es un dato opaco que solo recibe el slot. `badge` es un número o texto corto (visible, `aria-hidden`); `dot` una marca sin número; **`badgeLabel` es el texto para lectores** (obligatorio si hay `badge` o `dot`: aviso en desarrollo). Cualquier otro campo se conserva y llega a los slots.
 - **`href`:** un item con `href` es un `<a>`; sin `href` ni `children`, un item de solo acción (`<button>`) que emite `navigate` igualmente. Con un router, la aplicación cancela el evento nativo de `navigate` y navega ella.
 - **`children`:** un **solo nivel**; un hijo `{ id, label, href?, badge?, badgeLabel?, disabled? }` no lleva `icon` propio ni `children` (los nietos se ignoran y avisan). Un padre es siempre un botón de submenú (no navega por sí mismo).
@@ -369,7 +369,7 @@ Ancho `--g-sidebar-rail`. Etiquetas y títulos de grupo ocultos visualmente (sig
 | `mode-change` | `{ mode, overlay }` | El formato resuelto cambia (`expanded` `rail` `navbar` `drawer`); `overlay` es verdadero cuando el sidebar está **expandido encima del riel** (la aplicación reserva el ancho del riel) |
 | `search` | | El usuario activa el disparador de búsqueda |
 | `update:query` | String | El texto del filtro cambia (escribir, vaciar con Esc o con el botón); #1035 |
-| `update:closedGroups` | Array de `id` | El usuario pliega o despliega un grupo (clic, Intro, Espacio), `beforematch` abre uno, o la ruta abre el del actual (§«Grupos plegables», #1061). El filtro **no** lo emite |
+| `update:closedGroups` | Array de `id` | El usuario pliega o despliega un grupo (clic, Intro, Espacio), `beforematch` abre uno, o la ruta abre el del actual (§«Grupos plegables», #1061). El filtro **no** lo emite. Sin la extensión `@grana/vue/sidebar-index`, nunca (#1069) |
 
 **Nota para bruno:** los demás eventos (`click`, `keydown`…) no se declaran; llegan a la raíz. Al elegir en el drawer, el foco vuelve al botón que lo abrió **antes** de emitir. Un item de solo acción (sin `href` ni `children`) emite `navigate` y no cambia `modelValue` si se cancela.
 
@@ -542,7 +542,7 @@ Bruno las emite; coco las estiliza. Ninguno usa otras.
 | `is-filtering` | Raíz y botón del filtro del riel | Hay consulta (#1035) |
 | `data-code` | `g-sidebar__icon` | El item lleva `code` (#1036), en `default` |
 | `g-sidebar--appearance-{default\|index}` | Raíz **y** raíz interna del drawer (`.g-sidebar__drawer > .g-sidebar`, SB-B1) | Siempre (#1060) |
-| `g-sidebar__group` + `is-collapsible`, `is-closed`, `has-current` | `li` del grupo | `is-collapsible`: grupo plegable válido; `is-closed`: plegado (estado efectivo); `has-current`: contiene el actual (#1061) |
+| `g-sidebar__group` + `is-collapsible`, `is-closed`, `has-current`, `is-animating`, `is-instant` | `li` del grupo | `is-collapsible`: grupo plegable válido; `is-closed`: plegado (estado efectivo); `has-current`: contiene el actual (#1061); **`is-animating`**: mientras el grupo se pliega o se despliega (de la petición a `transitionend` o al respaldo `transitionMs + 50`; el contenido que se va lleva `inert`), y **`is-instant`**: el cambio no se anima (abrir por `beforematch`, por la ruta al montar o por el filtro), se retira tras dos cuadros; las dos las pone el motor de plegado de la extensión, como en `GAccordionItem` (`accordion.md`); con movimiento reducido el CSS cuenta con ellas (#1069). Sin la extensión no se emite ninguna de las cinco: el `li` es el de un grupo fijo |
 | `g-sidebar__group-title` (`<button>` en un grupo plegable; `<span>` en el resto) + `g-sidebar__chevron` | Título del grupo | Con `collapsible` y `id` (#1061) |
 | `g-sidebar__group-body` (+ `hidden="until-found"` al asentar cerrado) | Envoltorio de la lista de un grupo plegable | Con `collapsible` (#1061; el `hidden` va aquí, no en `g-sidebar__list`, SB-B4) |
 | `g-sidebar__code` | Número al final de la fila | `index` con `code` (#1063) |
@@ -719,9 +719,30 @@ Filtrar 500 destinos en Chromium: **< 16 ms por tecla** sin desmontar items; sin
 - `code` es **de la aplicación** (Grana no numera): su estabilidad es contrato de quien lo da (en el sitio, #1037).
 - **En `appearance="index"` (enmienda de #1036 por #1063):** no hay asiento; el número va **al final de la fila** (`g-sidebar__code`, `aria-hidden`) y su texto oculto va **después** de la etiqueta: «GCombobox, 24» (sigue el orden visual, 1.3.2; el nombre empieza por la etiqueta visible, 2.5.3). C1 a C3 valen igual (en un hijo se ignora). §«Apariencia `index`».
 
-## Apariencia `index` (r03; DECISIONS.md #1060 a #1065)
+## Apariencia `index` (r03; DECISIONS.md #1060 a #1065 y #1069)
 
 **Origen:** `design/lab/sidebar/r03/` (kiwi, 637d9a15; `declaracion.md` SB-L1 a SB-L12; verificador 743/743 en tres motores, paridad Δ 0 en 12 de 14 piezas). Es el índice de documentación del sitio anterior calcado con el `GSidebar` real (#1052): **otra piel y un plegado de grupo, no otro componente** (no hace falta un `GDocIndex`). La forma no se elige: la fija el original. Lo que el original no tenía (filtro y números) lo decidió el usuario el 2026-11-08 (SB-Q1 → **F1 + C1**, #1063).
+
+### Extensión y conexión (#1069, enmienda de #1065)
+
+Decisión del usuario del 2026-11-08: **la apariencia `index`, los grupos plegables y la marca del actual no viajan en `@grana/vue`**. Van en la entrada **`@grana/vue/sidebar-index`** (global UMD `GranaSidebarIndex`), con el patrón de `sidebar-filter` (#1050; `api.md` «Entradas propias»). Motivo: medido en la rama `bruno/sidebar-index` (12942dbe), con todo en el principal `grana.js` crecía **+2 993 B** gzip frente al tope de +1 024 de #1065 (marca, cajón y su observador ≈ 780 B; grupos plegables, rama `index` y A1 a A4 ≈ 2 213 B). Lo usan los índices de documentación; una aplicación con `GSidebar` de siempre no lo paga.
+
+```js
+import SidebarIndex from '@grana/vue/sidebar-index'
+app.use(SidebarIndex) // conecta la piel index, el plegado de grupos y la marca con todos los GSidebar
+```
+
+- **Conexión:** el plugin por defecto hace `app.provide` con una **clave interna** (no es API pública) que llega a la entrada por `__shared` (#240); `GSidebar` la inyecta. Un solo camino: sin prop ni opciones de `install`. En UMD, `app.use(GranaSidebarIndex.default)` tras cargar `grana.umd.js`. **SSR:** el plugin se instala en la aplicación del servidor **y** en la del cliente (si solo está en una, el HTML no coincide al hidratar: error de la aplicación, documentado en el README). La entrada no exporta nada más (ni componente ni motor). Es **independiente de `sidebar-filter`**: cada una funciona sin la otra y el orden de `app.use` no importa; la regla 5 de §«Grupos plegables» (el filtro abre sin tocar el estado) la cumple esta extensión leyendo la consulta y el conjunto visible que `GSidebar` ya tiene.
+- **Qué se queda en `GSidebar` (principal), lo mínimo:** las props `appearance` y `closedGroups`, el evento `update:closedGroups`, los campos `collapsible`, `collapsed` e `id` del grupo y `labels.groupCurrent` (se aceptan aunque no actúen), todo ello en `GSidebar.meta.json` (contrato de tipos, #443); los avisos **A4** y **A5**; las clases que `default` ya pinta, y el **punto de enganche interno** (lo define bruno: la extensión recibe el árbol resuelto, el actual, la consulta y el conjunto visible, y devuelve la rama de render del grupo y del final de la fila, la capa de la marca y lo que hace el cajón al abrirse; no es API pública). `code` en el asiento de `default` (#1036) no cambia y sigue en el principal.
+- **Qué va en la extensión:** la resolución de `index` (formatos expandida y drawer, A1, A2, la banda, el número al final, la raíz interna del drawer con la clase, SB-B1/B2), el **plegado de grupos en las dos apariencias** (botón *Disclosure*, estado interno o controlado, la ruta abre, `beforematch`, `hidden="until-found"`, teclado de los botones, regla 5 del filtro, A3, `is-collapsible`/`is-closed`/`has-current`/`is-animating`/`is-instant`, `g-sidebar__group-body`), **la marca** (`g-sidebar__mark`, `has-mark`, geometría, observador) y **el cajón que abre en el actual** (I5, en las dos apariencias). El motor por grupo (`createCollapse` de 12942dbe) **viaja en la extensión**, no en `utils/collapse.js` del principal; lo que comparta con `useCollapse` (`transitionMs`, `nextFrame`…) llega por `__shared`, sin copia.
+- **Sin la extensión** (no se hizo `app.use(SidebarIndex)`), nunca un error:
+  - `appearance="index"` se pinta **`default` entero** (raíz con `g-sidebar--appearance-default`, sus cuatro formatos, `breakpoints` completos, iconos y asiento, `code` dentro del asiento, botón de contraer, `search`). A1 y A2 no aplican.
+  - Un grupo con `collapsible` (en cualquier apariencia) se pinta como **grupo fijo y abierto**: título `span`, sin botón ni flecha, sin `g-sidebar__group-body`, con su lista visible. **`collapsed: true` se ignora** (nunca se esconde navegación sin un control que la devuelva, 2.1.1). A3 no aplica.
+  - `closedGroups` se acepta y se ignora; `update:closedGroups` no se emite nunca; `labels.groupCurrent` no se usa.
+  - El drawer se abre como antes de #1060 (sin centrar el actual).
+  - Aviso **A5**, una vez por instancia, si se dio `appearance="index"`, algún grupo con `collapsible: true` o `closedGroups` definido.
+- **Tipos:** `appearance`, `closedGroups`, `update:closedGroups` y los campos del grupo siguen en `GSidebar.meta.json`. La entrada lleva su `.d.ts` con el plugin por defecto (`Plugin`) y nada en `GlobalComponents`; se declara en `exports`, `typesVersions`, `ENTRIES` de `scripts/build-types.mjs` y `src/types.test.js` (`api.md` «Paquete, entradas y tipos»).
+- **CSS:** todo sigue en **`grana.css`** (`GSidebar.css`, de coco), como el del filtro: la piel es de un componente del principal y ninguna entrada propia lleva hoja aparte. Coco no cambia nada por la extensión; sin ella, las clases de `index` y de plegado no se emiten y su CSS no actúa.
 
 ### Qué cambia frente a `default` (#1060)
 
@@ -771,7 +792,7 @@ Decisión del usuario SB-Q1: **C1**, el número como el **número de página del
 - **Nombre accesible:** el `g-sidebar__sr` del número va **después** de la etiqueta: «GCombobox, 24» (§«Código del item»). El filtro por número (#1035) no cambia.
 - La etiqueta larga se corta con elipsis antes del número; el número nunca se corta.
 
-### Grupos plegables (SB-L2, SB-L7, SB-L8; #1061) — en las dos apariencias
+### Grupos plegables (SB-L2, SB-L7, SB-L8; #1061) — en las dos apariencias, con la extensión (#1069)
 
 | Campo / prop | Tipo | Qué hace |
 | --- | --- | --- |
@@ -828,7 +849,7 @@ Reglas:
 ### Cajón de `index` (SB-L9)
 
 - **Ancho:** `min(--g-space-1 × 80, 100vw − --g-space-1 × 16)` (320, o el visor menos 64: 311 a 375; el original). `default` sigue con `86vw`.
-- **El actual a la vista al abrir** (I5, SB-B5): al abrirse el drawer, bruno desplaza su región para que la fila del actual (o el botón del grupo que lo representa) quede **centrada** si cabe: `scrollTop` directo, sin animación, antes de pintarse abierto (sin salto visible). En `default`, igual (#1060: mismo beneficio, sin coste nuevo).
+- **El actual a la vista al abrir** (I5, SB-B5): al abrirse el drawer, bruno desplaza su región para que la fila del actual (o el botón del grupo que lo representa) quede **centrada** si cabe: `scrollTop` directo, sin animación, antes de pintarse abierto (sin salto visible). En `default`, igual (#1060), **con la extensión cargada** (#1069: el desplazamiento y su observador viajan en ella; sin ella, el drawer de siempre).
 - **Velo:** `--g-surface-backdrop` (del tema). El sitio lo declara al valor del original en su tema (`sitio-marco.md` §11, #1066); Grana no cambia su valor por defecto.
 - Lo demás, el drawer de siempre (modal, foco dentro, Esc y devolución del foco, `closeOnNavigate`).
 
@@ -861,15 +882,21 @@ El reposo es un calco; lo distinto es **cómo se comporta** y nada cambia lo que
 
 ### Avisos (`[Grana GSidebar]`, guarda canónica de #653, una vez por instancia y causa)
 
-**A1** `appearance="index"` con `mode="rail"` o `"navbar"`: se pinta expandida o drawer. **A2** item con `icon` (o slot `icon`) en `index`: se ignora. **A3** grupo `collapsible` sin `id`: no se pliega. **A4** `appearance` fuera de lista: `default`.
+**A1** `appearance="index"` con `mode="rail"` o `"navbar"`: se pinta expandida o drawer. **A2** item con `icon` (o slot `icon`) en `index`: se ignora. **A3** grupo `collapsible` sin `id`: no se pliega. **A4** `appearance` fuera de lista: `default`. **A5** (#1069) `appearance="index"`, un grupo con `collapsible: true` o `closedGroups` sin la extensión `@grana/vue/sidebar-index`: se pinta `default`, sin plegar, y el texto nombra `app.use(SidebarIndex)`. A1 a A3 viajan en la extensión (sin ella no pueden darse); A4 y A5 en el principal.
 
-### Peso (#1065)
+### Peso (#1069, enmienda de #1065)
 
-**En el principal** (`grana.js`), sin extensión: el plegado de grupo sirve en las dos apariencias, el motor `collapse.js` ya viaja en el principal, y lo propio de `index` (clase, rama de render del número, marca y desplazamiento del cajón) es pequeño. Lote propio: **`grana.js` ≤ +1 KiB (1 024 B) gzip** y **`grana.css` ≤ +1,5 KiB (1 536 B) gzip** sobre la medida de 1d5f9fb8 + bf05f10c. Compuertas para `gates.sh` (bruno): `grep -q "g-sidebar--appearance-index" packages/vue/dist/grana.css`, `grep -q "g-sidebar__mark" packages/vue/dist/grana.css`, `grep -q "g-sidebar__group-body" packages/vue/dist/grana.css`. Si no cabe, bruno lo devuelve a lima con la medida antes de recortar; la alternativa con nombre es una extensión `@grana/vue/sidebar-index` con la marca y el cajón (patrón de #1050). Con más, decide el usuario.
+Medidas de bruno (12942dbe, todo en el principal): `grana.js` 230 794 → 233 787 B gzip (+2 993; sin comentarios +2 731; minificado +2 016); marca, cajón y observador ≈ 780 B; plegado, rama `index` y A1 a A4 ≈ 2 213 B. Topes:
+
+- **`dist/sidebar-index.js` ≤ 3,75 KiB (3 840 B) gzip** (el JS de la extensión, con la cabecera de módulo y las importaciones de `__shared`; la misma holgura que tomó `sidebar-filter`, ≈ 1,3 × su parte medida dentro del principal).
+- **`grana.js` ≤ +0,75 KiB (768 B) gzip** para lo que queda en el principal (props, evento, A4, A5, inyección y enganche), sobre la base de la rama (230 794 B, 2241cb48); al integrar sobre `main`, bruno remide la base sin el lote y aplica el mismo delta.
+- **`grana.css` ≤ +1,75 KiB (1 792 B) gzip** (sube +256 B el tope de #1065; coco midió +1 652 B con la piel en curso). Si la piel terminada pasa de 1 792, coco recorta antes (primero reglas de `default` duplicadas en `index`, luego estados que el reducido ya cubre) y, si no basta, vuelve a lima; con más, decide el usuario.
+
+**Compuertas** en `gates.sh` (bruno): las tres de CSS de #1065 (`g-sidebar--appearance-index`, `g-sidebar__mark`, `g-sidebar__group-body` en `grana.css`); `test -f packages/vue/dist/sidebar-index.js`; `! grep -q` en `dist/grana.js` de una cadena propia de la extensión (p. ej. el texto de A1); y que `dist/sidebar-index.js` no lleve copia de `GSidebar` ni de `utils/collapse.js` (cadena propia elegida por bruno). Si algún tope no cabe, bruno vuelve a lima con la medida antes de recortar.
 
 ### Verificación (criterio de hecho)
 
-Vitest (bruno): props y avisos A1 a A4; estado de plegado interno y controlado; la ruta abre al montar y al cambiar; `beforematch` emite; el filtro abre sin emitir y deshabilita el botón; `aria-expanded`/`aria-controls`/`aria-labelledby`; `groupCurrent`; nombre «GCombobox, 24»; hidratación sin avisos con `closedGroups`. Playwright (bruno, tres motores; puerto propio): plegar con clic, Intro y Espacio; ↑ ↓ por los botones; marca llena, hueca y que viaja (a mitad no está en el destino; al final ±1 px de su fila); recolocación tras plegar un grupo de arriba; `/` → el campo crece y tapa la marca; recuento oculto vacío y visible con texto; cajón con el actual a la vista; Firefox sin parada en la región (#570); rendimiento con 500 destinos (`--workers=1`). Coco: paridad con `design/lab/sidebar/r03/paridad.json` (Δ 0 en la columna a 1280 y 1024) y contraste de enlace, actual, número (≥ 4,5:1), marca y flecha (≥ 3:1) en claro y oscuro.
+Vitest (bruno): props y avisos A1 a A5; **sin la extensión** (`index` se pinta `default` entero, `collapsible` fijo y abierto con `collapsed: true`, `closedGroups` ignorado sin emitir, drawer sin centrar, A5 una vez) y con ella, el resto; estado de plegado interno y controlado; la ruta abre al montar y al cambiar; `beforematch` emite; el filtro abre sin emitir y deshabilita el botón; `aria-expanded`/`aria-controls`/`aria-labelledby`; `groupCurrent`; nombre «GCombobox, 24»; hidratación sin avisos con `closedGroups`. Playwright (bruno, tres motores; puerto propio): plegar con clic, Intro y Espacio; ↑ ↓ por los botones; marca llena, hueca y que viaja (a mitad no está en el destino; al final ±1 px de su fila); recolocación tras plegar un grupo de arriba; `/` → el campo crece y tapa la marca; recuento oculto vacío y visible con texto; cajón con el actual a la vista; Firefox sin parada en la región (#570); rendimiento con 500 destinos (`--workers=1`). Coco: paridad con `design/lab/sidebar/r03/paridad.json` (Δ 0 en la columna a 1280 y 1024) y contraste de enlace, actual, número (≥ 4,5:1), marca y flecha (≥ 3:1) en claro y oscuro.
 
 ### No verificado (al contratar)
 

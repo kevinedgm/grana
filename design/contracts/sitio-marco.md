@@ -53,7 +53,7 @@ Layout.vue
 ```
 
 - **Portada** (`layout: home`): mismo marco **sin** `#nav`, sin barra local ni índice de la página, con pie; la banda **transparente y sin línea mientras la página está arriba del todo** (§3.5). **404:** el marco de una página sin `GPageIndex`.
-- **Plugins del tema** (`enhanceApp`): `@grana/vue/app-shell`, `@grana/vue/nav-bar`, `@grana/vue/page-index`, `@grana/vue/page-index-list` (sin él, `list` cae a `relay` con aviso 7), `@grana/vue/sidebar-filter` (sin él, el índice sin filtro, F5) y `@grana/vue/combobox`.
+- **Plugins del tema** (`enhanceApp`): `@grana/vue/app-shell`, `@grana/vue/nav-bar`, `@grana/vue/page-index`, `@grana/vue/page-index-list` (sin él, `list` cae a `relay` con aviso 7), `@grana/vue/sidebar-filter` (sin él, el índice sin filtro, F5), `@grana/vue/sidebar-index` (sin él, el índice cae a `default` sin plegar, A5; #1069) y `@grana/vue/combobox`.
 
 ## 3. La barra superior (`GNavBar`, `nav-bar.md`)
 
@@ -89,7 +89,7 @@ Dos `GCard interaction="link"` en dos columnas (≥ 640 px de la columna; una so
 
 ## 4. El índice izquierdo (`GSidebar appearance="index"`; #1060 a #1065, #1068)
 
-**Decidido:** `GSidebar` con **`appearance="index"`** (`sidebar.md` §«Apariencia `index`», ronda `design/lab/sidebar/r03/` de kiwi, 743/743 en tres motores; cierra el hueco de esta sección y N-L10), `filter` (extensión `@grana/vue/sidebar-filter`, #1050) y `code` en los items de componentes (#1036); `filterKeyshortcuts="/"` (⌘K va a la búsqueda); ancho 272 (`--g-sidebar-width` en el tema del sitio); **expandida desde 960 px, drawer por debajo, sin riel** (en `index` no hay riel: basta `:breakpoints="{ expanded: 960 }"`); el drawer lo abre el botón «Menú» de la barra local; navegar con `@navigate` → `preventDefault`, `router.go(href)`, `open = false` (de A, §3 antiguo); `modelValue` de la ruta.
+**Decidido:** `GSidebar` con **`appearance="index"`** (extensión `@grana/vue/sidebar-index`, #1069; `sidebar.md` §«Apariencia `index`», ronda `design/lab/sidebar/r03/` de kiwi, 743/743 en tres motores; cierra el hueco de esta sección y N-L10), `filter` (extensión `@grana/vue/sidebar-filter`, #1050) y `code` en los items de componentes (#1036); `filterKeyshortcuts="/"` (⌘K va a la búsqueda); ancho 272 (`--g-sidebar-width` en el tema del sitio); **expandida desde 960 px, drawer por debajo, sin riel** (en `index` no hay riel: basta `:breakpoints="{ expanded: 960 }"`); el drawer lo abre el botón «Menú» de la barra local; navegar con `@navigate` → `preventDefault`, `router.go(href)`, `open = false` (de A, §3 antiguo); `modelValue` de la ruta.
 
 **Aspecto:** el del original, pieza a pieza (columna `surface-sunken` sin borde; cabecera = la banda de 64 con su línea; títulos 14/24 en 700 con la ranura `--g-sidebar-group-title-weight` que el tema del sitio sube a 700, §11; separadores; enlaces sin icono en filas de 32; el actual en `accent-text`), con lo que decidió el usuario el 2026-11-08 (**SB-Q1 → F1 + C1**, #1063): el **filtro en la banda**, junto a la marca, que crece al pulsar `/` (la lista no se mueve), y los **números al final de la fila**, como en el índice de un libro. **La marca del actual** (2 × 20 en `accent-text`) se pinta siempre (WCAG 1.4.1; desviación 6 de §12) y viaja al cambiar de página (I2).
 

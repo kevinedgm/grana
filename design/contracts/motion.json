@@ -235,7 +235,7 @@
       "GTabs.css": { "count": 2, "use": "Borde de atrás de la marca", "decisions": ["#302"] },
       "GStatusIsland.css": { "count": 4, "use": "Cambio de tamaño de la cápsula al crecer", "decisions": ["#324", "#701"] },
       "GBreadcrumbs.css": { "count": 1, "use": "El nivel que llega al bajar, solo translate", "decisions": ["#500"] },
-      "GSidebar.css": { "count": 2, "use": "El asiento del item actual que se llena desde el centro", "decisions": ["#617", "#635"], "pending": { "count": 3, "use": "La marca del actual de appearance=\"index\" que viaja, solo translate", "decisions": ["#1062"], "note": "check-motion lee count, no pending: el count pasa a 3 en el mismo lote en que coco escriba la marca en GSidebar.css (lo cambia lima). Hasta entonces el árbol real sigue con 2" } },
+      "GSidebar.css": { "count": 3, "use": "El asiento del item actual que se llena desde el centro; la marca del actual de appearance=\"index\" que viaja, solo translate (#1062; JS en la extensión @grana/vue/sidebar-index, #1069; el CSS sigue en GSidebar.css)", "decisions": ["#617", "#635", "#1062"] },
       "GPageHeader.css": { "count": 1, "use": "Entrada del muelle de acciones en estrecho, solo translate", "decisions": ["#632", "#635"] },
       "GDocumentPreview.css": { "count": 1, "use": "La marca del lomo que llega a su página en un salto explícito, solo translate", "decisions": ["#639"] }
     },
