@@ -1,5 +1,6 @@
 // Generación del tema: entradas → tokens (color en OKLCH, escalas), con los valores por defecto para lo demás.
-import { deriveColor, deriveDarkColor } from './derive.js'
+import { deriveColor, deriveDarkColor, ensureText, worstAgainst } from './derive.js'
+import { parseHex, toHex, toOklch } from './color.js'
 import { DEFAULTS, DARK } from './defaults.js'
 import { isColorGroup, splitColorGroup } from './scheme.js'
 import { fontStack, radii, spacing, typography, heroTitleMax } from './scales.js'
@@ -7,35 +8,72 @@ import { categoryBases, semanticAdjustments, tintedNeutralBase, tintedNeutrals }
 import { applyZone } from './zone.js'
 import { sidebarCurrentDark } from './sidebarCurrent.js'
 
-// Superficie contra la que se calcula `text` (el tema claro por defecto; con `overrides` de surface se respeta)
+// Superficie de la regla anterior a #1074 (solo contra `surface`): con ella se calcula el acento que se deriva de la marca,
+// para que la base del acento no cambie (§2: la garantía ampliada solo mueve `-text`)
 const surfaceOf = (overrides = {}) => overrides['--g-color-surface'] ?? DEFAULTS['--g-color-surface']
 
-const colorTokens = (name, base, surface) => {
-  const d = deriveColor(base, { surface })
-  return {
-    [`--g-color-${name}`]: d.base,
-    [`--g-color-${name}-strong`]: d.strong,
-    [`--g-color-${name}-soft`]: d.soft,
-    [`--g-color-${name}-text`]: d.text,
-    [`--g-color-on-${name}`]: d.on,
-    [`--g-color-on-${name}-soft`]: d.onSoft
-  }
+// Fondos contra los que se garantiza todo `{familia}-text` (tokens.md §2 «Garantía de `{familia}-text`», #1074): los resueltos
+// del esquema (overrides → teñidos de §16.2 → por defecto). Un valor que no es hex no se puede medir y cae al del esquema.
+const BG_KEYS = { surface: '--g-color-surface', surfaceSunken: '--g-color-surface-sunken', bg: '--g-color-bg' }
+const resolveBackgrounds = (overrides, tinted, base) => Object.fromEntries(Object.entries(BG_KEYS).map(([k, key]) => {
+  const v = [overrides[key], tinted?.[key]].find((x) => x !== undefined && parseHex(x))
+  return [k, v ?? base[key]]
+}))
+const bgList = (bgs) => Object.entries(BG_KEYS).map(([k, key]) => ({ name: key.slice('--g-color-'.length), rgb: parseHex(bgs[k]) }))
+
+// Familias con `-text` que el tema puede no emitir (sin configurar o sin teñir): si su valor del esquema no cumple contra los
+// fondos resueltos, se emite solo su `-text` ajustado con la misma regla (status «adjusted» en tokens.json)
+const TEXT_FAMILIES = ['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info']
+
+// Registro de la garantía: cada `-text` que se movió respecto a la regla solo contra `surface` (diagnóstico color-text-shift)
+const recordShift = (derived, { family, scheme, from, to, against }) => {
+  if (!derived || from === to) return
+  const dl = Math.round((toOklch(parseHex(to)).l - toOklch(parseHex(from)).l) * 1000) / 1000
+  derived.textShifts.push({ family, scheme, from, to, dl, against })
+}
+
+const tokensOf = (name, d) => ({
+  [`--g-color-${name}`]: d.base,
+  [`--g-color-${name}-strong`]: d.strong,
+  [`--g-color-${name}-soft`]: d.soft,
+  [`--g-color-${name}-text`]: d.text,
+  [`--g-color-on-${name}`]: d.on,
+  [`--g-color-on-${name}-soft`]: d.onSoft
+})
+
+const colorTokens = (name, base, bgs, derived) => {
+  const d = deriveColor(base, bgs)
+  if (d.textAgainst) recordShift(derived, { family: name, scheme: 'light', from: d.textSurface, to: d.text, against: d.textAgainst })
+  return tokensOf(name, d)
 }
 
 // Base clara de `neutral` teñida (de ella se deriva también la variante oscura, como con los demás colores)
 const lightNeutral = (brand, hueHex) => tintedNeutralBase(brand, { hueHex })
 
-const darkColorTokens = (name, base, surface) => {
-  const d = deriveDarkColor(base, { surface })
-  return {
-    [`--g-color-${name}`]: d.base,
-    [`--g-color-${name}-strong`]: d.strong,
-    [`--g-color-${name}-soft`]: d.soft,
-    [`--g-color-${name}-text`]: d.text,
-    [`--g-color-on-${name}`]: d.on,
-    [`--g-color-on-${name}-soft`]: d.onSoft
+const darkColorTokens = (name, base, bgs, derived) => {
+  const d = deriveDarkColor(base, bgs)
+  if (d.textAgainst) recordShift(derived, { family: name, scheme: 'dark', from: d.textSurface, to: d.text, against: d.textAgainst })
+  return tokensOf(name, d)
+}
+
+// Familias no derivadas (TEXT_FAMILIES sin `-text` propio en `out`): ajusta su `-text` del esquema si no cumple
+const ensureUnemitted = (out, base, bgs, overrides, derivedKeys, derived, scheme) => {
+  const list = bgList(bgs)
+  for (const family of TEXT_FAMILIES) {
+    const key = `--g-color-${family}-text`
+    if (key in overrides || derivedKeys.has(key)) continue
+    const from = parseHex(out[key] ?? base[key])
+    if (!from) continue
+    const { ratio, name } = worstAgainst(from, list)
+    if (ratio + 1e-9 >= 4.5) continue
+    const to = toHex(ensureText(from, list, 4.5))
+    out[key] = to
+    derived?.textAdjusted.add(key)
+    recordShift(derived, { family, scheme, from: toHex(from), to, against: name })
   }
 }
+
+const textKeysOf = (fams) => new Set([...fams].map((f) => `--g-color-${f}-text`))
 
 // Variante oscura de lo que el usuario cambia (tokens.md §15). Todo token del grupo de color que el usuario
 // toca en el claro necesita su valor oscuro: el `tokens.css` no lleva capa y, sin él, ganaría también en el oscuro.
@@ -51,27 +89,32 @@ const generateDark = (config, generated, derived) => {
   const tinted = d && d.neutralsBrand
     ? tintedNeutrals(cfg.brand ?? d.neutralsBrand, { dark: true, hueHex: d.neutralsHue === 'accent' ? cfg.accent ?? d.neutralsHueHex : cfg.brand ?? d.neutralsBrand })
     : null
-  const surface = overrides['--g-color-surface'] ?? (tinted && tinted['--g-color-surface']) ?? DARK['--g-color-surface']
+  // Los tres fondos oscuros resueltos (#1074): cada `-text` se garantiza contra todos
+  const bgs = resolveBackgrounds(overrides, tinted, DARK)
+  const fams = new Set()
+  const dct = (name, base) => { fams.add(name); return darkColorTokens(name, base, bgs, d) }
   const out = {}
   const brand = cfg.brand ?? config.brand
-  if (brand) Object.assign(out, darkColorTokens('brand', brand, surface))
+  if (brand) Object.assign(out, dct('brand', brand))
   const accent = cfg.accent ?? config.accent ?? (brand ? out['--g-color-brand-text'] : undefined)
-  if (accent) Object.assign(out, darkColorTokens('accent', accent, surface))
+  if (accent) Object.assign(out, dct('accent', accent))
   const primary = cfg.primary ?? config.primary
-  if (primary) Object.assign(out, darkColorTokens('primary', primary, surface))
+  if (primary) Object.assign(out, dct('primary', primary))
   for (const k of Object.keys(generated)) {
     if (isColorGroup(k) && !(k in out) && k in DARK) out[k] = DARK[k]
   }
   // Derivación de paleta (tokens.md §16): los mismos semánticos ajustados, neutros teñidos y categorías, en su variante oscura
   if (d) {
-    for (const [name, r] of Object.entries(d.applied)) Object.assign(out, darkColorTokens(name, r.hex, surface))
+    for (const [name, r] of Object.entries(d.applied)) Object.assign(out, dct(name, r.hex))
     if (d.neutralsBrand) {
       Object.assign(out, tinted)
       const nb = lightNeutral(cfg.brand ?? d.neutralsBrand, d.neutralsHueHex)
-      if (nb) Object.assign(out, darkColorTokens('neutral', nb, surface))
+      if (nb) Object.assign(out, dct('neutral', nb))
     }
-    d.categories.forEach((hex, k) => Object.assign(out, darkColorTokens(`cat-${k + 1}`, hex, surface)))
+    d.categories.forEach((hex, k) => Object.assign(out, dct(`cat-${k + 1}`, hex)))
   }
+  // Familias no derivadas en oscuro (p. ej. `danger-text` fijo sobre la superficie teñida): solo su `-text`, si no cumple
+  ensureUnemitted(out, DARK, bgs, overrides, textKeysOf(fams), d, 'dark')
   const { other } = splitColorGroup(generated)
   // Ranuras del item actual de GSidebar (tokens.md §43, #614): heredadas del claro o, si un par falla, derivadas
   const sidebarCurrent = sidebarCurrentDark(config, { ...DEFAULTS, ...other, ...DARK, ...out, ...overrides })
@@ -90,14 +133,24 @@ export const generateTheme = (config = {}) => {
   const overrides = config.overrides ?? {}
   const surface = surfaceOf(overrides)
   const generated = {}
-  if (config.brand) Object.assign(generated, colorTokens('brand', config.brand, surface))
-  // accent sin valor: se deriva del `text` de brand (contrato §1)
+  // Derivación de paleta (tokens.md §16); textShifts/textAdjusted: registro de la garantía de `{familia}-text` (#1074)
+  const derived = { primary: config.primary ?? null, semantic: {}, applied: {}, policy: config.semanticCollision ?? 'warn', neutralsBrand: null, categories: [], textShifts: [], textAdjusted: new Set() }
+  // Neutros teñidos (§16.2) y `overrides` de los fondos se resuelven ANTES de derivar los `-text` (#1074). Con
+  // `neutralsHue: "accent"` y el acento derivado de la marca, el tono se toma del `text` de la marca de la regla solo contra
+  // `surface`: la garantía solo mueve L, así que el tono es el mismo y se evita la dependencia circular
+  const hueAccent = config.accent ?? (config.brand ? deriveColor(config.brand, { surface }).text : undefined)
+  const tinted = config.brand && config.neutrals !== 'pure'
+    ? tintedNeutrals(config.brand, { hueHex: (config.neutralsHue ?? 'brand') === 'accent' ? hueAccent : config.brand })
+    : null
+  const bgs = resolveBackgrounds(overrides, tinted, DEFAULTS)
+  const fams = new Set()
+  const ct = (name, base) => { fams.add(name); return colorTokens(name, base, bgs, derived) }
+  if (config.brand) Object.assign(generated, ct('brand', config.brand))
+  // accent sin valor: se deriva del `text` de brand (contrato §1), ya garantizado contra los tres fondos
   const accentBase = config.accent ?? (config.brand ? generated['--g-color-brand-text'] : undefined)
-  if (accentBase) Object.assign(generated, colorTokens('accent', accentBase, surface))
+  if (accentBase) Object.assign(generated, ct('accent', accentBase))
   // `primary` propio (tokens.md §17.4): sin él, `primary` es un alias de `brand` (defaults.css); con él, sus seis tokens se derivan del color dado
-  if (config.primary) Object.assign(generated, colorTokens('primary', config.primary, surface))
-  // Derivación de paleta (tokens.md §16)
-  const derived = { primary: config.primary ?? null, semantic: {}, applied: {}, policy: config.semanticCollision ?? 'warn', neutralsBrand: null, categories: [] }
+  if (config.primary) Object.assign(generated, ct('primary', config.primary))
   const anchorBrand = config.brand ?? undefined
   const anchorAccent = accentBase
   if (anchorBrand || anchorAccent || config.primary) {
@@ -105,21 +158,23 @@ export const generateTheme = (config = {}) => {
     derived.semantic = semanticAdjustments({ brand: anchorBrand, accent: anchorAccent, primary: config.primary, darkBrand: darkCfg.brand, darkAccent: darkCfg.accent, darkPrimary: darkCfg.primary })
     // semanticCollision (tokens.md §17.12): con «warn» (por defecto) solo se propone; con «adjust» se aplica
     if (derived.policy === 'adjust') derived.applied = derived.semantic
-    for (const [name, r] of Object.entries(derived.applied)) Object.assign(generated, colorTokens(name, r.hex, surface))
+    for (const [name, r] of Object.entries(derived.applied)) Object.assign(generated, ct(name, r.hex))
   }
-  if (config.brand && config.neutrals !== 'pure') {
+  if (tinted) {
     derived.neutralsBrand = config.brand
     // neutralsHue (§16.2): solo decide de qué color se toma el tono; el croma y el resto de reglas no cambian
     derived.neutralsHue = config.neutralsHue ?? 'brand'
-    derived.neutralsHueHex = derived.neutralsHue === 'accent' ? accentBase : config.brand
-    Object.assign(generated, tintedNeutrals(config.brand, { hueHex: derived.neutralsHueHex }))
+    derived.neutralsHueHex = derived.neutralsHue === 'accent' ? hueAccent : config.brand
+    Object.assign(generated, tinted)
     const nb = tintedNeutralBase(config.brand, { hueHex: derived.neutralsHueHex })
-    if (nb) Object.assign(generated, colorTokens('neutral', nb, surface))
+    if (nb) Object.assign(generated, ct('neutral', nb))
   }
   if (config.categories > 0) {
     derived.categories = categoryBases(config.categories, config.brand)
-    derived.categories.forEach((hex, k) => Object.assign(generated, colorTokens(`cat-${k + 1}`, hex, surface)))
+    derived.categories.forEach((hex, k) => Object.assign(generated, ct(`cat-${k + 1}`, hex)))
   }
+  // Familias que el tema no emite: solo su `-text`, y solo si el del tema por defecto no cumple contra los fondos resueltos
+  ensureUnemitted(generated, DEFAULTS, bgs, overrides, textKeysOf(fams), derived, 'light')
   if (config.radius !== undefined || config.shape !== undefined) {
     const r = radii(config.radius ?? 6, config.shape)
     if (config.radius !== undefined) Object.assign(generated, r)
@@ -135,7 +190,11 @@ export const generateTheme = (config = {}) => {
   }
   Object.assign(generated, overrides)
   // Zona de marca (tokens.md §44): las fuentes se derivan del claro ya resuelto y valen lo mismo en los dos esquemas
-  return applyZone({ generated, tokens: { ...DEFAULTS, ...generated }, dark: generateDark(config, generated, derived), derived }, config)
+  const dark = generateDark(config, generated, derived)
+  // Un `-text` de `overrides` no se toca (#1074): su desplazamiento no se informa
+  const darkOverrides = typeof config.dark === 'object' ? (config.dark.overrides ?? {}) : {}
+  derived.textShifts = derived.textShifts.filter((t) => !(`--g-color-${t.family}-text` in (t.scheme === 'dark' ? darkOverrides : overrides)))
+  return applyZone({ generated, tokens: { ...DEFAULTS, ...generated }, dark, derived }, config)
 }
 
 // Especificidad: los dos selectores de la consulta oscura valen (0,1,0), igual que `:root, [data-theme="light"]`, para que

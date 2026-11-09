@@ -14,7 +14,7 @@ const FIXED = {
   primary: 'Acción principal y jerarquía interactiva de la interfaz. Hoy vale lo mismo que «brand» (alias); los componentes migrarán a este rol.',
   'primary-strong': 'Hover y presionado de «primary».',
   'primary-soft': 'Fondo suave de «primary».',
-  'primary-text': 'Texto y enlaces de «primary» sobre la superficie (≥ 4.5:1).',
+  'primary-text': 'Texto y enlaces de «primary» sobre la superficie, el fondo y la superficie hundida (≥ 4.5:1).',
   'on-primary': 'Texto e iconos sobre el relleno sólido de «primary».',
   'on-primary-soft': 'Texto e iconos sobre el fondo suave de «primary».',
   link: 'Enlaces de la interfaz. Alias de «accent-text».',
@@ -45,7 +45,7 @@ export const usageOf = (name) => {
   const what = (b) => (/^cat-\d+$/.test(b) ? `la categoría ${b.slice(4)}` : `«${b}»`)
   if (kind === 'strong') return `Hover y presionado del relleno sólido de ${what(base)}.`
   if (kind === 'soft') return `Fondo suave de ${what(base)}: insignias, avisos y estados.`
-  if (kind === 'text') return `Texto, iconos y enlaces de color de ${what(base)} sobre la superficie (≥ 4.5:1).`
+  if (kind === 'text') return `Texto, iconos y enlaces de color de ${what(base)} sobre la superficie, el fondo y la superficie hundida (≥ 4.5:1).`
   if (/^cat-\d+$/.test(name)) return `Categoría ${name.slice(4)}: relleno sólido; su fondo suave y su tinta son «${name}-soft» y «${name}-text». Para iconos, etiquetas e identificación visual; no es una paleta de gráficas de datos.`
   return MEANING[name] ? `${MEANING[name]} Relleno sólido; siempre con «on-${name}».` : 'Color del tema.'
 }

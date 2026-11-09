@@ -5,6 +5,7 @@ import { DEFAULTS } from './defaults.js'
 import { SEMANTIC } from './palette.js'
 import { usageOf } from './usage.js'
 import { zoneDiagnostics, zoneDocToken } from './zone.js'
+import { TEXT_BACKGROUNDS, colorTextShifts } from './validate.js'
 
 const resolveVar = (tokens, value, depth = 0) => {
   const m = /^var\((--[a-z0-9-]+)\)$/.exec(String(value).trim())
@@ -79,6 +80,8 @@ const sourceOf = (name, { tinted, hue = 'brand', primaryOwn = false }) => {
 export const buildDoc = ({ name = 'Grana', light, dark, source = 'grana.config.json', generated = {}, overrides = {}, derived = null, collisions = [], zone = null }) => {
   const dk = dark ?? light
   const adjusted = new Set(Object.keys(derived?.applied ?? {}).flatMap((n) => Object.keys(light).filter((k) => family(k.slice('--g-color-'.length)) === n && k.startsWith('--g-color-'))))
+  // `-text` de una familia no emitida que la garantía ajustó (tokens.md §2, #1074)
+  for (const k of derived?.textAdjusted ?? []) adjusted.add(k)
   const tinted = Boolean(derived?.neutralsBrand)
   const names = [...new Set([...Object.keys(DEFAULTS), ...Object.keys(light)])].filter((k) => k.startsWith('--g-color-')).map((k) => k.slice('--g-color-'.length))
   const color = names.map((n) => {
@@ -100,6 +103,21 @@ export const buildDoc = ({ name = 'Grana', light, dark, source = 'grana.config.j
         if (fg && bg) r[scheme] = round2(contrast(fg, bg))
       }
       if (Object.keys(r).length) tok.contrast = { against: `--g-color-${against}`, ...r }
+      // Garantía de `{familia}-text` (tokens.md §2 y §16.5, #1074): el peor de los tres fondos por esquema
+      if (tok.contrast && /^(?!on-).+-text$/.test(n)) {
+        const min = {}
+        for (const [scheme, tokens] of [['light', light], ['dark', dk]]) {
+          const fg = parseHex(resolveVar(tokens, tokens[key]))
+          if (!fg) continue
+          for (const bgVar of TEXT_BACKGROUNDS) {
+            const bg = parseHex(resolveVar(tokens, tokens[bgVar]))
+            if (!bg) continue
+            const ratio = round2(contrast(fg, bg))
+            if (!min[scheme] || ratio < min[scheme].ratio) min[scheme] = { against: bgVar, ratio }
+          }
+        }
+        if (Object.keys(min).length) tok.contrast.min = min
+      }
     }
     const col = collisions.find((c) => c.cssVar === key)
     if (col) { tok.recommended = { value: col.recommended, distance: col.distance, reason: 'semantic-close' }; tok.notes = col.message }
@@ -112,7 +130,7 @@ export const buildDoc = ({ name = 'Grana', light, dark, source = 'grana.config.j
     color: { themes: [{ id: 'light', name: 'Claro' }, { id: 'dark', name: 'Oscuro' }], tokens: color },
     radius: { tokens: scale('--g-radius-').filter((t) => /-(xs|sm|md|lg|xl|shape)$/.test(t.cssVar)) },
     spacing: { tokens: scale('--g-space-') },
-    diagnostics: [...collisions.map(({ message, ...d }) => ({ ...d, message })), ...[activeContrast(light, dark)].filter(Boolean), ...zoneDiagnostics(zone, { overrides })],
+    diagnostics: [...collisions.map(({ message, ...d }) => ({ ...d, message })), ...[activeContrast(light, dark)].filter(Boolean), ...zoneDiagnostics(zone, { overrides }), ...colorTextShifts(derived?.textShifts).map(({ id, severity, why, ...d }) => d)],
     meta: { source: '@grana/cli', generatedFrom: source, categories: 'Los colores cat-* son colores categóricos de interfaz (iconos, etiquetas), no una paleta de visualización de datos.' }
   }
 }

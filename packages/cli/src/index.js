@@ -1,7 +1,7 @@
 // API programática de @grana/cli (para el plugin de Vite y para pruebas).
 import { readConfig } from './config.js'
 import { generateTheme, toCss } from './theme.js'
-import { validateTheme } from './validate.js'
+import { validateTheme, colorTextShifts } from './validate.js'
 import { buildDoc, activeContrast } from './doc.js'
 import { validateZone, zoneDiagnostics } from './zone.js'
 import { sidebarCurrentDiagnostics } from './sidebarCurrent.js'
@@ -10,8 +10,8 @@ import { MIN_DISTANCE, anchorLabel } from './palette.js'
 
 export { readConfig, KEYS } from './config.js'
 export { generateTheme, toCss } from './theme.js'
-export { validateTheme, COLOR_NAMES } from './validate.js'
-export { deriveColor, deriveDarkColor } from './derive.js'
+export { validateTheme, colorTextShifts, COLOR_NAMES, TEXT_BACKGROUNDS } from './validate.js'
+export { deriveColor, deriveDarkColor, ensureText } from './derive.js'
 export { buildDoc, activeContrast } from './doc.js'
 export { usageOf } from './usage.js'
 export { measureSidebarPairs, sidebarCurrentDark, sidebarCurrentDiagnostics, SIDEBAR_SLOTS, SIDEBAR_PAIRS } from './sidebarCurrent.js'
@@ -72,6 +72,8 @@ export const buildTheme = (raw, { source } = {}) => {
   // Ranuras del item actual de GSidebar (tokens.md §43, #614): informativo, y la derivación del oscuro si la hubo
   diagnostics.push(...sidebarCurrentDiagnostics(config, tokens, dark))
   diagnostics.push(...zoneDiagnostics(zone, { overrides: config.overrides ?? {} }))
+  // Garantía de `{familia}-text` (tokens.md §2, #1074): qué `-text` se movió, cuánto y por qué fondo (informativo)
+  diagnostics.push(...colorTextShifts(derived.textShifts))
   if (derived.categories.length) diagnostics.push({ code: 'categories', source: 'brand', status: 'derived', message: `${derived.categories.length} categorías (--g-color-cat-1 a cat-${derived.categories.length}): mismo L y C, tonos cada ${Math.round(360 / derived.categories.length)}°. Son colores categóricos de interfaz, no una paleta de gráficas.` })
   // Las colisiones sin aplicar llegan al usuario como aviso (con la alternativa); el resto, como nota
   for (const d of diagnostics) {

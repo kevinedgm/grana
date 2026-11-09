@@ -34,6 +34,30 @@ const lengthPx = (v) => {
   return m ? parseFloat(m[1]) * (m[2] === 'rem' ? 16 : 1) : null
 }
 const fmt = (n) => (Math.round(n * 100) / 100).toString()
+const fmtEs = (n) => fmt(n).replace('.', ',')
+// Fondos contra los que se garantiza todo `{familia}-text` (tokens.md §2 «Garantía de `{familia}-text`», #1074)
+export const TEXT_BACKGROUNDS = ['--g-color-surface', '--g-color-surface-sunken', '--g-color-bg']
+
+/**
+ * Diagnóstico INFORMATIVO `color-text-shift` (tokens.md §2, #1074): un `-text` que la garantía ampliada movió respecto a la
+ * regla solo contra `surface`, con la familia, el esquema, ΔL y el fondo que lo pidió. No bloquea.
+ * @param {Array<{ family, scheme, from, to, dl, against }>} shifts registro de generateTheme (`derived.textShifts`)
+ */
+export const colorTextShifts = (shifts = []) => shifts.map(({ family, scheme, from, to, dl, against }) => ({
+  id: 'color-text-shift',
+  code: 'color-text-shift',
+  severity: 'info',
+  status: 'informative',
+  token: `${family}-text`,
+  cssVar: `--g-color-${family}-text`,
+  scheme,
+  from,
+  value: to,
+  dl,
+  against: `--g-color-${against}`,
+  message: `${scheme === 'dark' ? '[oscuro] ' : ''}«${family}-text» pasa de ${from} a ${to} (ΔL ${dl > 0 ? '+' : ''}${fmtEs(dl)}) para llegar a 4.5:1 sobre «${against}», además de la superficie.`,
+  why: 'La garantía de «-text» cubre la superficie, la superficie hundida y el fondo (tokens.md §2, DECISIONS.md #1074): solo se mueve la luminosidad, con el mismo tono y croma. No bloquea.'
+}))
 
 /** @param {Record<string,string>} tokens tema completo (defaults + generado + overrides) */
 export const validateTheme = (tokens, { generated = {}, scheme = 'light', accentDerived = false } = {}) => {
@@ -76,7 +100,19 @@ export const validateTheme = (tokens, { generated = {}, scheme = 'light', accent
   for (const c of [...COLOR_NAMES, 'primary', ...cats]) {
     pair(`--g-color-on-${c}`, `--g-color-${c}`, 4.5, 'on-solid', `WCAG 1.4.3: el texto sobre el relleno sólido de «${c}» necesita 4.5:1.`)
     pair(`--g-color-on-${c}-soft`, `--g-color-${c}-soft`, 4.5, 'on-soft', `WCAG 1.4.3: el texto sobre el relleno suave de «${c}» necesita 4.5:1.`)
-    pair(`--g-color-${c}-text`, '--g-color-surface', 4.5, 'color-text', `WCAG 1.4.3: el texto de color «${c}» sobre la superficie necesita 4.5:1.`)
+    // Garantía de `{familia}-text` (tokens.md §2, #1074): contra los tres fondos del esquema, un aviso por fondo que falle
+    for (const bgName of TEXT_BACKGROUNDS) {
+      const bg = colorOf(tokens, bgName)
+      const fgName = `--g-color-${c}-text`
+      const fg = bg && colorOf(tokens, fgName, bg)
+      if (!bg) { unreadable(bgName); continue }
+      if (!fg) { unreadable(fgName); continue }
+      const ratio = contrast(fg, bg)
+      if (ratio + 1e-9 < 4.5) {
+        const where = bgName.slice('--g-color-'.length)
+        add('color-text', 'error', `El texto de color «${c}» sobre «${where}» necesita 4.5:1: ${fmtEs(ratio)}:1.`, `WCAG 1.4.3: «${c}-text» se pinta como texto sobre la superficie, la superficie hundida (carcasa) y el fondo; el tema lo garantiza ≥ 4.5:1 contra los tres (tokens.md §2, DECISIONS.md #1074).`, { tokens: [fgName, bgName], against: bgName, ratio: +ratio.toFixed(2), min: 4.5 })
+      }
+    }
     pair(`--g-color-on-${c}`, `--g-color-${c}-strong`, 4.5, 'on-strong', `WCAG 1.4.3: el texto sobre el estado hover («strong») de «${c}» necesita 4.5:1.`)
   }
 
