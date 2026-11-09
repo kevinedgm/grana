@@ -199,6 +199,6 @@ Origen: página de Notion «Hallazgos de integración real · Grana» (22 hallaz
 ## 11. Portada con la marca (2026-11-09, #1073)
 
 - **Manual de marca, `<svg>` con `class` duplicado** (dueño del manual): por eso su animación no corre; el `BrandHero` no depende de él, pero conviene corregirlo en el origen.
-- **Primera ventaja de la portada repite el lema** (mora-docs): reescribirla para que diga algo distinto de «Estructura fija, color tuyo.».
-- **Cuerpo de la portada en inglés sin traducir** (mora-docs).
+- ~~**Primera ventaja de la portada repite el lema** (mora-docs)~~ **hecho** (2026-11-09): la viñeta de `README.md` pasa a «Un tema nuevo no deja restos» (el texto sale del README raíz, no de `generate.mjs`); conserva lo que explica: solo `--g-*`, sin respaldos.
+- **Cuerpo de la portada en inglés sin traducir** (mora-docs): **traducido, sin aplicar por un defecto del generador** (bruno). El plan de páginas exige `README.en.md` entero con las mismas secciones, así que la traducción es el README raíz completo (preparada, 12 secciones y su preámbulo con ventajas). Al activarla, 12 README de componente (en español) que enlazan `#tema-oscuro` dejan de resolver en `/en/`, porque `anchorMap` indexa los slugs del documento inglés. Arreglo de 3 líneas en `anchorMap` (registrar también el slug del original; con él `generate.test.mjs` 29/29 y la traducción puesta). Cuando bruno lo aplique, mora-docs coloca `README.en.md` en la raíz y mantiene su sincronía con `README.md`. Mientras tanto, la portada en inglés sigue con el aviso «Translation pending».
 - **Por medir (coco):** duración percibida de «La impresión» por cuadros y WebKit; lector de pantalla real sobre el `h1` con el W2 (no verificable aquí).

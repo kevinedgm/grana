@@ -6,7 +6,7 @@ Librería de componentes **Vue 3** con tema por tokens. Los componentes traen la
 
 El nombre viene de la **grana cochinilla**, el insecto oaxaqueño cuyo tinte coloreó medio mundo. Grana funciona igual: un armazón fijo y un color que pone cada proyecto.
 
-- **Estructura fija, color tuyo.** Los componentes solo leen variables `--g-*`, sin valores de respaldo ni colores escritos en su CSS. Cambiar el tema no deja ningún valor fijo atrás.
+- **Un tema nuevo no deja restos.** Los componentes solo leen variables `--g-*`, sin valores de respaldo ni colores escritos en su CSS: no queda ningún valor fijo atrás.
 - **Accesibilidad como restricción, no como extra.** Área táctil, tamaño de texto, contraste y foco tienen mínimos que no son tema: el generador de temas rechaza lo que los rompa.
 - **80 componentes documentados** (75 en estado `candidate` y 5 en `draft`, a la espera de su auditoría): formularios completos, tablas y filtros, calendario, paneles, avisos, captura de voz.
 - **Personalidad propia.** Movimiento y forma con identidad, siempre con tokens, `prefers-reduced-motion` y contraste intactos (ver [Personalidad](#personalidad)).
