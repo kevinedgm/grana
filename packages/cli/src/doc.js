@@ -79,7 +79,7 @@ const sourceOf = (name, { tinted, hue = 'brand', primaryOwn = false }) => {
  */
 export const buildDoc = ({ name = 'Grana', light, dark, source = 'grana.config.json', generated = {}, overrides = {}, derived = null, collisions = [], zone = null }) => {
   const dk = dark ?? light
-  const adjusted = new Set(Object.keys(derived?.applied ?? {}).flatMap((n) => Object.keys(light).filter((k) => family(k.slice('--g-color-'.length)) === n && k.startsWith('--g-color-'))))
+  const adjusted = new Set(Object.entries(derived?.applied ?? {}).filter(([, r]) => !r.darkOnly).map(([n]) => n).flatMap((n) => Object.keys(light).filter((k) => family(k.slice('--g-color-'.length)) === n && k.startsWith('--g-color-'))))
   // `-text` de una familia no emitida que la garantía ajustó (tokens.md §2, #1074)
   for (const k of derived?.textAdjusted ?? []) adjusted.add(k)
   const tinted = Boolean(derived?.neutralsBrand)

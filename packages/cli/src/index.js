@@ -48,19 +48,29 @@ export const buildTheme = (raw, { source } = {}) => {
   // Transparencia (tokens.md §17.13): toda decisión cromática automática queda registrada, con su origen, entrada, valor y estado
   const r3 = (n) => Math.round(n * 1000) / 1000
   const diagnostics = []
+  // Esquemas en que el semántico ajustado sigue por debajo del mínimo, medidos sobre los tokens emitidos (avisos de validateTheme)
+  const failingSchemes = (name) => {
+    const s = issues.filter((i) => i.id === 'semantic-close' && i.tokens?.[0] === `--g-color-${name}`).map((i) => i.scheme ?? 'light')
+    return s.length === 2 ? 'both' : s[0] ?? (dark.enabled ? 'both' : 'light')
+  }
   for (const [name, r] of Object.entries(derived.semantic)) {
     const cssVar = `--g-color-${name}`
     const applied = derived.policy === 'adjust'
     const who = r.collidedWith
     const labelA = anchorLabel(who, accentDerived, 'a')
     const labelDe = anchorLabel(who, accentDerived, 'de')
-    const change = [r.dh ? `tono ${r.dh > 0 ? '+' : ''}${r.dh}°` : '', r.dl ? `luminosidad ${r.dl > 0 ? '+' : ''}${r.dl}` : ''].filter(Boolean).join(', ')
+    const change = r.darkOnly ? (r.darkHex ? 'solo en oscuro' : 'sin cambio') : [r.dh ? `tono ${r.dh > 0 ? '+' : ''}${r.dh}°` : '', r.dl ? `luminosidad ${r.dl > 0 ? '+' : ''}${r.dl}` : ''].filter(Boolean).join(', ')
+    // Lo que cambió: el claro (con el oscuro propio si lo hubo) o, si el claro no se tocó, solo el oscuro
+    const target = r.darkOnly ? (r.darkHex ? ` (búsqueda propia desde ${r.darkHex})` : '') : ` → ${r.hex}${r.darkHex ? ` (en oscuro, búsqueda propia desde ${r.darkHex})` : ''}`
     diagnostics.push({
       code: applied ? 'semantic-adjusted' : 'semantic-close', token: name, cssVar, source: 'semantic', input: DEFAULTS[cssVar],
       value: applied ? r.hex : DEFAULTS[cssVar], status: applied ? 'adjusted' : 'default', reason: 'semantic-close',
+      scheme: applied && !r.ok ? failingSchemes(name) : undefined,
       distance: r3(r.before), collidedWith: who, accentDerived: who === 'accent' && accentDerived, recommended: r.hex, recommendedDistance: r3(r.distance), ok: r.ok,
       message: applied
-        ? `«${name}» se separó ${labelDe} (estaba a ${r3(r.before)}; mínimo ${MIN_DISTANCE}): ${change} → ${r.hex} (distancia ${r3(r.distance)}).`
+        ? r.ok
+          ? `«${name}» se separó ${labelDe} (estaba a ${r3(r.before)}; mínimo ${MIN_DISTANCE}): ${change}${target} (distancia ${r3(r.distance)}).`
+          : `«${name}» se acercó ${labelA} (de ${r3(r.before)} a ${r3(r.distance)}) pero no llega al mínimo de ${MIN_DISTANCE} dentro de ±45° y ±0.15: ${change}${target}. Fíjalo con overrides si necesitas más.`
         : `«${name}» se parece ${labelA} (distancia ${r3(r.before)}; mínimo ${MIN_DISTANCE}). Alternativa calculada: ${r.hex}${r.ok ? '' : ` (distancia ${r3(r.distance)}: no hay separación suficiente dentro de ±45° y ±0.15)`}. Aplícala con "semanticCollision": "adjust" o con overrides.`
     })
   }
@@ -80,7 +90,18 @@ export const buildTheme = (raw, { source } = {}) => {
     if (d.code !== 'semantic-close') continue
     for (const i of issues) if (i.id === 'semantic-close' && i.tokens?.[0] === d.cssVar) { i.recommended = d.recommended; i.message += ` Alternativa calculada: ${d.recommended}; aplícala con "semanticCollision": "adjust" o con overrides.` }
   }
-  const notes = diagnostics.filter((d) => d.code !== 'semantic-close' && d.code !== 'override')
+  // Un ajuste aplicado que no llega al mínimo (tokens.md §16.1, #1077) llega como aviso, no como nota: sustituye a los
+  // `semantic-close` de validateTheme de ese token (el mismo hecho medido), uno por esquema, con el mensaje honesto
+  for (const d of diagnostics) {
+    if (d.code !== 'semantic-adjusted' || d.ok) continue
+    for (let k = issues.length - 1; k >= 0; k--) {
+      const i = issues[k]
+      if (i.id !== 'semantic-close' || i.tokens?.[0] !== d.cssVar) continue
+      const dark = i.scheme === 'dark'
+      issues[k] = { ...i, id: 'semantic-adjusted', recommended: d.recommended, message: `${dark ? '[oscuro] ' : ''}${d.message.replace(/\(de ([\d.]+) a [\d.]+\)/, `(de $1 a ${i.distance})`)}` }
+    }
+  }
+  const notes = diagnostics.filter((d) => d.code !== 'semantic-close' && d.code !== 'override' && !(d.code === 'semantic-adjusted' && !d.ok))
   const collisions = diagnostics.filter((d) => d.code === 'semantic-close').map(({ cssVar, recommended, distance, message }) => ({ code: 'semantic-close', cssVar, token: cssVar.replace('--g-color-', ''), distance, recommended, message }))
   const doc = ok ? buildDoc({ name: config.name, light: tokens, dark: dark.enabled ? dark.tokens : null, source, generated, overrides: config.overrides ?? {}, derived, collisions, zone }) : null
   return { ok, css: ok ? toCss(generated, { source, dark, zone: zoneBlock }) : null, doc, generated, tokens, dark, derived, zone, zoneBlock, notes, diagnostics, issues }

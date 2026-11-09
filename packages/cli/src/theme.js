@@ -4,7 +4,7 @@ import { parseHex, toHex, toOklch } from './color.js'
 import { DEFAULTS, DARK } from './defaults.js'
 import { isColorGroup, splitColorGroup } from './scheme.js'
 import { fontStack, radii, spacing, typography, heroTitleMax } from './scales.js'
-import { categoryBases, semanticAdjustments, tintedNeutralBase, tintedNeutrals } from './palette.js'
+import { categoryBases, semanticAdjustments, separateDark, distance, SEMANTIC, MIN_DISTANCE, tintedNeutralBase, tintedNeutrals } from './palette.js'
 import { applyZone } from './zone.js'
 import { sidebarCurrentDark } from './sidebarCurrent.js'
 
@@ -77,6 +77,15 @@ const textKeysOf = (fams) => new Set([...fams].map((f) => `--g-color-${f}-text`)
 
 // Variante oscura de lo que el usuario cambia (tokens.md §15). Todo token del grupo de color que el usuario
 // toca en el claro necesita su valor oscuro: el `tokens.css` no lleva capa y, sin él, ganaría también en el oscuro.
+// Con cuál de marca, acento o primario (bases oscuras) choca un color oscuro
+const ANCHOR_NAMES = ['brand', 'accent', 'primary']
+const nearestDark = (hex, anchors) => {
+  const c = toOklch(parseHex(hex))
+  let best = { d: Infinity, who: null }
+  anchors.forEach((a, i) => { if (!a) return; const d = distance(c, toOklch(parseHex(a))); if (d < best.d) best = { d, who: ANCHOR_NAMES[i] } })
+  return best.who
+}
+
 const generateDark = (config, generated, derived) => {
   const opt = config.dark === undefined ? true : config.dark
   if (opt === false) return { enabled: false, generated: {}, tokens: null }
@@ -105,7 +114,37 @@ const generateDark = (config, generated, derived) => {
   }
   // Derivación de paleta (tokens.md §16): los mismos semánticos ajustados, neutros teñidos y categorías, en su variante oscura
   if (d) {
-    for (const [name, r] of Object.entries(d.applied)) Object.assign(out, dct(name, r.hex))
+    // Semánticos ajustados con búsqueda propia del oscuro (tokens.md §16.1, #1077): parte del oscuro de §15 (el claro resuelto
+    // derivado con los fondos oscuros reales) y se mide contra las bases oscuras emitidas de marca, acento, primario y los demás
+    // semánticos. El resultado pasa por `darkColorTokens` (#1074). El claro no cambia; con «warn», `applied` está vacío.
+    const darkBase = (seed) => deriveDarkColor(seed, bgs).base
+    const seeds = Object.fromEntries(Object.entries(d.applied).map(([n, r]) => [n, r.hex]))
+    const anchors = [out['--g-color-brand'], out['--g-color-accent'], out['--g-color-primary']]
+    const darkNow = (n) => (seeds[n] ? darkBase(seeds[n]) : DARK[`--g-color-${n}`])
+    for (const name of SEMANTIC) {
+      if (d.policy !== 'adjust') break
+      const siblings = SEMANTIC.filter((n) => n !== name).map(darkNow)
+      const r = d.applied[name]
+      if (r) {
+        const res = separateDark(r.hex, { darkOf: darkBase, darkAnchors: anchors, darkSiblings: siblings })
+        if (res.hex !== r.hex) { r.darkHex = res.hex; seeds[name] = res.hex }
+        r.darkDistance = res.distance
+        r.distance = Math.min(r.lightDistance ?? r.distance, res.distance)
+        r.ok = r.distance >= MIN_DISTANCE
+        continue
+      }
+      // Sin ajuste en claro, pero el oscuro del tema por defecto queda cerca de las marcas oscuras reales (p. ej. con la superficie
+      // teñida): solo el oscuro hace su búsqueda, desde el claro por defecto del semántico; el claro no se emite
+      const nominal = DEFAULTS[`--g-color-${name}`]
+      const res = separateDark(nominal, { darkOf: darkBase, start: DARK[`--g-color-${name}`], darkAnchors: anchors, darkSiblings: siblings })
+      if (res.hex === nominal && res.ok) continue
+      const who = nearestDark(DARK[`--g-color-${name}`], anchors)
+      // Si ningún candidato mejora la base de partida, el oscuro por defecto se queda (sin emitir) y el aviso es honesto (ok: false)
+      const moved = res.hex !== nominal
+      d.semantic[name] = d.applied[name] = { hex: nominal, darkHex: moved ? res.hex : undefined, darkOnly: true, changed: moved, ok: res.ok, distance: res.distance, darkDistance: res.distance, before: res.before, collidedWith: who, dh: 0, dl: 0 }
+      if (moved) seeds[name] = res.hex
+    }
+    for (const [name, r] of Object.entries(d.applied)) if (!r.darkOnly || r.darkHex) Object.assign(out, dct(name, r.darkHex ?? r.hex))
     if (d.neutralsBrand) {
       Object.assign(out, tinted)
       const nb = lightNeutral(cfg.brand ?? d.neutralsBrand, d.neutralsHueHex)

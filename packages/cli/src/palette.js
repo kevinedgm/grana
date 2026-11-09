@@ -90,9 +90,57 @@ export const semanticAdjustments = ({ brand, accent, primary, darkBrand, darkAcc
   for (const name of SEMANTIC) {
     const siblings = SEMANTIC.filter((n) => n !== name).map((n) => current[n])
     const r = separate(current[name], [brand, accent, primary], { darkAnchors, siblings })
-    if (r.changed || !r.ok) { out[name] = r; current[name] = r.hex }
+    if (r.changed || !r.ok) {
+      // La distancia del claro por separado: con la búsqueda propia del oscuro (#1077) la de `r` se recalcula como la menor de las dos
+      r.lightDistance = lightDistance(r.hex, [brand, accent, primary], siblings)
+      out[name] = r
+      current[name] = r.hex
+    }
   }
   return out
+}
+
+/** Distancia que cuenta en claro (marcas claras y hermanos claros, estos escalados a su umbral). */
+const lightDistance = (hex, anchors, siblings) => {
+  const l = lchOf(hex)
+  const a = Math.min(...anchors.filter(Boolean).map((x) => distance(l, lchOf(x))), Infinity)
+  const s = Math.min(...siblings.filter(Boolean).map((x) => distance(l, lchOf(x))), Infinity)
+  return Math.min(a, (s / MIN_SIBLING_DISTANCE) * MIN_DISTANCE)
+}
+
+/**
+ * Búsqueda propia del oscuro de un semántico (tokens.md §16.1, DECISIONS.md #1077; solo con «adjust»). `seedHex` es la semilla
+ * clara de la que sale el oscuro de §15 (el claro ya resuelto) y `darkOf(seed)` su color base oscuro con los fondos reales. Si ya
+ * cumple (≥ `min` frente a `darkAnchors` y ≥ MIN_SIBLING_DISTANCE frente a `darkSiblings`, bases oscuras emitidas), se devuelve tal
+ * cual (`start`, si se da, es esa base oscura de partida); si no, la misma regla que en claro desde esa semilla: tono ±45° (pasos de 5°), luminosidad ±0.15 (pasos de 0.05), croma
+ * conservado y el mismo coste. Si ninguno llega (un hueco entre marca y acento), el de mayor distancia, solo si mejora la de partida.
+ * @returns {{ hex: string, distance: number, ok: boolean }}
+ */
+export const separateDark = (seedHex, { darkOf, start, darkAnchors = [], darkSiblings = [], min = MIN_DISTANCE, minSibling = MIN_SIBLING_DISTANCE }) => {
+  const anchors = darkAnchors.filter(Boolean).map(lchOf)
+  const sibs = darkSiblings.filter(Boolean).map(lchOf)
+  const distBase = (base) => {
+    const d = lchOf(base)
+    const a = Math.min(...anchors.map((x) => distance(d, x)), Infinity)
+    const s = Math.min(...sibs.map((x) => distance(d, x)), Infinity)
+    return Math.min(a, (s / minSibling) * min)
+  }
+  const dist = (seed) => distBase(darkOf(seed))
+  // `start`: la base oscura de partida cuando no es la derivada de la semilla (un semántico sin ajustar lleva el oscuro del tema por defecto)
+  const d0 = distBase(start ?? darkOf(seedHex))
+  if (d0 >= min) return { hex: seedHex, distance: d0, ok: true, before: d0 }
+  const n = lchOf(seedHex)
+  let best = null
+  for (let dh = -MAX_HUE_SHIFT; dh <= MAX_HUE_SHIFT; dh += 5) {
+    for (const dlum of [0, -0.05, 0.05, -0.1, 0.1, -MAX_L_SHIFT, MAX_L_SHIFT]) {
+      const hex = hexOf({ l: n.l + dlum, c: n.c, h: norm(n.h + dh) })
+      const d = dist(hex)
+      const cost = Math.abs(dh) / MAX_HUE_SHIFT + (Math.abs(dlum) / MAX_L_SHIFT) * 0.6
+      const ok = d >= min
+      if (!best || (ok && !best.ok) || (ok === best.ok && (ok ? cost < best.cost : d > best.distance))) best = { hex, cost, ok, distance: d }
+    }
+  }
+  return best.distance > d0 ? { hex: best.hex, distance: best.distance, ok: best.ok, before: d0 } : { hex: seedHex, distance: d0, ok: false, before: d0 }
 }
 
 /**
