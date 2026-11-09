@@ -1,30 +1,18 @@
 {
  "fecha": "2026-11-09",
  "motores": [
-  "chromium",
-  "firefox",
-  "webkit"
+  "chromium"
  ],
  "por": {
   "chromium": [
-   408,
-   408
-  ],
-  "firefox": [
-   361,
-   361
-  ],
-  "webkit": [
-   361,
-   361
+   409,
+   409
   ]
  },
- "total": "1130/1130",
+ "total": "409/409",
  "fallos": [],
  "notas": [
-  "chromium: sobrepaso de la marca en un salto de 408 px = 14.9 px (3,8 % del recorrido, el del muelle); en una fila (32 px) = 1.2 px",
-  "firefox: sobrepaso de la marca en un salto de 408 px = 15.3 px (3,8 % del recorrido, el del muelle); en una fila (32 px) = 1.2 px",
-  "webkit: sobrepaso de la marca en un salto de 408 px = 15.3 px (3,8 % del recorrido, el del muelle); en una fila (32 px) = 1.2 px"
+  "chromium: sobrepaso de la marca en un salto de 408 px = 0 px (is-far, sin muelle, #1071); en una fila (32 px) = 1.2 px"
  ],
  "hallazgos": [
   "tema amazon claro: el actual (accent-text) sobre la columna (surface-sunken) 4.22:1 < 4,5",

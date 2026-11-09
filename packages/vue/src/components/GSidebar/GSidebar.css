@@ -1633,6 +1633,15 @@
       background-color var(--g-duration-fast) var(--g-ease-standard);
   }
 }
+/* Viaje largo (#1071): más de 1,5 filas, sin muelle (rebasaría ≈ 15 px y pararía la marca sobre la fila vecina) */
+@media (prefers-reduced-motion: no-preference) {
+  .g-sidebar__mark.is-far {
+    transition:
+      translate var(--g-duration-slow) var(--g-ease-out),
+      opacity var(--g-duration-fast) var(--g-ease-standard),
+      background-color var(--g-duration-fast) var(--g-ease-standard);
+  }
+}
 .g-sidebar__mark.is-instant {
   transition: none;
 }

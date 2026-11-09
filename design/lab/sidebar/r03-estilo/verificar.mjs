@@ -268,7 +268,8 @@ for (const eng of ENGINES) {
     rec(eng, part, 'clic en la fila de al lado: aria-current pasa, la marca viaja y llega (±1)', near.cur === 'page' && Math.abs(near.mid - near.target) > 1 && Math.abs(near.end - near.target) <= 1, JSON.stringify(near))
     rec(eng, part, `sobrepaso del muelle en un paso de una fila (${near.dist} px) ≤ 2 px`, near.over <= 2, near.over)
     const far = await travel('c-app-shell')
-    NOTAS.push(`${eng}: sobrepaso de la marca en un salto de ${far.dist} px = ${far.over} px (3,8 % del recorrido, el del muelle); en una fila (${near.dist} px) = ${near.over} px`)
+    NOTAS.push(`${eng}: sobrepaso de la marca en un salto de ${far.dist} px = ${far.over} px (is-far, sin muelle, #1071); en una fila (${near.dist} px) = ${near.over} px`)
+    rec(eng, part, `salto largo (${far.dist} px, is-far #1071): sobrepaso ≤ 2 px`, far.over <= 2, far.over)
     rec(eng, part, 'salto largo: la marca llega (±1)', Math.abs(far.end - far.target) <= 1, JSON.stringify(far))
 
     // I1 · la luz ensanchada, hover en text y el actual que no lo hereda

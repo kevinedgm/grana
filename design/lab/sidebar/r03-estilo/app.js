@@ -139,5 +139,6 @@
   app.use(icons)
   app.use(GranaAppShell.default || GranaAppShell)
   app.use(GranaSidebarFilter.default || GranaSidebarFilter)
+  app.use(GranaSidebarIndex.default || GranaSidebarIndex)
   window.__marco = app.mount('#app')
 })()
