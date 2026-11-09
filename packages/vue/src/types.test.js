@@ -32,13 +32,14 @@ import * as bookingEntry from './booking.js'
 import * as priceEntry from './price.js'
 import * as pageIndexEntry from './page-index.js'
 import * as sidebarFilterEntry from './sidebar-filter.js'
+import * as sidebarIndexEntry from './sidebar-index.js'
 import * as pageIndexListEntry from './page-index-list.js'
 import * as navBarEntry from './nav-bar.js'
 import { ENTRIES, buildTypes, metaProps, readMetas } from '../scripts/build-types.mjs'
 
 const ROOT = resolve(process.cwd())
 const OUT = join(ROOT, 'node_modules/.cache/grana-types-test')
-const RUNTIME = { grana: mainEntry, speech: speechEntry, status: statusEntry, combobox: comboboxEntry, 'file-field': fileFieldEntry, 'time-field': timeFieldEntry, slider: sliderEntry, testing: testingEntry, tag: tagEntry, 'load-region': loadRegionEntry, 'card-group': cardGroupEntry, 'page-header': pageHeaderEntry, fab: fabEntry, 'form-fold': formFoldEntry, 'app-shell': appShellEntry, hero: heroEntry, gallery: galleryEntry, booking: bookingEntry, price: priceEntry, 'page-index': pageIndexEntry, 'sidebar-filter': sidebarFilterEntry, 'page-index-list': pageIndexListEntry, 'nav-bar': navBarEntry }
+const RUNTIME = { grana: mainEntry, speech: speechEntry, status: statusEntry, combobox: comboboxEntry, 'file-field': fileFieldEntry, 'time-field': timeFieldEntry, slider: sliderEntry, testing: testingEntry, tag: tagEntry, 'load-region': loadRegionEntry, 'card-group': cardGroupEntry, 'page-header': pageHeaderEntry, fab: fabEntry, 'form-fold': formFoldEntry, 'app-shell': appShellEntry, hero: heroEntry, gallery: galleryEntry, booking: bookingEntry, price: priceEntry, 'page-index': pageIndexEntry, 'sidebar-filter': sidebarFilterEntry, 'sidebar-index': sidebarIndexEntry, 'page-index-list': pageIndexListEntry, 'nav-bar': navBarEntry }
 const metas = readMetas(ROOT)
 const isComponent = (c) => Boolean(c && typeof c === 'object' && ('setup' in c || 'render' in c || 'props' in c))
 

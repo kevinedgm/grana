@@ -12,6 +12,7 @@ import GAppIcon from '../GIcon/GIcon.vue'
 import { useVisualTips } from '../../utils/visualTip.js'
 import { createPointerGlide } from '../../utils/glide.js'
 import { sidebarFilterKey } from '../../utils/sidebarFilter.js'
+import { sidebarIndexKey } from '../../utils/sidebarIndex.js'
 // Activación primaria de un enlace (#505): botón principal, sin modificadores y sin cancelar (Intro llega como clic primario)
 const primaryActivation = (e) => e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey && !e.defaultPrevented
 
@@ -22,6 +23,9 @@ export default defineComponent({
   inheritAttrs: false,
   props: {
     items: { type: Array, default: () => [] },
+    // `index` y los grupos plegables actúan con @grana/vue/sidebar-index (#1069); sin ella, default y grupos fijos (A5)
+    appearance: { type: String, default: 'default' },
+    closedGroups: { type: Array, default: undefined },
     modelValue: { type: [String, Number], default: null },
     label: { type: String, default: undefined },
     mode: { type: String, default: 'auto', validator: oneOf(['auto', 'expanded', 'rail', 'navbar', 'drawer']) },
@@ -46,13 +50,15 @@ export default defineComponent({
     labels: { type: Object, default: () => ({}) }
   },
   // Solo estos eventos se declaran: el resto llega a la raíz por $attrs.
-  emits: ['update:modelValue', 'update:collapsed', 'update:open', 'navigate', 'mode-change', 'search', 'update:query'],
+  emits: ['update:modelValue', 'update:collapsed', 'update:open', 'navigate', 'mode-change', 'search', 'update:query', 'update:closedGroups'],
   setup(props, { emit, expose }) {
     const attrs = useAttrs()
     const slots = useSlots()
     const uid = useId()
     const baseId = `g-sidebar-${uid}`
     const L = computed(() => props.labels || {})
+    const ixMake = inject(sidebarIndexKey, null)
+    const idx = computed(() => ixMake && props.appearance === 'index')
 
     const warned = new Set()
     const warnOnce = (key, msg) => {
@@ -98,7 +104,7 @@ export default defineComponent({
       props.items.forEach((el, i) => {
         if (el && Array.isArray(el.items)) {
           loose = null
-          groups.push({ key: `g${i}`, label: typeof el.label === 'string' ? el.label : undefined, fixed: el.filterable === false, items: el.items.map((x) => mk(x, 0)).filter(Boolean) })
+          groups.push({ key: `g${i}`, raw: el, label: typeof el.label === 'string' ? el.label : undefined, fixed: el.filterable === false, items: el.items.map((x) => mk(x, 0)).filter(Boolean) })
         } else {
           const it = mk(el, 0)
           if (!it) return
@@ -158,9 +164,10 @@ export default defineComponent({
       if (w >= rail) return 'rail'
       return 'mobile'
     })
-    const base = computed(() => (props.mode === 'auto' ? (klass.value === 'mobile' ? props.mobile : klass.value) : props.mode))
+    // index: `auto` → expandida o drawer; `rail` → expandida y `navbar` → drawer (A1, en la extensión)
+    const base = computed(() => (idx.value ? (props.mode === 'auto' ? (klass.value === 'expanded' ? 'expanded' : 'drawer') : { rail: 'expanded', navbar: 'drawer' }[props.mode] || props.mode) : props.mode === 'auto' ? (klass.value === 'mobile' ? props.mobile : klass.value) : props.mode))
     const manual = ref(props.collapsed ? 'rail' : null)
-    const format = computed(() => (base.value === 'expanded' || base.value === 'rail' ? (manual.value || base.value) : base.value))
+    const format = computed(() => (!idx.value && (base.value === 'expanded' || base.value === 'rail') ? manual.value || base.value : base.value))
     const overlayOn = computed(() => props.overlay && base.value === 'rail' && format.value === 'expanded')
     const collapsedNow = computed(() => format.value === 'rail')
 
@@ -240,10 +247,14 @@ export default defineComponent({
     const applyDrawer = () => {
       const d = dlgRef.value
       if (!d) return
-      if (drawer.value && !d.open && typeof d.showModal === 'function') d.showModal()
-      else if (!drawer.value && d.open && typeof d.close === 'function') d.close()
+      if (drawer.value && !d.open && typeof d.showModal === 'function') {
+        d.showModal()
+        ix?.opened(d)
+      } else if (!drawer.value && d.open && typeof d.close === 'function') d.close()
     }
     watch(drawer, () => nextTick(applyDrawer), { flush: 'post' })
+    // Enganche de @grana/vue/sidebar-index (#1069): piel index, grupos plegables, marca y cajón que abre en el actual
+    const ix = ixMake && ixMake({ props, emit, model, filt, format, L, baseId, rootEl, slots, warnOnce, dlg: () => dlgRef.value, open: () => drawer.value, ready: () => ready.value, badges: (i) => badgeNodes(i) })
     const onDialogClose = () => {
       if (drawer.value) { drawer.value = false; emit('update:open', false) }
       const o = opener
@@ -402,7 +413,7 @@ export default defineComponent({
 
     // ---------- Teclado en la región de navegación ----------
     const onNavKeydown = (e) => {
-      const link = e.target.closest?.('.g-sidebar__link')
+      const link = e.target.closest?.('.g-sidebar__link, .g-sidebar__group-title')
       if (!link) return
       const k = e.key
       if (k === 'ArrowRight' && format.value === 'rail' && link.classList.contains('g-sidebar__parent')) {
@@ -413,7 +424,8 @@ export default defineComponent({
       }
       if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(k)) return
       const nav = e.currentTarget
-      const all = [...nav.querySelectorAll('.g-sidebar__link')].filter((x) => x.getAttribute('aria-disabled') !== 'true' && !x.closest('[inert], [hidden]') && !x.closest('.g-sidebar__fly'))
+      // Enlaces y botones de grupo visibles (#1061; el de grupo cuenta aunque el filtro lo deje en aria-disabled)
+      const all = [...nav.querySelectorAll('.g-sidebar__link, button.g-sidebar__group-title')].filter((x) => (x.tagName === 'BUTTON' && !x.classList.contains('g-sidebar__link') || x.getAttribute('aria-disabled') !== 'true') && !x.closest('[inert], [hidden]') && !x.closest('.g-sidebar__fly'))
       const i = all.indexOf(link)
       // ↑ en el primero visible vuelve al campo del filtro (#1035)
       if (k === 'ArrowUp' && fon() && fe.up(e, nav, i)) return
@@ -492,7 +504,9 @@ export default defineComponent({
       if (process.env.NODE_ENV !== 'production') {
         if (!props.label && !attrs['aria-label'] && !attrs['aria-labelledby']) warnOnce('label', 'necesita label (nombre accesible del <nav>).')
         const l = props.labels || {}
-        if (!l.collapse || !l.expand) warnOnce('toggle', 'necesita labels.collapse y labels.expand (nombre del botón de contraer y expandir).')
+        if (!['default', 'index'].includes(props.appearance)) warnOnce('a4', `appearance «${props.appearance}» fuera de lista: se pinta default (A4).`)
+        if (!ixMake && (props.appearance === 'index' || props.closedGroups || props.items.some((g) => g?.collapsible))) warnOnce('a5', 'appearance="index", collapsible y closedGroups necesitan @grana/vue/sidebar-index (app.use(SidebarIndex)): se pinta default con los grupos fijos y abiertos (A5).')
+        if (!idx.value && (!l.collapse || !l.expand)) warnOnce('toggle', 'necesita labels.collapse y labels.expand (nombre del botón de contraer y expandir).')
         if (!l.drawer) warnOnce('drawer', 'necesita labels.drawer (nombre accesible del drawer).')
         if (!l.more) warnOnce('more', 'necesita labels.more (texto del botón «Más» del navbar).')
         if (props.search && !l.search && !slots.search) warnOnce('search', 'con search necesita labels.search.')
@@ -547,7 +561,7 @@ export default defineComponent({
       const cur = isCurrent(item)
       const content = slots.item
         ? [slots.item({ item: item.raw, active: cur, collapsed: rail, level })]
-        : [
+        : idx.value ? ix.link(item) : [
             level === 0 ? seat(item) : null,
             codeSr(item),
             h('span', { class: 'g-sidebar__label' }, item.label),
@@ -579,7 +593,7 @@ export default defineComponent({
               else openFly(item, e.currentTarget, true)
             } else toggleOpen(item.id)
           }
-        }, [
+        }, idx.value ? ix.parent(item) : [
           level === 0 ? seat(item) : null,
           codeSr(item),
           h('span', { class: 'g-sidebar__label' }, item.label),
@@ -616,7 +630,7 @@ export default defineComponent({
           : null
         return h('li', { class: 'g-sidebar__item', key: item.id, hidden: hide.has(item.id) || undefined }, [renderLink(item, 0, kind), children])
       })])
-      return h('li', { class: 'g-sidebar__group', role: 'presentation', key: g.key, hidden: hide.has(g) || undefined }, [
+      return ix ? ix.group(g, kind, titleId, list) : h('li', { class: 'g-sidebar__group', role: 'presentation', key: g.key, hidden: hide.has(g) || undefined }, [
         g.label ? h('span', { class: 'g-sidebar__group-title', id: titleId }, g.label) : null,
         list
       ])
@@ -626,9 +640,9 @@ export default defineComponent({
       const rail = kind === 'side' && format.value === 'rail'
       const scope = { collapsed: rail }
       const top = h('div', { class: 'g-sidebar__top' }, [
-        h('div', { class: 'g-sidebar__logo' }, slots.logo ? slots.logo(scope) : null),
+        idx.value && kind !== 'side' ? null : h('div', { class: 'g-sidebar__logo' }, slots.logo ? slots.logo(scope) : null),
         kind === 'side'
-          ? h('button', {
+          ? !idx.value && h('button', {
               type: 'button',
               class: 'g-sidebar__toggle',
               'aria-expanded': rail ? 'false' : 'true',
@@ -660,6 +674,7 @@ export default defineComponent({
       `g-sidebar--variant-${props.variant}`,
       `g-sidebar--color-${props.color}`,
       `g-sidebar--density-${props.density}`,
+      `g-sidebar--appearance-${idx.value ? 'index' : 'default'}`,
       overlayOn.value && mode === 'expanded' ? 'g-sidebar--overlay' : null
     ]
 
@@ -670,8 +685,10 @@ export default defineComponent({
       const scope = { collapsed: rail }
       const children = [
         renderHead(kind),
-        h('nav', { class: 'g-sidebar__nav', id: `${baseId}-${kind}-nav`, 'aria-label': props.label || attrs['aria-label'], onKeydown: onNavKeydown }, [
-          h('ul', { class: 'g-sidebar__groups', role: 'list' }, renderGroups(kind))
+        // tabindex="-1" (#570, SB-B6): la región desplazable no es parada de Tab en Firefox
+        h('nav', { class: 'g-sidebar__nav', id: `${baseId}-${kind}-nav`, tabindex: '-1', 'aria-label': props.label || attrs['aria-label'], onKeydown: onNavKeydown }, [
+          h('ul', { class: 'g-sidebar__groups', role: 'list' }, renderGroups(kind)),
+          ix?.mark()
         ]),
         slots.user ? h('div', { class: 'g-sidebar__foot' }, slots.user(scope)) : null
       ]

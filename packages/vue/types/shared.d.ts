@@ -296,6 +296,10 @@ export interface SidebarItem extends GranaExtra {
   keywords?: string[]
   /** `false`: el filtro nunca lo oculta ni lo cuenta (lo ya filtrado por la aplicación); en un grupo o un item (#1035). */
   filterable?: boolean
+  /** Grupo (con `items`): el título es un botón y el grupo se pliega; necesita `id` (#1061). */
+  collapsible?: boolean
+  /** Grupo plegable: estado inicial sin `closedGroups` (#1061). */
+  collapsed?: boolean
 }
 
 /** Nivel de `GBreadcrumbs` (breadcrumbs.md «Modelo de `items`»). El último es la página actual. */

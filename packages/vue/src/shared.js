@@ -56,6 +56,8 @@
 // Symbol que inyecta GPageIndex) y GLibIcon. La barra de un sitio (`@grana/vue/nav-bar`, #1053) toma GLibIcon, la luz
 // (utils/glide.js: createPointerGlide y flashInstant, N-H2), la guarda de `target` (utils/link.js) y el canal del chasis
 // (utils/appShell.js, para cover()).
+// La apariencia `index` y los grupos plegables de GSidebar (`@grana/vue/sidebar-index`, #1069) toman la clave interna
+// utils/sidebarIndex.js, GLibIcon, nextFrame (formContext) y transitionMs; su motor de plegado vive en la entrada.
 //
 // vite.speech.config.js redirige cada importación relativa de la entrada speech que sale de sus carpetas
 // (GSpeechHost, GSpeechPill, GSpeechTrigger, GTranscript) a la clave correspondiente de este mapa (ruta relativa a src/). Si la
@@ -104,6 +106,7 @@ import { appShellKey } from './utils/appShell.js'
 import { sectionKey as gSectionKey } from './utils/sectionKey.js'
 import { transitionMs } from './utils/motion.js'
 import { sidebarFilterKey } from './utils/sidebarFilter.js'
+import { sidebarIndexKey } from './utils/sidebarIndex.js'
 import { aimed, createPointerGlide, flashInstant, placeHighlight } from './utils/glide.js'
 import { pageIndexListKey } from './utils/pageIndexList.js'
 import { createHighlight, createPointer, createTypeahead, focusItem, repeatGesture, stepTo } from './utils/menuNav.js'
@@ -155,6 +158,7 @@ export const shared = {
   'utils/sectionKey.js': { sectionKey: gSectionKey },
   'utils/motion.js': { transitionMs },
   'utils/sidebarFilter.js': { sidebarFilterKey },
+  'utils/sidebarIndex.js': { sidebarIndexKey },
   'utils/glide.js': { aimed, createPointerGlide, flashInstant, placeHighlight },
   'utils/pageIndexList.js': { pageIndexListKey },
   'utils/menuNav.js': { createHighlight, createPointer, createTypeahead, focusItem, repeatGesture, stepTo },

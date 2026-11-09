@@ -13,7 +13,23 @@
       "name": "items",
       "type": "Array",
       "default": [],
-      "note": "Un item de primer nivel con icon cadena (nombre de Lucide) y sin slot icon dibuja GIcon en g-sidebar__icon (registro de la aplicación → librería; #202); con slot icon, manda el slot; otro valor de icon es dato opaco para el slot; los hijos no llevan icono. Campos del filtro y del código (#1035, #1036): code (1 a 3 caracteres, solo primer nivel: se pinta en el asiento con data-code y va al principio del nombre accesible; C1 con icon, C2 > 3, C3 en un hijo), keywords (arreglo de cadenas: alias, otro idioma, slug; F4) y filterable: false (en un grupo o un item: nunca se oculta ni se cuenta)"
+      "note": "Un item de primer nivel con icon cadena (nombre de Lucide) y sin slot icon dibuja GIcon en g-sidebar__icon (registro de la aplicación → librería; #202); con slot icon, manda el slot; otro valor de icon es dato opaco para el slot; los hijos no llevan icono. Campos del filtro y del código (#1035, #1036): code (1 a 3 caracteres, solo primer nivel: se pinta en el asiento con data-code y va al principio del nombre accesible; C1 con icon, C2 > 3, C3 en un hijo), keywords (arreglo de cadenas: alias, otro idioma, slug; F4) y filterable: false (en un grupo o un item: nunca se oculta ni se cuenta). Grupo { label, items, id?, collapsible?, collapsed? } (#1061): collapsible pliega el grupo (botón de APG Disclosure + g-sidebar__group-body con hidden=\"until-found\" al asentar); id obligatorio con collapsible (sin él, A3 y no se pliega); collapsed es el estado inicial sin closedGroups. En appearance=\"index\" icon y el slot icon se ignoran (A2) y code va al final de la fila (g-sidebar__code) con su texto oculto después de la etiqueta («GCombobox, 24»). collapsible y collapsed solo actúan con @grana/vue/sidebar-index (#1069); sin ella, el grupo es fijo y abierto (collapsed se ignora, A5)"
+    },
+    {
+      "name": "appearance",
+      "type": "String",
+      "default": "default",
+      "values": [
+        "default",
+        "index"
+      ],
+      "note": "index (#1060): piel del índice de documentación; solo expandida y drawer (auto: expandida ≥ breakpoints.expanded, drawer por debajo; rail → expandida y navbar → drawer con A1), sin botón de contraer (collapsed, overlay, variant y barCount no actúan), sin asiento ni iconos (A2), número al final, la marca del actual que viaja (g-sidebar__mark, #1062) y cabecera como la banda. Fuera de lista: default (A4). Necesita la extensión @grana/vue/sidebar-index (#1069); sin ella, se pinta default (A5)"
+    },
+    {
+      "name": "closedGroups",
+      "type": "Array | undefined",
+      "default": null,
+      "note": "id de los grupos plegables cerrados (#1061). Sin la prop, el estado es interno y nace de collapsed de cada grupo nuevo; con ella, manda el arreglo (v-model:closedGroups para controlar o persistir). Un id que no es de un grupo plegable válido se ignora. La ruta abre el grupo del actual al montar (emite tras montar) y al cambiar modelValue. Necesita la extensión @grana/vue/sidebar-index (#1069); sin ella, se ignora y update:closedGroups no se emite (A5)"
     },
     {
       "name": "modelValue",
@@ -153,7 +169,7 @@
       "name": "labels",
       "type": "Object",
       "default": {},
-      "note": "Textos sin valor por defecto. Con filter (#1035): filter (nombre del campo y del botón del riel), filterPlaceholder, filterHint (atajo visible, decorativo), filterCount (función (shown, total) => texto), filterNone (función (query) => texto) y filterClear (nombre del botón de vaciar); sin los requeridos, F3"
+      "note": "Textos sin valor por defecto. Con filter (#1035): filter (nombre del campo y del botón del riel), filterPlaceholder, filterHint (atajo visible, decorativo), filterCount (función (shown, total) => texto), filterNone (función (query) => texto) y filterClear (nombre del botón de vaciar); sin los requeridos, F3. groupCurrent (recomendado con grupos collapsible, #1061): texto oculto en el botón de un grupo plegado con la página actual dentro"
     }
   ],
   "events": [
@@ -191,6 +207,11 @@
       "name": "update:query",
       "payload": "String",
       "trigger": "El texto del filtro cambia (escribir, vaciar con Esc o con el botón); #1035"
+    },
+    {
+      "name": "update:closedGroups",
+      "payload": "Array de id",
+      "trigger": "El usuario pliega o despliega un grupo (clic, Intro, Espacio), beforematch abre uno (Ctrl+F) o la ruta abre el del actual (#1061). El filtro no lo emite. Sin @grana/vue/sidebar-index, nunca (#1069)"
     }
   ],
   "methods": [
@@ -312,7 +333,17 @@
     "search",
     "user",
     "scroll",
-    "entering"
+    "entering",
+    "appearance-index",
+    "group-collapsible",
+    "group-closed",
+    "group-has-current",
+    "group-animating",
+    "group-filter-open",
+    "mark-full",
+    "mark-hollow",
+    "mark-instant",
+    "has-mark"
   ],
   "pending": [
     "Lector de pantalla real (riel, ramas, contadores, panel, píldora, drawer)",
@@ -320,11 +351,14 @@
     "Táctil real y teclado virtual (navbar y drawer)",
     "Formato inicial antes de medir el contenedor (se pinta expandido un instante)",
     "Filtro (#1035): lector de pantalla real con el recuento (aria-describedby) y el anuncio cortés; IME real con Intro",
-    "Filtro (#1035): con 500 destinos, el trabajo de la tecla (filtrar y parchear) mide 6–13 ms en Chromium; el estilo y la disposición del navegador al volver a mostrar cientos de filas llegan a 35–62 ms (CSS: coco)"
+    "Filtro (#1035): con 500 destinos, el trabajo de la tecla (filtrar y parchear) mide 6–13 ms en Chromium; el estilo y la disposición del navegador al volver a mostrar cientos de filas llegan a 35–62 ms (CSS: coco)",
+    "appearance index y grupos plegables (#1060 a #1065): auditoría de coco sobre el componente real y paridad con design/lab/sidebar/r03/paridad.json",
+    "index: lector de pantalla real (botón de grupo, groupCurrent, «GCombobox, 24»), Ctrl+F real (beforematch probado sintético), táctil real, forced-colors real, RTL y padres con children en index (no prototipado)"
   ],
   "weight": {
     "tooltipVisualMode": "−5 B gzip en grana.js y −40 B en grana.umd.js (sustituye la pista propia), medido el 2026-10-06",
-    "filterCodeLocation": "+837 B gzip en grana.js para el lote del marco A tras sacar el filtro a la extensión (#1050): code, current: 'location' de GMenu, props, F5 y enganche; medido el 2026-11-08 contra 4df51aee, la medida anterior a 336f3624 (229 847 → 230 684 B); tope +1280 B (#1042, #1050)"
+    "filterCodeLocation": "+837 B gzip en grana.js para el lote del marco A tras sacar el filtro a la extensión (#1050): code, current: 'location' de GMenu, props, F5 y enganche; medido el 2026-11-08 contra 4df51aee, la medida anterior a 336f3624 (229 847 → 230 684 B); tope +1280 B (#1042, #1050)",
+    "indexHook": "+558 B gzip en grana.js por las props appearance y closedGroups, update:closedGroups, A4, A5, tabindex=\"-1\" del <nav>, la clase de apariencia y el enganche de @grana/vue/sidebar-index; medido el 2026-11-08 contra 7d1024d7 (230 860 → 231 418 B); tope +768 B (#1069)"
   },
   "extension": {
     "entry": "@grana/vue/sidebar-filter",
@@ -338,6 +372,17 @@
       "umdGzip": 2581,
       "cap": 3072,
       "note": "gzip -9. Vue y @grana/vue externos; la normalización (utils/match.js), GLibIcon, el canal de página y la clave interna llegan de __shared, sin copia. El CSS sigue en grana.css."
+    }
+  },
+  "indexExtension": {
+    "entry": "@grana/vue/sidebar-index",
+    "global": "GranaSidebarIndex",
+    "cap": 3840,
+    "note": "#1069: appearance=\"index\", grupos plegables (las dos apariencias), la marca y el cajón que abre en el actual. Plugin por defecto que provee el motor con la clave interna utils/sidebarIndex.js por __shared; sin él, index se pinta default, los grupos collapsible quedan fijos y abiertos, closedGroups se ignora y avisa A5.",
+    "bundle": {
+      "gzip": 3762,
+      "umdGzip": 3275,
+      "measured": "2026-11-08"
     }
   }
 }

@@ -119,7 +119,9 @@ describe('niveles de tokens en los componentes (tokens.md §17)', () => {
   const READS_SHELL = {
     'GCombobox/GCombobox.css': ['--g-app-shell-top'],
     'GNavBar/GNavBar.css': ['--g-app-shell-header', '--g-app-shell-top'],
-    'GPageIndex/GPageIndex.css': ['--g-app-shell-top', '--g-app-shell-local-bar']
+    'GPageIndex/GPageIndex.css': ['--g-app-shell-top', '--g-app-shell-local-bar'],
+    // La banda de GSidebar appearance="index" usa la fórmula de contrato del chasis (#1060, #1070)
+    'GSidebar/GSidebar.css': ['--g-app-shell-header']
   }
 
   it('todo var(--g-*) existe en defaults.css o lo declara el propio componente (o la primitiva que compone, si la publica)', () => {

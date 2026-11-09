@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Índice de documentación · banco del componente real (bruno)</title>
+<!-- GSidebar appearance="index" y grupos plegables (#1060 a #1065) con el componente REAL de dist/ (dueño: bruno) con la extensión @grana/vue/sidebar-index (#1069): filtro del
+     índice en la banda (@grana/vue/sidebar-filter), número al final, marca del actual que viaja, «Guía» sin plegar y los
+     grupos de componentes `collapsible` con id; :breakpoints="{ expanded: 960 }" (drawer por debajo, abierto con «Menú»).
+     Lo verifica design/lab/theme-playground/tests/sidebar-index.spec.mjs (y sidebar-index-perf con --workers=1).
+     Parámetros: ?n=500 (destinos de componente; 78 por defecto) · ?closed=a,b (closedGroups controlado con v-model) ·
+     ?collapsed=g2 (grupo con collapsed inicial) · ?current=c24 · ?appearance=default · ?filter=0 · ?ext=0 (sin la extensión) · ?dir=rtl · ?dark=1.
+     Estado en window.sbx (registro de eventos). -->
+<link rel="stylesheet" href="../dist/fonts.css">
+<link rel="stylesheet" href="../dist/grana.css">
+<style>
+  /* Andamio del banco (no es de Grana): la columna a la izquierda y el contenido; el tema del sitio pone el peso del título */
+  *{box-sizing:border-box}
+  :root{ --g-sidebar-group-title-weight: 700; }
+  body{margin:0;background:var(--g-color-bg);color:var(--g-color-text);font-family:var(--g-font-ui);font-size:var(--g-text-body-size);line-height:var(--g-text-body-line)}
+  .shell{display:grid;grid-template-columns:auto 1fr;min-block-size:100vh}
+  .side{position:sticky;inset-block-start:0;block-size:100vh;display:flex;background:var(--g-surface-sunken)}
+  main{min-inline-size:0;padding:var(--g-space-6)}
+  .bar{display:flex;gap:12px;align-items:center;min-block-size:48px}
+  .logo{font-weight:600}
+</style>
+</head>
+<body>
+<div id="app" class="shell">
+  <div class="side">
+    <g-sidebar id="sb" ref="sb" :items="nav" v-model="current" v-model:query="query" v-model:open="open" :appearance="Q.appearance"
+      filter filter-keyshortcuts="/" :breakpoints="{ expanded: 960 }" container="body" mobile="drawer" label="Componentes" :labels="labels"
+      v-bind="Q.closed ? { closedGroups: closed, 'onUpdate:closedGroups': (v) => { closed = v; log('closedGroups · ' + v.join(',')) } } : { 'onUpdate:closedGroups': (v) => log('closedGroups · ' + v.join(',')) }"
+      @navigate="onNav">
+      <template #logo><span class="logo">Grana</span></template>
+    </g-sidebar>
+  </div>
+  <main id="main">
+    <div class="bar"><g-btn id="menu" variant="outline" color="neutral" @click="open = true">Menú</g-btn><span id="cur">{{ current }}</span></div>
+    <p v-for="i in 40" :key="i">Contenido de la página {{ i }}.</p>
+  </main>
+</div>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="../dist/grana.umd.js"></script>
+<script src="../dist/sidebar-filter.umd.js"></script>
+<script src="../dist/sidebar-index.umd.js"></script>
+<script src="./lucide-icons.js"></script>
+<script>
+  const P = new URLSearchParams(location.search)
+  if (P.get('dir') === 'rtl') document.documentElement.dir = 'rtl'
+  if (P.get('dark') === '1') document.documentElement.dataset.theme = 'dark'
+  const events = []
+  window.sbx = { events }
+  const GROUPS = ['Estructura de página', 'Campos de entrada', 'Selección', 'Acciones y navegación', 'Datos', 'Avisos', 'Superficies', 'Medios', 'Tiempo']
+  const NAMES = ['GAppShell', 'GInput', 'GSelect', 'GBtn', 'GTable', 'GToast', 'GCard', 'GAvatar', 'GTimeField', 'GTabs']
+  const collapsedInit = (P.get('collapsed') || '').split(',').filter(Boolean)
+  function buildNav(n) {
+    const out = [{ label: 'Guía', items: [
+      { id: 'intro', label: 'Introducción', href: '#intro' }, { id: 'install', label: 'Instalación', href: '#install' },
+      { id: 'theme', label: 'Tematización', href: '#theme' }
+    ] }]
+    let k = 1
+    for (let g = 0; k <= n; g++) {
+      const items = []
+      const size = n > 100 ? 50 : 9
+      for (let i = 0; i < size && k <= n; i++, k++) {
+        const name = k <= 10 ? NAMES[k - 1] : `${NAMES[(k - 1) % 10]} ${Math.ceil(k / 10)}`
+        items.push({ id: `c${k}`, label: name, href: `#c${k}`, code: String(k).padStart(2, '0') })
+      }
+      const id = `g${g + 1}`
+      out.push({ id, label: g < GROUPS.length ? GROUPS[g] : `Grupo ${g + 1}`, collapsible: true, collapsed: collapsedInit.includes(id), items })
+    }
+    return out
+  }
+  const app = Vue.createApp({
+    setup() {
+      const log = (e) => { events.push(e) }
+      const sb = Vue.ref(null)
+      document.addEventListener('keydown', (e) => {
+        const editable = e.target.closest?.('input, textarea, select, [contenteditable]')
+        if (e.key === '/' && !editable && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); sb.value?.focusFilter() }
+      })
+      return {
+        Q: { appearance: P.get('appearance') || 'index', closed: P.has('closed') },
+        nav: buildNav(Number(P.get('n')) || 78),
+        current: Vue.ref(P.get('current') || 'c24'),
+        query: Vue.ref(''),
+        open: Vue.ref(false),
+        closed: Vue.ref((P.get('closed') || '').split(',').filter(Boolean)),
+        log, sb,
+        labels: {
+          drawer: 'Índice', close: 'Cerrar', groupCurrent: 'contiene la página actual', collapse: 'Contraer', expand: 'Expandir', more: 'Más',
+          filter: 'Filtrar el índice', filterPlaceholder: 'Filtrar', filterHint: '/', filterClear: 'Vaciar el filtro',
+          filterCount: (n, t) => `${n} de ${t} páginas`, filterNone: (q) => `Ningún título con «${q}»`
+        },
+        onNav(e) { log('navigate · ' + e.item.id) }
+      }
+    }
+  })
+  if (P.get('filter') !== '0') app.use(GranaSidebarFilter.default)
+  // ?ext=0: sin la extensión (index se pinta default y los grupos quedan fijos y abiertos, A5)
+  if (P.get('ext') !== '0') app.use(GranaSidebarIndex.default)
+  app.use(Grana).use(Grana.createIcons(Object.values(window.LUCIDE_STATIC)))
+  window.sbxApp = app.mount('#app')
+</script>
+</body>
+</html>

@@ -191,6 +191,15 @@ must_not_have grana.js "filterCount, filterNone y filterClear (F3)" "El motor de
 must_not_have grana.js "g-sidebar__filter-input" "El campo del filtro de GSidebar viajó en grana.js; debe ir solo en sidebar-filter.js (#1050)"
 must_not_have sidebar-filter.js "g-sidebar__fly-title" "GSidebar quedó copiado en sidebar-filter.js; debe llegar del principal (#1050)"
 must_not_have sidebar-filter.js "NFD" "La normalización quedó copiada en sidebar-filter.js; debe llegar por __shared (#1050)"
+# Apariencia index, grupos plegables y marca de GSidebar (#1060 a #1069): motor en la extensión sidebar-index.js (tope 3 840 B gzip); el CSS sigue en grana.css
+must_have grana.css "g-sidebar--appearance-index" "$CSS_MSG"
+must_have grana.css "g-sidebar__mark" "$CSS_MSG"
+must_have grana.css "g-sidebar__group-body" "$CSS_MSG"
+must_exist "sidebar-index.js" "No se generó la extensión sidebar-index.js (revisar vite.sidebar-index.config.js y el script build de packages/vue)"
+must_not_have grana.js "no tiene riel ni navbar" "El motor de appearance=index de GSidebar viajó en grana.js; debe ir solo en sidebar-index.js (#1069)"
+must_not_have grana.js "g-sidebar__mark" "La marca del actual de GSidebar viajó en grana.js; debe ir solo en sidebar-index.js (#1069)"
+must_not_have sidebar-index.js "g-sidebar__fly-title" "GSidebar quedó copiado en sidebar-index.js; debe llegar del principal (#1069)"
+must_not_have sidebar-index.js "keepInPlace" "utils/collapse.js quedó copiado en sidebar-index.js (#1069)"
 # Forma list de GPageIndex (#1054): extensión propia page-index-list.js (tope 2,25 KiB gzip, #1067); el motor de lectura se queda en page-index.js
 must_exist "page-index-list.js" "No se generó la extensión page-index-list.js (revisar vite.page-index-list.config.js y el script build de packages/vue)"
 must_have grana.css "g-page-index__marker" "$CSS_MSG"
