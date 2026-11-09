@@ -8,7 +8,7 @@ El nombre viene de la **grana cochinilla**, el insecto oaxaqueño cuyo tinte col
 
 - **Estructura fija, color tuyo.** Los componentes solo leen variables `--g-*`, sin valores de respaldo ni colores escritos en su CSS. Cambiar el tema no deja ningún valor fijo atrás.
 - **Accesibilidad como restricción, no como extra.** Área táctil, tamaño de texto, contraste y foco tienen mínimos que no son tema: el generador de temas rechaza lo que los rompa.
-- **79 componentes documentados** (75 en estado `candidate` y 4 en `draft`, a la espera de su auditoría): formularios completos, tablas y filtros, calendario, paneles, avisos, captura de voz.
+- **80 componentes documentados** (75 en estado `candidate` y 5 en `draft`, a la espera de su auditoría): formularios completos, tablas y filtros, calendario, paneles, avisos, captura de voz.
 - **Personalidad propia.** Movimiento y forma con identidad, siempre con tokens, `prefers-reduced-motion` y contraste intactos (ver [Personalidad](#personalidad)).
 
 ## Qué es Grana
@@ -51,7 +51,7 @@ Para equipos que construyen **aplicaciones de uso diario**, donde la gente traba
 Esta es una **beta**. Qué significa:
 
 - **La API puede cambiar** entre betas. Las decisiones de diseño están registradas en [`DECISIONS.md`](DECISIONS.md) y los contratos en [`docs/contract/`](docs/contract/) y [`design/contracts/`](design/contracts/), pero ninguno está congelado como API estable.
-- **`candidate`** es el estado de 75 de los 79 componentes (los otros cuatro, `GStatus`, `GStatusIsland`, `GStatusMark` y `GPageIndex`, siguen en `draft`: construidos, sin auditoría de coco): tienen contrato, CSS, pruebas, `meta.json`, README y una auditoría del componente real con un tema distinto al por defecto, sin defectos bloqueantes, en Chromium, Firefox y WebKit.
+- **`candidate`** es el estado de 75 de los 80 componentes (los otros cinco, `GStatus`, `GStatusIsland`, `GStatusMark`, `GPageIndex` y `GNavBar`, siguen en `draft`: construidos, sin auditoría de coco): tienen contrato, CSS, pruebas, `meta.json`, README y una auditoría del componente real con un tema distinto al por defecto, sin defectos bloqueantes, en Chromium, Firefox y WebKit.
 - **Falta la verificación en entorno real:** lector de pantalla (VoiceOver, NVDA), Safari real, táctil y móvil reales, `forced-colors` real y zoom real al 200 y 400 %. Está listado en [`PENDIENTES.md`](PENDIENTES.md), sección 7. Si dependes de alguno de esos entornos, pruébalo antes de adoptar un componente.
 - **Todavía no está publicada en npm.** Se publicará como `0.1.0-beta.0` (la versión que ya llevan `@grana/vue`, `@grana/cli` y el `package.json` raíz). Mientras tanto se usa desde este repositorio (ver [Probarlo en este repositorio](#probarlo-en-este-repositorio)). Las instrucciones de instalación de abajo son las de la publicación.
 
@@ -146,7 +146,10 @@ Diecinueve piezas **no viajan en el paquete principal**: cada una tiene su entra
 | `@grana/vue/booking` | `GBookingBar`, `GPartyField` | La consulta de disponibilidad de un sitio (estancia, mesa o recorrido) y las personas por tipo | `GranaBooking` | ≈ 14,2 kB |
 | `@grana/vue/price` | `GPrice`, `GPriceScope`, `formatPrice`, `currencyDigits` | Mostrar precios que dicen su moneda: la región que la declara una vez, la referencia nombrada y el total de lo pedido | `GranaPrice` | ≈ 6,0 kB |
 | `@grana/vue/page-index` | `GPageIndex` | El índice de las secciones de la página que se lee, con la actual siguiendo la lectura (documentación, fichas y formularios largos) | `GranaPageIndex` | ≈ 2,9 kB |
+| `@grana/vue/nav-bar` | `GNavBar` | La barra superior de un sitio: enlaces a sus secciones, la actual por ruta y las acciones globales | `GranaNavBar` | ≈ 3,0 kB |
 | `@grana/vue/sidebar-filter` | extensión de `GSidebar` (se conecta con `app.use`) | El filtro del índice de `GSidebar` (`filter`): sin ella, `GSidebar` se pinta sin filtro y avisa | `GranaSidebarFilter` | ≈ 2,7 kB |
+| `@grana/vue/sidebar-index` | extensión de `GSidebar` (se conecta con `app.use`) | La apariencia `index`, los grupos plegables y la marca del actual (índices de documentación) | `GranaSidebarIndex` | ≈ 3,7 kB |
+| `@grana/vue/page-index-list` | extensión de `GPageIndex` (se conecta con `app.use`) | La forma `list` de `GPageIndex`: columna «En esta página» y su versión plegada | `GranaPageIndexList` | ≈ 2,2 kB |
 
 **Por qué van aparte:** las primeras añadirían más de 8 kB gzip al paquete principal (criterio de [#328](DECISIONS.md)); desde que el margen del principal se agotó ([#550](DECISIONS.md)), todo componente nuevo con peso propio va en su entrada por defecto. No todas las aplicaciones las necesitan. Los tamaños de esta tabla son los del archivo de `dist/` de cada entrada, **sin minificar y comprimido con `gzip`** (medidos el 2026-10-18; kB = 1000 bytes): sirven para comparar entradas entre sí, no para predecir lo que sumará a tu aplicación. Por la misma razón, `dist/grana.js` entero pesa ≈ 179 kB gzip, mientras que importar toda la librería en una aplicación con el JavaScript minificado añade ≈ 155 KB (tabla de [Tamaño e importación parcial](#tamaño-e-importación-parcial)); ninguna de las dos cifras incluye la hoja de CSS (≈ 69 kB gzip). Para saber cuánto añade lo que usas, guíate por la tabla de importación parcial. Los servicios (`createSpeech`, `createStatus`) son además plugins de Vue: `app.use(speech)` registra sus componentes.
 
@@ -269,7 +272,7 @@ Reglas y límites: [`docs/contract/tokens.md` §15](docs/contract/tokens.md). Ve
 
 ## Componentes
 
-Salvo cuatro en **`draft`** (`GStatus`, `GStatusIsland`, `GStatusMark` y `GPageIndex`), todos están en **`candidate`**: ver [Estado](#estado-010-beta). «Propia» indica que se importa de su entrada propia ([Entradas propias](#entradas-propias)). El enlace lleva al README del componente, con su API completa, teclado, accesibilidad medida y límites.
+Salvo cinco en **`draft`** (`GStatus`, `GStatusIsland`, `GStatusMark`, `GPageIndex` y `GNavBar`), todos están en **`candidate`**: ver [Estado](#estado-010-beta). «Propia» indica que se importa de su entrada propia ([Entradas propias](#entradas-propias)). El enlace lleva al README del componente, con su API completa, teclado, accesibilidad medida y límites.
 
 ### Estructura de página
 
@@ -298,7 +301,8 @@ Salvo cuatro en **`draft`** (`GStatus`, `GStatusIsland`, `GStatusMark` y `GPageI
 | [`GFab`](packages/vue/src/components/GFab/README.md) | Botón flotante para crear o capturar desde cualquier sitio: la pila que crece (las que caben, la más usada pegada al botón) o, con `main`, la acción principal a un toque con una cola que filtra al escribir; confirmación en la misma fila y acuse en el propio botón | **propia** (`fab`) |
 | [`GTooltip`](packages/vue/src/components/GTooltip/README.md) | Nombre visible, descripción y atajo de un control enfocable | principal |
 | [`GHelper`](packages/vue/src/components/GHelper/README.md), [`GHelperScope`](packages/vue/src/components/GHelperScope/README.md) | Ayuda contextual anclada a una región | principal |
-| [`GPageIndex`](packages/vue/src/components/GPageIndex/README.md) | Índice de las secciones de la página que se lee: un botón de menú que dice dónde estás y sigue la lectura | **propia** |
+| [`GPageIndex`](packages/vue/src/components/GPageIndex/README.md) | Índice de las secciones de la página que se lee: un botón de menú que dice dónde estás y sigue la lectura, o la columna «En esta página» con la extensión `list` | **propia** |
+| [`GNavBar`](packages/vue/src/components/GNavBar/README.md) | Barra superior de un sitio: los enlaces a sus secciones con la actual por ruta y sitio para búsqueda, idioma y tema | **propia** |
 
 ### Campos de entrada
 

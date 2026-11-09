@@ -1,6 +1,6 @@
 # GSidebar
 
-Navegación lateral (principal o secundaria) que **se transforma con un solo sistema**: **expandida** (etiquetas, grupos, submenús en línea), **riel** de iconos (submenús en un panel flotante), y, en móvil, un **navbar inferior** con «píldora activa» o un **drawer**. Los items se definen con un arreglo (grupos, items y un nivel de hijos); el destino actual es un prop; la adaptación se decide por el ancho del contenedor. Con `filter` y la extensión `@grana/vue/sidebar-filter`, un campo en la cabecera **filtra el índice mientras escribes**; con `code`, cada item lleva un número estable dentro de su asiento.
+Navegación lateral (principal o secundaria) que **se transforma con un solo sistema**: **expandida** (etiquetas, grupos, submenús en línea), **riel** de iconos (submenús en un panel flotante), y, en móvil, un **navbar inferior** con «píldora activa» o un **drawer**. Los items se definen con un arreglo (grupos, items y un nivel de hijos); el destino actual es un prop; la adaptación se decide por el ancho del contenedor. Con `filter` y la extensión `@grana/vue/sidebar-filter`, un campo en la cabecera **filtra el índice mientras escribes**; con `code`, cada item lleva un número estable dentro de su asiento. Con la extensión `@grana/vue/sidebar-index`, `appearance="index"` lo pinta como el índice de una documentación (texto, número al final, una marca que viaja) y los grupos pueden **plegarse**.
 
 **Etiqueta:** `<g-sidebar>` · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/sidebar/auditoria.md`](../../../../../design/lab/sidebar/auditoria.md)) · **Desde:** 0.1.0
 
@@ -99,6 +99,8 @@ El componente no empuja tu contenido. Hasta que se mide el contenedor (el primer
 | `overlay` | Boolean | el riel se expande **sobre** el contenido | `false` |
 | `barCount` | Number | `3` `4` `5` | `4` |
 | `search` | Boolean | muestra el disparador de búsqueda (no actúa con `filter` y la extensión) | `false` |
+| `appearance` | String | `default` `index` (necesita la extensión `@grana/vue/sidebar-index`; ver «Apariencia `index`»; sin ella se pinta `default`) | `default` |
+| `closedGroups` | Array \| undefined | `id` de los grupos plegables cerrados (con `update:closedGroups`); necesita la extensión `@grana/vue/sidebar-index` | sin valor (estado interno) |
 | `filter` | Boolean | filtro del índice en la cabecera; **necesita la extensión** `@grana/vue/sidebar-filter` (ver «Filtro del índice») | `false` |
 | `query` | String | texto del filtro (con `v-model:query`) | `''` |
 | `filterKeyshortcuts` | String | valor de `aria-keyshortcuts` del campo, p. ej. `'/ Control+K Meta+K'`; solo lo publica, no escucha atajos | `null` |
@@ -113,11 +115,12 @@ Un valor de prop fuera de su lista avisa en desarrollo. **`class`, `style` y `da
 
 ```js
 [
-  { label: 'Principal', items: [ /* grupo */ { id, label, href?, icon?, code?, keywords?, filterable?, badge?, badgeLabel?, dot?, disabled?, primary?, children? } ] },
+  { label: 'Principal', id?, collapsible?, collapsed?, items: [ /* grupo */ { id, label, href?, icon?, code?, keywords?, filterable?, badge?, badgeLabel?, dot?, disabled?, primary?, children? } ] },
   { id: 'set', label: 'Ajustes', href: '/settings' }   // item sin grupo
 ]
 ```
 
+- **Grupo:** `label` y `items`; con `collapsible: true`, el título se vuelve un botón y el grupo se pliega, y entonces **`id` es obligatorio** (clave del estado; sin él, avisa y el grupo no se pliega). `collapsed: true` es el estado inicial sin `closedGroups`. Necesita la extensión `@grana/vue/sidebar-index`.
 - **`id`** único y **`label`** son obligatorios (un item sin ellos se ignora y avisa en desarrollo).
 - **`href`**: un `<a>`. **Sin `href` ni `children`**: un `<button>` de solo acción (también emite `navigate`). **`disabled`**: `<a role="link" aria-disabled="true">` **sin `href`** (no recibe foco), tachado y atenuado.
 - **`children`**: **un solo nivel** (los nietos se ignoran y avisan); un padre es un botón de submenú, nunca navega por sí mismo.
@@ -142,6 +145,7 @@ Ninguno tiene valor por defecto (Grana es internacional). Los requeridos avisan 
 | `filterNone` | Función `(consulta) => texto`: sin coincidencias | Sí, con `filter` |
 | `filterClear` | Nombre del botón de vaciar el filtro | Sí, con `filter` |
 | `filterPlaceholder`, `filterHint` | Texto de ejemplo del campo y atajo visible (decorativo; se oculta con texto) | No |
+| `groupCurrent` | Texto oculto en el botón de un grupo **plegado con la página actual dentro** («contiene la página actual») | Recomendado, con grupos `collapsible` |
 
 ## Navegar
 
@@ -202,6 +206,55 @@ const textos = {
 
 Avisos de desarrollo del filtro: **F1** `filter` con `search` (no actúa `search`); **F2** `filter` con el slot `search` (manda el slot); **F3** `filter` sin `filter`, `filterCount`, `filterNone` o `filterClear` en `labels`; **F4** `keywords` que no es un arreglo de cadenas (se ignora); **F5** `filter` sin la extensión. Y del `code`: **C1** con `icon`, **C2** de más de 3 caracteres, **C3** en un hijo.
 
+## Apariencia `index` y grupos plegables
+
+`appearance="index"` es la piel del **índice de una documentación**: texto sin iconos ni asiento, el número de cada página al final de la fila, y una **marca de 2 px** que señala la actual. No es otro componente, es la misma navegación con otra piel y un plegado de grupo. Nace de calcar el índice de un sitio de documentación con piezas de Grana (#1052, #1060 a #1065).
+
+**Va en una extensión.** La apariencia, el plegado de grupos, la marca y el cajón que se abre en el actual no viajan en `@grana/vue`: van en `@grana/vue/sidebar-index` (global UMD `GranaSidebarIndex`, **3 762 B gzip** frente a un tope de 3 840 B, anotado por bruno en `GSidebar.meta.json` el 2026-11-08; `gzip -9`, no se remidió al documentar; #1069). Se conecta una vez por aplicación, y es independiente de `sidebar-filter`: el orden de `app.use` no importa.
+
+```js
+import SidebarIndex from '@grana/vue/sidebar-index'
+
+app.use(SidebarIndex)   // conecta la piel index, el plegado de grupos y la marca con todos los GSidebar
+```
+
+En SSR instala el plugin en la aplicación del servidor **y** en la del cliente: si solo está en una, el HTML no coincide al hidratar.
+
+**Sin la extensión, nunca es un error** y avisa una vez (A5): `appearance="index"` se pinta como `default` entero (con iconos, asiento y botón de contraer); un grupo `collapsible` se pinta **fijo y abierto**, sin botón ni flecha, y **`collapsed: true` se ignora** (no se esconde navegación sin un control que la devuelva); `closedGroups` se acepta y se ignora, y `update:closedGroups` no se emite.
+
+### Qué cambia con `index`
+
+| | `default` | `index` |
+| --- | --- | --- |
+| Formatos | expandida, riel, navbar, drawer | **expandida y drawer**: `auto` es expandida desde `breakpoints.expanded` y drawer por debajo; `rail` se pinta expandida y `navbar` drawer (aviso A1) |
+| Item | asiento con icono o `code` | **sin icono ni asiento** (`icon` y el slot `icon` se ignoran, aviso A2); texto en `text-muted` |
+| `code` | dentro del asiento | **al final de la fila**, decorativo, cifras tabulares; el nombre accesible lo lleva después de la etiqueta («GCombobox, 24») |
+| Actual | asiento lleno | color de acento y **la marca** |
+| Hover | luz y `text` | la luz se ensancha un poco y no pisa a la actual |
+| Cabecera | logo, contraer, filtro | **la banda**: el alto de la banda de `GAppShell`, con su línea; el filtro a la derecha de la marca, que crece al pedirlo |
+| `collapsed`, `overlay`, `variant`, `barCount`, `search` | actúan | **no actúan** |
+
+El filtro (`filter`) funciona igual que antes: en reposo ocupa poco, y con el foco o con texto crece y tapa la marca. Con el campo vacío el recuento queda oculto a la vista y sigue anunciándose.
+
+### Grupos plegables
+
+Un grupo con `collapsible: true` e `id` pinta su título como un botón (patrón *Disclosure* de APG: `aria-expanded` y `aria-controls`), en `default` y en `index`; **en el riel se ignora** (todo abierto). Reglas:
+
+1. **Estado.** Sin `closedGroups`, vive en la instancia y nace del `collapsed` de cada grupo; no se guarda entre recargas. Con `closedGroups` manda el arreglo: úsalo con `v-model:closedGroups` para controlarlo o guardarlo (en `sessionStorage`, por ejemplo). Un `id` que no es de un grupo plegable válido se ignora.
+2. **La ruta abre.** Al montar y cada vez que cambia `modelValue`, el grupo del actual se abre. El primer render ya lo pinta abierto.
+3. **El filtro abre sin tocar el estado.** Con consulta, todo grupo con coincidencias se ve abierto sin animar y sin emitir; el botón lleva `aria-disabled="true"` mientras hay consulta. Al vaciar, cada grupo vuelve a su estado.
+4. **Ctrl+F encuentra una entrada plegada:** el cuerpo cerrado lleva `hidden="until-found"` y `beforematch` lo abre.
+5. **Teclado.** Tab recorre botones y enlaces; los enlaces de un grupo plegado no reciben foco; Intro y Espacio pliegan y despliegan; ↑ ↓ Inicio Fin incluyen los botones de grupo visibles.
+6. **`labels.groupCurrent`** (recomendado): texto oculto en el botón de un grupo plegado que contiene la actual.
+
+### La marca del actual
+
+El actual solo cambia de color frente a sus vecinos, y eso no basta (WCAG 1.4.1): por eso la marca es obligatoria en `index`. Una barra de 2 px en `--g-color-accent-text` (5,27:1 en claro y 5,12:1 en oscuro frente a la columna, cifras del contrato, `manual`) **viaja** de una fila a otra con `--g-duration-slow`. Si el actual está en un grupo plegado, la marca queda **hueca** sobre el botón del grupo. En un viaje corto (hasta 1,5 filas) usa `--g-ease-spring`; en uno largo la clase `is-far` cambia a `--g-ease-out` para que **no rebase** y se pare un instante sobre la fila vecina (#1071). Con `prefers-reduced-motion: reduce` salta y solo se funde. Hasta que se coloca la capa, un indicador estático de CSS ya señala al actual, así que el HTML del servidor trae la señal.
+
+En el drawer de `index`, al abrir, la fila del actual (o el botón de su grupo) queda **centrada** si cabe; con la extensión, esto también vale en `default`.
+
+Avisos de desarrollo: **A1** `mode` `rail` o `navbar` con `index`; **A2** `icon` con `index`; **A3** grupo `collapsible` sin `id`; **A4** `appearance` fuera de la lista (se pinta `default`); **A5** `index`, `collapsible` o `closedGroups` sin la extensión.
+
 ## Riel
 
 - **Panel flotante** de un padre: se abre con **clic, Enter, Espacio o →** y con el **puntero encima** (150ms); **el foco solo no lo abre**. Al abrir con teclado el foco va al hijo actual o al primero; ↑ ↓ Inicio Fin se mueven; **Esc o ←** lo cierran y devuelven el foco al padre; Tab hacia fuera lo cierra. Está pegado al item, con el nombre del padre y una muesca que lo conecta.
@@ -235,6 +288,7 @@ Avisos de desarrollo del filtro: **F1** `filter` con `search` (no actúa `search
 | `mode-change` | `{ mode, overlay }` | El formato resuelto cambia (y al montar) |
 | `search` | | Se activa el disparador de búsqueda |
 | `update:query` | String | El texto del filtro cambia (escribir, vaciar con Esc o con el botón) |
+| `update:closedGroups` | Array de `id` | El usuario pliega o despliega un grupo (clic, Intro o Espacio), `beforematch` abre uno (Ctrl+F) o la ruta abre el del actual. El filtro no lo emite. Sin la extensión `@grana/vue/sidebar-index`, nunca |
 
 Métodos expuestos: `open()`, `close()` (drawer), `toggle()` (contraer/expandir), `focus()` (primer item) y `focusFilter()`: con la extensión, enfoca el campo y selecciona su texto (en el riel lo expande, en el drawer o el navbar emite `update:open` con `true`); sin ella, o sin `filter`, no hace nada.
 
@@ -353,10 +407,11 @@ Sin definir, el tema por defecto usa `--g-surface-inset` con contorno `--g-color
 
 ## Clases
 
-Las emite el componente y las estiliza `GSidebar.css`: `g-sidebar` (con `--mode-{expanded|rail|navbar}`, `--variant-*`, `--color-*`, `--density-*`, `--overlay`, `--contained`, `is-entering`), `__head`, `__top`, `__logo`, `__toggle`, `__search`, `__hint`, `__nav`, `__groups`, `__group`, `__group-title`, `__list`, `__item`, `__link` (con `is-active`, `is-branch`), `__parent`, `__sub` (con `is-open`), `__chevron`, `__icon`, `__label`, `__badge` (y `__badge--dot`), `__sr`, `__foot`, `__fly`, `__fly-title`, `__bar`, `__tab`, `__more`, `__label--hidden`, `__drawer`, `__filter`, `__filter-box`, `__filter-icon`, `__filter-input`, `__filter-hint`, `__filter-clear`, `__filter-count` (con `is-empty`; la raíz y el botón del riel llevan `is-filtering` con consulta), `data-code` en `__icon` (item con `code`), `__highlight` (la luz, `li[role="none"][aria-hidden="true"]`, primer hijo de cada lista) y `__fly-list` (la lista del panel flotante). Los nodos de la pista del riel son `g-tooltip` (con `aria-hidden`), hijos de la raíz; `__tip` e `is-instant` ya no existen.
+Las emite el componente y las estiliza `GSidebar.css`: `g-sidebar` (con `--mode-{expanded|rail|navbar}`, `--variant-*`, `--color-*`, `--density-*`, `--overlay`, `--contained`, `is-entering`), `__head`, `__top`, `__logo`, `__toggle`, `__search`, `__hint`, `__nav`, `__groups`, `__group`, `__group-title`, `__list`, `__item`, `__link` (con `is-active`, `is-branch`), `__parent`, `__sub` (con `is-open`), `__chevron`, `__icon`, `__label`, `__badge` (y `__badge--dot`), `__sr`, `__foot`, `__fly`, `__fly-title`, `__bar`, `__tab`, `__more`, `__label--hidden`, `__drawer`, `__filter`, `__filter-box`, `__filter-icon`, `__filter-input`, `__filter-hint`, `__filter-clear`, `__filter-count` (con `is-empty`; la raíz y el botón del riel llevan `is-filtering` con consulta), `data-code` en `__icon` (item con `code`), `__highlight` (la luz, `li[role="none"][aria-hidden="true"]`, primer hijo de cada lista) y `__fly-list` (la lista del panel flotante). Con la extensión `sidebar-index`: `g-sidebar--appearance-index` (en la raíz y en la raíz interna del drawer), `is-collapsible`, `is-closed`, `has-current`, `is-animating` e `is-instant` en `__group`, `__group-body`, `__code` (el número al final) y `__mark` (la marca, con `is-full`, `is-hollow` e `is-far`; `has-mark` en `__nav`). Los nodos de la pista del riel son `g-tooltip` (con `aria-hidden`), hijos de la raíz; `__tip` e `is-instant` ya no existen.
 
 ## Alcance
 
+- **`index` y el plegado de grupos viven en la extensión** `@grana/vue/sidebar-index`: sin `app.use`, se pinta `default` con los grupos fijos y abiertos (A5). Los padres con `children` dentro de `index` **no están prototipados** (comparten el submenú en línea, sin icono ni asiento). **La marca no es opcional en `index`:** sin ella el actual solo se distinguiría por color (WCAG 1.4.1).
 - **Un solo nivel de hijos**; sin árboles profundos, arrastrar ni favoritos. **Sin buscador propio:** `search` solo dispara el evento; el filtro del índice es una extensión que conectas tú (ver «Filtro del índice»). **El filtro no busca en el texto de las páginas:** si tu aplicación lo hace, mete sus resultados en un grupo `filterable: false`. **Sin menú contextual del usuario:** el slot `user` lo pones tú (por ejemplo con [`GMenu`](../GMenu/README.md)).
 
 - **Grana no trae textos ni los iconos de tu navegación**: `labels` y los iconos de `icon`, `toggle-icon`, `search-icon` y `more-icon` son de la aplicación (por nombre de Lucide o con `GIcon` en el slot; los que no están en la lista de la librería, con `createIcons`).
@@ -379,10 +434,12 @@ Las emite el componente y las estiliza `GSidebar.css`: `g-sidebar` (con `--mode-
 
 - **Filtro del índice y `code` (`medido` en Chromium, 2026-11-08):** `design/lab/theme-playground/tests/sidebar-filter.spec.mjs` 9/9 (atajo y número, código en el asiento y en el nombre accesible, sin acentos y grupos vacíos, caja estable, padres, drawer, riel, sin la extensión, 500 destinos con 5 a 14 ms por tecla de JavaScript y parche; el estilo y la disposición del navegador llegaron a 50 ms en alguna tecla) y `GSidebar.filter.test.js` (19 pruebas, nivel `prueba`). **Sin verificar:** Firefox y WebKit del filtro; el recuento con un lector de pantalla real; el IME real con Intro. El filtro está construido por bruno y **sin auditoría de coco** (`GSidebar` conserva `candidate` por su auditoría anterior; el filtro no está cubierto por ella).
 
+- **`index`, grupos y marca (`prueba`, 2026-11-08):** `GSidebar.index.test.js`, 29 pruebas en verde; junto con `GSidebar.test.js` (87) y `GSidebar.filter.test.js` (19), toda la suite de `GSidebar` pasa.
+- **`index` en navegador:** el prototipo de kiwi (`design/lab/sidebar/r03/verificar.mjs`) declara 743/743 en los tres motores (`manual`: cifra de su contrato, no se reejecutó) y `design/lab/sitio/calco-estilo/verificar.mjs` mide la paridad del marco con `dist/`, 2080/2080 en los tres motores (`medido`, `resultados.json`). `design/lab/theme-playground/tests/sidebar-index.spec.mjs` (9 casos) existe y **no se ejecutó al documentar**: `sin verificar`. **La auditoría de coco sobre el componente real con un tema distinto del de por defecto sigue pendiente** (`GSidebar.meta.json`, `pending`): lector de pantalla con el botón de grupo y «GCombobox, 24», Ctrl+F real, táctil real, `forced-colors` real y RTL.
 - **Sin verificar:** un lector de pantalla real (riel, ramas, contadores, panel, píldora, drawer), Safari real, el navbar y el drawer en un dispositivo táctil real y con el teclado virtual, RTL con un idioma RTL real, cientos de items y `forced-colors` real de Windows (solo emulado en Chromium). Los cortes de adaptación, el asiento, `is-rep` y la pista del riel están medidos en Chromium, Firefox y WebKit (`tests/sidebar-asiento.spec.mjs`, `sidebar-activo.spec.mjs`, `sidebar-pista.spec.mjs`); `prefers-reduced-motion` está medido con la preferencia emulada en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`, 18/18 el 2026-10-18: con `reduce` ningún elemento conserva transiciones ni animaciones de movimiento).
 
-- **Pendientes abiertos:** ninguno propio de este componente (los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md)).
+- **Pendientes abiertos:** la auditoría de coco de `index` (arriba) y, en [`PENDIENTES.md`](../../../../../PENDIENTES.md), la comprobación de `accent-text` sobre `surface-sunken` en el motor de tema (#1072). Los generales, en `PENDIENTES.md`.
 
 ## Fuentes
 
-- API: [`GSidebar.meta.json`](./GSidebar.meta.json) · Contrato: [`design/contracts/sidebar.md`](../../../../../design/contracts/sidebar.md) · Prototipo: [`design/lab/sidebar/r01/`](../../../../../design/lab/sidebar/r01/) · Auditoría: [`design/lab/sidebar/auditoria.md`](../../../../../design/lab/sidebar/auditoria.md) · Filtro y código del item (DECISIONS #1035, #1036, #1050): [`sidebar.md`](../../../../../design/contracts/sidebar.md) «Filtro del índice» · Una sola luz (DECISIONS #957 a #964): [`api.md`](../../../../../docs/contract/api.md), [`estilo.md`](../../../../../design/lab/hover-glide/estilo.md), [`auditoria.md`](../../../../../design/lab/hover-glide/auditoria.md)
+- API: [`GSidebar.meta.json`](./GSidebar.meta.json) · Contrato: [`design/contracts/sidebar.md`](../../../../../design/contracts/sidebar.md) · Prototipo: [`design/lab/sidebar/r01/`](../../../../../design/lab/sidebar/r01/) · Auditoría: [`design/lab/sidebar/auditoria.md`](../../../../../design/lab/sidebar/auditoria.md) · Apariencia `index`, grupos y marca (DECISIONS #1060 a #1065, #1069, #1071) · Filtro y código del item (DECISIONS #1035, #1036, #1050): [`sidebar.md`](../../../../../design/contracts/sidebar.md) «Filtro del índice» · Una sola luz (DECISIONS #957 a #964): [`api.md`](../../../../../docs/contract/api.md), [`estilo.md`](../../../../../design/lab/hover-glide/estilo.md), [`auditoria.md`](../../../../../design/lab/hover-glide/auditoria.md)

@@ -102,7 +102,7 @@ No pongas botones, enlaces ni campos dentro de la etiqueta, la ayuda ni el error
 
 - **Control nativo:** un `<input type="checkbox" role="switch">`, dibujado con `appearance: none`. Teclado, foco, formularios y estado los resuelve el navegador. **Espacio** alterna; **Enter no** (comportamiento nativo del checkbox).
 - **Nombre:** la etiqueta se asocia con `for`/`id` y `aria-labelledby`. La ayuda va aparte, como descripción (`aria-describedby`).
-- **Ayuda y error:** se enlazan con `aria-describedby`, sumándose a uno tuyo si lo pasas. La región del error existe siempre (vacía si no hay error), está fuera del `<label>` y es `aria-live="polite"`.
+- **Ayuda y error:** se enlazan con `aria-describedby`, sumándose a uno tuyo si lo pasas. La región del mensaje, fuera del `<label>` y `aria-live="polite"`, existe siempre (vacía si no hay mensaje) **salvo en un interruptor sin etiqueta ni ayuda visibles, fuera de `GForm` y sin mensaje** (ver «Sin etiqueta visible»).
 - **El estado no depende solo del color ni de la posición:** el pulgar lleva un icono que cambia de forma (`check` o `minus`), el error engrosa el contorno y lleva un icono `triangle-alert` que los lectores no leen, y `readonly` usa contorno discontinuo.
 - **Foco:** anillo de `--g-focus-width` alrededor del riel, con transición de apertura.
 - **Área táctil:** la fila completa (riel y texto) es el objetivo; con `pointer: coarse` mide al menos 44px reales y el riel queda centrado con la etiqueta.
@@ -140,16 +140,34 @@ Con un `GForm` alrededor el campo lee su contexto: densidad, solo lectura, desha
 
 - **Va en su propia fila** (hijo directo de `GFormLayout`), nunca junto a otros campos en una `GFormRow`.
 - **Sin marcas** (un interruptor no es obligatorio).
-- **Un solo mensaje** bajo el campo, `g-switch__message` (región viva siempre presente): `error` (icono `circle-alert`), `warning` (`triangle-alert`; borde discontinuo de un trazo en el control) o `valid` (`circle-check`), en ese orden de prioridad, con un prefijo oculto («Error: », «Advertencia: », «Correcto: », de `labels` de `GForm`). Sustituye a la antigua región `__error`.
+- **Un solo mensaje** bajo el campo, `g-switch__message` (región viva siempre presente dentro de `GForm`): `error` (icono `circle-alert`), `warning` (`triangle-alert`; borde discontinuo de un trazo en el control) o `valid` (`circle-check`), en ese orden de prioridad, con un prefijo oculto («Error: », «Advertencia: », «Correcto: », de `labels` de `GForm`). Sustituye a la antigua región `__error`.
 - **Solo lectura:** pista hundida con borde discontinuo y el pulgar en `--g-color-text`.
+
+## Sin etiqueta visible
+
+Un interruptor que se explica solo con su icono (el del tema oscuro de una barra superior, por ejemplo) lleva **`aria-label`** o `aria-labelledby` y ningún `label` ni `hint`:
+
+```vue
+<!-- Fragmento: `oscuro`, `MoonIcon` y `SunIcon` son de tu aplicación -->
+<g-switch v-model="oscuro" aria-label="Tema oscuro">
+  <template #icon-on><MoonIcon /></template>
+  <template #icon-off><SunIcon /></template>
+</g-switch>
+```
+
+- **El nombre llega al `<input>`:** el aviso de nombre acepta `aria-label` y `aria-labelledby`, y no se emite si están.
+- **La caja mide solo el riel.** `g-switch__text` se pinta únicamente con `label` o `hint` (prop o slot), y `g-switch__message` solo con etiqueta o ayuda visibles, **dentro de `GForm`** o con un mensaje. Sin ninguno, el interruptor no arrastra una columna de texto ni una región vacía (#1070; antes medía 48 de alto en vez de 40).
+- **Límite aceptado: el anuncio no está garantizado.** Un interruptor **sin etiqueta visible y fuera de `GForm`** que recibe `error`, `warning` o `valid` inserta la región viva ya con el texto, y una región que nace con contenido no siempre se lee. Si el interruptor puede tener un mensaje, ponle una etiqueta visible o ponlo en un `GForm`.
 
 ## Clases
 
-Las emite el componente y las estiliza `GSwitch.css`: `g-switch`, `g-switch--size-*`, `g-switch--density-*`, `g-switch--color-*`, `g-switch--label-*`, `g-switch--icons`, `is-disabled`, `is-readonly`, `is-invalid`, `is-loading`, y los elementos `g-switch__row`, `g-switch__control`, `g-switch__input`, `g-switch__icon` (con `--on` y `--off`), `g-switch__text`, `g-switch__label`, `g-switch__hint` y `g-switch__message`. El estado encendido se estiliza con `:checked`, sin clase propia.
+Las emite el componente y las estiliza `GSwitch.css`: `g-switch`, `g-switch--size-*`, `g-switch--density-*`, `g-switch--color-*`, `g-switch--label-*`, `g-switch--icons`, `is-disabled`, `is-readonly`, `is-invalid`, `is-loading`, y los elementos `g-switch__row`, `g-switch__control`, `g-switch__input`, `g-switch__icon` (con `--on` y `--off`), `g-switch__text` (solo con `label` o `hint`), `g-switch__label`, `g-switch__hint` y `g-switch__message` (ver «Sin etiqueta visible»). El estado encendido se estiliza con `:checked`, sin clase propia.
 
 ## Alcance
 
 - **Sin tarjeta ni grupo** de interruptores, y valor solo booleano en v0.1.
+
+- **Sin etiqueta visible y fuera de `GForm`, el mensaje no se anuncia de forma fiable** (ver «Sin etiqueta visible», #1070).
 
 - **`loading` no bloquea:** si quieres impedir cambios mientras guarda, usa `disabled` o ignora el evento.
 
@@ -158,6 +176,8 @@ Las emite el componente y las estiliza `GSwitch.css`: `g-switch`, `g-switch--siz
 - **El pulgar es el `::before` del `<input>` con `appearance: none`** (las marcas son iconos de Lucide que viajan con él): medido en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`: el pulgar recorre el riel al encender, la marca lo acompaña y con `dir="rtl"` el recorrido se espeja por `:dir()`); Safari real, no.
 
 - **Tema oscuro:** `grana.css` ya trae el esquema oscuro por defecto (`defaults.css`): sigue `prefers-color-scheme` y se fuerza con `data-theme="dark"` o `data-theme="light"` en cualquier elemento (ver [«Tema oscuro» del README raíz](../../../../../README.md#tema-oscuro)). Al documentar no se repitieron en oscuro las cifras de contraste de este README.
+
+- **Sin etiqueta visible (#1070):** `prueba` en `GSwitch.test.js` (27 pruebas en verde el 2026-11-08, con la que conserva el `aria-label` del consumidor) y el banco de paridad del marco (`design/lab/sitio/calco-estilo/verificar.mjs`, 2080/2080 en los tres motores, `medido`), que mide el interruptor del tema de la barra. Que el anuncio de un mensaje sin etiqueta fuera de `GForm` no esté garantizado consta en `GSwitch.meta.json` (`pending`).
 
 - **Sin verificar:** un lector de pantalla real (rol `switch`, "activado", ayuda, error y `aria-busy`), `forced-colors` real de Windows (solo emulado en Chromium), el zoom al 200% y un dispositivo táctil real. `prefers-reduced-motion` está medido con la preferencia emulada en Chromium, Firefox y WebKit (`design/lab/theme-playground/tests/limitaciones.spec.mjs`, 18/18 el 2026-10-18: con `reduce` ningún elemento conserva transiciones ni animaciones de movimiento).
 

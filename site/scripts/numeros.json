@@ -77,5 +77,6 @@
   "GSpeechPill": 76,
   "GSpeechTrigger": 77,
   "GTranscript": 78,
-  "GPageIndex": 79
+  "GPageIndex": 79,
+  "GNavBar": 80
 }

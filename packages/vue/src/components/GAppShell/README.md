@@ -172,11 +172,31 @@ Pasos: (1) envuelve la aplicación en `GAppShell` y mueve tu barra al slot `head
 
 **La voz es la excepción:** la pastilla de `GSpeechHost` no lee las reservas de borde (#322), así que sigue necesitando su `offset.top` con el alto de la banda, o la lectura de `--g-app-shell-top`. La isla sí suma bien debajo de la voz.
 
+### e5 · Banda que se va con la página en estrecho (`header="pinned-wide"`)
+
+**Por qué:** en un sitio de documentación la banda con la barra superior ocupa 64 px, y en un teléfono quitan demasiado espacio a la lectura. Con `pinned-wide` la banda va pegada con el visor de **60rem** o más (como `pinned`) y **se va con la página por debajo**: queda en el flujo, ni pegada ni fija. Con ella, `--g-app-shell-top` vale 0 y lo pegado de debajo (avisos, isla, voz) sube al borde. No se combina con `relay`: son dos valores de la misma prop.
+
+```vue
+<!-- Fragmento: `secciones`, `ruta` y `labels` son de tu aplicación -->
+<GAppShell :labels="{ skip: 'Saltar al contenido' }" header="pinned-wide">
+  <template #header><GNavBar :items="secciones" :current="ruta" label="Secciones" :labels="labels" /></template>
+  <template #nav><GSidebar … /></template>
+  …
+</GAppShell>
+```
+
+Si tu aplicación pega **una barra propia debajo de la banda** (el índice plegado de la página), declara su alto una sola vez en `:root`, con las consultas que la enseñan, y el chasis cuenta con él:
+
+```css
+:root { --g-app-shell-local-bar: 0px; }
+@media (max-width: 80rem) { :root { --g-app-shell-local-bar: 48px; } }   /* donde tu barra se pinta */
+```
+
 ## Props
 
 | Prop | Tipo | Valores | Default | Descripción |
 | --- | --- | --- | --- | --- |
-| `header` | `String` | `'pinned'` `'relay'` | `'pinned'` | Comportamiento de la cabecera al desplazar. `relay` = B · Relevo de franja: cede el borde al zócalo pegado de `GPageHeader` al bajar y vuelve al subir, sin zócalo pegado o con el foco en la cabecera. Fuera de lista: aviso 9 y `pinned` |
+| `header` | `String` | `'pinned'` `'relay'` `'pinned-wide'` | `'pinned'` | Comportamiento de la cabecera al desplazar. `relay` = B · Relevo de franja: cede el borde al zócalo pegado de `GPageHeader` al bajar y vuelve al subir, sin zócalo pegado o con el foco en la cabecera. `pinned-wide`: pegada con el visor ≥ `60rem` y **se va con la página por debajo**; no se combina con `relay`. Fuera de lista: aviso 9 y `pinned` |
 | `headerZone` | `String` | `'none'` `'brand'` | `'none'` | Zona de marca de la banda de cabecera: `brand` pone `data-g-zone="brand"` en el `header`, nunca en la raíz. Fuera de lista o sin slot `header`: aviso 8 y `none` |
 | `labels` | `Object` | `{ skip }` | `{}` | `skip`: texto del enlace «Saltar al contenido». **Obligatorio** (aviso 1); vacío o solo espacios cuenta como ausente. Sin valores por defecto (#226): ponlo siempre |
 | `id` | `String` | | generado (SSR-seguro) | Base de ids: `{id}-main` es el destino del salto |
@@ -196,7 +216,7 @@ Pasos: (1) envuelve la aplicación en `GAppShell` y mueve tu barra al slot `head
 
 ## Métodos
 
-`GAppShell` no expone métodos. Para llevar el foco al cambiar de ruta, usa `GPageHeader.focus()`.
+`GAppShell` no expone métodos. `cover(on)` existe en el **canal interno** que el chasis provee a las piezas de dentro (no es API pública): `GNavBar` lo llama al abrir su pantalla de menú, y con `true` el chasis pone `inert` en su marco y en el `GSidebar` hijo directo (también su `<dialog>`) y bloquea el desplazamiento del documento (clase `is-covered` en la raíz); con `false` lo deshace. La banda no se vuelve inerte. Para llevar el foco al cambiar de ruta, usa `GPageHeader.focus()`.
 
 ## Teclado y foco
 
@@ -252,6 +272,7 @@ El chasis no escribe color. Lee los tokens existentes; ninguno es nuevo.
 | --- | --- |
 | `--g-app-shell-header` | **Propiedad de entrada pública** (longitud; no del tema): alto de tu cabecera si mide más que `max(space × 14, 44px)`. Se declara en `:root`. `0px` por defecto |
 | `--g-app-shell-top` | **Publicada, solo lectura:** lo que la cabecera ocupa arriba mientras está pegada (0 sin cabecera, despegada o cedida). Puedes leerla; nunca escribirla |
+| `--g-app-shell-local-bar` | **Propiedad de entrada pública** (longitud; no del tema): alto de una **barra local** tuya pegada bajo la banda (por ejemplo, el «En esta página» plegado de un sitio) **mientras se ve y está pegada**. Se declara en `:root`, con las mismas consultas que enseñan la barra (`0px` donde no se pinta; aviso 11 si difiere entre el chasis y `<html>`). `--g-app-shell-top` la suma y el `scroll-padding` la cuenta. `0px` por defecto |
 | `--g-page-header-top`, `--g-accordion-sticky-top` | Las **escribe el chasis** (entradas públicas de `GPageHeader` y `GAccordion`) |
 | `--g-sidebar-width`, `--g-sidebar-rail`, `--g-sidebar-bar` | Pista de la navegación según su forma |
 | `--g-color-bg`, `--g-color-surface` | Fondo de la página y del enlace de salto |
@@ -267,25 +288,27 @@ El chasis no escribe color. Lee los tokens existentes; ninguno es nuevo.
 - **C · Escenario** (`appearance="stage"`): reservada (#708). No existe la prop `appearance`.
 - **Un `toggleNav` en el ámbito del slot `header`**, evento o método de pegado o de relevo, y un presupuesto inferior para el navbar: reservados, sin API hoy.
 - **No hay `mode`, `collapsed`, `sidebarWidth`, `stickyOffset`, `headerHeight` ni `scrollContainer`**: son de `GSidebar` o del CSS (#711).
+- **Con `cover` activo** (pantalla de `GNavBar` abierta) el enlace de salto sigue pudiendo enfocarse aunque su destino sea `inert`: límite aceptado, la pantalla ya cubre el visor (#1055).
 - **El marco recorta lo horizontal** (`overflow-x: clip`): una banda que sangre más allá del marco se corta. El chasis desplaza el documento, no una caja.
 - **La pastilla de la voz no lee las reservas** (S4, #322): lleva su `offset.top`.
 - **Pegado con ancestro que atrapa lo fijo:** `transform`, `translate`, `scale`, `filter`, `backdrop-filter`, `perspective`, `contain` (layout o paint) o `will-change` en un antepasado del chasis hacen que el sidebar fijo y el muelle de `GPageHeader` dejen de seguir al visor.
 - **Navbar a 320×256:** el presupuesto solo cuenta arriba; el navbar fijo tapa 68 px abajo (27 % del visor). Se valora en `GSidebar`, no en el chasis (S9).
 - **Contrato entre componentes:** el chasis lee las clases públicas de `GSidebar` (`g-sidebar--mode-expanded`, `--mode-rail`, `--mode-navbar`, `--overlay`, `--variant-floating`, `--contained`, `g-sidebar__drawer` e `is-ready`) y `.g-page-header.is-sticky`. Renombrarlas es un cambio de contrato.
-- **Peso:** `@grana/vue/app-shell` pesa **3 898 B gzip** (`medido` por bruno el 2026-10-21; tope de 4096 B, #716). `edgeReserve` y la clave del canal llegan por `__shared`, sin copia.
+- **Peso:** `@grana/vue/app-shell` pesa **4 057 B gzip** (3 911 B antes de #1055; anotado por bruno en `GAppShell.meta.json` el 2026-11-08, `gzip -9`, no se remidió al documentar; tope de 4 096 B, #716: quedan 39 B de margen). `edgeReserve` y la clave del canal llegan por `__shared`, sin copia.
 
 ## Verificación
 
 - **Motores:** `design/lab/app-shell/auditoria-verificar.mjs` sobre el componente real: **900/900** en Chromium (302), Firefox (299) y WebKit (299), con 14 temas y la zona de marca (`medido`, coco, 2026-10-21).
-- **Pruebas de bruno:** `GAppShell.test.js` (24 pruebas, nivel `prueba`) y los specs `app-shell.spec.mjs` y `app-shell-perf.spec.mjs` en los tres motores. El lote `app-shell`, `app-shell-perf`, `container` y `stack-section` da 196 pasan y 2 omitidos por diseño (`forced-colors` solo en Chromium). El perf mide que desplazar no vuelve a pintar el chasis (3/3 por motor).
+- **Pruebas de bruno:** `GAppShell.test.js` (27 pruebas, nivel `prueba`, con `pinned-wide`, `cover` y su deshacer al desmontar) y los specs `app-shell.spec.mjs` y `app-shell-perf.spec.mjs` en los tres motores. El lote `app-shell`, `app-shell-perf`, `container` y `stack-section` da 196 pasan y 2 omitidos por diseño (`forced-colors` solo en Chromium). El perf mide que desplazar no vuelve a pintar el chasis (3/3 por motor).
+- **`pinned-wide`, `--g-app-shell-local-bar` y `cover` (#1055):** `design/lab/sitio/calco-estilo/verificar.mjs` (banco de paridad del marco, 2080/2080 en los tres motores, `medido` el 2026-11-08) cubre la banda que se va en estrecho, la barra local de 48 y el marco `inert`. La auditoría de coco de estas tres piezas sobre el componente real **no consta**: `sin verificar`.
 - **No verificado:** lector de pantalla real (VoiceOver, NVDA), móvil y táctil reales, zoom real del navegador, `forced-colors` en Firefox y WebKit, restauración del desplazamiento e impresión, zona de marca en `GSidebar` con `drawer`, y el coste de `:root:has(.g-app-shell …)` en una página muy grande.
 - **Pendientes abiertos:** de este componente, S2 (`overlay` de `GSidebar` fuera del chasis), S8 (foco del drawer en WebKit), S9 (navbar a 320×256) y S11 (banco del playground sin guarda de `scroll-behavior`); los generales, en [`PENDIENTES.md`](../../../../../PENDIENTES.md) §6.
 
 ## Fuentes
 
 - Contrato: [`design/contracts/app-shell.md`](../../../../../design/contracts/app-shell.md)
-- Decisiones: #708–#718 y remates #746–#750 en [`DECISIONS.md`](../../../../../DECISIONS.md)
+- Decisiones: #708–#718, remates #746–#750 y #1055 (`pinned-wide`, barra local y `cover`) en [`DECISIONS.md`](../../../../../DECISIONS.md)
 - API: [`GAppShell.meta.json`](GAppShell.meta.json)
 - Auditoría de coco: [`design/lab/app-shell/auditoria.md`](../../../../../design/lab/app-shell/auditoria.md)
-- Pruebas: [`GAppShell.test.js`](GAppShell.test.js) (24 pruebas, nivel `prueba`); Playwright [`design/lab/theme-playground/tests/app-shell.spec.mjs`](../../../../../design/lab/theme-playground/tests/app-shell.spec.mjs) y [`app-shell-perf.spec.mjs`](../../../../../design/lab/theme-playground/tests/app-shell-perf.spec.mjs)
+- Pruebas: [`GAppShell.test.js`](GAppShell.test.js) (27 pruebas, nivel `prueba`); Playwright [`design/lab/theme-playground/tests/app-shell.spec.mjs`](../../../../../design/lab/theme-playground/tests/app-shell.spec.mjs) y [`app-shell-perf.spec.mjs`](../../../../../design/lab/theme-playground/tests/app-shell-perf.spec.mjs)
 - Banco: [`packages/vue/playground/app-shell.html`](../../../playground/app-shell.html) (`?header=relay` para B)

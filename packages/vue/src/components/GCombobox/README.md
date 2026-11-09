@@ -260,7 +260,7 @@ Lo que esto da en la lista:
 | `selection` | String | solo con `multiple`: `inline` (la frase) `list` (la receta) | `inline` |
 | `numbered` | Boolean | solo con `multiple`: numera los renglones de la receta y de la cesta | `false` |
 | `max` | Number | solo con `multiple`: entero ≥ 1 | sin valor (sin límite) |
-| `appearance` | String | `field` `palette` | `field` |
+| `appearance` | String | `field` `palette` `command` (búsqueda sin campo ni valor, ver «Modo comando») | `field` |
 | `filter` | Boolean o Function | `true` · `false` · `(option, query) => Boolean` | `true` |
 | `loading` | Boolean | | `false` |
 | `total` | Number o `null` | entero ≥ 0 | `null` |
@@ -323,6 +323,7 @@ Con texto, el panel lo muestra (fuera del `listbox`, con `circle-alert` y `dange
 | `create` | `String` (el texto) | Fila «Agregar «texto»…»; el foco ya volvió al campo |
 | `open` | | El panel o la superficie pasan a verse |
 | `close` | | Dejan de verse, por el motivo que sea |
+| `select` | `{ option, event }` | **Solo con `appearance="command"`:** Intro sobre la activa o clic en una opción (`event` es el `keydown` o `click` nativo). Después, la superficie se cierra. No emite `update:modelValue`, `update:custom` ni `change` |
 
 Con `multiple`, `update:modelValue` y `update:custom` emiten arreglos nuevos y `change` lleva `{ value, custom, options, added, removed }` (ver «Eventos con `multiple`»). Todos están declarados en `emits`: el `@change` del consumidor recibe el objeto y no llega al `<input>` nativo. Los demás eventos nativos (`focus`, `blur`, `keydown`, `input`…) llegan al `<input>` visible **después** de los manejadores propios, así que un `@keydown` tuyo ve el estado ya actualizado.
 
@@ -339,6 +340,7 @@ Con `multiple`, `update:modelValue` y `update:custom` emiten arreglos nuevos y `
 | `empty` | Estado sin resultados | `{ query }` | El anuncio sigue usando `labels.noResults` |
 | `load-error` | Estado de error de carga | `{ message, query }` | Se conservan la fila «Reintentar» y el anuncio |
 | `chosen` | Renglón de la receta y de la cesta (solo con `multiple`) | `{ option, custom }` | Ver «Slots con `multiple`» |
+| `hints` | Pie de la superficie con las teclas (solo con `appearance="command"`) | | Texto visible sin interactivos, leído en orden tras la lista; oculto en la hoja móvil; sin el slot no hay pie |
 
 **No hay `append` ni `action`:** el final de la caja es de limpiar y de la flecha, y una caja fusionada rompería la forma única de A. Si se pasan, no se pintan y se avisa. El slot `preview` solo se pinta con `appearance="palette"` por encima de 520 px y **sin `multiple`** (con `multiple` la cesta ocupa su sitio; el slot `value` tampoco se pinta).
 
@@ -929,6 +931,65 @@ Prefijo `[Grana GCombobox]`; una vez por instancia y motivo; solo fuera de produ
 - **`forced-colors` real** (solo emulado), **Safari real**, **táctil real** y **teclado virtual real** sobre la hoja, **IME real con varios elegidos**, **zoom real del navegador** (el 200 % se emuló con el tamaño de la raíz; el 400 % no se midió) y **`pointer: coarse` en Firefox** (no se puede emular).
 - **Cifras de peso y de rendimiento:** son las anotadas por bruno y coco (arriba); solo el peso se volvió a medir de forma aproximada al documentar.
 
+## Modo comando (`appearance="command"`)
+
+Una **superficie de búsqueda sin campo en la página**: elegir **ejecuta** (tu aplicación navega) y **no deja valor**. Es la paleta de B sin su campo disparador, sin modelo y sin vista previa. Nació de la búsqueda modal del sitio de documentación (#1052, #1056): «Buscar ⌘K» abre una búsqueda de texto completo como antes, y el resultado lleva su fragmento.
+
+```vue
+<!-- Fragmento: `resultados`, `cargando`, `buscar`, `irA` y `textos` son de tu aplicación -->
+<script setup>
+import { ref } from 'vue'
+const busqueda = ref(null)
+</script>
+
+<template>
+  <button type="button" aria-haspopup="dialog" aria-keyshortcuts="Control+K Meta+K" @click="busqueda.open()">
+    Buscar en la documentación
+  </button>
+  <g-combobox
+    ref="busqueda"
+    appearance="command"
+    label="Buscar en la documentación"
+    :labels="textos"
+    :options="resultados"
+    :filter="false"
+    :loading="cargando"
+    @search="buscar"
+    @select="({ option, event }) => irA(option.value, event)"
+  >
+    <template #hints>↑↓ para moverte · ↵ para elegir · esc para cerrar</template>
+  </g-combobox>
+</template>
+```
+
+**Por qué `filter: false`:** con un índice de texto completo lo esperado es que tu aplicación consulte y entregue `description` (el fragmento, con la coincidencia en `<mark>`) y `loading`. `minChars`, `delay`, `limit`, «Mostrar más», `total`, `loadError` y sus textos funcionan igual que en la paleta.
+
+| | `palette` | `command` |
+| --- | --- | --- |
+| Campo en la página | Sí (disparador) | **No**: nada visible hasta `open()` |
+| Valor (`v-model`, campo oculto, `GForm`) | Sí | **No** |
+| Elegir | Fija el valor y cierra | **Emite `select` y cierra**; el texto se conserva |
+| Vista previa | Sí (por encima de 520 px) | No |
+| Cabecera | Título y cierre | **Sin cabecera**: el campo de búsqueda arriba |
+
+### Método `open()`
+
+| Método | Firma | Qué hace |
+| --- | --- | --- |
+| `open` | `open(): void` | Solo con `command`: abre la superficie con el foco en la búsqueda y el texto de la última búsqueda **seleccionado** (escribir lo reemplaza). Abierta, no hace nada. Con otra `appearance`, avisa (aviso 19) y no abre |
+
+El disparador y el atajo los pones tú: Grana no escucha `/` ni ⌘K. Al cerrar, el foco vuelve a donde estaba al abrir; tras `select` lo lleva tu aplicación a la página nueva. Ctrl/⌘+Intro o Ctrl/⌘+clic llegan igual en `event`, y tu aplicación decide (abrir en otra pestaña, por ejemplo): Grana no abre nada.
+
+### Qué hay que saber
+
+- **Es un `GDialog` sin cabecera:** foco atrapado, página inerte, Esc y el fondo cierran, sin botón de cierre propio. Su nombre accesible es `label`, que es **obligatorio**; sin él avisa (aviso 18). Con el visor de 520 px o menos se pinta como la hoja de siempre.
+- **Posición:** arriba y centrada, con su borde superior a `max(var(--g-app-shell-top), --g-space-1 × 16)` y nunca más ancha que el visor.
+- **Solo las props de datos y de texto actúan.** `name`, `multiple`, `allowCustom`, `creatable`, `clearable`, `modelValue`, `custom` y los slots `value`, `preview` y `chosen` se ignoran y avisan (aviso 18).
+- **Teclado:** el de la lista abierta sobre el campo de búsqueda (↓ ↑ Av Pág Re Pág, Intro elige la activa, Esc cierra); Tab se mueve dentro del diálogo y **nunca elige**. Con una búsqueda pendiente, Intro no elige la resaltada sola.
+- **Anuncios:** los de la superficie. Elegir no se anuncia: la página cambia y es tuyo llevar el foco al `h1`.
+
+**Peso:** el modo suma **382 B gzip** a `dist/combobox.js` (22 041 → 22 423 B) frente a un lote de ≤ 1 024 B (#1059), anotado por bruno en `GCombobox.meta.json` el 2026-11-08 (no se remidió al documentar). **Verificación:** `GCombobox.command.test.js` (7 pruebas, `prueba`) y el banco `design/lab/sitio/calco-estilo/` (2080/2080 en los tres motores, incluye la paridad de la superficie con la búsqueda anterior; `medido`). `design/lab/theme-playground/tests/combobox-command.spec.mjs` existe y **no se ejecutó al documentar**. La auditoría de coco del modo sobre el componente real no se ha hecho (`sin verificar`). Reservados: abrir `field` o `palette` por programa (#1056).
+
 ## Personalidad
 
 Cuatro gestos de movimiento y una regla de forma; todos con tokens (`--g-duration-*`, `--g-ease-*`), sin constantes de tema nuevas y **con `prefers-reduced-motion: reduce` ninguno se mueve** (nada se anima al montar). Origen: rondas de kiwi `design/lab/combobox/r01/` y `r02/` y comparación de coco con lo aprobado (decisiones #329 y #336; el usuario eligió A, B y C).
@@ -1010,13 +1071,13 @@ Prefijo `[Grana GCombobox]`; una vez por instancia y motivo; solo fuera de produ
 | 11 | `limit` menor que 1, `delay` negativo o `minChars` negativo | Se usa el valor por defecto (50, 250, 0) |
 | 12 | Una opción trae un dato de `facts` sin `label` (cadena vacía tras recortar o ausente) | El dato no se pinta, no se busca ni se lee en la descripción accesible; avisa una vez por instancia |
 
-Los avisos 13 a 17 son de `multiple`: ver [«Avisos con `multiple`»](#avisos-con-multiple).
+Los avisos 13 a 17 son de `multiple`: ver [«Avisos con `multiple`»](#avisos-con-multiple). Los avisos 18 y 19 son de `command`: ver [«Modo comando»](#modo-comando-appearancecommand).
 
 ## Clases
 
 Las de `GInput` (raíz, caja, etiqueta, pie, `is-*`, `is-ready`, `is-rejected`) siguen siendo de `GInput`.
 
-- **Raíz:** `g-combobox`, `g-combobox--appearance-{field|palette}`; estados `is-open`, `is-up`, `is-surface`, `is-token`, `is-custom`.
+- **Raíz:** `g-combobox`, `g-combobox--appearance-{field|palette|command}` (con `command`, solo la superficie: `g-combobox-surface--command`, `__hints`); estados `is-open`, `is-up`, `is-surface`, `is-token`, `is-custom`.
 - **Campo:** `g-combobox__value`, `__field`, `__ghost` (`__ghost-typed`, `__ghost-rest`), `__token` (con `is-landing`, que contiene una `g-summary--layout-inline`), `__about`, `__clear`, `__clear-text`, `__arrow`, `__live`.
 - **Panel de A:** `g-combobox__popup` (con `is-empty` y las variables en línea `--_x`, `--_top`, `--_bottom`, `--_w`, `--_max`, `--_field-h`), `__popup-body`, `__panel`, `__status` (`--hint`, `--loading`, `--empty`, `--error`), `__list`, `__group`, `__group-label`, `__option` (`is-active`), `__check`.
 - **Filas de acción:** `__action--{retry|more|custom|create}` con `__lead`, `__main` y `__label`.

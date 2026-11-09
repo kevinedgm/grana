@@ -147,7 +147,7 @@ export const UI = {
       statLocales: 'idiomas',
       external: '(se abre en otra pestaña)',
       footerNav: 'Enlaces del pie',
-      // Marco calcado (#1052): barra superior, índice, barra local y búsqueda modal. Textos provisionales de bruno: los revisa mora-docs.
+      // Marco calcado (#1052): barra superior, índice, barra local y búsqueda modal. Textos revisados por mora-docs (2026-11-08): frases cortas, segunda persona, sin relleno; sus equivalentes en inglés van en `en.frame`.
       sections: 'Secciones',
       moreOptions: 'Más opciones',
       newTab: 'se abre en otra pestaña',
