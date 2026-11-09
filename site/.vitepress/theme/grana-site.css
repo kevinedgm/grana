@@ -778,10 +778,173 @@ body {
   }
 }
 
-/* ---------- bruno · MÍNIMO BLOQUEANTE para coco (portada con la marca, BrandHero.vue) ----------
-   Las ventajas de VPHome (.VPFeatures .items, margen negativo de 8 px) empiezan pegadas a la cabecera y se pintan encima
-   del área táctil de las acciones: «≥ 44 px» fallaba en la portada. Solo deja sitio debajo; coco lo sustituye con el
-   ritmo y la paleta de la portada (variables y clases en la cabecera de BrandHero.vue). */
+/* ================================================================ portada con la marca (manual de marca de Grana v1)
+   BrandHero.vue (bruno): section.site-hero (GContainer xl) > GStack.site-hero__stack > h1.site-hero__title > svg.grana-w2,
+   p.site-hero__motto, p.site-hero__lead > span.site-hero__bug, p.site-hero__origin, GStack.site-hero__actions >
+   GBtn.site-hero__start (solid) + GBtn.site-hero__browse (outline). Solo la portada: el marco y las demás vistas siguen
+   calcados (paridad 2010/2010).
+
+   Paleta de la documentación (manual, «Color · el de Grana»; no es el tema de @grana/vue): carmín, nopal, cera y tinta,
+   claro y oscuro con el mismo tono y croma en OKLCH. Vive en .site-hero y no sale de ahí.
+     carmín  #a3123a / #d74b63   oklch(46.2% .175 13.9) / oklch(61.1% .175 13.9)   el tinte: logo y acción principal
+     nopal   #2f6a3d / #4e895a   acento escaso: el subrayado de la frase en inglés (no es texto ni estado)
+     cera    #f7f2ea / #151012   el texto sobre carmín (en oscuro, «un botón carmín lleva texto oscuro»)
+     tinta   #1d1517 / #efe7dd   texto de la portada y estructura del logo (currentColor)
+   Medido (WCAG 2.x): carmín sobre cera 6,97 / 4,55; cera sobre carmín (texto de «Empezar») 6,97 / 4,55; en hover 8,13 /
+   5,34; carmín contra la página (forma de control ≥ 3:1) 7,76 / 4,45; tinta sobre la página 17,92 / 15,04.
+
+   Cera NO es el fondo de la portada (decisión de coco): la página, la banda transparente de arriba (data-top) y las
+   ventajas de VPHome son del calco y van sobre --g-color-bg. Un bloque crema bajo una banda blanca (al desplazar) y sobre
+   tarjetas grises partiría la continuidad; en oscuro #141414 y #151012 son casi el mismo color. Consecuencia: ni el
+   carmín ni el nopal se usan como color de TEXTO aquí (en oscuro, contra #141414, dan 4,45 y 4,43: no llegan a 4,5). */
 .site-hero {
-  padding-block-end: var(--g-space-6);
+  --site-carmin: #a3123a;
+  --site-carmin-strong: #95002f;
+  --site-nopal: #2f6a3d;
+  --site-cera: #f7f2ea;
+  --site-tinta: #1d1517;
+  /* El tinte del logo y de «grana» (hoja del SVG) y GBtn solid. Las primary-* son alias de brand-* resueltos en :root, así
+     que se redeclaran aquí también (si no, GBtn seguiría en la tinta del tema por defecto). */
+  --g-color-brand: var(--site-carmin);
+  --g-color-brand-strong: var(--site-carmin-strong);
+  --g-color-brand-text: var(--site-carmin);
+  --g-color-on-brand: var(--site-cera);
+  --g-color-primary: var(--g-color-brand);
+  --g-color-primary-strong: var(--g-color-brand-strong);
+  --g-color-primary-text: var(--g-color-brand-text);
+  --g-color-on-primary: var(--g-color-on-brand);
+  /* Alineada con el borde de las ventajas (VPFeatures: 24 / 48 desde 640 / 64 desde 960, columna de 1152): el margen lo
+     pone la sección y la columna no añade el suyo (ver .g-container__body abajo; bruno: gutter="none" lo haría sin esto) */
+  --g-container-max: calc(var(--g-space-1) * 288);
+  padding: var(--g-space-6) var(--g-space-6) calc(var(--g-space-1) * 10);
+  color: var(--site-tinta);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .site-hero {
+    --site-carmin: #d74b63;
+    --site-carmin-strong: #e5586f;
+    --site-nopal: #4e895a;
+    --site-cera: #151012;
+    --site-tinta: #efe7dd;
+    /* filo del botón sólido y forma de control: 4,84 contra la página (el carmín solo, 4,45) */
+    --g-color-brand-text: #de5269;
+  }
+}
+:root[data-theme='dark'] .site-hero {
+  --site-carmin: #d74b63;
+  --site-carmin-strong: #e5586f;
+  --site-nopal: #4e895a;
+  --site-cera: #151012;
+  --site-tinta: #efe7dd;
+  --g-color-brand-text: #de5269;
+}
+@media (width >= 40rem) {
+  .site-hero {
+    padding: var(--g-space-8) var(--g-space-12) var(--g-space-12);
+  }
+}
+@media (width >= 60rem) {
+  .site-hero {
+    padding-inline: var(--g-space-16);
+  }
+}
+.site-hero > .g-container__body {
+  --_container-gutter: calc(var(--g-space-1) * 0);
+}
+
+/* Ritmo: el logo, el lema y la entradilla van juntos (16); el nombre se separa un poco más y las acciones cierran (32).
+   Debajo, 48 (40 en estrecho) hasta las ventajas: su margen de −8 ya no tapa el área táctil de 44 de los botones. */
+.site-hero__stack.g-stack {
+  --_gap: var(--g-space-4);
+}
+.site-hero__title {
+  margin: 0;
+  line-height: 0;
+}
+/* Logo W2 de exhibición (manual): min(100%, 560px), alto por su viewBox (atributos 250.5 × 72: la caja existe antes de
+   cargar nada; CLS 0 y sin desbordar a 320) */
+.site-hero__title svg {
+  display: block;
+  inline-size: min(100%, calc(var(--g-space-1) * 140));
+  block-size: auto;
+}
+/* Lema del manual: clamp(1.4rem, 3.6vw, 2.1rem), 600, font-stretch 88 % (la fuente servida solo tiene eje wght: el
+   estrechado no se aplica hasta que llegue un archivo con wdth; queda declarado) */
+.site-hero__motto {
+  margin: 0;
+  font-size: clamp(1.4rem, 3.6vw, 2.1rem);
+  line-height: 1.15;
+  font-weight: var(--g-text-title-weight);
+  font-stretch: 88%;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+/* Respaldo de la portada (CLS 0 al llegar la fuente): Arial ajustada a lo que mide Instrument Sans en ESTOS textos (lema,
+   entradilla y nombre; medido en los tres motores: 100,5 % la regular y 96,3 % la negrita, que es otra cara). Con alto de
+   línea fijo solo movería algo un cambio en el número de líneas: barrido de 320 a 1440 px cada 16, sin la fuente y con
+   ella, mismas líneas en Chromium, Firefox y WebKit (71/71). Solo donde están Arial o Helvetica (como el resto del sitio).
+   Alto y bajo de Instrument Sans (0,97 / 0,25 del cuerpo) en las dos caras: el texto no salta dentro de su línea. */
+@font-face {
+  font-family: 'Instrument Sans Fallback Hero';
+  src: local('Arial'), local('Helvetica');
+  font-weight: 400 500;
+  size-adjust: 100.5%;
+  ascent-override: 96.5%;
+  descent-override: 24.9%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Instrument Sans Fallback Hero';
+  src: local('Arial Bold'), local('Arial-BoldMT'), local('Helvetica Bold'), local('Helvetica-Bold');
+  font-weight: 600 700;
+  size-adjust: 96.3%;
+  ascent-override: 100.7%;
+  descent-override: 26%;
+  line-gap-override: 0%;
+}
+/* En toda la portada (cabecera, ventajas y cuerpo): la familia que hereda la página está resuelta en :root
+   (--vp-font-family-base), así que aquí se vuelve a leer */
+.VPHome {
+  --g-font-ui: 'Instrument Sans Variable', 'Instrument Sans', 'Instrument Sans Fallback Hero', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--g-font-ui);
+}
+/* Entradilla y nombre: medida de lectura FIJA (no en ch: el ch cambia con la fuente y re-partiría las líneas al llegar
+   Instrument Sans, CLS); la fuente de respaldo con métricas propias de este texto (arriba) */
+.site-hero__lead,
+.site-hero__origin {
+  margin: 0;
+  max-inline-size: calc(var(--g-space-1) * 150);
+  text-wrap: pretty;
+}
+.site-hero__lead {
+  font-size: var(--g-text-body-size);
+  line-height: calc(var(--g-space-1) * 6.5);
+}
+/* La frase en inglés: la voz de la marca, en peso y con el subrayado nopal (el acento escaso del manual) */
+.site-hero__bug {
+  font-weight: var(--g-text-title-sm-weight);
+  text-decoration: underline;
+  text-decoration-color: var(--site-nopal);
+  text-decoration-thickness: calc(var(--g-border-width) * 2);
+  text-underline-offset: calc(var(--g-focus-offset) + var(--g-border-width));
+  text-decoration-skip-ink: auto;
+  /* con la fuente de respaldo, la negrita (otra cara, otras métricas) alargaría 1 px la línea al alinearse por la base */
+  vertical-align: top;
+}
+.site-hero__origin {
+  font-size: var(--g-text-body-sm-size);
+  line-height: var(--g-text-body-sm-line);
+  color: var(--g-color-text-muted);
+}
+.site-hero__actions.g-stack {
+  margin-block-start: var(--g-space-4);
+}
+/* Secundaria en tinta (no compite con el carmín): solo el texto y el borde del contorno */
+.site-hero__browse {
+  --g-color-primary-text: var(--site-tinta);
+}
+@media (forced-colors: active) {
+  .site-hero__bug {
+    text-decoration-color: CanvasText;
+  }
 }
