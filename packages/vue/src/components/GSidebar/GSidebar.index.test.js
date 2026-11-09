@@ -346,3 +346,20 @@ describe('GSidebar · sin la extensión @grana/vue/sidebar-index (#1069)', () =>
     expect(document.querySelector('.g-sidebar__drawer .g-sidebar__nav').scrollTop).toBe(0)
   })
 })
+
+describe('GSidebar · items sueltos con la extensión (grupo sin raw)', () => {
+  const LOOSE = [{ id: 'a', label: 'Alfa', href: '/a' }, { id: 'b', label: 'Beta', href: '/b' }]
+  it('cliente: monta con items sueltos y la extensión', () => {
+    const w = mk({ items: LOOSE, modelValue: 'a', appearance: undefined })
+    expect(w.findAll('a').length).toBeGreaterThanOrEqual(2)
+  })
+  it('cliente: appearance="index" con items sueltos', () => {
+    const w = mk({ items: LOOSE, modelValue: 'a' })
+    expect(w.text()).toContain('Beta')
+  })
+  it('SSR: renderiza items sueltos con la extensión', async () => {
+    const app = createSSRApp({ render: () => h(GSidebar, { ...base, items: LOOSE, modelValue: 'a' }) })
+    app.use(SidebarIndex)
+    expect(await renderToString(app)).toContain('Beta')
+  })
+})

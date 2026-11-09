@@ -55,6 +55,7 @@ const IX_MODE = { rail: 'expanded', navbar: 'drawer' }
 export function createSidebarIndex(c) {
   const { props, emit, model, filt, format, L, baseId } = c
   const on = () => props.appearance === 'index'
+  const raw = (g) => g?.raw || {}
   const cls = (...a) => a.filter(Boolean).join(' ')
   const warn = (k, m) => { try { if (process.env.NODE_ENV !== 'production') c.warnOnce(k, m) } catch {} }
   try {
@@ -66,7 +67,7 @@ export function createSidebarIndex(c) {
 
   // ---------- Grupos plegables (#1061): estado = closedGroups o interno (de `collapsed`), menos el grupo que la ruta abrió ----------
   const foldable = computed(() => model.value.filter((g) => {
-    const r = g.raw
+    const r = raw(g)
     const ok = r.collapsible && r.id != null && r.id !== ''
     try { if (process.env.NODE_ENV !== 'production' && r.collapsible && !ok) warn('a3', `el grupo «${g.label}» es collapsible sin id: no se pliega (A3).`) } catch {}
     return ok && g.label
@@ -74,13 +75,13 @@ export function createSidebarIndex(c) {
   const local = ref([])
   const seen = new Set()
   watch(foldable, (gs) => {
-    const add = gs.filter((g) => !seen.has(g.raw.id) && seen.add(g.raw.id) && g.raw.collapsed).map((g) => g.raw.id)
+    const add = gs.filter((g) => !seen.has(raw(g).id) && seen.add(raw(g).id) && g.raw.collapsed).map((g) => raw(g).id)
     if (add.length) local.value = [...local.value, ...add]
   }, { immediate: true })
   const ctl = () => Array.isArray(props.closedGroups)
   const routeOpen = ref(null)
   const closedSet = computed(() => {
-    const ok = new Set(foldable.value.map((g) => g.raw.id))
+    const ok = new Set(foldable.value.map((g) => raw(g).id))
     const s = new Set((ctl() ? props.closedGroups : local.value).filter((id) => ok.has(id)))
     s.delete(routeOpen.value)
     return s
@@ -103,7 +104,7 @@ export function createSidebarIndex(c) {
   let routeEmit = null
   const openRoute = (now) => {
     const g = props.modelValue == null ? null : groupOf(props.modelValue)
-    const id = g?.raw.id
+    const id = raw(g).id
     if (!g || !closedSet.value.has(id)) return
     const next = [...closedSet.value].filter((x) => x !== id)
     if (ctl()) routeOpen.value = id
@@ -116,7 +117,7 @@ export function createSidebarIndex(c) {
   // Plegado efectivo (con consulta o en el riel, todo abierto); asentado = lleva hidden="until-found" (también en SSR)
   const closedNow = computed(() => {
     const open = filtering() || format.value === 'rail'
-    return new Map(foldable.value.map((g) => [g.raw.id, !open && closedSet.value.has(g.raw.id)]))
+    return new Map(foldable.value.map((g) => [raw(g).id, !open && closedSet.value.has(raw(g).id)]))
   })
   const settled = reactive(new Set([...closedNow.value].filter((e) => e[1]).map((e) => e[0])))
   const kindNow = () => (format.value === 'drawer' || format.value === 'navbar' ? 'drawer' : 'side')
@@ -125,7 +126,7 @@ export function createSidebarIndex(c) {
   const motor = (id) => {
     let m = motors.get(id)
     if (!m) {
-      const el = (part) => () => document.getElementById(`${baseId}-${kindNow()}-${foldable.value.find((x) => x.raw.id === id)?.key}${part}`)
+      const el = (part) => () => document.getElementById(`${baseId}-${kindNow()}-${foldable.value.find((x) => raw(x).id === id)?.key}${part}`)
       motors.set(id, (m = createCollapse(el('-body'), el(''), () => {
         if (closedNow.value.get(id)) settled.add(id)
         if (faded) { faded = false; nextTick(() => placeMark()) }
@@ -145,8 +146,8 @@ export function createSidebarIndex(c) {
       if (animIds.has(id) && c.ready()) {
         m.start()
         // El grupo del actual: la marca viaja; uno por encima empuja su fila: la marca se funde y vuelve al asentar
-        if (cg?.raw.id === id) how = 'travel'
-        else if (at > model.value.findIndex((g) => g.raw.id === id)) faded = true
+        if (raw(cg).id === id) how = 'travel'
+        else if (at > model.value.findIndex((g) => raw(g).id === id)) faded = true
       } else m.instantly()
     }
     animIds.clear()
@@ -230,7 +231,7 @@ export function createSidebarIndex(c) {
     // Grupo plegable (#1061): botón de APG Disclosure + envoltorio con hidden="until-found" al asentar (SB-B4); en el riel,
     // título span y todo abierto (el estado se conserva); con consulta, abierto y el botón en aria-disabled
     group(g, kind, titleId, list) {
-      const id = g.raw.id
+      const id = raw(g).id
       const can = foldable.value.includes(g)
       const fold = can && !(kind === 'side' && format.value === 'rail')
       const closed = fold && closedNow.value.get(id)
