@@ -280,17 +280,15 @@ const FONTS = {
 }
 const PRESETS = [
   { id: 'grana', es: 'Grana (por defecto)', en: 'Grana (default)', set: {} },
-  { id: 'cochinilla', es: 'Cochinilla', en: 'Cochineal', set: { brand: '#9B1B30', radius: 8, fontDisplay: 'instrument-serif' } },
-  { id: 'bosque', es: 'Bosque', en: 'Forest', set: { brand: '#2F6B4F', radius: 4, font: 'serif', typeScale: 1.2 } },
-  { id: 'oceano', es: 'Océano en píldora', en: 'Ocean pill', set: { brand: '#0B5CAD', radius: 10, shape: 'pill', space: 4.5 } },
-  { id: 'pizarra', es: 'Pizarra compacta', en: 'Compact slate', set: { brand: '#334155', neutrals: 'pure', radius: 2, space: 3.5, fontSize: 14, font: 'system' } },
-  { id: 'ambar', es: 'Ámbar con acento', en: 'Amber with accent', set: { brand: '#F5B940', accent: '#5B3FE0', primary: '#7D1230', radius: 12, collision: true } },
-  // Nisa Nabani (guía de marca): Royal Blue #052a76 de marca, Pear #c2d225 de acento (el motor lo oscurece para texto y
-  // foco en claro), Poppins y las bandas en píldora del membrete. Sin la fuente ancha de display: no viene en los archivos.
-  { id: 'nisa', es: 'Nisa Nabani', en: 'Nisa Nabani', set: { brand: '#052A76', accent: '#C2D225', radius: 8, shape: 'pill', font: 'poppins', collision: true } },
-  // Bitácoras de laboratorio: navy #052a76 de marca, navy-mid #0a3aa0 en foco y hover, --r-md 10px, Poppins y
-  // texto de 13-13,5px (aquí 14: el caption no baja de 12). Con el acento navy, «info» choca en oscuro: se separa.
-  { id: 'bitacoras', es: 'Bitácoras (laboratorio)', en: 'Lab logbooks', set: { brand: '#052A76', accent: '#0A3AA0', radius: 10, fontSize: 14, font: 'poppins', collision: true } }
+  // Puntos de partida con la paleta propia de Grana (guía de marca v1): carmín #a3123a (el tinte), nopal #2f6a3d (la
+  // planta, acento escaso), cera (fondo, la dan los neutros teñidos) y tinta #1d1517 (texto y estructura). El motor
+  // deriva el oscuro y garantiza el contraste; carmín y nopal nunca distinguen dos estados por sí solos (deuteranopía).
+  { id: 'carmin', es: 'Carmín', en: 'Carmine', set: { brand: '#A3123A', radius: 8, fontDisplay: 'instrument-serif' } },
+  { id: 'carmin-nopal', es: 'Carmín y nopal', en: 'Carmine and nopal', set: { brand: '#A3123A', accent: '#2F6A3D', radius: 8, collision: true } },
+  { id: 'nopal', es: 'Nopal', en: 'Nopal', set: { brand: '#2F6A3D', accent: '#A3123A', radius: 6, collision: true } },
+  { id: 'tinta', es: 'Tinta y carmín', en: 'Ink and carmine', set: { brand: '#1D1517', accent: '#A3123A', primary: '#A3123A', neutralsHue: 'accent', radius: 4, fontDisplay: 'instrument-serif' } },
+  { id: 'cera', es: 'Cera en píldora', en: 'Wax pill', set: { brand: '#A3123A', shape: 'pill', radius: 10, space: 4.5 } },
+  { id: 'tinta-compacta', es: 'Tinta compacta', en: 'Compact ink', set: { brand: '#1D1517', accent: '#2F6A3D', neutrals: 'pure', radius: 2, space: 3.5, fontSize: 14, collision: true } }
 ]
 const COLOR_KEYS = ['brand', 'accent', 'primary']
 const BTN_COLORS = ['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info']
