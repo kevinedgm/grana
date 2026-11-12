@@ -9,7 +9,7 @@
 // relevo por gravedad sin anuncio; vive con su origen; `duration: false`; borde compartido con la voz y GToaster; traslado al
 // GDialog; hoja móvil a 320 px; RTL; movimiento reducido; lista larga; cabecera fija; marca en GFormActions sin mover nada.
 // Un solo proceso por puerto: GRANA_PW_PORT=4212 npx playwright test tests/status.spec.mjs
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 test.setTimeout(90_000)
 

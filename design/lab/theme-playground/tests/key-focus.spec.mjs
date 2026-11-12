@@ -5,7 +5,7 @@
 // GRadioGroup (list, segmented, chip, card, solo icono), GCard selectType="radio" y las categorías de GWidgetGallery.
 // Tab y → dejan el atributo y el anillo (contorno sólido con ancho > 0); el clic de ratón no lo pone.
 // Un solo proceso por puerto: GRANA_PW_PORT=4210 (bruno, este encargo).
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 import { TAB, watchConsole, open, frames } from './visual-tip-helpers.mjs'
 
 /** Anillo del radio enfocado según dónde lo dibuja el CSS: el propio radio, su opción, la tarjeta (::after) o el chip */

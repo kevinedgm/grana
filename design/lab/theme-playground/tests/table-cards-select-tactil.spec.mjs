@@ -1,7 +1,7 @@
 // GTable · <select> de orden de: área táctil >= 44px con puntero grueso, sin cambio con puntero fino
 // (tokens.md §7; PENDIENTES.md §6; DECISIONS #1076). Componente real (fixture propio, 360px).
 // Ejecutar: GRANA_PW_PORT=4257 npx playwright test tests/table-cards-select-tactil.spec.mjs --project=chromium --project=webkit
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'

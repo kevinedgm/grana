@@ -3,7 +3,7 @@
 // real de GForm (design/contracts/form.md §14 y §2; DECISIONS.md #274 a #280). La distribución con un bloque abierto está
 // en form-distribution.spec.mjs (#184).
 // Estado inicial del ejemplo: «¿Requiere factura?» Sí · «Tipo de persona» Moral (bloques abiertos); Física y alergias cerrados.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 

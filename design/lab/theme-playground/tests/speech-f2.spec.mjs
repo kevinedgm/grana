@@ -5,7 +5,7 @@
 // superficie y con el GDialog de respaldo (canales trasladados, Esc en el editor no lo cierra), transcript guardado sin
 // sesión, copia (portapapeles real en Chromium y copia nativa limpia) y 320×640 con táctil. La compuerta de rendimiento va
 // aparte: speech-f2-perf.spec.mjs.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 const SELF = `${PAGE}?speech=self#sec-speech`

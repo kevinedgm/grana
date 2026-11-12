@@ -13,7 +13,7 @@
 // tras su sangría, su raíl y el relleno del panel.
 // GFormSection (§3, Fase 3): «Preferencias» plegable abierta, «Contacto» con el encabezado al lado según su ancho y las
 // secciones de #fx-frame (fuera de GForm) entran en los mismos casos.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 const WIDTHS = ['1280', '960', '720', '480', '360', '320']

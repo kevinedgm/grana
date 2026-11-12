@@ -1,7 +1,7 @@
 // GDatePicker r02 (datepicker.md §«Un mes por defecto y salto a mes y año», DECISIONS #1020 a #1029): vistas de meses y
 // años, zoom del cambio de nivel, compacto, hoja a 320 px, Esc dentro de un GDialog y rendimiento con props en línea.
 // Sobre los componentes REALES de dist (banco de movimiento + una aplicación propia). Tres motores; lo táctil, en Chromium.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 import { watchConsole } from './glide-helpers.mjs'
 
 const PAGE = '/design/lab/movimiento/r01/banco.html'

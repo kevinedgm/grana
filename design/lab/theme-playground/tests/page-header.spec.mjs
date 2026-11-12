@@ -4,7 +4,7 @@
 // hijo directo de main, la receta de una variable, GBreadcrumbs, GTabs detached + GTabPanel, GBtn, GMenu y GMetric reales,
 // y la isla de estado (@grana/vue/status) y GToaster reales. Port de design/lab/page-header/r01/verificar.mjs (partes B y
 // B+muelle). En Chromium, Firefox y WebKit. Un solo proceso por puerto: GRANA_PW_PORT=4233 (bruno de GPageHeader).
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/page-header.html'
 const BAR = 56

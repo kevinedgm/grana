@@ -2,7 +2,7 @@
 // Cubre: render por as, clases por prop, vacío sin nodo, ritmo medido (body-sm 10, caption 8, body 12; 0 antes del primero y
 // tras el último), anidada (cita y pie con el ritmo de la figura, párrafos con el de la cita), raíz sin margen, 320 px sin
 // desplazamiento y consola limpia. Un puerto propio: GRANA_PW_PORT=4218 npx playwright test tests/text.spec.mjs --project=chromium
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 

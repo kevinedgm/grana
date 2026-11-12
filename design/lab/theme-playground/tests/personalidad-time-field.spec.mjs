@@ -3,7 +3,7 @@
 // cambia con el foco: al cruzar las 12:00 con ↑ sube desde --g-space-1 × 1 con posiciones intermedias; no al montar, no al
 // escribir cifras que no cambian la franja, no al pasar por un texto sin hora y volver a la misma franja, no al cambiar el
 // valor desde la aplicación. Las dos lecturas entran al aparecer (texto rise, par fade). Con reduce, 0 animaciones.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 

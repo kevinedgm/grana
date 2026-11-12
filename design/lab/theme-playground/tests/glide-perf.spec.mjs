@@ -7,7 +7,7 @@
 //   · como mucho un elementFromPoint y dos lecturas de caja por cuadro;
 //   · ninguna escucha por fila: las mismas escuchas pointermove con 10 y con 500 filas (y con 4 y 60 items);
 //   · ninguna medida en un render del padre con props en línea (lección de bd888df).
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 import { mountGlide } from './glide-helpers.mjs'
 
 test.setTimeout(240_000)

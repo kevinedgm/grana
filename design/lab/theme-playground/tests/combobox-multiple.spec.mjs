@@ -7,7 +7,7 @@
 // «Quitar», del rastro y de los anuncios llevan el código (`code` + `label`, #423); la pasada nueva empieza al volver a
 // ESCRIBIR tras salir (#419), no al enfocar. El movimiento está en personalidad-combobox-multiple.spec.mjs y la compuerta
 // de rendimiento en combobox-multiple-perf.spec.mjs (un solo worker).
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 import { contrast, watchConsole } from './combobox-helpers.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'

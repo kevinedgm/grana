@@ -1,6 +1,6 @@
 // GHero (design/contracts/hero.md «Verificación · Playwright»; #725 a #729, #755, #756) sobre el COMPONENTE REAL
 // (dist/hero.umd.js) en el banco packages/vue/playground/hero.html. Chromium, Firefox y WebKit. Puerto propio: GRANA_PW_PORT=4242.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/hero.html'
 function watchConsole(page) {
@@ -95,7 +95,7 @@ test('B: vistas con una parada de Tab; → elige la siguiente, el foco sigue en 
 })
 
 test('B: las capas no piden su foto hasta el load de la principal', async ({ page }) => {
-  await page.route('**/*', (r) => r.continue())
+  await page.route('**/*', (r) => r.fallback()) // fallback y no continue: deja pasar al Vue local de vue-local.mjs
   await open(page, '?c=views')
   const srcs = await page.evaluate(() => [...document.querySelectorAll('.g-hero__layer')].map((l) => Boolean(l.getAttribute('src'))))
   expect(srcs).toEqual([true, true]) // ya cargó la principal (data URI): las capas tienen src

@@ -3,7 +3,7 @@
 // intermedias, solo al abrir), C · la ficha llega desde su fila (≥ 2 posiciones intermedias, termina en su sitio y
 // retira is-landing, a ≤ space × 1 de su sitio) y B · la entrada de GDialog desde su disparador (el campo). Con
 // prefers-reduced-motion: reduce, nada se mueve y no quedan clases.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 import { frames, open, out, st, type, watchConsole } from './combobox-helpers.mjs'
 
 /** Muestrea `fn(document)` en cada cuadro durante `n` cuadros; se lanza ANTES del gesto y se espera después */

@@ -3,7 +3,7 @@
 // reales (retraso y mínimo), filas del esqueleto = filas a la vista y Δ0 al refrescar, sin pulso y 0 animaciones a 5,2 s
 // con la espera larga, error con filas (barra) y sin filas (GEmpty), vacío con GEmpty, foco por rowKey, anuncios en su
 // región (#265) y forced-colors en Chromium.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 import { openLR, watchConsole, frames, running, expectClean } from './load-region-helpers.mjs'
 
 const T = '#lr-table'

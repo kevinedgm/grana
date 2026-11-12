@@ -3,7 +3,7 @@
 // anatomía y nombre accesible, navigate con su guarda, Intro y Espacio, deshabilitado, M1 con enlaces, gestos del navegador
 // (modificadores, clic central, clic derecho, target), router simulado y sin router, página actual y RTL.
 // La personalidad (B · pie de destino y C · varias pestañas) está en personalidad-menu-links.spec.mjs.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 import { mountLinks, acc, openAcc, isOpen, active, navs, item, hoverOn, contrastOf } from './menu-links-helpers.mjs'
 
 test.setTimeout(90_000)

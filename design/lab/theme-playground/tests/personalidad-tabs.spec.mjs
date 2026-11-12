@@ -5,7 +5,7 @@
 // panel en +space × 4 adelante, −space × 4 atrás y −space × 4 en RTL adelante; 375px sin desborde).
 // La medida es determinista: tras el clic se pausan las transiciones CSS reales (Web Animations) de la marca y del
 // panel y se recorre su tiempo cada 4ms, así el exceso y el orden de llegada no dependen de en qué cuadro cae el muestreo.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 const ITEMS = [

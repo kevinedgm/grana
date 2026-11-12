@@ -2,7 +2,7 @@
 // (entrada @grana/vue/nav-bar por dist/nav-bar.umd.js) en el banco packages/vue/playground/sitio.html: dentro de la banda
 // de un GAppShell real con header="pinned-wide" y un GSidebar real. Un solo proceso por puerto: GRANA_PW_PORT=4241 (bruno
 // del sitio calcado). El rendimiento de P1 se exige solo con un worker: --workers=1.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/sitio.html'
 

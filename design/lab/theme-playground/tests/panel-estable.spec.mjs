@@ -8,7 +8,7 @@
 // Cada caso abre el panel a 2px del cruce del criterio anterior (que decidía el lado en cada evento de scroll) y desplaza
 // la página de 4 en 4px, ida y vuelta ±20px: 0 cambios de lado, alto constante y el panel pegado a su ancla.
 // GSelect además: el puntero quieto en el borde inferior de la lista no la desplaza (16 cuadros); el teclado sí.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 

@@ -4,7 +4,7 @@
 // tablist con una sola etiqueta visible, Esc, pulsación larga que no activa, vertical a la derecha y RTL a la izquierda,
 // «Más» con el menú abierto, la activa con etiqueta sin pista y la pestaña contra la pestaña Δ < 1 px.
 // Un solo proceso por puerto: GRANA_PW_PORT=4211 (bruno, este encargo).
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 import { TAB, watchConsole, open, frames, hover, openTexts, geo, expectTab, startSampling, stopSampling, touch, synthClick } from './visual-tip-helpers.mjs'
 
 const T = (root, id) => `#${root}-tab-${id}`

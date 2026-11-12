@@ -2,7 +2,7 @@
 // «Verificación · Playwright»; #768 a #779) sobre los COMPONENTES REALES (dist/price.umd.js) en
 // packages/vue/playground/price.html. El verificar.mjs de kiwi (design/lab/price/r01/) adaptado. Chromium, Firefox y WebKit.
 // GRANA_PW_PORT=4208.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/price.html'
 function watchConsole(page) {

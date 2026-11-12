@@ -8,7 +8,7 @@
 // GCard en sus cuatro niveles, GBtn (cuatro variantes por cuatro colores), GInput, GMetric, GBadge, GTag y un GMenu abierto en
 // su sitio (el top layer hereda la zona). Las pruebas de unidad del CLI (cli/test/zone.test.js) cubren la derivación; aquí se
 // comprueba que lo derivado llega a los componentes.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 import { buildTheme } from '../../../../packages/cli/src/index.js'
 
 test.setTimeout(120_000)

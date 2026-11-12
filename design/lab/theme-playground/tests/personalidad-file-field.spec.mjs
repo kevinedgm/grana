@@ -2,7 +2,7 @@
 // playground: la ficha ATERRIZA desde «Adjuntar» (escala desde 0.86, ≥ 2 escalas intermedias, termina en 1, nunca > 1, sin
 // muelle) y se retira is-landing; los destinos DESPIERTAN juntos con un fundido sin mover nada; la ficha SE LLENA (el relleno
 // de GProgress avanza); la caja SE SACUDE al rechazar el envío y se retira is-rejected. Con reduced motion: solo fundidos.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 

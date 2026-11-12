@@ -6,7 +6,7 @@
 // mover el puntero; el puntero no mueve el foco; pulsado se queda; scroll con el puntero quieto sigue a la fila de
 // debajo; `reduce` solo opacidad; `forced-colors` oculta; toque nada; RTL; `surface` y `cards`: como mucho una fila con
 // fondo en cada instante del barrido y sin capa; consola limpia.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 import { mountGlide, watchConsole, sweep, travel, lights, boxes, ownBg, routeVue } from './glide-helpers.mjs'
 
 test.setTimeout(120_000)

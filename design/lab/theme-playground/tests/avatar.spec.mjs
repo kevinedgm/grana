@@ -3,7 +3,7 @@
 // los puntos de navegador del contrato (design/contracts/avatar.md «Verificación»; DECISIONS.md #293 a #297).
 // Donde hace falta un caso que el playground no muestra (dos letras anchas, vectores del hash), se monta el GAvatar real
 // del UMD (window.Grana) en la propia página.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 const UNITS = { xs: 5, sm: 6, md: 8, lg: 10, xl: 16 }

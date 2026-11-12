@@ -5,7 +5,7 @@
 //  - en ajustes, el avance sigue al estado;
 //  - nada se anima al montar (is-ready tras el primer pintado; lo que viene abierto no se desenrolla).
 // Un solo proceso por puerto: GRANA_PW_PORT=4214 (bruno de GAccordion).
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/accordion.html'
 

@@ -3,7 +3,7 @@
 // GFileField y un GInput se parte antes de que «Adjuntar archivo» baje de línea (--g-form-min: 62 de coco) y respeta el
 // --g-form-min del consumidor; un campo dentro de un subárbol inert no despierta al arrastrar archivos a la página.
 // El resto de la forma (Δ0 con GInput, 320px, RTL) está en file-field.spec.mjs.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 

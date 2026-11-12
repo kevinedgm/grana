@@ -3,7 +3,7 @@
 // check pulsada y en un racimo), vista previa tachada al apuntar y al enfocar con teclado, foco a «Deshacer» tras un CLIC
 // (WebKit no enfoca botones al pulsarlos), doble clic sobre la misma tapa (quita y deshace; la vecina sigue en su sitio),
 // recogida al salir puntero y foco y al tocar fuera, settle emitido, recogida instantánea con movimiento reducido.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 import { PAGE, TAB, watchConsole, frames, hover } from './visual-tip-helpers.mjs'
 
 async function open(page, target = '#tg-flow', { motion = 'no-preference', width = 1280 } = {}) {

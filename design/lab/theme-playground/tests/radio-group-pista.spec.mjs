@@ -4,7 +4,7 @@
 // accesible, la pestaña mide la caja visible (no el radio) Δ < 1 px, las flechas eligen y la pista viaja, Esc, la
 // pulsación larga no elige, apilado a la derecha, RTL, opción deshabilitada sin pista y Δ0 del segmentado con nodos.
 // Un solo proceso por puerto: GRANA_PW_PORT=4211 (bruno, este encargo).
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 import { TAB, watchConsole, open, frames, hover, openTexts, geo, expectTab, startSampling, stopSampling, touch, synthClick } from './visual-tip-helpers.mjs'
 
 // La caja visible de la opción i del grupo `id`

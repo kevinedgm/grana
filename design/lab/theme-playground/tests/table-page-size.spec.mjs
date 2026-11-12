@@ -6,7 +6,7 @@
 // radio, un solo anuncio, orden de eventos, pie acoplado con su borde en el de la ventana y desacoplado al final,
 // scroll-margin (Tab hasta una fila bajo el pie la deja a la vista), filtros, «aquí estabas» y 360px con 44px.
 // Ejecutar desde design/lab/theme-playground: GRANA_PW_PORT=4227 npx playwright test tests/table-page-size.spec.mjs
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/table-rows.html'
 

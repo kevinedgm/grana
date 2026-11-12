@@ -2,7 +2,7 @@
 // sobre el componente REAL (packages/vue/playground/price.html?c=A). ≥ 2 posiciones intermedias, menos posiciones que dígitos,
 // termina y retira la capa, Δ ancho 0; con reduce, ninguna capa. Rendimiento: 50 GPrice con total cambiando a la vez, sin
 // tarea larga > 50 ms (Chromium, `--workers=1`). GRANA_PW_PORT=4208.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/price.html'
 const settle = (p, ms = 60) => p.evaluate((ms) => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(r, ms)))), ms)

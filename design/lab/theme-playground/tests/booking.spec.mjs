@@ -1,7 +1,7 @@
 // GBookingBar y GPartyField (design/contracts/booking-bar.md «Verificación · Playwright»; #736 a #742, #757, #759) y la
 // enmienda de GDatePicker (#739: «solo salida») sobre los COMPONENTES REALES (dist/booking.umd.js) en
 // packages/vue/playground/booking.html. Chromium, Firefox y WebKit. GRANA_PW_PORT=4242.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/booking.html'
 function watchConsole(page) {

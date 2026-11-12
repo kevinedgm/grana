@@ -6,7 +6,7 @@
 // El botón es el marcado del contrato (button.g-btn + span.g-btn__label) con el grana.css REAL de dist/, servido en una página
 // propia (sin Vue ni red). Ejecutar: GRANA_PW_PORT=4209 npx playwright test tests/btn-limitaciones.spec.mjs
 // VERBOSE=1 imprime las tablas de cifras.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const COLORS = ['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info']
 const VARIANTS = ['solid', 'soft', 'outline', 'ghost', 'link']

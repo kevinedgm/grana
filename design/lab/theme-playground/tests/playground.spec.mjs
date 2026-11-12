@@ -1,7 +1,7 @@
 // Playwright · Theme Playground. Verifica que el playground cambia de tema, Light/Dark, Current/B/C y superficie sin recargar,
 // que el DOM estructural no cambia, que solo cambian los tokens esperados y que los componentes reales reaccionan,
 // con estados reales (hover, focus, checked, disabled, active) y con fuentes reales (o su fallback registrado).
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'

@@ -6,7 +6,7 @@
 // C1: el CSS del halo (coco) lee --_pointer-x/y, que escribe GCard.vue (bruno). Mientras GCard.vue no las escriba, el spec
 // instala un sustituto mínimo (pointermove → las dos variables en px desde la caja de borde) para medir el CSS; cuando el
 // componente las escriba, el spec lo detecta y mide el componente real (y lo dice en la anotación).
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 test.setTimeout(120_000)
 

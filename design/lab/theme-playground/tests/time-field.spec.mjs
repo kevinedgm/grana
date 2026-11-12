@@ -5,7 +5,7 @@
 // «ahora» con ?now=, 12 h con a. m./p. m. sin mover el foco, las dos lecturas en 24 h, data-compact en g-form-w-xs, la
 // lectura a la separación de la caja, error propio al salir y al enviar, envío canónico, fila con GInput, GDatePicker y
 // GSelect (Δ top y alto ≤ 1px a 1100/720/320), mínimo publicado en 12 h, RTL y 320px sin desborde.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 

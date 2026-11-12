@@ -3,7 +3,7 @@
 // Producto nuevo → Categoría nueva). Contrato: design/contracts/form.md §15 y dialog.md §«Niveles anidados» (base y C);
 // hallazgo H3 de design/lab/dialog/auditoria-pasos.md. El pliegue en la prueba de distribución está en
 // form-distribution.spec.mjs (#184).
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 import { load, settled, openAt, state, takeEvents, rec, liveInDialog, landing, overflowX, clean } from './dialog-levels-helpers.mjs'
 
 const FOLDS = [['partida', 'f-ingreso-p3', 'f-partida-producto'], ['producto', 'crear-producto', 'f-producto-nombre'], ['categoria', 'crear-categoria', 'f-categoria-nombre']]

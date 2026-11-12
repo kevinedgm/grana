@@ -5,7 +5,7 @@
 // ficha, ocultos, foco al quitar y al reintentar, envío bloqueado con resumen que enlaza al «Reintentar», soltar y pegar
 // simulados, arrastre de página, GFormRow con GInput (Δ0), FormData nativo, 320 px LTR y RTL, objetivos ≥ 24 px, consola.
 // El movimiento (aterrizaje, despertar) está en personalidad-file-field.spec.mjs.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 

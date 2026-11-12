@@ -4,7 +4,7 @@
 // sin bajar de su suelo (#363); --g-adapt-* sin herencia (#364); ninguna pista baja un control de 24 px ni recorta su
 // etiqueta; foco en orden del DOM; Δ0 al escribir (sin escrituras de colocación); calle + dos enteros compactos a 460 px.
 // Ejecutar desde design/lab/theme-playground: GRANA_PW_PORT=4210 npx playwright test tests/adaptive-layout.spec.mjs
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/adaptive-layout.html'
 

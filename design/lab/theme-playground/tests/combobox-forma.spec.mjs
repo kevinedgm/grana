@@ -7,7 +7,7 @@
 //   C · el valor es un objeto: ficha (avatar, código, texto libre), Δ0 de alto, edición sobre la ficha y Esc × 2, fichas con
 //       rótulo en la lista, descripción accesible.
 //   La fila se parte antes de 240px (--g-form-min: 60) y respeta el valor del consumidor (#336).
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 import { contrast, frames, geo, open, out, st, type, watchConsole } from './combobox-helpers.mjs'
 
 const shape = (page, id) => page.evaluate((id) => {

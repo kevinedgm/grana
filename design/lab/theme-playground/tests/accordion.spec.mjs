@@ -9,7 +9,7 @@
 // Las medidas van en el banco ligero packages/vue/playground/accordion.html (el mismo marcado y los mismos datos que
 // #sec-accordion, accordion-data.js): en WebKit el playground entero da cuadros de ~300 ms y las medidas por cuadro no
 // serían del componente. La sección del playground se comprueba aparte (árbol, plegado, flechas y consola limpia).
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/accordion.html'
 const PLAYGROUND = '/packages/vue/playground/index.html'

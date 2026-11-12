@@ -1,7 +1,7 @@
 // GBtn en loading: el nombre accesible no cambia (design/contracts/btn.md). Defecto de kiwi (personalidad/r01/declaracion.md):
 // `visibility: hidden` sobre .g-btn__label vaciaba el nombre en el árbol de accesibilidad de Chromium.
 // Se monta el GBtn real del UMD (window.Grana) en la propia página. El árbol de accesibilidad vía CDP es solo de Chromium.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 

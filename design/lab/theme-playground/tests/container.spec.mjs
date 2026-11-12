@@ -2,7 +2,7 @@
 // COMPONENTE REAL (paquete principal, dist/grana.umd.js) en el banco packages/vue/playground/container.html, sin chasis
 // (dentro de GAppShell lo mide app-shell.spec.mjs). Port de design/lab/container/r01/verificar.mjs (kiwi). En Chromium,
 // Firefox y WebKit. Un solo proceso por puerto: GRANA_PW_PORT=4212.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/container.html'
 const MAX = { sm: 640, md: 768, lg: 1024, xl: 1280, '2xl': 1536, full: Infinity } // space × 160 · 192 · 256 · 320 · 384 con space 4

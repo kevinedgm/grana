@@ -1,7 +1,7 @@
 // GSidebar r02 · parte funcional en el DOM real (dist UMD): cortes de adaptación (`breakpoints`, #618), representante del
 // riel (`is-rep`, #616) y ruta encendida (`has-current`), con el CSS de coco. Contrato: design/contracts/sidebar.md.
 // Un solo proceso por puerto: GRANA_PW_PORT=4229 (bruno, r02 del sidebar).
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 import { PAGE, watchConsole, frames } from './visual-tip-helpers.mjs'
 
 const ITEMS = [

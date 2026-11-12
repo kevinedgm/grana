@@ -6,7 +6,7 @@
 // texto sin activar, Ctrl/⌘+clic no emite, rastro y foco al volver de un diálogo, despliegue y foco, Esc, orden de Tab
 // (salvo WebKit), estado con forma y texto, y 360px.
 // Ejecutar desde design/lab/theme-playground: GRANA_PW_PORT=4227 npx playwright test tests/table-rows.spec.mjs
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/table-rows.html'
 const MOD = process.platform === 'darwin' ? 'Meta' : 'Control'

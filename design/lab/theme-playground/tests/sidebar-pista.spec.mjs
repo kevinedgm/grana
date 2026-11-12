@@ -5,7 +5,7 @@
 // con el puntero el panel gana, búsqueda y contraer, Esc, pulsación larga que no navega ni abre el panel, RTL a la
 // izquierda, sin pista en expandida y pestaña contra el item Δ < 1 px.
 // Un solo proceso por puerto: GRANA_PW_PORT=4211 (bruno, este encargo).
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 import { TAB, watchConsole, open, frames, hover, openTexts, geo, expectTab, startSampling, stopSampling, touch, synthClick } from './visual-tip-helpers.mjs'
 
 const LINK = (root, id) => `#${root} .g-sidebar__nav .g-sidebar__item > .g-sidebar__link[data-id="${id}"]`

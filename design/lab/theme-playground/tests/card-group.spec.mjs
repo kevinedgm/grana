@@ -7,7 +7,7 @@
 // 375 px), puente Δ0 (x, ancho, nace en el borde inferior, cubre el borde del panel, uno solo que viaja, se retira, RTL),
 // Δ0 de las cajas al pulsar, rendimiento (un render del padre no vuelve a medir, bd888df), movimiento reducido y consola
 // limpia. Un solo proceso por puerto: GRANA_PW_PORT=4223 (bruno de GCardGroup).
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/card-group.html'
 const TAB = (b) => (b === 'webkit' ? 'Alt+Tab' : 'Tab')

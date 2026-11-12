@@ -3,7 +3,7 @@
 // márgenes de los hijos a 0, divided con un hijo hidden, horizontal sin desbordar a 320, niveles h2 › h3 › h4 con tamaños
 // 20 › 16 › 14, headingLevel fijado (etiqueta distinta, tamaño por profundidad), aria-labelledby solo con landmark y
 // consola sin avisos. Un solo proceso por puerto: GRANA_PW_PORT=4213 npx playwright test tests/stack-section.spec.mjs --project=chromium
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 

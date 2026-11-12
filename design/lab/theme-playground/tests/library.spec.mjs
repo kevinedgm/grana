@@ -1,7 +1,7 @@
 // Verificación entre navegadores (Chromium, Firefox y WebKit) del playground de la librería (packages/vue/playground).
 // Sustituye en lo posible a «pruebas manuales en Firefox y Safari»: WebKit es el motor de Safari, pero NO es Safari (sin su sistema ni VoiceOver).
 // Cubre lo más sensible a diferencias entre motores: popover, diálogo modal, listbox, :has, inert, transiciones y errores de consola.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 const ready = async (page) => { await page.goto(PAGE); await page.waitForSelector('.g-btn'); await page.waitForTimeout(600) }

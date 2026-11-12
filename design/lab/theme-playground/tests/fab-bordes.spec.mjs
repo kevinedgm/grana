@@ -14,7 +14,7 @@
 //   · dentro de la zona de marca y en oscuro: la pila, el panel de la cola y C heredan el tema de su sitio y conservan los
 //     mínimos (texto ≥ 4,5:1, el FAB frente a la página ≥ 3:1).
 // Un solo proceso por puerto: GRANA_PW_PORT=4212 npx playwright test tests/fab-bordes.spec.mjs
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 test.setTimeout(90_000)
 

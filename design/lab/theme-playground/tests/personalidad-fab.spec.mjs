@@ -16,7 +16,7 @@
 //   · Se aparta con translate en press y ease-out, con 24px a la vista.
 //   · Movimiento reducido (#299 (3), fab.md §29.3): solo fundidos; nada se desplaza, gira, escala ni se recorta.
 // Un solo proceso por puerto: GRANA_PW_PORT=4212 npx playwright test tests/personalidad-fab.spec.mjs
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 test.setTimeout(90_000)
 

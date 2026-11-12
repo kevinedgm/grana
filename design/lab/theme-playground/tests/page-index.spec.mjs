@@ -2,7 +2,7 @@
 // REAL (entrada @grana/vue/page-index por dist/page-index.umd.js) en el banco packages/vue/playground/page-index.html: dentro
 // del slot `actions` de un GPageHeader real, con GMenu real y la lectura del documento. Un solo proceso por puerto:
 // GRANA_PW_PORT=4233 (bruno del marco del sitio).
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/page-index.html'
 

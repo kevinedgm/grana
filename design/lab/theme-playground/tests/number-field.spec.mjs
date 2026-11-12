@@ -5,7 +5,7 @@
 // toque, tamaños, estados, P1/P2/P3, fila con GInput y GSelect (Δ top ≤ 1px y misma altura), mínimo publicado (#312),
 // RTL ar-EG/he, envío con is-rejected y 320px sin desborde. La distribución de signos vitales está en
 // form-distribution.spec.mjs (#184).
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 
