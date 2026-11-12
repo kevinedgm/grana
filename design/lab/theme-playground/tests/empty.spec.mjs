@@ -3,7 +3,7 @@
 // cuenta ≥ 4,5:1 en claro y oscuro; GBtn ≥ 44 × 44 a 390 px con puntero grueso y sin áreas solapadas; RTL (hueco del icono
 // a la derecha); forced-colors en Chromium (contorno visible); el primer hueco dentro de una GLoadRegion mide un elemento
 // (Δ ≤ 1 px); la salida con cuentas (orden, nombre accesible, relax) y el título anunciado por la región.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 import { openLR, watchConsole, frames, idle, loadAll, refreshList, live, btnAreas, expectClean } from './load-region-helpers.mjs'
 
 test.describe('GEmpty · contraste (#547)', () => {

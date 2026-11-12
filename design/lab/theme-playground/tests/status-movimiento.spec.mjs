@@ -14,7 +14,7 @@
 //     el estrechamiento se ensancha desde el ancho actual; el puntero cancela una recogida por tiempo; «Ocultar»/Esc durante
 //     la entrada y abrir la lista durante el ensanche responden en el cuadro siguiente.
 // Un solo proceso por puerto: GRANA_PW_PORT=4212 npx playwright test tests/status-movimiento.spec.mjs
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 test.setTimeout(90_000)
 

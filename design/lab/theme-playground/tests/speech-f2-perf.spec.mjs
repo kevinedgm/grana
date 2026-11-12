@@ -10,7 +10,7 @@
 //   cd design/lab/theme-playground
 //   GRANA_PW_PORT=4209 npx playwright test tests/speech-f2-perf.spec.mjs --workers=1               # los tres motores
 //   GRANA_PW_PORT=4209 npx playwright test tests/speech-f2-perf.spec.mjs --workers=1 --project=webkit
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 const SELF = `${PAGE}?speech=self#sec-speech`

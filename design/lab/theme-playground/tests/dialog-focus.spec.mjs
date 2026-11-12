@@ -1,6 +1,6 @@
 // Foco al abrir de GDialog sobre el COMPONENTE REAL del playground (design/contracts/dialog.md «Foco»;
 // hallazgo L10 de design/lab/form-section/r01): autofocus → primer control del contenido → botón de cierre → el <dialog>.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 const active = (page) => page.evaluate(() => {

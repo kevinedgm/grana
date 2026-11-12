@@ -2,7 +2,7 @@
 // design/lab/dialog/r02/index.html?c=hoy (cinco GDialog anidados, cada uno con su GForm). Hallazgos L1 a L4 de
 // design/lab/dialog/r02/declaracion.md: GForm cortado por el diálogo, Esc mantenida, un solo fondo (is-stacked), fondo
 // que no cierra desde el nivel 2.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/design/lab/dialog/r02/index.html?c=hoy'
 const openLevels = (page) => page.evaluate(() => window.__r02.today.hoy.filter(Boolean).length)

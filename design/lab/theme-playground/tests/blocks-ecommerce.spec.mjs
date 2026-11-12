@@ -4,7 +4,7 @@
 // propios (§33): A 4217, B 4218, C 4219.
 //   GRANA_PW_PORT=4217 npx playwright test tests/blocks-ecommerce.spec.mjs --project=chromium
 // Las partes B y C añaden sus páginas a PAGES y su «Verificación propia» al final.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const BASE = '/packages/blocks/playground/ecommerce/'
 const PAGES = [

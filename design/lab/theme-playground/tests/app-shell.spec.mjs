@@ -3,7 +3,7 @@
 // packages/vue/playground/app-shell.html: GSidebar, GPageHeader, GContainer, GStack, GSection, GAccordion sticky, la isla de
 // estado y GToaster reales, sin receta de cabecera ni offset.top. Port de design/lab/app-shell/r01/verificar.mjs (kiwi).
 // En Chromium, Firefox y WebKit. Un solo proceso por puerto: GRANA_PW_PORT=4212 (bruno de GAppShell).
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/app-shell.html'
 

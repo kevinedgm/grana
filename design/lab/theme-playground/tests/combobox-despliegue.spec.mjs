@@ -2,7 +2,7 @@
 // menos de lo que medirá. Defecto de la Fase 1 visto al construir la Fase 2: abrir con ↓ desplazaba el panel contra ese
 // alto pasajero (82 px en cb-dx) y la opción activa quedaba tapada por el campo. Los demás specs usan movimiento
 // reducido y no lo ven. Aquí se mide cuadro a cuadro, sin reduced motion, la forma, el panel y la opción activa.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 import { open, watchConsole } from './combobox-helpers.mjs'
 
 /** Graba cada cuadro desde antes de la tecla hasta pasado el despliegue. El despliegue se dilata (--g-duration-slow a

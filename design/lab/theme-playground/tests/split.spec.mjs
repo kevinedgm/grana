@@ -3,7 +3,7 @@
 // caja y no visor, anidado, RTL, una región, separaciones, alineación, palabra larga, Tab real, texto al 200 %, secuencia de cambios de
 // tamaño sin histéresis, 320 px sin desplazamiento, GAdaptiveLayout, GContainer prose y consola limpia.
 // Un solo proceso por puerto: GRANA_PW_PORT=4218 npx playwright test tests/split.spec.mjs --project=chromium
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const BENCH = '/packages/vue/playground/split.html'
 const PLAY = '/packages/vue/playground/index.html'

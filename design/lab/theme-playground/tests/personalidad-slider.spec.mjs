@@ -4,7 +4,7 @@
 // hasta 10px), B4 se teclea la cifra, B5 el tope (≤ space × 0.5, vuelve, el valor no cambia; nada en readonly), B6 el salto
 // se desliza (solo el salto). Con prefers-reduced-motion: reduce, ni salto deslizado, ni tope, ni transición de esquinas, y
 // no quedan datos puestos. Un solo proceso por puerto: GRANA_PW_PORT=4212.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 async function open(page, { motion = 'no-preference', width = 1280, target = '#sec-slider' } = {}) {
@@ -60,7 +60,7 @@ async function sampleBump(page, id, ms = 500) {
 }
 
 test.describe('GSlider · personalidad B (#452)', () => {
-  test('B1: la píldora no cambia de ancho (0 %, 40 %, 100 %), no se sale del riel y su texto es el valuetext', async ({ page }) => {
+  test('B1: la píldora no cambia de ancho (0 %, 40 %, 100 %), no se sale del riel; con moneda, la píldora dice la cifra y el valuetext el nombre (#779)', async ({ page }) => {
     await open(page)
     const w0 = (await box(page, `${rootOf('sl-vol')} .g-slider__thumb`)).w
     await press(page, 'sl-vol', 'End')
@@ -74,7 +74,9 @@ test.describe('GSlider · personalidad B (#452)', () => {
     expect(t1.r).toBeLessThanOrEqual(a.r + 0.5)
     const txt = await page.evaluate(() => [...document.querySelectorAll('.g-slider:has(#sl-precio) .g-slider__pill-text')].map((t) => t.textContent))
     const vt = await page.evaluate(() => ['sl-precio', 'sl-precio-end'].map((i) => document.getElementById(i).getAttribute('aria-valuetext')))
-    expect(txt.map(nb)).toEqual(vt.map(nb))
+    // #779 (slider.md «Moneda en la lectura»): la píldora lleva el formato tal cual y la lectura dice el nombre de la moneda
+    expect(txt.map(nb)).toEqual(['$800', '$2,400'])
+    expect(vt.map(nb)).toEqual(['800 pesos mexicanos', '2,400 pesos mexicanos'])
   })
 
   test('B2: las edades juntas se funden sin solaparse (Δ ≤ 1px) con transición de esquinas; separadas vuelven a ser dos', async ({ page }) => {

@@ -3,7 +3,7 @@
 // is-mold + is-revealing → nada, #545), «ninguna animación de carga pasa de 5 s» (#539), movimiento reducido (revelado en
 // --g-duration-fast), tono del molde ≥ 1,3:1 en claro y oscuro con el tema por defecto y el de prueba (#538), y B «nada se
 // borra»: lo nuevo con su marca al inicio lógico sin cambiar la caja (#536).
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 import { openLR, frames, idle, loadAll, refreshList, running } from './load-region-helpers.mjs'
 
 // Muestrea por cuadros, desde que el molde se ve hasta el reposo: clases y posición de las hojas de la primera fila

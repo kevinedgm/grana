@@ -2,7 +2,7 @@
 // COMPONENTE REAL (dist/page-index.umd.js + la extensión dist/page-index-list.umd.js) en el banco
 // packages/vue/playground/sitio.html: la columna derecha (≥ 80rem) y la plegada en una barra local pegada (< 80rem), dos
 // instancias con el mismo v-model (PI-L5). Puerto propio: GRANA_PW_PORT=4241. El rendimiento, con --workers=1.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/sitio.html'
 

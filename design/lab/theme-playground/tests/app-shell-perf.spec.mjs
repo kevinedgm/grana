@@ -4,7 +4,7 @@
 // el DOM del chasis no cambia de nodos. Además, la MEDIDA (no compuerta) del coste de :root:has(.g-app-shell …) en una
 // página con 2000 nodos. Banco: packages/vue/playground/app-shell.html (cuenta las actualizaciones en window.__gUpdates).
 // Un solo proceso por puerto: GRANA_PW_PORT=4212.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/app-shell.html'
 const settle = (p) => p.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(r, 40)))))

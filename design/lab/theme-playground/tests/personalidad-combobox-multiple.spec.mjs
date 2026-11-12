@@ -4,7 +4,7 @@
 // pliega en la pasada siguiente (is-leaving), C · lo marcado entra en la cesta (is-landing). Nada se
 // anima al montar ni al abrir; con prefers-reduced-motion: reduce nada se desplaza, crece ni escala y no quedan clases.
 // Porta el punto 17 de design/lab/combobox/r03/verificar.mjs (kiwi).
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 import { watchConsole } from './combobox-helpers.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'

@@ -5,7 +5,7 @@
 // solo en lo recortado, puertas, escalera, navigate cancelado y con modificadores, GDialog, pointer: coarse, RTL, fuentes y
 // consola limpia. El movimiento va en personalidad-breadcrumbs.spec.mjs y los paneles al desplazar en panel-estable.spec.mjs.
 // Un solo proceso por puerto: GRANA_PW_PORT=4215 (bruno de GBreadcrumbs).
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 const WIDTHS = [1100, 720, 560, 480, 400, 320, 260, 240]

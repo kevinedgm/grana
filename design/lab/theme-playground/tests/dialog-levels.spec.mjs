@@ -3,7 +3,7 @@
 // Contrato: design/contracts/dialog.md §«Niveles anidados» (base 1 a 12, B, «La llegada», «Verificación») y #580 a #591;
 // hallazgos H1 y H2 de design/lab/dialog/auditoria-pasos.md (el pie de cada paso es el suyo, también con plantilla compilada).
 // Los pliegues (C, GFormFold) están en form-fold.spec.mjs.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 import { load, settled, openAt, state, takeEvents, rec, liveInDialog, landing, overflowX, clean, animStarts } from './dialog-levels-helpers.mjs'
 
 const STEPS = ['detalle', 'ingreso', 'partida', 'producto', 'categoria']

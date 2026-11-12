@@ -2,7 +2,7 @@
 // los componentes REALES (dist/grana.js): #sec-datepicker del playground (#dp-price, precios de cuatro o cinco cifras) y
 // Availability 01 y 03 del banco de @grana/blocks/booking. Chromium, Firefox y WebKit. Dueño: bruno. Puerto propio:
 //   GRANA_PW_PORT=4218 npx playwright test tests/datepicker-lectura.spec.mjs
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const TARGETS = [
   // El playground ya se desborda a 320 por otras secciones: allí se comprueba la caja del selector, no la página

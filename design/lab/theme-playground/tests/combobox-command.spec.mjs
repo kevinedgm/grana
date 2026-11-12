@@ -1,7 +1,7 @@
 // GCombobox appearance="command" (design/contracts/combobox.md «Modo comando» · Verificación; #1056) sobre el COMPONENTE
 // REAL (dist/combobox.umd.js) en el banco packages/vue/playground/sitio.html: lo abren el botón de búsqueda de GNavBar y
 // Ctrl/⌘ K (los registra la aplicación). Puerto propio: GRANA_PW_PORT=4241.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/sitio.html'
 

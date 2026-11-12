@@ -2,7 +2,7 @@
 // las variantes REALES (packages/blocks/dist/marketing.js) con su banco único en packages/blocks/playground/marketing/.
 // Chromium por defecto (la pasada en Firefox y WebKit, una vez al cerrar el lote). Puerto propio: GRANA_PW_PORT=4213.
 //   GRANA_PW_PORT=4213 npx playwright test tests/blocks-marketing.spec.mjs --project=chromium
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const BASE = '/packages/blocks/playground/marketing/'
 const PAGES = [

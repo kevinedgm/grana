@@ -2,7 +2,7 @@
 // actual»; #1060 a #1069) sobre el COMPONENTE REAL en packages/vue/playground/sidebar-index.html, con la extensión
 // @grana/vue/sidebar-index y sin ella (?ext=0). Un proceso por puerto:
 // GRANA_PW_PORT=4243 (bruno). El rendimiento con 500 destinos, solo con --workers=1.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/sidebar-index.html'
 const settle = (p, ms = 40) => p.evaluate((ms) => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(r, ms)))), ms)

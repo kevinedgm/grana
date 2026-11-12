@@ -6,7 +6,7 @@
 // elegir» con resumen y envío bloqueado, FormData, fila con GInput y GNumberField (Δ ≤ 1px a 1100/720) y 320px sin
 // desborde, mínimo publicado, táctil en Chromium y WebKit (toque en el tramo incluido), anillo y consola limpia.
 // Un solo proceso por puerto: GRANA_PW_PORT=4212 (bruno, este encargo).
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 const TAB = (browserName) => (browserName === 'webkit' ? 'Alt+Tab' : 'Tab')

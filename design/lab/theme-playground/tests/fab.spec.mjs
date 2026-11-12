@@ -3,7 +3,7 @@
 // configurada por la URL (?fab=N, fabmain, fabpos, fabanchor, fabappearance, fabrtl, fabcoarse). Por defecto el FAB vive en
 // un marco de 720 × 480 (anchor="container"); con fabanchor=viewport, fijo al visor con GToaster real en el mismo borde.
 // En Chromium, Firefox y WebKit. Un solo proceso por puerto: GRANA_PW_PORT=4212 (bruno de GFab).
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 

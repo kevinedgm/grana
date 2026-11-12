@@ -9,7 +9,7 @@
 // preferencias media.navigator.streams.fake (getUserMedia real, tono); WebKit de Playwright no tiene dispositivo falso
 // ni forma de conceder el permiso: se sustituye getUserMedia por un MediaStream real de un OscillatorNode
 // (createMediaStreamDestination), así Grana mide un nivel real con su AnalyserNode y su AudioWorklet (documentado).
-import { test, expect, chromium, firefox } from '@playwright/test'
+import { test, expect, chromium, firefox } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 const SELF = `${PAGE}?speech=self#sec-speech`

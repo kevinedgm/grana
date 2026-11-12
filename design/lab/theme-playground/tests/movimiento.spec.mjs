@@ -8,7 +8,7 @@
 // También: «una sola luz» de GSelect (select.md, #1004) y de GCombobox (combobox.md, #1017), incluida la marca visible de la opción activa, y que el panel no se
 // vacía mientras se funde (#1005; solo Chromium, donde se ve). GSidebar y GTable: personalidad-{sidebar,table}-glide.spec.mjs.
 // El rendimiento se exige solo con un worker (`--workers=1`, criterio de #965).
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 import { readFileSync } from 'node:fs'
 import { watchConsole } from './glide-helpers.mjs'
 

@@ -6,7 +6,7 @@
 // `forced-colors`: sin capa y con contorno por elemento. Datos (bruno): --_active-y/h, has-highlight, is-highlight-instant.
 // La trayectoria se mide de forma determinista: tras mover el puntero se pausan las transiciones CSS reales del
 // resaltado (Web Animations) y se recorre su tiempo cada 8ms; en Chromium además se cuentan cuadros en tiempo real.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 test.setTimeout(120_000)
 

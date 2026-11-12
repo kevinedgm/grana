@@ -6,7 +6,7 @@
 // miden y se imprimen (justificación en design/lab/relleno-familia/medida.md). Desde #674 la insignia con caja y el
 // contador de GSidebar también se exigen. Además: Δ0 en reposo con el tema por defecto (contorno = relleno).
 // Ejecutar: GRANA_PW_PORT=4211 npx playwright test tests/relleno-familia.spec.mjs   (VERBOSE=1 imprime las tablas)
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const V = !!process.env.VERBOSE
 const FAMS = ['brand', 'accent', 'neutral', 'success', 'warning', 'danger', 'info']

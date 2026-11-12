@@ -4,7 +4,7 @@
 // únicos, Supr y Retroceso, foco tras quitar, «Quitar todas», «Ver N más», tamaños 32/24 y tapa del alto, 44px con puntero
 // grueso, recorte con pista solo si recortado, estática partida, RTL, 320px y consola limpia. La personalidad (Δ0 de la
 // huella, vista previa, recogida) va en personalidad-tag.spec.mjs.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 import { PAGE, TAB, watchConsole, frames, hover, openTexts } from './visual-tip-helpers.mjs'
 
 async function open(page, target = '#tg-flow', { motion = 'reduce', width = 1280, height = 900 } = {}) {

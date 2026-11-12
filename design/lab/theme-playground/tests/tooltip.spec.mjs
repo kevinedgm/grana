@@ -8,7 +8,7 @@
 // táctil sintético, GHelper envuelto, contraste y tamaños, la matriz de componentes hijo (atributos y caja visible, #395)
 // y el foco con Tab de #396.
 // Un solo proceso por puerto: GRANA_PW_PORT=4210 (bruno).
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 

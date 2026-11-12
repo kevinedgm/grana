@@ -2,7 +2,7 @@
 // guest-form.md, confirmation.md): las variantes REALES (packages/blocks/dist/booking.js) con su banco único en
 // packages/blocks/playground/booking/. Chromium (la pasada en Firefox y WebKit, una vez al cerrar el lote). Puerto propio:
 //   GRANA_PW_PORT=4214 npx playwright test tests/blocks-booking.spec.mjs --project=chromium
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const BASE = '/packages/blocks/playground/booking/'
 const PAGES = [

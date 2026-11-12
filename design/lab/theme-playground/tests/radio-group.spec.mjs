@@ -2,7 +2,7 @@
 // Firefox y WebKit. Port de design/lab/radio-group/r01/verificar.mjs (kiwi) y de los puntos de navegador del contrato
 // (design/contracts/radio-group.md «Verificación»; DECISIONS.md #267 a #273). La distribución en GFormRow (mismo top ±1px,
 // la fila se parte antes de apilar) está en form-distribution.spec.mjs (#184).
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 

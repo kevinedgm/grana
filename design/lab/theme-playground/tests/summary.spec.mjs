@@ -6,7 +6,7 @@
 // campo, 1/2/4 de 4 datos a 240/360/520); contraste de B (pesos); carga Δ0 (incluido el paso de carga a datos); bidi con
 // texto RTL real; entrada al ensanchar (y nada al montar ni con reduce); móvil 320; rendimiento con 200 y 500 fichas.
 // Ejecutar desde design/lab/theme-playground: GRANA_PW_PORT=4210 npx playwright test tests/summary.spec.mjs
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/summary.html'
 

@@ -3,7 +3,7 @@
 // que notas.md (antes manuales, solo Chromium), ahora en los tres motores: consola limpia, Esc cierra, cada línea de
 // cada fila termina en el mismo borde y sus cajas comparten top (±1px), bloqueado = 0 controles editables, sin
 // desborde, y el ciclo desbloquear → editar → cancelar.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/design/lab/migraciones/analisis/index.html?open=1'
 

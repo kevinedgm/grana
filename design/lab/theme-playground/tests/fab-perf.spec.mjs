@@ -13,7 +13,7 @@
 // medida no es repetible y solo se anota); las cuentas de DOM y de medidas se exigen siempre:
 //   GRANA_PW_PORT=4212 npx playwright test tests/fab-perf.spec.mjs --workers=1
 // Tres repeticiones por caso (la primera en frío); se exige la mediana y se anotan las tres.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 test.setTimeout(120_000)
 

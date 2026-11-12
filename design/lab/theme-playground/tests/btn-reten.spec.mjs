@@ -3,7 +3,7 @@
 // (src/devWarnings.test.js, GBtn.test.js) y `node design/lab/avisos-dev/verificar.mjs`: el UMD no avisa (no hay `process`).
 // La curva del rebote se mide de forma determinista, como en personalidad-btn.spec.mjs.
 // Ejecutar: GRANA_PW_PORT=4210 npx playwright test tests/btn-reten.spec.mjs   (VERBOSE=1 imprime las medidas)
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const V = !!process.env.VERBOSE
 const { buildTheme } = await import('../../../../packages/cli/src/index.js')

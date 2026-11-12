@@ -4,7 +4,7 @@
 // La curva del rebote se mide de forma determinista: se pausa la transición CSS real (Web Animations) y se recorre su
 // tiempo cada 2ms, así el pico no depende de en qué cuadro cae el muestreo. Los cuadros intermedios de B2 sí se cuentan
 // en tiempo real (rAF), como hizo kiwi.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 

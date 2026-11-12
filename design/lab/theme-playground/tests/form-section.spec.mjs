@@ -6,7 +6,7 @@
 // «Preferencias» (collapsible ABIERTA al cargar, con summary y dos campos obligatorios, divider). Marco #fx-frame (fuera
 // de GForm, todas auto): #fx-1 fija (divider en la primera: no se pinta), #fx-2 collapsible plegada con acción y summary,
 // #fx-3 addable sin agregar.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 

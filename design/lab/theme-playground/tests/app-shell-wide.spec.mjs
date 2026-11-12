@@ -1,7 +1,7 @@
 // GAppShell header="pinned-wide", barra local y cover() (design/contracts/app-shell.md «Verificación», #1055) sobre el
 // COMPONENTE REAL (dist/app-shell.umd.js) en el banco packages/vue/playground/sitio.html (la barra local de 48 px se declara
 // en :root por debajo de 80rem, como el sitio). Puerto propio: GRANA_PW_PORT=4241.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/sitio.html'
 const settle = (p) => p.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(r, 80)))))

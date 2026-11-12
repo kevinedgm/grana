@@ -2,7 +2,7 @@
 // `.is-active` y le quitaba su superficie; con un activo tematizado el texto quedaba sobre `border`, ilegible.
 // Desde «una sola luz» (#957, #959) ningún enlace pinta fondo de hover: lo marca la luz de su lista, que pasa también por
 // el activo sin tocar su marca. Un solo proceso por puerto: GRANA_PW_PORT=4208 (bruno).
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 import { open, hover } from './visual-tip-helpers.mjs'
 
 const LINK = (id) => `#sb-rail .g-sidebar__nav .g-sidebar__item > .g-sidebar__link[data-id="${id}"]`

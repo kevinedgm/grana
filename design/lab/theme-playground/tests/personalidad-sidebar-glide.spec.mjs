@@ -5,7 +5,7 @@
 // actual se ilumina sin tocar su asiento; el puntero no mueve el foco y el teclado no enciende la luz; pulsado se queda;
 // panel flotante del riel con su propia luz; navbar sin capa; `reduce` solo opacidad; `forced-colors` oculta; toque
 // nada; RTL; consola limpia.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 import { mountGlide, watchConsole, sweep, travel, lights, boxes, routeVue } from './glide-helpers.mjs'
 
 test.setTimeout(120_000)

@@ -5,7 +5,7 @@
 // de la lista, Δ0, capa superior, activa siempre a la vista sin mover la página, grupos, texto libre, agregar, FormData,
 // GFormRow de tres, dentro de GDialog, 500 opciones < 150 ms (mediana, con un worker), móvil 375 y 320, RTL, contraste y consola limpia.
 // Lo propio de la forma (A, B, C) está en combobox-forma.spec.mjs; el movimiento, en personalidad-combobox.spec.mjs.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 import { calls, contrast, frames, geo, live, open, out, st, type, watchConsole } from './combobox-helpers.mjs'
 
 test.describe('GCombobox · componente real (combobox.md)', () => {

@@ -1,7 +1,7 @@
 // GSidebar · filtro del índice y código del item (design/contracts/sidebar.md §«Filtro del índice», §«Código del item»;
 // #1035, #1036) sobre el COMPONENTE REAL en el banco packages/vue/playground/page-index.html. Rendimiento con 500 destinos
 // (< 16 ms por tecla, --workers=1). Un solo proceso por puerto: GRANA_PW_PORT=4233 (bruno del marco del sitio).
-import { test, expect } from '@playwright/test'
+import { test, expect, VUE_PROD } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/page-index.html'
 const settle = (p) => p.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(r, 40)))))
@@ -133,7 +133,7 @@ test.describe('GSidebar · filtro · rendimiento', () => {
   test('500 destinos: < 16 ms por tecla, sin desmontar', async ({ page, browserName }) => {
     test.skip(browserName !== 'chromium', 'la compuerta de rendimiento es de Chromium (sidebar.md «Rendimiento»)')
     // Vue de producción (el banco carga la de desarrollo, mucho más lenta en cada render)
-    await page.route('**/vue.global.js', (r) => r.continue({ url: r.request().url().replace('vue.global.js', 'vue.global.prod.js') }))
+    await page.route('**/vue.global.js', (r) => r.fulfill({ path: VUE_PROD, contentType: 'application/javascript; charset=utf-8' }))
     await open(page, { qs: '?n=500' })
     const r = await page.evaluate(async () => {
       const input = document.querySelector('.g-sidebar__filter-input')

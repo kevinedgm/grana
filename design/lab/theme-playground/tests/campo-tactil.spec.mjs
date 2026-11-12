@@ -17,7 +17,7 @@
 // Ejecutar: GRANA_PW_PORT=4208 npx playwright test tests/campo-tactil.spec.mjs --project=chromium
 // Línea base (el dist/ de e2dad41, antes de la pieza 1): GRANA_DIST_DIR=<ruta/dist> CAMPO_WRITE_BASE=1 lo regenera.
 // VERBOSE=1 imprime las cifras.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 import { fileURLToPath } from 'node:url'
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 

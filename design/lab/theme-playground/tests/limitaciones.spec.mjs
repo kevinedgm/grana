@@ -3,7 +3,7 @@
 // automatizar: el cristal de GBadge, la marca de GCheckbox, el pulgar de GSwitch (y su espejo en RTL), los pivotes
 // de GAvatarMotion (transform-box: fill-box) y que, con prefers-reduced-motion emulado, ningún componente con ese
 // límite deja una transición o animación de movimiento. Sobre el playground real (dist/). WebKit no es Safari.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 const ready = async (page) => {

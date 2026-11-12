@@ -3,7 +3,7 @@
 // Defecto medido por kiwi: con un campo editado e inválido, pulsar «Enviar» hacía aparecer el mensaje del campo entre
 // mousedown y mouseup; el botón se desplazaba bajo el puntero y el clic se perdía. Regla: desde el pointerdown hasta el
 // pointerup el revelado se aplaza y se aplica después del click (WCAG 2.5.2). Este spec FALLA sin el arreglo.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 

@@ -2,7 +2,7 @@
 // B + C (#571). Traslado de las partes B y C de design/lab/menu/r02/verificar.mjs al GMenu REAL del UMD (window.Grana).
 // Datos de bruno: g-menu__dest (+ is-empty) con host, ruta y etiqueta del activo de M1; g-menu__trace; is-modifier;
 // anuncio por el canal cortés de página (.g-load-live, #533). Estética (contraste, alto, pegado abajo): GMenu.css (coco).
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 import { mountLinks, acc, openAcc, isOpen, navs, item, hoverOn, modKey, contrastOf } from './menu-links-helpers.mjs'
 
 test.setTimeout(90_000)

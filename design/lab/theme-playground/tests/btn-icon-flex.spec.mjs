@@ -1,6 +1,6 @@
 // GBtn de solo icono (y de texto) dentro de un contenedor flex estrecho: no baja del mínimo de 24px de área táctil.
 // Hallazgo L23 de kiwi (file-field/r02): xs de icono se encogía a 21,5px. Se monta el GBtn real del UMD (window.Grana).
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 

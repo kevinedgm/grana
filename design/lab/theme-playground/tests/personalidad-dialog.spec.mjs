@@ -4,7 +4,7 @@
 // El primer cuadro de D1 se lee de forma determinista: se pausa la transición CSS real (Web Animations) en t = 0. Los
 // cuadros intermedios y la salida sí se cuentan en tiempo real (rAF), como hizo kiwi. WebKit no enfoca un botón con un
 // clic: allí se abre con teclado (como kiwi) o enfocando el disparador por programa.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 // Página ligera (el listado de dist/ que sirve http.server) con el CSS y el UMD reales: en el playground completo, con
 // la máquina cargada, el primer cuadro tras cerrar llegó a tardar más de 1s y la salida (120ms) no dejaba cuadros.

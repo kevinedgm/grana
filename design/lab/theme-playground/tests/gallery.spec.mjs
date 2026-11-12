@@ -1,7 +1,7 @@
 // GGallery y GGalleryViewer (design/contracts/gallery.md «Verificación · Playwright»; #730 a #735, #758) y la enmienda de
 // GDialog (bare, from vivo, Esc consumida por un descendiente: dialog.md «Visor a pantalla completa», #732, #108) sobre los
 // COMPONENTES REALES (dist/gallery.umd.js) en packages/vue/playground/gallery.html. Chromium, Firefox y WebKit. GRANA_PW_PORT=4242.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/gallery.html'
 function watchConsole(page) {

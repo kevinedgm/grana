@@ -5,7 +5,7 @@
 // dentro de un GDialog modal, foco por clave, refresco keep (filo, píldora, inerte, cursor y contraste sin cambio), error
 // que conserva, RTL, forced-colors (Chromium), 390 px con puntero grueso y consola limpia. La personalidad (revelado,
 // 0 animaciones a 5,2 s, movimiento reducido, tono, lo nuevo) va en personalidad-load-region.spec.mjs.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 import { openLR, watchConsole, frames, trace, idle, loadAll, refreshList, live, top, running, btnAreas, expectClean } from './load-region-helpers.mjs'
 
 const busyOf = (v) => /\bis-busy\b/.test(v || '')

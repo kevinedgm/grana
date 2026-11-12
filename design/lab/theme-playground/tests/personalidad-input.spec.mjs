@@ -6,7 +6,7 @@
 // ≤ space × 1, tres cambios de sentido y vuelta a 0, una sola vez; escribir y salir, 0 animaciones; reduce sin movimiento.
 // Las curvas se miden de forma determinista (se pausa la animación o transición real y se recorre su tiempo); la retirada
 // de la clase, en tiempo real con el animationend del navegador.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 

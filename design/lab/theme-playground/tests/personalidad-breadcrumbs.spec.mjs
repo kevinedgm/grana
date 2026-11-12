@@ -5,7 +5,7 @@
 // montar ni al cambiar de etapa; escalera escalón a escalón; giros de la puerta (90°) y de la divulgación (180°); con
 // movimiento reducido, solo el fundido del que llega, sin copia y sin giros animados.
 // Un solo proceso por puerto: GRANA_PW_PORT=4215.
-import { test, expect } from '@playwright/test'
+import { test, expect } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 
