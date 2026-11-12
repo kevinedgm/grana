@@ -69,7 +69,8 @@ jobs:
     name: Playwright (Chromium, subconjunto)
     needs: verify
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # 329 pruebas a ~12 por minuto en el ejecutor de GitHub: unos 27 minutos; con 20 se cancelaba siempre
+    timeout-minutes: 45
     env:
       GRANA_PW_PORT: "4208"
       PLAYWRIGHT_HTML_OPEN: never

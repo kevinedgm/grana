@@ -3,6 +3,8 @@ name: E2E completo
 # Pasada completa de Playwright (design/lab/theme-playground) en Chromium, Firefox y WebKit.
 # Nocturna (03:17 UTC, solo en la rama por defecto) y manual (Actions > E2E completo > Run workflow).
 # Con --workers=2: con más paralelismo, WebKit da fallos intermitentes por carga (CLAUDE.md).
+# Cada motor va en 4 fragmentos (--shard): en un solo trabajo la pasada (~1900 pruebas, ~12 por minuto en el
+# ejecutor de GitHub) no cabía en 120 minutos y se cancelaba cada noche en los tres motores.
 
 on:
   schedule:
@@ -60,14 +62,15 @@ jobs:
           if-no-files-found: error
 
   e2e:
-    name: Playwright (${{ matrix.browser }})
+    name: Playwright (${{ matrix.browser }}, ${{ matrix.shard }}/4)
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
         browser: ${{ fromJSON(needs.build.outputs.browsers) }}
+        shard: [1, 2, 3, 4]
     env:
       GRANA_PW_PORT: "4208"
       PLAYWRIGHT_HTML_OPEN: never
@@ -124,11 +127,11 @@ jobs:
           if [ -n "$SPECS" ]; then files="$SPECS"; else files="$(ls tests/*.spec.mjs | grep -v -- '-perf\.spec\.mjs')"; fi
           # shellcheck disable=SC2086
           npx playwright test --project=${{ matrix.browser }} --workers=2 --retries=2 \
-            --reporter=list,html --trace=retain-on-failure $files
+            --shard=${{ matrix.shard }}/4 --reporter=list,html --trace=retain-on-failure $files
 
       # Umbrales de tiempo dependientes de la máquina (WebKit < 200 ms, etc.): informativo.
       - name: Playwright (${{ matrix.browser }}, perf con un worker, informativo)
-        if: always() && inputs.specs == ''
+        if: always() && inputs.specs == '' && matrix.shard == 1
         continue-on-error: true
         run: |
           npx playwright test --project=${{ matrix.browser }} --workers=1 \
@@ -139,7 +142,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-${{ matrix.browser }}
+          name: playwright-report-${{ matrix.browser }}-${{ matrix.shard }}
           path: |
             design/lab/theme-playground/playwright-report
             design/lab/theme-playground/test-results
