@@ -70,7 +70,7 @@ jobs:
     needs: verify
     runs-on: ubuntu-latest
     # 329 pruebas a ~12 por minuto en el ejecutor de GitHub: unos 27 minutos; con 20 se cancelaba siempre
-    timeout-minutes: 45
+    timeout-minutes: 60
     env:
       GRANA_PW_PORT: "4208"
       PLAYWRIGHT_HTML_OPEN: never
@@ -140,26 +140,35 @@ jobs:
             tests/playground.spec.mjs \
             tests/form-distribution.spec.mjs \
             tests/panel-estable.spec.mjs \
-            tests/tooltip.spec.mjs \
             tests/form-section.spec.mjs \
             tests/form-reveal.spec.mjs \
             tests/form-blur-click.spec.mjs \
-            tests/number-field.spec.mjs \
             tests/time-field.spec.mjs \
             tests/radio-group.spec.mjs \
             tests/key-focus.spec.mjs \
             tests/dialog-focus.spec.mjs \
             tests/dialog-levels.spec.mjs \
             tests/form-fold.spec.mjs \
-            tests/slider.spec.mjs \
             tests/tag.spec.mjs \
             tests/accordion.spec.mjs \
-            tests/breadcrumbs.spec.mjs \
             tests/empty.spec.mjs \
             tests/load-region.spec.mjs \
             tests/table-load.spec.mjs \
             tests/sidebar-activo.spec.mjs \
             tests/fab.spec.mjs
+
+      # Las specs con umbrales de tiempo absolutos (tooltip a 200/500 ms, pista de las migas a 350 ms, repetición
+      # de −/+ y cifras que ruedan, mínimo publicado del slider) van con un solo worker: con dos, en el ejecutor
+      # de GitHub los temporizadores llegan tarde y fallaban 8 pruebas que en local pasan (2026-11-12).
+      - name: Playwright (Chromium, specs con umbrales de tiempo, un worker)
+        if: success() || failure()
+        run: |
+          npx playwright test --project=chromium --workers=1 --retries=2 \
+            --reporter=list,html --trace=retain-on-failure --output=test-results-tiempo \
+            tests/tooltip.spec.mjs \
+            tests/number-field.spec.mjs \
+            tests/slider.spec.mjs \
+            tests/breadcrumbs.spec.mjs
 
       # Contención de tamaño en padres que se ajustan (hallazgo 3 de la integración real): 3 s en Chromium;
       # los tres motores van en la pasada completa.
@@ -188,6 +197,7 @@ jobs:
           path: |
             design/lab/theme-playground/playwright-report
             design/lab/theme-playground/test-results
+            design/lab/theme-playground/test-results-tiempo
           retention-days: 7
           if-no-files-found: ignore
 
