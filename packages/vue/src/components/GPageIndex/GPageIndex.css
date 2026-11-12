@@ -245,7 +245,8 @@
        button.g-page-index__fold[aria-expanded] > span + span.g-page-index__chev[aria-hidden] > GLibIcon chevron-right flip-rtl
        div.g-page-index__drop[hidden]
          a.g-page-index__top
-         div.g-page-index__scroll > ul.g-page-index__list …         (el marcador no se pinta en el panel)
+         div.g-page-index__scroll > ul.g-page-index__list …         (sin __marker: el del panel es el ::before del enlace
+                                                                     actual, solo CSS; contrato «Plegada» 6)
 
    PI-H2 (curva del marcador): el calco usa top .25s cubic-bezier(0,1,.5,1); aquí translate con --g-duration-slow (240 ms) y
    --g-ease-out. Medido: las dos llegan al 90 % del viaje a 89 y 87 ms; solo difieren en los primeros 50 ms (el calco salta
@@ -475,6 +476,31 @@
   max-block-size: none;
   padding: var(--g-space-2) var(--g-space-4);
 }
+/* Marcador del panel (contrato «Plegada» 6: «el marcador sí se pinta»; 1.4.1: text frente a text-muted da 2,33:1 y el
+   color solo no basta). Sin nodo nuevo ni JS: el mismo 2 × 18 en accent-text es un pseudo-elemento del enlace actual. Los
+   enlaces del panel se alargan hacia el relleno inicial (margen negativo = relleno, así el texto no se mueve) hasta
+   space × 1 del borde, en los dos niveles: el marcador queda en la misma x para h2 y h3, como sobre la línea guía de la
+   columna, y no lo recorta el `overflow: hidden` de la elipsis. No viaja (el panel se abre a petición; contrato 6) */
+.g-page-index__drop .g-page-index__link {
+  --_lead: calc(var(--g-space-4) - var(--g-space-1));
+  position: relative;
+  margin-inline-start: calc(-1 * var(--_lead));
+  padding-inline-start: var(--_lead);
+}
+.g-page-index__drop .g-page-index__sub .g-page-index__link {
+  --_lead: calc(var(--g-space-4) * 2 - var(--g-space-1));
+}
+.g-page-index__drop .g-page-index__link[aria-current="location"]::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: var(--g-space-1);
+  inline-size: calc(var(--g-border-width) * 2);
+  block-size: calc(var(--g-space-1) * 4.5);
+  margin-block: auto;
+  border-radius: var(--g-radius-xs);
+  background-color: var(--g-color-accent-text);
+}
 
 /* ---------- Táctil: botón y filas ≥ 44 (las filas, por interlineado: la elipsis sigue funcionando) ---------- */
 @media (pointer: coarse) {
@@ -499,7 +525,8 @@
   .g-page-index__body {
     border-inline-start-color: CanvasText;
   }
-  .g-page-index__marker {
+  .g-page-index__marker,
+  .g-page-index__drop .g-page-index__link[aria-current="location"]::before {
     background-color: Highlight;
     forced-color-adjust: none;
   }
