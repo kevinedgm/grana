@@ -80,6 +80,6 @@
     "[Grana GFormFold] for o from con un id que no existe al abrir"
   ],
   "pending": [
-    "Playwright (tres motores) según §15 «Verificación · Playwright» (bruno); lector de pantalla real (role=group con nombre al recibir el foco, anuncio tras la llegada); táctil y zoom 200 % reales; README (mora-docs)"
+    "Lector de pantalla real (role=group con nombre al recibir el foco, anuncio tras la llegada); táctil y zoom 200 % reales"
   ]
 }

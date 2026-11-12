@@ -9,7 +9,7 @@
 // preferencias media.navigator.streams.fake (getUserMedia real, tono); WebKit de Playwright no tiene dispositivo falso
 // ni forma de conceder el permiso: se sustituye getUserMedia por un MediaStream real de un OscillatorNode
 // (createMediaStreamDestination), así Grana mide un nivel real con su AnalyserNode y su AudioWorklet (documentado).
-import { test, expect, chromium, firefox } from './vue-local.mjs'
+import { test, expect, chromium, firefox, routeVueLocal } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 const SELF = `${PAGE}?speech=self#sec-speech`
@@ -267,10 +267,12 @@ test.describe('captura de voz · micrófono real del motor', () => {
     if (browserName === 'chromium') {
       browser = await chromium.launch({ args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream', '--autoplay-policy=no-user-gesture-required'] })
       ctx = await browser.newContext({ baseURL: test.info().project.use.baseURL, permissions: ['microphone'] })
+      await routeVueLocal(ctx) // navegador propio: no pasa por el fixture de vue-local
       p = await ctx.newPage()
     } else if (browserName === 'firefox') {
       browser = await firefox.launch({ firefoxUserPrefs: { 'media.navigator.streams.fake': true, 'media.navigator.permission.disabled': true, 'media.autoplay.default': 0 } })
       ctx = await browser.newContext({ baseURL: test.info().project.use.baseURL })
+      await routeVueLocal(ctx) // navegador propio: no pasa por el fixture de vue-local
       p = await ctx.newPage()
     } else {
       // WebKit: sin dispositivo falso; getUserMedia devuelve el MediaStream real de un oscilador (tono de 440 Hz)

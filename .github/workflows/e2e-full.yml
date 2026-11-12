@@ -127,7 +127,7 @@ jobs:
           if [ -n "$SPECS" ]; then files="$SPECS"; else files="$(ls tests/*.spec.mjs | grep -v -- '-perf\.spec\.mjs')"; fi
           # shellcheck disable=SC2086
           npx playwright test --project=${{ matrix.browser }} --workers=2 --retries=2 \
-            --shard=${{ matrix.shard }}/4 --reporter=list,html --trace=retain-on-failure $files
+            --shard=${{ matrix.shard }}/4 --reporter=list,html --trace=on-first-retry $files
 
       # Umbrales de tiempo dependientes de la máquina (WebKit < 200 ms, etc.): informativo.
       - name: Playwright (${{ matrix.browser }}, perf con un worker, informativo)
