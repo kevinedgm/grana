@@ -35,11 +35,12 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
 
-      - name: Pruebas (vitest de @grana/vue y @grana/cli)
-        run: npm test
-
+      # El build va antes: las pruebas de @grana/blocks importan el dist/ de @grana/vue.
       - name: Build (vite build de todas las entradas + fuentes)
         run: npm run build
+
+      - name: Pruebas (vitest de @grana/vue, @grana/cli y @grana/blocks)
+        run: npm test
 
       - name: Vigilante de iconos (Lucide es la única fuente)
         run: node packages/vue/scripts/check-icons.mjs
