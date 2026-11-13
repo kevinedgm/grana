@@ -251,11 +251,18 @@ async function micCheck(page) {
     pushed: window.spAdapter.log.pushed.slice(0, 3),
     capture: window.speech.state.capture
   }))
-  // pausa = pistas detenidas
-  await page.locator('.pg-bar .g-speech-pill .g-speech-pill__toggle').click()
-  await page.waitForFunction(() => window.speech.state.status === 'paused')
-  await page.evaluate(() => window.speech.discard())
   return r
+}
+// Pausa desde la píldora = pistas detenidas. Va aparte de la medida para que, si la captura no llegó a estar viva, el fallo
+// diga qué estado había (antes solo se veía un tiempo agotado esperando «paused»)
+async function micPause(page) {
+  const btn = page.locator('.pg-bar .g-speech-pill .g-speech-pill__toggle')
+  const before = await page.evaluate(() => ({ status: window.speech.state.status, capture: window.speech.state.capture, error: window.speech.state.error && window.speech.state.error.code }))
+  await btn.click()
+  const ok = await page.waitForFunction(() => window.speech.state.status === 'paused', null, { timeout: 10000 }).then(() => true, () => false)
+  const after = await page.evaluate(() => ({ status: window.speech.state.status, capture: window.speech.state.capture, error: window.speech.state.error && window.speech.state.error.code }))
+  await page.evaluate(() => window.speech.discard())
+  return { ok, before, after, label: await btn.getAttribute('aria-label').catch(() => null) }
 }
 
 test.describe('captura de voz · micrófono real del motor', () => {
@@ -312,6 +319,8 @@ test.describe('captura de voz · micrófono real del motor', () => {
     expect(r.pushed.length).toBeGreaterThan(0)
     expect(r.pushed[0]).toMatchObject({ format: 'pcm', size: 4800 })
     expect(r.pushed[0].t1 - r.pushed[0].t0).toBe(300)
+    const pz = await micPause(p)
+    expect(pz.ok, `la píldora pausa: ${JSON.stringify(pz)}`).toBe(true)
     expect(errs).toEqual([])
     if (browser) await browser.close()
   })
