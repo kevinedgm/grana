@@ -10,7 +10,8 @@ Los números `#NNN` remiten a [`DECISIONS.md`](DECISIONS.md), el registro de dec
 
 ### Añadido
 
-- **`@grana/cli`: comando `grana init`** (#1078; contrato `design/contracts/cli-init.md`). `npx @grana/cli init` en la raíz de un proyecto Vue 3.5+: detecta el gestor (npm, pnpm, yarn o bun), instala `@grana/vue` (y `vue` si falta) y `@grana/cli` como dependencia de desarrollo, escribe `grana.config.json` (`--brand`) y, fuera de Vite, `tokens.css`; no edita el código de la aplicación, imprime las líneas a pegar. Código de salida nuevo `3` (solo `init`): la instalación falló y no se escribió ningún archivo. Es una adición: corresponde a una versión menor de `@grana/cli`.
+- **`@grana/cli`: comando `grana init`** (#1078; contrato `design/contracts/cli-init.md`). `npx grana init` (o su equivalente exacto `npx @grana/cli init`) en la raíz de un proyecto Vue 3.5+: detecta el gestor (npm, pnpm, yarn o bun), instala `@grana/vue` (y `vue` si falta) y `@grana/cli` como dependencia de desarrollo, escribe `grana.config.json` (`--brand`) y, fuera de Vite, `tokens.css`; no edita el código de la aplicación, imprime las líneas a pegar. Código de salida nuevo `3` (solo `init`): la instalación falló y no se escribió ningún archivo. Es una adición: corresponde a una versión menor de `@grana/cli`.
+- **Paquete sin ámbito `grana`** (#1079; `packages/grana/`, apartado I9 del contrato): envoltorio sin lógica de `@grana/cli` para que `npx grana init` funcione; mismo código, opciones, salida y códigos de salida. `@grana/cli` gana la ruta interna `./main` (fuera de semver). Se publica con el mismo número que `@grana/cli`, siempre después de él.
 
 ## [1.0.0] - 2026-11-09
 

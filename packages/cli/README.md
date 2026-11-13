@@ -5,7 +5,7 @@ Genera el `tokens.css` de tu proyecto a partir de una configuración corta y **r
 **Estado: `1.0.0`** (semver: los comandos `theme`, `check` e `init`, los códigos de salida, las claves de configuración, los nombres de los tokens emitidos y los `code` de los diagnósticos son API pública; ver `api.md` «Estabilidad y versiones»). Las referencias `docs/contract/…` y `§n` de este documento remiten al [contrato de tokens](https://github.com/kevinedgm/grana/blob/main/docs/contract/tokens.md) del repositorio; la visión general de Grana está en el [README principal](https://github.com/kevinedgm/grana#readme).
 
 ```bash
-npx @grana/cli init                       # instala Grana en un proyecto existente (ver abajo)
+npx grana init                            # instala Grana en un proyecto existente (ver abajo)
 npx @grana/cli theme grana.config.json    # escribe tokens.css
 npx @grana/cli check grana.config.json    # solo valida
 ```
@@ -15,12 +15,14 @@ npx @grana/cli check grana.config.json    # solo valida
 En la raíz de un proyecto **que ya existe** (con `package.json`), una orden instala Grana, deja el tema configurado e imprime lo que falta:
 
 ```bash
-npx @grana/cli init                  # npm
-pnpm dlx @grana/cli init             # pnpm
-yarn dlx @grana/cli init             # yarn ≥ 2
-bunx @grana/cli init                 # bun
-npx @grana/cli init --brand '#7A1F5C'   # con el color de tu marca
+npx grana init                  # npm
+pnpm dlx grana init             # pnpm
+yarn dlx grana init             # yarn ≥ 2
+bunx grana init                 # bun
+npx grana init --brand '#7A1F5C'   # con el color de tu marca
 ```
+
+`grana` es un paquete sin ámbito que envuelve a `@grana/cli`: mismo código, mismas opciones, misma salida y mismos códigos de salida. `npx @grana/cli init` (y sus variantes con `pnpm dlx`, `yarn dlx` y `bunx`) es su equivalente exacto y la forma de fijar una versión, por ejemplo `npx @grana/cli@1 init`.
 
 `init` **no crea proyectos** (para eso, `npm create vue@latest` o `npm create vite@latest`) y **no edita el código de tu aplicación**: ni `main.*`, ni `vite.config.*`, ni `nuxt.config.*`, ni `package.json` (este lo cambia tu gestor al instalar). Imprime las líneas exactas con el archivo donde van y tú las pegas. No pregunta nada, así que sirve igual en CI. Si el tema no es válido, para antes de instalar.
 
@@ -72,9 +74,9 @@ Nunca borra archivos ni escribe fuera del directorio actual.
 
 **Códigos de salida de `init`:** `0` correcto (también con `--no-install` y `--dry-run`) · `1` el tema rompe un mínimo de accesibilidad · `2` uso o precondición (opción inválida, sin `package.json`, raíz de *workspace*, Vue incompatible, gestor desconocido o ambiguo, configuración inválida, choque de archivos sin `--force`) · `3` la instalación falló o el gestor no está en el sistema (solo `init` lo emite). Con 1 y 2 no se instala ni se escribe nada; con 3 no se escribe ningún archivo de Grana, pero el gestor puede haber dejado cambios en `package.json` y en el bloqueo, y la salida da la orden para reintentar a mano.
 
-**Hoy** `@grana/vue` y `@grana/cli` aún no están en el registro de npm, así que `npx @grana/cli init` y la instalación que lanza no pueden resolverse todavía: darían el código 3 sin escribir archivos. Hasta la publicación, instala desde el repositorio (ver el [README principal](https://github.com/kevinedgm/grana#probarlo-en-este-repositorio)).
+**Hoy** `@grana/vue`, `@grana/cli` y `grana` aún no están en el registro de npm, así que `npx grana init` (o `npx @grana/cli init`) y la instalación que lanza no pueden resolverse todavía: darían el código 3 sin escribir archivos. Se publican juntos y con el mismo número: primero `@grana/cli` y después `grana`. Hasta la publicación, instala desde el repositorio (ver el [README principal](https://github.com/kevinedgm/grana#probarlo-en-este-repositorio)).
 
-**Verificación.** `medido` a mano el 2026-11-13: en un proyecto Vite + Vue 3.5 limpio, `grana init --brand '#7A1F5C' --no-install` (ejecutado con el tarball de `@grana/cli`) escribió solo `grana.config.json`, detectó npm por `package-lock.json` y el modo `vite`, e imprimió las órdenes de instalación y las líneas para `vite.config.js` y `src/main.js`; tras instalar los dos tarballs y pegarlas, `vite build` pasó y en el navegador `<g-btn variant="soft">` se pintó con `--g-color-brand: #7A1F5C`. **Sin verificar:** la instalación desde el registro, pnpm, yarn y bun reales, Windows y Nuxt.
+**Verificación.** `medido` a mano el 2026-11-13: en un proyecto Vite + Vue 3.5 limpio, `grana init --brand '#7A1F5C' --no-install` (ejecutado con el tarball de `@grana/cli`) escribió solo `grana.config.json`, detectó npm por `package-lock.json` y el modo `vite`, e imprimió las órdenes de instalación y las líneas para `vite.config.js` y `src/main.js`; tras instalar los dos tarballs y pegarlas, `vite build` pasó y en el navegador `<g-btn variant="soft">` se pintó con `--g-color-brand: #7A1F5C`. `prueba` el 2026-11-13: 22 pruebas de paridad de salida estándar, de error y código entre los bin de `grana` y de `@grana/cli`; con los dos tarballs instalados en un proyecto vacío, `npx grana --version` dio `1.0.0` y `npx grana init --dry-run` imprimió el plan con código 0 sin escribir nada. **Sin verificar:** la descarga real de `grana` desde el registro, la instalación desde el registro, pnpm, yarn y bun reales, Windows y Nuxt.
 
 Fuentes: contrato `design/contracts/cli-init.md` y decisión #1078 de `DECISIONS.md`; la ayuda de `grana --help` y `packages/cli/src/init.js` mandan si algún texto difiere.
 

@@ -61,10 +61,12 @@ Grana sigue [Versionado Semántico](https://semver.org/lang/es/) desde la `1.0.0
 **Vía rápida.** En la raíz de un proyecto Vue que ya existe, una orden instala Grana, configura el tema e imprime las líneas que pegar en tu código (no edita tu código):
 
 ```bash
-npx @grana/cli init --brand '#7A1F5C'
+npx grana init --brand '#7A1F5C'
 ```
 
-Detecta tu gestor (npm, pnpm, yarn o bun) y valida el tema antes de instalar. Opciones, qué escribe y códigos de salida están en el [README de `@grana/cli`](packages/cli/README.md#instalar-grana-en-un-proyecto-init). Como los paquetes aún no están publicados (ver arriba), hoy esta orden no puede resolverlos en npm.
+`grana` es un paquete sin ámbito que envuelve a `@grana/cli` (mismo código, mismos códigos de salida); `npx @grana/cli init --brand '#7A1F5C'` es su equivalente exacto y la forma de fijar una versión (`npx @grana/cli@1 init`). `pnpm dlx grana init`, `yarn dlx grana init` y `bunx grana init` hacen lo mismo con tu gestor.
+
+Detecta tu gestor (npm, pnpm, yarn o bun) y valida el tema antes de instalar. Opciones, qué escribe y códigos de salida están en el [README de `@grana/cli`](packages/cli/README.md#instalar-grana-en-un-proyecto-init). Como los paquetes aún no están publicados (ver arriba), hoy esta orden no puede resolverlos en npm; se publican juntos, primero `@grana/cli` y luego `grana`.
 
 **A mano:**
 
