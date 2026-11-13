@@ -58,6 +58,18 @@ Grana follows [Semantic Versioning](https://semver.org/) from `1.0.0` (decision 
 
 ## Installation
 
+**Quick path.** In the root of an existing Vue project, one command installs Grana, sets up the theme and prints the lines to paste into your code (it does not edit your code):
+
+```bash
+npx grana init --brand '#7A1F5C'
+```
+
+`grana` is an unscoped package that wraps `@grana/cli` (same code, same exit codes); `npx @grana/cli init --brand '#7A1F5C'` is its exact equivalent and the way to pin a version (`npx @grana/cli@1 init`). `pnpm dlx grana init`, `yarn dlx grana init` and `bunx grana init` do the same with your package manager.
+
+It detects your package manager (npm, pnpm, yarn or bun) and validates the theme before installing. Options, what it writes and exit codes are in the [`@grana/cli` README](packages/cli/README.md#instalar-grana-en-un-proyecto-init). Since the packages are not published yet (see above), today this command cannot resolve them on npm; they are published together, `@grana/cli` first and then `grana`.
+
+**By hand:**
+
 ```bash
 npm i @grana/vue
 ```
@@ -191,6 +203,29 @@ Data types are imported from the entry they belong to. The correct usage and 15 
 
 - Without `strictTemplates` (a `vueCompilerOptions` option of `vue-tsc`) template checking is lax: a missing required prop is not reported. Enable it in your project if you want that warning.
 - The option and item types (`ComboboxOption`, groups, entries…) accept **your application's own fields** (they carry an index signature) so you keep them and receive them in slots; for that reason a misspelled field name is not flagged as an error.
+
+### For AI agents
+
+The package ships a **machine-readable catalog** so an agent (Claude Code, Cursor, Copilot…) can look up what exists in the installed version instead of inventing props:
+
+- `@grana/vue/catalog.json`: the pieces with their props (type and values), `v-model`, events, slots, methods and `labels` keys, plus tokens, icons and utility classes.
+- `@grana/vue/llms.txt`: the usage rules for agents and an index of pieces.
+
+Both are **generated in `npm run build` from the `meta.json` files**, the entries and the same type function that writes the `.d.ts`; they are not written by hand, so they cannot differ from the API. Measured on 2026-11-13: `catalog.json` 453,363 B (80,096 B gzip) and `llms.txt` 16,946 B (5,775 B gzip); 24 entries, 90 pieces (87 `stable`, 3 `draft`), 1066 props, 174 events, 247 slots, 177 tokens, 73 icons and 229 classes.
+
+They are queried without a network with `@grana/cli`, which reads the `@grana/vue` installed in your project:
+
+```bash
+npx grana catalog                    # pieces by entry
+npx grana catalog GBadge             # props, v-model, events, slots, methods and labels of a piece
+npx grana catalog --find tabla       # search by text
+npx grana catalog --json             # the catalog (or the query) as JSON
+npx grana catalog --agents           # prints the block for AGENTS.md or CLAUDE.md
+```
+
+`--agents` only prints: it **does not edit any file**; you paste it yourself. Exit codes: `0` answer (an empty filtered list too) · `1` the piece or the search does not exist · `2` invalid usage, `@grana/vue` missing or without a catalog. All options are in the [`@grana/cli` README](packages/cli/README.md#consultar-el-catálogo-catalog); the schema is in [`design/contracts/catalog.md`](design/contracts/catalog.md).
+
+**Verification.** `measured` by hand on 2026-11-13, with the three tarballs installed in an empty project: `npx grana catalog GBadge` gave the 9 props with types and values, `GNope` gave code 1 and `--agents` printed the block without touching the directory. **Not verified:** resolution with Yarn PnP and strict pnpm, and whether real agents query the catalog and stop inventing props.
 
 ### Icons
 
