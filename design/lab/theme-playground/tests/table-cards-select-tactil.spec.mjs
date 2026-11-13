@@ -35,6 +35,9 @@ async function measure(page) {
 test.describe('GTable cards · select de orden', () => {
   test.describe('puntero grueso', () => {
     test.use({ hasTouch: true, isMobile: true })
+    // Decisión del usuario (2026-11-13): Playwright no emula isMobile ni el puntero grueso en Firefox (setViewportSize se
+    // cuelga); el caso queda cubierto en Chromium y WebKit, como en time-field.spec.
+    test.skip(({ browserName }) => browserName === 'firefox', 'Firefox: sin isMobile ni puntero grueso en Playwright')
     test('mide >= 44px', async ({ page }) => {
       const m = await measure(page)
       expect(m.coarse).toBe(true)
