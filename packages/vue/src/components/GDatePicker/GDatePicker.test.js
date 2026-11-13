@@ -1170,6 +1170,28 @@ describe('GDatePicker · lectura del día (AV-C1, #952)', () => {
     await flush()
   })
 
+  it('al terminar de cargar una fuente se vuelve a medir (el respaldo ancho no deja la clase puesta); al desmontar se deja de escuchar', async () => {
+    const had = Object.getOwnPropertyDescriptor(document, 'fonts')
+    const fonts = new EventTarget()
+    Object.defineProperty(document, 'fonts', { value: fonts, configurable: true })
+    const off = vi.spyOn(fonts, 'removeEventListener')
+    try {
+      const w = inline({ modelValue: '2026-10-20' }, { slots: price(true) })
+      await flush()
+      expect(w.classes()).toContain('is-day-content-hidden')
+      // Llega la fuente web: el dato mide lo mismo que las demás celdas sin que la caja cambie (el observador no salta)
+      w.find('.g-datepicker__day[data-date="2026-10-20"] .p').element.dataset.w = '29'
+      fonts.dispatchEvent(new Event('loadingdone'))
+      await flush()
+      expect(w.classes()).not.toContain('is-day-content-hidden')
+      w.unmount()
+      expect(off).toHaveBeenCalledWith('loadingdone', expect.any(Function))
+    } finally {
+      if (had) Object.defineProperty(document, 'fonts', had)
+      else delete document.fonts
+    }
+  })
+
   it('rendimiento: un padre con props en línea que re-renderiza no vuelve a medir', async () => {
     const tick = ref(0)
     const Parent = defineComponent({
