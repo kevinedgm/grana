@@ -57,7 +57,12 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: dist
-          path: packages/vue/dist
+          # Los dos dist: las pruebas de los blocks sirven packages/blocks/dist; con solo el de
+          # @grana/vue, sus bancos no cargaban y fallaban enteros (139 pruebas en chromium 2/4).
+          # Con dos rutas, la raíz del artefacto es packages/.
+          path: |
+            packages/vue/dist
+            packages/blocks/dist
           retention-days: 1
           if-no-files-found: error
 
@@ -96,7 +101,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: dist
-          path: packages/vue/dist
+          path: packages
 
       - name: Instalar dependencias del laboratorio
         run: npm ci
