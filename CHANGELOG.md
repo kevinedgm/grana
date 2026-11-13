@@ -6,6 +6,12 @@ El formato sigue [Keep a Changelog 1.1.0](https://keepachangelog.com/es-ES/1.1.0
 
 Los números `#NNN` remiten a [`DECISIONS.md`](DECISIONS.md), el registro de decisiones con su porqué.
 
+## [Sin publicar]
+
+### Añadido
+
+- **`@grana/cli`: comando `grana init`** (#1078; contrato `design/contracts/cli-init.md`). `npx @grana/cli init` en la raíz de un proyecto Vue 3.5+: detecta el gestor (npm, pnpm, yarn o bun), instala `@grana/vue` (y `vue` si falta) y `@grana/cli` como dependencia de desarrollo, escribe `grana.config.json` (`--brand`) y, fuera de Vite, `tokens.css`; no edita el código de la aplicación, imprime las líneas a pegar. Código de salida nuevo `3` (solo `init`): la instalación falló y no se escribió ningún archivo. Es una adición: corresponde a una versión menor de `@grana/cli`.
+
 ## [1.0.0] - 2026-11-09
 
 Primera versión estable de `@grana/vue` y `@grana/cli` (decisión #1076). La `0.1.0-beta.0` nunca se publicó: todo lo que lleva `"since"` en los `meta.json` pasa a `"1.0.0"`.
