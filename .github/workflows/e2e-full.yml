@@ -124,6 +124,17 @@ jobs:
         if: steps.pw-cache.outputs.cache-hit == 'true'
         run: npx playwright install-deps ${{ matrix.browser }}
 
+      # Firefox no pone en marcha un AudioContext sin dispositivo de audio (el ejecutor no trae ninguno) y la
+      # prueba de micrófono real de speech.spec se interrumpe sin fotogramas. Un sumidero nulo de PulseAudio basta.
+      - name: Dispositivo de audio simulado (Firefox)
+        if: matrix.browser == 'firefox'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq pulseaudio
+          pulseaudio -D --exit-idle-time=-1
+          pactl load-module module-null-sink sink_name=grana_null
+          pactl set-default-sink grana_null
+
       # Los perf van aparte y con un solo worker (speech-f2-perf lo exige, #264).
       - name: Playwright (${{ matrix.browser }}, todas las pruebas salvo perf)
         env:
