@@ -53,6 +53,20 @@ const options: ComboboxOption[] = [{ value: 'p1', label: 'María' }]
 
 Límites: sin `strictTemplates` (de `vue-tsc`) no se avisa de una prop obligatoria ausente, y los tipos de opciones aceptan campos propios de tu aplicación (no se marca un nombre de campo mal escrito). Detalle en el [README del repositorio](https://github.com/kevinedgm/grana#typescript).
 
+## Para agentes de IA
+
+El paquete incluye `@grana/vue/catalog.json` (piezas con props, `v-model`, eventos, slots, métodos, tokens, iconos y clases) y `@grana/vue/llms.txt` (reglas para agentes e índice). Se generan en el build desde los `meta.json`; no se escriben a mano. Medido el 2026-11-13: 453 363 B (80 096 B gzip) y 16 946 B (5 775 B gzip).
+
+Se consultan sin red con `@grana/cli`:
+
+```bash
+npx grana catalog GBadge       # una pieza: props con tipos y valores, eventos, slots
+npx grana catalog --find tabla # buscar (código 1 si no existe)
+npx grana catalog --agents     # imprime el bloque para AGENTS.md o CLAUDE.md; no edita archivos
+```
+
+Detalle, opciones y códigos de salida (`0`, `1`, `2`) en el [README del repositorio](https://github.com/kevinedgm/grana#para-agentes-de-ia) y en el de [`@grana/cli`](https://github.com/kevinedgm/grana/blob/main/packages/cli/README.md#consultar-el-catálogo-catalog).
+
 ## Entradas del paquete
 
 | Entrada | Contenido |
@@ -60,6 +74,7 @@ Límites: sin `strictTemplates` (de `vue-tsc`) no se avisa de una prop obligator
 | `@grana/vue` | Los componentes principales, `createToaster`, `useToast`, `createIcons`, `useFormField` |
 | `@grana/vue/style.css` | La hoja de CSS única (todos los componentes, las entradas propias y el tema por defecto) |
 | `@grana/vue/fonts.css` | Fuente por defecto (opcional) |
+| `@grana/vue/catalog.json` · `@grana/vue/llms.txt` | Catálogo y reglas para agentes de IA (generados en el build) |
 | `@grana/vue/speech` | Captura de voz: `createSpeech`, `GSpeechHost`, `GTranscript`… |
 | `@grana/vue/status` | Isla de estado: `createStatus`, `GStatusIsland`… |
 | `@grana/vue/combobox` | `GCombobox` |

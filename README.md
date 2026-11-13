@@ -204,6 +204,29 @@ Los tipos de datos se importan de la entrada a la que pertenecen. El uso correct
 - Sin `strictTemplates` (opción `vueCompilerOptions` de `vue-tsc`) la comprobación de plantillas es laxa: no se avisa de una prop obligatoria ausente. Actívalo en tu proyecto si quieres ese aviso.
 - Los tipos de opciones y elementos (`ComboboxOption`, grupos, entradas…) aceptan **campos propios** de tu aplicación (llevan una firma de índice) para que los conserves y los recibas en los slots; por eso un nombre de campo mal escrito no se marca como error.
 
+### Para agentes de IA
+
+El paquete trae un **catálogo legible por máquinas** para que un agente (Claude Code, Cursor, Copilot…) consulte lo que existe en la versión instalada en vez de inventar props:
+
+- `@grana/vue/catalog.json`: las piezas con sus props (tipo y valores), `v-model`, eventos, slots, métodos y claves de `labels`, más tokens, iconos y clases utilitarias.
+- `@grana/vue/llms.txt`: las reglas de uso para agentes y un índice de piezas.
+
+Los dos se **generan en `npm run build` desde los `meta.json`**, las entradas y la misma función de tipos que escribe los `.d.ts`; no se escriben a mano, así que no pueden diferir de la API. Medido el 2026-11-13: `catalog.json` 453 363 B (80 096 B gzip) y `llms.txt` 16 946 B (5 775 B gzip); 24 entradas, 90 piezas (87 `stable`, 3 `draft`), 1066 props, 174 eventos, 247 slots, 177 tokens, 73 iconos y 229 clases.
+
+Se consultan sin red con `@grana/cli`, que lee el `@grana/vue` instalado en tu proyecto:
+
+```bash
+npx grana catalog                    # piezas por entrada
+npx grana catalog GBadge             # props, v-model, eventos, slots, métodos y labels de una pieza
+npx grana catalog --find tabla       # buscar por texto
+npx grana catalog --json             # el catálogo (o la consulta) en JSON
+npx grana catalog --agents           # imprime el bloque para AGENTS.md o CLAUDE.md
+```
+
+`--agents` solo imprime: **no edita ningún archivo**; lo pegas tú. Códigos de salida: `0` respuesta (también una lista filtrada vacía) · `1` la pieza o la búsqueda no existe · `2` uso inválido, `@grana/vue` ausente o sin catálogo. Todas las opciones están en el [README de `@grana/cli`](packages/cli/README.md#consultar-el-catálogo-catalog); el esquema, en [`design/contracts/catalog.md`](design/contracts/catalog.md).
+
+**Verificación.** `medido` a mano el 2026-11-13, con los tres tarballs instalados en un proyecto vacío: `npx grana catalog GBadge` dio las 9 props con tipos y valores, `GNope` dio código 1 y `--agents` imprimió el bloque sin tocar el directorio. **Sin verificar:** la resolución con Yarn PnP y con pnpm estricto, y que agentes reales consulten el catálogo y dejen de inventar props.
+
 ### Iconos
 
 Grana usa **solo [Lucide](https://lucide.dev)** (licencia ISC) y la lista que trae la librería es API pública. `GIcon` dibuja esa lista; si tu aplicación necesita otros iconos de Lucide, los registra **por aplicación** con `createIcons` y cadenas de `lucide-static` (validadas por forma, sin `DOMParser`). Lo que no es Lucide (logotipos, ilustraciones) va por slot. Contrato: [`docs/contract/icons.md`](docs/contract/icons.md).

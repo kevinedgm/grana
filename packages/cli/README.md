@@ -2,7 +2,7 @@
 
 Genera el `tokens.css` de tu proyecto a partir de una configuración corta y **rechaza temas que rompan los mínimos de accesibilidad**, explicando cuál y por qué. Sin dependencias; Node ≥ 22.
 
-**Estado: `1.0.0`** (semver: los comandos `theme`, `check` e `init`, los códigos de salida, las claves de configuración, los nombres de los tokens emitidos y los `code` de los diagnósticos son API pública; ver `api.md` «Estabilidad y versiones»). Las referencias `docs/contract/…` y `§n` de este documento remiten al [contrato de tokens](https://github.com/kevinedgm/grana/blob/main/docs/contract/tokens.md) del repositorio; la visión general de Grana está en el [README principal](https://github.com/kevinedgm/grana#readme).
+**Estado: `1.0.0`** (semver: los comandos `theme`, `check`, `init` y `catalog`, los códigos de salida, las claves de configuración, los nombres de los tokens emitidos y los `code` de los diagnósticos son API pública; ver `api.md` «Estabilidad y versiones»). Las referencias `docs/contract/…` y `§n` de este documento remiten al [contrato de tokens](https://github.com/kevinedgm/grana/blob/main/docs/contract/tokens.md) del repositorio; la visión general de Grana está en el [README principal](https://github.com/kevinedgm/grana#readme).
 
 ```bash
 npx grana init                            # instala Grana en un proyecto existente (ver abajo)
@@ -80,6 +80,39 @@ Nunca borra archivos ni escribe fuera del directorio actual.
 
 Fuentes: contrato `design/contracts/cli-init.md` y decisión #1078 de `DECISIONS.md`; la ayuda de `grana --help` y `packages/cli/src/init.js` mandan si algún texto difiere.
 
+## Consultar el catálogo (`catalog`)
+
+`grana catalog` lee el **catálogo del `@grana/vue` instalado** en tu proyecto (`@grana/vue/catalog.json`, generado en el build de `@grana/vue` desde sus `meta.json`) y lo muestra. No usa la red, no descarga nada y no escribe archivos. Resuelve `@grana/vue` desde el directorio actual. Sirve a personas y a agentes de IA: así no inventan piezas, props ni valores que la versión instalada no tiene.
+
+```bash
+npx grana catalog                        # piezas por entrada
+npx grana catalog GBadge                 # una pieza: props (tipo, valores, por defecto), v-model, eventos, slots, métodos, labels
+npx grana catalog --find tabla           # buscar por texto
+npx grana catalog --entry combobox       # solo las piezas de una entrada
+npx grana catalog --status stable        # solo las de un estado
+npx grana catalog --tokens               # tokens (también --icons y --utilities)
+npx grana catalog --json                 # el catálogo completo en JSON
+npx grana catalog --agents               # bloque para AGENTS.md o CLAUDE.md
+```
+
+| Opción | Qué hace |
+| --- | --- |
+| `<pieza>` | Detalle de una pieza. Acepta nombre, alias o etiqueta (`GBtn`, `g-btn`). Una sola; no se combina con filtros ni secciones. |
+| `--find <texto>` | Filtra las piezas por texto. Sin coincidencias, código `1` (con sugerencias «¿Quisiste decir?»). |
+| `--entry <ruta>` | Filtra por entrada: `@grana/vue/combobox` o solo `combobox`. Una entrada que no existe da código `2` y lista las válidas. |
+| `--status stable\|candidate\|draft` | Filtra por estado. |
+| `--tokens`, `--icons`, `--utilities` | Muestra esa sección en lugar de las piezas; una a la vez y sin filtros. |
+| `--json` | Salida JSON: el catálogo entero, la lista filtrada, la pieza o la sección. |
+| `--agents` | Imprime el bloque de reglas para `AGENTS.md` o `CLAUDE.md`. **No edita ningún archivo**: lo pegas tú. Va solo (sin pieza, sección, filtros ni `--json`). |
+
+`--find`, `--entry` y `--status` se pueden combinar entre sí. Con `--find` o con una pieza que no existe, el error sale por la salida de errores.
+
+**Códigos de salida de `catalog`:** `0` respuesta (también una lista filtrada vacía por `--entry` o `--status`) · `1` la pieza o la búsqueda no existe · `2` uso inválido (opción desconocida, valor ausente, combinación no admitida), `@grana/vue` ausente, sin catálogo (llega con `@grana/vue` 1.0.0), con el JSON ilegible o con un esquema más nuevo que este CLI. `catalog` nunca emite `3`.
+
+**Verificación.** `medido` a mano el 2026-11-13 con los tres tarballs (`@grana/vue`, `@grana/cli`, `grana`) instalados en un proyecto vacío: `npx grana catalog GBadge` dio las 9 props con tipos y valores, `npx grana catalog GNope` dio código `1`, y `--agents` imprimió el bloque sin tocar el directorio. **Sin verificar:** la resolución con Yarn PnP y con pnpm estricto, y que agentes reales consulten el catálogo.
+
+Fuentes: contrato `design/contracts/catalog.md` y decisión #1080 de `DECISIONS.md`; la ayuda de `grana --help` y `packages/cli/src/catalog.js` mandan si algún texto difiere.
+
 ## Configuración
 
 Todas las claves son opcionales (contrato en `docs/contract/tokens.md` §1); una clave desconocida es un error.
@@ -155,9 +188,10 @@ Todo token de color que cambies en el claro (por ejemplo `overrides` de `--g-col
 | `grana theme <config> [--out archivo] [--stdout] [--doc[=archivo]]` | Valida y escribe `tokens.css` (sin capa, gana siempre). Si algo falla, no escribe nada. |
 | `grana check <config> [--json]` | Solo valida; con `--json`, informe para CI. |
 | `grana init [--pm …] [--brand <color>] [--theme auto\|vite\|file] [--out archivo] [--no-install] [--dry-run] [--force]` | Instala Grana en un proyecto existente, valida el tema, escribe `grana.config.json` e imprime las líneas que añadir a tu código ([detalle](#instalar-grana-en-un-proyecto-init)). |
+| `grana catalog [<pieza>] [--find <texto>] [--entry <ruta>] [--status …] [--tokens\|--icons\|--utilities] [--json] [--agents]` | Consulta el catálogo del `@grana/vue` instalado, sin red ([detalle](#consultar-el-catálogo-catalog)). |
 | `--help`, `--version` | Ayuda y versión. |
 
-**Códigos de salida:** `0` correcto (los avisos no cuentan) · `1` el tema rompe un mínimo · `2` uso o configuración inválidos · `3` la instalación de `init` falló (solo `init`).
+**Códigos de salida:** `0` correcto (los avisos no cuentan) · `1` el tema rompe un mínimo · `2` uso o configuración inválidos · `3` la instalación de `init` falló (solo `init`). En `catalog`, `1` es que la pieza o la búsqueda no existe y `2` que `@grana/vue` falta o no trae catálogo.
 
 ## Qué valida (contrato §7 y §12)
 
