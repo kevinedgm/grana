@@ -61,10 +61,10 @@
       "purpose": "Hijos directos en orden del DOM: campos, contenido genérico, avatar, GSummary, tablas y otro GAdaptiveLayout (grupo); las pistas van en el propio hijo"
     }
   ],
-  "exposes": [
+  "methods": [
     {
       "name": "refresh",
-      "type": "() => void",
+      "signature": "refresh(): void",
       "purpose": "Programa una nueva medida en el siguiente cuadro (cambios que el navegador no notifica: CSSOM, adoptedStyleSheets)"
     }
   ],

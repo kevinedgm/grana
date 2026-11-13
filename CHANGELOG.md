@@ -6,6 +6,14 @@ El formato sigue [Keep a Changelog 1.1.0](https://keepachangelog.com/es-ES/1.1.0
 
 Los números `#NNN` remiten a [`DECISIONS.md`](DECISIONS.md), el registro de decisiones con su porqué.
 
+## [Sin publicar]
+
+### Añadido
+
+- **`@grana/cli`: comando `grana init`** (#1078; contrato `design/contracts/cli-init.md`). `npx grana init` (o su equivalente exacto `npx @grana/cli init`) en la raíz de un proyecto Vue 3.5+: detecta el gestor (npm, pnpm, yarn o bun), instala `@grana/vue` (y `vue` si falta) y `@grana/cli` como dependencia de desarrollo, escribe `grana.config.json` (`--brand`) y, fuera de Vite, `tokens.css`; no edita el código de la aplicación, imprime las líneas a pegar. Código de salida nuevo `3` (solo `init`): la instalación falló y no se escribió ningún archivo. Es una adición: corresponde a una versión menor de `@grana/cli`.
+- **Paquete sin ámbito `grana`** (#1079; `packages/grana/`, apartado I9 del contrato): envoltorio sin lógica de `@grana/cli` para que `npx grana init` funcione; mismo código, opciones, salida y códigos de salida. `@grana/cli` gana la ruta interna `./main` (fuera de semver). Se publica con el mismo número que `@grana/cli`, siempre después de él.
+- **Catálogo para agentes de IA** (#1080; contrato `design/contracts/catalog.md`). `npm run build` genera `@grana/vue/catalog.json` (esquema `schemaVersion: 1`: entradas con su registro, las 90 piezas con props —tipo del meta y `ts` del `.d.ts`—, `v-model`, eventos, slots, métodos y claves de `labels`, más 177 tokens por nombre, 73 iconos y 229 clases utilitarias) y `@grana/vue/llms.txt` (reglas para agentes e índice), desde los `meta.json`, las entradas y la misma función de tipos. Medidos: `catalog.json` 453 363 B (80 096 B gzip; tope 512 KiB) y `llms.txt` 16 946 B (5 775 B gzip; tope 32 KiB). `@grana/cli` (y `grana`) gana `grana catalog [<pieza>] [--find] [--entry] [--status] [--tokens|--icons|--utilities] [--json] [--agents]`, que lee el `@grana/vue` instalado sin red; código 1 = la pieza o la búsqueda no existe. `grana init` termina sus siguientes pasos nombrando `npx grana catalog --agents`. Entra con `1.0.0`, la primera versión publicada que lo trae. Los `meta.json` con formas heredadas pasan a `methods` y a `labels` legibles (`GForm`, `GFormFold`, `GAdaptiveLayout`, `GFileField`, `GCombobox`, `GStatusIsland`, `GTranscript`; métodos de `GCard`, `GDatePicker` y `GWidget*` que ya se exponían), sin cambio de API.
+
 ## [1.0.0] - 2026-11-09
 
 Primera versión estable de `@grana/vue` y `@grana/cli` (decisión #1076). La `0.1.0-beta.0` nunca se publicó: todo lo que lleva `"since"` en los `meta.json` pasa a `"1.0.0"`.

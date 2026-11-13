@@ -2,12 +2,116 @@
 
 Genera el `tokens.css` de tu proyecto a partir de una configuración corta y **rechaza temas que rompan los mínimos de accesibilidad**, explicando cuál y por qué. Sin dependencias; Node ≥ 22.
 
-**Estado: `1.0.0`** (semver: los comandos `theme` y `check`, los códigos de salida, las claves de configuración, los nombres de los tokens emitidos y los `code` de los diagnósticos son API pública; ver `api.md` «Estabilidad y versiones»). Las referencias `docs/contract/…` y `§n` de este documento remiten al [contrato de tokens](https://github.com/kevinedgm/grana/blob/main/docs/contract/tokens.md) del repositorio; la visión general de Grana está en el [README principal](https://github.com/kevinedgm/grana#readme).
+**Estado: `1.0.0`** (semver: los comandos `theme`, `check`, `init` y `catalog`, los códigos de salida, las claves de configuración, los nombres de los tokens emitidos y los `code` de los diagnósticos son API pública; ver `api.md` «Estabilidad y versiones»). Las referencias `docs/contract/…` y `§n` de este documento remiten al [contrato de tokens](https://github.com/kevinedgm/grana/blob/main/docs/contract/tokens.md) del repositorio; la visión general de Grana está en el [README principal](https://github.com/kevinedgm/grana#readme).
 
 ```bash
+npx grana init                            # instala Grana en un proyecto existente (ver abajo)
 npx @grana/cli theme grana.config.json    # escribe tokens.css
 npx @grana/cli check grana.config.json    # solo valida
 ```
+
+## Instalar Grana en un proyecto (`init`)
+
+En la raíz de un proyecto **que ya existe** (con `package.json`), una orden instala Grana, deja el tema configurado e imprime lo que falta:
+
+```bash
+npx grana init                  # npm
+pnpm dlx grana init             # pnpm
+yarn dlx grana init             # yarn ≥ 2
+bunx grana init                 # bun
+npx grana init --brand '#7A1F5C'   # con el color de tu marca
+```
+
+`grana` es un paquete sin ámbito que envuelve a `@grana/cli`: mismo código, mismas opciones, misma salida y mismos códigos de salida. `npx @grana/cli init` (y sus variantes con `pnpm dlx`, `yarn dlx` y `bunx`) es su equivalente exacto y la forma de fijar una versión, por ejemplo `npx @grana/cli@1 init`.
+
+`init` **no crea proyectos** (para eso, `npm create vue@latest` o `npm create vite@latest`) y **no edita el código de tu aplicación**: ni `main.*`, ni `vite.config.*`, ni `nuxt.config.*`, ni `package.json` (este lo cambia tu gestor al instalar). Imprime las líneas exactas con el archivo donde van y tú las pegas. No pregunta nada, así que sirve igual en CI. Si el tema no es válido, para antes de instalar.
+
+| Opción | Valores | Por defecto | Qué hace |
+| --- | --- | --- | --- |
+| `--pm` | `npm` `pnpm` `yarn` `bun` | detección (ver abajo) | Fuerza el gestor de paquetes. |
+| `--brand` | un color de la clave `brand` | — | Escribe `{ "brand": "<color>" }` en un `grana.config.json` nuevo y valida el tema antes de instalar. Con un `grana.config.json` existente y sin `--force`, error (código 2). |
+| `--theme` | `auto` `vite` `file` | `auto` | Cómo llega el tema a la aplicación. `auto`: Nuxt → `file`; Vite → `vite`; el resto → `file`. `vite` con Nuxt está reservado y da error (código 2). |
+| `--out` | ruta dentro del directorio actual | `tokens.css` | Dónde se escribe el tema en el modo `file`. Con el modo `vite` o fuera del directorio, error (código 2). |
+| `--no-install` | — | instala | No ejecuta la instalación: imprime las órdenes. Los archivos se escriben igual. |
+| `--dry-run` | — | — | No instala ni escribe nada: imprime el plan completo. Corre las mismas comprobaciones previas. Si va con `--no-install`, manda `--dry-run`. |
+| `--force` | — | — | Sobrescribe `grana.config.json` y un archivo de tema que no generó Grana. No afecta a la instalación. |
+
+**Qué instala** (lo ya declarado en `dependencies`, `devDependencies` o `peerDependencies` no se reinstala ni cambia de rango):
+
+| Paquete | Dónde | Rango |
+| --- | --- | --- |
+| `@grana/vue` | `dependencies` | `^M.0.0`, con `M` la mayor del CLI |
+| `vue` | `dependencies` | `^3.5.0`, solo si falta (con aviso: `init` no prepara un empaquetador) |
+| `@grana/cli` | `devDependencies` | `^V`, con `V` la versión exacta del CLI |
+
+La orden de instalación se imprime tal como se ejecuta. Si tu `vue` es anterior a 3.5 o no es de la mayor 3, `init` para con el código 2 sin instalar nada.
+
+**Qué escribe, y qué no.** Solo archivos de Grana, en el directorio actual y siempre después de que la instalación haya ido bien:
+
+| Archivo | Si no existe | Si existe |
+| --- | --- | --- |
+| `grana.config.json` | se escribe (`{}` si no hay `--brand`: el tema por defecto) | se conserva; `--force` lo sobrescribe |
+| tema en `--out` (solo modo `file`) | se escribe, el mismo CSS que `grana theme` | se regenera si empieza por la cabecera de `@grana/cli`; si no, error (código 2) salvo `--force` |
+
+Nunca borra archivos ni escribe fuera del directorio actual.
+
+**Detección del gestor** (gana el primero que responde; la salida dice cuál fue y de dónde):
+
+1. `--pm`.
+2. Campo `packageManager` del `package.json` (o, si no lo tiene, el de la raíz del *workspace*). Un nombre fuera de los cuatro, error: usa `--pm`.
+3. Archivo de bloqueo, buscado hacia arriba hasta un directorio con `.git`: `pnpm-lock.yaml` → pnpm, `yarn.lock` → yarn, `bun.lock` o `bun.lockb` → bun, `package-lock.json` o `npm-shrinkwrap.json` → npm. Con dos gestores distintos en el mismo directorio, error (código 2): no se adivina.
+4. `npm_config_user_agent` (lo pone el gestor que lanzó la orden). Va detrás del bloqueo porque `npx` dice npm aunque el proyecto sea de pnpm.
+5. npm.
+
+`init` se ejecuta en el paquete de la aplicación: en la raíz de un *workspace* (`workspaces` en `package.json` o `pnpm-workspace.yaml`) da error (código 2); en un paquete dentro de uno, instala en ese paquete.
+
+**Qué imprime para ti** al terminar (no edita nada):
+
+- Modo `vite`: en tu `vite.config.*`, `import grana from '@grana/cli/vite'` y `grana({ config: 'grana.config.json' })` en `plugins`; en tu entrada, `import 'virtual:grana/tokens.css'`.
+- Modo `file`: en tu entrada, la importación del archivo de tema, y el *script* `"theme": "grana theme grana.config.json"` que puedes añadir a `package.json` para regenerarlo.
+- En los dos: en tu entrada (`src/main.{ts,js,mts,mjs}` si existe), `import Grana from '@grana/vue'`, `import '@grana/vue/style.css'`, `import '@grana/vue/fonts.css'` (opcional, la fuente por defecto) y `app.use(Grana)`.
+- Nuxt: el contenido de un *plugin* (`plugins/grana.ts` o `.js`) con `nuxtApp.vueApp.use(Grana)` y la cadena `css` de `nuxt.config`.
+
+**Códigos de salida de `init`:** `0` correcto (también con `--no-install` y `--dry-run`) · `1` el tema rompe un mínimo de accesibilidad · `2` uso o precondición (opción inválida, sin `package.json`, raíz de *workspace*, Vue incompatible, gestor desconocido o ambiguo, configuración inválida, choque de archivos sin `--force`) · `3` la instalación falló o el gestor no está en el sistema (solo `init` lo emite). Con 1 y 2 no se instala ni se escribe nada; con 3 no se escribe ningún archivo de Grana, pero el gestor puede haber dejado cambios en `package.json` y en el bloqueo, y la salida da la orden para reintentar a mano.
+
+**Hoy** `@grana/vue`, `@grana/cli` y `grana` aún no están en el registro de npm, así que `npx grana init` (o `npx @grana/cli init`) y la instalación que lanza no pueden resolverse todavía: darían el código 3 sin escribir archivos. Se publican juntos y con el mismo número: primero `@grana/cli` y después `grana`. Hasta la publicación, instala desde el repositorio (ver el [README principal](https://github.com/kevinedgm/grana#probarlo-en-este-repositorio)).
+
+**Verificación.** `medido` a mano el 2026-11-13: en un proyecto Vite + Vue 3.5 limpio, `grana init --brand '#7A1F5C' --no-install` (ejecutado con el tarball de `@grana/cli`) escribió solo `grana.config.json`, detectó npm por `package-lock.json` y el modo `vite`, e imprimió las órdenes de instalación y las líneas para `vite.config.js` y `src/main.js`; tras instalar los dos tarballs y pegarlas, `vite build` pasó y en el navegador `<g-btn variant="soft">` se pintó con `--g-color-brand: #7A1F5C`. `prueba` el 2026-11-13: 22 pruebas de paridad de salida estándar, de error y código entre los bin de `grana` y de `@grana/cli`; con los dos tarballs instalados en un proyecto vacío, `npx grana --version` dio `1.0.0` y `npx grana init --dry-run` imprimió el plan con código 0 sin escribir nada. **Sin verificar:** la descarga real de `grana` desde el registro, la instalación desde el registro, pnpm, yarn y bun reales, Windows y Nuxt.
+
+Fuentes: contrato `design/contracts/cli-init.md` y decisión #1078 de `DECISIONS.md`; la ayuda de `grana --help` y `packages/cli/src/init.js` mandan si algún texto difiere.
+
+## Consultar el catálogo (`catalog`)
+
+`grana catalog` lee el **catálogo del `@grana/vue` instalado** en tu proyecto (`@grana/vue/catalog.json`, generado en el build de `@grana/vue` desde sus `meta.json`) y lo muestra. No usa la red, no descarga nada y no escribe archivos. Resuelve `@grana/vue` desde el directorio actual. Sirve a personas y a agentes de IA: así no inventan piezas, props ni valores que la versión instalada no tiene.
+
+```bash
+npx grana catalog                        # piezas por entrada
+npx grana catalog GBadge                 # una pieza: props (tipo, valores, por defecto), v-model, eventos, slots, métodos, labels
+npx grana catalog --find tabla           # buscar por texto
+npx grana catalog --entry combobox       # solo las piezas de una entrada
+npx grana catalog --status stable        # solo las de un estado
+npx grana catalog --tokens               # tokens (también --icons y --utilities)
+npx grana catalog --json                 # el catálogo completo en JSON
+npx grana catalog --agents               # bloque para AGENTS.md o CLAUDE.md
+```
+
+| Opción | Qué hace |
+| --- | --- |
+| `<pieza>` | Detalle de una pieza. Acepta nombre, alias o etiqueta (`GBtn`, `g-btn`). Una sola; no se combina con filtros ni secciones. |
+| `--find <texto>` | Filtra las piezas por texto. Sin coincidencias, código `1` (con sugerencias «¿Quisiste decir?»). |
+| `--entry <ruta>` | Filtra por entrada: `@grana/vue/combobox` o solo `combobox`. Una entrada que no existe da código `2` y lista las válidas. |
+| `--status stable\|candidate\|draft` | Filtra por estado. |
+| `--tokens`, `--icons`, `--utilities` | Muestra esa sección en lugar de las piezas; una a la vez y sin filtros. |
+| `--json` | Salida JSON: el catálogo entero, la lista filtrada, la pieza o la sección. |
+| `--agents` | Imprime el bloque de reglas para `AGENTS.md` o `CLAUDE.md`. **No edita ningún archivo**: lo pegas tú. Va solo (sin pieza, sección, filtros ni `--json`). |
+
+`--find`, `--entry` y `--status` se pueden combinar entre sí. Con `--find` o con una pieza que no existe, el error sale por la salida de errores.
+
+**Códigos de salida de `catalog`:** `0` respuesta (también una lista filtrada vacía por `--entry` o `--status`) · `1` la pieza o la búsqueda no existe · `2` uso inválido (opción desconocida, valor ausente, combinación no admitida), `@grana/vue` ausente, sin catálogo (llega con `@grana/vue` 1.0.0), con el JSON ilegible o con un esquema más nuevo que este CLI. `catalog` nunca emite `3`.
+
+**Verificación.** `medido` a mano el 2026-11-13 con los tres tarballs (`@grana/vue`, `@grana/cli`, `grana`) instalados en un proyecto vacío: `npx grana catalog GBadge` dio las 9 props con tipos y valores, `npx grana catalog GNope` dio código `1`, y `--agents` imprimió el bloque sin tocar el directorio. **Sin verificar:** la resolución con Yarn PnP y con pnpm estricto, y que agentes reales consulten el catálogo.
+
+Fuentes: contrato `design/contracts/catalog.md` y decisión #1080 de `DECISIONS.md`; la ayuda de `grana --help` y `packages/cli/src/catalog.js` mandan si algún texto difiere.
 
 ## Configuración
 
@@ -83,9 +187,11 @@ Todo token de color que cambies en el claro (por ejemplo `overrides` de `--g-col
 | --- | --- |
 | `grana theme <config> [--out archivo] [--stdout] [--doc[=archivo]]` | Valida y escribe `tokens.css` (sin capa, gana siempre). Si algo falla, no escribe nada. |
 | `grana check <config> [--json]` | Solo valida; con `--json`, informe para CI. |
+| `grana init [--pm …] [--brand <color>] [--theme auto\|vite\|file] [--out archivo] [--no-install] [--dry-run] [--force]` | Instala Grana en un proyecto existente, valida el tema, escribe `grana.config.json` e imprime las líneas que añadir a tu código ([detalle](#instalar-grana-en-un-proyecto-init)). |
+| `grana catalog [<pieza>] [--find <texto>] [--entry <ruta>] [--status …] [--tokens\|--icons\|--utilities] [--json] [--agents]` | Consulta el catálogo del `@grana/vue` instalado, sin red ([detalle](#consultar-el-catálogo-catalog)). |
 | `--help`, `--version` | Ayuda y versión. |
 
-**Códigos de salida:** `0` correcto (los avisos no cuentan) · `1` el tema rompe un mínimo · `2` uso o configuración inválidos.
+**Códigos de salida:** `0` correcto (los avisos no cuentan) · `1` el tema rompe un mínimo · `2` uso o configuración inválidos · `3` la instalación de `init` falló (solo `init`). En `catalog`, `1` es que la pieza o la búsqueda no existe y `2` que `@grana/vue` falta o no trae catálogo.
 
 ## Qué valida (contrato §7 y §12)
 

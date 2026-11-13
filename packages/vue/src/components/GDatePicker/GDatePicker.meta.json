@@ -357,6 +357,23 @@
       "purpose": "Icono del campo (sustituye al calendario dibujado); decorativo"
     }
   ],
+  "methods": [
+    {
+      "name": "open",
+      "signature": "open(): void",
+      "purpose": "Abre el calendario"
+    },
+    {
+      "name": "close",
+      "signature": "close(): void",
+      "purpose": "Cierra el calendario"
+    },
+    {
+      "name": "focus",
+      "signature": "focus(): void",
+      "purpose": "Enfoca el campo"
+    }
+  ],
   "tokens": [
     "--g-color-{color}",
     "--g-color-on-{color}",
