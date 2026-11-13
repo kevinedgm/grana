@@ -249,7 +249,9 @@ async function micCheck(page) {
     max: Math.max(0, ...window.__levels),
     frames: window.__levels.length,
     pushed: window.spAdapter.log.pushed.slice(0, 3),
-    capture: window.speech.state.capture
+    capture: window.speech.state.capture,
+    error: window.speech.state.error ? { code: window.speech.state.error.code, recoverable: window.speech.state.error.recoverable, message: String(window.speech.state.error.message || '') } : null,
+    audio: typeof AudioContext !== 'undefined' ? (() => { try { const ac = new AudioContext(); const st = ac.state; ac.close(); return { state: st, rate: ac.sampleRate, worklet: !!ac.audioWorklet } } catch (e) { return { thrown: String(e) } } })() : 'sin AudioContext'
   }))
   return r
 }
@@ -312,7 +314,7 @@ test.describe('captura de voz · micrófono real del motor', () => {
     }
     const errs = watchConsole(p)
     const r = await micCheck(p)
-    expect(r.capture).toBe('live')
+    expect(r.capture, `captura: ${JSON.stringify({ ...r, pushed: r.pushed.length, errs })}`).toBe('live')
     expect(r.status).toMatch(/listening|speech|transcribing/)
     expect(r.frames).toBeGreaterThan(10)
     expect(r.max).toBeGreaterThan(0)

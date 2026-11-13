@@ -20,6 +20,10 @@ async function open(page) {
 
 test.describe('GFileField · forma (file-field.md)', () => {
   test('la GFormRow con GFileField y GInput se parte antes de que «Adjuntar archivo» baje de línea y respeta el --g-form-min del consumidor', async ({ page }) => {
+    // Dos barridos de 166 anchos con dos cuadros cada uno: el tiempo va con la cadencia de cuadros del motor y WebKit sin
+    // cabeza con carga pinta a ~5 cuadros/s en el ejecutor de GitHub (e2e-full 43325442550 y 43461208113: se agotaban los
+    // 60 s a mitad del barrido). Se da tiempo al barrido; el paso y lo que se mide no cambian.
+    test.setTimeout(240_000)
     await open(page)
     // Una ficha en el campo: la línea que no debe romperse es «ficha + Adjuntar archivo» (la medida de coco, 245px = space × 61,3)
     await page.setInputFiles('#ff-rx', [{ name: 'Receta.pdf', mimeType: 'application/pdf', buffer: Buffer.alloc(2000, 1) }])
@@ -49,7 +53,9 @@ test.describe('GFileField · forma (file-field.md)', () => {
       }
       return { split, bad }
     }
+    const t0 = Date.now()
     const base = await sweep()
+    console.log(`[file-field-forma] barrido de 166 anchos en ${Date.now() - t0} ms`)
     expect(base.bad, 'mientras comparte línea con el GInput, «Adjuntar archivo» no baja de línea').toEqual([])
     expect(base.split, 'la fila se parte antes de llegar a 300px').not.toBeNull()
     // A 960px comparten línea y a la anchura de partida el campo mide al menos el mínimo medido (245px)

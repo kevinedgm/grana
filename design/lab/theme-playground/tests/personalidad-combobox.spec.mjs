@@ -69,10 +69,13 @@ test.describe('GCombobox · personalidad con movimiento', () => {
         const was = a.currentTime
         a.pause()
         const path = []
-        for (let k = 0; k <= 60; k++) { a.currentTime = (d * k) / 60; path.push(t.getBoundingClientRect().top) }
+        // El último paso se queda 1 ms antes del final: llevar currentTime al final mismo deja la animación «terminada» un
+        // instante y WebKit despacha animationend aunque luego se rebobine, con lo que el componente retiraba is-landing
+        // antes de que el muestreo por cuadros la viera (e2e-full 43461208113, «la entrada corre en cuadros reales»)
+        for (let k = 0; k <= 60; k++) { a.currentTime = Math.min((d * k) / 60, d - 1); path.push(t.getBoundingClientRect().top) }
         a.currentTime = was
         a.play()
-        window.__cbPath = { d, path }
+        window.__cbPath = { d, path, was }
       })
       mo.observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] })
     })
@@ -88,7 +91,7 @@ test.describe('GCombobox · personalidad con movimiento', () => {
     const end = ps[ps.length - 1]
     expect(end.landing, 'la clase se retira').toBe(false)
     expect(ps.every((p) => !p.style), 'ninguna medida en línea, tampoco --_travel').toBe(true)
-    expect(ps.some((p) => p.landing), 'la entrada corre en cuadros reales').toBe(true)
+    expect(ps.some((p) => p.landing), `la entrada corre en cuadros reales: ${JSON.stringify({ n: ps.length, path: await page.evaluate(() => window.__cbPath && { d: window.__cbPath.d, was: window.__cbPath.was }) })}`).toBe(true)
     expect(distinct(ps.map((p) => p.x)).length, 'no se mueve en horizontal').toBe(1)
     const { d, path } = await page.evaluate(() => window.__cbPath)
     expect(d, 'duración de la entrada').toBeGreaterThan(0)

@@ -537,6 +537,14 @@ export default defineComponent({
     // El rastro se ilumina cuando el foco vuelve a su puerta desde fuera de la tabla (cierre de un diálogo de detalle)
     const onFocusin = (e) => {
       const t = e.target
+      // Pie acoplado (#595): el CSS da a lo de dentro scroll-margin con su alto, pero Firefox no desplaza al enfocar con el
+      // teclado un control que ya está en la vista aunque el pie lo tape (lo deja 11 px bajo el pie, e2e-full 43461700307).
+      // Si el control enfocado por teclado queda bajo el pie acoplado, se lleva a la vista con el mismo scroll-margin (WCAG
+      // 2.4.11). Donde el motor ya lo hace, el resultado es el mismo y su propio desplazamiento no tiene nada que mover.
+      const nav = stuck.value && pagerRef.value?.$el
+      if (nav instanceof Element && t instanceof Element && t.matches(':focus-visible') && t.getBoundingClientRect().bottom > nav.getBoundingClientRect().top + 0.5) {
+        t.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' })
+      }
       const k = lastState.value
       // WebKit: clic de ratón en <a> no enfoca el enlace; el relatedTarget puede ser <table tabindex=-1>,
       // que no cuenta como "foco desde dentro" (es el ancla de foco del recipiente, no un control real)
