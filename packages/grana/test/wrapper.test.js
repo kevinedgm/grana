@@ -21,6 +21,18 @@ beforeAll(() => {
   writeFileSync(join(dir, 'roto.json'), '{ no es json')
   mkdirSync(join(dir, 'proyecto'))
   writeFileSync(join(dir, 'proyecto', 'package.json'), JSON.stringify({ name: 'p', dependencies: { vue: '^3.5.0' } }))
+  // Proyecto con un @grana/vue mínimo que trae catálogo (catalog.md C4, #1080)
+  const vueDir = join(dir, 'catalogo', 'node_modules', '@grana', 'vue')
+  mkdirSync(join(vueDir, 'dist'), { recursive: true })
+  writeFileSync(join(dir, 'catalogo', 'package.json'), JSON.stringify({ name: 'c', dependencies: { '@grana/vue': '^1.0.0' } }))
+  writeFileSync(join(vueDir, 'package.json'), JSON.stringify({ name: '@grana/vue', version: '1.0.0', type: 'module', exports: { './catalog.json': './dist/catalog.json', './package.json': './package.json' } }))
+  writeFileSync(join(vueDir, 'dist', 'catalog.json'), `${JSON.stringify({
+    schemaVersion: 1,
+    package: { name: '@grana/vue', version: '1.0.0' },
+    entries: [{ path: '@grana/vue', install: 'default', components: ['GBtn'], functions: [], types: 'dist/grana.d.ts' }],
+    components: [{ name: 'GBtn', tag: 'g-btn', status: 'stable', since: '1.0.0', description: 'Botón de acción.', entry: '@grana/vue', registered: true, props: [], events: [], slots: [] }],
+    tokens: [], icons: { library: [], aliases: {} }, utilities: []
+  }, null, 2)}\n`)
 })
 afterAll(() => rmSync(dir, { recursive: true, force: true }))
 
@@ -43,6 +55,10 @@ const CASES = [
   ['init --dry-run --brand', ['init', '--dry-run', '--brand', '#7A1F5C'], 'proyecto'],
   ['init con opción desconocida', ['init', '--no-existe'], 'proyecto'],
   ['comando desconocido', ['nada'], '.'],
+  ['catalog', ['catalog'], 'catalogo'],
+  ['catalog GBtn --json', ['catalog', 'GBtn', '--json'], 'catalogo'],
+  ['catalog GNoExiste', ['catalog', 'GNoExiste'], 'catalogo'],
+  ['catalog sin @grana/vue', ['catalog'], 'proyecto'],
 ]
 
 describe('paridad de los dos bin (stdout, stderr y código)', () => {
@@ -57,6 +73,7 @@ describe('paridad de los dos bin (stdout, stderr y código)', () => {
   it('los casos cubren los cuatro códigos de uso y no son vacíos', () => {
     const codes = new Set(CASES.map(([, args, sub]) => sh(cliBin, args, join(dir, sub)).code))
     expect(codes.has(0)).toBe(true)
+    expect(codes.has(1)).toBe(true)
     expect([...codes].some((c) => c !== 0)).toBe(true)
     expect(sh(wrapperBin, ['--version'], dir).out.trim()).toContain(cliPkg.version)
   })

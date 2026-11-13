@@ -569,6 +569,23 @@ describe('init · --no-install y --dry-run', () => {
   })
 })
 
+describe('init · siguientes pasos (I7, #1080)', () => {
+  it('terminan con la línea de grana catalog --agents, antes del cierre, también con --dry-run y en Nuxt', () => {
+    put('package.json', pkgWith(vue()))
+    for (const args of [[], ['--dry-run']]) {
+      const r = init(args)
+      expect(r.code).toBe(0)
+      const steps = r.out.slice(r.out.indexOf('Siguientes pasos'))
+      const lines = steps.trimEnd().split('\n')
+      expect(lines.at(-1)).toMatch(/^✔ /)
+      expect(lines.at(-3)).toContain('npx grana catalog --agents')
+      expect(r.out.match(/grana catalog --agents/g)).toHaveLength(1)
+    }
+    put('package.json', pkgWith({ dependencies: { vue: '^3.5.0', nuxt: '^3.0.0' } }))
+    expect(init(['--dry-run']).out).toContain('npx grana catalog --agents')
+  })
+})
+
 describe('init · paridad con theme', () => {
   it('el tokens.css de init --theme file es byte a byte el de grana theme', () => {
     put('package.json', pkgWith(vue()))

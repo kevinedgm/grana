@@ -409,6 +409,8 @@ const initFlow = (argv, { cwd, out, err, version, exec, env, say, flush }) => {
     }
   }
   say('')
+  say('  ¿Diseñas con agentes de IA? npx grana catalog --agents imprime el bloque para AGENTS.md o CLAUDE.md.')
+  say('')
   say(dry ? '✔ Plan completo; no se instaló ni se escribió nada.' : '✔ Listo.')
   flush()
   return 0
