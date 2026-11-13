@@ -352,7 +352,6 @@
     "Formato inicial antes de medir el contenedor (se pinta expandido un instante)",
     "Filtro (#1035): lector de pantalla real con el recuento (aria-describedby) y el anuncio cortés; IME real con Intro",
     "Filtro (#1035): con 500 destinos, el trabajo de la tecla (filtrar y parchear) mide 6–13 ms en Chromium; el estilo y la disposición del navegador al volver a mostrar cientos de filas llegan a 35–62 ms (CSS: coco)",
-    "appearance index y grupos plegables (#1060 a #1065): auditoría de coco sobre el componente real y paridad con design/lab/sidebar/r03/paridad.json",
     "index: lector de pantalla real (botón de grupo, groupCurrent, «GCombobox, 24»), Ctrl+F real (beforematch probado sintético), táctil real, forced-colors real, RTL y padres con children en index (no prototipado)"
   ],
   "weight": {

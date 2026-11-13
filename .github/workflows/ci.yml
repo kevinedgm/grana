@@ -132,10 +132,12 @@ jobs:
       # personalidad-* (cuadros de animación), los -perf (un worker), el combobox y la voz
       # quedan para la pasada nocturna. Archivos explícitos: el filtro de Playwright es una
       # expresión regular sobre la ruta y «playground» coincidiría con todo el directorio.
+      # Traza solo en el primer reintento: grabarla en cada prueba (retain-on-failure) multiplica el tiempo de la
+      # pasada (las cuatro specs de tiempo: 13,2 min con traza frente a 6,4 sin ella, medido en local).
       - name: Playwright (Chromium)
         run: |
           npx playwright test --project=chromium --workers=2 --retries=2 \
-            --reporter=list,html --trace=retain-on-failure \
+            --reporter=list,html --trace=on-first-retry \
             tests/library.spec.mjs \
             tests/playground.spec.mjs \
             tests/form-distribution.spec.mjs \
@@ -158,13 +160,14 @@ jobs:
             tests/fab.spec.mjs
 
       # Las specs con umbrales de tiempo absolutos (tooltip a 200/500 ms, pista de las migas a 350 ms, repetición
-      # de −/+ y cifras que ruedan, mínimo publicado del slider) van con un solo worker: con dos, en el ejecutor
-      # de GitHub los temporizadores llegan tarde y fallaban 8 pruebas que en local pasan (2026-11-12).
+      # de −/+ y cifras que ruedan, mínimo publicado del slider) van con un solo worker y SIN traza: grabar la traza
+      # (instantánea del DOM del playground entero en cada acción) retrasa cada llamada cientos de ms y hacía fallar
+      # siete de ellas siempre; reproducido en local con --trace=retain-on-failure, sin traza pasan (2026-11-12).
       - name: Playwright (Chromium, specs con umbrales de tiempo, un worker)
         if: success() || failure()
         run: |
           npx playwright test --project=chromium --workers=1 --retries=2 \
-            --reporter=list,html --trace=retain-on-failure --output=test-results-tiempo \
+            --reporter=list,html --trace=off --output=test-results-tiempo \
             tests/tooltip.spec.mjs \
             tests/number-field.spec.mjs \
             tests/slider.spec.mjs \

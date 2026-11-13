@@ -176,8 +176,7 @@
     "plegada abierta (is-open)"
   ],
   "pending": [
-    "Buscar al escribir de GMenu (#797) aún no está construido: los cuatro labels pasan a GMenu sin efecto",
-    "list y fold: auditoría de coco sobre el componente real; «el marcador sí se pinta» en fold no tiene sitio en la anatomía del contrato (no se pinta)"
+    "Buscar al escribir de GMenu (#797) aún no está construido: los cuatro labels pasan a GMenu sin efecto"
   ],
   "extension": {
     "entry": "@grana/vue/page-index-list",

@@ -44,6 +44,8 @@ function watchConsole(page) {
 }
 const settle = (p) => p.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(r, 60)))))
 async function open(page, file, qs, { width = 1440, height = 900 } = {}) {
+  // El banco de GbPromo vence el 2026-11-02 (promo.bank.js): la fecha se fija, como en las pruebas unitarias; los temporizadores siguen corriendo
+  await page.clock.setFixedTime(new Date('2026-10-20T12:00:00'))
   await page.setViewportSize({ width, height })
   await page.goto(`${BASE}${file}${qs ? `?${qs}` : ''}`)
   await page.waitForSelector('html[data-ready="1"] [data-gb]')

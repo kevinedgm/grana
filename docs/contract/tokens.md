@@ -777,7 +777,7 @@ Los títulos de sección (`GFormSection`, `GDialog`) **no llevan icono por defec
 
 **Categorías:** con `color="k"` o `categories: n`, relleno **`--g-color-cat-k-soft`** y texto/icono **`--g-color-on-cat-k-soft`** (par garantizado ≥ 4.5:1, §2 y §16.3). **`GAvatar.css` entra en la excepción nombrada `CAT_FAMILY_READERS`** de `levels.test.js` (§24, #260, #294), limitada a esas dos familias (`k` de 1 a 12), sin respaldo; `defaults.css` sigue sin definirlas. La categoría derivada usa un hash estable documentado en el contrato (FNV-1a de 32 bits sobre UTF-8 + `fmix32`, `mod n + 1`). El hash vive en `packages/vue/src/utils/categoryHash.js` y lo comparten `GAvatar`, `GTag` y `GTagGroup` (#469).
 
-**No son tokens:** el número de letras por tamaño y la regla de escrituras anchas (estructura); el tamaño del icono de respaldo y la separación interna (alias locales de coco desde `space`); la posición de una `GBadge` anclada sobre el contorno de un círculo (constante geométrica `1 − 1/√2` del lado, `GBadge.css`, #297).
+**No son tokens:** el número de letras por tamaño, la regla de escrituras anchas y la medida que pasa a una letra cuando dos no caben (`data-mono="one"`, #1078; estructura, sin token nuevo: coco reutiliza el factor de una letra de `xs`/`sm`); el tamaño del icono de respaldo y la separación interna (alias locales de coco desde `space`); la posición de una `GBadge` anclada sobre el contorno de un círculo (constante geométrica `1 − 1/√2` del lado, `GBadge.css`, #297).
 
 ## 29. Personalidad: lenguaje de movimiento (dos curvas nuevas, ninguna duración nueva)
 

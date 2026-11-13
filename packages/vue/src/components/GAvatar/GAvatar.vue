@@ -5,7 +5,7 @@
 // (iniciales o icono) existe SIEMPRE y va primero; la <img alt=""> se apila encima, última hija, solo con src y sin fallo.
 // Decorativo por defecto (aria-hidden); con `label`, role="img" + aria-label. Nunca interactivo: sin slots ni eventos;
 // role/aria-*/tabindex y escuchas del consumidor no llegan a la raíz (aviso 5).
-import { Comment, Fragment, Text, computed, defineComponent, h, inject, nextTick, onMounted, onUpdated, ref, watch } from 'vue'
+import { Comment, Fragment, Text, computed, defineComponent, h, inject, nextTick, onBeforeUnmount, onMounted, onUpdated, ref, watch } from 'vue'
 import GIcon from '../GIcon/GLibIcon.js'       // icono propio (`user`): SOLO la lista de la librería (icons.md §4, #200)
 import GAppIcon from '../GIcon/GIcon.vue'      // prop `icon`: nombre de la aplicación (registro más cercano → librería, #296)
 import { iconsKey, lookupLibrary, lookupRegistry } from '../GIcon/registry.js'
@@ -69,6 +69,50 @@ function explicitInitials(raw, small) {
   if (!gs.length) return { text: '', cut: false }
   const absMax = gs.slice(0, 2).some((g) => WIDE.test(g)) ? 1 : 2
   return { text: gs.slice(0, small ? 1 : absMax).join(''), cut: gs.length > absMax }
+}
+
+// ---------- Dos letras si caben, una si no (avatar.md, #1078) ----------
+// Se mide lo que se pinta: ancho de __initials con dos letras frente a la cuerda (circle: 2·√(r² − (cap/2)²) − 2, cap =
+// 0,72·font-size; square: lado − 2). Estado compartido creado al usarse (#444): avatares medibles vivos, un lote por tarea
+// (todas las lecturas antes de escribir, #964) y un solo escucha de document.fonts que se quita con el último.
+const live = new Set()
+let queue = null
+let readyHooked = false
+const remeasure = () => live.forEach(schedule)
+function schedule(m) {
+  if (!queue) { queue = new Set(); nextTick(flush) }
+  queue.add(m)
+}
+async function flush() {
+  const list = [...queue].filter((m) => live.has(m))
+  queue = null
+  // Sondeo: dos letras y sin data-mono; nextTick es una microtarea, así que nada se pinta entre el sondeo y el resultado
+  list.forEach((m) => { m.mono.value = false })
+  await nextTick()
+  const fits = list.map((m) => {
+    const el = m.root.value
+    const t = el && el.querySelector(':scope > .g-avatar__initials')
+    const side = t ? el.getBoundingClientRect().width : 0
+    const w = side && t.getBoundingClientRect().width
+    if (!w) return null
+    const r = side / 2
+    const cap = 0.72 * (parseFloat(getComputedStyle(t).fontSize) || 0)
+    return w <= (m.props.shape === 'square' ? side : 2 * Math.sqrt(r * r - cap * cap / 4)) - 2
+  })
+  list.forEach((m, i) => { if (fits[i] === null) m.box(); else m.mono.value = !fits[i] })
+}
+function join(m) {
+  const f = document.fonts
+  if (!f) return live.add(m)
+  if (!live.size) f.addEventListener('loadingdone', remeasure)
+  live.add(m)
+  if (f.status === 'loading' && !readyHooked) {
+    readyHooked = true
+    f.ready.then(() => { readyHooked = false; remeasure() })
+  }
+}
+function leave(m) {
+  if (live.delete(m) && !live.size && document.fonts) document.fonts.removeEventListener('loadingdone', remeasure)
 }
 
 // ---------- Color (avatar.md «Hash», #294): FNV-1a 32 bits sobre UTF-8 + fmix32, mod n + 1 ----------
@@ -137,6 +181,33 @@ export default defineComponent({
       }
       return { ...out, kind: 'icon', name: 'user', app: false }
     })
+
+    // Dos letras medibles (md, lg, xl): sus grafemas; si no, null y no se mide. La clave de cadena es la única fuente del
+    // watch (un arreglo nuevo en cada render mediría en cada render del padre)
+    const pair = computed(() => {
+      const c = content.value
+      const gs = c.kind === 'initials' && !small.value ? graphemes(c.text) : []
+      return gs.length === 2 ? gs : null
+    })
+    const fitKey = computed(() => (pair.value ? `${pair.value.join('')}|${props.size}|${props.shape}` : ''))
+    const mono = ref(false)
+    let ro = null
+    const unbox = () => { if (ro) { ro.disconnect(); ro = null } }
+    // Medida 0 (antecesor oculto): no decide; un ResizeObserver de un solo uso vuelve a medir cuando haya caja
+    const m = {
+      root, mono, props,
+      box() {
+        if (ro || typeof ResizeObserver !== 'function' || !root.value) return
+        ro = new ResizeObserver((e) => { if (e[0].contentRect.width) { unbox(); schedule(m) } })
+        ro.observe(root.value)
+      }
+    }
+    const sync = () => {
+      if (fitKey.value) { join(m); schedule(m) } else { mono.value = false; unbox(); leave(m) }
+    }
+    onMounted(sync)
+    watch(fitKey, sync, { flush: 'post' })
+    onBeforeUnmount(() => { unbox(); leave(m) })
 
     // Color: 'neutral' gana; k fijo; si no, derivado de colorKey ?? name con `categories`; si no, neutro
     const colorInfo = computed(() => {
@@ -224,7 +295,7 @@ export default defineComponent({
       }
 
       const fallback = c.kind === 'initials'
-        ? h('span', { class: 'g-avatar__initials', dir: 'auto', translate: 'no' }, c.text)
+        ? h('span', { class: 'g-avatar__initials', dir: 'auto', translate: 'no' }, mono.value && pair.value ? pair.value[0] : c.text)
         : h(c.app ? GAppIcon : GIcon, { name: c.name, class: 'g-avatar__icon' })
       const s = src.value
       const st = s ? status.value : null
@@ -244,6 +315,8 @@ export default defineComponent({
           own.class
         ],
         'data-cat': cat.value === null ? undefined : String(cat.value),
+        // Solo cuando la medida redujo a una letra; el atributo es del componente (gana a uno de la aplicación)
+        'data-mono': mono.value ? 'one' : undefined,
         'aria-hidden': named ? undefined : 'true',
         role: named ? 'img' : undefined,
         'aria-label': named || undefined

@@ -67,26 +67,59 @@ test.describe('GAvatar · componente real (avatar.md)', () => {
     expect(errs).toEqual([])
   })
 
-  test('iniciales: dos letras anchas caben en md, lg y xl (círculo, 1px de aire); texto ≥ 12px; una letra en xs y sm', async ({ page }) => {
+  test('iniciales (#1078): en md, lg y xl dos letras que caben o una marcada y justificada; texto ≥ 12px; una sin marca en xs y sm', async ({ page }) => {
     await open(page)
-    const list = SIZES.flatMap((s) => [{ initials: 'WM', size: s, 'data-fit': `WM-${s}` }, { initials: 'ЖШ', size: s, 'data-fit': `ZH-${s}` }])
+    // data-fit es la marca propia de esta prueba (id del caso); data-mono es la del componente
+    const DV = '"Instrument Sans Variable", "Instrument Sans", "DejaVu Sans"'
+    const list = [['', null], ['dv', DV]].flatMap(([tag, font]) => SIZES.flatMap((s) => [['WM', 'WM'], ['ZH', 'ЖШ']].map(([id, txt]) => ({
+      initials: txt, size: s, 'data-fit': `${id}${tag}-${s}`, ...(font ? { style: `font-family: ${font}` } : {})
+    }))))
     await mountAvatars(page, list, 'av-fit')
     await settle(page)
-    const fit = await page.evaluate(() => [...document.querySelectorAll('#av-fit .g-avatar')].map((av) => {
-      const t = av.querySelector('.g-avatar__initials')
-      const cs = getComputedStyle(t); const fs = parseFloat(cs.fontSize); const d = av.getBoundingClientRect().width
-      const r = d / 2, cap = 0.72 * fs, chord = 2 * Math.sqrt(r * r - (cap / 2) ** 2) - 2
-      return { id: av.dataset.fit, text: t.textContent, w: t.getBoundingClientRect().width, chord, fs }
-    }))
+    const fit = await page.evaluate(() => {
+      const chordOf = (av, t) => {
+        const d = av.getBoundingClientRect().width, fs = parseFloat(getComputedStyle(t).fontSize)
+        const r = d / 2, cap = 0.72 * fs
+        return av.classList.contains('g-avatar--shape-square') ? d - 2 : 2 * Math.sqrt(r * r - (cap / 2) ** 2) - 2
+      }
+      return [...document.querySelectorAll('#av-fit .g-avatar')].map((av) => {
+        const t = av.querySelector('.g-avatar__initials')
+        const pair = av.dataset.fit.startsWith('WM') ? 'WM' : 'ЖШ'
+        // Gemelo: el mismo avatar con las dos letras y sin data-mono, con el estilo real de la hoja
+        const twin = av.cloneNode(true)
+        twin.removeAttribute('data-mono')
+        twin.querySelector('.g-avatar__initials').textContent = pair
+        av.after(twin)
+        const tt = twin.querySelector('.g-avatar__initials')
+        const twinW = tt.getBoundingClientRect().width, twinChord = chordOf(twin, tt)
+        twin.remove()
+        return {
+          id: av.dataset.fit, pair, text: t.textContent, mono: av.getAttribute('data-mono'), fs: parseFloat(getComputedStyle(t).fontSize),
+          w: t.getBoundingClientRect().width, chord: chordOf(av, t), twinW, twinChord
+        }
+      })
+    })
+    expect(fit.length).toBe(20)
+    const by = Object.fromEntries(fit.map((f) => [f.id, f]))
     for (const f of fit) {
       const s = f.id.split('-')[1]
       expect(f.fs, `${f.id}: ${f.fs}px`).toBeGreaterThanOrEqual(12)
-      if (s === 'xs' || s === 'sm') expect(f.text.length, `${f.id}: «${f.text}»`).toBe(1)
-      else {
-        expect(f.text.length).toBe(2)
+      if (s === 'xs' || s === 'sm') {
+        expect([f.text, f.mono], `${f.id}: «${f.text}» sin marca`).toEqual([Array.from(f.pair)[0], null])
+      } else if (f.mono === null) {
+        // Dos letras: nunca dos que no caben
+        expect(f.text, f.id).toBe(f.pair)
         expect(f.w, `${f.id}: ${f.w.toFixed(1)}px en una cuerda de ${f.chord.toFixed(1)}px`).toBeLessThanOrEqual(f.chord)
+      } else {
+        // Una letra: la primera, marcada, y justificada (el gemelo de dos letras no cabe)
+        expect([f.text, f.mono], f.id).toEqual([Array.from(f.pair)[0], 'one'])
+        expect(f.twinW, `${f.id}: el gemelo «${f.pair}» mide ${f.twinW.toFixed(1)}px en ${f.twinChord.toFixed(1)}px`).toBeGreaterThan(f.twinChord)
       }
     }
+    // «WM» da dos en md, lg y xl (también con DejaVu); «ЖШ» da dos en xl
+    for (const id of ['WM-md', 'WM-lg', 'WM-xl', 'WMdv-md', 'WMdv-lg', 'WMdv-xl', 'ZH-xl', 'ZHdv-xl']) expect([by[id].text, by[id].mono], id).toEqual([by[id].pair, null])
+    // Con DejaVu Sans de respaldo, «ЖШ» no cabe en md ni en lg: una letra marcada
+    for (const id of ['ZHdv-md', 'ZHdv-lg']) expect([by[id].text, by[id].mono], `${id}: ${by[id].twinW.toFixed(1)}px / ${by[id].twinChord.toFixed(1)}px`).toEqual(['Ж', 'one'])
     // Las de la página: escrituras anchas y RTL
     const scripts = await page.evaluate(() => [...document.querySelectorAll('#av-scripts .g-avatar')].map((a) => [a.getAttribute('aria-label'), a.querySelector('.g-avatar__initials')?.textContent ?? null]))
     expect(Object.fromEntries(scripts)).toEqual({ '李小龙': '李', '山田 太郎': '山', '김민수': '김', 'محمد علي': 'مع', 'ØRSTED': 'Ø', '🦊 Zorro Plateado': 'ZP', 'Émile Zola': 'ÉZ', 'łukasz żółw': 'ŁŻ', 'Straße': 'S' })

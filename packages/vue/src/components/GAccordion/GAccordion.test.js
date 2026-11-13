@@ -712,6 +712,109 @@ describe('GAccordion · sticky (#484)', () => {
   })
 })
 
+// #1079: overflow-anchor: none en línea en el contenedor desplazable más cercano con sticky y algún abierto
+describe('GAccordion · sticky y anclaje del contenedor (#1079)', () => {
+  const frames = () => wait(60)
+  function scroller(style = '') {
+    const sc = document.createElement('div')
+    sc.setAttribute('style', `overflow-y: auto;${style}`)
+    document.body.append(sc)
+    return sc
+  }
+  const inBox = (sc, template, setup) => make(template, setup, { attachTo: sc })
+  afterEach(() => { document.body.innerHTML = '' })
+
+  it('sticky + un abierto: none; cerrar el último: vacío; la raíz del grupo no lleva overflow-anchor', async () => {
+    const sc = scroller()
+    const w = inBox(sc, `<g-accordion v-model="open" sticky>${FAQ}</g-accordion>`, () => ({ open: ref(['cambiar']) }))
+    await frames()
+    expect(sc.style.overflowAnchor).toBe('none')
+    expect(w.find('.g-accordion').attributes('style') || '').not.toMatch(/overflow-anchor/)
+    await w.find('#cambiar-toggle').trigger('click')
+    await frames()
+    expect(sc.style.overflowAnchor).toBe('')
+  })
+
+  it('sticky pasa a false: vacío; sin sticky nunca se escribe', async () => {
+    const sc = scroller()
+    const sticky = ref(true)
+    inBox(sc, `<g-accordion :model-value="['cambiar']" :sticky="sticky">${FAQ}</g-accordion>`, () => ({ sticky }))
+    await frames()
+    expect(sc.style.overflowAnchor).toBe('none')
+    sticky.value = false
+    await frames()
+    expect(sc.style.overflowAnchor).toBe('')
+    const sc2 = scroller()
+    const w2 = inBox(sc2, `<g-accordion :model-value="['cambiar']">${FAQ}</g-accordion>`)
+    await frames()
+    await w2.find('#documentos-toggle').trigger('click')
+    await frames()
+    expect(sc2.getAttribute('style')).not.toMatch(/overflow-anchor/)
+  })
+
+  it('al desmontar se suelta en el acto, sin vaciar cuadros', async () => {
+    const sc = scroller()
+    const w = inBox(sc, `<g-accordion :model-value="['cambiar']" sticky>${FAQ}</g-accordion>`)
+    await frames()
+    expect(sc.style.overflowAnchor).toBe('none')
+    mounted.splice(mounted.indexOf(w), 1)
+    w.unmount()
+    expect(sc.style.overflowAnchor).toBe('')
+  })
+
+  it('exclusive de A a B: nunca vacío entre medias', async () => {
+    const sc = scroller()
+    const w = inBox(sc, `<g-accordion v-model="open" exclusive sticky>${FAQ}</g-accordion>`, () => ({ open: ref(['cambiar']) }))
+    await frames()
+    const seen = []
+    const mo = new MutationObserver(() => seen.push(sc.style.overflowAnchor))
+    mo.observe(sc, { attributes: true, attributeFilter: ['style'] })
+    await w.find('#documentos-toggle').trigger('click')
+    await frames()
+    await settleAll()
+    mo.disconnect()
+    expect(seen).not.toContain('')
+    expect(sc.style.overflowAnchor).toBe('none')
+  })
+
+  it('dos grupos en el mismo contenedor: cerrar uno deja none, cerrar el otro vacío', async () => {
+    const sc = scroller()
+    const a = ref(['cambiar'])
+    const b = ref(['x'])
+    const w = inBox(sc, `<div><g-accordion v-model="a" sticky>${FAQ}</g-accordion>
+      <g-accordion v-model="b" sticky><g-accordion-item id="x" value="x" title="X">x</g-accordion-item></g-accordion></div>`, () => ({ a, b }))
+    await frames()
+    expect(sc.style.overflowAnchor).toBe('none')
+    await w.find('#cambiar-toggle').trigger('click')
+    await frames()
+    expect(sc.style.overflowAnchor).toBe('none')
+    await w.find('#x-toggle').trigger('click')
+    await frames()
+    expect(sc.style.overflowAnchor).toBe('')
+  })
+
+  it('contenedor con overflow-anchor en línea (auto y none): no se toca nunca', async () => {
+    for (const v of ['auto', 'none']) {
+      const sc = scroller(`overflow-anchor: ${v};`)
+      const w = inBox(sc, `<g-accordion v-model="open" sticky>${FAQ}</g-accordion>`, () => ({ open: ref(['cambiar']) }))
+      await frames()
+      expect(sc.style.overflowAnchor).toBe(v)
+      await w.find('#cambiar-toggle').trigger('click')
+      await frames()
+      expect(sc.style.overflowAnchor).toBe(v)
+    }
+  })
+
+  it('sin antepasado desplazable (el documento): ni <html> ni <body> reciben style', async () => {
+    const html = document.documentElement
+    const had = html.getAttribute('style')
+    make(`<g-accordion :model-value="['cambiar']" sticky>${FAQ}</g-accordion>`)
+    await frames()
+    expect(html.getAttribute('style')).toBe(had)
+    expect(document.body.getAttribute('style')).toBeNull()
+  })
+})
+
 // ---------------------------------------------------------------------------------------------------------------
 describe('GAccordion · avisos de desarrollo (#488)', () => {
   it('1 · modelValue que no es arreglo: se trata como [v]', () => {

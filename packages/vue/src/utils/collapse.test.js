@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { keepInPlace } from './collapse.js'
+import { holdNoAnchor, keepInPlace } from './collapse.js'
 
 // Δ0 (#481) y su cancelación por un desplazamiento ajeno (#683), con geometría simulada en jsdom:
 // el documento desplaza `top` y el elemento está en `layoutTop - top`.
@@ -104,5 +104,80 @@ describe('keepInPlace · overflow-anchor previo (#685)', () => {
     const stop = keepInPlace(e.el, () => 300)
     stop()
     expect(e.root.getAttribute('style') || '').not.toMatch(/overflow-anchor/)
+  })
+})
+
+// #1079: registro compartido del overflow-anchor: none en línea, con recuento por contenedor
+describe('holdNoAnchor · recuento por contenedor (#1079)', () => {
+  const box = () => document.body.appendChild(document.createElement('div'))
+
+  it('escribe none y restaura el valor en línea previo; sin previo, el style queda sin la propiedad', () => {
+    const a = box()
+    a.style.overflowAnchor = 'auto'
+    const r = holdNoAnchor(a)
+    expect(a.style.overflowAnchor).toBe('none')
+    r()
+    expect(a.style.overflowAnchor).toBe('auto')
+    const b = box()
+    const r2 = holdNoAnchor(b)
+    expect(b.style.overflowAnchor).toBe('none')
+    r2()
+    expect(b.getAttribute('style') || '').not.toMatch(/overflow-anchor/)
+  })
+
+  it('dos asas: soltar la primera no restaura, la segunda sí; soltar la misma dos veces no resta dos', () => {
+    const a = box()
+    const r1 = holdNoAnchor(a)
+    const r2 = holdNoAnchor(a)
+    r1()
+    r1()
+    expect(a.style.overflowAnchor).toBe('none')
+    r2()
+    expect(a.style.overflowAnchor).toBe('')
+  })
+
+  it('si la aplicación cambió el valor en línea durante la retención, no se pisa al soltar', () => {
+    const a = box()
+    const r = holdNoAnchor(a)
+    a.style.overflowAnchor = 'auto'
+    r()
+    expect(a.style.overflowAnchor).toBe('auto')
+  })
+
+  it('con respect: un valor en línea de la aplicación (auto o none) no se toca ni cuenta', () => {
+    for (const v of ['auto', 'none']) {
+      const a = box()
+      a.style.overflowAnchor = v
+      const r = holdNoAnchor(a, true)
+      expect(a.style.overflowAnchor).toBe(v)
+      r()
+      expect(a.style.overflowAnchor).toBe(v)
+    }
+  })
+
+  it('keepInPlace con una retención de sticky abierta y soltada a media ventana termina con el valor original', () => {
+    const e = env()
+    e.root.style.overflowAnchor = 'auto'
+    const sticky = holdNoAnchor(e.root)
+    let t = 0
+    vi.stubGlobal('performance', { now: () => t })
+    keepInPlace(e.el, () => 300)
+    e.tick()
+    sticky()
+    expect(e.root.style.overflowAnchor).toBe('none')
+    t = 10000
+    e.tick()
+    expect(e.frames.length).toBe(0)
+    expect(e.root.style.overflowAnchor).toBe('auto')
+    e.root.style.overflowAnchor = ''
+  })
+
+  it('sin document devuelve el asa vacía sin lanzar', () => {
+    const a = box()
+    vi.stubGlobal('document', undefined)
+    const r = holdNoAnchor(a)
+    expect(() => r()).not.toThrow()
+    vi.unstubAllGlobals()
+    expect(a.getAttribute('style')).toBeNull()
   })
 })

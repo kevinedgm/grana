@@ -274,10 +274,11 @@ test.describe('GFormSection Fase 3 · componente real (form.md §3)', () => {
     expect(await page.evaluate(() => __fm().fiscal)).toBe(true)
     expect(await page.evaluate(() => __fd('fm-medium'))).toEqual(expect.arrayContaining(['m-rfc', 'm-razon', 'm-cpf']))
     await page.keyboard.press('Tab')
-    if (browserName !== 'webkit') {
-      expect(await page.evaluate(() => document.activeElement.classList.contains('g-form-section__remove'))).toBe(true)
-      await page.keyboard.press('Tab')
-    }
+    // WebKit tabula a los botones según la plataforma (en macOS no; en el de Playwright en Linux sí, e2e-full 43461208113):
+    // allí «Quitar…» puede no estar en el orden; donde está, es la parada siguiente al título
+    const onRemove = await page.evaluate(() => document.activeElement.classList.contains('g-form-section__remove'))
+    if (browserName !== 'webkit') expect(onRemove, 'Tab desde el título llega a «Quitar…»').toBe(true)
+    if (onRemove) await page.keyboard.press('Tab')
     expect(await act(page), 'Tab desde el título: «Quitar…» y el primer campo').toBe('fm-rfc')
     // Agregada: sus errores bloquean
     await page.click('#fm-medium button[value="save"]')
