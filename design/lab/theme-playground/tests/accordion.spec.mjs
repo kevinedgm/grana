@@ -460,18 +460,28 @@ test.describe('GAccordion · sticky (#484)', () => {
         if (el.classList.contains('is-instant')) window.__seen.instant = true
         if (el.classList.contains('is-animating')) window.__seen.animating = true
       }).observe(el, { attributes: true, attributeFilter: ['class'] })
+      // Diario para el fallo de WebKit en la integración continua (run 43472613446: aria-expanded seguía en true): qué
+      // recibe el clic, cuántas veces cambia el estado y si el contenedor se desplaza antes del clic
+      const sc = document.getElementById('ac-sticky-scroller')
+      const t = document.getElementById('st-prep-toggle')
+      const name = (n) => (n && n.nodeType === 1 ? `${n.tagName.toLowerCase()}${n.id ? '#' + n.id : ''}.${[...n.classList].join('.')}` : String(n))
+      const tr = t.getBoundingClientRect()
+      window.__log = [`antes: scrollTop ${Math.round(sc.scrollTop)}, botón top ${Math.round(tr.top)}, en su centro ${name(document.elementFromPoint(tr.left + tr.width / 2, tr.top + tr.height / 2))}`]
+      for (const type of ['pointerdown', 'click']) document.addEventListener(type, (e) => window.__log.push(`${type} → ${name(e.target)} (${Math.round(e.clientX)},${Math.round(e.clientY)}), scrollTop ${Math.round(sc.scrollTop)}, botón top ${Math.round(t.getBoundingClientRect().top)}`), true)
+      new MutationObserver(() => window.__log.push(`aria-expanded = ${t.getAttribute('aria-expanded')}`)).observe(t, { attributes: true, attributeFilter: ['aria-expanded'] })
       __sample('#st-prep > .g-accordion-item__heading', 400)
     })
     await page.click('#st-prep-toggle', { noWaitAfter: true })
     await page.waitForFunction(() => window.__s.done)
     const inst = await page.evaluate(() => window.__seen)
+    const diary = await page.evaluate(() => window.__log.join('\n'))
     const r = await page.evaluate(() => {
       const h = document.querySelector('#st-prep > .g-accordion-item__heading').getBoundingClientRect()
       const next = document.getElementById('st-lugar').getBoundingClientRect()
       return { max: Math.round(window.__s.max * 10) / 10, gap: Math.round(next.top - h.bottom) }
     })
-    expect(await exp(page, 'st-prep')).toBe('false')
-    expect(inst).toEqual({ instant: true, animating: false })
+    expect(await exp(page, 'st-prep'), diary).toBe('false')
+    expect(inst, diary).toEqual({ instant: true, animating: false })
     expect(r.max, `máx ${r.max}px`).toBeLessThanOrEqual(1)
     expect(r.gap).toBeGreaterThanOrEqual(-1)
     expect(r.gap).toBeLessThan(80)
