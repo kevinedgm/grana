@@ -138,7 +138,7 @@ Por la salida estándar, en este orden de bloques (el texto exacto es de bruno y
 2. **Diagnósticos del tema** (si los hay), con el formato de `theme`.
 3. **Instalación:** cada orden exacta y si se ejecutó, se omitió (`--no-install`, `--dry-run`) o no hacía falta (paquetes ya declarados).
 4. **Archivos:** cada uno como escrito, regenerado, conservado o «se escribiría» (`--dry-run`).
-5. **Siguientes pasos:** las líneas de I5 en bloques de código con el archivo de destino, y con `--no-install` la orden pendiente.
+5. **Siguientes pasos:** las líneas de I5 en bloques de código con el archivo de destino, y con `--no-install` la orden pendiente. Terminan con una línea que nombra `npx grana catalog --agents` para quien diseñe con agentes de IA (#1080, `catalog.md` C4; texto fuera de la promesa).
 
 Errores y avisos por la salida de error, como en `theme`. Sin colores ANSI obligatorios (si bruno los usa, se apagan con `NO_COLOR` y fuera de un TTY). Los símbolos de estado siguen el formato que ya usa `cli.js` (es salida de terminal, no un componente: la regla de iconos Lucide no aplica).
 
