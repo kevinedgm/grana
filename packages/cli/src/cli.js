@@ -1,7 +1,10 @@
-// Línea de comandos: grana theme | check. Códigos de salida: 0 correcto, 1 tema inválido, 2 uso o configuración ilegible.
+// Línea de comandos: grana theme | check | init. Códigos de salida: 0 correcto, 1 tema inválido, 2 uso o configuración ilegible,
+// 3 (solo init) la instalación falló.
 import { readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { buildTheme } from './index.js'
+import { formatIssues } from './format.js'
+import { runInit } from './init.js'
 
 export const HELP = `grana · genera y valida el tema de Grana
 
@@ -11,9 +14,15 @@ Uso:
       Con --doc[=archivo] escribe también tokens.json: cada token con su valor claro y oscuro, su uso y el contraste medido.
   grana check <configuración.json> [--json]
       Solo valida: no escribe nada. Con --json, imprime el informe como JSON.
+  grana init [--pm npm|pnpm|yarn|bun] [--brand <color>] [--theme auto|vite|file] [--out <archivo>]
+             [--no-install] [--dry-run] [--force]
+      En la raíz de un proyecto existente: valida el tema, instala @grana/vue (y vue y @grana/cli si faltan) con el gestor
+      del proyecto, escribe grana.config.json (y tokens.css si hace falta) e imprime las líneas que debe añadir tu código.
+      No edita código de la aplicación ni pregunta nada. --dry-run solo imprime el plan.
   grana --help | --version
 
-Códigos de salida: 0 correcto · 1 el tema rompe un mínimo de accesibilidad · 2 uso o configuración ilegible o inválida.
+Códigos de salida: 0 correcto · 1 el tema rompe un mínimo de accesibilidad · 2 uso o configuración ilegible o inválida
+· 3 (solo init) la instalación falló o falta el gestor de paquetes.
 Los avisos (warning) no cambian el código de salida.
 `
 
@@ -34,17 +43,18 @@ const parseArgs = (argv) => {
   return args
 }
 
-const formatIssues = (issues) =>
-  issues
-    .map((i) => `${i.severity === 'error' ? '✖ error' : '⚠ aviso'} [${i.id}] ${i.message}\n    Por qué: ${i.why}`)
-    .join('\n')
-
 /**
  * @param {string[]} argv argumentos sin `node` ni el script
- * @param {{ cwd?: string, out?: (s: string) => void, err?: (s: string) => void, version?: string }} [io]
+ * @param {{ cwd?: string, out?: (s: string) => void, err?: (s: string) => void, version?: string,
+ *   exec?: (cmd: string, args: string[], opts: { cwd: string }) => { status: number | null, error?: Error },
+ *   env?: Record<string, string | undefined> }} [io] `exec` y `env` los usa solo `init` (inyectables para probar sin red)
  * @returns {number} código de salida
  */
-export const run = (argv, { cwd = process.cwd(), out = (s) => process.stdout.write(s), err = (s) => process.stderr.write(s), version = '0.0.0' } = {}) => {
+export const run = (argv, { cwd = process.cwd(), out = (s) => process.stdout.write(s), err = (s) => process.stderr.write(s), version = '0.0.0', exec, env } = {}) => {
+  if (argv[0] === 'init') {
+    if (argv.some((a) => a === '--help' || a === '-h')) { out(HELP); return 0 }
+    return runInit(argv.slice(1), { cwd, out, err, version, exec, env, help: HELP })
+  }
   const args = parseArgs(argv)
   if (args.flags.version) { out(`${version}\n`); return 0 }
   if (args.flags.help || args.positional.length === 0) { out(HELP); return args.flags.help ? 0 : 2 }
