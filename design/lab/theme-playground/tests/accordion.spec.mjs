@@ -490,6 +490,43 @@ test.describe('GAccordion · sticky (#484)', () => {
     expect(errs, errs.join('\n')).toEqual([])
   })
 
+  // #1079: con sticky y algún abierto, overflow-anchor: none EN LÍNEA en el contenedor desplazable más cercano (se lee el estilo
+  // en línea, no el calculado); la página no salta al pasar el puntero por el encabezado pegado (sin rueda); con todo cerrado,
+  // vacío; un valor en línea de la aplicación no se toca
+  test('sticky: overflow-anchor: none en línea en el contenedor y la página quieta al pasar el puntero por el encabezado pegado (#1079)', async ({ page }) => {
+    const errs = await watchConsole(page)
+    await open(page)
+    await stickPrep(page)
+    const anchorOf = () => page.evaluate(() => document.getElementById('ac-sticky-scroller').style.overflowAnchor)
+    expect(await anchorOf()).toBe('none')
+    expect(await page.evaluate(() => document.getElementById('ac-sticky').getAttribute('style') || '')).not.toMatch(/overflow-anchor/)
+    const y0 = await page.evaluate(() => window.scrollY)
+    expect(y0, 'la página está desplazada').toBeGreaterThan(0)
+    const box = await page.evaluate(() => { const r = document.getElementById('st-prep-toggle').getBoundingClientRect(); const s = document.getElementById('ac-sticky-scroller').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, out: s.left - 20 } })
+    const ys = []
+    await page.mouse.move(box.out, box.y)
+    await frames(page, 2)
+    await page.mouse.move(box.x, box.y, { steps: 6 })
+    for (let k = 0; k < 4; k++) { await frames(page, 2); ys.push(await page.evaluate(() => window.scrollY)) }
+    await page.mouse.move(box.out, box.y, { steps: 6 })
+    for (let k = 0; k < 2; k++) { await frames(page, 2); ys.push(await page.evaluate(() => window.scrollY)) }
+    for (const y of ys) expect(Math.abs(y - y0), `scrollY ${ys.join(', ')} (antes ${y0})`).toBeLessThanOrEqual(1)
+    // Todo cerrado: se suelta
+    await page.evaluate(() => { for (const t of document.querySelectorAll('#ac-sticky .g-accordion-item__toggle[aria-expanded="true"]')) t.click() })
+    await settle(page, 500)
+    expect(await page.evaluate(() => document.querySelectorAll('#ac-sticky .g-accordion-item__toggle[aria-expanded="true"]').length)).toBe(0)
+    expect(await anchorOf()).toBe('')
+    // Un valor en línea de la aplicación no se modifica al volver a abrir
+    await page.evaluate(() => { document.getElementById('ac-sticky-scroller').style.overflowAnchor = 'auto'; document.getElementById('st-intro-toggle').click() })
+    await settle(page, 500)
+    expect(await exp(page, 'st-intro')).toBe('true')
+    expect(await anchorOf()).toBe('auto')
+    await page.evaluate(() => document.getElementById('st-intro-toggle').click())
+    await settle(page, 500)
+    expect(await anchorOf()).toBe('auto')
+    expect(errs, errs.join('\n')).toEqual([])
+  })
+
   test('Mayús+Tab hacia arriba dentro de un abierto: cada control queda entero a la vista, bajo el encabezado pegado (2.4.11)', async ({ page, browserName }) => {
     const errs = await watchConsole(page)
     await open(page)
