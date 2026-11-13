@@ -7,7 +7,7 @@ import { join, resolve } from 'node:path'
 import { gzipSync } from 'node:zlib'
 import { createApp } from 'vue'
 import { ENTRIES, generateTypes, metaProps, readMetas } from '../scripts/build-types.mjs'
-import { LIMITS, exposedNames, generateCatalog, readTokens } from '../scripts/build-catalog.mjs'
+import { LIMITS, exposedNames, generateCatalog, readTokens, tagOf } from '../scripts/build-catalog.mjs'
 import * as overrides from '../types/overrides.mjs'
 
 const ROOT = resolve(process.cwd())
@@ -234,5 +234,19 @@ describe('llms.txt', () => {
     expect(gen.llms).toContain('npx grana catalog')
     expect(gen.llms).toContain('node_modules/@grana/vue/dist/catalog.json')
     expect(gen.llms).toMatch(/· draft ·/)
+  })
+})
+
+describe('etiquetas (tag)', () => {
+  it('todo tag empieza por g- y es el del nombre con que la pieza se registra', () => {
+    for (const c of catalog.components) {
+      expect(c.tag.startsWith('g-'), `${c.name}: ${c.tag}`).toBe(true)
+      // Declarado en el meta o derivado, el tag es el nombre registrado sin importar dónde van los guiones (g-datepicker, g-date-picker).
+      expect(c.tag.replace(/-/g, ''), c.name).toBe(c.name.toLowerCase())
+      const declared = [...metas.values()].find((m) => m.name === c.name)?.tag
+      if (!declared) expect(c.tag, c.name).toBe(tagOf(c.name))
+    }
+    expect(tagOf('GInputGroupInput')).toBe('g-input-group-input')
+    expect(catalog.components.find((c) => c.name === 'GInputGroupSelect').tag).toBe('g-input-group-select')
   })
 })

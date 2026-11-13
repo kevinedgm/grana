@@ -23,7 +23,8 @@ const STATUSES = ['stable', 'candidate', 'draft']
 const IDENT = /^[A-Za-z_$][\w$]*$/
 // Clave de labels: identificadores con punto; un segmento puede ser un patrón documentado (`*`, `<status>`).
 const LABEL_KEY = /^[A-Za-z_$][\w$]*(\.([A-Za-z_$][\w$]*|\d+|\*|<[A-Za-z]+>))*$/
-const kebab = (name) => name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()
+// Etiqueta de una pieza sin `tag` en su meta: `g-` + kebab del nombre sin la `G` inicial (GInputGroupInput → g-input-group-input).
+export const tagOf = (name) => `g-${name.replace(/^G/, '').replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()}`
 
 const stripComments = (code) => code.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1')
 
@@ -158,7 +159,7 @@ function piece(meta, { entry, registered, aliases, parent, overrides }) {
   })
   return {
     name: N,
-    tag: meta.tag || kebab(N),
+    tag: meta.tag || tagOf(N),
     ...(aliases.length ? { aliases } : {}),
     status,
     ...(since ? { since } : {}),
@@ -274,7 +275,7 @@ export const AGENT_RULES = [
   'Importa cada pieza desde su `entry`. Si no es `@grana/vue`, registra su entrada (`install`) o impórtala en el componente; con `registered: false` hay que importarla.',
   '`stable` está prometido por semver; `candidate` puede cambiar en una menor; `draft` no tiene promesa: no lo uses sin que la persona lo acepte. Lo `deprecated` no se usa: usa lo que dice `use`.',
   'Estilo por tokens: importa `@grana/vue/style.css`; el color y la marca vienen del tema (`grana.config.json`); no pises componentes con colores literales ni con selectores sobre sus partes internas (`g-*__*` no es API).',
-  'Iconos: solo Lucide. En las piezas, por nombre de la lista de la librería (`--icons`) o registrados con `createIcons`; nunca caracteres ni SVG a mano.',
+  'Iconos: solo Lucide. En las piezas, por nombre de la lista de la librería (`npx grana catalog --icons`) o registrados con `createIcons`; nunca caracteres ni SVG a mano.',
   'Respeta las props obligatorias (`required`) y da nombre accesible a lo que lo pide (`labels`, `label`, `aria-label`).'
 ]
 
@@ -344,6 +345,7 @@ export async function buildCatalog({ root = ROOT, outDir = join(ROOT, 'dist') } 
   const { catalog, json, llms } = await generateCatalog({ root })
   const jsonBytes = Buffer.byteLength(json)
   const llmsBytes = Buffer.byteLength(llms)
+  if (jsonBytes > LIMITS.catalog * 0.9 && jsonBytes <= LIMITS.catalog) console.warn(`aviso: catalog.json mide ${jsonBytes} B, más del 90 % del tope de ${LIMITS.catalog} B (${Math.round((jsonBytes / LIMITS.catalog) * 100)} %); lo decide lima antes de llegar.`)
   if (jsonBytes > LIMITS.catalog) throw new Error(`catalog.json mide ${jsonBytes} B, por encima del tope de ${LIMITS.catalog} B (lo decide lima).`)
   if (llmsBytes > LIMITS.llms) throw new Error(`llms.txt mide ${llmsBytes} B, por encima del tope de ${LIMITS.llms} B (lo decide lima).`)
   mkdirSync(outDir, { recursive: true })
