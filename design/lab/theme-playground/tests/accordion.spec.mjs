@@ -466,8 +466,20 @@ test.describe('GAccordion · sticky (#484)', () => {
       const t = document.getElementById('st-prep-toggle')
       const name = (n) => (n && n.nodeType === 1 ? `${n.tagName.toLowerCase()}${n.id ? '#' + n.id : ''}.${[...n.classList].join('.')}` : String(n))
       const tr = t.getBoundingClientRect()
-      window.__log = [`antes: scrollTop ${Math.round(sc.scrollTop)}, botón top ${Math.round(tr.top)}, en su centro ${name(document.elementFromPoint(tr.left + tr.width / 2, tr.top + tr.height / 2))}`]
-      for (const type of ['pointerdown', 'click']) document.addEventListener(type, (e) => window.__log.push(`${type} → ${name(e.target)} (${Math.round(e.clientX)},${Math.round(e.clientY)}), scrollTop ${Math.round(sc.scrollTop)}, botón top ${Math.round(t.getBoundingClientRect().top)}`), true)
+      // Estado común de cada línea: desplazamiento de la página y del contenedor, caja del botón, del elemento y del grupo
+      const it = document.getElementById('st-prep')
+      const grp = document.getElementById('ac-sticky')
+      const geo = () => `scrollY ${Math.round(window.scrollY)}, scrollTop ${Math.round(sc.scrollTop)}, contenedor top ${Math.round(sc.getBoundingClientRect().top)}, grupo top ${Math.round(grp.getBoundingClientRect().top)}, elemento top ${Math.round(it.getBoundingClientRect().top)} alto ${Math.round(it.getBoundingClientRect().height)}, botón top ${Math.round(t.getBoundingClientRect().top)}, clases ${[...it.classList].join('.')}, foco ${name(document.activeElement)}`
+      const path = (n) => { const out = []; for (let k = n; k && k.nodeType === 1 && out.length < 4; k = k.parentElement) out.push(name(k)); return out.join(' < ') }
+      window.__log = [`antes: ${geo()}, en su centro ${name(document.elementFromPoint(tr.left + tr.width / 2, tr.top + tr.height / 2))}`]
+      let moves = 0
+      document.addEventListener('pointermove', (e) => { if (moves++ < 3) window.__log.push(`pointermove ${moves} → ${path(e.target)} (${Math.round(e.clientX)},${Math.round(e.clientY)}); ${geo()}`) }, true)
+      for (const type of ['pointerover', 'pointerdown', 'mousedown', 'focusin', 'pointerup', 'mouseup', 'click']) document.addEventListener(type, (e) => window.__log.push(`${type} → ${path(e.target)}${e.clientX !== undefined ? ` (${Math.round(e.clientX)},${Math.round(e.clientY)})` : ''}; ${geo()}`), true)
+      // Cualquier desplazamiento (página o contenedor) y cualquier cambio de clase o estilo en línea del elemento y del grupo
+      let scrolls = 0
+      document.addEventListener('scroll', (e) => { if (scrolls++ < 6) window.__log.push(`scroll de ${e.target === document ? 'la página' : name(e.target)}; ${geo()}`) }, true)
+      new MutationObserver((ms) => { for (const m of ms) window.__log.push(`${name(m.target)} cambia ${m.attributeName}: «${m.oldValue}» → «${m.target.getAttribute(m.attributeName)}»`) }).observe(grp, { attributes: true, attributeOldValue: true, attributeFilter: ['class', 'style'], subtree: true })
+      window.__after = () => { const r = t.getBoundingClientRect(); window.__log.push(`después: ${geo()}, en el punto del clic ${path(document.elementFromPoint(window.__at.x, window.__at.y))}, en el centro del botón ${name(document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2))}`) }
       new MutationObserver(() => window.__log.push(`aria-expanded = ${t.getAttribute('aria-expanded')}`)).observe(t, { attributes: true, attributeFilter: ['aria-expanded'] })
       __sample('#st-prep > .g-accordion-item__heading', 400)
     })
@@ -477,10 +489,13 @@ test.describe('GAccordion · sticky (#484)', () => {
     const box = await page.evaluate(() => { const r = document.getElementById('st-prep-toggle').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 } })
     const pw = await page.locator('#st-prep-toggle').boundingBox()
     console.log(`[${test.info().project.name}] botón pegado: centro pintado (${Math.round(box.x)},${Math.round(box.y)}); caja de Playwright ${pw ? `(${Math.round(pw.x + pw.width / 2)},${Math.round(pw.y + pw.height / 2)})` : 'null'}`)
+    await page.evaluate((at) => { window.__at = at; window.__log.push(`clic en (${Math.round(at.x)},${Math.round(at.y)})`) }, box)
     await page.mouse.click(box.x, box.y)
     await page.waitForFunction(() => window.__s.done)
+    await page.evaluate(() => window.__after())
     const inst = await page.evaluate(() => window.__seen)
     const diary = await page.evaluate(() => window.__log.join('\n'))
+    console.log(`[${test.info().project.name}] diario del cierre pegado:\n${diary}`)
     const r = await page.evaluate(() => {
       const h = document.querySelector('#st-prep > .g-accordion-item__heading').getBoundingClientRect()
       const next = document.getElementById('st-lugar').getBoundingClientRect()
