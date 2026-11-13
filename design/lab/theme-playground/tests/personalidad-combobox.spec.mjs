@@ -60,6 +60,15 @@ test.describe('GCombobox · personalidad con movimiento', () => {
     await page.evaluate(() => {
       window.__cbPath = null
       const root = document.getElementById('cb-dx').closest('.g-combobox')
+      // Diario de la entrada (diagnóstico de WebKit): eventos de animación de la ficha y cambios de is-landing, con su hora
+      const log = (window.__cbLog = [])
+      const t0 = performance.now()
+      for (const ty of ['animationstart', 'animationend', 'animationcancel']) root.addEventListener(ty, (e) => { if (e.target.classList?.contains('g-combobox__token')) log.push(`${Math.round(performance.now() - t0)} ${ty} ${e.animationName}`) })
+      let had = false
+      new MutationObserver(() => {
+        const on = !!root.querySelector('.g-combobox__token.is-landing')
+        if (on !== had) { had = on; log.push(`${Math.round(performance.now() - t0)} is-landing ${on}`) }
+      }).observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] })
       const mo = new MutationObserver(() => {
         const t = root.querySelector('.g-combobox__token.is-landing')
         const a = t && t.getAnimations().find((x) => /^g-combobox-land/.test(x.animationName || ''))
@@ -76,6 +85,7 @@ test.describe('GCombobox · personalidad con movimiento', () => {
         a.currentTime = was
         a.play()
         window.__cbPath = { d, path, was }
+        window.__cbLog.push(`${'recorrido medido'} ${t.classList.contains('is-landing')}`)
       })
       mo.observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] })
     })
@@ -91,7 +101,7 @@ test.describe('GCombobox · personalidad con movimiento', () => {
     const end = ps[ps.length - 1]
     expect(end.landing, 'la clase se retira').toBe(false)
     expect(ps.every((p) => !p.style), 'ninguna medida en línea, tampoco --_travel').toBe(true)
-    expect(ps.some((p) => p.landing), `la entrada corre en cuadros reales: ${JSON.stringify({ n: ps.length, path: await page.evaluate(() => window.__cbPath && { d: window.__cbPath.d, was: window.__cbPath.was }) })}`).toBe(true)
+    expect(ps.some((p) => p.landing), `la entrada corre en cuadros reales: ${JSON.stringify({ n: ps.length, path: await page.evaluate(() => window.__cbPath && { d: window.__cbPath.d, was: window.__cbPath.was }), log: await page.evaluate(() => window.__cbLog) })}`).toBe(true)
     expect(distinct(ps.map((p) => p.x)).length, 'no se mueve en horizontal').toBe(1)
     const { d, path } = await page.evaluate(() => window.__cbPath)
     expect(d, 'duración de la entrada').toBeGreaterThan(0)
