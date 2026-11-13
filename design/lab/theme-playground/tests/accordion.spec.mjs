@@ -460,42 +460,23 @@ test.describe('GAccordion · sticky (#484)', () => {
         if (el.classList.contains('is-instant')) window.__seen.instant = true
         if (el.classList.contains('is-animating')) window.__seen.animating = true
       }).observe(el, { attributes: true, attributeFilter: ['class'] })
-      // Diario para el fallo de WebKit en la integración continua (run 43472613446: aria-expanded seguía en true): qué
-      // recibe el clic, cuántas veces cambia el estado y si el contenedor se desplaza antes del clic
+      // Diario mínimo (fallo de WebKit, PENDIENTES): en WebKit, al entrar el puntero en el encabezado pegado, el anclaje de
+      // desplazamiento mueve la página −scrollTop del contenedor interior y el clic cae fuera del botón
       const sc = document.getElementById('ac-sticky-scroller')
       const t = document.getElementById('st-prep-toggle')
       const name = (n) => (n && n.nodeType === 1 ? `${n.tagName.toLowerCase()}${n.id ? '#' + n.id : ''}.${[...n.classList].join('.')}` : String(n))
-      const tr = t.getBoundingClientRect()
-      // Estado común de cada línea: desplazamiento de la página y del contenedor, caja del botón, del elemento y del grupo
-      const it = document.getElementById('st-prep')
-      const grp = document.getElementById('ac-sticky')
-      const geo = () => `scrollY ${Math.round(window.scrollY)}, scrollTop ${Math.round(sc.scrollTop)}, contenedor top ${Math.round(sc.getBoundingClientRect().top)}, grupo top ${Math.round(grp.getBoundingClientRect().top)}, elemento top ${Math.round(it.getBoundingClientRect().top)} alto ${Math.round(it.getBoundingClientRect().height)}, botón top ${Math.round(t.getBoundingClientRect().top)}, clases ${[...it.classList].join('.')}, foco ${name(document.activeElement)}`
-      const path = (n) => { const out = []; for (let k = n; k && k.nodeType === 1 && out.length < 4; k = k.parentElement) out.push(name(k)); return out.join(' < ') }
-      window.__log = [`antes: ${geo()}, en su centro ${name(document.elementFromPoint(tr.left + tr.width / 2, tr.top + tr.height / 2))}`]
-      let moves = 0
-      document.addEventListener('pointermove', (e) => { if (moves++ < 3) window.__log.push(`pointermove ${moves} → ${path(e.target)} (${Math.round(e.clientX)},${Math.round(e.clientY)}); ${geo()}`) }, true)
-      for (const type of ['pointerover', 'pointerdown', 'mousedown', 'focusin', 'pointerup', 'mouseup', 'click']) document.addEventListener(type, (e) => window.__log.push(`${type} → ${path(e.target)}${e.clientX !== undefined ? ` (${Math.round(e.clientX)},${Math.round(e.clientY)})` : ''}; ${geo()}`), true)
-      // Cualquier desplazamiento (página o contenedor) y cualquier cambio de clase o estilo en línea del elemento y del grupo
-      let scrolls = 0
-      document.addEventListener('scroll', (e) => { if (scrolls++ < 6) window.__log.push(`scroll de ${e.target === document ? 'la página' : name(e.target)}; ${geo()}`) }, true)
-      new MutationObserver((ms) => { for (const m of ms) window.__log.push(`${name(m.target)} cambia ${m.attributeName}: «${m.oldValue}» → «${m.target.getAttribute(m.attributeName)}»`) }).observe(grp, { attributes: true, attributeOldValue: true, attributeFilter: ['class', 'style'], subtree: true })
-      window.__after = () => { const r = t.getBoundingClientRect(); window.__log.push(`después: ${geo()}, en el punto del clic ${path(document.elementFromPoint(window.__at.x, window.__at.y))}, en el centro del botón ${name(document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2))}`) }
+      const geo = () => `scrollY ${Math.round(window.scrollY)}, scrollTop ${Math.round(sc.scrollTop)}, botón top ${Math.round(t.getBoundingClientRect().top)}`
+      window.__log = [`antes: ${geo()}`]
+      for (const type of ['pointerdown', 'click']) document.addEventListener(type, (e) => window.__log.push(`${type} → ${name(e.target)}; ${geo()}`), true)
       new MutationObserver(() => window.__log.push(`aria-expanded = ${t.getAttribute('aria-expanded')}`)).observe(t, { attributes: true, attributeFilter: ['aria-expanded'] })
       __sample('#st-prep > .g-accordion-item__heading', 400)
     })
-    // Clic donde se pinta el botón pegado (su caja en pantalla), con el ratón. En WebKit, page.click no entregaba ningún
-    // pointerdown ni click al documento (run de 22cec78: el diario solo tenía la línea «antes»): se registra también la caja
-    // que calcula Playwright para comparar con la pintada
+    // Clic con el ratón donde se pinta el botón pegado (su caja en pantalla)
     const box = await page.evaluate(() => { const r = document.getElementById('st-prep-toggle').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 } })
-    const pw = await page.locator('#st-prep-toggle').boundingBox()
-    console.log(`[${test.info().project.name}] botón pegado: centro pintado (${Math.round(box.x)},${Math.round(box.y)}); caja de Playwright ${pw ? `(${Math.round(pw.x + pw.width / 2)},${Math.round(pw.y + pw.height / 2)})` : 'null'}`)
-    await page.evaluate((at) => { window.__at = at; window.__log.push(`clic en (${Math.round(at.x)},${Math.round(at.y)})`) }, box)
     await page.mouse.click(box.x, box.y)
     await page.waitForFunction(() => window.__s.done)
-    await page.evaluate(() => window.__after())
     const inst = await page.evaluate(() => window.__seen)
     const diary = await page.evaluate(() => window.__log.join('\n'))
-    console.log(`[${test.info().project.name}] diario del cierre pegado:\n${diary}`)
     const r = await page.evaluate(() => {
       const h = document.querySelector('#st-prep > .g-accordion-item__heading').getBoundingClientRect()
       const next = document.getElementById('st-lugar').getBoundingClientRect()
@@ -507,38 +488,6 @@ test.describe('GAccordion · sticky (#484)', () => {
     expect(r.gap).toBeGreaterThanOrEqual(-1)
     expect(r.gap).toBeLessThan(80)
     expect(errs, errs.join('\n')).toEqual([])
-  })
-
-  // DIAGNÓSTICO TEMPORAL (bruno, fallo de :451 en WebKit): en la integración continua, al pasar el puntero sobre el encabezado
-  // pegado la PÁGINA se desplazaba −638 px (el scrollTop del contenedor interior) sin que corriera código de Grana. Esta prueba
-  // no comprueba nada: separa «cualquier maquetación» de «hover» y prueba si es el anclaje de desplazamiento del navegador
-  // (overflow-anchor: none en la página o en el contenedor). Se retira cuando la causa quede cerrada.
-  test('diagnóstico temporal: qué desplaza la página al pasar sobre el encabezado pegado', async ({ page }) => {
-    const variants = [['sin cambios', ''], ['html overflow-anchor none', 'html'], ['contenedor overflow-anchor none', 'scroller']]
-    const out = []
-    for (const [label, where] of variants) {
-      await open(page)
-      if (where === 'html') await page.evaluate(() => { document.documentElement.style.overflowAnchor = 'none' })
-      if (where === 'scroller') await page.evaluate(() => { document.getElementById('ac-sticky-scroller').style.overflowAnchor = 'none' })
-      await stickPrep(page)
-      const y = () => page.evaluate(() => Math.round(window.scrollY))
-      const y0 = await y()
-      // (a) una maquetación sin puntero: cambia un estilo en línea ajeno y fuerza la caja
-      await page.evaluate(() => { document.body.style.setProperty('--g-probe', '1'); document.body.offsetHeight })
-      await frames(page, 3)
-      const ya = await y()
-      // (b) el puntero entra en el encabezado pegado
-      const c = await page.evaluate(() => { const r = document.getElementById('st-prep-toggle').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 } })
-      await page.mouse.move(c.x, c.y)
-      await frames(page, 3)
-      const yb = await y()
-      // (c) el puntero sale a una zona neutra
-      await page.mouse.move(2, 2)
-      await frames(page, 3)
-      const yc = await y()
-      out.push(`${label}: scrollY ${y0} → maquetación ${ya} → hover ${yb} → fuera ${yc}`)
-    }
-    console.log(`[${test.info().project.name}] diagnóstico del encabezado pegado:\n${out.join('\n')}`)
   })
 
   test('Mayús+Tab hacia arriba dentro de un abierto: cada control queda entero a la vista, bajo el encabezado pegado (2.4.11)', async ({ page, browserName }) => {
