@@ -516,3 +516,228 @@ describe('GAvatar · avisos de desarrollo (avatar.md «Avisos», siete causas)',
     expect(grana(s)).toEqual([])
   })
 })
+
+// avatar.md «Dos letras si caben, una si no» (#1078). jsdom no maqueta: se falsea getBoundingClientRect (lado por tamaño,
+// ancho de __initials por su texto) y el font-size calculado. md circle con letra de 14px: cuerda = 2·√(16² − 5,04²) − 2 ≈ 28,37
+describe('GAvatar · dos letras si caben, una si no (#1078)', () => {
+  const SIDE = { xs: 20, sm: 24, md: 32, lg: 40, xl: 64 }
+  const CHORD_MD = 2 * Math.sqrt(16 * 16 - (0.72 * 14 / 2) ** 2) - 2
+  let layout
+  let reads
+  const fake = () => {
+    layout = { two: 27.8, one: 12, side: null, fs: '14px' }
+    reads = []
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function () {
+      let width = 0
+      if (this.classList.contains('g-avatar__initials')) {
+        reads.push(this.textContent)
+        width = Array.from(this.textContent).length === 2 ? layout.two : layout.one
+      } else if (this.classList.contains('g-avatar')) {
+        const size = SIZES_OF(this)
+        width = layout.side ?? SIDE[size]
+      }
+      return { width, height: width, x: 0, y: 0, top: 0, left: 0, right: width, bottom: width }
+    })
+    const real = window.getComputedStyle
+    vi.spyOn(window, 'getComputedStyle').mockImplementation(function (el, ...rest) {
+      const cs = real.call(window, el, ...rest)
+      return el.classList && el.classList.contains('g-avatar__initials') ? { ...cs, fontSize: layout.fs, getPropertyValue: () => '' } : cs
+    })
+  }
+  const SIZES_OF = (el) => [...el.classList].find((c) => c.startsWith('g-avatar--size-')).slice(15)
+  const settled = () => new Promise((r) => setTimeout(r, 0))
+  const mono = (w) => root(w).attributes('data-mono') ?? null
+
+  it('ancho > cuerda: una letra (la primera) y data-mono="one"; ≤ cuerda: dos y sin atributo (comparación exacta)', async () => {
+    fake()
+    layout.two = 34.4
+    const wide = mk({ initials: 'ЖШ' })
+    const name = mk({ name: 'Жанна Шевченко' })
+    await settled()
+    expect([ini(wide), mono(wide), ini(name), mono(name)]).toEqual(['Ж', 'one', 'Ж', 'one'])
+    layout.two = CHORD_MD
+    const exact = mk({ initials: 'ЖШ' })
+    await settled()
+    expect([ini(exact), mono(exact)]).toEqual(['ЖШ', null])
+    layout.two = 27.8
+    const wm = mk({ initials: 'WM' })
+    await settled()
+    expect([ini(wm), mono(wm)]).toEqual(['WM', null])
+  })
+
+  it('square: la cuerda es lado − 2 (29,5px cabe en square y no en circle)', async () => {
+    fake()
+    layout.two = 29.5
+    const sq = mk({ initials: 'ЖШ', shape: 'square' })
+    const ci = mk({ initials: 'ЖШ', shape: 'circle' })
+    await settled()
+    expect([ini(sq), mono(sq), ini(ci), mono(ci)]).toEqual(['ЖШ', null, 'Ж', 'one'])
+  })
+
+  it('lg y xl también se miden; xs y sm nunca (una letra por tamaño, sin marca y sin lecturas)', async () => {
+    fake()
+    layout.two = 39.4
+    const lg = mk({ initials: 'ЖШ', size: 'lg' })
+    const xl = mk({ initials: 'ЖШ', size: 'xl' })
+    await settled()
+    expect([ini(lg), mono(lg), ini(xl), mono(xl)]).toEqual(['Ж', 'one', 'ЖШ', null])
+    reads.length = 0
+    const xs = mk({ initials: 'ЖШ', size: 'xs' })
+    const sm = mk({ name: 'Жанна Шевченко', size: 'sm' })
+    await settled()
+    expect([ini(xs), mono(xs), ini(sm), mono(sm), reads]).toEqual(['Ж', null, 'Ж', null, []])
+  })
+
+  it('una letra o icono no se mide', async () => {
+    fake()
+    mk({ name: 'Madonna' })
+    mk({ initials: '李小' })
+    mk({})
+    await settled()
+    expect(reads).toEqual([])
+  })
+
+  it('medida 0: no decide (dos letras) y un ResizeObserver de un solo uso remide al tener caja', async () => {
+    fake()
+    const obs = []
+    vi.stubGlobal('ResizeObserver', class {
+      constructor(cb) { this.cb = cb; this.disconnect = vi.fn(); obs.push(this) }
+      observe(el) { this.el = el }
+    })
+    layout.two = 34.4
+    layout.side = 0
+    const w = mk({ initials: 'ЖШ' })
+    await settled()
+    expect([ini(w), mono(w), obs.length]).toEqual(['ЖШ', null, 1])
+    expect(obs[0].el).toBe(root(w).element)
+    obs[0].cb([{ contentRect: { width: 0 } }])
+    expect(obs[0].disconnect).not.toHaveBeenCalled()
+    layout.side = null
+    obs[0].cb([{ contentRect: { width: 32 } }])
+    expect(obs[0].disconnect).toHaveBeenCalledTimes(1)
+    await settled()
+    expect([ini(w), mono(w), obs.length]).toEqual(['Ж', 'one', 1])
+  })
+
+  it('remide solo al cambiar el texto, size o shape: un re-render del padre con las mismas props no lee', async () => {
+    fake()
+    const { ref: vref } = await import('vue')
+    const tick = vref(0)
+    const p = vref({ initials: 'WM', size: 'md', shape: 'circle' })
+    const w = mount({ render: () => h('div', { 'data-t': tick.value }, [h(GAvatar, { ...p.value, src: tick.value ? `a${tick.value}.png` : undefined, color: tick.value })]) }, { attachTo: document.body })
+    wrappers.push(w)
+    await settled()
+    expect(reads).toEqual(['WM'])
+    tick.value = 1
+    await settled()
+    tick.value = 2
+    await settled()
+    expect(reads).toEqual(['WM'])
+    p.value = { ...p.value, size: 'lg' }
+    await settled()
+    p.value = { ...p.value, shape: 'square' }
+    await settled()
+    p.value = { ...p.value, initials: 'ЖШ' }
+    await settled()
+    expect(reads).toEqual(['WM', 'WM', 'WM', 'ЖШ'])
+  })
+
+  it('document.fonts loadingdone: un solo escucha para varios avatares que remide por lotes y se retira con el último', async () => {
+    fake()
+    const fonts = { status: 'loaded', addEventListener: vi.fn(), removeEventListener: vi.fn() }
+    Object.defineProperty(document, 'fonts', { configurable: true, value: fonts })
+    try {
+      const a = mk({ initials: 'WM' })
+      const b = mk({ initials: 'ЖШ', size: 'lg' })
+      mk({ initials: 'WM', size: 'xs' })
+      await settled()
+      expect(fonts.addEventListener).toHaveBeenCalledTimes(1)
+      const [type, onFonts] = fonts.addEventListener.mock.calls[0]
+      expect(type).toBe('loadingdone')
+      reads.length = 0
+      layout.two = 39.4
+      onFonts()
+      await settled()
+      expect(reads.sort()).toEqual(['WM', 'ЖШ'])
+      expect([ini(a), mono(a), ini(b), mono(b)]).toEqual(['W', 'one', 'Ж', 'one'])
+      a.unmount()
+      expect(fonts.removeEventListener).not.toHaveBeenCalled()
+      b.unmount()
+      expect(fonts.removeEventListener).toHaveBeenCalledWith('loadingdone', onFonts)
+      wrappers.splice(0, 2)
+    } finally {
+      delete document.fonts
+    }
+  })
+
+  it('con la carga de fuentes en curso al montar, también remide tras document.fonts.ready', async () => {
+    fake()
+    let done
+    const fonts = { status: 'loading', ready: new Promise((r) => { done = r }), addEventListener: vi.fn(), removeEventListener: vi.fn() }
+    Object.defineProperty(document, 'fonts', { configurable: true, value: fonts })
+    try {
+      const w = mk({ initials: 'ЖШ' })
+      await settled()
+      expect(ini(w)).toBe('ЖШ')
+      layout.two = 34.4
+      done()
+      await settled()
+      expect([ini(w), mono(w)]).toEqual(['Ж', 'one'])
+    } finally {
+      delete document.fonts
+    }
+  })
+
+  it('el sondeo pone las dos letras, lee y decide en la misma tarea: ninguna tarea ve una letra a medias', async () => {
+    fake()
+    layout.two = 34.4
+    const fonts = { status: 'loaded', addEventListener: vi.fn(), removeEventListener: vi.fn() }
+    Object.defineProperty(document, 'fonts', { configurable: true, value: fonts })
+    try {
+      const w = mk({ initials: 'ЖШ' })
+      await settled()
+      expect(ini(w)).toBe('Ж')
+      reads.length = 0
+      layout.two = 27.8
+      fonts.addEventListener.mock.calls[0][1]()
+      // La siguiente tarea ya ve el resultado; la lectura se hizo con las dos letras (sondeo) y sin data-mono
+      const seen = await new Promise((r) => setTimeout(() => r([ini(w), mono(w)]), 0))
+      expect(seen).toEqual(['ЖШ', null])
+      expect(reads).toEqual(['ЖШ'])
+      // Y al revés: de dos a una sin pasar por una tarea con dos letras que no caben
+      layout.two = 34.4
+      fonts.addEventListener.mock.calls[0][1]()
+      expect(await new Promise((r) => setTimeout(() => r([ini(w), mono(w)]), 0))).toEqual(['Ж', 'one'])
+    } finally {
+      delete document.fonts
+    }
+  })
+
+  it('nombre accesible, dir, translate, color y clases iguales con una y con dos letras; data-mono de la aplicación no manda', async () => {
+    fake()
+    layout.two = 34.4
+    const one = mk({ name: 'Жанна Шевченко', label: 'Жанна Шевченко', color: 3 }, { attrs: { 'data-mono': 'two' } })
+    await settled()
+    layout.two = 27.8
+    const fit = mk({ name: 'Жанна Шевченко', label: 'Жанна Шевченко', color: 3 }, { attrs: { 'data-mono': 'one' } })
+    await settled()
+    expect([ini(one), mono(one), ini(fit), mono(fit)]).toEqual(['Ж', 'one', 'ЖШ', null])
+    for (const w of [one, fit]) {
+      const r = root(w)
+      expect([r.attributes('role'), r.attributes('aria-label'), r.attributes('aria-hidden'), r.attributes('data-cat')]).toEqual(['img', 'Жанна Шевченко', undefined, '3'])
+      expect(r.classes()).toEqual(['g-avatar', 'g-avatar--size-md', 'g-avatar--shape-circle', 'g-avatar--content-initials'])
+      const s = w.find('.g-avatar__initials')
+      expect([s.attributes('dir'), s.attributes('translate')]).toEqual(['auto', 'no'])
+    }
+  })
+
+  it('sin avisos nuevos al reducir', async () => {
+    fake()
+    const G = await fresh()
+    const s = spyWarn()
+    layout.two = 34.4
+    wrappers.push(mount(G, { props: { initials: 'ЖШ' }, attachTo: document.body }))
+    await settled()
+    expect(s.mock.calls).toEqual([])
+  })
+})

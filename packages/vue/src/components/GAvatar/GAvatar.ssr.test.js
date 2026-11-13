@@ -42,3 +42,13 @@ describe('SSR · GAvatar', () => {
     expect(warn).not.toHaveBeenCalled()
   })
 })
+
+describe('SSR · GAvatar · dos letras si caben (#1078)', () => {
+  it('el servidor pinta dos letras, sin data-mono y sin tocar document', async () => {
+    expect(typeof document).toBe('undefined')
+    const html = await render({ initials: 'ЖШ' })
+    expect(html).toContain('>ЖШ<')
+    expect(html).not.toContain('data-mono')
+    expect(await render({ name: 'Жанна Шевченко', size: 'lg', shape: 'square' })).toContain('>ЖШ<')
+  })
+})
