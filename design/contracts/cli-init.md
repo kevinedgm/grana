@@ -1,6 +1,6 @@
 # Contrato · `grana init` (instalador de `@grana/cli`)
 
-**Dueño:** lima · **Estado:** contratado, sin construir (2026-11-13; DECISIONS.md #1078; `api.md` «Estabilidad y versiones») · **Basado en:** petición del usuario («un instalador de npm, npx») y la instalación vigente del README raíz («Instalación») y de `packages/cli/README.md`
+**Dueño:** lima · **Estado:** contratado, sin construir (2026-11-13; DECISIONS.md #1078 y #1079; `api.md` «Estabilidad y versiones») · **Basado en:** petición del usuario («un instalador de npm, npx») y la instalación vigente del README raíz («Instalación») y de `packages/cli/README.md`
 **Paquete:** `@grana/cli` (bin `grana`, el mismo de `theme` y `check`) · **Construye:** bruno (`packages/cli/src/`, pruebas en `packages/cli/test/`), sin dependencias nuevas · **Documenta:** mora-docs (`packages/cli/README.md` y la sección «Instalación» del README raíz, cuando bruno lo entregue)
 
 **Sin ronda de kiwi:** es un comando de terminal, sin forma visible, estados de interfaz ni movimiento (como `utilities.md`, #804). No aplican «conceptos antes que caja», la auditoría visual ni la rúbrica de movimiento. **No es complejo:** bruno en Sonnet salvo que el usuario pida otra cosa.
@@ -10,11 +10,13 @@
 En la raíz de un proyecto que ya existe, **una orden deja Grana instalado y con tema**, y dice exactamente qué hizo y qué falta:
 
 ```bash
-npx @grana/cli init                     # npm
-pnpm dlx @grana/cli init                # pnpm
-yarn dlx @grana/cli init                # yarn ≥ 2
-bunx @grana/cli init                    # bun
+npx grana init                          # npm
+pnpm dlx grana init                     # pnpm
+yarn dlx grana init                     # yarn ≥ 2
+bunx grana init                         # bun
 ```
+
+`npx @grana/cli init` (y sus equivalentes con `@grana/cli`) hace **exactamente lo mismo**: ver I9.
 
 `init` instala los paquetes con el gestor del proyecto, escribe `grana.config.json` (y `tokens.css` cuando hace falta) y **muestra** las líneas que la aplicación debe añadir a su código. **No edita código de la aplicación.**
 
@@ -176,9 +178,38 @@ Errores y avisos por la salida de error, como en `theme`. Sin colores ANSI oblig
 - **Sin dependencias nuevas** en `@grana/cli` (ni de *prompts* ni de semver: la lectura de versión de I1.3 es una expresión regular).
 - **No verificable aquí** hasta publicar: la instalación real desde el registro con los cuatro gestores. Tras publicar, una pasada manual en un `npm create vite@latest` (plantilla `vue`) con npm y pnpm, y en un Nuxt 4 nuevo, comprobando que la aplicación arranca con las líneas impresas.
 
+## I9 · Paquete sin ámbito `grana` (#1079)
+
+**Qué es.** Un paquete publicado como **`grana`** (`packages/grana/`), envoltorio sin lógica de `@grana/cli`, para que `npx grana init` funcione. **Porqué existe:** el bin de `@grana/cli` ya se llama `grana`; quien teclee `npx grana init` sin tener el CLI instalado descarga del registro el paquete sin ámbito `grana`, sea de quien sea (404 libre el 2026-11-13). Publicarlo cierra esa puerta (un tercero no puede servir código bajo la orden que Grana enseña) y acorta la orden. **Decisión del usuario del 2026-11-13** («decide tú qué es mejor»; decidió el coordinador).
+
+**Forma del paquete.** `name: "grana"`, `version` **igual** a la de `@grana/cli`, `license: MIT`, `type: "module"`, `engines.node: ">=22"`, `bin: { "grana": "./bin/grana.mjs" }`, `files: ["bin"]`, `LICENSE` y un `README.md` de tres líneas que remite a `@grana/cli` (la documentación vive en un solo sitio). **Una única dependencia:** `"@grana/cli": "<versión exacta>"` (sin `^`).
+
+**Cómo delega.** `@grana/cli` gana una ruta de `exports`, **`./main`**, que exporta `main(argv = process.argv.slice(2))`: lee la versión de su propio `package.json` y devuelve el código de salida (síncrono o promesa, lo decide bruno). El `bin/grana.mjs` de `@grana/cli` pasa a llamar a `main`, y el del envoltorio es solo `import { main } from '@grana/cli/main'; process.exitCode = await main()`. **Porqué así y no otras:**
+
+- *Importar `bin/grana.mjs` de `@grana/cli`*: un módulo con efectos al importarse, y `bin/` no se resuelve por `exports`.
+- *Reexportar `run` por `.`*: `.` solo promete `buildTheme`, y `run` recibe la versión del llamador; el envoltorio pasaría la suya y no la del motor.
+- *Duplicar la lógica*: dos sitios que mantener y paridad sin garantía.
+- *Con `main`:* el análisis de opciones, los comandos, la salida y los códigos son **el mismo código** (paridad por construcción), y la versión que `init` fija en `@grana/cli@^V` y la de `--version` salen del CLI, nunca del envoltorio.
+
+**`./main` es interna: fuera de semver** (el nombre y la forma de `main` pueden cambiar en una menor de `@grana/cli`). Es seguro porque el envoltorio fija **la versión exacta** de `@grana/cli`: nunca corre contra un `main` que no conozca. Quien la use desde otro sitio no tiene promesa; no se documenta en el README.
+
+**Versiones y publicación.** `grana` y `@grana/cli` se publican **siempre juntos y con el mismo número**; primero `@grana/cli`, después `grana` (el envoltorio depende de una versión que ya debe existir en el registro). Cada subida de `@grana/cli` obliga a subir `grana` a la misma versión, aunque no cambie nada. Lo que `init` instala en el proyecto **no cambia**: `@grana/vue@^M.0.0` y `@grana/cli@^V` con la versión del CLI (nunca `grana`, que no es una dependencia del proyecto). Publicar es del usuario: `npm publish` en `packages/cli` y luego en `packages/grana`, cada uno con su etiqueta. `packages/grana` no es `private` y entra en `workspaces` por `packages/*`.
+
+**Documentación.** La orden **principal** es **`npx grana init`** (y `pnpm dlx grana init`, `yarn dlx grana init`, `bunx grana init`): es la que el usuario pidió, más corta y la que de todos modos teclea quien ve el bin `grana`. La forma `npx @grana/cli init` se muestra como **equivalente** y como la que se usa para **fijar una versión** (`npx @grana/cli@1 init`) o si el nombre sin ámbito no resolviera; ninguna de las dos es «la buena»: hacen lo mismo. Con `@grana/cli` ya instalado en el proyecto, `npx grana` usa su bin local (el mismo código).
+
+**Qué es público (semver):** que el paquete `grana` existe y que `grana <comando> …` es **idéntico** a `@grana/cli`: mismos comandos, opciones, salida y códigos de salida (0/1/2/3); su comportamiento sigue entonces las promesas de «Qué pasa a ser API pública» de más arriba, sin lista propia. **No es público:** `./main`, la estructura interna del envoltorio y que dependa de la versión exacta (si algún día cambia el mecanismo, no es API).
+
+**Verificación (bruno), sin red:**
+
+- Paridad: para un conjunto de órdenes (`--help`, `--version`, `theme` y `check` con configuración válida e inválida, `init --dry-run` y fallos de uso), `packages/grana/bin/grana.mjs` y `packages/cli/bin/grana.mjs` dan la **misma salida estándar, de error y código de salida**, ejecutados como procesos con el mismo directorio.
+- `packages/grana/package.json`: `version` igual a la de `@grana/cli`, dependencia exacta de esa versión, `bin.grana` presente, sin más dependencias, `license` MIT, `engines.node` `>=22`; el `bin` empieza por `#!/usr/bin/env node` y tiene permiso de ejecución.
+- `@grana/cli`: `exports["./main"]` existe y se resuelve; `package.json` `files` lo cubre; `theme`, `check` e `init` siguen dando lo mismo tras mover la entrada a `main`.
+- `npm pack --dry-run` de `packages/grana` lista solo `bin`, `LICENSE`, `README.md` y `package.json`.
+- **No verificable aquí hasta publicar:** `npx grana init` descargando de verdad ambos paquetes del registro (con npm, pnpm, yarn y bun), y que `npx grana` con `@grana/cli` ya instalado elige el bin local.
+
 ## Reservado
 
-- **`create-grana` / `npm create grana`** (crear un proyecto nuevo con Grana ya puesto): **reservado, no se construye en 1.x.** Duplicaría las plantillas de `create-vue`/`create-vite`/`nuxi init` y su mantenimiento; la ruta es `npm create vue@latest` seguido de `npx @grana/cli init`. Si el usuario lo quiere, sería un paquete aparte que crea con la plantilla oficial y luego llama a `init`, sin lógica propia de instalación.
+- **`create-grana` / `npm create grana`** (crear un proyecto nuevo con Grana ya puesto): **reservado, no se construye ni se publica en 1.x** (#1079; el nombre queda libre en npm a sabiendas: `npm create` promete crear un proyecto y `init` no lo crea, y un paquete vacío para ocupar el nombre va contra la política de npm). Duplicaría las plantillas de `create-vue`/`create-vite`/`nuxi init` y su mantenimiento; la ruta es `npm create vue@latest` seguido de `npx grana init`. Si el usuario lo quiere, sería un paquete aparte que crea con la plantilla oficial y luego llama a `init`, sin lógica propia de instalación.
 - **Editar código de la aplicación** (`--write-entry` o similar): reservado; solo con una decisión nueva y pruebas sobre AST reales.
 - **`--theme vite` con Nuxt**, **`--config <ruta>`** y una opción para instalar en la raíz de un *workspace*: reservados.
 - **Modo interactivo:** no. Las opciones bastan y un instalador que pregunta no sirve en CI.
