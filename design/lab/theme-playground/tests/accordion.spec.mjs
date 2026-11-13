@@ -471,7 +471,13 @@ test.describe('GAccordion · sticky (#484)', () => {
       new MutationObserver(() => window.__log.push(`aria-expanded = ${t.getAttribute('aria-expanded')}`)).observe(t, { attributes: true, attributeFilter: ['aria-expanded'] })
       __sample('#st-prep > .g-accordion-item__heading', 400)
     })
-    await page.click('#st-prep-toggle', { noWaitAfter: true })
+    // Clic donde se pinta el botón pegado (su caja en pantalla), con el ratón. En WebKit, page.click no entregaba ningún
+    // pointerdown ni click al documento (run de 22cec78: el diario solo tenía la línea «antes»): se registra también la caja
+    // que calcula Playwright para comparar con la pintada
+    const box = await page.evaluate(() => { const r = document.getElementById('st-prep-toggle').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 } })
+    const pw = await page.locator('#st-prep-toggle').boundingBox()
+    console.log(`[${test.info().project.name}] botón pegado: centro pintado (${Math.round(box.x)},${Math.round(box.y)}); caja de Playwright ${pw ? `(${Math.round(pw.x + pw.width / 2)},${Math.round(pw.y + pw.height / 2)})` : 'null'}`)
+    await page.mouse.click(box.x, box.y)
     await page.waitForFunction(() => window.__s.done)
     const inst = await page.evaluate(() => window.__seen)
     const diary = await page.evaluate(() => window.__log.join('\n'))
