@@ -244,14 +244,23 @@ async function micCheck(page) {
   await page.locator('#speech-demo .g-speech-trigger__btn').first().click()
   await page.waitForFunction(() => /listening|speech|transcribing/.test(window.speech.state.status), null, { timeout: 15000 })
   await page.waitForTimeout(2500)
-  const r = await page.evaluate(() => ({
+  const r = await page.evaluate(async () => ({
     status: window.speech.state.status,
     max: Math.max(0, ...window.__levels),
     frames: window.__levels.length,
     pushed: window.spAdapter.log.pushed.slice(0, 3),
     capture: window.speech.state.capture,
-    error: window.speech.state.error ? { code: window.speech.state.error.code, recoverable: window.speech.state.error.recoverable, message: String(window.speech.state.error.message || '') } : null,
-    audio: typeof AudioContext !== 'undefined' ? (() => { try { const ac = new AudioContext(); const st = ac.state; ac.close(); return { state: st, rate: ac.sampleRate, worklet: !!ac.audioWorklet } } catch (e) { return { thrown: String(e) } } })() : 'sin AudioContext'
+    error: window.speech.state.error ? { kind: window.speech.state.error.kind, capture: window.speech.state.error.capture, recoverable: window.speech.state.error.recoverable } : null,
+    // ¿El motor puede hacer correr un AudioContext? (sin dispositivo de audio en la máquina, se queda en «suspended»)
+    audio: typeof AudioContext !== 'undefined' ? await (async () => {
+      try {
+        const ac = new AudioContext(); const st = ac.state
+        await Promise.race([ac.resume(), new Promise((r) => setTimeout(r, 1000))])
+        const t = ac.currentTime; await new Promise((r) => setTimeout(r, 300))
+        const out = { state: st, afterResume: ac.state, advanced: ac.currentTime > t, rate: ac.sampleRate, worklet: !!ac.audioWorklet }
+        ac.close(); return out
+      } catch (e) { return { thrown: String(e) } }
+    })() : 'sin AudioContext'
   }))
   return r
 }
