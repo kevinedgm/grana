@@ -509,6 +509,38 @@ test.describe('GAccordion · sticky (#484)', () => {
     expect(errs, errs.join('\n')).toEqual([])
   })
 
+  // DIAGNÓSTICO TEMPORAL (bruno, fallo de :451 en WebKit): en la integración continua, al pasar el puntero sobre el encabezado
+  // pegado la PÁGINA se desplazaba −638 px (el scrollTop del contenedor interior) sin que corriera código de Grana. Esta prueba
+  // no comprueba nada: separa «cualquier maquetación» de «hover» y prueba si es el anclaje de desplazamiento del navegador
+  // (overflow-anchor: none en la página o en el contenedor). Se retira cuando la causa quede cerrada.
+  test('diagnóstico temporal: qué desplaza la página al pasar sobre el encabezado pegado', async ({ page }) => {
+    const variants = [['sin cambios', ''], ['html overflow-anchor none', 'html'], ['contenedor overflow-anchor none', 'scroller']]
+    const out = []
+    for (const [label, where] of variants) {
+      await open(page)
+      if (where === 'html') await page.evaluate(() => { document.documentElement.style.overflowAnchor = 'none' })
+      if (where === 'scroller') await page.evaluate(() => { document.getElementById('ac-sticky-scroller').style.overflowAnchor = 'none' })
+      await stickPrep(page)
+      const y = () => page.evaluate(() => Math.round(window.scrollY))
+      const y0 = await y()
+      // (a) una maquetación sin puntero: cambia un estilo en línea ajeno y fuerza la caja
+      await page.evaluate(() => { document.body.style.setProperty('--g-probe', '1'); document.body.offsetHeight })
+      await frames(page, 3)
+      const ya = await y()
+      // (b) el puntero entra en el encabezado pegado
+      const c = await page.evaluate(() => { const r = document.getElementById('st-prep-toggle').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 } })
+      await page.mouse.move(c.x, c.y)
+      await frames(page, 3)
+      const yb = await y()
+      // (c) el puntero sale a una zona neutra
+      await page.mouse.move(2, 2)
+      await frames(page, 3)
+      const yc = await y()
+      out.push(`${label}: scrollY ${y0} → maquetación ${ya} → hover ${yb} → fuera ${yc}`)
+    }
+    console.log(`[${test.info().project.name}] diagnóstico del encabezado pegado:\n${out.join('\n')}`)
+  })
+
   test('Mayús+Tab hacia arriba dentro de un abierto: cada control queda entero a la vista, bajo el encabezado pegado (2.4.11)', async ({ page, browserName }) => {
     const errs = await watchConsole(page)
     await open(page)
