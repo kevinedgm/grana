@@ -32,10 +32,10 @@
     { "name": "default", "purpose": "Campos del pliegue en una pila (GFormRow, GFieldGroup, GInputGroup y otros GFormFold). Nunca GFormSection ni GForm. Alcance: { confirm, close, cancel }" },
     { "name": "actions", "purpose": "Botones del pliegue (type=\"button\"): Cancelar con cancel(), Crear y elegir con confirm(). Alcance: { confirm, close, cancel }" }
   ],
-  "exposed": [
-    { "name": "confirm", "purpose": "Revela los campos del pliegue y emite confirm o invalid" },
-    { "name": "close", "purpose": "Cierra con resultado: close({ focus, announce }) → foco a focus › for › from, llegada (data-g-landed) y anuncio en el canal de página" },
-    { "name": "cancel", "purpose": "Cierra sin resultado: cancel (reason 'cancel') + update:open(false); foco a from › for" }
+  "methods": [
+    { "name": "confirm", "signature": "confirm(): void", "purpose": "Revela los campos del pliegue y emite confirm o invalid" },
+    { "name": "close", "signature": "close(options?: LevelReturn): void", "purpose": "Cierra con resultado: close({ focus, announce }) → foco a focus › for › from, llegada (data-g-landed) y anuncio en el canal de página" },
+    { "name": "cancel", "signature": "cancel(): void", "purpose": "Cierra sin resultado: cancel (reason 'cancel') + update:open(false); foco a from › for" }
   ],
   "attrs": "id, class, style, data-* y escuchas van a la raíz (inheritAttrs: false)",
   "structure": "div.g-form-fold.g-form-fold--density-{d}[.is-open][.is-animating][.is-ready][role=group][aria-labelledby][aria-describedby] style=\"--_d: N\" > div.g-form-fold__panel > (div.g-form-fold__head > hN.g-form-fold__title + p.g-form-fold__description) + fieldset.g-form-fold__body[role=none][disabled al cerrarse] + div.g-form-fold__actions. Cerrado y asentado: [hidden], sin rol y sin contenido",

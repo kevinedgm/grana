@@ -192,6 +192,23 @@
       "purpose": "Pie propio"
     }
   ],
+  "methods": [
+    {
+      "name": "focusMenu",
+      "signature": "focusMenu(): void",
+      "purpose": "Enfoca el botón del menú de acciones"
+    },
+    {
+      "name": "level",
+      "signature": "readonly level: string",
+      "purpose": "Nivel resuelto (solo lectura)"
+    },
+    {
+      "name": "shape",
+      "signature": "readonly shape: string",
+      "purpose": "Forma resuelta (solo lectura)"
+    }
+  ],
   "tokens": [
     "--g-widget-row",
     "--g-widget-gap",

@@ -154,6 +154,8 @@
     "./style.css": "./dist/grana.css",
     "./fonts.css": "./dist/fonts.css",
     "./utilities.css": "./dist/utilities.css",
+    "./catalog.json": "./dist/catalog.json",
+    "./llms.txt": "./dist/llms.txt",
     "./package.json": "./package.json"
   },
   "typesVersions": {
@@ -240,7 +242,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "build": "node scripts/currency-symbols.mjs && vite build && vite build -c vite.speech.config.js && vite build -c vite.status.config.js && vite build -c vite.combobox.config.js && vite build -c vite.file-field.config.js && vite build -c vite.time-field.config.js && vite build -c vite.slider.config.js && vite build -c vite.testing.config.js && vite build -c vite.tag.config.js && vite build -c vite.load-region.config.js && vite build -c vite.form-fold.config.js && vite build -c vite.card-group.config.js && vite build -c vite.page-header.config.js && vite build -c vite.fab.config.js && vite build -c vite.app-shell.config.js && vite build -c vite.hero.config.js && vite build -c vite.gallery.config.js && vite build -c vite.booking.config.js && vite build -c vite.price.config.js && vite build -c vite.page-index.config.js && vite build -c vite.sidebar-filter.config.js && vite build -c vite.sidebar-index.config.js && vite build -c vite.page-index-list.config.js && vite build -c vite.nav-bar.config.js && node scripts/build-fonts.mjs && node scripts/build-utilities.mjs && node scripts/build-types.mjs",
+    "build": "node scripts/currency-symbols.mjs && vite build && vite build -c vite.speech.config.js && vite build -c vite.status.config.js && vite build -c vite.combobox.config.js && vite build -c vite.file-field.config.js && vite build -c vite.time-field.config.js && vite build -c vite.slider.config.js && vite build -c vite.testing.config.js && vite build -c vite.tag.config.js && vite build -c vite.load-region.config.js && vite build -c vite.form-fold.config.js && vite build -c vite.card-group.config.js && vite build -c vite.page-header.config.js && vite build -c vite.fab.config.js && vite build -c vite.app-shell.config.js && vite build -c vite.hero.config.js && vite build -c vite.gallery.config.js && vite build -c vite.booking.config.js && vite build -c vite.price.config.js && vite build -c vite.page-index.config.js && vite build -c vite.sidebar-filter.config.js && vite build -c vite.sidebar-index.config.js && vite build -c vite.page-index-list.config.js && vite build -c vite.nav-bar.config.js && node scripts/build-fonts.mjs && node scripts/build-utilities.mjs && node scripts/build-types.mjs && node scripts/build-catalog.mjs",
     "test": "vitest run",
     "icons": "node scripts/build-icons.mjs",
     "prepack": "npm run build"

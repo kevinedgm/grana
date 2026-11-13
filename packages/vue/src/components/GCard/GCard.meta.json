@@ -418,6 +418,18 @@
       "purpose": "Esqueleto propio: sustituye solo el cuerpo del esqueleto; decorativo"
     }
   ],
+  "methods": [
+    {
+      "name": "size",
+      "signature": "readonly size: string",
+      "purpose": "Tamaño resuelto de la tarjeta (solo lectura)"
+    },
+    {
+      "name": "layout",
+      "signature": "readonly layout: string",
+      "purpose": "Disposición resuelta de la tarjeta (solo lectura)"
+    }
+  ],
   "labels": [
     "menu",
     "loading",

@@ -107,6 +107,18 @@
       "purpose": "Contenido sin widgets"
     }
   ],
+  "methods": [
+    {
+      "name": "focusMenu",
+      "signature": "focusMenu(id: GranaKey): void",
+      "purpose": "Enfoca el menú del widget id"
+    },
+    {
+      "name": "focusHandle",
+      "signature": "focusHandle(id: GranaKey, what?: string): void",
+      "purpose": "Enfoca el asa de mover o redimensionar del widget id"
+    }
+  ],
   "tokens": [
     "--g-widget-row",
     "--g-widget-gap",

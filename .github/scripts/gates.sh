@@ -230,6 +230,28 @@ must_have utilities.css "grana.utilities" "utilities.css suelto no declara ni en
 must_have utilities.css "@layer grana.defaults,grana.components,grana.blocks,grana.utilities;" "utilities.css suelto no declara el orden de capas completo; cargado antes que grana.css dejaría las utilidades como la capa más débil (#806)"
 must_not_have utilities.css "!important" "utilities.css lleva !important; ninguna utilidad fuerza la importancia (#808)"
 
+# Catálogo para agentes (design/contracts/catalog.md C5, #1080): catalog.json y llms.txt en dist/, con la pieza de
+# referencia, sin campos internos del meta.json, resolubles por su ruta de exports y dentro del paquete.
+must_exist "catalog.json" "No se generó dist/catalog.json (revisar scripts/build-catalog.mjs y el script build de packages/vue, #1080)"
+must_exist "llms.txt" "No se generó dist/llms.txt (revisar scripts/build-catalog.mjs, #1080)"
+must_have catalog.json '"GBtn"' "catalog.json no lista GBtn: el catálogo salió vacío o incompleto (#1080)"
+must_not_have catalog.json '"prototype"' "catalog.json lleva un campo interno del meta.json; el catálogo va con lista blanca (catalog.md C1.2)"
+total=$((total + 1))
+gate_import="node -e \"import('@grana/vue/catalog.json', { with: { type: 'json' } })\" (desde la raíz)"
+if node -e "import('@grana/vue/catalog.json', { with: { type: 'json' } }).then((m) => { if (m.default.schemaVersion !== 1) process.exit(1) }, () => process.exit(1))" >/dev/null 2>&1; then
+  pass "$gate_import"
+else
+  fail "$gate_import" "@grana/vue/catalog.json no se resuelve por su ruta de exports o no es schemaVersion 1 (#1080)"
+fi
+total=$((total + 1))
+gate_pack="npm pack --dry-run de packages/vue lista dist/catalog.json y dist/llms.txt"
+pack_list="$(cd packages/vue && npm pack --dry-run --json --ignore-scripts 2>/dev/null)"
+if echo "$pack_list" | grep -q '"path": "dist/catalog.json"' && echo "$pack_list" | grep -q '"path": "dist/llms.txt"'; then
+  pass "$gate_pack"
+else
+  fail "$gate_pack" "El paquete publicado no llevaría catalog.json o llms.txt (files de packages/vue, #1080)"
+fi
+
 # Grana Blocks (design/contracts/blocks/_comun.md §9, #815): las compuertas del paquete viven en su script
 # (packages/blocks/scripts/gates.sh, tras `npm run build -w @grana/blocks`); aquí se suman al recuento.
 blocks_out="$(bash packages/blocks/scripts/gates.sh 2>&1)"
