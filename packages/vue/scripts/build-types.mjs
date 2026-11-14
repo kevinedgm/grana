@@ -152,7 +152,7 @@ function valueLiterals(values, typeText) {
   return out
 }
 
-function propType(meta, p, overrides) {
+export function propType(meta, p, overrides) {
   const key = `${meta.name}.${p.name}`
   if (overrides.props[key]) return overrides.props[key]
   if (p.name === 'labels' && /Object/.test(p.type)) return 'GranaLabels'
@@ -169,7 +169,7 @@ function propType(meta, p, overrides) {
 }
 
 /** Payload de un evento; `void` sin argumento. */
-function payloadType(meta, e, overrides) {
+export function payloadType(meta, e, overrides) {
   const key = `${meta.name}.${e.name}`
   if (key in overrides.events) return overrides.events[key]
   const raw = String(e.payload ?? '').trim()

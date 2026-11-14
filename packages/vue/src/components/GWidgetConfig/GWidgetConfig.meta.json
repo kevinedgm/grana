@@ -140,6 +140,13 @@
       "purpose": "Acciones extra a la izquierda del pie"
     }
   ],
+  "methods": [
+    {
+      "name": "announce",
+      "signature": "announce(text: string): void",
+      "purpose": "Anuncia un texto por la región viva del panel"
+    }
+  ],
   "tokens": [
     "--g-color-surface",
     "--g-color-surface-sunken",

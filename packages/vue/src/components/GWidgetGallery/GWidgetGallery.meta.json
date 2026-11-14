@@ -120,6 +120,13 @@
       "purpose": "Pie de la hoja. Alcance { close }"
     }
   ],
+  "methods": [
+    {
+      "name": "announce",
+      "signature": "announce(text: string): void",
+      "purpose": "Anuncia un texto por la región viva de la galería"
+    }
+  ],
   "tokens": [
     "--g-color-surface",
     "--g-color-surface-sunken",

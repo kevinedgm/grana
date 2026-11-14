@@ -1,0 +1,35 @@
+{
+  "name": "grana",
+  "version": "1.0.0",
+  "description": "Instalador y tema de Grana: envoltorio de @grana/cli para usar `npx grana init`.",
+  "keywords": ["grana", "vue", "cli", "design-tokens", "theme"],
+  "homepage": "https://github.com/kevinedgm/grana/tree/main/packages/cli#readme",
+  "bugs": {
+    "url": "https://github.com/kevinedgm/grana/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kevinedgm/grana.git",
+    "directory": "packages/grana"
+  },
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "grana": "./bin/grana.mjs"
+  },
+  "files": [
+    "bin"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@grana/cli": "1.0.0"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.11"
+  }
+}

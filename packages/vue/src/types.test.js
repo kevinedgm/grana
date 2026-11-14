@@ -182,7 +182,7 @@ describe('package.json', () => {
     expect(pkg.types).toBe('./dist/grana.d.ts')
     expect(pkg.exports['./style.css']).toBe('./dist/grana.css')
     expect(pkg.exports['./fonts.css']).toBe('./dist/fonts.css')
-    expect(pkg.scripts.build).toMatch(/node scripts\/build-types\.mjs$/)
+    expect(pkg.scripts.build).toMatch(/node scripts\/build-types\.mjs && node scripts\/build-catalog\.mjs$/)
     expect(pkg.peerDependencies.vue).toBeTruthy()
   })
 })

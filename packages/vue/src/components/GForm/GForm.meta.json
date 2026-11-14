@@ -29,10 +29,10 @@
   "slots": [
     { "name": "default", "purpose": "Resumen, secciones, rejillas y pie" }
   ],
-  "exposed": [
-    { "name": "showErrors", "purpose": "Revela todos, abre las GFormSection plegadas con error que bloquea y mueve el foco sin emitir invalid (errores del servidor). Promise con la lista" },
-    { "name": "focusFirstError", "purpose": "Enfoca el primer control con error visible, abriendo antes la sección plegada que lo contiene (#287)", "returns": "Promise<boolean>" },
-    { "name": "resetState", "purpose": "Limpia editados, revelados y dirty sin tocar valores" }
+  "methods": [
+    { "name": "showErrors", "signature": "showErrors(): Promise<FormError[]>", "purpose": "Revela todos, abre las GFormSection plegadas con error que bloquea y mueve el foco sin emitir invalid (errores del servidor). Promise con la lista" },
+    { "name": "focusFirstError", "signature": "focusFirstError(): Promise<boolean>", "purpose": "Enfoca el primer control con error visible, abriendo antes la sección plegada que lo contiene (#287)" },
+    { "name": "resetState", "signature": "resetState(): void", "purpose": "Limpia editados, revelados y dirty sin tocar valores" }
   ],
   "exports": ["useFormField", "formKey"],
   "tokens": ["--g-form-section-gap", "--g-space-1"],

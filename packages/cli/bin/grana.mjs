@@ -1,6 +1,4 @@
 #!/usr/bin/env node
-import { readFileSync } from 'node:fs'
-import { run } from '../src/cli.js'
+import { main } from '../src/main.js'
 
-const { version } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'))
-process.exitCode = run(process.argv.slice(2), { version })
+process.exitCode = await main()
