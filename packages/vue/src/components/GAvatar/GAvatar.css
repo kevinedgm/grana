@@ -30,9 +30,11 @@
   /* Tope del monograma respecto a la caja (hallazgo 7 de design/lab/adaptive-layout/auditoria-coco.md): el tipo va en rem
      y la caja en space (px); con el texto al 200 % las iniciales medían 41,7px en una caja de 32px. La letra toma el rol
      de tipo del tamaño, pero nunca más que lado × factor. Constantes de proporción, no tema: dos letras (md, lg, xl)
-     0.4375 = 14/32, el ajuste medido de «ЖШ» en md con Instrument Sans (0,1px de aire dentro del margen de 1px); una
-     letra (xs, sm) 0.6 = 12/20. Con space ≥ 4 y el texto al 100 % el tope no actúa en el tema por defecto (md queda
-     justo en 14px). El icono de respaldo (1em) hereda el mismo tope. Límite: con space 3 el tope de xs (9px) baja de 12px */
+     0.4375 = 14/32, el ajuste medido de «ЖШ» en md con la fuente de respaldo de la máquina de medida (Instrument Sans no
+     trae cirílico: el ancho de esas letras lo pone el sistema y no es del contrato); una letra (xs, sm) 0.6 = 12/20. Ya no hay
+     garantía por tamaño para dos letras: decide la medida del .vue (#1078), que marca data-mono="one" cuando no caben. Con
+     space ≥ 4 y el texto al 100 % el tope no actúa en el tema por defecto (md queda justo en 14px). El icono de respaldo
+     (1em) hereda el mismo tope. Límite: con space 3 el tope de xs (9px) baja de 12px */
   --_mono-two: 0.4375;
   --_mono-one: 0.6;
   --_av-fit: var(--_mono-two);
@@ -71,6 +73,9 @@
 .g-avatar--size-lg { --_av-n: 10; --_av-fs: var(--g-text-body-size); --_av-lh: var(--g-text-body-line); --_av-track: var(--g-text-body-tracking); --_av-square: var(--g-radius-md); }
 .g-avatar--size-xl { --_av-n: 16; --_av-fs: var(--g-text-title-sm-size); --_av-lh: var(--g-text-title-sm-line); --_av-track: var(--g-text-title-sm-tracking); --_av-square: var(--g-radius-lg); }
 
+/* Dos letras que no caben (medido por el .vue, #1078): pasa a una letra con el factor de una letra, el mismo de xs y sm */
+.g-avatar[data-mono="one"] { --_av-fit: var(--_mono-one); }
+
 /* Forma: la dice el contenido (persona o entidad), no el tema */
 .g-avatar--shape-square { --_av-radius: var(--_av-square); }
 
@@ -91,7 +96,11 @@
 /* ---------- Respaldo: iniciales o icono, siempre en el flujo ---------- */
 .g-avatar__initials {
   grid-area: 1 / 1;
+  /* Mide su contenido (el .vue lee su ancho con dos letras contra la cuerda): ni se parte, ni se recorta, ni se limita */
+  inline-size: max-content;
+  max-inline-size: none;
   white-space: nowrap;
+  overflow: visible;
   /* Monograma: cifras y signos a la altura de las mayúsculas (Ø, 3M) y sin ligaduras que fundan dos letras en una */
   font-variant-numeric: lining-nums;
   font-variant-ligatures: none;

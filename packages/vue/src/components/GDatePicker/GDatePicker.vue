@@ -1028,6 +1028,11 @@ watch(() => [normalized.value.start, normalized.value.end, props.disabledNights]
 }, { immediate: true })
 
 let ro = null
+// Una fuente web que llega después de la primera medida cambia el ancho del dato del día sin cambiar el tamaño de la
+// caja (el ResizeObserver no salta): se vuelve a medir al terminar cada carga de fuentes. Sin esto, la medida hecha con
+// la fuente de respaldo (más ancha) dejaba la lectura puesta aunque el dato ya cupiera (Firefox en la integración continua)
+const onFontsLoaded = () => { if (props.inline) fit(); scheduleMeasure() }
+let fontSet = null
 onMounted(() => {
   mounted.value = true
   today.value = todayISO()
@@ -1044,12 +1049,17 @@ onMounted(() => {
     ro.observe(root.value)
     if (slots.day && surfaceEl.value) ro.observe(surfaceEl.value)
   }
+  if (slots.day && typeof document !== 'undefined' && document.fonts && document.fonts.addEventListener) {
+    fontSet = document.fonts
+    fontSet.addEventListener('loadingdone', onFontsLoaded)
+  }
   if (props.inline) nextTick(fit)
   if (props.inline) nextTick(scheduleMeasure)
   if (props.open && !props.inline) nextTick(() => show(fieldEls.value[0] || null))
 })
 onBeforeUnmount(() => {
   ro?.disconnect()
+  fontSet?.removeEventListener('loadingdone', onFontsLoaded)
   if (typedTimer) clearTimeout(typedTimer)
   if (measureRaf) cancelAnimationFrame(measureRaf)
   if (isOpen.value) close(false)

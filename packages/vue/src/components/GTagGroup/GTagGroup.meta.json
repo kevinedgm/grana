@@ -124,7 +124,6 @@
     "browser": "design/lab/theme-playground/tests/tag.spec.mjs y personalidad-tag.spec.mjs (Chromium, Firefox, WebKit, sobre packages/vue/playground #sec-tag)"
   },
   "pending": [
-    "README (mora-docs, GTag/README.md)",
     "Lectores de pantalla reales (huella, racimo, grupo vacío enfocado), táctil real, forced-colors real, cientos de etiquetas"
   ]
 }

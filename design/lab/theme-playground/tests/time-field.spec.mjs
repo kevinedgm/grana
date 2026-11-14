@@ -46,6 +46,14 @@ async function setVal(page, id, text, { blur = true } = {}) {
   await settle(page)
 }
 const root = (page, id) => page.locator(`#${id} >> xpath=ancestor::div[contains(@class,"g-input ")][1]`)
+// Marcadores a. m./p. m. del coreano según el Intl del MOTOR. El WebKit de Playwright en Linux (ejecutor de GitHub) no trae
+// los datos de CLDR del coreano: su Intl da «PM 9:30» y no «오후 9:30» (e2e-full 43461208113). GTimeField forma y lee la hora
+// con el Intl del motor (time-field.md), así que la prueba exige lo de CLDR cuando el motor lo tiene y, si no, lo del motor.
+const koMarks = (page) => page.evaluate(() => {
+  const f = new Intl.DateTimeFormat('ko', { hour: 'numeric', minute: '2-digit', hourCycle: 'h12', timeZone: 'UTC' })
+  const dp = (h) => f.formatToParts(new Date(Date.UTC(2000, 0, 1, h))).find((p) => p.type === 'dayPeriod')?.value
+  return { am: dp(1), pm: dp(13) }
+})
 
 test.describe('GTimeField · componente real (time-field.md)', () => {
   test('carga: formato por idioma, modelos «HH:mm» o null, spinbutton y oculto canónico', async ({ page }) => {
@@ -57,7 +65,8 @@ test.describe('GTimeField · componente real (time-field.md)', () => {
     expect((await val(page, 'tf-ar')).replace(/\s/g, ' '), 'cualquier espacio antes del marcador (cambia por motor)').toBe('٩:٣٠ م')
     expect(await attr(page, 'tf-ar', 'dir')).toBe('rtl')
     expect(await val(page, 'tf-fi')).toBe('21.30')
-    expect(await val(page, 'tf-ko')).toBe('오후 9:30')
+    const ko = await koMarks(page)
+    expect(await val(page, 'tf-ko'), `Intl del motor para ko: ${JSON.stringify(ko)}`).toBe(ko.pm === '오후' ? '오후 9:30' : `${ko.pm} 9:30`)
     expect(await val(page, 'tf-he')).toBe('21:30')
     expect(await attr(page, 'tf-he', 'dir')).toBe('rtl')
     for (const k of ['cita', 'toma', 'turno', 'evento', 'c12', 't12', 'ar']) {
@@ -123,7 +132,8 @@ test.describe('GTimeField · componente real (time-field.md)', () => {
     // otros idiomas
     await setVal(page, 'tf-ar', '٢١٣٠')
     expect(await page.evaluate(() => document.getElementById('tf-ar').getAttribute('aria-valuenow'))).toBe('1290')
-    await setVal(page, 'tf-ko', '오전 7:15')
+    const ko = await koMarks(page)
+    await setVal(page, 'tf-ko', ko.am === '오전' ? '오전 7:15' : `${ko.am} 7:15`)
     expect(await attr(page, 'tf-ko', 'aria-valuenow')).toBe(String(7 * 60 + 15))
     await setVal(page, 'tf-fi', '7.45')
     expect(await val(page, 'tf-fi')).toBe('7.45')

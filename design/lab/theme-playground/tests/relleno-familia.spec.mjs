@@ -295,15 +295,15 @@ test.describe('GFab montado · acuse y confirmar (#673)', () => {
   })
 })
 
-// Anfitriones que redefinen .g-btn sobre otra superficie (§7.1 «Sobre otra superficie»): GToast, GStatusIsland (lista y
-// superficie inversa), panel y disparador de la voz, barra de GTranscript. Ninguno pinta un relleno de familia salvo
+// Anfitriones que redefinen .g-btn sobre otra superficie (§7.1 «Sobre otra superficie»): GToast, GStatusIsland (la acción
+// de la lista en la cápsula y en la hoja móvil, anatomía de #693 a #705: ya no hay «Entendido» ni superficie inversa), panel y disparador de la voz, barra de GTranscript. Ninguno pinta un relleno de familia salvo
 // «Descartar» (solid danger) del panel, que hereda #672; se mide la forma de cada uno contra su superficie real
 test.describe('Anfitriones de .g-btn sobre otra superficie (#673)', () => {
   const b = (cls, extra = '') => `<button type="button" class="g-btn g-btn--size-sm ${cls}" ${extra}><span class="g-btn__label">Acción</span></button>`
   const BODY = `
     <div class="g-toaster"><div class="g-toast"><div class="g-toast__actions">${b('g-btn--variant-outline g-btn--color-neutral g-toast__action', 'data-x="toast · acción"')}</div></div></div>
-    <ul class="g-status-list"><li class="g-status-item">${b('g-btn--variant-outline g-btn--color-neutral g-status-item__action', 'data-x="isla · acción en la lista"')}</li></ul>
-    <div class="g-status-island"><div class="g-status-island__shape">${b('g-btn--variant-outline g-btn--color-neutral g-status-island__ack', 'data-x="isla · «Entendido» sobre la inversa"')}</div></div>
+    <div class="g-status-island"><div class="g-status-island__shape"><ul class="g-status-list"><li class="g-status-item"><div class="g-status-item__actions">${b('g-btn--variant-solid g-btn--color-brand g-status-item__action', 'data-x="isla · acción en la lista de la cápsula"')}</div></li></ul></div></div>
+    <div class="g-status-sheet"><ul class="g-status-list"><li class="g-status-item"><div class="g-status-item__actions">${b('g-btn--variant-solid g-btn--color-brand g-status-item__action', 'data-x="isla · acción en la hoja móvil"')}</div></li></ul></div>
     <div class="g-speech-panel">${b('g-btn--variant-outline g-btn--color-neutral', 'data-x="panel de voz · outline"')}${b('g-btn--variant-solid g-btn--color-danger', 'data-x="panel de voz · descartar (solid)"')}<div class="g-speech-panel__activity">${b('g-btn--variant-ghost g-btn--color-neutral', 'aria-pressed="true" data-x="panel de voz · actividad pulsada"')}</div></div>
     <span class="g-speech-trigger" data-status="listening">${b('g-btn--variant-ghost g-btn--color-neutral g-btn--icon g-speech-trigger__btn', 'aria-pressed="true" data-x="disparador · escuchando" data-inset')}</span>
     <span class="g-speech-trigger" data-status="error">${b('g-btn--variant-ghost g-btn--color-neutral g-btn--icon g-speech-trigger__btn', 'data-x="disparador · error"')}</span>

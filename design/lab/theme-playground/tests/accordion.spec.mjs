@@ -460,21 +460,70 @@ test.describe('GAccordion · sticky (#484)', () => {
         if (el.classList.contains('is-instant')) window.__seen.instant = true
         if (el.classList.contains('is-animating')) window.__seen.animating = true
       }).observe(el, { attributes: true, attributeFilter: ['class'] })
+      // Diario mínimo (fallo de WebKit, PENDIENTES): en WebKit, al entrar el puntero en el encabezado pegado, el anclaje de
+      // desplazamiento mueve la página −scrollTop del contenedor interior y el clic cae fuera del botón
+      const sc = document.getElementById('ac-sticky-scroller')
+      const t = document.getElementById('st-prep-toggle')
+      const name = (n) => (n && n.nodeType === 1 ? `${n.tagName.toLowerCase()}${n.id ? '#' + n.id : ''}.${[...n.classList].join('.')}` : String(n))
+      const geo = () => `scrollY ${Math.round(window.scrollY)}, scrollTop ${Math.round(sc.scrollTop)}, botón top ${Math.round(t.getBoundingClientRect().top)}`
+      window.__log = [`antes: ${geo()}`]
+      for (const type of ['pointerdown', 'click']) document.addEventListener(type, (e) => window.__log.push(`${type} → ${name(e.target)}; ${geo()}`), true)
+      new MutationObserver(() => window.__log.push(`aria-expanded = ${t.getAttribute('aria-expanded')}`)).observe(t, { attributes: true, attributeFilter: ['aria-expanded'] })
       __sample('#st-prep > .g-accordion-item__heading', 400)
     })
-    await page.click('#st-prep-toggle', { noWaitAfter: true })
+    // Clic con el ratón donde se pinta el botón pegado (su caja en pantalla)
+    const box = await page.evaluate(() => { const r = document.getElementById('st-prep-toggle').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 } })
+    await page.mouse.click(box.x, box.y)
     await page.waitForFunction(() => window.__s.done)
     const inst = await page.evaluate(() => window.__seen)
+    const diary = await page.evaluate(() => window.__log.join('\n'))
     const r = await page.evaluate(() => {
       const h = document.querySelector('#st-prep > .g-accordion-item__heading').getBoundingClientRect()
       const next = document.getElementById('st-lugar').getBoundingClientRect()
       return { max: Math.round(window.__s.max * 10) / 10, gap: Math.round(next.top - h.bottom) }
     })
-    expect(await exp(page, 'st-prep')).toBe('false')
-    expect(inst).toEqual({ instant: true, animating: false })
+    expect(await exp(page, 'st-prep'), diary).toBe('false')
+    expect(inst, diary).toEqual({ instant: true, animating: false })
     expect(r.max, `máx ${r.max}px`).toBeLessThanOrEqual(1)
     expect(r.gap).toBeGreaterThanOrEqual(-1)
     expect(r.gap).toBeLessThan(80)
+    expect(errs, errs.join('\n')).toEqual([])
+  })
+
+  // #1079: con sticky y algún abierto, overflow-anchor: none EN LÍNEA en el contenedor desplazable más cercano (se lee el estilo
+  // en línea, no el calculado); la página no salta al pasar el puntero por el encabezado pegado (sin rueda); con todo cerrado,
+  // vacío; un valor en línea de la aplicación no se toca
+  test('sticky: overflow-anchor: none en línea en el contenedor y la página quieta al pasar el puntero por el encabezado pegado (#1079)', async ({ page }) => {
+    const errs = await watchConsole(page)
+    await open(page)
+    await stickPrep(page)
+    const anchorOf = () => page.evaluate(() => document.getElementById('ac-sticky-scroller').style.overflowAnchor)
+    expect(await anchorOf()).toBe('none')
+    expect(await page.evaluate(() => document.getElementById('ac-sticky').getAttribute('style') || '')).not.toMatch(/overflow-anchor/)
+    const y0 = await page.evaluate(() => window.scrollY)
+    expect(y0, 'la página está desplazada').toBeGreaterThan(0)
+    const box = await page.evaluate(() => { const r = document.getElementById('st-prep-toggle').getBoundingClientRect(); const s = document.getElementById('ac-sticky-scroller').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, out: s.left - 20 } })
+    const ys = []
+    await page.mouse.move(box.out, box.y)
+    await frames(page, 2)
+    await page.mouse.move(box.x, box.y, { steps: 6 })
+    for (let k = 0; k < 4; k++) { await frames(page, 2); ys.push(await page.evaluate(() => window.scrollY)) }
+    await page.mouse.move(box.out, box.y, { steps: 6 })
+    for (let k = 0; k < 2; k++) { await frames(page, 2); ys.push(await page.evaluate(() => window.scrollY)) }
+    for (const y of ys) expect(Math.abs(y - y0), `scrollY ${ys.join(', ')} (antes ${y0})`).toBeLessThanOrEqual(1)
+    // Todo cerrado: se suelta
+    await page.evaluate(() => { for (const t of document.querySelectorAll('#ac-sticky .g-accordion-item__toggle[aria-expanded="true"]')) t.click() })
+    await settle(page, 500)
+    expect(await page.evaluate(() => document.querySelectorAll('#ac-sticky .g-accordion-item__toggle[aria-expanded="true"]').length)).toBe(0)
+    expect(await anchorOf()).toBe('')
+    // Un valor en línea de la aplicación no se modifica al volver a abrir
+    await page.evaluate(() => { document.getElementById('ac-sticky-scroller').style.overflowAnchor = 'auto'; document.getElementById('st-intro-toggle').click() })
+    await settle(page, 500)
+    expect(await exp(page, 'st-intro')).toBe('true')
+    expect(await anchorOf()).toBe('auto')
+    await page.evaluate(() => document.getElementById('st-intro-toggle').click())
+    await settle(page, 500)
+    expect(await anchorOf()).toBe('auto')
     expect(errs, errs.join('\n')).toEqual([])
   })
 

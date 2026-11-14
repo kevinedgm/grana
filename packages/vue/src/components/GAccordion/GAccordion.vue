@@ -6,9 +6,9 @@
 // arreglo de los `value` abiertos en orden del documento (controlado y no controlado, como GFormSection).
 // Render con función (no plantilla) para contar los GAccordionItem del slot ANTES de que se pinten: la regla de `region`
 // (≤ 6 o exclusive, #477) sale igual en el servidor y en el cliente.
-import { computed, defineComponent, getCurrentInstance, h, onMounted, provide, ref, shallowReactive, watch } from 'vue'
+import { computed, defineComponent, getCurrentInstance, h, onBeforeUnmount, onMounted, provide, ref, shallowReactive, watch } from 'vue'
 import { byDocument, nextFrame } from '../GForm/formContext.js'
-import { scrollParent } from '../../utils/collapse.js'
+import { holdNoAnchor, scrollParent } from '../../utils/collapse.js'
 import { accordionKey } from './accordionContext.js'
 
 const REGION_MAX = 6 // APG: con más regiones que pueden estar abiertas a la vez, proliferan los puntos de referencia
@@ -160,20 +160,38 @@ export default defineComponent({
     // 0 con el documento. Escritura en un cuadro y solo si cambia (#173)
     const scrollPad = ref(0)
     let padQueued = false
+    // #1079: overflow-anchor: none en línea en el contenedor desplazable más cercano (nunca el documento) mientras haya
+    // sticky y algún elemento abierto según el modelo; registro compartido con Δ0 (holdNoAnchor). { sc, release } o null
+    let anchor = null
+    function dropAnchor() {
+      if (anchor) anchor.release()
+      anchor = null
+    }
+    function syncAnchor(el, sc, top) {
+      if (!props.sticky || !openValues.value.length || sc === top) sc = null
+      if (anchor && anchor.sc === sc) return
+      dropAnchor()
+      if (el && sc) anchor = { sc, release: holdNoAnchor(sc, true) }
+    }
     function measurePad() {
-      if (!props.sticky || padQueued) return
+      if (padQueued || (!props.sticky && !anchor)) return
       padQueued = true
       nextFrame(() => {
         padQueued = false
         const el = root.value
-        if (!el || !props.sticky) return
+        if (!el) return
         const sc = scrollParent(el, { overflowing: false })
         const top = document.scrollingElement || document.documentElement
+        syncAnchor(el, sc, top)
+        if (!props.sticky) return
         const v = !sc || sc === top ? 0 : parseFloat(getComputedStyle(sc).paddingBlockStart) || 0
         if (v !== scrollPad.value) scrollPad.value = v
       })
     }
-    watch(() => props.sticky, measurePad)
+    // Se repite al poner o quitar sticky y al pasar de ningún abierto a alguno (o al revés): un cambio dentro de exclusive no
+    // cambia la clave y la retención sigue sin hueco
+    watch(() => (props.sticky ? (openValues.value.length ? 2 : 1) : 0), measurePad)
+    onBeforeUnmount(dropAnchor)
     // 2.4.11 en WebKit: el foco por teclado no desplaza un control que ya asoma bajo el encabezado pegado (Chromium y
     // Firefox sí, con el scroll-margin del CSS). Si queda tapado, scrollIntoView({ block: 'nearest' }) lo trae respetando
     // ese scroll-margin (estilo.md «Para bruno», 2)

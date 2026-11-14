@@ -35,7 +35,11 @@ async function open(page, { width = 1280, reduced = false } = {}) {
       ;(function f() {
         const r = el.getBoundingClientRect()
         dt = Math.max(dt, Math.abs(r.top - r0.top)); dl = Math.max(dl, Math.abs(r.left - r0.left)); ds = Math.max(ds, Math.abs(scrollY - s0)); n++
-        if (performance.now() - t0 < ms) requestAnimationFrame(f); else res({ dt, dl, ds, n })
+        // Al menos `ms` y al menos 5 cuadros (tope 3 s): WebKit sin cabeza y con carga pinta a ~5 cuadros/s en el ejecutor de
+        // GitHub (e2e-full 43325442550: 3 cuadros en 600 ms) y la cuenta mínima de abajo fallaba sin que nada se moviera
+        // (hallazgo 4 de design/lab/form-reveal/auditoria.md). Δ0 se sigue exigiendo en cada cuadro medido.
+        const el2 = performance.now() - t0
+        if ((el2 < ms || n < 5) && el2 < 3000) requestAnimationFrame(f); else res({ dt, dl, ds, n })
       })()
     })
     window.__st = (id) => {
@@ -63,6 +67,17 @@ async function open(page, { width = 1280, reduced = false } = {}) {
 const settle = (page) => page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(r, 30))))))
 const settled = (page, id) => page.waitForFunction((i) => !document.getElementById(i).classList.contains('is-animating'), id, { timeout: 3000 })
 const choose = async (page, id) => { await page.click(`label[for="${id}"]`) }
+// WebKit tabula o no a radios y botones según la plataforma: en macOS no (sin «acceso total por teclado»), en el WebKit de
+// Playwright en Linux sí (e2e-full 43461208113: desde el nombre, Tab llegaba a «fr-factura-1*»). Desde el nombre, se pasan los
+// radios y botones que hay ANTES del bloque (#fr-rv-factura); uno de dentro del bloque cerrado no se salta nunca, así que la
+// prueba sigue viendo si el cerrado deja entrar el foco.
+async function tabOverOutside(page) {
+  for (let n = 0; n < 8; n++) {
+    const skip = await page.evaluate(() => { const a = document.activeElement; return !!a && (a.type === 'radio' || a.tagName === 'BUTTON') && !document.getElementById('fr-rv-factura').contains(a) })
+    if (!skip) return
+    await page.keyboard.press('Tab')
+  }
+}
 const active = (page) => page.evaluate(() => { const a = document.activeElement; return a?.type === 'radio' ? `${a.id}${a.checked ? '*' : ''}` : a?.id || a?.tagName })
 const fd = (page) => page.evaluate(() => window.__fd())
 const FISCAL = ['r-persona', 'r-curp', 'r-razon', 'r-constitucion', 'r-representante', 'r-rfc', 'r-regimen', 'r-cpf', 'r-envio']
@@ -112,6 +127,7 @@ test.describe('GFormReveal · componente real (form.md §14)', () => {
     // Tab salta el cerrado (WebKit en macOS no tabula a los radios: desde el nombre)
     if (browserName === 'webkit') await page.focus('#fr-nombre'); else await page.focus('#fr-factura-1')
     await page.keyboard.press('Tab')
+    if (browserName === 'webkit') await tabOverOutside(page)
     expect(await active(page)).toBe('fr-obs')
     // Árbol accesible: el cerrado no aparece
     expect(await page.locator('#fr-layout').ariaSnapshot()).not.toMatch(/RFC|Tipo de persona|Razón social/)
@@ -120,6 +136,7 @@ test.describe('GFormReveal · componente real (form.md §14)', () => {
     await settled(page, 'fr-rv-factura')
     if (browserName === 'webkit') await page.focus('#fr-nombre'); else await page.focus('#fr-factura-0')
     await page.keyboard.press('Tab')
+    if (browserName === 'webkit') await tabOverOutside(page)
     expect(await page.evaluate(() => document.getElementById('fr-rv-factura').contains(document.activeElement)), `Tab entra en el bloque (${await active(page)})`).toBe(true)
     const snap = await page.locator('#fr-layout').ariaSnapshot()
     expect(/RFC/.test(snap) && !/^\s*- group\s*$/m.test(snap), 'abierto aparece; el cuerpo no añade un grupo sin nombre').toBe(true)
