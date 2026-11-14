@@ -1,6 +1,6 @@
 # Contrato · `grana init` (instalador de `@grana/cli`)
 
-**Dueño:** lima · **Estado:** contratado, sin construir (2026-11-13; DECISIONS.md #1078 y #1079; `api.md` «Estabilidad y versiones») · **Basado en:** petición del usuario («un instalador de npm, npx») y la instalación vigente del README raíz («Instalación») y de `packages/cli/README.md`
+**Dueño:** lima · **Estado:** contratado, sin construir (2026-11-13; DECISIONS.md #1080 y #1081; `api.md` «Estabilidad y versiones») · **Basado en:** petición del usuario («un instalador de npm, npx») y la instalación vigente del README raíz («Instalación») y de `packages/cli/README.md`
 **Paquete:** `@grana/cli` (bin `grana`, el mismo de `theme` y `check`) · **Construye:** bruno (`packages/cli/src/`, pruebas en `packages/cli/test/`), sin dependencias nuevas · **Documenta:** mora-docs (`packages/cli/README.md` y la sección «Instalación» del README raíz, cuando bruno lo entregue)
 
 **Sin ronda de kiwi:** es un comando de terminal, sin forma visible, estados de interfaz ni movimiento (como `utilities.md`, #804). No aplican «conceptos antes que caja», la auditoría visual ni la rúbrica de movimiento. **No es complejo:** bruno en Sonnet salvo que el usuario pida otra cosa.
@@ -138,7 +138,7 @@ Por la salida estándar, en este orden de bloques (el texto exacto es de bruno y
 2. **Diagnósticos del tema** (si los hay), con el formato de `theme`.
 3. **Instalación:** cada orden exacta y si se ejecutó, se omitió (`--no-install`, `--dry-run`) o no hacía falta (paquetes ya declarados).
 4. **Archivos:** cada uno como escrito, regenerado, conservado o «se escribiría» (`--dry-run`).
-5. **Siguientes pasos:** las líneas de I5 en bloques de código con el archivo de destino, y con `--no-install` la orden pendiente. Terminan con una línea que nombra `npx grana catalog --agents` para quien diseñe con agentes de IA (#1080, `catalog.md` C4; texto fuera de la promesa).
+5. **Siguientes pasos:** las líneas de I5 en bloques de código con el archivo de destino, y con `--no-install` la orden pendiente. Terminan con una línea que nombra `npx grana catalog --agents` para quien diseñe con agentes de IA (#1082, `catalog.md` C4; texto fuera de la promesa).
 
 Errores y avisos por la salida de error, como en `theme`. Sin colores ANSI obligatorios (si bruno los usa, se apagan con `NO_COLOR` y fuera de un TTY). Los símbolos de estado siguen el formato que ya usa `cli.js` (es salida de terminal, no un componente: la regla de iconos Lucide no aplica).
 
@@ -178,7 +178,7 @@ Errores y avisos por la salida de error, como en `theme`. Sin colores ANSI oblig
 - **Sin dependencias nuevas** en `@grana/cli` (ni de *prompts* ni de semver: la lectura de versión de I1.3 es una expresión regular).
 - **No verificable aquí** hasta publicar: la instalación real desde el registro con los cuatro gestores. Tras publicar, una pasada manual en un `npm create vite@latest` (plantilla `vue`) con npm y pnpm, y en un Nuxt 4 nuevo, comprobando que la aplicación arranca con las líneas impresas.
 
-## I9 · Paquete sin ámbito `grana` (#1079)
+## I9 · Paquete sin ámbito `grana` (#1081)
 
 **Qué es.** Un paquete publicado como **`grana`** (`packages/grana/`), envoltorio sin lógica de `@grana/cli`, para que `npx grana init` funcione. **Porqué existe:** el bin de `@grana/cli` ya se llama `grana`; quien teclee `npx grana init` sin tener el CLI instalado descarga del registro el paquete sin ámbito `grana`, sea de quien sea (404 libre el 2026-11-13). Publicarlo cierra esa puerta (un tercero no puede servir código bajo la orden que Grana enseña) y acorta la orden. **Decisión del usuario del 2026-11-13** («decide tú qué es mejor»; decidió el coordinador).
 
@@ -209,7 +209,7 @@ Errores y avisos por la salida de error, como en `theme`. Sin colores ANSI oblig
 
 ## Reservado
 
-- **`create-grana` / `npm create grana`** (crear un proyecto nuevo con Grana ya puesto): **reservado, no se construye ni se publica en 1.x** (#1079; el nombre queda libre en npm a sabiendas: `npm create` promete crear un proyecto y `init` no lo crea, y un paquete vacío para ocupar el nombre va contra la política de npm). Duplicaría las plantillas de `create-vue`/`create-vite`/`nuxi init` y su mantenimiento; la ruta es `npm create vue@latest` seguido de `npx grana init`. Si el usuario lo quiere, sería un paquete aparte que crea con la plantilla oficial y luego llama a `init`, sin lógica propia de instalación.
+- **`create-grana` / `npm create grana`** (crear un proyecto nuevo con Grana ya puesto): **reservado, no se construye ni se publica en 1.x** (#1081; el nombre queda libre en npm a sabiendas: `npm create` promete crear un proyecto y `init` no lo crea, y un paquete vacío para ocupar el nombre va contra la política de npm). Duplicaría las plantillas de `create-vue`/`create-vite`/`nuxi init` y su mantenimiento; la ruta es `npm create vue@latest` seguido de `npx grana init`. Si el usuario lo quiere, sería un paquete aparte que crea con la plantilla oficial y luego llama a `init`, sin lógica propia de instalación.
 - **Editar código de la aplicación** (`--write-entry` o similar): reservado; solo con una decisión nueva y pruebas sobre AST reales.
 - **`--theme vite` con Nuxt**, **`--config <ruta>`** y una opción para instalar en la raíz de un *workspace*: reservados.
 - **Modo interactivo:** no. Las opciones bastan y un instalador que pregunta no sirve en CI.

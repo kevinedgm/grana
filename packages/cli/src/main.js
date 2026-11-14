@@ -1,4 +1,4 @@
-// Entrada interna de los bin (#1079, I9): la usan `bin/grana.mjs` de este paquete y el
+// Entrada interna de los bin (#1081, I9): la usan `bin/grana.mjs` de este paquete y el
 // envoltorio sin ámbito `grana`. Fuera de semver: el envoltorio fija la versión exacta.
 import { readFileSync } from 'node:fs'
 import { run } from './cli.js'

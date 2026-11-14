@@ -1,4 +1,4 @@
-// I9 (#1079): paridad del envoltorio `grana` con el bin de @grana/cli. Sin red.
+// I9 (#1081): paridad del envoltorio `grana` con el bin de @grana/cli. Sin red.
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { mkdtempSync, rmSync, writeFileSync, readFileSync, statSync, mkdirSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -21,7 +21,7 @@ beforeAll(() => {
   writeFileSync(join(dir, 'roto.json'), '{ no es json')
   mkdirSync(join(dir, 'proyecto'))
   writeFileSync(join(dir, 'proyecto', 'package.json'), JSON.stringify({ name: 'p', dependencies: { vue: '^3.5.0' } }))
-  // Proyecto con un @grana/vue mínimo que trae catálogo (catalog.md C4, #1080)
+  // Proyecto con un @grana/vue mínimo que trae catálogo (catalog.md C4, #1082)
   const vueDir = join(dir, 'catalogo', 'node_modules', '@grana', 'vue')
   mkdirSync(join(vueDir, 'dist'), { recursive: true })
   writeFileSync(join(dir, 'catalogo', 'package.json'), JSON.stringify({ name: 'c', dependencies: { '@grana/vue': '^1.0.0' } }))

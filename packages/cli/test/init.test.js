@@ -569,7 +569,7 @@ describe('init · --no-install y --dry-run', () => {
   })
 })
 
-describe('init · siguientes pasos (I7, #1080)', () => {
+describe('init · siguientes pasos (I7, #1082)', () => {
   it('terminan con la línea de grana catalog --agents, antes del cierre, también con --dry-run y en Nuxt', () => {
     put('package.json', pkgWith(vue()))
     for (const args of [[], ['--dry-run']]) {

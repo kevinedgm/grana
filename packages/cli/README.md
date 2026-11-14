@@ -78,7 +78,7 @@ Nunca borra archivos ni escribe fuera del directorio actual.
 
 **Verificación.** `medido` a mano el 2026-11-13: en un proyecto Vite + Vue 3.5 limpio, `grana init --brand '#7A1F5C' --no-install` (ejecutado con el tarball de `@grana/cli`) escribió solo `grana.config.json`, detectó npm por `package-lock.json` y el modo `vite`, e imprimió las órdenes de instalación y las líneas para `vite.config.js` y `src/main.js`; tras instalar los dos tarballs y pegarlas, `vite build` pasó y en el navegador `<g-btn variant="soft">` se pintó con `--g-color-brand: #7A1F5C`. `prueba` el 2026-11-13: 22 pruebas de paridad de salida estándar, de error y código entre los bin de `grana` y de `@grana/cli`; con los dos tarballs instalados en un proyecto vacío, `npx grana --version` dio `1.0.0` y `npx grana init --dry-run` imprimió el plan con código 0 sin escribir nada. **Sin verificar:** la descarga real de `grana` desde el registro, la instalación desde el registro, pnpm, yarn y bun reales, Windows y Nuxt.
 
-Fuentes: contrato `design/contracts/cli-init.md` y decisión #1078 de `DECISIONS.md`; la ayuda de `grana --help` y `packages/cli/src/init.js` mandan si algún texto difiere.
+Fuentes: contrato `design/contracts/cli-init.md` y decisión #1080 de `DECISIONS.md`; la ayuda de `grana --help` y `packages/cli/src/init.js` mandan si algún texto difiere.
 
 ## Consultar el catálogo (`catalog`)
 
@@ -111,7 +111,7 @@ npx grana catalog --agents               # bloque para AGENTS.md o CLAUDE.md
 
 **Verificación.** `medido` a mano el 2026-11-13 con los tres tarballs (`@grana/vue`, `@grana/cli`, `grana`) instalados en un proyecto vacío: `npx grana catalog GBadge` dio las 9 props con tipos y valores, `npx grana catalog GNope` dio código `1`, y `--agents` imprimió el bloque sin tocar el directorio. **Sin verificar:** la resolución con Yarn PnP y con pnpm estricto, y que agentes reales consulten el catálogo.
 
-Fuentes: contrato `design/contracts/catalog.md` y decisión #1080 de `DECISIONS.md`; la ayuda de `grana --help` y `packages/cli/src/catalog.js` mandan si algún texto difiere.
+Fuentes: contrato `design/contracts/catalog.md` y decisión #1082 de `DECISIONS.md`; la ayuda de `grana --help` y `packages/cli/src/catalog.js` mandan si algún texto difiere.
 
 ## Configuración
 

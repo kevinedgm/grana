@@ -1,4 +1,4 @@
-// Catálogo de componentes legible por agentes (dueño: bruno). design/contracts/catalog.md, DECISIONS.md #1080.
+// Catálogo de componentes legible por agentes (dueño: bruno). design/contracts/catalog.md, DECISIONS.md #1082.
 // Se ejecuta en `npm run build` después de build-types.mjs y escribe dist/catalog.json y dist/llms.txt.
 //
 // Una sola fuente con los tipos (#443): lee los meta.json con `readMetas`, las entradas con `ENTRIES` y `generateTypes`, y el

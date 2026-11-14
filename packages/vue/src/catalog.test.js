@@ -1,4 +1,4 @@
-// Catálogo para agentes (dueño: bruno). design/contracts/catalog.md C5, DECISIONS.md #1080. Sobre generateCatalog() en
+// Catálogo para agentes (dueño: bruno). design/contracts/catalog.md C5, DECISIONS.md #1082. Sobre generateCatalog() en
 // memoria: sin desfase con el meta.json ni con los tipos, `registered` real con createApp, lista blanca, secciones,
 // determinismo y topes de tamaño.
 import { describe, it, expect, beforeAll } from 'vitest'

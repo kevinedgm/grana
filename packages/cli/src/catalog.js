@@ -1,4 +1,4 @@
-// `grana catalog` (dueño: bruno). design/contracts/catalog.md C4, DECISIONS.md #1080.
+// `grana catalog` (dueño: bruno). design/contracts/catalog.md C4, DECISIONS.md #1082.
 // Lee el catálogo del @grana/vue que resuelve el proyecto desde el directorio actual (sin red, sin descargar y sin
 // depender de @grana/vue). Códigos: 0 respuesta (también una lista filtrada vacía) · 1 la pieza o la búsqueda no existe ·
 // 2 uso, @grana/vue ausente o sin catálogo, JSON ilegible o esquema más nuevo que este CLI. Nunca 3 ni escribe nada.

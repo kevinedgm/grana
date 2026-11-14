@@ -1,4 +1,4 @@
-// `grana init`: instala Grana en un proyecto existente (contrato design/contracts/cli-init.md, DECISIONS #1078).
+// `grana init`: instala Grana en un proyecto existente (contrato design/contracts/cli-init.md, DECISIONS #1080).
 // Valida el tema, instala con el gestor del proyecto y escribe solo archivos de Grana; no edita código de la aplicación.
 // Códigos: 0 correcto, 1 el tema rompe un mínimo, 2 uso o precondición, 3 la instalación falló.
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
