@@ -184,24 +184,30 @@ body {
 /* Fallbacks con métricas ajustadas (CLS 0 por debajo de 960 px): mientras llegan las fuentes, la marca, la búsqueda y el botón
    «En esta página» ocupan el ancho que tendrán con ellas (medido en Chromium: Georgia ×0,764 de Instrument Serif; Arial ×1,056
    de Instrument Sans en los enlaces de la banda y ×1,02 en el botón plegado, cuya frase es más corta). En otra plataforma sin
-   esas locales queda el salto de antes. */
+   esas locales (ni Liberation, Arimo o Tinos, de métricas iguales a Arial y Times) queda el salto de antes. */
 @font-face {
   font-family: 'Instrument Serif Fallback';
   src: local('Georgia');
   size-adjust: 76.4%;
 }
+/* Sin Georgia (Linux): Liberation Serif, Tinos o Times New Roman, de métricas iguales entre sí; ×0,855 iguala la marca «Grana» */
+@font-face {
+  font-family: 'Instrument Serif Fallback Times';
+  src: local('Liberation Serif'), local('LiberationSerif'), local('Tinos'), local('Times New Roman');
+  size-adjust: 85.5%;
+}
 @font-face {
   font-family: 'Instrument Sans Fallback';
-  src: local('Arial'), local('Helvetica');
+  src: local('Arial'), local('Helvetica'), local('Liberation Sans'), local('LiberationSans'), local('Arimo');
   size-adjust: 105.6%;
 }
 @font-face {
   font-family: 'Instrument Sans Fallback Fold';
-  src: local('Arial'), local('Helvetica');
+  src: local('Arial'), local('Helvetica'), local('Liberation Sans'), local('LiberationSans'), local('Arimo');
   size-adjust: 102%;
 }
 :root {
-  --_site-serif: 'Instrument Serif', 'Instrument Serif Fallback', ui-serif, Georgia, serif;
+  --_site-serif: 'Instrument Serif', 'Instrument Serif Fallback', 'Instrument Serif Fallback Times', ui-serif, Georgia, serif;
   --g-font-ui: 'Instrument Sans Variable', 'Instrument Sans', 'Instrument Sans Fallback', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
 .vp-doc h1,
@@ -894,7 +900,7 @@ body {
    Alto y bajo de Instrument Sans (0,97 / 0,25 del cuerpo) en las dos caras: el texto no salta dentro de su línea. */
 @font-face {
   font-family: 'Instrument Sans Fallback Hero';
-  src: local('Arial'), local('Helvetica');
+  src: local('Arial'), local('Helvetica'), local('Liberation Sans'), local('LiberationSans'), local('Arimo');
   font-weight: 400 500;
   size-adjust: 100.5%;
   ascent-override: 96.5%;
