@@ -2,7 +2,7 @@
 
 229 clases `g-*` para el **último ajuste** de tu página: un margen, una fila, el tamaño de un texto. No son una escala de píxeles: **hablan el idioma del tema**. `g-p-4` es `padding: var(--g-space-4)`, `g-text-caption` es el rol `caption` del tema, `g-radius-lg` es el radio `lg`. Sin `!important`, sin breakpoints y sin colores propios: el color lo pone el tema.
 
-**Etiqueta:** `class="g-…"` (sin componente) · **Estado:** `candidate` (contratada, construida, integrada y auditada por coco sin defecto bloqueante, [`design/lab/utilities/auditoria.md`](../../../../design/lab/utilities/auditoria.md); estado escrito por lima en [`utilities.md`](../../../../design/contracts/utilities.md), 2026-10-22) · **Desde:** sin publicar (`0.1.0-beta.0`, [`CHANGELOG.md`](../../../../CHANGELOG.md))
+**Etiqueta:** `class="g-…"` (sin componente) · **Estado:** `stable` (las clases de `utilities.json` entran en la promesa de semver de la 1.0, [`docs/contract/api.md`](../../../../docs/contract/api.md) «Estabilidad y versiones»; auditadas por coco sin defecto bloqueante, [`design/lab/utilities/auditoria.md`](../../../../design/lab/utilities/auditoria.md)) · **Desde:** `1.0.0` ([`CHANGELOG.md`](../../../../CHANGELOG.md))
 
 ```js
 import '@grana/vue/style.css'      // ya incluye las utilidades
@@ -11,8 +11,6 @@ import '@grana/vue/style.css'      // ya incluye las utilidades
 ```js
 import '@grana/vue/utilities.css'  // solo las utilidades; necesita los tokens (ver «Uso»)
 ```
-
-> `@grana/vue` está en la versión `0.1.0-beta.0` y aún no se publica en npm. Por ahora se usa desde el repositorio.
 
 > **Son un ajuste puntual, no composición.** Para apilar bloques usa `GStack`; para los campos de un formulario, `GFormLayout` + `GFormRow`; para una caja con superficie, `GSurface`. Si repites el mismo ajuste en una pantalla, lo que falta es una de esas piezas, no más clases. Ver «Cuándo usarlas».
 

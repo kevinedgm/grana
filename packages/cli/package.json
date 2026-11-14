@@ -35,7 +35,8 @@
   },
   "files": [
     "bin",
-    "src"
+    "src",
+    "README.en.md"
   ],
   "sideEffects": false,
   "engines": {

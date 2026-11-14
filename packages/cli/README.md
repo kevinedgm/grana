@@ -4,6 +4,8 @@ Genera el `tokens.css` de tu proyecto a partir de una configuración corta y **r
 
 **Estado: `1.0.0`** (semver: los comandos `theme` y `check`, los códigos de salida, las claves de configuración, los nombres de los tokens emitidos y los `code` de los diagnósticos son API pública; ver `api.md` «Estabilidad y versiones»). Las referencias `docs/contract/…` y `§n` de este documento remiten al [contrato de tokens](https://github.com/kevinedgm/grana/blob/main/docs/contract/tokens.md) del repositorio; la visión general de Grana está en el [README principal](https://github.com/kevinedgm/grana#readme).
 
+*English: [README.en.md](https://github.com/kevinedgm/grana/blob/main/packages/cli/README.en.md).*
+
 ```bash
 npx @grana/cli theme grana.config.json    # escribe tokens.css
 npx @grana/cli check grana.config.json    # solo valida

@@ -80,6 +80,8 @@ Cada página de componente abre con la **ficha interactiva** del contrato de mor
 - `README.en.md` raíz: **las mismas secciones `##` en el mismo orden** que `README.md` (el plan de páginas las toma por posición) y las mismas viñetas del preámbulo.
 - Los enlaces pueden apuntar al README español o al inglés (`../GIcon/README.md`): el generador los lleva a la página inglesa.
 - Los bloques `vue demo` del README inglés se pintan en la página inglesa; si no tiene ninguno, se usa el respaldo de `site/demos/`.
+- Cada idioma tiene sus propios archivos de ejemplo (`en-<slug>-<n>.vue` en inglés), así que la traducción puede traducir los textos de sus `vue demo`.
+- **Comprobación:** `node site/scripts/check-translations.mjs` exige que cada `.en.md` tenga los mismos encabezados (número, orden y nivel), los mismos bloques de código en el mismo lenguaje y los mismos destinos de enlace que su original; las anclas y los enlaces externos pueden ser los de la versión inglesa.
 - Las tablas de API salen de los `meta.json` (en español) en los dos idiomas.
 
 ## Tema: el sitio vestido con Grana

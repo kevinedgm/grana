@@ -40,6 +40,9 @@ jobs:
       - name: Build de @grana/vue (el sitio usa dist/ y sus entradas propias)
         run: npm run build -w @grana/vue
 
+      - name: Build de @grana/blocks (el tema del sitio registra marketing, booking y ecommerce)
+        run: npm run build -w @grana/blocks
+
       - name: Prueba del generador (toda página de componente existe y tiene ejemplo vivo)
         run: npm test -w @grana/site
 
@@ -50,6 +53,9 @@ jobs:
         run: npm run docs:build
         env:
           GRANA_SITE_BASE: /grana/
+          # Con 254 páginas de componentes y 72 de blocks, VitePress agota el heap por defecto de Node
+          # (medido en local el 2026-11-14: «JavaScript heap out of memory»; con 6 GB construye en ≈ 100 s).
+          NODE_OPTIONS: --max-old-space-size=6144
 
       - name: Subir el sitio
         uses: actions/upload-pages-artifact@v3
