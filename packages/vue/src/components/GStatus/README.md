@@ -2,7 +2,7 @@
 
 Condición **declarativa** de la isla de estado, **sin pintura**: mientras el componente está montado, su condición existe. Sirve para que el fallo de una vista no sobreviva a la vista (por ejemplo, «No se pudieron cargar las facturas» mientras `loadFailed` sea verdadero). Es parte del sistema de la isla: **la documentación completa está en [`GStatusIsland/README.md`](../GStatusIsland/README.md)** (modelo de una condición, anuncios, foco, instalación, accesibilidad medida y limitaciones).
 
-**Etiqueta:** `<g-status>` · **Entrada:** `@grana/vue/status` (la registra `app.use(status)`) · **Estado:** `candidate` · **Desde:** 0.1.0
+**Etiqueta:** `<g-status>` · **Entrada:** `@grana/vue/status` (la registra `app.use(status)`) · **Estado:** `draft` (sin promesa de semver hasta la auditoría de coco del rediseño) · **Desde:** 0.1.0
 
 ```vue
 <!-- Fragmento: `loadFailed` y `reload` son de tu aplicación -->

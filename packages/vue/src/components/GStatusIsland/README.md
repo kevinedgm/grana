@@ -4,7 +4,7 @@ Una **región única y persistente** de la aplicación que reúne **lo que está
 
 Es un **servicio con clave**: tu aplicación crea un gestor (`createStatus`), lo instala como plugin, declara condiciones con `set(id, …)` (o con `<GStatus>` desde una vista) y monta **una** `<GStatusIsland />`. Una condición es **estado, no suceso**: declararla otra vez con el mismo `id` la sustituye **en el mismo elemento**; dura hasta que la aplicación la quita. Junto al origen (el botón «Guardar», el hueco de las filas) puede ir una `GStatusMark`, la cápsula que abre la isla en su aviso.
 
-**Etiquetas:** `<g-status-island>` (región) · `<g-status-mark>` (marca junto al origen o línea de texto) · `<g-status>` (condición declarativa, sin pintura) · **Entrada:** `@grana/vue/status` (no viaja en `@grana/vue`) · **Estado:** `candidate` (auditoría de coco aprobada; ver [`design/lab/alert/auditoria.md`](../../../../../design/lab/alert/auditoria.md)) · **Desde:** 0.1.0
+**Etiquetas:** `<g-status-island>` (región) · `<g-status-mark>` (marca junto al origen o línea de texto) · `<g-status>` (condición declarativa, sin pintura) · **Entrada:** `@grana/vue/status` (no viaja en `@grana/vue`) · **Estado:** `draft` (el rediseño de #693 a #707 espera la auditoría de coco; la de la versión anterior está en [`design/lab/alert/auditoria.md`](../../../../../design/lab/alert/auditoria.md)) · **Desde:** 0.1.0
 
 > `@grana/vue` está en la versión `1.0.0`; hasta que se publique en npm se usa desde el repositorio (playground en `packages/vue/playground/`, sección «Isla de estado»). Exige Vue `^3.5.0`; la región usa la API `popover`.
 

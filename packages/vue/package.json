@@ -231,7 +231,8 @@
   },
   "files": [
     "dist",
-    "THIRD-PARTY-NOTICES.md"
+    "THIRD-PARTY-NOTICES.md",
+    "README.en.md"
   ],
   "sideEffects": [
     "**/*.css"

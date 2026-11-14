@@ -2,7 +2,7 @@
 
 Marca **en línea** de la isla de estado. Con `for` es la **cápsula junto al origen** de una condición (el botón «Guardar», el hueco de las filas de una tabla) que abre la isla en su aviso; sin `for` es una **línea de texto** (insignia, texto y una acción opcional) para una advertencia que es **contenido** de una sección, tarjeta o diálogo y que no entra en la isla. Es parte del sistema de la isla: **la documentación completa está en [`GStatusIsland/README.md`](../GStatusIsland/README.md)** (qué va a la isla y qué no, instalación, anuncios, foco, accesibilidad medida, tema y limitaciones).
 
-**Etiqueta:** `<g-status-mark>` · **Entrada:** `@grana/vue/status` (la registra `app.use(status)`) · **Estado:** `candidate` · **Desde:** 0.1.0
+**Etiqueta:** `<g-status-mark>` · **Entrada:** `@grana/vue/status` (la registra `app.use(status)`) · **Estado:** `draft` (sin promesa de semver hasta la auditoría de coco del rediseño) · **Desde:** 0.1.0
 
 ```vue
 <!-- Enlace: junto al origen, antes del botón; tipo y busy salen de la condición -->

@@ -614,7 +614,9 @@ function renderPage(page, ctx) {
       let spec
       if (part.fallback) spec = `@site-demos/${path.basename(part.file)}`
       else {
-        const file = `${page.component?.slug ?? page.demoSlug}-${demoN}.vue`
+        // Un archivo por idioma: una traducción puede traducir los textos de su ejemplo, y con el mismo
+        // nombre el último idioma generado pisaría el ejemplo del otro.
+        const file = `${locale === 'es' ? '' : `${locale}-`}${page.component?.slug ?? page.demoSlug}-${demoN}.vue`
         ctx.demoFiles.set(file, lib.demoToSfc(part.code))
         spec = `@gen-demos/${file}`
       }

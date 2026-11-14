@@ -112,7 +112,10 @@ test('utilidades: página de guía en los dos idiomas, con ejemplos vivos y en l
     assert.ok(guide.some((i) => i.href === (locale === 'es' ? '/utilities' : '/en/utilities')), `${locale}: «Utilidades» no está en el grupo Guía`)
   }
   assert.ok([...result.demoFiles.keys()].some((k) => k.startsWith('utilities-')), 'falta el SFC del ejemplo de las utilidades')
-  assert.match(result.files.get('en/utilities.md'), /::: warning Translation pending/)
+  // Con README-utilities.en.md, la página en inglés usa la traducción y sus propios ejemplos.
+  assert.doesNotMatch(result.files.get('en/utilities.md'), /::: warning Translation pending/)
+  assert.ok(result.demoFiles.has('en-utilities-1.vue'), 'falta el SFC del ejemplo en inglés de las utilidades')
+  assert.notEqual(result.demoFiles.get('en-utilities-1.vue'), result.demoFiles.get('utilities-1.vue'), 'el ejemplo en inglés debe salir de la traducción')
 })
 
 test('fixture: un componente nuevo con README genera página aunque no tenga meta.json', () => {
