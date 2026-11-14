@@ -1,0 +1,841 @@
+{
+ "fecha": "2026-11-12",
+ "motores": [
+  "chromium"
+ ],
+ "por": {
+  "estático": [
+   12,
+   12
+  ],
+  "chromium": [
+   263,
+   263
+  ]
+ },
+ "total": "275/275",
+ "fallos": [],
+ "notas": [
+  "chromium: window.find('GHelperScope') sobre el grupo plegado → encontrado true, aria-expanded false (window.find no equivale a Ctrl+F: Ctrl+F real no es automatizable)",
+  "chromium: fragmento de texto #:~:text=GHelperScope con el grupo plegado → aria-expanded true"
+ ],
+ "hallazgos": [
+  "nombre accesible «GCombobox , 24» (espacio antes de la coma; el contrato dice «GCombobox, 24»)",
+  "plegado por encima: la marca se ve 1 cuadro(s) con opacidad > 0,5 lejos de su fila ({\"t\":11,\"op\":0.69,\"d\":105,\"cls\":\"\"}): el fundido fast empieza a la vez que la rejilla, que recorre ≈ 100 px en el primer cuadro"
+ ],
+ "minimosTemas": {
+  "enlace": {
+   "v": 6.87,
+   "d": "tema lustre claro"
+  },
+  "numero": {
+   "v": 4.7,
+   "d": "tema lustre claro"
+  },
+  "titulo": {
+   "v": 16.08,
+   "d": "tema linear claro"
+  },
+  "actual": {
+   "v": 4.55,
+   "d": "tema medium claro"
+  },
+  "marcaHueca": {
+   "v": 4.55,
+   "d": "tema medium claro"
+  },
+  "flecha": {
+   "v": 6.87,
+   "d": "tema lustre claro"
+  },
+  "hover": {
+   "v": 13.17,
+   "d": "tema apple oscuro"
+  },
+  "foco": {
+   "v": 4.55,
+   "d": "tema medium claro"
+  }
+ },
+ "medidas": {
+  "peso": {
+   "sidebar-index.js": 3821
+  },
+  "claro/1280": {
+   "columna": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 800
+   },
+   "grupo": {
+    "x": 32,
+    "y": 64,
+    "w": 208,
+    "h": 354
+   },
+   "título": {
+    "x": 32,
+    "y": 74,
+    "w": 208,
+    "h": 32
+   },
+   "enlace": {
+    "x": 32,
+    "y": 106,
+    "w": 208,
+    "h": 32
+   },
+   "actual": {
+    "x": 32,
+    "y": 1331,
+    "w": 208,
+    "h": 32
+   },
+   "marca": {
+    "x": 15,
+    "y": 1337,
+    "w": 2,
+    "h": 20
+   },
+   "color": {
+    "titulo": "rgb(26, 26, 26)",
+    "enlace": "rgb(85, 85, 85)",
+    "actual": "rgb(11, 99, 206)",
+    "fondo": "rgb(246, 246, 246)",
+    "marca": "rgb(11, 99, 206)"
+   }
+  },
+  "claro/1024": {
+   "columna": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 800
+   },
+   "grupo": {
+    "x": 32,
+    "y": 64,
+    "w": 208,
+    "h": 354
+   },
+   "título": {
+    "x": 32,
+    "y": 74,
+    "w": 208,
+    "h": 32
+   },
+   "enlace": {
+    "x": 32,
+    "y": 106,
+    "w": 208,
+    "h": 32
+   },
+   "actual": {
+    "x": 32,
+    "y": 1331,
+    "w": 208,
+    "h": 32
+   },
+   "marca": {
+    "x": 15,
+    "y": 1337,
+    "w": 2,
+    "h": 20
+   },
+   "color": {
+    "titulo": "rgb(26, 26, 26)",
+    "enlace": "rgb(85, 85, 85)",
+    "actual": "rgb(11, 99, 206)",
+    "fondo": "rgb(246, 246, 246)",
+    "marca": "rgb(11, 99, 206)"
+   }
+  },
+  "claro/768": {
+   "columna": {
+    "x": 0,
+    "y": 0,
+    "w": 320,
+    "h": 800
+   },
+   "grupo": {
+    "x": 32,
+    "y": 64,
+    "w": 256,
+    "h": 344
+   },
+   "título": {
+    "x": 32,
+    "y": 64,
+    "w": 256,
+    "h": 32
+   },
+   "enlace": {
+    "x": 32,
+    "y": 96,
+    "w": 256,
+    "h": 32
+   },
+   "actual": {
+    "x": 32,
+    "y": 1321,
+    "w": 256,
+    "h": 32
+   },
+   "marca": {
+    "x": 15,
+    "y": 1327,
+    "w": 2,
+    "h": 20
+   },
+   "color": {
+    "titulo": "rgb(26, 26, 26)",
+    "enlace": "rgb(85, 85, 85)",
+    "actual": "rgb(11, 99, 206)",
+    "fondo": "rgb(246, 246, 246)",
+    "marca": "rgb(11, 99, 206)",
+    "velo": "rgba(0, 0, 0, 0.6)"
+   }
+  },
+  "claro/375": {
+   "columna": {
+    "x": 0,
+    "y": 0,
+    "w": 311,
+    "h": 740
+   },
+   "grupo": {
+    "x": 32,
+    "y": 64,
+    "w": 247,
+    "h": 344
+   },
+   "título": {
+    "x": 32,
+    "y": 64,
+    "w": 247,
+    "h": 32
+   },
+   "enlace": {
+    "x": 32,
+    "y": 96,
+    "w": 247,
+    "h": 32
+   },
+   "actual": {
+    "x": 32,
+    "y": 1321,
+    "w": 247,
+    "h": 32
+   },
+   "marca": {
+    "x": 15,
+    "y": 1327,
+    "w": 2,
+    "h": 20
+   },
+   "color": {
+    "titulo": "rgb(26, 26, 26)",
+    "enlace": "rgb(85, 85, 85)",
+    "actual": "rgb(11, 99, 206)",
+    "fondo": "rgb(246, 246, 246)",
+    "marca": "rgb(11, 99, 206)",
+    "velo": "rgba(0, 0, 0, 0.6)"
+   }
+  },
+  "oscuro/1280": {
+   "columna": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 800
+   },
+   "grupo": {
+    "x": 32,
+    "y": 64,
+    "w": 208,
+    "h": 354
+   },
+   "título": {
+    "x": 32,
+    "y": 74,
+    "w": 208,
+    "h": 32
+   },
+   "enlace": {
+    "x": 32,
+    "y": 106,
+    "w": 208,
+    "h": 32
+   },
+   "actual": {
+    "x": 32,
+    "y": 1331,
+    "w": 208,
+    "h": 32
+   },
+   "marca": {
+    "x": 15,
+    "y": 1337,
+    "w": 2,
+    "h": 20
+   },
+   "color": {
+    "titulo": "rgb(242, 242, 242)",
+    "enlace": "rgb(184, 184, 184)",
+    "actual": "rgb(51, 131, 240)",
+    "fondo": "rgb(16, 16, 16)",
+    "marca": "rgb(51, 131, 240)"
+   }
+  },
+  "oscuro/1024": {
+   "columna": {
+    "x": 0,
+    "y": 0,
+    "w": 272,
+    "h": 800
+   },
+   "grupo": {
+    "x": 32,
+    "y": 64,
+    "w": 208,
+    "h": 354
+   },
+   "título": {
+    "x": 32,
+    "y": 74,
+    "w": 208,
+    "h": 32
+   },
+   "enlace": {
+    "x": 32,
+    "y": 106,
+    "w": 208,
+    "h": 32
+   },
+   "actual": {
+    "x": 32,
+    "y": 1331,
+    "w": 208,
+    "h": 32
+   },
+   "marca": {
+    "x": 15,
+    "y": 1337,
+    "w": 2,
+    "h": 20
+   },
+   "color": {
+    "titulo": "rgb(242, 242, 242)",
+    "enlace": "rgb(184, 184, 184)",
+    "actual": "rgb(51, 131, 240)",
+    "fondo": "rgb(16, 16, 16)",
+    "marca": "rgb(51, 131, 240)"
+   }
+  },
+  "oscuro/768": {
+   "columna": {
+    "x": 0,
+    "y": 0,
+    "w": 320,
+    "h": 800
+   },
+   "grupo": {
+    "x": 32,
+    "y": 64,
+    "w": 256,
+    "h": 344
+   },
+   "título": {
+    "x": 32,
+    "y": 64,
+    "w": 256,
+    "h": 32
+   },
+   "enlace": {
+    "x": 32,
+    "y": 96,
+    "w": 256,
+    "h": 32
+   },
+   "actual": {
+    "x": 32,
+    "y": 1321,
+    "w": 256,
+    "h": 32
+   },
+   "marca": {
+    "x": 15,
+    "y": 1327,
+    "w": 2,
+    "h": 20
+   },
+   "color": {
+    "titulo": "rgb(242, 242, 242)",
+    "enlace": "rgb(184, 184, 184)",
+    "actual": "rgb(51, 131, 240)",
+    "fondo": "rgb(16, 16, 16)",
+    "marca": "rgb(51, 131, 240)",
+    "velo": "rgba(0, 0, 0, 0.6)"
+   }
+  },
+  "oscuro/375": {
+   "columna": {
+    "x": 0,
+    "y": 0,
+    "w": 311,
+    "h": 740
+   },
+   "grupo": {
+    "x": 32,
+    "y": 64,
+    "w": 247,
+    "h": 344
+   },
+   "título": {
+    "x": 32,
+    "y": 64,
+    "w": 247,
+    "h": 32
+   },
+   "enlace": {
+    "x": 32,
+    "y": 96,
+    "w": 247,
+    "h": 32
+   },
+   "actual": {
+    "x": 32,
+    "y": 1321,
+    "w": 247,
+    "h": 32
+   },
+   "marca": {
+    "x": 15,
+    "y": 1327,
+    "w": 2,
+    "h": 20
+   },
+   "color": {
+    "titulo": "rgb(242, 242, 242)",
+    "enlace": "rgb(184, 184, 184)",
+    "actual": "rgb(51, 131, 240)",
+    "fondo": "rgb(16, 16, 16)",
+    "marca": "rgb(51, 131, 240)",
+    "velo": "rgba(0, 0, 0, 0.6)"
+   }
+  },
+  "nombre contrato claro/1280": "- link \"GCombobox , 24\":\n  - /url: \"#c-combobox\"",
+  "contraste claro/1280": {
+   "enlace": 6.9,
+   "titulo": 16.1,
+   "actual": 5.27,
+   "numero": 4.72,
+   "marca": 5.27,
+   "flecha": 6.9,
+   "foco": 5.27,
+   "hoverLuz": 13.43,
+   "actualVsVecino": 1.31
+  },
+  "nombre contrato claro/375": "- link \"GCombobox , 24\":\n  - /url: \"#c-combobox\"",
+  "contraste claro/375": {
+   "enlace": 6.9,
+   "titulo": 16.1,
+   "actual": 5.27,
+   "numero": 4.72,
+   "marca": 5.27,
+   "flecha": 6.9,
+   "foco": 5.27,
+   "hoverLuz": 13.43,
+   "actualVsVecino": 1.31
+  },
+  "nombre contrato oscuro/1280": "- link \"GCombobox , 24\":\n  - /url: \"#c-combobox\"",
+  "contraste oscuro/1280": {
+   "enlace": 9.59,
+   "titulo": 17,
+   "actual": 5.12,
+   "numero": 6.93,
+   "marca": 5.12,
+   "flecha": 9.59,
+   "foco": 5.12,
+   "hoverLuz": 13.17,
+   "actualVsVecino": 1.88
+  },
+  "nombre contrato oscuro/375": "- link \"GCombobox , 24\":\n  - /url: \"#c-combobox\"",
+  "contraste oscuro/375": {
+   "enlace": 9.59,
+   "titulo": 17,
+   "actual": 5.12,
+   "numero": 6.93,
+   "marca": 5.12,
+   "flecha": 9.59,
+   "foco": 5.12,
+   "hoverLuz": 13.17,
+   "actualVsVecino": 1.88
+  },
+  "interrupcion": {
+   "hs": [
+    0,
+    101,
+    184,
+    246,
+    287,
+    313,
+    213,
+    133,
+    79,
+    45,
+    25,
+    14,
+    7,
+    4,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "jump": 101,
+   "peak": 313,
+   "end": 0,
+   "exp": "false"
+  },
+  "teclado": {
+   "lastGuide": "a:GHero",
+   "k1": "btn:Acciones y navegación",
+   "k2": "btn:Campos de entrada",
+   "k3": "btn:Acciones y navegación",
+   "k4": "btn:Acciones y navegación",
+   "k5": "a:Empezar",
+   "k6": "a:GTranscript",
+   "lastVisible": "a:GTranscript"
+  },
+  "windowFind": {
+   "found": true,
+   "exp": "false"
+  },
+  "fragmentoTexto": "true",
+  "plegadoEncima": {
+   "visiblesFuera": 1,
+   "frames": [
+    {
+     "t": 3,
+     "op": 1,
+     "d": 0,
+     "cls": ""
+    },
+    {
+     "t": 11,
+     "op": 0.69,
+     "d": 105,
+     "cls": ""
+    },
+    {
+     "t": 28,
+     "op": 0.34,
+     "d": 192,
+     "cls": ""
+    },
+    {
+     "t": 45,
+     "op": 0.18,
+     "d": 256,
+     "cls": ""
+    },
+    {
+     "t": 61,
+     "op": 0.09,
+     "d": 299,
+     "cls": ""
+    },
+    {
+     "t": 78,
+     "op": 0.04,
+     "d": 325,
+     "cls": ""
+    }
+   ],
+   "end": 0,
+   "op": "1"
+  },
+  "viajes": {
+   "near": {
+    "dist": 32,
+    "far": false,
+    "tf": "linear(0 0%",
+    "mid": 670.3,
+    "end": 689,
+    "target": 689,
+    "over": 1.2
+   },
+   "far": {
+    "dist": 902,
+    "far": true,
+    "tf": "cubic-bezier",
+    "mid": 58.3,
+    "end": -213,
+    "target": -213,
+    "over": 0
+   }
+  },
+  "tema amazon claro": {
+   "enlace": 6.9,
+   "numero": 4.71,
+   "titulo": 16.09,
+   "actual": 4.58,
+   "marcaHueca": 4.58,
+   "hueca": true,
+   "flecha": 6.9,
+   "hover": 13.7,
+   "foco": 4.58
+  },
+  "tema amazon oscuro": {
+   "enlace": 9.59,
+   "numero": 6.93,
+   "titulo": 16.97,
+   "actual": 8.9,
+   "marcaHueca": 8.9,
+   "hueca": true,
+   "flecha": 9.59,
+   "hover": 13.37,
+   "foco": 8.9
+  },
+  "tema apple claro": {
+   "enlace": 6.9,
+   "numero": 4.72,
+   "titulo": 16.1,
+   "actual": 4.57,
+   "marcaHueca": 4.57,
+   "hueca": true,
+   "flecha": 6.9,
+   "hover": 13.43,
+   "foco": 4.57
+  },
+  "tema apple oscuro": {
+   "enlace": 9.59,
+   "numero": 6.93,
+   "titulo": 17,
+   "actual": 5.17,
+   "marcaHueca": 5.17,
+   "hueca": true,
+   "flecha": 9.59,
+   "hover": 13.17,
+   "foco": 5.17
+  },
+  "tema caracol-purpura claro": {
+   "enlace": 6.91,
+   "numero": 4.73,
+   "titulo": 16.13,
+   "actual": 4.56,
+   "marcaHueca": 4.56,
+   "hueca": true,
+   "flecha": 6.91,
+   "hover": 13.71,
+   "foco": 4.56
+  },
+  "tema caracol-purpura oscuro": {
+   "enlace": 9.6,
+   "numero": 6.93,
+   "titulo": 17,
+   "actual": 5.14,
+   "marcaHueca": 5.14,
+   "hueca": true,
+   "flecha": 9.6,
+   "hover": 13.55,
+   "foco": 5.14
+  },
+  "tema github claro": {
+   "enlace": 6.9,
+   "numero": 4.72,
+   "titulo": 16.1,
+   "actual": 4.8,
+   "marcaHueca": 4.8,
+   "hueca": true,
+   "flecha": 6.9,
+   "hover": 13.43,
+   "foco": 4.8
+  },
+  "tema github oscuro": {
+   "enlace": 9.59,
+   "numero": 6.93,
+   "titulo": 17,
+   "actual": 5.11,
+   "marcaHueca": 5.11,
+   "hueca": true,
+   "flecha": 9.59,
+   "hover": 13.17,
+   "foco": 5.11
+  },
+  "tema grana claro": {
+   "enlace": 6.96,
+   "numero": 4.74,
+   "titulo": 16.13,
+   "actual": 4.59,
+   "marcaHueca": 4.59,
+   "hueca": true,
+   "flecha": 6.96,
+   "hover": 13.71,
+   "foco": 4.59
+  },
+  "tema grana oscuro": {
+   "enlace": 9.59,
+   "numero": 6.91,
+   "titulo": 16.99,
+   "actual": 5.11,
+   "marcaHueca": 5.11,
+   "hueca": true,
+   "flecha": 9.59,
+   "hover": 13.56,
+   "foco": 5.11
+  },
+  "tema linear claro": {
+   "enlace": 6.89,
+   "numero": 4.71,
+   "titulo": 16.08,
+   "actual": 4.6,
+   "marcaHueca": 4.6,
+   "hueca": true,
+   "flecha": 6.89,
+   "hover": 13.66,
+   "foco": 4.6
+  },
+  "tema linear oscuro": {
+   "enlace": 9.6,
+   "numero": 6.94,
+   "titulo": 16.97,
+   "actual": 5.8,
+   "marcaHueca": 5.8,
+   "hueca": true,
+   "flecha": 9.6,
+   "hover": 13.37,
+   "foco": 5.8
+  },
+  "tema lustre claro": {
+   "enlace": 6.87,
+   "numero": 4.7,
+   "titulo": 16.12,
+   "actual": 6.02,
+   "marcaHueca": 6.02,
+   "hueca": true,
+   "flecha": 6.87,
+   "hover": 13.71,
+   "foco": 6.02
+  },
+  "tema lustre oscuro": {
+   "enlace": 9.61,
+   "numero": 6.95,
+   "titulo": 17.01,
+   "actual": 5.18,
+   "marcaHueca": 5.18,
+   "hueca": true,
+   "flecha": 9.61,
+   "hover": 13.36,
+   "foco": 5.18
+  },
+  "tema medium claro": {
+   "enlace": 6.9,
+   "numero": 4.72,
+   "titulo": 16.1,
+   "actual": 4.55,
+   "marcaHueca": 4.55,
+   "hueca": true,
+   "flecha": 6.9,
+   "hover": 13.43,
+   "foco": 4.55
+  },
+  "tema medium oscuro": {
+   "enlace": 9.59,
+   "numero": 6.93,
+   "titulo": 17,
+   "actual": 5.18,
+   "marcaHueca": 5.18,
+   "hueca": true,
+   "flecha": 9.59,
+   "hover": 13.17,
+   "foco": 5.18
+  },
+  "tema notion claro": {
+   "enlace": 6.9,
+   "numero": 4.72,
+   "titulo": 16.1,
+   "actual": 4.63,
+   "marcaHueca": 4.63,
+   "hueca": true,
+   "flecha": 6.9,
+   "hover": 13.43,
+   "foco": 4.63
+  },
+  "tema notion oscuro": {
+   "enlace": 9.59,
+   "numero": 6.93,
+   "titulo": 17,
+   "actual": 5.1,
+   "marcaHueca": 5.1,
+   "hueca": true,
+   "flecha": 9.59,
+   "hover": 13.17,
+   "foco": 5.1
+  },
+  "tema spotify claro": {
+   "enlace": 6.87,
+   "numero": 4.7,
+   "titulo": 16.19,
+   "actual": 4.66,
+   "marcaHueca": 4.66,
+   "hueca": true,
+   "flecha": 6.87,
+   "hover": 13.8,
+   "foco": 4.66
+  },
+  "tema spotify oscuro": {
+   "enlace": 9.62,
+   "numero": 6.96,
+   "titulo": 17.09,
+   "actual": 14.71,
+   "marcaHueca": 14.71,
+   "hueca": true,
+   "flecha": 9.62,
+   "hover": 13.46,
+   "foco": 14.71
+  },
+  "tema stripe claro": {
+   "enlace": 6.96,
+   "numero": 4.76,
+   "titulo": 16.11,
+   "actual": 4.68,
+   "marcaHueca": 4.68,
+   "hueca": true,
+   "flecha": 6.96,
+   "hover": 13.69,
+   "foco": 4.68
+  },
+  "tema stripe oscuro": {
+   "enlace": 9.54,
+   "numero": 6.89,
+   "titulo": 17.02,
+   "actual": 7.2,
+   "marcaHueca": 7.2,
+   "hueca": true,
+   "flecha": 9.54,
+   "hover": 13.37,
+   "foco": 7.2
+  }
+ }
+}

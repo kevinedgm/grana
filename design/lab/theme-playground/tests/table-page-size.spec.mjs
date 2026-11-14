@@ -188,10 +188,17 @@ test.describe('GTable · filas por página: la fila ancla (local)', () => {
     })
     expect(i).toBeGreaterThan(0)
     await page.evaluate((i) => document.querySelectorAll('#tb tbody .g-table__select input')[i].focus(), i)
+    const y0 = await page.evaluate(() => scrollY)
     await page.keyboard.press('Tab')
     await frames(page, 4)
-    const r = await page.evaluate(() => { const a = document.activeElement.getBoundingClientRect(); const n = document.querySelector('#tb nav.g-pagination').getBoundingClientRect(); return { bottom: a.bottom, navTop: n.top } })
-    expect(r.bottom).toBeLessThanOrEqual(r.navTop + 1)
+    const r = await page.evaluate((i) => {
+      const el = document.activeElement
+      const a = el.getBoundingClientRect(); const n = document.querySelector('#tb nav.g-pagination').getBoundingClientRect()
+      const boxes = [...document.querySelectorAll('#tb tbody .g-table__select input')]
+      return { bottom: a.bottom, navTop: n.top, vh: innerHeight, y: scrollY, next: boxes.indexOf(el) === i + 1, tag: el.tagName, margin: getComputedStyle(el).scrollMarginBlockEnd, dock: document.querySelector('#tb').style.getPropertyValue('--_dock-size') }
+    }, i)
+    expect(r.bottom, JSON.stringify({ ...r, y0 })).toBeLessThanOrEqual(r.navTop + 1)
+    expect(r.next, 'el Tab llega a la casilla siguiente').toBe(true)
   })
 
   test('filtrar vuelve a la página 1 y conserva el tamaño', async ({ page }) => {

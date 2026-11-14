@@ -105,9 +105,39 @@ La **cara de una persona o de una entidad** (organización, equipo, espacio) en 
 5. Mayúscula con **`toUpperCase()` sin configuración regional**, **solo si sigue siendo un grafema** («ß» no pasa a «SS»). Sin configuración regional para que el servidor y el cliente den lo mismo (SSR sin desajuste de hidratación); con nombres turcos, la aplicación pasa `initials` (§ «Límites»).
 6. Sin resultado: el icono (`icon` o `user`).
 
-**Máximo de letras:** 2; **1** en `xs`/`sm` (medido: «WM» y «ЖШ» a 12px miden 23,8 y 24,5px y la cuerda útil del círculo es 16px en `xs` y 20,4px en `sm`; bajar de 12px no está permitido, `tokens.md` §7) y **1** con escritura ancha en cualquier tamaño.
+**Máximo de letras:** 2 **si caben** (§ «Dos letras si caben, una si no», #1078); **1** en `xs`/`sm` (medido: «WM» y «ЖШ» a 12px miden 23,8 y 24,5px y la cuerda útil del círculo es 16px en `xs` y 20,4px en `sm`; bajar de 12px no está permitido, `tokens.md` §7) y **1** con escritura ancha en cualquier tamaño.
 
 **`initials` explícitas:** NFC, recorte, sin grafemas de espacio; se cortan al máximo (2, o 1 si uno de los dos primeros es ancho; 1 en `xs`/`sm`). **No** se pasan a mayúsculas.
+
+### Dos letras si caben, una si no (#1078)
+
+**Por qué:** el contrato anterior daba por hecho que dos letras anchas («WM», «ЖШ») caben en `md`, `lg` y `xl` «con 1px de aire». Se midió con la fuente de Grana, que solo trae latín y latín extendido: el cirílico, el griego, el vietnamita extendido y cualquier otra escritura se pintan con la **fuente de respaldo del sistema**, y su ancho no es del contrato. «ЖШ» en `md` (letra 14px, cuerda 28,4px) mide 28,2px con Inter, 29,2 con Noto Sans, 29,9 con FreeSans y **34,4 con DejaVu Sans** (la del ejecutor de integración continua); en `lg` (cuerda 36,3px) DejaVu da 39,4px; en `xl` cabe siempre. «WM» mide 27,8px con cualquier respaldo medido. Encoger la letra no sirve (DejaVu en `md` exigiría ≈ 11,6px, y el mínimo es 12px, `tokens.md` §7). Una garantía por tamaño no se sostiene con una fuente que el tema no controla: **se mide lo que se pinta**.
+
+**Regla (nueva, para `md`, `lg` y `xl` con dos letras; amplía la de `xs`/`sm`):**
+
+1. **Ámbito.** Solo se mide cuando hay **dos letras** que mostrar (iniciales derivadas de `name` o `initials` explícitas con dos grafemas, ya cortadas por la escritura ancha). Con una letra, o con icono, no se mide nada. En `xs` y `sm` la letra única ya viene del tamaño y no se mide ni se marca.
+2. **Cuerda disponible.** El ancho máximo que admite el monograma a la altura de las mayúsculas, con **1px de aire por lado**:
+   - `circle`: `cuerda = 2·√(r² − (cap/2)²) − 2`, con `r = lado/2` y `cap = 0,72 × font-size` (el `font-size` calculado del `__initials`; 0,72 es la altura de mayúscula que ya usa la verificación de kiwi).
+   - `square`: `cuerda = lado − 2`. Las esquinas redondeadas no recortan mientras `radio ≤ (lado − cap)/2` (la escala de radios del tema por defecto lo cumple con holgura: `md` 8px frente a 11px, medido contra el rol `body-sm`); un tema con radios mayores en `square` no se mide por el arco (límite, § «Límites»).
+3. **Ancho pintado.** `getBoundingClientRect().width` del `<span class="g-avatar__initials">` con las dos letras, **con la fuente que el navegador usa de verdad** (respaldo incluido), no una estimación por tabla ni por canvas (`lining-nums`, el espaciado y el respaldo cambian el ancho). Para que esa medida sea el natural, el `__initials` no se parte ni se recorta y mide su contenido (coco).
+4. **Decisión.** `ancho ≤ cuerda`: dos letras. `ancho > cuerda`: **una letra, la primera** (la misma que da `xs`/`sm`: la de la primera palabra de `name`, o el primer grafema de `initials`). Comparación exacta, la misma que hace la verificación; sin tolerancia ni histéresis.
+5. **Una medida de 0 no decide.** Con el avatar en un antecesor `display: none` (panel cerrado) el ancho es 0: se queda como estaba (dos letras) y la raíz se observa con **un `ResizeObserver` de un solo uso** que vuelve a medir cuando tenga caja y se suelta. No hay observador permanente.
+
+**Cuándo se mide** (el único disparo es una **clave de cadena** `texto|size|shape`, nunca un arreglo ni un objeto: un `watch` con un valor nuevo en cada render del padre mediría en cada render, lección de `CLAUDE.md`):
+
+- al **montar** (cliente; nunca en el servidor);
+- al **cambiar** el texto de las dos letras, `size` o `shape` (el resto de props, `src`, `color`, el estado de la imagen, no remiden);
+- cuando el navegador termina de cargar fuentes: **un solo** escucha compartido de `document.fonts` `loadingdone` (se añade al montar el primer avatar medible y se quita al desmontar el último; sin efectos en el nivel superior del módulo, #444), que **remide por lotes** todos los avatares medibles vivos. También tras `document.fonts.ready` si al montar la carga no había terminado.
+
+**Cómo se mide sin parpadeo.** Si en ese momento se está mostrando una letra, el `.vue` **sondea**: pone las dos letras, espera `nextTick`, lee, y deja el resultado, **en la misma tarea** (sin pintar entre el sondeo y el resultado). Con varios avatares, el `.vue` **lee todas las cajas antes de escribir** estado (lección de #964) y agrupa en un solo cuadro. No hay caché entre avatares (el ancho depende de la fuente cargada).
+
+**SSR y antes de medir.** El servidor y el primer render del cliente pintan **dos letras** (no se accede a `document` ni al diseño, y la hidratación coincide). La caja no cambia (lado fijo, `overflow: hidden`): lo único que puede cambiar es el número de letras. En un montaje solo de cliente el cambio ocurre **antes del primer pintado** (el montaje y la medida van en la misma tarea), sin salto visible. Con SSR, el HTML del servidor se ve **recortado por el círculo** hasta hidratar y pasa a una letra entonces: **límite aceptado** (un cuadro); la aplicación que no lo quiera pasa `initials` de una letra. Sin `Intl.Segmenter` ni diseño (`happy-dom`/`jsdom` miden 0), el componente queda en dos letras.
+
+**Cómo lo ve coco.** Un atributo de estado en la raíz, **`data-mono="one"`**, presente **solo** cuando la medida redujo a una letra (nunca con `xs`/`sm`, que ya reducen por tamaño; nunca como `data-mono="two"`: ausente es el caso normal). Con él, el CSS aplica el factor de una letra que ya existe (`--_av-fit: var(--_mono-one)`, el mismo de `xs`/`sm`), sin tokens nuevos del tema. **Por qué `data-mono` y no `data-fit`:** `data-fit` ya es otra cosa en `GTimeField` (#416, valor vacío) y la verificación de navegador de `GAvatar` lo usa como marca propia en la raíz; `mono` es el nombre que `GAvatar.css` ya usa (`--_mono-one`, `--_mono-two`). Una `data-mono` que escriba la aplicación se **sobrescribe** por la del componente (el atributo es del componente, como `data-cat`).
+
+**Peso.** La medida entra en el `GAvatar.vue` del principal con un **tope de +640 B gzip** de `grana.js` (medido con el método de #964 contra la base vigente), cargo único nombrado fuera de la valoración de #506 (#1078). Si bruno no cabe, **no sube el tope**: vuelve a lima y decide el usuario (como #706).
+
+**Qué no cambia.** El **nombre accesible** (`label`; `name` nunca lo es), `aria-hidden`/`role="img"`, `dir="auto"`, `translate="no"`, el color, la caja y la regla de las escrituras anchas. Sin evento, sin prop, sin slot, sin aviso de desarrollo (la reducción es silenciosa, como la de `xs`/`sm`; el aviso 2 sigue avisando solo del valor que supera el máximo absoluto). Con la reducción, la medida del texto en `__initials` pasa a ser la de una letra, que siempre cabe en `md` o más.
 
 ### Casos (deben pasar como pruebas unitarias; verificados por kiwi en los tres motores)
 
@@ -141,11 +171,11 @@ La **cara de una persona o de una entidad** (organización, equipo, espacio) en 
 | --- | --- | --- | --- | --- |
 | `xs` | `space × 5` | 20px | 1 | Icono de `GMenu` y de `GSelect`; en línea con texto `body-sm` |
 | `sm` | `space × 6` | 24px | 1 | Celda densa solo con avatar (`cell-{key}` de `GTable`, con `label`) |
-| `md` | `space × 8` | 32px | 2 | `leading-{key}` de `GTable`; slot `user` de `GSidebar` (también en el riel) |
-| `lg` | `space × 10` | 40px | 2 | `lead` de `GCard` (= su caja, #123) |
-| `xl` | `space × 16` | 64px | 2 | Perfil, cabecera de detalle |
+| `md` | `space × 8` | 32px | 2, o 1 si no caben | `leading-{key}` de `GTable`; slot `user` de `GSidebar` (también en el riel) |
+| `lg` | `space × 10` | 40px | 2, o 1 si no caben | `lead` de `GCard` (= su caja, #123) |
+| `xl` | `space × 16` | 64px | 2, o 1 si no caben | Perfil, cabecera de detalle |
 
-- **Tipografía por tamaño** (la elige coco; la restricción es estructural): el rol de las iniciales es **≥ 12px** en todos los tamaños y deja caber **dos letras anchas** («WM», «ЖШ») en `md`, `lg` y `xl` con 1px de aire a la altura de las mayúsculas. Propuesta medida por kiwi: `xs`/`sm` `caption`, `md` `body-sm`, `lg` `body`, `xl` `title-sm`. **No** cambia con `density` (no hay `density`).
+- **Tipografía por tamaño** (la elige coco; la restricción es estructural): el rol de las iniciales es **≥ 12px** en todos los tamaños y deja caber **dos letras latinas anchas** («WM») en `md`, `lg` y `xl` con 1px de aire a la altura de las mayúsculas. Con otra escritura (respaldo del sistema) **no hay garantía** de que quepan dos: lo decide la medida de § «Dos letras si caben, una si no» (#1078), que pasa a una letra. Propuesta medida por kiwi: `xs`/`sm` `caption`, `md` `body-sm`, `lg` `body`, `xl` `title-sm`. **No** cambia con `density` (no hay `density`).
 - **Icono de respaldo:** proporcional al lado (alias local de coco), nunca menor que el de un `GIcon` en el mismo tamaño de texto.
 - **Sin área táctil:** no es interactivo (como `GBadge`).
 
@@ -285,6 +315,7 @@ Sin prop `status`. La presencia es una **`GBadge` anclada** (#59) con el avatar 
 | `g-avatar--content-{initials\|icon}` | Raíz | Siempre: qué **respaldo** hay (también con la imagen cargada) |
 | `is-loading` · `is-loaded` · `is-failed` | Raíz | Solo con `src` (uno a la vez) |
 | `data-cat="k"` | Raíz | Solo con categoría (fija o derivada) |
+| `data-mono="one"` | Raíz | Solo cuando la medida redujo el monograma de dos letras a una (#1078); ausente en el resto, también en `xs`/`sm` |
 | `g-avatar__initials` | `<span dir="auto" translate="no">` | Con respaldo de iniciales |
 | `g-avatar__icon` | `GIcon` interno (`g-icon g-avatar__icon`) | Con respaldo de icono |
 | `g-avatar__img` | `<img alt="">` | Con `src` y sin fallo |
@@ -293,7 +324,7 @@ Sin prop `status`. La presencia es una **`GBadge` anclada** (#59) con el avatar 
 
 ## Estados que coco debe cubrir
 
-Imagen cargada · cargando · fallida (con iniciales o con icono) · iniciales · icono (por defecto o explícito) · neutro · categoría (fija o derivada) · `circle` · `square` · decorativo · con nombre · con presencia (`GBadge` anclada) · **`forced-colors`**: el relleno desaparece y un **borde `CanvasText`** de `--g-border-width` conserva la forma **sin cambiar el tamaño** (borde por dentro o con `box-sizing`; medido por kiwi: 32 = 32) · **movimiento reducido**: sin fundido, asentamiento ni morfo · **RTL**: sin efecto en el avatar (las iniciales no se invierten); la insignia anclada se espeja. Sin hover, foco ni pulsado.
+**Monograma reducido a una letra** (`data-mono="one"`: el factor `--_mono-one`, sin cambio de caja) · Imagen cargada · cargando · fallida (con iniciales o con icono) · iniciales · icono (por defecto o explícito) · neutro · categoría (fija o derivada) · `circle` · `square` · decorativo · con nombre · con presencia (`GBadge` anclada) · **`forced-colors`**: el relleno desaparece y un **borde `CanvasText`** de `--g-border-width` conserva la forma **sin cambiar el tamaño** (borde por dentro o con `box-sizing`; medido por kiwi: 32 = 32) · **movimiento reducido**: sin fundido, asentamiento ni morfo · **RTL**: sin efecto en el avatar (las iniciales no se invierten); la insignia anclada se espeja. Sin hover, foco ni pulsado.
 
 ## Avisos de desarrollo (bruno; L11)
 
@@ -314,9 +345,9 @@ Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production
 
 ## Verificación (cómo se comprueba)
 
-**Unitarias (bruno, vitest):** la tabla de iniciales completa (`md` y `xs`); los vectores del hash y su invariancia (mayúsculas, espacios, NFD); precedencia del contenido (las cinco fuentes, `icon` que no resuelve, cadenas vacías); `color` frente a `categories`, `color` numérico y en cadena, semánticos ignorados; `data-cat` solo con categoría; estados de la imagen (`load`, `error`, `src` cambiado, imagen en caché al montar); `alt=""` siempre; `aria-hidden` sin `label`, `role="img"` + `aria-label` con él; atributos filtrados (aviso 5) y `class`/`style`/`data-*` en la raíz; los ocho avisos; instantánea del marcado; `user` sale de la librería aunque el registro de la aplicación tenga otro `user`.
+**Unitarias (bruno, vitest):** la regla de #1078 con el ancho simulado (`getBoundingClientRect` falseado: ancho mayor que la cuerda → una letra, la primera, y `data-mono="one"`; menor o igual → dos y sin atributo; 0 → dos y un `ResizeObserver` de un solo uso; `circle` y `square`), la remedida solo al cambiar el texto, `size` o `shape` (un re-render del padre con las mismas props **no** mide: contar las lecturas) y con `document.fonts` `loadingdone` (un solo escucha para varios avatares, retirado al desmontar el último), el sondeo que no deja una letra a medias (misma tarea), el nombre accesible igual con una y con dos letras, SSR con dos letras, sin `data-mono` y sin tocar `document`; la tabla de iniciales completa (`md` y `xs`); los vectores del hash y su invariancia (mayúsculas, espacios, NFD); precedencia del contenido (las cinco fuentes, `icon` que no resuelve, cadenas vacías); `color` frente a `categories`, `color` numérico y en cadena, semánticos ignorados; `data-cat` solo con categoría; estados de la imagen (`load`, `error`, `src` cambiado, imagen en caché al montar); `alt=""` siempre; `aria-hidden` sin `label`, `role="img"` + `aria-label` con él; atributos filtrados (aviso 5) y `class`/`style`/`data-*` en la raíz; los ocho avisos; instantánea del marcado; `user` sale de la librería aunque el registro de la aplicación tenga otro `user`.
 
-**Navegador (Playwright, tres motores; adaptar `design/lab/avatar/r01/verificar.mjs` al componente real):** lado = `space × n` con `space` 4 y 5 en los cinco tamaños y las dos formas; dos letras anchas caben en `md`..`xl` y texto ≥ 12px; contraste ≥ 4,5:1 (texto e icono) en neutro y en todas las categorías declaradas, claro y oscuro, con los dos temas de la ronda; hash idéntico entre motores (los vectores); sin salto de caja ni del texto vecino al cargar y al fallar; fundido `0s` con `reduce`; `forced-colors` (Chromium) con borde y sin cambio de tamaño; los huecos de la tabla anterior (una forma, sin desborde, centrado en `GSelect`, alineación de etiquetas en `GMenu`, altura de fila de `GTable`); `GBadge` en el contorno del círculo en LTR y RTL; `ariaSnapshot` de los casos de § «Semántica»; 320px sin desplazamiento horizontal; consola sin errores.
+**Navegador (Playwright, tres motores; adaptar `design/lab/avatar/r01/verificar.mjs` al componente real):** lado = `space × n` con `space` 4 y 5 en los cinco tamaños y las dos formas; **dos letras o una marcada (#1078):** en `md`, `lg` y `xl`, cada avatar muestra dos letras que caben en la cuerda (`2·√(r² − (cap/2)²) − 2`, `cap = 0,72·font-size`, 1px de aire) **o** una sola letra, la primera, con `data-mono="one"` en la raíz, y esa reducción está **justificada**: el mismo texto de dos letras, medido en un nodo gemelo con el mismo estilo calculado, **no cabe**; nunca dos letras que no caben, nunca una letra sin marca, nunca una letra cuando las dos caben; «WM» da dos letras en `md`, `lg` y `xl` (27,8px < 28,4px) y «ЖШ» da dos en `xl`; con la fuente de respaldo forzada a DejaVu Sans, «ЖШ» en `md` y `lg` da una letra marcada y en `xs`/`sm` una sin marca; texto ≥ 12px en todos los casos; contraste ≥ 4,5:1 (texto e icono) en neutro y en todas las categorías declaradas, claro y oscuro, con los dos temas de la ronda; hash idéntico entre motores (los vectores); sin salto de caja ni del texto vecino al cargar y al fallar; fundido `0s` con `reduce`; `forced-colors` (Chromium) con borde y sin cambio de tamaño; los huecos de la tabla anterior (una forma, sin desborde, centrado en `GSelect`, alineación de etiquetas en `GMenu`, altura de fila de `GTable`); `GBadge` en el contorno del círculo en LTR y RTL; `ariaSnapshot` de los casos de § «Semántica»; 320px sin desplazamiento horizontal; consola sin errores.
 
 **Compuerta de build:** `grep -q "g-avatar--shape-square" packages/vue/dist/grana.css`.
 
@@ -337,6 +368,7 @@ Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production
 | L11 | Avisos de desarrollo | **Aceptados y ampliados** a siete y luego a ocho (§ «Avisos»; el 8, #560): `icon` que no resuelve sigue la cadena; las escuchas no se enlazan; semánticos en `color` con texto propio; contenido en el slot por defecto | #293; #199 |
 | L12 | `speech.md` | **Aceptado.** Una línea en §23.6: la marca de hablante no es `GAvatar` (etiqueta de posición con borde ≥ 3:1, discontinua sin asignar y ancho que crece con «AA»); solo comparte la familia `cat-k` y `CAT_FAMILY_READERS` | #294; #247 |
 | L13 | `sidebar.md` y el playground | **Aceptado.** Ejemplo del slot `user` en `sidebar.md` con `GAvatar size="md"` decorativo dentro del botón de la aplicación y el nombre en el botón (texto expandido, `aria-label` en el riel). **Para bruno:** sustituir el círculo dibujado a mano de `packages/vue/playground/index.html` (l. 965) por `GAvatar` cuando exista | #295 |
+| L14 | Dos letras que no caben (#1078; decisión del usuario del 2026-11-13) | **Aceptado.** El monograma de dos letras pasa a **una letra (la primera)** cuando su ancho pintado supera la cuerda disponible; ya no se garantiza por tamaño, se mide (§ «Dos letras si caben, una si no»). La raíz lleva **`data-mono="one"`** solo en ese caso y coco aplica el factor de una letra de `xs`/`sm`. Sin props, tokens, eventos ni avisos nuevos. Enmienda del máximo de letras de #293 y de la propuesta tipográfica de kiwi (1px de aire «medido» con la fuente de la máquina de la ronda). Descartado: encoger la letra (rompe el mínimo de 12px) y una tabla de anchos por escritura (el respaldo lo elige el sistema) | #1078; WCAG 1.4.4 y 1.4.12 (nada se recorta); `tokens.md` §7 |
 
 ## Límites conocidos
 
@@ -344,6 +376,8 @@ Con la guarda canónica de #653 (`try { if (process.env.NODE_ENV !== 'production
 - **`forced-colors` real** (Windows) y en Firefox/WebKit (no se emula).
 - **Carga diferida** por motor, imágenes de alta densidad, SSR con imagen en caché: sin verificar.
 - **Escrituras complejas** sin validar con hablantes: Devanagari (`Intl.Segmenter` da «प्रि» + «श»), árabe con ligadura, tailandés, secuencias ZWJ en `initials`. **Turco:** `toUpperCase()` sin configuración regional da «I» para «i» (no «İ»); la aplicación pasa `initials` si le importa.
+- **Dos letras con SSR (#1078):** el HTML del servidor trae dos letras y se ve recortado por la caja hasta hidratar (un cuadro); sin remedio sin medir en el servidor. La aplicación pasa `initials` de una letra si le importa.
+- **Medida y tema en caliente (#1078):** la medida no se repite al cambiar `space`, el tamaño de letra o los radios en caliente (solo con texto, `size`, `shape` y carga de fuentes); un avatar en un antecesor oculto se mide al mostrarse (un `ResizeObserver` de un solo uso). `square` con radio mayor que `(lado − cap)/2` no se mide por el arco de la esquina.
 - **Temas con `space` y `fontSize` desacoplados:** `xs` deja de igualar el interlineado de `body-sm`.
 - **Categoría inexistente en el tema** (`k` > `categories` real): sin relleno y con aviso 8 en desarrollo (#560); en producción, neutro en silencio.
 - **Cambiar `categories` reparte los colores** de nuevo.

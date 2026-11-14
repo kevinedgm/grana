@@ -92,7 +92,5 @@
     "10 · currency ausente o rechazada; view rechazada; legend sin labels.legend (los precios conservan su código)",
     "9 · locale que Intl rechaza"
   ],
-  "pending": [
-    "README (mora-docs, dentro del de GPrice)"
-  ]
+  "pending": []
 }

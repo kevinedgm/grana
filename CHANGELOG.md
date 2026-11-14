@@ -19,8 +19,8 @@ Primera versión estable de `@grana/vue` y `@grana/cli` (decisión #1076). La `0
 
 ### Estados
 
-- **`stable` (82 piezas con `meta.json`, 76 de ellas componentes documentados):** contrato, CSS, pruebas, `meta.json`, tipos generados, README que pasa `check-readme-props.mjs`, ficha viva en el sitio y auditoría de coco, sin defecto abierto contra un mínimo que no se rompe. Cubiertos por semver.
-- **`candidate` (`GTable`):** sigue exportado y fuera de semver; puede cambiar en una menor con una línea «Cambia (candidate)» aquí. Sube cuando el `<select>` de orden de `mode="cards"` llegue a 44 px con puntero grueso.
+- **`stable` (83 piezas con `meta.json`, 77 de ellas componentes documentados):** contrato, CSS, pruebas, `meta.json`, tipos generados, README que pasa `check-readme-props.mjs`, ficha viva en el sitio y auditoría de coco, sin defecto abierto contra un mínimo que no se rompe. Cubiertos por semver.
+- **`candidate`:** ninguna pieza en la 1.0.0. `GTable` subió a `stable` cuando el `<select>` de orden de `mode="cards"` llegó a 44 px con puntero grueso (894cb4e). Una pieza `candidate` sigue exportada y fuera de semver, y puede cambiar en una menor con una línea «Cambia (candidate)» aquí.
 - **`draft` (`GStatus`, `GStatusIsland`, `GStatusMark`):** rediseño de la isla sin auditoría de coco; sin promesa.
 - **Fuera de la 1.0:** `@grana/blocks` (privado, `0.0.0`, su *peer* pasa a `@grana/vue ^1.0.0`) y `GDocumentPreview` (sin `meta.json` ni entrada).
 

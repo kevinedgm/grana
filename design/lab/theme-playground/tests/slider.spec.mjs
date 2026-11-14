@@ -250,6 +250,10 @@ test.describe('GSlider · componente real (slider.md)', () => {
   })
 
   test('mínimo publicado (#453): la fila se parte antes de que las marcas o las píldoras no quepan', async ({ page }) => {
+    // Barrido de 141 anchos con dos cuadros cada uno: el tiempo va con la cadencia de cuadros del motor y WebKit sin cabeza
+    // con carga pinta a ~5 cuadros/s en el ejecutor de GitHub (e2e-full 43325442550 y 43461208113: se agotaban los 60 s a
+    // mitad del barrido). Se da tiempo al barrido; el paso y lo que se mide no cambian.
+    test.setTimeout(240_000)
     const errs = await watchConsole(page)
     await open(page, { target: '#sl-row2' })
     const probe = () => page.evaluate(() => {
@@ -273,6 +277,7 @@ test.describe('GSlider · componente real (slider.md)', () => {
     const bad = []
     let lastLines = null
     let split = false
+    const t0 = Date.now()
     for (let w = 1000; w >= 300; w -= 5) {
       await page.evaluate((px) => { document.getElementById('sl-row2').closest('.g-form-layout').style.inlineSize = px + 'px' }, w)
       await settle(page)
@@ -284,6 +289,7 @@ test.describe('GSlider · componente real (slider.md)', () => {
       if (lastLines && p.lines !== lastLines) split = true
       lastLines = p.lines
     }
+    console.log(`[slider #453] barrido de 141 anchos en ${Date.now() - t0} ms`)
     expect(split, 'la fila llega a partirse').toBe(true)
     expect(bad).toEqual([])
     expect(errs).toEqual([])

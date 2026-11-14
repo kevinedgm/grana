@@ -206,11 +206,25 @@ test.describe('GFileField · componente real (file-field.md)', () => {
     expect(await retry.evaluate((b) => document.getElementById(b.getAttribute('aria-describedby')).textContent)).toBe('Error: Se interrumpió la conexión')
     expect((await st(page, 'ff-photos')).status).toBe('1 de 5 · 1 con error')
     await retry.focus()
+    // Lo que se mide es el instante en que el foco llega a la ficha: con el adaptador rápido del banco (6 × 25 ms) la
+    // subida puede terminar antes de que pasen los cuadros de espera (WebKit en el ejecutor de GitHub, e2e-full
+    // 43461208113: «Quitar …», ya subida), y entonces el nombre ya no es «Cancelar subida»
+    await page.evaluate(() => {
+      window.__ffFocusIn = []
+      document.addEventListener('focusin', (e) => {
+        const chip = e.target.closest('.g-file-field__chip')
+        window.__ffFocusIn.push({ label: e.target.getAttribute('aria-label'), remove: e.target.classList.contains('g-file-field__remove'), state: chip?.dataset.state, h: chip?.getBoundingClientRect().height })
+      })
+    })
     await page.keyboard.press('Enter')
     await frames(page)
+    const fin = await page.evaluate(() => window.__ffFocusIn)
+    expect(fin[0], `foco al reintentar: ${JSON.stringify(fin)}`).toMatchObject({ label: 'Cancelar subida de radiografia-falla.png', remove: true })
+    expect(['queued', 'uploading'], 'la ficha sube cuando recibe el foco').toContain(fin[0].state)
+    expect(Math.abs(fin[0].h - hErr), 'Δ0 entre error y subiendo').toBeLessThan(0.5)
+    // El foco se queda en la misma ficha mientras sube y al terminar
     const s = await st(page, 'ff-photos')
-    expect(s.focus).toBe('Cancelar subida de radiografia-falla.png')
-    expect(Math.abs(s.heights[0] - hErr), 'Δ0 entre error y subiendo').toBeLessThan(0.5)
+    expect(s.focus).toMatch(/^(Cancelar subida de|Quitar) radiografia-falla\.png$/)
     await expect.poll(async () => (await st(page, 'ff-photos')).states.join(), { timeout: 10000 }).toBe('done')
     const live = await page.evaluate(() => window.__ffLive.map((x) => x.text))
     expect(live).toContain('No se pudo subir radiografia-falla.png: Se interrumpió la conexión.')

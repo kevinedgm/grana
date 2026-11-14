@@ -181,11 +181,18 @@ test.describe('GMenu · C varias pestañas', () => {
     expect(copied).toBe('https://status.example.org/')
     expect(await traceOf(page, 'Estado del servicio')).toBe('Enlace copiado')
     expect(await live(page)).toContain('Enlace de Estado del servicio copiado')
-    // Con texto seleccionado no se intercepta
-    await page.evaluate(() => { const p = document.createElement('p'); p.id = 'ml-sel'; p.textContent = 'texto'; document.body.append(p); getSelection().selectAllChildren(p) })
+    // Con texto seleccionado no se intercepta. La selección se hace DESPUÉS de mover el foco al elemento: WebKit borra la
+    // selección del documento al enfocar un control que no la contiene (FocusController, clearSelectionIfNeeded), así que
+    // seleccionar antes del hover dejaba el caso sin selección en WebKit y la copia (correcta) se interceptaba.
     await hoverOn(page, 'Ajustes')
-    const prevented = await page.evaluate(() => { const e = new KeyboardEvent('keydown', { key: 'c', ctrlKey: true, metaKey: true, bubbles: true, cancelable: true }); document.activeElement.dispatchEvent(e); return e.defaultPrevented })
-    expect(prevented).toBe(false)
+    const prevented = await page.evaluate(() => {
+      const p = document.createElement('p'); p.id = 'ml-sel'; p.textContent = 'texto'; document.body.append(p); getSelection().selectAllChildren(p)
+      const e = new KeyboardEvent('keydown', { key: 'c', ctrlKey: true, metaKey: true, bubbles: true, cancelable: true }); document.activeElement.dispatchEvent(e)
+      return { prevented: e.defaultPrevented, sel: String(getSelection()), on: document.activeElement.textContent.includes('Ajustes') }
+    })
+    expect(prevented.sel, 'hay texto seleccionado al pulsar').toBe('texto')
+    expect(prevented.on, 'el foco sigue en el elemento').toBe(true)
+    expect(prevented.prevented).toBe(false)
     await page.keyboard.press('Escape'); await page.waitForTimeout(60)
     await openAcc(page)
     const traces = await page.evaluate(() => [...document.querySelectorAll('#ml-account .g-menu__trace')].map((t) => t.textContent))

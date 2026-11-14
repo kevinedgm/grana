@@ -112,6 +112,36 @@ function scrollChain(el) {
   return out
 }
 
+// #1079: registro del overflow-anchor: none en línea, con recuento por contenedor (sticky del acordeón y Δ0 de keepInPlace
+// lo comparten y ninguno restaura mientras el otro retenga)
+const anchorHolds = new WeakMap()
+
+/**
+ * Retiene `overflow-anchor: none` en línea en `el`. El primero guarda el valor en línea previo y escribe `none`; el último en
+ * soltar lo restaura, solo si sigue siendo `none` (si la aplicación lo cambió, no se pisa). Devuelve el asa de un solo uso.
+ * Con `respect`, un contenedor que ya tenía `overflow-anchor` en línea de la aplicación (o, sin retención, `none` calculado)
+ * no se toca y no cuenta: asa vacía. Sin `document`, asa vacía.
+ */
+export function holdNoAnchor(el, respect) {
+  if (!el || !el.style || typeof document === 'undefined') return () => {}
+  let h = anchorHolds.get(el)
+  const was = h ? h.was : el.style.overflowAnchor
+  if (respect && (was || (!h && getComputedStyle(el).overflowAnchor === 'none'))) return () => {}
+  if (!h) {
+    anchorHolds.set(el, (h = { n: 0, was }))
+    el.style.overflowAnchor = 'none'
+  }
+  h.n++
+  let done = false
+  return () => {
+    if (done) return
+    done = true
+    if (--h.n) return
+    anchorHolds.delete(el)
+    if (el.style.overflowAnchor === 'none') el.style.overflowAnchor = h.was
+  }
+}
+
 // Una sola compensación a la vez (la última que el usuario pidió)
 let keepStop = null
 const SCROLL_KEYS = new Set(['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '])
@@ -149,8 +179,9 @@ export function keepInPlace(el, getMs) {
   }
   // El anclaje de desplazamiento del navegador se apaga en la cadena mientras dura: compensa solo Δ0 y todo cambio de
   // posición que no escribió ella es ajeno. #685: se guarda el valor EN LÍNEA previo de cada contenedor y se repone tal cual al
-  // terminar, al cancelar y al detenerla quien la pidió (p. ej. al desmontarse); un valor de hoja de estilos no se toca
-  const anchors = chain.map((sc) => { const was = sc.style.overflowAnchor; sc.style.overflowAnchor = 'none'; return was })
+  // terminar, al cancelar y al detenerla quien la pidió (p. ej. al desmontarse); un valor de hoja de estilos no se toca.
+  // #1079: a través del registro compartido (recuento por contenedor)
+  const holds = chain.map((sc) => holdNoAnchor(sc))
   const opts = { passive: true, capture: true }
   function stop() {
     if (stopped) return
@@ -159,7 +190,7 @@ export function keepInPlace(el, getMs) {
     window.removeEventListener('wheel', stop, opts)
     window.removeEventListener('touchstart', stop, opts)
     window.removeEventListener('keydown', onKey)
-    chain.forEach((sc, i) => { sc.style.overflowAnchor = anchors[i] })
+    holds.forEach((release) => release())
     if (keepStop === stop) keepStop = null
   }
   window.addEventListener('wheel', stop, opts)

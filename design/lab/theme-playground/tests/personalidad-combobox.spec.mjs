@@ -55,24 +55,25 @@ test.describe('GCombobox · personalidad con movimiento', () => {
     for (let i = 0; i < 5; i++) await page.keyboard.press('ArrowDown') // una fila lejana: la ficha no sale de allí
     await frames(page)
     const space = await page.evaluate(() => { const e = document.body.appendChild(document.createElement('i')); e.style.cssText = 'position:absolute;inline-size:var(--g-space-1)'; const w = e.getBoundingClientRect().width; e.remove(); return w })
-    // La trayectoria, sin depender de los cuadros (WebKit sin cabeza pinta a ~15–30 cuadros/s): al aparecer is-landing se pausa
-    // la animación real, se recorre su tiempo en 60 pasos leyendo la posición y se devuelve a donde estaba
+    // La trayectoria, sin depender de los cuadros (WebKit sin cabeza pinta a ~15–30 cuadros/s): al aparecer is-landing se toman
+    // los fotogramas clave y el tiempo de la animación real, y al terminar la entrada se reproducen con Element.animate en la
+    // ficha ya asentada, pausada, en 60 pasos. Antes se pausaba y recorría la animación real en el momento: en WebKit eso
+    // bloqueaba ~280 ms antes de su primer cuadro y la animación, aún pendiente, terminaba al arrancar (animationstart y
+    // animationend en el mismo ms, e2e-full 43465878024), así que ningún cuadro veía is-landing.
     await page.evaluate(() => {
-      window.__cbPath = null
+      window.__cbAnim = null
       const root = document.getElementById('cb-dx').closest('.g-combobox')
+      // Diario de la entrada: eventos de animación de la ficha y cambios de is-landing, con su hora (para el mensaje de fallo)
+      const log = (window.__cbLog = [])
+      const t0 = performance.now()
+      for (const ty of ['animationstart', 'animationend', 'animationcancel']) root.addEventListener(ty, (e) => { if (e.target.classList?.contains('g-combobox__token')) log.push(`${Math.round(performance.now() - t0)} ${ty} ${e.animationName}`) })
+      let had = false
       const mo = new MutationObserver(() => {
         const t = root.querySelector('.g-combobox__token.is-landing')
-        const a = t && t.getAnimations().find((x) => /^g-combobox-land/.test(x.animationName || ''))
-        if (!a) return
-        mo.disconnect()
-        const d = a.effect.getComputedTiming().duration
-        const was = a.currentTime
-        a.pause()
-        const path = []
-        for (let k = 0; k <= 60; k++) { a.currentTime = (d * k) / 60; path.push(t.getBoundingClientRect().top) }
-        a.currentTime = was
-        a.play()
-        window.__cbPath = { d, path }
+        const on = !!t
+        if (on !== had) { had = on; log.push(`${Math.round(performance.now() - t0)} is-landing ${on}`) }
+        const a = !window.__cbAnim && t && t.getAnimations().find((x) => /^g-combobox-land/.test(x.animationName || ''))
+        if (a) window.__cbAnim = { kf: a.effect.getKeyframes(), timing: a.effect.getTiming(), d: a.effect.getComputedTiming().duration }
       })
       mo.observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] })
     })
@@ -88,9 +89,18 @@ test.describe('GCombobox · personalidad con movimiento', () => {
     const end = ps[ps.length - 1]
     expect(end.landing, 'la clase se retira').toBe(false)
     expect(ps.every((p) => !p.style), 'ninguna medida en línea, tampoco --_travel').toBe(true)
-    expect(ps.some((p) => p.landing), 'la entrada corre en cuadros reales').toBe(true)
+    expect(ps.some((p) => p.landing), `la entrada corre en cuadros reales: ${JSON.stringify({ n: ps.length, log: await page.evaluate(() => window.__cbLog) })}`).toBe(true)
     expect(distinct(ps.map((p) => p.x)).length, 'no se mueve en horizontal').toBe(1)
-    const { d, path } = await page.evaluate(() => window.__cbPath)
+    const { d, path } = await page.evaluate(() => {
+      const { kf, timing, d } = window.__cbAnim
+      const t = document.getElementById('cb-dx').closest('.g-combobox').querySelector('.g-combobox__token')
+      const a = t.animate(kf, { duration: timing.duration, easing: timing.easing, delay: 0, endDelay: 0, iterations: 1, direction: timing.direction, fill: 'both' })
+      a.pause()
+      const path = []
+      for (let k = 0; k <= 60; k++) { a.currentTime = (d * k) / 60; path.push(t.getBoundingClientRect().top) }
+      a.cancel()
+      return { d, path }
+    })
     expect(d, 'duración de la entrada').toBeGreaterThan(0)
     expect(path[0] - end.y, 'sale de abajo').toBeGreaterThan(0)
     expect(path[0] - end.y, 'el primer cuadro a ≤ space × 1').toBeLessThanOrEqual(space + 0.5)

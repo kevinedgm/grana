@@ -139,6 +139,7 @@
   app.use(icons)
   app.use(GranaAppShell.default || GranaAppShell)
   app.use(GranaSidebarFilter.default || GranaSidebarFilter)
-  app.use(GranaSidebarIndex.default || GranaSidebarIndex)
+  // &ext=0: sin la extensión @grana/vue/sidebar-index (degradación de #1069; auditoría posterior, auditoria-index-verificar.mjs)
+  if (Q.get('ext') !== '0') app.use(GranaSidebarIndex.default || GranaSidebarIndex)
   window.__marco = app.mount('#app')
 })()

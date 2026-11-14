@@ -58,3 +58,12 @@ describe('SSR · GAccordion', () => {
     expect(warn).not.toHaveBeenCalled()
   })
 })
+
+// #1079: el anclaje del contenedor solo corre en el cliente; el HTML del servidor no cambia
+describe('SSR · GAccordion sticky y anclaje (#1079)', () => {
+  it('sticky con un abierto: sin overflow-anchor y sin document', async () => {
+    expect(typeof document).toBe('undefined')
+    const html = await render({ modelValue: ['a'], sticky: true }, [item('a', { value: 'a' }), item('b', { value: 'b' })])
+    expect(html).not.toContain('overflow-anchor')
+  })
+})

@@ -9,7 +9,7 @@
 // preferencias media.navigator.streams.fake (getUserMedia real, tono); WebKit de Playwright no tiene dispositivo falso
 // ni forma de conceder el permiso: se sustituye getUserMedia por un MediaStream real de un OscillatorNode
 // (createMediaStreamDestination), así Grana mide un nivel real con su AnalyserNode y su AudioWorklet (documentado).
-import { test, expect, chromium, firefox } from './vue-local.mjs'
+import { test, expect, chromium, firefox, routeVueLocal } from './vue-local.mjs'
 
 const PAGE = '/packages/vue/playground/index.html'
 const SELF = `${PAGE}?speech=self#sec-speech`
@@ -244,18 +244,36 @@ async function micCheck(page) {
   await page.locator('#speech-demo .g-speech-trigger__btn').first().click()
   await page.waitForFunction(() => /listening|speech|transcribing/.test(window.speech.state.status), null, { timeout: 15000 })
   await page.waitForTimeout(2500)
-  const r = await page.evaluate(() => ({
+  const r = await page.evaluate(async () => ({
     status: window.speech.state.status,
     max: Math.max(0, ...window.__levels),
     frames: window.__levels.length,
     pushed: window.spAdapter.log.pushed.slice(0, 3),
-    capture: window.speech.state.capture
+    capture: window.speech.state.capture,
+    error: window.speech.state.error ? { kind: window.speech.state.error.kind, capture: window.speech.state.error.capture, recoverable: window.speech.state.error.recoverable } : null,
+    // ¿El motor puede hacer correr un AudioContext? (sin dispositivo de audio en la máquina, se queda en «suspended»)
+    audio: typeof AudioContext !== 'undefined' ? await (async () => {
+      try {
+        const ac = new AudioContext(); const st = ac.state
+        await Promise.race([ac.resume(), new Promise((r) => setTimeout(r, 1000))])
+        const t = ac.currentTime; await new Promise((r) => setTimeout(r, 300))
+        const out = { state: st, afterResume: ac.state, advanced: ac.currentTime > t, rate: ac.sampleRate, worklet: !!ac.audioWorklet }
+        ac.close(); return out
+      } catch (e) { return { thrown: String(e) } }
+    })() : 'sin AudioContext'
   }))
-  // pausa = pistas detenidas
-  await page.locator('.pg-bar .g-speech-pill .g-speech-pill__toggle').click()
-  await page.waitForFunction(() => window.speech.state.status === 'paused')
-  await page.evaluate(() => window.speech.discard())
   return r
+}
+// Pausa desde la píldora = pistas detenidas. Va aparte de la medida para que, si la captura no llegó a estar viva, el fallo
+// diga qué estado había (antes solo se veía un tiempo agotado esperando «paused»)
+async function micPause(page) {
+  const btn = page.locator('.pg-bar .g-speech-pill .g-speech-pill__toggle')
+  const before = await page.evaluate(() => ({ status: window.speech.state.status, capture: window.speech.state.capture, error: window.speech.state.error && window.speech.state.error.code }))
+  await btn.click()
+  const ok = await page.waitForFunction(() => window.speech.state.status === 'paused', null, { timeout: 10000 }).then(() => true, () => false)
+  const after = await page.evaluate(() => ({ status: window.speech.state.status, capture: window.speech.state.capture, error: window.speech.state.error && window.speech.state.error.code }))
+  await page.evaluate(() => window.speech.discard())
+  return { ok, before, after, label: await btn.getAttribute('aria-label').catch(() => null) }
 }
 
 test.describe('captura de voz · micrófono real del motor', () => {
@@ -267,10 +285,12 @@ test.describe('captura de voz · micrófono real del motor', () => {
     if (browserName === 'chromium') {
       browser = await chromium.launch({ args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream', '--autoplay-policy=no-user-gesture-required'] })
       ctx = await browser.newContext({ baseURL: test.info().project.use.baseURL, permissions: ['microphone'] })
+      await routeVueLocal(ctx) // navegador propio: no pasa por el fixture de vue-local
       p = await ctx.newPage()
     } else if (browserName === 'firefox') {
       browser = await firefox.launch({ firefoxUserPrefs: { 'media.navigator.streams.fake': true, 'media.navigator.permission.disabled': true, 'media.autoplay.default': 0 } })
       ctx = await browser.newContext({ baseURL: test.info().project.use.baseURL })
+      await routeVueLocal(ctx) // navegador propio: no pasa por el fixture de vue-local
       p = await ctx.newPage()
     } else {
       // WebKit: sin dispositivo falso; getUserMedia devuelve el MediaStream real de un oscilador (tono de 440 Hz)
@@ -303,13 +323,15 @@ test.describe('captura de voz · micrófono real del motor', () => {
     }
     const errs = watchConsole(p)
     const r = await micCheck(p)
-    expect(r.capture).toBe('live')
+    expect(r.capture, `captura: ${JSON.stringify({ ...r, pushed: r.pushed.length, errs })}`).toBe('live')
     expect(r.status).toMatch(/listening|speech|transcribing/)
     expect(r.frames).toBeGreaterThan(10)
     expect(r.max).toBeGreaterThan(0)
     expect(r.pushed.length).toBeGreaterThan(0)
     expect(r.pushed[0]).toMatchObject({ format: 'pcm', size: 4800 })
     expect(r.pushed[0].t1 - r.pushed[0].t0).toBe(300)
+    const pz = await micPause(p)
+    expect(pz.ok, `la píldora pausa: ${JSON.stringify(pz)}`).toBe(true)
     expect(errs).toEqual([])
     if (browser) await browser.close()
   })
