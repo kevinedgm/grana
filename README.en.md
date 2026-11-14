@@ -8,7 +8,7 @@ The name comes from **grana cochinilla**, the Oaxacan cochineal insect whose dye
 
 - **A new theme leaves no remnants.** Components read only `--g-*` variables, with no fallback values and no colors written in their CSS: no fixed value is left behind.
 - **Accessibility as a constraint, not an extra.** Touch target, text size, contrast and focus have minimums that are not theme: the theme generator rejects anything that breaks them.
-- **80 documented components** (76 `stable`, 1 `candidate` and 3 `draft`): complete forms, tables and filters, calendar, panels, notices, voice capture.
+- **80 documented components** (77 `stable` and 3 `draft`): complete forms, tables and filters, calendar, panels, notices, voice capture.
 - **Its own personality.** Motion and form with identity, always with tokens, `prefers-reduced-motion` and contrast intact (see [Personality](#personality)).
 
 ## What Grana is
@@ -50,8 +50,8 @@ For teams that build **everyday-use applications**, where people spend hours cap
 
 Grana follows [Semantic Versioning](https://semver.org/) from `1.0.0` (decision #1076). What that means:
 
-- **`stable`** is the status of 76 of the 80 documented components (82 of the 86 pieces with a `meta.json`, counting parts such as `GAccordionItem`): they have a contract, CSS, tests, `meta.json`, README, a live demo on the site and an audit of the real component with a non-default theme, with no blocking defects. **Semver covers them:** breaking what they promise (`exports` paths, props, events, slots, ARIA roles, keyboard, `g-<tag>` classes and modifiers, `--g-*` token names, layers) is a `2.0`; additions are minors and fixes that meet the contract or WCAG are patches. The exact list of what is and is not promised is in [`docs/contract/api.md`](docs/contract/api.md), “Estabilidad y versiones”.
-- **`candidate`** (today `GTable`, because the sort `<select>` of `mode="cards"` measures 30 px with a coarse pointer and must reach 44 px) is still exported but **outside semver**: it may change in a minor version, with its line in [`CHANGELOG.md`](CHANGELOG.md). **`draft`** (`GStatus`, `GStatusIsland` and `GStatusMark`, waiting for the coco audit of their redesign) promises nothing.
+- **`stable`** is the status of 77 of the 80 documented components (83 of the 86 pieces with a `meta.json`, counting parts such as `GAccordionItem`): they have a contract, CSS, tests, `meta.json`, README, a live demo on the site and an audit of the real component with a non-default theme, with no blocking defects. **Semver covers them:** breaking what they promise (`exports` paths, props, events, slots, ARIA roles, keyboard, `g-<tag>` classes and modifiers, `--g-*` token names, layers) is a `2.0`; additions are minors and fixes that meet the contract or WCAG are patches. The exact list of what is and is not promised is in [`docs/contract/api.md`](docs/contract/api.md), “Estabilidad y versiones”.
+- **`candidate`** (no piece today) is still exported but **outside semver**: it may change in a minor version, with its line in [`CHANGELOG.md`](CHANGELOG.md). **`draft`** (`GStatus`, `GStatusIsland` and `GStatusMark`, waiting for the coco audit of their redesign) promises nothing.
 - **`@grana/blocks`** is outside 1.0: it is private, at `0.0.0`, and will be published on its own cadence.
 - **Real-environment verification is still missing:** screen readers (VoiceOver, NVDA), real Safari, real touch and mobile, real `forced-colors` and real 200 and 400 % zoom. It is listed in [`PENDIENTES.md`](PENDIENTES.md), section 7. If you depend on any of those environments, test it before adopting a component.
 - **Publishing:** `@grana/vue` and `@grana/cli` are at `1.0.0`; they are published to npm with the `latest` tag (the team runs `npm publish`; until then it is used from this repository, see [Try it in this repository](#try-it-in-this-repository)). The installation instructions below are the published ones.
@@ -273,7 +273,7 @@ Rules and limits: [`docs/contract/tokens.md` §15](docs/contract/tokens.md). Ver
 
 ## Components
 
-Except `GTable` (**`candidate`**) and three in **`draft`** (`GStatus`, `GStatusIsland` and `GStatusMark`), all are **`stable`**: see [Status](#status-100). “Own” indicates that it is imported from its own entry ([Own entries](#own-entries)). The link goes to the component's README, with its full API, keyboard, measured accessibility and limits.
+Except three in **`draft`** (`GStatus`, `GStatusIsland` and `GStatusMark`), all are **`stable`**: see [Status](#status-100). “Own” indicates that it is imported from its own entry ([Own entries](#own-entries)). The link goes to the component's README, with its full API, keyboard, measured accessibility and limits.
 
 ### Page structure
 

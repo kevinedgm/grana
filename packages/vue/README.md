@@ -4,7 +4,7 @@ Componentes **Vue 3** con tema por tokens. Los componentes traen la **estructura
 
 > *The only bug you'll want in your UI.*
 
-**Estado: `0.1.0-beta`** (se publicará como `0.1.0-beta.0`). La API puede cambiar entre betas y falta la verificación en entorno real (lectores de pantalla, Safari real, móvil real). Todos los componentes están en `candidate`: con contrato, CSS, pruebas y auditoría en Chromium, Firefox y WebKit. Documentación completa, catálogo de componentes, tematización y contribución: [README del repositorio](https://github.com/kevinedgm/grana#readme).
+**Estado: `1.0.0`.** 83 de las 86 piezas están en `stable` y las cubre semver; `GStatus`, `GStatusIsland` y `GStatusMark` siguen en `draft`, sin promesa (ver «Estado» en el README del repositorio). Cada pieza tiene contrato, CSS, pruebas y auditoría en Chromium, Firefox y WebKit; falta la verificación en entorno real (lectores de pantalla, Safari real, móvil real). Documentación completa, catálogo de componentes, tematización y contribución: [README del repositorio](https://github.com/kevinedgm/grana#readme).
 
 ## Instalación
 
