@@ -54,7 +54,7 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: bash .github/scripts/gates.sh
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: dist
           # Los dos dist: las pruebas de los blocks sirven packages/blocks/dist; con solo el de
@@ -156,7 +156,7 @@ jobs:
 
       - name: Informe de Playwright (solo si falla)
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: playwright-report-${{ matrix.browser }}-${{ matrix.shard }}
           path: |
