@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GEMA · Registrar orden (tema GEMA sobre Grana)</title>
+<!-- Vista de ejemplo del tema GEMA (dirección visual A + B: aire, papel y líneas finas de A; barra lateral y tabla compacta de B).
+     Componentes reales de dist/ (GAppShell, GSidebar, GPageHeader, GForm, GFormSection, GFormRow, GCombobox, GRadioGroup,
+     GSelect, GTable, GCheckbox, GFormActions, GBtn) con el tema generado por @grana/cli (tema-gema.css). La firma es de la
+     aplicación (Grana no trae un campo de firma): un lienzo con tokens. Datos ficticios.
+     Requiere dist/ (npm run build -w @grana/vue). Desde la raíz del repo:  python3 -m http.server 4212
+       →  http://localhost:4212/design/lab/temas/gema/vista-registrar-orden.html   (?dark=1 para el oscuro) -->
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="../../../../packages/vue/dist/grana.css">
+<link rel="stylesheet" href="tema-gema.css">
+<style>
+  /* Andamio de la aplicación (no es de Grana): solo tokens --g-*. */
+  html, body { margin: 0; }
+  body { background: var(--g-color-bg); color: var(--g-color-text); font-family: var(--g-font-ui); }
+  .marca { display: flex; align-items: center; gap: var(--g-space-2); margin-inline-end: auto; font-weight: 700; font-size: 1.15rem; color: var(--g-color-text); }
+  .marca svg { inline-size: 26px; block-size: 26px; flex: none; }
+  .ctx { color: var(--g-color-text-muted); font-size: 0.875rem; white-space: nowrap; }
+  .usuario { font-weight: 600; font-size: 0.875rem; white-space: nowrap; }
+  .muestras-vacio { color: var(--g-color-text-muted); margin: 0; }
+  .folio { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.75rem; color: var(--g-color-text-muted); display: block; }
+  .importe { font-family: "JetBrains Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  .total { display: flex; justify-content: flex-end; gap: var(--g-space-4); align-items: baseline; padding-block-start: var(--g-space-3); border-block-start: var(--g-border-width) solid var(--g-color-border); }
+  .total b { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 1.125rem; }
+  .firma { display: grid; gap: var(--g-space-2); max-inline-size: 480px; }
+  .firma-etq { font-weight: 600; font-size: 0.875rem; }
+  .firma canvas { inline-size: 100%; block-size: 160px; background: var(--g-color-surface-sunken); border: var(--g-border-width) dashed var(--g-color-border-control); border-radius: var(--g-radius-md); touch-action: none; cursor: crosshair; }
+  .firma canvas:focus-visible { outline: var(--g-focus-width, 2px) solid var(--g-color-accent); outline-offset: 2px; }
+  .firma-pie { display: flex; justify-content: space-between; align-items: center; color: var(--g-color-text-muted); font-size: 0.8125rem; }
+  .agregar { display: flex; gap: var(--g-space-3); align-items: center; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="../../../../node_modules/vue/dist/vue.global.prod.js"></script>
+<script src="../../../../packages/vue/dist/grana.umd.js"></script>
+<script src="../../../../packages/vue/dist/app-shell.umd.js"></script>
+<script src="../../../../packages/vue/dist/page-header.umd.js"></script>
+<script src="../../../../packages/vue/dist/combobox.umd.js"></script>
+<script type="module">
+const N = (n) => import(`../../../../node_modules/lucide-static/dist/esm/icons/${n}.mjs`).then((m) => m.default)
+const NOMBRES = ['house', 'file-text', 'building', 'ticket', 'clipboard-plus', 'shield', 'droplets', 'notebook', 'files', 'clipboard-check', 'flask-conical', 'wallet', 'receipt', 'hand-coins', 'shopping-cart', 'boxes', 'package', 'truck', 'chart-column', 'menu', 'eraser']
+const ICONOS = await Promise.all(NOMBRES.map(N))
+if (new URLSearchParams(location.search).get('dark') === '1') document.documentElement.setAttribute('data-theme', 'dark')
+const { createApp, ref, computed, reactive, onMounted } = Vue
+
+const SIMBOLO = `<svg viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="gp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3D67AE"/><stop offset="1" stop-color="#052A76"/></linearGradient></defs><rect x="5" y="8" width="38" height="32" rx="7" fill="none" stroke="currentColor" stroke-width="2.6"/><path d="M21.76 33C25.12 33 26.24 14 28.48 14C30.72 14 31.84 33 36.32 33Z" fill="url(#gp)"/><path d="M10 33H13.92C15.88 33 16.44 24.45 17.56 24.45C18.68 24.45 19.24 33 21.76 33C25.12 33 26.24 14 28.48 14C30.72 14 31.84 33 36.32 33H38" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+
+const app = createApp({
+  setup () {
+    const actual = ref('rec-bebidas'), movil = ref(false), nav = ref(null)
+    const destinos = [
+      { label: 'Inicio', items: [{ id: 'inicio', label: 'Inicio', href: '#', icon: 'house', primary: true }] },
+      { label: 'Clientes', items: [{ id: 'cot', label: 'Cotizaciones', href: '#', icon: 'file-text', primary: true }, { id: 'cli', label: 'Clientes', href: '#', icon: 'building' }, { id: 'cup', label: 'Cupones', href: '#', icon: 'ticket' }] },
+      { label: 'Bebidas', items: [{ id: 'rec-bebidas', label: 'Recepción de bebidas', href: '#', icon: 'clipboard-plus', primary: true }, { id: 'hojas', label: 'Hojas de seguridad', href: '#', icon: 'shield' }] },
+      { label: 'Aguas y alimentos', items: [{ id: 'rec-aguas', label: 'Recepción de aguas', href: '#', icon: 'droplets', primary: true }] },
+      { label: 'Laboratorio', items: [{ id: 'bit', label: 'Bitácoras', href: '#', icon: 'notebook' }, { id: 'docs', label: 'Documentos', href: '#', icon: 'files' }, { id: 'bitc', label: 'Bitácoras de calidad', href: '#', icon: 'clipboard-check' }, { id: 'dis', label: 'Disoluciones', href: '#', icon: 'flask-conical' }] },
+      { label: 'Cobranza', items: [{ id: 'cue', label: 'Cuentas', href: '#', icon: 'wallet' }, { id: 'edo', label: 'Estados de cuenta', href: '#', icon: 'receipt' }, { id: 'pend', label: 'Pendientes de pago', href: '#', icon: 'hand-coins', badge: 7, badgeLabel: '7 pendientes' }] },
+      { label: 'Compras', items: [{ id: 'gest', label: 'Gestor de compras', href: '#', icon: 'shopping-cart' }, { id: 'inv', label: 'Inventario', href: '#', icon: 'boxes' }, { id: 'prod', label: 'Productos', href: '#', icon: 'package' }, { id: 'prov', label: 'Proveedores', href: '#', icon: 'truck' }] },
+      { label: 'Reportes', items: [{ id: 'graf', label: 'Gráficas', href: '#', icon: 'chart-column' }] }
+    ]
+    const clientes = [
+      { value: 'c1', code: 'C-0142', label: 'Destilería Las Lomas', description: 'RFC DLL120304AB1 · descuento 10 %' },
+      { value: 'c2', code: 'C-0087', label: 'Mezcalera del Sur', description: 'RFC MSU090811KZ2 · sin descuento' },
+      { value: 'c3', code: 'C-0210', label: 'Cervecería Artesanal Monte Alto', description: 'RFC CAM150612QP7 · descuento 5 %' }
+    ]
+    const entregan = [{ value: 'e1', label: 'Mariana Torres' }, { value: 'e2', label: 'Jorge Aguilar' }, { value: 'e3', label: 'Mensajería externa' }]
+    const m = reactive({ cliente: null, entrega: null, factura: null, pago: 'ninguno', revisado: false })
+    const muestras = ref([])
+    const DESC = { c1: 0.10, c2: 0, c3: 0.05 }
+    const CATALOGO = [['Mezcal joven · lote 0711', 'Metanol, grado alcohólico', 1450], ['Mezcal reposado · lote 0712', 'Metanol, alcoholes superiores', 2170], ['Cerveza lager · lote 33', 'Grado alcohólico, pH', 980]]
+    const agregar = () => {
+      const i = muestras.value.length % CATALOGO.length, [nombre, analisis, precio] = CATALOGO[i]
+      const neto = Math.round(precio * (1 - (DESC[m.cliente] || 0)))
+      muestras.value = [...muestras.value, { id: 'M-2026-' + (1190 + muestras.value.length), nombre, analisis, precio: neto }]
+    }
+    const total = computed(() => muestras.value.reduce((s, x) => s + x.precio, 0))
+    const fmt = (n) => '$' + n.toLocaleString('es-MX', { minimumFractionDigits: 2 })
+    const columnas = [
+      { key: 'muestra', label: 'Muestra', title: 'nombre', subtitle: 'id' },
+      { key: 'analisis', label: 'Análisis' },
+      { key: 'precio', label: 'Importe', align: 'end', format: (v) => fmt(v) }
+    ]
+    const errores = computed(() => ({
+      cliente: m.cliente ? '' : 'Elige el cliente al que se factura',
+      factura: m.factura ? '' : 'Indica si requiere factura',
+      muestras: muestras.value.length ? '' : 'Agrega al menos una muestra'
+    }))
+    const labelsCombo = { clear: 'Limpiar', close: 'Cerrar', noResults: 'Sin resultados para «{text}»', results: (n) => (n === 1 ? '1 resultado' : `${n} resultados`), more: 'Mostrar más ({shown} de {total})' }
+    const textos = { optional: '(opcional)', error: 'Error: ', warning: 'Advertencia: ', valid: 'Correcto: ' }
+    const enviado = ref('')
+    const registrar = () => { enviado.value = 'Orden registrada (demostración): ' + muestras.value.length + ' muestras, ' + fmt(total.value) + '.' }
+    // Firma (de la aplicación)
+    const lienzo = ref(null); let trazando = false, ctx = null
+    onMounted(() => {
+      const c = lienzo.value; const r = c.getBoundingClientRect(); c.width = r.width * devicePixelRatio; c.height = r.height * devicePixelRatio
+      ctx = c.getContext('2d'); ctx.scale(devicePixelRatio, devicePixelRatio); ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.strokeStyle = getComputedStyle(document.body).color
+    })
+    const pos = (e) => { const r = lienzo.value.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top] }
+    const ini = (e) => { trazando = true; ctx.beginPath(); ctx.moveTo(...pos(e)); lienzo.value.setPointerCapture(e.pointerId) }
+    const mov = (e) => { if (!trazando) return; ctx.lineTo(...pos(e)); ctx.stroke() }
+    const fin = () => { trazando = false }
+    const borrar = () => { const c = lienzo.value; ctx.clearRect(0, 0, c.width, c.height) }
+    return { actual, movil, nav, destinos, clientes, entregan, m, muestras, agregar, total, fmt, columnas, errores, labelsCombo, textos, enviado, registrar, lienzo, ini, mov, fin, borrar, SIMBOLO,
+      formasPago: [{ value: 'ninguno', label: 'Sin pago ahora' }, { value: 'efectivo', label: 'Efectivo' }, { value: 'tarjeta', label: 'Tarjeta' }, { value: 'transferencia', label: 'Transferencia' }],
+      siNo: [{ value: 'si', label: 'Sí' }, { value: 'no', label: 'No' }] }
+  },
+  template: `
+  <g-app-shell :labels="{ skip: 'Saltar al contenido' }">
+    <template #header>
+      <g-btn v-if="movil" icon variant="ghost" color="neutral" aria-label="Abrir la navegación" @click="nav.open()"><g-icon name="menu"></g-icon></g-btn>
+      <span class="marca"><span v-html="SIMBOLO"></span>GEMA</span>
+      <span class="ctx">Bebidas · Oaxaca</span>
+      <span class="usuario">Laura M.</span>
+    </template>
+    <template #nav>
+      <g-sidebar ref="nav" v-model="actual" :items="destinos" label="Principal" density="compact" @mode-change="movil = $event.mode === 'drawer'"></g-sidebar>
+    </template>
+    <g-container>
+      <g-page-header title="Registrar orden" description="Las muestras que entrega el cliente y, si paga ahora, su pago. Al registrarla se abre la orden, desde donde se ingresa cada muestra." :labels="{ actions: 'Acciones de la página' }"></g-page-header>
+      <g-form aria-label="Registrar orden" :errors="errores" :labels="textos" show-errors-on="submit" @submit="registrar">
+        <g-form-section title="Cliente y entrega">
+          <g-form-row>
+            <g-combobox v-model="m.cliente" name="cliente" label="Cliente al que se factura" placeholder="Razón social, RFC o número" clearable required :labels="labelsCombo" :options="clientes"></g-combobox>
+            <g-combobox v-model="m.entrega" name="entrega" label="Quién entrega las muestras" placeholder="Nombre de quien entrega" clearable :labels="labelsCombo" :options="entregan"></g-combobox>
+            <g-radio-group v-model="m.factura" name="factura" label="¿Requiere factura?" appearance="inline" required :options="siNo"></g-radio-group>
+          </g-form-row>
+        </g-form-section>
+        <g-form-section divider title="Muestras" description="Elige primero el cliente: sus descuentos cambian los precios.">
+          <g-table v-if="muestras.length" :columns="columnas" :rows="muestras" row-key="id" caption="Muestras de la orden" density="compact"></g-table>
+          <p v-else class="muestras-vacio">Agrega al menos una muestra.</p>
+          <div class="agregar"><g-btn variant="outline" color="neutral" :disabled="!m.cliente" @click="agregar">Agregar muestra</g-btn></div>
+        </g-form-section>
+        <g-form-section divider title="Pago">
+          <g-select v-model="m.pago" name="pago" label="Forma de pago" :options="formasPago"></g-select>
+          <div class="total"><span>Total de la orden</span><b>{{ fmt(total) }}</b></div>
+        </g-form-section>
+        <g-form-section divider title="Confirmación con quien entrega" optional>
+          <div class="firma">
+            <span class="firma-etq" id="firma-etq">Firma de quien entrega (opcional)</span>
+            <canvas ref="lienzo" tabindex="0" role="img" aria-labelledby="firma-etq" @pointerdown="ini" @pointermove="mov" @pointerup="fin" @pointercancel="fin"></canvas>
+            <div class="firma-pie"><span>Con el dedo, el lápiz o el ratón. Se guarda con la orden.</span><g-btn variant="ghost" color="neutral" size="sm" @click="borrar">Borrar firma</g-btn></div>
+          </div>
+          <g-checkbox v-model="m.revisado" name="revisado" label="Revisé la información de la orden con quien entrega"></g-checkbox>
+        </g-form-section>
+        <g-form-actions :status="enviado">
+          <g-btn variant="outline" color="neutral" type="button">Salir sin registrar</g-btn>
+          <g-btn type="submit">Registrar orden</g-btn>
+        </g-form-actions>
+      </g-form>
+    </g-container>
+  </g-app-shell>`
+})
+app.use(Grana.default || Grana)
+app.use(Grana.createIcons(ICONOS))
+for (const p of [window.GranaAppShell, window.GranaPageHeader, window.GranaCombobox]) if (p) app.use(p.default || p)
+app.mount('#app')
+</script>
+</body>
+</html>

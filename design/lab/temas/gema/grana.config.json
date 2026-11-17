@@ -1,0 +1,28 @@
+{
+  "name": "GEMA",
+  "brand": "#052A76",
+  "radius": 6,
+  "space": 4,
+  "font": "Onest",
+  "fontSize": 15,
+  "neutrals": "pure",
+  "semanticCollision": "warn",
+  "categories": 4,
+  "overrides": {
+    "--g-color-bg": "#f7f7f4",
+    "--g-color-surface": "#ffffff",
+    "--g-color-surface-sunken": "#f2f2ee",
+    "--g-color-border": "#e3e3de",
+    "--g-color-info": "#0b6e8a"
+  },
+  "dark": {
+    "brand": "#3D67AE",
+    "overrides": {
+      "--g-color-bg": "#0a0a0b",
+      "--g-color-surface": "#16161a",
+      "--g-color-surface-sunken": "#1f1f24",
+      "--g-color-border": "#2a2a30",
+      "--g-color-info": "#38bdf8"
+    }
+  }
+}
